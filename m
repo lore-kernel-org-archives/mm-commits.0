@@ -1,162 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - tpmc-fix-crash-during-device-removal.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:22:46 -0800
-Message-ID: <200802070022.m170MRcI006422@imap1.linux-foundation.org>
+Subject: - percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:42 -0800
+Message-ID: <200802070022.m170MNEU006416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57045 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52560 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934023AbYBGAp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:56 -0500
+	by vger.kernel.org with ESMTP id S935130AbYBGApw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard.musil@st.com, stable@kernel.org, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm.c: fix crash during device removal
+     PERCPU : __percpu_alloc_mask() can dynamically size percpu_data storage
 has been removed from the -mm tree.  Its filename was
-     tpmc-fix-crash-during-device-removal.patch
+     percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm.c: fix crash during device removal
-From: Richard MUSIL <richard.musil@st.com>
+Subject: PERCPU : __percpu_alloc_mask() can dynamically size percpu_data storage
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-The clean up procedure now uses platform device "release" callback to
-handle memory clean up.  For this purpose "release" function callback was
-added to struct tpm_vendor_specific, so hw device driver provider can get
-called when it is safe to remove all allocated resources.
+Instead of allocating a fix sized array of NR_CPUS pointers for percpu_data,
+we can use nr_cpu_ids, which is generally < NR_CPUS.
 
-This is supposed to fix a bug in device removal, where device while in
-receive function (waiting on timeout) was prone to segfault, if the
-tpm_chip struct was unallocated before the timeout expired (in
-tpm_remove_hardware).
-
-Acked-by: Marcel Selhorst <tpm@selhorst.net>
-Cc: <stable@kernel.org>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   44 +++++++++++++++++++++++----------------
- drivers/char/tpm/tpm.h |    2 +
- 2 files changed, 29 insertions(+), 17 deletions(-)
+ include/linux/percpu.h |    2 +-
+ mm/allocpercpu.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpmc-fix-crash-during-device-removal drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpmc-fix-crash-during-device-removal
-+++ a/drivers/char/tpm/tpm.c
-@@ -1031,18 +1031,13 @@ void tpm_remove_hardware(struct device *
+diff -puN include/linux/percpu.h~percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data include/linux/percpu.h
+--- a/include/linux/percpu.h~percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data
++++ a/include/linux/percpu.h
+@@ -54,7 +54,7 @@
+ #ifdef CONFIG_SMP
  
- 	spin_unlock(&driver_lock);
- 
--	dev_set_drvdata(dev, NULL);
- 	misc_deregister(&chip->vendor.miscdev);
--	kfree(chip->vendor.miscdev.name);
- 
- 	sysfs_remove_group(&dev->kobj, chip->vendor.attr_group);
- 	tpm_bios_log_teardown(chip->bios_dir);
- 
--	clear_bit(chip->dev_num, dev_mask);
--
--	kfree(chip);
--
--	put_device(dev);
-+	/* write it this way to be explicit (chip->dev == dev) */
-+	put_device(chip->dev);
- }
- EXPORT_SYMBOL_GPL(tpm_remove_hardware);
- 
-@@ -1083,6 +1078,26 @@ int tpm_pm_resume(struct device *dev)
- EXPORT_SYMBOL_GPL(tpm_pm_resume);
- 
- /*
-+ * Once all references to platform device are down to 0,
-+ * release all allocated structures.
-+ * In case vendor provided release function,
-+ * call it too.
-+ */
-+static void tpm_dev_release(struct device *dev)
-+{
-+	struct tpm_chip *chip = dev_get_drvdata(dev);
-+
-+	if (chip->vendor.release)
-+		chip->vendor.release(dev);
-+
-+	chip->release(dev);
-+
-+	clear_bit(chip->dev_num, dev_mask);
-+	kfree(chip->vendor.miscdev.name);
-+	kfree(chip);
-+}
-+
-+/*
-  * Called from tpm_<specific>.c probe function only for devices 
-  * the driver has determined it should claim.  Prior to calling
-  * this function the specific probe function has called pci_enable_device
-@@ -1136,23 +1151,21 @@ struct tpm_chip *tpm_register_hardware(s
- 
- 	chip->vendor.miscdev.parent = dev;
- 	chip->dev = get_device(dev);
-+	chip->release = dev->release;
-+	dev->release = tpm_dev_release;
-+	dev_set_drvdata(dev, chip);
- 
- 	if (misc_register(&chip->vendor.miscdev)) {
- 		dev_err(chip->dev,
- 			"unable to misc_register %s, minor %d\n",
- 			chip->vendor.miscdev.name,
- 			chip->vendor.miscdev.minor);
--		put_device(dev);
--		clear_bit(chip->dev_num, dev_mask);
--		kfree(chip);
--		kfree(devname);
-+		put_device(chip->dev);
- 		return NULL;
- 	}
- 
- 	spin_lock(&driver_lock);
- 
--	dev_set_drvdata(dev, chip);
--
- 	list_add(&chip->list, &tpm_chip_list);
- 
- 	spin_unlock(&driver_lock);
-@@ -1160,10 +1173,7 @@ struct tpm_chip *tpm_register_hardware(s
- 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
- 		list_del(&chip->list);
- 		misc_deregister(&chip->vendor.miscdev);
--		put_device(dev);
--		clear_bit(chip->dev_num, dev_mask);
--		kfree(chip);
--		kfree(devname);
-+		put_device(chip->dev);
- 		return NULL;
- 	}
- 
-diff -puN drivers/char/tpm/tpm.h~tpmc-fix-crash-during-device-removal drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpmc-fix-crash-during-device-removal
-+++ a/drivers/char/tpm/tpm.h
-@@ -74,6 +74,7 @@ struct tpm_vendor_specific {
- 	int (*send) (struct tpm_chip *, u8 *, size_t);
- 	void (*cancel) (struct tpm_chip *);
- 	u8 (*status) (struct tpm_chip *);
-+	void (*release) (struct device *);
- 	struct miscdevice miscdev;
- 	struct attribute_group *attr_group;
- 	struct list_head list;
-@@ -106,6 +107,7 @@ struct tpm_chip {
- 	struct dentry **bios_dir;
- 
- 	struct list_head list;
-+	void (*release) (struct device *);
+ struct percpu_data {
+-	void *ptrs[NR_CPUS];
++	void *ptrs[1];
  };
  
- #define to_tpm_chip(n) container_of(n, struct tpm_chip, vendor)
+ #define __percpu_disguise(pdata) (struct percpu_data *)~(unsigned long)(pdata)
+diff -puN mm/allocpercpu.c~percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data mm/allocpercpu.c
+--- a/mm/allocpercpu.c~percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data
++++ a/mm/allocpercpu.c
+@@ -98,7 +98,7 @@ EXPORT_SYMBOL_GPL(__percpu_populate_mask
+  */
+ void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
+ {
+-	void *pdata = kzalloc(sizeof(struct percpu_data), gfp);
++	void *pdata = kzalloc(nr_cpu_ids * sizeof(void *), gfp);
+ 	void *__pdata = __percpu_disguise(pdata);
+ 
+ 	if (unlikely(!pdata))
 _
 
-Patches currently in -mm which might be from richard.musil@st.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
