@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ata-drivers-ata-sata_mvc-needs-dmapoolh.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:31:04 -0800
-Message-ID: <200802070030.m170UjIC007419@imap1.linux-foundation.org>
+Subject: - drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:31:18 -0800
+Message-ID: <200802070030.m170UxRV007441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36185 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932712AbYBGAjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:39:21 -0500
+	by vger.kernel.org with ESMTP id S934805AbYBGAjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:39:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata: drivers/ata/sata_mv.c needs dmapool.h
+     drivers/scsi/dc395x.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
+     drivers-scsi-dc395xc-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ata: drivers/ata/sata_mv.c needs dmapool.h
+Subject: drivers/scsi/dc395x.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
+drivers/scsi/dc395x.c: In function 'dc395x_init_one':
+drivers/scsi/dc395x.c:4270: warning: 'ptr' may be used uninitialized in this function
 
-drivers/ata/sata_mv.c: In function `mv_port_free_dma_mem':
-drivers/ata/sata_mv.c:1080: error: implicit declaration of function `dma_pool_free'
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/dc395x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh
-+++ a/drivers/ata/sata_mv.c
-@@ -69,6 +69,7 @@
- #include <linux/blkdev.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/dmapool.h>
- #include <linux/dma-mapping.h>
- #include <linux/device.h>
- #include <scsi/scsi_host.h>
+diff -puN drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning drivers/scsi/dc395x.c
+--- a/drivers/scsi/dc395x.c~drivers-scsi-dc395xc-fix-uninitialized-var-warning
++++ a/drivers/scsi/dc395x.c
+@@ -4267,7 +4267,7 @@ static int __devinit adapter_sg_tables_a
+ 	const unsigned srbs_per_page = PAGE_SIZE/SEGMENTX_LEN;
+ 	int srb_idx = 0;
+ 	unsigned i = 0;
+-	struct SGentry *ptr;
++	struct SGentry *uninitialized_var(ptr);
+ 
+ 	for (i = 0; i < DC395x_MAX_SRB_CNT; i++)
+ 		acb->srb_array[i].segment_x = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
