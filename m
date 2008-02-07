@@ -1,96 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:27:33 -0800
-Message-ID: <200802070327.m173RERZ013815@imap1.linux-foundation.org>
+Subject: - cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:28:28 -0800
+Message-ID: <200802070328.m173S9BP013837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758776AbYBGD2h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:28:37 -0500
+	by vger.kernel.org with ESMTP id S1759200AbYBGD2o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:28:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Misc fix for memory cgroup [4/5] skip  !PageLRU page in mem_cgroup_isolate_pages (fix)
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+This patch was dropped because it was folded into cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Misc fix for memory cgroup [4/5] skip  !PageLRU page in mem_cgroup_isolate_pages (fix)
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Bugfix for memory cgroup skip !PageLRU page in mem_cgroup_isolate_pages
+WARNING: line over 80 characters
+#40: FILE: include/linux/cgroup.h:214:
++	void (*process_task)(struct task_struct *p, struct cgroup_scanner *scan);
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+ERROR: use tabs not spaces
+#85: FILE: kernel/cgroup.c:1712:
++ ^Ido_each_thread(g, p) {$
+
+ERROR: use tabs not spaces
+#90: FILE: kernel/cgroup.c:1717:
++ ^I} while_each_thread(g, p);$
+
+total: 2 errors, 1 warnings, 252 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Cliff Wickman <cpw@sgi.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cgroup.h |    3 ++-
+ kernel/cgroup.c        |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix
-+++ a/mm/memcontrol.c
-@@ -260,7 +260,7 @@ unsigned long mem_cgroup_isolate_pages(u
- 	spin_lock(&mem_cont->lru_lock);
- 	scan = 0;
- 	list_for_each_entry_safe_reverse(pc, tmp, src, lru) {
--		if (scan++ > nr_taken)
-+		if (scan++ > nr_to_scan)
- 			break;
- 		page = pc->page;
- 		VM_BUG_ON(!pc);
+diff -puN include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
++++ a/include/linux/cgroup.h
+@@ -211,7 +211,8 @@ struct cftype {
+ struct cgroup_scanner {
+ 	struct cgroup *cg;
+ 	int (*test_task)(struct task_struct *p, struct cgroup_scanner *scan);
+-	void (*process_task)(struct task_struct *p, struct cgroup_scanner *scan);
++	void (*process_task)(struct task_struct *p,
++			struct cgroup_scanner *scan);
+ 	struct ptr_heap *heap;
+ };
+ 
+diff -puN kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes
++++ a/kernel/cgroup.c
+@@ -1709,12 +1709,12 @@ void cgroup_enable_task_cg_lists(void)
+ 	struct task_struct *p, *g;
+ 	write_lock(&css_set_lock);
+ 	use_task_css_set_links = 1;
+- 	do_each_thread(g, p) {
++	do_each_thread(g, p) {
+ 		task_lock(p);
+ 		if (list_empty(&p->cg_list))
+ 			list_add(&p->cg_list, &p->cgroups->tasks);
+ 		task_unlock(p);
+- 	} while_each_thread(g, p);
++	} while_each_thread(g, p);
+ 	write_unlock(&css_set_lock);
+ }
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcgroup-temporarily-revert-swapoff-mod.patch
-memory-controller-improve-user-interface.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+cgroup-simplify-space-stripping.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
-memcgroup-tidy-up-mem_cgroup_charge_common.patch
-memcgroup-fix-hang-with-shmem-tmpfs.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
-memory-controller-remove-control_type-feature.patch
-update-documentation-controller-memorytxt.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
