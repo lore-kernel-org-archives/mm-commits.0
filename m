@@ -1,91 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-attribute-caching-after-create.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:56 -0800
-Message-ID: <200802070026.m170Qbfj006937@imap1.linux-foundation.org>
+Subject: - register_cpu-__devinit-or-__cpuinit.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:15 -0800
+Message-ID: <200802070020.m170KufS006205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45946 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764913AbYBGAoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:17 -0500
+	by vger.kernel.org with ESMTP id S1763283AbYBGAoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: fix attribute caching after create
+     register_cpu __devinit or __cpuinit
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-attribute-caching-after-create.patch
+     register_cpu-__devinit-or-__cpuinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: fix attribute caching after create
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: register_cpu __devinit or __cpuinit
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Invalidate attributes on create, since st_ctime is updated.  Reported by
-Szabolcs Szakacsits.
+Is there some reason why register_cpu() is __devinit instead of __cpuinit ?
+Make it __cpuinit.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fuse/dir.c~fuse-fix-attribute-caching-after-create fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-fix-attribute-caching-after-create
-+++ a/fs/fuse/dir.c
-@@ -416,6 +416,7 @@ static int fuse_create_open(struct inode
- 	fuse_put_request(fc, forget_req);
- 	d_instantiate(entry, inode);
- 	fuse_change_entry_timeout(entry, &outentry);
-+	fuse_invalidate_attr(dir);
- 	file = lookup_instantiate_filp(nd, entry, generic_file_open);
- 	if (IS_ERR(file)) {
- 		ff->fh = outopen.fh;
+diff -puN drivers/base/cpu.c~register_cpu-__devinit-or-__cpuinit drivers/base/cpu.c
+--- a/drivers/base/cpu.c~register_cpu-__devinit-or-__cpuinit
++++ a/drivers/base/cpu.c
+@@ -110,7 +110,7 @@ static SYSDEV_ATTR(crash_notes, 0400, sh
+  *
+  * Initialize and register the CPU device.
+  */
+-int __devinit register_cpu(struct cpu *cpu, int num)
++int __cpuinit register_cpu(struct cpu *cpu, int num)
+ {
+ 	int error;
+ 	cpu->node_id = cpu_to_node(num);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mount-options-add-documentation.patch
-mount-options-add-generic_show_options.patch
-mount-options-fix-adfs.patch
-mount-options-fix-affs.patch
-mount-options-fix-afs.patch
-mount-options-fix-autofs4.patch
-mount-options-fix-autofs.patch
-mount-options-fix-befs.patch
-mount-options-fix-capifs.patch
-mount-options-fix-devpts.patch
-mount-options-fix-ext2.patch
-mount-options-fix-fat.patch
-mount-options-fix-fuse.patch
-mount-options-fix-hostfs.patch
-mount-options-fix-hpfs.patch
-mount-options-fix-hugetlbfs.patch
-mount-options-fix-isofs.patch
-mount-options-fix-ncpfs.patch
-mount-options-fix-reiserfs.patch
-mount-options-fix-spufs.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-mount-options-fix-udf.patch
-vfs-create-proc-pid-mountinfo.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
