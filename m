@@ -1,96 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - uio-nopage.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:14 -0800
-Message-ID: <200802070023.m170Nt98006565@imap1.linux-foundation.org>
+Subject: - fb-s3c2410-ensure-s3c2410-framebuffer-clears-initial-memory-to-black.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:27 -0800
+Message-ID: <200802070029.m170T8NZ007247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760538AbYBGAoo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:44 -0500
+	by vger.kernel.org with ESMTP id S1764611AbYBGAon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hjk@linutronix.de, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, adaplas@pol.net, vince@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uio: nopage
+     FB/S3C2410: ensure S3C2410 framebuffer clears initial memory to black
 has been removed from the -mm tree.  Its filename was
-     uio-nopage.patch
+     fb-s3c2410-ensure-s3c2410-framebuffer-clears-initial-memory-to-black.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uio: nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: FB/S3C2410: ensure S3C2410 framebuffer clears initial memory to black
+From: Ben Dooks <ben-linux@fluff.org>
 
-Convert uio from nopage to fault.
+Change the initial pattern in the s3c2410 framebuffer driver
+to black.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Hans J Koch <hjk@linutronix.de>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uio/uio.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/video/s3c2410fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/uio/uio.c~uio-nopage drivers/uio/uio.c
---- a/drivers/uio/uio.c~uio-nopage
-+++ a/drivers/uio/uio.c
-@@ -417,30 +417,28 @@ static void uio_vma_close(struct vm_area
- 	idev->vma_count--;
- }
+diff -puN drivers/video/s3c2410fb.c~fb-s3c2410-ensure-s3c2410-framebuffer-clears-initial-memory-to-black drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~fb-s3c2410-ensure-s3c2410-framebuffer-clears-initial-memory-to-black
++++ a/drivers/video/s3c2410fb.c
+@@ -679,7 +679,7 @@ static int __init s3c2410fb_map_video_me
+ 		/* prevent initial garbage on screen */
+ 		dprintk("map_video_memory: clear %p:%08x\n",
+ 			info->screen_base, map_size);
+-		memset(info->screen_base, 0xf0, map_size);
++		memset(info->screen_base, 0x00, map_size);
  
--static struct page *uio_vma_nopage(struct vm_area_struct *vma,
--				   unsigned long address, int *type)
-+static int uio_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct uio_device *idev = vma->vm_private_data;
--	struct page* page = NOPAGE_SIGBUS;
-+	struct page *page;
+ 		info->fix.smem_start = map_dma;
  
- 	int mi = uio_find_mem_index(vma);
- 	if (mi < 0)
--		return page;
-+		return VM_FAULT_SIGBUS;
- 
- 	if (idev->info->mem[mi].memtype == UIO_MEM_LOGICAL)
- 		page = virt_to_page(idev->info->mem[mi].addr);
- 	else
- 		page = vmalloc_to_page((void*)idev->info->mem[mi].addr);
- 	get_page(page);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return page;
-+	vmf->page = page;
-+	return 0;
- }
- 
- static struct vm_operations_struct uio_vm_ops = {
- 	.open = uio_vma_open,
- 	.close = uio_vma_close,
--	.nopage = uio_vma_nopage,
-+	.fault = uio_vma_fault,
- };
- 
- static int uio_mmap_physical(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-drm-convert-from-nopage-to-fault.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-mm-special-mapping-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rewrite-rd-fix-2.patch
-rd-support-xip.patch
-mm-remove-nopage.patch
-buffer_head-fix-private_list-handling.patch
-reiser4.patch
-reiser4-correct-references-to-filemap_nopage.patch
+git-mtd.patch
