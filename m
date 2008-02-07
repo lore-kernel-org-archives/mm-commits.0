@@ -1,106 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-tlanc-compilation-warning-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:31:09 -0800
-Message-ID: <200802070030.m170Uon2007425@imap1.linux-foundation.org>
+Subject: - unix98-allocated_ptys_lock-semaphore-to-mutex.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:03 -0800
+Message-ID: <200802070023.m170Ni7P006552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934416AbYBGAs3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:48:29 -0500
+	by vger.kernel.org with ESMTP id S935131AbYBGApw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lpotenza@inwind.it, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, hpa@zytor.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/tlan.c: compilation warning fix
+     unix98 allocated_ptys_lock semaphore to mutex
 has been removed from the -mm tree.  Its filename was
-     drivers-net-tlanc-compilation-warning-fix.patch
+     unix98-allocated_ptys_lock-semaphore-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/tlan.c: compilation warning fix
-From: Leonardo Potenza <lpotenza@inwind.it>
+Subject: unix98 allocated_ptys_lock semaphore to mutex
+From: Daniel Walker <dwalker@mvista.com>
 
-Add a check for the pci_register_driver() return value.  Removed unused
-variable pad_allocated.
+Convert the unix98 allocated_ptys_lock to a mutex.
 
-The aim of this patch is to remove the following warning messages:
-drivers/net/tlan.c: In function 'tlan_probe':
-drivers/net/tlan.c:486: warning: ignoring return value of 'pci_register_driver', declared with attribute warn_unused_result
-
-Signed-off-by: Leonardo Potenza <lpotenza@inwind.it>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tlan.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/char/tty_io.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix drivers/net/tlan.c
---- a/drivers/net/tlan.c~drivers-net-tlanc-compilation-warning-fix
-+++ a/drivers/net/tlan.c
-@@ -465,7 +465,7 @@ static struct pci_driver tlan_driver = {
+diff -puN drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex
++++ a/drivers/char/tty_io.c
+@@ -138,7 +138,7 @@ EXPORT_SYMBOL(tty_mutex);
+ extern struct tty_driver *ptm_driver;	/* Unix98 pty masters; for /dev/ptmx */
+ extern int pty_limit;		/* Config limit on Unix98 ptys */
+ static DEFINE_IDR(allocated_ptys);
+-static DECLARE_MUTEX(allocated_ptys_lock);
++static DEFINE_MUTEX(allocated_ptys_lock);
+ static int ptmx_open(struct inode *, struct file *);
+ #endif
  
- static int __init tlan_probe(void)
- {
--	static int	pad_allocated;
-+	int rc = -ENODEV;
- 
- 	printk(KERN_INFO "%s", tlan_banner);
- 
-@@ -473,17 +473,22 @@ static int __init tlan_probe(void)
- 
- 	if (TLanPadBuffer == NULL) {
- 		printk(KERN_ERR "TLAN: Could not allocate memory for pad buffer.\n");
--		return -ENOMEM;
-+		rc = -ENOMEM;
-+		goto err_out;
+@@ -2571,9 +2571,9 @@ static void release_dev(struct file * fi
+ #ifdef CONFIG_UNIX98_PTYS
+ 	/* Make this pty number available for reallocation */
+ 	if (devpts) {
+-		down(&allocated_ptys_lock);
++		mutex_lock(&allocated_ptys_lock);
+ 		idr_remove(&allocated_ptys, idx);
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
  	}
+ #endif
  
- 	memset(TLanPadBuffer, 0, TLAN_MIN_FRAME_SIZE);
--	pad_allocated = 1;
+@@ -2737,24 +2737,24 @@ static int ptmx_open(struct inode * inod
+ 	nonseekable_open(inode, filp);
  
- 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting PCI Probe....\n");
- 
- 	/* Use new style PCI probing. Now the kernel will
- 	   do most of this for us */
--	pci_register_driver(&tlan_driver);
-+	rc = pci_register_driver(&tlan_driver);
-+
-+	if (rc != 0) {
-+		printk(KERN_ERR "TLAN: Could not register pci driver.\n");
-+		goto err_out_pci_free;
-+	}
- 
- 	TLAN_DBG(TLAN_DEBUG_PROBE, "Starting EISA Probe....\n");
- 	TLan_EisaProbe();
-@@ -493,11 +498,17 @@ static int __init tlan_probe(void)
- 		 tlan_have_pci, tlan_have_eisa);
- 
- 	if (TLanDevicesInstalled == 0) {
--		pci_unregister_driver(&tlan_driver);
--		pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
--		return -ENODEV;
-+		rc = -ENODEV;
-+		goto  err_out_pci_unreg;
+ 	/* find a device that is not in use. */
+-	down(&allocated_ptys_lock);
++	mutex_lock(&allocated_ptys_lock);
+ 	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		return -ENOMEM;
  	}
- 	return 0;
-+
-+err_out_pci_unreg:
-+	pci_unregister_driver(&tlan_driver);
-+err_out_pci_free:
-+	pci_free_consistent(NULL, TLAN_MIN_FRAME_SIZE, TLanPadBuffer, TLanPadBufferDMA);
-+err_out:
-+	return rc;
+ 	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
+ 	if (idr_ret < 0) {
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		if (idr_ret == -EAGAIN)
+ 			return -ENOMEM;
+ 		return -EIO;
+ 	}
+ 	if (index >= pty_limit) {
+ 		idr_remove(&allocated_ptys, index);
+-		up(&allocated_ptys_lock);
++		mutex_unlock(&allocated_ptys_lock);
+ 		return -EIO;
+ 	}
+-	up(&allocated_ptys_lock);
++	mutex_unlock(&allocated_ptys_lock);
+ 
+ 	mutex_lock(&tty_mutex);
+ 	retval = init_dev(ptm_driver, index, &tty);
+@@ -2781,9 +2781,9 @@ out1:
+ 	release_dev(filp);
+ 	return retval;
+ out:
+-	down(&allocated_ptys_lock);
++	mutex_lock(&allocated_ptys_lock);
+ 	idr_remove(&allocated_ptys, index);
+-	up(&allocated_ptys_lock);
++	mutex_unlock(&allocated_ptys_lock);
+ 	return retval;
  }
- 
- 
+ #endif
 _
 
-Patches currently in -mm which might be from lpotenza@inwind.it are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
+driver-base-memory-semaphore-to-mutex.patch
+usb-microtek-remove-unused-semaphore.patch
+usb-libusual-locking-cleanup.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
