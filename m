@@ -1,111 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - fb-nvidiafb-try-harder-at-initial-mode-setting.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:36 -0800
-Message-ID: <200802070028.m170SHmQ007135@imap1.linux-foundation.org>
+Subject: - tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:27 -0800
+Message-ID: <200802070024.m170O80H006583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764719AbYBGAos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:48 -0500
+	by vger.kernel.org with ESMTP id S1765520AbYBGAor (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: joe@skyrush.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb: nvidiafb: Try harder at initial mode setting.
+     tty: enable the echoing of ^C in the N_TTY discipline
 has been removed from the -mm tree.  Its filename was
-     fb-nvidiafb-try-harder-at-initial-mode-setting.patch
+     tty-enable-the-echoing-of-c-in-the-n_tty-discipline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: nvidiafb: Try harder at initial mode setting.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: tty: enable the echoing of ^C in the N_TTY discipline
+From: Joe Peterson <joe@skyrush.com>
 
-The current nvidiafb_check_var() simply bails out if the selected mode is
-out of range of the panel dimensions.  A good question would be why the
-bogus mode is being selected in the first place -- the panel dimensions
-that are read back are certainly bogus, but alas, I have no idea where to
-even begin looking at the i2c/EDID/DDC mess:
+Turn on INTR/QUIT/SUSP echoing in the N_TTY line discipline (e.g.  ctrl-C
+will appear as "^C" if stty echoctl is set and ctrl-C is set as INTR).
 
-nvidiafb: Device ID: 10de0165
-nvidiafb: CRTC0 analog not found
-nvidiafb: CRTC1 analog not found
-nvidiafb: EDID found from BUS1
-nvidiafb: CRTC 0 is currently programmed for DFP
-nvidiafb: Using DFP on CRTC 0
-nvidiafb: Panel size is 1280 x 1024
-nvidiafb: Panel is TMDS
-nvidiafb: unable to setup MTRR
-nvidiafb: Flat panel dithering disabled
-nvidiafb: PCI nVidia NV16 framebuffer (64MB @ 0xC0000000)
+Linux seems to be the only unix-like OS (recently I've verified this on
+Solaris, BSD, and Mac OS X) that does *not* behave this way, and I really
+miss this as a good visual confirmation of the interrupt of a program in
+the console or xterm.  I remember this fondly from many Unixs I've used
+over the years as well.  Bringing this to Linux also seems like a good way
+to make it yet more compliant with standard unix-like behavior.
 
-In my .config I presently have:
-
-CONFIG_FIRMWARE_EDID=y
-CONFIG_FB_DDC=y
-CONFIG_FB_NVIDIA_I2C=y
-
-I've not tried fiddling with these options, as I haven't the vaguest idea
-what I should be looking at.
-
-As a workaround, simply groveling for a new mode based on the probed
-dimensions seems to work ok.  While it would be nice to debug this further
-and sort out why the panel information is bogus, I think it's still worth
-retrying the mode based on the panel information at hand as a last-ditch
-effort, rather than simply bailing out completely.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Antonino A. Daplas <adaplas@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nvidia.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ drivers/char/n_tty.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/nvidia/nvidia.c~fb-nvidiafb-try-harder-at-initial-mode-setting drivers/video/nvidia/nvidia.c
---- a/drivers/video/nvidia/nvidia.c~fb-nvidiafb-try-harder-at-initial-mode-setting
-+++ a/drivers/video/nvidia/nvidia.c
-@@ -849,9 +849,27 @@ static int nvidiafb_check_var(struct fb_
- 	if (!mode_valid && info->monspecs.modedb_len)
- 		return -EINVAL;
- 
-+	/*
-+	 * If we're on a flat panel, check if the mode is outside of the
-+	 * panel dimensions. If so, cap it and try for the next best mode
-+	 * before bailing out.
-+	 */
- 	if (par->fpWidth && par->fpHeight && (par->fpWidth < var->xres ||
--					      par->fpHeight < var->yres))
--		return -EINVAL;
-+					      par->fpHeight < var->yres)) {
-+		const struct fb_videomode *mode;
-+
-+		var->xres = par->fpWidth;
-+		var->yres = par->fpHeight;
-+
-+		mode = fb_find_best_mode(var, &info->modelist);
-+		if (!mode) {
-+			printk(KERN_ERR PFX "mode out of range of flat "
-+			       "panel dimensions\n");
-+			return -EINVAL;
-+		}
-+
-+		fb_videomode_to_var(var, mode);
-+	}
- 
- 	if (var->yres_virtual < var->yres)
- 		var->yres_virtual = var->yres;
+diff -puN drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-enable-the-echoing-of-c-in-the-n_tty-discipline
++++ a/drivers/char/n_tty.c
+@@ -769,7 +769,21 @@ static inline void n_tty_receive_char(st
+ 		signal = SIGTSTP;
+ 		if (c == SUSP_CHAR(tty)) {
+ send_signal:
+-			isig(signal, tty, 0);
++			/*
++			 * Echo character, and then send the signal.
++			 * Note that we do not use isig() here because we want
++			 * the order to be:
++			 * 1) flush, 2) echo, 3) signal
++			 */
++			if (!L_NOFLSH(tty)) {
++				n_tty_flush_buffer(tty);
++				if (tty->driver->flush_buffer)
++					tty->driver->flush_buffer(tty);
++			}
++			if (L_ECHO(tty))
++				echo_char(c, tty);
++			if (tty->pgrp)
++				kill_pgrp(tty->pgrp, signal, 1);
+ 			return;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from joe@skyrush.com are
 
 origin.patch
-git-sh.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-avoid-overflows-in-kernel-timec.patch
