@@ -1,216 +1,287 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-check-for-existing-key_tfm-at-mount-time.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:54 -0800
-Message-ID: <200802070026.m170QZ39006931@imap1.linux-foundation.org>
+Subject: - spi-superh-spi-using-sci.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:54 -0800
+Message-ID: <200802070025.m170PZ6R006729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41521 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933135AbYBGAqN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:13 -0500
+	by vger.kernel.org with ESMTP id S932737AbYBGAqF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, jmoyer@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, damm@igel.co.jp, dbrownell@users.sourceforge.net, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: check for existing key_tfm at mount time
+     spi: SuperH SPI using SCI
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
+     spi-superh-spi-using-sci.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: check for existing key_tfm at mount time
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: spi: SuperH SPI using SCI
+From: Magnus Damm <magnus.damm@gmail.com>
 
-Jeff Moyer pointed out that a mount; umount loop of ecryptfs, with the same
-cipher & other mount options, created a new ecryptfs_key_tfm_cache item
-each time, and the cache could grow quite large this way.
+Add support for SPI over SCI pins.  SCI is a very simple serial controller
+block that can be found on older SuperH processors.  In theory it is
+possible to use the SCI hardware block in syncronous mode, but this version
+of the driver simply hooks up the bit banging code on the SCI pins.
 
-Looking at this with mhalcrow, we saw that ecryptfs_parse_options()
-unconditionally called ecryptfs_add_new_key_tfm(), which is what was adding
-these items.
-
-Refactor ecryptfs_get_tfm_and_mutex_for_cipher_name() to create a new
-helper function, ecryptfs_tfm_exists(), which checks for the cipher on the
-cached key_tfm_list, and sets a pointer to it if it exists.  This can then
-be called from ecryptfs_parse_options(), and new key_tfm's can be added
-only when a cached one is not found.
-
-With list locking changes suggested by akpm.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |   67 +++++++++++++++++++++++++-------
- fs/ecryptfs/ecryptfs_kernel.h |    3 +
- fs/ecryptfs/main.c            |   10 +++-
- 3 files changed, 63 insertions(+), 17 deletions(-)
+ drivers/spi/Kconfig      |    7 +
+ drivers/spi/Makefile     |    1 
+ drivers/spi/spi_sh_sci.c |  205 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 213 insertions(+)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/crypto.c
-@@ -1779,7 +1779,7 @@ out:
+diff -puN drivers/spi/Kconfig~spi-superh-spi-using-sci drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi-superh-spi-using-sci
++++ a/drivers/spi/Kconfig
+@@ -176,6 +176,13 @@ config SPI_S3C24XX_GPIO
+ 	  the inbuilt hardware cannot provide the transfer mode, or
+ 	  where the board is using non hardware connected pins.
  
- struct kmem_cache *ecryptfs_key_tfm_cache;
- static struct list_head key_tfm_list;
--static struct mutex key_tfm_list_mutex;
-+struct mutex key_tfm_list_mutex;
- 
- int ecryptfs_init_crypto(void)
- {
-@@ -1788,6 +1788,11 @@ int ecryptfs_init_crypto(void)
- 	return 0;
- }
- 
-+/**
-+ * ecryptfs_destroy_crypto - free all cached key_tfms on key_tfm_list
-+ *
-+ * Called only at module unload time
-+ */
- int ecryptfs_destroy_crypto(void)
- {
- 	struct ecryptfs_key_tfm *key_tfm, *key_tfm_tmp;
-@@ -1811,6 +1816,8 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 	struct ecryptfs_key_tfm *tmp_tfm;
- 	int rc = 0;
- 
-+	BUG_ON(!mutex_is_locked(&key_tfm_list_mutex));
++config SPI_SH_SCI
++	tristate "SuperH SCI SPI controller"
++	depends on SPI_MASTER && SUPERH
++	select SPI_BITBANG
++	help
++	  SPI driver for SuperH SCI blocks.
 +
- 	tmp_tfm = kmem_cache_alloc(ecryptfs_key_tfm_cache, GFP_KERNEL);
- 	if (key_tfm != NULL)
- 		(*key_tfm) = tmp_tfm;
-@@ -1837,13 +1844,50 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 			(*key_tfm) = NULL;
- 		goto out;
- 	}
--	mutex_lock(&key_tfm_list_mutex);
- 	list_add(&tmp_tfm->key_tfm_list, &key_tfm_list);
--	mutex_unlock(&key_tfm_list_mutex);
- out:
- 	return rc;
- }
+ config SPI_TXX9
+ 	tristate "Toshiba TXx9 SPI controller"
+ 	depends on SPI_MASTER && GENERIC_GPIO && CPU_TX49XX
+diff -puN drivers/spi/Makefile~spi-superh-spi-using-sci drivers/spi/Makefile
+--- a/drivers/spi/Makefile~spi-superh-spi-using-sci
++++ a/drivers/spi/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_SPI_S3C24XX_GPIO)		+= spi_s
+ obj-$(CONFIG_SPI_S3C24XX)		+= spi_s3c24xx.o
+ obj-$(CONFIG_SPI_TXX9)			+= spi_txx9.o
+ obj-$(CONFIG_SPI_XILINX)		+= xilinx_spi.o
++obj-$(CONFIG_SPI_SH_SCI)		+= spi_sh_sci.o
+ # 	... add above this line ...
  
-+/**
-+ * ecryptfs_tfm_exists - Search for existing tfm for cipher_name.
-+ * @cipher_name: the name of the cipher to search for
-+ * @key_tfm: set to corresponding tfm if found
+ # SPI protocol drivers (device/link on bus)
+diff -puN /dev/null drivers/spi/spi_sh_sci.c
+--- /dev/null
++++ a/drivers/spi/spi_sh_sci.c
+@@ -0,0 +1,205 @@
++/*
++ * SH SCI SPI interface
 + *
-+ * Searches for cached key_tfm matching @cipher_name
-+ * Must be called with &key_tfm_list_mutex held
-+ * Returns 1 if found, with @key_tfm set
-+ * Returns 0 if not found, with @key_tfm set to NULL
++ * Copyright (c) 2008 Magnus Damm
++ *
++ * Based on S3C24XX GPIO based SPI driver, which is:
++ *   Copyright (c) 2006 Ben Dooks
++ *   Copyright (c) 2006 Simtec Electronics
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
 + */
-+int ecryptfs_tfm_exists(char *cipher_name, struct ecryptfs_key_tfm **key_tfm)
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/workqueue.h>
++#include <linux/platform_device.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/spi_bitbang.h>
++
++#include <asm/spi.h>
++#include <asm/io.h>
++
++struct sh_sci_spi {
++	struct spi_bitbang bitbang;
++
++	void __iomem *membase;
++	unsigned char val;
++	struct sh_spi_info *info;
++	struct platform_device *dev;
++};
++
++#define SCSPTR(sp)	(sp->membase + 0x1c)
++#define PIN_SCK		(1 << 2)
++#define PIN_TXD		(1 << 0)
++#define PIN_RXD		PIN_TXD
++#define PIN_INIT	((1 << 1) | (1 << 3) | PIN_SCK | PIN_TXD)
++
++static inline void setbits(struct sh_sci_spi *sp, int bits, int on)
 +{
-+	struct ecryptfs_key_tfm *tmp_key_tfm;
++	/*
++	 * We are the only user of SCSPTR so no locking is required.
++	 * Reading bit 2 and 0 in SCSPTR gives pin state as input.
++	 * Writing the same bits sets the output value.
++	 * This makes regular read-modify-write difficult so we
++	 * use sp->val to keep track of the latest register value.
++	 */
 +
-+	BUG_ON(!mutex_is_locked(&key_tfm_list_mutex));
++	if (on)
++		sp->val |= bits;
++	else
++		sp->val &= ~bits;
 +
-+	list_for_each_entry(tmp_key_tfm, &key_tfm_list, key_tfm_list) {
-+		if (strcmp(tmp_key_tfm->cipher_name, cipher_name) == 0) {
-+			if (key_tfm)
-+				(*key_tfm) = tmp_key_tfm;
-+			return 1;
-+		}
++	iowrite8(sp->val, SCSPTR(sp));
++}
++
++static inline void setsck(struct spi_device *dev, int on)
++{
++	setbits(spi_master_get_devdata(dev->master), PIN_SCK, on);
++}
++
++static inline void setmosi(struct spi_device *dev, int on)
++{
++	setbits(spi_master_get_devdata(dev->master), PIN_TXD, on);
++}
++
++static inline u32 getmiso(struct spi_device *dev)
++{
++	struct sh_sci_spi *sp = spi_master_get_devdata(dev->master);
++
++	return (ioread8(SCSPTR(sp)) & PIN_RXD) ? 1 : 0;
++}
++
++#define spidelay(x) ndelay(x)
++
++#define EXPAND_BITBANG_TXRX
++#include <linux/spi/spi_bitbang.h>
++
++static u32 sh_sci_spi_txrx_mode0(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 0, word, bits);
++}
++
++static u32 sh_sci_spi_txrx_mode1(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 0, word, bits);
++}
++
++static u32 sh_sci_spi_txrx_mode2(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha0(spi, nsecs, 1, word, bits);
++}
++
++static u32 sh_sci_spi_txrx_mode3(struct spi_device *spi,
++				      unsigned nsecs, u32 word, u8 bits)
++{
++	return bitbang_txrx_be_cpha1(spi, nsecs, 1, word, bits);
++}
++
++static void sh_sci_spi_chipselect(struct spi_device *dev, int value)
++{
++	struct sh_sci_spi *sp = spi_master_get_devdata(dev->master);
++
++	if (sp->info && sp->info->chip_select)
++		(sp->info->chip_select)(sp->info, dev->chip_select, value);
++}
++
++static int sh_sci_spi_probe(struct platform_device *dev)
++{
++	struct resource	*r;
++	struct spi_master *master;
++	struct sh_sci_spi *sp;
++	int ret;
++
++	master = spi_alloc_master(&dev->dev, sizeof(struct sh_sci_spi));
++	if (master == NULL) {
++		dev_err(&dev->dev, "failed to allocate spi master\n");
++		ret = -ENOMEM;
++		goto err0;
 +	}
-+	if (key_tfm)
-+		(*key_tfm) = NULL;
++
++	sp = spi_master_get_devdata(master);
++
++	platform_set_drvdata(dev, sp);
++	sp->info = dev->dev.platform_data;
++
++	/* setup spi bitbang adaptor */
++	sp->bitbang.master = spi_master_get(master);
++	sp->bitbang.master->bus_num = sp->info->bus_num;
++	sp->bitbang.master->num_chipselect = sp->info->num_chipselect;
++	sp->bitbang.chipselect = sh_sci_spi_chipselect;
++
++	sp->bitbang.txrx_word[SPI_MODE_0] = sh_sci_spi_txrx_mode0;
++	sp->bitbang.txrx_word[SPI_MODE_1] = sh_sci_spi_txrx_mode1;
++	sp->bitbang.txrx_word[SPI_MODE_2] = sh_sci_spi_txrx_mode2;
++	sp->bitbang.txrx_word[SPI_MODE_3] = sh_sci_spi_txrx_mode3;
++
++	r = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (r == NULL) {
++		ret = -ENOENT;
++		goto err1;
++	}
++	sp->membase = ioremap(r->start, r->end - r->start + 1);
++	if (!sp->membase) {
++		ret = -ENXIO;
++		goto err1;
++	}
++	sp->val = ioread8(SCSPTR(sp));
++	setbits(sp, PIN_INIT, 1);
++
++	ret = spi_bitbang_start(&sp->bitbang);
++	if (!ret)
++		return 0;
++
++	setbits(sp, PIN_INIT, 0);
++	iounmap(sp->membase);
++ err1:
++	spi_master_put(sp->bitbang.master);
++ err0:
++	return ret;
++}
++
++static int sh_sci_spi_remove(struct platform_device *dev)
++{
++	struct sh_sci_spi *sp = platform_get_drvdata(dev);
++
++	iounmap(sp->membase);
++	setbits(sp, PIN_INIT, 0);
++	spi_bitbang_stop(&sp->bitbang);
++	spi_master_put(sp->bitbang.master);
 +	return 0;
 +}
 +
-+/**
-+ * ecryptfs_get_tfm_and_mutex_for_cipher_name
-+ *
-+ * @tfm: set to cached tfm found, or new tfm created
-+ * @tfm_mutex: set to mutex for cached tfm found, or new tfm created
-+ * @cipher_name: the name of the cipher to search for and/or add
-+ *
-+ * Sets pointers to @tfm & @tfm_mutex matching @cipher_name.
-+ * Searches for cached item first, and creates new if not found.
-+ * Returns 0 on success, non-zero if adding new cipher failed
-+ */
- int ecryptfs_get_tfm_and_mutex_for_cipher_name(struct crypto_blkcipher **tfm,
- 					       struct mutex **tfm_mutex,
- 					       char *cipher_name)
-@@ -1853,22 +1897,17 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
- 
- 	(*tfm) = NULL;
- 	(*tfm_mutex) = NULL;
++static struct platform_driver sh_sci_spi_drv = {
++	.probe		= sh_sci_spi_probe,
++	.remove		= sh_sci_spi_remove,
++	.driver		= {
++		.name	= "spi_sh_sci",
++		.owner	= THIS_MODULE,
++	},
++};
 +
- 	mutex_lock(&key_tfm_list_mutex);
--	list_for_each_entry(key_tfm, &key_tfm_list, key_tfm_list) {
--		if (strcmp(key_tfm->cipher_name, cipher_name) == 0) {
--			(*tfm) = key_tfm->key_tfm;
--			(*tfm_mutex) = &key_tfm->key_tfm_mutex;
--			mutex_unlock(&key_tfm_list_mutex);
-+	if (!ecryptfs_tfm_exists(cipher_name, &key_tfm)) {
-+		rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0);
-+		if (rc) {
-+			printk(KERN_ERR "Error adding new key_tfm to list; "
-+					"rc = [%d]\n", rc);
- 			goto out;
- 		}
- 	}
- 	mutex_unlock(&key_tfm_list_mutex);
--	rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0);
--	if (rc) {
--		printk(KERN_ERR "Error adding new key_tfm to list; rc = [%d]\n",
--		       rc);
--		goto out;
--	}
- 	(*tfm) = key_tfm->key_tfm;
- 	(*tfm_mutex) = &key_tfm->key_tfm_mutex;
- out:
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -323,6 +323,8 @@ struct ecryptfs_key_tfm {
- 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
- };
- 
-+extern struct mutex key_tfm_list_mutex;
++static int __init sh_sci_spi_init(void)
++{
++	return platform_driver_register(&sh_sci_spi_drv);
++}
++module_init(sh_sci_spi_init);
 +
- /**
-  * This struct is to enable a mount-wide passphrase/salt combo. This
-  * is more or less a stopgap to provide similar functionality to other
-@@ -617,6 +619,7 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 			 size_t key_size);
- int ecryptfs_init_crypto(void);
- int ecryptfs_destroy_crypto(void);
-+int ecryptfs_tfm_exists(char *cipher_name, struct ecryptfs_key_tfm **key_tfm);
- int ecryptfs_get_tfm_and_mutex_for_cipher_name(struct crypto_blkcipher **tfm,
- 					       struct mutex **tfm_mutex,
- 					       char *cipher_name);
-diff -puN fs/ecryptfs/main.c~ecryptfs-check-for-existing-key_tfm-at-mount-time fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-check-for-existing-key_tfm-at-mount-time
-+++ a/fs/ecryptfs/main.c
-@@ -410,9 +410,13 @@ static int ecryptfs_parse_options(struct
- 	if (!cipher_key_bytes_set) {
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
- 	}
--	rc = ecryptfs_add_new_key_tfm(
--		NULL, mount_crypt_stat->global_default_cipher_name,
--		mount_crypt_stat->global_default_cipher_key_size);
-+	mutex_lock(&key_tfm_list_mutex);
-+	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
-+				 NULL))
-+		rc = ecryptfs_add_new_key_tfm(
-+			NULL, mount_crypt_stat->global_default_cipher_name,
-+			mount_crypt_stat->global_default_cipher_key_size);
-+	mutex_unlock(&key_tfm_list_mutex);
- 	if (rc) {
- 		printk(KERN_ERR "Error attempting to initialize cipher with "
- 		       "name = [%s] and key size = [%td]; rc = [%d]\n",
++static void __exit sh_sci_spi_exit(void)
++{
++	platform_driver_unregister(&sh_sci_spi_drv);
++}
++module_exit(sh_sci_spi_exit);
++
++MODULE_DESCRIPTION("SH SCI SPI Driver");
++MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
 origin.patch
-reduce-large-do_mount-stack-usage-with-noinlines.patch
+git-sh.patch
