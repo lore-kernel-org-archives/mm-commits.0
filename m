@@ -1,460 +1,1298 @@
 From: akpm@linux-foundation.org
-Subject: - fbmon-cleanup-trailing-whitespaces.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:15 -0800
-Message-ID: <200802070027.m170RuNi007093@imap1.linux-foundation.org>
+Subject: - gigaset-atomic-cleanup.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:28 -0800
+Message-ID: <200802070026.m170Q9F8006866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933962AbYBGApK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:10 -0500
+	by vger.kernel.org with ESMTP id S933552AbYBGApH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre@bitwigglers.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: tilman@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbmon: cleanup trailing whitespaces
+     gigaset: atomic cleanup
 has been removed from the -mm tree.  Its filename was
-     fbmon-cleanup-trailing-whitespaces.patch
+     gigaset-atomic-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbmon: cleanup trailing whitespaces
-From: Andre Haupt <andre@bitwigglers.org>
+Subject: gigaset: atomic cleanup
+From: Tilman Schmidt <tilman@imap.cc>
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andre Haupt <andre@bitwigglers.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Convert atomic_t variables that don't actually use atomic_t functionality
+to int.
+
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmon.c |  116 ++++++++++++++++++++--------------------
- 1 file changed, 58 insertions(+), 58 deletions(-)
+ drivers/isdn/gigaset/asyncdata.c   |    8 +-
+ drivers/isdn/gigaset/bas-gigaset.c |   86 ++++++++++-----------
+ drivers/isdn/gigaset/common.c      |   30 +++----
+ drivers/isdn/gigaset/ev-layer.c    |  106 +++++++++++++--------------
+ drivers/isdn/gigaset/gigaset.h     |   16 ++--
+ drivers/isdn/gigaset/interface.c   |   15 +--
+ drivers/isdn/gigaset/isocdata.c    |   51 ++++++------
+ drivers/isdn/gigaset/ser-gigaset.c |   10 +-
+ drivers/isdn/gigaset/usb-gigaset.c |   22 ++---
+ 9 files changed, 169 insertions(+), 175 deletions(-)
 
-diff -puN drivers/video/fbmon.c~fbmon-cleanup-trailing-whitespaces drivers/video/fbmon.c
---- a/drivers/video/fbmon.c~fbmon-cleanup-trailing-whitespaces
-+++ a/drivers/video/fbmon.c
-@@ -4,7 +4,7 @@
-  * Copyright (C) 2002 James Simmons <jsimmons@users.sf.net>
-  *
-  * Credits:
-- * 
-+ *
-  * The EDID Parser is a conglomeration from the following sources:
-  *
-  *   1. SciTech SNAP Graphics Architecture
-@@ -12,13 +12,13 @@
-  *
-  *   2. XFree86 4.3.0, interpret_edid.c
-  *      Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
-- * 
-- *   3. John Fremlin <vii@users.sourceforge.net> and 
-+ *
-+ *   3. John Fremlin <vii@users.sourceforge.net> and
-  *      Ani Joshi <ajoshi@unixbox.com>
-- *  
-+ *
-  * Generalized Timing Formula is derived from:
-  *
-- *      GTF Spreadsheet by Andy Morrish (1/5/97) 
-+ *      GTF Spreadsheet by Andy Morrish (1/5/97)
-  *      available at http://www.vesa.org
-  *
-  * This file is subject to the terms and conditions of the GNU General Public
-@@ -36,7 +36,7 @@
- #endif
- #include "edid.h"
+diff -puN drivers/isdn/gigaset/asyncdata.c~gigaset-atomic-cleanup drivers/isdn/gigaset/asyncdata.c
+--- a/drivers/isdn/gigaset/asyncdata.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/asyncdata.c
+@@ -350,8 +350,8 @@ void gigaset_m10x_input(struct inbuf_t *
+ 	unsigned char *src, c;
+ 	int procbytes;
  
--/* 
-+/*
-  * EDID parser
-  */
+-	head = atomic_read(&inbuf->head);
+-	tail = atomic_read(&inbuf->tail);
++	head = inbuf->head;
++	tail = inbuf->tail;
+ 	gig_dbg(DEBUG_INTR, "buffer state: %u -> %u", head, tail);
  
-@@ -160,8 +160,8 @@ static int check_edid(unsigned char *edi
- 	for (i = 0; i < ARRAY_SIZE(brokendb); i++) {
- 		if (!strncmp(manufacturer, brokendb[i].manufacturer, 4) &&
- 			brokendb[i].model == model) {
-- 			fix = brokendb[i].fix;
-- 			break;
-+			fix = brokendb[i].fix;
-+			break;
+ 	if (head != tail) {
+@@ -361,7 +361,7 @@ void gigaset_m10x_input(struct inbuf_t *
+ 		gig_dbg(DEBUG_INTR, "processing %u bytes", numbytes);
+ 
+ 		while (numbytes) {
+-			if (atomic_read(&cs->mstate) == MS_LOCKED) {
++			if (cs->mstate == MS_LOCKED) {
+ 				procbytes = lock_loop(src, numbytes, inbuf);
+ 				src += procbytes;
+ 				numbytes -= procbytes;
+@@ -436,7 +436,7 @@ nextbyte:
+ 		}
+ 
+ 		gig_dbg(DEBUG_INTR, "setting head to %u", head);
+-		atomic_set(&inbuf->head, head);
++		inbuf->head = head;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(gigaset_m10x_input);
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~gigaset-atomic-cleanup drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -113,7 +113,7 @@ struct bas_cardstate {
+ 	unsigned char		int_in_buf[3];
+ 
+ 	spinlock_t		lock;		/* locks all following */
+-	atomic_t		basstate;	/* bitmap (BS_*) */
++	int			basstate;	/* bitmap (BS_*) */
+ 	int			pending;	/* uncompleted base request */
+ 	wait_queue_head_t	waitqueue;
+ 	int			rcvbuf_size;	/* size of AT receive buffer */
+@@ -370,27 +370,27 @@ static void check_pending(struct bas_car
+ 	case 0:
+ 		break;
+ 	case HD_OPEN_ATCHANNEL:
+-		if (atomic_read(&ucs->basstate) & BS_ATOPEN)
++		if (ucs->basstate & BS_ATOPEN)
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_OPEN_B1CHANNEL:
+-		if (atomic_read(&ucs->basstate) & BS_B1OPEN)
++		if (ucs->basstate & BS_B1OPEN)
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_OPEN_B2CHANNEL:
+-		if (atomic_read(&ucs->basstate) & BS_B2OPEN)
++		if (ucs->basstate & BS_B2OPEN)
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_CLOSE_ATCHANNEL:
+-		if (!(atomic_read(&ucs->basstate) & BS_ATOPEN))
++		if (!(ucs->basstate & BS_ATOPEN))
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_CLOSE_B1CHANNEL:
+-		if (!(atomic_read(&ucs->basstate) & BS_B1OPEN))
++		if (!(ucs->basstate & BS_B1OPEN))
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_CLOSE_B2CHANNEL:
+-		if (!(atomic_read(&ucs->basstate) & BS_B2OPEN))
++		if (!(ucs->basstate & BS_B2OPEN))
+ 			ucs->pending = 0;
+ 		break;
+ 	case HD_DEVICE_INIT_ACK:		/* no reply expected */
+@@ -456,8 +456,8 @@ inline static int update_basstate(struct
+ 	int state;
+ 
+ 	spin_lock_irqsave(&ucs->lock, flags);
+-	state = atomic_read(&ucs->basstate);
+-	atomic_set(&ucs->basstate, (state & ~clear) | set);
++	state = ucs->basstate;
++	ucs->basstate = (state & ~clear) | set;
+ 	spin_unlock_irqrestore(&ucs->lock, flags);
+ 	return state;
+ }
+@@ -832,7 +832,7 @@ static void read_iso_callback(struct urb
+ 			urb->iso_frame_desc[i].status = 0;
+ 			urb->iso_frame_desc[i].actual_length = 0;
+ 		}
+-		if (likely(atomic_read(&ubc->running))) {
++		if (likely(ubc->running)) {
+ 			/* urb->dev is clobbered by USB subsystem */
+ 			urb->dev = bcs->cs->hw.bas->udev;
+ 			urb->transfer_flags = URB_ISO_ASAP;
+@@ -909,7 +909,7 @@ static int starturbs(struct bc_state *bc
+ 		bcs->inputstate |= INS_flag_hunt;
+ 
+ 	/* submit all isochronous input URBs */
+-	atomic_set(&ubc->running, 1);
++	ubc->running = 1;
+ 	for (k = 0; k < BAS_INURBS; k++) {
+ 		urb = ubc->isoinurbs[k];
+ 		if (!urb) {
+@@ -992,7 +992,7 @@ static void stopurbs(struct bas_bc_state
+ {
+ 	int k, rc;
+ 
+-	atomic_set(&ubc->running, 0);
++	ubc->running = 0;
+ 
+ 	for (k = 0; k < BAS_INURBS; ++k) {
+ 		rc = usb_unlink_urb(ubc->isoinurbs[k]);
+@@ -1068,7 +1068,7 @@ static int submit_iso_write_urb(struct i
+ 			}
+ 			break;
+ 		}
+-		ucx->limit = atomic_read(&ubc->isooutbuf->nextread);
++		ucx->limit = ubc->isooutbuf->nextread;
+ 		ifd->status = 0;
+ 		ifd->actual_length = 0;
+ 	}
+@@ -1115,7 +1115,7 @@ static void write_iso_tasklet(unsigned l
+ 
+ 	/* loop while completed URBs arrive in time */
+ 	for (;;) {
+-		if (unlikely(!(atomic_read(&ubc->running)))) {
++		if (unlikely(!(ubc->running))) {
+ 			gig_dbg(DEBUG_ISO, "%s: not running", __func__);
+ 			return;
+ 		}
+@@ -1220,7 +1220,7 @@ static void write_iso_tasklet(unsigned l
+ 
+ 		/* mark the write buffer area covered by this URB as free */
+ 		if (done->limit >= 0)
+-			atomic_set(&ubc->isooutbuf->read, done->limit);
++			ubc->isooutbuf->read = done->limit;
+ 
+ 		/* mark URB as free */
+ 		spin_lock_irqsave(&ubc->isooutlock, flags);
+@@ -1294,7 +1294,7 @@ static void read_iso_tasklet(unsigned lo
+ 		}
+ 		spin_unlock_irqrestore(&ubc->isoinlock, flags);
+ 
+-		if (unlikely(!(atomic_read(&ubc->running)))) {
++		if (unlikely(!(ubc->running))) {
+ 			gig_dbg(DEBUG_ISO,
+ 				"%s: channel not running, "
+ 				"dropped URB with status: %s",
+@@ -1488,7 +1488,7 @@ static void write_ctrl_callback(struct u
+ 	default:				/* any failure */
+ 		/* don't retry if suspend requested */
+ 		if (++ucs->retry_ctrl > BAS_RETRY ||
+-		    (atomic_read(&ucs->basstate) & BS_SUSPEND)) {
++		    (ucs->basstate & BS_SUSPEND)) {
+ 			dev_err(&ucs->interface->dev,
+ 				"control request 0x%02x failed: %s\n",
+ 				ucs->dr_ctrl.bRequest,
+@@ -1603,7 +1603,7 @@ static int gigaset_init_bchannel(struct 
+ 		return -ENODEV;
+ 	}
+ 
+-	if (atomic_read(&cs->hw.bas->basstate) & BS_SUSPEND) {
++	if (cs->hw.bas->basstate & BS_SUSPEND) {
+ 		dev_notice(cs->dev,
+ 			   "not starting isochronous I/O, "
+ 			   "suspend in progress\n");
+@@ -1658,8 +1658,7 @@ static int gigaset_close_bchannel(struct
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!(atomic_read(&cs->hw.bas->basstate) &
+-	      (bcs->channel ? BS_B2OPEN : BS_B1OPEN))) {
++	if (!(cs->hw.bas->basstate & (bcs->channel ? BS_B2OPEN : BS_B1OPEN))) {
+ 		/* channel not running: just signal common.c */
+ 		spin_unlock_irqrestore(&cs->lock, flags);
+ 		gigaset_bchannel_down(bcs);
+@@ -1747,7 +1746,7 @@ static void write_command_callback(struc
+ 				 ucs->retry_cmd_out);
+ 			break;
+ 		}
+-		if (atomic_read(&ucs->basstate) & BS_SUSPEND) {
++		if (ucs->basstate & BS_SUSPEND) {
+ 			dev_warn(cs->dev,
+ 				 "command write: %s, "
+ 				 "won't retry - suspend requested\n",
+@@ -1863,13 +1862,13 @@ static int start_cbsend(struct cardstate
+ 	int retval = 0;
+ 
+ 	/* check if suspend requested */
+-	if (atomic_read(&ucs->basstate) & BS_SUSPEND) {
++	if (ucs->basstate & BS_SUSPEND) {
+ 		gig_dbg(DEBUG_TRANSCMD|DEBUG_LOCKCMD, "suspending");
+ 		return -EHOSTUNREACH;
+ 	}
+ 
+ 	/* check if AT channel is open */
+-	if (!(atomic_read(&ucs->basstate) & BS_ATOPEN)) {
++	if (!(ucs->basstate & BS_ATOPEN)) {
+ 		gig_dbg(DEBUG_TRANSCMD|DEBUG_LOCKCMD, "AT channel not open");
+ 		rc = req_submit(cs->bcs, HD_OPEN_ATCHANNEL, 0, BAS_TIMEOUT);
+ 		if (rc < 0) {
+@@ -1885,8 +1884,7 @@ static int start_cbsend(struct cardstate
+ 	/* try to send first command in queue */
+ 	spin_lock_irqsave(&cs->cmdlock, flags);
+ 
+-	while ((cb = cs->cmdbuf) != NULL &&
+-	       atomic_read(&ucs->basstate) & BS_ATREADY) {
++	while ((cb = cs->cmdbuf) != NULL && (ucs->basstate & BS_ATREADY)) {
+ 		ucs->retry_cmd_out = 0;
+ 		rc = atwrite_submit(cs, cb->buf, cb->len);
+ 		if (unlikely(rc)) {
+@@ -1924,7 +1922,7 @@ static int gigaset_write_cmd(struct card
+ 	unsigned long flags;
+ 	int rc;
+ 
+-	gigaset_dbg_buffer(atomic_read(&cs->mstate) != MS_LOCKED ?
++	gigaset_dbg_buffer(cs->mstate != MS_LOCKED ?
+ 			     DEBUG_TRANSCMD : DEBUG_LOCKCMD,
+ 			   "CMD Transmit", len, buf);
+ 
+@@ -2039,7 +2037,7 @@ static int gigaset_freebcshw(struct bc_s
+ 		return 0;
+ 
+ 	/* kill URBs and tasklets before freeing - better safe than sorry */
+-	atomic_set(&ubc->running, 0);
++	ubc->running = 0;
+ 	gig_dbg(DEBUG_INIT, "%s: killing iso URBs", __func__);
+ 	for (i = 0; i < BAS_OUTURBS; ++i) {
+ 		usb_kill_urb(ubc->isoouturbs[i].urb);
+@@ -2074,7 +2072,7 @@ static int gigaset_initbcshw(struct bc_s
+ 		return 0;
+ 	}
+ 
+-	atomic_set(&ubc->running, 0);
++	ubc->running = 0;
+ 	atomic_set(&ubc->corrbytes, 0);
+ 	spin_lock_init(&ubc->isooutlock);
+ 	for (i = 0; i < BAS_OUTURBS; ++i) {
+@@ -2119,7 +2117,7 @@ static void gigaset_reinitbcshw(struct b
+ {
+ 	struct bas_bc_state *ubc = bcs->hw.bas;
+ 
+-	atomic_set(&bcs->hw.bas->running, 0);
++	bcs->hw.bas->running = 0;
+ 	atomic_set(&bcs->hw.bas->corrbytes, 0);
+ 	bcs->hw.bas->numsub = 0;
+ 	spin_lock_init(&ubc->isooutlock);
+@@ -2150,7 +2148,7 @@ static int gigaset_initcshw(struct cards
+ 	spin_lock_init(&ucs->lock);
+ 	ucs->pending = 0;
+ 
+-	atomic_set(&ucs->basstate, 0);
++	ucs->basstate = 0;
+ 	init_timer(&ucs->timer_ctrl);
+ 	init_timer(&ucs->timer_atrdy);
+ 	init_timer(&ucs->timer_cmd_in);
+@@ -2307,7 +2305,7 @@ static int gigaset_probe(struct usb_inte
+ 
+ 	/* tell common part that the device is ready */
+ 	if (startmode == SM_LOCKED)
+-		atomic_set(&cs->mstate, MS_LOCKED);
++		cs->mstate = MS_LOCKED;
+ 
+ 	/* save address of controller structure */
+ 	usb_set_intfdata(interface, cs);
+@@ -2342,7 +2340,7 @@ static void gigaset_disconnect(struct us
+ 	dev_info(cs->dev, "disconnecting Gigaset base\n");
+ 
+ 	/* mark base as not ready, all channels disconnected */
+-	atomic_set(&ucs->basstate, 0);
++	ucs->basstate = 0;
+ 
+ 	/* tell LL all channels are down */
+ 	for (j = 0; j < BAS_CHANNELS; ++j)
+@@ -2374,7 +2372,6 @@ static int gigaset_suspend(struct usb_in
+ {
+ 	struct cardstate *cs = usb_get_intfdata(intf);
+ 	struct bas_cardstate *ucs = cs->hw.bas;
+-	int basstate;
+ 	int rc;
+ 
+ 	/* set suspend flag; this stops AT command/response traffic */
+@@ -2385,29 +2382,28 @@ static int gigaset_suspend(struct usb_in
+ 
+ 	/* wait a bit for blocking conditions to go away */
+ 	rc = wait_event_timeout(ucs->waitqueue,
+-			!(atomic_read(&ucs->basstate) &
++			!(ucs->basstate &
+ 			  (BS_B1OPEN|BS_B2OPEN|BS_ATRDPEND|BS_ATWRPEND)),
+ 			BAS_TIMEOUT*HZ/10);
+ 	gig_dbg(DEBUG_SUSPEND, "wait_event_timeout() -> %d", rc);
+ 
+ 	/* check for conditions preventing suspend */
+-	basstate = atomic_read(&ucs->basstate);
+-	if (basstate & (BS_B1OPEN|BS_B2OPEN|BS_ATRDPEND|BS_ATWRPEND)) {
++	if (ucs->basstate & (BS_B1OPEN|BS_B2OPEN|BS_ATRDPEND|BS_ATWRPEND)) {
+ 		dev_warn(cs->dev, "cannot suspend:\n");
+-		if (basstate & BS_B1OPEN)
++		if (ucs->basstate & BS_B1OPEN)
+ 			dev_warn(cs->dev, " B channel 1 open\n");
+-		if (basstate & BS_B2OPEN)
++		if (ucs->basstate & BS_B2OPEN)
+ 			dev_warn(cs->dev, " B channel 2 open\n");
+-		if (basstate & BS_ATRDPEND)
++		if (ucs->basstate & BS_ATRDPEND)
+ 			dev_warn(cs->dev, " receiving AT reply\n");
+-		if (basstate & BS_ATWRPEND)
++		if (ucs->basstate & BS_ATWRPEND)
+ 			dev_warn(cs->dev, " sending AT command\n");
+ 		update_basstate(ucs, 0, BS_SUSPEND);
+ 		return -EBUSY;
+ 	}
+ 
+ 	/* close AT channel if open */
+-	if (basstate & BS_ATOPEN) {
++	if (ucs->basstate & BS_ATOPEN) {
+ 		gig_dbg(DEBUG_SUSPEND, "closing AT channel");
+ 		rc = req_submit(cs->bcs, HD_CLOSE_ATCHANNEL, 0, 0);
+ 		if (rc) {
+@@ -2546,25 +2542,25 @@ static void __exit bas_gigaset_exit(void
+ 	/* from now on, no isdn callback should be possible */
+ 
+ 	/* close all still open channels */
+-	if (atomic_read(&ucs->basstate) & BS_B1OPEN) {
++	if (ucs->basstate & BS_B1OPEN) {
+ 		gig_dbg(DEBUG_INIT, "closing B1 channel");
+ 		usb_control_msg(ucs->udev, usb_sndctrlpipe(ucs->udev, 0),
+ 				HD_CLOSE_B1CHANNEL, OUT_VENDOR_REQ, 0, 0,
+ 				NULL, 0, BAS_TIMEOUT);
+ 	}
+-	if (atomic_read(&ucs->basstate) & BS_B2OPEN) {
++	if (ucs->basstate & BS_B2OPEN) {
+ 		gig_dbg(DEBUG_INIT, "closing B2 channel");
+ 		usb_control_msg(ucs->udev, usb_sndctrlpipe(ucs->udev, 0),
+ 				HD_CLOSE_B2CHANNEL, OUT_VENDOR_REQ, 0, 0,
+ 				NULL, 0, BAS_TIMEOUT);
+ 	}
+-	if (atomic_read(&ucs->basstate) & BS_ATOPEN) {
++	if (ucs->basstate & BS_ATOPEN) {
+ 		gig_dbg(DEBUG_INIT, "closing AT channel");
+ 		usb_control_msg(ucs->udev, usb_sndctrlpipe(ucs->udev, 0),
+ 				HD_CLOSE_ATCHANNEL, OUT_VENDOR_REQ, 0, 0,
+ 				NULL, 0, BAS_TIMEOUT);
+ 	}
+-	atomic_set(&ucs->basstate, 0);
++	ucs->basstate = 0;
+ 
+ 	/* deregister this driver with the USB subsystem */
+ 	usb_deregister(&gigaset_usb_driver);
+diff -puN drivers/isdn/gigaset/common.c~gigaset-atomic-cleanup drivers/isdn/gigaset/common.c
+--- a/drivers/isdn/gigaset/common.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/common.c
+@@ -501,11 +501,11 @@ static void gigaset_inbuf_init(struct in
+ 			       struct cardstate *cs, int inputstate)
+ /* inbuf->read must be allocated before! */
+ {
+-	atomic_set(&inbuf->head, 0);
+-	atomic_set(&inbuf->tail, 0);
++	inbuf->head = 0;
++	inbuf->tail = 0;
+ 	inbuf->cs = cs;
+ 	inbuf->bcs = bcs; /*base driver: NULL*/
+-	inbuf->rcvbuf = NULL; //FIXME
++	inbuf->rcvbuf = NULL;
+ 	inbuf->inputstate = inputstate;
+ }
+ 
+@@ -521,8 +521,8 @@ int gigaset_fill_inbuf(struct inbuf_t *i
+ 		return 0;
+ 
+ 	bytesleft = numbytes;
+-	tail = atomic_read(&inbuf->tail);
+-	head = atomic_read(&inbuf->head);
++	tail = inbuf->tail;
++	head = inbuf->head;
+ 	gig_dbg(DEBUG_INTR, "buffer state: %u -> %u", head, tail);
+ 
+ 	while (bytesleft) {
+@@ -546,7 +546,7 @@ int gigaset_fill_inbuf(struct inbuf_t *i
+ 		src += n;
+ 	}
+ 	gig_dbg(DEBUG_INTR, "setting tail to %u", tail);
+-	atomic_set(&inbuf->tail, tail);
++	inbuf->tail = tail;
+ 	return numbytes != bytesleft;
+ }
+ EXPORT_SYMBOL_GPL(gigaset_fill_inbuf);
+@@ -668,7 +668,7 @@ struct cardstate *gigaset_initcs(struct 
+ 
+ 	tasklet_init(&cs->event_tasklet, &gigaset_handle_event,
+ 		     (unsigned long) cs);
+-	atomic_set(&cs->commands_pending, 0);
++	cs->commands_pending = 0;
+ 	cs->cur_at_seq = 0;
+ 	cs->gotfwver = -1;
+ 	cs->open_count = 0;
+@@ -688,8 +688,8 @@ struct cardstate *gigaset_initcs(struct 
+ 	init_waitqueue_head(&cs->waitqueue);
+ 	cs->waiting = 0;
+ 
+-	atomic_set(&cs->mode, M_UNKNOWN);
+-	atomic_set(&cs->mstate, MS_UNINITIALIZED);
++	cs->mode = M_UNKNOWN;
++	cs->mstate = MS_UNINITIALIZED;
+ 
+ 	for (i = 0; i < channels; ++i) {
+ 		gig_dbg(DEBUG_INIT, "setting up bcs[%d].read", i);
+@@ -806,8 +806,8 @@ static void cleanup_cs(struct cardstate 
+ 
+ 	spin_lock_irqsave(&cs->lock, flags);
+ 
+-	atomic_set(&cs->mode, M_UNKNOWN);
+-	atomic_set(&cs->mstate, MS_UNINITIALIZED);
++	cs->mode = M_UNKNOWN;
++	cs->mstate = MS_UNINITIALIZED;
+ 
+ 	clear_at_state(&cs->at_state);
+ 	dealloc_at_states(cs);
+@@ -817,8 +817,8 @@ static void cleanup_cs(struct cardstate 
+ 	kfree(cs->inbuf->rcvbuf);
+ 	cs->inbuf->rcvbuf = NULL;
+ 	cs->inbuf->inputstate = INS_command;
+-	atomic_set(&cs->inbuf->head, 0);
+-	atomic_set(&cs->inbuf->tail, 0);
++	cs->inbuf->head = 0;
++	cs->inbuf->tail = 0;
+ 
+ 	cb = cs->cmdbuf;
+ 	while (cb) {
+@@ -832,7 +832,7 @@ static void cleanup_cs(struct cardstate 
+ 	cs->gotfwver = -1;
+ 	cs->dle = 0;
+ 	cs->cur_at_seq = 0;
+-	atomic_set(&cs->commands_pending, 0);
++	cs->commands_pending = 0;
+ 	cs->cbytes = 0;
+ 
+ 	spin_unlock_irqrestore(&cs->lock, flags);
+@@ -862,7 +862,7 @@ int gigaset_start(struct cardstate *cs)
+ 	cs->connected = 1;
+ 	spin_unlock_irqrestore(&cs->lock, flags);
+ 
+-	if (atomic_read(&cs->mstate) != MS_LOCKED) {
++	if (cs->mstate != MS_LOCKED) {
+ 		cs->ops->set_modem_ctrl(cs, 0, TIOCM_DTR|TIOCM_RTS);
+ 		cs->ops->baud_rate(cs, B115200);
+ 		cs->ops->set_line_ctrl(cs, CS8);
+diff -puN drivers/isdn/gigaset/ev-layer.c~gigaset-atomic-cleanup drivers/isdn/gigaset/ev-layer.c
+--- a/drivers/isdn/gigaset/ev-layer.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/ev-layer.c
+@@ -735,7 +735,7 @@ static void disconnect(struct at_state_t
+ 	/* revert to selected idle mode */
+ 	if (!cs->cidmode) {
+ 		cs->at_state.pending_commands |= PC_UMMODE;
+-		atomic_set(&cs->commands_pending, 1); //FIXME
++		cs->commands_pending = 1;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_UMMODE");
+ 	}
+ 	spin_unlock_irqrestore(&cs->lock, flags);
+@@ -793,15 +793,15 @@ static void init_failed(struct cardstate
+ 	struct at_state_t *at_state;
+ 
+ 	cs->at_state.pending_commands &= ~PC_INIT;
+-	atomic_set(&cs->mode, mode);
+-	atomic_set(&cs->mstate, MS_UNINITIALIZED);
++	cs->mode = mode;
++	cs->mstate = MS_UNINITIALIZED;
+ 	gigaset_free_channels(cs);
+ 	for (i = 0; i < cs->channels; ++i) {
+ 		at_state = &cs->bcs[i].at_state;
+ 		if (at_state->pending_commands & PC_CID) {
+ 			at_state->pending_commands &= ~PC_CID;
+ 			at_state->pending_commands |= PC_NOCID;
+-			atomic_set(&cs->commands_pending, 1);
++			cs->commands_pending = 1;
  		}
  	}
- 
-@@ -323,7 +323,7 @@ static void get_dpms_capabilities(unsign
- 	       (flags & DPMS_SUSPEND)    ? "yes" : "no",
- 	       (flags & DPMS_STANDBY)    ? "yes" : "no");
  }
--	
-+
- static void get_chroma(unsigned char *block, struct fb_monspecs *specs)
- {
- 	int tmp;
-@@ -365,7 +365,7 @@ static void get_chroma(unsigned char *bl
- 	tmp += 512;
- 	specs->chroma.bluey = tmp/1024;
- 	DPRINTK("BlueY:    0.%03d\n", specs->chroma.bluey);
--	
-+
- 	tmp = ((block[6] & (3 << 2)) >> 2) | (block[0xd] << 2);
- 	tmp *= 1000;
- 	tmp += 512;
-@@ -383,7 +383,7 @@ static void calc_mode_timings(int xres, 
- 			      struct fb_videomode *mode)
- {
- 	struct fb_var_screeninfo *var;
--	
-+
- 	var = kzalloc(sizeof(struct fb_var_screeninfo), GFP_KERNEL);
- 
- 	if (var) {
-@@ -451,11 +451,11 @@ static int get_est_timing(unsigned char 
- 
- 	c = block[1];
- 	if (c&0x80) {
-- 		mode[num++] = vesa_modes[9];
-+		mode[num++] = vesa_modes[9];
- 		DPRINTK("      800x600@72Hz\n");
+@@ -812,11 +812,11 @@ static void schedule_init(struct cardsta
+ 		gig_dbg(DEBUG_CMD, "not scheduling PC_INIT again");
+ 		return;
  	}
- 	if (c&0x40) {
-- 		mode[num++] = vesa_modes[10];
-+		mode[num++] = vesa_modes[10];
- 		DPRINTK("      800x600@75Hz\n");
+-	atomic_set(&cs->mstate, state);
+-	atomic_set(&cs->mode, M_UNKNOWN);
++	cs->mstate = state;
++	cs->mode = M_UNKNOWN;
+ 	gigaset_block_channels(cs);
+ 	cs->at_state.pending_commands |= PC_INIT;
+-	atomic_set(&cs->commands_pending, 1);
++	cs->commands_pending = 1;
+ 	gig_dbg(DEBUG_CMD, "Scheduling PC_INIT");
+ }
+ 
+@@ -953,13 +953,13 @@ static void start_dial(struct at_state_t
+ 
+ 	at_state->pending_commands |= PC_CID;
+ 	gig_dbg(DEBUG_CMD, "Scheduling PC_CID");
+-	atomic_set(&cs->commands_pending, 1);
++	cs->commands_pending = 1;
+ 	return;
+ 
+ error:
+ 	at_state->pending_commands |= PC_NOCID;
+ 	gig_dbg(DEBUG_CMD, "Scheduling PC_NOCID");
+-	atomic_set(&cs->commands_pending, 1);
++	cs->commands_pending = 1;
+ 	return;
+ }
+ 
+@@ -973,12 +973,12 @@ static void start_accept(struct at_state
+ 	if (retval == 0) {
+ 		at_state->pending_commands |= PC_ACCEPT;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_ACCEPT");
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 	} else {
+-		//FIXME
++		/* error reset */
+ 		at_state->pending_commands |= PC_HUP;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_HUP");
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
  	}
- 	if (c&0x20) {
-@@ -495,7 +495,7 @@ static int get_est_timing(unsigned char 
- static int get_std_timing(unsigned char *block, struct fb_videomode *mode)
- {
- 	int xres, yres = 0, refresh, ratio, i;
--	
-+
- 	xres = (block[0] + 31) * 8;
- 	if (xres <= 256)
- 		return 0;
-@@ -519,7 +519,7 @@ static int get_std_timing(unsigned char 
- 
- 	DPRINTK("      %dx%d@%dHz\n", xres, yres, refresh);
- 	for (i = 0; i < VESA_MODEDB_SIZE; i++) {
--		if (vesa_modes[i].xres == xres && 
-+		if (vesa_modes[i].xres == xres &&
- 		    vesa_modes[i].yres == yres &&
- 		    vesa_modes[i].refresh == refresh) {
- 			*mode = vesa_modes[i];
-@@ -536,13 +536,13 @@ static int get_dst_timing(unsigned char 
- {
- 	int j, num = 0;
- 
--	for (j = 0; j < 6; j++, block+= STD_TIMING_DESCRIPTION_SIZE) 
-+	for (j = 0; j < 6; j++, block += STD_TIMING_DESCRIPTION_SIZE)
- 		num += get_std_timing(block, &mode[num]);
- 
- 	return num;
  }
  
--static void get_detailed_timing(unsigned char *block, 
-+static void get_detailed_timing(unsigned char *block,
- 				struct fb_videomode *mode)
+@@ -986,7 +986,7 @@ static void do_start(struct cardstate *c
  {
- 	mode->xres = H_ACTIVE;
-@@ -553,7 +553,7 @@ static void get_detailed_timing(unsigned
- 	mode->right_margin = H_SYNC_OFFSET;
- 	mode->left_margin = (H_ACTIVE + H_BLANKING) -
- 		(H_ACTIVE + H_SYNC_OFFSET + H_SYNC_WIDTH);
--	mode->upper_margin = V_BLANKING - V_SYNC_OFFSET - 
-+	mode->upper_margin = V_BLANKING - V_SYNC_OFFSET -
- 		V_SYNC_WIDTH;
- 	mode->lower_margin = V_SYNC_OFFSET;
- 	mode->hsync_len = H_SYNC_WIDTH;
-@@ -597,7 +597,7 @@ static struct fb_videomode *fb_create_mo
- 	if (mode == NULL)
- 		return NULL;
+ 	gigaset_free_channels(cs);
  
--	if (edid == NULL || !edid_checksum(edid) || 
-+	if (edid == NULL || !edid_checksum(edid) ||
- 	    !edid_check_header(edid)) {
- 		kfree(mode);
- 		return NULL;
-@@ -632,7 +632,7 @@ static struct fb_videomode *fb_create_mo
- 		if (block[0] == 0x00 && block[1] == 0x00 && block[3] == 0xfa)
- 			num += get_dst_timing(block + 5, &mode[num]);
+-	if (atomic_read(&cs->mstate) != MS_LOCKED)
++	if (cs->mstate != MS_LOCKED)
+ 		schedule_init(cs, MS_INIT);
+ 
+ 	cs->isdn_up = 1;
+@@ -1000,9 +1000,9 @@ static void do_start(struct cardstate *c
+ 
+ static void finish_shutdown(struct cardstate *cs)
+ {
+-	if (atomic_read(&cs->mstate) != MS_LOCKED) {
+-		atomic_set(&cs->mstate, MS_UNINITIALIZED);
+-		atomic_set(&cs->mode, M_UNKNOWN);
++	if (cs->mstate != MS_LOCKED) {
++		cs->mstate = MS_UNINITIALIZED;
++		cs->mode = M_UNKNOWN;
  	}
--	
-+
- 	/* Yikes, EDID data is totally useless */
- 	if (!num) {
- 		kfree(mode);
-@@ -713,7 +713,7 @@ static int fb_get_monitor_limits(unsigne
- 			hscan = (pixclock + htotal / 2) / htotal;
- 			hscan = (hscan + 500) / 1000 * 1000;
- 			hz = (hscan + vtotal / 2) / vtotal;
--			
-+
- 			if (specs->dclkmax == 0 || specs->dclkmax < pixclock)
- 				specs->dclkmax = pixclock;
  
-@@ -966,8 +966,8 @@ void fb_edid_to_monspecs(unsigned char *
- 	DPRINTK("========================================\n");
- }
- 
--/* 
-- * VESA Generalized Timing Formula (GTF) 
-+/*
-+ * VESA Generalized Timing Formula (GTF)
-  */
- 
- #define FLYBACK                     550
-@@ -996,7 +996,7 @@ struct __fb_timings {
-  * @hfreq: horizontal freq
-  *
-  * DESCRIPTION:
-- * vblank = right_margin + vsync_len + left_margin 
-+ * vblank = right_margin + vsync_len + left_margin
-  *
-  *    given: right_margin = 1 (V_FRONTPORCH)
-  *           vsync_len    = 3
-@@ -1010,12 +1010,12 @@ static u32 fb_get_vblank(u32 hfreq)
+ 	/* Tell the LL that the device is not available .. */
+@@ -1022,10 +1022,10 @@ static void do_shutdown(struct cardstate
  {
- 	u32 vblank;
+ 	gigaset_block_channels(cs);
  
--	vblank = (hfreq * FLYBACK)/1000; 
-+	vblank = (hfreq * FLYBACK)/1000;
- 	vblank = (vblank + 500)/1000;
- 	return (vblank + V_FRONTPORCH);
- }
- 
--/** 
-+/**
-  * fb_get_hblank_by_freq - get horizontal blank time given hfreq
-  * @hfreq: horizontal freq
-  * @xres: horizontal resolution in pixels
-@@ -1031,7 +1031,7 @@ static u32 fb_get_vblank(u32 hfreq)
-  *
-  * where: C = ((offset - scale factor) * blank_scale)
-  *            -------------------------------------- + scale factor
-- *                        256 
-+ *                        256
-  *        M = blank_scale * gradient
-  *
-  */
-@@ -1039,7 +1039,7 @@ static u32 fb_get_hblank_by_hfreq(u32 hf
- {
- 	u32 c_val, m_val, duty_cycle, hblank;
- 
--	c_val = (((H_OFFSET - H_SCALEFACTOR) * H_BLANKSCALE)/256 + 
-+	c_val = (((H_OFFSET - H_SCALEFACTOR) * H_BLANKSCALE)/256 +
- 		 H_SCALEFACTOR) * 1000;
- 	m_val = (H_BLANKSCALE * H_GRADIENT)/256;
- 	m_val = (m_val * 1000000)/hfreq;
-@@ -1048,7 +1048,7 @@ static u32 fb_get_hblank_by_hfreq(u32 hf
- 	return (hblank);
- }
- 
--/** 
-+/**
-  * fb_get_hblank_by_dclk - get horizontal blank time given pixelclock
-  * @dclk: pixelclock in Hz
-  * @xres: horizontal resolution in pixels
-@@ -1061,7 +1061,7 @@ static u32 fb_get_hblank_by_hfreq(u32 hf
-  *
-  * duty cycle = percent of htotal assigned to inactive display
-  * duty cycle = C - (M * h_period)
-- * 
-+ *
-  * where: h_period = SQRT(100 - C + (0.4 * xres * M)/dclk) + C - 100
-  *                   -----------------------------------------------
-  *                                    2 * M
-@@ -1077,11 +1077,11 @@ static u32 fb_get_hblank_by_dclk(u32 dcl
- 	h_period = 100 - C_VAL;
- 	h_period *= h_period;
- 	h_period += (M_VAL * xres * 2 * 1000)/(5 * dclk);
--	h_period *=10000; 
-+	h_period *= 10000;
- 
- 	h_period = int_sqrt(h_period);
- 	h_period -= (100 - C_VAL) * 100;
--	h_period *= 1000; 
-+	h_period *= 1000;
- 	h_period /= 2 * M_VAL;
- 
- 	duty_cycle = C_VAL * 1000 - (M_VAL * h_period)/100;
-@@ -1089,7 +1089,7 @@ static u32 fb_get_hblank_by_dclk(u32 dcl
- 	hblank &= ~15;
- 	return (hblank);
- }
--	
-+
- /**
-  * fb_get_hfreq - estimate hsync
-  * @vfreq: vertical refresh rate
-@@ -1100,13 +1100,13 @@ static u32 fb_get_hblank_by_dclk(u32 dcl
-  *          (yres + front_port) * vfreq * 1000000
-  * hfreq = -------------------------------------
-  *          (1000000 - (vfreq * FLYBACK)
-- * 
-+ *
-  */
- 
- static u32 fb_get_hfreq(u32 vfreq, u32 yres)
- {
- 	u32 divisor, hfreq;
--	
-+
- 	divisor = (1000000 - (vfreq * FLYBACK))/1000;
- 	hfreq = (yres + V_FRONTPORCH) * vfreq  * 1000;
- 	return (hfreq/divisor);
-@@ -1117,7 +1117,7 @@ static void fb_timings_vfreq(struct __fb
- 	timings->hfreq = fb_get_hfreq(timings->vfreq, timings->vactive);
- 	timings->vblank = fb_get_vblank(timings->hfreq);
- 	timings->vtotal = timings->vactive + timings->vblank;
--	timings->hblank = fb_get_hblank_by_hfreq(timings->hfreq, 
-+	timings->hblank = fb_get_hblank_by_hfreq(timings->hfreq,
- 						 timings->hactive);
- 	timings->htotal = timings->hactive + timings->hblank;
- 	timings->dclk = timings->htotal * timings->hfreq;
-@@ -1128,7 +1128,7 @@ static void fb_timings_hfreq(struct __fb
- 	timings->vblank = fb_get_vblank(timings->hfreq);
- 	timings->vtotal = timings->vactive + timings->vblank;
- 	timings->vfreq = timings->hfreq/timings->vtotal;
--	timings->hblank = fb_get_hblank_by_hfreq(timings->hfreq, 
-+	timings->hblank = fb_get_hblank_by_hfreq(timings->hfreq,
- 						 timings->hactive);
- 	timings->htotal = timings->hactive + timings->hblank;
- 	timings->dclk = timings->htotal * timings->hfreq;
-@@ -1136,7 +1136,7 @@ static void fb_timings_hfreq(struct __fb
- 
- static void fb_timings_dclk(struct __fb_timings *timings)
- {
--	timings->hblank = fb_get_hblank_by_dclk(timings->dclk, 
-+	timings->hblank = fb_get_hblank_by_dclk(timings->dclk,
- 						timings->hactive);
- 	timings->htotal = timings->hactive + timings->hblank;
- 	timings->hfreq = timings->dclk/timings->htotal;
-@@ -1156,29 +1156,29 @@ static void fb_timings_dclk(struct __fb_
-  * @info: pointer to fb_info
-  *
-  * DESCRIPTION:
-- * Calculates video mode based on monitor specs using VESA GTF. 
-- * The GTF is best for VESA GTF compliant monitors but is 
-+ * Calculates video mode based on monitor specs using VESA GTF.
-+ * The GTF is best for VESA GTF compliant monitors but is
-  * specifically formulated to work for older monitors as well.
-  *
-- * If @flag==0, the function will attempt to maximize the 
-+ * If @flag==0, the function will attempt to maximize the
-  * refresh rate.  Otherwise, it will calculate timings based on
-- * the flag and accompanying value.  
-+ * the flag and accompanying value.
-  *
-- * If FB_IGNOREMON bit is set in @flags, monitor specs will be 
-+ * If FB_IGNOREMON bit is set in @flags, monitor specs will be
-  * ignored and @var will be filled with the calculated timings.
-  *
-  * All calculations are based on the VESA GTF Spreadsheet
-  * available at VESA's public ftp (http://www.vesa.org).
-- * 
-+ *
-  * NOTES:
-  * The timings generated by the GTF will be different from VESA
-  * DMT.  It might be a good idea to keep a table of standard
-  * VESA modes as well.  The GTF may also not work for some displays,
-  * such as, and especially, analog TV.
-- *   
-+ *
-  * REQUIRES:
-  * A valid info->monspecs, otherwise 'safe numbers' will be used.
-- */ 
-+ */
- int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_info *info)
- {
- 	struct __fb_timings *timings;
-@@ -1191,7 +1191,7 @@ int fb_get_mode(int flags, u32 val, stru
- 	if (!timings)
- 		return -ENOMEM;
- 
--	/* 
-+	/*
- 	 * If monspecs are invalid, use values that are enough
- 	 * for 640x480@60
- 	 */
-@@ -1214,7 +1214,7 @@ int fb_get_mode(int flags, u32 val, stru
- 
- 	timings->hactive = var->xres;
- 	timings->vactive = var->yres;
--	if (var->vmode & FB_VMODE_INTERLACED) { 
-+	if (var->vmode & FB_VMODE_INTERLACED) {
- 		timings->vactive /= 2;
- 		interlace = 2;
- 	}
-@@ -1250,9 +1250,9 @@ int fb_get_mode(int flags, u32 val, stru
+-	if (atomic_read(&cs->mstate) == MS_READY) {
+-		atomic_set(&cs->mstate, MS_SHUTDOWN);
++	if (cs->mstate == MS_READY) {
++		cs->mstate = MS_SHUTDOWN;
+ 		cs->at_state.pending_commands |= PC_SHUTDOWN;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_SHUTDOWN");
+ 	} else
+ 		finish_shutdown(cs);
+@@ -1120,7 +1120,7 @@ static void handle_icall(struct cardstat
+ 		 * In fact it doesn't.
+ 		 */
+ 		at_state->pending_commands |= PC_HUP;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
  		break;
- 	default:
- 		err = -EINVAL;
--		
--	} 
--	
-+
-+	}
-+
- 	if (err || (!(flags & FB_IGNOREMON) &&
- 	    (timings->vfreq < vfmin || timings->vfreq > vfmax ||
- 	     timings->hfreq < hfmin || timings->hfreq > hfmax ||
-@@ -1269,7 +1269,7 @@ int fb_get_mode(int flags, u32 val, stru
- 		var->upper_margin = (timings->vblank * interlace)/dscan -
- 			(var->vsync_len + var->lower_margin);
  	}
--	
-+
- 	kfree(timings);
- 	return err;
  }
-@@ -1291,7 +1291,7 @@ int fb_get_mode(int flags, u32 val, stru
- 	return -EINVAL;
- }
- #endif /* CONFIG_FB_MODE_HELPERS */
--	
-+
- /*
-  * fb_validate_mode - validates var against monitor capabilities
-  * @var: pointer to fb_var_screeninfo
-@@ -1309,7 +1309,7 @@ int fb_validate_mode(const struct fb_var
- 	u32 hfreq, vfreq, htotal, vtotal, pixclock;
- 	u32 hfmin, hfmax, vfmin, vfmax, dclkmin, dclkmax;
+@@ -1130,7 +1130,7 @@ static int do_lock(struct cardstate *cs)
+ 	int mode;
+ 	int i;
  
--	/* 
-+	/*
- 	 * If monspecs are invalid, use values that are enough
- 	 * for 640x480@60
- 	 */
-@@ -1333,10 +1333,10 @@ int fb_validate_mode(const struct fb_var
- 	if (!var->pixclock)
+-	switch (atomic_read(&cs->mstate)) {
++	switch (cs->mstate) {
+ 	case MS_UNINITIALIZED:
+ 	case MS_READY:
+ 		if (cs->cur_at_seq || !list_empty(&cs->temp_at_states) ||
+@@ -1152,20 +1152,20 @@ static int do_lock(struct cardstate *cs)
+ 		return -EBUSY;
+ 	}
+ 
+-	mode = atomic_read(&cs->mode);
+-	atomic_set(&cs->mstate, MS_LOCKED);
+-	atomic_set(&cs->mode, M_UNKNOWN);
++	mode = cs->mode;
++	cs->mstate = MS_LOCKED;
++	cs->mode = M_UNKNOWN;
+ 
+ 	return mode;
+ }
+ 
+ static int do_unlock(struct cardstate *cs)
+ {
+-	if (atomic_read(&cs->mstate) != MS_LOCKED)
++	if (cs->mstate != MS_LOCKED)
  		return -EINVAL;
- 	pixclock = PICOS2KHZ(var->pixclock) * 1000;
--	   
--	htotal = var->xres + var->right_margin + var->hsync_len + 
-+
-+	htotal = var->xres + var->right_margin + var->hsync_len +
- 		var->left_margin;
--	vtotal = var->yres + var->lower_margin + var->vsync_len + 
-+	vtotal = var->yres + var->lower_margin + var->vsync_len +
- 		var->upper_margin;
  
- 	if (var->vmode & FB_VMODE_INTERLACED)
-@@ -1349,7 +1349,7 @@ int fb_validate_mode(const struct fb_var
+-	atomic_set(&cs->mstate, MS_UNINITIALIZED);
+-	atomic_set(&cs->mode, M_UNKNOWN);
++	cs->mstate = MS_UNINITIALIZED;
++	cs->mode = M_UNKNOWN;
+ 	gigaset_free_channels(cs);
+ 	if (cs->connected)
+ 		schedule_init(cs, MS_INIT);
+@@ -1198,17 +1198,17 @@ static void do_action(int action, struct
+ 	case ACT_INIT:
+ 		cs->at_state.pending_commands &= ~PC_INIT;
+ 		cs->cur_at_seq = SEQ_NONE;
+-		atomic_set(&cs->mode, M_UNIMODEM);
++		cs->mode = M_UNIMODEM;
+ 		spin_lock_irqsave(&cs->lock, flags);
+ 		if (!cs->cidmode) {
+ 			spin_unlock_irqrestore(&cs->lock, flags);
+ 			gigaset_free_channels(cs);
+-			atomic_set(&cs->mstate, MS_READY);
++			cs->mstate = MS_READY;
+ 			break;
+ 		}
+ 		spin_unlock_irqrestore(&cs->lock, flags);
+ 		cs->at_state.pending_commands |= PC_CIDMODE;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_CIDMODE");
+ 		break;
+ 	case ACT_FAILINIT:
+@@ -1234,22 +1234,20 @@ static void do_action(int action, struct
+ 			| INS_command;
+ 		break;
+ 	case ACT_CMODESET:
+-		if (atomic_read(&cs->mstate) == MS_INIT ||
+-		    atomic_read(&cs->mstate) == MS_RECOVER) {
++		if (cs->mstate == MS_INIT || cs->mstate == MS_RECOVER) {
+ 			gigaset_free_channels(cs);
+-			atomic_set(&cs->mstate, MS_READY);
++			cs->mstate = MS_READY;
+ 		}
+-		atomic_set(&cs->mode, M_CID);
++		cs->mode = M_CID;
+ 		cs->cur_at_seq = SEQ_NONE;
+ 		break;
+ 	case ACT_UMODESET:
+-		atomic_set(&cs->mode, M_UNIMODEM);
++		cs->mode = M_UNIMODEM;
+ 		cs->cur_at_seq = SEQ_NONE;
+ 		break;
+ 	case ACT_FAILCMODE:
+ 		cs->cur_at_seq = SEQ_NONE;
+-		if (atomic_read(&cs->mstate) == MS_INIT ||
+-		    atomic_read(&cs->mstate) == MS_RECOVER) {
++		if (cs->mstate == MS_INIT || cs->mstate == MS_RECOVER) {
+ 			init_failed(cs, M_UNKNOWN);
+ 			break;
+ 		}
+@@ -1307,7 +1305,7 @@ static void do_action(int action, struct
+ 	case ACT_CONNECT:
+ 		if (cs->onechannel) {
+ 			at_state->pending_commands |= PC_DLE1;
+-			atomic_set(&cs->commands_pending, 1);
++			cs->commands_pending = 1;
+ 			break;
+ 		}
+ 		bcs->chstate |= CHS_D_UP;
+@@ -1333,7 +1331,7 @@ static void do_action(int action, struct
+ 			 * DLE only used for M10x with one B channel.
+ 			 */
+ 			at_state->pending_commands |= PC_DLE0;
+-			atomic_set(&cs->commands_pending, 1);
++			cs->commands_pending = 1;
+ 		} else
+ 			disconnect(p_at_state);
+ 		break;
+@@ -1369,7 +1367,7 @@ static void do_action(int action, struct
+ 			 "Could not enter DLE mode. Trying to hang up.\n");
+ 		channel = cs->curchannel;
+ 		cs->bcs[channel].at_state.pending_commands |= PC_HUP;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		break;
  
- 	vfreq = hfreq/vtotal;
+ 	case ACT_CID: /* got cid; start dialing */
+@@ -1379,7 +1377,7 @@ static void do_action(int action, struct
+ 			cs->bcs[channel].at_state.cid = ev->parameter;
+ 			cs->bcs[channel].at_state.pending_commands |=
+ 				PC_DIAL;
+-			atomic_set(&cs->commands_pending, 1);
++			cs->commands_pending = 1;
+ 			break;
+ 		}
+ 		/* fall through */
+@@ -1411,14 +1409,14 @@ static void do_action(int action, struct
+ 	case ACT_ABORTDIAL:	/* error/timeout during dial preparation */
+ 		cs->cur_at_seq = SEQ_NONE;
+ 		at_state->pending_commands |= PC_HUP;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		break;
  
--	return (vfreq < vfmin || vfreq > vfmax || 
-+	return (vfreq < vfmin || vfreq > vfmax ||
- 		hfreq < hfmin || hfreq > hfmax ||
- 		pixclock < dclkmin || pixclock > dclkmax) ?
- 		-EINVAL : 0;
+ 	case ACT_REMOTEREJECT:	/* DISCONNECT_IND after dialling */
+ 	case ACT_CONNTIMEOUT:	/* timeout waiting for ZSAU=ACTIVE */
+ 	case ACT_REMOTEHUP:	/* DISCONNECT_IND with established connection */
+ 		at_state->pending_commands |= PC_HUP;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		break;
+ 	case ACT_GETSTRING: /* warning: RING, ZDLE, ...
+ 			       are not handled properly anymore */
+@@ -1515,7 +1513,7 @@ static void do_action(int action, struct
+ 		break;
+ 	case ACT_HUP:
+ 		at_state->pending_commands |= PC_HUP;
+-		atomic_set(&cs->commands_pending, 1);
++		cs->commands_pending = 1;
+ 		gig_dbg(DEBUG_CMD, "Scheduling PC_HUP");
+ 		break;
+ 
+@@ -1558,7 +1556,7 @@ static void do_action(int action, struct
+ 				cs->at_state.pending_commands |= PC_UMMODE;
+ 				gig_dbg(DEBUG_CMD, "Scheduling PC_UMMODE");
+ 			}
+-			atomic_set(&cs->commands_pending, 1);
++			cs->commands_pending = 1;
+ 		}
+ 		spin_unlock_irqrestore(&cs->lock, flags);
+ 		cs->waiting = 0;
+@@ -1741,7 +1739,7 @@ static void process_command_flags(struct
+ 	int sequence;
+ 	unsigned long flags;
+ 
+-	atomic_set(&cs->commands_pending, 0);
++	cs->commands_pending = 0;
+ 
+ 	if (cs->cur_at_seq) {
+ 		gig_dbg(DEBUG_CMD, "not searching scheduled commands: busy");
+@@ -1779,7 +1777,7 @@ static void process_command_flags(struct
+ 				~(PC_DLE1 | PC_ACCEPT | PC_DIAL);
+ 			if (at_state->cid > 0)
+ 				at_state->pending_commands |= PC_HUP;
+-			if (atomic_read(&cs->mstate) == MS_RECOVER) {
++			if (cs->mstate == MS_RECOVER) {
+ 				if (at_state->pending_commands & PC_CID) {
+ 					at_state->pending_commands |= PC_NOCID;
+ 					at_state->pending_commands &= ~PC_CID;
+@@ -1793,7 +1791,7 @@ static void process_command_flags(struct
+ 	if (cs->at_state.pending_commands == PC_UMMODE
+ 	    && !cs->cidmode
+ 	    && list_empty(&cs->temp_at_states)
+-	    && atomic_read(&cs->mode) == M_CID) {
++	    && cs->mode == M_CID) {
+ 		sequence = SEQ_UMMODE;
+ 		at_state = &cs->at_state;
+ 		for (i = 0; i < cs->channels; ++i) {
+@@ -1860,7 +1858,7 @@ static void process_command_flags(struct
+ 	}
+ 	if (cs->at_state.pending_commands & PC_CIDMODE) {
+ 		cs->at_state.pending_commands &= ~PC_CIDMODE;
+-		if (atomic_read(&cs->mode) == M_UNIMODEM) {
++		if (cs->mode == M_UNIMODEM) {
+ 			cs->retry_count = 1;
+ 			schedule_sequence(cs, &cs->at_state, SEQ_CIDMODE);
+ 			return;
+@@ -1886,11 +1884,11 @@ static void process_command_flags(struct
+ 			return;
+ 		}
+ 		if (bcs->at_state.pending_commands & PC_CID) {
+-			switch (atomic_read(&cs->mode)) {
++			switch (cs->mode) {
+ 			case M_UNIMODEM:
+ 				cs->at_state.pending_commands |= PC_CIDMODE;
+ 				gig_dbg(DEBUG_CMD, "Scheduling PC_CIDMODE");
+-				atomic_set(&cs->commands_pending, 1);
++				cs->commands_pending = 1;
+ 				return;
+ #ifdef GIG_MAYINITONDIAL
+ 			case M_UNKNOWN:
+@@ -1926,7 +1924,7 @@ static void process_events(struct cardst
+ 	for (i = 0; i < 2 * MAX_EVENTS; ++i) {
+ 		tail = cs->ev_tail;
+ 		if (tail == head) {
+-			if (!check_flags && !atomic_read(&cs->commands_pending))
++			if (!check_flags && !cs->commands_pending)
+ 				break;
+ 			check_flags = 0;
+ 			spin_unlock_irqrestore(&cs->ev_lock, flags);
+@@ -1934,7 +1932,7 @@ static void process_events(struct cardst
+ 			spin_lock_irqsave(&cs->ev_lock, flags);
+ 			tail = cs->ev_tail;
+ 			if (tail == head) {
+-				if (!atomic_read(&cs->commands_pending))
++				if (!cs->commands_pending)
+ 					break;
+ 				continue;
+ 			}
+@@ -1971,7 +1969,7 @@ void gigaset_handle_event(unsigned long 
+ 	struct cardstate *cs = (struct cardstate *) data;
+ 
+ 	/* handle incoming data on control/common channel */
+-	if (atomic_read(&cs->inbuf->head) != atomic_read(&cs->inbuf->tail)) {
++	if (cs->inbuf->head != cs->inbuf->tail) {
+ 		gig_dbg(DEBUG_INTR, "processing new data");
+ 		cs->ops->handle_input(cs->inbuf);
+ 	}
+diff -puN drivers/isdn/gigaset/gigaset.h~gigaset-atomic-cleanup drivers/isdn/gigaset/gigaset.h
+--- a/drivers/isdn/gigaset/gigaset.h~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/gigaset.h
+@@ -307,7 +307,7 @@ struct inbuf_t {
+ 	struct bc_state		*bcs;
+ 	struct cardstate	*cs;
+ 	int			inputstate;
+-	atomic_t		head, tail;
++	int			head, tail;
+ 	unsigned char		data[RBUFSIZE];
+ };
+ 
+@@ -329,9 +329,9 @@ struct inbuf_t {
+  *   are also filled with that value
+  */
+ struct isowbuf_t {
+-	atomic_t	read;
+-	atomic_t	nextread;
+-	atomic_t	write;
++	int		read;
++	int		nextread;
++	int		write;
+ 	atomic_t	writesem;
+ 	int		wbits;
+ 	unsigned char	data[BAS_OUTBUFSIZE + BAS_OUTBUFPAD];
+@@ -441,8 +441,8 @@ struct cardstate {
+ 	/* Stuff to handle communication */
+ 	wait_queue_head_t waitqueue;
+ 	int waiting;
+-	atomic_t mode;			/* see M_XXXX */
+-	atomic_t mstate;		/* Modem state: see MS_XXXX */
++	int mode;			/* see M_XXXX */
++	int mstate;			/* Modem state: see MS_XXXX */
+ 					/* only changed by the event layer */
+ 	int cmd_result;
+ 
+@@ -499,7 +499,7 @@ struct cardstate {
+ 					   processed */
+ 	int curchannel;			/* channel those commands are meant
+ 					   for */
+-	atomic_t commands_pending;	/* flag(s) in xxx.commands_pending have
++	int commands_pending;		/* flag(s) in xxx.commands_pending have
+ 					   been set */
+ 	struct tasklet_struct event_tasklet;
+ 					/* tasklet for serializing AT commands.
+@@ -555,7 +555,7 @@ struct cmdbuf_t {
+ 
+ struct bas_bc_state {
+ 	/* isochronous output state */
+-	atomic_t	running;
++	int		running;
+ 	atomic_t	corrbytes;
+ 	spinlock_t	isooutlock;
+ 	struct isow_urbctx_t	isoouturbs[BAS_OUTURBS];
+diff -puN drivers/isdn/gigaset/interface.c~gigaset-atomic-cleanup drivers/isdn/gigaset/interface.c
+--- a/drivers/isdn/gigaset/interface.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/interface.c
+@@ -28,12 +28,11 @@ static int if_lock(struct cardstate *cs,
+ 		return -EINVAL;
+ 
+ 	if (cmd < 0) {
+-		*arg = atomic_read(&cs->mstate) == MS_LOCKED; //FIXME remove?
++		*arg = cs->mstate == MS_LOCKED;
+ 		return 0;
+ 	}
+ 
+-	if (!cmd && atomic_read(&cs->mstate) == MS_LOCKED
+-	    && cs->connected) {
++	if (!cmd && cs->mstate == MS_LOCKED && cs->connected) {
+ 		cs->ops->set_modem_ctrl(cs, 0, TIOCM_DTR|TIOCM_RTS);
+ 		cs->ops->baud_rate(cs, B115200);
+ 		cs->ops->set_line_ctrl(cs, CS8);
+@@ -104,7 +103,7 @@ static int if_config(struct cardstate *c
+ 	if (*arg != 1)
+ 		return -EINVAL;
+ 
+-	if (atomic_read(&cs->mstate) != MS_LOCKED)
++	if (cs->mstate != MS_LOCKED)
+ 		return -EBUSY;
+ 
+ 	if (!cs->connected) {
+@@ -364,7 +363,7 @@ static int if_write(struct tty_struct *t
+ 
+ 	if (!cs->open_count)
+ 		warn("%s: device not opened", __func__);
+-	else if (atomic_read(&cs->mstate) != MS_LOCKED) {
++	else if (cs->mstate != MS_LOCKED) {
+ 		warn("can't write to unlocked device");
+ 		retval = -EBUSY;
+ 	} else if (!cs->connected) {
+@@ -398,9 +397,9 @@ static int if_write_room(struct tty_stru
+ 
+ 	if (!cs->open_count)
+ 		warn("%s: device not opened", __func__);
+-	else if (atomic_read(&cs->mstate) != MS_LOCKED) {
++	else if (cs->mstate != MS_LOCKED) {
+ 		warn("can't write to unlocked device");
+-		retval = -EBUSY; //FIXME
++		retval = -EBUSY;
+ 	} else if (!cs->connected) {
+ 		gig_dbg(DEBUG_ANY, "can't write to unplugged device");
+ 		retval = -EBUSY; //FIXME
+@@ -430,7 +429,7 @@ static int if_chars_in_buffer(struct tty
+ 
+ 	if (!cs->open_count)
+ 		warn("%s: device not opened", __func__);
+-	else if (atomic_read(&cs->mstate) != MS_LOCKED) {
++	else if (cs->mstate != MS_LOCKED) {
+ 		warn("can't write to unlocked device");
+ 		retval = -EBUSY;
+ 	} else if (!cs->connected) {
+diff -puN drivers/isdn/gigaset/isocdata.c~gigaset-atomic-cleanup drivers/isdn/gigaset/isocdata.c
+--- a/drivers/isdn/gigaset/isocdata.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/isocdata.c
+@@ -23,9 +23,9 @@
+  */
+ void gigaset_isowbuf_init(struct isowbuf_t *iwb, unsigned char idle)
+ {
+-	atomic_set(&iwb->read, 0);
+-	atomic_set(&iwb->nextread, 0);
+-	atomic_set(&iwb->write, 0);
++	iwb->read = 0;
++	iwb->nextread = 0;
++	iwb->write = 0;
+ 	atomic_set(&iwb->writesem, 1);
+ 	iwb->wbits = 0;
+ 	iwb->idle = idle;
+@@ -39,8 +39,8 @@ static inline int isowbuf_freebytes(stru
+ {
+ 	int read, write, freebytes;
+ 
+-	read = atomic_read(&iwb->read);
+-	write = atomic_read(&iwb->write);
++	read = iwb->read;
++	write = iwb->write;
+ 	if ((freebytes = read - write) > 0) {
+ 		/* no wraparound: need padding space within regular area */
+ 		return freebytes - BAS_OUTBUFPAD;
+@@ -62,7 +62,7 @@ static inline int isowbuf_poscmp(struct 
+ 	int read;
+ 	if (a == b)
+ 		return 0;
+-	read = atomic_read(&iwb->read);
++	read = iwb->read;
+ 	if (a < b) {
+ 		if (a < read && read <= b)
+ 			return +1;
+@@ -91,18 +91,18 @@ static inline int isowbuf_startwrite(str
+ #ifdef CONFIG_GIGASET_DEBUG
+ 	gig_dbg(DEBUG_ISO,
+ 		"%s: acquired iso write semaphore, data[write]=%02x, nbits=%d",
+-		__func__, iwb->data[atomic_read(&iwb->write)], iwb->wbits);
++		__func__, iwb->data[iwb->write], iwb->wbits);
+ #endif
+ 	return 1;
+ }
+ 
+ /* finish writing
+- * release the write semaphore and update the maximum buffer fill level
++ * release the write semaphore
+  * returns the current write position
+  */
+ static inline int isowbuf_donewrite(struct isowbuf_t *iwb)
+ {
+-	int write = atomic_read(&iwb->write);
++	int write = iwb->write;
+ 	atomic_inc(&iwb->writesem);
+ 	return write;
+ }
+@@ -116,7 +116,7 @@ static inline int isowbuf_donewrite(stru
+  */
+ static inline void isowbuf_putbits(struct isowbuf_t *iwb, u32 data, int nbits)
+ {
+-	int write = atomic_read(&iwb->write);
++	int write = iwb->write;
+ 	data <<= iwb->wbits;
+ 	data |= iwb->data[write];
+ 	nbits += iwb->wbits;
+@@ -128,7 +128,7 @@ static inline void isowbuf_putbits(struc
+ 	}
+ 	iwb->wbits = nbits;
+ 	iwb->data[write] = data & 0xff;
+-	atomic_set(&iwb->write, write);
++	iwb->write = write;
+ }
+ 
+ /* put final flag on HDLC bitstream
+@@ -142,7 +142,7 @@ static inline void isowbuf_putflag(struc
+ 	/* add two flags, thus reliably covering one byte */
+ 	isowbuf_putbits(iwb, 0x7e7e, 8);
+ 	/* recover the idle flag byte */
+-	write = atomic_read(&iwb->write);
++	write = iwb->write;
+ 	iwb->idle = iwb->data[write];
+ 	gig_dbg(DEBUG_ISO, "idle fill byte %02x", iwb->idle);
+ 	/* mask extraneous bits in buffer */
+@@ -160,8 +160,8 @@ int gigaset_isowbuf_getbytes(struct isow
+ 	int read, write, limit, src, dst;
+ 	unsigned char pbyte;
+ 
+-	read = atomic_read(&iwb->nextread);
+-	write = atomic_read(&iwb->write);
++	read = iwb->nextread;
++	write = iwb->write;
+ 	if (likely(read == write)) {
+ 		/* return idle frame */
+ 		return read < BAS_OUTBUFPAD ?
+@@ -176,7 +176,7 @@ int gigaset_isowbuf_getbytes(struct isow
+ 		err("invalid size %d", size);
+ 		return -EINVAL;
+ 	}
+-	src = atomic_read(&iwb->read);
++	src = iwb->read;
+ 	if (unlikely(limit > BAS_OUTBUFSIZE + BAS_OUTBUFPAD ||
+ 		     (read < src && limit >= src))) {
+ 		err("isoc write buffer frame reservation violated");
+@@ -191,7 +191,8 @@ int gigaset_isowbuf_getbytes(struct isow
+ 			if (!isowbuf_startwrite(iwb))
+ 				return -EBUSY;
+ 			/* write position could have changed */
+-			if (limit >= (write = atomic_read(&iwb->write))) {
++			write = iwb->write;
++			if (limit >= write) {
+ 				pbyte = iwb->data[write]; /* save
+ 							     partial byte */
+ 				limit = write + BAS_OUTBUFPAD;
+@@ -213,7 +214,7 @@ int gigaset_isowbuf_getbytes(struct isow
+ 					__func__, pbyte, limit);
+ 				iwb->data[limit] = pbyte; /* restore
+ 							     partial byte */
+-				atomic_set(&iwb->write, limit);
++				iwb->write = limit;
+ 			}
+ 			isowbuf_donewrite(iwb);
+ 		}
+@@ -233,7 +234,7 @@ int gigaset_isowbuf_getbytes(struct isow
+ 			limit = src;
+ 		}
+ 	}
+-	atomic_set(&iwb->nextread, limit);
++	iwb->nextread = limit;
+ 	return read;
+ }
+ 
+@@ -477,7 +478,7 @@ static inline int trans_buildframe(struc
+ 	unsigned char c;
+ 
+ 	if (unlikely(count <= 0))
+-		return atomic_read(&iwb->write); /* better ideas? */
++		return iwb->write;
+ 
+ 	if (isowbuf_freebytes(iwb) < count ||
+ 	    !isowbuf_startwrite(iwb)) {
+@@ -486,13 +487,13 @@ static inline int trans_buildframe(struc
+ 	}
+ 
+ 	gig_dbg(DEBUG_STREAM, "put %d bytes", count);
+-	write = atomic_read(&iwb->write);
++	write = iwb->write;
+ 	do {
+ 		c = bitrev8(*in++);
+ 		iwb->data[write++] = c;
+ 		write %= BAS_OUTBUFSIZE;
+ 	} while (--count > 0);
+-	atomic_set(&iwb->write, write);
++	iwb->write = write;
+ 	iwb->idle = c;
+ 
+ 	return isowbuf_donewrite(iwb);
+@@ -947,8 +948,8 @@ void gigaset_isoc_input(struct inbuf_t *
+ 	unsigned tail, head, numbytes;
+ 	unsigned char *src;
+ 
+-	head = atomic_read(&inbuf->head);
+-	while (head != (tail = atomic_read(&inbuf->tail))) {
++	head = inbuf->head;
++	while (head != (tail = inbuf->tail)) {
+ 		gig_dbg(DEBUG_INTR, "buffer state: %u -> %u", head, tail);
+ 		if (head > tail)
+ 			tail = RBUFSIZE;
+@@ -956,7 +957,7 @@ void gigaset_isoc_input(struct inbuf_t *
+ 		numbytes = tail - head;
+ 		gig_dbg(DEBUG_INTR, "processing %u bytes", numbytes);
+ 
+-		if (atomic_read(&cs->mstate) == MS_LOCKED) {
++		if (cs->mstate == MS_LOCKED) {
+ 			gigaset_dbg_buffer(DEBUG_LOCKCMD, "received response",
+ 					   numbytes, src);
+ 			gigaset_if_receive(inbuf->cs, src, numbytes);
+@@ -970,7 +971,7 @@ void gigaset_isoc_input(struct inbuf_t *
+ 		if (head == RBUFSIZE)
+ 			head = 0;
+ 		gig_dbg(DEBUG_INTR, "setting head to %u", head);
+-		atomic_set(&inbuf->head, head);
++		inbuf->head = head;
+ 	}
+ }
+ 
+diff -puN drivers/isdn/gigaset/ser-gigaset.c~gigaset-atomic-cleanup drivers/isdn/gigaset/ser-gigaset.c
+--- a/drivers/isdn/gigaset/ser-gigaset.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/ser-gigaset.c
+@@ -240,7 +240,7 @@ static int gigaset_write_cmd(struct card
+ 	struct cmdbuf_t *cb;
+ 	unsigned long flags;
+ 
+-	gigaset_dbg_buffer(atomic_read(&cs->mstate) != MS_LOCKED ?
++	gigaset_dbg_buffer(cs->mstate != MS_LOCKED ?
+ 	                     DEBUG_TRANSCMD : DEBUG_LOCKCMD,
+ 	                   "CMD Transmit", len, buf);
+ 
+@@ -536,7 +536,7 @@ gigaset_tty_open(struct tty_struct *tty)
+ 	 * startup system and notify the LL that we are ready to run
+ 	 */
+ 	if (startmode == SM_LOCKED)
+-		atomic_set(&cs->mstate, MS_LOCKED);
++		cs->mstate = MS_LOCKED;
+ 	if (!gigaset_start(cs)) {
+ 		tasklet_kill(&cs->write_tasklet);
+ 		goto error;
+@@ -714,8 +714,8 @@ gigaset_tty_receive(struct tty_struct *t
+ 		return;
+ 	}
+ 
+-	tail = atomic_read(&inbuf->tail);
+-	head = atomic_read(&inbuf->head);
++	tail = inbuf->tail;
++	head = inbuf->head;
+ 	gig_dbg(DEBUG_INTR, "buffer state: %u -> %u, receive %u bytes",
+ 		head, tail, count);
+ 
+@@ -742,7 +742,7 @@ gigaset_tty_receive(struct tty_struct *t
+ 	}
+ 
+ 	gig_dbg(DEBUG_INTR, "setting tail to %u", tail);
+-	atomic_set(&inbuf->tail, tail);
++	inbuf->tail = tail;
+ 
+ 	/* Everything was received .. Push data into handler */
+ 	gig_dbg(DEBUG_INTR, "%s-->BH", __func__);
+diff -puN drivers/isdn/gigaset/usb-gigaset.c~gigaset-atomic-cleanup drivers/isdn/gigaset/usb-gigaset.c
+--- a/drivers/isdn/gigaset/usb-gigaset.c~gigaset-atomic-cleanup
++++ a/drivers/isdn/gigaset/usb-gigaset.c
+@@ -133,7 +133,7 @@ static struct usb_driver gigaset_usb_dri
+ struct usb_cardstate {
+ 	struct usb_device	*udev;		/* usb device pointer */
+ 	struct usb_interface	*interface;	/* interface for this device */
+-	atomic_t		busy;		/* bulk output in progress */
++	int			busy;		/* bulk output in progress */
+ 
+ 	/* Output buffer */
+ 	unsigned char		*bulk_out_buffer;
+@@ -325,7 +325,7 @@ static void gigaset_modem_fill(unsigned 
+ 
+ 	gig_dbg(DEBUG_OUTPUT, "modem_fill");
+ 
+-	if (atomic_read(&cs->hw.usb->busy)) {
++	if (cs->hw.usb->busy) {
+ 		gig_dbg(DEBUG_OUTPUT, "modem_fill: busy");
+ 		return;
+ 	}
+@@ -430,7 +430,7 @@ static void gigaset_write_bulk_callback(
+ 		break;
+ 	case -ENOENT:		/* killed */
+ 		gig_dbg(DEBUG_ANY, "%s: killed", __func__);
+-		atomic_set(&cs->hw.usb->busy, 0);
++		cs->hw.usb->busy = 0;
+ 		return;
+ 	default:
+ 		dev_err(cs->dev, "bulk transfer failed (status %d)\n",
+@@ -443,7 +443,7 @@ static void gigaset_write_bulk_callback(
+ 	if (!cs->connected) {
+ 		err("%s: not connected", __func__);
+ 	} else {
+-		atomic_set(&cs->hw.usb->busy, 0);
++		cs->hw.usb->busy = 0;
+ 		tasklet_schedule(&cs->write_tasklet);
+ 	}
+ 	spin_unlock_irqrestore(&cs->lock, flags);
+@@ -491,14 +491,14 @@ static int send_cb(struct cardstate *cs,
+ 
+ 			cb->offset += count;
+ 			cb->len -= count;
+-			atomic_set(&ucs->busy, 1);
++			ucs->busy = 1;
+ 
+ 			spin_lock_irqsave(&cs->lock, flags);
+ 			status = cs->connected ? usb_submit_urb(ucs->bulk_out_urb, GFP_ATOMIC) : -ENODEV;
+ 			spin_unlock_irqrestore(&cs->lock, flags);
+ 
+ 			if (status) {
+-				atomic_set(&ucs->busy, 0);
++				ucs->busy = 0;
+ 				err("could not submit urb (error %d)\n",
+ 				    -status);
+ 				cb->len = 0; /* skip urb => remove cb+wakeup
+@@ -517,7 +517,7 @@ static int gigaset_write_cmd(struct card
+ 	struct cmdbuf_t *cb;
+ 	unsigned long flags;
+ 
+-	gigaset_dbg_buffer(atomic_read(&cs->mstate) != MS_LOCKED ?
++	gigaset_dbg_buffer(cs->mstate != MS_LOCKED ?
+ 			     DEBUG_TRANSCMD : DEBUG_LOCKCMD,
+ 			   "CMD Transmit", len, buf);
+ 
+@@ -654,7 +654,7 @@ static int write_modem(struct cardstate 
+ 	count = min(bcs->tx_skb->len, (unsigned) ucs->bulk_out_size);
+ 	skb_copy_from_linear_data(bcs->tx_skb, ucs->bulk_out_buffer, count);
+ 	skb_pull(bcs->tx_skb, count);
+-	atomic_set(&ucs->busy, 1);
++	ucs->busy = 1;
+ 	gig_dbg(DEBUG_OUTPUT, "write_modem: send %d bytes", count);
+ 
+ 	spin_lock_irqsave(&cs->lock, flags);
+@@ -672,7 +672,7 @@ static int write_modem(struct cardstate 
+ 
+ 	if (ret) {
+ 		err("could not submit urb (error %d)\n", -ret);
+-		atomic_set(&ucs->busy, 0);
++		ucs->busy = 0;
+ 	}
+ 
+ 	if (!bcs->tx_skb->len) {
+@@ -764,7 +764,7 @@ static int gigaset_probe(struct usb_inte
+ 
+ 	endpoint = &hostif->endpoint[1].desc;
+ 
+-	atomic_set(&ucs->busy, 0);
++	ucs->busy = 0;
+ 
+ 	ucs->read_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!ucs->read_urb) {
+@@ -797,7 +797,7 @@ static int gigaset_probe(struct usb_inte
+ 
+ 	/* tell common part that the device is ready */
+ 	if (startmode == SM_LOCKED)
+-		atomic_set(&cs->mstate, MS_LOCKED);
++		cs->mstate = MS_LOCKED;
+ 
+ 	if (!gigaset_start(cs)) {
+ 		tasklet_kill(&cs->write_tasklet);
 _
 
-Patches currently in -mm which might be from andre@bitwigglers.org are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
-git-input.patch
