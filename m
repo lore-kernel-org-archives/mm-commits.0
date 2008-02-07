@@ -1,83 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - video-hpfbc-section-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:07 -0800
-Message-ID: <200802070027.m170RmlU007084@imap1.linux-foundation.org>
+Subject: - drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:00 -0800
+Message-ID: <200802070023.m170NflC006548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933901AbYBGAo6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:58 -0500
+	by vger.kernel.org with ESMTP id S1765794AbYBGAo5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video/hpfb.c section fix
+     drivers/isdn/i4l/isdn_tty.c: remove write_sem
 has been removed from the -mm tree.  Its filename was
-     video-hpfbc-section-fix.patch
+     drivers-isdn-i4l-isdn_ttyc-remove-write_sem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video/hpfb.c section fix
-From: Adrian Bunk <bunk@kernel.org>
+Subject: drivers/isdn/i4l/isdn_tty.c: remove write_sem
+From: Daniel Walker <dwalker@mvista.com>
 
-WARNING: vmlinux.o(.text+0xb851a): Section mismatch: reference to .init.text:hpfb_init_one (between 'hpfb_dio_probe' and 'read_null')
+I couldn't find any users, so removing it..
 
-hpfb_init_one() must be __devinit since it's called by the __devinit
-hpfb_dio_probe().
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hpfb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/isdn/i4l/isdn_tty.c |    1 -
+ include/linux/isdn.h        |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/video/hpfb.c~video-hpfbc-section-fix drivers/video/hpfb.c
---- a/drivers/video/hpfb.c~video-hpfbc-section-fix
-+++ a/drivers/video/hpfb.c
-@@ -207,7 +207,8 @@ static struct fb_ops hpfb_ops = {
- #define HPFB_FBOMSB	0x5d	/* Frame buffer offset		*/
- #define HPFB_FBOLSB	0x5f
- 
--static int __init hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
-+static int __devinit hpfb_init_one(unsigned long phys_base,
-+				   unsigned long virt_base)
- {
- 	unsigned long fboff, fb_width, fb_height, fb_start;
+diff -puN drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-remove-write_sem drivers/isdn/i4l/isdn_tty.c
+--- a/drivers/isdn/i4l/isdn_tty.c~drivers-isdn-i4l-isdn_ttyc-remove-write_sem
++++ a/drivers/isdn/i4l/isdn_tty.c
+@@ -1917,7 +1917,6 @@ isdn_tty_modem_init(void)
+ 		info->owner = THIS_MODULE;
+ #endif
+ 		spin_lock_init(&info->readlock);
+-		init_MUTEX(&info->write_sem);
+ 		sprintf(info->last_cause, "0000");
+ 		sprintf(info->last_num, "none");
+ 		info->last_dir = 0;
+diff -puN include/linux/isdn.h~drivers-isdn-i4l-isdn_ttyc-remove-write_sem include/linux/isdn.h
+--- a/include/linux/isdn.h~drivers-isdn-i4l-isdn_ttyc-remove-write_sem
++++ a/include/linux/isdn.h
+@@ -507,7 +507,6 @@ typedef struct modem_info {
+   struct ktermios	normal_termios;  /* For saving termios structs     */
+   struct ktermios	callout_termios;
+   wait_queue_head_t	open_wait, close_wait;
+-  struct semaphore      write_sem;
+   spinlock_t	        readlock;
+ } modem_info;
  
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+driver-base-memory-semaphore-to-mutex.patch
+usb-microtek-remove-unused-semaphore.patch
+usb-libusual-locking-cleanup.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
