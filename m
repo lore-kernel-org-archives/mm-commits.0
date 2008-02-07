@@ -1,94 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-use-list_head-instead-of-list_head_init.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:18 -0800
-Message-ID: <200802070023.m170NxAH006568@imap1.linux-foundation.org>
+Subject: - cosmetic-fixes-to-rtc-subsystems-kconfig.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:02 -0800
+Message-ID: <200802070026.m170QhLB006946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935119AbYBGAps (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:48 -0500
+	by vger.kernel.org with ESMTP id S933339AbYBGApl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crquan@gmail.com, benh@kernel.crashing.org, minyard@acm.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char: use LIST_HEAD instead of LIST_HEAD_INIT
+     Cosmetic fixes to RTC subsystem's Kconfig
 has been removed from the -mm tree.  Its filename was
-     drivers-char-use-list_head-instead-of-list_head_init.patch
+     cosmetic-fixes-to-rtc-subsystems-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char: use LIST_HEAD instead of LIST_HEAD_INIT
-From: Denis Cheng <crquan@gmail.com>
+Subject: Cosmetic fixes to RTC subsystem's Kconfig
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-single list_head variable initialized with LIST_HEAD_INIT could almost
-always can be replaced with LIST_HEAD declaration, this shrinks the code
-and looks better.
+Add adds a warning if a potentially conflicting RTC option has been
+selected and makes some other cosmetic fixes to the Kconfig.
 
-Signed-off-by: Denis Cheng <crquan@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Corey Minyard <minyard@acm.org>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_console.c          |    2 +-
- drivers/char/hvcs.c                 |    2 +-
- drivers/char/ipmi/ipmi_msghandler.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/Kconfig |   56 ++++++++++++++++++++++--------------------
+ 1 file changed, 30 insertions(+), 26 deletions(-)
 
-diff -puN drivers/char/hvc_console.c~drivers-char-use-list_head-instead-of-list_head_init drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~drivers-char-use-list_head-instead-of-list_head_init
-+++ a/drivers/char/hvc_console.c
-@@ -93,7 +93,7 @@ struct hvc_struct {
- };
+diff -puN drivers/rtc/Kconfig~cosmetic-fixes-to-rtc-subsystems-kconfig drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~cosmetic-fixes-to-rtc-subsystems-kconfig
++++ a/drivers/rtc/Kconfig
+@@ -20,6 +20,10 @@ menuconfig RTC_CLASS
  
- /* dynamic list of hvc_struct instances */
--static struct list_head hvc_structs = LIST_HEAD_INIT(hvc_structs);
-+static LIST_HEAD(hvc_structs);
+ if RTC_CLASS
  
- /*
-  * Protect the list of hvc_struct instances from inserts and removals during
-diff -puN drivers/char/hvcs.c~drivers-char-use-list_head-instead-of-list_head_init drivers/char/hvcs.c
---- a/drivers/char/hvcs.c~drivers-char-use-list_head-instead-of-list_head_init
-+++ a/drivers/char/hvcs.c
-@@ -306,7 +306,7 @@ struct hvcs_struct {
- /* Required to back map a kref to its containing object */
- #define from_kref(k) container_of(k, struct hvcs_struct, kref)
++if GEN_RTC || RTC
++comment "Conflicting RTC option has been selected, check GEN_RTC and RTC"
++endif
++
+ config RTC_HCTOSYS
+ 	bool "Set system time from RTC on startup and resume"
+ 	depends on RTC_CLASS = y
+@@ -49,7 +53,7 @@ config RTC_HCTOSYS_DEVICE
  
--static struct list_head hvcs_structs = LIST_HEAD_INIT(hvcs_structs);
-+static LIST_HEAD(hvcs_structs);
- static DEFINE_SPINLOCK(hvcs_structs_lock);
+ 	  If the clock you specify here is not battery backed, it may still
+ 	  be useful to reinitialize system time when resuming from system
+-	  sleep states.  Do not specify an RTC here unless it stays powered
++	  sleep states. Do not specify an RTC here unless it stays powered
+ 	  during all this system's supported sleep states.
  
- static void hvcs_unthrottle(struct tty_struct *tty);
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~drivers-char-use-list_head-instead-of-list_head_init drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~drivers-char-use-list_head-instead-of-list_head_init
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -365,12 +365,12 @@ static struct device_driver ipmidriver =
- };
- static DEFINE_MUTEX(ipmidriver_mutex);
+ config RTC_DEBUG
+@@ -142,7 +146,7 @@ config RTC_DRV_DS1307
+ 	  will be called rtc-ds1307.
  
--static struct list_head ipmi_interfaces = LIST_HEAD_INIT(ipmi_interfaces);
-+static LIST_HEAD(ipmi_interfaces);
- static DEFINE_MUTEX(ipmi_interfaces_mutex);
+ config RTC_DRV_DS1374
+-	tristate "Maxim/Dallas Semiconductor DS1374 Real Time Clock"
++	tristate "Dallas/Maxim DS1374"
+ 	depends on RTC_CLASS && I2C
+ 	help
+ 	  If you say yes here you get support for Dallas Semiconductor
+@@ -162,7 +166,7 @@ config RTC_DRV_DS1672
+ 	  will be called rtc-ds1672.
  
- /* List of watchers that want to know when smi's are added and
-    deleted. */
--static struct list_head smi_watchers = LIST_HEAD_INIT(smi_watchers);
-+static LIST_HEAD(smi_watchers);
- static DEFINE_MUTEX(smi_watchers_mutex);
+ config RTC_DRV_MAX6900
+-	tristate "Maxim 6900"
++	tristate "Maxim MAX6900"
+ 	help
+ 	  If you say yes here you will get support for the
+ 	  Maxim MAX6900 I2C RTC chip.
+@@ -180,10 +184,10 @@ config RTC_DRV_RS5C372
+ 	  will be called rtc-rs5c372.
  
+ config RTC_DRV_ISL1208
+-	tristate "Intersil 1208"
++	tristate "Intersil ISL1208"
+ 	help
+ 	  If you say yes here you get support for the
+-	  Intersil 1208 RTC chip.
++	  Intersil ISL1208 RTC chip.
  
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-isl1208.
+@@ -220,7 +224,7 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
+ 
+ config RTC_DRV_M41T80
+-	tristate "ST M41T80 series RTC"
++	tristate "ST M41T80/81/82/83/84/85/87"
+ 	help
+ 	  If you say Y here you will get support for the
+ 	  ST M41T80 RTC chips series. Currently following chips are
+@@ -252,6 +256,15 @@ comment "SPI RTC drivers"
+ 
+ if SPI_MASTER
+ 
++config RTC_DRV_MAX6902
++	tristate "Maxim MAX6902"
++	help
++	  If you say yes here you will get support for the
++	  Maxim MAX6902 SPI RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-max6902.
++
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+ 	help
+@@ -261,15 +274,6 @@ config RTC_DRV_RS5C348
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-rs5c348.
+ 
+-config RTC_DRV_MAX6902
+-	tristate "Maxim 6902"
+-	help
+-	  If you say yes here you will get support for the
+-	  Maxim MAX6902 SPI RTC chip.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-max6902.
+-
+ endif # SPI_MASTER
+ 
+ comment "Platform RTC drivers"
+@@ -303,32 +307,32 @@ config RTC_DRV_DS1216
+ 	  If you say yes here you get support for the Dallas DS1216 RTC chips.
+ 
+ config RTC_DRV_DS1553
+-	tristate "Dallas DS1553"
++	tristate "Maxim/Dallas DS1553"
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1553 timekeeping chip.
++	  Maxim/Dallas DS1553 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1553.
+ 
+-config RTC_DRV_STK17TA8
+-	tristate "Simtek STK17TA8"
+-	depends on RTC_CLASS
++config RTC_DRV_DS1742
++	tristate "Maxim/Dallas DS1742/1743"
+ 	help
+ 	  If you say yes here you get support for the
+-	  Simtek STK17TA8 timekeeping chip.
++	  Maxim/Dallas DS1742/1743 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-stk17ta8.
++	  will be called rtc-ds1742.
+ 
+-config RTC_DRV_DS1742
+-	tristate "Dallas DS1742/1743"
++config RTC_DRV_STK17TA8
++	tristate "Simtek STK17TA8"
++	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+-	  Dallas DS1742/1743 timekeeping chip.
++	  Simtek STK17TA8 timekeeping chip.
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-ds1742.
++	  will be called rtc-stk17ta8.
+ 
+ config RTC_DRV_M48T86
+ 	tristate "ST M48T86/Dallas DS12887"
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
 origin.patch
-3w-raid-drivers-memset-not-needed-in-probe.patch
-git-xfs.patch
-fs-char_devc-chrdev_open-marked-static-and-removed-from-fsh.patch
