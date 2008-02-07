@@ -1,128 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - fix-__const_udelay-declaration-and-definition-mismatches.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:27 -0800
-Message-ID: <200802070023.m170N8Ew006500@imap1.linux-foundation.org>
+Subject: - sm501fb-clear-framebuffer-memory-and-palette.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:49 -0800
+Message-ID: <200802070028.m170SU3v007173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50925 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53311 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933428AbYBGAq7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:59 -0500
+	by vger.kernel.org with ESMTP id S1761982AbYBGAqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, hskinnemoen@atmel.com, jdike@linux.intel.com, lethal@linux-sh.org, mingo@elte.hu, takata@linux-m32r.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, adaplas@pol.net, ben-linux@fluff.org, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix __const_udelay declaration and definition mismatches
+     sm501fb: clear framebuffer memory and palette
 has been removed from the -mm tree.  Its filename was
-     fix-__const_udelay-declaration-and-definition-mismatches.patch
+     sm501fb-clear-framebuffer-memory-and-palette.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix __const_udelay declaration and definition mismatches
-From: Jeff Dike <jdike@addtoit.com>
+Subject: sm501fb: clear framebuffer memory and palette
+From: Magnus Damm <magnus.damm@gmail.com>
 
-The declaration and implementation of __const_udelay use different
-names for the parameter on a number of architectures:
+Avoid displaying garbage on unused framebuffers.  For most users a single
+framebuffer is used together with fbcon.  sm501fb supports two framebuffers
+where one often is assigned to fbcon and the other one is left unused during
+the boot.
 
-include/asm-avr32/delay.h:15:extern void __const_udelay(unsigned long usecs);
-arch/avr32/lib/delay.c:39:inline void __const_udelay(unsigned long xloops)
+The problem here is that framebuffers not in use by fbcon happen to display
+garbage.  This can easily be solved by making sure that framebuffer memory and
+palette ram are cleared.
 
-include/asm-sh/delay.h:15:extern void __const_udelay(unsigned long usecs);
-arch/sh/lib/delay.c:22:inline void __const_udelay(unsigned long xloops)
+The problem can be observed by using looking at the panel output (fb1) after
+booting the kernel with fbcon on crt (fb0).  This is the default
+configuration.  It's also possible to watch the garbage on the crt framebuffer
+by passing "fbcon=map:1" on the kernel cmdline.  This will assign fbcon to the
+panel (fb1) and leave the crt (fb0) unused.
 
-include/asm-m32r/delay.h:15:extern void __const_udelay(unsigned long usecs);
-arch/m32r/lib/delay.c:58:void __const_udelay(unsigned long xloops)
-
-include/asm-x86/delay.h:16:extern void __const_udelay(unsigned long usecs);
-arch/x86/lib/delay_32.c:82:inline void __const_udelay(unsigned long xloops)
-arch/x86/lib/delay_64.c:46:inline void __const_udelay(unsigned long xloops)
-
-The units of the parameter isn't usecs, so that name is definitely
-wrong.  It's also not exactly loops, so I suppose xloops is an OK
-name.
-
-This patch changes these names from usecs to xloops.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/delay.h |    2 +-
- include/asm-m32r/delay.h  |    2 +-
- include/asm-sh/delay.h    |    2 +-
- include/asm-x86/delay.h   |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/sm501fb.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/asm-avr32/delay.h~fix-__const_udelay-declaration-and-definition-mismatches include/asm-avr32/delay.h
---- a/include/asm-avr32/delay.h~fix-__const_udelay-declaration-and-definition-mismatches
-+++ a/include/asm-avr32/delay.h
-@@ -12,7 +12,7 @@ extern void __bad_ndelay(void);
+diff -puN drivers/video/sm501fb.c~sm501fb-clear-framebuffer-memory-and-palette drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-clear-framebuffer-memory-and-palette
++++ a/drivers/video/sm501fb.c
+@@ -1276,6 +1276,7 @@ static int sm501fb_start(struct sm501fb_
+ {
+ 	struct resource	*res;
+ 	struct device *dev;
++	int k;
+ 	int ret;
  
- extern void __udelay(unsigned long usecs);
- extern void __ndelay(unsigned long nsecs);
--extern void __const_udelay(unsigned long usecs);
-+extern void __const_udelay(unsigned long xloops);
- extern void __delay(unsigned long loops);
+ 	info->dev = dev = &pdev->dev;
+@@ -1337,6 +1338,13 @@ static int sm501fb_start(struct sm501fb_
  
- #define udelay(n) (__builtin_constant_p(n) ? \
-diff -puN include/asm-m32r/delay.h~fix-__const_udelay-declaration-and-definition-mismatches include/asm-m32r/delay.h
---- a/include/asm-m32r/delay.h~fix-__const_udelay-declaration-and-definition-mismatches
-+++ a/include/asm-m32r/delay.h
-@@ -12,7 +12,7 @@ extern void __bad_ndelay(void);
+ 	info->fbmem_len = (res->end - res->start)+1;
  
- extern void __udelay(unsigned long usecs);
- extern void __ndelay(unsigned long nsecs);
--extern void __const_udelay(unsigned long usecs);
-+extern void __const_udelay(unsigned long xloops);
- extern void __delay(unsigned long loops);
++	/* clear framebuffer memory - avoids garbage data on unused fb */
++	memset(info->fbmem, 0, info->fbmem_len);
++
++	/* clear palette ram - undefined at power on */
++	for (k = 0; k < (256 * 3); k++)
++		writel(0, info->regs + SM501_DC_PANEL_PALETTE + (k * 4));
++
+ 	/* enable display controller */
+ 	sm501_unit_power(dev->parent, SM501_GATE_DISPLAY, 1);
  
- #define udelay(n) (__builtin_constant_p(n) ? \
-diff -puN include/asm-sh/delay.h~fix-__const_udelay-declaration-and-definition-mismatches include/asm-sh/delay.h
---- a/include/asm-sh/delay.h~fix-__const_udelay-declaration-and-definition-mismatches
-+++ a/include/asm-sh/delay.h
-@@ -12,7 +12,7 @@ extern void __bad_ndelay(void);
- 
- extern void __udelay(unsigned long usecs);
- extern void __ndelay(unsigned long nsecs);
--extern void __const_udelay(unsigned long usecs);
-+extern void __const_udelay(unsigned long xloops);
- extern void __delay(unsigned long loops);
- 
- #ifdef CONFIG_SUPERH32
-diff -puN include/asm-x86/delay.h~fix-__const_udelay-declaration-and-definition-mismatches include/asm-x86/delay.h
---- a/include/asm-x86/delay.h~fix-__const_udelay-declaration-and-definition-mismatches
-+++ a/include/asm-x86/delay.h
-@@ -13,7 +13,7 @@ extern void __bad_ndelay(void);
- 
- extern void __udelay(unsigned long usecs);
- extern void __ndelay(unsigned long nsecs);
--extern void __const_udelay(unsigned long usecs);
-+extern void __const_udelay(unsigned long xloops);
- extern void __delay(unsigned long loops);
- 
- /* 0x10c7 is 2**32 / 1000000 (rounded up) */
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
 origin.patch
-git-kvm.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-random-add-async-notification-support-to-dev-random.patch
-mount-options-fix-hostfs.patch
-uml-runtime-host-vmsplit-detection.patch
-uml-style-fixes-in-arch-um-os-linux.patch
-uml-x86_64-should-copy-%fs-during-fork.patch
-uml-fix-mm_context-memory-leak.patch
+git-sh.patch
