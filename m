@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - starfire-secton-fix-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:48:54 -0800
-Message-ID: <200802072248.m17Mmsio026855@imap1.linux-foundation.org>
+Subject: + starfire-secton-fix-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 14:47:37 -0800
+Message-ID: <200802072247.m17Mlb1Y026747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51995 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758969AbYBGWtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:40 -0500
+	by vger.kernel.org with ESMTP id S1760044AbYBGWtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
      starfire-secton-fix-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      starfire-secton-fix-fix.patch
 
-This patch was dropped because it was folded into starfire-secton-fix.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -111,9 +121,12 @@ git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
 typhoon-section-fix.patch
+typhoon-section-fix-fix.patch
 natsemi-section-fix.patch
 bnx2x-section-fix.patch
+bnx2x-section-fix-fix.patch
 bnx2c-section-fix.patch
+bnx2c-section-fix-fix.patch
 via-velocity-section-fix.patch
 starfire-secton-fix.patch
 starfire-secton-fix-fix.patch
