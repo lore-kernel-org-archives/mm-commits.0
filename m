@@ -1,86 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-add-marvell-mv64x60-driver-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:30:48 -0800
-Message-ID: <200802070330.m173UUjP013912@imap1.linux-foundation.org>
+Subject: - vmcoreinfo-fix-the-configuration-dependencies-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:32:20 -0800
+Message-ID: <200802070332.m173W1ec014007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758824AbYBGDbh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:31:37 -0500
+	by vger.kernel.org with ESMTP id S1755213AbYBGDcT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:32:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: oomichi@mxs.nes.nec.co.jp, horms@verge.net.au, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-edac-add-marvell-mv64x60-driver-fix
+     vmcoreinfo-fix-the-configuration-dependencies fix
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-add-marvell-mv64x60-driver-fix.patch
+     vmcoreinfo-fix-the-configuration-dependencies-fix.patch
 
-This patch was dropped because it was folded into drivers-edac-add-marvell-mv64x60-driver.patch
+This patch was dropped because it was folded into vmcoreinfo-fix-the-configuration-dependencies.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-edac-add-marvell-mv64x60-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmcoreinfo-fix-the-configuration-dependencies fix
+From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
-Cc: Dave Jiang <djiang@mvista.com>
-Cc: Douglas Thompson <dougthompson@xmission.com>
+Hi Andrew,
+
+Andrew Morton wrote:
+>> diff -rpuN a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
+>> --- a/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:19.000000000 +0900
+>> +++ b/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:33.000000000 +0900
+>> @@ -235,7 +235,7 @@ void arch_crash_save_vmcoreinfo(void)
+>>  {
+>>  	VMCOREINFO_SYMBOL(init_level4_pgt);
+>>
+>> -#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+>> +#ifdef CONFIG_NUMA
+>>  	VMCOREINFO_SYMBOL(node_data);
+>>  	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
+>>  #endif
+>> _
+>>
+>
+> x86_64-make-sparsemem-vmemmap-the-default-memory-model-v2.patch removes the
+> `VMCOREINFO_SYMBOL(node_data);' from arch/x86/kernel/machine_kexec_64.c
+> altogether, so I dropped that part of your patch.
+
+The above part is necessary for a NUMA kernel.
+Could you please merge the attached patch ?
+
+I guess that Christoph Lameter deleted the above part (which is added
+by the attached patch again) with the other part of discontigmem lines,
+because it depended on CONFIG_ARCH_DISCONTIGMEM_ENABLE.
+But the dependency was wrong, and it should depend on CONFIG_NUMA.
+The part is necessary for a NUMA kernel even if sparsemem.
+
+Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mv64x60_edac.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/machine_kexec_64.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/edac/mv64x60_edac.c~drivers-edac-add-marvell-mv64x60-driver-fix drivers/edac/mv64x60_edac.c
---- a/drivers/edac/mv64x60_edac.c~drivers-edac-add-marvell-mv64x60-driver-fix
-+++ a/drivers/edac/mv64x60_edac.c
-@@ -21,7 +21,7 @@
- #include "edac_module.h"
- #include "mv64x60_edac.h"
+diff -puN arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -234,5 +234,10 @@ NORET_TYPE void machine_kexec(struct kim
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ 	VMCOREINFO_SYMBOL(init_level4_pgt);
++
++#ifdef CONFIG_NUMA
++	VMCOREINFO_SYMBOL(node_data);
++	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
++#endif
+ }
  
--const char *mv64x60_ctl_name = "MV64x60";
-+static const char *mv64x60_ctl_name = "MV64x60";
- static int edac_dev_idx;
- static int edac_pci_idx;
- static int edac_mc_idx;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
 
-origin.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-cgroup-simplify-space-stripping.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
-cpusets-update_cpumask-revision.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-powerpc-fix.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch
+vmcoreinfo-use-the-existing-offsetof-for-vmcoreinfo_offset.patch
+vmcoreinfo-add-vmcoreinfo_-to-all-the-call-for-vmcoreinfo_append_str.patch
+vmcoreinfo-fix-the-configuration-dependencies.patch
+vmcoreinfo-fix-the-configuration-dependencies-fix.patch
