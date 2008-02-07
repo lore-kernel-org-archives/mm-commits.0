@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - starfire-secton-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:30:26 -0800
-Message-ID: <200802072230.m17MUQ6p026034@imap1.linux-foundation.org>
+Subject: - via-velocity-section-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:30:24 -0800
+Message-ID: <200802072230.m17MUOiE026029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39438 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934608AbYBGWal (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:41 -0500
+	by vger.kernel.org with ESMTP id S933995AbYBGWaj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     starfire secton fix
+     via-velocity section fix
 has been removed from the -mm tree.  Its filename was
-     starfire-secton-fix.patch
+     via-velocity-section-fix.patch
 
 This patch was dropped because I just remembered __devexitconst :(
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: starfire secton fix
+Subject: via-velocity section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-3.4.4 on powerpc:
 
-drivers/net/starfire.c:219: error: version causes a section type conflict
+drivers/net/via-velocity.c:443: error: chip_info_table causes a section type conflict
+
+on this one I had to remove the __devinitdata too.  Don't know why.
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/starfire.c |    2 +-
+ drivers/net/via-velocity.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/starfire.c~starfire-secton-fix drivers/net/starfire.c
---- a/drivers/net/starfire.c~starfire-secton-fix
-+++ a/drivers/net/starfire.c
-@@ -216,7 +216,7 @@ do { \
+diff -puN drivers/net/via-velocity.c~via-velocity-section-fix drivers/net/via-velocity.c
+--- a/drivers/net/via-velocity.c~via-velocity-section-fix
++++ a/drivers/net/via-velocity.c
+@@ -440,7 +440,7 @@ static void velocity_unregister_notifier
+  *	Internal board variants. At the moment we have only one
+  */
  
- 
- /* These identify the driver base version and may not be removed. */
--static const char version[] __devinitdata =
-+static char version[] __devinitdata =
- KERN_INFO "starfire.c:v1.03 7/26/2000  Written by Donald Becker <becker@scyld.com>\n"
- KERN_INFO " (unofficial 2.2/2.4 kernel port, version " DRV_VERSION ", " DRV_RELDATE ")\n";
- 
+-static const struct velocity_info_tbl chip_info_table[] __devinitdata = {
++static struct velocity_info_tbl chip_info_table[] = {
+ 	{CHIP_TYPE_VT6110, "VIA Networking Velocity Family Gigabit Ethernet Adapter", 1, 0x00FFFFFFUL},
+ 	{ }
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +110,7 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+via-velocity-section-fix.patch
 starfire-secton-fix.patch
 starfire-secton-fix-fix.patch
 pppol2tp-fix-printk-warnings.patch
