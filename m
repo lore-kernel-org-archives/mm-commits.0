@@ -1,91 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:36:10 -0800
-Message-ID: <200802070335.m173ZqBC014122@imap1.linux-foundation.org>
+Subject: - iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:36:24 -0800
+Message-ID: <200802070336.m173a56g014131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49893 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752800AbYBGDgZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:36:25 -0500
+	by vger.kernel.org with ESMTP id S1753007AbYBGDgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
+     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into iget-stop-the-minix-filesystem-from-using-iget-and.patch
+This patch was dropped because it was folded into iget-stop-procfs-from-using-iget-and-read_inode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
+Subject: iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#85: FILE: fs/minix/inode.c:415:
-+static struct inode *V1_minix_iget(struct inode * inode)
+WARNING: line over 80 characters
+#88: FILE: fs/proc/inode.c:427:
++							&proc_reg_file_ops_no_compat;
 
-ERROR: "foo * bar" should be "foo *bar"
-#112: FILE: fs/minix/inode.c:448:
-+static struct inode *V2_minix_iget(struct inode * inode)
+WARNING: line over 80 characters
+#92: FILE: fs/proc/inode.c:430:
++						inode->i_fop = &proc_reg_file_ops;
 
-ERROR: use tabs not spaces
-#181: FILE: fs/minix/namei.c:58:
-+ ^I^Iif (IS_ERR(inode))$
+ERROR: else should follow close brace '}'
+#94: FILE: fs/proc/inode.c:432:
++				}
++				else
 
-total: 3 errors, 0 warnings, 144 lines checked
+total: 1 errors, 2 warnings, 85 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/inode.c |    4 ++--
- fs/minix/namei.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes fs/minix/inode.c
---- a/fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
-+++ a/fs/minix/inode.c
-@@ -412,7 +412,7 @@ void minix_set_inode(struct inode *inode
- /*
-  * The minix V1 function to read an inode.
-  */
--static struct inode *V1_minix_iget(struct inode * inode)
-+static struct inode *V1_minix_iget(struct inode *inode)
- {
- 	struct buffer_head * bh;
- 	struct minix_inode * raw_inode;
-@@ -445,7 +445,7 @@ static struct inode *V1_minix_iget(struc
- /*
-  * The minix V2 function to read an inode.
-  */
--static struct inode *V2_minix_iget(struct inode * inode)
-+static struct inode *V2_minix_iget(struct inode *inode)
- {
- 	struct buffer_head * bh;
- 	struct minix2_inode * raw_inode;
-diff -puN fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes fs/minix/namei.c
---- a/fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
-+++ a/fs/minix/namei.c
-@@ -55,7 +55,7 @@ static struct dentry *minix_lookup(struc
- 	ino = minix_inode_by_name(dentry);
- 	if (ino) {
- 		inode = minix_iget(dir->i_sb, ino);
-- 		if (IS_ERR(inode))
-+		if (IS_ERR(inode))
- 			return ERR_CAST(inode);
- 	}
- 	d_add(dentry, inode);
+diff -puN fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes fs/proc/inode.c
+--- a/fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
++++ a/fs/proc/inode.c
+@@ -423,9 +423,9 @@ struct inode *proc_get_inode(struct supe
+ 					else
+ #endif
+ 						inode->i_fop = &proc_reg_file_ops;
+-				}
+-				else
++				} else {
+ 					inode->i_fop = de->proc_fops;
++				}
+ 			}
+ 		}
+ 		unlock_new_inode(inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +98,7 @@ iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
