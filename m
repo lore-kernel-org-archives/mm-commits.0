@@ -1,97 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-minor-fixes-to-printk-messages.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:50 -0800
-Message-ID: <200802070026.m170QVC4006925@imap1.linux-foundation.org>
+Subject: - fs-ecryptfs-possible-cleanups.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:40 -0800
+Message-ID: <200802070026.m170QLlU006890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40997 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764712AbYBGApb (ORCPT
+	by vger.kernel.org with ESMTP id S1765411AbYBGApb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike@halcrow.us, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: Minor fixes to printk messages
+     fs/ecryptfs/: possible cleanups
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-minor-fixes-to-printk-messages.patch
+     fs-ecryptfs-possible-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: Minor fixes to printk messages
-From: Michael Halcrow <mike@halcrow.us>
+Subject: fs/ecryptfs/: possible cleanups
+From: Adrian Bunk <bunk@kernel.org>
 
-The printk statements that result when the user does not have the
-proper key available could use some refining.
+- make the following needlessly global code static:
+  - crypto.c:ecryptfs_lower_offset_for_extent()
+  - crypto.c:key_tfm_list
+  - crypto.c:key_tfm_list_mutex
+  - inode.c:ecryptfs_getxattr()
+  - main.c:ecryptfs_init_persistent_file()
 
-Signed-off-by: Mike Halcrow <mhalcrow@us.ibm.com>
-Cc: Mike Halcrow <mhalcrow@us.ibm.com>
+- remove the no longer used mmap.c:ecryptfs_lower_page_cache
+
+- #if 0 the unused read_write.c:ecryptfs_read()
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    7 ++++---
- fs/ecryptfs/file.c   |    5 +++--
- fs/ecryptfs/inode.c  |    6 +++---
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ fs/ecryptfs/crypto.c          |    8 ++++----
+ fs/ecryptfs/ecryptfs_kernel.h |   10 ----------
+ fs/ecryptfs/inode.c           |    2 +-
+ fs/ecryptfs/main.c            |    2 +-
+ fs/ecryptfs/mmap.c            |    2 --
+ fs/ecryptfs/read_write.c      |    2 ++
+ 6 files changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-minor-fixes-to-printk-messages fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-minor-fixes-to-printk-messages
+diff -puN fs/ecryptfs/crypto.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~fs-ecryptfs-possible-cleanups
 +++ a/fs/ecryptfs/crypto.c
-@@ -1527,9 +1527,10 @@ int ecryptfs_read_xattr_region(char *pag
- 	size = ecryptfs_getxattr_lower(lower_dentry, ECRYPTFS_XATTR_NAME,
- 				       page_virt, ECRYPTFS_DEFAULT_EXTENT_SIZE);
- 	if (size < 0) {
--		printk(KERN_ERR "Error attempting to read the [%s] "
--		       "xattr from the lower file; return value = [%zd]\n",
--		       ECRYPTFS_XATTR_NAME, size);
-+		if (unlikely(ecryptfs_verbosity > 0))
-+			printk(KERN_INFO "Error attempting to read the [%s] "
-+			       "xattr from the lower file; return value = "
-+			       "[%zd]\n", ECRYPTFS_XATTR_NAME, size);
- 		rc = -EINVAL;
- 		goto out;
- 	}
-diff -puN fs/ecryptfs/file.c~ecryptfs-minor-fixes-to-printk-messages fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-minor-fixes-to-printk-messages
-+++ a/fs/ecryptfs/file.c
-@@ -209,9 +209,10 @@ static int ecryptfs_open(struct inode *i
- 			if (!(mount_crypt_stat->flags
- 			      & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)) {
- 				rc = -EIO;
--				printk(KERN_WARNING "Attempt to read file that "
-+				printk(KERN_WARNING "Either the lower file "
- 				       "is not in a valid eCryptfs format, "
--				       "and plaintext passthrough mode is not "
-+				       "or the key could not be retrieved. "
-+				       "Plaintext passthrough mode is not "
- 				       "enabled; returning -EIO\n");
- 				mutex_unlock(&crypt_stat->cs_mutex);
- 				goto out_free;
-diff -puN fs/ecryptfs/inode.c~ecryptfs-minor-fixes-to-printk-messages fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-minor-fixes-to-printk-messages
-+++ a/fs/ecryptfs/inode.c
-@@ -873,11 +873,11 @@ static int ecryptfs_setattr(struct dentr
- 			if (!(mount_crypt_stat->flags
- 			      & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)) {
- 				rc = -EIO;
--				printk(KERN_WARNING "Attempt to read file that "
-+				printk(KERN_WARNING "Either the lower file "
- 				       "is not in a valid eCryptfs format, "
--				       "and plaintext passthrough mode is not "
-+				       "or the key could not be retrieved. "
-+				       "Plaintext passthrough mode is not "
- 				       "enabled; returning -EIO\n");
+@@ -376,8 +376,8 @@ out:
+  *
+  * Convert an eCryptfs page index into a lower byte offset
+  */
+-void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
+-				      struct ecryptfs_crypt_stat *crypt_stat)
++static void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
++					     struct ecryptfs_crypt_stat *crypt_stat)
+ {
+ 	(*offset) = ((crypt_stat->extent_size
+ 		      * crypt_stat->num_header_extents_at_front)
+@@ -1802,8 +1802,8 @@ out:
+ }
+ 
+ struct kmem_cache *ecryptfs_key_tfm_cache;
+-struct list_head key_tfm_list;
+-struct mutex key_tfm_list_mutex;
++static struct list_head key_tfm_list;
++static struct mutex key_tfm_list_mutex;
+ 
+ int ecryptfs_init_crypto(void)
+ {
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~fs-ecryptfs-possible-cleanups fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~fs-ecryptfs-possible-cleanups
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -322,9 +322,6 @@ struct ecryptfs_key_tfm {
+ 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ };
+ 
+-extern struct list_head key_tfm_list;
+-extern struct mutex key_tfm_list_mutex;
 -
- 				mutex_unlock(&crypt_stat->cs_mutex);
- 				goto out;
- 			}
+ /**
+  * This struct is to enable a mount-wide passphrase/salt combo. This
+  * is more or less a stopgap to provide similar functionality to other
+@@ -525,7 +522,6 @@ extern struct kmem_cache *ecryptfs_heade
+ extern struct kmem_cache *ecryptfs_header_cache_1;
+ extern struct kmem_cache *ecryptfs_header_cache_2;
+ extern struct kmem_cache *ecryptfs_xattr_cache;
+-extern struct kmem_cache *ecryptfs_lower_page_cache;
+ extern struct kmem_cache *ecryptfs_key_record_cache;
+ extern struct kmem_cache *ecryptfs_key_sig_cache;
+ extern struct kmem_cache *ecryptfs_global_auth_tok_cache;
+@@ -576,8 +572,6 @@ int ecryptfs_truncate(struct dentry *den
+ int ecryptfs_inode_test(struct inode *inode, void *candidate_lower_inode);
+ int ecryptfs_inode_set(struct inode *inode, void *lower_inode);
+ void ecryptfs_init_inode(struct inode *inode, struct inode *lower_inode);
+-ssize_t ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
+-			  size_t size);
+ ssize_t
+ ecryptfs_getxattr_lower(struct dentry *lower_dentry, const char *name,
+ 			void *value, size_t size);
+@@ -631,8 +625,6 @@ int ecryptfs_keyring_auth_tok_for_sig(st
+ 				      char *sig);
+ int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
+ 			 int num_zeros);
+-void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
+-				      struct ecryptfs_crypt_stat *crypt_stat);
+ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
+ 			 loff_t offset, size_t size);
+ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+@@ -646,8 +638,6 @@ int ecryptfs_read_lower_page_segment(str
+ 				     pgoff_t page_index,
+ 				     size_t offset_in_page, size_t size,
+ 				     struct inode *ecryptfs_inode);
+-int ecryptfs_read(char *data, loff_t offset, size_t size,
+-		  struct file *ecryptfs_file);
+ struct page *ecryptfs_get_locked_page(struct file *file, loff_t index);
+ 
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN fs/ecryptfs/inode.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~fs-ecryptfs-possible-cleanups
++++ a/fs/ecryptfs/inode.c
+@@ -954,7 +954,7 @@ out:
+ 	return rc;
+ }
+ 
+-ssize_t
++static ssize_t
+ ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
+ 		  size_t size)
+ {
+diff -puN fs/ecryptfs/main.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~fs-ecryptfs-possible-cleanups
++++ a/fs/ecryptfs/main.c
+@@ -117,7 +117,7 @@ void __ecryptfs_printk(const char *fmt, 
+  *
+  * Returns zero on success; non-zero otherwise
+  */
+-int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
++static int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
+ {
+ 	struct ecryptfs_inode_info *inode_info =
+ 		ecryptfs_inode_to_private(ecryptfs_dentry->d_inode);
+diff -puN fs/ecryptfs/mmap.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~fs-ecryptfs-possible-cleanups
++++ a/fs/ecryptfs/mmap.c
+@@ -34,8 +34,6 @@
+ #include <linux/scatterlist.h>
+ #include "ecryptfs_kernel.h"
+ 
+-struct kmem_cache *ecryptfs_lower_page_cache;
+-
+ /**
+  * ecryptfs_get_locked_page
+  *
+diff -puN fs/ecryptfs/read_write.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/read_write.c
+--- a/fs/ecryptfs/read_write.c~fs-ecryptfs-possible-cleanups
++++ a/fs/ecryptfs/read_write.c
+@@ -293,6 +293,7 @@ int ecryptfs_read_lower_page_segment(str
+ 	return rc;
+ }
+ 
++#if 0
+ /**
+  * ecryptfs_read
+  * @data: The virtual address into which to write the data read (and
+@@ -371,3 +372,4 @@ int ecryptfs_read(char *data, loff_t off
+ out:
+ 	return rc;
+ }
++#endif  /*  0  */
 _
 
-Patches currently in -mm which might be from mike@halcrow.us are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
