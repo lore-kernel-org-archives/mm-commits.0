@@ -1,62 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - memcontrol-move-mm_cgroup-to-header-file-fix-2.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:25:18 -0800
-Message-ID: <200802070324.m173Ox8u013714@imap1.linux-foundation.org>
+Subject: - memcontrol-move-mm_cgroup-to-header-file-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:25:15 -0800
+Message-ID: <200802070324.m173OuGM013711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759139AbYBGDZK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:25:10 -0500
+	by vger.kernel.org with ESMTP id S1759165AbYBGDZP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:25:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcontrol-move-mm_cgroup-to-header-file-fix-2
+     memcontrol-move-mm_cgroup-to-header-file-fix
 has been removed from the -mm tree.  Its filename was
-     memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+     memcontrol-move-mm_cgroup-to-header-file-fix.patch
 
 This patch was dropped because it was folded into memcontrol-move-mm_cgroup-to-header-file.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcontrol-move-mm_cgroup-to-header-file-fix-2
+Subject: memcontrol-move-mm_cgroup-to-header-file-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-In file included from include/linux/swap.h:8,
-                 from include/linux/shmem_fs.h:4,
-                 from mm/shmem_acl.c:10:
-include/linux/memcontrol.h: In function 'mm_cgroup':
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of '_________p1'
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:55: warning: type defaults to 'int' in declaration of 'type name'
-include/linux/memcontrol.h:55: warning: return makes pointer from integer without a cast
-make[1]: *** [mm/shmem_acl.o] Error 1
 
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix-2
+diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix
 +++ a/include/linux/memcontrol.h
-@@ -21,6 +21,7 @@
+@@ -20,6 +20,8 @@
+ #ifndef _LINUX_MEMCONTROL_H
  #define _LINUX_MEMCONTROL_H
  
- #include <linux/rcupdate.h>
-+#include <linux/mm.h>
- 
++#include <linux/rcupdate.h>
++
  struct mem_cgroup;
  struct page_cgroup;
+ struct page;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +58,7 @@ memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
 memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
