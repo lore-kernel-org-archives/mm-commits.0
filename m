@@ -1,91 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-throughput-improvement.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:44 -0800
-Message-ID: <200802070025.m170PPuj006713@imap1.linux-foundation.org>
+Subject: - fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:32 -0800
+Message-ID: <200802070022.m170MDL6006407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57608 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763866AbYBGAoz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:55 -0500
+	by vger.kernel.org with ESMTP id S935072AbYBGAow (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: olsajiri@gmail.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi throughput improvement
+     fs: remove dead config CONFIG_HAS_COMPAT_EPOLL_EVENT symbol
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-throughput-improvement.patch
+     fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi throughput improvement
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: fs: remove dead config CONFIG_HAS_COMPAT_EPOLL_EVENT symbol
+From: Jiri Olsa <olsajiri@gmail.com>
 
-Don't insert (undesirable) delays between consecutive words (DLYBCT) or when
-activating chipselects (DLYBS).
+Remove dead config CONFIG_HAS_COMPAT_EPOLL_EVENT symbol.
 
-Removing the between-word delays improves the performance of bulk transfers
-(such as mtd_dataflash, m25p80, mmc_spi) significantly.  In one test, the
-improvement was a factor of more than eight!
-
-(The large DLYBCT value came from the legacy at91 SPI driver, and it's not
-clear why it used such a huge value.)
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/compat.c            |   49 ---------------------------------------
+ include/linux/compat.h |    8 ------
+ 2 files changed, 57 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-throughput-improvement drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-throughput-improvement
-+++ a/drivers/spi/atmel_spi.c
-@@ -490,9 +490,14 @@ static int atmel_spi_setup(struct spi_de
- 	if (!(spi->mode & SPI_CPHA))
- 		csr |= SPI_BIT(NCPHA);
+diff -puN fs/compat.c~fs-remove-dead-config-config_has_compat_epoll_event-symbol fs/compat.c
+--- a/fs/compat.c~fs-remove-dead-config-config_has_compat_epoll_event-symbol
++++ a/fs/compat.c
+@@ -2083,51 +2083,6 @@ long asmlinkage compat_sys_nfsservctl(in
  
--	/* TODO: DLYBS and DLYBCT */
--	csr |= SPI_BF(DLYBS, 10);
--	csr |= SPI_BF(DLYBCT, 10);
-+	/* DLYBS is mostly irrelevant since we manage chipselect using GPIOs.
-+	 *
-+	 * DLYBCT would add delays between words, slowing down transfers.
-+	 * It could potentially be useful to cope with DMA bottlenecks, but
-+	 * in those cases it's probably best to just use a lower bitrate.
-+	 */
-+	csr |= SPI_BF(DLYBS, 0);
-+	csr |= SPI_BF(DLYBCT, 0);
+ #ifdef CONFIG_EPOLL
  
- 	/* chipselect must have been muxed as GPIO (e.g. in board setup) */
- 	npcs_pin = (unsigned int)spi->controller_data;
+-#ifdef CONFIG_HAS_COMPAT_EPOLL_EVENT
+-asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
+-			struct compat_epoll_event __user *event)
+-{
+-	long err = 0;
+-	struct compat_epoll_event user;
+-	struct epoll_event __user *kernel = NULL;
+-
+-	if (event) {
+-		if (copy_from_user(&user, event, sizeof(user)))
+-			return -EFAULT;
+-		kernel = compat_alloc_user_space(sizeof(struct epoll_event));
+-		err |= __put_user(user.events, &kernel->events);
+-		err |= __put_user(user.data, &kernel->data);
+-	}
+-
+-	return err ? err : sys_epoll_ctl(epfd, op, fd, kernel);
+-}
+-
+-
+-asmlinkage long compat_sys_epoll_wait(int epfd,
+-			struct compat_epoll_event __user *events,
+-			int maxevents, int timeout)
+-{
+-	long i, ret, err = 0;
+-	struct epoll_event __user *kbuf;
+-	struct epoll_event ev;
+-
+-	if ((maxevents <= 0) ||
+-			(maxevents > (INT_MAX / sizeof(struct epoll_event))))
+-		return -EINVAL;
+-	kbuf = compat_alloc_user_space(sizeof(struct epoll_event) * maxevents);
+-	ret = sys_epoll_wait(epfd, kbuf, maxevents, timeout);
+-	for (i = 0; i < ret; i++) {
+-		err |= __get_user(ev.events, &kbuf[i].events);
+-		err |= __get_user(ev.data, &kbuf[i].data);
+-		err |= __put_user(ev.events, &events->events);
+-		err |= __put_user_unaligned(ev.data, &events->data);
+-		events++;
+-	}
+-
+-	return err ? -EFAULT: ret;
+-}
+-#endif	/* CONFIG_HAS_COMPAT_EPOLL_EVENT */
+-
+ #ifdef TIF_RESTORE_SIGMASK
+ asmlinkage long compat_sys_epoll_pwait(int epfd,
+ 			struct compat_epoll_event __user *events,
+@@ -2153,11 +2108,7 @@ asmlinkage long compat_sys_epoll_pwait(i
+ 		sigprocmask(SIG_SETMASK, &ksigmask, &sigsaved);
+ 	}
+ 
+-#ifdef CONFIG_HAS_COMPAT_EPOLL_EVENT
+-	err = compat_sys_epoll_wait(epfd, events, maxevents, timeout);
+-#else
+ 	err = sys_epoll_wait(epfd, events, maxevents, timeout);
+-#endif
+ 
+ 	/*
+ 	 * If we changed the signal mask, we need to restore the original one.
+diff -puN include/linux/compat.h~fs-remove-dead-config-config_has_compat_epoll_event-symbol include/linux/compat.h
+--- a/include/linux/compat.h~fs-remove-dead-config-config_has_compat_epoll_event-symbol
++++ a/include/linux/compat.h
+@@ -257,16 +257,8 @@ asmlinkage long compat_sys_ptrace(compat
+ /*
+  * epoll (fs/eventpoll.c) compat bits follow ...
+  */
+-#ifndef CONFIG_HAS_COMPAT_EPOLL_EVENT
+ struct epoll_event;
+ #define compat_epoll_event	epoll_event
+-#else
+-asmlinkage long compat_sys_epoll_ctl(int epfd, int op, int fd,
+-			struct compat_epoll_event __user *event);
+-asmlinkage long compat_sys_epoll_wait(int epfd,
+-			struct compat_epoll_event __user *events,
+-			int maxevents, int timeout);
+-#endif
+ asmlinkage long compat_sys_epoll_pwait(int epfd,
+ 			struct compat_epoll_event __user *events,
+ 			int maxevents, int timeout,
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
 origin.patch
-git-avr32.patch
-git-mtd.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-add-dma-support-fix.patch
-atmel_serial-fix-broken-rx-buffer-allocation.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
