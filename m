@@ -1,81 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-cdrom-cdromc-simplify-logic-in-cdrom_release.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:36 -0800
-Message-ID: <200802070025.m170PHAU006701@imap1.linux-foundation.org>
+Subject: - fb-sm501-ensure-console-suspended-before-saving-state.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:20 -0800
+Message-ID: <200802070029.m170T1HM007234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763287AbYBGAor (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:47 -0500
+	by vger.kernel.org with ESMTP id S934039AbYBGAot (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, adaplas@pol.net, vince@simtec.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/cdrom/cdrom.c: simplify logic in cdrom_release()
+     FB/SM501: ensure console suspended before saving state
 has been removed from the -mm tree.  Its filename was
-     drivers-cdrom-cdromc-simplify-logic-in-cdrom_release.patch
+     fb-sm501-ensure-console-suspended-before-saving-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cdrom/cdrom.c: simplify logic in cdrom_release()
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: FB/SM501: ensure console suspended before saving state
+From: Ben Dooks <ben-linux@fluff.org>
 
-Simplify logic in cdrom_release() without semantic change.
+Move the console suspend to before we save the state of
+the framebuffer to ensure that it does not try and change
+the fb state again once we have copied it out.
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/video/sm501fb.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-simplify-logic-in-cdrom_release drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-simplify-logic-in-cdrom_release
-+++ a/drivers/cdrom/cdrom.c
-@@ -1206,25 +1206,26 @@ int check_for_audio_disc(struct cdrom_de
+diff -puN drivers/video/sm501fb.c~fb-sm501-ensure-console-suspended-before-saving-state drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~fb-sm501-ensure-console-suspended-before-saving-state
++++ a/drivers/video/sm501fb.c
+@@ -1698,6 +1698,15 @@ static int sm501fb_suspend_fb(struct sm5
+ 	if (par->screen.size == 0)
+ 		return 0;
+ 
++	/* blank the relevant interface to ensure unit power minimised */
++	(par->ops.fb_blank)(FB_BLANK_POWERDOWN, fbi);
++
++	/* tell console/fb driver we are suspending */
++
++	acquire_console_sem();
++	fb_set_suspend(fbi, 1);
++	release_console_sem();
++
+ 	/* backup copies in case chip is powered down over suspend */
+ 
+ 	par->store_fb = vmalloc(par->screen.size);
+@@ -1717,12 +1726,6 @@ static int sm501fb_suspend_fb(struct sm5
+ 
+ 	memcpy_fromio(par->store_fb, par->screen.k_addr, par->screen.size);
+ 	memcpy_fromio(par->store_cursor, par->cursor.k_addr, par->cursor.size);
+-	/* blank the relevant interface to ensure unit power minimised */
+-	(par->ops.fb_blank)(FB_BLANK_POWERDOWN, fbi);
+-
+-	acquire_console_sem();
+-	fb_set_suspend(fbi, 1);
+-	release_console_sem();
+ 
  	return 0;
- }
- 
--/* Admittedly, the logic below could be performed in a nicer way. */
- int cdrom_release(struct cdrom_device_info *cdi, struct file *fp)
- {
- 	struct cdrom_device_ops *cdo = cdi->ops;
- 	int opened_for_data;
- 
--	cdinfo(CD_CLOSE, "entering cdrom_release\n"); 
-+	cdinfo(CD_CLOSE, "entering cdrom_release\n");
- 
- 	if (cdi->use_count > 0)
- 		cdi->use_count--;
--	if (cdi->use_count == 0)
-+
-+	if (cdi->use_count == 0) {
- 		cdinfo(CD_CLOSE, "Use count for \"/dev/%s\" now zero\n", cdi->name);
--	if (cdi->use_count == 0)
- 		cdrom_dvd_rw_close_write(cdi);
--	if (cdi->use_count == 0 &&
--	    (cdo->capability & CDC_LOCK) && !keeplocked) {
--		cdinfo(CD_CLOSE, "Unlocking door!\n");
--		cdo->lock_door(cdi, 0);
-+
-+		if ((cdo->capability & CDC_LOCK) && !keeplocked) {
-+			cdinfo(CD_CLOSE, "Unlocking door!\n");
-+			cdo->lock_door(cdi, 0);
-+		}
- 	}
-+
- 	opened_for_data = !(cdi->options & CDO_USE_FFLAGS) ||
- 		!(fp && fp->f_flags & O_NONBLOCK);
  
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
+git-mtd.patch
