@@ -1,89 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-infineon-section-mismatch.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:31 -0800
-Message-ID: <200802070025.m170PCLj006695@imap1.linux-foundation.org>
+Subject: - atari-floppy-rename-disk_type-to-atari_disk_type.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:40 -0800
+Message-ID: <200802070025.m170PLgx006707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52198 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935100AbYBGApk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:40 -0500
+	by vger.kernel.org with ESMTP id S934195AbYBGAph (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sam@ravnborg.org, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, gregkh@suse.de, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: infineon section mismatch
+     Atari floppy: Rename disk_type to atari_disk_type
 has been removed from the -mm tree.  Its filename was
-     tpm-infineon-section-mismatch.patch
+     atari-floppy-rename-disk_type-to-atari_disk_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: infineon section mismatch
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Atari floppy: Rename disk_type to atari_disk_type
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Fix section mismatch by making the driver template variable name
-match one of the whitelisted variable names in modpost.
+Commit edfaa7c36574f1bf09c65ad602412db9da5f96bf
 
-WARNING: vmlinux.o(.data+0x7a9e8): Section mismatch: reference to .init.text:tpm_inf_pnp_probe (between 'tpm_inf_pnp' and 'cn_idx')
+    Driver core: convert block from raw kobjects to core devices
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+    This moves the block devices to /sys/class/block. It will create a
+    flat list of all block devices, with the disks and partitions in one
+    directory. For compatibility /sys/block is created and contains symlinks
+    to the disks.
+
+introduced a global disk_type variable in <linux/genhd.h>, causing the
+following compile error on Atari:
+
+    drivers/block/ataflop.c:93: error: conflicting types for 'disk_type'
+    include/linux/genhd.h:21: error: previous declaration of 'disk_type' was here
+
+Rename the local disk_type variable in drivers/block/ataflop.c to
+atari_disk_type, to avoid the conflict.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_infineon.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/ataflop.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch drivers/char/tpm/tpm_infineon.c
---- a/drivers/char/tpm/tpm_infineon.c~tpm-infineon-section-mismatch
-+++ a/drivers/char/tpm/tpm_infineon.c
-@@ -611,7 +611,7 @@ static __devexit void tpm_inf_pnp_remove
+diff -puN drivers/block/ataflop.c~atari-floppy-rename-disk_type-to-atari_disk_type drivers/block/ataflop.c
+--- a/drivers/block/ataflop.c~atari-floppy-rename-disk_type-to-atari_disk_type
++++ a/drivers/block/ataflop.c
+@@ -90,7 +90,7 @@ static struct atari_disk_type {
+ 	unsigned	blocks;		/* total number of blocks */
+ 	unsigned	fdc_speed;	/* fdc_speed setting */
+ 	unsigned 	stretch;	/* track doubling ? */
+-} disk_type[] = {
++} atari_disk_type[] = {
+ 	{ "d360",  9, 720, 0, 0},	/*  0: 360kB diskette */
+ 	{ "D360",  9, 720, 0, 1},	/*  1: 360kb in 720k or 1.2MB drive */
+ 	{ "D720",  9,1440, 0, 0},	/*  2: 720kb in 720k or 1.2MB drive */
+@@ -658,7 +658,7 @@ static int do_format(int drive, int type
+ 			return -EINVAL;
+ 		}
+ 		type = minor2disktype[type].index;
+-		UDT = &disk_type[type];
++		UDT = &atari_disk_type[type];
  	}
- }
  
--static struct pnp_driver tpm_inf_pnp = {
-+static struct pnp_driver tpm_inf_pnp_driver = {
- 	.name = "tpm_inf_pnp",
- 	.driver = {
- 		.owner = THIS_MODULE,
-@@ -625,12 +625,12 @@ static struct pnp_driver tpm_inf_pnp = {
+ 	if (!UDT || desc->track >= UDT->blocks/UDT->spt/2 || desc->head >= 2) {
+@@ -1064,7 +1064,7 @@ static void fd_rwsec_done1(int status)
+ 	       searched for a non-existent sector! */
+ 	    !(read_track && FDC_READ(FDCREG_SECTOR) > SUDT->spt)) {
+ 		if (Probing) {
+-			if (SUDT > disk_type) {
++			if (SUDT > atari_disk_type) {
+ 			    if (SUDT[-1].blocks > ReqBlock) {
+ 				/* try another disk type */
+ 				SUDT--;
+@@ -1082,7 +1082,7 @@ static void fd_rwsec_done1(int status)
+ 		} else {	
+ /* record not found, but not probing. Maybe stretch wrong ? Restart probing */
+ 			if (SUD.autoprobe) {
+-				SUDT = disk_type + StartDiskType[DriveType];
++				SUDT = atari_disk_type + StartDiskType[DriveType];
+ 				set_capacity(unit[SelectedDrive].disk,
+ 							SUDT->blocks);
+ 				Probing = 1;
+@@ -1421,7 +1421,7 @@ repeat:
+ 	if (type == 0) {
+ 		if (!UDT) {
+ 			Probing = 1;
+-			UDT = disk_type + StartDiskType[DriveType];
++			UDT = atari_disk_type + StartDiskType[DriveType];
+ 			set_capacity(floppy->disk, UDT->blocks);
+ 			UD.autoprobe = 1;
+ 		}
+@@ -1439,7 +1439,7 @@ repeat:
+ 			goto repeat;
+ 		}
+ 		type = minor2disktype[type].index;
+-		UDT = &disk_type[type];
++		UDT = &atari_disk_type[type];
+ 		set_capacity(floppy->disk, UDT->blocks);
+ 		UD.autoprobe = 0;
+ 	}
+@@ -1505,7 +1505,7 @@ static int fd_ioctl(struct inode *inode,
+ 			if (minor2disktype[type].drive_types > DriveType)
+ 				return -ENODEV;
+ 			type = minor2disktype[type].index;
+-			dtp = &disk_type[type];
++			dtp = &atari_disk_type[type];
+ 			if (UD.flags & FTD_MSG)
+ 			    printk (KERN_ERR "floppy%d: found dtp %p name %s!\n",
+ 			        drive, dtp, dtp->name);
+@@ -1576,7 +1576,7 @@ static int fd_ioctl(struct inode *inode,
+ 				continue;
+ 			}
+ 			setidx = minor2disktype[settype].index;
+-			dtp = &disk_type[setidx];
++			dtp = &atari_disk_type[setidx];
  
- static int __init init_inf(void)
- {
--	return pnp_register_driver(&tpm_inf_pnp);
-+	return pnp_register_driver(&tpm_inf_pnp_driver);
- }
- 
- static void __exit cleanup_inf(void)
- {
--	pnp_unregister_driver(&tpm_inf_pnp);
-+	pnp_unregister_driver(&tpm_inf_pnp_driver);
- }
- 
- module_init(init_inf);
+ 			/* found matching entry ?? */
+ 			if (   dtp->blocks  == setprm.size 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
+add-cmpxchg_local-to-m86k.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
