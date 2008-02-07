@@ -1,98 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:23 -0800
-Message-ID: <200802070028.m170S4oh007114@imap1.linux-foundation.org>
+Subject: - drivers-cdrom-cdromc-simplify-logic-in-cdrom_release.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:36 -0800
+Message-ID: <200802070025.m170PHAU006701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933924AbYBGAor (ORCPT
+	by vger.kernel.org with ESMTP id S1763287AbYBGAor (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: bbpetkov@yahoo.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: fix sparse warning about shadowing 'p' symbol
+     drivers/cdrom/cdrom.c: simplify logic in cdrom_release()
 has been removed from the -mm tree.  Its filename was
-     fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
+     drivers-cdrom-cdromc-simplify-logic-in-cdrom_release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: fix sparse warning about shadowing 'p' symbol
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: drivers/cdrom/cdrom.c: simplify logic in cdrom_release()
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Simplify logic in cdrom_release() without semantic change.
+
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/cdrom/cdrom.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-fix-sparse-warning-about-shadowing-p-symbol drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-fix-sparse-warning-about-shadowing-p-symbol
-+++ a/drivers/video/console/fbcon.c
-@@ -2795,7 +2795,7 @@ static int fbcon_scrolldelta(struct vc_d
+diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-simplify-logic-in-cdrom_release drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-simplify-logic-in-cdrom_release
++++ a/drivers/cdrom/cdrom.c
+@@ -1206,25 +1206,26 @@ int check_for_audio_disc(struct cdrom_de
+ 	return 0;
+ }
+ 
+-/* Admittedly, the logic below could be performed in a nicer way. */
+ int cdrom_release(struct cdrom_device_info *cdi, struct file *fp)
  {
- 	struct fb_info *info = registered_fb[con2fb_map[fg_console]];
- 	struct fbcon_ops *ops = info->fbcon_par;
--	struct display *p = &fb_display[fg_console];
-+	struct display *disp = &fb_display[fg_console];
- 	int offset, limit, scrollback_old;
+ 	struct cdrom_device_ops *cdo = cdi->ops;
+ 	int opened_for_data;
  
- 	if (softback_top) {
-@@ -2833,7 +2833,7 @@ static int fbcon_scrolldelta(struct vc_d
- 			logo_shown = FBCON_LOGO_CANSHOW;
- 		}
- 		fbcon_cursor(vc, CM_ERASE | CM_SOFTBACK);
--		fbcon_redraw_softback(vc, p, lines);
-+		fbcon_redraw_softback(vc, disp, lines);
- 		fbcon_cursor(vc, CM_DRAW | CM_SOFTBACK);
- 		return 0;
+-	cdinfo(CD_CLOSE, "entering cdrom_release\n"); 
++	cdinfo(CD_CLOSE, "entering cdrom_release\n");
+ 
+ 	if (cdi->use_count > 0)
+ 		cdi->use_count--;
+-	if (cdi->use_count == 0)
++
++	if (cdi->use_count == 0) {
+ 		cdinfo(CD_CLOSE, "Use count for \"/dev/%s\" now zero\n", cdi->name);
+-	if (cdi->use_count == 0)
+ 		cdrom_dvd_rw_close_write(cdi);
+-	if (cdi->use_count == 0 &&
+-	    (cdo->capability & CDC_LOCK) && !keeplocked) {
+-		cdinfo(CD_CLOSE, "Unlocking door!\n");
+-		cdo->lock_door(cdi, 0);
++
++		if ((cdo->capability & CDC_LOCK) && !keeplocked) {
++			cdinfo(CD_CLOSE, "Unlocking door!\n");
++			cdo->lock_door(cdi, 0);
++		}
  	}
-@@ -2855,9 +2855,9 @@ static int fbcon_scrolldelta(struct vc_d
++
+ 	opened_for_data = !(cdi->options & CDO_USE_FFLAGS) ||
+ 		!(fp && fp->f_flags & O_NONBLOCK);
  
- 	fbcon_cursor(vc, CM_ERASE);
- 
--	offset = p->yscroll - scrollback_current;
--	limit = p->vrows;
--	switch (p->scrollmode) {
-+	offset = disp->yscroll - scrollback_current;
-+	limit = disp->vrows;
-+	switch (disp->scrollmode) {
- 	case SCROLL_WRAP_MOVE:
- 		info->var.vmode |= FB_VMODE_YWRAP;
- 		break;
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
 origin.patch
-byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch
-ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
