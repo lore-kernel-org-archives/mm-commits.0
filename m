@@ -1,72 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - natsemi-section-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:30:13 -0800
-Message-ID: <200802072230.m17MUDvH025996@imap1.linux-foundation.org>
+Subject: - starfire-secton-fix-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:30:28 -0800
+Message-ID: <200802072230.m17MUSa6026037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47436 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52318 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933770AbYBGWag (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:36 -0500
+	by vger.kernel.org with ESMTP id S934699AbYBGWao (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     natsemi section fix
+     starfire-secton-fix-fix
 has been removed from the -mm tree.  Its filename was
-     natsemi-section-fix.patch
+     starfire-secton-fix-fix.patch
 
 This patch was dropped because I just remembered __devexitconst :(
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: natsemi section fix
+Subject: starfire-secton-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gcc-3.4.4 on powerpc:
+i386 now gets:
 
-drivers/net/natsemi.c:245: error: natsemi_pci_info causes a section type conflict
+drivers/net/starfire.c:219: error: version causes a section type conflict
+
+nfi what's going on.
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/starfire.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-section-fix
-+++ a/drivers/net/natsemi.c
-@@ -127,7 +127,7 @@ static int full_duplex[MAX_UNITS];
- #define NATSEMI_RX_LIMIT	2046	/* maximum supported by hardware */
+diff -puN drivers/net/starfire.c~starfire-secton-fix-fix drivers/net/starfire.c
+--- a/drivers/net/starfire.c~starfire-secton-fix-fix
++++ a/drivers/net/starfire.c
+@@ -216,7 +216,7 @@ do { \
+ 
  
  /* These identify the driver base version and may not be removed. */
--static const char version[] __devinitdata =
-+static char version[] __devinitdata =
-   KERN_INFO DRV_NAME " dp8381x driver, version "
-       DRV_VERSION ", " DRV_RELDATE "\n"
-   KERN_INFO "  originally by Donald Becker <becker@scyld.com>\n"
-@@ -238,7 +238,7 @@ enum {
- };
+-static char version[] __devinitdata =
++static char version[] =
+ KERN_INFO "starfire.c:v1.03 7/26/2000  Written by Donald Becker <becker@scyld.com>\n"
+ KERN_INFO " (unofficial 2.2/2.4 kernel port, version " DRV_VERSION ", " DRV_RELDATE ")\n";
  
- /* array of board data directly indexed by pci_tbl[x].driver_data */
--static const struct {
-+static struct {
- 	const char *name;
- 	unsigned long flags;
- 	unsigned int eeprom_size;
-@@ -247,7 +247,7 @@ static const struct {
- 	{ "NatSemi DP8381[56]", 0, 24 },
- };
- 
--static const struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
-+static struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
- 	{ PCI_VENDOR_ID_NS, 0x0020, 0x12d9,     0x000c,     0, 0, 0 },
- 	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
- 	{ }	/* terminate list */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,13 +110,6 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2x-section-fix-fix.patch
-bnx2c-section-fix.patch
-bnx2c-section-fix-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
 starfire-secton-fix-fix.patch
 pppol2tp-fix-printk-warnings.patch
 drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
