@@ -1,206 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - fs-ecryptfs-possible-cleanups.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:40 -0800
-Message-ID: <200802070026.m170QLlU006890@imap1.linux-foundation.org>
+Subject: - blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:20 -0800
+Message-ID: <200802070027.m170R1Nq006976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40997 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765411AbYBGApb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:31 -0500
+	by vger.kernel.org with ESMTP id S1761118AbYBGAp3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ecryptfs/: possible cleanups
+     Blackfin RTC driver: the frequency function is in units of Hz, not units of seconds, so lock our driver down to 1 Hz
 has been removed from the -mm tree.  Its filename was
-     fs-ecryptfs-possible-cleanups.patch
+     blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ecryptfs/: possible cleanups
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Blackfin RTC driver: the frequency function is in units of Hz, not units of seconds, so lock our driver down to 1 Hz
+From: Mike Frysinger <michael.frysinger@analog.com>
 
-- make the following needlessly global code static:
-  - crypto.c:ecryptfs_lower_offset_for_extent()
-  - crypto.c:key_tfm_list
-  - crypto.c:key_tfm_list_mutex
-  - inode.c:ecryptfs_getxattr()
-  - main.c:ecryptfs_init_persistent_file()
-
-- remove the no longer used mmap.c:ecryptfs_lower_page_cache
-
-- #if 0 the unused read_write.c:ecryptfs_read()
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |    8 ++++----
- fs/ecryptfs/ecryptfs_kernel.h |   10 ----------
- fs/ecryptfs/inode.c           |    2 +-
- fs/ecryptfs/main.c            |    2 +-
- fs/ecryptfs/mmap.c            |    2 --
- fs/ecryptfs/read_write.c      |    2 ++
- 6 files changed, 8 insertions(+), 18 deletions(-)
+ drivers/rtc/rtc-bfin.c |   24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/crypto.c
-@@ -376,8 +376,8 @@ out:
-  *
-  * Convert an eCryptfs page index into a lower byte offset
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz
++++ a/drivers/rtc/rtc-bfin.c
+@@ -72,7 +72,7 @@ struct bfin_rtc {
+ #define SEC_BITS_OFF    0
+ 
+ /* Some helper functions to convert between the common RTC notion of time
+- * and the internal Blackfin notion that is stored in 32bits.
++ * and the internal Blackfin notion that is encoded in 32bits.
   */
--void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
--				      struct ecryptfs_crypt_stat *crypt_stat)
-+static void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
-+					     struct ecryptfs_crypt_stat *crypt_stat)
+ static inline u32 rtc_time_to_bfin(unsigned long now)
  {
- 	(*offset) = ((crypt_stat->extent_size
- 		      * crypt_stat->num_header_extents_at_front)
-@@ -1802,8 +1802,8 @@ out:
- }
- 
- struct kmem_cache *ecryptfs_key_tfm_cache;
--struct list_head key_tfm_list;
--struct mutex key_tfm_list_mutex;
-+static struct list_head key_tfm_list;
-+static struct mutex key_tfm_list_mutex;
- 
- int ecryptfs_init_crypto(void)
- {
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~fs-ecryptfs-possible-cleanups fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -322,9 +322,6 @@ struct ecryptfs_key_tfm {
- 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
- };
- 
--extern struct list_head key_tfm_list;
--extern struct mutex key_tfm_list_mutex;
--
- /**
-  * This struct is to enable a mount-wide passphrase/salt combo. This
-  * is more or less a stopgap to provide similar functionality to other
-@@ -525,7 +522,6 @@ extern struct kmem_cache *ecryptfs_heade
- extern struct kmem_cache *ecryptfs_header_cache_1;
- extern struct kmem_cache *ecryptfs_header_cache_2;
- extern struct kmem_cache *ecryptfs_xattr_cache;
--extern struct kmem_cache *ecryptfs_lower_page_cache;
- extern struct kmem_cache *ecryptfs_key_record_cache;
- extern struct kmem_cache *ecryptfs_key_sig_cache;
- extern struct kmem_cache *ecryptfs_global_auth_tok_cache;
-@@ -576,8 +572,6 @@ int ecryptfs_truncate(struct dentry *den
- int ecryptfs_inode_test(struct inode *inode, void *candidate_lower_inode);
- int ecryptfs_inode_set(struct inode *inode, void *lower_inode);
- void ecryptfs_init_inode(struct inode *inode, struct inode *lower_inode);
--ssize_t ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
--			  size_t size);
- ssize_t
- ecryptfs_getxattr_lower(struct dentry *lower_dentry, const char *name,
- 			void *value, size_t size);
-@@ -631,8 +625,6 @@ int ecryptfs_keyring_auth_tok_for_sig(st
- 				      char *sig);
- int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
- 			 int num_zeros);
--void ecryptfs_lower_offset_for_extent(loff_t *offset, loff_t extent_num,
--				      struct ecryptfs_crypt_stat *crypt_stat);
- int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
- 			 loff_t offset, size_t size);
- int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
-@@ -646,8 +638,6 @@ int ecryptfs_read_lower_page_segment(str
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
--int ecryptfs_read(char *data, loff_t offset, size_t size,
--		  struct file *ecryptfs_file);
- struct page *ecryptfs_get_locked_page(struct file *file, loff_t index);
- 
- #endif /* #ifndef ECRYPTFS_KERNEL_H */
-diff -puN fs/ecryptfs/inode.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/inode.c
-@@ -954,7 +954,7 @@ out:
- 	return rc;
- }
- 
--ssize_t
-+static ssize_t
- ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
- 		  size_t size)
- {
-diff -puN fs/ecryptfs/main.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/main.c
-@@ -117,7 +117,7 @@ void __ecryptfs_printk(const char *fmt, 
-  *
-  * Returns zero on success; non-zero otherwise
+@@ -112,6 +112,11 @@ static inline void rtc_bfin_to_tm(u32 rt
+  * If anyone can point out the obvious solution here, i'm listening :).  This
+  * shouldn't be an issue on an SMP or preempt system as this function should
+  * only be called with the rtc lock held.
++ *
++ * Other options:
++ *  - disable PREN so the sync happens at 32.768kHZ ... but this changes the
++ *    inc rate for all RTC registers from 1HZ to 32.768kHZ ...
++ *  - use the write complete IRQ
   */
--int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
-+static int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
+ static void rtc_bfin_sync_pending(void)
  {
- 	struct ecryptfs_inode_info *inode_info =
- 		ecryptfs_inode_to_private(ecryptfs_dentry->d_inode);
-diff -puN fs/ecryptfs/mmap.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/mmap.c
-@@ -34,8 +34,6 @@
- #include <linux/scatterlist.h>
- #include "ecryptfs_kernel.h"
- 
--struct kmem_cache *ecryptfs_lower_page_cache;
--
- /**
-  * ecryptfs_get_locked_page
-  *
-diff -puN fs/ecryptfs/read_write.c~fs-ecryptfs-possible-cleanups fs/ecryptfs/read_write.c
---- a/fs/ecryptfs/read_write.c~fs-ecryptfs-possible-cleanups
-+++ a/fs/ecryptfs/read_write.c
-@@ -293,6 +293,7 @@ int ecryptfs_read_lower_page_segment(str
- 	return rc;
+@@ -356,12 +361,18 @@ static int bfin_rtc_proc(struct device *
+ 	return 0;
  }
  
-+#if 0
- /**
-  * ecryptfs_read
-  * @data: The virtual address into which to write the data read (and
-@@ -371,3 +372,4 @@ int ecryptfs_read(char *data, loff_t off
- out:
- 	return rc;
++/**
++ *	bfin_irq_set_freq - make sure hardware supports requested freq
++ *	@dev: pointer to RTC device structure
++ *	@freq: requested frequency rate
++ *
++ *	The Blackfin RTC can only generate periodic events at 1 per
++ *	second (1 Hz), so reject any attempt at changing it.
++ */
+ static int bfin_irq_set_freq(struct device *dev, int freq)
+ {
+-	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 	stampit();
+-	rtc->rtc_dev->irq_freq = freq;
+-	return 0;
++	return -ENOTTY;
  }
-+#endif  /*  0  */
+ 
+ static struct rtc_class_ops bfin_rtc_ops = {
+@@ -394,14 +405,13 @@ static int __devinit bfin_rtc_probe(stru
+ 		ret = PTR_ERR(rtc->rtc_dev);
+ 		goto err;
+ 	}
+-	rtc->rtc_dev->irq_freq = 0;
+-	rtc->rtc_dev->max_user_freq = (2 << 16); /* stopwatch is an unsigned 16 bit reg */
++	rtc->rtc_dev->irq_freq = 1;
+ 
+ 	platform_set_drvdata(pdev, rtc);
+ 
+ 	return 0;
+ 
+-err:
++ err:
+ 	kfree(rtc);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from michael.frysinger@analog.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+git-watchdog.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
