@@ -1,85 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:31:36 -0800
-Message-ID: <200802070331.m173VHX5013926@imap1.linux-foundation.org>
+Subject: - introduce-flags-for-reserve_bootmem-powerpc-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:31:39 -0800
+Message-ID: <200802070331.m173VKcr013929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58796 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978AbYBGDbZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:31:25 -0500
+	by vger.kernel.org with ESMTP id S1758099AbYBGDbf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:31:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bwalle@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, bwalle@suse.de, ebiederm@xmission.com, paulus@samba.org, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-flags-for-reserve_bootmem-checkpatch-fixes
+     introduce-flags-for-reserve_bootmem-powerpc-fix
 has been removed from the -mm tree.  Its filename was
-     introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+     introduce-flags-for-reserve_bootmem-powerpc-fix.patch
 
 This patch was dropped because it was folded into introduce-flags-for-reserve_bootmem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce-flags-for-reserve_bootmem-checkpatch-fixes
+Subject: introduce-flags-for-reserve_bootmem-powerpc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#872: FILE: arch/x86/kernel/setup_32.c:486:
-+			reserve_bootmem(crash_base, crash_size, BOOTMEM_DEFAULT);
-
-WARNING: line over 80 characters
-#916: FILE: arch/x86/kernel/setup_32.c:562:
-+			reserve_bootmem(ramdisk_image, ramdisk_size, BOOTMEM_DEFAULT);
-
-WARNING: line over 80 characters
-#1058: FILE: mm/bootmem.c:114:
-+static int __init reserve_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
-
-total: 0 errors, 3 warnings, 833 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_32.c |    3 ++-
- mm/bootmem.c               |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/powerpc/mm/mem.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup_32.c~introduce-flags-for-reserve_bootmem-checkpatch-fixes arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~introduce-flags-for-reserve_bootmem-checkpatch-fixes
-+++ a/arch/x86/kernel/setup_32.c
-@@ -489,7 +489,8 @@ static void __init reserve_crashkernel(v
- 					(unsigned long)(total_mem >> 20));
- 			crashk_res.start = crash_base;
- 			crashk_res.end   = crash_base + crash_size - 1;
--			reserve_bootmem(crash_base, crash_size, BOOTMEM_DEFAULT);
-+			reserve_bootmem(crash_base, crash_size,
+diff -puN arch/powerpc/mm/mem.c~introduce-flags-for-reserve_bootmem-powerpc-fix arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~introduce-flags-for-reserve_bootmem-powerpc-fix
++++ a/arch/powerpc/mm/mem.c
+@@ -253,12 +253,13 @@ void __init do_init_bootmem(void)
+ 				     lmb_size_bytes(&lmb.reserved, i) - 1;
+ 		if (addr < total_lowmem)
+ 			reserve_bootmem(lmb.reserved.region[i].base,
+-					lmb_size_bytes(&lmb.reserved, i));
++					lmb_size_bytes(&lmb.reserved, i),
 +					BOOTMEM_DEFAULT);
- 		} else
- 			printk(KERN_INFO "crashkernel reservation failed - "
- 					"you have to specify a base address\n");
-diff -puN mm/bootmem.c~introduce-flags-for-reserve_bootmem-checkpatch-fixes mm/bootmem.c
---- a/mm/bootmem.c~introduce-flags-for-reserve_bootmem-checkpatch-fixes
-+++ a/mm/bootmem.c
-@@ -111,8 +111,8 @@ static unsigned long __init init_bootmem
-  * might be used for boot-time allocations - or it might get added
-  * to the free page pool later on.
-  */
--static int __init reserve_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
--					unsigned long size, int flags)
-+static int __init reserve_bootmem_core(bootmem_data_t *bdata,
-+			unsigned long addr, unsigned long size, int flags)
- {
- 	unsigned long sidx, eidx;
- 	unsigned long i;
+ 		else if (lmb.reserved.region[i].base < total_lowmem) {
+ 			unsigned long adjusted_size = total_lowmem -
+ 				      lmb.reserved.region[i].base;
+ 			reserve_bootmem(lmb.reserved.region[i].base,
+-					adjusted_size);
++					adjusted_size, BOOTMEM_DEFAULT);
+ 		}
+ 	}
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,7 +79,6 @@ hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
 cpusets-update_cpumask-revision.patch
 drivers-edac-add-marvell-mv64x60-driver.patch
 introduce-flags-for-reserve_bootmem.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 introduce-flags-for-reserve_bootmem-powerpc-fix.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
