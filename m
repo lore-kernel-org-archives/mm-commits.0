@@ -1,183 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - cosmetic-fixes-to-rtc-subsystems-kconfig.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:02 -0800
-Message-ID: <200802070026.m170QhLB006946@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:48 -0800
+Message-ID: <200802070026.m170QTlV006922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56147 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933339AbYBGApl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:41 -0500
+	by vger.kernel.org with ESMTP id S935092AbYBGApi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Cosmetic fixes to RTC subsystem's Kconfig
+     ecryptfs: remove debug as mount option, and warn if set via modprobe
 has been removed from the -mm tree.  Its filename was
-     cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+     ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Cosmetic fixes to RTC subsystem's Kconfig
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: ecryptfs: remove debug as mount option, and warn if set via modprobe
+From: Eric Sandeen <sandeen@redhat.com>
 
-Add adds a warning if a potentially conflicting RTC option has been
-selected and makes some other cosmetic fixes to the Kconfig.
+ecryptfs_debug really should not be a mount option; it is not per-mount,
+but rather sets a global "ecryptfs_verbosity" variable which affects all
+mounted filesysytems.  It's already settable as a module load option,
+I think we can leave it at that.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Also, if set, since secret values come out in debug messages, kick
+things off with a stern warning.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Mike Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |   56 ++++++++++++++++++++++--------------------
- 1 file changed, 30 insertions(+), 26 deletions(-)
+ fs/ecryptfs/main.c  |   23 +++++++----------------
+ fs/ecryptfs/super.c |    4 ----
+ 2 files changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~cosmetic-fixes-to-rtc-subsystems-kconfig drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~cosmetic-fixes-to-rtc-subsystems-kconfig
-+++ a/drivers/rtc/Kconfig
-@@ -20,6 +20,10 @@ menuconfig RTC_CLASS
+diff -puN fs/ecryptfs/main.c~ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe
++++ a/fs/ecryptfs/main.c
+@@ -226,17 +226,15 @@ out:
+ 	return rc;
+ }
  
- if RTC_CLASS
+-enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig, ecryptfs_opt_debug,
+-       ecryptfs_opt_ecryptfs_debug, ecryptfs_opt_cipher,
+-       ecryptfs_opt_ecryptfs_cipher, ecryptfs_opt_ecryptfs_key_bytes,
++enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig,
++       ecryptfs_opt_cipher, ecryptfs_opt_ecryptfs_cipher,
++       ecryptfs_opt_ecryptfs_key_bytes,
+        ecryptfs_opt_passthrough, ecryptfs_opt_xattr_metadata,
+        ecryptfs_opt_encrypted_view, ecryptfs_opt_err };
  
-+if GEN_RTC || RTC
-+comment "Conflicting RTC option has been selected, check GEN_RTC and RTC"
-+endif
+ static match_table_t tokens = {
+ 	{ecryptfs_opt_sig, "sig=%s"},
+ 	{ecryptfs_opt_ecryptfs_sig, "ecryptfs_sig=%s"},
+-	{ecryptfs_opt_debug, "debug=%u"},
+-	{ecryptfs_opt_ecryptfs_debug, "ecryptfs_debug=%u"},
+ 	{ecryptfs_opt_cipher, "cipher=%s"},
+ 	{ecryptfs_opt_ecryptfs_cipher, "ecryptfs_cipher=%s"},
+ 	{ecryptfs_opt_ecryptfs_key_bytes, "ecryptfs_key_bytes=%u"},
+@@ -313,7 +311,6 @@ static int ecryptfs_parse_options(struct
+ 	substring_t args[MAX_OPT_ARGS];
+ 	int token;
+ 	char *sig_src;
+-	char *debug_src;
+ 	char *cipher_name_dst;
+ 	char *cipher_name_src;
+ 	char *cipher_key_bytes_src;
+@@ -341,16 +338,6 @@ static int ecryptfs_parse_options(struct
+ 			}
+ 			sig_set = 1;
+ 			break;
+-		case ecryptfs_opt_debug:
+-		case ecryptfs_opt_ecryptfs_debug:
+-			debug_src = args[0].from;
+-			ecryptfs_verbosity =
+-				(int)simple_strtol(debug_src, &debug_src,
+-						   0);
+-			ecryptfs_printk(KERN_DEBUG,
+-					"Verbosity set to [%d]" "\n",
+-					ecryptfs_verbosity);
+-			break;
+ 		case ecryptfs_opt_cipher:
+ 		case ecryptfs_opt_ecryptfs_cipher:
+ 			cipher_name_src = args[0].from;
+@@ -816,6 +803,10 @@ static int __init ecryptfs_init(void)
+ 		       "rc = [%d]\n", rc);
+ 		goto out_release_messaging;
+ 	}
++	if (ecryptfs_verbosity > 0)
++		printk(KERN_CRIT "eCryptfs verbosity set to %d. Secret values "
++			"will be written to the syslog!\n", ecryptfs_verbosity);
 +
- config RTC_HCTOSYS
- 	bool "Set system time from RTC on startup and resume"
- 	depends on RTC_CLASS = y
-@@ -49,7 +53,7 @@ config RTC_HCTOSYS_DEVICE
+ 	goto out;
+ out_release_messaging:
+ 	ecryptfs_release_messaging(ecryptfs_transport);
+diff -puN fs/ecryptfs/super.c~ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe
++++ a/fs/ecryptfs/super.c
+@@ -174,10 +174,6 @@ static int ecryptfs_show_options(struct 
+ 	}
+ 	mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
  
- 	  If the clock you specify here is not battery backed, it may still
- 	  be useful to reinitialize system time when resuming from system
--	  sleep states.  Do not specify an RTC here unless it stays powered
-+	  sleep states. Do not specify an RTC here unless it stays powered
- 	  during all this system's supported sleep states.
- 
- config RTC_DEBUG
-@@ -142,7 +146,7 @@ config RTC_DRV_DS1307
- 	  will be called rtc-ds1307.
- 
- config RTC_DRV_DS1374
--	tristate "Maxim/Dallas Semiconductor DS1374 Real Time Clock"
-+	tristate "Dallas/Maxim DS1374"
- 	depends on RTC_CLASS && I2C
- 	help
- 	  If you say yes here you get support for Dallas Semiconductor
-@@ -162,7 +166,7 @@ config RTC_DRV_DS1672
- 	  will be called rtc-ds1672.
- 
- config RTC_DRV_MAX6900
--	tristate "Maxim 6900"
-+	tristate "Maxim MAX6900"
- 	help
- 	  If you say yes here you will get support for the
- 	  Maxim MAX6900 I2C RTC chip.
-@@ -180,10 +184,10 @@ config RTC_DRV_RS5C372
- 	  will be called rtc-rs5c372.
- 
- config RTC_DRV_ISL1208
--	tristate "Intersil 1208"
-+	tristate "Intersil ISL1208"
- 	help
- 	  If you say yes here you get support for the
--	  Intersil 1208 RTC chip.
-+	  Intersil ISL1208 RTC chip.
- 
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-isl1208.
-@@ -220,7 +224,7 @@ config RTC_DRV_PCF8583
- 	  will be called rtc-pcf8583.
- 
- config RTC_DRV_M41T80
--	tristate "ST M41T80 series RTC"
-+	tristate "ST M41T80/81/82/83/84/85/87"
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M41T80 RTC chips series. Currently following chips are
-@@ -252,6 +256,15 @@ comment "SPI RTC drivers"
- 
- if SPI_MASTER
- 
-+config RTC_DRV_MAX6902
-+	tristate "Maxim MAX6902"
-+	help
-+	  If you say yes here you will get support for the
-+	  Maxim MAX6902 SPI RTC chip.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-max6902.
-+
- config RTC_DRV_RS5C348
- 	tristate "Ricoh RS5C348A/B"
- 	help
-@@ -261,15 +274,6 @@ config RTC_DRV_RS5C348
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-rs5c348.
- 
--config RTC_DRV_MAX6902
--	tristate "Maxim 6902"
--	help
--	  If you say yes here you will get support for the
--	  Maxim MAX6902 SPI RTC chip.
+-	/* Note this is global and probably shouldn't be a mount option */
+-	if (ecryptfs_verbosity)
+-		seq_printf(m, ",ecryptfs_debug=%d\n", ecryptfs_verbosity);
 -
--	  This driver can also be built as a module. If so, the module
--	  will be called rtc-max6902.
--
- endif # SPI_MASTER
+ 	seq_printf(m, ",ecryptfs_cipher=%s",
+ 		mount_crypt_stat->global_default_cipher_name);
  
- comment "Platform RTC drivers"
-@@ -303,32 +307,32 @@ config RTC_DRV_DS1216
- 	  If you say yes here you get support for the Dallas DS1216 RTC chips.
- 
- config RTC_DRV_DS1553
--	tristate "Dallas DS1553"
-+	tristate "Maxim/Dallas DS1553"
- 	help
- 	  If you say yes here you get support for the
--	  Dallas DS1553 timekeeping chip.
-+	  Maxim/Dallas DS1553 timekeeping chip.
- 
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ds1553.
- 
--config RTC_DRV_STK17TA8
--	tristate "Simtek STK17TA8"
--	depends on RTC_CLASS
-+config RTC_DRV_DS1742
-+	tristate "Maxim/Dallas DS1742/1743"
- 	help
- 	  If you say yes here you get support for the
--	  Simtek STK17TA8 timekeeping chip.
-+	  Maxim/Dallas DS1742/1743 timekeeping chip.
- 
- 	  This driver can also be built as a module. If so, the module
--	  will be called rtc-stk17ta8.
-+	  will be called rtc-ds1742.
- 
--config RTC_DRV_DS1742
--	tristate "Dallas DS1742/1743"
-+config RTC_DRV_STK17TA8
-+	tristate "Simtek STK17TA8"
-+	depends on RTC_CLASS
- 	help
- 	  If you say yes here you get support for the
--	  Dallas DS1742/1743 timekeeping chip.
-+	  Simtek STK17TA8 timekeeping chip.
- 
- 	  This driver can also be built as a module. If so, the module
--	  will be called rtc-ds1742.
-+	  will be called rtc-stk17ta8.
- 
- config RTC_DRV_M48T86
- 	tristate "ST M48T86/Dallas DS12887"
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
+reduce-large-do_mount-stack-usage-with-noinlines.patch
