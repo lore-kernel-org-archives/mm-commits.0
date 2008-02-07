@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reduce-large-do_mount-stack-usage-with-noinlines.patch added to -mm tree
-Date: Wed, 06 Feb 2008 15:17:25 -0800
-Message-ID: <200802062317.m16NHP7c003009@imap1.linux-foundation.org>
+Subject: + softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch added to -mm tree
+Date: Wed, 06 Feb 2008 16:12:03 -0800
+Message-ID: <200802070012.m170C3oA005757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932628AbYBFXSS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 18:18:18 -0500
+	by vger.kernel.org with ESMTP id S1764835AbYBGAMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, arjan@infradead.org
+Cc: mingo@elte.hu
 
 
 The patch titled
-     reduce large do_mount stack usage with noinlines
+     fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
 has been added to the -mm tree.  Its filename is
-     reduce-large-do_mount-stack-usage-with-noinlines.patch
+     softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reduce large do_mount stack usage with noinlines
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
+From: Ingo Molnar <mingo@elte.hu>
 
-do_mount() uses a whopping 616 bytes of stack on x86_64 in 2.6.24-mm1,
-largely thanks to gcc inlining the various helper functions.
 
-noinlining these can slim it down a lot; on my box this patch gets it down
-to 168, which is mostly the struct nameidata nd; left on the stack.
-
-These functions are called only as do_mount() helpers; none of them should
-be in any path that would see a performance benefit from inlining...
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ arch/x86/kernel/reboot.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines fs/namespace.c
---- a/fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines
-+++ a/fs/namespace.c
-@@ -1295,8 +1295,9 @@ out_unlock:
+diff -puN arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks arch/x86/kernel/reboot.c
+--- a/arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks
++++ a/arch/x86/kernel/reboot.c
+@@ -396,8 +396,20 @@ void machine_shutdown(void)
+ 	if (!cpu_isset(reboot_cpu_id, cpu_online_map))
+ 		reboot_cpu_id = smp_processor_id();
  
- /*
-  * recursively change the type of the mountpoint.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_change_type(struct nameidata *nd, int flag)
-+static noinline int do_change_type(struct nameidata *nd, int flag)
- {
- 	struct vfsmount *m, *mnt = nd->path.mnt;
- 	int recurse = flag & MS_REC;
-@@ -1319,8 +1320,10 @@ static int do_change_type(struct nameida
+-	/* Make certain I only run on the appropriate processor */
+-	set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
++	/*
++	 * Make certain we only run on the appropriate processor,
++	 * and with sufficient priority:
++	 */
++	{
++		struct sched_param schedparm;
++		schedparm.sched_priority = 99;
++		int ret;
++
++		ret = sched_setscheduler(current, SCHED_RR, &schedparm);
++		WARN_ON_ONCE(1);
++
++		set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
++	}
  
- /*
-  * do loopback mount.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
-+static noinline int do_loopback(struct nameidata *nd, char *old_name,
-+				int recurse)
- {
- 	struct nameidata old_nd;
- 	struct vfsmount *mnt = NULL;
-@@ -1386,8 +1389,9 @@ static int change_mount_flags(struct vfs
-  * change filesystem flags. dir should be a physical root of filesystem.
-  * If you've mounted a non-root directory somewhere and want to do remount
-  * on it - tough luck.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_remount(struct nameidata *nd, int flags, int mnt_flags,
-+static noinline int do_remount(struct nameidata *nd, int flags, int mnt_flags,
- 		      void *data)
- {
- 	int err;
-@@ -1425,7 +1429,10 @@ static inline int tree_contains_unbindab
- 	return 0;
- }
- 
--static int do_move_mount(struct nameidata *nd, char *old_name)
-+/*
-+ * noinline this do_mount helper to save do_mount stack space.
-+ */
-+static noinline int do_move_mount(struct nameidata *nd, char *old_name)
- {
- 	struct nameidata old_nd, parent_nd;
- 	struct vfsmount *p;
-@@ -1504,8 +1511,9 @@ out:
- /*
-  * create a new mount for userspace and request it to be added into the
-  * namespace's tree
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_new_mount(struct nameidata *nd, char *type, int flags,
-+static noinline int do_new_mount(struct nameidata *nd, char *type, int flags,
- 			int mnt_flags, char *name, void *data)
- {
- 	struct vfsmount *mnt;
+ 	/* O.K Now that I'm on the appropriate processor,
+ 	 * stop all of the others.
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-ext2-change-the-default-behaviour-on-error.patch
-address-hfs-on-disk-corruption-robustness-review-comments.patch
-ecryptfs-make-show_options-reflect-actual-mount-options.patch
-ecryptfs-remove-debug-as-mount-option-and-warn-if-set-via-modprobe.patch
-ecryptfs-check-for-existing-key_tfm-at-mount-time.patch
-ext3-change-the-default-behaviour-on-error.patch
-reduce-large-do_mount-stack-usage-with-noinlines.patch
+softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch
+read_current_time-cleanups.patch
+fix-__const_udelay-declaration-and-definition-mismatches.patch
+unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+stopmachine-semaphore-to-mutex.patch
+calibrate_delay-must-be-__cpuinit.patch
+idle_regs-must-be-__cpuinit.patch
+debug_smp_processor_id-fixlets.patch
+make-sys_poll-wait-at-least-timeout-ms.patch
+system-timer-fix-crash-in-100hz-system-timer.patch
+speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
+add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
+isapnp-driver-semaphore-to-mutex.patch
+git-hrt.patch
+revert-git-hrt.patch
+git-kvm.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-x86.patch
+deprecate-find_task_by_pid-kgdb.patch
+x86-amd-thermal-interrupt-support.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+documentation-create-new-scheduler-subdirectory.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+proc-fix-the-threaded-proc-self.patch
+modules-make-module_address_lookup-safe-fix.patch
+fix-group-stop-with-exit-race.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+clocksource-remove-redundant-code.patch
+clockevent-simplify-list-operations.patch
+timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
+time-fix-typo-in-comments.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+kernel-remove-fastcall-in-kernel.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+asm-posix_typesh-scrub-__glibc__.patch
+use-find_task_by_vpid-in-posix-timers.patch
+dont-operate-with-pid_t-in-rtmutex-tester.patch
+irq_noprobe-helper-functions.patch
+mips-mark-all-but-i8259-interrupts-as-no-probe.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
