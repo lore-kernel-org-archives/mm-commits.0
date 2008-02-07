@@ -1,117 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - parport_pc-detection-for-superio-it87xx-post.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:52 -0800
-Message-ID: <200802070024.m170OXjN006620@imap1.linux-foundation.org>
+Subject: - synclink_gt-fix-missed-serial-input-signal-changes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:23:25 -0800
+Message-ID: <200802070023.m170N6tr006497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38396 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43374 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934216AbYBGAo0 (ORCPT
+	by vger.kernel.org with ESMTP id S934400AbYBGAo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: petr.cvek@tul.cz, mm-commits@vger.kernel.org
+To: paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport_pc: detection for SuperIO IT87XX POST
+     synclink_gt fix missed serial input signal changes
 has been removed from the -mm tree.  Its filename was
-     parport_pc-detection-for-superio-it87xx-post.patch
+     synclink_gt-fix-missed-serial-input-signal-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_pc: detection for SuperIO IT87XX POST
-From: Petr Cvek <petr.cvek@tul.cz>
+Subject: synclink_gt fix missed serial input signal changes
+From: Paul Fulghum <paulkf@microgate.com>
 
-Add detection for IT87XX SuperIO chip and disabling its POST feature, which
-made noise on parallel port's pins.
+Fix missed serial input signal changes caused by rereading the serial
+status register during interrupt processing.  Now processing is performed
+on original status register value.
 
-Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
+Signed-off-by: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |   45 ++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 6 deletions(-)
+ drivers/char/synclink_gt.c |   68 +++++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 31 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-detection-for-superio-it87xx-post drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-detection-for-superio-it87xx-post
-+++ a/drivers/parport/parport_pc.c
-@@ -1540,6 +1540,38 @@ static void __devinit detect_and_report_
- 	smsc_check(0x3f0,0x44);
- 	smsc_check(0x370,0x44);
+diff -puN drivers/char/synclink_gt.c~synclink_gt-fix-missed-serial-input-signal-changes drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink_gt-fix-missed-serial-input-signal-changes
++++ a/drivers/char/synclink_gt.c
+@@ -2039,37 +2039,41 @@ static void bh_transmit(struct slgt_info
+ 		tty_wakeup(tty);
  }
-+
-+static void __devinit detect_and_report_it87(void)
-+{
-+	u16 dev;
-+	u8 r;
-+	if (verbose_probing)
-+		printk(KERN_DEBUG "IT8705 Super-IO detection, now testing port 2E ...\n");
-+	if (!request_region(0x2e, 1, __FUNCTION__))
-+		return;
-+	outb(0x87, 0x2e);
-+	outb(0x01, 0x2e);
-+	outb(0x55, 0x2e);
-+	outb(0x55, 0x2e);
-+	outb(0x20, 0x2e);
-+	dev = inb(0x2f) << 8;
-+	outb(0x21, 0x2e);
-+	dev |= inb(0x2f);
-+	if (dev == 0x8712 || dev == 0x8705 || dev == 0x8715 ||
-+	    dev == 0x8716 || dev == 0x8718 || dev == 0x8726) {
-+		printk(KERN_INFO "IT%04X SuperIO detected.\n", dev);
-+		outb(0x07, 0x2E);	/* Parallel Port */
-+		outb(0x03, 0x2F);
-+		outb(0xF0, 0x2E);	/* BOOT 0x80 off */
-+		r = inb(0x2f);
-+		outb(0xF0, 0x2E);
-+		outb(r | 8, 0x2F);
-+		outb(0x02, 0x2E);	/* Lock */
-+		outb(0x02, 0x2F);
-+
-+		release_region(0x2e, 1);
+ 
+-static void dsr_change(struct slgt_info *info)
++static void dsr_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT3) {
++		info->signals |= SerialSignal_DSR;
++		info->input_signal_events.dsr_up++;
++	} else {
++		info->signals &= ~SerialSignal_DSR;
++		info->input_signal_events.dsr_down++;
 +	}
-+}
- #endif /* CONFIG_PARPORT_PC_SUPERIO */
+ 	DBGISR(("dsr_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->dsr_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_DSR);
+ 		return;
+ 	}
+ 	info->icount.dsr++;
+-	if (info->signals & SerialSignal_DSR)
+-		info->input_signal_events.dsr_up++;
+-	else
+-		info->input_signal_events.dsr_down++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+ }
  
- static int get_superio_dma (struct parport *p)
-@@ -3164,24 +3196,25 @@ static void __init parport_pc_find_ports
- 	int count = 0, err;
+-static void cts_change(struct slgt_info *info)
++static void cts_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT2) {
++		info->signals |= SerialSignal_CTS;
++		info->input_signal_events.cts_up++;
++	} else {
++		info->signals &= ~SerialSignal_CTS;
++		info->input_signal_events.cts_down++;
++	}
+ 	DBGISR(("cts_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->cts_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_CTS);
+ 		return;
+ 	}
+ 	info->icount.cts++;
+-	if (info->signals & SerialSignal_CTS)
+-		info->input_signal_events.cts_up++;
+-	else
+-		info->input_signal_events.cts_down++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+@@ -2090,20 +2094,21 @@ static void cts_change(struct slgt_info 
+ 	}
+ }
  
- #ifdef CONFIG_PARPORT_PC_SUPERIO
--	detect_and_report_winbond ();
--	detect_and_report_smsc ();
-+	detect_and_report_it87();
-+	detect_and_report_winbond();
-+	detect_and_report_smsc();
- #endif
+-static void dcd_change(struct slgt_info *info)
++static void dcd_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT1) {
++		info->signals |= SerialSignal_DCD;
++		info->input_signal_events.dcd_up++;
++	} else {
++		info->signals &= ~SerialSignal_DCD;
++		info->input_signal_events.dcd_down++;
++	}
+ 	DBGISR(("dcd_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->dcd_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_DCD);
+ 		return;
+ 	}
+ 	info->icount.dcd++;
+-	if (info->signals & SerialSignal_DCD) {
+-		info->input_signal_events.dcd_up++;
+-	} else {
+-		info->input_signal_events.dcd_down++;
+-	}
+ #if SYNCLINK_GENERIC_HDLC
+ 	if (info->netcount) {
+ 		if (info->signals & SerialSignal_DCD)
+@@ -2126,20 +2131,21 @@ static void dcd_change(struct slgt_info 
+ 	}
+ }
  
- 	/* Onboard SuperIO chipsets that show themselves on the PCI bus. */
--	count += parport_pc_init_superio (autoirq, autodma);
-+	count += parport_pc_init_superio(autoirq, autodma);
- 
- 	/* PnP ports, skip detection if SuperIO already found them */
- 	if (!count) {
--		err = pnp_register_driver (&parport_pc_pnp_driver);
-+		err = pnp_register_driver(&parport_pc_pnp_driver);
- 		if (!err)
- 			pnp_registered_parport = 1;
+-static void ri_change(struct slgt_info *info)
++static void ri_change(struct slgt_info *info, unsigned short status)
+ {
+-	get_signals(info);
++	if (status & BIT0) {
++		info->signals |= SerialSignal_RI;
++		info->input_signal_events.ri_up++;
++	} else {
++		info->signals &= ~SerialSignal_RI;
++		info->input_signal_events.ri_down++;
++	}
+ 	DBGISR(("ri_change %s signals=%04X\n", info->device_name, info->signals));
+ 	if ((info->ri_chkcount)++ == IO_PIN_SHUTDOWN_LIMIT) {
+ 		slgt_irq_off(info, IRQ_RI);
+ 		return;
+ 	}
+-	info->icount.dcd++;
+-	if (info->signals & SerialSignal_RI) {
+-		info->input_signal_events.ri_up++;
+-	} else {
+-		info->input_signal_events.ri_down++;
+-	}
++	info->icount.rng++;
+ 	wake_up_interruptible(&info->status_event_wait_q);
+ 	wake_up_interruptible(&info->event_wait_q);
+ 	info->pending_bh |= BH_STATUS;
+@@ -2190,13 +2196,13 @@ static void isr_serial(struct slgt_info 
  	}
  
- 	/* ISA ports and whatever (see asm/parport.h). */
--	parport_pc_find_nonpci_ports (autoirq, autodma);
-+	parport_pc_find_nonpci_ports(autoirq, autodma);
- 
--	err = pci_register_driver (&parport_pc_pci_driver);
-+	err = pci_register_driver(&parport_pc_pci_driver);
- 	if (!err)
- 		pci_registered_parport = 1;
+ 	if (status & IRQ_DSR)
+-		dsr_change(info);
++		dsr_change(info, status);
+ 	if (status & IRQ_CTS)
+-		cts_change(info);
++		cts_change(info, status);
+ 	if (status & IRQ_DCD)
+-		dcd_change(info);
++		dcd_change(info, status);
+ 	if (status & IRQ_RI)
+-		ri_change(info);
++		ri_change(info, status);
  }
+ 
+ static void isr_rdma(struct slgt_info *info)
 _
 
-Patches currently in -mm which might be from petr.cvek@tul.cz are
+Patches currently in -mm which might be from paulkf@microgate.com are
 
 origin.patch
