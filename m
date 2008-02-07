@@ -1,107 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:20 -0800
-Message-ID: <200802070027.m170R1Nq006976@imap1.linux-foundation.org>
+Subject: - uvesafb-small-cleanups.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:41 -0800
+Message-ID: <200802070028.m170SMaX007141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50338 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761118AbYBGAp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1763508AbYBGAp3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, adaplas@pol.net, spock@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin RTC driver: the frequency function is in units of Hz, not units of seconds, so lock our driver down to 1 Hz
+     uvesafb: small cleanups
 has been removed from the -mm tree.  Its filename was
-     blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz.patch
+     uvesafb-small-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin RTC driver: the frequency function is in units of Hz, not units of seconds, so lock our driver down to 1 Hz
-From: Mike Frysinger <michael.frysinger@analog.com>
+Subject: uvesafb: small cleanups
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
+Some cleanups in uvesafb:
+- The custom module_param() get/set functions don't need to be inlined
+  since it is referred to via a pointer in a struct.
+- don't end a #define with a ';'
+- remove one of the single quote marks in "''ypan'"
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Michal Januszewski <spock@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+ drivers/video/uvesafb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-the-frequency-function-is-in-units-of-hz-not-units-of-seconds-so-lock-our-driver-down-to-1-hz
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -72,7 +72,7 @@ struct bfin_rtc {
- #define SEC_BITS_OFF    0
+diff -puN drivers/video/uvesafb.c~uvesafb-small-cleanups drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-small-cleanups
++++ a/drivers/video/uvesafb.c
+@@ -2003,12 +2003,12 @@ static void __devexit uvesafb_exit(void)
  
- /* Some helper functions to convert between the common RTC notion of time
-- * and the internal Blackfin notion that is stored in 32bits.
-+ * and the internal Blackfin notion that is encoded in 32bits.
-  */
- static inline u32 rtc_time_to_bfin(unsigned long now)
+ module_exit(uvesafb_exit);
+ 
+-static inline int param_get_scroll(char *buffer, struct kernel_param *kp)
++static int param_get_scroll(char *buffer, struct kernel_param *kp)
  {
-@@ -112,6 +112,11 @@ static inline void rtc_bfin_to_tm(u32 rt
-  * If anyone can point out the obvious solution here, i'm listening :).  This
-  * shouldn't be an issue on an SMP or preempt system as this function should
-  * only be called with the rtc lock held.
-+ *
-+ * Other options:
-+ *  - disable PREN so the sync happens at 32.768kHZ ... but this changes the
-+ *    inc rate for all RTC registers from 1HZ to 32.768kHZ ...
-+ *  - use the write complete IRQ
-  */
- static void rtc_bfin_sync_pending(void)
- {
-@@ -356,12 +361,18 @@ static int bfin_rtc_proc(struct device *
  	return 0;
  }
  
-+/**
-+ *	bfin_irq_set_freq - make sure hardware supports requested freq
-+ *	@dev: pointer to RTC device structure
-+ *	@freq: requested frequency rate
-+ *
-+ *	The Blackfin RTC can only generate periodic events at 1 per
-+ *	second (1 Hz), so reject any attempt at changing it.
-+ */
- static int bfin_irq_set_freq(struct device *dev, int freq)
+-static inline int param_set_scroll(const char *val, struct kernel_param *kp)
++static int param_set_scroll(const char *val, struct kernel_param *kp)
  {
--	struct bfin_rtc *rtc = dev_get_drvdata(dev);
- 	stampit();
--	rtc->rtc_dev->irq_freq = freq;
--	return 0;
-+	return -ENOTTY;
- }
+ 	ypan = 0;
  
- static struct rtc_class_ops bfin_rtc_ops = {
-@@ -394,14 +405,13 @@ static int __devinit bfin_rtc_probe(stru
- 		ret = PTR_ERR(rtc->rtc_dev);
- 		goto err;
- 	}
--	rtc->rtc_dev->irq_freq = 0;
--	rtc->rtc_dev->max_user_freq = (2 << 16); /* stopwatch is an unsigned 16 bit reg */
-+	rtc->rtc_dev->irq_freq = 1;
- 
- 	platform_set_drvdata(pdev, rtc);
- 
+@@ -2022,11 +2022,11 @@ static inline int param_set_scroll(const
  	return 0;
- 
--err:
-+ err:
- 	kfree(rtc);
- 	return ret;
  }
+ 
+-#define param_check_scroll(name, p) __param_check(name, p, void);
++#define param_check_scroll(name, p) __param_check(name, p, void)
+ 
+ module_param_named(scroll, ypan, scroll, 0);
+ MODULE_PARM_DESC(scroll,
+-	"Scrolling mode, set to 'redraw', ''ypan' or 'ywrap'");
++	"Scrolling mode, set to 'redraw', 'ypan', or 'ywrap'");
+ module_param_named(vgapal, pmi_setpal, invbool, 0);
+ MODULE_PARM_DESC(vgapal, "Set palette using VGA registers");
+ module_param_named(pmipal, pmi_setpal, bool, 0);
 _
 
-Patches currently in -mm which might be from michael.frysinger@analog.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-watchdog.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
