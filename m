@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-fix-check-for-one-shot-watches-before-destroying-them.patch added to -mm tree
-Date: Thu, 07 Feb 2008 13:44:12 -0800
-Message-ID: <200802072144.m17LiCxj024093@imap1.linux-foundation.org>
+Subject: + m68k-correct-setting-of-struct-useru_ar0.patch added to -mm tree
+Date: Thu, 07 Feb 2008 14:24:40 -0800
+Message-ID: <200802072224.m17MOesB025772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46991 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755327AbYBGVon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 16:44:43 -0500
+	by vger.kernel.org with ESMTP id S1760321AbYBGWYw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:24:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ulissesf@gmail.com, amy.griffis@hp.com, clem.taylor@gmail.com, rlove@google.com, stable@kernel.org, ttb@tentacle.dhs.org
+Cc: geert@linux-m68k.org
 
 
 The patch titled
-     inotify: fix check for one-shot watches before destroying them
+     m68k: correct setting of struct user.u_ar0
 has been added to the -mm tree.  Its filename is
-     inotify-fix-check-for-one-shot-watches-before-destroying-them.patch
+     m68k-correct-setting-of-struct-useru_ar0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: fix check for one-shot watches before destroying them
-From: Ulisses Furquim <ulissesf@gmail.com>
+Subject: m68k: correct setting of struct user.u_ar0
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-As the IN_ONESHOT bit is never set when an event is sent we must check it
-in the watch's mask and not in the event's mask.
+Commit 6e16d89bcd668a95eb22add24c02d80890232b66
 
-Signed-off-by: Ulisses Furquim <ulissesf@gmail.com>
-Reported-by: "Clem Taylor" <clem.taylor@gmail.com>
-Tested-by: "Clem Taylor" <clem.taylor@gmail.com>
-Cc: Amy Griffis <amy.griffis@hp.com>
-Cc: Robert Love <rlove@google.com>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: <stable@kernel.org>
+    Sanitize the type of struct user.u_ar0
+
+    struct user.u_ar0 is defined to contain a pointer offset on all
+    architectures in which it is defined (all architectures which define an
+    a.out format except SPARC.) However, it has a pointer type in the headers,
+    which is pointless -- <asm/user.h> is not exported to userspace, and it
+    just makes the code messy.
+
+    Redefine the field as "unsigned long" (which is the same size as a pointer
+    on all Linux architectures) and change the setting code to user offsetof()
+    instead of hand-coded arithmetic.
+
+forgot to change the m68k setting code, causing the following compiler warning:
+
+    arch/m68k/kernel/process.c:338: warning: assignment makes integer from pointer without a cast
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |    2 +-
+ arch/m68k/kernel/process.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inotify_user.c~inotify-fix-check-for-one-shot-watches-before-destroying-them fs/inotify_user.c
---- a/fs/inotify_user.c~inotify-fix-check-for-one-shot-watches-before-destroying-them
-+++ a/fs/inotify_user.c
-@@ -283,7 +283,7 @@ static void inotify_dev_queue_event(stru
- 	/* we can safely put the watch as we don't reference it while
- 	 * generating the event
- 	 */
--	if (mask & IN_IGNORED || mask & IN_ONESHOT)
-+	if (mask & IN_IGNORED || w->mask & IN_ONESHOT)
- 		put_inotify_watch(w); /* final put */
+diff -puN arch/m68k/kernel/process.c~m68k-correct-setting-of-struct-useru_ar0 arch/m68k/kernel/process.c
+--- a/arch/m68k/kernel/process.c~m68k-correct-setting-of-struct-useru_ar0
++++ a/arch/m68k/kernel/process.c
+@@ -335,7 +335,7 @@ void dump_thread(struct pt_regs * regs, 
+ 	if (dump->start_stack < TASK_SIZE)
+ 		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
  
- 	/* coalescing: drop this event if it is a dupe of the previous */
+-	dump->u_ar0 = (struct user_regs_struct *)((int)&dump->regs - (int)dump);
++	dump->u_ar0 = offsetof(struct user, regs);
+ 	sw = ((struct switch_stack *)regs) - 1;
+ 	dump->regs.d1 = regs->d1;
+ 	dump->regs.d2 = regs->d2;
 _
 
-Patches currently in -mm which might be from ulissesf@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-inotify-fix-check-for-one-shot-watches-before-destroying-them.patch
+origin.patch
+add-cmpxchg_local-to-m86k.patch
+m68k-kill-page-walker-compile-warning.patch
+m68k-correct-setting-of-struct-useru_ar0.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
