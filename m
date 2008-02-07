@@ -1,56 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:30 -0800
-Message-ID: <200802070027.m170RBG0006997@imap1.linux-foundation.org>
+Subject: - rtc-pcf8583-dont-abuse-i2c_m_nostart.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:05 -0800
+Message-ID: <200802070026.m170Qk5E006951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761681AbYBGApO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:14 -0500
+	by vger.kernel.org with ESMTP id S932514AbYBGApm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin RTC driver: shave off another memcpy() by using assignment.
+     rtc-pcf8583: Don't abuse I2C_M_NOSTART
 has been removed from the -mm tree.  Its filename was
-     blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment.patch
+     rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin RTC driver: shave off another memcpy() by using assignment.
-From: Mike Frysinger <michael.frysinger@analog.com>
+Subject: rtc-pcf8583: Don't abuse I2C_M_NOSTART
+From: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
+The rtc-pcf8583 driver is using the I2C_M_NOSTART flag but shouldn't.  This
+flag is only meant for broken chips and the PCF8583 RTC chip is not one of
+these.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf8583.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-shave-off-another-memcpy-by-using-assignment
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -325,7 +325,7 @@ static int bfin_rtc_read_alarm(struct de
+diff -puN drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart drivers/rtc/rtc-pcf8583.c
+--- a/drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart
++++ a/drivers/rtc/rtc-pcf8583.c
+@@ -163,27 +163,17 @@ static int pcf8583_read_mem(struct i2c_c
+ 
+ static int pcf8583_write_mem(struct i2c_client *client, struct rtc_mem *mem)
  {
- 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
- 	dev_dbg_stamp(dev);
--	memcpy(&alrm->time, &rtc->rtc_alarm, sizeof(struct rtc_time));
-+	alrm->time = rtc->rtc_alarm;
- 	alrm->enabled = !!(bfin_read_RTC_ICTL() & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
- 	return 0;
+-	unsigned char addr[1];
+-	struct i2c_msg msgs[2] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = addr,
+-		}, {
+-			.addr = client->addr,
+-			.flags = I2C_M_NOSTART,
+-			.len = mem->nr,
+-			.buf = mem->data,
+-		}
+-	};
++	unsigned char buf[9];
++	int ret;
+ 
+-	if (mem->loc < 8)
++	if (mem->loc < 8 || mem->nr > 8)
+ 		return -EINVAL;
+ 
+-	addr[0] = mem->loc;
++	buf[0] = mem->loc;
++	memcpy(buf + 1, mem->data, mem->nr);
+ 
+-	return i2c_transfer(client->adapter, msgs, 2) == 2 ? 0 : -EIO;
++	ret = i2c_master_send(client, buf, mem->nr + 1);
++	return ret == mem->nr + 1 ? 0 : -EIO;
  }
+ 
+ static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 _
 
-Patches currently in -mm which might be from michael.frysinger@analog.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-git-watchdog.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+oz99x-i2c-button-and-led-support-driver.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
