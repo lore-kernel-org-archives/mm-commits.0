@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-build-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 01:03:55 -0800
-Message-ID: <200802070912.m179CjZa026465@imap1.linux-foundation.org>
+Subject: + quota-turn-quotas-off-when-remounting-read-only.patch added to -mm tree
+Date: Thu, 07 Feb 2008 10:37:07 -0800
+Message-ID: <200802071836.m17IamGl015778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37302 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41103 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496AbYBGJM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 04:12:56 -0500
+	by vger.kernel.org with ESMTP id S1752306AbYBGShF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 13:37:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
+Cc: jack@suse.cz, stable@kernel.org
 
 
 The patch titled
-     git-alsa-build-fix
+     quota: turn quotas off when remounting read-only
 has been added to the -mm tree.  Its filename is
-     git-alsa-build-fix.patch
+     quota-turn-quotas-off-when-remounting-read-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,194 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-build-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: quota: turn quotas off when remounting read-only
+From: Jan Kara <jack@suse.cz>
 
-sound/pci/hda/hda_intel.c: In function 'azx_pcm_prepare':
-sound/pci/hda/hda_intel.c:1311: error: 'struct azx_dev' has no member named 'fragsize'
+Turn off quotas before filesystem is remounted read only.  Otherwise quota
+will try to write to read-only filesystem which does no good...  We could
+also just refuse to remount ro when quota is enabled but turning quota off
+is consistent with what we do on umount.
 
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN sound/pci/hda/hda_intel.c~git-alsa-build-fix sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~git-alsa-build-fix
-+++ a/sound/pci/hda/hda_intel.c
-@@ -1308,9 +1308,6 @@ static int azx_pcm_prepare(struct snd_pc
- 		return -EINVAL;
+diff -puN fs/super.c~quota-turn-quotas-off-when-remounting-read-only fs/super.c
+--- a/fs/super.c~quota-turn-quotas-off-when-remounting-read-only
++++ a/fs/super.c
+@@ -603,6 +603,7 @@ int do_remount_sb(struct super_block *sb
+ 			mark_files_ro(sb);
+ 		else if (!fs_may_remount_ro(sb))
+ 			return -EBUSY;
++		DQUOT_OFF(sb);
  	}
  
--	snd_printdd("azx_pcm_prepare: bufsize=0x%x, fragsize=0x%x, "
--		    "format=0x%x\n",
--		    azx_dev->bufsize, azx_dev->fragsize, azx_dev->format_val);
- 	if (azx_setup_periods(substream, azx_dev) < 0)
- 		return -EINVAL;
- 	azx_setup_controller(chip, azx_dev);
+ 	if (sb->s_op->remount_fs) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-cgroup-simplify-space-stripping.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
-cpusets-update_cpumask-revision.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-introduce-flags-for-reserve_bootmem.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-acpi-backlight-reset-brightness-on-resume.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-cpufreq.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-git-input.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-git-mtd.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
-typhoon-section-fix.patch
-typhoon-section-fix-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2x-section-fix-fix.patch
-bnx2c-section-fix.patch
-bnx2c-section-fix-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-starfire-secton-fix-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-backlight.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-9p-fix-p9_printfcall-export.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-ipwireless_cs.patch
-git-x86.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-x86-mmconf-enable-mcfg-early.patch
-git-xtensa.patch
-git-slub.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-proc-detect-duplicate-names-on-registration-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
-proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
-intel-iommu-fault_reason_index_cleanuppatch-fix.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-pid-sys_wait-fixes-v2-checkpatch-fixes.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
-git-alsa-build-fix.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+use-pgoff_t-instead-of-unsigned-long.patch
+write_inode_now-avoid-unnecessary-synchronous-write.patch
+udf-fix-coding-style-of-superc.patch
+udf-remove-some-ugly-macros.patch
+udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
+udf-check-if-udf_load_logicalvol-failed.patch
+udf-convert-macros-related-to-bitmaps-to-functions.patch
+udf-move-calculating-of-nr_groups-into-helper-function.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-fix-coding-style.patch
+udf-create-common-function-for-tag-checksumming.patch
+udf-create-common-function-for-changing-free-space-counter.patch
+udf-replace-loops-coded-with-goto-to-real-loops.patch
+udf-convert-byte-order-of-constant-instead-of-variable.patch
+udf-remove-udf_i_-macros-and-open-code-them.patch
+udf-cache-struct-udf_inode_info.patch
+udf-fix-udf_debug-macro.patch
+udf-improve-readability-of-udf_load_partition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+udf-avoid-unnecessary-synchronous-writes.patch
+udf-cleanup-directory-offset-handling.patch
+udf-fix-adding-entry-to-a-directory.patch
+change-udf-maintainer.patch
+isofs-implement-dmode-option.patch
+isofs-implement-dmode-option-fix.patch
+mount-options-fix-ext2.patch
+mount-options-fix-isofs.patch
+mount-options-fix-udf.patch
+buffer_head-fix-private_list-handling.patch
+quota-turn-quotas-off-when-remounting-read-only.patch
