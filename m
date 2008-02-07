@@ -1,170 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:22:44 -0800
-Message-ID: <200802070022.m170MPqf006419@imap1.linux-foundation.org>
+Subject: - parallel-port-convert-port_mutex-to-the-mutex-api.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:07 -0800
+Message-ID: <200802070020.m170KmTZ006193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934128AbYBGAoW (ORCPT
+	by vger.kernel.org with ESMTP id S1763173AbYBGAoW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vda.linux@googlemail.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk.c: use unsigned ints instead of longs for logbuf index
+     Parallel port: convert port_mutex to the mutex API
 has been removed from the -mm tree.  Its filename was
-     printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
+     parallel-port-convert-port_mutex-to-the-mutex-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk.c: use unsigned ints instead of longs for logbuf index
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: Parallel port: convert port_mutex to the mutex API
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Stop using unsigned _longs_ for printk buffer indexes.  Log buffer is way
-smaller than 2 gigabytes and unsigned ints will work too .  Indeed, they do
-work nicely on all 32-bit platforms where longs and ints are the same.
+Parallel port: Convert port_mutex to the mutex API
 
-With this patch, we have following size savings on amd64:
-
-   text    data     bss     dec     hex filename
-   5997     313   17736   24046    5dee 2.6.23.1.t64/kernel/printk.o
-   5858     313   17700   23871    5d3f 2.6.23.1.printk.t64/kernel/printk.o
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ drivers/char/lp.c  |   10 +++++-----
+ include/linux/lp.h |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/printk.c~printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index kernel/printk.c
---- a/kernel/printk.c~printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index
-+++ a/kernel/printk.c
-@@ -93,16 +93,16 @@ static int console_locked, console_suspe
-  */
- static DEFINE_SPINLOCK(logbuf_lock);
+diff -puN drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api drivers/char/lp.c
+--- a/drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api
++++ a/drivers/char/lp.c
+@@ -312,7 +312,7 @@ static ssize_t lp_write(struct file * fi
+ 	if (copy_size > LP_BUFFER_SIZE)
+ 		copy_size = LP_BUFFER_SIZE;
  
--#define LOG_BUF_MASK	(log_buf_len-1)
-+#define LOG_BUF_MASK (log_buf_len-1)
- #define LOG_BUF(idx) (log_buf[(idx) & LOG_BUF_MASK])
+-	if (down_interruptible (&lp_table[minor].port_mutex))
++	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
+ 		return -EINTR;
  
- /*
-  * The indices into log_buf are not constrained to log_buf_len - they
-  * must be masked before subscripting
-  */
--static unsigned long log_start;	/* Index into log_buf: next char to be read by syslog() */
--static unsigned long con_start;	/* Index into log_buf: next char to be sent to consoles */
--static unsigned long log_end;	/* Index into log_buf: most-recently-written-char + 1 */
-+static unsigned log_start;	/* Index into log_buf: next char to be read by syslog() */
-+static unsigned con_start;	/* Index into log_buf: next char to be sent to consoles */
-+static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
+ 	if (copy_from_user (kbuf, buf, copy_size)) {
+@@ -399,7 +399,7 @@ static ssize_t lp_write(struct file * fi
+ 		lp_release_parport (&lp_table[minor]);
+ 	}
+ out_unlock:
+-	up (&lp_table[minor].port_mutex);
++	mutex_unlock(&lp_table[minor].port_mutex);
  
- /*
-  *	Array of consoles built from command line options (console=)
-@@ -128,17 +128,17 @@ static int console_may_schedule;
- static char __log_buf[__LOG_BUF_LEN];
- static char *log_buf = __log_buf;
- static int log_buf_len = __LOG_BUF_LEN;
--static unsigned long logged_chars; /* Number of chars produced since last read+clear operation */
-+static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
- 
- static int __init log_buf_len_setup(char *str)
- {
--	unsigned long size = memparse(str, &str);
-+	unsigned size = memparse(str, &str);
- 	unsigned long flags;
- 
- 	if (size)
- 		size = roundup_pow_of_two(size);
- 	if (size > log_buf_len) {
--		unsigned long start, dest_idx, offset;
-+		unsigned start, dest_idx, offset;
- 		char *new_log_buf;
- 
- 		new_log_buf = alloc_bootmem(size);
-@@ -295,7 +295,7 @@ int log_buf_read(int idx)
-  */
- int do_syslog(int type, char __user *buf, int len)
- {
--	unsigned long i, j, limit, count;
-+	unsigned i, j, limit, count;
- 	int do_clear = 0;
- 	char c;
- 	int error = 0;
-@@ -436,7 +436,7 @@ asmlinkage long sys_syslog(int type, cha
- /*
-  * Call the console drivers on a range of log_buf
-  */
--static void __call_console_drivers(unsigned long start, unsigned long end)
-+static void __call_console_drivers(unsigned start, unsigned end)
- {
- 	struct console *con;
- 
-@@ -463,8 +463,8 @@ early_param("ignore_loglevel", ignore_lo
- /*
-  * Write out chars from start to end - 1 inclusive
-  */
--static void _call_console_drivers(unsigned long start,
--				unsigned long end, int msg_log_level)
-+static void _call_console_drivers(unsigned start,
-+				unsigned end, int msg_log_level)
- {
- 	if ((msg_log_level < console_loglevel || ignore_loglevel) &&
- 			console_drivers && start != end) {
-@@ -484,12 +484,12 @@ static void _call_console_drivers(unsign
-  * log_buf[start] to log_buf[end - 1].
-  * The console_sem must be held.
-  */
--static void call_console_drivers(unsigned long start, unsigned long end)
-+static void call_console_drivers(unsigned start, unsigned end)
- {
--	unsigned long cur_index, start_print;
-+	unsigned cur_index, start_print;
- 	static int msg_level = -1;
- 
--	BUG_ON(((long)(start - end)) > 0);
-+	BUG_ON(((int)(start - end)) > 0);
- 
- 	cur_index = start;
- 	start_print = start;
-@@ -790,7 +790,7 @@ asmlinkage long sys_syslog(int type, cha
- 	return -ENOSYS;
+  	return retv;
  }
+@@ -421,7 +421,7 @@ static ssize_t lp_read(struct file * fil
+ 	if (count > LP_BUFFER_SIZE)
+ 		count = LP_BUFFER_SIZE;
  
--static void call_console_drivers(unsigned long start, unsigned long end)
-+static void call_console_drivers(unsigned start, unsigned end)
- {
+-	if (down_interruptible (&lp_table[minor].port_mutex))
++	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
+ 		return -EINTR;
+ 
+ 	lp_claim_parport_or_block (&lp_table[minor]);
+@@ -479,7 +479,7 @@ static ssize_t lp_read(struct file * fil
+ 	if (retval > 0 && copy_to_user (buf, kbuf, retval))
+ 		retval = -EFAULT;
+ 
+-	up (&lp_table[minor].port_mutex);
++	mutex_unlock(&lp_table[minor].port_mutex);
+ 
+ 	return retval;
  }
+@@ -888,7 +888,7 @@ static int __init lp_init (void)
+ 		lp_table[i].last_error = 0;
+ 		init_waitqueue_head (&lp_table[i].waitq);
+ 		init_waitqueue_head (&lp_table[i].dataq);
+-		init_MUTEX (&lp_table[i].port_mutex);
++		mutex_init(&lp_table[i].port_mutex);
+ 		lp_table[i].timeout = 10 * HZ;
+ 	}
  
-@@ -983,8 +983,8 @@ void wake_up_klogd(void)
- void release_console_sem(void)
- {
- 	unsigned long flags;
--	unsigned long _con_start, _log_end;
--	unsigned long wake_klogd = 0;
-+	unsigned _con_start, _log_end;
-+	unsigned wake_klogd = 0;
+diff -puN include/linux/lp.h~parallel-port-convert-port_mutex-to-the-mutex-api include/linux/lp.h
+--- a/include/linux/lp.h~parallel-port-convert-port_mutex-to-the-mutex-api
++++ a/include/linux/lp.h
+@@ -99,7 +99,7 @@
+ #ifdef __KERNEL__
  
- 	if (console_suspended) {
- 		up(&secondary_console_sem);
-@@ -1275,7 +1275,7 @@ void tty_write_message(struct tty_struct
- int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst)
- {
- 	static DEFINE_SPINLOCK(ratelimit_lock);
--	static unsigned long toks = 10 * 5 * HZ;
-+	static unsigned toks = 10 * 5 * HZ;
- 	static unsigned long last_msg;
- 	static int missed;
- 	unsigned long flags;
+ #include <linux/wait.h>
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
+ 
+ /* Magic numbers for defining port-device mappings */
+ #define LP_PARPORT_UNSPEC -4
+@@ -145,7 +145,7 @@ struct lp_struct {
+ #endif
+ 	wait_queue_head_t waitq;
+ 	unsigned int last_error;
+-	struct semaphore port_mutex;
++	struct mutex port_mutex;
+ 	wait_queue_head_t dataq;
+ 	long timeout;
+ 	unsigned int best_mode;
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-git-x86.patch
+acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
