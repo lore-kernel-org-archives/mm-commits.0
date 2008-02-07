@@ -1,80 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-kill-ps3fb_full_mode_bit.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:00 -0800
-Message-ID: <200802070028.m170Sfcr007192@imap1.linux-foundation.org>
+Subject: - ps3fb-inline-macros-that-are-used-only-once.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:02 -0800
+Message-ID: <200802070028.m170ShQw007196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50307 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934357AbYBGAn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:58 -0500
+	by vger.kernel.org with ESMTP id S933900AbYBGAn4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: kill PS3FB_FULL_MODE_BIT
+     ps3fb: open-code macros that are used only once
 has been removed from the -mm tree.  Its filename was
-     ps3fb-kill-ps3fb_full_mode_bit.patch
+     ps3fb-inline-macros-that-are-used-only-once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ps3fb: kill PS3FB_FULL_MODE_BIT
+Subject: ps3fb: open-code macros that are used only once
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Kill PS3FB_FULL_MODE_BIT, use PS3AV_MODE_FULL instead
+Open-code the X_OFF(), Y_OFF(), WIDTH(), HEIGHT(), and VP_OFF() macros, as
+they're used in one place only
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/video/ps3fb.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-kill-ps3fb_full_mode_bit drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-kill-ps3fb_full_mode_bit
+diff -puN drivers/video/ps3fb.c~ps3fb-inline-macros-that-are-used-only-once drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-inline-macros-that-are-used-only-once
 +++ a/drivers/video/ps3fb.c
-@@ -57,8 +57,6 @@
- #define GPU_ALIGN_UP(x)				_ALIGN_UP((x), 64)
- #define GPU_MAX_LINE_LENGTH			(65536 - 64)
+@@ -287,15 +287,8 @@ static const struct fb_videomode ps3fb_m
+ #define HEAD_A
+ #define HEAD_B
  
--#define PS3FB_FULL_MODE_BIT			0x80
+-#define X_OFF(i)	(ps3fb_res[i].xoff)	/* left/right margin (pixel) */
+-#define Y_OFF(i)	(ps3fb_res[i].yoff)	/* top/bottom margin (pixel) */
+-#define WIDTH(i)	(ps3fb_res[i].xres)	/* width of FB */
+-#define HEIGHT(i)	(ps3fb_res[i].yres)	/* height of FB */
+ #define BPP		4			/* number of bytes per pixel */
+ 
+-/* Start of the virtual frame buffer (relative to fullscreen ) */
+-#define VP_OFF(i)	((WIDTH(i) * Y_OFF(i) + X_OFF(i)) * BPP)
 -
- #define GPU_INTR_STATUS_VSYNC_0			0	/* vsync on head A */
- #define GPU_INTR_STATUS_VSYNC_1			1	/* vsync on head B */
- #define GPU_INTR_STATUS_FLIP_0			3	/* flip head A */
-@@ -310,7 +308,7 @@ static int ps3fb_get_res_table(u32 xres,
- 	unsigned int i;
- 	u32 x, y, f;
  
--	full_mode = (mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
-+	full_mode = (mode & PS3AV_MODE_FULL) ? PS3FB_RES_FULL : 0;
- 	for (i = 0;; i++) {
- 		x = ps3fb_res[i].xres;
- 		y = ps3fb_res[i].yres;
-@@ -373,7 +371,7 @@ found:
- 	/* Full broadcast modes have the full mode bit set */
- 	mode = i+1;
- 	if (mode > PS3AV_MODE_WUXGA)
--		mode = (mode - PS3AV_MODE_WUXGA) | PS3FB_FULL_MODE_BIT;
-+		mode = (mode - PS3AV_MODE_WUXGA) | PS3AV_MODE_FULL;
+ static int ps3fb_mode;
+ module_param(ps3fb_mode, int, 0);
+@@ -611,7 +604,10 @@ static int ps3fb_set_par(struct fb_info 
  
- 	pr_debug("ps3fb_find_mode: mode %u\n", mode);
- 
-@@ -390,7 +388,7 @@ static const struct fb_videomode *ps3fb_
- 
- 	flags = id & ~PS3AV_MODE_MASK;
- 
--	if (mode <= PS3AV_MODE_1080P50 && flags & PS3FB_FULL_MODE_BIT) {
-+	if (mode <= PS3AV_MODE_1080P50 && flags & PS3AV_MODE_FULL) {
- 		/* Full broadcast mode */
- 		return &ps3fb_modedb[mode + PS3AV_MODE_WUXGA - 1];
- 	}
+ 	par->width = info->var.xres;
+ 	par->height = info->var.yres;
+-	offset = VP_OFF(i);
++
++	/* Start of the virtual frame buffer (relative to fullscreen) */
++	offset = ps3fb_res[i].yoff * ddr_line_length + ps3fb_res[i].xoff * BPP;
++
+ 	par->fb_offset = GPU_ALIGN_UP(offset);
+ 	par->full_offset = par->fb_offset - offset;
+ 	par->pan_offset = info->var.yoffset * xdr_line_length +
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
