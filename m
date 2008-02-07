@@ -1,279 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - w1-gpio-add-gpio-w1-bus-master-driver.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:55 -0800
-Message-ID: <200802070027.m170RaSR007064@imap1.linux-foundation.org>
+Subject: - cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:27 -0800
+Message-ID: <200802070022.m170M8Tl006399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761775AbYBGAqK (ORCPT
+	by vger.kernel.org with ESMTP id S1762778AbYBGAqK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: syrjala@sci.fi, david-b@pacbell.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-gpio: add GPIO w1 bus master driver
+     cciss: use upper_32_bits() macro to eliminate warnings
 has been removed from the -mm tree.  Its filename was
-     w1-gpio-add-gpio-w1-bus-master-driver.patch
+     cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-gpio: add GPIO w1 bus master driver
-From: Ville Syrjala <syrjala@sci.fi>
+Subject: cciss: use upper_32_bits() macro to eliminate warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add a GPIO 1-wire bus master driver.  The driver used the GPIO API to
-control the wire and the GPIO pin can be specified using platform data
-similar to i2c-gpio.  The driver was tested with AT91SAM9260 + DS2401.
+Use upper_32_bits(x) macro to handle shifts that may be >= the width of
+the data type.
 
-Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: David Brownell <david-b@pacbell.net>
+drivers/block/cciss.c: In function 'do_cciss_request':
+drivers/block/cciss.c:2655: warning: right shift count >= width of type
+drivers/block/cciss.c:2656: warning: right shift count >= width of type
+drivers/block/cciss.c:2657: warning: right shift count >= width of type
+drivers/block/cciss.c:2658: warning: right shift count >= width of type
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/masters/00-INDEX |    2 
- Documentation/w1/masters/w1-gpio  |   33 +++++++
- drivers/w1/masters/Kconfig        |   10 ++
- drivers/w1/masters/Makefile       |    1 
- drivers/w1/masters/w1-gpio.c      |  124 ++++++++++++++++++++++++++++
- include/linux/w1-gpio.h           |   23 +++++
- 6 files changed, 193 insertions(+)
+ drivers/block/cciss.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/w1/masters/00-INDEX~w1-gpio-add-gpio-w1-bus-master-driver Documentation/w1/masters/00-INDEX
---- a/Documentation/w1/masters/00-INDEX~w1-gpio-add-gpio-w1-bus-master-driver
-+++ a/Documentation/w1/masters/00-INDEX
-@@ -4,3 +4,5 @@ ds2482
- 	- The Maxim/Dallas Semiconductor DS2482 provides 1-wire busses.
- ds2490
- 	- The Maxim/Dallas Semiconductor DS2490 builds USB <-> W1 bridges.
-+w1-gpio
-+	- GPIO 1-wire bus master driver.
-diff -puN /dev/null Documentation/w1/masters/w1-gpio
---- /dev/null
-+++ a/Documentation/w1/masters/w1-gpio
-@@ -0,0 +1,33 @@
-+Kernel driver w1-gpio
-+=====================
+diff -puN drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings
++++ a/drivers/block/cciss.c
+@@ -2630,12 +2630,14 @@ static void do_cciss_request(struct requ
+ 			c->Request.CDB[8] = creq->nr_sectors & 0xff;
+ 			c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
+ 		} else {
++			u32 upper32 = upper_32_bits(start_blk);
 +
-+Author: Ville Syrjala <syrjala@sci.fi>
-+
-+
-+Description
-+-----------
-+
-+GPIO 1-wire bus master driver. The driver uses the GPIO API to control the
-+wire and the GPIO pin can be specified using platform data.
-+
-+
-+Example (mach-at91)
-+-------------------
-+
-+#include <linux/w1-gpio.h>
-+
-+static struct w1_gpio_platform_data foo_w1_gpio_pdata = {
-+	.pin		= AT91_PIN_PB20,
-+	.is_open_drain	= 1,
-+};
-+
-+static struct platform_device foo_w1_device = {
-+	.name			= "w1-gpio",
-+	.id			= -1,
-+	.dev.platform_data	= &foo_w1_gpio_pdata,
-+};
-+
-+...
-+	at91_set_GPIO_periph(foo_w1_gpio_pdata.pin, 1);
-+	at91_set_multi_drive(foo_w1_gpio_pdata.pin, 1);
-+	platform_device_register(&foo_w1_device);
-diff -puN drivers/w1/masters/Kconfig~w1-gpio-add-gpio-w1-bus-master-driver drivers/w1/masters/Kconfig
---- a/drivers/w1/masters/Kconfig~w1-gpio-add-gpio-w1-bus-master-driver
-+++ a/drivers/w1/masters/Kconfig
-@@ -42,5 +42,15 @@ config W1_MASTER_DS1WM
- 	  in HP iPAQ devices like h5xxx, h2200, and ASIC3-based like
- 	  hx4700.
- 
-+config W1_MASTER_GPIO
-+	tristate "GPIO 1-wire busmaster"
-+	depends on GENERIC_GPIO
-+	help
-+	  Say Y here if you want to communicate with your 1-wire devices using
-+	  GPIO pins. This driver uses the GPIO API to control the wire.
-+
-+	  This support is also available as a module.  If so, the module
-+	  will be called w1-gpio.ko.
-+
- endmenu
- 
-diff -puN drivers/w1/masters/Makefile~w1-gpio-add-gpio-w1-bus-master-driver drivers/w1/masters/Makefile
---- a/drivers/w1/masters/Makefile~w1-gpio-add-gpio-w1-bus-master-driver
-+++ a/drivers/w1/masters/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_W1_MASTER_MATROX)		+= matro
- obj-$(CONFIG_W1_MASTER_DS2490)		+= ds2490.o
- obj-$(CONFIG_W1_MASTER_DS2482)		+= ds2482.o
- obj-$(CONFIG_W1_MASTER_DS1WM)		+= ds1wm.o
-+obj-$(CONFIG_W1_MASTER_GPIO)		+= w1-gpio.o
-diff -puN /dev/null drivers/w1/masters/w1-gpio.c
---- /dev/null
-+++ a/drivers/w1/masters/w1-gpio.c
-@@ -0,0 +1,124 @@
-+/*
-+ * w1-gpio - GPIO w1 bus master driver
-+ *
-+ * Copyright (C) 2007 Ville Syrjala <syrjala@sci.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/w1-gpio.h>
-+
-+#include "../w1.h"
-+#include "../w1_int.h"
-+
-+#include <asm/gpio.h>
-+
-+static void w1_gpio_write_bit_dir(void *data, u8 bit)
-+{
-+	struct w1_gpio_platform_data *pdata = data;
-+
-+	if (bit)
-+		gpio_direction_input(pdata->pin);
-+	else
-+		gpio_direction_output(pdata->pin, 0);
-+}
-+
-+static void w1_gpio_write_bit_val(void *data, u8 bit)
-+{
-+	struct w1_gpio_platform_data *pdata = data;
-+
-+	gpio_set_value(pdata->pin, bit);
-+}
-+
-+static u8 w1_gpio_read_bit(void *data)
-+{
-+	struct w1_gpio_platform_data *pdata = data;
-+
-+	return gpio_get_value(pdata->pin);
-+}
-+
-+static int __init w1_gpio_probe(struct platform_device *pdev)
-+{
-+	struct w1_bus_master *master;
-+	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
-+	int err;
-+
-+	if (!pdata)
-+		return -ENXIO;
-+
-+	master = kzalloc(sizeof(struct w1_bus_master), GFP_KERNEL);
-+	if (!master)
-+		return -ENOMEM;
-+
-+	err = gpio_request(pdata->pin, "w1");
-+	if (err)
-+		goto free_master;
-+
-+	master->data = pdata;
-+	master->read_bit = w1_gpio_read_bit;
-+
-+	if (pdata->is_open_drain) {
-+		gpio_direction_output(pdata->pin, 1);
-+		master->write_bit = w1_gpio_write_bit_val;
-+	} else {
-+		gpio_direction_input(pdata->pin);
-+		master->write_bit = w1_gpio_write_bit_dir;
-+	}
-+
-+	err = w1_add_master_device(master);
-+	if (err)
-+		goto free_gpio;
-+
-+	platform_set_drvdata(pdev, master);
-+
-+	return 0;
-+
-+ free_gpio:
-+	gpio_free(pdata->pin);
-+ free_master:
-+	kfree(master);
-+
-+	return err;
-+}
-+
-+static int __exit w1_gpio_remove(struct platform_device *pdev)
-+{
-+	struct w1_bus_master *master = platform_get_drvdata(pdev);
-+	struct w1_gpio_platform_data *pdata = pdev->dev.platform_data;
-+
-+	w1_remove_master_device(master);
-+	gpio_free(pdata->pin);
-+	kfree(master);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver w1_gpio_driver = {
-+	.driver = {
-+		.name	= "w1-gpio",
-+		.owner	= THIS_MODULE,
-+	},
-+	.remove	= __exit_p(w1_gpio_remove),
-+};
-+
-+static int __init w1_gpio_init(void)
-+{
-+	return platform_driver_probe(&w1_gpio_driver, w1_gpio_probe);
-+}
-+
-+static void __exit w1_gpio_exit(void)
-+{
-+	platform_driver_unregister(&w1_gpio_driver);
-+}
-+
-+module_init(w1_gpio_init);
-+module_exit(w1_gpio_exit);
-+
-+MODULE_DESCRIPTION("GPIO w1 bus master driver");
-+MODULE_AUTHOR("Ville Syrjala <syrjala@sci.fi>");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/w1-gpio.h
---- /dev/null
-+++ a/include/linux/w1-gpio.h
-@@ -0,0 +1,23 @@
-+/*
-+ * w1-gpio interface to platform code
-+ *
-+ * Copyright (C) 2007 Ville Syrjala <syrjala@sci.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ */
-+#ifndef _LINUX_W1_GPIO_H
-+#define _LINUX_W1_GPIO_H
-+
-+/**
-+ * struct w1_gpio_platform_data - Platform-dependent data for w1-gpio
-+ * @pin: GPIO pin to use
-+ * @is_open_drain: GPIO pin is configured as open drain
-+ */
-+struct w1_gpio_platform_data {
-+	unsigned int pin;
-+	unsigned int is_open_drain:1;
-+};
-+
-+#endif /* _LINUX_W1_GPIO_H */
+ 			c->Request.CDBLen = 16;
+ 			c->Request.CDB[1]= 0;
+-			c->Request.CDB[2]= (start_blk >> 56) & 0xff;	//MSB
+-			c->Request.CDB[3]= (start_blk >> 48) & 0xff;
+-			c->Request.CDB[4]= (start_blk >> 40) & 0xff;
+-			c->Request.CDB[5]= (start_blk >> 32) & 0xff;
++			c->Request.CDB[2]= (upper32 >> 24) & 0xff;	//MSB
++			c->Request.CDB[3]= (upper32 >> 16) & 0xff;
++			c->Request.CDB[4]= (upper32 >>  8) & 0xff;
++			c->Request.CDB[5]= upper32 & 0xff;
+ 			c->Request.CDB[6]= (start_blk >> 24) & 0xff;
+ 			c->Request.CDB[7]= (start_blk >> 16) & 0xff;
+ 			c->Request.CDB[8]= (start_blk >>  8) & 0xff;
 _
 
-Patches currently in -mm which might be from syrjala@sci.fi are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
