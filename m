@@ -1,266 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-cmos-exports-nvram-in-sysfs.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:10 -0800
-Message-ID: <200802070026.m170QpWl006962@imap1.linux-foundation.org>
+Subject: - calibrate_delay-must-be-__cpuinit.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:00 -0800
+Message-ID: <200802070024.m170OfbR006637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48285 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40276 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933247AbYBGAqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:14 -0500
+	by vger.kernel.org with ESMTP id S935178AbYBGArO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, heiko.carstens@de.ibm.com, ink@jurassic.park.msu.ru, mingo@elte.hu, paulus@samba.org, ralf@linux-mips
 
 
 The patch titled
-     rtc-cmos: export nvram in sysfs
+     calibrate_delay() must be __cpuinit
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-exports-nvram-in-sysfs.patch
+     calibrate_delay-must-be-__cpuinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: export nvram in sysfs
-From: David Brownell <david-b@pacbell.net>
+Subject: calibrate_delay() must be __cpuinit
+From: Adrian Bunk <bunk@kernel.org>
 
-This makes rtc-cmos export its NVRAM, like several other RTC drivers.
+calibrate_delay() must be __cpuinit, not __{dev,}init.
 
-It still works within the limits of the current CMOS_READ/CMOS_WRITE calls,
-which don't understand how to access multiple register banks.  The primary
-impact of that limitation is that Linux can't access the uppermost 128
-bytes of NVRAM on many systems.
+I've verified that this is correct for all users.
 
-Note that this isn't aiming to be a drop-in replacement for the legacy
-/dev/nvram support.  (Presumably that has real users, and isn't just
-getting carried forward automatically?) Userspace handles more work:
+While doing the latter, I also did the following cleanups:
+- remove pointless additional prototypes in C files
+- ensure all users #include <linux/delay.h>
 
- - When userspace code updates NVRAM, that will need to include
-   updating any platform-specific checksums that may apply.
+This fixes the following section mismatches with CONFIG_HOTPLUG=n,
+CONFIG_HOTPLUG_CPU=y:
 
- - No /proc/driver/nvram file will parse and display NVRAM data
-   according to whichever boot firmware your board expects.
+WARNING: vmlinux.o(.text+0x1128d): Section mismatch: reference to .init.text.1:calibrate_delay (between 'check_cx686_slop' and 'set_cx86_reorder')
+WARNING: vmlinux.o(.text+0x25102): Section mismatch: reference to .init.text.1:calibrate_delay (between 'smp_callin' and 'cpu_coregroup_map')
 
-Also minor pnp-related updates: update a comment, remove dead code.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |  129 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 117 insertions(+), 12 deletions(-)
+ arch/alpha/kernel/smp.c                      |    4 ----
+ arch/frv/kernel/setup.c                      |    2 +-
+ arch/ia64/kernel/smpboot.c                   |    1 -
+ arch/mips/kernel/smp.c                       |    1 -
+ arch/powerpc/platforms/powermac/cpufreq_32.c |    2 --
+ arch/sparc/kernel/sun4d_smp.c                |    4 +---
+ arch/sparc/kernel/sun4m_smp.c                |    5 ++---
+ arch/sparc64/kernel/smp.c                    |    2 --
+ arch/x86/kernel/cpu/cyrix.c                  |    2 --
+ arch/x86/kernel/smpboot_32.c                 |    2 --
+ arch/x86/mach-voyager/voyager_smp.c          |    2 --
+ arch/xtensa/kernel/time.c                    |    2 +-
+ drivers/s390/sysinfo.c                       |    2 +-
+ init/calibrate.c                             |    6 +++---
+ 14 files changed, 9 insertions(+), 28 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -393,6 +393,80 @@ static const struct rtc_class_ops cmos_r
+diff -puN arch/alpha/kernel/smp.c~calibrate_delay-must-be-__cpuinit arch/alpha/kernel/smp.c
+--- a/arch/alpha/kernel/smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/alpha/kernel/smp.c
+@@ -77,10 +77,6 @@ int smp_num_probed;		/* Internal process
+ int smp_num_cpus = 1;		/* Number that came online.  */
+ EXPORT_SYMBOL(smp_num_cpus);
  
- /*----------------------------------------------------------------*/
+-extern void calibrate_delay(void);
+-
+-
+-
+ /*
+  * Called by both boot and secondaries to move global data into
+  *  per-processor storage.
+diff -puN arch/frv/kernel/setup.c~calibrate_delay-must-be-__cpuinit arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/frv/kernel/setup.c
+@@ -708,7 +708,7 @@ static void __init reserve_dma_coherent(
+ /*
+  * calibrate the delay loop
+  */
+-void __init calibrate_delay(void)
++void __cpuinit calibrate_delay(void)
+ {
+ 	loops_per_jiffy = __delay_loops_MHz * (1000000 / HZ);
  
-+/*
-+ * All these chips have at least 64 bytes of address space, shared by
-+ * RTC registers and NVRAM.  Most of those bytes of NVRAM are used
-+ * by boot firmware.  Modern chips have 128 or 256 bytes.
-+ */
-+
-+#define NVRAM_OFFSET	(RTC_REG_D + 1)
-+
-+static ssize_t
-+cmos_nvram_read(struct kobject *kobj, struct bin_attribute *attr,
-+		char *buf, loff_t off, size_t count)
-+{
-+	int	retval;
-+
-+	if (unlikely(off >= attr->size))
-+		return 0;
-+	if ((off + count) > attr->size)
-+		count = attr->size - off;
-+
-+	spin_lock_irq(&rtc_lock);
-+	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++)
-+		*buf++ = CMOS_READ(off);
-+	spin_unlock_irq(&rtc_lock);
-+
-+	return retval;
-+}
-+
-+static ssize_t
-+cmos_nvram_write(struct kobject *kobj, struct bin_attribute *attr,
-+		char *buf, loff_t off, size_t count)
-+{
-+	struct cmos_rtc	*cmos;
-+	int		retval;
-+
-+	cmos = dev_get_drvdata(container_of(kobj, struct device, kobj));
-+	if (unlikely(off >= attr->size))
-+		return -EFBIG;
-+	if ((off + count) > attr->size)
-+		count = attr->size - off;
-+
-+	/* NOTE:  on at least PCs and Ataris, the boot firmware uses a
-+	 * checksum on part of the NVRAM data.  That's currently ignored
-+	 * here.  If userspace is smart enough to know what fields of
-+	 * NVRAM to update, updating checksums is also part of its job.
-+	 */
-+	spin_lock_irq(&rtc_lock);
-+	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++) {
-+		/* don't trash RTC registers */
-+		if (off == cmos->day_alrm
-+				|| off == cmos->mon_alrm
-+				|| off == cmos->century)
-+			buf++;
-+		else
-+			CMOS_WRITE(*buf++, off);
-+	}
-+	spin_unlock_irq(&rtc_lock);
-+
-+	return retval;
-+}
-+
-+static struct bin_attribute nvram = {
-+	.attr = {
-+		.name	= "nvram",
-+		.mode	= S_IRUGO | S_IWUSR,
-+		.owner	= THIS_MODULE,
-+	},
-+
-+	.read	= cmos_nvram_read,
-+	.write	= cmos_nvram_write,
-+	/* size gets set up later */
-+};
-+
-+/*----------------------------------------------------------------*/
-+
- static struct cmos_rtc	cmos_rtc;
+diff -puN arch/ia64/kernel/smpboot.c~calibrate_delay-must-be-__cpuinit arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/ia64/kernel/smpboot.c
+@@ -120,7 +120,6 @@ static volatile unsigned long go[SLAVE +
  
- static irqreturn_t cmos_interrupt(int irq, void *p)
-@@ -412,11 +486,9 @@ static irqreturn_t cmos_interrupt(int ir
- }
+ #define DEBUG_ITC_SYNC	0
  
- #ifdef	CONFIG_PNP
--#define	is_pnp()	1
- #define	INITSECTION
+-extern void __devinit calibrate_delay (void);
+ extern void start_ap (void);
+ extern unsigned long ia64_iobase;
  
- #else
--#define	is_pnp()	0
- #define	INITSECTION	__init
- #endif
+diff -puN arch/mips/kernel/smp.c~calibrate_delay-must-be-__cpuinit arch/mips/kernel/smp.c
+--- a/arch/mips/kernel/smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/mips/kernel/smp.c
+@@ -52,7 +52,6 @@ int __cpu_logical_map[NR_CPUS];		/* Map 
+ EXPORT_SYMBOL(phys_cpu_present_map);
+ EXPORT_SYMBOL(cpu_online_map);
  
-@@ -426,6 +498,7 @@ cmos_do_probe(struct device *dev, struct
- 	struct cmos_rtc_board_info	*info = dev->platform_data;
- 	int				retval = 0;
- 	unsigned char			rtc_control;
-+	unsigned			address_space;
+-extern void __init calibrate_delay(void);
+ extern void cpu_idle(void);
  
- 	/* there can be only one ... */
- 	if (cmos_rtc.dev)
-@@ -450,15 +523,36 @@ cmos_do_probe(struct device *dev, struct
- 	cmos_rtc.irq = rtc_irq;
- 	cmos_rtc.iomem = ports;
- 
-+	/* Heuristic to deduce NVRAM size ... do what the legacy NVRAM
-+	 * driver did, but don't reject unknown configs.   Old hardware
-+	 * won't address 128 bytes, and for now we ignore the way newer
-+	 * chips can address 256 bytes (using two more i/o ports).
-+	 */
-+#if	defined(CONFIG_ATARI)
-+	address_space = 64;
-+#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)
-+	address_space = 128;
-+#else
-+#warning Assuming 128 bytes of RTC+NVRAM address space, not 64 bytes.
-+	address_space = 128;
-+#endif
-+
- 	/* For ACPI systems extension info comes from the FADT.  On others,
- 	 * board specific setup provides it as appropriate.  Systems where
- 	 * the alarm IRQ isn't automatically a wakeup IRQ (like ACPI, and
- 	 * some almost-clones) can provide hooks to make that behave.
-+	 *
-+	 * Note that ACPI doesn't preclude putting these registers into
-+	 * "extended" areas of the chip, including some that we won't yet
-+	 * expect CMOS_READ and friends to handle.
+ /* Number of TCs (or siblings in Intel speak) per CPU core */
+diff -puN arch/powerpc/platforms/powermac/cpufreq_32.c~calibrate_delay-must-be-__cpuinit arch/powerpc/platforms/powermac/cpufreq_32.c
+--- a/arch/powerpc/platforms/powermac/cpufreq_32.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/powerpc/platforms/powermac/cpufreq_32.c
+@@ -113,8 +113,6 @@ static inline void debug_calc_bogomips(v
+ 	 * result. We backup/restore the value to avoid affecting the
+ 	 * core cpufreq framework's own calculation.
  	 */
- 	if (info) {
--		cmos_rtc.day_alrm = info->rtc_day_alarm;
--		cmos_rtc.mon_alrm = info->rtc_mon_alarm;
--		cmos_rtc.century = info->rtc_century;
-+		if (info->rtc_day_alarm && info->rtc_day_alarm < 128)
-+			cmos_rtc.day_alrm = info->rtc_day_alarm;
-+		if (info->rtc_mon_alarm && info->rtc_mon_alarm < 128)
-+			cmos_rtc.mon_alrm = info->rtc_mon_alarm;
-+		if (info->rtc_century && info->rtc_century < 128)
-+			cmos_rtc.century = info->rtc_century;
+-	extern void calibrate_delay(void);
+-
+ 	unsigned long save_lpj = loops_per_jiffy;
+ 	calibrate_delay();
+ 	loops_per_jiffy = save_lpj;
+diff -puN arch/sparc/kernel/sun4d_smp.c~calibrate_delay-must-be-__cpuinit arch/sparc/kernel/sun4d_smp.c
+--- a/arch/sparc/kernel/sun4d_smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/sparc/kernel/sun4d_smp.c
+@@ -19,12 +19,12 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/profile.h>
++#include <linux/delay.h>
  
- 		if (info->wake_on && info->wake_off) {
- 			cmos_rtc.wake_on = info->wake_on;
-@@ -518,10 +612,13 @@ cmos_do_probe(struct device *dev, struct
- 		goto cleanup1;
- 	}
+ #include <asm/ptrace.h>
+ #include <asm/atomic.h>
+ #include <asm/irq_regs.h>
  
--	/* REVISIT optionally make 50 or 114 bytes NVRAM available,
--	 * like rtc-ds1553, rtc-ds1742 ... this will often include
--	 * registers for century, and day/month alarm.
--	 */
-+	/* export at least the first block of NVRAM */
-+	nvram.size = address_space - NVRAM_OFFSET;
-+	retval = sysfs_create_bin_file(&dev->kobj, &nvram);
-+	if (retval < 0) {
-+		dev_dbg(dev, "can't create nvram file? %d\n", retval);
-+		goto cleanup2;
-+	}
+-#include <asm/delay.h>
+ #include <asm/irq.h>
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+@@ -41,8 +41,6 @@
  
- 	pr_info("%s: alarms up to one %s%s\n",
- 			cmos_rtc.rtc->dev.bus_id,
-@@ -536,6 +633,9 @@ cmos_do_probe(struct device *dev, struct
+ extern ctxd_t *srmmu_ctx_table_phys;
  
- 	return 0;
- 
-+cleanup2:
-+	if (is_valid_irq(rtc_irq))
-+		free_irq(rtc_irq, cmos_rtc.rtc);
- cleanup1:
- 	cmos_rtc.dev = NULL;
- 	rtc_device_unregister(cmos_rtc.rtc);
-@@ -563,6 +663,8 @@ static void __exit cmos_do_remove(struct
- 
- 	cmos_do_shutdown();
- 
-+	sysfs_remove_bin_file(&dev->kobj, &nvram);
+-extern void calibrate_delay(void);
+-
+ static volatile int smp_processors_ready = 0;
+ static int smp_highest_cpu;
+ extern volatile unsigned long cpu_callin_map[NR_CPUS];
+diff -puN arch/sparc/kernel/sun4m_smp.c~calibrate_delay-must-be-__cpuinit arch/sparc/kernel/sun4m_smp.c
+--- a/arch/sparc/kernel/sun4m_smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/sparc/kernel/sun4m_smp.c
+@@ -16,6 +16,8 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/profile.h>
++#include <linux/delay.h>
 +
- 	if (is_valid_irq(cmos->irq))
- 		free_irq(cmos->irq, cmos->rtc);
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm/irq_regs.h>
+@@ -23,7 +25,6 @@
+ #include <asm/ptrace.h>
+ #include <asm/atomic.h>
  
-@@ -659,9 +761,12 @@ static int cmos_resume(struct device *de
+-#include <asm/delay.h>
+ #include <asm/irq.h>
+ #include <asm/page.h>
+ #include <asm/pgalloc.h>
+@@ -39,8 +40,6 @@
  
- /*----------------------------------------------------------------*/
+ extern ctxd_t *srmmu_ctx_table_phys;
  
--/* The "CMOS" RTC normally lives on the platform_bus.  On ACPI systems,
-- * the device node will always be created as a PNPACPI device.  Plus
-- * pre-ACPI PCs probably list it in the PNPBIOS tables.
-+/* On non-x86 systems, a "CMOS" RTC lives most naturally on platform_bus.
-+ * ACPI systems always list these as PNPACPI devices, and pre-ACPI PCs
-+ * probably list them in similar PNPBIOS tables; so PNP is more common.
-+ *
-+ * We don't use legacy "poke at the hardware" probing.  Ancient PCs that
-+ * predate even PNPBIOS should set up platform_bus devices.
+-extern void calibrate_delay(void);
+-
+ extern volatile unsigned long cpu_callin_map[NR_CPUS];
+ extern unsigned char boot_cpu_id;
+ 
+diff -puN arch/sparc64/kernel/smp.c~calibrate_delay-must-be-__cpuinit arch/sparc64/kernel/smp.c
+--- a/arch/sparc64/kernel/smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/sparc64/kernel/smp.c
+@@ -46,8 +46,6 @@
+ #include <asm/ldc.h>
+ #include <asm/hypervisor.h>
+ 
+-extern void calibrate_delay(void);
+-
+ int sparc64_multi_core __read_mostly;
+ 
+ cpumask_t cpu_possible_map __read_mostly = CPU_MASK_NONE;
+diff -puN arch/x86/kernel/cpu/cyrix.c~calibrate_delay-must-be-__cpuinit arch/x86/kernel/cpu/cyrix.c
+--- a/arch/x86/kernel/cpu/cyrix.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/x86/kernel/cpu/cyrix.c
+@@ -83,8 +83,6 @@ static char cyrix_model_mult2[] __cpuini
+  * FIXME: our newer udelay uses the tsc. We don't need to frob with SLOP
   */
  
- #ifdef	CONFIG_PNP
+-extern void calibrate_delay(void) __init;
+-
+ static void __cpuinit check_cx686_slop(struct cpuinfo_x86 *c)
+ {
+ 	unsigned long flags;
+diff -puN arch/x86/kernel/smpboot_32.c~calibrate_delay-must-be-__cpuinit arch/x86/kernel/smpboot_32.c
+--- a/arch/x86/kernel/smpboot_32.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/x86/kernel/smpboot_32.c
+@@ -202,8 +202,6 @@ valid_k7:
+ 	;
+ }
+ 
+-extern void calibrate_delay(void);
+-
+ static atomic_t init_deasserted;
+ 
+ static void __cpuinit smp_callin(void)
+diff -puN arch/x86/mach-voyager/voyager_smp.c~calibrate_delay-must-be-__cpuinit arch/x86/mach-voyager/voyager_smp.c
+--- a/arch/x86/mach-voyager/voyager_smp.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/x86/mach-voyager/voyager_smp.c
+@@ -444,8 +444,6 @@ static __u32 __init setup_trampoline(voi
+ static void __init start_secondary(void *unused)
+ {
+ 	__u8 cpuid = hard_smp_processor_id();
+-	/* external functions not defined in the headers */
+-	extern void calibrate_delay(void);
+ 
+ 	cpu_init();
+ 
+diff -puN arch/xtensa/kernel/time.c~calibrate_delay-must-be-__cpuinit arch/xtensa/kernel/time.c
+--- a/arch/xtensa/kernel/time.c~calibrate_delay-must-be-__cpuinit
++++ a/arch/xtensa/kernel/time.c
+@@ -204,7 +204,7 @@ again:
+ }
+ 
+ #ifndef CONFIG_GENERIC_CALIBRATE_DELAY
+-void __devinit calibrate_delay(void)
++void __cpuinit calibrate_delay(void)
+ {
+ 	loops_per_jiffy = CCOUNT_PER_JIFFY;
+ 	printk("Calibrating delay loop (skipped)... "
+diff -puN drivers/s390/sysinfo.c~calibrate_delay-must-be-__cpuinit drivers/s390/sysinfo.c
+--- a/drivers/s390/sysinfo.c~calibrate_delay-must-be-__cpuinit
++++ a/drivers/s390/sysinfo.c
+@@ -422,7 +422,7 @@ void s390_adjust_jiffies(void)
+ /*
+  * calibrate the delay loop
+  */
+-void __init calibrate_delay(void)
++void __cpuinit calibrate_delay(void)
+ {
+ 	s390_adjust_jiffies();
+ 	/* Print the good old Bogomips line .. */
+diff -puN init/calibrate.c~calibrate_delay-must-be-__cpuinit init/calibrate.c
+--- a/init/calibrate.c~calibrate_delay-must-be-__cpuinit
++++ a/init/calibrate.c
+@@ -28,7 +28,7 @@ __setup("lpj=", lpj_setup);
+ #define DELAY_CALIBRATION_TICKS			((HZ < 100) ? 1 : (HZ/100))
+ #define MAX_DIRECT_CALIBRATION_RETRIES		5
+ 
+-static unsigned long __devinit calibrate_delay_direct(void)
++static unsigned long __cpuinit calibrate_delay_direct(void)
+ {
+ 	unsigned long pre_start, start, post_start;
+ 	unsigned long pre_end, end, post_end;
+@@ -101,7 +101,7 @@ static unsigned long __devinit calibrate
+ 	return 0;
+ }
+ #else
+-static unsigned long __devinit calibrate_delay_direct(void) {return 0;}
++static unsigned long __cpuinit calibrate_delay_direct(void) {return 0;}
+ #endif
+ 
+ /*
+@@ -111,7 +111,7 @@ static unsigned long __devinit calibrate
+  */
+ #define LPS_PREC 8
+ 
+-void __devinit calibrate_delay(void)
++void __cpuinit calibrate_delay(void)
+ {
+ 	unsigned long ticks, loopbit;
+ 	int lps_precision = LPS_PREC;
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-input.patch
-git-mmc.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
