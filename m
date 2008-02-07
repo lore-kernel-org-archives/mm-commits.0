@@ -1,121 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: - sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:20:44 -0800
-Message-ID: <200802070020.m170KPEg006132@imap1.linux-foundation.org>
+Subject: - ipc-fix-error-check-in-all-new-xxx_lock-and.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:00 -0800
+Message-ID: <200802070020.m170Kf2t006176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59699 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40566 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933993AbYBGAVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:21:39 -0500
+	by vger.kernel.org with ESMTP id S934025AbYBGAVs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:21:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound/oss/pss: set_io_base() always returns success, mark it void
+     IPC: fix error check in all new xxx_lock() and xxx_exit_ns() functions
 has been removed from the -mm tree.  Its filename was
-     sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+     ipc-fix-error-check-in-all-new-xxx_lock-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/oss/pss: set_io_base() always returns success, mark it void
-From: Jeff Garzik <jeff@garzik.org>
+Subject: IPC: fix error check in all new xxx_lock() and xxx_exit_ns() functions
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+In the new implementation of the [sem|shm|msg]_lock[_check]() routines, we
+use the return value of ipc_lock() in container_of() without any check. 
+But ipc_lock may return a errcode.  The use of this errcode in
+container_of() may alter this errcode, and we don't want this.
+
+And in xxx_exit_ns, the pointer return by idr_find is of type 'struct
+kern_ipc_per'...
+
+Today, the code will work as is because the member used in these
+container_of() is the first member of its container (offset == 0), the
+errcode isn't changed then.  But in the general case, we can't count on
+this assumption and this may lead later to a real bug if we don't correct
+this.
+
+Again, the proposed solution is simple and correct.  But, as pointed by
+Nadia, with this solution, the same check will be done several times (in
+all sub-callers...), what is not very funny/optimal...
+
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/pss.c |   30 +++++++-----------------------
- 1 file changed, 7 insertions(+), 23 deletions(-)
+ ipc/msg.c |   17 ++++++++++++++---
+ ipc/sem.c |   17 ++++++++++++++---
+ ipc/shm.c |   20 +++++++++++++++++---
+ 3 files changed, 45 insertions(+), 9 deletions(-)
 
-diff -puN sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void sound/oss/pss.c
---- a/sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void
-+++ a/sound/oss/pss.c
-@@ -232,14 +232,12 @@ static int set_irq(pss_confdata * devc, 
- 	return 1;
- }
- 
--static int set_io_base(pss_confdata * devc, int dev, int base)
-+static void set_io_base(pss_confdata * devc, int dev, int base)
+diff -puN ipc/msg.c~ipc-fix-error-check-in-all-new-xxx_lock-and ipc/msg.c
+--- a/ipc/msg.c~ipc-fix-error-check-in-all-new-xxx_lock-and
++++ a/ipc/msg.c
+@@ -105,6 +105,7 @@ int msg_init_ns(struct ipc_namespace *ns
+ void msg_exit_ns(struct ipc_namespace *ns)
  {
- 	unsigned short  tmp = inw(REG(dev)) & 0x003f;
- 	unsigned short  bits = (base & 0x0ffc) << 4;
+ 	struct msg_queue *msq;
++	struct kern_ipc_perm *perm;
+ 	int next_id;
+ 	int total, in_use;
  
- 	outw(bits | tmp, REG(dev));
--
--	return 1;
+@@ -113,10 +114,11 @@ void msg_exit_ns(struct ipc_namespace *n
+ 	in_use = msg_ids(ns).in_use;
+ 
+ 	for (total = 0, next_id = 0; total < in_use; next_id++) {
+-		msq = idr_find(&msg_ids(ns).ipcs_idr, next_id);
+-		if (msq == NULL)
++		perm = idr_find(&msg_ids(ns).ipcs_idr, next_id);
++		if (perm == NULL)
+ 			continue;
+-		ipc_lock_by_ptr(&msq->q_perm);
++		ipc_lock_by_ptr(perm);
++		msq = container_of(perm, struct msg_queue, q_perm);
+ 		freeque(ns, msq);
+ 		total++;
+ 	}
+@@ -144,6 +146,9 @@ static inline struct msg_queue *msg_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&msg_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct msg_queue *)ipcp;
++
+ 	return container_of(ipcp, struct msg_queue, q_perm);
  }
  
- static int set_dma(pss_confdata * devc, int dev, int dma)
-@@ -673,20 +671,12 @@ static void configure_nonsound_component
+@@ -155,6 +160,9 @@ static inline struct msg_queue *msg_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock(&msg_ids(ns), id);
  
- 	/* Configure CDROM port */
- 
--	if(pss_cdrom_port == -1)	/* If cdrom port enablation wasn't requested */
--	{
-+	if (pss_cdrom_port == -1) {	/* If cdrom port enablation wasn't requested */
- 		printk(KERN_INFO "PSS: CDROM port not enabled.\n");
--	}
--	else if(check_region(pss_cdrom_port, 2))
--	{
-+	} else if (check_region(pss_cdrom_port, 2)) {
- 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
--	}
--	else if(!set_io_base(devc, CONF_CDROM, pss_cdrom_port))
--	{
--		printk(KERN_ERR "PSS: CDROM I/O port could not be set.\n");
--	}
--	else					/* CDROM port successfully configured */
--	{
-+	} else {
-+		set_io_base(devc, CONF_CDROM, pss_cdrom_port);
- 		printk(KERN_INFO "PSS: CDROM I/O port set to 0x%x.\n", pss_cdrom_port);
- 	}
++	if (IS_ERR(ipcp))
++		return (struct msg_queue *)ipcp;
++
+ 	return container_of(ipcp, struct msg_queue, q_perm);
  }
-@@ -758,10 +748,7 @@ static int __init probe_pss_mpu(struct a
- 		printk(KERN_ERR "PSS: MPU I/O port conflict\n");
- 		return 0;
+ 
+@@ -163,6 +171,9 @@ static inline struct msg_queue *msg_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check(&msg_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct msg_queue *)ipcp;
++
+ 	return container_of(ipcp, struct msg_queue, q_perm);
+ }
+ 
+diff -puN ipc/sem.c~ipc-fix-error-check-in-all-new-xxx_lock-and ipc/sem.c
+--- a/ipc/sem.c~ipc-fix-error-check-in-all-new-xxx_lock-and
++++ a/ipc/sem.c
+@@ -143,6 +143,7 @@ int sem_init_ns(struct ipc_namespace *ns
+ void sem_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct sem_array *sma;
++	struct kern_ipc_perm *perm;
+ 	int next_id;
+ 	int total, in_use;
+ 
+@@ -151,10 +152,11 @@ void sem_exit_ns(struct ipc_namespace *n
+ 	in_use = sem_ids(ns).in_use;
+ 
+ 	for (total = 0, next_id = 0; total < in_use; next_id++) {
+-		sma = idr_find(&sem_ids(ns).ipcs_idr, next_id);
+-		if (sma == NULL)
++		perm = idr_find(&sem_ids(ns).ipcs_idr, next_id);
++		if (perm == NULL)
+ 			continue;
+-		ipc_lock_by_ptr(&sma->sem_perm);
++		ipc_lock_by_ptr(perm);
++		sma = container_of(perm, struct sem_array, sem_perm);
+ 		freeary(ns, sma);
+ 		total++;
  	}
--	if (!set_io_base(devc, CONF_MIDI, hw_config->io_base)) {
--		printk(KERN_ERR "PSS: MIDI base could not be set.\n");
--		goto fail;
--	}
-+	set_io_base(devc, CONF_MIDI, hw_config->io_base);
- 	if (!set_irq(devc, CONF_MIDI, hw_config->irq)) {
- 		printk(KERN_ERR "PSS: MIDI IRQ allocation error.\n");
- 		goto fail;
-@@ -1057,10 +1044,7 @@ static int __init probe_pss_mss(struct a
- 		release_region(hw_config->io_base, 4);
- 		return 0;
+@@ -181,6 +183,9 @@ static inline struct sem_array *sem_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&sem_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct sem_array *)ipcp;
++
+ 	return container_of(ipcp, struct sem_array, sem_perm);
+ }
+ 
+@@ -192,6 +197,9 @@ static inline struct sem_array *sem_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock(&sem_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct sem_array *)ipcp;
++
+ 	return container_of(ipcp, struct sem_array, sem_perm);
+ }
+ 
+@@ -200,6 +208,9 @@ static inline struct sem_array *sem_lock
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check(&sem_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct sem_array *)ipcp;
++
+ 	return container_of(ipcp, struct sem_array, sem_perm);
+ }
+ 
+diff -puN ipc/shm.c~ipc-fix-error-check-in-all-new-xxx_lock-and ipc/shm.c
+--- a/ipc/shm.c~ipc-fix-error-check-in-all-new-xxx_lock-and
++++ a/ipc/shm.c
+@@ -111,6 +111,7 @@ int shm_init_ns(struct ipc_namespace *ns
+ void shm_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct shmid_kernel *shp;
++	struct kern_ipc_perm *perm;
+ 	int next_id;
+ 	int total, in_use;
+ 
+@@ -119,10 +120,11 @@ void shm_exit_ns(struct ipc_namespace *n
+ 	in_use = shm_ids(ns).in_use;
+ 
+ 	for (total = 0, next_id = 0; total < in_use; next_id++) {
+-		shp = idr_find(&shm_ids(ns).ipcs_idr, next_id);
+-		if (shp == NULL)
++		perm = idr_find(&shm_ids(ns).ipcs_idr, next_id);
++		if (perm == NULL)
+ 			continue;
+-		ipc_lock_by_ptr(&shp->shm_perm);
++		ipc_lock_by_ptr(perm);
++		shp = container_of(perm, struct shmid_kernel, shm_perm);
+ 		do_shm_rmid(ns, shp);
+ 		total++;
  	}
--	if (!set_io_base(devc, CONF_WSS, hw_config->io_base)) {
--		printk("PSS: WSS base not settable.\n");
--		goto fail;
--	}
-+	set_io_base(devc, CONF_WSS, hw_config->io_base);
- 	if (!set_irq(devc, CONF_WSS, hw_config->irq)) {
- 		printk("PSS: WSS IRQ allocation error.\n");
- 		goto fail;
+@@ -149,6 +151,9 @@ static inline struct shmid_kernel *shm_l
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_down(&shm_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct shmid_kernel *)ipcp;
++
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+@@ -158,6 +163,9 @@ static inline struct shmid_kernel *shm_l
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&shm_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct shmid_kernel *)ipcp;
++
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+@@ -169,6 +177,9 @@ static inline struct shmid_kernel *shm_l
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock(&shm_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct shmid_kernel *)ipcp;
++
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+@@ -177,6 +188,9 @@ static inline struct shmid_kernel *shm_l
+ {
+ 	struct kern_ipc_perm *ipcp = ipc_lock_check(&shm_ids(ns), id);
+ 
++	if (IS_ERR(ipcp))
++		return (struct shmid_kernel *)ipcp;
++
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-git-libata-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+ipc-semaphores-consolidate-sem_stat-and.patch
+ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+ipc-consolidate-sem_exit_ns-msg_exit_ns-and-shm_exit_ns.patch
