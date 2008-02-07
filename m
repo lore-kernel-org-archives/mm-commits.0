@@ -1,68 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:59 -0800
-Message-ID: <200802070029.m170Tefr007301@imap1.linux-foundation.org>
+Subject: - ext2-add-block-bitmap-validation.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:28 -0800
+Message-ID: <200802070030.m170U9Tg007358__18378.6893765957$1202345756$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57981 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934982AbYBGAn1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:27 -0500
+	by vger.kernel.org with ESMTP id S935033AbYBGAny (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: allow an md array to appear with 0 drives if it has external metadata
+     ext2: add block bitmap validation
 has been removed from the -mm tree.  Its filename was
-     md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata.patch
+     ext2-add-block-bitmap-validation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: allow an md array to appear with 0 drives if it has external metadata
-From: NeilBrown <neilb@suse.de>
+Subject: ext2: add block bitmap validation
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-Signed-off-by: Neil Brown <neilb@suse.de>
+When a new block bitmap is read from disk in read_block_bitmap() there are a
+few bits that should ALWAYS be set.  In particular, the blocks given
+corresponding to block bitmap, inode bitmap and inode tables.  Validate the
+block bitmap against these blocks.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/ext2/balloc.c |   81 ++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 72 insertions(+), 9 deletions(-)
 
-diff -puN drivers/md/md.c~md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata drivers/md/md.c
---- a/drivers/md/md.c~md-allow-an-md-array-to-appear-with-0-drives-if-it-has-external-metadata
-+++ a/drivers/md/md.c
-@@ -4647,9 +4647,10 @@ static int md_ioctl(struct inode *inode,
- 	 */
- 	/* if we are not initialised yet, only ADD_NEW_DISK, STOP_ARRAY,
- 	 * RUN_ARRAY, and GET_ and SET_BITMAP_FILE are allowed */
--	if (!mddev->raid_disks && cmd != ADD_NEW_DISK && cmd != STOP_ARRAY
--			&& cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE
--	    		&& cmd != GET_BITMAP_FILE) {
-+	if ((!mddev->raid_disks && !mddev->external)
-+	    && cmd != ADD_NEW_DISK && cmd != STOP_ARRAY
-+	    && cmd != RUN_ARRAY && cmd != SET_BITMAP_FILE
-+	    && cmd != GET_BITMAP_FILE) {
- 		err = -ENODEV;
- 		goto abort_unlock;
- 	}
+diff -puN fs/ext2/balloc.c~ext2-add-block-bitmap-validation fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-add-block-bitmap-validation
++++ a/fs/ext2/balloc.c
+@@ -69,9 +69,53 @@ struct ext2_group_desc * ext2_get_group_
+ 	return desc + offset;
+ }
+ 
++static int ext2_valid_block_bitmap(struct super_block *sb,
++					struct ext2_group_desc *desc,
++					unsigned int block_group,
++					struct buffer_head *bh)
++{
++	ext2_grpblk_t offset;
++	ext2_grpblk_t next_zero_bit;
++	ext2_fsblk_t bitmap_blk;
++	ext2_fsblk_t group_first_block;
++
++	group_first_block = ext2_group_first_block_no(sb, block_group);
++
++	/* check whether block bitmap block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
++	offset = bitmap_blk - group_first_block;
++	if (!ext2_test_bit(offset, bh->b_data))
++		/* bad block bitmap */
++		goto err_out;
++
++	/* check whether the inode bitmap block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
++	offset = bitmap_blk - group_first_block;
++	if (!ext2_test_bit(offset, bh->b_data))
++		/* bad block bitmap */
++		goto err_out;
++
++	/* check whether the inode table block number is set */
++	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
++	offset = bitmap_blk - group_first_block;
++	next_zero_bit = ext2_find_next_zero_bit(bh->b_data,
++				offset + EXT2_SB(sb)->s_itb_per_group,
++				offset);
++	if (next_zero_bit >= offset + EXT2_SB(sb)->s_itb_per_group)
++		/* good bitmap for inode tables */
++		return 1;
++
++err_out:
++	ext2_error(sb, __FUNCTION__,
++			"Invalid block bitmap - "
++			"block_group = %d, block = %lu",
++			block_group, bitmap_blk);
++	return 0;
++}
++
+ /*
+- * Read the bitmap for a given block_group, reading into the specified 
+- * slot in the superblock's bitmap cache.
++ * Read the bitmap for a given block_group,and validate the
++ * bits for block/inode/inode tables are set in the bitmaps
+  *
+  * Return buffer_head on success or NULL in case of failure.
+  */
+@@ -80,17 +124,36 @@ read_block_bitmap(struct super_block *sb
+ {
+ 	struct ext2_group_desc * desc;
+ 	struct buffer_head * bh = NULL;
+-	
+-	desc = ext2_get_group_desc (sb, block_group, NULL);
++	ext2_fsblk_t bitmap_blk;
++
++	desc = ext2_get_group_desc(sb, block_group, NULL);
+ 	if (!desc)
+-		goto error_out;
+-	bh = sb_bread(sb, le32_to_cpu(desc->bg_block_bitmap));
+-	if (!bh)
+-		ext2_error (sb, "read_block_bitmap",
++		return NULL;
++	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
++	bh = sb_getblk(sb, bitmap_blk);
++	if (unlikely(!bh)) {
++		ext2_error(sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+-error_out:
++		return NULL;
++	}
++	if (likely(bh_uptodate_or_lock(bh)))
++		return bh;
++
++	if (bh_submit_read(bh) < 0) {
++		brelse(bh);
++		ext2_error(sb, __FUNCTION__,
++			    "Cannot read block bitmap - "
++			    "block_group = %d, block_bitmap = %u",
++			    block_group, le32_to_cpu(desc->bg_block_bitmap));
++		return NULL;
++	}
++	if (!ext2_valid_block_bitmap(sb, desc, block_group, bh)) {
++		brelse(bh);
++		return NULL;
++	}
++
+ 	return bh;
+ }
+ 
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
