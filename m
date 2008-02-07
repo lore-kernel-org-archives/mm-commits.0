@@ -1,81 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - a-potential-bug-in-inotify_userc.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:20:29 -0800
-Message-ID: <200802070020.m170KAN7006097@imap1.linux-foundation.org>
+Subject: - remove-inclusions-of-linux-autoconfh.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:20:41 -0800
+Message-ID: <200802070020.m170KMaf006123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40521 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933854AbYBGAUX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:23 -0500
+	by vger.kernel.org with ESMTP id S933864AbYBGAUh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanzheng@21cn.com, rlove@rlove.org, ttb@tentacle.dhs.org, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, cooloney.lkml@gmail.com, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     A potential bug in inotify_user.c
+     Remove inclusions of <linux/autoconf.h>
 has been removed from the -mm tree.  Its filename was
-     a-potential-bug-in-inotify_userc.patch
+     remove-inclusions-of-linux-autoconfh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: A potential bug in inotify_user.c
-From: "Yan Zheng" <yanzheng@21cn.com>
+Subject: Remove inclusions of <linux/autoconf.h>
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Following comment is at fs/inotify_user.c:287
-/* coalescing: drop this event if it is a dupe of the previous */
+Nothing should ever include this file.
 
-I think the previous event in the comment should be the last event in the
-link list.  But inotify_dev_get_event return the first event in the list. 
-In addition, it doesn't check whether the list is empty
-
-Signed-off-by: Yan Zheng<yanzheng@21cn.com>
-Acked-by: Robert Love <rlove@rlove.org>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: "Mike Frysinger" <vapier.adi@gmail.com>
+Acked-by: "Bryan Wu" <cooloney.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ arch/m68knommu/lib/memcpy.c    |    1 -
+ arch/mips/au1000/common/gpio.c |    1 -
+ drivers/char/mxser.c           |    1 -
+ drivers/char/mxser_new.c       |    1 -
+ drivers/firmware/dmi-id.c      |    1 -
+ drivers/misc/asus-laptop.c     |    1 -
+ drivers/misc/fujitsu-laptop.c  |    1 -
+ drivers/misc/msi-laptop.c      |    1 -
+ drivers/spi/spi.c              |    1 -
+ 9 files changed, 9 deletions(-)
 
-diff -puN fs/inotify_user.c~a-potential-bug-in-inotify_userc fs/inotify_user.c
---- a/fs/inotify_user.c~a-potential-bug-in-inotify_userc
-+++ a/fs/inotify_user.c
-@@ -248,6 +248,19 @@ inotify_dev_get_event(struct inotify_dev
- }
+diff -puN arch/m68knommu/lib/memcpy.c~remove-inclusions-of-linux-autoconfh arch/m68knommu/lib/memcpy.c
+--- a/arch/m68knommu/lib/memcpy.c~remove-inclusions-of-linux-autoconfh
++++ a/arch/m68knommu/lib/memcpy.c
+@@ -1,6 +1,5 @@
  
- /*
-+ * inotify_dev_get_last_event - return the last event in the given dev's queue
-+ *
-+ * Caller must hold dev->ev_mutex.
-+ */
-+static inline struct inotify_kernel_event *
-+inotify_dev_get_last_event(struct inotify_device *dev)
-+{
-+	if (list_empty(&dev->events))
-+		return NULL;
-+	return list_entry(dev->events.prev, struct inotify_kernel_event, list);
-+}
-+
-+/*
-  * inotify_dev_queue_event - event handler registered with core inotify, adds
-  * a new event to the given device
-  *
-@@ -273,7 +286,7 @@ static void inotify_dev_queue_event(stru
- 		put_inotify_watch(w); /* final put */
+ #include <linux/types.h>
+-#include <linux/autoconf.h>
  
- 	/* coalescing: drop this event if it is a dupe of the previous */
--	last = inotify_dev_get_event(dev);
-+	last = inotify_dev_get_last_event(dev);
- 	if (last && last->event.mask == mask && last->event.wd == wd &&
- 			last->event.cookie == cookie) {
- 		const char *lastname = last->name;
+ void * memcpy(void * to, const void * from, size_t n)
+ {
+diff -puN arch/mips/au1000/common/gpio.c~remove-inclusions-of-linux-autoconfh arch/mips/au1000/common/gpio.c
+--- a/arch/mips/au1000/common/gpio.c~remove-inclusions-of-linux-autoconfh
++++ a/arch/mips/au1000/common/gpio.c
+@@ -27,7 +27,6 @@
+  * 	others have a second one : GPIO2
+  */
+ 
+-#include <linux/autoconf.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/types.h>
+diff -puN drivers/char/mxser.c~remove-inclusions-of-linux-autoconfh drivers/char/mxser.c
+--- a/drivers/char/mxser.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/char/mxser.c
+@@ -37,7 +37,6 @@
+ 
+ 
+ #include <linux/module.h>
+-#include <linux/autoconf.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+diff -puN drivers/char/mxser_new.c~remove-inclusions-of-linux-autoconfh drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/char/mxser_new.c
+@@ -20,7 +20,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/autoconf.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+diff -puN drivers/firmware/dmi-id.c~remove-inclusions-of-linux-autoconfh drivers/firmware/dmi-id.c
+--- a/drivers/firmware/dmi-id.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/firmware/dmi-id.c
+@@ -11,7 +11,6 @@
+ #include <linux/init.h>
+ #include <linux/dmi.h>
+ #include <linux/device.h>
+-#include <linux/autoconf.h>
+ 
+ struct dmi_device_attribute{
+ 	struct device_attribute dev_attr;
+diff -puN drivers/misc/asus-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/asus-laptop.c
+@@ -33,7 +33,6 @@
+  *  Sam Lin        - GPS support
+  */
+ 
+-#include <linux/autoconf.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+diff -puN drivers/misc/fujitsu-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/fujitsu-laptop.c
+--- a/drivers/misc/fujitsu-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/fujitsu-laptop.c
+@@ -50,7 +50,6 @@
+ #include <linux/dmi.h>
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+-#include <linux/autoconf.h>
+ 
+ #define FUJITSU_DRIVER_VERSION "0.3"
+ 
+diff -puN drivers/misc/msi-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/msi-laptop.c
+--- a/drivers/misc/msi-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/msi-laptop.c
+@@ -58,7 +58,6 @@
+ #include <linux/dmi.h>
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+-#include <linux/autoconf.h>
+ 
+ #define MSI_DRIVER_VERSION "0.5"
+ 
+diff -puN drivers/spi/spi.c~remove-inclusions-of-linux-autoconfh drivers/spi/spi.c
+--- a/drivers/spi/spi.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/spi/spi.c
+@@ -18,7 +18,6 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <linux/autoconf.h>
+ #include <linux/kernel.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
 _
 
-Patches currently in -mm which might be from yanzheng@21cn.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+git-watchdog.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+dzc-resource-management.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+pid-fix-mips-irix-emulation-pid-usage.patch
+pid-fix-mips-irix-emulation-pid-usage-fix.patch
+avoid-overflows-in-kernel-timec.patch
+irq_noprobe-helper-functions.patch
+mips-mark-all-but-i8259-interrupts-as-no-probe.patch
