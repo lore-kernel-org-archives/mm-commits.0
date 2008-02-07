@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + typhoon-section-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 00:28:05 -0700
-Message-ID: <200802070727.m177RlPO021982@imap1.linux-foundation.org>
+Subject: + natsemi-section-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 00:29:24 -0700
+Message-ID: <200802070729.m177T6b3022038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52633 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754264AbYBGH2C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:28:02 -0500
+	by vger.kernel.org with ESMTP id S1754933AbYBGH3Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:29:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     typhoon section fix
+     natsemi section fix
 has been added to the -mm tree.  Its filename is
-     typhoon-section-fix.patch
+     natsemi-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,32 +27,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: typhoon section fix
+Subject: natsemi section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-3.4.4 on powerpc:
 
-drivers/net/typhoon.c:137: error: version causes a section type conflict
+drivers/net/natsemi.c:245: error: natsemi_pci_info causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/typhoon.c |    2 +-
+ drivers/net/natsemi.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/typhoon.c~typhoon-section-fix drivers/net/typhoon.c
---- a/drivers/net/typhoon.c~typhoon-section-fix
-+++ a/drivers/net/typhoon.c
-@@ -134,7 +134,7 @@ static const int multicast_filter_limit 
- #include "typhoon.h"
- #include "typhoon-firmware.h"
+diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-section-fix
++++ a/drivers/net/natsemi.c
+@@ -238,7 +238,7 @@ enum {
+ };
  
--static const char version[] __devinitdata =
-+static char version[] __devinitdata =
-     "typhoon.c: version " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
- 
- MODULE_AUTHOR("David Dillow <dave@thedillows.org>");
+ /* array of board data directly indexed by pci_tbl[x].driver_data */
+-static const struct {
++static struct {
+ 	const char *name;
+ 	unsigned long flags;
+ 	unsigned int eeprom_size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,3 +89,4 @@ iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-hostfs-from-using-iget-and-read_inode.patch
 typhoon-section-fix.patch
+natsemi-section-fix.patch
