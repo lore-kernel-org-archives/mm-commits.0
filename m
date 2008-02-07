@@ -1,124 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - fb-defio-nopage.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:17 -0800
-Message-ID: <200802070027.m170RwR1007099@imap1.linux-foundation.org>
+Subject: - claim-maintainership-for-block2mtd-and-update-email-addresses.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:21 -0800
+Message-ID: <200802070025.m170P2Vs006683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59714 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935124AbYBGApt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:49 -0500
+	by vger.kernel.org with ESMTP id S934008AbYBGApw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, adaplas@pol.net, jayakumar.lkml@gmail.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: joern@lazybastard.org, apw@shadowen.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb: defio nopage
+     Claim maintainership for block2mtd and update email addresses
 has been removed from the -mm tree.  Its filename was
-     fb-defio-nopage.patch
+     claim-maintainership-for-block2mtd-and-update-email-addresses.patc=
+h
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fb: defio nopage
-From: Nick Piggin <npiggin@suse.de>
+Subject: Claim maintainership for block2mtd and update email addresses
+=46rom: Joern Engel <joern@lazybastard.org>
 
-Convert fb defio from nopage to fault.
-Switch from OOM to SIGBUS if the resource is not available.
+I have been prime author and maintainer of block2mtd from day one, but
+neither MAINTAINERS nor the module source makes this fact clear.  And w=
+hile
+I'm at it, update my email addresses tree-wide, as the old address
+currently bounces and change my name to "joern" as unicode will likely
+continue to cause trouble until the end of this century.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Signed-off-by: Joern Engel <joern@lazybastard.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/deferred_io.txt |    6 +++---
- drivers/video/fb_defio.c         |   17 ++++++++---------
- 2 files changed, 11 insertions(+), 12 deletions(-)
+ MAINTAINERS                     |   10 ++++++++--
+ drivers/mtd/devices/block2mtd.c |    4 ++--
+ drivers/mtd/devices/phram.c     |    4 ++--
+ drivers/mtd/maps/mtx-1_flash.c  |    2 +-
+ scripts/checkstack.pl           |    2 +-
+ 5 files changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/fb/deferred_io.txt~fb-defio-nopage Documentation/fb/deferred_io.txt
---- a/Documentation/fb/deferred_io.txt~fb-defio-nopage
-+++ a/Documentation/fb/deferred_io.txt
-@@ -7,10 +7,10 @@ IO. The following example may be a usefu
- works:
- 
- - userspace app like Xfbdev mmaps framebuffer
--- deferred IO and driver sets up nopage and page_mkwrite handlers
-+- deferred IO and driver sets up fault and page_mkwrite handlers
- - userspace app tries to write to mmaped vaddress
--- we get pagefault and reach nopage handler
--- nopage handler finds and returns physical page
-+- we get pagefault and reach fault handler
-+- fault handler finds and returns physical page
- - we get page_mkwrite where we add this page to a list
- - schedule a workqueue task to be run after a delay
- - app continues writing to that page with no additional cost. this is
-diff -puN drivers/video/fb_defio.c~fb-defio-nopage drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fb-defio-nopage
-+++ a/drivers/video/fb_defio.c
-@@ -25,8 +25,8 @@
- #include <linux/pagemap.h>
- 
- /* this is to find and return the vmalloc-ed fb pages */
--static struct page* fb_deferred_io_nopage(struct vm_area_struct *vma,
--					unsigned long vaddr, int *type)
-+static int fb_deferred_io_fault(struct vm_area_struct *vma,
-+				struct vm_fault *vmf)
- {
- 	unsigned long offset;
- 	struct page *page;
-@@ -34,18 +34,17 @@ static struct page* fb_deferred_io_nopag
- 	/* info->screen_base is in System RAM */
- 	void *screen_base = (void __force *) info->screen_base;
- 
--	offset = (vaddr - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
-+	offset = vmf->pgoff << PAGE_SHIFT;
- 	if (offset >= info->fix.smem_len)
--		return NOPAGE_SIGBUS;
-+		return VM_FAULT_SIGBUS;
- 
- 	page = vmalloc_to_page(screen_base + offset);
- 	if (!page)
--		return NOPAGE_OOM;
-+		return VM_FAULT_SIGBUS;
- 
- 	get_page(page);
--	if (type)
--		*type = VM_FAULT_MINOR;
--	return page;
-+	vmf->page = page;
-+	return 0;
- }
- 
- int fb_deferred_io_fsync(struct file *file, struct dentry *dentry, int datasync)
-@@ -84,7 +83,7 @@ static int fb_deferred_io_mkwrite(struct
- }
- 
- static struct vm_operations_struct fb_deferred_io_vm_ops = {
--	.nopage   	= fb_deferred_io_nopage,
-+	.fault		= fb_deferred_io_fault,
- 	.page_mkwrite	= fb_deferred_io_mkwrite,
- };
- 
+diff -puN MAINTAINERS~claim-maintainership-for-block2mtd-and-update-ema=
+il-addresses MAINTAINERS
+--- a/MAINTAINERS~claim-maintainership-for-block2mtd-and-update-email-a=
+ddresses
++++ a/MAINTAINERS
+@@ -840,6 +840,12 @@ L:	linux-kernel@vger.kernel.org
+ T:	git kernel.org:/pub/scm/linux/kernel/git/axboe/linux-2.6-block.git
+ S:	Maintained
+=20
++BLOCK2MTD DRIVER
++P:	Joern Engel
++M:	joern@lazybastard.org
++L:	linux-mtd@lists.infradead.org
++S:	Maintained
++
+ BLUETOOTH SUBSYSTEM
+ P:	Marcel Holtmann
+ M:	marcel@holtmann.org
+@@ -3030,8 +3036,8 @@ L:	linux-abi-devel@lists.sourceforge.net
+ S:	Maintained
+=20
+ PHRAM MTD DRIVER
+-P:	J=C3=B6rn Engel
+-M:	joern@wh.fh-wedel.de
++P:	Joern Engel
++M:	joern@lazybastard.org
+ L:	linux-mtd@lists.infradead.org
+ S:	Maintained
+=20
+diff -puN drivers/mtd/devices/block2mtd.c~claim-maintainership-for-bloc=
+k2mtd-and-update-email-addresses drivers/mtd/devices/block2mtd.c
+--- a/drivers/mtd/devices/block2mtd.c~claim-maintainership-for-block2mt=
+d-and-update-email-addresses
++++ a/drivers/mtd/devices/block2mtd.c
+@@ -4,7 +4,7 @@
+  * block2mtd.c - create an mtd from a block device
+  *
+  * Copyright (C) 2001,2002	Simon Evans <spse@secret.org.uk>
+- * Copyright (C) 2004-2006	J=C3=B6rn Engel <joern@wh.fh-wedel.de>
++ * Copyright (C) 2004-2006	Joern Engel <joern@wh.fh-wedel.de>
+  *
+  * Licence: GPL
+  */
+@@ -485,5 +485,5 @@ module_init(block2mtd_init);
+ module_exit(block2mtd_exit);
+=20
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Simon Evans <spse@secret.org.uk> and others");
++MODULE_AUTHOR("Joern Engel <joern@lazybastard.org>");
+ MODULE_DESCRIPTION("Emulate an MTD using a block device");
+diff -puN drivers/mtd/devices/phram.c~claim-maintainership-for-block2mt=
+d-and-update-email-addresses drivers/mtd/devices/phram.c
+--- a/drivers/mtd/devices/phram.c~claim-maintainership-for-block2mtd-an=
+d-update-email-addresses
++++ a/drivers/mtd/devices/phram.c
+@@ -2,7 +2,7 @@
+  * $Id: phram.c,v 1.16 2005/11/07 11:14:25 gleixner Exp $
+  *
+  * Copyright (c) ????		Jochen Sch=C3=A4uble <psionic@psionic.de>
+- * Copyright (c) 2003-2004	J=C3=B6rn Engel <joern@wh.fh-wedel.de>
++ * Copyright (c) 2003-2004	Joern Engel <joern@wh.fh-wedel.de>
+  *
+  * Usage:
+  *
+@@ -299,5 +299,5 @@ module_init(init_phram);
+ module_exit(cleanup_phram);
+=20
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("J=C3=B6rn Engel <joern@wh.fh-wedel.de>");
++MODULE_AUTHOR("Joern Engel <joern@wh.fh-wedel.de>");
+ MODULE_DESCRIPTION("MTD driver for physical RAM");
+diff -puN drivers/mtd/maps/mtx-1_flash.c~claim-maintainership-for-block=
+2mtd-and-update-email-addresses drivers/mtd/maps/mtx-1_flash.c
+--- a/drivers/mtd/maps/mtx-1_flash.c~claim-maintainership-for-block2mtd=
+-and-update-email-addresses
++++ a/drivers/mtd/maps/mtx-1_flash.c
+@@ -4,7 +4,7 @@
+  * $Id: mtx-1_flash.c,v 1.2 2005/11/07 11:14:27 gleixner Exp $
+  *
+  * (C) 2005 Bruno Randolf <bruno.randolf@4g-systems.biz>
+- * (C) 2005 J=C3=B6rn Engel <joern@wohnheim.fh-wedel.de>
++ * (C) 2005 Joern Engel <joern@wohnheim.fh-wedel.de>
+  *
+  */
+=20
+diff -puN scripts/checkstack.pl~claim-maintainership-for-block2mtd-and-=
+update-email-addresses scripts/checkstack.pl
+--- a/scripts/checkstack.pl~claim-maintainership-for-block2mtd-and-upda=
+te-email-addresses
++++ a/scripts/checkstack.pl
+@@ -2,7 +2,7 @@
+=20
+ #	Check the stack usage of functions
+ #
+-#	Copyright Joern Engel <joern@wh.fh-wedel.de>
++#	Copyright Joern Engel <joern@lazybastard.org>
+ #	Inspired by Linus Torvalds
+ #	Original idea maybe from Keith Owens
+ #	s390 port and big speedup by Arnd Bergmann <arnd@bergmann-dalldorf.d=
+e>
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from joern@lazybastard.org are
 
 origin.patch
-drm-convert-from-nopage-to-fault.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-mm-special-mapping-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rewrite-rd-fix-2.patch
-rd-support-xip.patch
-mm-remove-nopage.patch
-buffer_head-fix-private_list-handling.patch
-reiser4.patch
-reiser4-correct-references-to-filemap_nopage.patch
