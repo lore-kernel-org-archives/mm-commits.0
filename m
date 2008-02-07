@@ -1,197 +1,341 @@
 From: akpm@linux-foundation.org
-Subject: - isapnp-driver-semaphore-to-mutex.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:20 -0800
-Message-ID: <200802070030.m170U1Kw007344@imap1.linux-foundation.org>
+Subject: - bas_gigaset-suspend-support-v2.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:23 -0800
+Message-ID: <200802070026.m170Q4lc006849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50847 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934423AbYBGAsE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:48:04 -0500
+	by vger.kernel.org with ESMTP id S935123AbYBGAp5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, bjorn.helgaas@hp.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tilman@imap.cc, gregkh@suse.de, hjlipp@web.de, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isapnp driver semaphore to mutex
+     bas_gigaset: suspend support
 has been removed from the -mm tree.  Its filename was
-     isapnp-driver-semaphore-to-mutex.patch
+     bas_gigaset-suspend-support-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isapnp driver semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: bas_gigaset: suspend support
+From: Tilman Schmidt <tilman@imap.cc>
 
-Changed the isapnp semaphore to a mutex.
+Add basic suspend/resume support to the bas_gigaset ISDN driver for the
+Siemens Gigaset SX255 series of ISDN DECT bases.
 
-[akpm@linux-foundation.org: no externs-in-c]
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Only the USB aspects are handled so far; the ISDN subsystem is not notified in
+any way, for lack of information about how to do that.  The driver will refuse
+to suspend if a connection is active.
+
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Hansjoerg Lipp <hjlipp@web.de>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/interface.c |   13 +++++++------
- drivers/pnp/manager.c   |   19 ++++++++++---------
- include/linux/pnp.h     |    1 +
- 3 files changed, 18 insertions(+), 15 deletions(-)
+ drivers/isdn/gigaset/bas-gigaset.c |  166 ++++++++++++++++++++++++++-
+ 1 file changed, 164 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~isapnp-driver-semaphore-to-mutex
-+++ a/drivers/pnp/interface.c
-@@ -10,9 +10,12 @@
- #include <linux/errno.h>
- #include <linux/list.h>
- #include <linux/types.h>
-+#include <linux/pnp.h>
- #include <linux/stat.h>
- #include <linux/ctype.h>
- #include <linux/slab.h>
-+#include <linux/mutex.h>
-+
- #include <asm/uaccess.h>
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-v2 drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-v2
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -73,6 +73,14 @@ static int gigaset_probe(struct usb_inte
+ /* Function will be called if the device is unplugged */
+ static void gigaset_disconnect(struct usb_interface *interface);
  
- #include "base.h"
-@@ -315,8 +318,6 @@ static ssize_t pnp_show_current_resource
- 	return ret;
++/* functions called before/after suspend */
++static int gigaset_suspend(struct usb_interface *intf, pm_message_t message);
++static int gigaset_resume(struct usb_interface *intf);
++
++/* functions called before/after device reset */
++static int gigaset_pre_reset(struct usb_interface *intf);
++static int gigaset_post_reset(struct usb_interface *intf);
++
+ static int atread_submit(struct cardstate *, int);
+ static void stopurbs(struct bas_bc_state *);
+ static int req_submit(struct bc_state *, int, int, int);
+@@ -107,6 +115,7 @@ struct bas_cardstate {
+ 	spinlock_t		lock;		/* locks all following */
+ 	atomic_t		basstate;	/* bitmap (BS_*) */
+ 	int			pending;	/* uncompleted base request */
++	wait_queue_head_t	waitqueue;
+ 	int			rcvbuf_size;	/* size of AT receive buffer */
+ 						/* 0: no receive in progress */
+ 	int			retry_cmd_in;	/* receive req retry count */
+@@ -121,6 +130,7 @@ struct bas_cardstate {
+ #define BS_ATTIMER	0x020	/* waiting for HD_READY_SEND_ATDATA */
+ #define BS_ATRDPEND	0x040	/* urb_cmd_in in use */
+ #define BS_ATWRPEND	0x080	/* urb_cmd_out in use */
++#define BS_SUSPEND	0x100	/* USB port suspended */
+ 
+ 
+ static struct gigaset_driver *driver = NULL;
+@@ -132,6 +142,11 @@ static struct usb_driver gigaset_usb_dri
+ 	.probe =        gigaset_probe,
+ 	.disconnect =   gigaset_disconnect,
+ 	.id_table =     gigaset_table,
++	.suspend =	gigaset_suspend,
++	.resume =	gigaset_resume,
++	.reset_resume =	gigaset_post_reset,
++	.pre_reset =	gigaset_pre_reset,
++	.post_reset =	gigaset_post_reset,
+ };
+ 
+ /* get message text for usb_submit_urb return code
+@@ -465,6 +480,7 @@ static void read_ctrl_callback(struct ur
+ 	int rc;
+ 
+ 	update_basstate(ucs, 0, BS_ATRDPEND);
++	wake_up(&ucs->waitqueue);
+ 
+ 	if (!ucs->rcvbuf_size) {
+ 		dev_warn(cs->dev, "%s: no receive in progress\n", __func__);
+@@ -551,17 +567,28 @@ static void read_ctrl_callback(struct ur
+ static int atread_submit(struct cardstate *cs, int timeout)
+ {
+ 	struct bas_cardstate *ucs = cs->hw.bas;
++	int basstate;
+ 	int ret;
+ 
+ 	gig_dbg(DEBUG_USBREQ, "-------> HD_READ_ATMESSAGE (%d)",
+ 		ucs->rcvbuf_size);
+ 
+-	if (update_basstate(ucs, BS_ATRDPEND, 0) & BS_ATRDPEND) {
++	basstate = update_basstate(ucs, BS_ATRDPEND, 0);
++	if (basstate & BS_ATRDPEND) {
+ 		dev_err(cs->dev,
+ 			"could not submit HD_READ_ATMESSAGE: URB busy\n");
+ 		return -EBUSY;
+ 	}
+ 
++	if (basstate & BS_SUSPEND) {
++		dev_notice(cs->dev,
++			   "HD_READ_ATMESSAGE not submitted, "
++			   "suspend in progress\n");
++		update_basstate(ucs, 0, BS_ATRDPEND);
++		/* treat like disconnect */
++		return -ENODEV;
++	}
++
+ 	ucs->dr_cmd_in.bRequestType = IN_VENDOR_REQ;
+ 	ucs->dr_cmd_in.bRequest = HD_READ_ATMESSAGE;
+ 	ucs->dr_cmd_in.wValue = 0;
+@@ -747,6 +774,7 @@ static void read_int_callback(struct urb
+ 	}
+ 
+ 	check_pending(ucs);
++	wake_up(&ucs->waitqueue);
+ 
+ resubmit:
+ 	rc = usb_submit_urb(urb, GFP_ATOMIC);
+@@ -1416,6 +1444,8 @@ static void req_timeout(unsigned long da
+ 		dev_warn(bcs->cs->dev, "request 0x%02x timed out, clearing\n",
+ 			 pending);
+ 	}
++
++	wake_up(&ucs->waitqueue);
  }
  
--extern struct semaphore pnp_res_mutex;
--
- static ssize_t
- pnp_set_current_resources(struct device *dmdev, struct device_attribute *attr,
- 			  const char *ubuf, size_t count)
-@@ -361,10 +362,10 @@ pnp_set_current_resources(struct device 
- 		goto done;
+ /* write_ctrl_callback
+@@ -1456,7 +1486,9 @@ static void write_ctrl_callback(struct u
+ 		break;
+ 
+ 	default:				/* any failure */
+-		if (++ucs->retry_ctrl > BAS_RETRY) {
++		/* don't retry if suspend requested */
++		if (++ucs->retry_ctrl > BAS_RETRY ||
++		    (atomic_read(&ucs->basstate) & BS_SUSPEND)) {
+ 			dev_err(&ucs->interface->dev,
+ 				"control request 0x%02x failed: %s\n",
+ 				ucs->dr_ctrl.bRequest,
+@@ -1485,6 +1517,7 @@ static void write_ctrl_callback(struct u
+ 	del_timer(&ucs->timer_ctrl);
+ 	ucs->pending = 0;
+ 	spin_unlock_irqrestore(&ucs->lock, flags);
++	wake_up(&ucs->waitqueue);
+ }
+ 
+ /* req_submit
+@@ -1570,6 +1603,14 @@ static int gigaset_init_bchannel(struct 
+ 		return -ENODEV;
  	}
- 	if (!strnicmp(buf, "get", 3)) {
--		down(&pnp_res_mutex);
-+		mutex_lock(&pnp_res_mutex);
- 		if (pnp_can_read(dev))
- 			dev->protocol->get(dev, &dev->res);
--		up(&pnp_res_mutex);
-+		mutex_unlock(&pnp_res_mutex);
- 		goto done;
- 	}
- 	if (!strnicmp(buf, "set", 3)) {
-@@ -373,7 +374,7 @@ pnp_set_current_resources(struct device 
- 			goto done;
- 		buf += 3;
- 		pnp_init_resource_table(&dev->res);
--		down(&pnp_res_mutex);
-+		mutex_lock(&pnp_res_mutex);
- 		while (1) {
- 			while (isspace(*buf))
- 				++buf;
-@@ -455,7 +456,7 @@ pnp_set_current_resources(struct device 
- 			}
+ 
++	if (atomic_read(&cs->hw.bas->basstate) & BS_SUSPEND) {
++		dev_notice(cs->dev,
++			   "not starting isochronous I/O, "
++			   "suspend in progress\n");
++		spin_unlock_irqrestore(&cs->lock, flags);
++		return -EHOSTUNREACH;
++	}
++
+ 	if ((ret = starturbs(bcs)) < 0) {
+ 		dev_err(cs->dev,
+ 			"could not start isochronous I/O for channel B%d: %s\n",
+@@ -1682,6 +1723,7 @@ static void write_command_callback(struc
+ 	unsigned long flags;
+ 
+ 	update_basstate(ucs, 0, BS_ATWRPEND);
++	wake_up(&ucs->waitqueue);
+ 
+ 	/* check status */
+ 	switch (status) {
+@@ -1705,6 +1747,13 @@ static void write_command_callback(struc
+ 				 ucs->retry_cmd_out);
  			break;
  		}
--		up(&pnp_res_mutex);
-+		mutex_unlock(&pnp_res_mutex);
- 		goto done;
- 	}
++		if (atomic_read(&ucs->basstate) & BS_SUSPEND) {
++			dev_warn(cs->dev,
++				 "command write: %s, "
++				 "won't retry - suspend requested\n",
++				 get_usb_statmsg(status));
++			break;
++		}
+ 		if (cs->cmdbuf == NULL) {
+ 			dev_warn(cs->dev,
+ 				 "command write: %s, "
+@@ -1813,6 +1862,12 @@ static int start_cbsend(struct cardstate
+ 	int rc;
+ 	int retval = 0;
  
-diff -puN drivers/pnp/manager.c~isapnp-driver-semaphore-to-mutex drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~isapnp-driver-semaphore-to-mutex
-+++ a/drivers/pnp/manager.c
-@@ -12,9 +12,10 @@
- #include <linux/pnp.h>
- #include <linux/slab.h>
- #include <linux/bitmap.h>
-+#include <linux/mutex.h>
- #include "base.h"
++	/* check if suspend requested */
++	if (atomic_read(&ucs->basstate) & BS_SUSPEND) {
++		gig_dbg(DEBUG_TRANSCMD|DEBUG_LOCKCMD, "suspending");
++		return -EHOSTUNREACH;
++	}
++
+ 	/* check if AT channel is open */
+ 	if (!(atomic_read(&ucs->basstate) & BS_ATOPEN)) {
+ 		gig_dbg(DEBUG_TRANSCMD|DEBUG_LOCKCMD, "AT channel not open");
+@@ -2099,6 +2154,7 @@ static int gigaset_initcshw(struct cards
+ 	init_timer(&ucs->timer_ctrl);
+ 	init_timer(&ucs->timer_atrdy);
+ 	init_timer(&ucs->timer_cmd_in);
++	init_waitqueue_head(&ucs->waitqueue);
  
--DECLARE_MUTEX(pnp_res_mutex);
-+DEFINE_MUTEX(pnp_res_mutex);
- 
- static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- {
-@@ -297,7 +298,7 @@ static int pnp_assign_resources(struct p
- 	if (!pnp_can_configure(dev))
- 		return -ENODEV;
- 
--	down(&pnp_res_mutex);
-+	mutex_lock(&pnp_res_mutex);
- 	pnp_clean_resource_table(&dev->res);	/* start with a fresh slate */
- 	if (dev->independent) {
- 		port = dev->independent->port;
-@@ -366,12 +367,12 @@ static int pnp_assign_resources(struct p
- 	} else if (dev->dependent)
- 		goto fail;
- 
--	up(&pnp_res_mutex);
-+	mutex_unlock(&pnp_res_mutex);
  	return 1;
- 
- fail:
- 	pnp_clean_resource_table(&dev->res);
--	up(&pnp_res_mutex);
-+	mutex_unlock(&pnp_res_mutex);
- 	return 0;
+ }
+@@ -2311,6 +2367,112 @@ static void gigaset_disconnect(struct us
+ 	gigaset_unassign(cs);
  }
  
-@@ -396,7 +397,7 @@ int pnp_manual_config_dev(struct pnp_dev
- 		return -ENOMEM;
- 	*bak = dev->res;
- 
--	down(&pnp_res_mutex);
-+	mutex_lock(&pnp_res_mutex);
- 	dev->res = *res;
- 	if (!(mode & PNP_CONFIG_FORCE)) {
- 		for (i = 0; i < PNP_MAX_PORT; i++) {
-@@ -416,14 +417,14 @@ int pnp_manual_config_dev(struct pnp_dev
- 				goto fail;
- 		}
- 	}
--	up(&pnp_res_mutex);
-+	mutex_unlock(&pnp_res_mutex);
- 
- 	kfree(bak);
- 	return 0;
- 
- fail:
- 	dev->res = *bak;
--	up(&pnp_res_mutex);
-+	mutex_unlock(&pnp_res_mutex);
- 	kfree(bak);
- 	return -EINVAL;
- }
-@@ -547,9 +548,9 @@ int pnp_disable_dev(struct pnp_dev *dev)
- 	dev->active = 0;
- 
- 	/* release the resources so that other devices can use them */
--	down(&pnp_res_mutex);
-+	mutex_lock(&pnp_res_mutex);
- 	pnp_clean_resource_table(&dev->res);
--	up(&pnp_res_mutex);
-+	mutex_unlock(&pnp_res_mutex);
- 
- 	return 0;
- }
-diff -puN include/linux/pnp.h~isapnp-driver-semaphore-to-mutex include/linux/pnp.h
---- a/include/linux/pnp.h~isapnp-driver-semaphore-to-mutex
-+++ a/include/linux/pnp.h
-@@ -258,6 +258,7 @@ extern struct pnp_protocol isapnp_protoc
- #else
- #define pnp_device_is_isapnp(dev) 0
- #endif
-+extern struct mutex pnp_res_mutex;
- 
- #ifdef CONFIG_PNPBIOS
- extern struct pnp_protocol pnpbios_protocol;
++/* gigaset_suspend
++ * This function is called before the USB connection is suspended.
++ */
++static int gigaset_suspend(struct usb_interface *intf, pm_message_t message)
++{
++	struct cardstate *cs = usb_get_intfdata(intf);
++	struct bas_cardstate *ucs = cs->hw.bas;
++	int basstate;
++	int rc;
++
++	/* set suspend flag; this stops AT command/response traffic */
++	if (update_basstate(ucs, BS_SUSPEND, 0) & BS_SUSPEND) {
++		gig_dbg(DEBUG_SUSPEND, "already suspended");
++		return 0;
++	}
++
++	/* wait a bit for blocking conditions to go away */
++	rc = wait_event_timeout(ucs->waitqueue,
++			!(atomic_read(&ucs->basstate) &
++			  (BS_B1OPEN|BS_B2OPEN|BS_ATRDPEND|BS_ATWRPEND)),
++			BAS_TIMEOUT*HZ/10);
++	gig_dbg(DEBUG_SUSPEND, "wait_event_timeout() -> %d", rc);
++
++	/* check for conditions preventing suspend */
++	basstate = atomic_read(&ucs->basstate);
++	if (basstate & (BS_B1OPEN|BS_B2OPEN|BS_ATRDPEND|BS_ATWRPEND)) {
++		dev_warn(cs->dev, "cannot suspend:\n");
++		if (basstate & BS_B1OPEN)
++			dev_warn(cs->dev, " B channel 1 open\n");
++		if (basstate & BS_B2OPEN)
++			dev_warn(cs->dev, " B channel 2 open\n");
++		if (basstate & BS_ATRDPEND)
++			dev_warn(cs->dev, " receiving AT reply\n");
++		if (basstate & BS_ATWRPEND)
++			dev_warn(cs->dev, " sending AT command\n");
++		update_basstate(ucs, 0, BS_SUSPEND);
++		return -EBUSY;
++	}
++
++	/* close AT channel if open */
++	if (basstate & BS_ATOPEN) {
++		gig_dbg(DEBUG_SUSPEND, "closing AT channel");
++		rc = req_submit(cs->bcs, HD_CLOSE_ATCHANNEL, 0, 0);
++		if (rc) {
++			update_basstate(ucs, 0, BS_SUSPEND);
++			return rc;
++		}
++		wait_event_timeout(ucs->waitqueue, !ucs->pending,
++				   BAS_TIMEOUT*HZ/10);
++		/* in case of timeout, proceed anyway */
++	}
++
++	/* kill all URBs and timers that might still be pending */
++	usb_kill_urb(ucs->urb_ctrl);
++	usb_kill_urb(ucs->urb_int_in);
++	del_timer_sync(&ucs->timer_ctrl);
++
++	gig_dbg(DEBUG_SUSPEND, "suspend complete");
++	return 0;
++}
++
++/* gigaset_resume
++ * This function is called after the USB connection has been resumed.
++ */
++static int gigaset_resume(struct usb_interface *intf)
++{
++	struct cardstate *cs = usb_get_intfdata(intf);
++	struct bas_cardstate *ucs = cs->hw.bas;
++	int rc;
++
++	/* resubmit interrupt URB for spontaneous messages from base */
++	rc = usb_submit_urb(ucs->urb_int_in, GFP_KERNEL);
++	if (rc) {
++		dev_err(cs->dev, "could not resubmit interrupt URB: %s\n",
++			get_usb_rcmsg(rc));
++		return rc;
++	}
++
++	/* clear suspend flag to reallow activity */
++	update_basstate(ucs, 0, BS_SUSPEND);
++
++	gig_dbg(DEBUG_SUSPEND, "resume complete");
++	return 0;
++}
++
++/* gigaset_pre_reset
++ * This function is called before the USB connection is reset.
++ */
++static int gigaset_pre_reset(struct usb_interface *intf)
++{
++	/* handle just like suspend */
++	return gigaset_suspend(intf, PMSG_ON);
++}
++
++/* gigaset_post_reset
++ * This function is called after the USB connection has been reset.
++ */
++static int gigaset_post_reset(struct usb_interface *intf)
++{
++	/* FIXME: send HD_DEVICE_INIT_ACK? */
++
++	/* resume operations */
++	return gigaset_resume(intf);
++}
++
++
+ static const struct gigaset_ops gigops = {
+ 	gigaset_write_cmd,
+ 	gigaset_write_room,
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
-driver-base-memory-semaphore-to-mutex.patch
-usb-microtek-remove-unused-semaphore.patch
-usb-libusual-locking-cleanup.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
