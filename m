@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-isofs-from-using-read_inode-fix-2-update-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:35:33 -0800
-Message-ID: <200802070335.m173ZEVo014111@imap1.linux-foundation.org>
+Subject: - iget-stop-isofs-from-using-read_inode-fix-3.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:35:35 -0800
+Message-ID: <200802070335.m173ZGeN014116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbYBGDfs (ORCPT
+	by vger.kernel.org with ESMTP id S1752353AbYBGDfs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:35:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,118 +14,59 @@ To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Stop the ISOFS filesystem from using read_inode(). Make isofs_read_inode()
+     IGET: Fix isofs_get_block() to only return 0 on success.
 has been removed from the -mm tree.  Its filename was
-     iget-stop-isofs-from-using-read_inode-fix-2-update-fix.patch
+     iget-stop-isofs-from-using-read_inode-fix-3.patch
 
 This patch was dropped because it was folded into iget-stop-isofs-from-using-read_inode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Stop the ISOFS filesystem from using read_inode(). Make isofs_read_inode()
+Subject: IGET: Fix isofs_get_block() to only return 0 on success.
 From: David Howells <dhowells@redhat.com>
 
-Stop the ISOFS filesystem from using read_inode().  Make isofs_read_inode()
-return an error code, and make isofs_iget() pass it on.  Furthermore
-isofs_iget() no longer ever returns NULL for situations where it used to,
-so all the places that call it must use IS_ERR() to check its return value.
+Fix isofs_get_block() to return only 0 on success.  It shouldn't return a
++ve block count for example.
+
+Also make sure that isofs_get_blocks() doesn't accidentally return an error
+if rv is 0 come the return statement.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/export.c |   14 +++++++-------
- fs/isofs/inode.c  |    7 +++++--
- fs/isofs/namei.c  |    4 ++--
- fs/isofs/rock.c   |    4 +++-
- 4 files changed, 17 insertions(+), 12 deletions(-)
+ fs/isofs/inode.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/isofs/export.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix fs/isofs/export.c
---- a/fs/isofs/export.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix
-+++ a/fs/isofs/export.c
-@@ -26,11 +26,9 @@ isofs_export_iget(struct super_block *sb
- 	if (block == 0)
- 		return ERR_PTR(-ESTALE);
- 	inode = isofs_iget(sb, block, offset);
--	if (inode == NULL)
--		return ERR_PTR(-ENOMEM);
--	if (is_bad_inode(inode)
--	    || (generation && inode->i_generation != generation))
--	{
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+	if (generation && inode->i_generation != generation) {
- 		iput(inode);
- 		return ERR_PTR(-ESTALE);
- 	}
-@@ -110,8 +108,10 @@ static struct dentry *isofs_export_get_p
- 	parent_inode = isofs_iget(child_inode->i_sb,
- 				  parent_block,
- 				  parent_offset);
--	if (parent_inode == NULL) {
--		rv = ERR_PTR(-EACCES);
-+	if (IS_ERR(parent_inode)) {
-+		rv = ERR_CAST(parent_inode);
-+		if (rv != ERR_PTR(-ENOMEM))
-+			rv = ERR_PTR(-EACCES);
- 		goto out;
- 	}
- 
-diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix fs/isofs/inode.c
---- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix
+diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-3 fs/isofs/inode.c
+--- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-3
 +++ a/fs/isofs/inode.c
-@@ -1408,7 +1408,7 @@ struct inode *isofs_iget(struct super_bl
- 	long ret;
- 
- 	if (offset >= 1ul << sb->s_blocksize_bits)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	data.block = block;
- 	data.offset = offset;
-@@ -1418,7 +1418,10 @@ struct inode *isofs_iget(struct super_bl
- 	inode = iget5_locked(sb, hashval, &isofs_iget5_test,
- 				&isofs_iget5_set, &data);
- 
--	if (inode && (inode->i_state & I_NEW)) {
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (inode->i_state & I_NEW) {
- 		ret = isofs_read_inode(inode);
- 		if (ret < 0) {
- 			iget_failed(inode);
-diff -puN fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix fs/isofs/namei.c
---- a/fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix
-+++ a/fs/isofs/namei.c
-@@ -179,9 +179,9 @@ struct dentry *isofs_lookup(struct inode
- 	inode = NULL;
- 	if (found) {
- 		inode = isofs_iget(dir->i_sb, block, offset);
--		if (!inode) {
-+		if (IS_ERR(inode)) {
- 			unlock_kernel();
--			return ERR_PTR(-EACCES);
-+			return ERR_CAST(inode);
- 		}
+@@ -1022,6 +1022,7 @@ int isofs_get_blocks(struct inode *inode
+ 		rv++;
  	}
+ 
++	error = 0;
+ abort:
  	unlock_kernel();
-diff -puN fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix fs/isofs/rock.c
---- a/fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode-fix-2-update-fix
-+++ a/fs/isofs/rock.c
-@@ -474,8 +474,10 @@ repeat:
- 			    isofs_iget(inode->i_sb,
- 				       ISOFS_I(inode)->i_first_extent,
- 				       0);
--			if (!reloc)
-+			if (IS_ERR(reloc)) {
-+				ret = PTR_ERR(reloc);
- 				goto out;
-+			}
- 			inode->i_mode = reloc->i_mode;
- 			inode->i_nlink = reloc->i_nlink;
- 			inode->i_uid = reloc->i_uid;
+ 	return rv != 0 ? rv : error;
+@@ -1033,12 +1034,15 @@ abort:
+ static int isofs_get_block(struct inode *inode, sector_t iblock,
+ 		    struct buffer_head *bh_result, int create)
+ {
++	int ret;
++
+ 	if (create) {
+ 		printk(KERN_DEBUG "%s: Kernel tries to allocate a block\n", __func__);
+ 		return -EROFS;
+ 	}
+ 
+-	return isofs_get_blocks(inode, iblock, &bh_result, 1);
++	ret = isofs_get_blocks(inode, iblock, &bh_result, 1);
++	return ret < 0 ? ret : 0;
+ }
+ 
+ static int isofs_bmap(struct inode *inode, sector_t block)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -150,7 +91,6 @@ iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-fuse-from-using-iget-and-read_inode-try.patch
 iget-stop-hfsplus-from-using-iget-and-read_inode.patch
 iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update-fix.patch
 iget-stop-isofs-from-using-read_inode-fix-3.patch
 iget-stop-jffs2-from-using-iget-and-read_inode.patch
 iget-stop-jfs-from-using-iget-and-read_inode-try.patch
