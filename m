@@ -1,170 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: - docs-kernel-locking-convert-semaphore-references.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:30 -0800
-Message-ID: <200802070024.m170OBqO006586@imap1.linux-foundation.org>
+Subject: - rtc-add-support-for-epson-rtc-9701je-v2.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:39 -0800
+Message-ID: <200802070027.m170RKer007015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47925 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39037 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934416AbYBGArp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:45 -0500
+	by vger.kernel.org with ESMTP id S935128AbYBGAp7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, a.zummo@towertech.it, damm@igel.co.jp, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docs: kernel-locking: Convert semaphore references
+     rtc: add support for Epson RTC-9701JE V2
 has been removed from the -mm tree.  Its filename was
-     docs-kernel-locking-convert-semaphore-references.patch
+     rtc-add-support-for-epson-rtc-9701je-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docs: kernel-locking: Convert semaphore references
-From: Daniel Walker <dwalker@mvista.com>
+Subject: rtc: add support for Epson RTC-9701JE V2
+From: Magnus Damm <magnus.damm@gmail.com>
 
-I converted some of the document to reflect mutex usage instead of
-semaphore usage.  Since we shouldin't be promoting semaphore usage when
-it's on it's way out..
+Add support for the Epson RTC-9701JE SPI RTC device.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl |   32 ++++++++++----------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/rtc/Kconfig     |    9 +
+ drivers/rtc/Makefile    |    1 
+ drivers/rtc/rtc-r9701.c |  195 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 205 insertions(+)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~docs-kernel-locking-convert-semaphore-references Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~docs-kernel-locking-convert-semaphore-references
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -717,7 +717,7 @@ used, and when it gets full, throws out 
-     <para>
- For our first example, we assume that all operations are in user
- context (ie. from system calls), so we can sleep.  This means we can
--use a semaphore to protect the cache and all the objects within
-+use a mutex to protect the cache and all the objects within
- it.  Here's the code:
-     </para>
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-epson-rtc-9701je-v2 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-epson-rtc-9701je-v2
++++ a/drivers/rtc/Kconfig
+@@ -265,6 +265,15 @@ config RTC_DRV_MAX6902
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-max6902.
  
-@@ -725,7 +725,7 @@ it.  Here's the code:
- #include &lt;linux/list.h&gt;
- #include &lt;linux/slab.h&gt;
- #include &lt;linux/string.h&gt;
--#include &lt;asm/semaphore.h&gt;
-+#include &lt;linux/mutex.h&gt;
- #include &lt;asm/errno.h&gt;
- 
- struct object
-@@ -737,7 +737,7 @@ struct object
- };
- 
- /* Protects the cache, cache_num, and the objects within it */
--static DECLARE_MUTEX(cache_lock);
-+static DEFINE_MUTEX(cache_lock);
- static LIST_HEAD(cache);
- static unsigned int cache_num = 0;
- #define MAX_CACHE_SIZE 10
-@@ -789,17 +789,17 @@ int cache_add(int id, const char *name)
-         obj-&gt;id = id;
-         obj-&gt;popularity = 0;
- 
--        down(&amp;cache_lock);
-+        mutex_lock(&amp;cache_lock);
-         __cache_add(obj);
--        up(&amp;cache_lock);
-+        mutex_unlock(&amp;cache_lock);
-         return 0;
- }
- 
- void cache_delete(int id)
- {
--        down(&amp;cache_lock);
-+        mutex_lock(&amp;cache_lock);
-         __cache_delete(__cache_find(id));
--        up(&amp;cache_lock);
-+        mutex_unlock(&amp;cache_lock);
- }
- 
- int cache_find(int id, char *name)
-@@ -807,13 +807,13 @@ int cache_find(int id, char *name)
-         struct object *obj;
-         int ret = -ENOENT;
- 
--        down(&amp;cache_lock);
-+        mutex_lock(&amp;cache_lock);
-         obj = __cache_find(id);
-         if (obj) {
-                 ret = 0;
-                 strcpy(name, obj-&gt;name);
-         }
--        up(&amp;cache_lock);
-+        mutex_unlock(&amp;cache_lock);
-         return ret;
- }
- </programlisting>
-@@ -853,7 +853,7 @@ The change is shown below, in standard p
-          int popularity;
-  };
- 
---static DECLARE_MUTEX(cache_lock);
-+-static DEFINE_MUTEX(cache_lock);
- +static spinlock_t cache_lock = SPIN_LOCK_UNLOCKED;
-  static LIST_HEAD(cache);
-  static unsigned int cache_num = 0;
-@@ -870,22 +870,22 @@ The change is shown below, in standard p
-          obj-&gt;id = id;
-          obj-&gt;popularity = 0;
- 
---        down(&amp;cache_lock);
-+-        mutex_lock(&amp;cache_lock);
- +        spin_lock_irqsave(&amp;cache_lock, flags);
-          __cache_add(obj);
---        up(&amp;cache_lock);
-+-        mutex_unlock(&amp;cache_lock);
- +        spin_unlock_irqrestore(&amp;cache_lock, flags);
-          return 0;
-  }
- 
-  void cache_delete(int id)
-  {
---        down(&amp;cache_lock);
-+-        mutex_lock(&amp;cache_lock);
- +        unsigned long flags;
- +
- +        spin_lock_irqsave(&amp;cache_lock, flags);
-          __cache_delete(__cache_find(id));
---        up(&amp;cache_lock);
-+-        mutex_unlock(&amp;cache_lock);
- +        spin_unlock_irqrestore(&amp;cache_lock, flags);
-  }
- 
-@@ -895,14 +895,14 @@ The change is shown below, in standard p
-          int ret = -ENOENT;
- +        unsigned long flags;
- 
---        down(&amp;cache_lock);
-+-        mutex_lock(&amp;cache_lock);
- +        spin_lock_irqsave(&amp;cache_lock, flags);
-          obj = __cache_find(id);
-          if (obj) {
-                  ret = 0;
-                  strcpy(name, obj-&gt;name);
-          }
---        up(&amp;cache_lock);
-+-        mutex_unlock(&amp;cache_lock);
- +        spin_unlock_irqrestore(&amp;cache_lock, flags);
-          return ret;
-  }
++config RTC_DRV_R9701
++	tristate "Epson RTC-9701JE"
++	help
++	  If you say yes here you will get support for the
++	  Epson RTC-9701JE SPI RTC chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-r9701.
++
+ config RTC_DRV_RS5C348
+ 	tristate "Ricoh RS5C348A/B"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-epson-rtc-9701je-v2 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-epson-rtc-9701je-v2
++++ a/drivers/rtc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
+ obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
+ obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
+ obj-$(CONFIG_RTC_DRV_PL031)	+= rtc-pl031.o
++obj-$(CONFIG_RTC_DRV_R9701)	+= rtc-r9701.o
+ obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5c313.o
+ obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
+ obj-$(CONFIG_RTC_DRV_RS5C372)	+= rtc-rs5c372.o
+diff -puN /dev/null drivers/rtc/rtc-r9701.c
+--- /dev/null
++++ a/drivers/rtc/rtc-r9701.c
+@@ -0,0 +1,195 @@
++/* drivers/rtc/rtc-r9701.c
++ *
++ * Driver for Epson RTC-9701JE
++ *
++ * Copyright (C) 2008 Magnus Damm
++ *
++ * Based on drivers/rtc/rtc-max6902.c
++ *
++ * Copyright (C) 2006 8D Technologies inc.
++ * Copyright (C) 2004 Compulab Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/version.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/device.h>
++#include <linux/init.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
++#include <linux/bcd.h>
++#include <linux/delay.h>
++#include <linux/bitops.h>
++
++#define RSECCNT	0x00	/* Second Counter */
++#define RMINCNT	0x01	/* Minute Counter */
++#define RHRCNT	0x02	/* Hour Counter */
++#define RWKCNT	0x03	/* Week Counter */
++#define RDAYCNT	0x04	/* Day Counter */
++#define RMONCNT	0x05	/* Month Counter */
++#define RYRCNT	0x06	/* Year Counter */
++#define R100CNT	0x07	/* Y100 Counter */
++#define RMINAR	0x08	/* Minute Alarm */
++#define RHRAR	0x09	/* Hour Alarm */
++#define RWKAR	0x0a	/* Week/Day Alarm */
++#define RTIMCNT	0x0c	/* Interval Timer */
++#define REXT	0x0d	/* Extension Register */
++#define RFLAG	0x0e	/* RTC Flag Register */
++#define RCR	0x0f	/* RTC Control Register */
++
++static int write_reg(struct device *dev, int address, unsigned char data)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned char buf[2];
++
++	buf[0] = address & 0x7f;
++	buf[1] = data;
++
++	return spi_write(spi, buf, ARRAY_SIZE(buf));
++}
++
++static int read_regs(struct device *dev, unsigned char *regs, int no_regs)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	u8 txbuf[1], rxbuf[1];
++	int k, ret;
++
++	ret = 0;
++
++	for (k = 0; ret == 0 && k < no_regs; k++) {
++		txbuf[0] = 0x80 | regs[k];
++		ret = spi_write_then_read(spi, txbuf, 1, rxbuf, 1);
++		regs[k] = rxbuf[0];
++	}
++
++	return ret;
++}
++
++static int r9701_get_datetime(struct device *dev, struct rtc_time *dt)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned long time;
++	int ret;
++	unsigned char buf[] = { RSECCNT, RMINCNT, RHRCNT,
++				RDAYCNT, RMONCNT, RYRCNT };
++
++	ret = read_regs(&spi->dev, buf, ARRAY_SIZE(buf));
++	if (ret)
++		return ret;
++
++	memset(dt, 0, sizeof(*dt));
++
++	dt->tm_sec = BCD2BIN(buf[0]); /* RSECCNT */
++	dt->tm_min = BCD2BIN(buf[1]); /* RMINCNT */
++	dt->tm_hour = BCD2BIN(buf[2]); /* RHRCNT */
++
++	dt->tm_mday = BCD2BIN(buf[3]); /* RDAYCNT */
++	dt->tm_mon = BCD2BIN(buf[4]) - 1; /* RMONCNT */
++	dt->tm_year = BCD2BIN(buf[5]) + 100; /* RYRCNT */
++
++	/* the rtc device may contain illegal values on power up
++	 * according to the data sheet. make sure they are valid.
++	 */
++
++	ret = rtc_valid_tm(dt);
++	if (ret)
++		return ret;
++
++	/* don't bother with yday, wday and isdst.
++	 * let the rtc core calculate them for us.
++	 */
++
++	rtc_tm_to_time(dt, &time);
++	rtc_time_to_tm(time, dt);
++	return 0;
++}
++
++static int r9701_set_datetime(struct device *dev, struct rtc_time *dt)
++{
++	int ret, year;
++
++	year = dt->tm_year + 1900;
++	if (year >= 2100 || year < 2000)
++		return -EINVAL;
++
++	ret = write_reg(dev, RHRCNT, BIN2BCD(dt->tm_hour));
++	ret |= write_reg(dev, RMINCNT, BIN2BCD(dt->tm_min));
++	ret |= write_reg(dev, RSECCNT, BIN2BCD(dt->tm_sec));
++	ret |= write_reg(dev, RDAYCNT, BIN2BCD(dt->tm_mday));
++	ret |= write_reg(dev, RMONCNT, BIN2BCD(dt->tm_mon + 1));
++	ret |= write_reg(dev, RYRCNT, BIN2BCD(dt->tm_year - 100));
++	ret |= write_reg(dev, RWKCNT, 1 << dt->tm_wday);
++
++	return ret;
++}
++
++static const struct rtc_class_ops r9701_rtc_ops = {
++	.read_time	= r9701_get_datetime,
++	.set_time	= r9701_set_datetime,
++};
++
++static int __devinit r9701_probe(struct spi_device *spi)
++{
++	struct rtc_device *rtc;
++	unsigned char tmp;
++	int res;
++
++	rtc = rtc_device_register("r9701",
++				&spi->dev, &r9701_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	dev_set_drvdata(&spi->dev, rtc);
++
++	spi->mode = SPI_MODE_3;
++	spi->bits_per_word = 8;
++	spi_setup(spi);
++
++	tmp = R100CNT;
++	res = read_regs(&spi->dev, &tmp, 1);
++	if (res || tmp != 0x20) {
++		rtc_device_unregister(rtc);
++		return res;
++	}
++
++	return 0;
++}
++
++static int __devexit r9701_remove(struct spi_device *spi)
++{
++	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
++
++	rtc_device_unregister(rtc);
++	return 0;
++}
++
++static struct spi_driver r9701_driver = {
++	.driver = {
++		.name	= "rtc-r9701",
++		.bus	= &spi_bus_type,
++		.owner	= THIS_MODULE,
++	},
++	.probe	= r9701_probe,
++	.remove = __devexit_p(r9701_remove),
++};
++
++static __init int r9701_init(void)
++{
++	return spi_register_driver(&r9701_driver);
++}
++module_init(r9701_init);
++
++static __exit void r9701_exit(void)
++{
++	spi_unregister_driver(&r9701_driver);
++}
++module_exit(r9701_exit);
++
++MODULE_DESCRIPTION("r9701 spi RTC driver");
++MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
 origin.patch
-driver-base-memory-semaphore-to-mutex.patch
-usb-microtek-remove-unused-semaphore.patch
-usb-libusual-locking-cleanup.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-sh.patch
