@@ -1,91 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - vmcoreinfo-fix-the-configuration-dependencies-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:32:20 -0800
-Message-ID: <200802070332.m173W1ec014007@imap1.linux-foundation.org>
+Subject: - iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:33:34 -0800
+Message-ID: <200802070333.m173XF2C014032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60934 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755213AbYBGDcT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:32:19 -0500
+	by vger.kernel.org with ESMTP id S1759271AbYBGDdZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:33:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, horms@verge.net.au, rientjes@google.com, mm-commits@vger.kernel.org
+To: kamalesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmcoreinfo-fix-the-configuration-dependencies fix
+     Build Fail - fs/bfs/inode.c
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-fix-the-configuration-dependencies-fix.patch
+     iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
 
-This patch was dropped because it was folded into vmcoreinfo-fix-the-configuration-dependencies.patch
+This patch was dropped because it was folded into iget-stop-bfs-from-using-iget-and-read_inode-try.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmcoreinfo-fix-the-configuration-dependencies fix
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: Build Fail - fs/bfs/inode.c
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-Hi Andrew,
+fs/bfs/inode.c: In function `bfs_iget':
+fs/bfs/inode.c:37: error: `ino' redeclared as different kind of symbol
+fs/bfs/inode.c:35: error: previous definition of `ino' was here
+fs/bfs/inode.c:37: error: `inode' undeclared (first use in this function)
+fs/bfs/inode.c:37: error: (Each undeclared identifier is reported onlyonce
+fs/bfs/inode.c:37: error: for each function it appears in.)
 
-Andrew Morton wrote:
->> diff -rpuN a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
->> --- a/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:19.000000000 +0900
->> +++ b/arch/x86/kernel/machine_kexec_64.c	2007-11-14 15:39:33.000000000 +0900
->> @@ -235,7 +235,7 @@ void arch_crash_save_vmcoreinfo(void)
->>  {
->>  	VMCOREINFO_SYMBOL(init_level4_pgt);
->>
->> -#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
->> +#ifdef CONFIG_NUMA
->>  	VMCOREINFO_SYMBOL(node_data);
->>  	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
->>  #endif
->> _
->>
->
-> x86_64-make-sparsemem-vmemmap-the-default-memory-model-v2.patch removes the
-> `VMCOREINFO_SYMBOL(node_data);' from arch/x86/kernel/machine_kexec_64.c
-> altogether, so I dropped that part of your patch.
-
-The above part is necessary for a NUMA kernel.
-Could you please merge the attached patch ?
-
-I guess that Christoph Lameter deleted the above part (which is added
-by the attached patch again) with the other part of discontigmem lines,
-because it depended on CONFIG_ARCH_DISCONTIGMEM_ENABLE.
-But the dependency was wrong, and it should depend on CONFIG_NUMA.
-The part is necessary for a NUMA kernel even if sparsemem.
-
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/bfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~vmcoreinfo-fix-the-configuration-dependencies-fix
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -234,5 +234,10 @@ NORET_TYPE void machine_kexec(struct kim
- void arch_crash_save_vmcoreinfo(void)
- {
- 	VMCOREINFO_SYMBOL(init_level4_pgt);
-+
-+#ifdef CONFIG_NUMA
-+	VMCOREINFO_SYMBOL(node_data);
-+	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
-+#endif
- }
+diff -puN fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try-fix fs/bfs/inode.c
+--- a/fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try-fix
++++ a/fs/bfs/inode.c
+@@ -34,7 +34,6 @@ void dump_imap(const char *prefix, struc
  
+ struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
+ {
+-	unsigned long ino = inode->i_ino;
+ 	struct bfs_inode *di;
+ 	struct inode *inode;
+ 	struct buffer_head *bh;
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch
-vmcoreinfo-use-the-existing-offsetof-for-vmcoreinfo_offset.patch
-vmcoreinfo-add-vmcoreinfo_-to-all-the-call-for-vmcoreinfo_append_str.patch
-vmcoreinfo-fix-the-configuration-dependencies.patch
-vmcoreinfo-fix-the-configuration-dependencies-fix.patch
+origin.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
