@@ -1,146 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - md-raid6-fix-mktablec.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:41 -0800
-Message-ID: <200802070029.m170TMKv007266@imap1.linux-foundation.org>
+Subject: - ext-remove-unused-argument-for-ext_find_goal.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:48 -0800
+Message-ID: <200802070030.m170UTWN007395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50866 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933900AbYBGAnn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:43 -0500
+	by vger.kernel.org with ESMTP id S935003AbYBGAnm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: raid6: Fix mktable.c
+     ext[234]: remove unused argument for ext[234]_find_goal()
 has been removed from the -mm tree.  Its filename was
-     md-raid6-fix-mktablec.patch
+     ext-remove-unused-argument-for-ext_find_goal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: raid6: Fix mktable.c
-From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: ext[234]: remove unused argument for ext[234]_find_goal()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Make both mktables.c and its output CodingStyle compliant.  Update the
-copyright notice.
+The argument chain for ext[234]_find_goal() is not used.  This patch removes
+it and fixes comment as well.
 
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/mktables.c |   43 +++++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 26 deletions(-)
+ fs/ext2/inode.c |    7 ++-----
+ fs/ext3/inode.c |    8 +++-----
+ fs/ext4/inode.c |    9 +++------
+ 3 files changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN drivers/md/mktables.c~md-raid6-fix-mktablec drivers/md/mktables.c
---- a/drivers/md/mktables.c~md-raid6-fix-mktablec
-+++ a/drivers/md/mktables.c
-@@ -1,13 +1,10 @@
--#ident "$Id: mktables.c,v 1.2 2002/12/12 22:41:27 hpa Exp $"
--/* ----------------------------------------------------------------------- *
-+/* -*- linux-c -*- ------------------------------------------------------- *
+diff -puN fs/ext2/inode.c~ext-remove-unused-argument-for-ext_find_goal fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext-remove-unused-argument-for-ext_find_goal
++++ a/fs/ext2/inode.c
+@@ -286,15 +286,12 @@ static unsigned long ext2_find_near(stru
+  *	ext2_find_goal - find a prefered place for allocation.
+  *	@inode: owner
+  *	@block:  block we want
+- *	@chain:  chain of indirect blocks
+  *	@partial: pointer to the last triple within a chain
   *
-- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
-+ *   Copyright 2002-2007 H. Peter Anvin - All Rights Reserved
+  *	Returns preferred place for a block (the goal).
+  */
+ 
+-static inline int ext2_find_goal(struct inode *inode,
+-				 long block,
+-				 Indirect chain[4],
++static inline int ext2_find_goal(struct inode *inode, long block,
+ 				 Indirect *partial)
+ {
+ 	struct ext2_block_alloc_info *block_i;
+@@ -638,7 +635,7 @@ reread:
+ 	if (S_ISREG(inode->i_mode) && (!ei->i_block_alloc_info))
+ 		ext2_init_block_alloc_info(inode);
+ 
+-	goal = ext2_find_goal(inode, iblock, chain, partial);
++	goal = ext2_find_goal(inode, iblock, partial);
+ 
+ 	/* the number of blocks need to allocate for [d,t]indirect blocks */
+ 	indirect_blks = (chain + depth) - partial - 1;
+diff -puN fs/ext3/inode.c~ext-remove-unused-argument-for-ext_find_goal fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext-remove-unused-argument-for-ext_find_goal
++++ a/fs/ext3/inode.c
+@@ -439,16 +439,14 @@ static ext3_fsblk_t ext3_find_near(struc
+  *	ext3_find_goal - find a prefered place for allocation.
+  *	@inode: owner
+  *	@block:  block we want
+- *	@chain:  chain of indirect blocks
+  *	@partial: pointer to the last triple within a chain
+- *	@goal:	place to store the result.
   *
-- *   This program is free software; you can redistribute it and/or modify
-- *   it under the terms of the GNU General Public License as published by
-- *   the Free Software Foundation, Inc., 53 Temple Place Ste 330,
-- *   Bostom MA 02111-1307, USA; either version 2 of the License, or
-- *   (at your option) any later version; incorporated herein by reference.
-+ *   This file is part of the Linux kernel, and is made available under
-+ *   the terms of the GNU General Public License version 2 or (at your
-+ *   option) any later version; incorporated herein by reference.
+  *	Normally this function find the prefered place for block allocation,
+- *	stores it in *@goal and returns zero.
++ *	returns it.
+  */
+ 
+ static ext3_fsblk_t ext3_find_goal(struct inode *inode, long block,
+-		Indirect chain[4], Indirect *partial)
++				   Indirect *partial)
+ {
+ 	struct ext3_block_alloc_info *block_i;
+ 
+@@ -884,7 +882,7 @@ int ext3_get_blocks_handle(handle_t *han
+ 	if (S_ISREG(inode->i_mode) && (!ei->i_block_alloc_info))
+ 		ext3_init_block_alloc_info(inode);
+ 
+-	goal = ext3_find_goal(inode, iblock, chain, partial);
++	goal = ext3_find_goal(inode, iblock, partial);
+ 
+ 	/* the number of blocks need to allocate for [d,t]indirect blocks */
+ 	indirect_blks = (chain + depth) - partial - 1;
+diff -puN fs/ext4/inode.c~ext-remove-unused-argument-for-ext_find_goal fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext-remove-unused-argument-for-ext_find_goal
++++ a/fs/ext4/inode.c
+@@ -429,16 +429,13 @@ static ext4_fsblk_t ext4_find_near(struc
+  *	ext4_find_goal - find a prefered place for allocation.
+  *	@inode: owner
+  *	@block:  block we want
+- *	@chain:  chain of indirect blocks
+  *	@partial: pointer to the last triple within a chain
+- *	@goal:	place to store the result.
   *
-  * ----------------------------------------------------------------------- */
+  *	Normally this function find the prefered place for block allocation,
+- *	stores it in *@goal and returns zero.
++ *	returns it.
+  */
+-
+ static ext4_fsblk_t ext4_find_goal(struct inode *inode, ext4_lblk_t block,
+-		Indirect chain[4], Indirect *partial)
++		Indirect *partial)
+ {
+ 	struct ext4_block_alloc_info *block_i;
  
-@@ -73,8 +70,8 @@ int main(int argc, char *argv[])
- 		for (j = 0; j < 256; j += 8) {
- 			printf("\t\t");
- 			for (k = 0; k < 8; k++)
--				printf("0x%02x, ", gfmul(i, j+k));
--			printf("\n");
-+				printf("0x%02x,%c", gfmul(i, j + k),
-+				       (k == 7) ? '\n' : ' ');
- 		}
- 		printf("\t},\n");
- 	}
-@@ -83,47 +80,41 @@ int main(int argc, char *argv[])
- 	/* Compute power-of-2 table (exponent) */
- 	v = 1;
- 	printf("\nconst u8 __attribute__((aligned(256)))\n"
--		"raid6_gfexp[256] =\n"
--		"{\n");
-+	       "raid6_gfexp[256] =\n" "{\n");
- 	for (i = 0; i < 256; i += 8) {
- 		printf("\t");
- 		for (j = 0; j < 8; j++) {
--			exptbl[i+j] = v;
--			printf("0x%02x, ", v);
-+			exptbl[i + j] = v;
-+			printf("0x%02x,%c", v, (j == 7) ? '\n' : ' ');
- 			v = gfmul(v, 2);
- 			if (v == 1)
- 				v = 0;	/* For entry 255, not a real entry */
- 		}
--		printf("\n");
- 	}
- 	printf("};\n");
+@@ -839,7 +836,7 @@ int ext4_get_blocks_handle(handle_t *han
+ 	if (S_ISREG(inode->i_mode) && (!ei->i_block_alloc_info))
+ 		ext4_init_block_alloc_info(inode);
  
- 	/* Compute inverse table x^-1 == x^254 */
- 	printf("\nconst u8 __attribute__((aligned(256)))\n"
--		"raid6_gfinv[256] =\n"
--		"{\n");
-+	       "raid6_gfinv[256] =\n" "{\n");
- 	for (i = 0; i < 256; i += 8) {
- 		printf("\t");
- 		for (j = 0; j < 8; j++) {
--			v = gfpow(i+j, 254);
--			invtbl[i+j] = v;
--			printf("0x%02x, ", v);
-+			invtbl[i + j] = v = gfpow(i + j, 254);
-+			printf("0x%02x,%c", v, (j == 7) ? '\n' : ' ');
- 		}
--		printf("\n");
- 	}
- 	printf("};\n");
+-	goal = ext4_find_goal(inode, iblock, chain, partial);
++	goal = ext4_find_goal(inode, iblock, partial);
  
- 	/* Compute inv(2^x + 1) (exponent-xor-inverse) table */
- 	printf("\nconst u8 __attribute__((aligned(256)))\n"
--		"raid6_gfexi[256] =\n"
--		"{\n");
-+	       "raid6_gfexi[256] =\n" "{\n");
- 	for (i = 0; i < 256; i += 8) {
- 		printf("\t");
- 		for (j = 0; j < 8; j++)
--			printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
--		printf("\n");
-+			printf("0x%02x,%c", invtbl[exptbl[i + j] ^ 1],
-+			       (j == 7) ? '\n' : ' ');
- 	}
--	printf("};\n\n");
-+	printf("};\n");
- 
- 	return 0;
- }
+ 	/* the number of blocks need to allocate for [d,t]indirect blocks */
+ 	indirect_blks = (chain + depth) - partial - 1;
 _
 
-Patches currently in -mm which might be from hpa@zytor.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-git-kvm.patch
-git-x86.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-unexport-asm-userh-and-linux-userh.patch
-unexport-asm-pageh.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-autofs.patch
-mount-options-fix-devpts.patch
+git-dvb.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
