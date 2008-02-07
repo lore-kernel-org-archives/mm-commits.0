@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - typhoon-section-fix-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:30:11 -0800
-Message-ID: <200802072230.m17MUB9u025991@imap1.linux-foundation.org>
+Subject: - typhoon-section-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:30:08 -0800
+Message-ID: <200802072230.m17MU87x025986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37448 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933218AbYBGWa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:27 -0500
+	by vger.kernel.org with ESMTP id S1761976AbYBGWaW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     typhoon-section-fix-fix
+     typhoon section fix
 has been removed from the -mm tree.  Its filename was
-     typhoon-section-fix-fix.patch
+     typhoon-section-fix.patch
 
 This patch was dropped because I just remembered __devexitconst :(
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: typhoon-section-fix-fix
+Subject: typhoon section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix i386 now.
+gcc-3.4.4 on powerpc:
+
+drivers/net/typhoon.c:137: error: version causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -35,18 +37,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/net/typhoon.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/typhoon.c~typhoon-section-fix-fix drivers/net/typhoon.c
---- a/drivers/net/typhoon.c~typhoon-section-fix-fix
+diff -puN drivers/net/typhoon.c~typhoon-section-fix drivers/net/typhoon.c
+--- a/drivers/net/typhoon.c~typhoon-section-fix
 +++ a/drivers/net/typhoon.c
-@@ -178,7 +178,7 @@ enum typhoon_cards {
- };
+@@ -134,7 +134,7 @@ static const int multicast_filter_limit 
+ #include "typhoon.h"
+ #include "typhoon-firmware.h"
  
- /* directly indexed by enum typhoon_cards, above */
--static const struct typhoon_card_info typhoon_card_info[] __devinitdata = {
-+static struct typhoon_card_info typhoon_card_info[] __devinitdata = {
- 	{ "3Com Typhoon (3C990-TX)",
- 		TYPHOON_CRYPTO_NONE},
- 	{ "3Com Typhoon (3CR990-TX-95)",
+-static const char version[] __devinitdata =
++static char version[] __devinitdata =
+     "typhoon.c: version " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ 
+ MODULE_AUTHOR("David Dillow <dave@thedillows.org>");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +108,7 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+typhoon-section-fix.patch
 typhoon-section-fix-fix.patch
 natsemi-section-fix.patch
 bnx2x-section-fix.patch
