@@ -1,44 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + starfire-secton-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 14:47:35 -0800
-Message-ID: <200802072247.m17MlZek026743@imap1.linux-foundation.org>
+Subject: - starfire-secton-fix-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:48:54 -0800
+Message-ID: <200802072248.m17Mmsio026855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35727 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757638AbYBGWt2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:28 -0500
+	by vger.kernel.org with ESMTP id S1758969AbYBGWtk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     starfire secton fix
-has been added to the -mm tree.  Its filename is
-     starfire-secton-fix.patch
+     starfire-secton-fix-fix
+has been removed from the -mm tree.  Its filename was
+     starfire-secton-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into starfire-secton-fix.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: starfire secton fix
+Subject: starfire-secton-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gcc-3.4.4 on powerpc:
+i386 now gets:
 
 drivers/net/starfire.c:219: error: version causes a section type conflict
+
+nfi what's going on.
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -47,15 +39,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/net/starfire.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/starfire.c~starfire-secton-fix drivers/net/starfire.c
---- a/drivers/net/starfire.c~starfire-secton-fix
+diff -puN drivers/net/starfire.c~starfire-secton-fix-fix drivers/net/starfire.c
+--- a/drivers/net/starfire.c~starfire-secton-fix-fix
 +++ a/drivers/net/starfire.c
 @@ -216,7 +216,7 @@ do { \
  
  
  /* These identify the driver base version and may not be removed. */
--static const char version[] __devinitdata =
-+static char version[] __devinitdata =
+-static char version[] __devinitdata =
++static char version[] =
  KERN_INFO "starfire.c:v1.03 7/26/2000  Written by Donald Becker <becker@scyld.com>\n"
  KERN_INFO " (unofficial 2.2/2.4 kernel port, version " DRV_VERSION ", " DRV_RELDATE ")\n";
  
@@ -119,12 +111,9 @@ git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
 typhoon-section-fix.patch
-typhoon-section-fix-fix.patch
 natsemi-section-fix.patch
 bnx2x-section-fix.patch
-bnx2x-section-fix-fix.patch
 bnx2c-section-fix.patch
-bnx2c-section-fix-fix.patch
 via-velocity-section-fix.patch
 starfire-secton-fix.patch
 starfire-secton-fix-fix.patch
