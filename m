@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - typhoon-section-fix-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:48:22 -0800
-Message-ID: <200802072248.m17MmMRh026834@imap1.linux-foundation.org>
+Subject: - bnx2c-section-fix-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:48:44 -0800
+Message-ID: <200802072248.m17Mmitl026847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757961AbYBGWtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:15 -0500
+	by vger.kernel.org with ESMTP id S1757961AbYBGWt2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:49:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     typhoon-section-fix-fix
+     bnx2c-section-fix-fix
 has been removed from the -mm tree.  Its filename was
-     typhoon-section-fix-fix.patch
+     bnx2c-section-fix-fix.patch
 
-This patch was dropped because it was folded into typhoon-section-fix.patch
+This patch was dropped because it was folded into bnx2c-section-fix.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: typhoon-section-fix-fix
+Subject: bnx2c-section-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix i386 now.
+fix i386
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/typhoon.c |    2 +-
+ drivers/net/bnx2.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/typhoon.c~typhoon-section-fix-fix drivers/net/typhoon.c
---- a/drivers/net/typhoon.c~typhoon-section-fix-fix
-+++ a/drivers/net/typhoon.c
-@@ -178,7 +178,7 @@ enum typhoon_cards {
- };
+diff -puN drivers/net/bnx2.c~bnx2c-section-fix-fix drivers/net/bnx2.c
+--- a/drivers/net/bnx2.c~bnx2c-section-fix-fix
++++ a/drivers/net/bnx2.c
+@@ -90,7 +90,7 @@ typedef enum {
+ } board_t;
  
- /* directly indexed by enum typhoon_cards, above */
--static const struct typhoon_card_info typhoon_card_info[] __devinitdata = {
-+static struct typhoon_card_info typhoon_card_info[] __devinitdata = {
- 	{ "3Com Typhoon (3C990-TX)",
- 		TYPHOON_CRYPTO_NONE},
- 	{ "3Com Typhoon (3CR990-TX-95)",
+ /* indexed by board_t, above */
+-static const struct {
++static struct {
+ 	char *name;
+ } board_info[] __devinitdata = {
+ 	{ "Broadcom NetXtreme II BCM5706 1000Base-T" },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,10 +107,8 @@ git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
 typhoon-section-fix.patch
-typhoon-section-fix-fix.patch
 natsemi-section-fix.patch
 bnx2x-section-fix.patch
-bnx2x-section-fix-fix.patch
 bnx2c-section-fix.patch
 bnx2c-section-fix-fix.patch
 via-velocity-section-fix.patch
