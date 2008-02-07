@@ -1,485 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - riscom8-fix-smp-brokenness.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:20:32 -0800
-Message-ID: <200802070020.m170KD8h006102@imap1.linux-foundation.org>
+Subject: - taskstats-scaled-time-cleanup.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:20:34 -0800
+Message-ID: <200802070020.m170KFFU006105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49183 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761713AbYBGAVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:21:04 -0500
+	by vger.kernel.org with ESMTP id S933919AbYBGAUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: mikey@neuling.org, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, jlan@engr.sgi.com, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     riscom8: fix SMP brokenness
+     taskstats scaled time cleanup
 has been removed from the -mm tree.  Its filename was
-     riscom8-fix-smp-brokenness.patch
+     taskstats-scaled-time-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riscom8: fix SMP brokenness
-From: Jeff Garzik <jeff@garzik.org>
+Subject: taskstats scaled time cleanup
+From: Michael Neuling <mikey@neuling.org>
 
-After analyzing the elements that save_flags/cli/sti/restore_flags were
-protecting, convert their usages to a global spinlock (the easiest and
-most obvious next-step).  There were some usages of flags being
-intentionally cached, because the code already knew the state of
-interrupts.  These have been taken into account.
+This moves the ability to scale cputime into generic code.  This allows us
+to fix the issue in kernel/timer.c (noticed by Balbir) where we could only
+add an unscaled value to the scaled utime/stime.
 
-This allows us to remove CONFIG_BROKEN_ON_SMP.  Completely untested.
+This adds a cputime_to_scaled function.  As before, the POWERPC version
+does the scaling based on the last SPURR/PURR ratio calculated.  The
+generic and s390 (only other arch to implement asm/cputime.h) versions are
+both NOPs.
 
-[akpm@linux-foundation.org: use DEFINE_SPINLOCK]
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Also moves the SPURR and PURR snapshots closer.
+
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig   |    2 
- drivers/char/riscom8.c |  147 ++++++++++++++++++++++++---------------
- 2 files changed, 94 insertions(+), 55 deletions(-)
+ arch/powerpc/kernel/time.c    |   12 ++++++------
+ include/asm-generic/cputime.h |    1 +
+ include/asm-powerpc/cputime.h |   14 ++++++++++++++
+ include/asm-powerpc/paca.h    |    2 --
+ include/asm-s390/cputime.h    |    1 +
+ kernel/timer.c                |   10 ++++++----
+ 6 files changed, 28 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/Kconfig~riscom8-fix-smp-brokenness drivers/char/Kconfig
---- a/drivers/char/Kconfig~riscom8-fix-smp-brokenness
-+++ a/drivers/char/Kconfig
-@@ -276,7 +276,7 @@ config N_HDLC
+diff -puN arch/powerpc/kernel/time.c~taskstats-scaled-time-cleanup arch/powerpc/kernel/time.c
+--- a/arch/powerpc/kernel/time.c~taskstats-scaled-time-cleanup
++++ a/arch/powerpc/kernel/time.c
+@@ -66,6 +66,7 @@
+ #include <asm/smp.h>
+ #include <asm/vdso_datapage.h>
+ #include <asm/firmware.h>
++#include <asm/cputime.h>
+ #ifdef CONFIG_PPC_ISERIES
+ #include <asm/iseries/it_lp_queue.h>
+ #include <asm/iseries/hv_call_xm.h>
+@@ -189,6 +190,8 @@ u64 __cputime_sec_factor;
+ EXPORT_SYMBOL(__cputime_sec_factor);
+ u64 __cputime_clockt_factor;
+ EXPORT_SYMBOL(__cputime_clockt_factor);
++DEFINE_PER_CPU(unsigned long, cputime_last_delta);
++DEFINE_PER_CPU(unsigned long, cputime_scaled_last_delta);
  
- config RISCOM8
- 	tristate "SDL RISCom/8 card support"
--	depends on SERIAL_NONSTANDARD && BROKEN_ON_SMP
-+	depends on SERIAL_NONSTANDARD
- 	help
- 	  This is a driver for the SDL Communications RISCom/8 multiport card,
- 	  which gives you many serial ports. You would need something like
-diff -puN drivers/char/riscom8.c~riscom8-fix-smp-brokenness drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~riscom8-fix-smp-brokenness
-+++ a/drivers/char/riscom8.c
-@@ -47,6 +47,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/tty_flip.h>
-+#include <linux/spinlock.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -81,6 +82,8 @@
- 
- static struct tty_driver *riscom_driver;
- 
-+static DEFINE_SPINLOCK(riscom_lock);
-+
- static struct riscom_board rc_board[RC_NBOARD] =  {
- 	{
- 		.base	= RC_IOBASE1,
-@@ -217,13 +220,14 @@ static void __init rc_init_CD180(struct 
+ static void calc_cputime_factors(void)
  {
- 	unsigned long flags;
- 	
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	rc_out(bp, RC_CTOUT, 0);     	           /* Clear timeout             */
- 	rc_wait_CCR(bp);			   /* Wait for CCR ready        */
- 	rc_out(bp, CD180_CCR, CCR_HARDRESET);      /* Reset CD180 chip          */
--	sti();
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- 	msleep(50);				   /* Delay 0.05 sec            */
--	cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
- 	rc_out(bp, CD180_GIVR, RC_ID);             /* Set ID for this chip      */
- 	rc_out(bp, CD180_GICR, 0);                 /* Clear all bits            */
- 	rc_out(bp, CD180_PILR1, RC_ACK_MINT);      /* Prio for modem intr       */
-@@ -234,7 +238,7 @@ static void __init rc_init_CD180(struct 
- 	rc_out(bp, CD180_PPRH, (RC_OSCFREQ/(1000000/RISCOM_TPS)) >> 8);
- 	rc_out(bp, CD180_PPRL, (RC_OSCFREQ/(1000000/RISCOM_TPS)) & 0xff);
- 	
--	restore_flags(flags);
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- /* Main probing routine, also sets irq. */
-@@ -812,9 +816,9 @@ static int rc_setup_port(struct riscom_b
- 		}
- 		port->xmit_buf = (unsigned char *) tmp;
+@@ -257,8 +260,8 @@ void account_system_vtime(struct task_st
  	}
--		
--	save_flags(flags); cli();
--		
-+
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	if (port->tty) 
- 		clear_bit(TTY_IO_ERROR, &port->tty->flags);
- 		
-@@ -825,7 +829,7 @@ static int rc_setup_port(struct riscom_b
- 	rc_change_speed(bp, port);
- 	port->flags |= ASYNC_INITIALIZED;
- 		
--	restore_flags(flags);
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- 	return 0;
+ 	account_system_time(tsk, 0, delta);
+ 	account_system_time_scaled(tsk, deltascaled);
+-	get_paca()->purrdelta = delta;
+-	get_paca()->spurrdelta = deltascaled;
++	per_cpu(cputime_last_delta, smp_processor_id()) = delta;
++	per_cpu(cputime_scaled_last_delta, smp_processor_id()) = deltascaled;
+ 	local_irq_restore(flags);
  }
  
-@@ -901,6 +905,7 @@ static int block_til_ready(struct tty_st
- 	int    retval;
- 	int    do_clocal = 0;
- 	int    CD;
-+	unsigned long flags;
+@@ -276,10 +279,7 @@ void account_process_tick(struct task_st
+ 	get_paca()->user_time = 0;
+ 	account_user_time(tsk, utime);
  
- 	/*
- 	 * If the device is in the middle of being closed, then block
-@@ -936,19 +941,26 @@ static int block_til_ready(struct tty_st
- 	 */
- 	retval = 0;
- 	add_wait_queue(&port->open_wait, &wait);
--	cli();
-+
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	if (!tty_hung_up_p(filp))
- 		port->count--;
--	sti();
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
-+
- 	port->blocked_open++;
- 	while (1) {
--		cli();
-+		spin_lock_irqsave(&riscom_lock, flags);
-+
- 		rc_out(bp, CD180_CAR, port_No(port));
- 		CD = rc_in(bp, CD180_MSVR) & MSVR_CD;
- 		rc_out(bp, CD180_MSVR, MSVR_RTS);
- 		bp->DTR &= ~(1u << port_No(port));
- 		rc_out(bp, RC_DTR, bp->DTR);
--		sti();
-+
-+		spin_unlock_irqrestore(&riscom_lock, flags);
-+
- 		set_current_state(TASK_INTERRUPTIBLE);
- 		if (tty_hung_up_p(filp) ||
- 		    !(port->flags & ASYNC_INITIALIZED)) {
-@@ -1020,8 +1032,9 @@ static void rc_close(struct tty_struct *
- 	
- 	if (!port || rc_paranoia_check(port, tty->name, "close"))
- 		return;
--	
--	save_flags(flags); cli();
-+
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	if (tty_hung_up_p(filp))
- 		goto out;
- 	
-@@ -1088,7 +1101,9 @@ static void rc_close(struct tty_struct *
- 	}
- 	port->flags &= ~(ASYNC_NORMAL_ACTIVE|ASYNC_CLOSING);
- 	wake_up_interruptible(&port->close_wait);
--out:	restore_flags(flags);
-+
-+out:
-+	spin_unlock_irqrestore(&riscom_lock, flags);
+-	/* Estimate the scaled utime by scaling the real utime based
+-	 * on the last spurr to purr ratio */
+-	utimescaled = utime * get_paca()->spurrdelta / get_paca()->purrdelta;
+-	get_paca()->spurrdelta = get_paca()->purrdelta = 0;
++	utimescaled = cputime_to_scaled(utime);
+ 	account_user_time_scaled(tsk, utimescaled);
  }
  
- static int rc_write(struct tty_struct * tty, 
-@@ -1107,34 +1122,33 @@ static int rc_write(struct tty_struct * 
- 	if (!tty || !port->xmit_buf)
- 		return 0;
+diff -puN include/asm-generic/cputime.h~taskstats-scaled-time-cleanup include/asm-generic/cputime.h
+--- a/include/asm-generic/cputime.h~taskstats-scaled-time-cleanup
++++ a/include/asm-generic/cputime.h
+@@ -18,6 +18,7 @@ typedef unsigned long cputime_t;
+ #define cputime_lt(__a, __b)		((__a) <  (__b))
+ #define cputime_le(__a, __b)		((__a) <= (__b))
+ #define cputime_to_jiffies(__ct)	(__ct)
++#define cputime_to_scaled(__ct)		(__ct)
+ #define jiffies_to_cputime(__hz)	(__hz)
  
--	save_flags(flags);
- 	while (1) {
--		cli();		
-+		spin_lock_irqsave(&riscom_lock, flags);
-+
- 		c = min_t(int, count, min(SERIAL_XMIT_SIZE - port->xmit_cnt - 1,
- 					  SERIAL_XMIT_SIZE - port->xmit_head));
--		if (c <= 0) {
--			restore_flags(flags);
--			break;
--		}
-+		if (c <= 0)
-+			break;	/* lock continues to be held */
+ typedef u64 cputime64_t;
+diff -puN include/asm-powerpc/cputime.h~taskstats-scaled-time-cleanup include/asm-powerpc/cputime.h
+--- a/include/asm-powerpc/cputime.h~taskstats-scaled-time-cleanup
++++ a/include/asm-powerpc/cputime.h
+@@ -52,12 +52,26 @@ typedef u64 cputime64_t;
+  * Convert cputime <-> jiffies
+  */
+ extern u64 __cputime_jiffies_factor;
++DECLARE_PER_CPU(unsigned long, cputime_last_delta);
++DECLARE_PER_CPU(unsigned long, cputime_scaled_last_delta);
  
- 		memcpy(port->xmit_buf + port->xmit_head, buf, c);
- 		port->xmit_head = (port->xmit_head + c) & (SERIAL_XMIT_SIZE-1);
- 		port->xmit_cnt += c;
--		restore_flags(flags);
-+
-+		spin_unlock_irqrestore(&riscom_lock, flags);
- 
- 		buf += c;
- 		count -= c;
- 		total += c;
- 	}
- 
--	cli();
- 	if (port->xmit_cnt && !tty->stopped && !tty->hw_stopped &&
- 	    !(port->IER & IER_TXRDY)) {
- 		port->IER |= IER_TXRDY;
- 		rc_out(bp, CD180_CAR, port_No(port));
- 		rc_out(bp, CD180_IER, port->IER);
- 	}
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- 
- 	return total;
- }
-@@ -1150,7 +1164,7 @@ static void rc_put_char(struct tty_struc
- 	if (!tty || !port->xmit_buf)
- 		return;
- 
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
- 	
- 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
- 		goto out;
-@@ -1158,7 +1172,9 @@ static void rc_put_char(struct tty_struc
- 	port->xmit_buf[port->xmit_head++] = ch;
- 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
- 	port->xmit_cnt++;
--out:	restore_flags(flags);
-+
-+out:
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static void rc_flush_chars(struct tty_struct * tty)
-@@ -1173,11 +1189,13 @@ static void rc_flush_chars(struct tty_st
- 	    !port->xmit_buf)
- 		return;
- 
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->IER |= IER_TXRDY;
- 	rc_out(port_Board(port), CD180_CAR, port_No(port));
- 	rc_out(port_Board(port), CD180_IER, port->IER);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static int rc_write_room(struct tty_struct * tty)
-@@ -1212,9 +1230,11 @@ static void rc_flush_buffer(struct tty_s
- 	if (rc_paranoia_check(port, tty->name, "rc_flush_buffer"))
- 		return;
- 
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->xmit_cnt = port->xmit_head = port->xmit_tail = 0;
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- 	
- 	tty_wakeup(tty);
- }
-@@ -1231,11 +1251,15 @@ static int rc_tiocmget(struct tty_struct
- 		return -ENODEV;
- 
- 	bp = port_Board(port);
--	save_flags(flags); cli();
-+
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	rc_out(bp, CD180_CAR, port_No(port));
- 	status = rc_in(bp, CD180_MSVR);
- 	result = rc_in(bp, RC_RI) & (1u << port_No(port)) ? 0 : TIOCM_RNG;
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
-+
- 	result |= ((status & MSVR_RTS) ? TIOCM_RTS : 0)
- 		| ((status & MSVR_DTR) ? TIOCM_DTR : 0)
- 		| ((status & MSVR_CD)  ? TIOCM_CAR : 0)
-@@ -1256,7 +1280,8 @@ static int rc_tiocmset(struct tty_struct
- 
- 	bp = port_Board(port);
- 
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	if (set & TIOCM_RTS)
- 		port->MSVR |= MSVR_RTS;
- 	if (set & TIOCM_DTR)
-@@ -1270,7 +1295,9 @@ static int rc_tiocmset(struct tty_struct
- 	rc_out(bp, CD180_CAR, port_No(port));
- 	rc_out(bp, CD180_MSVR, port->MSVR);
- 	rc_out(bp, RC_DTR, bp->DTR);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
-+
- 	return 0;
- }
- 
-@@ -1279,7 +1306,8 @@ static inline void rc_send_break(struct 
- 	struct riscom_board *bp = port_Board(port);
- 	unsigned long flags;
- 	
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->break_length = RISCOM_TPS / HZ * length;
- 	port->COR2 |= COR2_ETC;
- 	port->IER  |= IER_TXRDY;
-@@ -1289,7 +1317,8 @@ static inline void rc_send_break(struct 
- 	rc_wait_CCR(bp);
- 	rc_out(bp, CD180_CCR, CCR_CORCHG2);
- 	rc_wait_CCR(bp);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static inline int rc_set_serial_info(struct riscom_port * port,
-@@ -1298,7 +1327,6 @@ static inline int rc_set_serial_info(str
- 	struct serial_struct tmp;
- 	struct riscom_board *bp = port_Board(port);
- 	int change_speed;
--	unsigned long flags;
- 	
- 	if (copy_from_user(&tmp, newinfo, sizeof(tmp)))
- 		return -EFAULT;
-@@ -1332,9 +1360,11 @@ static inline int rc_set_serial_info(str
- 		port->closing_wait = tmp.closing_wait;
- 	}
- 	if (change_speed)  {
--		save_flags(flags); cli();
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&riscom_lock, flags);
- 		rc_change_speed(bp, port);
--		restore_flags(flags);
-+		spin_unlock_irqrestore(&riscom_lock, flags);
- 	}
- 	return 0;
- }
-@@ -1414,17 +1444,19 @@ static void rc_throttle(struct tty_struc
- 		return;
- 	
- 	bp = port_Board(port);
--	
--	save_flags(flags); cli();
-+
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->MSVR &= ~MSVR_RTS;
- 	rc_out(bp, CD180_CAR, port_No(port));
--	if (I_IXOFF(tty))  {
-+	if (I_IXOFF(tty)) {
- 		rc_wait_CCR(bp);
- 		rc_out(bp, CD180_CCR, CCR_SSCH2);
- 		rc_wait_CCR(bp);
- 	}
- 	rc_out(bp, CD180_MSVR, port->MSVR);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static void rc_unthrottle(struct tty_struct * tty)
-@@ -1438,7 +1470,8 @@ static void rc_unthrottle(struct tty_str
- 	
- 	bp = port_Board(port);
- 	
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->MSVR |= MSVR_RTS;
- 	rc_out(bp, CD180_CAR, port_No(port));
- 	if (I_IXOFF(tty))  {
-@@ -1447,7 +1480,8 @@ static void rc_unthrottle(struct tty_str
- 		rc_wait_CCR(bp);
- 	}
- 	rc_out(bp, CD180_MSVR, port->MSVR);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static void rc_stop(struct tty_struct * tty)
-@@ -1461,11 +1495,13 @@ static void rc_stop(struct tty_struct * 
- 	
- 	bp = port_Board(port);
- 	
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	port->IER &= ~IER_TXRDY;
- 	rc_out(bp, CD180_CAR, port_No(port));
- 	rc_out(bp, CD180_IER, port->IER);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- static void rc_start(struct tty_struct * tty)
-@@ -1479,13 +1515,15 @@ static void rc_start(struct tty_struct *
- 	
- 	bp = port_Board(port);
- 	
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	if (port->xmit_cnt && port->xmit_buf && !(port->IER & IER_TXRDY))  {
- 		port->IER |= IER_TXRDY;
- 		rc_out(bp, CD180_CAR, port_No(port));
- 		rc_out(bp, CD180_IER, port->IER);
- 	}
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- }
- 
- /*
-@@ -1537,9 +1575,9 @@ static void rc_set_termios(struct tty_st
- 	    tty->termios->c_iflag == old_termios->c_iflag)
- 		return;
- 
--	save_flags(flags); cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
- 	rc_change_speed(port_Board(port), port);
--	restore_flags(flags);
-+	spin_unlock_irqrestore(&riscom_lock, flags);
- 
- 	if ((old_termios->c_cflag & CRTSCTS) &&
- 	    !(tty->termios->c_cflag & CRTSCTS)) {
-@@ -1627,11 +1665,12 @@ static void rc_release_drivers(void)
+ static inline unsigned long cputime_to_jiffies(const cputime_t ct)
  {
- 	unsigned long flags;
- 
--	save_flags(flags);
--	cli();
-+	spin_lock_irqsave(&riscom_lock, flags);
-+
- 	tty_unregister_driver(riscom_driver);
- 	put_tty_driver(riscom_driver);
--	restore_flags(flags);
-+
-+	spin_unlock_irqrestore(&riscom_lock, flags);
+ 	return mulhdu(ct, __cputime_jiffies_factor);
  }
  
- #ifndef MODULE
++/* Estimate the scaled cputime by scaling the real cputime based on
++ * the last scaled to real ratio */
++static inline cputime_t cputime_to_scaled(const cputime_t ct)
++{
++	if (cpu_has_feature(CPU_FTR_SPURR) &&
++	    per_cpu(cputime_last_delta, smp_processor_id()))
++		return ct *
++			per_cpu(cputime_scaled_last_delta, smp_processor_id())/
++			per_cpu(cputime_last_delta, smp_processor_id());
++	return ct;
++}
++
+ static inline cputime_t jiffies_to_cputime(const unsigned long jif)
+ {
+ 	cputime_t ct;
+diff -puN include/asm-powerpc/paca.h~taskstats-scaled-time-cleanup include/asm-powerpc/paca.h
+--- a/include/asm-powerpc/paca.h~taskstats-scaled-time-cleanup
++++ a/include/asm-powerpc/paca.h
+@@ -115,8 +115,6 @@ struct paca_struct {
+ 	u64 system_time;		/* accumulated system TB ticks */
+ 	u64 startpurr;			/* PURR/TB value snapshot */
+ 	u64 startspurr;			/* SPURR value snapshot */
+-	u64 purrdelta;			/* FIXME: document */
+-	u64 spurrdelta;			/* FIXME: document */
+ };
+ 
+ extern struct paca_struct paca[];
+diff -puN include/asm-s390/cputime.h~taskstats-scaled-time-cleanup include/asm-s390/cputime.h
+--- a/include/asm-s390/cputime.h~taskstats-scaled-time-cleanup
++++ a/include/asm-s390/cputime.h
+@@ -54,6 +54,7 @@ __div(unsigned long long n, unsigned int
+ #define cputime_lt(__a, __b)		((__a) <  (__b))
+ #define cputime_le(__a, __b)		((__a) <= (__b))
+ #define cputime_to_jiffies(__ct)	(__div((__ct), 1000000 / HZ))
++#define cputime_to_scaled(__ct)		(__ct)
+ #define jiffies_to_cputime(__hz)	((cputime_t)(__hz) * (1000000 / HZ))
+ 
+ #define cputime64_zero			(0ULL)
+diff -puN kernel/timer.c~taskstats-scaled-time-cleanup kernel/timer.c
+--- a/kernel/timer.c~taskstats-scaled-time-cleanup
++++ a/kernel/timer.c
+@@ -818,12 +818,14 @@ unsigned long next_timer_interrupt(void)
+ #ifndef CONFIG_VIRT_CPU_ACCOUNTING
+ void account_process_tick(struct task_struct *p, int user_tick)
+ {
++	cputime_t one_jiffy = jiffies_to_cputime(1);
++
+ 	if (user_tick) {
+-		account_user_time(p, jiffies_to_cputime(1));
+-		account_user_time_scaled(p, jiffies_to_cputime(1));
++		account_user_time(p, one_jiffy);
++		account_user_time_scaled(p, cputime_to_scaled(one_jiffy));
+ 	} else {
+-		account_system_time(p, HARDIRQ_OFFSET, jiffies_to_cputime(1));
+-		account_system_time_scaled(p, jiffies_to_cputime(1));
++		account_system_time(p, HARDIRQ_OFFSET, one_jiffy);
++		account_system_time_scaled(p, cputime_to_scaled(one_jiffy));
+ 	}
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from mikey@neuling.org are
 
 origin.patch
-git-libata-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
