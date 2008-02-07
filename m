@@ -1,171 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-isofs-from-using-read_inode-fix-2.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:35:28 -0800
-Message-ID: <200802070335.m173Z95r014101@imap1.linux-foundation.org>
+Subject: - iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:36:10 -0800
+Message-ID: <200802070335.m173ZqBC014122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52035 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752732AbYBGDgF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:36:05 -0500
+	by vger.kernel.org with ESMTP id S1752800AbYBGDgZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:36:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, Valdis.Kletnieks@vt.edu, hch@lst.de, hidave.darkstar@gmail.com, jack@ucw.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IGET: handle errors in ISOFS correctly
+     iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     iget-stop-isofs-from-using-read_inode-fix-2.patch
+     iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into iget-stop-isofs-from-using-read_inode.patch
+This patch was dropped because it was folded into iget-stop-the-minix-filesystem-from-using-iget-and.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IGET: handle errors in ISOFS correctly
-From: David Howells <dhowells@redhat.com>
+Subject: iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Handle errors in ISOFS correctly.
+ERROR: "foo * bar" should be "foo *bar"
+#85: FILE: fs/minix/inode.c:415:
++static struct inode *V1_minix_iget(struct inode * inode)
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <Valdis.Kletnieks@vt.edu>
+ERROR: "foo * bar" should be "foo *bar"
+#112: FILE: fs/minix/inode.c:448:
++static struct inode *V2_minix_iget(struct inode * inode)
+
+ERROR: use tabs not spaces
+#181: FILE: fs/minix/namei.c:58:
++ ^I^Iif (IS_ERR(inode))$
+
+total: 3 errors, 0 warnings, 144 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ fs/minix/inode.c |    4 ++--
+ fs/minix/namei.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2 fs/isofs/inode.c
---- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode-fix-2
-+++ a/fs/isofs/inode.c
-@@ -841,7 +841,7 @@ root_found:
- 	sbi->s_joliet_level = joliet_level;
- 
- 	/* check the root inode */
--	if (!inode)
-+	if (IS_ERR(inode))
- 		goto out_no_root;
- 	if (!inode->i_op)
- 		goto out_bad_root;
-@@ -875,11 +875,12 @@ root_found:
- 	 */
- out_bad_root:
- 	printk(KERN_WARNING "%s: root inode not initialized\n", __func__);
--	goto out_iput;
--out_no_root:
--	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
- out_iput:
- 	iput(inode);
-+	goto out_no_inode;
-+out_no_root:
-+	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
-+out_no_inode:
- #ifdef CONFIG_JOLIET
- 	if (sbi->s_nls_iocharset)
- 		unload_nls(sbi->s_nls_iocharset);
-@@ -929,7 +930,7 @@ static int isofs_statfs (struct dentry *
+diff -puN fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes fs/minix/inode.c
+--- a/fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
++++ a/fs/minix/inode.c
+@@ -412,7 +412,7 @@ void minix_set_inode(struct inode *inode
  /*
-  * Get a set of blocks; filling in buffer_heads if already allocated
-  * or getblk() if they are not.  Returns the number of blocks inserted
-- * (0 == error.)
-+ * (-ve == error.)
+  * The minix V1 function to read an inode.
   */
- int isofs_get_blocks(struct inode *inode, sector_t iblock_s,
- 		     struct buffer_head **bh, unsigned long nblocks)
-@@ -939,11 +940,12 @@ int isofs_get_blocks(struct inode *inode
- 	unsigned int firstext;
- 	unsigned long nextblk, nextoff;
- 	long iblock = (long)iblock_s;
--	int section, rv;
-+	int section, rv, error;
- 	struct iso_inode_info *ei = ISOFS_I(inode);
- 
- 	lock_kernel();
- 
-+	error = -EIO;
- 	rv = 0;
- 	if (iblock < 0 || iblock != iblock_s) {
- 		printk(KERN_DEBUG "%s: block number too large\n", __func__);
-@@ -982,8 +984,10 @@ int isofs_get_blocks(struct inode *inode
- 
- 			offset += sect_size;
- 			ninode = isofs_iget(inode->i_sb, nextblk, nextoff);
--			if (!ninode)
-+			if (IS_ERR(ninode)) {
-+				error = PTR_ERR(ninode);
- 				goto abort;
-+			}
- 			firstext  = ISOFS_I(ninode)->i_first_extent;
- 			sect_size = ISOFS_I(ninode)->i_section_size >> ISOFS_BUFFER_BITS(ninode);
- 			nextblk   = ISOFS_I(ninode)->i_next_section_block;
-@@ -1016,7 +1020,7 @@ int isofs_get_blocks(struct inode *inode
- 
- abort:
- 	unlock_kernel();
--	return rv;
-+	return rv != 0 ? rv : error;
- }
- 
+-static struct inode *V1_minix_iget(struct inode * inode)
++static struct inode *V1_minix_iget(struct inode *inode)
+ {
+ 	struct buffer_head * bh;
+ 	struct minix_inode * raw_inode;
+@@ -445,7 +445,7 @@ static struct inode *V1_minix_iget(struc
  /*
-@@ -1030,7 +1034,7 @@ static int isofs_get_block(struct inode 
- 		return -EROFS;
+  * The minix V2 function to read an inode.
+  */
+-static struct inode *V2_minix_iget(struct inode * inode)
++static struct inode *V2_minix_iget(struct inode *inode)
+ {
+ 	struct buffer_head * bh;
+ 	struct minix2_inode * raw_inode;
+diff -puN fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes fs/minix/namei.c
+--- a/fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes
++++ a/fs/minix/namei.c
+@@ -55,7 +55,7 @@ static struct dentry *minix_lookup(struc
+ 	ino = minix_inode_by_name(dentry);
+ 	if (ino) {
+ 		inode = minix_iget(dir->i_sb, ino);
+- 		if (IS_ERR(inode))
++		if (IS_ERR(inode))
+ 			return ERR_CAST(inode);
  	}
- 
--	return isofs_get_blocks(inode, iblock, &bh_result, 1) ? 0 : -EIO;
-+	return isofs_get_blocks(inode, iblock, &bh_result, 1);
- }
- 
- static int isofs_bmap(struct inode *inode, sector_t block)
+ 	d_add(dentry, inode);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+cgroup-simplify-space-stripping.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
+cpusets-update_cpumask-revision.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+introduce-flags-for-reserve_bootmem.patch
 iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-isofs-from-using-read_inode-fix-2.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update.patch
-iget-stop-isofs-from-using-read_inode-fix-2-update-fix.patch
-iget-stop-isofs-from-using-read_inode-fix-3.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
 iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
