@@ -1,185 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - ext-use-ext_get_group_desc.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:46 -0800
-Message-ID: <200802070030.m170URdB007392@imap1.linux-foundation.org>
+Subject: - pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:15 -0800
+Message-ID: <200802070029.m170TueP007332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54130 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934346AbYBGAno (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:44 -0500
+	by vger.kernel.org with ESMTP id S935013AbYBGAnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext[234]: use ext[234]_get_group_desc()
+     simplify pnp_activate_dev() and pnp_disable_dev() return values
 has been removed from the -mm tree.  Its filename was
-     ext-use-ext_get_group_desc.patch
+     pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext[234]: use ext[234]_get_group_desc()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: simplify pnp_activate_dev() and pnp_disable_dev() return values
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Use ext[234]_get_group_desc() to get group descriptor from group number.
+Make pnp_activate_dev() and pnp_disable_dev() return only 0 (success) or a
+negative error value, as pci_enable_device() and pci_disable_device() do.
 
-Cc: <linux-ext4@vger.kernel.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Previously they returned:
+
+    0:	device was already active (or disabled)
+    1:	we just activated (or disabled) device
+    <0:	-EBUSY or error from pnp_start_dev() (or pnp_stop_dev())
+
+Now we return only 0 (device is active or disabled) or <0 (error).
+
+All in-tree callers either ignore the return values or check only for
+errors (negative values).
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |   12 ++++--------
- fs/ext3/super.c |   13 ++++---------
- fs/ext4/super.c |   14 ++++----------
- 3 files changed, 12 insertions(+), 27 deletions(-)
+ drivers/pnp/manager.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext2/super.c~ext-use-ext_get_group_desc fs/ext2/super.c
---- a/fs/ext2/super.c~ext-use-ext_get_group_desc
-+++ a/fs/ext2/super.c
-@@ -617,27 +617,24 @@ static int ext2_setup_super (struct supe
- 	return res;
+diff -puN drivers/pnp/manager.c~pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values
++++ a/drivers/pnp/manager.c
+@@ -513,7 +513,7 @@ int pnp_activate_dev(struct pnp_dev *dev
+ 	int error;
+ 
+ 	if (dev->active)
+-		return 0;	/* the device is already active */
++		return 0;
+ 
+ 	/* ensure resources are allocated */
+ 	if (pnp_auto_config_dev(dev))
+@@ -524,7 +524,7 @@ int pnp_activate_dev(struct pnp_dev *dev
+ 		return error;
+ 
+ 	dev->active = 1;
+-	return 1;
++	return 0;
  }
  
--static int ext2_check_descriptors (struct super_block * sb)
-+static int ext2_check_descriptors(struct super_block *sb)
- {
- 	int i;
--	int desc_block = 0;
- 	struct ext2_sb_info *sbi = EXT2_SB(sb);
- 	unsigned long first_block = le32_to_cpu(sbi->s_es->s_first_data_block);
- 	unsigned long last_block;
--	struct ext2_group_desc * gdp = NULL;
+ /**
+@@ -538,7 +538,7 @@ int pnp_disable_dev(struct pnp_dev *dev)
+ 	int error;
  
- 	ext2_debug ("Checking group descriptors");
+ 	if (!dev->active)
+-		return 0;	/* the device is already disabled */
++		return 0;
  
--	for (i = 0; i < sbi->s_groups_count; i++)
--	{
-+	for (i = 0; i < sbi->s_groups_count; i++) {
-+		struct ext2_group_desc *gdp = ext2_get_group_desc(sb, i, NULL);
-+
- 		if (i == sbi->s_groups_count - 1)
- 			last_block = le32_to_cpu(sbi->s_es->s_blocks_count) - 1;
- 		else
- 			last_block = first_block +
- 				(EXT2_BLOCKS_PER_GROUP(sb) - 1);
+ 	error = pnp_stop_dev(dev);
+ 	if (error)
+@@ -551,7 +551,7 @@ int pnp_disable_dev(struct pnp_dev *dev)
+ 	pnp_clean_resource_table(&dev->res);
+ 	up(&pnp_res_mutex);
  
--		if ((i % EXT2_DESC_PER_BLOCK(sb)) == 0)
--			gdp = (struct ext2_group_desc *) sbi->s_group_desc[desc_block++]->b_data;
- 		if (le32_to_cpu(gdp->bg_block_bitmap) < first_block ||
- 		    le32_to_cpu(gdp->bg_block_bitmap) > last_block)
- 		{
-@@ -667,7 +664,6 @@ static int ext2_check_descriptors (struc
- 			return 0;
- 		}
- 		first_block += EXT2_BLOCKS_PER_GROUP(sb);
--		gdp++;
- 	}
- 	return 1;
- }
-diff -puN fs/ext3/super.c~ext-use-ext_get_group_desc fs/ext3/super.c
---- a/fs/ext3/super.c~ext-use-ext_get_group_desc
-+++ a/fs/ext3/super.c
-@@ -1252,28 +1252,24 @@ static int ext3_setup_super(struct super
+-	return 1;
++	return 0;
  }
  
- /* Called at mount-time, super-block is locked */
--static int ext3_check_descriptors (struct super_block * sb)
-+static int ext3_check_descriptors(struct super_block *sb)
- {
- 	struct ext3_sb_info *sbi = EXT3_SB(sb);
- 	ext3_fsblk_t first_block = le32_to_cpu(sbi->s_es->s_first_data_block);
- 	ext3_fsblk_t last_block;
--	struct ext3_group_desc * gdp = NULL;
--	int desc_block = 0;
- 	int i;
- 
- 	ext3_debug ("Checking group descriptors");
- 
--	for (i = 0; i < sbi->s_groups_count; i++)
--	{
-+	for (i = 0; i < sbi->s_groups_count; i++) {
-+		struct ext3_group_desc *gdp = ext3_get_group_desc(sb, i, NULL);
-+
- 		if (i == sbi->s_groups_count - 1)
- 			last_block = le32_to_cpu(sbi->s_es->s_blocks_count) - 1;
- 		else
- 			last_block = first_block +
- 				(EXT3_BLOCKS_PER_GROUP(sb) - 1);
- 
--		if ((i % EXT3_DESC_PER_BLOCK(sb)) == 0)
--			gdp = (struct ext3_group_desc *)
--					sbi->s_group_desc[desc_block++]->b_data;
- 		if (le32_to_cpu(gdp->bg_block_bitmap) < first_block ||
- 		    le32_to_cpu(gdp->bg_block_bitmap) > last_block)
- 		{
-@@ -1306,7 +1302,6 @@ static int ext3_check_descriptors (struc
- 			return 0;
- 		}
- 		first_block += EXT3_BLOCKS_PER_GROUP(sb);
--		gdp++;
- 	}
- 
- 	sbi->s_es->s_free_blocks_count=cpu_to_le32(ext3_count_free_blocks(sb));
-diff -puN fs/ext4/super.c~ext-use-ext_get_group_desc fs/ext4/super.c
---- a/fs/ext4/super.c~ext-use-ext_get_group_desc
-+++ a/fs/ext4/super.c
-@@ -1458,7 +1458,7 @@ int ext4_group_desc_csum_verify(struct e
- }
- 
- /* Called at mount-time, super-block is locked */
--static int ext4_check_descriptors (struct super_block * sb)
-+static int ext4_check_descriptors(struct super_block *sb)
- {
- 	struct ext4_sb_info *sbi = EXT4_SB(sb);
- 	ext4_fsblk_t first_block = le32_to_cpu(sbi->s_es->s_first_data_block);
-@@ -1466,8 +1466,6 @@ static int ext4_check_descriptors (struc
- 	ext4_fsblk_t block_bitmap;
- 	ext4_fsblk_t inode_bitmap;
- 	ext4_fsblk_t inode_table;
--	struct ext4_group_desc * gdp = NULL;
--	int desc_block = 0;
- 	int flexbg_flag = 0;
- 	ext4_group_t i;
- 
-@@ -1476,17 +1474,15 @@ static int ext4_check_descriptors (struc
- 
- 	ext4_debug ("Checking group descriptors");
- 
--	for (i = 0; i < sbi->s_groups_count; i++)
--	{
-+	for (i = 0; i < sbi->s_groups_count; i++) {
-+		struct ext4_group_desc *gdp = ext4_get_group_desc(sb, i, NULL);
-+
- 		if (i == sbi->s_groups_count - 1 || flexbg_flag)
- 			last_block = ext4_blocks_count(sbi->s_es) - 1;
- 		else
- 			last_block = first_block +
- 				(EXT4_BLOCKS_PER_GROUP(sb) - 1);
- 
--		if ((i % EXT4_DESC_PER_BLOCK(sb)) == 0)
--			gdp = (struct ext4_group_desc *)
--					sbi->s_group_desc[desc_block++]->b_data;
- 		block_bitmap = ext4_block_bitmap(sb, gdp);
- 		if (block_bitmap < first_block || block_bitmap > last_block)
- 		{
-@@ -1524,8 +1520,6 @@ static int ext4_check_descriptors (struc
- 		}
- 		if (!flexbg_flag)
- 			first_block += EXT4_BLOCKS_PER_GROUP(sb);
--		gdp = (struct ext4_group_desc *)
--			((__u8 *)gdp + EXT4_DESC_SIZE(sb));
- 	}
- 
- 	ext4_free_blocks_count_set(sbi->s_es, ext4_count_free_blocks(sb));
+ /**
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-dvb.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+dont-touch-fs_struct-in-drivers.patch
