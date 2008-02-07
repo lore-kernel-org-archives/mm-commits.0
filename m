@@ -1,51 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - memcontrol-move-mm_cgroup-to-header-file-fix.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:25:15 -0800
-Message-ID: <200802070324.m173OuGM013711@imap1.linux-foundation.org>
+Subject: - cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:28:24 -0800
+Message-ID: <200802070328.m173S63h013834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47949 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759165AbYBGDZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:25:15 -0500
+	by vger.kernel.org with ESMTP id S1758438AbYBGD2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:28:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcontrol-move-mm_cgroup-to-header-file-fix
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
 has been removed from the -mm tree.  Its filename was
-     memcontrol-move-mm_cgroup-to-header-file-fix.patch
+     cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 
-This patch was dropped because it was folded into memcontrol-move-mm_cgroup-to-header-file.patch
+This patch was dropped because it was folded into cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcontrol-move-mm_cgroup-to-header-file-fix
+Subject: cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+I had to change _something_.
+
+Cc: Cliff Wickman <cpw@sgi.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file-fix
-+++ a/include/linux/memcontrol.h
-@@ -20,6 +20,8 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
- 
-+#include <linux/rcupdate.h>
+diff -puN kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup
++++ a/kernel/cgroup.c
+@@ -1893,8 +1893,8 @@ int cgroup_scan_tasks(struct cgroup_scan
+ 		 * the heap and wasn't inserted
+ 		 */
+ 	}
+-
+ 	cgroup_iter_end(scan->cg, &it);
 +
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
+ 	if (heap->size) {
+ 		for (i = 0; i < heap->size; i++) {
+ 			struct task_struct *p = heap->ptrs[i];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,14 +63,13 @@ memory-controller-add-per-container-lru-and-reclaim-v7.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-mm_cgroup-to-header-file.patch
-memcontrol-move-mm_cgroup-to-header-file-fix.patch
-memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
 per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
 cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
 hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
