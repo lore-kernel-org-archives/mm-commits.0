@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quota-turn-quotas-off-when-remounting-read-only.patch added to -mm tree
-Date: Thu, 07 Feb 2008 10:37:07 -0800
-Message-ID: <200802071836.m17IamGl015778@imap1.linux-foundation.org>
+Subject: + hugetlb-add-locking-for-overcommit-sysctl.patch added to -mm tree
+Date: Thu, 07 Feb 2008 10:57:45 -0800
+Message-ID: <200802071857.m17IvQBX016640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41103 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52321 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbYBGShF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 13:37:05 -0500
+	by vger.kernel.org with ESMTP id S1751969AbYBGS6a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 13:58:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, stable@kernel.org
+Cc: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, stable@kernel.org, wli@holomorphy.com
 
 
 The patch titled
-     quota: turn quotas off when remounting read-only
+     hugetlb: add locking for overcommit sysctl
 has been added to the -mm tree.  Its filename is
-     quota-turn-quotas-off-when-remounting-read-only.patch
+     hugetlb-add-locking-for-overcommit-sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: turn quotas off when remounting read-only
-From: Jan Kara <jack@suse.cz>
+Subject: hugetlb: add locking for overcommit sysctl
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-Turn off quotas before filesystem is remounted read only.  Otherwise quota
-will try to write to read-only filesystem which does no good...  We could
-also just refuse to remount ro when quota is enabled but turning quota off
-is consistent with what we do on umount.
+When I replaced hugetlb_dynamic_pool with nr_overcommit_hugepages I used
+proc_doulongvec_minmax() directly.  However, hugetlb.c's locking rules
+require that all counter modifications occur under the hugetlb_lock.  Add a
+callback into the hugetlb code similar to the one for nr_hugepages.  Grab
+the lock around the manipulation of nr_overcommit_hugepages in
+proc_doulongvec_minmax().
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/hugetlb.h |    1 +
+ kernel/sysctl.c         |    2 +-
+ mm/hugetlb.c            |   10 ++++++++++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/super.c~quota-turn-quotas-off-when-remounting-read-only fs/super.c
---- a/fs/super.c~quota-turn-quotas-off-when-remounting-read-only
-+++ a/fs/super.c
-@@ -603,6 +603,7 @@ int do_remount_sb(struct super_block *sb
- 			mark_files_ro(sb);
- 		else if (!fs_may_remount_ro(sb))
- 			return -EBUSY;
-+		DQUOT_OFF(sb);
- 	}
+diff -puN include/linux/hugetlb.h~hugetlb-add-locking-for-overcommit-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-locking-for-overcommit-sysctl
++++ a/include/linux/hugetlb.h
+@@ -17,6 +17,7 @@ static inline int is_vm_hugetlb_page(str
+ }
  
- 	if (sb->s_op->remount_fs) {
+ int hugetlb_sysctl_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
++int hugetlb_overcommit_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
+ int hugetlb_treat_movable_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
+ int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
+ int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *, struct page **, struct vm_area_struct **, unsigned long *, int *, int, int);
+diff -puN kernel/sysctl.c~hugetlb-add-locking-for-overcommit-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~hugetlb-add-locking-for-overcommit-sysctl
++++ a/kernel/sysctl.c
+@@ -982,7 +982,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &nr_overcommit_huge_pages,
+ 		.maxlen		= sizeof(nr_overcommit_huge_pages),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_doulongvec_minmax,
++		.proc_handler	= &hugetlb_overcommit_handler,
+ 	},
+ #endif
+ 	{
+diff -puN mm/hugetlb.c~hugetlb-add-locking-for-overcommit-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-locking-for-overcommit-sysctl
++++ a/mm/hugetlb.c
+@@ -605,6 +605,16 @@ int hugetlb_treat_movable_handler(struct
+ 	return 0;
+ }
+ 
++int hugetlb_overcommit_handler(struct ctl_table *table, int write,
++			struct file *file, void __user *buffer,
++			size_t *length, loff_t *ppos)
++{
++	spin_lock(&hugetlb_lock);
++	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
++	spin_unlock(&hugetlb_lock);
++	return 0;
++}
++
+ #endif /* CONFIG_SYSCTL */
+ 
+ int hugetlb_report_meminfo(char *buf)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-origin.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-use-pgoff_t-instead-of-unsigned-long.patch
-write_inode_now-avoid-unnecessary-synchronous-write.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
-udf-avoid-unnecessary-synchronous-writes.patch
-udf-cleanup-directory-offset-handling.patch
-udf-fix-adding-entry-to-a-directory.patch
-change-udf-maintainer.patch
-isofs-implement-dmode-option.patch
-isofs-implement-dmode-option-fix.patch
-mount-options-fix-ext2.patch
-mount-options-fix-isofs.patch
-mount-options-fix-udf.patch
-buffer_head-fix-private_list-handling.patch
-quota-turn-quotas-off-when-remounting-read-only.patch
+hugetlb-add-locking-for-overcommit-sysctl.patch
