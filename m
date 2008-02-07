@@ -1,95 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:38:04 -0800
-Message-ID: <200802070337.m173bkJJ014230@imap1.linux-foundation.org>
+Subject: + reiserfs-use-open_bdev_excl.patch added to -mm tree
+Date: Wed, 06 Feb 2008 21:35:03 -0800
+Message-ID: <200802070534.m175YitU017994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753445AbYBGDid (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:38:33 -0500
+	by vger.kernel.org with ESMTP id S1750829AbYBGFfJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 00:35:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hch@lst.de, chris.mason@oracle.com, jeffm@suse.com
 
 
 The patch titled
-     iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+     reiserfs: use open_bdev_excl
+has been added to the -mm tree.  Its filename is
+     reiserfs-use-open_bdev_excl.patch
 
-This patch was dropped because it was folded into iget-stop-hostfs-from-using-iget-and-read_inode.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiserfs: use open_bdev_excl
+From: Christoph Hellwig <hch@lst.de>
 
-ERROR: need a space before the open brace '{'
-#150: FILE: fs/hostfs/hostfs_kern.c:995:
-+	if (err){
+Use the proper helper to open a blockdevice by name for filesystem use,
+this makes sure it's properly claimed (also added for open-by-number) and
+gets rid of the struct file abuse.
 
-total: 1 errors, 0 warnings, 117 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Tested by mounting a reiserfs filesystem with external journal.
 
-Please run checkpatch prior to sending patches
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/journal.c          |   50 ++++++++++++++-----------------
+ include/linux/reiserfs_fs_sb.h |    1 
+ 2 files changed, 23 insertions(+), 28 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -992,7 +992,7 @@ static int hostfs_fill_sb_common(struct 
- 		goto out_put;
+diff -puN fs/reiserfs/journal.c~reiserfs-use-open_bdev_excl fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-use-open_bdev_excl
++++ a/fs/reiserfs/journal.c
+@@ -2574,11 +2574,9 @@ static int release_journal_dev(struct su
  
- 	err = hostfs_read_inode(root_inode);
--	if (err){
-+	if (err) {
- 		/* No iput in this case because the dput does that for us */
- 		dput(sb->s_root);
- 		sb->s_root = NULL;
+ 	result = 0;
+ 
+-	if (journal->j_dev_file != NULL) {
+-		result = filp_close(journal->j_dev_file, NULL);
+-		journal->j_dev_file = NULL;
+-		journal->j_dev_bd = NULL;
+-	} else if (journal->j_dev_bd != NULL) {
++	if (journal->j_dev_bd != NULL) {
++		if (journal->j_dev_bd->bd_dev != super->s_dev)
++			bd_release(journal->j_dev_bd);
+ 		result = blkdev_put(journal->j_dev_bd);
+ 		journal->j_dev_bd = NULL;
+ 	}
+@@ -2603,7 +2601,6 @@ static int journal_init_dev(struct super
+ 	result = 0;
+ 
+ 	journal->j_dev_bd = NULL;
+-	journal->j_dev_file = NULL;
+ 	jdev = SB_ONDISK_JOURNAL_DEVICE(super) ?
+ 	    new_decode_dev(SB_ONDISK_JOURNAL_DEVICE(super)) : super->s_dev;
+ 
+@@ -2620,35 +2617,34 @@ static int journal_init_dev(struct super
+ 					 "cannot init journal device '%s': %i",
+ 					 __bdevname(jdev, b), result);
+ 			return result;
+-		} else if (jdev != super->s_dev)
++		} else if (jdev != super->s_dev) {
++			result = bd_claim(journal->j_dev_bd, journal);
++			if (result) {
++				blkdev_put(journal->j_dev_bd);
++				return result;
++			}
++
+ 			set_blocksize(journal->j_dev_bd, super->s_blocksize);
++		}
++
+ 		return 0;
+ 	}
+ 
+-	journal->j_dev_file = filp_open(jdev_name, 0, 0);
+-	if (!IS_ERR(journal->j_dev_file)) {
+-		struct inode *jdev_inode = journal->j_dev_file->f_mapping->host;
+-		if (!S_ISBLK(jdev_inode->i_mode)) {
+-			reiserfs_warning(super, "journal_init_dev: '%s' is "
+-					 "not a block device", jdev_name);
+-			result = -ENOTBLK;
+-			release_journal_dev(super, journal);
+-		} else {
+-			/* ok */
+-			journal->j_dev_bd = I_BDEV(jdev_inode);
+-			set_blocksize(journal->j_dev_bd, super->s_blocksize);
+-			reiserfs_info(super,
+-				      "journal_init_dev: journal device: %s\n",
+-				      bdevname(journal->j_dev_bd, b));
+-		}
+-	} else {
+-		result = PTR_ERR(journal->j_dev_file);
+-		journal->j_dev_file = NULL;
++	journal->j_dev_bd = open_bdev_excl(jdev_name, 0, journal);
++	if (IS_ERR(journal->j_dev_bd)) {
++		result = PTR_ERR(journal->j_dev_bd);
++		journal->j_dev_bd = NULL;
+ 		reiserfs_warning(super,
+ 				 "journal_init_dev: Cannot open '%s': %i",
+ 				 jdev_name, result);
++		return result;
+ 	}
+-	return result;
++
++	set_blocksize(journal->j_dev_bd, super->s_blocksize);
++	reiserfs_info(super,
++		      "journal_init_dev: journal device: %s\n",
++		      bdevname(journal->j_dev_bd, b));
++	return 0;
+ }
+ 
+ /**
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-use-open_bdev_excl include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-use-open_bdev_excl
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -177,7 +177,6 @@ struct reiserfs_journal {
+ 	struct reiserfs_journal_cnode *j_last;	/* newest journal block */
+ 	struct reiserfs_journal_cnode *j_first;	/*  oldest journal block.  start here for traverse */
+ 
+-	struct file *j_dev_file;
+ 	struct block_device *j_dev_bd;
+ 	int j_1st_reserved_block;	/* first block on s_dev of reserved area journal */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-cgroup-simplify-space-stripping.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
-per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
-cgroups-mechanism-to-process-each-task-in-a-cgroup.patch
-hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
-cpusets-update_cpumask-revision.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-introduce-flags-for-reserve_bootmem.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
 iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
 iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-openpromfs-from-using-iget-and.patch
 iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
