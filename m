@@ -1,289 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-kretprobe-user-entry-handler-updated.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:14 -0800
-Message-ID: <200802070025.m170Ptqr006765@imap1.linux-foundation.org>
+Subject: - add-hpet-rtc-emulation-to-rtc_drv_cmos.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:34 -0800
+Message-ID: <200802070027.m170RFEd007005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46998 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49512 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933428AbYBGArN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:13 -0500
+	by vger.kernel.org with ESMTP id S935171AbYBGArF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sagar.abhishek@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, Robert.Picco@hp.com, a.zummo@towertech.it, ak@suse.de, david-b@pacbell.net, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: kretprobe user entry-handler
+     rtc: add HPET RTC emulation to RTC_DRV_CMOS
 has been removed from the -mm tree.  Its filename was
-     kprobes-kretprobe-user-entry-handler-updated.patch
+     add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: kretprobe user entry-handler
-From: Abhishek Sagar <sagar.abhishek@gmail.com>
+Subject: rtc: add HPET RTC emulation to RTC_DRV_CMOS
+From: Bernhard Walle <bwalle@suse.de>
 
-Provide support to add an optional user defined callback to be run at
-function entry of a kretprobe'd function.  Also modify the kprobe smoke
-tests to include an entry-handler during the kretprobe sanity test.
+That patch adds the RTC emulation of the HPET timer to the new RTC_DRV_CMOS. 
+The old drivers/char/rtc.ko driver had that functionality and it's important
+on new systems.
 
-Signed-off-by: Abhishek Sagar <sagar.abhishek@gmail.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Acked-by: Jim Keniston <jkenisto@us.ibm.com>
+[akpm@linux-foundation.org: unbreak alpha build]
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Robert Picco <Robert.Picco@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kprobes.txt |   81 ++++++++++++++++++++++++++++++------
- include/linux/kprobes.h   |    3 +
- kernel/kprobes.c          |    9 +++-
- kernel/test_kprobes.c     |   16 ++++++-
- 4 files changed, 94 insertions(+), 15 deletions(-)
+ arch/x86/Kconfig       |    2 
+ drivers/rtc/rtc-cmos.c |   82 ++++++++++++++++++++++++++++++++-------
+ 2 files changed, 70 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/kprobes.txt~kprobes-kretprobe-user-entry-handler-updated Documentation/kprobes.txt
---- a/Documentation/kprobes.txt~kprobes-kretprobe-user-entry-handler-updated
-+++ a/Documentation/kprobes.txt
-@@ -96,7 +96,9 @@ or in registers (e.g., for x86_64 or for
- The jprobe will work in either case, so long as the handler's
- prototype matches that of the probed function.
+diff -puN arch/x86/Kconfig~add-hpet-rtc-emulation-to-rtc_drv_cmos arch/x86/Kconfig
+--- a/arch/x86/Kconfig~add-hpet-rtc-emulation-to-rtc_drv_cmos
++++ a/arch/x86/Kconfig
+@@ -415,7 +415,7 @@ config HPET_TIMER
  
--1.3 How Does a Return Probe Work?
-+1.3 Return Probes
-+
-+1.3.1 How Does a Return Probe Work?
+ config HPET_EMULATE_RTC
+ 	def_bool y
+-	depends on HPET_TIMER && (RTC=y || RTC=m)
++	depends on HPET_TIMER && (RTC=y || RTC=m || RTC_DRV_CMOS=m || RTC_DRV_CMOS=y)
  
- When you call register_kretprobe(), Kprobes establishes a kprobe at
- the entry to the function.  When the probed function is called and this
-@@ -107,9 +109,9 @@ At boot time, Kprobes registers a kprobe
+ # Mark as embedded because too many people got it wrong.
+ # The code disables itself when not needed.
+diff -puN drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~add-hpet-rtc-emulation-to-rtc_drv_cmos
++++ a/drivers/rtc/rtc-cmos.c
+@@ -36,9 +36,24 @@
+ #include <linux/platform_device.h>
+ #include <linux/mod_devicetable.h>
  
- When the probed function executes its return instruction, control
- passes to the trampoline and that probe is hit.  Kprobes' trampoline
--handler calls the user-specified handler associated with the kretprobe,
--then sets the saved instruction pointer to the saved return address,
--and that's where execution resumes upon return from the trap.
-+handler calls the user-specified return handler associated with the
-+kretprobe, then sets the saved instruction pointer to the saved return
-+address, and that's where execution resumes upon return from the trap.
++#ifdef CONFIG_HPET_EMULATE_RTC
++#include <asm/hpet.h>
++#endif
++
+ /* this is for "generic access to PC-style RTC" using CMOS_READ/CMOS_WRITE */
+ #include <asm-generic/rtc.h>
  
- While the probed function is executing, its return address is
- stored in an object of type kretprobe_instance.  Before calling
-@@ -131,6 +133,30 @@ zero when the return probe is registered
- time the probed function is entered but there is no kretprobe_instance
- object available for establishing the return probe.
++#ifndef CONFIG_HPET_EMULATE_RTC
++#define is_hpet_enabled()			0
++#define hpet_set_alarm_time(hrs, min, sec) 	do { } while (0)
++#define hpet_set_periodic_freq(arg) 		0
++#define hpet_mask_rtc_irq_bit(arg) 		do { } while (0)
++#define hpet_set_rtc_irq_bit(arg) 		do { } while (0)
++#define hpet_rtc_timer_init() 			do { } while (0)
++#define hpet_register_irq_handler(h) 		0
++#define hpet_unregister_irq_handler(h)		do { } while (0)
++extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
++#endif
  
-+1.3.2 Kretprobe entry-handler
-+
-+Kretprobes also provides an optional user-specified handler which runs
-+on function entry. This handler is specified by setting the entry_handler
-+field of the kretprobe struct. Whenever the kprobe placed by kretprobe at the
-+function entry is hit, the user-defined entry_handler, if any, is invoked.
-+If the entry_handler returns 0 (success) then a corresponding return handler
-+is guaranteed to be called upon function return. If the entry_handler
-+returns a non-zero error then Kprobes leaves the return address as is, and
-+the kretprobe has no further effect for that particular function instance.
-+
-+Multiple entry and return handler invocations are matched using the unique
-+kretprobe_instance object associated with them. Additionally, a user
-+may also specify per return-instance private data to be part of each
-+kretprobe_instance object. This is especially useful when sharing private
-+data between corresponding user entry and return handlers. The size of each
-+private data object can be specified at kretprobe registration time by
-+setting the data_size field of the kretprobe struct. This data can be
-+accessed through the data field of each kretprobe_instance object.
-+
-+In case probed function is entered but there is no kretprobe_instance
-+object available, then in addition to incrementing the nmissed count,
-+the user entry_handler invocation is also skipped.
-+
- 2. Architectures Supported
+ struct cmos_rtc {
+ 	struct rtc_device	*rtc;
+@@ -199,6 +214,7 @@ static int cmos_set_alarm(struct device 
+ 	sec = t->time.tm_sec;
+ 	sec = (sec < 60) ? BIN2BCD(sec) : 0xff;
  
- Kprobes, jprobes, and return probes are implemented on the following
-@@ -274,6 +300,8 @@ of interest:
- - ret_addr: the return address
- - rp: points to the corresponding kretprobe object
- - task: points to the corresponding task struct
-+- data: points to per return-instance private data; see "Kretprobe
-+	entry-handler" for details.
++	hpet_set_alarm_time(t->time.tm_hour, t->time.tm_min, t->time.tm_sec);
+ 	spin_lock_irq(&rtc_lock);
  
- The regs_return_value(regs) macro provides a simple abstraction to
- extract the return value from the appropriate register as defined by
-@@ -556,23 +584,52 @@ report failed calls to sys_open().
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/kprobes.h>
-+#include <linux/ktime.h>
-+
-+/* per-instance private data */
-+struct my_data {
-+	ktime_t entry_stamp;
-+};
+ 	/* next rtc irq must not be from previous alarm setting */
+@@ -252,7 +268,8 @@ static int cmos_irq_set_freq(struct devi
+ 	f = 16 - f;
  
- static const char *probed_func = "sys_open";
+ 	spin_lock_irqsave(&rtc_lock, flags);
+-	CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
++	if (!hpet_set_periodic_freq(freq))
++		CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
  
--/* Return-probe handler: If the probed function fails, log the return value. */
--static int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
-+/* Timestamp function entry. */
-+static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
-+{
-+	struct my_data *data;
-+
-+	if(!current->mm)
-+		return 1; /* skip kernel threads */
-+
-+	data = (struct my_data *)ri->data;
-+	data->entry_stamp = ktime_get();
-+	return 0;
-+}
-+
-+/* If the probed function failed, log the return value and duration.
-+ * Duration may turn out to be zero consistently, depending upon the
-+ * granularity of time accounting on the platform. */
-+static int return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
- {
- 	int retval = regs_return_value(regs);
-+	struct my_data *data = (struct my_data *)ri->data;
-+	s64 delta;
-+	ktime_t now;
-+
- 	if (retval < 0) {
--		printk("%s returns %d\n", probed_func, retval);
-+		now = ktime_get();
-+		delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
-+		printk("%s: return val = %d (duration = %lld ns)\n",
-+		       probed_func, retval, delta);
+ 	return 0;
+@@ -314,28 +331,37 @@ cmos_rtc_ioctl(struct device *dev, unsig
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:	/* alarm off */
+ 		rtc_control &= ~RTC_AIE;
++		hpet_mask_rtc_irq_bit(RTC_AIE);
+ 		break;
+ 	case RTC_AIE_ON:	/* alarm on */
+ 		rtc_control |= RTC_AIE;
++		hpet_set_rtc_irq_bit(RTC_AIE);
+ 		break;
+ 	case RTC_UIE_OFF:	/* update off */
+ 		rtc_control &= ~RTC_UIE;
++		hpet_mask_rtc_irq_bit(RTC_UIE);
+ 		break;
+ 	case RTC_UIE_ON:	/* update on */
+ 		rtc_control |= RTC_UIE;
++		hpet_set_rtc_irq_bit(RTC_UIE);
+ 		break;
+ 	case RTC_PIE_OFF:	/* periodic off */
+ 		rtc_control &= ~RTC_PIE;
++		hpet_mask_rtc_irq_bit(RTC_PIE);
+ 		break;
+ 	case RTC_PIE_ON:	/* periodic on */
+ 		rtc_control |= RTC_PIE;
++		hpet_set_rtc_irq_bit(RTC_PIE);
+ 		break;
  	}
+-	CMOS_WRITE(rtc_control, RTC_CONTROL);
++	if (!is_hpet_enabled())
++		CMOS_WRITE(rtc_control, RTC_CONTROL);
++
+ 	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
+ 	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
+ 	if (is_intr(rtc_intr))
+ 		rtc_update_irq(cmos->rtc, 1, rtc_intr);
++
+ 	spin_unlock_irqrestore(&rtc_lock, flags);
  	return 0;
  }
+@@ -475,15 +501,25 @@ static irqreturn_t cmos_interrupt(int ir
+ 	u8		rtc_control;
  
- static struct kretprobe my_kretprobe = {
--	.handler = ret_handler,
--	/* Probe up to 20 instances concurrently. */
--	.maxactive = 20
-+	.handler = return_handler,
-+	.entry_handler = entry_handler,
-+	.data_size = sizeof(struct my_data),
-+	.maxactive = 20, /* probe up to 20 instances concurrently */
- };
- 
- static int __init kretprobe_init(void)
-@@ -584,7 +641,7 @@ static int __init kretprobe_init(void)
- 		printk("register_kretprobe failed, returned %d\n", ret);
- 		return -1;
- 	}
--	printk("Planted return probe at %p\n", my_kretprobe.kp.addr);
-+	printk("Kretprobe active on %s\n", my_kretprobe.kp.symbol_name);
- 	return 0;
- }
- 
-@@ -594,7 +651,7 @@ static void __exit kretprobe_exit(void)
- 	printk("kretprobe unregistered\n");
- 	/* nmissed > 0 suggests that maxactive was set too low. */
- 	printk("Missed probing %d instances of %s\n",
--		my_kretprobe.nmissed, probed_func);
-+	       my_kretprobe.nmissed, probed_func);
- }
- 
- module_init(kretprobe_init)
-diff -puN include/linux/kprobes.h~kprobes-kretprobe-user-entry-handler-updated include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-kretprobe-user-entry-handler-updated
-+++ a/include/linux/kprobes.h
-@@ -152,8 +152,10 @@ static inline int arch_trampoline_kprobe
- struct kretprobe {
- 	struct kprobe kp;
- 	kretprobe_handler_t handler;
-+	kretprobe_handler_t entry_handler;
- 	int maxactive;
- 	int nmissed;
-+	size_t data_size;
- 	struct hlist_head free_instances;
- 	struct hlist_head used_instances;
- };
-@@ -164,6 +166,7 @@ struct kretprobe_instance {
- 	struct kretprobe *rp;
- 	kprobe_opcode_t *ret_addr;
- 	struct task_struct *task;
-+	char data[0];
- };
- 
- struct kretprobe_blackpoint {
-diff -puN kernel/kprobes.c~kprobes-kretprobe-user-entry-handler-updated kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-kretprobe-user-entry-handler-updated
-+++ a/kernel/kprobes.c
-@@ -699,6 +699,12 @@ static int __kprobes pre_handler_kretpro
- 				 struct kretprobe_instance, uflist);
- 		ri->rp = rp;
- 		ri->task = current;
-+
-+		if (rp->entry_handler && rp->entry_handler(ri, regs)) {
-+			spin_unlock_irqrestore(&kretprobe_lock, flags);
-+			return 0;
-+		}
-+
- 		arch_prepare_kretprobe(ri, regs);
- 
- 		/* XXX(hch): why is there no hlist_move_head? */
-@@ -745,7 +751,8 @@ int __kprobes register_kretprobe(struct 
- 	INIT_HLIST_HEAD(&rp->used_instances);
- 	INIT_HLIST_HEAD(&rp->free_instances);
- 	for (i = 0; i < rp->maxactive; i++) {
--		inst = kmalloc(sizeof(struct kretprobe_instance), GFP_KERNEL);
-+		inst = kmalloc(sizeof(struct kretprobe_instance) +
-+			       rp->data_size, GFP_KERNEL);
- 		if (inst == NULL) {
- 			free_rp_inst(rp);
- 			return -ENOMEM;
-diff -puN kernel/test_kprobes.c~kprobes-kretprobe-user-entry-handler-updated kernel/test_kprobes.c
---- a/kernel/test_kprobes.c~kprobes-kretprobe-user-entry-handler-updated
-+++ a/kernel/test_kprobes.c
-@@ -135,6 +135,12 @@ static int test_jprobe(void)
- #ifdef CONFIG_KRETPROBES
- static u32 krph_val;
- 
-+static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
-+{
-+	krph_val = (rand1 / div_factor);
-+	return 0;
-+}
-+
- static int return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
- {
- 	unsigned long ret = regs_return_value(regs);
-@@ -144,13 +150,19 @@ static int return_handler(struct kretpro
- 		printk(KERN_ERR "Kprobe smoke test failed: "
- 				"incorrect value in kretprobe handler\n");
- 	}
-+	if (krph_val == 0) {
-+		handler_errors++;
-+		printk(KERN_ERR "Kprobe smoke test failed: "
-+				"call to kretprobe entry handler failed\n");
+ 	spin_lock(&rtc_lock);
+-	irqstat = CMOS_READ(RTC_INTR_FLAGS);
+-	rtc_control = CMOS_READ(RTC_CONTROL);
+-	irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
++	/*
++	 * In this case it is HPET RTC interrupt handler
++	 * calling us, with the interrupt information
++	 * passed as arg1, instead of irq.
++	 */
++	if (is_hpet_enabled())
++		irqstat = (unsigned long)irq & 0xF0;
++	else {
++		irqstat = CMOS_READ(RTC_INTR_FLAGS);
++		rtc_control = CMOS_READ(RTC_CONTROL);
++		irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
 +	}
  
--	krph_val = (rand1 / div_factor);
-+	krph_val = rand1;
- 	return 0;
- }
+ 	/* All Linux RTC alarms should be treated as if they were oneshot.
+ 	 * Similar code may be needed in system wakeup paths, in case the
+ 	 * alarm woke the system.
+ 	 */
+ 	if (irqstat & RTC_AIE) {
++		rtc_control = CMOS_READ(RTC_CONTROL);
+ 		rtc_control &= ~RTC_AIE;
+ 		CMOS_WRITE(rtc_control, RTC_CONTROL);
+ 		CMOS_READ(RTC_INTR_FLAGS);
+@@ -591,8 +627,9 @@ cmos_do_probe(struct device *dev, struct
+ 	 * doesn't use 32KHz here ... for portability we might need to
+ 	 * do something about other clock frequencies.
+ 	 */
+-	CMOS_WRITE(RTC_REF_CLCK_32KHZ | 0x06, RTC_FREQ_SELECT);
+ 	cmos_rtc.rtc->irq_freq = 1024;
++	if (!hpet_set_periodic_freq(cmos_rtc.rtc->irq_freq))
++		CMOS_WRITE(RTC_REF_CLCK_32KHZ | 0x06, RTC_FREQ_SELECT);
  
- static struct kretprobe rp = {
- 	.handler	= return_handler,
-+	.entry_handler  = entry_handler,
- 	.kp.symbol_name = "kprobe_target"
- };
+ 	/* disable irqs.
+ 	 *
+@@ -615,14 +652,31 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup1;
+ 	}
  
-@@ -167,7 +179,7 @@ static int test_kretprobe(void)
+-	if (is_valid_irq(rtc_irq))
+-		retval = request_irq(rtc_irq, cmos_interrupt, IRQF_DISABLED,
+-				cmos_rtc.rtc->dev.bus_id,
++	if (is_valid_irq(rtc_irq)) {
++		irq_handler_t rtc_cmos_int_handler;
++
++		if (is_hpet_enabled()) {
++			int err;
++
++			rtc_cmos_int_handler = hpet_rtc_interrupt;
++			err = hpet_register_irq_handler(cmos_interrupt);
++			if (err != 0) {
++				printk(KERN_WARNING "hpet_register_irq_handler "
++						" failed in rtc_init().");
++				goto cleanup1;
++			}
++		} else
++			rtc_cmos_int_handler = cmos_interrupt;
++
++		retval = request_irq(rtc_irq, rtc_cmos_int_handler,
++				IRQF_DISABLED, cmos_rtc.rtc->dev.bus_id,
+ 				cmos_rtc.rtc);
+-	if (retval < 0) {
+-		dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
+-		goto cleanup1;
++		if (retval < 0) {
++			dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
++			goto cleanup1;
++		}
+ 	}
++	hpet_rtc_timer_init();
  
- 	ret = kprobe_target(rand1);
- 	unregister_kretprobe(&rp);
--	if (krph_val == 0) {
-+	if (krph_val != rand1) {
- 		printk(KERN_ERR "Kprobe smoke test failed: "
- 				"kretprobe handler not called\n");
- 		handler_errors++;
+ 	/* export at least the first block of NVRAM */
+ 	nvram.size = address_space - NVRAM_OFFSET;
+@@ -677,8 +731,10 @@ static void __exit cmos_do_remove(struct
+ 
+ 	sysfs_remove_bin_file(&dev->kobj, &nvram);
+ 
+-	if (is_valid_irq(cmos->irq))
++	if (is_valid_irq(cmos->irq)) {
+ 		free_irq(cmos->irq, cmos->rtc);
++		hpet_unregister_irq_handler(cmos_interrupt);
++	}
+ 
+ 	rtc_device_unregister(cmos->rtc);
+ 	cmos->rtc = NULL;
 _
 
-Patches currently in -mm which might be from sagar.abhishek@gmail.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
+introduce-flags-for-reserve_bootmem.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+use-bootmem_exclusive-for-kdump.patch
