@@ -1,87 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:22:27 -0800
-Message-ID: <200802070022.m170M8Tl006399@imap1.linux-foundation.org>
+Subject: - spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:05 -0800
+Message-ID: <200802070025.m170Pkik006747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762778AbYBGAqK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:10 -0500
+	by vger.kernel.org with ESMTP id S935154AbYBGAqX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: bryan.wu@analog.com, dbrownell@users.sourceforge.net, jc@eclis.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: use upper_32_bits() macro to eliminate warnings
+     spi_bfin: wait for tx to complete on full duplex paths
 has been removed from the -mm tree.  Its filename was
-     cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+     spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: use upper_32_bits() macro to eliminate warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: spi_bfin: wait for tx to complete on full duplex paths
+From: Bryan Wu <bryan.wu@analog.com>
 
-Use upper_32_bits(x) macro to handle shifts that may be >= the width of
-the data type.
+Full duplex SPI operation should not read a dummy byte at the first transfer. 
+Bug and fix by Jean-Christian de Rivaz <jc@eclis.ch>:
 
-drivers/block/cciss.c: In function 'do_cciss_request':
-drivers/block/cciss.c:2655: warning: right shift count >= width of type
-drivers/block/cciss.c:2656: warning: right shift count >= width of type
-drivers/block/cciss.c:2657: warning: right shift count >= width of type
-drivers/block/cciss.c:2658: warning: right shift count >= width of type
+http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=3678
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <mike.miller@hp.com>
+Signed-off-by: Jean-Christian de Rivaz <jc@eclis.ch>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings
-+++ a/drivers/block/cciss.c
-@@ -2630,12 +2630,14 @@ static void do_cciss_request(struct requ
- 			c->Request.CDB[8] = creq->nr_sectors & 0xff;
- 			c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
- 		} else {
-+			u32 upper32 = upper_32_bits(start_blk);
-+
- 			c->Request.CDBLen = 16;
- 			c->Request.CDB[1]= 0;
--			c->Request.CDB[2]= (start_blk >> 56) & 0xff;	//MSB
--			c->Request.CDB[3]= (start_blk >> 48) & 0xff;
--			c->Request.CDB[4]= (start_blk >> 40) & 0xff;
--			c->Request.CDB[5]= (start_blk >> 32) & 0xff;
-+			c->Request.CDB[2]= (upper32 >> 24) & 0xff;	//MSB
-+			c->Request.CDB[3]= (upper32 >> 16) & 0xff;
-+			c->Request.CDB[4]= (upper32 >>  8) & 0xff;
-+			c->Request.CDB[5]= upper32 & 0xff;
- 			c->Request.CDB[6]= (start_blk >> 24) & 0xff;
- 			c->Request.CDB[7]= (start_blk >> 16) & 0xff;
- 			c->Request.CDB[8]= (start_blk >>  8) & 0xff;
+diff -puN drivers/spi/spi_bfin5xx.c~spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~spi_bfin-wait-for-tx-to-complete-on-full-duplex-paths
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -358,14 +358,10 @@ static void u8_cs_chg_reader(struct driv
+ 
+ static void u8_duplex(struct driver_data *drv_data)
+ {
+-	/* poll for SPI completion before start */
+-	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		cpu_relax();
+-
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+-		while (read_STAT(drv_data) & BIT_STAT_TXS)
++		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+ 			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+ 			cpu_relax();
+@@ -495,14 +491,10 @@ static void u16_cs_chg_reader(struct dri
+ 
+ static void u16_duplex(struct driver_data *drv_data)
+ {
+-	/* poll for SPI completion before start */
+-	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		cpu_relax();
+-
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+-		while (read_STAT(drv_data) & BIT_STAT_TXS)
++		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+ 			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+ 			cpu_relax();
+@@ -516,15 +508,11 @@ static void u16_cs_chg_duplex(struct dri
+ {
+ 	struct chip_data *chip = drv_data->cur_chip;
+ 
+-	/* poll for SPI completion before start */
+-	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		cpu_relax();
+-
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+-		while (read_STAT(drv_data) & BIT_STAT_TXS)
++		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+ 			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+ 			cpu_relax();
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
 origin.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
+git-mtd.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
+git-watchdog.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+d_path-make-d_path-use-a-struct-path.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+procfs-constify-function-pointer-tables.patch
