@@ -1,57 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:45 -0800
-Message-ID: <200802070023.m170NQBY006521@imap1.linux-foundation.org>
+Subject: - w1-w1_thermc-standardize-units-to-millidegrees-c.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:38 -0800
+Message-ID: <200802070025.m170PJ3T006704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46535 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934034AbYBGAoh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:37 -0500
+	by vger.kernel.org with ESMTP id S1758353AbYBGAon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tsbogend@alpha.franken.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: use SGI_HAS_DS1286 for SGI_DS1286 depends
+     W1: w1_therm.c standardize units to millidegrees C
 has been removed from the -mm tree.  Its filename was
-     char-use-sgi_has_ds1286-for-sgi_ds1286-depends.patch
+     w1-w1_thermc-standardize-units-to-millidegrees-c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: use SGI_HAS_DS1286 for SGI_DS1286 depends
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: W1: w1_therm.c standardize units to millidegrees C
+From: David Fries <david@fries.net>
 
-Use SGI_HAS_DS1286 for SGI_DS1286 depends
+Standardize the temperature units to millidegrees C for the two sensor
+conversion routines.  Previously the routines were,
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+w1_DS18B20_convert_temp degrees C
+w1_DS18S20_convert_temp millidegrees C
+
+Unfortunately this will break any program using the ds18b20 value as it
+will now be 1000 times bigger.  Fortunately there can't be that many users
+out there, or some of these bugs will have been fixed by now, such as the
+negative C error (see previous patch) that makes me think the ds18b20 is
+the better choice to change because of the current bugs.
+
+Signed-off-by: David Fries <david@fries.net>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/slaves/w1_therm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/Kconfig~char-use-sgi_has_ds1286-for-sgi_ds1286-depends drivers/char/Kconfig
---- a/drivers/char/Kconfig~char-use-sgi_has_ds1286-for-sgi_ds1286-depends
-+++ a/drivers/char/Kconfig
-@@ -765,7 +765,7 @@ config JS_RTC
+diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_thermc-standardize-units-to-millidegrees-c drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-w1_thermc-standardize-units-to-millidegrees-c
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -92,6 +92,7 @@ struct w1_therm_family_converter
+ 	int			(*convert)(u8 rom[9]);
+ };
  
- config SGI_DS1286
- 	tristate "SGI DS1286 RTC support"
--	depends on SGI_IP22
-+	depends on SGI_HAS_DS1286
- 	help
- 	  If you say Y here and create a character special file /dev/rtc with
- 	  major number 10 and minor number 135 using mknod ("man mknod"), you
++/* The return value is millidegrees Centigrade. */
+ static inline int w1_DS18B20_convert_temp(u8 rom[9]);
+ static inline int w1_DS18S20_convert_temp(u8 rom[9]);
+ 
+@@ -113,7 +114,7 @@ static struct w1_therm_family_converter 
+ static inline int w1_DS18B20_convert_temp(u8 rom[9])
+ {
+ 	s16 t = (rom[1] << 8) | rom[0];
+-	t /= 16;
++	t = t*1000/16;
+ 	return t;
+ }
+ 
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from david@fries.net are
 
 origin.patch
-git-scsi-misc.patch
-git-watchdog.patch
