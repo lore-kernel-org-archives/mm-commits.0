@@ -1,125 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - hash-add-explicit-u32-and-u64-versions-of-hash.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:20:39 -0800
-Message-ID: <200802070020.m170KKqp006115@imap1.linux-foundation.org>
+Subject: - a-potential-bug-in-inotify_userc.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:20:29 -0800
+Message-ID: <200802070020.m170KAN7006097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58465 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933856AbYBGAU2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:28 -0500
+	by vger.kernel.org with ESMTP id S933854AbYBGAUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, willy@linux.intel.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: yanzheng@21cn.com, rlove@rlove.org, ttb@tentacle.dhs.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hash: add explicit u32 and u64 versions of hash
+     A potential bug in inotify_user.c
 has been removed from the -mm tree.  Its filename was
-     hash-add-explicit-u32-and-u64-versions-of-hash.patch
+     a-potential-bug-in-inotify_userc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hash: add explicit u32 and u64 versions of hash
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: A potential bug in inotify_user.c
+From: "Yan Zheng" <yanzheng@21cn.com>
 
-The 32-bit version is more efficient (and apparently gives better hash
-results than the 64-bit version), so users who are only hashing a 32-bit
-quantity can now opt to use the 32-bit version explicitly, rather than
-promoting to a long.
+Following comment is at fs/inotify_user.c:287
+/* coalescing: drop this event if it is a dupe of the previous */
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+I think the previous event in the comment should be the last event in the
+link list.  But inotify_dev_get_event return the first event in the list. 
+In addition, it doesn't check whether the list is empty
+
+Signed-off-by: Yan Zheng<yanzheng@21cn.com>
+Acked-by: Robert Love <rlove@rlove.org>
+Cc: John McCutchan <ttb@tentacle.dhs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hash.h |   42 ++++++++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ fs/inotify_user.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash include/linux/hash.h
---- a/include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash
-+++ a/include/linux/hash.h
-@@ -1,6 +1,6 @@
- #ifndef _LINUX_HASH_H
- #define _LINUX_HASH_H
--/* Fast hashing routine for a long.
-+/* Fast hashing routine for ints,  longs and pointers.
-    (C) 2002 William Lee Irwin III, IBM */
+diff -puN fs/inotify_user.c~a-potential-bug-in-inotify_userc fs/inotify_user.c
+--- a/fs/inotify_user.c~a-potential-bug-in-inotify_userc
++++ a/fs/inotify_user.c
+@@ -248,6 +248,19 @@ inotify_dev_get_event(struct inotify_dev
+ }
  
  /*
-@@ -13,23 +13,30 @@
-  * them can use shifts and additions instead of multiplications for
-  * machines where multiplications are slow.
-  */
--#if BITS_PER_LONG == 32
-+
-+#include <asm/types.h>
-+
- /* 2^31 + 2^29 - 2^25 + 2^22 - 2^19 - 2^16 + 1 */
--#define GOLDEN_RATIO_PRIME 0x9e370001UL
--#elif BITS_PER_LONG == 64
-+#define GOLDEN_RATIO_PRIME_32 0x9e370001UL
- /*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
--#define GOLDEN_RATIO_PRIME 0x9e37fffffffc0001UL
-+#define GOLDEN_RATIO_PRIME_64 0x9e37fffffffc0001UL
-+
-+#if BITS_PER_LONG == 32
-+#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
-+#define hash_long(val, bits) hash_32(val, bits)
-+#elif BITS_PER_LONG == 64
-+#define hash_long(val, bits) hash_64(val, bits)
-+#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
- #else
--#error Define GOLDEN_RATIO_PRIME for your wordsize.
-+#error Wordsize not 32 or 64
- #endif
- 
--static inline unsigned long hash_long(unsigned long val, unsigned int bits)
-+static inline u64 hash_64(u64 val, unsigned int bits)
- {
--	unsigned long hash = val;
-+	u64 hash = val;
- 
--#if BITS_PER_LONG == 64
- 	/*  Sigh, gcc can't optimise this alone like it does for 32 bits. */
--	unsigned long n = hash;
-+	u64 n = hash;
- 	n <<= 18;
- 	hash -= n;
- 	n <<= 33;
-@@ -42,15 +49,20 @@ static inline unsigned long hash_long(un
- 	hash += n;
- 	n <<= 2;
- 	hash += n;
--#else
-+
-+	/* High bits are more random, so use them. */
-+	return hash >> (64 - bits);
++ * inotify_dev_get_last_event - return the last event in the given dev's queue
++ *
++ * Caller must hold dev->ev_mutex.
++ */
++static inline struct inotify_kernel_event *
++inotify_dev_get_last_event(struct inotify_device *dev)
++{
++	if (list_empty(&dev->events))
++		return NULL;
++	return list_entry(dev->events.prev, struct inotify_kernel_event, list);
 +}
 +
-+static inline u32 hash_32(u32 val, unsigned int bits)
-+{
- 	/* On some cpus multiply is faster, on others gcc will do shifts */
--	hash *= GOLDEN_RATIO_PRIME;
--#endif
-+	u32 hash = val * GOLDEN_RATIO_PRIME_32;
++/*
+  * inotify_dev_queue_event - event handler registered with core inotify, adds
+  * a new event to the given device
+  *
+@@ -273,7 +286,7 @@ static void inotify_dev_queue_event(stru
+ 		put_inotify_watch(w); /* final put */
  
- 	/* High bits are more random, so use them. */
--	return hash >> (BITS_PER_LONG - bits);
-+	return hash >> (32 - bits);
- }
--	
-+
- static inline unsigned long hash_ptr(void *ptr, unsigned int bits)
- {
- 	return hash_long((unsigned long)ptr, bits);
+ 	/* coalescing: drop this event if it is a dupe of the previous */
+-	last = inotify_dev_get_event(dev);
++	last = inotify_dev_get_last_event(dev);
+ 	if (last && last->event.mask == mask && last->event.wd == wd &&
+ 			last->event.cookie == cookie) {
+ 		const char *lastname = last->name;
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from yanzheng@21cn.com are
 
 origin.patch
-git-scsi-misc.patch
-make-sure-nobodys-leaking-resources.patch
