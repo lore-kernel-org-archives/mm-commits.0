@@ -1,115 +1,275 @@
 From: akpm@linux-foundation.org
-Subject: - unix98-allocated_ptys_lock-semaphore-to-mutex.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:03 -0800
-Message-ID: <200802070023.m170Ni7P006552@imap1.linux-foundation.org>
+Subject: - atmel_spi-chain-dma-transfers.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:46 -0800
+Message-ID: <200802070025.m170PRHI006716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54736 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935131AbYBGApw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:52 -0500
+	by vger.kernel.org with ESMTP id S935127AbYBGApv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, hpa@zytor.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: slipszi@gmail.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unix98 allocated_ptys_lock semaphore to mutex
+     atmel_spi: chain DMA transfers
 has been removed from the -mm tree.  Its filename was
-     unix98-allocated_ptys_lock-semaphore-to-mutex.patch
+     atmel_spi-chain-dma-transfers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unix98 allocated_ptys_lock semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: atmel_spi: chain DMA transfers
+From: "Silvester Erdeg" <slipszi@gmail.com>
 
-Convert the unix98 allocated_ptys_lock to a mutex.
+Add support for chained transfers in the atmel_spi driver, letting the DMA
+controller switch to the next buffer pair without CPU intervention.  This
+reduced I/O latencies by about 2% in one bulk I/O test.  It should also help
+work around several interrelated errata affecting chipselect 0 on at91rm9200
+chips.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Almost all of the changes are in the reworked atmel_spi_next_xfer() function. 
+That's now called with the driver in one of three states:
+
+ 1. It isn't transferring anything (in which case the first transfer
+    of the current message is going to be sent)
+ 2. It has finished transfering a non-chainable transfer (in which
+    case it will go to the next transfer in the message)
+ 3. It has finished transfering a chained transfer (in which case the
+    next transfer is already queued)
+
+After that it will queue the next transfer if it can be chained.
+
+Signed-off-by: Szilveszter Ordog <slipszi@gmail.com>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/spi/atmel_spi.c |  148 ++++++++++++++++++++++++++------------
+ 1 file changed, 102 insertions(+), 46 deletions(-)
 
-diff -puN drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~unix98-allocated_ptys_lock-semaphore-to-mutex
-+++ a/drivers/char/tty_io.c
-@@ -138,7 +138,7 @@ EXPORT_SYMBOL(tty_mutex);
- extern struct tty_driver *ptm_driver;	/* Unix98 pty masters; for /dev/ptmx */
- extern int pty_limit;		/* Config limit on Unix98 ptys */
- static DEFINE_IDR(allocated_ptys);
--static DECLARE_MUTEX(allocated_ptys_lock);
-+static DEFINE_MUTEX(allocated_ptys_lock);
- static int ptmx_open(struct inode *, struct file *);
- #endif
+diff -puN drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers drivers/spi/atmel_spi.c
+--- a/drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers
++++ a/drivers/spi/atmel_spi.c
+@@ -51,7 +51,9 @@ struct atmel_spi {
+ 	u8			stopping;
+ 	struct list_head	queue;
+ 	struct spi_transfer	*current_transfer;
+-	unsigned long		remaining_bytes;
++	unsigned long		current_remaining_bytes;
++	struct spi_transfer	*next_transfer;
++	unsigned long		next_remaining_bytes;
  
-@@ -2571,9 +2571,9 @@ static void release_dev(struct file * fi
- #ifdef CONFIG_UNIX98_PTYS
- 	/* Make this pty number available for reallocation */
- 	if (devpts) {
--		down(&allocated_ptys_lock);
-+		mutex_lock(&allocated_ptys_lock);
- 		idr_remove(&allocated_ptys, idx);
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 	}
- #endif
- 
-@@ -2737,24 +2737,24 @@ static int ptmx_open(struct inode * inod
- 	nonseekable_open(inode, filp);
- 
- 	/* find a device that is not in use. */
--	down(&allocated_ptys_lock);
-+	mutex_lock(&allocated_ptys_lock);
- 	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		return -ENOMEM;
- 	}
- 	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
- 	if (idr_ret < 0) {
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		if (idr_ret == -EAGAIN)
- 			return -ENOMEM;
- 		return -EIO;
- 	}
- 	if (index >= pty_limit) {
- 		idr_remove(&allocated_ptys, index);
--		up(&allocated_ptys_lock);
-+		mutex_unlock(&allocated_ptys_lock);
- 		return -EIO;
- 	}
--	up(&allocated_ptys_lock);
-+	mutex_unlock(&allocated_ptys_lock);
- 
- 	mutex_lock(&tty_mutex);
- 	retval = init_dev(ptm_driver, index, &tty);
-@@ -2781,9 +2781,9 @@ out1:
- 	release_dev(filp);
- 	return retval;
- out:
--	down(&allocated_ptys_lock);
-+	mutex_lock(&allocated_ptys_lock);
- 	idr_remove(&allocated_ptys, index);
--	up(&allocated_ptys_lock);
-+	mutex_unlock(&allocated_ptys_lock);
- 	return retval;
+ 	void			*buffer;
+ 	dma_addr_t		buffer_dma;
+@@ -121,6 +123,48 @@ static void cs_deactivate(struct atmel_s
+ 		gpio_set_value(gpio, !active);
  }
- #endif
+ 
++static inline int atmel_spi_xfer_is_last(struct spi_message *msg,
++					struct spi_transfer *xfer)
++{
++	return msg->transfers.prev == &xfer->transfer_list;
++}
++
++static inline int atmel_spi_xfer_can_be_chained(struct spi_transfer *xfer)
++{
++	return xfer->delay_usecs == 0 && !xfer->cs_change;
++}
++
++static void atmel_spi_next_xfer_data(struct spi_master *master,
++				struct spi_transfer *xfer,
++				dma_addr_t *tx_dma,
++				dma_addr_t *rx_dma,
++				u32 *plen)
++{
++	struct atmel_spi	*as = spi_master_get_devdata(master);
++	u32			len = *plen;
++
++	/* use scratch buffer only when rx or tx data is unspecified */
++	if (xfer->rx_buf)
++		*rx_dma = xfer->rx_dma + xfer->len - len;
++	else {
++		*rx_dma = as->buffer_dma;
++		if (len > BUFFER_SIZE)
++			len = BUFFER_SIZE;
++	}
++	if (xfer->tx_buf)
++		*tx_dma = xfer->tx_dma + xfer->len - len;
++	else {
++		*tx_dma = as->buffer_dma;
++		if (len > BUFFER_SIZE)
++			len = BUFFER_SIZE;
++		memset(as->buffer, 0, len);
++		dma_sync_single_for_device(&as->pdev->dev,
++				as->buffer_dma, len, DMA_TO_DEVICE);
++	}
++
++	*plen = len;
++}
++
+ /*
+  * Submit next transfer for DMA.
+  * lock is held, spi irq is blocked
+@@ -130,53 +174,68 @@ static void atmel_spi_next_xfer(struct s
+ {
+ 	struct atmel_spi	*as = spi_master_get_devdata(master);
+ 	struct spi_transfer	*xfer;
+-	u32			len;
++	u32			len, remaining, total;
+ 	dma_addr_t		tx_dma, rx_dma;
+ 
+-	xfer = as->current_transfer;
+-	if (!xfer || as->remaining_bytes == 0) {
+-		if (xfer)
+-			xfer = list_entry(xfer->transfer_list.next,
+-					struct spi_transfer, transfer_list);
+-		else
+-			xfer = list_entry(msg->transfers.next,
+-					struct spi_transfer, transfer_list);
+-		as->remaining_bytes = xfer->len;
+-		as->current_transfer = xfer;
++	if (!as->current_transfer)
++		xfer = list_entry(msg->transfers.next,
++				struct spi_transfer, transfer_list);
++	else if (!as->next_transfer)
++		xfer = list_entry(as->current_transfer->transfer_list.next,
++				struct spi_transfer, transfer_list);
++	else
++		xfer = NULL;
++
++	if (xfer) {
++		len = xfer->len;
++		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
++		remaining = xfer->len - len;
++
++		spi_writel(as, RPR, rx_dma);
++		spi_writel(as, TPR, tx_dma);
++
++		if (msg->spi->bits_per_word > 8)
++			len >>= 1;
++		spi_writel(as, RCR, len);
++		spi_writel(as, TCR, len);
++	} else {
++		xfer = as->next_transfer;
++		remaining = as->next_remaining_bytes;
+ 	}
+ 
+-	len = as->remaining_bytes;
++	as->current_transfer = xfer;
++	as->current_remaining_bytes = remaining;
+ 
+-	tx_dma = xfer->tx_dma + xfer->len - len;
+-	rx_dma = xfer->rx_dma + xfer->len - len;
++	if (remaining > 0)
++		len = remaining;
++	else if (!atmel_spi_xfer_is_last(msg, xfer) &&
++		atmel_spi_xfer_can_be_chained(xfer)) {
++		xfer = list_entry(xfer->transfer_list.next,
++				struct spi_transfer, transfer_list);
++		len = xfer->len;
++	} else
++		xfer = NULL;
+ 
+-	/* use scratch buffer only when rx or tx data is unspecified */
+-	if (!xfer->rx_buf) {
+-		rx_dma = as->buffer_dma;
+-		if (len > BUFFER_SIZE)
+-			len = BUFFER_SIZE;
+-	}
+-	if (!xfer->tx_buf) {
+-		tx_dma = as->buffer_dma;
+-		if (len > BUFFER_SIZE)
+-			len = BUFFER_SIZE;
+-		memset(as->buffer, 0, len);
+-		dma_sync_single_for_device(&as->pdev->dev,
+-				as->buffer_dma, len, DMA_TO_DEVICE);
+-	}
++	as->next_transfer = xfer;
+ 
+-	spi_writel(as, RPR, rx_dma);
+-	spi_writel(as, TPR, tx_dma);
++	if (xfer) {
++		total = len;
++		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
++		as->next_remaining_bytes = total - len;
++
++		spi_writel(as, RNPR, rx_dma);
++		spi_writel(as, TNPR, tx_dma);
++
++		if (msg->spi->bits_per_word > 8)
++			len >>= 1;
++		spi_writel(as, RNCR, len);
++		spi_writel(as, TNCR, len);
++	} else {
++		spi_writel(as, RNCR, 0);
++		spi_writel(as, TNCR, 0);
++	}
+ 
+-	as->remaining_bytes -= len;
+-	if (msg->spi->bits_per_word > 8)
+-		len >>= 1;
+-
+-	/* REVISIT: when xfer->delay_usecs == 0, the PDC "next transfer"
+-	 * mechanism might help avoid the IRQ latency between transfers
+-	 * (and improve the nCS0 errata handling on at91rm9200 chips)
+-	 *
+-	 * We're also waiting for ENDRX before we start the next
++	/* REVISIT: We're waiting for ENDRX before we start the next
+ 	 * transfer because we need to handle some difficult timing
+ 	 * issues otherwise. If we wait for ENDTX in one transfer and
+ 	 * then starts waiting for ENDRX in the next, it's difficult
+@@ -186,8 +245,6 @@ static void atmel_spi_next_xfer(struct s
+ 	 *
+ 	 * It should be doable, though. Just not now...
+ 	 */
+-	spi_writel(as, TNCR, 0);
+-	spi_writel(as, RNCR, 0);
+ 	spi_writel(as, IER, SPI_BIT(ENDRX) | SPI_BIT(OVRES));
+ 
+ 	dev_dbg(&msg->spi->dev,
+@@ -195,8 +252,6 @@ static void atmel_spi_next_xfer(struct s
+ 		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
+ 		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
+ 
+-	spi_writel(as, RCR, len);
+-	spi_writel(as, TCR, len);
+ 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
+ }
+ 
+@@ -294,6 +349,7 @@ atmel_spi_msg_done(struct spi_master *ma
+ 	spin_lock(&as->lock);
+ 
+ 	as->current_transfer = NULL;
++	as->next_transfer = NULL;
+ 
+ 	/* continue if needed */
+ 	if (list_empty(&as->queue) || as->stopping)
+@@ -377,7 +433,7 @@ atmel_spi_interrupt(int irq, void *dev_i
+ 
+ 		spi_writel(as, IDR, pending);
+ 
+-		if (as->remaining_bytes == 0) {
++		if (as->current_remaining_bytes == 0) {
+ 			msg->actual_length += xfer->len;
+ 
+ 			if (!msg->is_dma_mapped)
+@@ -387,7 +443,7 @@ atmel_spi_interrupt(int irq, void *dev_i
+ 			if (xfer->delay_usecs)
+ 				udelay(xfer->delay_usecs);
+ 
+-			if (msg->transfers.prev == &xfer->transfer_list) {
++			if (atmel_spi_xfer_is_last(msg, xfer)) {
+ 				/* report completed message */
+ 				atmel_spi_msg_done(master, as, msg, 0,
+ 						xfer->cs_change);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from slipszi@gmail.com are
 
 origin.patch
-driver-base-memory-semaphore-to-mutex.patch
-usb-microtek-remove-unused-semaphore.patch
-usb-libusual-locking-cleanup.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
