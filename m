@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-ptracec-should-include-linux-syscallsh.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:21:50 -0800
-Message-ID: <200802070021.m170LVlo006344@imap1.linux-foundation.org>
+Subject: - fs-utimesc-should-include-linux-syscallsh.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:58 -0800
+Message-ID: <200802070021.m170Ldg6006357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58531 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932969AbYBGAo0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:26 -0500
+	by vger.kernel.org with ESMTP id S935012AbYBGAoY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/ptrace.c should #include <linux/syscalls.h>
+     fs/utimes.c should #include <linux/syscalls.h>
 has been removed from the -mm tree.  Its filename was
-     kernel-ptracec-should-include-linux-syscallsh.patch
+     fs-utimesc-should-include-linux-syscallsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/ptrace.c should #include <linux/syscalls.h>
+Subject: fs/utimes.c should #include <linux/syscalls.h>
 From: Adrian Bunk <bunk@kernel.org>
 
 Every file should include the headers containing the prototypes for its global
-functions (in this case sys_ptrace()).
+functions.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    1 +
+ fs/utimes.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/ptrace.c~kernel-ptracec-should-include-linux-syscallsh kernel/ptrace.c
---- a/kernel/ptrace.c~kernel-ptracec-should-include-linux-syscallsh
-+++ a/kernel/ptrace.c
-@@ -20,6 +20,7 @@
- #include <linux/signal.h>
- #include <linux/audit.h>
- #include <linux/pid_namespace.h>
+diff -puN fs/utimes.c~fs-utimesc-should-include-linux-syscallsh fs/utimes.c
+--- a/fs/utimes.c~fs-utimesc-should-include-linux-syscallsh
++++ a/fs/utimes.c
+@@ -6,6 +6,7 @@
+ #include <linux/sched.h>
+ #include <linux/stat.h>
+ #include <linux/utime.h>
 +#include <linux/syscalls.h>
- 
- #include <asm/pgtable.h>
  #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
