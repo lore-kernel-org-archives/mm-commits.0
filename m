@@ -1,127 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-validate-display-timings.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:19 -0800
-Message-ID: <200802070028.m170S0Vt007102@imap1.linux-foundation.org>
+Subject: - video-hpfbc-section-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:07 -0800
+Message-ID: <200802070027.m170RmlU007084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49582 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933918AbYBGAo6 (ORCPT
+	by vger.kernel.org with ESMTP id S933901AbYBGAo6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: validate display timings
+     video/hpfb.c section fix
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-validate-display-timings.patch
+     video-hpfbc-section-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: validate display timings
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: video/hpfb.c section fix
+From: Adrian Bunk <bunk@kernel.org>
 
-Setting a display timing parameter too high or too low may cause it to
-wrap around and thus become completely wrong. Validate the timings in
-atmel_lcdfb_check_var() and saturate to the highest or lowest possible
-value if necessary.
+WARNING: vmlinux.o(.text+0xb851a): Section mismatch: reference to .init.text:hpfb_init_one (between 'hpfb_dio_probe' and 'read_null')
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+hpfb_init_one() must be __devinit since it's called by the __devinit
+hpfb_dio_probe().
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   20 ++++++++++++++++++++
- include/video/atmel_lcdc.h  |   14 +++++++-------
- 2 files changed, 27 insertions(+), 7 deletions(-)
+ drivers/video/hpfb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -203,6 +203,26 @@ static int atmel_lcdfb_check_var(struct 
- 	var->transp.offset = var->transp.length = 0;
- 	var->xoffset = var->yoffset = 0;
+diff -puN drivers/video/hpfb.c~video-hpfbc-section-fix drivers/video/hpfb.c
+--- a/drivers/video/hpfb.c~video-hpfbc-section-fix
++++ a/drivers/video/hpfb.c
+@@ -207,7 +207,8 @@ static struct fb_ops hpfb_ops = {
+ #define HPFB_FBOMSB	0x5d	/* Frame buffer offset		*/
+ #define HPFB_FBOLSB	0x5f
  
-+	/* Saturate vertical and horizontal timings at maximum values */
-+	var->vsync_len = min_t(u32, var->vsync_len,
-+			(ATMEL_LCDC_VPW >> ATMEL_LCDC_VPW_OFFSET) + 1);
-+	var->upper_margin = min_t(u32, var->upper_margin,
-+			ATMEL_LCDC_VBP >> ATMEL_LCDC_VBP_OFFSET);
-+	var->lower_margin = min_t(u32, var->lower_margin,
-+			ATMEL_LCDC_VFP);
-+	var->right_margin = min_t(u32, var->right_margin,
-+			(ATMEL_LCDC_HFP >> ATMEL_LCDC_HFP_OFFSET) + 1);
-+	var->hsync_len = min_t(u32, var->hsync_len,
-+			(ATMEL_LCDC_HPW >> ATMEL_LCDC_HPW_OFFSET) + 1);
-+	var->left_margin = min_t(u32, var->left_margin,
-+			ATMEL_LCDC_HBP + 1);
-+
-+	/* Some parameters can't be zero */
-+	var->vsync_len = max_t(u32, var->vsync_len, 1);
-+	var->right_margin = max_t(u32, var->right_margin, 1);
-+	var->hsync_len = max_t(u32, var->hsync_len, 1);
-+	var->left_margin = max_t(u32, var->left_margin, 1);
-+
- 	switch (var->bits_per_pixel) {
- 	case 1:
- 	case 2:
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings
-+++ a/include/video/atmel_lcdc.h
-@@ -115,20 +115,20 @@ struct atmel_lcdfb_info {
- #define		ATMEL_LCDC_MEMOR_LITTLE		(1 << 31)
+-static int __init hpfb_init_one(unsigned long phys_base, unsigned long virt_base)
++static int __devinit hpfb_init_one(unsigned long phys_base,
++				   unsigned long virt_base)
+ {
+ 	unsigned long fboff, fb_width, fb_height, fb_start;
  
- #define ATMEL_LCDC_TIM1		0x0808
--#define	ATMEL_LCDC_VFP		(0xff <<  0)
-+#define	ATMEL_LCDC_VFP		(0xffU <<  0)
- #define	ATMEL_LCDC_VBP_OFFSET		8
--#define	ATMEL_LCDC_VBP		(0xff <<  ATMEL_LCDC_VBP_OFFSET)
-+#define	ATMEL_LCDC_VBP		(0xffU <<  ATMEL_LCDC_VBP_OFFSET)
- #define	ATMEL_LCDC_VPW_OFFSET		16
--#define	ATMEL_LCDC_VPW		(0x3f << ATMEL_LCDC_VPW_OFFSET)
-+#define	ATMEL_LCDC_VPW		(0x3fU << ATMEL_LCDC_VPW_OFFSET)
- #define	ATMEL_LCDC_VHDLY_OFFSET		24
--#define	ATMEL_LCDC_VHDLY	(0xf  << ATMEL_LCDC_VHDLY_OFFSET)
-+#define	ATMEL_LCDC_VHDLY	(0xfU  << ATMEL_LCDC_VHDLY_OFFSET)
- 
- #define ATMEL_LCDC_TIM2		0x080c
--#define	ATMEL_LCDC_HBP		(0xff  <<  0)
-+#define	ATMEL_LCDC_HBP		(0xffU  <<  0)
- #define	ATMEL_LCDC_HPW_OFFSET		8
--#define	ATMEL_LCDC_HPW		(0x3f  <<  ATMEL_LCDC_HPW_OFFSET)
-+#define	ATMEL_LCDC_HPW		(0x3fU  <<  ATMEL_LCDC_HPW_OFFSET)
- #define	ATMEL_LCDC_HFP_OFFSET		21
--#define	ATMEL_LCDC_HFP		(0x7ff << ATMEL_LCDC_HFP_OFFSET)
-+#define	ATMEL_LCDC_HFP		(0x7ffU << ATMEL_LCDC_HFP_OFFSET)
- 
- #define ATMEL_LCDC_LCDFRMCFG	0x0810
- #define	ATMEL_LCDC_LINEVAL	(0x7ff <<  0)
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-avr32.patch
+git-acpi.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
-atmel_serial-clean-up-the-code.patch
-atmel_serial-use-cpu_relax-when-busy-waiting.patch
-atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
-atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
-atmel_serial-split-the-interrupt-handler.patch
-atmel_serial-add-dma-support.patch
-atmel_serial-add-dma-support-fix.patch
-atmel_serial-fix-broken-rx-buffer-allocation.patch
-atmel_serial-use-container_of-instead-of-direct-cast.patch
-atmel_serial-show-tty-name-in-proc-interrupts.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+move-edactxt-two-levels-up.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
