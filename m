@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:33:58 -0800
-Message-ID: <200802070333.m173Xdea014057@imap1.linux-foundation.org>
+Subject: - iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:34:13 -0800
+Message-ID: <200802070333.m173XsZ0014068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40519 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889AbYBGDea (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:34:30 -0500
+	by vger.kernel.org with ESMTP id S1751935AbYBGDfA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:35:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
+     iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+     iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into iget-stop-efs-from-using-iget-and-read_inode-try.patch
+This patch was dropped because it was folded into iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
+Subject: iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#105: FILE: fs/efs/namei.c:94:
-+^I    ^Ireturn ERR_PTR(-ESTALE);$
+WARNING: no space between function name and open parenthesis '('
+#31: FILE: fs/ext2/ext2.h:127:
++extern struct inode *ext2_iget (struct super_block *, unsigned long);
 
-total: 1 errors, 0 warnings, 151 lines checked
+WARNING: no space between function name and open parenthesis '('
+#43: FILE: fs/ext2/inode.c:1188:
++struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
+
+ERROR: "foo * bar" should be "foo *bar"
+#50: FILE: fs/ext2/inode.c:1192:
++	struct ext2_inode * raw_inode;
+
+total: 1 errors, 2 warnings, 161 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: <linux-ext4@vger.kernel.org>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/namei.c |    2 +-
+ fs/ext2/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/efs/namei.c
---- a/fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
-+++ a/fs/efs/namei.c
-@@ -91,7 +91,7 @@ static struct inode *efs_nfs_get_inode(s
- 
- 	if (generation && inode->i_generation != generation) {
- 		iput(inode);
--	    	return ERR_PTR(-ESTALE);
-+		return ERR_PTR(-ESTALE);
- 	}
- 
- 	return inode;
+diff -puN fs/ext2/inode.c~iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes fs/ext2/inode.c
+--- a/fs/ext2/inode.c~iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes
++++ a/fs/ext2/inode.c
+@@ -1185,7 +1185,7 @@ struct inode *ext2_iget (struct super_bl
+ {
+ 	struct ext2_inode_info *ei;
+ 	struct buffer_head * bh;
+-	struct ext2_inode * raw_inode;
++	struct ext2_inode *raw_inode;
+ 	struct inode *inode;
+ 	long ret = -EIO;
+ 	int n;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +91,7 @@ drivers-edac-add-marvell-mv64x60-driver.patch
 introduce-flags-for-reserve_bootmem.patch
 iget-stop-affs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
