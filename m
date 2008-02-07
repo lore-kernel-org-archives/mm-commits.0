@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bnx2x-section-fix-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 14:47:27 -0800
-Message-ID: <200802072247.m17MlRPT026731@imap1.linux-foundation.org>
+Subject: + typhoon-section-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 14:47:19 -0800
+Message-ID: <200802072247.m17MlJS1026719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34046 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761264AbYBGWsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:48:14 -0500
+	by vger.kernel.org with ESMTP id S1757606AbYBGWsA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:48:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     bnx2x-section-fix-fix
+     typhoon section fix
 has been added to the -mm tree.  Its filename is
-     bnx2x-section-fix-fix.patch
+     typhoon-section-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bnx2x-section-fix-fix
+Subject: typhoon section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix i386
+gcc-3.4.4 on powerpc:
+
+drivers/net/typhoon.c:137: error: version causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2x.c |    2 +-
+ drivers/net/typhoon.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bnx2x.c~bnx2x-section-fix-fix drivers/net/bnx2x.c
---- a/drivers/net/bnx2x.c~bnx2x-section-fix-fix
-+++ a/drivers/net/bnx2x.c
-@@ -107,7 +107,7 @@ enum bnx2x_board_type {
- };
+diff -puN drivers/net/typhoon.c~typhoon-section-fix drivers/net/typhoon.c
+--- a/drivers/net/typhoon.c~typhoon-section-fix
++++ a/drivers/net/typhoon.c
+@@ -134,7 +134,7 @@ static const int multicast_filter_limit 
+ #include "typhoon.h"
+ #include "typhoon-firmware.h"
  
- /* indexed by board_t, above */
--static const struct {
-+static struct {
- 	char *name;
- } board_info[] __devinitdata = {
- 	{ "Broadcom NetXtreme II BCM57710 XGb" }
+-static const char version[] __devinitdata =
++static char version[] __devinitdata =
+     "typhoon.c: version " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ 
+ MODULE_AUTHOR("David Dillow <dave@thedillows.org>");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
