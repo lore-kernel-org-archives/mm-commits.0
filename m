@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + apanel-fix-kconfig-dependencies.patch added to -mm tree
-Date: Thu, 07 Feb 2008 11:32:04 -0800
-Message-ID: <200802071931.m17JVja6017943@imap1.linux-foundation.org>
+Subject: + inotify-fix-check-for-one-shot-watches-before-destroying-them.patch added to -mm tree
+Date: Thu, 07 Feb 2008 13:44:12 -0800
+Message-ID: <200802072144.m17LiCxj024093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48675 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46991 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753798AbYBGTdL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 14:33:11 -0500
+	by vger.kernel.org with ESMTP id S1755327AbYBGVon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 16:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dtor@mail.ru, khali@linux-fr.org, shemminger@linux-foundation.org
+Cc: ulissesf@gmail.com, amy.griffis@hp.com, clem.taylor@gmail.com, rlove@google.com, stable@kernel.org, ttb@tentacle.dhs.org
 
 
 The patch titled
-     apanel: fix kconfig dependencies
+     inotify: fix check for one-shot watches before destroying them
 has been added to the -mm tree.  Its filename is
-     apanel-fix-kconfig-dependencies.patch
+     inotify-fix-check-for-one-shot-watches-before-destroying-them.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: apanel: fix kconfig dependencies
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: inotify: fix check for one-shot watches before destroying them
+From: Ulisses Furquim <ulissesf@gmail.com>
 
-Add I2C to config since the driver makes several i2c*() calls.
+As the IN_ONESHOT bit is never set when an event is sent we must check it
+in the watch's mask and not in the event's mask.
 
-Add to help text that the Intel I2C ICH (i801) driver is also needed
-for this kernel.
-
-Add LEDS_CLASS to config since the driver makes les_classdev_*() calls:
-ERROR: "led_classdev_register" [drivers/input/misc/apanel.ko] undefined!
-ERROR: "__led_classdev_unregister" [drivers/input/misc/apanel.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Stephen Hemminger <shemminger@osdl.org>
+Signed-off-by: Ulisses Furquim <ulissesf@gmail.com>
+Reported-by: "Clem Taylor" <clem.taylor@gmail.com>
+Tested-by: "Clem Taylor" <clem.taylor@gmail.com>
+Cc: Amy Griffis <amy.griffis@hp.com>
+Cc: Robert Love <rlove@google.com>
+Cc: John McCutchan <ttb@tentacle.dhs.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/inotify_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/misc/Kconfig~apanel-fix-kconfig-dependencies drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~apanel-fix-kconfig-dependencies
-+++ a/drivers/input/misc/Kconfig
-@@ -42,14 +42,14 @@ config INPUT_M68K_BEEP
+diff -puN fs/inotify_user.c~inotify-fix-check-for-one-shot-watches-before-destroying-them fs/inotify_user.c
+--- a/fs/inotify_user.c~inotify-fix-check-for-one-shot-watches-before-destroying-them
++++ a/fs/inotify_user.c
+@@ -283,7 +283,7 @@ static void inotify_dev_queue_event(stru
+ 	/* we can safely put the watch as we don't reference it while
+ 	 * generating the event
+ 	 */
+-	if (mask & IN_IGNORED || mask & IN_ONESHOT)
++	if (mask & IN_IGNORED || w->mask & IN_ONESHOT)
+ 		put_inotify_watch(w); /* final put */
  
- config INPUT_APANEL
- 	tristate "Fujitsu Lifebook Application Panel buttons"
--	depends on X86
--	select I2C_I801
-+	depends on X86 && I2C && LEDS_CLASS
- 	select INPUT_POLLDEV
- 	select CHECK_SIGNATURE
- 	help
- 	 Say Y here for support of the Application Panel buttons, used on
- 	 Fujitsu Lifebook. These are attached to the mainboard through
--	 an SMBus interface managed by the I2C Intel ICH (i801) driver.
-+	 an SMBus interface managed by the I2C Intel ICH (i801) driver,
-+	 which you should also build for this kernel.
- 
- 	 To compile this driver as a module, choose M here: the module will
- 	 be called apanel.
+ 	/* coalescing: drop this event if it is a dupe of the previous */
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from ulissesf@gmail.com are
 
-origin.patch
-docbook-dmapool-fix-fatal-changed-filename.patch
-kernel-doc-fix-for-vunmap-function-prototype.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
+inotify-fix-check-for-one-shot-watches-before-destroying-them.patch
