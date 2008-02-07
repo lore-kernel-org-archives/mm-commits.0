@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + starfire-secton-fix-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 00:42:26 -0800
-Message-ID: <200802070851.m178pG0u025686@imap1.linux-foundation.org>
+Subject: + git-alsa-build-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 01:03:55 -0800
+Message-ID: <200802070912.m179CjZa026465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47423 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37302 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754294AbYBGIv3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 03:51:29 -0500
+	by vger.kernel.org with ESMTP id S1752496AbYBGJM4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 04:12:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     starfire-secton-fix-fix
+     git-alsa-build-fix
 has been added to the -mm tree.  Its filename is
-     starfire-secton-fix-fix.patch
+     git-alsa-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: starfire-secton-fix-fix
+Subject: git-alsa-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 now gets:
+sound/pci/hda/hda_intel.c: In function 'azx_pcm_prepare':
+sound/pci/hda/hda_intel.c:1311: error: 'struct azx_dev' has no member named 'fragsize'
 
-drivers/net/starfire.c:219: error: version causes a section type conflict
-
-nfi what's going on.
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/starfire.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/hda/hda_intel.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/net/starfire.c~starfire-secton-fix-fix drivers/net/starfire.c
---- a/drivers/net/starfire.c~starfire-secton-fix-fix
-+++ a/drivers/net/starfire.c
-@@ -216,7 +216,7 @@ do { \
+diff -puN sound/pci/hda/hda_intel.c~git-alsa-build-fix sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~git-alsa-build-fix
++++ a/sound/pci/hda/hda_intel.c
+@@ -1308,9 +1308,6 @@ static int azx_pcm_prepare(struct snd_pc
+ 		return -EINVAL;
+ 	}
  
- 
- /* These identify the driver base version and may not be removed. */
--static char version[] __devinitdata =
-+static char version[] =
- KERN_INFO "starfire.c:v1.03 7/26/2000  Written by Donald Becker <becker@scyld.com>\n"
- KERN_INFO " (unofficial 2.2/2.4 kernel port, version " DRV_VERSION ", " DRV_RELDATE ")\n";
- 
+-	snd_printdd("azx_pcm_prepare: bufsize=0x%x, fragsize=0x%x, "
+-		    "format=0x%x\n",
+-		    azx_dev->bufsize, azx_dev->fragsize, azx_dev->format_val);
+ 	if (azx_setup_periods(substream, azx_dev) < 0)
+ 		return -EINVAL;
+ 	azx_setup_controller(chip, azx_dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -224,3 +223,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-alsa-build-fix.patch
