@@ -1,149 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-add-block-bitmap-validation.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:28 -0800
-Message-ID: <200802070030.m170U9Tg007358__18378.6893765957$1202345756$gmane$org@imap1.linux-foundation.org>
+Subject: - md-update-md-bitmap-during-resync.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:45 -0800
+Message-ID: <200802070029.m170TQX4007272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57981 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53237 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935033AbYBGAny (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:54 -0500
+	by vger.kernel.org with ESMTP id S935015AbYBGAnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, snitzer@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: add block bitmap validation
+     md: Update md bitmap during resync.
 has been removed from the -mm tree.  Its filename was
-     ext2-add-block-bitmap-validation.patch
+     md-update-md-bitmap-during-resync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: add block bitmap validation
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: md: Update md bitmap during resync.
+From: NeilBrown <neilb@suse.de>
 
-When a new block bitmap is read from disk in read_block_bitmap() there are a
-few bits that should ALWAYS be set.  In particular, the blocks given
-corresponding to block bitmap, inode bitmap and inode tables.  Validate the
-block bitmap against these blocks.
+Currently an md array with a write-intent bitmap does not updated that bitmap
+to reflect successful partial resync.  Rather the entire bitmap is updated
+when the resync completes.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+This is because there is no guarentee that resync requests will complete in
+order, and tracking each request individually is unnecessarily burdensome.
+
+However there is value in regularly updating the bitmap, so add code to
+periodically pause while all pending sync requests complete, then update the
+bitmap.  Doing this only every few seconds (the same as the bitmap update
+time) does not notciably affect resync performance.
+
+[snitzer@gmail.com: export bitmap_cond_end_sync]
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "Mike Snitzer" <snitzer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |   81 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 72 insertions(+), 9 deletions(-)
+ drivers/md/bitmap.c         |   35 +++++++++++++++++++++++++++++-----
+ drivers/md/raid1.c          |    1 
+ drivers/md/raid10.c         |    2 +
+ drivers/md/raid5.c          |    3 ++
+ include/linux/raid/bitmap.h |    3 ++
+ 5 files changed, 39 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext2-add-block-bitmap-validation fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext2-add-block-bitmap-validation
-+++ a/fs/ext2/balloc.c
-@@ -69,9 +69,53 @@ struct ext2_group_desc * ext2_get_group_
- 	return desc + offset;
- }
- 
-+static int ext2_valid_block_bitmap(struct super_block *sb,
-+					struct ext2_group_desc *desc,
-+					unsigned int block_group,
-+					struct buffer_head *bh)
-+{
-+	ext2_grpblk_t offset;
-+	ext2_grpblk_t next_zero_bit;
-+	ext2_fsblk_t bitmap_blk;
-+	ext2_fsblk_t group_first_block;
-+
-+	group_first_block = ext2_group_first_block_no(sb, block_group);
-+
-+	/* check whether block bitmap block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
-+	offset = bitmap_blk - group_first_block;
-+	if (!ext2_test_bit(offset, bh->b_data))
-+		/* bad block bitmap */
-+		goto err_out;
-+
-+	/* check whether the inode bitmap block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
-+	offset = bitmap_blk - group_first_block;
-+	if (!ext2_test_bit(offset, bh->b_data))
-+		/* bad block bitmap */
-+		goto err_out;
-+
-+	/* check whether the inode table block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
-+	offset = bitmap_blk - group_first_block;
-+	next_zero_bit = ext2_find_next_zero_bit(bh->b_data,
-+				offset + EXT2_SB(sb)->s_itb_per_group,
-+				offset);
-+	if (next_zero_bit >= offset + EXT2_SB(sb)->s_itb_per_group)
-+		/* good bitmap for inode tables */
-+		return 1;
-+
-+err_out:
-+	ext2_error(sb, __FUNCTION__,
-+			"Invalid block bitmap - "
-+			"block_group = %d, block = %lu",
-+			block_group, bitmap_blk);
-+	return 0;
+diff -puN drivers/md/bitmap.c~md-update-md-bitmap-during-resync drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~md-update-md-bitmap-during-resync
++++ a/drivers/md/bitmap.c
+@@ -1348,14 +1348,38 @@ void bitmap_close_sync(struct bitmap *bi
+ 	 */
+ 	sector_t sector = 0;
+ 	int blocks;
+-	if (!bitmap) return;
++	if (!bitmap)
++		return;
+ 	while (sector < bitmap->mddev->resync_max_sectors) {
+ 		bitmap_end_sync(bitmap, sector, &blocks, 0);
+-/*
+-		if (sector < 500) printk("bitmap_close_sync: sec %llu blks %d\n",
+-					 (unsigned long long)sector, blocks);
+-*/		sector += blocks;
++		sector += blocks;
++	}
 +}
 +
- /*
-- * Read the bitmap for a given block_group, reading into the specified 
-- * slot in the superblock's bitmap cache.
-+ * Read the bitmap for a given block_group,and validate the
-+ * bits for block/inode/inode tables are set in the bitmaps
-  *
-  * Return buffer_head on success or NULL in case of failure.
-  */
-@@ -80,17 +124,36 @@ read_block_bitmap(struct super_block *sb
- {
- 	struct ext2_group_desc * desc;
- 	struct buffer_head * bh = NULL;
--	
--	desc = ext2_get_group_desc (sb, block_group, NULL);
-+	ext2_fsblk_t bitmap_blk;
++void bitmap_cond_end_sync(struct bitmap *bitmap, sector_t sector)
++{
++	sector_t s = 0;
++	int blocks;
 +
-+	desc = ext2_get_group_desc(sb, block_group, NULL);
- 	if (!desc)
--		goto error_out;
--	bh = sb_bread(sb, le32_to_cpu(desc->bg_block_bitmap));
--	if (!bh)
--		ext2_error (sb, "read_block_bitmap",
-+		return NULL;
-+	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
-+	bh = sb_getblk(sb, bitmap_blk);
-+	if (unlikely(!bh)) {
-+		ext2_error(sb, __FUNCTION__,
- 			    "Cannot read block bitmap - "
- 			    "block_group = %d, block_bitmap = %u",
- 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
--error_out:
-+		return NULL;
++	if (!bitmap)
++		return;
++	if (sector == 0) {
++		bitmap->last_end_sync = jiffies;
++		return;
 +	}
-+	if (likely(bh_uptodate_or_lock(bh)))
-+		return bh;
++	if (time_before(jiffies, (bitmap->last_end_sync
++				  + bitmap->daemon_sleep * HZ)))
++		return;
++	wait_event(bitmap->mddev->recovery_wait,
++		   atomic_read(&bitmap->mddev->recovery_active) == 0);
 +
-+	if (bh_submit_read(bh) < 0) {
-+		brelse(bh);
-+		ext2_error(sb, __FUNCTION__,
-+			    "Cannot read block bitmap - "
-+			    "block_group = %d, block_bitmap = %u",
-+			    block_group, le32_to_cpu(desc->bg_block_bitmap));
-+		return NULL;
-+	}
-+	if (!ext2_valid_block_bitmap(sb, desc, block_group, bh)) {
-+		brelse(bh);
-+		return NULL;
-+	}
-+
- 	return bh;
++	sector &= ~((1ULL << CHUNK_BLOCK_SHIFT(bitmap)) - 1);
++	s = 0;
++	while (s < sector && s < bitmap->mddev->resync_max_sectors) {
++		bitmap_end_sync(bitmap, s, &blocks, 0);
++		s += blocks;
+ 	}
++	bitmap->last_end_sync = jiffies;
  }
  
+ static void bitmap_set_memory_bits(struct bitmap *bitmap, sector_t offset, int needed)
+@@ -1565,3 +1589,4 @@ EXPORT_SYMBOL(bitmap_start_sync);
+ EXPORT_SYMBOL(bitmap_end_sync);
+ EXPORT_SYMBOL(bitmap_unplug);
+ EXPORT_SYMBOL(bitmap_close_sync);
++EXPORT_SYMBOL(bitmap_cond_end_sync);
+diff -puN drivers/md/raid1.c~md-update-md-bitmap-during-resync drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-update-md-bitmap-during-resync
++++ a/drivers/md/raid1.c
+@@ -1684,6 +1684,7 @@ static sector_t sync_request(mddev_t *md
+ 	if (!go_faster && conf->nr_waiting)
+ 		msleep_interruptible(1000);
+ 
++	bitmap_cond_end_sync(mddev->bitmap, sector_nr);
+ 	raise_barrier(conf);
+ 
+ 	conf->next_resync = sector_nr;
+diff -puN drivers/md/raid10.c~md-update-md-bitmap-during-resync drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-update-md-bitmap-during-resync
++++ a/drivers/md/raid10.c
+@@ -1670,6 +1670,8 @@ static sector_t sync_request(mddev_t *md
+ 	if (!go_faster && conf->nr_waiting)
+ 		msleep_interruptible(1000);
+ 
++	bitmap_cond_end_sync(mddev->bitmap, sector_nr);
++
+ 	/* Again, very different code for resync and recovery.
+ 	 * Both must result in an r10bio with a list of bios that
+ 	 * have bi_end_io, bi_sector, bi_bdev set,
+diff -puN drivers/md/raid5.c~md-update-md-bitmap-during-resync drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-update-md-bitmap-during-resync
++++ a/drivers/md/raid5.c
+@@ -3753,6 +3753,9 @@ static inline sector_t sync_request(mdde
+ 		return sync_blocks * STRIPE_SECTORS; /* keep things rounded to whole stripes */
+ 	}
+ 
++
++	bitmap_cond_end_sync(mddev->bitmap, sector_nr);
++
+ 	pd_idx = stripe_to_pdidx(sector_nr, conf, raid_disks);
+ 	sh = get_active_stripe(conf, sector_nr, raid_disks, pd_idx, 1);
+ 	if (sh == NULL) {
+diff -puN include/linux/raid/bitmap.h~md-update-md-bitmap-during-resync include/linux/raid/bitmap.h
+--- a/include/linux/raid/bitmap.h~md-update-md-bitmap-during-resync
++++ a/include/linux/raid/bitmap.h
+@@ -244,6 +244,8 @@ struct bitmap {
+ 	 */
+ 	unsigned long daemon_lastrun; /* jiffies of last run */
+ 	unsigned long daemon_sleep; /* how many seconds between updates? */
++	unsigned long last_end_sync; /* when we lasted called end_sync to
++				      * update bitmap with resync progress */
+ 
+ 	atomic_t pending_writes; /* pending writes to the bitmap file */
+ 	wait_queue_head_t write_wait;
+@@ -275,6 +277,7 @@ void bitmap_endwrite(struct bitmap *bitm
+ int bitmap_start_sync(struct bitmap *bitmap, sector_t offset, int *blocks, int degraded);
+ void bitmap_end_sync(struct bitmap *bitmap, sector_t offset, int *blocks, int aborted);
+ void bitmap_close_sync(struct bitmap *bitmap);
++void bitmap_cond_end_sync(struct bitmap *bitmap, sector_t sector);
+ 
+ void bitmap_unplug(struct bitmap *bitmap);
+ void bitmap_daemon_work(struct bitmap *bitmap);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
