@@ -1,167 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - address-hfs-on-disk-corruption-robustness-review-comments.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:04 -0800
-Message-ID: <200802070022.m170Mjrw006464@imap1.linux-foundation.org>
+Subject: - ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:52 -0800
+Message-ID: <200802070026.m170QXLw006928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934019AbYBGApf (ORCPT
+	by vger.kernel.org with ESMTP id S933965AbYBGApf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: thighlan@gmail.com, mhalcrow@us.ibm.com, trevor.highland@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     address hfs on-disk corruption robustness review comments
+     eCryptfs: change the type of cipher_code from u16 to u8
 has been removed from the -mm tree.  Its filename was
-     address-hfs-on-disk-corruption-robustness-review-comments.patch
+     ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: address hfs on-disk corruption robustness review comments
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: eCryptfs: change the type of cipher_code from u16 to u8
+From: Trevor Highland <thighlan@gmail.com>
 
-Address Roman's review comments for the previously sent on-disk
-corruption hfs robustness patch.
+Only the lower byte of cipher_code is ever used, so it makes sense
+for its type to be u8.
 
-- use 0 as a failure value, rather than making a new macro HFS_BAD_KEYLEN,
-  and use a switch statement instead of if's.
-
-- Add new fail: target to __hfs_brec_find to skip assignments using bad
-  values when exiting with a failure.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Trevor Highland <trevor.highland@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bfind.c |   11 ++++++-----
- fs/hfs/brec.c  |    4 ++--
- fs/hfs/btree.c |   26 +++++++++++++++++---------
- fs/hfs/hfs.h   |    2 --
- 4 files changed, 25 insertions(+), 18 deletions(-)
+ fs/ecryptfs/crypto.c          |    8 ++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    4 ++--
+ fs/ecryptfs/keystore.c        |    8 ++++----
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/hfs/bfind.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/bfind.c
---- a/fs/hfs/bfind.c~address-hfs-on-disk-corruption-robustness-review-comments
-+++ a/fs/hfs/bfind.c
-@@ -52,9 +52,9 @@ int __hfs_brec_find(struct hfs_bnode *bn
- 		rec = (e + b) / 2;
- 		len = hfs_brec_lenoff(bnode, rec, &off);
- 		keylen = hfs_brec_keylen(bnode, rec);
--		if (keylen == HFS_BAD_KEYLEN) {
-+		if (keylen == 0) {
- 			res = -EINVAL;
--			goto done;
-+			goto fail;
- 		}
- 		hfs_bnode_read(bnode, fd->key, off, keylen);
- 		cmpval = bnode->tree->keycmp(fd->key, fd->search_key);
-@@ -71,9 +71,9 @@ int __hfs_brec_find(struct hfs_bnode *bn
- 	if (rec != e && e >= 0) {
- 		len = hfs_brec_lenoff(bnode, e, &off);
- 		keylen = hfs_brec_keylen(bnode, e);
--		if (keylen == HFS_BAD_KEYLEN) {
-+		if (keylen == 0) {
- 			res = -EINVAL;
--			goto done;
-+			goto fail;
- 		}
- 		hfs_bnode_read(bnode, fd->key, off, keylen);
- 	}
-@@ -83,6 +83,7 @@ done:
- 	fd->keylength = keylen;
- 	fd->entryoffset = off + keylen;
- 	fd->entrylength = len - keylen;
-+fail:
- 	return res;
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/crypto.c
+@@ -1128,7 +1128,7 @@ write_ecryptfs_flags(char *page_virt, st
+ 
+ struct ecryptfs_cipher_code_str_map_elem {
+ 	char cipher_str[16];
+-	u16 cipher_code;
++	u8 cipher_code;
+ };
+ 
+ /* Add support for additional ciphers by adding elements here. The
+@@ -1152,10 +1152,10 @@ ecryptfs_cipher_code_str_map[] = {
+  *
+  * Returns zero on no match, or the cipher code on match
+  */
+-u16 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat)
++u8 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat)
+ {
+ 	int i;
+-	u16 code = 0;
++	u8 code = 0;
+ 	struct ecryptfs_cipher_code_str_map_elem *map =
+ 		ecryptfs_cipher_code_str_map;
+ 
+@@ -1187,7 +1187,7 @@ u16 ecryptfs_code_for_cipher_string(stru
+  *
+  * Returns zero on success
+  */
+-int ecryptfs_cipher_code_to_string(char *str, u16 cipher_code)
++int ecryptfs_cipher_code_to_string(char *str, u8 cipher_code)
+ {
+ 	int rc = 0;
+ 	int i;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -558,8 +558,8 @@ int ecryptfs_read_and_validate_header_re
+ 					     struct inode *ecryptfs_inode);
+ int ecryptfs_read_and_validate_xattr_region(char *page_virt,
+ 					    struct dentry *ecryptfs_dentry);
+-u16 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat);
+-int ecryptfs_cipher_code_to_string(char *str, u16 cipher_code);
++u8 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat);
++int ecryptfs_cipher_code_to_string(char *str, u8 cipher_code);
+ void ecryptfs_set_default_sizes(struct ecryptfs_crypt_stat *crypt_stat);
+ int ecryptfs_generate_key_packet_set(char *dest_base,
+ 				     struct ecryptfs_crypt_stat *crypt_stat,
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8 fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-change-the-type-of-cipher_code-from-u16-to-u8
++++ a/fs/ecryptfs/keystore.c
+@@ -189,7 +189,7 @@ out:
  }
  
-@@ -206,7 +207,7 @@ int hfs_brec_goto(struct hfs_find_data *
+ static int
+-parse_tag_65_packet(struct ecryptfs_session_key *session_key, u16 *cipher_code,
++parse_tag_65_packet(struct ecryptfs_session_key *session_key, u8 *cipher_code,
+ 		    struct ecryptfs_message *msg)
+ {
+ 	size_t i = 0;
+@@ -275,7 +275,7 @@ out:
  
- 	len = hfs_brec_lenoff(bnode, fd->record, &off);
- 	keylen = hfs_brec_keylen(bnode, fd->record);
--	if (keylen == HFS_BAD_KEYLEN) {
-+	if (keylen == 0) {
- 		res = -EINVAL;
- 		goto out;
- 	}
-diff -puN fs/hfs/brec.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/brec.c
---- a/fs/hfs/brec.c~address-hfs-on-disk-corruption-robustness-review-comments
-+++ a/fs/hfs/brec.c
-@@ -49,14 +49,14 @@ u16 hfs_brec_keylen(struct hfs_bnode *no
- 			if (retval > node->tree->max_key_len + 2) {
- 				printk(KERN_ERR "hfs: keylen %d too large\n",
- 					retval);
--				retval = HFS_BAD_KEYLEN;
-+				retval = 0;
- 			}
- 		} else {
- 			retval = (hfs_bnode_read_u8(node, recoff) | 1) + 1;
- 			if (retval > node->tree->max_key_len + 1) {
- 				printk(KERN_ERR "hfs: keylen %d too large\n",
- 					retval);
--				retval = HFS_BAD_KEYLEN;
-+				retval = 0;
- 			}
- 		}
- 	}
-diff -puN fs/hfs/btree.c~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/btree.c
---- a/fs/hfs/btree.c~address-hfs-on-disk-corruption-robustness-review-comments
-+++ a/fs/hfs/btree.c
-@@ -81,15 +81,23 @@ struct hfs_btree *hfs_btree_open(struct 
- 		goto fail_page;
- 	if (!tree->node_count)
- 		goto fail_page;
--	if ((id == HFS_EXT_CNID) && (tree->max_key_len != HFS_MAX_EXT_KEYLEN)) {
--		printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
--			tree->max_key_len);
--		goto fail_page;
--	}
--	if ((id == HFS_CAT_CNID) && (tree->max_key_len != HFS_MAX_CAT_KEYLEN)) {
--		printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
--			tree->max_key_len);
--		goto fail_page;
-+	switch (id) {
-+	case HFS_EXT_CNID:
-+		if (tree->max_key_len != HFS_MAX_EXT_KEYLEN) {
-+			printk(KERN_ERR "hfs: invalid extent max_key_len %d\n",
-+				tree->max_key_len);
-+			goto fail_page;
-+		}
-+		break;
-+	case HFS_CAT_CNID:
-+		if (tree->max_key_len != HFS_MAX_CAT_KEYLEN) {
-+			printk(KERN_ERR "hfs: invalid catalog max_key_len %d\n",
-+				tree->max_key_len);
-+			goto fail_page;
-+		}
-+		break;
-+	default:
-+		BUG();
- 	}
  
- 	tree->node_size_shift = ffs(size) - 1;
-diff -puN fs/hfs/hfs.h~address-hfs-on-disk-corruption-robustness-review-comments fs/hfs/hfs.h
---- a/fs/hfs/hfs.h~address-hfs-on-disk-corruption-robustness-review-comments
-+++ a/fs/hfs/hfs.h
-@@ -28,8 +28,6 @@
- #define HFS_MAX_NAMELEN		128
- #define HFS_MAX_VALENCE		32767U
- 
--#define HFS_BAD_KEYLEN		0xFF
--
- /* Meanings of the drAtrb field of the MDB,
-  * Reference: _Inside Macintosh: Files_ p. 2-61
-  */
+ static int
+-write_tag_66_packet(char *signature, size_t cipher_code,
++write_tag_66_packet(char *signature, u8 cipher_code,
+ 		    struct ecryptfs_crypt_stat *crypt_stat, char **packet,
+ 		    size_t *packet_len)
+ {
+@@ -428,7 +428,7 @@ static int
+ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 				  struct ecryptfs_crypt_stat *crypt_stat)
+ {
+-	u16 cipher_code = 0;
++	u8 cipher_code = 0;
+ 	struct ecryptfs_msg_ctx *msg_ctx;
+ 	struct ecryptfs_message *msg = NULL;
+ 	char *auth_tok_sig;
+@@ -1537,7 +1537,7 @@ write_tag_3_packet(char *dest, size_t *r
+ 	struct scatterlist dst_sg;
+ 	struct scatterlist src_sg;
+ 	struct mutex *tfm_mutex = NULL;
+-	size_t cipher_code;
++	u8 cipher_code;
+ 	size_t packet_size_length;
+ 	size_t max_packet_size;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from thighlan@gmail.com are
 
 origin.patch
-reduce-large-do_mount-stack-usage-with-noinlines.patch
