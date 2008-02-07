@@ -1,101 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - ser_gigaset-convert-mutex-to-completion.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:34 -0800
-Message-ID: <200802070026.m170QFUC006876@imap1.linux-foundation.org>
+Subject: - small-cleanups-for-scsi_hosth.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:31:13 -0800
+Message-ID: <200802070030.m170Usl6007431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765711AbYBGAoU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:20 -0500
+	by vger.kernel.org with ESMTP id S1764811AbYBGAoN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, James.Bottomley@steeleye.com, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ser_gigaset: convert mutex to completion
+     Small cleanups for scsi_host.h
 has been removed from the -mm tree.  Its filename was
-     ser_gigaset-convert-mutex-to-completion.patch
+     small-cleanups-for-scsi_hosth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ser_gigaset: convert mutex to completion
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: Small cleanups for scsi_host.h
+From: Pavel Machek <pavel@ucw.cz>
 
-The ser_gigaset ISDN driver was using a mutex in its close() method for
-waiting for other running ldisc methods to finish.  That's what completions
-are for.  Incidentally, this also avoids a spurious "BUG: lock held at task
-exit time" message when the driver's userspace daemon daemonizes itself.
+Small cleanups in scsi_host.h. Few #defines make me wonder if their
+description is still up to date..?
 
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/ser-gigaset.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/scsi/scsi_host.h |   44 +++++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion drivers/isdn/gigaset/ser-gigaset.c
---- a/drivers/isdn/gigaset/ser-gigaset.c~ser_gigaset-convert-mutex-to-completion
-+++ a/drivers/isdn/gigaset/ser-gigaset.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_device.h>
- #include <linux/tty.h>
- #include <linux/poll.h>
-+#include <linux/completion.h>
+diff -puN include/scsi/scsi_host.h~small-cleanups-for-scsi_hosth include/scsi/scsi_host.h
+--- a/include/scsi/scsi_host.h~small-cleanups-for-scsi_hosth
++++ a/include/scsi/scsi_host.h
+@@ -280,39 +280,45 @@ struct scsi_host_template {
+ 	 * If the host wants to be called before the scan starts, but
+ 	 * after the midlayer has set up ready for the scan, it can fill
+ 	 * in this function.
++	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	void (* scan_start)(struct Scsi_Host *);
  
- /* Version Information */
- #define DRIVER_AUTHOR "Tilman Schmidt"
-@@ -48,7 +49,7 @@ struct ser_cardstate {
- 	struct platform_device	dev;
- 	struct tty_struct	*tty;
- 	atomic_t		refcnt;
--	struct mutex		dead_mutex;
-+	struct completion	dead_cmp;
- };
+ 	/*
+-	 * fill in this function to allow the queue depth of this host
+-	 * to be changeable (on a per device basis).  returns either
++	 * Fill in this function to allow the queue depth of this host
++	 * to be changeable (on a per device basis).  Returns either
+ 	 * the current queue depth setting (may be different from what
+ 	 * was passed in) or an error.  An error should only be
+ 	 * returned if the requested depth is legal but the driver was
+ 	 * unable to set it.  If the requested depth is illegal, the
+ 	 * driver should set and return the closest legal queue depth.
+ 	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	int (* change_queue_depth)(struct scsi_device *, int);
  
- static struct platform_driver device_driver = {
-@@ -498,7 +499,7 @@ static struct cardstate *cs_get(struct t
- static void cs_put(struct cardstate *cs)
- {
- 	if (atomic_dec_and_test(&cs->hw.ser->refcnt))
--		mutex_unlock(&cs->hw.ser->dead_mutex);
-+		complete(&cs->hw.ser->dead_cmp);
- }
+ 	/*
+-	 * fill in this function to allow the changing of tag types
++	 * Fill in this function to allow the changing of tag types
+ 	 * (this also allows the enabling/disabling of tag command
+ 	 * queueing).  An error should only be returned if something
+ 	 * went wrong in the driver while trying to set the tag type.
+ 	 * If the driver doesn't support the requested tag type, then
+ 	 * it should set the closest type it does support without
+ 	 * returning an error.  Returns the actual tag type set.
++	 *
++	 * Status: OPTIONAL
+ 	 */
+ 	int (* change_queue_type)(struct scsi_device *, int);
  
- /*
-@@ -527,8 +528,8 @@ gigaset_tty_open(struct tty_struct *tty)
+ 	/*
+-	 * This function determines the bios parameters for a given
++	 * This function determines the BIOS parameters for a given
+ 	 * harddisk.  These tend to be numbers that are made up by
+ 	 * the host adapter.  Parameters:
+ 	 * size, device, list (heads, sectors, cylinders)
+ 	 *
+-	 * Status: OPTIONAL */
++	 * Status: OPTIONAL
++	 */
+ 	int (* bios_param)(struct scsi_device *, struct block_device *,
+ 			sector_t, int []);
  
- 	cs->dev = &cs->hw.ser->dev.dev;
- 	cs->hw.ser->tty = tty;
--	mutex_init(&cs->hw.ser->dead_mutex);
- 	atomic_set(&cs->hw.ser->refcnt, 1);
-+	init_completion(&cs->hw.ser->dead_cmp);
+@@ -351,7 +357,7 @@ struct scsi_host_template {
  
- 	tty->disc_data = cs;
+ 	/*
+ 	 * This determines if we will use a non-interrupt driven
+-	 * or an interrupt driven scheme,  It is set to the maximum number
++	 * or an interrupt driven scheme.  It is set to the maximum number
+ 	 * of simultaneous commands a given host adapter will accept.
+ 	 */
+ 	int can_queue;
+@@ -372,12 +378,12 @@ struct scsi_host_template {
+ 	unsigned short sg_tablesize;
  
-@@ -543,7 +544,6 @@ gigaset_tty_open(struct tty_struct *tty)
- 	}
+ 	/*
+-	 * If the host adapter has limitations beside segment count
++	 * Set this if the host adapter has limitations beside segment count.
+ 	 */
+ 	unsigned short max_sectors;
  
- 	gig_dbg(DEBUG_INIT, "Startup of HLL done");
--	mutex_lock(&cs->hw.ser->dead_mutex);
- 	return 0;
+ 	/*
+-	 * dma scatter gather segment boundary limit. a segment crossing this
++	 * DMA scatter gather segment boundary limit. A segment crossing this
+ 	 * boundary will be split in two.
+ 	 */
+ 	unsigned long dma_boundary;
+@@ -386,7 +392,7 @@ struct scsi_host_template {
+ 	 * This specifies "machine infinity" for host templates which don't
+ 	 * limit the transfer size.  Note this limit represents an absolute
+ 	 * maximum, and may be over the transfer limits allowed for
+-	 * individual devices (e.g. 256 for SCSI-1)
++	 * individual devices (e.g. 256 for SCSI-1).
+ 	 */
+ #define SCSI_DEFAULT_MAX_SECTORS	1024
  
- error:
-@@ -577,7 +577,7 @@ gigaset_tty_close(struct tty_struct *tty
- 	else {
- 		/* wait for running methods to finish */
- 		if (!atomic_dec_and_test(&cs->hw.ser->refcnt))
--			mutex_lock(&cs->hw.ser->dead_mutex);
-+			wait_for_completion(&cs->hw.ser->dead_cmp);
- 	}
+@@ -413,12 +419,12 @@ struct scsi_host_template {
+ 	unsigned supported_mode:2;
  
- 	/* stop operations */
+ 	/*
+-	 * true if this host adapter uses unchecked DMA onto an ISA bus.
++	 * True if this host adapter uses unchecked DMA onto an ISA bus.
+ 	 */
+ 	unsigned unchecked_isa_dma:1;
+ 
+ 	/*
+-	 * true if this host adapter can make good use of clustering.
++	 * True if this host adapter can make good use of clustering.
+ 	 * I originally thought that if the tablesize was large that it
+ 	 * was a waste of CPU cycles to prepare a cluster list, but
+ 	 * it works out that the Buslogic is faster if you use a smaller
+@@ -428,7 +434,7 @@ struct scsi_host_template {
+ 	unsigned use_clustering:1;
+ 
+ 	/*
+-	 * True for emulated SCSI host adapters (e.g. ATAPI)
++	 * True for emulated SCSI host adapters (e.g. ATAPI).
+ 	 */
+ 	unsigned emulated:1;
+ 
+@@ -438,12 +444,12 @@ struct scsi_host_template {
+ 	unsigned skip_settle_delay:1;
+ 
+ 	/*
+-	 * ordered write support
++	 * True if we are using ordered write support.
+ 	 */
+ 	unsigned ordered_tag:1;
+ 
+ 	/*
+-	 * Countdown for host blocking with no commands outstanding
++	 * Countdown for host blocking with no commands outstanding.
+ 	 */
+ 	unsigned int max_host_blocked;
+ 
+@@ -522,8 +528,8 @@ struct Scsi_Host {
+ 	struct scsi_transport_template *transportt;
+ 
+ 	/*
+-	 * area to keep a shared tag map (if needed, will be
+-	 * NULL if not)
++	 * Area to keep a shared tag map (if needed, will be
++	 * NULL if not).
+ 	 */
+ 	struct blk_queue_tag	*bqt;
+ 
+@@ -596,16 +602,16 @@ struct Scsi_Host {
+ 	/*
+ 	 * Host uses correct SCSI ordering not PC ordering. The bit is
+ 	 * set for the minority of drivers whose authors actually read
+-	 * the spec ;)
++	 * the spec ;).
+ 	 */
+ 	unsigned reverse_ordering:1;
+ 
+ 	/*
+-	 * ordered write support
++	 * Ordered write support
+ 	 */
+ 	unsigned ordered_tag:1;
+ 
+-	/* task mgmt function in progress */
++	/* Task mgmt function in progress */
+ 	unsigned tmf_in_progress:1;
+ 
+ 	/* Asynchronous scan in progress */
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
+git-scsi-misc.patch
