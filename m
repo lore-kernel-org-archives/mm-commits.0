@@ -1,129 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - synclink-standardize-format-of-linux-header-file-includes-with.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:23 -0800
-Message-ID: <200802070023.m170N48m006494@imap1.linux-foundation.org>
+Subject: - vt-bitlock-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:22:49 -0800
+Message-ID: <200802070022.m170MUeT006425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935083AbYBGApC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:02 -0500
+	by vger.kernel.org with ESMTP id S935036AbYBGAoh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink: standardize format of linux header file include's with "<>"
+     vt: bitlock fix
 has been removed from the -mm tree.  Its filename was
-     synclink-standardize-format-of-linux-header-file-includes-with.patch
+     vt-bitlock-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink: standardize format of linux header file include's with "<>"
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: vt: bitlock fix
+From: Nick Piggin <npiggin@suse.de>
 
-Use the recommended form of "<>" to include linux header files, and
-move those includes up to join the rest of the linux includes.
+vt is missing a memory barrier to close the critical section.  Use a real
+spinlock for this.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/synclink_cs.c |    3 +--
- drivers/char/synclink.c           |    3 +--
- drivers/char/synclink_gt.c        |    3 +--
- drivers/char/synclinkmp.c         |    3 +--
- 4 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/char/vt.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/pcmcia/synclink_cs.c
---- a/drivers/char/pcmcia/synclink_cs.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/pcmcia/synclink_cs.c
-@@ -57,6 +57,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/ioctl.h>
-+#include <linux/synclink.h>
+diff -puN drivers/char/vt.c~vt-bitlock-fix drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-bitlock-fix
++++ a/drivers/char/vt.c
+@@ -2400,13 +2400,15 @@ static void vt_console_print(struct cons
+ {
+ 	struct vc_data *vc = vc_cons[fg_console].d;
+ 	unsigned char c;
+-	static unsigned long printing;
++	static DEFINE_SPINLOCK(printing_lock);
+ 	const ushort *start;
+ 	ushort cnt = 0;
+ 	ushort myx;
  
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -87,8 +88,6 @@
+ 	/* console busy or not yet initialized */
+-	if (!printable || test_and_set_bit(0, &printing))
++	if (!printable)
++		return;
++	if (!spin_trylock(&printing_lock))
+ 		return;
  
- #include <asm/uaccess.h>
+ 	if (kmsg_redirect && vc_cons_allocated(kmsg_redirect - 1))
+@@ -2481,7 +2483,7 @@ static void vt_console_print(struct cons
+ 	notify_update(vc);
  
--#include "linux/synclink.h"
--
- static MGSL_PARAMS default_params = {
- 	MGSL_MODE_HDLC,			/* unsigned long mode */
- 	0,				/* unsigned char loopback; */
-diff -puN drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink.c
---- a/drivers/char/synclink.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclink.c
-@@ -85,6 +85,7 @@
- #include <linux/vmalloc.h>
- #include <linux/init.h>
- #include <linux/ioctl.h>
-+#include <linux/synclink.h>
+ quit:
+-	clear_bit(0, &printing);
++	spin_unlock(&printing_lock);
+ }
  
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -110,8 +111,6 @@
- 
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- #define RCLRVALUE 0xffff
- 
- static MGSL_PARAMS default_params = {
-diff -puN drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclink_gt.c
-@@ -73,6 +73,7 @@
- #include <linux/bitops.h>
- #include <linux/workqueue.h>
- #include <linux/hdlc.h>
-+#include <linux/synclink.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -81,8 +82,6 @@
- #include <asm/types.h>
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINK_GT_MODULE))
- #define SYNCLINK_GENERIC_HDLC 1
- #else
-diff -puN drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~synclink-standardize-format-of-linux-header-file-includes-with
-+++ a/drivers/char/synclinkmp.c
-@@ -66,6 +66,7 @@
- #include <linux/termios.h>
- #include <linux/workqueue.h>
- #include <linux/hdlc.h>
-+#include <linux/synclink.h>
- 
- #if defined(CONFIG_HDLC) || (defined(CONFIG_HDLC_MODULE) && defined(CONFIG_SYNCLINKMP_MODULE))
- #define SYNCLINK_GENERIC_HDLC 1
-@@ -80,8 +81,6 @@
- 
- #include <asm/uaccess.h>
- 
--#include "linux/synclink.h"
--
- static MGSL_PARAMS default_params = {
- 	MGSL_MODE_HDLC,			/* unsigned long mode */
- 	0,				/* unsigned char loopback; */
+ static struct tty_driver *vt_console_device(struct console *c, int *index)
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-hwmon.patch
-git-xfs.patch
+drm-convert-from-nopage-to-fault.patch
+git-kvm.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+sg-nopage.patch
+mm-special-mapping-nopage.patch
+rewrite-rd.patch
+rewrite-rd-fix.patch
+rewrite-rd-fix-2.patch
+rd-support-xip.patch
+mm-remove-nopage.patch
+buffer_head-fix-private_list-handling.patch
+reiser4.patch
+reiser4-correct-references-to-filemap_nopage.patch
