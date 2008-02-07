@@ -1,131 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - sm501fb-control-panel-pin-usage-with-platform-data-flags.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:46 -0800
-Message-ID: <200802070028.m170SRlN007167@imap1.linux-foundation.org>
+Subject: - remove-support-for-un-needed-_extratext-section.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:09 -0800
+Message-ID: <200802070020.m170Koe6006196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46459 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58850 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932658AbYBGAqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:47 -0500
+	by vger.kernel.org with ESMTP id S1763725AbYBGAqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, adaplas@pol.net, ben-linux@fluff.org, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: rgetz@blackfin.uclinux.org, benh@kernel.crashing.org, dwmw2@infradead.org, jdl@freescale.com, paulus@samba.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501fb: control panel pin usage with platform data flags
+     remove support for un-needed _extratext section
 has been removed from the -mm tree.  Its filename was
-     sm501fb-control-panel-pin-usage-with-platform-data-flags.patch
+     remove-support-for-un-needed-_extratext-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501fb: control panel pin usage with platform data flags
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: remove support for un-needed _extratext section
+From: Robin Getz <rgetz@blackfin.uclinux.org>
 
-This patch makes it possible to control panel pins usage with flags passed
-from the platform data.  Without this patch the sm501fb driver always controls
-the VBIASEN and FPEN pins.  The polarity and use of these pins are very
-platform specific, so this patch introduces the flags
-SM501FB_FLAG_PANEL_USE_VBIASEN and SM501FB_FLAG_PANEL_USE_FPEN which enable
-the use of these pins.
+When passing a zero address to kallsyms_lookup(), the kernel thought it was
+a valid kernel address, even if it is not.  This is because is_ksym_addr()
+called is_kernel_extratext() and checked against labels that don't exist on
+many archs (which default as zero).  Since PPC was the only kernel which
+defines _extra_text, (in 2005), and no longer needs it, this patch removes
+_extra_text support.
 
-This patch is needed to support the a Sharp LQ104V1DG21 lcd panel on SuperH
-platforms such as R2D-1 and R2D-PLUS boards.  Letting the sm501fb driver
-control the FPEN and VBIASEN pins like today just results in lcd panel
-flicker.
+For some history (provided by Jon):
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019734.html
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019736.html
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019751.html
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jon Loeliger <jdl@freescale.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |   41 +++++++++++++++++++++++---------------
- include/linux/sm501.h   |    2 +
- 2 files changed, 27 insertions(+), 16 deletions(-)
+ arch/ppc/kernel/vmlinux.lds.S  |    5 -----
+ include/asm-generic/sections.h |    2 --
+ kernel/kallsyms.c              |   11 +----------
+ scripts/kallsyms.c             |   24 ++++++++++--------------
+ 4 files changed, 11 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~sm501fb-control-panel-pin-usage-with-platform-data-flags drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501fb-control-panel-pin-usage-with-platform-data-flags
-+++ a/drivers/video/sm501fb.c
-@@ -641,6 +641,7 @@ static void sm501fb_panel_power(struct s
+diff -puN arch/ppc/kernel/vmlinux.lds.S~remove-support-for-un-needed-_extratext-section arch/ppc/kernel/vmlinux.lds.S
+--- a/arch/ppc/kernel/vmlinux.lds.S~remove-support-for-un-needed-_extratext-section
++++ a/arch/ppc/kernel/vmlinux.lds.S
+@@ -143,11 +143,6 @@ SECTIONS
+ 
+   . = ALIGN(4096);
+   __init_end = .;
+-
+-  . = ALIGN(4096);
+-  _sextratext = .;
+-  _eextratext = .;
+-
+   __bss_start = .;
+   .bss       :
+   {
+diff -puN include/asm-generic/sections.h~remove-support-for-un-needed-_extratext-section include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~remove-support-for-un-needed-_extratext-section
++++ a/include/asm-generic/sections.h
+@@ -8,8 +8,6 @@ extern char _data[], _sdata[], _edata[];
+ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
+-extern char _sextratext[] __attribute__((weak));
+-extern char _eextratext[] __attribute__((weak));
+ extern char _end[];
+ extern char __per_cpu_start[], __per_cpu_end[];
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+diff -puN kernel/kallsyms.c~remove-support-for-un-needed-_extratext-section kernel/kallsyms.c
+--- a/kernel/kallsyms.c~remove-support-for-un-needed-_extratext-section
++++ a/kernel/kallsyms.c
+@@ -53,14 +53,6 @@ static inline int is_kernel_inittext(uns
+ 	return 0;
+ }
+ 
+-static inline int is_kernel_extratext(unsigned long addr)
+-{
+-	if (addr >= (unsigned long)_sextratext
+-	    && addr <= (unsigned long)_eextratext)
+-		return 1;
+-	return 0;
+-}
+-
+ static inline int is_kernel_text(unsigned long addr)
  {
- 	unsigned long control;
- 	void __iomem *ctrl_reg = fbi->regs + SM501_DC_PANEL_CONTROL;
-+	struct sm501_platdata_fbsub *pd = fbi->pdata->fb_pnl;
+ 	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_etext)
+@@ -80,8 +72,7 @@ static int is_ksym_addr(unsigned long ad
+ 	if (all_var)
+ 		return is_kernel(addr);
  
- 	control = readl(ctrl_reg);
+-	return is_kernel_text(addr) || is_kernel_inittext(addr) ||
+-		is_kernel_extratext(addr);
++	return is_kernel_text(addr) || is_kernel_inittext(addr);
+ }
  
-@@ -657,26 +658,34 @@ static void sm501fb_panel_power(struct s
- 		sm501fb_sync_regs(fbi);
- 		mdelay(10);
+ /* expand a compressed symbol data into the resulting uncompressed string,
+diff -puN scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section scripts/kallsyms.c
+--- a/scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section
++++ a/scripts/kallsyms.c
+@@ -41,7 +41,7 @@ struct sym_entry {
  
--		control |= SM501_DC_PANEL_CONTROL_BIAS;	/* VBIASEN */
--		writel(control, ctrl_reg);
--		sm501fb_sync_regs(fbi);
--		mdelay(10);
--
--		control |= SM501_DC_PANEL_CONTROL_FPEN;
--		writel(control, ctrl_reg);
-+		if (pd->flags & SM501FB_FLAG_PANEL_USE_VBIASEN) {
-+			control |= SM501_DC_PANEL_CONTROL_BIAS;	/* VBIASEN */
-+			writel(control, ctrl_reg);
-+			sm501fb_sync_regs(fbi);
-+			mdelay(10);
-+		}
+ static struct sym_entry *table;
+ static unsigned int table_size, table_cnt;
+-static unsigned long long _text, _stext, _etext, _sinittext, _einittext, _sextratext, _eextratext;
++static unsigned long long _text, _stext, _etext, _sinittext, _einittext;
+ static int all_symbols = 0;
+ static char symbol_prefix_char = '\0';
  
-+		if (pd->flags & SM501FB_FLAG_PANEL_USE_FPEN) {
-+			control |= SM501_DC_PANEL_CONTROL_FPEN;
-+			writel(control, ctrl_reg);
-+			sm501fb_sync_regs(fbi);
-+			mdelay(10);
-+		}
- 	} else if (!to && (control & SM501_DC_PANEL_CONTROL_VDD) != 0) {
- 		/* disable panel power */
-+		if (pd->flags & SM501FB_FLAG_PANEL_USE_FPEN) {
-+			control &= ~SM501_DC_PANEL_CONTROL_FPEN;
-+			writel(control, ctrl_reg);
-+			sm501fb_sync_regs(fbi);
-+			mdelay(10);
-+		}
+@@ -99,10 +99,6 @@ static int read_symbol(FILE *in, struct 
+ 		_sinittext = s->addr;
+ 	else if (strcmp(sym, "_einittext") == 0)
+ 		_einittext = s->addr;
+-	else if (strcmp(sym, "_sextratext") == 0)
+-		_sextratext = s->addr;
+-	else if (strcmp(sym, "_eextratext") == 0)
+-		_eextratext = s->addr;
+ 	else if (toupper(stype) == 'A')
+ 	{
+ 		/* Keep these useful absolute symbols */
+@@ -165,18 +161,18 @@ static int symbol_valid(struct sym_entry
+ 	 * and inittext sections are discarded */
+ 	if (!all_symbols) {
+ 		if ((s->addr < _stext || s->addr > _etext)
+-		    && (s->addr < _sinittext || s->addr > _einittext)
+-		    && (s->addr < _sextratext || s->addr > _eextratext))
++		    && (s->addr < _sinittext || s->addr > _einittext))
+ 			return 0;
+ 		/* Corner case.  Discard any symbols with the same value as
+-		 * _etext _einittext or _eextratext; they can move between pass
+-		 * 1 and 2 when the kallsyms data are added.  If these symbols
+-		 * move then they may get dropped in pass 2, which breaks the
+-		 * kallsyms rules.
++		 * _etext _einittext; they can move between pass 1 and 2 when
++		 * the kallsyms data are added.  If these symbols move then
++		 * they may get dropped in pass 2, which breaks the kallsyms
++		 * rules.
+ 		 */
+-		if ((s->addr == _etext && strcmp((char*)s->sym + offset, "_etext")) ||
+-		    (s->addr == _einittext && strcmp((char*)s->sym + offset, "_einittext")) ||
+-		    (s->addr == _eextratext && strcmp((char*)s->sym + offset, "_eextratext")))
++		if ((s->addr == _etext &&
++				strcmp((char *)s->sym + offset, "_etext")) ||
++		    (s->addr == _einittext &&
++				strcmp((char *)s->sym + offset, "_einittext")))
+ 			return 0;
+ 	}
  
--		control &= ~SM501_DC_PANEL_CONTROL_FPEN;
--		writel(control, ctrl_reg);
--		sm501fb_sync_regs(fbi);
--		mdelay(10);
--
--		control &= ~SM501_DC_PANEL_CONTROL_BIAS;
--		writel(control, ctrl_reg);
--		sm501fb_sync_regs(fbi);
--		mdelay(10);
-+		if (pd->flags & SM501FB_FLAG_PANEL_USE_VBIASEN) {
-+			control &= ~SM501_DC_PANEL_CONTROL_BIAS;
-+			writel(control, ctrl_reg);
-+			sm501fb_sync_regs(fbi);
-+			mdelay(10);
-+		}
- 
- 		control &= ~SM501_DC_PANEL_CONTROL_DATA;
- 		writel(control, ctrl_reg);
-diff -puN include/linux/sm501.h~sm501fb-control-panel-pin-usage-with-platform-data-flags include/linux/sm501.h
---- a/include/linux/sm501.h~sm501fb-control-panel-pin-usage-with-platform-data-flags
-+++ a/include/linux/sm501.h
-@@ -70,6 +70,8 @@ extern unsigned long sm501_gpio_get(stru
- #define SM501FB_FLAG_DISABLE_AT_EXIT	(1<<1)
- #define SM501FB_FLAG_USE_HWCURSOR	(1<<2)
- #define SM501FB_FLAG_USE_HWACCEL	(1<<3)
-+#define SM501FB_FLAG_PANEL_USE_FPEN	(1<<4)
-+#define SM501FB_FLAG_PANEL_USE_VBIASEN	(1<<5)
- 
- struct sm501_platdata_fbsub {
- 	struct fb_videomode	*def_mode;
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from rgetz@blackfin.uclinux.org are
 
 origin.patch
-git-sh.patch
