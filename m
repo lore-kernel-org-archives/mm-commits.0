@@ -1,80 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - make-video-geode-lxfb_corecgeode_modedb-static.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:05 -0800
-Message-ID: <200802070027.m170Rkb1007081@imap1.linux-foundation.org>
+Subject: - blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:24 -0800
+Message-ID: <200802070027.m170R51R006988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762736AbYBGApd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:33 -0500
+	by vger.kernel.org with ESMTP id S1765328AbYBGApc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, adaplas@gmail.com, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make video/geode/lxfb_core.c:geode_modedb[] static
+     Blackfin RTC driver: cleanup proc handler (we dont need RTC reg dump now that we have MMR filesystem in sysfs)
 has been removed from the -mm tree.  Its filename was
-     make-video-geode-lxfb_corecgeode_modedb-static.patch
+     blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make video/geode/lxfb_core.c:geode_modedb[] static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Blackfin RTC driver: cleanup proc handler (we dont need RTC reg dump now that we have MMR filesystem in sysfs)
+From: Mike Frysinger <michael.frysinger@analog.com>
 
-geode_modedb[] can become static.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-bfin.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_core.c~make-video-geode-lxfb_corecgeode_modedb-static drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~make-video-geode-lxfb_corecgeode_modedb-static
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -34,7 +34,7 @@ static int fbsize;
-  * we try to make it something sane - 640x480-60 is sane
-  */
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-cleanup-proc-handler-we-dont-need-rtc-reg-dump-now-that-we-have-mmr-filesystem-in-sysfs
++++ a/drivers/rtc/rtc-bfin.c
+@@ -45,7 +45,7 @@
  
--const struct fb_videomode geode_modedb[] __initdata = {
-+static const struct fb_videomode geode_modedb[] __initdata = {
- 	/* 640x480-60 */
- 	{ NULL, 60, 640, 480, 39682, 48, 8, 25, 2, 88, 2,
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ #include <asm/blackfin.h>
+ 
+-#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __FUNCTION__, __LINE__, ## args)
++#define stamp(fmt, args...) pr_debug("%s:%i: " fmt "\n", __func__, __LINE__, ## args)
+ #define stampit() stamp("here i am")
+ 
+ struct bfin_rtc {
+@@ -343,22 +343,20 @@ static int bfin_rtc_set_alarm(struct dev
+ 
+ static int bfin_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+-#define yesno(x) (x ? "yes" : "no")
++#define yesno(x) ((x) ? "yes" : "no")
+ 	u16 ictl = bfin_read_RTC_ICTL();
+ 	stampit();
+-	seq_printf(seq, "alarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM));
+-	seq_printf(seq, "wkalarm_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_ALARM_DAY));
+-	seq_printf(seq, "seconds_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_SEC));
+-	seq_printf(seq, "periodic_IRQ\t: %s\n", yesno(ictl & RTC_ISTAT_STOPWATCH));
+-#ifdef DEBUG
+-	seq_printf(seq, "RTC_STAT\t: 0x%08X\n", bfin_read_RTC_STAT());
+-	seq_printf(seq, "RTC_ICTL\t: 0x%04X\n", bfin_read_RTC_ICTL());
+-	seq_printf(seq, "RTC_ISTAT\t: 0x%04X\n", bfin_read_RTC_ISTAT());
+-	seq_printf(seq, "RTC_SWCNT\t: 0x%04X\n", bfin_read_RTC_SWCNT());
+-	seq_printf(seq, "RTC_ALARM\t: 0x%08X\n", bfin_read_RTC_ALARM());
+-	seq_printf(seq, "RTC_PREN\t: 0x%04X\n", bfin_read_RTC_PREN());
+-#endif
++	seq_printf(seq,
++		"alarm_IRQ\t: %s\n"
++		"wkalarm_IRQ\t: %s\n"
++		"seconds_IRQ\t: %s\n"
++		"periodic_IRQ\t: %s\n",
++		yesno(ictl & RTC_ISTAT_ALARM),
++		yesno(ictl & RTC_ISTAT_ALARM_DAY),
++		yesno(ictl & RTC_ISTAT_SEC),
++		yesno(ictl & RTC_ISTAT_STOPWATCH));
+ 	return 0;
++#undef yesno
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from michael.frysinger@analog.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+git-watchdog.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
