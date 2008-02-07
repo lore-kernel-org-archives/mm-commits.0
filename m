@@ -1,127 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch added to -mm tree
-Date: Wed, 06 Feb 2008 16:12:03 -0800
-Message-ID: <200802070012.m170C3oA005757@imap1.linux-foundation.org>
+Subject: - fs-fat-refine-chmod-checks.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:20:26 -0800
+Message-ID: <200802070020.m170K7pO006094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764835AbYBGAMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:12:19 -0500
+	by vger.kernel.org with ESMTP id S933447AbYBGAUP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:20:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+To: jengelh@computergmbh.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
-has been added to the -mm tree.  Its filename is
-     softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch
+     fs/fat/: refine chmod checks
+has been removed from the -mm tree.  Its filename was
+     fs-fat-refine-chmod-checks.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
-From: Ingo Molnar <mingo@elte.hu>
+Subject: fs/fat/: refine chmod checks
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
+Prohibit mode changes in non-quiet mode that cannot be stored reliably with
+the on-disk format.
 
+Suppose a vfat filesystem is mounted with umask=0 and [not-quiet].  Then
+all files will have mode 0777.  Trying to change the owner will fail,
+because fat does not know about owners or groups.  chmod 0770, on the other
+hand, will succeed, even though fat does not know about the permission
+triplet [user/group/other].
+
+So this patch changes fat's not-quiet behavior so that only UNIX modes are
+accepted that can be mapped lossless between the fat disk format and the
+local system.  There is only one attribute, and that is the readonly
+attribute, which is mapped to the UNIX write permission bit(s).  chmod 0555
+is therefore valid (taking away the +w bits <=> setting the readonly
+attribute).  Since chmod 0775 and chmod 0755 is an ambiguous case as to
+whether to set or clear the readonly bit, these modes are also denied.
+
+In quiet mode, chmod and chown will continue to "succeed" as they did
+before, meaning that a subsequent stat() will temporarily return the new
+mode as long as the inode is not reread from disk, and chown will silently
+do nothing, not even return the new uid/gid in stat().
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ fs/fat/file.c |   47 ++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 44 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks
-+++ a/arch/x86/kernel/reboot.c
-@@ -396,8 +396,20 @@ void machine_shutdown(void)
- 	if (!cpu_isset(reboot_cpu_id, cpu_online_map))
- 		reboot_cpu_id = smp_processor_id();
+diff -puN fs/fat/file.c~fs-fat-refine-chmod-checks fs/fat/file.c
+--- a/fs/fat/file.c~fs-fat-refine-chmod-checks
++++ a/fs/fat/file.c
+@@ -155,6 +155,42 @@ out:
+ 	return err;
+ }
  
--	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
++static int check_mode(const struct msdos_sb_info *sbi, mode_t mode)
++{
++	mode_t req = mode & ~S_IFMT;
++
 +	/*
-+	 * Make certain we only run on the appropriate processor,
-+	 * and with sufficient priority:
++	 * Of the r and x bits, all (subject to umask) must be present. Of the
++	 * w bits, either all (subject to umask) or none must be present.
 +	 */
-+	{
-+		struct sched_param schedparm;
-+		schedparm.sched_priority = 99;
-+		int ret;
 +
-+		ret = sched_setscheduler(current, SCHED_RR, &schedparm);
-+		WARN_ON_ONCE(1);
++	if (S_ISREG(mode)) {
++		req &= ~sbi->options.fs_fmask;
 +
-+		set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
++		if ((req & (S_IRUGO | S_IXUGO)) !=
++		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_fmask))
++			return -EPERM;
++
++		if ((req & S_IWUGO) != 0 &&
++		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_fmask))
++			return -EPERM;
++	} else if (S_ISDIR(mode)) {
++		req &= ~sbi->options.fs_dmask;
++
++		if ((req & (S_IRUGO | S_IXUGO)) !=
++		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_dmask))
++			return -EPERM;
++
++		if ((req & S_IWUGO) != 0 &&
++		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_dmask))
++			return -EPERM;
++	} else {
++		return -EPERM;
 +	}
++
++	return 0;
++}
++
+ int fat_notify_change(struct dentry *dentry, struct iattr *attr)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
+@@ -186,9 +222,7 @@ int fat_notify_change(struct dentry *den
+ 	if (((attr->ia_valid & ATTR_UID) &&
+ 	     (attr->ia_uid != sbi->options.fs_uid)) ||
+ 	    ((attr->ia_valid & ATTR_GID) &&
+-	     (attr->ia_gid != sbi->options.fs_gid)) ||
+-	    ((attr->ia_valid & ATTR_MODE) &&
+-	     (attr->ia_mode & ~MSDOS_VALID_MODE)))
++	     (attr->ia_gid != sbi->options.fs_gid)))
+ 		error = -EPERM;
  
- 	/* O.K Now that I'm on the appropriate processor,
- 	 * stop all of the others.
+ 	if (error) {
+@@ -196,6 +230,13 @@ int fat_notify_change(struct dentry *den
+ 			error = 0;
+ 		goto out;
+ 	}
++
++	if (attr->ia_valid & ATTR_MODE) {
++		error = check_mode(sbi, attr->ia_mode);
++		if (error != 0 && !sbi->options.quiet)
++			goto out;
++	}
++
+ 	error = inode_setattr(inode, attr);
+ 	if (error)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
-softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch
-read_current_time-cleanups.patch
-fix-__const_udelay-declaration-and-definition-mismatches.patch
-unix98-allocated_ptys_lock-semaphore-to-mutex.patch
-stopmachine-semaphore-to-mutex.patch
-calibrate_delay-must-be-__cpuinit.patch
-idle_regs-must-be-__cpuinit.patch
-debug_smp_processor_id-fixlets.patch
-make-sys_poll-wait-at-least-timeout-ms.patch
-system-timer-fix-crash-in-100hz-system-timer.patch
-speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
-add-hpet-rtc-emulation-to-rtc_drv_cmos.patch
-isapnp-driver-semaphore-to-mutex.patch
-git-hrt.patch
-revert-git-hrt.patch
+git-dvb.patch
+git-input.patch
 git-kvm.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-x86.patch
-deprecate-find_task_by_pid-kgdb.patch
-x86-amd-thermal-interrupt-support.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-documentation-create-new-scheduler-subdirectory.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-proc-fix-the-threaded-proc-self.patch
-modules-make-module_address_lookup-safe-fix.patch
-fix-group-stop-with-exit-race.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-clocksource-remove-redundant-code.patch
-clockevent-simplify-list-operations.patch
-timekeeping-rename-timekeeping_is_continuous-to-timekeeping_valid_for_hres.patch
-time-fix-typo-in-comments.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-kernel-remove-fastcall-in-kernel.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-asm-posix_typesh-scrub-__glibc__.patch
-use-find_task_by_vpid-in-posix-timers.patch
-dont-operate-with-pid_t-in-rtmutex-tester.patch
-irq_noprobe-helper-functions.patch
-mips-mark-all-but-i8259-interrupts-as-no-probe.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+git-ocfs2.patch
+git-unionfs.patch
+git-watchdog.patch
+char-mxser-reorder-mxser_cardinfo-fields.patch
+char-mxser-simplify-mxser_get_serial_info.patch
+reiserfs-constify-function-pointer-tables.patch
+procfs-constify-function-pointer-tables.patch
+oss-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
