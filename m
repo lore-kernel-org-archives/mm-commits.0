@@ -1,218 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-cleanup-sweep.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:14 -0800
-Message-ID: <200802070028.m170StoP007218@imap1.linux-foundation.org>
+Subject: - drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:26:38 -0800
+Message-ID: <200802070026.m170QJPR006887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38116 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39725 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932776AbYBGAoI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:08 -0500
+	by vger.kernel.org with ESMTP id S934387AbYBGAn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: cleanup sweep
+     drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     ps3fb-cleanup-sweep.patch
+     drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ps3fb: cleanup sweep
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: drivers/isdn/hardware/eicon/debug.c: fix uninitialized var warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-cleanup sweep:
-  - Kill ps3fb_priv.xdr_ea and ps3fb_priv.xdr_size, use info->screen_base and
-    info->fix.smem_len instead.
-  - Kill superfluous assignments to info->fix.smem_start, info->fix.smem_len,
-    and info->screen_base in ps3fb_set_par(). Their values never change.
-  - Add sparse annotations to casts to kill address space warnings
+drivers/isdn/hardware/eicon/debug.c: In function 'SuperTraceASSIGN':
+drivers/isdn/hardware/eicon/debug.c:1191: warning: 'rx_dma_magic' may be used uninitialized in this function
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |   64 ++++++++++++++++------------------------
- 1 file changed, 27 insertions(+), 37 deletions(-)
+ drivers/isdn/hardware/eicon/debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-cleanup-sweep drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-cleanup-sweep
-+++ a/drivers/video/ps3fb.c
-@@ -116,8 +116,6 @@ struct ps3fb_priv {
- 	unsigned int irq_no;
+diff -puN drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning drivers/isdn/hardware/eicon/debug.c
+--- a/drivers/isdn/hardware/eicon/debug.c~drivers-isdn-hardware-eicon-debugc-fix-uninitialized-var-warning
++++ a/drivers/isdn/hardware/eicon/debug.c
+@@ -1188,7 +1188,7 @@ int SuperTraceASSIGN (void* AdapterHandl
  
- 	u64 context_handle, memory_handle;
--	void *xdr_ea;
--	size_t xdr_size;
- 	struct gpu_driver_info *dinfo;
- 
- 	u64 vblank_count;	/* frame count */
-@@ -598,7 +596,7 @@ static int ps3fb_check_var(struct fb_var
- 	}
- 
- 	/* Memory limit */
--	if (var->yres_virtual * xdr_line_length > ps3fb.xdr_size) {
-+	if (var->yres_virtual * xdr_line_length > info->fix.smem_len) {
- 		dev_dbg(info->device, "Not enough memory\n");
- 		return -ENOMEM;
- 	}
-@@ -627,19 +625,15 @@ static int ps3fb_set_par(struct fb_info 
- 
- 	vmode = ps3fb_native_vmode(mode & PS3AV_MODE_MASK);
- 
--	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
--	info->fix.smem_len = ps3fb.xdr_size;
- 	info->fix.xpanstep = info->var.xres_virtual > info->var.xres ? 1 : 0;
- 	info->fix.ypanstep = info->var.yres_virtual > info->var.yres ? 1 : 0;
- 	info->fix.line_length = xdr_line_length;
- 
--	info->screen_base = (char __iomem *)ps3fb.xdr_ea;
--
- 	par->ddr_line_length = ddr_line_length;
- 	par->ddr_frame_size = vmode->yres * ddr_line_length;
- 	par->xdr_frame_size = info->var.yres_virtual * xdr_line_length;
- 
--	par->num_frames = ps3fb.xdr_size /
-+	par->num_frames = info->fix.smem_len /
- 			  max(par->ddr_frame_size, par->xdr_frame_size);
- 
- 	/* Keep the special bits we cannot set using fb_var_screeninfo */
-@@ -667,13 +661,13 @@ static int ps3fb_set_par(struct fb_info 
- 	}
- 
- 	/* Clear XDR frame buffer memory */
--	memset(ps3fb.xdr_ea, 0, ps3fb.xdr_size);
-+	memset((void __force *)info->screen_base, 0, info->fix.smem_len);
- 
- 	/* Clear DDR frame buffer memory */
- 	lines = vmode->yres * par->num_frames;
- 	if (par->full_offset)
- 		lines++;
--	maxlines = ps3fb.xdr_size / ddr_line_length;
-+	maxlines = info->fix.smem_len / ddr_line_length;
- 	for (dst = 0; lines; dst += maxlines * ddr_line_length) {
- 		unsigned int l = min(lines, maxlines);
- 		ps3fb_sync_image(info->device, 0, dst, 0, vmode->xres, l,
-@@ -1017,10 +1011,9 @@ static int ps3fb_xdr_settings(u64 xdr_lp
- 			__func__, status);
- 		return -ENXIO;
- 	}
--	dev_dbg(dev,
--		"video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
--		ps3fb_videomemory.address, ps3fb.xdr_ea, GPU_IOIF, xdr_lpar,
--		virt_to_abs(ps3fb.xdr_ea), ps3fb_videomemory.size);
-+	dev_dbg(dev, "video:%p ioif:%lx lpar:%lx size:%lx\n",
-+		ps3fb_videomemory.address, GPU_IOIF, xdr_lpar,
-+		ps3fb_videomemory.size);
- 
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_FB_SETUP,
-@@ -1103,6 +1096,7 @@ static int __devinit ps3fb_probe(struct 
- 	u64 lpar_reports = 0;
- 	u64 lpar_reports_size = 0;
- 	u64 xdr_lpar;
-+	void *fb_start;
- 	int status;
- 	struct task_struct *task;
- 	unsigned long max_ps3fb_size;
-@@ -1158,7 +1152,7 @@ static int __devinit ps3fb_probe(struct 
- 	}
- 
- 	/* vsync interrupt */
--	ps3fb.dinfo = ioremap(lpar_driver_info, 128 * 1024);
-+	ps3fb.dinfo = (void __force *)ioremap(lpar_driver_info, 128 * 1024);
- 	if (!ps3fb.dinfo) {
- 		dev_err(&dev->core, "%s: ioremap failed\n", __func__);
- 		goto err_gpu_context_free;
-@@ -1168,22 +1162,10 @@ static int __devinit ps3fb_probe(struct 
- 	if (retval)
- 		goto err_iounmap_dinfo;
- 
--	/* XDR frame buffer */
--	ps3fb.xdr_ea = ps3fb_videomemory.address;
--	xdr_lpar = ps3_mm_phys_to_lpar(__pa(ps3fb.xdr_ea));
--
- 	/* Clear memory to prevent kernel info leakage into userspace */
--	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
--
--	/*
--	 * The GPU command buffer is at the start of video memory
--	 * As we don't use the full command buffer, we can put the actual
--	 * frame buffer at offset GPU_FB_START and save some precious XDR
--	 * memory
--	 */
--	ps3fb.xdr_ea += GPU_FB_START;
--	ps3fb.xdr_size = ps3fb_videomemory.size - GPU_FB_START;
-+	memset(ps3fb_videomemory.address, 0, ps3fb_videomemory.size);
- 
-+	xdr_lpar = ps3_mm_phys_to_lpar(__pa(ps3fb_videomemory.address));
- 	retval = ps3fb_xdr_settings(xdr_lpar, &dev->core);
- 	if (retval)
- 		goto err_free_irq;
-@@ -1197,12 +1179,20 @@ static int __devinit ps3fb_probe(struct 
- 	par->new_mode_id = ps3fb_mode;
- 	par->num_frames = 1;
- 
--	info->screen_base = (char __iomem *)ps3fb.xdr_ea;
- 	info->fbops = &ps3fb_ops;
--
- 	info->fix = ps3fb_fix;
--	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
--	info->fix.smem_len = ps3fb.xdr_size;
-+
-+	/*
-+	 * The GPU command buffer is at the start of video memory
-+	 * As we don't use the full command buffer, we can put the actual
-+	 * frame buffer at offset GPU_FB_START and save some precious XDR
-+	 * memory
-+	 */
-+	fb_start = ps3fb_videomemory.address + GPU_FB_START;
-+	info->screen_base = (char __force __iomem *)fb_start;
-+	info->fix.smem_start = virt_to_abs(fb_start);
-+	info->fix.smem_len = ps3fb_videomemory.size - GPU_FB_START;
-+
- 	info->pseudo_palette = par->pseudo_palette;
- 	info->flags = FBINFO_DEFAULT | FBINFO_READS_FAST |
- 		      FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
-@@ -1227,9 +1217,9 @@ static int __devinit ps3fb_probe(struct 
- 
- 	dev->core.driver_data = info;
- 
--	dev_info(info->device, "%s %s, using %lu KiB of video memory\n",
-+	dev_info(info->device, "%s %s, using %u KiB of video memory\n",
- 		 dev_driver_string(info->dev), info->dev->bus_id,
--		 ps3fb.xdr_size >> 10);
-+		 info->fix.smem_len >> 10);
- 
- 	task = kthread_run(ps3fbd, info, DEVICE_NAME);
- 	if (IS_ERR(task)) {
-@@ -1252,7 +1242,7 @@ err_free_irq:
- 	free_irq(ps3fb.irq_no, &dev->core);
- 	ps3_irq_plug_destroy(ps3fb.irq_no);
- err_iounmap_dinfo:
--	iounmap((u8 __iomem *)ps3fb.dinfo);
-+	iounmap((u8 __force __iomem *)ps3fb.dinfo);
- err_gpu_context_free:
- 	lv1_gpu_context_free(ps3fb.context_handle);
- err_gpu_memory_free:
-@@ -1287,7 +1277,7 @@ static int ps3fb_shutdown(struct ps3_sys
- 		framebuffer_release(info);
- 		info = dev->core.driver_data = NULL;
- 	}
--	iounmap((u8 __iomem *)ps3fb.dinfo);
-+	iounmap((u8 __force __iomem *)ps3fb.dinfo);
- 
- 	status = lv1_gpu_context_free(ps3fb.context_handle);
- 	if (status)
+     if ((features[0] & DIVA_XDI_EXTENDED_FEATURES_VALID) &&
+         (features[0] & DIVA_XDI_EXTENDED_FEATURE_MANAGEMENT_DMA)) {
+-      dword rx_dma_magic;
++      dword uninitialized_var(rx_dma_magic);
+       if ((pC->dma_handle = diva_get_dma_descriptor (pC->request, &rx_dma_magic)) >= 0) {
+         pC->xbuffer[0] = LLI;
+         pC->xbuffer[1] = 8;
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-input.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
 git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+git-slub.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
