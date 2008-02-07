@@ -1,134 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - remove-mm_ptovvtop.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:21:25 -0800
-Message-ID: <200802070021.m170L6gp006289@imap1.linux-foundation.org>
+Subject: - add-arch_ptrace_stop.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:24 -0800
+Message-ID: <200802070024.m170O5Nl006580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46186 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760163AbYBGArV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:21 -0500
+	by vger.kernel.org with ESMTP id S934081AbYBGAq5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bryan.wu@analog.com, gerg@uclinux.org, miles.bader@necel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: roland@redhat.com, ptesarik@suse.cz, tony.luck@intel.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove mm_{ptov,vtop}()
+     Add arch_ptrace_stop
 has been removed from the -mm tree.  Its filename was
-     remove-mm_ptovvtop.patch
+     add-arch_ptrace_stop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove mm_{ptov,vtop}()
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Add arch_ptrace_stop
+From: Roland McGrath <roland@redhat.com>
 
-This patch removes the unused mm_{ptov,vtop}().
+This adds support to allow asm/ptrace.h to define two new macros,
+arch_ptrace_stop_needed and arch_ptrace_stop.  These control special
+machine-specific actions to be done before a ptrace stop.  The new code
+compiles away to nothing when the new macros are not defined.  This is the
+case on all machines to begin with.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Acked-by: Bryan Wu <bryan.wu@analog.com>
-Cc: Miles Bader <miles.bader@necel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+On ia64, these macros will be defined to solve the long-standing issue of
+ptrace vs register backing store.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Petr Tesarik <ptesarik@suse.cz>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/io.h       |    2 --
- include/asm-h8300/io.h          |    2 --
- include/asm-h8300/virtconvert.h |    2 --
- include/asm-m68knommu/io.h      |    2 --
- include/asm-v850/io.h           |    2 --
- 5 files changed, 10 deletions(-)
+ include/linux/ptrace.h |   35 +++++++++++++++++++++++++++++++++++
+ kernel/signal.c        |   33 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 67 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-blackfin/io.h~remove-mm_ptovvtop include/asm-blackfin/io.h
---- a/include/asm-blackfin/io.h~remove-mm_ptovvtop
-+++ a/include/asm-blackfin/io.h
-@@ -188,8 +188,6 @@ extern void blkfin_inv_cache_all(void);
- #define page_to_phys(page)      ((page - mem_map) << PAGE_SHIFT)
- #define page_to_bus(page)       ((page - mem_map) << PAGE_SHIFT)
+diff -puN include/linux/ptrace.h~add-arch_ptrace_stop include/linux/ptrace.h
+--- a/include/linux/ptrace.h~add-arch_ptrace_stop
++++ a/include/linux/ptrace.h
+@@ -204,6 +204,41 @@ static inline void user_enable_block_ste
+ }
+ #endif	/* arch_has_block_step */
  
--#define mm_ptov(vaddr)		((void *) (vaddr))
--#define mm_vtop(vaddr)		((unsigned long) (vaddr))
- #define phys_to_virt(vaddr)	((void *) (vaddr))
- #define virt_to_phys(vaddr)	((unsigned long) (vaddr))
- 
-diff -puN include/asm-h8300/io.h~remove-mm_ptovvtop include/asm-h8300/io.h
---- a/include/asm-h8300/io.h~remove-mm_ptovvtop
-+++ a/include/asm-h8300/io.h
-@@ -302,8 +302,6 @@ static __inline__ void ctrl_outl(unsigne
- /*
-  * Macros used for converting between virtual and physical mappings.
-  */
--#define mm_ptov(vaddr)		((void *) (vaddr))
--#define mm_vtop(vaddr)		((unsigned long) (vaddr))
- #define phys_to_virt(vaddr)	((void *) (vaddr))
- #define virt_to_phys(vaddr)	((unsigned long) (vaddr))
- 
-diff -puN include/asm-h8300/virtconvert.h~remove-mm_ptovvtop include/asm-h8300/virtconvert.h
---- a/include/asm-h8300/virtconvert.h~remove-mm_ptovvtop
-+++ a/include/asm-h8300/virtconvert.h
-@@ -10,8 +10,6 @@
- #include <asm/setup.h>
- #include <asm/page.h>
- 
--#define mm_ptov(vaddr)		((void *) (vaddr))
--#define mm_vtop(vaddr)		((unsigned long) (vaddr))
- #define phys_to_virt(vaddr)	((void *) (vaddr))
- #define virt_to_phys(vaddr)	((unsigned long) (vaddr))
- 
-diff -puN include/asm-m68knommu/io.h~remove-mm_ptovvtop include/asm-m68knommu/io.h
---- a/include/asm-m68knommu/io.h~remove-mm_ptovvtop
-+++ a/include/asm-m68knommu/io.h
-@@ -172,8 +172,6 @@ extern void iounmap(void *addr);
- /*
-  * Macros used for converting between virtual and physical mappings.
-  */
--#define mm_ptov(vaddr)		((void *) (vaddr))
--#define mm_vtop(vaddr)		((unsigned long) (vaddr))
- #define phys_to_virt(vaddr)	((void *) (vaddr))
- #define virt_to_phys(vaddr)	((unsigned long) (vaddr))
- 
-diff -puN include/asm-v850/io.h~remove-mm_ptovvtop include/asm-v850/io.h
---- a/include/asm-v850/io.h~remove-mm_ptovvtop
-+++ a/include/asm-v850/io.h
-@@ -122,8 +122,6 @@ outsl (unsigned long port, const void *s
++#ifndef arch_ptrace_stop_needed
++/**
++ * arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
++ * @code:	current->exit_code value ptrace will stop with
++ * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
++ *
++ * This is called with the siglock held, to decide whether or not it's
++ * necessary to release the siglock and call arch_ptrace_stop() with the
++ * same @code and @info arguments.  It can be defined to a constant if
++ * arch_ptrace_stop() is never required, or always is.  On machines where
++ * this makes sense, it should be defined to a quick test to optimize out
++ * calling arch_ptrace_stop() when it would be superfluous.  For example,
++ * if the thread has not been back to user mode since the last stop, the
++ * thread state might indicate that nothing needs to be done.
++ */
++#define arch_ptrace_stop_needed(code, info)	(0)
++#endif
++
++#ifndef arch_ptrace_stop
++/**
++ * arch_ptrace_stop - Do machine-specific work before stopping for ptrace
++ * @code:	current->exit_code value ptrace will stop with
++ * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
++ *
++ * This is called with no locks held when arch_ptrace_stop_needed() has
++ * just returned nonzero.  It is allowed to block, e.g. for user memory
++ * access.  The arch can have machine-specific work to be done before
++ * ptrace stops.  On ia64, register backing store gets written back to user
++ * memory here.  Since this can be costly (requires dropping the siglock),
++ * we only do it when the arch requires it for this particular stop, as
++ * indicated by arch_ptrace_stop_needed().
++ */
++#define arch_ptrace_stop(code, info)		do { } while (0)
++#endif
++
  #endif
  
- /* Conversion between virtual and physical mappings.  */
--#define mm_ptov(addr)		((void *)__phys_to_virt (addr))
--#define mm_vtop(addr)		((unsigned long)__virt_to_phys (addr))
- #define phys_to_virt(addr)	((void *)__phys_to_virt (addr))
- #define virt_to_phys(addr)	((unsigned long)__virt_to_phys (addr))
+ #endif
+diff -puN kernel/signal.c~add-arch_ptrace_stop kernel/signal.c
+--- a/kernel/signal.c~add-arch_ptrace_stop
++++ a/kernel/signal.c
+@@ -1578,6 +1578,17 @@ static inline int may_ptrace_stop(void)
+ }
  
+ /*
++ * Return nonzero if there is a SIGKILL that should be waking us up.
++ * Called with the siglock held.
++ */
++static int sigkill_pending(struct task_struct *tsk)
++{
++	return ((sigismember(&tsk->pending.signal, SIGKILL) ||
++		 sigismember(&tsk->signal->shared_pending.signal, SIGKILL)) &&
++		!unlikely(sigismember(&tsk->blocked, SIGKILL)));
++}
++
++/*
+  * This must be called with current->sighand->siglock held.
+  *
+  * This should be the path for all ptrace stops.
+@@ -1590,6 +1601,26 @@ static inline int may_ptrace_stop(void)
+  */
+ static void ptrace_stop(int exit_code, int nostop_code, siginfo_t *info)
+ {
++	int killed = 0;
++
++	if (arch_ptrace_stop_needed(exit_code, info)) {
++		/*
++		 * The arch code has something special to do before a
++		 * ptrace stop.  This is allowed to block, e.g. for faults
++		 * on user stack pages.  We can't keep the siglock while
++		 * calling arch_ptrace_stop, so we must release it now.
++		 * To preserve proper semantics, we must do this before
++		 * any signal bookkeeping like checking group_stop_count.
++		 * Meanwhile, a SIGKILL could come in before we retake the
++		 * siglock.  That must prevent us from sleeping in TASK_TRACED.
++		 * So after regaining the lock, we must check for SIGKILL.
++		 */
++		spin_unlock_irq(&current->sighand->siglock);
++		arch_ptrace_stop(exit_code, info);
++		spin_lock_irq(&current->sighand->siglock);
++		killed = sigkill_pending(current);
++	}
++
+ 	/*
+ 	 * If there is a group stop in progress,
+ 	 * we must participate in the bookkeeping.
+@@ -1605,7 +1636,7 @@ static void ptrace_stop(int exit_code, i
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	try_to_freeze();
+ 	read_lock(&tasklist_lock);
+-	if (may_ptrace_stop()) {
++	if (!unlikely(killed) && may_ptrace_stop()) {
+ 		do_notify_parent_cldstop(current, CLD_TRAPPED);
+ 		read_unlock(&tasklist_lock);
+ 		schedule();
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+proc-fix-the-threaded-proc-self.patch
+kill-pt_attached.patch
+kill-my_ptrace_child.patch
+ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+do_wait-factor-out-retval-=-0-checks.patch
+ptrace_stop-fix-racy-nonstop_code-setting.patch
+wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+do_wait-cleanup-delay_group_leader-usage.patch
+do_wait-fix-security-checks.patch
+do_wait-fix-security-checks-fix.patch
+wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
+fix-group-stop-with-exit-race.patch
+sys_setsid-remove-now-unneeded-session-=-1-check.patch
+move-the-related-code-from-exit_notify-to-exit_signals.patch
+uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
+uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+itimer_real-convert-to-use-struct-pid.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+linux-kernel-markers-create-modpost-file.patch
+asm-posix_typesh-scrub-__glibc__.patch
