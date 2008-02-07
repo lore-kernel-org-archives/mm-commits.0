@@ -1,256 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-lock-inversion-in-direct-io.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:57 -0800
-Message-ID: <200802070030.m170Uccg007408@imap1.linux-foundation.org>
+Subject: - speed-up-jiffies-conversion-functions-if-hz==user_hz.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:29 -0800
+Message-ID: <200802070025.m170PANq006692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51697 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45464 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765758AbYBGApW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:22 -0500
+	by vger.kernel.org with ESMTP id S1765945AbYBGApS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david@fries.net, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix lock inversion in direct IO
+     speed up jiffies conversion functions if HZ==USER_HZ
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-lock-inversion-in-direct-io.patch
+     speed-up-jiffies-conversion-functions-if-hz==user_hz.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix lock inversion in direct IO
-From: Jan Kara <jack@suse.cz>
+Subject: speed up jiffies conversion functions if HZ==USER_HZ
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We cannot start transaction in ext3_direct_IO() and just let it last during
-the whole write because dio_get_page() acquires mmap_sem which ranks above
-transaction start (e.g.  because we have dependency chain
-mmap_sem->PageLock->journal_start, or because we update atime while holding
-mmap_sem) and thus deadlocks could happen.  We solve the problem by
-starting a transaction separately for each ext3_get_block() call.
+Avoid calling do_div(x, 1) in this case.
 
-We *could* have a problem that we allocate a block and before its data are
-written out the machine crashes and thus we expose stale data.  But that
-does not happen because for hole-filling generic code falls back to
-buffered writes and for file extension, we add inode to orphan list and
-thus in case of crash, journal replay will truncate inode back to the
-original size.
-
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: David Fries <david@fries.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |  106 ++++++++++++++++++++++------------------------
- 1 file changed, 52 insertions(+), 54 deletions(-)
+ kernel/time.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-fix-lock-inversion-in-direct-io
-+++ a/fs/ext3/inode.c
-@@ -939,55 +939,45 @@ out:
- 	return err;
- }
- 
--#define DIO_CREDITS (EXT3_RESERVE_TRANS_BLOCKS + 32)
-+/* Maximum number of blocks we map for direct IO at once. */
-+#define DIO_MAX_BLOCKS 4096
-+/*
-+ * Number of credits we need for writing DIO_MAX_BLOCKS:
-+ * We need sb + group descriptor + bitmap + inode -> 4
-+ * For B blocks with A block pointers per block we need:
-+ * 1 (triple ind.) + (B/A/A + 2) (doubly ind.) + (B/A + 2) (indirect).
-+ * If we plug in 4096 for B and 256 for A (for 1KB block size), we get 25.
-+ */
-+#define DIO_CREDITS 25
- 
- static int ext3_get_block(struct inode *inode, sector_t iblock,
- 			struct buffer_head *bh_result, int create)
- {
- 	handle_t *handle = ext3_journal_current_handle();
--	int ret = 0;
-+	int ret = 0, started = 0;
- 	unsigned max_blocks = bh_result->b_size >> inode->i_blkbits;
- 
--	if (!create)
--		goto get_block;		/* A read */
--
--	if (max_blocks == 1)
--		goto get_block;		/* A single block get */
--
--	if (handle->h_transaction->t_state == T_LOCKED) {
--		/*
--		 * Huge direct-io writes can hold off commits for long
--		 * periods of time.  Let this commit run.
--		 */
--		ext3_journal_stop(handle);
--		handle = ext3_journal_start(inode, DIO_CREDITS);
--		if (IS_ERR(handle))
-+	if (create && !handle) {	/* Direct IO write... */
-+		if (max_blocks > DIO_MAX_BLOCKS)
-+			max_blocks = DIO_MAX_BLOCKS;
-+		handle = ext3_journal_start(inode, DIO_CREDITS +
-+				2 * EXT3_QUOTA_TRANS_BLOCKS(inode->i_sb));
-+		if (IS_ERR(handle)) {
- 			ret = PTR_ERR(handle);
--		goto get_block;
--	}
--
--	if (handle->h_buffer_credits <= EXT3_RESERVE_TRANS_BLOCKS) {
--		/*
--		 * Getting low on buffer credits...
--		 */
--		ret = ext3_journal_extend(handle, DIO_CREDITS);
--		if (ret > 0) {
--			/*
--			 * Couldn't extend the transaction.  Start a new one.
--			 */
--			ret = ext3_journal_restart(handle, DIO_CREDITS);
-+			goto out;
- 		}
-+		started = 1;
- 	}
- 
--get_block:
--	if (ret == 0) {
--		ret = ext3_get_blocks_handle(handle, inode, iblock,
-+	ret = ext3_get_blocks_handle(handle, inode, iblock,
- 					max_blocks, bh_result, create, 0);
--		if (ret > 0) {
--			bh_result->b_size = (ret << inode->i_blkbits);
--			ret = 0;
--		}
-+	if (ret > 0) {
-+		bh_result->b_size = (ret << inode->i_blkbits);
-+		ret = 0;
- 	}
-+	if (started)
-+		ext3_journal_stop(handle);
-+out:
- 	return ret;
- }
- 
-@@ -1678,7 +1668,8 @@ static int ext3_releasepage(struct page 
-  * if the machine crashes during the write.
-  *
-  * If the O_DIRECT write is intantiating holes inside i_size and the machine
-- * crashes then stale disk data _may_ be exposed inside the file.
-+ * crashes then stale disk data _may_ be exposed inside the file. But current
-+ * VFS code falls back into buffered path in that case so we are safe.
-  */
- static ssize_t ext3_direct_IO(int rw, struct kiocb *iocb,
- 			const struct iovec *iov, loff_t offset,
-@@ -1687,7 +1678,7 @@ static ssize_t ext3_direct_IO(int rw, st
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file->f_mapping->host;
- 	struct ext3_inode_info *ei = EXT3_I(inode);
--	handle_t *handle = NULL;
-+	handle_t *handle;
- 	ssize_t ret;
- 	int orphan = 0;
- 	size_t count = iov_length(iov, nr_segs);
-@@ -1695,17 +1686,21 @@ static ssize_t ext3_direct_IO(int rw, st
- 	if (rw == WRITE) {
- 		loff_t final_size = offset + count;
- 
--		handle = ext3_journal_start(inode, DIO_CREDITS);
--		if (IS_ERR(handle)) {
--			ret = PTR_ERR(handle);
--			goto out;
--		}
- 		if (final_size > inode->i_size) {
-+			/* Credits for sb + inode write */
-+			handle = ext3_journal_start(inode, 2);
-+			if (IS_ERR(handle)) {
-+				ret = PTR_ERR(handle);
-+				goto out;
-+			}
- 			ret = ext3_orphan_add(handle, inode);
--			if (ret)
--				goto out_stop;
-+			if (ret) {
-+				ext3_journal_stop(handle);
-+				goto out;
-+			}
- 			orphan = 1;
- 			ei->i_disksize = inode->i_size;
-+			ext3_journal_stop(handle);
- 		}
- 	}
- 
-@@ -1713,18 +1708,21 @@ static ssize_t ext3_direct_IO(int rw, st
- 				 offset, nr_segs,
- 				 ext3_get_block, NULL);
- 
--	/*
--	 * Reacquire the handle: ext3_get_block() can restart the transaction
--	 */
--	handle = ext3_journal_current_handle();
--
--out_stop:
--	if (handle) {
-+	if (orphan) {
- 		int err;
- 
--		if (orphan && inode->i_nlink)
-+		/* Credits for sb + inode write */
-+		handle = ext3_journal_start(inode, 2);
-+		if (IS_ERR(handle)) {
-+			/* This is really bad luck. We've written the data
-+			 * but cannot extend i_size. Bail out and pretend
-+			 * the write failed... */
-+			ret = PTR_ERR(handle);
-+			goto out;
-+		}
-+		if (inode->i_nlink)
- 			ext3_orphan_del(handle, inode);
--		if (orphan && ret > 0) {
-+		if (ret > 0) {
- 			loff_t end = offset + ret;
- 			if (end > inode->i_size) {
- 				ei->i_disksize = end;
+diff -puN kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz kernel/time.c
+--- a/kernel/time.c~speed-up-jiffies-conversion-functions-if-hz==user_hz
++++ a/kernel/time.c
+@@ -606,8 +606,10 @@ u64 jiffies_64_to_clock_t(u64 x)
+ # if HZ < USER_HZ
+ 	x *= USER_HZ;
+ 	do_div(x, HZ);
+-# else
++# elif HZ > USER_HZ
+ 	do_div(x, HZ / USER_HZ);
++# else
++	/* Nothing to do */
+ # endif
+ #else
+ 	/*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-input.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+git-slub.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-use-pgoff_t-instead-of-unsigned-long.patch
-write_inode_now-avoid-unnecessary-synchronous-write.patch
-udf-fix-coding-style-of-superc.patch
-udf-remove-some-ugly-macros.patch
-udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
-udf-check-if-udf_load_logicalvol-failed.patch
-udf-convert-macros-related-to-bitmaps-to-functions.patch
-udf-move-calculating-of-nr_groups-into-helper-function.patch
-udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
-udf-fix-coding-style.patch
-udf-create-common-function-for-tag-checksumming.patch
-udf-create-common-function-for-changing-free-space-counter.patch
-udf-replace-loops-coded-with-goto-to-real-loops.patch
-udf-convert-byte-order-of-constant-instead-of-variable.patch
-udf-remove-udf_i_-macros-and-open-code-them.patch
-udf-cache-struct-udf_inode_info.patch
-udf-fix-udf_debug-macro.patch
-udf-improve-readability-of-udf_load_partition.patch
-udf-remove-wrong-prototype-of-udf_readdir.patch
-udf-fix-3-signedness-1-unitialized-variable-warnings.patch
-udf-fix-signedness-issue.patch
-udf-avoid-unnecessary-synchronous-writes.patch
-udf-cleanup-directory-offset-handling.patch
-udf-fix-adding-entry-to-a-directory.patch
-change-udf-maintainer.patch
-isofs-implement-dmode-option.patch
-isofs-implement-dmode-option-fix.patch
-mount-options-fix-ext2.patch
-mount-options-fix-isofs.patch
-mount-options-fix-udf.patch
-buffer_head-fix-private_list-handling.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
