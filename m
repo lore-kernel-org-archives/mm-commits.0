@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - bnx2x-section-fix-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:30:18 -0800
-Message-ID: <200802072230.m17MUIqs026002@imap1.linux-foundation.org>
+Subject: - bnx2x-section-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:30:15 -0800
+Message-ID: <200802072230.m17MUFkb025999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50736 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36034 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933744AbYBGWab (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:31 -0500
+	by vger.kernel.org with ESMTP id S934080AbYBGWac (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bnx2x-section-fix-fix
+     bnx2x section fix
 has been removed from the -mm tree.  Its filename was
-     bnx2x-section-fix-fix.patch
+     bnx2x-section-fix.patch
 
 This patch was dropped because I just remembered __devexitconst :(
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bnx2x-section-fix-fix
+Subject: bnx2x section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix i386
+gcc-3.4.4 on powerpc:
+
+drivers/net/bnx2x.c:73: error: version causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/net/bnx2x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bnx2x.c~bnx2x-section-fix-fix drivers/net/bnx2x.c
---- a/drivers/net/bnx2x.c~bnx2x-section-fix-fix
+diff -puN drivers/net/bnx2x.c~bnx2x-section-fix drivers/net/bnx2x.c
+--- a/drivers/net/bnx2x.c~bnx2x-section-fix
 +++ a/drivers/net/bnx2x.c
-@@ -107,7 +107,7 @@ enum bnx2x_board_type {
- };
+@@ -70,7 +70,7 @@
+ /* Time in jiffies before concluding the transmitter is hung. */
+ #define TX_TIMEOUT      	(5*HZ)
  
- /* indexed by board_t, above */
--static const struct {
-+static struct {
- 	char *name;
- } board_info[] __devinitdata = {
- 	{ "Broadcom NetXtreme II BCM57710 XGb" }
+-static const char version[] __devinitdata =
++static char version[] __devinitdata =
+ 	"Broadcom NetXtreme II 577xx 10Gigabit Ethernet Driver "
+ 	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +108,7 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+bnx2x-section-fix.patch
 bnx2x-section-fix-fix.patch
 bnx2c-section-fix.patch
 bnx2c-section-fix-fix.patch
