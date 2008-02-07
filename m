@@ -1,74 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-add-hint-about-call-traces-module-symbols-to-bug-hunting.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:18 -0800
-Message-ID: <200802070024.m170Ox9T006674@imap1.linux-foundation.org>
+Subject: - fb-fix-warning-no-return-statement-in-function-returning-non-void.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:31:02 -0800
+Message-ID: <200802070030.m170UhfM007416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60347 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933971AbYBGAoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:14 -0500
+	by vger.kernel.org with ESMTP id S1764447AbYBGAoT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@rsk.demon.co.uk, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, adaplas@pol.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: add hint about call traces & module symbols to BUG-HUNTING
+     fb: fix warning: no return statement in function returning non-void
 has been removed from the -mm tree.  Its filename was
-     documentation-add-hint-about-call-traces-module-symbols-to-bug-hunting.patch
+     fb-fix-warning-no-return-statement-in-function-returning-non-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: add hint about call traces & module symbols to BUG-HUNTING
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: fb: fix warning: no return statement in function returning non-void
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Here's a couple of small additions to BUG-HUNTING.
+Warning is reproducible with selected FB_CFB_REV_PIXELS_IN_BYTE.
 
-1. point out that you can list code in gdb with only one command
-	(gdb) l *(<symbol> + offset)
+  CC      drivers/video/sysfillrect.o
+In file included from drivers/video/sysfillrect.c:18:
+drivers/video/fb_draw.h: In function `fb_rev_pixels_in_long':
+drivers/video/fb_draw.h:94: warning: no return statement in function returning non-void
+  CC      drivers/video/syscopyarea.o
+In file included from drivers/video/syscopyarea.c:22:
+drivers/video/fb_draw.h: In function `fb_rev_pixels_in_long':
+drivers/video/fb_draw.h:94: warning: no return statement in function returning non-void
 
-2. give a very brief hint how to decode module symbols in call traces
-
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/BUG-HUNTING |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/video/fb_draw.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/BUG-HUNTING~documentation-add-hint-about-call-traces-module-symbols-to-bug-hunting Documentation/BUG-HUNTING
---- a/Documentation/BUG-HUNTING~documentation-add-hint-about-call-traces-module-symbols-to-bug-hunting
-+++ a/Documentation/BUG-HUNTING
-@@ -214,6 +214,23 @@ And recompile the kernel with CONFIG_DEB
-   gdb vmlinux
-   (gdb) p vt_ioctl
-   (gdb) l *(0x<address of vt_ioctl> + 0xda8)
-+or, as one command
-+  (gdb) l *(vt_ioctl + 0xda8)
-+
-+If you have a call trace, such as :-
-+>Call Trace:
-+> [<ffffffff8802c8e9>] :jbd:log_wait_commit+0xa3/0xf5
-+> [<ffffffff810482d9>] autoremove_wake_function+0x0/0x2e
-+> [<ffffffff8802770b>] :jbd:journal_stop+0x1be/0x1ee
-+> ...
-+this shows the problem in the :jbd: module. You can load that module in gdb
-+and list the relevant code.
-+  gdb fs/jbd/jbd.ko
-+  (gdb) p log_wait_commit
-+  (gdb) l *(0x<address> + 0xa3)
-+or
-+  (gdb) l *(log_wait_commit + 0xa3)
-+
+diff -puN drivers/video/fb_draw.h~fb-fix-warning-no-return-statement-in-function-returning-non-void drivers/video/fb_draw.h
+--- a/drivers/video/fb_draw.h~fb-fix-warning-no-return-statement-in-function-returning-non-void
++++ a/drivers/video/fb_draw.h
+@@ -91,6 +91,7 @@ static inline unsigned long fb_rev_pixel
+ 		val = comp(val >> 2, val << 2, REV_PIXELS_MASK2);
+ 	if (bswapmask & 3)
+ 		val = comp(val >> 4, val << 4, REV_PIXELS_MASK4);
++	return val;
+ }
  
- Another very useful option of the Kernel Hacking section in menuconfig is
- Debug memory allocations. This will help you see whether data has been
+ static inline u32 fb_shifted_pixels_mask_u32(u32 index, u32 bswapmask)
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
 origin.patch
