@@ -1,178 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: - add-arch_ptrace_stop.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:24 -0800
-Message-ID: <200802070024.m170O5Nl006580@imap1.linux-foundation.org>
+Subject: - rtc-cmos-exports-nvram-in-sysfs.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:10 -0800
+Message-ID: <200802070026.m170QpWl006962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48285 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934081AbYBGAq5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:57 -0500
+	by vger.kernel.org with ESMTP id S933247AbYBGAqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, ptesarik@suse.cz, tony.luck@intel.com, willy@debian.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add arch_ptrace_stop
+     rtc-cmos: export nvram in sysfs
 has been removed from the -mm tree.  Its filename was
-     add-arch_ptrace_stop.patch
+     rtc-cmos-exports-nvram-in-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add arch_ptrace_stop
-From: Roland McGrath <roland@redhat.com>
+Subject: rtc-cmos: export nvram in sysfs
+From: David Brownell <david-b@pacbell.net>
 
-This adds support to allow asm/ptrace.h to define two new macros,
-arch_ptrace_stop_needed and arch_ptrace_stop.  These control special
-machine-specific actions to be done before a ptrace stop.  The new code
-compiles away to nothing when the new macros are not defined.  This is the
-case on all machines to begin with.
+This makes rtc-cmos export its NVRAM, like several other RTC drivers.
 
-On ia64, these macros will be defined to solve the long-standing issue of
-ptrace vs register backing store.
+It still works within the limits of the current CMOS_READ/CMOS_WRITE calls,
+which don't understand how to access multiple register banks.  The primary
+impact of that limitation is that Linux can't access the uppermost 128
+bytes of NVRAM on many systems.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Petr Tesarik <ptesarik@suse.cz>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Note that this isn't aiming to be a drop-in replacement for the legacy
+/dev/nvram support.  (Presumably that has real users, and isn't just
+getting carried forward automatically?) Userspace handles more work:
+
+ - When userspace code updates NVRAM, that will need to include
+   updating any platform-specific checksums that may apply.
+
+ - No /proc/driver/nvram file will parse and display NVRAM data
+   according to whichever boot firmware your board expects.
+
+Also minor pnp-related updates: update a comment, remove dead code.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |   35 +++++++++++++++++++++++++++++++++++
- kernel/signal.c        |   33 ++++++++++++++++++++++++++++++++-
- 2 files changed, 67 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-cmos.c |  129 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 117 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/ptrace.h~add-arch_ptrace_stop include/linux/ptrace.h
---- a/include/linux/ptrace.h~add-arch_ptrace_stop
-+++ a/include/linux/ptrace.h
-@@ -204,6 +204,41 @@ static inline void user_enable_block_ste
- }
- #endif	/* arch_has_block_step */
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs
++++ a/drivers/rtc/rtc-cmos.c
+@@ -393,6 +393,80 @@ static const struct rtc_class_ops cmos_r
  
-+#ifndef arch_ptrace_stop_needed
-+/**
-+ * arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
-+ * @code:	current->exit_code value ptrace will stop with
-+ * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
-+ *
-+ * This is called with the siglock held, to decide whether or not it's
-+ * necessary to release the siglock and call arch_ptrace_stop() with the
-+ * same @code and @info arguments.  It can be defined to a constant if
-+ * arch_ptrace_stop() is never required, or always is.  On machines where
-+ * this makes sense, it should be defined to a quick test to optimize out
-+ * calling arch_ptrace_stop() when it would be superfluous.  For example,
-+ * if the thread has not been back to user mode since the last stop, the
-+ * thread state might indicate that nothing needs to be done.
+ /*----------------------------------------------------------------*/
+ 
++/*
++ * All these chips have at least 64 bytes of address space, shared by
++ * RTC registers and NVRAM.  Most of those bytes of NVRAM are used
++ * by boot firmware.  Modern chips have 128 or 256 bytes.
 + */
-+#define arch_ptrace_stop_needed(code, info)	(0)
-+#endif
 +
-+#ifndef arch_ptrace_stop
-+/**
-+ * arch_ptrace_stop - Do machine-specific work before stopping for ptrace
-+ * @code:	current->exit_code value ptrace will stop with
-+ * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
-+ *
-+ * This is called with no locks held when arch_ptrace_stop_needed() has
-+ * just returned nonzero.  It is allowed to block, e.g. for user memory
-+ * access.  The arch can have machine-specific work to be done before
-+ * ptrace stops.  On ia64, register backing store gets written back to user
-+ * memory here.  Since this can be costly (requires dropping the siglock),
-+ * we only do it when the arch requires it for this particular stop, as
-+ * indicated by arch_ptrace_stop_needed().
-+ */
-+#define arch_ptrace_stop(code, info)		do { } while (0)
-+#endif
++#define NVRAM_OFFSET	(RTC_REG_D + 1)
 +
- #endif
- 
- #endif
-diff -puN kernel/signal.c~add-arch_ptrace_stop kernel/signal.c
---- a/kernel/signal.c~add-arch_ptrace_stop
-+++ a/kernel/signal.c
-@@ -1578,6 +1578,17 @@ static inline int may_ptrace_stop(void)
- }
- 
- /*
-+ * Return nonzero if there is a SIGKILL that should be waking us up.
-+ * Called with the siglock held.
-+ */
-+static int sigkill_pending(struct task_struct *tsk)
++static ssize_t
++cmos_nvram_read(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
 +{
-+	return ((sigismember(&tsk->pending.signal, SIGKILL) ||
-+		 sigismember(&tsk->signal->shared_pending.signal, SIGKILL)) &&
-+		!unlikely(sigismember(&tsk->blocked, SIGKILL)));
++	int	retval;
++
++	if (unlikely(off >= attr->size))
++		return 0;
++	if ((off + count) > attr->size)
++		count = attr->size - off;
++
++	spin_lock_irq(&rtc_lock);
++	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++)
++		*buf++ = CMOS_READ(off);
++	spin_unlock_irq(&rtc_lock);
++
++	return retval;
 +}
 +
-+/*
-  * This must be called with current->sighand->siglock held.
-  *
-  * This should be the path for all ptrace stops.
-@@ -1590,6 +1601,26 @@ static inline int may_ptrace_stop(void)
-  */
- static void ptrace_stop(int exit_code, int nostop_code, siginfo_t *info)
- {
-+	int killed = 0;
++static ssize_t
++cmos_nvram_write(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
++{
++	struct cmos_rtc	*cmos;
++	int		retval;
 +
-+	if (arch_ptrace_stop_needed(exit_code, info)) {
-+		/*
-+		 * The arch code has something special to do before a
-+		 * ptrace stop.  This is allowed to block, e.g. for faults
-+		 * on user stack pages.  We can't keep the siglock while
-+		 * calling arch_ptrace_stop, so we must release it now.
-+		 * To preserve proper semantics, we must do this before
-+		 * any signal bookkeeping like checking group_stop_count.
-+		 * Meanwhile, a SIGKILL could come in before we retake the
-+		 * siglock.  That must prevent us from sleeping in TASK_TRACED.
-+		 * So after regaining the lock, we must check for SIGKILL.
-+		 */
-+		spin_unlock_irq(&current->sighand->siglock);
-+		arch_ptrace_stop(exit_code, info);
-+		spin_lock_irq(&current->sighand->siglock);
-+		killed = sigkill_pending(current);
++	cmos = dev_get_drvdata(container_of(kobj, struct device, kobj));
++	if (unlikely(off >= attr->size))
++		return -EFBIG;
++	if ((off + count) > attr->size)
++		count = attr->size - off;
++
++	/* NOTE:  on at least PCs and Ataris, the boot firmware uses a
++	 * checksum on part of the NVRAM data.  That's currently ignored
++	 * here.  If userspace is smart enough to know what fields of
++	 * NVRAM to update, updating checksums is also part of its job.
++	 */
++	spin_lock_irq(&rtc_lock);
++	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++) {
++		/* don't trash RTC registers */
++		if (off == cmos->day_alrm
++				|| off == cmos->mon_alrm
++				|| off == cmos->century)
++			buf++;
++		else
++			CMOS_WRITE(*buf++, off);
 +	}
++	spin_unlock_irq(&rtc_lock);
 +
- 	/*
- 	 * If there is a group stop in progress,
- 	 * we must participate in the bookkeeping.
-@@ -1605,7 +1636,7 @@ static void ptrace_stop(int exit_code, i
- 	spin_unlock_irq(&current->sighand->siglock);
- 	try_to_freeze();
- 	read_lock(&tasklist_lock);
--	if (may_ptrace_stop()) {
-+	if (!unlikely(killed) && may_ptrace_stop()) {
- 		do_notify_parent_cldstop(current, CLD_TRAPPED);
- 		read_unlock(&tasklist_lock);
- 		schedule();
++	return retval;
++}
++
++static struct bin_attribute nvram = {
++	.attr = {
++		.name	= "nvram",
++		.mode	= S_IRUGO | S_IWUSR,
++		.owner	= THIS_MODULE,
++	},
++
++	.read	= cmos_nvram_read,
++	.write	= cmos_nvram_write,
++	/* size gets set up later */
++};
++
++/*----------------------------------------------------------------*/
++
+ static struct cmos_rtc	cmos_rtc;
+ 
+ static irqreturn_t cmos_interrupt(int irq, void *p)
+@@ -412,11 +486,9 @@ static irqreturn_t cmos_interrupt(int ir
+ }
+ 
+ #ifdef	CONFIG_PNP
+-#define	is_pnp()	1
+ #define	INITSECTION
+ 
+ #else
+-#define	is_pnp()	0
+ #define	INITSECTION	__init
+ #endif
+ 
+@@ -426,6 +498,7 @@ cmos_do_probe(struct device *dev, struct
+ 	struct cmos_rtc_board_info	*info = dev->platform_data;
+ 	int				retval = 0;
+ 	unsigned char			rtc_control;
++	unsigned			address_space;
+ 
+ 	/* there can be only one ... */
+ 	if (cmos_rtc.dev)
+@@ -450,15 +523,36 @@ cmos_do_probe(struct device *dev, struct
+ 	cmos_rtc.irq = rtc_irq;
+ 	cmos_rtc.iomem = ports;
+ 
++	/* Heuristic to deduce NVRAM size ... do what the legacy NVRAM
++	 * driver did, but don't reject unknown configs.   Old hardware
++	 * won't address 128 bytes, and for now we ignore the way newer
++	 * chips can address 256 bytes (using two more i/o ports).
++	 */
++#if	defined(CONFIG_ATARI)
++	address_space = 64;
++#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)
++	address_space = 128;
++#else
++#warning Assuming 128 bytes of RTC+NVRAM address space, not 64 bytes.
++	address_space = 128;
++#endif
++
+ 	/* For ACPI systems extension info comes from the FADT.  On others,
+ 	 * board specific setup provides it as appropriate.  Systems where
+ 	 * the alarm IRQ isn't automatically a wakeup IRQ (like ACPI, and
+ 	 * some almost-clones) can provide hooks to make that behave.
++	 *
++	 * Note that ACPI doesn't preclude putting these registers into
++	 * "extended" areas of the chip, including some that we won't yet
++	 * expect CMOS_READ and friends to handle.
+ 	 */
+ 	if (info) {
+-		cmos_rtc.day_alrm = info->rtc_day_alarm;
+-		cmos_rtc.mon_alrm = info->rtc_mon_alarm;
+-		cmos_rtc.century = info->rtc_century;
++		if (info->rtc_day_alarm && info->rtc_day_alarm < 128)
++			cmos_rtc.day_alrm = info->rtc_day_alarm;
++		if (info->rtc_mon_alarm && info->rtc_mon_alarm < 128)
++			cmos_rtc.mon_alrm = info->rtc_mon_alarm;
++		if (info->rtc_century && info->rtc_century < 128)
++			cmos_rtc.century = info->rtc_century;
+ 
+ 		if (info->wake_on && info->wake_off) {
+ 			cmos_rtc.wake_on = info->wake_on;
+@@ -518,10 +612,13 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup1;
+ 	}
+ 
+-	/* REVISIT optionally make 50 or 114 bytes NVRAM available,
+-	 * like rtc-ds1553, rtc-ds1742 ... this will often include
+-	 * registers for century, and day/month alarm.
+-	 */
++	/* export at least the first block of NVRAM */
++	nvram.size = address_space - NVRAM_OFFSET;
++	retval = sysfs_create_bin_file(&dev->kobj, &nvram);
++	if (retval < 0) {
++		dev_dbg(dev, "can't create nvram file? %d\n", retval);
++		goto cleanup2;
++	}
+ 
+ 	pr_info("%s: alarms up to one %s%s\n",
+ 			cmos_rtc.rtc->dev.bus_id,
+@@ -536,6 +633,9 @@ cmos_do_probe(struct device *dev, struct
+ 
+ 	return 0;
+ 
++cleanup2:
++	if (is_valid_irq(rtc_irq))
++		free_irq(rtc_irq, cmos_rtc.rtc);
+ cleanup1:
+ 	cmos_rtc.dev = NULL;
+ 	rtc_device_unregister(cmos_rtc.rtc);
+@@ -563,6 +663,8 @@ static void __exit cmos_do_remove(struct
+ 
+ 	cmos_do_shutdown();
+ 
++	sysfs_remove_bin_file(&dev->kobj, &nvram);
++
+ 	if (is_valid_irq(cmos->irq))
+ 		free_irq(cmos->irq, cmos->rtc);
+ 
+@@ -659,9 +761,12 @@ static int cmos_resume(struct device *de
+ 
+ /*----------------------------------------------------------------*/
+ 
+-/* The "CMOS" RTC normally lives on the platform_bus.  On ACPI systems,
+- * the device node will always be created as a PNPACPI device.  Plus
+- * pre-ACPI PCs probably list it in the PNPBIOS tables.
++/* On non-x86 systems, a "CMOS" RTC lives most naturally on platform_bus.
++ * ACPI systems always list these as PNPACPI devices, and pre-ACPI PCs
++ * probably list them in similar PNPBIOS tables; so PNP is more common.
++ *
++ * We don't use legacy "poke at the hardware" probing.  Ancient PCs that
++ * predate even PNPBIOS should set up platform_bus devices.
+  */
+ 
+ #ifdef	CONFIG_PNP
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-proc-fix-the-threaded-proc-self.patch
-kill-pt_attached.patch
-kill-my_ptrace_child.patch
-ptrace_check_attach-remove-unneeded-signal-=-null-check.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
-do_wait-factor-out-retval-=-0-checks.patch
-ptrace_stop-fix-racy-nonstop_code-setting.patch
-wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
-do_wait-cleanup-delay_group_leader-usage.patch
-do_wait-fix-security-checks.patch
-do_wait-fix-security-checks-fix.patch
-wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
-wait_task_zombie-remove-exit_state-exit_signal-checks-for-wnowait.patch
-fix-group-stop-with-exit-race.patch
-sys_setsid-remove-now-unneeded-session-=-1-check.patch
-move-the-related-code-from-exit_notify-to-exit_signals.patch
-uglify-kill_pid_info-to-fix-kill-vs-exec-race.patch
-uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
-itimer_real-convert-to-use-struct-pid.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
-linux-kernel-markers-create-modpost-file.patch
-asm-posix_typesh-scrub-__glibc__.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-input.patch
+git-mmc.patch
+git-mtd.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+basic-pwm-driver-for-avr32-and-at91-fix.patch
+pwm-led-driver.patch
