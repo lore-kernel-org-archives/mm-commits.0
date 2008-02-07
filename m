@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bnx2x-section-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 00:32:35 -0700
-Message-ID: <200802070732.m177WHKv022141@imap1.linux-foundation.org>
+Subject: + natsemi-section-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 00:33:30 -0700
+Message-ID: <200802070733.m177XCTR022166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58026 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754315AbYBGHc2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:32:28 -0500
+	by vger.kernel.org with ESMTP id S1759919AbYBGHdX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:33:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     bnx2x section fix
+     natsemi section fix
 has been added to the -mm tree.  Its filename is
-     bnx2x-section-fix.patch
+     natsemi-section-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -27,32 +27,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bnx2x section fix
+Subject: natsemi section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-3.4.4 on powerpc:
 
-drivers/net/bnx2x.c:73: error: version causes a section type conflict
+drivers/net/natsemi.c:245: error: natsemi_pci_info causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2x.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/natsemi.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/bnx2x.c~bnx2x-section-fix drivers/net/bnx2x.c
---- a/drivers/net/bnx2x.c~bnx2x-section-fix
-+++ a/drivers/net/bnx2x.c
-@@ -70,7 +70,7 @@
- /* Time in jiffies before concluding the transmitter is hung. */
- #define TX_TIMEOUT      	(5*HZ)
+diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-section-fix
++++ a/drivers/net/natsemi.c
+@@ -127,7 +127,7 @@ static int full_duplex[MAX_UNITS];
+ #define NATSEMI_RX_LIMIT	2046	/* maximum supported by hardware */
  
+ /* These identify the driver base version and may not be removed. */
 -static const char version[] __devinitdata =
 +static char version[] __devinitdata =
- 	"Broadcom NetXtreme II 577xx 10Gigabit Ethernet Driver "
- 	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+   KERN_INFO DRV_NAME " dp8381x driver, version "
+       DRV_VERSION ", " DRV_RELDATE "\n"
+   KERN_INFO "  originally by Donald Becker <becker@scyld.com>\n"
+@@ -238,7 +238,7 @@ enum {
+ };
  
+ /* array of board data directly indexed by pci_tbl[x].driver_data */
+-static const struct {
++static struct {
+ 	const char *name;
+ 	unsigned long flags;
+ 	unsigned int eeprom_size;
+@@ -247,7 +247,7 @@ static const struct {
+ 	{ "NatSemi DP8381[56]", 0, 24 },
+ };
+ 
+-static const struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
++static struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_NS, 0x0020, 0x12d9,     0x000c,     0, 0, 0 },
+ 	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
+ 	{ }	/* terminate list */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
