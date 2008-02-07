@@ -1,84 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:13 -0800
-Message-ID: <200802070024.m170OsVb006668@imap1.linux-foundation.org>
+Subject: - md-fix-an-occasional-deadlock-in-raid5.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:12 -0800
+Message-ID: <200802070029.m170Tr9o007327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32943 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935010AbYBGAot (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:49 -0500
+	by vger.kernel.org with ESMTP id S935065AbYBGAoq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@skyrush.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: neilb@suse.de, dan.j.williams@gmail.com, dean@arctic.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix IXANY and restart after signal (e.g. ctrl-C) in n_tty line discipline
+     md: fix an occasional deadlock in raid5
 has been removed from the -mm tree.  Its filename was
-     fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline.patch
+     md-fix-an-occasional-deadlock-in-raid5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix IXANY and restart after signal (e.g. ctrl-C) in n_tty line discipline
-From: Joe Peterson <joe@skyrush.com>
+Subject: md: fix an occasional deadlock in raid5
+From: NeilBrown <neilb@suse.de>
 
-Fix two N_TTY line discipline issues related to resuming a stopped TTY
-(typically done with ctrl-S):
+raid5's 'make_request' function calls generic_make_request on underlying
+devices and if we run out of stripe heads, it could end up waiting for one of
+those requests to complete.  This is bad as recursive calls to
+generic_make_request go on a queue and are not even attempted until
+make_request completes.
 
-1) Fix handling of character that resumes a stopped TTY (with IXANY)
+So: don't make any generic_make_request calls in raid5 make_request until all
+waiting has been done.  We do this by simply setting STRIPE_HANDLE instead of
+calling handle_stripe().
 
-With "stty ixany", the TTY line discipline would lose the first character
-after the stop, so typing, for example, "hi^Sthere" resulted in "hihere"
-(the 't' would cause the resume after ^S, but it would then be thrown away
-rather than processed as an input character).  This was inconsistent with
-the behavior of other Unix systems.
+If we need more stripe_heads, raid5d will get called to process the pending
+stripe_heads which will call generic_make_request from a
 
-2) Fix interrupt signal (e.g. ctrl-C) behavior in stopped TTYs
+This change by itself causes a performance hit.  So add a change so that
+raid5_activate_delayed is only called at unplug time, never in raid5.  This
+seems to bring back the performance numbers.  Calling it in raid5d was
+sometimes too soon...
 
-With "stty -ixany" (often the default), interrupt signals were ignored
-in a stopped TTY until the TTY was resumed with the start char (typically
-ctrl-Q), which was inconsistent with the behavior of other Unix systems.
+Neil said:
 
-Signed-off-by: Joe Peterson <joe@skyrush.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+  How about we queue it for 2.6.25-rc1 and then about when -rc2 comes out,
+  we queue it for 2.6.24.y?
+
+Cc: "Dan Williams" <dan.j.williams@gmail.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Tested-by: dean gaudet <dean@arctic.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/md/raid5.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/n_tty.c~fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~fix-ixany-and-restart-after-signal-eg-ctrl-c-in-n_tty-line-discipline
-+++ a/drivers/char/n_tty.c
-@@ -695,17 +695,16 @@ static inline void n_tty_receive_char(st
- 		return;
- 	}
- 	
--	if (tty->stopped && !tty->flow_stopped &&
--	    I_IXON(tty) && I_IXANY(tty)) {
--		start_tty(tty);
--		return;
+diff -puN drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-an-occasional-deadlock-in-raid5
++++ a/drivers/md/raid5.c
+@@ -3159,7 +3159,8 @@ static void raid5_activate_delayed(raid5
+ 				atomic_inc(&conf->preread_active_stripes);
+ 			list_add_tail(&sh->lru, &conf->handle_list);
+ 		}
 -	}
--	
- 	if (I_ISTRIP(tty))
- 		c &= 0x7f;
- 	if (I_IUCLC(tty) && L_IEXTEN(tty))
- 		c=tolower(c);
++	} else
++		blk_plug_device(conf->mddev->queue);
+ }
  
-+	if (tty->stopped && !tty->flow_stopped && I_IXON(tty) &&
-+	    ((I_IXANY(tty) && c != START_CHAR(tty) && c != STOP_CHAR(tty)) ||
-+	     c == INTR_CHAR(tty) || c == QUIT_CHAR(tty)))
-+		start_tty(tty);
-+
- 	if (tty->closing) {
- 		if (I_IXON(tty)) {
- 			if (c == START_CHAR(tty))
+ static void activate_bit_delay(raid5_conf_t *conf)
+@@ -3549,7 +3550,8 @@ static int make_request(struct request_q
+ 				goto retry;
+ 			}
+ 			finish_wait(&conf->wait_for_overlap, &w);
+-			handle_stripe(sh, NULL);
++			set_bit(STRIPE_HANDLE, &sh->state);
++			clear_bit(STRIPE_DELAYED, &sh->state);
+ 			release_stripe(sh);
+ 		} else {
+ 			/* cannot get stripe for read-ahead, just give-up */
+@@ -3892,7 +3894,7 @@ static int  retry_aligned_read(raid5_con
+  * During the scan, completed stripes are saved for us by the interrupt
+  * handler, so that they will not have to wait for our next wakeup.
+  */
+-static void raid5d (mddev_t *mddev)
++static void raid5d(mddev_t *mddev)
+ {
+ 	struct stripe_head *sh;
+ 	raid5_conf_t *conf = mddev_to_conf(mddev);
+@@ -3917,12 +3919,6 @@ static void raid5d (mddev_t *mddev)
+ 			activate_bit_delay(conf);
+ 		}
+ 
+-		if (list_empty(&conf->handle_list) &&
+-		    atomic_read(&conf->preread_active_stripes) < IO_THRESHOLD &&
+-		    !blk_queue_plugged(mddev->queue) &&
+-		    !list_empty(&conf->delayed_list))
+-			raid5_activate_delayed(conf);
+-
+ 		while ((bio = remove_bio_from_retry(conf))) {
+ 			int ok;
+ 			spin_unlock_irq(&conf->device_lock);
 _
 
-Patches currently in -mm which might be from joe@skyrush.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
