@@ -1,45 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 19:33:08 -0800
-Message-ID: <200802070332.m173WndT014023@imap1.linux-foundation.org>
+Subject: - iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 19:33:58 -0800
+Message-ID: <200802070333.m173Xdea014057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759272AbYBGDdh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:33:37 -0500
+	by vger.kernel.org with ESMTP id S1751889AbYBGDea (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 22:34:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
+     iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+     iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into iget-stop-affs-from-using-iget-and-read_inode-try.patch
+This patch was dropped because it was folded into iget-stop-efs-from-using-iget-and-read_inode-try.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
+Subject: iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#31: FILE: fs/affs/affs.h:177:
-+extern struct inode		*affs_iget(struct super_block *sb, unsigned long ino);
+ERROR: use tabs not spaces
+#105: FILE: fs/efs/namei.c:94:
++^I    ^Ireturn ERR_PTR(-ESTALE);$
 
-WARNING: line over 80 characters
-#44: FILE: fs/affs/amigaffs.c:173:
-+		dir = affs_iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
-
-ERROR: need space after that ',' (ctx:VxV)
-#81: FILE: fs/affs/inode.c:36:
-+	pr_debug("AFFS: affs_iget(%lu)\n",inode->i_ino);
- 	                                 ^
-
-total: 1 errors, 2 warnings, 130 lines checked
+total: 1 errors, 0 warnings, 151 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
@@ -47,39 +38,24 @@ CHECKPATCH in MAINTAINERS.
 Please run checkpatch prior to sending patches
 
 Cc: David Howells <dhowells@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h  |    3 ++-
- fs/affs/inode.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/efs/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/affs/affs.h
---- a/fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
-+++ a/fs/affs/affs.h
-@@ -174,7 +174,8 @@ extern void			 affs_put_inode(struct ino
- extern void			 affs_drop_inode(struct inode *inode);
- extern void			 affs_delete_inode(struct inode *inode);
- extern void			 affs_clear_inode(struct inode *inode);
--extern struct inode		*affs_iget(struct super_block *sb, unsigned long ino);
-+extern struct inode		*affs_iget(struct super_block *sb,
-+					unsigned long ino);
- extern int			 affs_write_inode(struct inode *inode, int);
- extern int			 affs_add_entry(struct inode *dir, struct inode *inode, struct dentry *dentry, s32 type);
+diff -puN fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/efs/namei.c
+--- a/fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes
++++ a/fs/efs/namei.c
+@@ -91,7 +91,7 @@ static struct inode *efs_nfs_get_inode(s
  
-diff -puN fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/affs/inode.c
---- a/fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
-+++ a/fs/affs/inode.c
-@@ -33,7 +33,7 @@ struct inode *affs_iget(struct super_blo
- 	if (!(inode->i_state & I_NEW))
- 		return inode;
+ 	if (generation && inode->i_generation != generation) {
+ 		iput(inode);
+-	    	return ERR_PTR(-ESTALE);
++		return ERR_PTR(-ESTALE);
+ 	}
  
--	pr_debug("AFFS: affs_iget(%lu)\n",inode->i_ino);
-+	pr_debug("AFFS: affs_iget(%lu)\n", inode->i_ino);
- 
- 	block = inode->i_ino;
- 	bh = affs_bread(sb, block);
+ 	return inode;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,7 +80,7 @@ cpusets-update_cpumask-revision.patch
 drivers-edac-add-marvell-mv64x60-driver.patch
 introduce-flags-for-reserve_bootmem.patch
 iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
