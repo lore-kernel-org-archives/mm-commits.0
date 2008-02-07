@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + natsemi-section-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 00:29:24 -0700
-Message-ID: <200802070729.m177T6b3022038@imap1.linux-foundation.org>
+Date: Thu, 07 Feb 2008 00:31:18 -0700
+Message-ID: <200802070731.m177V1e1022056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52633 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754933AbYBGH3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:29:16 -0500
+	by vger.kernel.org with ESMTP id S1754220AbYBGHbL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:31:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -38,8 +38,8 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/natsemi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
 --- a/drivers/net/natsemi.c~natsemi-section-fix
@@ -53,6 +53,15 @@ diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
  	const char *name;
  	unsigned long flags;
  	unsigned int eeprom_size;
+@@ -247,7 +247,7 @@ static const struct {
+ 	{ "NatSemi DP8381[56]", 0, 24 },
+ };
+ 
+-static const struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
++static struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_NS, 0x0020, 0x12d9,     0x000c,     0, 0, 0 },
+ 	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
+ 	{ }	/* terminate list */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
