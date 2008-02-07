@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + bnx2x-section-fix-fix.patch added to -mm tree
-Date: Thu, 07 Feb 2008 00:39:48 -0800
-Message-ID: <200802070848.m178mcek025601@imap1.linux-foundation.org>
+Subject: + bnx2c-section-fix-fix.patch added to -mm tree
+Date: Thu, 07 Feb 2008 00:40:23 -0800
+Message-ID: <200802070849.m178nDoo025619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43863 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753427AbYBGIsv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 03:48:51 -0500
+	by vger.kernel.org with ESMTP id S1754119AbYBGItZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 03:49:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     bnx2x-section-fix-fix
+     bnx2c-section-fix-fix
 has been added to the -mm tree.  Its filename is
-     bnx2x-section-fix-fix.patch
+     bnx2c-section-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bnx2x-section-fix-fix
+Subject: bnx2c-section-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 fix i386
@@ -42,21 +42,21 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2x.c |    2 +-
+ drivers/net/bnx2.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bnx2x.c~bnx2x-section-fix-fix drivers/net/bnx2x.c
---- a/drivers/net/bnx2x.c~bnx2x-section-fix-fix
-+++ a/drivers/net/bnx2x.c
-@@ -107,7 +107,7 @@ enum bnx2x_board_type {
- };
+diff -puN drivers/net/bnx2.c~bnx2c-section-fix-fix drivers/net/bnx2.c
+--- a/drivers/net/bnx2.c~bnx2c-section-fix-fix
++++ a/drivers/net/bnx2.c
+@@ -90,7 +90,7 @@ typedef enum {
+ } board_t;
  
  /* indexed by board_t, above */
 -static const struct {
 +static struct {
  	char *name;
  } board_info[] __devinitdata = {
- 	{ "Broadcom NetXtreme II BCM57710 XGb" }
+ 	{ "Broadcom NetXtreme II BCM5706 1000Base-T" },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,6 +121,7 @@ natsemi-section-fix.patch
 bnx2x-section-fix.patch
 bnx2x-section-fix-fix.patch
 bnx2c-section-fix.patch
+bnx2c-section-fix-fix.patch
 via-velocity-section-fix.patch
 starfire-secton-fix.patch
 pppol2tp-fix-printk-warnings.patch
