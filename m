@@ -1,350 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-ds1302-rtc-support.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:13 -0800
-Message-ID: <200802070026.m170QsaE006965@imap1.linux-foundation.org>
+Subject: - allow-auto-destruction-of-loop-devices.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:12 -0800
+Message-ID: <200802070020.m170KrOB006200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44328 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764771AbYBGApN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:13 -0500
+	by vger.kernel.org with ESMTP id S1764496AbYBGApG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: dwmw2@infradead.org, bernie@codewiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: ds1302 rtc support
+     Allow auto-destruction of loop devices
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1302-rtc-support.patch
+     allow-auto-destruction-of-loop-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: ds1302 rtc support
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: Allow auto-destruction of loop devices
+From: David Woodhouse <dwmw2@infradead.org>
 
-This adds a basic ds1302 RTC driver, which is basically a cleanup and move
-of the in-tree SH SecureEdge5410 code (which is currently located in
-arch/sh/board/snapgear/rtc.c) to drivers/rtc.
+This allows a flag to be set on loop devices so that when they are
+closed for the last time, they'll self-destruct.
 
-This aims to be a building block that the M32R and CRIS code can be worked
-on top of, so we can get rid of drivers/char/ds1302.c and
-arch/cris/arch-v10/drivers/ds1302.c respectively, though more work is
-needed for this.
+In general, so that we can automatically allocate loop devices (as with
+losetup -f) and have them disappear when we're done with them.
+
+In particular, right now, so that we can stop relying on the hackish
+special-case in umount(8) which kills off loop devices which were set up by
+'mount -oloop'.  That means we can stop putting crap in /etc/mtab which
+doesn't belong there, which means it can be a symlink to /proc/mounts, which
+means yet another writable file on the root filesystem is eliminated and the
+'stateless' folks get happier...  and OLPC trac #356 can be closed.
+
+The mount(8) side of that is at
+http://marc.info/?l=util-linux-ng&m=119362955431694&w=2
 
 [akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Bernardo Innocenti <bernie@codewiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    6 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1302.c |  262 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 269 insertions(+)
+ drivers/block/loop.c |    8 ++++++++
+ include/linux/loop.h |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-ds1302-rtc-support drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-ds1302-rtc-support
-+++ a/drivers/rtc/Kconfig
-@@ -306,6 +306,12 @@ config RTC_DRV_DS1216
- 	help
- 	  If you say yes here you get support for the Dallas DS1216 RTC chips.
+diff -puN drivers/block/loop.c~allow-auto-destruction-of-loop-devices drivers/block/loop.c
+--- a/drivers/block/loop.c~allow-auto-destruction-of-loop-devices
++++ a/drivers/block/loop.c
+@@ -973,6 +973,10 @@ loop_set_status(struct loop_device *lo, 
+ 	lo->transfer = xfer->transfer;
+ 	lo->ioctl = xfer->ioctl;
  
-+config RTC_DRV_DS1302
-+	tristate "Dallas DS1302"
-+	depends on SH_SECUREEDGE5410
-+	help
-+	  If you say yes here you get support for the Dallas DS1302 RTC chips.
++	if ((lo->lo_flags & LO_FLAGS_AUTOCLEAR) !=
++	     (info->lo_flags & LO_FLAGS_AUTOCLEAR))
++		lo->lo_flags ^= LO_FLAGS_AUTOCLEAR;
 +
- config RTC_DRV_DS1553
- 	tristate "Maxim/Dallas DS1553"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-ds1302-rtc-support drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-ds1302-rtc-support
-+++ a/drivers/rtc/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
- obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
-+obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
- obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
-diff -puN /dev/null drivers/rtc/rtc-ds1302.c
---- /dev/null
-+++ a/drivers/rtc/rtc-ds1302.c
-@@ -0,0 +1,262 @@
-+/*
-+ * Dallas DS1302 RTC Support
-+ *
-+ *  Copyright (C) 2002  David McCullough
-+ *  Copyright (C) 2003 - 2007  Paul Mundt
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License version 2.  See the file "COPYING" in the main directory of
-+ * this archive for more details.
-+ */
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/time.h>
-+#include <linux/rtc.h>
-+#include <linux/spinlock.h>
-+#include <linux/io.h>
-+#include <linux/bcd.h>
-+#include <asm/rtc.h>
+ 	lo->lo_encrypt_key_size = info->lo_encrypt_key_size;
+ 	lo->lo_init[0] = info->lo_init[0];
+ 	lo->lo_init[1] = info->lo_init[1];
+@@ -1331,6 +1335,10 @@ static int lo_release(struct inode *inod
+ 
+ 	mutex_lock(&lo->lo_ctl_mutex);
+ 	--lo->lo_refcnt;
 +
-+#define DRV_NAME	"rtc-ds1302"
-+#define DRV_VERSION	"0.1.0"
++	if ((lo->lo_flags & LO_FLAGS_AUTOCLEAR) && !lo->lo_refcnt)
++		loop_clr_fd(lo, inode->i_bdev);
 +
-+#define	RTC_CMD_READ	0x81		/* Read command */
-+#define	RTC_CMD_WRITE	0x80		/* Write command */
-+
-+#define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
-+#define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
-+#define	RTC_ADDR_YEAR	0x06		/* Address of year register */
-+#define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
-+#define	RTC_ADDR_MON	0x04		/* Address of month register */
-+#define	RTC_ADDR_DATE	0x03		/* Address of day of month register */
-+#define	RTC_ADDR_HOUR	0x02		/* Address of hour register */
-+#define	RTC_ADDR_MIN	0x01		/* Address of minute register */
-+#define	RTC_ADDR_SEC	0x00		/* Address of second register */
-+
-+#define	RTC_RESET	0x1000
-+#define	RTC_IODATA	0x0800
-+#define	RTC_SCLK	0x0400
-+
-+#ifdef CONFIG_SH_SECUREEDGE5410
-+#include <asm/snapgear.h>
-+#define set_dp(x)	SECUREEDGE_WRITE_IOPORT(x, 0x1c00)
-+#define get_dp()	SECUREEDGE_READ_IOPORT()
-+#else
-+#error "Add support for your platform"
-+#endif
-+
-+struct ds1302_rtc {
-+	struct rtc_device *rtc_dev;
-+	spinlock_t lock;
-+};
-+
-+static void ds1302_sendbits(unsigned int val)
-+{
-+	int i;
-+
-+	for (i = 8; (i); i--, val >>= 1) {
-+		set_dp((get_dp() & ~RTC_IODATA) | ((val & 0x1) ?
-+			RTC_IODATA : 0));
-+		set_dp(get_dp() | RTC_SCLK);	/* clock high */
-+		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
-+	}
-+}
-+
-+static unsigned int ds1302_recvbits(void)
-+{
-+	unsigned int val;
-+	int i;
-+
-+	for (i = 0, val = 0; (i < 8); i++) {
-+		val |= (((get_dp() & RTC_IODATA) ? 1 : 0) << i);
-+		set_dp(get_dp() | RTC_SCLK);	/* clock high */
-+		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
-+	}
-+
-+	return val;
-+}
-+
-+static unsigned int ds1302_readbyte(unsigned int addr)
-+{
-+	unsigned int val;
-+
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+
-+	set_dp(get_dp() | RTC_RESET);
-+	ds1302_sendbits(((addr & 0x3f) << 1) | RTC_CMD_READ);
-+	val = ds1302_recvbits();
-+	set_dp(get_dp() & ~RTC_RESET);
-+
-+	return val;
-+}
-+
-+static void ds1302_writebyte(unsigned int addr, unsigned int val)
-+{
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+	set_dp(get_dp() | RTC_RESET);
-+	ds1302_sendbits(((addr & 0x3f) << 1) | RTC_CMD_WRITE);
-+	ds1302_sendbits(val);
-+	set_dp(get_dp() & ~RTC_RESET);
-+}
-+
-+static int ds1302_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	tm->tm_sec	= BCD2BIN(ds1302_readbyte(RTC_ADDR_SEC));
-+	tm->tm_min	= BCD2BIN(ds1302_readbyte(RTC_ADDR_MIN));
-+	tm->tm_hour	= BCD2BIN(ds1302_readbyte(RTC_ADDR_HOUR));
-+	tm->tm_wday	= BCD2BIN(ds1302_readbyte(RTC_ADDR_DAY));
-+	tm->tm_mday	= BCD2BIN(ds1302_readbyte(RTC_ADDR_DATE));
-+	tm->tm_mon	= BCD2BIN(ds1302_readbyte(RTC_ADDR_MON)) - 1;
-+	tm->tm_year	= BCD2BIN(ds1302_readbyte(RTC_ADDR_YEAR));
-+
-+	if (tm->tm_year < 70)
-+		tm->tm_year += 100;
-+
-+	spin_unlock_irq(&rtc->lock);
-+
-+	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
-+		__FUNCTION__,
-+		tm->tm_sec, tm->tm_min, tm->tm_hour,
-+		tm->tm_mday, tm->tm_mon + 1, tm->tm_year, tm->tm_wday);
-+
-+	if (rtc_valid_tm(tm) < 0)
-+		dev_err(dev, "invalid date\n");
-+
-+	return 0;
-+}
-+
-+static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	/* Stop RTC */
-+	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
-+
-+	ds1302_writebyte(RTC_ADDR_SEC, BIN2BCD(tm->tm_sec));
-+	ds1302_writebyte(RTC_ADDR_MIN, BIN2BCD(tm->tm_min));
-+	ds1302_writebyte(RTC_ADDR_HOUR, BIN2BCD(tm->tm_hour));
-+	ds1302_writebyte(RTC_ADDR_DAY, BIN2BCD(tm->tm_wday));
-+	ds1302_writebyte(RTC_ADDR_DATE, BIN2BCD(tm->tm_mday));
-+	ds1302_writebyte(RTC_ADDR_MON, BIN2BCD(tm->tm_mon + 1));
-+	ds1302_writebyte(RTC_ADDR_YEAR, BIN2BCD(tm->tm_year % 100));
-+
-+	/* Start RTC */
-+	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
-+
-+	spin_unlock_irq(&rtc->lock);
-+
-+	return 0;
-+}
-+
-+static int ds1302_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			    unsigned long arg)
-+{
-+	switch (cmd) {
-+#ifdef RTC_SET_CHARGE
-+	case RTC_SET_CHARGE:
-+	{
-+		struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+		int tcs_val;
-+
-+		if (copy_from_user(&tcs_val, (int __user *)arg, sizeof(int)))
-+			return -EFAULT;
-+
-+		spin_lock_irq(&rtc->lock);
-+		ds1302_writebyte(RTC_ADDR_TCR, (0xa0 | tcs_val * 0xf));
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
-+	}
-+#endif
-+	}
-+
-+	return -ENOIOCTLCMD;
-+}
-+
-+static struct rtc_class_ops ds1302_rtc_ops = {
-+	.read_time	= ds1302_rtc_read_time,
-+	.set_time	= ds1302_rtc_set_time,
-+	.ioctl		= ds1302_rtc_ioctl,
-+};
-+
-+static int __devinit ds1302_rtc_probe(struct platform_device *pdev)
-+{
-+	struct ds1302_rtc *rtc;
-+	int ret;
-+
-+	/* Reset */
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+
-+	/* Write a magic value to the DS1302 RAM, and see if it sticks. */
-+	ds1302_writebyte(RTC_ADDR_RAM0, 0x42);
-+	if (ds1302_readbyte(RTC_ADDR_RAM0) != 0x42)
-+		return -ENODEV;
-+
-+	rtc = kzalloc(sizeof(struct ds1302_rtc), GFP_KERNEL);
-+	if (unlikely(!rtc))
-+		return -ENOMEM;
-+
-+	spin_lock_init(&rtc->lock);
-+	rtc->rtc_dev = rtc_device_register("ds1302", &pdev->dev,
-+					   &ds1302_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		ret = PTR_ERR(rtc->rtc_dev);
-+		goto out;
-+	}
-+
-+	platform_set_drvdata(pdev, rtc);
-+
-+	return 0;
-+out:
-+	kfree(rtc);
-+	return ret;
-+}
-+
-+static int __devexit ds1302_rtc_remove(struct platform_device *pdev)
-+{
-+	struct ds1302_rtc *rtc = platform_get_drvdata(pdev);
-+
-+	if (likely(rtc->rtc_dev))
-+		rtc_device_unregister(rtc->rtc_dev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+
-+	kfree(rtc);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver ds1302_platform_driver = {
-+	.driver		= {
-+		.name	= DRV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ds1302_rtc_probe,
-+	.remove		= __devexit_p(ds1302_rtc_remove),
-+};
-+
-+static int __init ds1302_rtc_init(void)
-+{
-+	return platform_driver_register(&ds1302_platform_driver);
-+}
-+
-+static void __exit ds1302_rtc_exit(void)
-+{
-+	platform_driver_unregister(&ds1302_platform_driver);
-+}
-+
-+module_init(ds1302_rtc_init);
-+module_exit(ds1302_rtc_exit);
-+
-+MODULE_DESCRIPTION("Dallas DS1302 RTC driver");
-+MODULE_VERSION(DRV_VERSION);
-+MODULE_AUTHOR("Paul Mundt, David McCullough");
-+MODULE_LICENSE("GPL v2");
+ 	mutex_unlock(&lo->lo_ctl_mutex);
+ 
+ 	return 0;
+diff -puN include/linux/loop.h~allow-auto-destruction-of-loop-devices include/linux/loop.h
+--- a/include/linux/loop.h~allow-auto-destruction-of-loop-devices
++++ a/include/linux/loop.h
+@@ -76,6 +76,7 @@ struct loop_device {
+ enum {
+ 	LO_FLAGS_READ_ONLY	= 1,
+ 	LO_FLAGS_USE_AOPS	= 2,
++	LO_FLAGS_AUTOCLEAR	= 4,
+ };
+ 
+ #include <asm/posix_types.h>	/* for __kernel_old_dev_t */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
 origin.patch
-git-sh.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-avoid-overflows-in-kernel-timec.patch
+power_supply-remove-capacity_level-from-list-of-sysfs-attributes.patch
+audit-let-userspace-fully-control-tty-input-auditing.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+eccbuf-is-statically-defined-and-always-evaluate-to-true.patch
+mtd-fix-startup-lock-when-using-multiple-nor-flash-chips.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+unexport-asm-userh-and-linux-userh.patch
+cleanup-asm-elfpageuserh-ifdef-__kernel__-is-no-longer-needed.patch
+cleanup-asm-elfpageuserh-ifdef-__kernel__-is-no-longer-needed-fix.patch
+unexport-asm-elfh.patch
+unexport-asm-pageh.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
