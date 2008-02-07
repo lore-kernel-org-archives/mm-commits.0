@@ -1,61 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-remove-unused-code-from-ext3_find_entry.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:52 -0800
-Message-ID: <200802070030.m170UXug007402@imap1.linux-foundation.org>
+Subject: - md-change-a-few-int-to-size_t-in-md.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:03 -0800
+Message-ID: <200802070029.m170TiMD007310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44351 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765960AbYBGAmf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:42:35 -0500
+	by vger.kernel.org with ESMTP id S1764575AbYBGAn2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: remove unused code from ext3_find_entry()
+     md: change a few 'int' to 'size_t' in md
 has been removed from the -mm tree.  Its filename was
-     ext3-remove-unused-code-from-ext3_find_entry.patch
+     md-change-a-few-int-to-size_t-in-md.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: remove unused code from ext3_find_entry()
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: md: change a few 'int' to 'size_t' in md
+From: NeilBrown <neilb@suse.de>
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+As suggested by Andrew Morton.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/md/md.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-remove-unused-code-from-ext3_find_entry fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-remove-unused-code-from-ext3_find_entry
-+++ a/fs/ext3/namei.c
-@@ -860,14 +860,10 @@ static struct buffer_head * ext3_find_en
- 	int nblocks, i, err;
- 	struct inode *dir = dentry->d_parent->d_inode;
- 	int namelen;
--	const u8 *name;
--	unsigned blocksize;
+diff -puN drivers/md/md.c~md-change-a-few-int-to-size_t-in-md drivers/md/md.c
+--- a/drivers/md/md.c~md-change-a-few-int-to-size_t-in-md
++++ a/drivers/md/md.c
+@@ -1800,7 +1800,7 @@ static ssize_t
+ state_show(mdk_rdev_t *rdev, char *page)
+ {
+ 	char *sep = "";
+-	int len=0;
++	size_t len = 0;
  
- 	*res_dir = NULL;
- 	sb = dir->i_sb;
--	blocksize = sb->s_blocksize;
- 	namelen = dentry->d_name.len;
--	name = dentry->d_name.name;
- 	if (namelen > EXT3_NAME_LEN)
- 		return NULL;
- 	if (is_dx(dir)) {
+ 	if (test_bit(Faulty, &rdev->flags)) {
+ 		len+= sprintf(page+len, "%sfaulty",sep);
+@@ -2318,7 +2318,7 @@ level_show(mddev_t *mddev, char *page)
+ static ssize_t
+ level_store(mddev_t *mddev, const char *buf, size_t len)
+ {
+-	int rv = len;
++	ssize_t rv = len;
+ 	if (mddev->pers)
+ 		return -EBUSY;
+ 	if (len == 0)
+@@ -2805,7 +2805,7 @@ metadata_store(mddev_t *mddev, const cha
+ 		return len;
+ 	}
+ 	if (strncmp(buf, "external:", 9) == 0) {
+-		int namelen = len-9;
++		size_t namelen = len-9;
+ 		if (namelen >= sizeof(mddev->metadata_type))
+ 			namelen = sizeof(mddev->metadata_type)-1;
+ 		strncpy(mddev->metadata_type, buf+9, namelen);
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-mmc.patch
-pid-fix-mips-irix-emulation-pid-usage-fix.patch
-reiser4.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
