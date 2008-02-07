@@ -1,184 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-use-open_bdev_excl.patch added to -mm tree
-Date: Wed, 06 Feb 2008 21:35:03 -0800
-Message-ID: <200802070534.m175YitU017994@imap1.linux-foundation.org>
+Subject: - bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 23:21:45 -0800
+Message-ID: <200802070721.m177LRH6021689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49758 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42133 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750829AbYBGFfJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 00:35:09 -0500
+	by vger.kernel.org with ESMTP id S1754182AbYBGHW4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 02:22:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, chris.mason@oracle.com, jeffm@suse.com
+To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy
 
 
 The patch titled
-     reiserfs: use open_bdev_excl
-has been added to the -mm tree.  Its filename is
-     reiserfs-use-open_bdev_excl.patch
+     bugfix for memory cgroup controller: charge refcnt race fix
+has been removed from the -mm tree.  Its filename was
+     bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into memory-controller-add-per-container-lru-and-reclaim-v7.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: use open_bdev_excl
-From: Christoph Hellwig <hch@lst.de>
+Subject: bugfix for memory cgroup controller: charge refcnt race fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Use the proper helper to open a blockdevice by name for filesystem use,
-this makes sure it's properly claimed (also added for open-by-number) and
-gets rid of the struct file abuse.
+The logic of uncharge is
+ - decrement refcnt -> lock page cgroup -> remove page cgroup.
+But the logic of charging is
+ - lock page cgroup -> increment refcnt -> return.
 
-Tested by mounting a reiserfs filesystem with external journal.
+Then, one charge will be added to a page_cgroup under being removed.
+This makes no big trouble (like panic) but one charge is lost.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+This patch add a test at charging to verify page_cgroup's refcnt is
+greater than 0. If not, unlock and retry.
+
+Changelog v2->v3
+ * adjusted to 2.6.23-mm1
+Changelog v1->v2:
+ * added cpu_relax() before retry.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c          |   50 ++++++++++++++-----------------
- include/linux/reiserfs_fs_sb.h |    1 
- 2 files changed, 23 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-use-open_bdev_excl fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-use-open_bdev_excl
-+++ a/fs/reiserfs/journal.c
-@@ -2574,11 +2574,9 @@ static int release_journal_dev(struct su
- 
- 	result = 0;
- 
--	if (journal->j_dev_file != NULL) {
--		result = filp_close(journal->j_dev_file, NULL);
--		journal->j_dev_file = NULL;
--		journal->j_dev_bd = NULL;
--	} else if (journal->j_dev_bd != NULL) {
-+	if (journal->j_dev_bd != NULL) {
-+		if (journal->j_dev_bd->bd_dev != super->s_dev)
-+			bd_release(journal->j_dev_bd);
- 		result = blkdev_put(journal->j_dev_bd);
- 		journal->j_dev_bd = NULL;
- 	}
-@@ -2603,7 +2601,6 @@ static int journal_init_dev(struct super
- 	result = 0;
- 
- 	journal->j_dev_bd = NULL;
--	journal->j_dev_file = NULL;
- 	jdev = SB_ONDISK_JOURNAL_DEVICE(super) ?
- 	    new_decode_dev(SB_ONDISK_JOURNAL_DEVICE(super)) : super->s_dev;
- 
-@@ -2620,35 +2617,34 @@ static int journal_init_dev(struct super
- 					 "cannot init journal device '%s': %i",
- 					 __bdevname(jdev, b), result);
- 			return result;
--		} else if (jdev != super->s_dev)
-+		} else if (jdev != super->s_dev) {
-+			result = bd_claim(journal->j_dev_bd, journal);
-+			if (result) {
-+				blkdev_put(journal->j_dev_bd);
-+				return result;
-+			}
-+
- 			set_blocksize(journal->j_dev_bd, super->s_blocksize);
-+		}
-+
- 		return 0;
+diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix
++++ a/mm/memcontrol.c
+@@ -281,14 +281,20 @@ int mem_cgroup_charge(struct page *page,
+ 	 * to see if the cgroup page already has a page_cgroup associated
+ 	 * with it
+ 	 */
++retry:
+ 	lock_page_cgroup(page);
+ 	pc = page_get_page_cgroup(page);
+ 	/*
+ 	 * The page_cgroup exists and the page has already been accounted
+ 	 */
+ 	if (pc) {
+-		atomic_inc(&pc->ref_cnt);
+-		goto done;
++		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
++			/* this page is under being uncharged ? */
++			unlock_page_cgroup(page);
++			cpu_relax();
++			goto retry;
++		} else
++			goto done;
  	}
  
--	journal->j_dev_file = filp_open(jdev_name, 0, 0);
--	if (!IS_ERR(journal->j_dev_file)) {
--		struct inode *jdev_inode = journal->j_dev_file->f_mapping->host;
--		if (!S_ISBLK(jdev_inode->i_mode)) {
--			reiserfs_warning(super, "journal_init_dev: '%s' is "
--					 "not a block device", jdev_name);
--			result = -ENOTBLK;
--			release_journal_dev(super, journal);
--		} else {
--			/* ok */
--			journal->j_dev_bd = I_BDEV(jdev_inode);
--			set_blocksize(journal->j_dev_bd, super->s_blocksize);
--			reiserfs_info(super,
--				      "journal_init_dev: journal device: %s\n",
--				      bdevname(journal->j_dev_bd, b));
--		}
--	} else {
--		result = PTR_ERR(journal->j_dev_file);
--		journal->j_dev_file = NULL;
-+	journal->j_dev_bd = open_bdev_excl(jdev_name, 0, journal);
-+	if (IS_ERR(journal->j_dev_bd)) {
-+		result = PTR_ERR(journal->j_dev_bd);
-+		journal->j_dev_bd = NULL;
- 		reiserfs_warning(super,
- 				 "journal_init_dev: Cannot open '%s': %i",
- 				 jdev_name, result);
-+		return result;
- 	}
--	return result;
-+
-+	set_blocksize(journal->j_dev_bd, super->s_blocksize);
-+	reiserfs_info(super,
-+		      "journal_init_dev: journal device: %s\n",
-+		      bdevname(journal->j_dev_bd, b));
-+	return 0;
- }
- 
- /**
-diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-use-open_bdev_excl include/linux/reiserfs_fs_sb.h
---- a/include/linux/reiserfs_fs_sb.h~reiserfs-use-open_bdev_excl
-+++ a/include/linux/reiserfs_fs_sb.h
-@@ -177,7 +177,6 @@ struct reiserfs_journal {
- 	struct reiserfs_journal_cnode *j_last;	/* newest journal block */
- 	struct reiserfs_journal_cnode *j_first;	/*  oldest journal block.  start here for traverse */
- 
--	struct file *j_dev_file;
- 	struct block_device *j_dev_bd;
- 	int j_1st_reserved_block;	/* first block on s_dev of reserved area journal */
- 
+ 	unlock_page_cgroup(page);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
+memcgroup-temporarily-revert-swapoff-mod.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
+memcgroup-tidy-up-mem_cgroup_charge_common.patch
+memcgroup-fix-hang-with-shmem-tmpfs.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force_empty-at-rmdir.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-active-inactive-counter.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-active-inactive-imbalance-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-the-number-of-pages-to-be-scanned-per-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lru-for-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-per-zone-lock-for-cgroup.patch
+memory-controller-remove-control_type-feature.patch
+update-documentation-controller-memorytxt.patch
