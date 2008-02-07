@@ -1,163 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - spi-s3c-drivers-shouldnt-care-about-spi_board_info.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:51 -0800
-Message-ID: <200802070025.m170PW2F006725@imap1.linux-foundation.org>
+Subject: - tdfxfb-fix-section-mismatch-warnings.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:38 -0800
+Message-ID: <200802070028.m170SJCE007138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34338 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758817AbYBGAqj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:39 -0500
+	by vger.kernel.org with ESMTP id S933328AbYBGAqQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, ben-linux@fluff.org, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: s3c drivers shouldn't care about spi_board_info
+     tdfxfb: fix section mismatch warnings
 has been removed from the -mm tree.  Its filename was
-     spi-s3c-drivers-shouldnt-care-about-spi_board_info.patch
+     tdfxfb-fix-section-mismatch-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: s3c drivers shouldn't care about spi_board_info
-From: David Brownell <david-b@pacbell.net>
+Subject: tdfxfb: fix section mismatch warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The two S3C SPI master drivers got merged without much review, so I just
-noticed that they're doing something that the SPI core code is responsible
-for, rather than any adapter driver: they try to register SPI devices.
+tdfxfb_setup() can be __init.  This fixes the modpost section mismatch
+warnings:
 
-This removes that support from those drivers so they act normally. 
-Interestingly, none of the current boards are affected.  So it's a net code
-shrink with no loss of functionality.
+WARNING: vmlinux.o(.text+0x4cff9b): Section mismatch: reference to .init.data:mode_option (between 'tdfxfb_setup' and 'getclkMHz')
+WARNING: vmlinux.o(.text+0x4cffa8): Section mismatch: reference to .init.data: (between 'tdfxfb_setup' and 'getclkMHz')
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+[krzysztof.h1@poczta.fm: use __init, not __devinit]
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c               |   12 ------------
- drivers/spi/spi_s3c24xx_gpio.c          |   12 ------------
- include/asm-arm/arch-s3c2410/spi-gpio.h |    6 ------
- include/asm-arm/arch-s3c2410/spi.h      |    6 ------
- 4 files changed, 36 deletions(-)
+ drivers/video/tdfxfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~spi-s3c-drivers-shouldnt-care-about-spi_board_info drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-s3c-drivers-shouldnt-care-about-spi_board_info
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -237,10 +237,8 @@ static int __init s3c24xx_spi_probe(stru
+diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-fix-section-mismatch-warnings
++++ a/drivers/video/tdfxfb.c
+@@ -1342,7 +1342,7 @@ out_err:
+ }
+ 
+ #ifndef MODULE
+-static void tdfxfb_setup(char *options)
++static void __init tdfxfb_setup(char *options)
  {
- 	struct s3c24xx_spi *hw;
- 	struct spi_master *master;
--	struct spi_board_info *bi;
- 	struct resource *res;
- 	int err = 0;
--	int i;
- 
- 	master = spi_alloc_master(&pdev->dev, sizeof(struct s3c24xx_spi));
- 	if (master == NULL) {
-@@ -348,16 +346,6 @@ static int __init s3c24xx_spi_probe(stru
- 		goto err_register;
- 	}
- 
--	/* register all the devices associated */
--
--	bi = &hw->pdata->board_info[0];
--	for (i = 0; i < hw->pdata->board_size; i++, bi++) {
--		dev_info(hw->dev, "registering %s\n", bi->modalias);
--
--		bi->controller_data = hw;
--		spi_new_device(master, bi);
--	}
--
- 	return 0;
- 
-  err_register:
-diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi-s3c-drivers-shouldnt-care-about-spi_board_info drivers/spi/spi_s3c24xx_gpio.c
---- a/drivers/spi/spi_s3c24xx_gpio.c~spi-s3c-drivers-shouldnt-care-about-spi_board_info
-+++ a/drivers/spi/spi_s3c24xx_gpio.c
-@@ -100,7 +100,6 @@ static int s3c2410_spigpio_probe(struct 
- 	struct spi_master	*master;
- 	struct s3c2410_spigpio  *sp;
- 	int ret;
--	int i;
- 
- 	master = spi_alloc_master(&dev->dev, sizeof(struct s3c2410_spigpio));
- 	if (master == NULL) {
-@@ -143,17 +142,6 @@ static int s3c2410_spigpio_probe(struct 
- 	if (ret)
- 		goto err_no_bitbang;
- 
--	/* register the chips to go with the board */
--
--	for (i = 0; i < sp->info->board_size; i++) {
--		dev_info(&dev->dev, "registering %p: %s\n",
--			 &sp->info->board_info[i],
--			 sp->info->board_info[i].modalias);
--
--		sp->info->board_info[i].controller_data = sp;
--		spi_new_device(master, sp->info->board_info + i);
--	}
--
- 	return 0;
- 
-  err_no_bitbang:
-diff -puN include/asm-arm/arch-s3c2410/spi-gpio.h~spi-s3c-drivers-shouldnt-care-about-spi_board_info include/asm-arm/arch-s3c2410/spi-gpio.h
---- a/include/asm-arm/arch-s3c2410/spi-gpio.h~spi-s3c-drivers-shouldnt-care-about-spi_board_info
-+++ a/include/asm-arm/arch-s3c2410/spi-gpio.h
-@@ -13,9 +13,6 @@
- #ifndef __ASM_ARCH_SPIGPIO_H
- #define __ASM_ARCH_SPIGPIO_H __FILE__
- 
--struct s3c2410_spigpio_info;
--struct spi_board_info;
--
- struct s3c2410_spigpio_info {
- 	unsigned long		 pin_clk;
- 	unsigned long		 pin_mosi;
-@@ -23,9 +20,6 @@ struct s3c2410_spigpio_info {
- 
- 	int			 bus_num;
- 
--	unsigned long		 board_size;
--	struct spi_board_info	*board_info;
--
- 	void (*chip_select)(struct s3c2410_spigpio_info *spi, int cs);
- };
- 
-diff -puN include/asm-arm/arch-s3c2410/spi.h~spi-s3c-drivers-shouldnt-care-about-spi_board_info include/asm-arm/arch-s3c2410/spi.h
---- a/include/asm-arm/arch-s3c2410/spi.h~spi-s3c-drivers-shouldnt-care-about-spi_board_info
-+++ a/include/asm-arm/arch-s3c2410/spi.h
-@@ -13,15 +13,9 @@
- #ifndef __ASM_ARCH_SPI_H
- #define __ASM_ARCH_SPI_H __FILE__
- 
--struct s3c2410_spi_info;
--struct spi_board_info;
--
- struct s3c2410_spi_info {
- 	unsigned long		 pin_cs;	/* simple gpio cs */
- 
--	unsigned long		 board_size;
--	struct spi_board_info	*board_info;
--
- 	void (*set_cs)(struct s3c2410_spi_info *spi, int cs, int pol);
- };
+ 	char *this_opt;
  
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-input.patch
-git-mmc.patch
-git-mtd.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
-pwm-led-driver.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+documentation-move-dnotifytxt-to-filesystems.patch
+documentation-move-sharedsubtreestxt-to-filesystems.patch
+documentation-create-new-scheduler-subdirectory.patch
+reporting-bugs-cc-the-mailing-list-too.patch
+kernel-doc-prevent-duplicate-description-output.patch
+kernel-doc-warn-on-badly-formatted-short-description.patch
+email-clientstxt-sylpheed-is-ok-at-imap.patch
+fs-menu-small-reorg.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
