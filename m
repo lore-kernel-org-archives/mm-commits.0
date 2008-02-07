@@ -1,275 +1,738 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-chain-dma-transfers.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:25:46 -0800
-Message-ID: <200802070025.m170PRHI006716@imap1.linux-foundation.org>
+Subject: - platform-real-time-clock-driver-for-dallas-1511-chip.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:17 -0800
+Message-ID: <200802070026.m170QwaE006973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42167 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935127AbYBGApv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:51 -0500
+	by vger.kernel.org with ESMTP id S935122AbYBGApt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slipszi@gmail.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: andy.sharp@onstor.com, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: chain DMA transfers
+     Platform real time clock driver for Dallas 1511 chip
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-chain-dma-transfers.patch
+     platform-real-time-clock-driver-for-dallas-1511-chip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: chain DMA transfers
-From: "Silvester Erdeg" <slipszi@gmail.com>
+Subject: Platform real time clock driver for Dallas 1511 chip
+From: Andrew Sharp <andy.sharp@onstor.com>
 
-Add support for chained transfers in the atmel_spi driver, letting the DMA
-controller switch to the next buffer pair without CPU intervention.  This
-reduced I/O latencies by about 2% in one bulk I/O test.  It should also help
-work around several interrelated errata affecting chipselect 0 on at91rm9200
-chips.
+Add RTC support for DS1511 RTC/WDT chip.
 
-Almost all of the changes are in the reworked atmel_spi_next_xfer() function. 
-That's now called with the driver in one of three states:
-
- 1. It isn't transferring anything (in which case the first transfer
-    of the current message is going to be sent)
- 2. It has finished transfering a non-chainable transfer (in which
-    case it will go to the next transfer in the message)
- 3. It has finished transfering a chained transfer (in which case the
-    next transfer is already queued)
-
-After that it will queue the next transfer if it can be chained.
-
-Signed-off-by: Szilveszter Ordog <slipszi@gmail.com>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Andy Sharp <andy.sharp@onstor.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |  148 ++++++++++++++++++++++++++------------
- 1 file changed, 102 insertions(+), 46 deletions(-)
+ drivers/rtc/Kconfig      |   10 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-ds1511.c |  656 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 667 insertions(+)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-chain-dma-transfers
-+++ a/drivers/spi/atmel_spi.c
-@@ -51,7 +51,9 @@ struct atmel_spi {
- 	u8			stopping;
- 	struct list_head	queue;
- 	struct spi_transfer	*current_transfer;
--	unsigned long		remaining_bytes;
-+	unsigned long		current_remaining_bytes;
-+	struct spi_transfer	*next_transfer;
-+	unsigned long		next_remaining_bytes;
+diff -puN drivers/rtc/Kconfig~platform-real-time-clock-driver-for-dallas-1511-chip drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~platform-real-time-clock-driver-for-dallas-1511-chip
++++ a/drivers/rtc/Kconfig
+@@ -312,6 +312,16 @@ config RTC_DRV_DS1302
+ 	help
+ 	  If you say yes here you get support for the Dallas DS1302 RTC chips.
  
- 	void			*buffer;
- 	dma_addr_t		buffer_dma;
-@@ -121,6 +123,48 @@ static void cs_deactivate(struct atmel_s
- 		gpio_set_value(gpio, !active);
- }
- 
-+static inline int atmel_spi_xfer_is_last(struct spi_message *msg,
-+					struct spi_transfer *xfer)
++config RTC_DRV_DS1511
++	tristate "Dallas DS1511"
++	depends on RTC_CLASS
++	help
++	  If you say yes here you get support for the
++	  Dallas DS1511 timekeeping/watchdog chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds1511.
++
+ config RTC_DRV_DS1553
+ 	tristate "Maxim/Dallas DS1553"
+ 	help
+diff -puN drivers/rtc/Makefile~platform-real-time-clock-driver-for-dallas-1511-chip drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~platform-real-time-clock-driver-for-dallas-1511-chip
++++ a/drivers/rtc/Makefile
+@@ -25,6 +25,7 @@ obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds12
+ obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
+ obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
+ obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
++obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds1511.o
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
+diff -puN /dev/null drivers/rtc/rtc-ds1511.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -0,0 +1,656 @@
++/*
++ * An rtc driver for the Dallas DS1511
++ *
++ * Copyright (C) 2006 Atsushi Nemoto <anemo@mba.ocn.ne.jp>
++ * Copyright (C) 2007 Andrew Sharp <andy.sharp@onstor.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Real time clock driver for the Dallas 1511 chip, which also
++ * contains a watchdog timer.  There is a tiny amount of code that
++ * platform code could use to mess with the watchdog device a little
++ * bit, but not a full watchdog driver.
++ */
++
++#include <linux/bcd.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++
++#define DRV_VERSION "0.6"
++
++enum ds1511reg {
++	DS1511_SEC = 0x0,
++	DS1511_MIN = 0x1,
++	DS1511_HOUR = 0x2,
++	DS1511_DOW = 0x3,
++	DS1511_DOM = 0x4,
++	DS1511_MONTH = 0x5,
++	DS1511_YEAR = 0x6,
++	DS1511_CENTURY = 0x7,
++	DS1511_AM1_SEC = 0x8,
++	DS1511_AM2_MIN = 0x9,
++	DS1511_AM3_HOUR = 0xa,
++	DS1511_AM4_DATE = 0xb,
++	DS1511_WD_MSEC = 0xc,
++	DS1511_WD_SEC = 0xd,
++	DS1511_CONTROL_A = 0xe,
++	DS1511_CONTROL_B = 0xf,
++	DS1511_RAMADDR_LSB = 0x10,
++	DS1511_RAMDATA = 0x13
++};
++
++#define DS1511_BLF1	0x80
++#define DS1511_BLF2	0x40
++#define DS1511_PRS	0x20
++#define DS1511_PAB	0x10
++#define DS1511_TDF	0x08
++#define DS1511_KSF	0x04
++#define DS1511_WDF	0x02
++#define DS1511_IRQF	0x01
++#define DS1511_TE	0x80
++#define DS1511_CS	0x40
++#define DS1511_BME	0x20
++#define DS1511_TPE	0x10
++#define DS1511_TIE	0x08
++#define DS1511_KIE	0x04
++#define DS1511_WDE	0x02
++#define DS1511_WDS	0x01
++#define DS1511_RAM_MAX	0xff
++
++#define RTC_CMD		DS1511_CONTROL_B
++#define RTC_CMD1	DS1511_CONTROL_A
++
++#define RTC_ALARM_SEC	DS1511_AM1_SEC
++#define RTC_ALARM_MIN	DS1511_AM2_MIN
++#define RTC_ALARM_HOUR	DS1511_AM3_HOUR
++#define RTC_ALARM_DATE	DS1511_AM4_DATE
++
++#define RTC_SEC		DS1511_SEC
++#define RTC_MIN		DS1511_MIN
++#define RTC_HOUR	DS1511_HOUR
++#define RTC_DOW		DS1511_DOW
++#define RTC_DOM		DS1511_DOM
++#define RTC_MON		DS1511_MONTH
++#define RTC_YEAR	DS1511_YEAR
++#define RTC_CENTURY	DS1511_CENTURY
++
++#define RTC_TIE	DS1511_TIE
++#define RTC_TE	DS1511_TE
++
++struct rtc_plat_data {
++	struct rtc_device *rtc;
++	void __iomem *ioaddr;		/* virtual base address */
++	unsigned long baseaddr;		/* physical base address */
++	int size;				/* amount of memory mapped */
++	int irq;
++	unsigned int irqen;
++	int alrm_sec;
++	int alrm_min;
++	int alrm_hour;
++	int alrm_mday;
++};
++
++static DEFINE_SPINLOCK(ds1511_lock);
++
++static __iomem char *ds1511_base;
++static u32 reg_spacing = 1;
++
++ static noinline void
++rtc_write(uint8_t val, uint32_t reg)
 +{
-+	return msg->transfers.prev == &xfer->transfer_list;
++	writeb(val, ds1511_base + (reg * reg_spacing));
 +}
 +
-+static inline int atmel_spi_xfer_can_be_chained(struct spi_transfer *xfer)
++ static inline void
++rtc_write_alarm(uint8_t val, enum ds1511reg reg)
 +{
-+	return xfer->delay_usecs == 0 && !xfer->cs_change;
++	rtc_write((val | 0x80), reg);
 +}
 +
-+static void atmel_spi_next_xfer_data(struct spi_master *master,
-+				struct spi_transfer *xfer,
-+				dma_addr_t *tx_dma,
-+				dma_addr_t *rx_dma,
-+				u32 *plen)
++ static noinline uint8_t
++rtc_read(enum ds1511reg reg)
 +{
-+	struct atmel_spi	*as = spi_master_get_devdata(master);
-+	u32			len = *plen;
++	return readb(ds1511_base + (reg * reg_spacing));
++}
 +
-+	/* use scratch buffer only when rx or tx data is unspecified */
-+	if (xfer->rx_buf)
-+		*rx_dma = xfer->rx_dma + xfer->len - len;
-+	else {
-+		*rx_dma = as->buffer_dma;
-+		if (len > BUFFER_SIZE)
-+			len = BUFFER_SIZE;
++ static inline void
++rtc_disable_update(void)
++{
++	rtc_write((rtc_read(RTC_CMD) & ~RTC_TE), RTC_CMD);
++}
++
++ static void
++rtc_enable_update(void)
++{
++	rtc_write((rtc_read(RTC_CMD) | RTC_TE), RTC_CMD);
++}
++
++/*
++ * #define DS1511_WDOG_RESET_SUPPORT
++ *
++ * Uncomment this if you want to use these routines in
++ * some platform code.
++ */
++#ifdef DS1511_WDOG_RESET_SUPPORT
++/*
++ * just enough code to set the watchdog timer so that it
++ * will reboot the system
++ */
++ void
++ds1511_wdog_set(unsigned long deciseconds)
++{
++	/*
++	 * the wdog timer can take 99.99 seconds
++	 */
++	deciseconds %= 10000;
++	/*
++	 * set the wdog values in the wdog registers
++	 */
++	rtc_write(BIN2BCD(deciseconds % 100), DS1511_WD_MSEC);
++	rtc_write(BIN2BCD(deciseconds / 100), DS1511_WD_SEC);
++	/*
++	 * set wdog enable and wdog 'steering' bit to issue a reset
++	 */
++	rtc_write(DS1511_WDE | DS1511_WDS, RTC_CMD);
++}
++
++ void
++ds1511_wdog_disable(void)
++{
++	/*
++	 * clear wdog enable and wdog 'steering' bits
++	 */
++	rtc_write(rtc_read(RTC_CMD) & ~(DS1511_WDE | DS1511_WDS), RTC_CMD);
++	/*
++	 * clear the wdog counter
++	 */
++	rtc_write(0, DS1511_WD_MSEC);
++	rtc_write(0, DS1511_WD_SEC);
++}
++#endif
++
++/*
++ * set the rtc chip's idea of the time.
++ * stupidly, some callers call with year unmolested;
++ * and some call with  year = year - 1900.  thanks.
++ */
++ int
++ds1511_rtc_set_time(struct device *dev, struct rtc_time *rtc_tm)
++{
++	u8 mon, day, dow, hrs, min, sec, yrs, cen;
++	unsigned int flags;
++
++	/*
++	 * won't have to change this for a while
++	 */
++	if (rtc_tm->tm_year < 1900) {
++		rtc_tm->tm_year += 1900;
 +	}
-+	if (xfer->tx_buf)
-+		*tx_dma = xfer->tx_dma + xfer->len - len;
-+	else {
-+		*tx_dma = as->buffer_dma;
-+		if (len > BUFFER_SIZE)
-+			len = BUFFER_SIZE;
-+		memset(as->buffer, 0, len);
-+		dma_sync_single_for_device(&as->pdev->dev,
-+				as->buffer_dma, len, DMA_TO_DEVICE);
++
++	if (rtc_tm->tm_year < 1970) {
++		return -EINVAL;
++	}
++	yrs = rtc_tm->tm_year % 100;
++	cen = rtc_tm->tm_year / 100;
++	mon = rtc_tm->tm_mon + 1;   /* tm_mon starts at zero */
++	day = rtc_tm->tm_mday;
++	dow = rtc_tm->tm_wday & 0x7; /* automatic BCD */
++	hrs = rtc_tm->tm_hour;
++	min = rtc_tm->tm_min;
++	sec = rtc_tm->tm_sec;
++
++	if ((mon > 12) || (day == 0)) {
++		return -EINVAL;
 +	}
 +
-+	*plen = len;
++	if (day > rtc_month_days(rtc_tm->tm_mon, rtc_tm->tm_year)) {
++		return -EINVAL;
++	}
++
++	if ((hrs >= 24) || (min >= 60) || (sec >= 60)) {
++		return -EINVAL;
++	}
++
++	/*
++	 * each register is a different number of valid bits
++	 */
++	sec = BIN2BCD(sec) & 0x7f;
++	min = BIN2BCD(min) & 0x7f;
++	hrs = BIN2BCD(hrs) & 0x3f;
++	day = BIN2BCD(day) & 0x3f;
++	mon = BIN2BCD(mon) & 0x1f;
++	yrs = BIN2BCD(yrs) & 0xff;
++	cen = BIN2BCD(cen) & 0xff;
++
++	spin_lock_irqsave(&ds1511_lock, flags);
++	rtc_disable_update();
++	rtc_write(cen, RTC_CENTURY);
++	rtc_write(yrs, RTC_YEAR);
++	rtc_write((rtc_read(RTC_MON) & 0xe0) | mon, RTC_MON);
++	rtc_write(day, RTC_DOM);
++	rtc_write(hrs, RTC_HOUR);
++	rtc_write(min, RTC_MIN);
++	rtc_write(sec, RTC_SEC);
++	rtc_write(dow, RTC_DOW);
++	rtc_enable_update();
++	spin_unlock_irqrestore(&ds1511_lock, flags);
++
++	return 0;
 +}
 +
- /*
-  * Submit next transfer for DMA.
-  * lock is held, spi irq is blocked
-@@ -130,53 +174,68 @@ static void atmel_spi_next_xfer(struct s
- {
- 	struct atmel_spi	*as = spi_master_get_devdata(master);
- 	struct spi_transfer	*xfer;
--	u32			len;
-+	u32			len, remaining, total;
- 	dma_addr_t		tx_dma, rx_dma;
- 
--	xfer = as->current_transfer;
--	if (!xfer || as->remaining_bytes == 0) {
--		if (xfer)
--			xfer = list_entry(xfer->transfer_list.next,
--					struct spi_transfer, transfer_list);
--		else
--			xfer = list_entry(msg->transfers.next,
--					struct spi_transfer, transfer_list);
--		as->remaining_bytes = xfer->len;
--		as->current_transfer = xfer;
-+	if (!as->current_transfer)
-+		xfer = list_entry(msg->transfers.next,
-+				struct spi_transfer, transfer_list);
-+	else if (!as->next_transfer)
-+		xfer = list_entry(as->current_transfer->transfer_list.next,
-+				struct spi_transfer, transfer_list);
-+	else
-+		xfer = NULL;
++ int
++ds1511_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
++{
++	unsigned int century;
++	unsigned int flags;
 +
-+	if (xfer) {
-+		len = xfer->len;
-+		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
-+		remaining = xfer->len - len;
++	spin_lock_irqsave(&ds1511_lock, flags);
++	rtc_disable_update();
 +
-+		spi_writel(as, RPR, rx_dma);
-+		spi_writel(as, TPR, tx_dma);
++	rtc_tm->tm_sec = rtc_read(RTC_SEC) & 0x7f;
++	rtc_tm->tm_min = rtc_read(RTC_MIN) & 0x7f;
++	rtc_tm->tm_hour = rtc_read(RTC_HOUR) & 0x3f;
++	rtc_tm->tm_mday = rtc_read(RTC_DOM) & 0x3f;
++	rtc_tm->tm_wday = rtc_read(RTC_DOW) & 0x7;
++	rtc_tm->tm_mon = rtc_read(RTC_MON) & 0x1f;
++	rtc_tm->tm_year = rtc_read(RTC_YEAR) & 0x7f;
++	century = rtc_read(RTC_CENTURY);
 +
-+		if (msg->spi->bits_per_word > 8)
-+			len >>= 1;
-+		spi_writel(as, RCR, len);
-+		spi_writel(as, TCR, len);
++	rtc_enable_update();
++	spin_unlock_irqrestore(&ds1511_lock, flags);
++
++	rtc_tm->tm_sec = BCD2BIN(rtc_tm->tm_sec);
++	rtc_tm->tm_min = BCD2BIN(rtc_tm->tm_min);
++	rtc_tm->tm_hour = BCD2BIN(rtc_tm->tm_hour);
++	rtc_tm->tm_mday = BCD2BIN(rtc_tm->tm_mday);
++	rtc_tm->tm_wday = BCD2BIN(rtc_tm->tm_wday);
++	rtc_tm->tm_mon = BCD2BIN(rtc_tm->tm_mon);
++	rtc_tm->tm_year = BCD2BIN(rtc_tm->tm_year);
++	century = BCD2BIN(century) * 100;
++
++	/*
++	 * Account for differences between how the RTC uses the values
++	 * and how they are defined in a struct rtc_time;
++	 */
++	century += rtc_tm->tm_year;
++	rtc_tm->tm_year = century - 1900;
++
++	rtc_tm->tm_mon--;
++
++	if (rtc_valid_tm(rtc_tm) < 0) {
++		dev_err(dev, "retrieved date/time is not valid.\n");
++		rtc_time_to_tm(0, rtc_tm);
++	}
++	return 0;
++}
++
++/*
++ * write the alarm register settings
++ *
++ * we only have the use to interrupt every second, otherwise
++ * known as the update interrupt, or the interrupt if the whole
++ * date/hours/mins/secs matches.  the ds1511 has many more
++ * permutations, but the kernel doesn't.
++ */
++ static void
++ds1511_rtc_update_alarm(struct rtc_plat_data *pdata)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
++	rtc_write(pdata->alrm_mday < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_mday) & 0x3f,
++	       RTC_ALARM_DATE);
++	rtc_write(pdata->alrm_hour < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_hour) & 0x3f,
++	       RTC_ALARM_HOUR);
++	rtc_write(pdata->alrm_min < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_min) & 0x7f,
++	       RTC_ALARM_MIN);
++	rtc_write(pdata->alrm_sec < 0 || (pdata->irqen & RTC_UF) ?
++	       0x80 : BIN2BCD(pdata->alrm_sec) & 0x7f,
++	       RTC_ALARM_SEC);
++	rtc_write(rtc_read(RTC_CMD) | (pdata->irqen ? RTC_TIE : 0), RTC_CMD);
++	rtc_read(RTC_CMD1);	/* clear interrupts */
++	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
++}
++
++ static int
++ds1511_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0) {
++		return -EINVAL;
++	}
++	pdata->alrm_mday = alrm->time.tm_mday;
++	pdata->alrm_hour = alrm->time.tm_hour;
++	pdata->alrm_min = alrm->time.tm_min;
++	pdata->alrm_sec = alrm->time.tm_sec;
++	if (alrm->enabled) {
++		pdata->irqen |= RTC_AF;
++	}
++	ds1511_rtc_update_alarm(pdata);
++	return 0;
++}
++
++ static int
++ds1511_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0) {
++		return -EINVAL;
++	}
++	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
++	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
++	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
++	alrm->time.tm_sec = pdata->alrm_sec < 0 ? 0 : pdata->alrm_sec;
++	alrm->enabled = (pdata->irqen & RTC_AF) ? 1 : 0;
++	return 0;
++}
++
++ static irqreturn_t
++ds1511_interrupt(int irq, void *dev_id)
++{
++	struct platform_device *pdev = dev_id;
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	unsigned long events = RTC_IRQF;
++
++	/*
++	 * read and clear interrupt
++	 */
++	if (!(rtc_read(RTC_CMD1) & DS1511_IRQF)) {
++		return IRQ_NONE;
++	}
++	if (rtc_read(RTC_ALARM_SEC) & 0x80) {
++		events |= RTC_UF;
 +	} else {
-+		xfer = as->next_transfer;
-+		remaining = as->next_remaining_bytes;
- 	}
- 
--	len = as->remaining_bytes;
-+	as->current_transfer = xfer;
-+	as->current_remaining_bytes = remaining;
- 
--	tx_dma = xfer->tx_dma + xfer->len - len;
--	rx_dma = xfer->rx_dma + xfer->len - len;
-+	if (remaining > 0)
-+		len = remaining;
-+	else if (!atmel_spi_xfer_is_last(msg, xfer) &&
-+		atmel_spi_xfer_can_be_chained(xfer)) {
-+		xfer = list_entry(xfer->transfer_list.next,
-+				struct spi_transfer, transfer_list);
-+		len = xfer->len;
-+	} else
-+		xfer = NULL;
- 
--	/* use scratch buffer only when rx or tx data is unspecified */
--	if (!xfer->rx_buf) {
--		rx_dma = as->buffer_dma;
--		if (len > BUFFER_SIZE)
--			len = BUFFER_SIZE;
--	}
--	if (!xfer->tx_buf) {
--		tx_dma = as->buffer_dma;
--		if (len > BUFFER_SIZE)
--			len = BUFFER_SIZE;
--		memset(as->buffer, 0, len);
--		dma_sync_single_for_device(&as->pdev->dev,
--				as->buffer_dma, len, DMA_TO_DEVICE);
--	}
-+	as->next_transfer = xfer;
- 
--	spi_writel(as, RPR, rx_dma);
--	spi_writel(as, TPR, tx_dma);
-+	if (xfer) {
-+		total = len;
-+		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
-+		as->next_remaining_bytes = total - len;
-+
-+		spi_writel(as, RNPR, rx_dma);
-+		spi_writel(as, TNPR, tx_dma);
-+
-+		if (msg->spi->bits_per_word > 8)
-+			len >>= 1;
-+		spi_writel(as, RNCR, len);
-+		spi_writel(as, TNCR, len);
-+	} else {
-+		spi_writel(as, RNCR, 0);
-+		spi_writel(as, TNCR, 0);
++		events |= RTC_AF;
 +	}
- 
--	as->remaining_bytes -= len;
--	if (msg->spi->bits_per_word > 8)
--		len >>= 1;
--
--	/* REVISIT: when xfer->delay_usecs == 0, the PDC "next transfer"
--	 * mechanism might help avoid the IRQ latency between transfers
--	 * (and improve the nCS0 errata handling on at91rm9200 chips)
--	 *
--	 * We're also waiting for ENDRX before we start the next
-+	/* REVISIT: We're waiting for ENDRX before we start the next
- 	 * transfer because we need to handle some difficult timing
- 	 * issues otherwise. If we wait for ENDTX in one transfer and
- 	 * then starts waiting for ENDRX in the next, it's difficult
-@@ -186,8 +245,6 @@ static void atmel_spi_next_xfer(struct s
- 	 *
- 	 * It should be doable, though. Just not now...
- 	 */
--	spi_writel(as, TNCR, 0);
--	spi_writel(as, RNCR, 0);
- 	spi_writel(as, IER, SPI_BIT(ENDRX) | SPI_BIT(OVRES));
- 
- 	dev_dbg(&msg->spi->dev,
-@@ -195,8 +252,6 @@ static void atmel_spi_next_xfer(struct s
- 		xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
- 		xfer->rx_buf, xfer->rx_dma, spi_readl(as, IMR));
- 
--	spi_writel(as, RCR, len);
--	spi_writel(as, TCR, len);
- 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
- }
- 
-@@ -294,6 +349,7 @@ atmel_spi_msg_done(struct spi_master *ma
- 	spin_lock(&as->lock);
- 
- 	as->current_transfer = NULL;
-+	as->next_transfer = NULL;
- 
- 	/* continue if needed */
- 	if (list_empty(&as->queue) || as->stopping)
-@@ -377,7 +433,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 
- 		spi_writel(as, IDR, pending);
- 
--		if (as->remaining_bytes == 0) {
-+		if (as->current_remaining_bytes == 0) {
- 			msg->actual_length += xfer->len;
- 
- 			if (!msg->is_dma_mapped)
-@@ -387,7 +443,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 			if (xfer->delay_usecs)
- 				udelay(xfer->delay_usecs);
- 
--			if (msg->transfers.prev == &xfer->transfer_list) {
-+			if (atmel_spi_xfer_is_last(msg, xfer)) {
- 				/* report completed message */
- 				atmel_spi_msg_done(master, as, msg, 0,
- 						xfer->cs_change);
++	rtc_update_irq(pdata->rtc, 1, events);
++	return IRQ_HANDLED;
++}
++
++ static void
++ds1511_rtc_release(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq >= 0) {
++		pdata->irqen = 0;
++		ds1511_rtc_update_alarm(pdata);
++	}
++}
++
++ static int
++ds1511_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	if (pdata->irq < 0) {
++		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
++	}
++	switch (cmd) {
++	case RTC_AIE_OFF:
++		pdata->irqen &= ~RTC_AF;
++		ds1511_rtc_update_alarm(pdata);
++		break;
++	case RTC_AIE_ON:
++		pdata->irqen |= RTC_AF;
++		ds1511_rtc_update_alarm(pdata);
++		break;
++	case RTC_UIE_OFF:
++		pdata->irqen &= ~RTC_UF;
++		ds1511_rtc_update_alarm(pdata);
++		break;
++	case RTC_UIE_ON:
++		pdata->irqen |= RTC_UF;
++		ds1511_rtc_update_alarm(pdata);
++		break;
++	default:
++		return -ENOIOCTLCMD;
++	}
++	return 0;
++}
++
++static const struct rtc_class_ops ds1511_rtc_ops = {
++	.read_time	= ds1511_rtc_read_time,
++	.set_time	= ds1511_rtc_set_time,
++	.read_alarm	= ds1511_rtc_read_alarm,
++	.set_alarm	= ds1511_rtc_set_alarm,
++	.release	= ds1511_rtc_release,
++	.ioctl		= ds1511_rtc_ioctl,
++};
++
++ static ssize_t
++ds1511_nvram_read(struct kobject *kobj, struct bin_attribute *ba,
++				char *buf, loff_t pos, size_t size)
++{
++	ssize_t count;
++
++	/*
++	 * if count is more than one, turn on "burst" mode
++	 * turn it off when you're done
++	 */
++	if (size > 1) {
++		rtc_write((rtc_read(RTC_CMD) | DS1511_BME), RTC_CMD);
++	}
++	if (pos > DS1511_RAM_MAX) {
++		pos = DS1511_RAM_MAX;
++	}
++	if (size + pos > DS1511_RAM_MAX + 1) {
++		size = DS1511_RAM_MAX - pos + 1;
++	}
++	rtc_write(pos, DS1511_RAMADDR_LSB);
++	for (count = 0; size > 0; count++, size--) {
++		*buf++ = rtc_read(DS1511_RAMDATA);
++	}
++	if (count > 1) {
++		rtc_write((rtc_read(RTC_CMD) & ~DS1511_BME), RTC_CMD);
++	}
++	return count;
++}
++
++ static ssize_t
++ds1511_nvram_write(struct kobject *kobj, struct bin_attribute *bin_attr,
++				char *buf, loff_t pos, size_t size)
++{
++	ssize_t count;
++
++	/*
++	 * if count is more than one, turn on "burst" mode
++	 * turn it off when you're done
++	 */
++	if (size > 1) {
++		rtc_write((rtc_read(RTC_CMD) | DS1511_BME), RTC_CMD);
++	}
++	if (pos > DS1511_RAM_MAX) {
++		pos = DS1511_RAM_MAX;
++	}
++	if (size + pos > DS1511_RAM_MAX + 1) {
++		size = DS1511_RAM_MAX - pos + 1;
++	}
++	rtc_write(pos, DS1511_RAMADDR_LSB);
++	for (count = 0; size > 0; count++, size--) {
++		rtc_write(*buf++, DS1511_RAMDATA);
++	}
++	if (count > 1) {
++		rtc_write((rtc_read(RTC_CMD) & ~DS1511_BME), RTC_CMD);
++	}
++	return count;
++}
++
++static struct bin_attribute ds1511_nvram_attr = {
++	.attr = {
++		.name = "nvram",
++		.mode = S_IRUGO | S_IWUGO,
++		.owner = THIS_MODULE,
++	},
++	.size = DS1511_RAM_MAX,
++	.read = ds1511_nvram_read,
++	.write = ds1511_nvram_write,
++};
++
++ static int __devinit
++ds1511_rtc_probe(struct platform_device *pdev)
++{
++	struct rtc_device *rtc;
++	struct resource *res;
++	struct rtc_plat_data *pdata = NULL;
++	int ret = 0;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		return -ENODEV;
++	}
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata) {
++		return -ENOMEM;
++	}
++	pdata->irq = -1;
++	pdata->size = res->end - res->start + 1;
++	if (!request_mem_region(res->start, pdata->size, pdev->name)) {
++		ret = -EBUSY;
++		goto out;
++	}
++	pdata->baseaddr = res->start;
++	pdata->size = pdata->size;
++	ds1511_base = ioremap(pdata->baseaddr, pdata->size);
++	if (!ds1511_base) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	pdata->ioaddr = ds1511_base;
++	pdata->irq = platform_get_irq(pdev, 0);
++
++	/*
++	 * turn on the clock and the crystal, etc.
++	 */
++	rtc_write(0, RTC_CMD);
++	rtc_write(0, RTC_CMD1);
++	/*
++	 * clear the wdog counter
++	 */
++	rtc_write(0, DS1511_WD_MSEC);
++	rtc_write(0, DS1511_WD_SEC);
++	/*
++	 * start the clock
++	 */
++	rtc_enable_update();
++
++	/*
++	 * check for a dying bat-tree
++	 */
++	if (rtc_read(RTC_CMD1) & DS1511_BLF1) {
++		dev_warn(&pdev->dev, "voltage-low detected.\n");
++	}
++
++	/*
++	 * if the platform has an interrupt in mind for this device,
++	 * then by all means, set it
++	 */
++	if (pdata->irq >= 0) {
++		rtc_read(RTC_CMD1);
++		if (request_irq(pdata->irq, ds1511_interrupt,
++			IRQF_DISABLED | IRQF_SHARED, pdev->name, pdev) < 0) {
++
++			dev_warn(&pdev->dev, "interrupt not available.\n");
++			pdata->irq = -1;
++		}
++	}
++
++	rtc = rtc_device_register(pdev->name, &pdev->dev, &ds1511_rtc_ops,
++		THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		ret = PTR_ERR(rtc);
++		goto out;
++	}
++	pdata->rtc = rtc;
++	platform_set_drvdata(pdev, pdata);
++	ret = sysfs_create_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
++	if (ret) {
++		goto out;
++	}
++	return 0;
++ out:
++	if (pdata->rtc) {
++		rtc_device_unregister(pdata->rtc);
++	}
++	if (pdata->irq >= 0) {
++		free_irq(pdata->irq, pdev);
++	}
++	if (ds1511_base) {
++		iounmap(ds1511_base);
++		ds1511_base = NULL;
++	}
++	if (pdata->baseaddr) {
++		release_mem_region(pdata->baseaddr, pdata->size);
++	}
++
++	kfree(pdata);
++	return ret;
++}
++
++ static int __devexit
++ds1511_rtc_remove(struct platform_device *pdev)
++{
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++
++	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
++	rtc_device_unregister(pdata->rtc);
++	pdata->rtc = NULL;
++	if (pdata->irq >= 0) {
++		/*
++		 * disable the alarm interrupt
++		 */
++		rtc_write(rtc_read(RTC_CMD) & ~RTC_TIE, RTC_CMD);
++		rtc_read(RTC_CMD1);
++		free_irq(pdata->irq, pdev);
++	}
++	iounmap(pdata->ioaddr);
++	ds1511_base = NULL;
++	release_mem_region(pdata->baseaddr, pdata->size);
++	kfree(pdata);
++	return 0;
++}
++
++static struct platform_driver ds1511_rtc_driver = {
++	.probe		= ds1511_rtc_probe,
++	.remove		= __devexit_p(ds1511_rtc_remove),
++	.driver		= {
++		.name	= "ds1511",
++		.owner	= THIS_MODULE,
++	},
++};
++
++ static int __init
++ds1511_rtc_init(void)
++{
++	return platform_driver_register(&ds1511_rtc_driver);
++}
++
++ static void __exit
++ds1511_rtc_exit(void)
++{
++	return platform_driver_unregister(&ds1511_rtc_driver);
++}
++
++module_init(ds1511_rtc_init);
++module_exit(ds1511_rtc_exit);
++
++MODULE_AUTHOR("Andrew Sharp <andy.sharp@onstor.com>");
++MODULE_DESCRIPTION("Dallas DS1511 RTC driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_VERSION);
 _
 
-Patches currently in -mm which might be from slipszi@gmail.com are
+Patches currently in -mm which might be from andy.sharp@onstor.com are
 
 origin.patch
+git-watchdog.patch
