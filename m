@@ -1,94 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-advansysc-make-3-functions-static.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:31:11 -0800
-Message-ID: <200802070030.m170UqXC007428@imap1.linux-foundation.org>
+Subject: - ext-cleanup-ext_bg_num_gdb.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:50 -0800
+Message-ID: <200802070030.m170UV0p007398__10595.2980033637$1202345777$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52919 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760930AbYBGAnj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:39 -0500
+	by vger.kernel.org with ESMTP id S1764471AbYBGAni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi/advansys.c: make 3 functions static
+     ext[234]: cleanup ext[234]_bg_num_gdb()
 has been removed from the -mm tree.  Its filename was
-     scsi-advansysc-make-3-functions-static.patch
+     ext-cleanup-ext_bg_num_gdb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi/advansys.c: make 3 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: ext[234]: cleanup ext[234]_bg_num_gdb()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Use ext[234]_bg_has_super() to remove duplicate code.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ext2/balloc.c |    5 +----
+ fs/ext3/balloc.c |    6 +-----
+ fs/ext4/balloc.c |    6 +-----
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~scsi-advansysc-make-3-functions-static drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~scsi-advansysc-make-3-functions-static
-+++ a/drivers/scsi/advansys.c
-@@ -12261,7 +12261,7 @@ static ushort __devinit AdvReadEEPWord(A
- /*
-  * Write the EEPROM from 'cfg_buf'.
+diff -puN fs/ext2/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext-cleanup-ext_bg_num_gdb
++++ a/fs/ext2/balloc.c
+@@ -1533,9 +1533,6 @@ int ext2_bg_has_super(struct super_block
   */
--void __devinit
-+static void __devinit
- AdvSet3550EEPConfig(AdvPortAddr iop_base, ADVEEP_3550_CONFIG *cfg_buf)
+ unsigned long ext2_bg_num_gdb(struct super_block *sb, int group)
  {
- 	ushort *wbuf;
-@@ -12328,7 +12328,7 @@ AdvSet3550EEPConfig(AdvPortAddr iop_base
- /*
-  * Write the EEPROM from 'cfg_buf'.
-  */
--void __devinit
-+static void __devinit
- AdvSet38C0800EEPConfig(AdvPortAddr iop_base, ADVEEP_38C0800_CONFIG *cfg_buf)
+-	if (EXT2_HAS_RO_COMPAT_FEATURE(sb,EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER)&&
+-	    !ext2_group_sparse(group))
+-		return 0;
+-	return EXT2_SB(sb)->s_gdb_count;
++	return ext2_bg_has_super(sb, group) ? EXT2_SB(sb)->s_gdb_count : 0;
+ }
+ 
+diff -puN fs/ext3/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext-cleanup-ext_bg_num_gdb
++++ a/fs/ext3/balloc.c
+@@ -1848,11 +1848,7 @@ static unsigned long ext3_bg_num_gdb_met
+ 
+ static unsigned long ext3_bg_num_gdb_nometa(struct super_block *sb, int group)
  {
- 	ushort *wbuf;
-@@ -12395,7 +12395,7 @@ AdvSet38C0800EEPConfig(AdvPortAddr iop_b
- /*
-  * Write the EEPROM from 'cfg_buf'.
-  */
--void __devinit
-+static void __devinit
- AdvSet38C1600EEPConfig(AdvPortAddr iop_base, ADVEEP_38C1600_CONFIG *cfg_buf)
+-	if (EXT3_HAS_RO_COMPAT_FEATURE(sb,
+-				EXT3_FEATURE_RO_COMPAT_SPARSE_SUPER) &&
+-			!ext3_group_sparse(group))
+-		return 0;
+-	return EXT3_SB(sb)->s_gdb_count;
++	return ext3_bg_has_super(sb, group) ? EXT3_SB(sb)->s_gdb_count : 0;
+ }
+ 
+ /**
+diff -puN fs/ext4/balloc.c~ext-cleanup-ext_bg_num_gdb fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext-cleanup-ext_bg_num_gdb
++++ a/fs/ext4/balloc.c
+@@ -2011,11 +2011,7 @@ static unsigned long ext4_bg_num_gdb_met
+ static unsigned long ext4_bg_num_gdb_nometa(struct super_block *sb,
+ 					ext4_group_t group)
  {
- 	ushort *wbuf;
+-	if (EXT4_HAS_RO_COMPAT_FEATURE(sb,
+-				EXT4_FEATURE_RO_COMPAT_SPARSE_SUPER) &&
+-			!ext4_group_sparse(group))
+-		return 0;
+-	return EXT4_SB(sb)->s_gdb_count;
++	return ext4_bg_has_super(sb, group) ? EXT4_SB(sb)->s_gdb_count : 0;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-git-acpi.patch
-powerpc-vdso_do_func_patch3264-must-be-__init.patch
-powerpc-free_property-mustnt-be-__init.patch
-hvc_rtas_init-must-be-__init.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-move-edactxt-two-levels-up.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-kill-udffs_dateversion.patch
-the-scheduled-time-option-removal.patch
-reiser4.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
