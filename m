@@ -1,280 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:23 -0800
-Message-ID: <200802070029.m170T4MS007239@imap1.linux-foundation.org>
+Subject: - fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:23 -0800
+Message-ID: <200802070028.m170S4oh007114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763689AbYBGAou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:50 -0500
+	by vger.kernel.org with ESMTP id S933924AbYBGAor (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, adaplas@pol.net, vince@simtec.co.uk, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FB/S3C2412: add S3C2412 support to S3C2410 fb driver
+     fbcon: fix sparse warning about shadowing 'p' symbol
 has been removed from the -mm tree.  Its filename was
-     fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver.patch
+     fbcon-fix-sparse-warning-about-shadowing-p-symbol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FB/S3C2412: add S3C2412 support to S3C2410 fb driver
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: fbcon: fix sparse warning about shadowing 'p' symbol
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Add support for the S3C2412 to the S3C2410 frame buffer driver
-by ensuring that any moved registers can be dealt with.
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c               |   78 +++++++++++++++++-----
- drivers/video/s3c2410fb.h               |    7 +
- include/asm-arm/arch-s3c2410/regs-lcd.h |   11 ++-
- 3 files changed, 80 insertions(+), 16 deletions(-)
+ drivers/video/console/fbcon.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver
-+++ a/drivers/video/s3c2410fb.c
-@@ -110,6 +110,11 @@ static int debug	= 0;
- 
- /* useful functions */
- 
-+static int is_s3c2412(struct s3c2410fb_info *fbi)
-+{
-+	return (fbi->drv_type == DRV_S3C2412);
-+}
-+
- /* s3c2410fb_set_lcdaddr
-  *
-  * initialise lcd controller address pointers
-@@ -501,7 +506,7 @@ static void schedule_palette_update(stru
+diff -puN drivers/video/console/fbcon.c~fbcon-fix-sparse-warning-about-shadowing-p-symbol drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-fix-sparse-warning-about-shadowing-p-symbol
++++ a/drivers/video/console/fbcon.c
+@@ -2795,7 +2795,7 @@ static int fbcon_scrolldelta(struct vc_d
  {
- 	unsigned long flags;
- 	unsigned long irqen;
--	void __iomem *regs = fbi->io;
-+	void __iomem *irq_base = fbi->irq_base;
+ 	struct fb_info *info = registered_fb[con2fb_map[fg_console]];
+ 	struct fbcon_ops *ops = info->fbcon_par;
+-	struct display *p = &fb_display[fg_console];
++	struct display *disp = &fb_display[fg_console];
+ 	int offset, limit, scrollback_old;
  
- 	local_irq_save(flags);
- 
-@@ -511,9 +516,9 @@ static void schedule_palette_update(stru
- 		fbi->palette_ready = 1;
- 
- 		/* enable IRQ */
--		irqen = readl(regs + S3C2410_LCDINTMSK);
-+		irqen = readl(irq_base + S3C24XX_LCDINTMSK);
- 		irqen &= ~S3C2410_LCDINT_FRSYNC;
--		writel(irqen, regs + S3C2410_LCDINTMSK);
-+		writel(irqen, irq_base + S3C24XX_LCDINTMSK);
+ 	if (softback_top) {
+@@ -2833,7 +2833,7 @@ static int fbcon_scrolldelta(struct vc_d
+ 			logo_shown = FBCON_LOGO_CANSHOW;
+ 		}
+ 		fbcon_cursor(vc, CM_ERASE | CM_SOFTBACK);
+-		fbcon_redraw_softback(vc, p, lines);
++		fbcon_redraw_softback(vc, disp, lines);
+ 		fbcon_cursor(vc, CM_DRAW | CM_SOFTBACK);
+ 		return 0;
  	}
+@@ -2855,9 +2855,9 @@ static int fbcon_scrolldelta(struct vc_d
  
- 	local_irq_restore(flags);
-@@ -594,15 +599,17 @@ static int s3c2410fb_setcolreg(unsigned 
- static int s3c2410fb_blank(int blank_mode, struct fb_info *info)
- {
- 	struct s3c2410fb_info *fbi = info->par;
--	void __iomem *regs = fbi->io;
-+	void __iomem *tpal_reg = fbi->io;
+ 	fbcon_cursor(vc, CM_ERASE);
  
- 	dprintk("blank(mode=%d, info=%p)\n", blank_mode, info);
- 
-+	tpal_reg += is_s3c2412(fbi) ? S3C2412_TPAL : S3C2410_TPAL;
-+
- 	if (blank_mode == FB_BLANK_UNBLANK)
--		writel(0x0, regs + S3C2410_TPAL);
-+		writel(0x0, tpal_reg);
- 	else {
- 		dprintk("setting TPAL to output 0x000000\n");
--		writel(S3C2410_TPAL_EN, regs + S3C2410_TPAL);
-+		writel(S3C2410_TPAL_EN, tpal_reg);
- 	}
- 
- 	return 0;
-@@ -709,6 +716,16 @@ static int s3c2410fb_init_registers(stru
- 	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
- 	unsigned long flags;
- 	void __iomem *regs = fbi->io;
-+	void __iomem *tpal;
-+	void __iomem *lpcsel;
-+
-+	if (is_s3c2412(fbi)) {
-+		tpal = regs + S3C2412_TPAL;
-+		lpcsel = regs + S3C2412_TCONSEL;
-+	} else {
-+		tpal = regs + S3C2410_TPAL;
-+		lpcsel = regs + S3C2410_LPCSEL;
-+	}
- 
- 	/* Initialise LCD with values from haret */
- 
-@@ -724,12 +741,12 @@ static int s3c2410fb_init_registers(stru
- 	local_irq_restore(flags);
- 
- 	dprintk("LPCSEL    = 0x%08lx\n", mach_info->lpcsel);
--	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
-+	writel(mach_info->lpcsel, lpcsel);
- 
--	dprintk("replacing TPAL %08x\n", readl(regs + S3C2410_TPAL));
-+	dprintk("replacing TPAL %08x\n", readl(tpal));
- 
- 	/* ensure temporary palette disabled */
--	writel(0x00, regs + S3C2410_TPAL);
-+	writel(0x00, tpal);
- 
- 	return 0;
- }
-@@ -763,15 +780,15 @@ static void s3c2410fb_write_palette(stru
- static irqreturn_t s3c2410fb_irq(int irq, void *dev_id)
- {
- 	struct s3c2410fb_info *fbi = dev_id;
--	void __iomem *regs = fbi->io;
--	unsigned long lcdirq = readl(regs + S3C2410_LCDINTPND);
-+	void __iomem *irq_base = fbi->irq_base;
-+	unsigned long lcdirq = readl(irq_base + S3C24XX_LCDINTPND);
- 
- 	if (lcdirq & S3C2410_LCDINT_FRSYNC) {
- 		if (fbi->palette_ready)
- 			s3c2410fb_write_palette(fbi);
- 
--		writel(S3C2410_LCDINT_FRSYNC, regs + S3C2410_LCDINTPND);
--		writel(S3C2410_LCDINT_FRSYNC, regs + S3C2410_LCDSRCPND);
-+		writel(S3C2410_LCDINT_FRSYNC, irq_base + S3C24XX_LCDINTPND);
-+		writel(S3C2410_LCDINT_FRSYNC, irq_base + S3C24XX_LCDSRCPND);
- 	}
- 
- 	return IRQ_HANDLED;
-@@ -779,7 +796,8 @@ static irqreturn_t s3c2410fb_irq(int irq
- 
- static char driver_name[] = "s3c2410fb";
- 
--static int __init s3c2410fb_probe(struct platform_device *pdev)
-+static int __init s3c24xxfb_probe(struct platform_device *pdev,
-+				  enum s3c_drv_type drv_type)
- {
- 	struct s3c2410fb_info *info;
- 	struct s3c2410fb_display *display;
-@@ -815,6 +833,7 @@ static int __init s3c2410fb_probe(struct
- 
- 	info = fbinfo->par;
- 	info->dev = &pdev->dev;
-+	info->drv_type = drv_type;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
-@@ -838,6 +857,8 @@ static int __init s3c2410fb_probe(struct
- 		goto release_mem;
- 	}
- 
-+	info->irq_base = info->io + ((drv_type == DRV_S3C2412) ? S3C2412_LCDINTBASE : S3C2410_LCDINTBASE);
-+
- 	dprintk("devinit\n");
- 
- 	strcpy(fbinfo->fix.id, driver_name);
-@@ -946,6 +967,16 @@ dealloc_fb:
- 	return ret;
- }
- 
-+static int __init s3c2410fb_probe(struct platform_device *pdev)
-+{
-+	return s3c24xxfb_probe(pdev, DRV_S3C2410);
-+}
-+
-+static int __init s3c2412fb_probe(struct platform_device *pdev)
-+{
-+	return s3c24xxfb_probe(pdev, DRV_S3C2412);
-+}
-+
- /* s3c2410fb_stop_lcd
-  *
-  * shutdown the lcd controller
-@@ -1047,14 +1078,31 @@ static struct platform_driver s3c2410fb_
- 	},
- };
- 
-+static struct platform_driver s3c2412fb_driver = {
-+	.probe		= s3c2412fb_probe,
-+	.remove		= s3c2410fb_remove,
-+	.suspend	= s3c2410fb_suspend,
-+	.resume		= s3c2410fb_resume,
-+	.driver		= {
-+		.name	= "s3c2412-lcd",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
- int __init s3c2410fb_init(void)
- {
--	return platform_driver_register(&s3c2410fb_driver);
-+	int ret = platform_driver_register(&s3c2410fb_driver);
-+
-+	if (ret == 0)
-+		ret = platform_driver_register(&s3c2412fb_driver);;
-+
-+	return ret;
- }
- 
- static void __exit s3c2410fb_cleanup(void)
- {
- 	platform_driver_unregister(&s3c2410fb_driver);
-+	platform_driver_unregister(&s3c2412fb_driver);
- }
- 
- module_init(s3c2410fb_init);
-diff -puN drivers/video/s3c2410fb.h~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver drivers/video/s3c2410fb.h
---- a/drivers/video/s3c2410fb.h~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver
-+++ a/drivers/video/s3c2410fb.h
-@@ -25,13 +25,20 @@
- #ifndef __S3C2410FB_H
- #define __S3C2410FB_H
- 
-+enum s3c_drv_type {
-+	DRV_S3C2410,
-+	DRV_S3C2412,
-+};
-+
- struct s3c2410fb_info {
- 	struct device		*dev;
- 	struct clk		*clk;
- 
- 	struct resource		*mem;
- 	void __iomem		*io;
-+	void __iomem		*irq_base;
- 
-+	enum s3c_drv_type	drv_type;
- 	struct s3c2410fb_hw	regs;
- 
- 	unsigned int		palette_ready;
-diff -puN include/asm-arm/arch-s3c2410/regs-lcd.h~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver include/asm-arm/arch-s3c2410/regs-lcd.h
---- a/include/asm-arm/arch-s3c2410/regs-lcd.h~fb-s3c2412-add-s3c2412-support-to-s3c2410-fb-driver
-+++ a/include/asm-arm/arch-s3c2410/regs-lcd.h
-@@ -147,7 +147,16 @@
- 
- #define S3C2412_FRCPAT(x)	S3C2410_LCDREG(0xB4 + ((x)*4))
- 
--#endif /* ___ASM_ARCH_REGS_LCD_H */
-+/* general registers */
-+
-+/* base of the LCD registers, where INTPND, INTSRC and then INTMSK
-+ * are available. */
- 
-+#define S3C2410_LCDINTBASE	S3C2410_LCDREG(0x54)
-+#define S3C2412_LCDINTBASE	S3C2410_LCDREG(0x24)
- 
-+#define S3C24XX_LCDINTPND	(0x00)
-+#define S3C24XX_LCDSRCPND	(0x04)
-+#define S3C24XX_LCDINTMSK	(0x08)
- 
-+#endif /* ___ASM_ARCH_REGS_LCD_H */
+-	offset = p->yscroll - scrollback_current;
+-	limit = p->vrows;
+-	switch (p->scrollmode) {
++	offset = disp->yscroll - scrollback_current;
++	limit = disp->vrows;
++	switch (disp->scrollmode) {
+ 	case SCROLL_WRAP_MOVE:
+ 		info->var.vmode |= FB_VMODE_YWRAP;
+ 		break;
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-git-mtd.patch
+byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch
+ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+udf-fix-coding-style-of-superc.patch
+udf-remove-some-ugly-macros.patch
+udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
+udf-check-if-udf_load_logicalvol-failed.patch
+udf-convert-macros-related-to-bitmaps-to-functions.patch
+udf-move-calculating-of-nr_groups-into-helper-function.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-fix-coding-style.patch
+udf-create-common-function-for-tag-checksumming.patch
+udf-create-common-function-for-changing-free-space-counter.patch
+udf-replace-loops-coded-with-goto-to-real-loops.patch
+udf-convert-byte-order-of-constant-instead-of-variable.patch
+udf-remove-udf_i_-macros-and-open-code-them.patch
+udf-cache-struct-udf_inode_info.patch
+udf-fix-udf_debug-macro.patch
+udf-improve-readability-of-udf_load_partition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
