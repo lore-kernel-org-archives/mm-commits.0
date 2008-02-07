@@ -1,314 +1,258 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-backlight-control.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:52 -0800
-Message-ID: <200802070028.m170SXUM007177@imap1.linux-foundation.org>
+Subject: - get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:23:20 -0800
+Message-ID: <200802070023.m170N1cV006486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37693 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46203 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761901AbYBGAqj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:39 -0500
+	by vger.kernel.org with ESMTP id S933095AbYBGArB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, adaplas@pol.net, linux@maxim.org.za, nicolas.ferre@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: dada1@cosmosbay.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ink@jurassic.park.msu.ru, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: backlight control
+     get rid of NR_OPEN and introduce a sysctl_nr_open
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-backlight-control.patch
+     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: backlight control
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: get rid of NR_OPEN and introduce a sysctl_nr_open
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-On the sam9 EK boards, the LCD backlight is hooked up to a PWM output from
-the LCD controller.  It's controlled by "contrast" registers though.
+NR_OPEN (historically set to 1024*1024) actually forbids processes to open
+more than 1024*1024 handles.
 
-This patch lets boards declare that they have that kind of backlight
-control.  The driver can then export this control, letting screenblank and
-other operations actually take effect ...  reducing the typically
-substantial power drain from the backlight.
+Unfortunatly some production servers hit the not so 'ridiculously high
+value' of 1024*1024 file descriptors per process.
 
-Note that it's not fully cooked
-  - doesn't force backlight off during system suspend
-  - the "power" and "blank" events may not be done right
-This should be easily added in the future.
+Changing NR_OPEN is not considered safe because of vmalloc space potential
+exhaust.
 
-[nicolas.ferre@atmel.com: remove unneeded inline and rename functions]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+This patch introduces a new sysctl (/proc/sys/fs/nr_open) wich defaults to
+1024*1024, so that admins can decide to change this limit if their workload
+needs it.
+
+[akpm@linux-foundation.org: export it for sparc64]
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/board-sam9261ek.c |    1 
- arch/arm/mach-at91/board-sam9263ek.c |    1 
- drivers/video/atmel_lcdfb.c          |  115 ++++++++++++++++++++++++-
- drivers/video/backlight/Kconfig      |   13 ++
- include/video/atmel_lcdc.h           |   11 +-
- 5 files changed, 135 insertions(+), 6 deletions(-)
+ Documentation/filesystems/proc.txt  |    8 ++++++++
+ Documentation/sysctl/fs.txt         |   10 ++++++++++
+ arch/alpha/kernel/osf_sys.c         |    2 +-
+ arch/mips/kernel/sysirix.c          |    2 +-
+ arch/sparc64/kernel/sparc64_ksyms.c |    1 +
+ arch/sparc64/solaris/fs.c           |    2 +-
+ arch/sparc64/solaris/timod.c        |    6 ++++--
+ fs/file.c                           |    8 +++++---
+ include/linux/fs.h                  |    2 +-
+ kernel/sys.c                        |    2 +-
+ kernel/sysctl.c                     |    8 ++++++++
+ 11 files changed, 41 insertions(+), 10 deletions(-)
 
-diff -puN arch/arm/mach-at91/board-sam9261ek.c~atmel_lcdfb-backlight-control arch/arm/mach-at91/board-sam9261ek.c
---- a/arch/arm/mach-at91/board-sam9261ek.c~atmel_lcdfb-backlight-control
-+++ a/arch/arm/mach-at91/board-sam9261ek.c
-@@ -383,6 +383,7 @@ static void at91_lcdc_tft_power_control(
+diff -puN Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/Documentation/filesystems/proc.txt
+@@ -1029,6 +1029,14 @@ nr_inodes
+ Denotes the  number  of  inodes the system has allocated. This number will
+ grow and shrink dynamically.
+ 
++nr_open
++-------
++
++Denotes the maximum number of file-handles a process can
++allocate. Default value is 1024*1024 (1048576) which should be
++enough for most machines. Actual limit depends on RLIMIT_NOFILE
++resource limit.
++
+ nr_free_inodes
+ --------------
+ 
+diff -puN Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/Documentation/sysctl/fs.txt
+@@ -23,6 +23,7 @@ Currently, these files are in /proc/sys/
+ - inode-max
+ - inode-nr
+ - inode-state
++- nr_open
+ - overflowuid
+ - overflowgid
+ - suid_dumpable
+@@ -91,6 +92,15 @@ usage of file handles and you don't need
+ 
+ ==============================================================
+ 
++nr_open:
++
++This denotes the maximum number of file-handles a process can
++allocate. Default value is 1024*1024 (1048576) which should be
++enough for most machines. Actual limit depends on RLIMIT_NOFILE
++resource limit.
++
++==============================================================
++
+ inode-max, inode-nr & inode-state:
+ 
+ As with file handles, the kernel allocates the inode structures
+diff -puN arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -430,7 +430,7 @@ sys_getpagesize(void)
+ asmlinkage unsigned long
+ sys_getdtablesize(void)
+ {
+-	return NR_OPEN;
++	return sysctl_nr_open;
  }
  
- static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
-+	.lcdcon_is_backlight		= true,
- 	.default_bpp			= 16,
- 	.default_dmacon			= ATMEL_LCDC_DMAEN,
- 	.default_lcdcon2		= AT91SAM9261_DEFAULT_TFT_LCDCON2,
-diff -puN arch/arm/mach-at91/board-sam9263ek.c~atmel_lcdfb-backlight-control arch/arm/mach-at91/board-sam9263ek.c
---- a/arch/arm/mach-at91/board-sam9263ek.c~atmel_lcdfb-backlight-control
-+++ a/arch/arm/mach-at91/board-sam9263ek.c
-@@ -253,6 +253,7 @@ static void at91_lcdc_power_control(int 
- 
- /* Driver datas */
- static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
-+	.lcdcon_is_backlight		= true,
- 	.default_bpp			= 16,
- 	.default_dmacon			= ATMEL_LCDC_DMAEN,
- 	.default_lcdcon2		= AT91SAM9263_DEFAULT_LCDCON2,
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -16,6 +16,7 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/delay.h>
-+#include <linux/backlight.h>
- 
- #include <asm/arch/board.h>
- #include <asm/arch/cpu.h>
-@@ -69,6 +70,107 @@ static void atmel_lcdfb_update_dma2d(str
- }
- #endif
- 
-+static const u32 contrast_ctr = ATMEL_LCDC_PS_DIV8
-+		| ATMEL_LCDC_POL_POSITIVE
-+		| ATMEL_LCDC_ENA_PWMENABLE;
-+
-+#ifdef CONFIG_BACKLIGHT_ATMEL_LCDC
-+
-+/* some bl->props field just changed */
-+static int atmel_bl_update_status(struct backlight_device *bl)
-+{
-+	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
-+	int			power = sinfo->bl_power;
-+	int			brightness = bl->props.brightness;
-+
-+	/* REVISIT there may be a meaningful difference between
-+	 * fb_blank and power ... there seem to be some cases
-+	 * this doesn't handle correctly.
-+	 */
-+	if (bl->props.fb_blank != sinfo->bl_power)
-+		power = bl->props.fb_blank;
-+	else if (bl->props.power != sinfo->bl_power)
-+		power = bl->props.power;
-+
-+	if (brightness < 0 && power == FB_BLANK_UNBLANK)
-+		brightness = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
-+	else if (power != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, brightness);
-+	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR,
-+			brightness ? contrast_ctr : 0);
-+
-+	bl->props.fb_blank = bl->props.power = sinfo->bl_power = power;
-+
-+	return 0;
-+}
-+
-+static int atmel_bl_get_brightness(struct backlight_device *bl)
-+{
-+	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
-+
-+	return lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
-+}
-+
-+static struct backlight_ops atmel_lcdc_bl_ops = {
-+	.update_status = atmel_bl_update_status,
-+	.get_brightness = atmel_bl_get_brightness,
-+};
-+
-+static void init_backlight(struct atmel_lcdfb_info *sinfo)
-+{
-+	struct backlight_device	*bl;
-+
-+	sinfo->bl_power = FB_BLANK_UNBLANK;
-+
-+	if (sinfo->backlight)
-+		return;
-+
-+	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
-+			sinfo, &atmel_lcdc_bl_ops);
-+	if (IS_ERR(sinfo->backlight)) {
-+		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
-+				PTR_ERR(bl));
-+		return;
-+	}
-+	sinfo->backlight = bl;
-+
-+	bl->props.power = FB_BLANK_UNBLANK;
-+	bl->props.fb_blank = FB_BLANK_UNBLANK;
-+	bl->props.max_brightness = 0xff;
-+	bl->props.brightness = atmel_bl_get_brightness(bl);
-+}
-+
-+static void exit_backlight(struct atmel_lcdfb_info *sinfo)
-+{
-+	if (sinfo->backlight)
-+		backlight_device_unregister(sinfo->backlight);
-+}
-+
-+#else
-+
-+static void init_backlight(struct atmel_lcdfb_info *sinfo)
-+{
-+	dev_warn(&sinfo->pdev->dev, "backlight control is not available\n");
-+}
-+
-+static void exit_backlight(struct atmel_lcdfb_info *sinfo)
-+{
-+}
-+
-+#endif
-+
-+static void init_contrast(struct atmel_lcdfb_info *sinfo)
-+{
-+	/* have some default contrast/backlight settings */
-+	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, contrast_ctr);
-+	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, ATMEL_LCDC_CVAL_DEFAULT);
-+
-+	if (sinfo->lcdcon_is_backlight)
-+		init_backlight(sinfo);
-+}
-+
- 
- static struct fb_fix_screeninfo atmel_lcdfb_fix __initdata = {
- 	.type		= FB_TYPE_PACKED_PIXELS,
-@@ -390,10 +492,6 @@ static int atmel_lcdfb_set_par(struct fb
- 	/* Disable all interrupts */
- 	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
- 
--	/* Set contrast */
--	value = ATMEL_LCDC_PS_DIV8 | ATMEL_LCDC_POL_POSITIVE | ATMEL_LCDC_ENA_PWMENABLE;
--	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, value);
--	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, ATMEL_LCDC_CVAL_DEFAULT);
- 	/* ...wait for DMA engine to become idle... */
- 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
- 		msleep(10);
-@@ -597,6 +695,7 @@ static int __init atmel_lcdfb_probe(stru
- 		sinfo->default_monspecs = pdata_sinfo->default_monspecs;
- 		sinfo->atmel_lcdfb_power_control = pdata_sinfo->atmel_lcdfb_power_control;
- 		sinfo->guard_time = pdata_sinfo->guard_time;
-+		sinfo->lcdcon_is_backlight = pdata_sinfo->lcdcon_is_backlight;
- 	} else {
- 		dev_err(dev, "cannot get default configuration\n");
- 		goto free_info;
-@@ -690,6 +789,9 @@ static int __init atmel_lcdfb_probe(stru
- 		goto release_mem;
+ /*
+diff -puN arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/mips/kernel/sysirix.c
+--- a/arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/mips/kernel/sysirix.c
+@@ -356,7 +356,7 @@ asmlinkage int irix_syssgi(struct pt_reg
+ 			retval = NGROUPS_MAX;
+ 			goto out;
+ 		case 5:
+-			retval = NR_OPEN;
++			retval = sysctl_nr_open;
+ 			goto out;
+ 		case 6:
+ 			retval = 1;
+diff -puN arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/kernel/sparc64_ksyms.c
+--- a/arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/sparc64/kernel/sparc64_ksyms.c
+@@ -277,6 +277,7 @@ EXPORT_SYMBOL(sys_getpid);
+ EXPORT_SYMBOL(sys_geteuid);
+ EXPORT_SYMBOL(sys_getuid);
+ EXPORT_SYMBOL(sys_getegid);
++EXPORT_SYMBOL(sysctl_nr_open);
+ EXPORT_SYMBOL(sys_getgid);
+ EXPORT_SYMBOL(svr4_getcontext);
+ EXPORT_SYMBOL(svr4_setcontext);
+diff -puN arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/fs.c
+--- a/arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/sparc64/solaris/fs.c
+@@ -624,7 +624,7 @@ asmlinkage int solaris_ulimit(int cmd, i
+ 	case 3: /* UL_GMEMLIM */
+ 		return current->signal->rlim[RLIMIT_DATA].rlim_cur;
+ 	case 4: /* UL_GDESLIM */
+-		return NR_OPEN;
++		return sysctl_nr_open;
  	}
+ 	return -EINVAL;
+ }
+diff -puN arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/timod.c
+--- a/arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/arch/sparc64/solaris/timod.c
+@@ -859,7 +859,8 @@ asmlinkage int solaris_getmsg(unsigned i
  
-+	/* Initialize PWM for contrast or backlight ("off") */
-+	init_contrast(sinfo);
+ 	SOLD("entry");
+ 	lock_kernel();
+-	if(fd >= NR_OPEN) goto out;
++	if (fd >= sysctl_nr_open)
++		goto out;
+ 
+ 	fdt = files_fdtable(current->files);
+ 	filp = fdt->fd[fd];
+@@ -927,7 +928,8 @@ asmlinkage int solaris_putmsg(unsigned i
+ 
+ 	SOLD("entry");
+ 	lock_kernel();
+-	if(fd >= NR_OPEN) goto out;
++	if (fd >= sysctl_nr_open)
++		goto out;
+ 
+ 	fdt = files_fdtable(current->files);
+ 	filp = fdt->fd[fd];
+diff -puN fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open fs/file.c
+--- a/fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/fs/file.c
+@@ -24,6 +24,8 @@ struct fdtable_defer {
+ 	struct fdtable *next;
+ };
+ 
++int sysctl_nr_open __read_mostly = 1024*1024;
 +
- 	/* interrupt */
- 	ret = request_irq(sinfo->irq_base, atmel_lcdfb_interrupt, 0, pdev->name, info);
- 	if (ret) {
-@@ -741,6 +843,7 @@ free_cmap:
- unregister_irqs:
- 	free_irq(sinfo->irq_base, info);
- unmap_mmio:
-+	exit_backlight(sinfo);
- 	iounmap(sinfo->mmio);
- release_mem:
-  	release_mem_region(info->fix.mmio_start, info->fix.mmio_len);
-@@ -775,6 +878,7 @@ static int __exit atmel_lcdfb_remove(str
- 	if (!sinfo)
+ /*
+  * We use this list to defer free fdtables that have vmalloced
+  * sets/arrays. By keeping a per-cpu list, we avoid having to embed
+@@ -147,8 +149,8 @@ static struct fdtable * alloc_fdtable(un
+ 	nr /= (1024 / sizeof(struct file *));
+ 	nr = roundup_pow_of_two(nr + 1);
+ 	nr *= (1024 / sizeof(struct file *));
+-	if (nr > NR_OPEN)
+-		nr = NR_OPEN;
++	if (nr > sysctl_nr_open)
++		nr = sysctl_nr_open;
+ 
+ 	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
+ 	if (!fdt)
+@@ -233,7 +235,7 @@ int expand_files(struct files_struct *fi
+ 	if (nr < fdt->max_fds)
  		return 0;
+ 	/* Can we expand? */
+-	if (nr >= NR_OPEN)
++	if (nr >= sysctl_nr_open)
+ 		return -EMFILE;
  
-+	exit_backlight(sinfo);
- 	if (sinfo->atmel_lcdfb_power_control)
- 		sinfo->atmel_lcdfb_power_control(0);
- 	unregister_framebuffer(info);
-@@ -801,6 +905,9 @@ static int __exit atmel_lcdfb_remove(str
+ 	/* All good, so we try */
+diff -puN include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open include/linux/fs.h
+--- a/include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/include/linux/fs.h
+@@ -21,7 +21,7 @@
  
- static struct platform_driver atmel_lcdfb_driver = {
- 	.remove		= __exit_p(atmel_lcdfb_remove),
-+
-+// FIXME need suspend, resume
-+
- 	.driver		= {
- 		.name	= "atmel_lcdfb",
- 		.owner	= THIS_MODULE,
-diff -puN drivers/video/backlight/Kconfig~atmel_lcdfb-backlight-control drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~atmel_lcdfb-backlight-control
-+++ a/drivers/video/backlight/Kconfig
-@@ -50,6 +50,19 @@ config BACKLIGHT_CLASS_DEVICE
- 	  To have support for your specific LCD panel you will have to
- 	  select the proper drivers which depend on this option.
+ /* Fixed constants first: */
+ #undef NR_OPEN
+-#define NR_OPEN (1024*1024)	/* Absolute upper limit on fd num */
++extern int sysctl_nr_open;
+ #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
  
-+config BACKLIGHT_ATMEL_LCDC
-+	bool "Atmel LCDC Contrast-as-Backlight control"
-+	depends on BACKLIGHT_CLASS_DEVICE && FB_ATMEL
-+	default y if MACH_SAM9261EK || MACH_SAM9263EK
-+	help
-+	  This provides a backlight control internal to the Atmel LCDC
-+	  driver.  If the LCD "contrast control" on your board is wired
-+	  so it controls the backlight brightness, select this option to
-+	  export this as a PWM-based backlight control.
-+
-+	  If in doubt, it's safe to enable this option; it doesn't kick
-+	  in unless the board's description says it's wired that way.
-+
- config BACKLIGHT_CORGI
- 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
- 	depends on BACKLIGHT_CLASS_DEVICE
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-backlight-control include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-backlight-control
-+++ a/include/video/atmel_lcdc.h
-@@ -22,7 +22,7 @@
- #ifndef __ATMEL_LCDC_H__
- #define __ATMEL_LCDC_H__
+ #define BLOCK_SIZE_BITS 10
+diff -puN kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sys.c
+--- a/kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/kernel/sys.c
+@@ -1472,7 +1472,7 @@ asmlinkage long sys_setrlimit(unsigned i
+ 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
+ 	    !capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+-	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > NR_OPEN)
++	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > sysctl_nr_open)
+ 		return -EPERM;
  
-- /* LCD Controller info data structure */
-+ /* LCD Controller info data structure, stored in device platform_data */
- struct atmel_lcdfb_info {
- 	spinlock_t		lock;
- 	struct fb_info		*info;
-@@ -33,7 +33,14 @@ struct atmel_lcdfb_info {
- 	struct platform_device	*pdev;
- 	struct clk		*bus_clk;
- 	struct clk		*lcdc_clk;
--	unsigned int		default_bpp;
-+
-+#ifdef CONFIG_BACKLIGHT_ATMEL_LCDC
-+	struct backlight_device	*backlight;
-+	u8			bl_power;
-+#endif
-+	bool			lcdcon_is_backlight;
-+
-+	u8			default_bpp;
- 	unsigned int		default_lcdcon2;
- 	unsigned int		default_dmacon;
- 	void (*atmel_lcdfb_power_control)(int on);
+ 	retval = security_task_setrlimit(resource, &new_rlim);
+diff -puN kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sysctl.c
+--- a/kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
++++ a/kernel/sysctl.c
+@@ -1203,6 +1203,14 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nr_open",
++		.data		= &sysctl_nr_open,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= FS_DENTRY,
+ 		.procname	= "dentry-state",
+ 		.data		= &dentry_stat,
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
 origin.patch
-git-input.patch
-git-backlight.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-basic-pwm-driver-for-avr32-and-at91.patch
-pwm-led-driver.patch
