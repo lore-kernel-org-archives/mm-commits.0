@@ -1,82 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:22:59 -0800
-Message-ID: <200802070022.m170MeFp006454@imap1.linux-foundation.org>
+Subject: - parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-expresscard.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:24:45 -0800
+Message-ID: <200802070024.m170OQhP006607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47442 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764215AbYBGAoN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:13 -0500
+	by vger.kernel.org with ESMTP id S934110AbYBGAoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: luis.p.mendes@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: use list_for_each_entry_reverse and kill sb_entry
+     parport: add support for the Quatech SPPXP-100 Parallel port PCI E=
+xpressCard
 has been removed from the -mm tree.  Its filename was
-     fs-use-list_for_each_entry_reverse-and-kill-sb_entry.patch
+     parport-add-support-for-the-quatech-sppxp-100-parallel-port-pci-ex=
+presscard.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fs: use list_for_each_entry_reverse and kill sb_entry
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: parport: add support for the Quatech SPPXP-100 Parallel port P=
+CI ExpressCard
+=46rom: Lu=EDs P Mendes <luis.p.mendes@gmail.com>
 
-Use list_for_each_entry_reverse for super_blocks list and remove
-unused sb_entry macro.
+Added pci device id for the Quatech SPPXP-100 ExpressCard - 0x278 - to
+include/linux/pci_id.h
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Modified drivers/parport/parport_pc.c to support the Quatech SPPXP-100 =
+Parallel port PCI ExpressCard
+
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Lu=EDs P Mendes <luis.p.mendes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |    7 ++-----
- include/linux/fs.h |    1 -
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/parport/parport_pc.c |    5 +++++
+ include/linux/pci_ids.h      |    1 +
+ 2 files changed, 6 insertions(+)
 
-diff -puN fs/fs-writeback.c~fs-use-list_for_each_entry_reverse-and-kill-sb_entry fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-use-list_for_each_entry_reverse-and-kill-sb_entry
-+++ a/fs/fs-writeback.c
-@@ -515,8 +515,7 @@ writeback_inodes(struct writeback_contro
- 	might_sleep();
- 	spin_lock(&sb_lock);
- restart:
--	sb = sb_entry(super_blocks.prev);
--	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
-+	list_for_each_entry_reverse(sb, &super_blocks, s_list) {
- 		if (sb_has_dirty_inodes(sb)) {
- 			/* we're making our own get_super here */
- 			sb->s_count++;
-@@ -581,10 +580,8 @@ static void set_sb_syncing(int val)
- {
- 	struct super_block *sb;
- 	spin_lock(&sb_lock);
--	sb = sb_entry(super_blocks.prev);
--	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
-+	list_for_each_entry_reverse(sb, &super_blocks, s_list)
- 		sb->s_syncing = val;
--	}
- 	spin_unlock(&sb_lock);
- }
- 
-diff -puN include/linux/fs.h~fs-use-list_for_each_entry_reverse-and-kill-sb_entry include/linux/fs.h
---- a/include/linux/fs.h~fs-use-list_for_each_entry_reverse-and-kill-sb_entry
-+++ a/include/linux/fs.h
-@@ -977,7 +977,6 @@ extern int send_sigurg(struct fown_struc
- extern struct list_head super_blocks;
- extern spinlock_t sb_lock;
- 
--#define sb_entry(list)	list_entry((list), struct super_block, s_list)
- #define S_BIAS (1<<30)
- struct super_block {
- 	struct list_head	s_list;		/* Keep this first */
+diff -puN drivers/parport/parport_pc.c~parport-add-support-for-the-quat=
+ech-sppxp-100-parallel-port-pci-expresscard drivers/parport/parport_pc.=
+c
+--- a/drivers/parport/parport_pc.c~parport-add-support-for-the-quatech-=
+sppxp-100-parallel-port-pci-expresscard
++++ a/drivers/parport/parport_pc.c
+@@ -2767,6 +2767,7 @@ enum parport_pc_pci_cards {
+ 	netmos_9755,
+ 	netmos_9805,
+ 	netmos_9815,
++	quatech_sppxp100,
+ };
+=20
+=20
+@@ -2843,6 +2844,7 @@ static struct parport_pc_pci {
+         /* netmos_9755 */               { 2, { { 0, 1 }, { 2, 3 },} },=
+ /* untested */
+ 	/* netmos_9805 */               { 1, { { 0, -1 }, } }, /* untested */
+ 	/* netmos_9815 */               { 2, { { 0, -1 }, { 2, -1 }, } }, /* =
+untested */
++	/* quatech_sppxp100 */		{ 1, { { 0, 1 }, } },
+ };
+=20
+ static const struct pci_device_id parport_pc_pci_tbl[] =3D {
+@@ -2926,6 +2928,9 @@ static const struct pci_device_id parpor
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9805 },
+ 	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9815,
+ 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9815 },
++	/* Quatech SPPXP-100 Parallel port PCI ExpressCard */
++	{ PCI_VENDOR_ID_QUATECH, PCI_DEVICE_ID_QUATECH_SPPXP_100,
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, quatech_sppxp100 },
+ 	{ 0, } /* terminate list */
+ };
+ MODULE_DEVICE_TABLE(pci,parport_pc_pci_tbl);
+diff -puN include/linux/pci_ids.h~parport-add-support-for-the-quatech-s=
+ppxp-100-parallel-port-pci-expresscard include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~parport-add-support-for-the-quatech-sppxp=
+-100-parallel-port-pci-expresscard
++++ a/include/linux/pci_ids.h
+@@ -1765,6 +1765,7 @@
+ #define PCI_DEVICE_ID_QUATECH_DSC100	0x0020
+ #define PCI_DEVICE_ID_QUATECH_ESC100D	0x0050
+ #define PCI_DEVICE_ID_QUATECH_ESC100M	0x0060
++#define PCI_DEVICE_ID_QUATECH_SPPXP_100 0x0278
+=20
+ #define PCI_VENDOR_ID_SEALEVEL		0x135e
+ #define PCI_DEVICE_ID_SEALEVEL_U530	0x7101
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from luis.p.mendes@gmail.com ar=
+e
 
 origin.patch
-git-dvb.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
