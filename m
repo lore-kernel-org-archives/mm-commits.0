@@ -1,68 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 00:13:46 -0800
-Message-ID: <200802070813.m178DRgg023671@imap1.linux-foundation.org>
+Subject: + m68k-kill-page-walker-compile-warning.patch added to -mm tree
+Date: Thu, 07 Feb 2008 00:29:39 -0800
+Message-ID: <200802070829.m178TKx4024958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42062 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758216AbYBGIZQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 03:25:16 -0500
+	by vger.kernel.org with ESMTP id S1754773AbYBGIaW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 03:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: geert@linux-m68k.org, haveblue@us.ibm.com, mpm@selenic.com, starvik@axis.com
 
 
 The patch titled
-     fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
-has been removed from the -mm tree.  Its filename was
-     softlockup-automatically-detect-hung-task_uninterruptible-tasks.patch
+     m68k: kill page walker compile warning
+has been added to the -mm tree.  Its filename is
+     m68k-kill-page-walker-compile-warning.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "softlockup: automatically detect hung TASK_UNINTERRUPTIBLE tasks"
-From: Ingo Molnar <mingo@elte.hu>
+Subject: m68k: kill page walker compile warning
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
+The recently introduced page walker (walk_page_range()) calls pgd_offset
+with a const struct mm_struct pointer, causing the following compile
+warning on m68k:
 
+    mm/pagewalk.c:111: warning: passing argument 1 of 'pgd_offset' discards qualifiers from pointer target type
+
+Make the `mm' parameter of the inline function pgd_offset() const to shut
+it up.
+
+As cris also uses an inline function, I expect a similar warning to show up
+there. All other archs use a macro to define pgd_offset.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ include/asm-m68k/motorola_pgtable.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks arch/x86/kernel/reboot.c
---- a/arch/x86/kernel/reboot.c~softlockup-automatically-detect-hung-task_uninterruptible-tasks
-+++ a/arch/x86/kernel/reboot.c
-@@ -396,8 +396,20 @@ void machine_shutdown(void)
- 	if (!cpu_isset(reboot_cpu_id, cpu_online_map))
- 		reboot_cpu_id = smp_processor_id();
+diff -puN include/asm-m68k/motorola_pgtable.h~m68k-kill-page-walker-compile-warning include/asm-m68k/motorola_pgtable.h
+--- a/include/asm-m68k/motorola_pgtable.h~m68k-kill-page-walker-compile-warning
++++ a/include/asm-m68k/motorola_pgtable.h
+@@ -191,7 +191,8 @@ static inline pte_t pte_mkcache(pte_t pt
+ #define pgd_index(address)     ((address) >> PGDIR_SHIFT)
  
--	/* Make certain I only run on the appropriate processor */
--	set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
-+	/*
-+	 * Make certain we only run on the appropriate processor,
-+	 * and with sufficient priority:
-+	 */
-+	{
-+		struct sched_param schedparm;
-+		schedparm.sched_priority = 99;
-+		int ret;
-+
-+		ret = sched_setscheduler(current, SCHED_RR, &schedparm);
-+		WARN_ON_ONCE(1);
-+
-+		set_cpus_allowed(current, cpumask_of_cpu(reboot_cpu_id));
-+	}
- 
- 	/* O.K Now that I'm on the appropriate processor,
- 	 * stop all of the others.
+ /* to find an entry in a page-table-directory */
+-static inline pgd_t *pgd_offset(struct mm_struct *mm, unsigned long address)
++static inline pgd_t *pgd_offset(const struct mm_struct *mm,
++				unsigned long address)
+ {
+ 	return mm->pgd + pgd_index(address);
+ }
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-documentation-create-new-scheduler-subdirectory.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-m86k.patch
+m68k-kill-page-walker-compile-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
