@@ -1,54 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - amiga-serial-driver-port_write_mutex-fixup.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:24:41 -0800
-Message-ID: <200802070024.m170OM0k006601@imap1.linux-foundation.org>
+Subject: - docs-convert-kref-semaphore-to-mutex.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:11 -0800
+Message-ID: <200802070024.m170Oqjf006659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54518 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934478AbYBGAr7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:59 -0500
+	by vger.kernel.org with ESMTP id S934422AbYBGAsO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:48:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, greg@kroah.com, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Amiga serial driver: port_write_mutex fixup
+     docs: convert kref semaphore to mutex
 has been removed from the -mm tree.  Its filename was
-     amiga-serial-driver-port_write_mutex-fixup.patch
+     docs-convert-kref-semaphore-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Amiga serial driver: port_write_mutex fixup
+Subject: docs: convert kref semaphore to mutex
 From: Daniel Walker <dwalker@mvista.com>
 
-The port_write_mutex was converted from a semaphore to a mutex,
-but there was still this ifdef'd init_MUTEX reference remaining.
+Just converting this documentation semaphore reference, since we don't
+want to promote semaphore usage.
 
 Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Corey Minyard <minyard@acm.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ser_a2232.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kref.txt |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/ser_a2232.c~amiga-serial-driver-port_write_mutex-fixup drivers/char/ser_a2232.c
---- a/drivers/char/ser_a2232.c~amiga-serial-driver-port_write_mutex-fixup
-+++ a/drivers/char/ser_a2232.c
-@@ -653,7 +653,7 @@ static void a2232_init_portstructs(void)
- 		port->gs.closing_wait = 30 * HZ;
- 		port->gs.rd = &a2232_real_driver;
- #ifdef NEW_WRITE_LOCKING
--		init_MUTEX(&(port->gs.port_write_mutex));
-+		mutex_init(&(port->gs.port_write_mutex));
- #endif
- 		init_waitqueue_head(&port->gs.open_wait);
- 		init_waitqueue_head(&port->gs.close_wait);
+diff -puN Documentation/kref.txt~docs-convert-kref-semaphore-to-mutex Documentation/kref.txt
+--- a/Documentation/kref.txt~docs-convert-kref-semaphore-to-mutex
++++ a/Documentation/kref.txt
+@@ -141,10 +141,10 @@ The last rule (rule 3) is the nastiest o
+ instance, you have a list of items that are each kref-ed, and you wish
+ to get the first one.  You can't just pull the first item off the list
+ and kref_get() it.  That violates rule 3 because you are not already
+-holding a valid pointer.  You must add locks or semaphores.  For
+-instance:
++holding a valid pointer.  You must add a mutex (or some other lock).
++For instance:
+ 
+-static DECLARE_MUTEX(sem);
++static DEFINE_MUTEX(mutex);
+ static LIST_HEAD(q);
+ struct my_data
+ {
+@@ -155,12 +155,12 @@ struct my_data
+ static struct my_data *get_entry()
+ {
+ 	struct my_data *entry = NULL;
+-	down(&sem);
++	mutex_lock(&mutex);
+ 	if (!list_empty(&q)) {
+ 		entry = container_of(q.next, struct my_q_entry, link);
+ 		kref_get(&entry->refcount);
+ 	}
+-	up(&sem);
++	mutex_unlock(&mutex);
+ 	return entry;
+ }
+ 
+@@ -174,9 +174,9 @@ static void release_entry(struct kref *r
+ 
+ static void put_entry(struct my_data *entry)
+ {
+-	down(&sem);
++	mutex_lock(&mutex);
+ 	kref_put(&entry->refcount, release_entry);
+-	up(&sem);
++	mutex_unlock(&mutex);
+ }
+ 
+ The kref_put() return value is useful if you do not want to hold the
+@@ -191,13 +191,13 @@ static void release_entry(struct kref *r
+ 
+ static void put_entry(struct my_data *entry)
+ {
+-	down(&sem);
++	mutex_lock(&mutex);
+ 	if (kref_put(&entry->refcount, release_entry)) {
+ 		list_del(&entry->link);
+-		up(&sem);
++		mutex_unlock(&mutex);
+ 		kfree(entry);
+ 	} else
+-		up(&sem);
++		mutex_unlock(&mutex);
+ }
+ 
+ This is really more useful if you have to call other routines as part
 _
 
 Patches currently in -mm which might be from dwalker@mvista.com are
