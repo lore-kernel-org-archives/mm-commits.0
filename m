@@ -1,151 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-add-block-bitmap-validation.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:30:30 -0800
-Message-ID: <200802070030.m170UBfo007361__12807.3534150191$1202345115$gmane$org@imap1.linux-foundation.org>
+Subject: - coding-style-cleanups-for-drivers-md-mktablesc.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:38 -0800
+Message-ID: <200802070029.m170TJW1007263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53230 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44842 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934335AbYBGAnl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:41 -0500
+	by vger.kernel.org with ESMTP id S1764447AbYBGAoG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: oliver.pntr@gmail.com, hpa@zytor.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: add block bitmap validation
+     coding style cleanups for drivers/md/mktables.c
 has been removed from the -mm tree.  Its filename was
-     ext3-add-block-bitmap-validation.patch
+     coding-style-cleanups-for-drivers-md-mktablesc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: add block bitmap validation
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: coding style cleanups for drivers/md/mktables.c
+From: Oliver Pinter <oliver.pntr@gmail.com>
 
-When a new block bitmap is read from disk in read_block_bitmap() there are a
-few bits that should ALWAYS be set.  In particular, the blocks given
-corresponding to block bitmap, inode bitmap and inode tables.  Validate the
-block bitmap against these blocks.
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Oliver Pinter <oliver.pntr@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |   78 ++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 70 insertions(+), 8 deletions(-)
+ drivers/md/mktables.c |  174 ++++++++++++++++++++--------------------
+ 1 file changed, 89 insertions(+), 85 deletions(-)
 
-diff -puN fs/ext3/balloc.c~ext3-add-block-bitmap-validation fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext3-add-block-bitmap-validation
-+++ a/fs/ext3/balloc.c
-@@ -80,13 +80,57 @@ struct ext3_group_desc * ext3_get_group_
- 	return desc + offset;
- }
+diff -puN drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc drivers/md/mktables.c
+--- a/drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc
++++ a/drivers/md/mktables.c
+@@ -26,100 +26,104 @@
  
-+static int ext3_valid_block_bitmap(struct super_block *sb,
-+					struct ext3_group_desc *desc,
-+					unsigned int block_group,
-+					struct buffer_head *bh)
-+{
-+	ext3_grpblk_t offset;
-+	ext3_grpblk_t next_zero_bit;
-+	ext3_fsblk_t bitmap_blk;
-+	ext3_fsblk_t group_first_block;
-+
-+	group_first_block = ext3_group_first_block_no(sb, block_group);
-+
-+	/* check whether block bitmap block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
-+	offset = bitmap_blk - group_first_block;
-+	if (!ext3_test_bit(offset, bh->b_data))
-+		/* bad block bitmap */
-+		goto err_out;
-+
-+	/* check whether the inode bitmap block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
-+	offset = bitmap_blk - group_first_block;
-+	if (!ext3_test_bit(offset, bh->b_data))
-+		/* bad block bitmap */
-+		goto err_out;
-+
-+	/* check whether the inode table block number is set */
-+	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
-+	offset = bitmap_blk - group_first_block;
-+	next_zero_bit = ext3_find_next_zero_bit(bh->b_data,
-+				offset + EXT3_SB(sb)->s_itb_per_group,
-+				offset);
-+	if (next_zero_bit >= offset + EXT3_SB(sb)->s_itb_per_group)
-+		/* good bitmap for inode tables */
-+		return 1;
-+
-+err_out:
-+	ext3_error(sb, __FUNCTION__,
-+			"Invalid block bitmap - "
-+			"block_group = %d, block = %lu",
-+			block_group, bitmap_blk);
-+	return 0;
-+}
-+
- /**
-  * read_block_bitmap()
-  * @sb:			super block
-  * @block_group:	given block group
-  *
-- * Read the bitmap for a given block_group, reading into the specified
-- * slot in the superblock's bitmap cache.
-+ * Read the bitmap for a given block_group,and validate the
-+ * bits for block/inode/inode tables are set in the bitmaps
-  *
-  * Return buffer_head on success or NULL in case of failure.
-  */
-@@ -95,17 +139,35 @@ read_block_bitmap(struct super_block *sb
+ static uint8_t gfmul(uint8_t a, uint8_t b)
  {
- 	struct ext3_group_desc * desc;
- 	struct buffer_head * bh = NULL;
-+	ext3_fsblk_t bitmap_blk;
+-  uint8_t v = 0;
++	uint8_t v = 0;
  
--	desc = ext3_get_group_desc (sb, block_group, NULL);
-+	desc = ext3_get_group_desc(sb, block_group, NULL);
- 	if (!desc)
--		goto error_out;
--	bh = sb_bread(sb, le32_to_cpu(desc->bg_block_bitmap));
--	if (!bh)
--		ext3_error (sb, "read_block_bitmap",
-+		return NULL;
-+	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
-+	bh = sb_getblk(sb, bitmap_blk);
-+	if (unlikely(!bh)) {
-+		ext3_error(sb, __FUNCTION__,
- 			    "Cannot read block bitmap - "
- 			    "block_group = %d, block_bitmap = %u",
- 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
--error_out:
-+		return NULL;
+-  while ( b ) {
+-    if ( b & 1 ) v ^= a;
+-    a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
+-    b >>= 1;
+-  }
+-  return v;
++	while (b) {
++		if (b & 1)
++			v ^= a;
++		a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
++		b >>= 1;
 +	}
-+	if (likely(bh_uptodate_or_lock(bh)))
-+		return bh;
 +
-+	if (bh_submit_read(bh) < 0) {
-+		brelse(bh);
-+		ext3_error(sb, __FUNCTION__,
-+			    "Cannot read block bitmap - "
-+			    "block_group = %d, block_bitmap = %u",
-+			    block_group, le32_to_cpu(desc->bg_block_bitmap));
-+		return NULL;
-+	}
-+	if (!ext3_valid_block_bitmap(sb, desc, block_group, bh)) {
-+		brelse(bh);
-+		return NULL;
-+	}
- 	return bh;
++	return v;
  }
- /*
+ 
+ static uint8_t gfpow(uint8_t a, int b)
+ {
+-  uint8_t v = 1;
++	uint8_t v = 1;
++
++	b %= 255;
++	if (b < 0)
++		b += 255;
++
++	while (b) {
++		if (b & 1)
++			v = gfmul(v, a);
++		a = gfmul(a, a);
++		b >>= 1;
++	}
+ 
+-  b %= 255;
+-  if ( b < 0 )
+-    b += 255;
+-
+-  while ( b ) {
+-    if ( b & 1 ) v = gfmul(v,a);
+-    a = gfmul(a,a);
+-    b >>= 1;
+-  }
+-  return v;
++	return v;
+ }
+ 
+ int main(int argc, char *argv[])
+ {
+-  int i, j, k;
+-  uint8_t v;
+-  uint8_t exptbl[256], invtbl[256];
+-
+-  printf("#include \"raid6.h\"\n");
+-
+-  /* Compute multiplication table */
+-  printf("\nconst u8  __attribute__((aligned(256)))\n"
+-	 "raid6_gfmul[256][256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i++ ) {
+-    printf("\t{\n");
+-    for ( j = 0 ; j < 256 ; j += 8 ) {
+-      printf("\t\t");
+-      for ( k = 0 ; k < 8 ; k++ ) {
+-	printf("0x%02x, ", gfmul(i,j+k));
+-      }
+-      printf("\n");
+-    }
+-    printf("\t},\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute power-of-2 table (exponent) */
+-  v = 1;
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfexp[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      exptbl[i+j] = v;
+-      printf("0x%02x, ", v);
+-      v = gfmul(v,2);
+-      if ( v == 1 ) v = 0;	/* For entry 255, not a real entry */
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute inverse table x^-1 == x^254 */
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfinv[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      invtbl[i+j] = v = gfpow(i+j,254);
+-      printf("0x%02x, ", v);
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute inv(2^x + 1) (exponent-xor-inverse) table */
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfexi[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n\n");
++	int i, j, k;
++	uint8_t v;
++	uint8_t exptbl[256], invtbl[256];
++
++	printf("#include \"raid6.h\"\n");
++
++	/* Compute multiplication table */
++	printf("\nconst u8  __attribute__((aligned(256)))\n"
++		"raid6_gfmul[256][256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i++) {
++		printf("\t{\n");
++		for (j = 0; j < 256; j += 8) {
++			printf("\t\t");
++			for (k = 0; k < 8; k++)
++				printf("0x%02x, ", gfmul(i, j+k));
++			printf("\n");
++		}
++		printf("\t},\n");
++	}
++	printf("};\n");
++
++	/* Compute power-of-2 table (exponent) */
++	v = 1;
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfexp[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++) {
++			exptbl[i+j] = v;
++			printf("0x%02x, ", v);
++			v = gfmul(v, 2);
++			if (v == 1)
++				v = 0;	/* For entry 255, not a real entry */
++		}
++		printf("\n");
++	}
++	printf("};\n");
++
++	/* Compute inverse table x^-1 == x^254 */
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfinv[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++) {
++			v = gfpow(i+j, 254);
++			invtbl[i+j] = v;
++			printf("0x%02x, ", v);
++		}
++		printf("\n");
++	}
++	printf("};\n");
++
++	/* Compute inv(2^x + 1) (exponent-xor-inverse) table */
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfexi[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++)
++			printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
++		printf("\n");
++	}
++	printf("};\n\n");
+ 
+-  return 0;
++	return 0;
+ }
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from oliver.pntr@gmail.com are
 
 origin.patch
