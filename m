@@ -1,95 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - uvesafb-small-cleanups.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:28:41 -0800
-Message-ID: <200802070028.m170SMaX007141@imap1.linux-foundation.org>
+Subject: - phantom-dont-grab-other-devices.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:25:24 -0800
+Message-ID: <200802070025.m170P5Zs006686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50338 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763508AbYBGAp3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:29 -0500
+	by vger.kernel.org with ESMTP id S1760142AbYBGAp2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, adaplas@pol.net, spock@gentoo.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, andreas.block@esd-electronics.com, oliver.thimm@esd-electronics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvesafb: small cleanups
+     phantom: don't grab other devices
 has been removed from the -mm tree.  Its filename was
-     uvesafb-small-cleanups.patch
+     phantom-dont-grab-other-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: small cleanups
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: phantom: don't grab other devices
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Some cleanups in uvesafb:
-- The custom module_param() get/set functions don't need to be inlined
-  since it is referred to via a pointer in a struct.
-- don't end a #define with a ';'
-- remove one of the single quote marks in "''ypan'"
+Specify also sub pci ids to not grab devices with properly set sub ids.
+This devices has these set (unset) to the same as (plx 9050) ids.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Andreas Block <andreas.block@esd-electronics.com>
+Cc: Oliver Thimm <oliver.thimm@esd-electronics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/misc/phantom.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-small-cleanups drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-small-cleanups
-+++ a/drivers/video/uvesafb.c
-@@ -2003,12 +2003,12 @@ static void __devexit uvesafb_exit(void)
+diff -puN drivers/misc/phantom.c~phantom-dont-grab-other-devices drivers/misc/phantom.c
+--- a/drivers/misc/phantom.c~phantom-dont-grab-other-devices
++++ a/drivers/misc/phantom.c
+@@ -25,7 +25,7 @@
+ #include <asm/atomic.h>
+ #include <asm/io.h>
  
- module_exit(uvesafb_exit);
+-#define PHANTOM_VERSION		"n0.9.7"
++#define PHANTOM_VERSION		"n0.9.8"
  
--static inline int param_get_scroll(char *buffer, struct kernel_param *kp)
-+static int param_get_scroll(char *buffer, struct kernel_param *kp)
- {
- 	return 0;
- }
+ #define PHANTOM_MAX_MINORS	8
  
--static inline int param_set_scroll(const char *val, struct kernel_param *kp)
-+static int param_set_scroll(const char *val, struct kernel_param *kp)
- {
- 	ypan = 0;
+@@ -456,8 +456,9 @@ static int phantom_resume(struct pci_dev
+ #endif
  
-@@ -2022,11 +2022,11 @@ static inline int param_set_scroll(const
- 	return 0;
- }
- 
--#define param_check_scroll(name, p) __param_check(name, p, void);
-+#define param_check_scroll(name, p) __param_check(name, p, void)
- 
- module_param_named(scroll, ypan, scroll, 0);
- MODULE_PARM_DESC(scroll,
--	"Scrolling mode, set to 'redraw', ''ypan' or 'ywrap'");
-+	"Scrolling mode, set to 'redraw', 'ypan', or 'ywrap'");
- module_param_named(vgapal, pmi_setpal, invbool, 0);
- MODULE_PARM_DESC(vgapal, "Set palette using VGA registers");
- module_param_named(pmipal, pmi_setpal, bool, 0);
+ static struct pci_device_id phantom_pci_tbl[] __devinitdata = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050),
+-		.class = PCI_CLASS_BRIDGE_OTHER << 8, .class_mask = 0xffff00 },
++	{ .vendor = PCI_VENDOR_ID_PLX, .device = PCI_DEVICE_ID_PLX_9050,
++	  .subvendor = PCI_VENDOR_ID_PLX, .subdevice = PCI_DEVICE_ID_PLX_9050,
++	  .class = PCI_CLASS_BRIDGE_OTHER << 8, .class_mask = 0xffff00 },
+ 	{ 0, }
+ };
+ MODULE_DEVICE_TABLE(pci, phantom_pci_tbl);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-documentation-move-dnotifytxt-to-filesystems.patch
-documentation-move-sharedsubtreestxt-to-filesystems.patch
-documentation-create-new-scheduler-subdirectory.patch
-reporting-bugs-cc-the-mailing-list-too.patch
-kernel-doc-prevent-duplicate-description-output.patch
-kernel-doc-warn-on-badly-formatted-short-description.patch
-email-clientstxt-sylpheed-is-ok-at-imap.patch
-fs-menu-small-reorg.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-watchdog.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
+char-mxser-remove-special-baudrate-processing.patch
+char-mxser-0-to-null-in-pointer.patch
+char-mxser-reorder-mxser_cardinfo-fields.patch
+char-mxser-simplify-mxser_get_serial_info.patch
+char-mxser-ioctl-cleanup.patch
+char-mxser-remove-it.patch
+char-mxser-add-support-for-cp-114ul.patch
+moxa-first-pass-at-termios-reporting.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
