@@ -1,258 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:20 -0800
-Message-ID: <200802070023.m170N1cV006486@imap1.linux-foundation.org>
+Subject: - ext3-change-the-default-behaviour-on-error.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:30:42 -0800
+Message-ID: <200802070030.m170UNKs007384__5439.86629131741$1202345284$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933095AbYBGArB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:47:01 -0500
+	by vger.kernel.org with ESMTP id S934003AbYBGAq7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, ink@jurassic.park.msu.ru, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, cebbert@redhat.com, davej@codemonkey.org.uk, jack@ucw.cz, linux-ext4@vger.kernel.org, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     get rid of NR_OPEN and introduce a sysctl_nr_open
+     ext3: change the default behaviour on error
 has been removed from the -mm tree.  Its filename was
-     get-rid-of-nr_open-and-introduce-a-sysctl_nr_open.patch
+     ext3-change-the-default-behaviour-on-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get rid of NR_OPEN and introduce a sysctl_nr_open
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: ext3: change the default behaviour on error
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-NR_OPEN (historically set to 1024*1024) actually forbids processes to open
-more than 1024*1024 handles.
+ext3 file system was by default ignoring errors and continuing.  This is
+not a good default as continuing on error could lead to file system
+corruption.  Change the default to mark the file system readonly.  Debian
+and ubuntu already does this as the default in their fstab.
 
-Unfortunatly some production servers hit the not so 'ridiculously high
-value' of 1024*1024 file descriptors per process.
-
-Changing NR_OPEN is not considered safe because of vmalloc space potential
-exhaust.
-
-This patch introduces a new sysctl (/proc/sys/fs/nr_open) wich defaults to
-1024*1024, so that admins can decide to change this limit if their workload
-needs it.
-
-[akpm@linux-foundation.org: export it for sparc64]
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt  |    8 ++++++++
- Documentation/sysctl/fs.txt         |   10 ++++++++++
- arch/alpha/kernel/osf_sys.c         |    2 +-
- arch/mips/kernel/sysirix.c          |    2 +-
- arch/sparc64/kernel/sparc64_ksyms.c |    1 +
- arch/sparc64/solaris/fs.c           |    2 +-
- arch/sparc64/solaris/timod.c        |    6 ++++--
- fs/file.c                           |    8 +++++---
- include/linux/fs.h                  |    2 +-
- kernel/sys.c                        |    2 +-
- kernel/sysctl.c                     |    8 ++++++++
- 11 files changed, 41 insertions(+), 10 deletions(-)
+ fs/ext3/super.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/filesystems/proc.txt
-@@ -1029,6 +1029,14 @@ nr_inodes
- Denotes the  number  of  inodes the system has allocated. This number will
- grow and shrink dynamically.
- 
-+nr_open
-+-------
-+
-+Denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
-+
- nr_free_inodes
- --------------
- 
-diff -puN Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/Documentation/sysctl/fs.txt
-@@ -23,6 +23,7 @@ Currently, these files are in /proc/sys/
- - inode-max
- - inode-nr
- - inode-state
-+- nr_open
- - overflowuid
- - overflowgid
- - suid_dumpable
-@@ -91,6 +92,15 @@ usage of file handles and you don't need
- 
- ==============================================================
- 
-+nr_open:
-+
-+This denotes the maximum number of file-handles a process can
-+allocate. Default value is 1024*1024 (1048576) which should be
-+enough for most machines. Actual limit depends on RLIMIT_NOFILE
-+resource limit.
-+
-+==============================================================
-+
- inode-max, inode-nr & inode-state:
- 
- As with file handles, the kernel allocates the inode structures
-diff -puN arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -430,7 +430,7 @@ sys_getpagesize(void)
- asmlinkage unsigned long
- sys_getdtablesize(void)
- {
--	return NR_OPEN;
-+	return sysctl_nr_open;
- }
- 
- /*
-diff -puN arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/mips/kernel/sysirix.c
---- a/arch/mips/kernel/sysirix.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/mips/kernel/sysirix.c
-@@ -356,7 +356,7 @@ asmlinkage int irix_syssgi(struct pt_reg
- 			retval = NGROUPS_MAX;
- 			goto out;
- 		case 5:
--			retval = NR_OPEN;
-+			retval = sysctl_nr_open;
- 			goto out;
- 		case 6:
- 			retval = 1;
-diff -puN arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/kernel/sparc64_ksyms.c
---- a/arch/sparc64/kernel/sparc64_ksyms.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/sparc64/kernel/sparc64_ksyms.c
-@@ -277,6 +277,7 @@ EXPORT_SYMBOL(sys_getpid);
- EXPORT_SYMBOL(sys_geteuid);
- EXPORT_SYMBOL(sys_getuid);
- EXPORT_SYMBOL(sys_getegid);
-+EXPORT_SYMBOL(sysctl_nr_open);
- EXPORT_SYMBOL(sys_getgid);
- EXPORT_SYMBOL(svr4_getcontext);
- EXPORT_SYMBOL(svr4_setcontext);
-diff -puN arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/fs.c
---- a/arch/sparc64/solaris/fs.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/sparc64/solaris/fs.c
-@@ -624,7 +624,7 @@ asmlinkage int solaris_ulimit(int cmd, i
- 	case 3: /* UL_GMEMLIM */
- 		return current->signal->rlim[RLIMIT_DATA].rlim_cur;
- 	case 4: /* UL_GDESLIM */
--		return NR_OPEN;
-+		return sysctl_nr_open;
+diff -puN fs/ext3/super.c~ext3-change-the-default-behaviour-on-error fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-change-the-default-behaviour-on-error
++++ a/fs/ext3/super.c
+@@ -575,16 +575,16 @@ static int ext3_show_options(struct seq_
+ 	    le16_to_cpu(es->s_def_resgid) != EXT3_DEF_RESGID) {
+ 		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
  	}
- 	return -EINVAL;
- }
-diff -puN arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open arch/sparc64/solaris/timod.c
---- a/arch/sparc64/solaris/timod.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/arch/sparc64/solaris/timod.c
-@@ -859,7 +859,8 @@ asmlinkage int solaris_getmsg(unsigned i
+-	if (test_opt(sb, ERRORS_CONT)) {
++	if (test_opt(sb, ERRORS_RO)) {
+ 		int def_errors = le16_to_cpu(es->s_errors);
  
- 	SOLD("entry");
- 	lock_kernel();
--	if(fd >= NR_OPEN) goto out;
-+	if (fd >= sysctl_nr_open)
-+		goto out;
+ 		if (def_errors == EXT3_ERRORS_PANIC ||
+-		    def_errors == EXT3_ERRORS_RO) {
+-			seq_puts(seq, ",errors=continue");
++		    def_errors == EXT3_ERRORS_CONTINUE) {
++			seq_puts(seq, ",errors=remount-ro");
+ 		}
+ 	}
+-	if (test_opt(sb, ERRORS_RO))
+-		seq_puts(seq, ",errors=remount-ro");
++	if (test_opt(sb, ERRORS_CONT))
++		seq_puts(seq, ",errors=continue");
+ 	if (test_opt(sb, ERRORS_PANIC))
+ 		seq_puts(seq, ",errors=panic");
+ 	if (test_opt(sb, NO_UID32))
+@@ -1583,10 +1583,10 @@ static int ext3_fill_super (struct super
  
- 	fdt = files_fdtable(current->files);
- 	filp = fdt->fd[fd];
-@@ -927,7 +928,8 @@ asmlinkage int solaris_putmsg(unsigned i
+ 	if (le16_to_cpu(sbi->s_es->s_errors) == EXT3_ERRORS_PANIC)
+ 		set_opt(sbi->s_mount_opt, ERRORS_PANIC);
+-	else if (le16_to_cpu(sbi->s_es->s_errors) == EXT3_ERRORS_RO)
+-		set_opt(sbi->s_mount_opt, ERRORS_RO);
+-	else
++	else if (le16_to_cpu(sbi->s_es->s_errors) == EXT3_ERRORS_CONTINUE)
+ 		set_opt(sbi->s_mount_opt, ERRORS_CONT);
++	else
++		set_opt(sbi->s_mount_opt, ERRORS_RO);
  
- 	SOLD("entry");
- 	lock_kernel();
--	if(fd >= NR_OPEN) goto out;
-+	if (fd >= sysctl_nr_open)
-+		goto out;
- 
- 	fdt = files_fdtable(current->files);
- 	filp = fdt->fd[fd];
-diff -puN fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open fs/file.c
---- a/fs/file.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/fs/file.c
-@@ -24,6 +24,8 @@ struct fdtable_defer {
- 	struct fdtable *next;
- };
- 
-+int sysctl_nr_open __read_mostly = 1024*1024;
-+
- /*
-  * We use this list to defer free fdtables that have vmalloced
-  * sets/arrays. By keeping a per-cpu list, we avoid having to embed
-@@ -147,8 +149,8 @@ static struct fdtable * alloc_fdtable(un
- 	nr /= (1024 / sizeof(struct file *));
- 	nr = roundup_pow_of_two(nr + 1);
- 	nr *= (1024 / sizeof(struct file *));
--	if (nr > NR_OPEN)
--		nr = NR_OPEN;
-+	if (nr > sysctl_nr_open)
-+		nr = sysctl_nr_open;
- 
- 	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL);
- 	if (!fdt)
-@@ -233,7 +235,7 @@ int expand_files(struct files_struct *fi
- 	if (nr < fdt->max_fds)
- 		return 0;
- 	/* Can we expand? */
--	if (nr >= NR_OPEN)
-+	if (nr >= sysctl_nr_open)
- 		return -EMFILE;
- 
- 	/* All good, so we try */
-diff -puN include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open include/linux/fs.h
---- a/include/linux/fs.h~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/include/linux/fs.h
-@@ -21,7 +21,7 @@
- 
- /* Fixed constants first: */
- #undef NR_OPEN
--#define NR_OPEN (1024*1024)	/* Absolute upper limit on fd num */
-+extern int sysctl_nr_open;
- #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
- 
- #define BLOCK_SIZE_BITS 10
-diff -puN kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sys.c
---- a/kernel/sys.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sys.c
-@@ -1472,7 +1472,7 @@ asmlinkage long sys_setrlimit(unsigned i
- 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
- 	    !capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
--	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > NR_OPEN)
-+	if (resource == RLIMIT_NOFILE && new_rlim.rlim_max > sysctl_nr_open)
- 		return -EPERM;
- 
- 	retval = security_task_setrlimit(resource, &new_rlim);
-diff -puN kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open kernel/sysctl.c
---- a/kernel/sysctl.c~get-rid-of-nr_open-and-introduce-a-sysctl_nr_open
-+++ a/kernel/sysctl.c
-@@ -1203,6 +1203,14 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nr_open",
-+		.data		= &sysctl_nr_open,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= FS_DENTRY,
- 		.procname	= "dentry-state",
- 		.data		= &dentry_stat,
+ 	sbi->s_resuid = le16_to_cpu(es->s_def_resuid);
+ 	sbi->s_resgid = le16_to_cpu(es->s_def_resgid);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
