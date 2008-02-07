@@ -1,672 +1,314 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-at91sam9-rtc-support-rtt-and-or-rtc.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:51 -0800
-Message-ID: <200802070027.m170RXIU007055@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-backlight-control.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:52 -0800
+Message-ID: <200802070028.m170SXUM007177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37693 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763919AbYBGAql (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:41 -0500
+	by vger.kernel.org with ESMTP id S1761901AbYBGAqj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, linux@maxim.org.za, murpme@gmail.com, nicolas.ferre@rfo.atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, adaplas@pol.net, linux@maxim.org.za, nicolas.ferre@atmel.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: at91sam9 RTC support (RTT and/or RTC)
+     atmel_lcdfb: backlight control
 has been removed from the -mm tree.  Its filename was
-     rtc-at91sam9-rtc-support-rtt-and-or-rtc.patch
+     atmel_lcdfb-backlight-control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: at91sam9 RTC support (RTT and/or RTC)
-From: David Brownell <david-b@pacbell.net>
+Subject: atmel_lcdfb: backlight control
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-AT91sam9 RTC support, primarily in the form of an RTT-as-RTC driver that was
-extracted from 2.6.23-at91 patch and updated:
+On the sam9 EK boards, the LCD backlight is hooked up to a PWM output from
+the LCD controller.  It's controlled by "contrast" registers though.
 
- - Relies on now-merged platform updates, which associate the RTT
-   hardware address with each RTT and use the "at91_rtt" name.
+This patch lets boards declare that they have that kind of backlight
+control.  The driver can then export this control, letting screenblank and
+other operations actually take effect ...  reducing the typically
+substantial power drain from the backlight.
 
- - RTC framework related fixes and cleanups, notably:
-    * removed now-needless suspend/resume clock offset logic
-    * alarm read/write now respects the "enabled" flag
-    * suspend always disables update irqs
-    * shutdown (and startup) disables all irqs
+Note that it's not fully cooked
+  - doesn't force backlight off during system suspend
+  - the "power" and "blank" events may not be done right
+This should be easily added in the future.
 
- - Misc cleanup:
-    * use dev_*() messaging
-    * add comments
-    * remove globals,
-    * ... etc
-
- - Don't force use of RTT0 and GPBR0.  Either resource may need
-   to be used for other purposes (like NO_HZ support).
-
- - Update "AT91RM9200 RTC" Kconfig to allow it on SAM9RL chips
-   (it has both RTT and RTC).
-
-Driver binding uses bus_find_device() to avoid needing any kind of "timer
-library" code when there's more than one RTT module.  (This timer can be used
-as an RTC, to support NO_HZ operation, or potentially for other stuff.  The
-choice is a per-system policy.)
-
+[nicolas.ferre@atmel.com: remove unneeded inline and rename functions]
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Michel Benoit <murpme@gmail.com>
-Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 Cc: Andrew Victor <linux@maxim.org.za>
 Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |   43 ++
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-at91sam9.c |  520 +++++++++++++++++++++++++++++++++++
- 3 files changed, 561 insertions(+), 3 deletions(-)
+ arch/arm/mach-at91/board-sam9261ek.c |    1 
+ arch/arm/mach-at91/board-sam9263ek.c |    1 
+ drivers/video/atmel_lcdfb.c          |  115 ++++++++++++++++++++++++-
+ drivers/video/backlight/Kconfig      |   13 ++
+ include/video/atmel_lcdc.h           |   11 +-
+ 5 files changed, 135 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-at91sam9-rtc-support-rtt-and-or-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-at91sam9-rtc-support-rtt-and-or-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -469,10 +469,47 @@ config RTC_DRV_AT32AP700X
- 	  AT32AP700x family processors.
+diff -puN arch/arm/mach-at91/board-sam9261ek.c~atmel_lcdfb-backlight-control arch/arm/mach-at91/board-sam9261ek.c
+--- a/arch/arm/mach-at91/board-sam9261ek.c~atmel_lcdfb-backlight-control
++++ a/arch/arm/mach-at91/board-sam9261ek.c
+@@ -383,6 +383,7 @@ static void at91_lcdc_tft_power_control(
+ }
  
- config RTC_DRV_AT91RM9200
--	tristate "AT91RM9200"
--	depends on ARCH_AT91RM9200
-+	tristate "AT91RM9200 or AT91SAM9RL"
-+	depends on ARCH_AT91RM9200 || ARCH_AT91SAM9RL
- 	help
--	  Driver for the Atmel AT91RM9200's internal RTC (Realtime Clock).
-+	  Driver for the internal RTC (Realtime Clock) module found on
-+	  Atmel AT91RM9200's and AT91SAM9RL chips.  On SAM9RL chips
-+	  this is powered by the backup power supply.
-+
-+config RTC_DRV_AT91SAM9
-+	tristate "AT91SAM9x"
-+	depends on ARCH_AT91 && !(ARCH_AT91RM9200 || ARCH_AT91X40)
-+	help
-+	  RTC driver for the Atmel AT91SAM9x internal RTT (Real Time Timer).
-+	  These timers are powered by the backup power supply (such as a
-+	  small coin cell battery), but do not need to be used as RTCs.
-+
-+	  (On AT91SAM9rl chips you probably want to use the dedicated RTC
-+	  module and leave the RTT available for other uses.)
-+
-+config RTC_DRV_AT91SAM9_RTT
-+	int
-+	range 0 1
-+	default 0
-+	prompt "RTT module Number" if ARCH_AT91SAM9263
-+	depends on RTC_DRV_AT91SAM9
-+	help
-+	  More than one RTT module is available.  You can choose which
-+	  one will be used as an RTC.  The default of zero is normally
-+	  OK to use, though some systems use that for non-RTC purposes.
-+
-+config RTC_DRV_AT91SAM9_GPBR
-+	int
-+	range 0 3 if !ARCH_AT91SAM9263
-+	range 0 15 if ARCH_AT91SAM9263
-+	default 0
-+	prompt "Backup Register Number"
-+	depends on RTC_DRV_AT91SAM9
-+	help
-+	  The RTC driver needs to use one of the General Purpose Backup
-+	  Registers (GPBRs) as well as the RTT.  You can choose which one
-+	  will be used.  The default of zero is normally OK to use, but
-+	  on some systems other software needs to use that register.
+ static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
++	.lcdcon_is_backlight		= true,
+ 	.default_bpp			= 16,
+ 	.default_dmacon			= ATMEL_LCDC_DMAEN,
+ 	.default_lcdcon2		= AT91SAM9261_DEFAULT_TFT_LCDCON2,
+diff -puN arch/arm/mach-at91/board-sam9263ek.c~atmel_lcdfb-backlight-control arch/arm/mach-at91/board-sam9263ek.c
+--- a/arch/arm/mach-at91/board-sam9263ek.c~atmel_lcdfb-backlight-control
++++ a/arch/arm/mach-at91/board-sam9263ek.c
+@@ -253,6 +253,7 @@ static void at91_lcdc_power_control(int 
  
- config RTC_DRV_BFIN
- 	tristate "Blackfin On-Chip RTC"
-diff -puN drivers/rtc/Makefile~rtc-at91sam9-rtc-support-rtt-and-or-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-at91sam9-rtc-support-rtt-and-or-rtc
-+++ a/drivers/rtc/Makefile
-@@ -19,6 +19,7 @@ rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc
+ /* Driver datas */
+ static struct atmel_lcdfb_info __initdata ek_lcdc_data = {
++	.lcdcon_is_backlight		= true,
+ 	.default_bpp			= 16,
+ 	.default_dmacon			= ATMEL_LCDC_DMAEN,
+ 	.default_lcdcon2		= AT91SAM9263_DEFAULT_LCDCON2,
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-backlight-control
++++ a/drivers/video/atmel_lcdfb.c
+@@ -16,6 +16,7 @@
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
++#include <linux/backlight.h>
  
- obj-$(CONFIG_RTC_DRV_AT32AP700X)+= rtc-at32ap700x.o
- obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
-+obj-$(CONFIG_RTC_DRV_AT91SAM9)	+= rtc-at91sam9.o
- obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
-diff -puN /dev/null drivers/rtc/rtc-at91sam9.c
---- /dev/null
-+++ a/drivers/rtc/rtc-at91sam9.c
-@@ -0,0 +1,520 @@
-+/*
-+ * "RTT as Real Time Clock" driver for AT91SAM9 SoC family
-+ *
-+ * (C) 2007 Michel Benoit
-+ *
-+ * Based on rtc-at91rm9200.c by Rick Bronson
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
+ #include <asm/arch/board.h>
+ #include <asm/arch/cpu.h>
+@@ -69,6 +70,107 @@ static void atmel_lcdfb_update_dma2d(str
+ }
+ #endif
+ 
++static const u32 contrast_ctr = ATMEL_LCDC_PS_DIV8
++		| ATMEL_LCDC_POL_POSITIVE
++		| ATMEL_LCDC_ENA_PWMENABLE;
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/time.h>
-+#include <linux/rtc.h>
-+#include <linux/interrupt.h>
-+#include <linux/ioctl.h>
++#ifdef CONFIG_BACKLIGHT_ATMEL_LCDC
 +
-+#include <asm/mach/time.h>
-+#include <asm/arch/board.h>
-+#include <asm/arch/at91_rtt.h>
++/* some bl->props field just changed */
++static int atmel_bl_update_status(struct backlight_device *bl)
++{
++	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
++	int			power = sinfo->bl_power;
++	int			brightness = bl->props.brightness;
 +
++	/* REVISIT there may be a meaningful difference between
++	 * fb_blank and power ... there seem to be some cases
++	 * this doesn't handle correctly.
++	 */
++	if (bl->props.fb_blank != sinfo->bl_power)
++		power = bl->props.fb_blank;
++	else if (bl->props.power != sinfo->bl_power)
++		power = bl->props.power;
 +
-+/*
-+ * This driver uses two configurable hardware resources that live in the
-+ * AT91SAM9 backup power domain (intended to be powered at all times)
-+ * to implement the Real Time Clock interfaces
-+ *
-+ *  - A "Real-time Timer" (RTT) counts up in seconds from a base time.
-+ *    We can't assign the counter value (CRTV) ... but we can reset it.
-+ *
-+ *  - One of the "General Purpose Backup Registers" (GPBRs) holds the
-+ *    base time, normally an offset from the beginning of the POSIX
-+ *    epoch (1970-Jan-1 00:00:00 UTC).  Some systems also include the
-+ *    local timezone's offset.
-+ *
-+ * The RTC's value is the RTT counter plus that offset.  The RTC's alarm
-+ * is likewise a base (ALMV) plus that offset.
-+ *
-+ * Not all RTTs will be used as RTCs; some systems have multiple RTTs to
-+ * choose from, or a "real" RTC module.  All systems have multiple GPBR
-+ * registers available, likewise usable for more than "RTC" support.
-+ */
++	if (brightness < 0 && power == FB_BLANK_UNBLANK)
++		brightness = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
++	else if (power != FB_BLANK_UNBLANK)
++		brightness = 0;
 +
-+/*
-+ * We store ALARM_DISABLED in ALMV to record that no alarm is set.
-+ * It's also the reset value for that field.
-+ */
-+#define ALARM_DISABLED	((u32)~0)
++	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, brightness);
++	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR,
++			brightness ? contrast_ctr : 0);
 +
++	bl->props.fb_blank = bl->props.power = sinfo->bl_power = power;
 +
-+struct sam9_rtc {
-+	void __iomem		*rtt;
-+	struct rtc_device	*rtcdev;
-+	u32			imr;
++	return 0;
++}
++
++static int atmel_bl_get_brightness(struct backlight_device *bl)
++{
++	struct atmel_lcdfb_info *sinfo = bl_get_data(bl);
++
++	return lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
++}
++
++static struct backlight_ops atmel_lcdc_bl_ops = {
++	.update_status = atmel_bl_update_status,
++	.get_brightness = atmel_bl_get_brightness,
 +};
 +
-+#define rtt_readl(rtc, field) \
-+	__raw_readl((rtc)->rtt + AT91_RTT_ ## field)
-+#define rtt_writel(rtc, field, val) \
-+	__raw_writel((val), (rtc)->rtt + AT91_RTT_ ## field)
-+
-+#define gpbr_readl(rtc) \
-+	at91_sys_read(AT91_GPBR + 4 * CONFIG_RTC_DRV_AT91SAM9_GPBR)
-+#define gpbr_writel(rtc, val) \
-+	at91_sys_write(AT91_GPBR + 4 * CONFIG_RTC_DRV_AT91SAM9_GPBR, (val))
-+
-+/*
-+ * Read current time and date in RTC
-+ */
-+static int at91_rtc_readtime(struct device *dev, struct rtc_time *tm)
++static void init_backlight(struct atmel_lcdfb_info *sinfo)
 +{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	u32 secs, secs2;
-+	u32 offset;
++	struct backlight_device	*bl;
 +
-+	/* read current time offset */
-+	offset = gpbr_readl(rtc);
-+	if (offset == 0)
-+		return -EILSEQ;
++	sinfo->bl_power = FB_BLANK_UNBLANK;
 +
-+	/* reread the counter to help sync the two clock domains */
-+	secs = rtt_readl(rtc, VR);
-+	secs2 = rtt_readl(rtc, VR);
-+	if (secs != secs2)
-+		secs = rtt_readl(rtc, VR);
++	if (sinfo->backlight)
++		return;
 +
-+	rtc_time_to_tm(offset + secs, tm);
-+
-+	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "readtime",
-+		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Set current time and date in RTC
-+ */
-+static int at91_rtc_settime(struct device *dev, struct rtc_time *tm)
-+{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	int err;
-+	u32 offset, alarm, mr;
-+	unsigned long secs;
-+
-+	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "settime",
-+		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-+		tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+	err = rtc_tm_to_time(tm, &secs);
-+	if (err != 0)
-+		return err;
-+
-+	mr = rtt_readl(rtc, MR);
-+
-+	/* disable interrupts */
-+	rtt_writel(rtc, MR, mr & ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
-+
-+	/* read current time offset */
-+	offset = gpbr_readl(rtc);
-+
-+	/* store the new base time in a battery backup register */
-+	secs += 1;
-+	gpbr_writel(rtc, secs);
-+
-+	/* adjust the alarm time for the new base */
-+	alarm = rtt_readl(rtc, AR);
-+	if (alarm != ALARM_DISABLED) {
-+		if (offset > secs) {
-+			/* time jumped backwards, increase time until alarm */
-+			alarm += (offset - secs);
-+		} else if ((alarm + offset) > secs) {
-+			/* time jumped forwards, decrease time until alarm */
-+			alarm -= (secs - offset);
-+		} else {
-+			/* time jumped past the alarm, disable alarm */
-+			alarm = ALARM_DISABLED;
-+			mr &= ~AT91_RTT_ALMIEN;
-+		}
-+		rtt_writel(rtc, AR, alarm);
++	bl = backlight_device_register("backlight", &sinfo->pdev->dev,
++			sinfo, &atmel_lcdc_bl_ops);
++	if (IS_ERR(sinfo->backlight)) {
++		dev_err(&sinfo->pdev->dev, "error %ld on backlight register\n",
++				PTR_ERR(bl));
++		return;
 +	}
++	sinfo->backlight = bl;
 +
-+	/* reset the timer, and re-enable interrupts */
-+	rtt_writel(rtc, MR, mr | AT91_RTT_RTTRST);
-+
-+	return 0;
++	bl->props.power = FB_BLANK_UNBLANK;
++	bl->props.fb_blank = FB_BLANK_UNBLANK;
++	bl->props.max_brightness = 0xff;
++	bl->props.brightness = atmel_bl_get_brightness(bl);
 +}
 +
-+static int at91_rtc_readalarm(struct device *dev, struct rtc_wkalrm *alrm)
++static void exit_backlight(struct atmel_lcdfb_info *sinfo)
 +{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	struct rtc_time *tm = &alrm->time;
-+	u32 alarm = rtt_readl(rtc, AR);
-+	u32 offset;
-+
-+	offset = gpbr_readl(rtc);
-+	if (offset == 0)
-+		return -EILSEQ;
-+
-+	memset(alrm, 0, sizeof(alrm));
-+	if (alarm != ALARM_DISABLED && offset != 0) {
-+		rtc_time_to_tm(offset + alarm, tm);
-+
-+		dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "readalarm",
-+			1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-+			tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+		if (rtt_readl(rtc, MR) & AT91_RTT_ALMIEN)
-+			alrm->enabled = 1;
-+	}
-+
-+	return 0;
++	if (sinfo->backlight)
++		backlight_device_unregister(sinfo->backlight);
 +}
 +
-+static int at91_rtc_setalarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	struct rtc_time *tm = &alrm->time;
-+	unsigned long secs;
-+	u32 offset;
-+	u32 mr;
-+	int err;
-+
-+	err = rtc_tm_to_time(tm, &secs);
-+	if (err != 0)
-+		return err;
-+
-+	offset = gpbr_readl(rtc);
-+	if (offset == 0) {
-+		/* time is not set */
-+		return -EILSEQ;
-+	}
-+	mr = rtt_readl(rtc, MR);
-+	rtt_writel(rtc, MR, mr & ~AT91_RTT_ALMIEN);
-+
-+	/* alarm in the past? finish and leave disabled */
-+	if (secs <= offset) {
-+		rtt_writel(rtc, AR, ALARM_DISABLED);
-+		return 0;
-+	}
-+
-+	/* else set alarm and maybe enable it */
-+	rtt_writel(rtc, AR, secs - offset);
-+	if (alrm->enabled)
-+		rtt_writel(rtc, MR, mr | AT91_RTT_ALMIEN);
-+
-+	dev_dbg(dev, "%s: %4d-%02d-%02d %02d:%02d:%02d\n", "setalarm",
-+		tm->tm_year, tm->tm_mon, tm->tm_mday, tm->tm_hour,
-+		tm->tm_min, tm->tm_sec);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Handle commands from user-space
-+ */
-+static int at91_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			unsigned long arg)
-+{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	int ret = 0;
-+	u32 mr = rtt_readl(rtc, MR);
-+
-+	dev_dbg(dev, "ioctl: cmd=%08x, arg=%08lx, mr %08x\n", cmd, arg, mr);
-+
-+	switch (cmd) {
-+	case RTC_AIE_OFF:		/* alarm off */
-+		rtt_writel(rtc, MR, mr & ~AT91_RTT_ALMIEN);
-+		break;
-+	case RTC_AIE_ON:		/* alarm on */
-+		rtt_writel(rtc, MR, mr | AT91_RTT_ALMIEN);
-+		break;
-+	case RTC_UIE_OFF:		/* update off */
-+		rtt_writel(rtc, MR, mr & ~AT91_RTT_RTTINCIEN);
-+		break;
-+	case RTC_UIE_ON:		/* update on */
-+		rtt_writel(rtc, MR, mr | AT91_RTT_RTTINCIEN);
-+		break;
-+	default:
-+		ret = -ENOIOCTLCMD;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * Provide additional RTC information in /proc/driver/rtc
-+ */
-+static int at91_rtc_proc(struct device *dev, struct seq_file *seq)
-+{
-+	struct sam9_rtc *rtc = dev_get_drvdata(dev);
-+	u32 mr = mr = rtt_readl(rtc, MR);
-+
-+	seq_printf(seq, "update_IRQ\t: %s\n",
-+			(mr & AT91_RTT_RTTINCIEN) ? "yes" : "no");
-+	return 0;
-+}
-+
-+/*
-+ * IRQ handler for the RTC
-+ */
-+static irqreturn_t at91_rtc_interrupt(int irq, void *_rtc)
-+{
-+	struct sam9_rtc *rtc = _rtc;
-+	u32 sr, mr;
-+	unsigned long events = 0;
-+
-+	/* Shared interrupt may be for another device.  Note: reading
-+	 * SR clears it, so we must only read it in this irq handler!
-+	 */
-+	mr = rtt_readl(rtc, MR) & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
-+	sr = rtt_readl(rtc, SR) & mr;
-+	if (!sr)
-+		return IRQ_NONE;
-+
-+	/* alarm status */
-+	if (sr & AT91_RTT_ALMS)
-+		events |= (RTC_AF | RTC_IRQF);
-+
-+	/* timer update/increment */
-+	if (sr & AT91_RTT_RTTINC)
-+		events |= (RTC_UF | RTC_IRQF);
-+
-+	rtc_update_irq(rtc->rtcdev, 1, events);
-+
-+	pr_debug("%s: num=%ld, events=0x%02lx\n", __FUNCTION__,
-+		events >> 8, events & 0x000000FF);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct rtc_class_ops at91_rtc_ops = {
-+	.ioctl		= at91_rtc_ioctl,
-+	.read_time	= at91_rtc_readtime,
-+	.set_time	= at91_rtc_settime,
-+	.read_alarm	= at91_rtc_readalarm,
-+	.set_alarm	= at91_rtc_setalarm,
-+	.proc		= at91_rtc_proc,
-+};
-+
-+/*
-+ * Initialize and install RTC driver
-+ */
-+static int __init at91_rtc_probe(struct platform_device *pdev)
-+{
-+	struct resource	*r;
-+	struct sam9_rtc	*rtc;
-+	int		ret;
-+	u32		mr;
-+
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!r)
-+		return -ENODEV;
-+
-+	rtc = kzalloc(sizeof *rtc, GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, rtc);
-+	rtc->rtt = (void __force __iomem *) (AT91_VA_BASE_SYS - AT91_BASE_SYS);
-+	rtc->rtt += r->start;
-+
-+	mr = rtt_readl(rtc, MR);
-+
-+	/* unless RTT is counting at 1 Hz, re-initialize it */
-+	if ((mr & AT91_RTT_RTPRES) != AT91_SLOW_CLOCK) {
-+		mr = AT91_RTT_RTTRST | (AT91_SLOW_CLOCK & AT91_RTT_RTPRES);
-+		gpbr_writel(rtc, 0);
-+	}
-+
-+	/* disable all interrupts (same as on shutdown path) */
-+	mr &= ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
-+	rtt_writel(rtc, MR, mr);
-+
-+	rtc->rtcdev = rtc_device_register(pdev->name, &pdev->dev,
-+				&at91_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtcdev)) {
-+		ret = PTR_ERR(rtc->rtcdev);
-+		goto fail;
-+	}
-+
-+	/* register irq handler after we know what name we'll use */
-+	ret = request_irq(AT91_ID_SYS, at91_rtc_interrupt,
-+				IRQF_DISABLED | IRQF_SHARED,
-+				rtc->rtcdev->dev.bus_id, rtc);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "can't share IRQ %d?\n", AT91_ID_SYS);
-+		rtc_device_unregister(rtc->rtcdev);
-+		goto fail;
-+	}
-+
-+	/* NOTE:  sam9260 rev A silicon has a ROM bug which resets the
-+	 * RTT on at least some reboots.  If you have that chip, you must
-+	 * initialize the time from some external source like a GPS, wall
-+	 * clock, discrete RTC, etc
-+	 */
-+
-+	if (gpbr_readl(rtc) == 0)
-+		dev_warn(&pdev->dev, "%s: SET TIME!\n",
-+				rtc->rtcdev->dev.bus_id);
-+
-+	return 0;
-+
-+fail:
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc);
-+	return ret;
-+}
-+
-+/*
-+ * Disable and remove the RTC driver
-+ */
-+static int __exit at91_rtc_remove(struct platform_device *pdev)
-+{
-+	struct sam9_rtc	*rtc = platform_get_drvdata(pdev);
-+	u32		mr = rtt_readl(rtc, MR);
-+
-+	/* disable all interrupts */
-+	rtt_writel(rtc, MR, mr & ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN));
-+	free_irq(AT91_ID_SYS, rtc);
-+
-+	rtc_device_unregister(rtc->rtcdev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(rtc);
-+	return 0;
-+}
-+
-+static void at91_rtc_shutdown(struct platform_device *pdev)
-+{
-+	struct sam9_rtc	*rtc = platform_get_drvdata(pdev);
-+	u32		mr = rtt_readl(rtc, MR);
-+
-+	rtc->imr = mr & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
-+	rtt_writel(rtc, MR, mr & ~rtc->imr);
-+}
-+
-+#ifdef CONFIG_PM
-+
-+/* AT91SAM9 RTC Power management control */
-+
-+static int at91_rtc_suspend(struct platform_device *pdev,
-+					pm_message_t state)
-+{
-+	struct sam9_rtc	*rtc = platform_get_drvdata(pdev);
-+	u32		mr = rtt_readl(rtc, MR);
-+
-+	/*
-+	 * This IRQ is shared with DBGU and other hardware which isn't
-+	 * necessarily a wakeup event source.
-+	 */
-+	rtc->imr = mr & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
-+	if (rtc->imr) {
-+		if (device_may_wakeup(&pdev->dev) && (mr & AT91_RTT_ALMIEN)) {
-+			enable_irq_wake(AT91_ID_SYS);
-+			/* don't let RTTINC cause wakeups */
-+			if (mr & AT91_RTT_RTTINCIEN)
-+				rtt_writel(rtc, MR, mr & ~AT91_RTT_RTTINCIEN);
-+		} else
-+			rtt_writel(rtc, MR, mr & ~rtc->imr);
-+	}
-+
-+	return 0;
-+}
-+
-+static int at91_rtc_resume(struct platform_device *pdev)
-+{
-+	struct sam9_rtc	*rtc = platform_get_drvdata(pdev);
-+	u32		mr;
-+
-+	if (rtc->imr) {
-+		if (device_may_wakeup(&pdev->dev))
-+			disable_irq_wake(AT91_ID_SYS);
-+		mr = rtt_readl(rtc, MR);
-+		rtt_writel(rtc, MR, mr | rtc->imr);
-+	}
-+
-+	return 0;
-+}
 +#else
-+#define at91_rtc_suspend	NULL
-+#define at91_rtc_resume		NULL
++
++static void init_backlight(struct atmel_lcdfb_info *sinfo)
++{
++	dev_warn(&sinfo->pdev->dev, "backlight control is not available\n");
++}
++
++static void exit_backlight(struct atmel_lcdfb_info *sinfo)
++{
++}
++
 +#endif
 +
-+static struct platform_driver at91_rtc_driver = {
-+	.driver.name	= "rtc-at91sam9",
-+	.driver.owner	= THIS_MODULE,
-+	.remove		= __exit_p(at91_rtc_remove),
-+	.shutdown	= at91_rtc_shutdown,
-+	.suspend	= at91_rtc_suspend,
-+	.resume		= at91_rtc_resume,
-+};
-+
-+/* Chips can have more than one RTT module, and they can be used for more
-+ * than just RTCs.  So we can't just register as "the" RTT driver.
-+ *
-+ * A normal approach in such cases is to create a library to allocate and
-+ * free the modules.  Here we just use bus_find_device() as like such a
-+ * library, binding directly ... no runtime "library" footprint is needed.
-+ */
-+static int __init at91_rtc_match(struct device *dev, void *v)
++static void init_contrast(struct atmel_lcdfb_info *sinfo)
 +{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	int ret;
++	/* have some default contrast/backlight settings */
++	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, contrast_ctr);
++	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, ATMEL_LCDC_CVAL_DEFAULT);
 +
-+	/* continue searching if this isn't the RTT we need */
-+	if (strcmp("at91_rtt", pdev->name) != 0
-+			|| pdev->id != CONFIG_RTC_DRV_AT91SAM9_RTT)
-+		goto fail;
-+
-+	/* else we found it ... but fail unless we can bind to the RTC driver */
-+	if (dev->driver) {
-+		dev_dbg(dev, "busy, can't use as RTC!\n");
-+		goto fail;
-+	}
-+	dev->driver = &at91_rtc_driver.driver;
-+	if (device_attach(dev) == 0) {
-+		dev_dbg(dev, "can't attach RTC!\n");
-+		goto fail;
-+	}
-+	ret = at91_rtc_probe(pdev);
-+	if (ret == 0)
-+		return true;
-+
-+	dev_dbg(dev, "RTC probe err %d!\n", ret);
-+fail:
-+	return false;
++	if (sinfo->lcdcon_is_backlight)
++		init_backlight(sinfo);
 +}
 +
-+static int __init at91_rtc_init(void)
-+{
-+	int status;
-+	struct device *rtc;
+ 
+ static struct fb_fix_screeninfo atmel_lcdfb_fix __initdata = {
+ 	.type		= FB_TYPE_PACKED_PIXELS,
+@@ -390,10 +492,6 @@ static int atmel_lcdfb_set_par(struct fb
+ 	/* Disable all interrupts */
+ 	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
+ 
+-	/* Set contrast */
+-	value = ATMEL_LCDC_PS_DIV8 | ATMEL_LCDC_POL_POSITIVE | ATMEL_LCDC_ENA_PWMENABLE;
+-	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, value);
+-	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_VAL, ATMEL_LCDC_CVAL_DEFAULT);
+ 	/* ...wait for DMA engine to become idle... */
+ 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
+ 		msleep(10);
+@@ -597,6 +695,7 @@ static int __init atmel_lcdfb_probe(stru
+ 		sinfo->default_monspecs = pdata_sinfo->default_monspecs;
+ 		sinfo->atmel_lcdfb_power_control = pdata_sinfo->atmel_lcdfb_power_control;
+ 		sinfo->guard_time = pdata_sinfo->guard_time;
++		sinfo->lcdcon_is_backlight = pdata_sinfo->lcdcon_is_backlight;
+ 	} else {
+ 		dev_err(dev, "cannot get default configuration\n");
+ 		goto free_info;
+@@ -690,6 +789,9 @@ static int __init atmel_lcdfb_probe(stru
+ 		goto release_mem;
+ 	}
+ 
++	/* Initialize PWM for contrast or backlight ("off") */
++	init_contrast(sinfo);
 +
-+	status = platform_driver_register(&at91_rtc_driver);
-+	if (status)
-+		return status;
-+	rtc = bus_find_device(&platform_bus_type, NULL,
-+			NULL, at91_rtc_match);
-+	if (!rtc)
-+		platform_driver_unregister(&at91_rtc_driver);
-+	return rtc ? 0 : -ENODEV;
-+}
-+module_init(at91_rtc_init);
+ 	/* interrupt */
+ 	ret = request_irq(sinfo->irq_base, atmel_lcdfb_interrupt, 0, pdev->name, info);
+ 	if (ret) {
+@@ -741,6 +843,7 @@ free_cmap:
+ unregister_irqs:
+ 	free_irq(sinfo->irq_base, info);
+ unmap_mmio:
++	exit_backlight(sinfo);
+ 	iounmap(sinfo->mmio);
+ release_mem:
+  	release_mem_region(info->fix.mmio_start, info->fix.mmio_len);
+@@ -775,6 +878,7 @@ static int __exit atmel_lcdfb_remove(str
+ 	if (!sinfo)
+ 		return 0;
+ 
++	exit_backlight(sinfo);
+ 	if (sinfo->atmel_lcdfb_power_control)
+ 		sinfo->atmel_lcdfb_power_control(0);
+ 	unregister_framebuffer(info);
+@@ -801,6 +905,9 @@ static int __exit atmel_lcdfb_remove(str
+ 
+ static struct platform_driver atmel_lcdfb_driver = {
+ 	.remove		= __exit_p(atmel_lcdfb_remove),
 +
-+static void __exit at91_rtc_exit(void)
-+{
-+	platform_driver_unregister(&at91_rtc_driver);
-+}
-+module_exit(at91_rtc_exit);
++// FIXME need suspend, resume
 +
+ 	.driver		= {
+ 		.name	= "atmel_lcdfb",
+ 		.owner	= THIS_MODULE,
+diff -puN drivers/video/backlight/Kconfig~atmel_lcdfb-backlight-control drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~atmel_lcdfb-backlight-control
++++ a/drivers/video/backlight/Kconfig
+@@ -50,6 +50,19 @@ config BACKLIGHT_CLASS_DEVICE
+ 	  To have support for your specific LCD panel you will have to
+ 	  select the proper drivers which depend on this option.
+ 
++config BACKLIGHT_ATMEL_LCDC
++	bool "Atmel LCDC Contrast-as-Backlight control"
++	depends on BACKLIGHT_CLASS_DEVICE && FB_ATMEL
++	default y if MACH_SAM9261EK || MACH_SAM9263EK
++	help
++	  This provides a backlight control internal to the Atmel LCDC
++	  driver.  If the LCD "contrast control" on your board is wired
++	  so it controls the backlight brightness, select this option to
++	  export this as a PWM-based backlight control.
 +
-+MODULE_AUTHOR("Michel Benoit");
-+MODULE_DESCRIPTION("RTC driver for Atmel AT91SAM9x");
-+MODULE_LICENSE("GPL");
++	  If in doubt, it's safe to enable this option; it doesn't kick
++	  in unless the board's description says it's wired that way.
++
+ config BACKLIGHT_CORGI
+ 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
+ 	depends on BACKLIGHT_CLASS_DEVICE
+diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-backlight-control include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~atmel_lcdfb-backlight-control
++++ a/include/video/atmel_lcdc.h
+@@ -22,7 +22,7 @@
+ #ifndef __ATMEL_LCDC_H__
+ #define __ATMEL_LCDC_H__
+ 
+- /* LCD Controller info data structure */
++ /* LCD Controller info data structure, stored in device platform_data */
+ struct atmel_lcdfb_info {
+ 	spinlock_t		lock;
+ 	struct fb_info		*info;
+@@ -33,7 +33,14 @@ struct atmel_lcdfb_info {
+ 	struct platform_device	*pdev;
+ 	struct clk		*bus_clk;
+ 	struct clk		*lcdc_clk;
+-	unsigned int		default_bpp;
++
++#ifdef CONFIG_BACKLIGHT_ATMEL_LCDC
++	struct backlight_device	*backlight;
++	u8			bl_power;
++#endif
++	bool			lcdcon_is_backlight;
++
++	u8			default_bpp;
+ 	unsigned int		default_lcdcon2;
+ 	unsigned int		default_dmacon;
+ 	void (*atmel_lcdfb_power_control)(int on);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
 git-input.patch
-git-mmc.patch
-git-mtd.patch
+git-backlight.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
 basic-pwm-driver-for-avr32-and-at91.patch
-basic-pwm-driver-for-avr32-and-at91-fix.patch
 pwm-led-driver.patch
