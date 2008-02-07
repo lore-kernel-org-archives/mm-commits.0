@@ -1,112 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:50 -0800
-Message-ID: <200802070029.m170TVOY007280@imap1.linux-foundation.org>
+Subject: - md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:54 -0800
+Message-ID: <200802070029.m170TZBT007290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934335AbYBGAna (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:30 -0500
+	by vger.kernel.org with ESMTP id S933838AbYBGAn3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:43:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: give userspace control over removing failed devices when external metdata in use
+     md: set and test the ->persistent flag for md devices more consistently
 has been removed from the -mm tree.  Its filename was
-     md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use.patch
+     md-set-and-test-the-persistent-flag-for-md-devices-more-consistently.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: give userspace control over removing failed devices when external metdata in use
+Subject: md: set and test the ->persistent flag for md devices more consistently
 From: NeilBrown <neilb@suse.de>
 
-When a device fails, we must not allow an further writes to the array until
-the device failure has been recorded in array metadata.  When metadata is
-managed externally, this requires some synchronisation...
+If you try to start an array for which the number of raid disks is listed as
+zero, md will currently try to read metadata off any devices that have been
+given.  This was done because the value of raid_disks is used to signal
+whether array details have been provided by userspace (raid_disks > 0) or must
+be read from the devices (raid_disks == 0).
 
-Allow/require userspace to explicitly remove failed devices from active
-service in the array by writing 'none' to the 'slot' attribute.  If this
-reduces the number of failed devices to 0, the write block will automatically
-be lowered.
+However for an array without persistent metadata (or with externally managed
+metadata) this is the wrong thing to do.  So we add a test in do_md_run to
+give an error if raid_disks is zero for non-persistent arrays.
+
+This requires that mddev->persistent is set corrently at this point, which it
+currently isn't for in-kernel autodetected arrays.
+
+So set ->persistent for autodetect arrays, and remove the settign in
+super_*_validate which is now redundant.
+
+Also clear ->persistent when stopping an array so it is consistently zero when
+starting an array.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   43 ++++++++++++++++++++++++++++++++++---------
- 1 file changed, 34 insertions(+), 9 deletions(-)
+ drivers/md/md.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/md.c~md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use drivers/md/md.c
---- a/drivers/md/md.c~md-give-userspace-control-over-removing-failed-devices-when-external-metdata-in-use
+diff -puN drivers/md/md.c~md-set-and-test-the-persistent-flag-for-md-devices-more-consistently drivers/md/md.c
+--- a/drivers/md/md.c~md-set-and-test-the-persistent-flag-for-md-devices-more-consistently
 +++ a/drivers/md/md.c
-@@ -1891,20 +1891,44 @@ static ssize_t
- slot_store(mdk_rdev_t *rdev, const char *buf, size_t len)
- {
- 	char *e;
-+	int err;
-+	char nm[20];
- 	int slot = simple_strtoul(buf, &e, 10);
- 	if (strncmp(buf, "none", 4)==0)
- 		slot = -1;
- 	else if (e==buf || (*e && *e!= '\n'))
- 		return -EINVAL;
--	if (rdev->mddev->pers)
--		/* Cannot set slot in active array (yet) */
--		return -EBUSY;
--	if (slot >= rdev->mddev->raid_disks)
--		return -ENOSPC;
--	rdev->raid_disk = slot;
--	/* assume it is working */
--	rdev->flags = 0;
--	set_bit(In_sync, &rdev->flags);
-+	if (rdev->mddev->pers) {
-+		/* Setting 'slot' on an active array requires also
-+		 * updating the 'rd%d' link, and communicating
-+		 * with the personality with ->hot_*_disk.
-+		 * For now we only support removing
-+		 * failed/spare devices.  This normally happens automatically,
-+		 * but not when the metadata is externally managed.
-+		 */
-+		if (slot != -1)
-+			return -EBUSY;
-+		if (rdev->raid_disk == -1)
-+			return -EEXIST;
-+		/* personality does all needed checks */
-+		if (rdev->mddev->pers->hot_add_disk == NULL)
+@@ -779,7 +779,6 @@ static int super_90_validate(mddev_t *md
+ 		mddev->major_version = 0;
+ 		mddev->minor_version = sb->minor_version;
+ 		mddev->patch_version = sb->patch_version;
+-		mddev->persistent = 1;
+ 		mddev->external = 0;
+ 		mddev->chunk_size = sb->chunk_size;
+ 		mddev->ctime = sb->ctime;
+@@ -1159,7 +1158,6 @@ static int super_1_validate(mddev_t *mdd
+ 	if (mddev->raid_disks == 0) {
+ 		mddev->major_version = 1;
+ 		mddev->patch_version = 0;
+-		mddev->persistent = 1;
+ 		mddev->external = 0;
+ 		mddev->chunk_size = le32_to_cpu(sb->chunksize) << 9;
+ 		mddev->ctime = le64_to_cpu(sb->ctime) & ((1ULL << 32)-1);
+@@ -3213,8 +3211,11 @@ static int do_md_run(mddev_t * mddev)
+ 	/*
+ 	 * Analyze all RAID superblock(s)
+ 	 */
+-	if (!mddev->raid_disks)
++	if (!mddev->raid_disks) {
++		if (!mddev->persistent)
 +			return -EINVAL;
-+		err = rdev->mddev->pers->
-+			hot_remove_disk(rdev->mddev, rdev->raid_disk);
-+		if (err)
-+			return err;
-+		sprintf(nm, "rd%d", rdev->raid_disk);
-+		sysfs_remove_link(&rdev->mddev->kobj, nm);
-+		set_bit(MD_RECOVERY_NEEDED, &rdev->mddev->recovery);
-+		md_wakeup_thread(rdev->mddev->thread);
-+	} else {
-+		if (slot >= rdev->mddev->raid_disks)
-+			return -ENOSPC;
-+		rdev->raid_disk = slot;
-+		/* assume it is working */
-+		rdev->flags = 0;
-+		set_bit(In_sync, &rdev->flags);
+ 		analyze_sbs(mddev);
 +	}
- 	return len;
- }
  
-@@ -5549,6 +5573,7 @@ static int remove_and_add_spares(mddev_t
+ 	chunk_size = mddev->chunk_size;
  
- 	ITERATE_RDEV(mddev,rdev,rtmp)
- 		if (rdev->raid_disk >= 0 &&
-+		    !mddev->external &&
- 		    (test_bit(Faulty, &rdev->flags) ||
- 		     ! test_bit(In_sync, &rdev->flags)) &&
- 		    atomic_read(&rdev->nr_pending)==0) {
+@@ -3621,6 +3622,7 @@ static int do_md_stop(mddev_t * mddev, i
+ 		mddev->resync_max = MaxSector;
+ 		mddev->reshape_position = MaxSector;
+ 		mddev->external = 0;
++		mddev->persistent = 0;
+ 
+ 	} else if (mddev->pers)
+ 		printk(KERN_INFO "md: %s switched to read-only mode.\n",
+@@ -3729,6 +3731,7 @@ static void autorun_devices(int part)
+ 			mddev_unlock(mddev);
+ 		} else {
+ 			printk(KERN_INFO "md: created %s\n", mdname(mddev));
++			mddev->persistent = 1;
+ 			ITERATE_RDEV_GENERIC(candidates,rdev,tmp) {
+ 				list_del_init(&rdev->same_set);
+ 				if (bind_rdev_to_array(rdev, mddev))
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
