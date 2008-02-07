@@ -1,67 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:28 -0800
-Message-ID: <200802070027.m170R9co006994@imap1.linux-foundation.org>
+Subject: - mnt_unbindable-fix.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:21:29 -0800
+Message-ID: <200802070021.m170LAJW006294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43123 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53634 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760154AbYBGApZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:25 -0500
+	by vger.kernel.org with ESMTP id S932177AbYBGAue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:50:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.frysinger@analog.com, alessandro.zummo@towertech.it, bryan.wu@analog.com, mm-commits@vger.kernel.org
+To: Andries.Brouwer@cwi.nl, linuxram@us.ibm.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin RTC driver: read_alarm() checks the enabled field, not the pending field.
+     MNT_UNBINDABLE fix
 has been removed from the -mm tree.  Its filename was
-     blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field.patch
+     mnt_unbindable-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: Blackfin RTC driver: read_alarm() checks the enabled field, not the pending field.
-From: Mike Frysinger <michael.frysinger@analog.com>
+Subject: MNT_UNBINDABLE fix
+=46rom: "Andries E. Brouwer" <Andries.Brouwer@cwi.nl>
 
-also, dont bother using memcpy since we can just do an assignment of the same structure.
+Some time ago ( http://lkml.org/lkml/2007/6/19/128 ) I wrote about
+MNT_UNBINDABLE that it felt like a bug that it is not reset by "mount
+--make-private".
 
-Signed-off-by: Mike Frysinger <michael.frysinger@analog.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Acked-by: Alessandro Zummo <alessandro.zummo@towertech.it>
+Today I happened to see mount(8) and Documentation/sharedsubtree.txt an=
+d
+both document the version obtained by applying the little patch given i=
+n
+the above (and again below).
+
+So, the present kernel code is not according to specs and must be regar=
+ded
+as buggy.
+
+Specification in Documentation/sharedsubtree.txt:
+See state diagram: unbindable should become private upon make-private.
+
+Specification in mount(8):
+    ...  It's
+    also possible to  set  up  uni-directional  propagation  (with  --m=
+ake-
+    slave),  to  make  a  mount  point unavailable for --bind/--rbind (=
+with
+    --make-unbindable), and to undo any  of  these  (with  --make-priva=
+te).
+
+Repeat of old fix-shared-subtrees-make-private.patch
+(due to Dirk Gerrits, Ren=E9 Gabri=EBls, Peter Kooijmans):
+
+Acked-by: Ram Pai <linuxram@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/pnode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-read_alarm-checks-the-enabled-field-not-the-pending-field
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -326,7 +326,7 @@ static int bfin_rtc_read_alarm(struct de
- 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
- 	dev_dbg_stamp(dev);
- 	memcpy(&alrm->time, &rtc->rtc_alarm, sizeof(struct rtc_time));
--	alrm->pending = !!(bfin_read_RTC_ICTL() & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
-+	alrm->enabled = !!(bfin_read_RTC_ICTL() & (RTC_ISTAT_ALARM | RTC_ISTAT_ALARM_DAY));
- 	return 0;
+diff -puN fs/pnode.c~mnt_unbindable-fix fs/pnode.c
+--- a/fs/pnode.c~mnt_unbindable-fix
++++ a/fs/pnode.c
+@@ -83,6 +83,8 @@ void change_mnt_propagation(struct vfsmo
+ 		mnt->mnt_master =3D NULL;
+ 		if (type =3D=3D MS_UNBINDABLE)
+ 			mnt->mnt_flags |=3D MNT_UNBINDABLE;
++		else
++			mnt->mnt_flags &=3D ~MNT_UNBINDABLE;
+ 	}
  }
- 
-@@ -334,7 +334,7 @@ static int bfin_rtc_set_alarm(struct dev
- {
- 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
- 	dev_dbg_stamp(dev);
--	memcpy(&rtc->rtc_alarm, &alrm->time, sizeof(struct rtc_time));
-+	rtc->rtc_alarm = alrm->time;
- 	return 0;
- }
- 
+=20
 _
 
-Patches currently in -mm which might be from michael.frysinger@analog.com are
+Patches currently in -mm which might be from Andries.Brouwer@cwi.nl are
 
 origin.patch
-git-watchdog.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
