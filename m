@@ -1,115 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-remove-debug-code.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:23:52 -0800
-Message-ID: <200802070023.m170NX0V006532@imap1.linux-foundation.org>
+Subject: - via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:23:14 -0800
+Message-ID: <200802070022.m170Mtpe006479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50134 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43560 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935157AbYBGAqW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:22 -0500
+	by vger.kernel.org with ESMTP id S935168AbYBGAqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, jack@ucw.cz, rlove@google.com, ttb@tentacle.dhs.org, yanzheng@21cn.com, mm-commits@vger.kernel.org
+To: davej@redhat.com, folkert@vanheusden.com, mb@bu3sch.de, udovdh@xs4all.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify: remove debug code
+     via-rng: enable secondary noise source on CPUs where it is present
 has been removed from the -mm tree.  Its filename was
-     inotify-remove-debug-code.patch
+     via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: remove debug code
-From: Nick Piggin <npiggin@suse.de>
+Subject: via-rng: enable secondary noise source on CPUs where it is present
+From: Dave Jones <davej@redhat.com>
 
-The inotify debugging code is supposed to verify that the
-DCACHE_INOTIFY_PARENT_WATCHED scalability optimisation does not result in
-notifications getting lost nor extra needless locking generated.
+In the padlock spec:
 
-Unfortunately there are also some races in the debugging code.  And it isn't
-very good at finding problems anyway.  So remove it for now.
+"SRC Bits[9:8] Noise source select (I): These bits control the two noise
+ sources on the processor that input bits to the accumulation buffers.
+ On Nehemiah processors prior to stepping 8, these bits are reserved
+ and undefined. The default RESET state is both bits = 0."
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Robert Love <rlove@google.com>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Yan Zheng <yanzheng@21cn.com>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Tested-by: Udo van den Heuvel <udovdh@xs4all.nl>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: folkert van Heusden <folkert@vanheusden.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c  |    3 ---
- fs/inotify.c |   17 +++++------------
- 2 files changed, 5 insertions(+), 15 deletions(-)
+ drivers/char/hw_random/via-rng.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN fs/dcache.c~inotify-remove-debug-code fs/dcache.c
---- a/fs/dcache.c~inotify-remove-debug-code
-+++ a/fs/dcache.c
-@@ -1408,9 +1408,6 @@ void d_delete(struct dentry * dentry)
- 	if (atomic_read(&dentry->d_count) == 1) {
- 		dentry_iput(dentry);
- 		fsnotify_nameremove(dentry, isdir);
--
--		/* remove this and other inotify debug checks after 2.6.18 */
--		dentry->d_flags &= ~DCACHE_INOTIFY_PARENT_WATCHED;
- 		return;
- 	}
+diff -puN drivers/char/hw_random/via-rng.c~via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present drivers/char/hw_random/via-rng.c
+--- a/drivers/char/hw_random/via-rng.c~via-rng-enable-secondary-noise-source-on-cpus-where-it-is-present
++++ a/drivers/char/hw_random/via-rng.c
+@@ -42,6 +42,8 @@ enum {
+ 	VIA_STRFILT_ENABLE	= (1 << 14),
+ 	VIA_RAWBITS_ENABLE	= (1 << 13),
+ 	VIA_RNG_ENABLE		= (1 << 6),
++	VIA_NOISESRC1		= (1 << 8),
++	VIA_NOISESRC2		= (1 << 9),
+ 	VIA_XSTORE_CNT_MASK	= 0x0F,
  
-diff -puN fs/inotify.c~inotify-remove-debug-code fs/inotify.c
---- a/fs/inotify.c~inotify-remove-debug-code
-+++ a/fs/inotify.c
-@@ -168,20 +168,14 @@ static void set_dentry_child_flags(struc
- 		struct dentry *child;
+ 	VIA_RNG_CHUNK_8		= 0x00,	/* 64 rand bits, 64 stored bits */
+@@ -119,6 +121,7 @@ static int via_rng_data_read(struct hwrn
  
- 		list_for_each_entry(child, &alias->d_subdirs, d_u.d_child) {
--			if (!child->d_inode) {
--				WARN_ON(child->d_flags & DCACHE_INOTIFY_PARENT_WATCHED);
-+			if (!child->d_inode)
- 				continue;
--			}
+ static int via_rng_init(struct hwrng *rng)
+ {
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	u32 lo, hi, old_lo;
+ 
+ 	/* Control the RNG via MSR.  Tread lightly and pay very close
+@@ -134,6 +137,17 @@ static int via_rng_init(struct hwrng *rn
+ 	lo &= ~VIA_XSTORE_CNT_MASK;
+ 	lo &= ~(VIA_STRFILT_ENABLE | VIA_STRFILT_FAIL | VIA_RAWBITS_ENABLE);
+ 	lo |= VIA_RNG_ENABLE;
++	lo |= VIA_NOISESRC1;
 +
- 			spin_lock(&child->d_lock);
--			if (watched) {
--				WARN_ON(child->d_flags &
--						DCACHE_INOTIFY_PARENT_WATCHED);
-+			if (watched)
- 				child->d_flags |= DCACHE_INOTIFY_PARENT_WATCHED;
--			} else {
--				WARN_ON(!(child->d_flags &
--					DCACHE_INOTIFY_PARENT_WATCHED));
--				child->d_flags&=~DCACHE_INOTIFY_PARENT_WATCHED;
--			}
-+			else
-+				child->d_flags &=~DCACHE_INOTIFY_PARENT_WATCHED;
- 			spin_unlock(&child->d_lock);
- 		}
- 	}
-@@ -253,7 +247,6 @@ void inotify_d_instantiate(struct dentry
- 	if (!inode)
- 		return;
++	/* Enable secondary noise source on CPUs where it is present. */
++
++	/* Nehemiah stepping 8 and higher */
++	if ((c->x86_model == 9) && (c->x86_mask > 7))
++		lo |= VIA_NOISESRC2;
++
++	/* Esther */
++	if (c->x86_model >= 10)
++		lo |= VIA_NOISESRC2;
  
--	WARN_ON(entry->d_flags & DCACHE_INOTIFY_PARENT_WATCHED);
- 	spin_lock(&entry->d_lock);
- 	parent = entry->d_parent;
- 	if (parent->d_inode && inotify_inode_watched(parent->d_inode))
+ 	if (lo != old_lo)
+ 		wrmsr(MSR_VIA_RNG, lo, hi);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
-drm-convert-from-nopage-to-fault.patch
-git-kvm.patch
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-sg-nopage.patch
-mm-special-mapping-nopage.patch
-rewrite-rd.patch
-rewrite-rd-fix.patch
-rewrite-rd-fix-2.patch
-rd-support-xip.patch
-mm-remove-nopage.patch
-buffer_head-fix-private_list-handling.patch
-reiser4.patch
-reiser4-correct-references-to-filemap_nopage.patch
+git-acpi.patch
+git-cpufreq.patch
