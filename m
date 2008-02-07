@@ -1,296 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - remove-pointless-casts-from-void-pointers.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:20:56 -0800
-Message-ID: <200802070020.m170KbrN006163@imap1.linux-foundation.org>
+Subject: - ata-drivers-ata-sata_mvc-needs-dmapoolh.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:31:04 -0800
+Message-ID: <200802070030.m170UjIC007419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36185 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934220AbYBGA2y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:28:54 -0500
+	by vger.kernel.org with ESMTP id S932712AbYBGAjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:39:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, James.Bottomley@steeleye.com, adaplas@pol.net, benh@kernel.crashing.org, david-b@pacbell.net, dtor@mail.ru, geert@linux-m68k.org, hs4233@mail.mn-solutions.de, jgarzik
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove pointless casts from void pointers
+     ata: drivers/ata/sata_mv.c needs dmapool.h
 has been removed from the -mm tree.  Its filename was
-     remove-pointless-casts-from-void-pointers.patch
+     ata-drivers-ata-sata_mvc-needs-dmapoolh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove pointless casts from void pointers
-From: Jeff Garzik <jeff@garzik.org>
+Subject: ata: drivers/ata/sata_mv.c needs dmapool.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Mostly in and around irq handlers.
+mips:
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Luck Tony" <tony.luck@intel.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
-Cc: Karsten Keil <kkeil@suse.de>
-Acked-by: "John W. Linville" <linville@tuxdriver.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Acked-by: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Acked-by: Holger Schurig <hs4233@mail.mn-solutions.de>
+drivers/ata/sata_mv.c: In function `mv_port_free_dma_mem':
+drivers/ata/sata_mv.c:1080: error: implicit declaration of function `dma_pool_free'
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/sn/pci/pcibr/pcibr_provider.c    |    6 +++---
- arch/m68k/amiga/cia.c                      |    2 +-
- arch/ppc/8260_io/enet.c                    |    2 +-
- arch/ppc/8260_io/fcc_enet.c                |    2 +-
- drivers/input/touchscreen/h3600_ts_input.c |    4 ++--
- drivers/isdn/hardware/eicon/diva.c         |    5 ++---
- drivers/scsi/aic7xxx_old.c                 |    2 +-
- drivers/scsi/ibmvscsi/ibmvstgt.c           |    4 ++--
- drivers/serial/cpm_uart/cpm_uart_core.c    |    2 +-
- drivers/serial/dz.c                        |    2 +-
- drivers/serial/imx.c                       |    4 ++--
- drivers/serial/uartlite.c                  |    2 +-
- drivers/spi/spi_bfin5xx.c                  |    2 +-
- drivers/video/bf54x-lq043fb.c              |    3 +--
- drivers/video/intelfb/intelfbhw.c          |    2 +-
- 15 files changed, 21 insertions(+), 23 deletions(-)
+ drivers/ata/sata_mv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/sn/pci/pcibr/pcibr_provider.c~remove-pointless-casts-from-void-pointers arch/ia64/sn/pci/pcibr/pcibr_provider.c
---- a/arch/ia64/sn/pci/pcibr/pcibr_provider.c~remove-pointless-casts-from-void-pointers
-+++ a/arch/ia64/sn/pci/pcibr/pcibr_provider.c
-@@ -100,11 +100,11 @@ u16 sn_ioboard_to_pci_bus(struct pci_bus
- static irqreturn_t
- pcibr_error_intr_handler(int irq, void *arg)
- {
--	struct pcibus_info *soft = (struct pcibus_info *)arg;
-+	struct pcibus_info *soft = arg;
- 
--	if (sal_pcibr_error_interrupt(soft) < 0) {
-+	if (sal_pcibr_error_interrupt(soft) < 0)
- 		panic("pcibr_error_intr_handler(): Fatal Bridge Error");
--	}
-+
- 	return IRQ_HANDLED;
- }
- 
-diff -puN arch/m68k/amiga/cia.c~remove-pointless-casts-from-void-pointers arch/m68k/amiga/cia.c
---- a/arch/m68k/amiga/cia.c~remove-pointless-casts-from-void-pointers
-+++ a/arch/m68k/amiga/cia.c
-@@ -84,7 +84,7 @@ unsigned char cia_able_irq(struct ciabas
- 
- static irqreturn_t cia_handler(int irq, void *dev_id)
- {
--	struct ciabase *base = (struct ciabase *)dev_id;
-+	struct ciabase *base = dev_id;
- 	int mach_irq;
- 	unsigned char ints;
- 
-diff -puN arch/ppc/8260_io/enet.c~remove-pointless-casts-from-void-pointers arch/ppc/8260_io/enet.c
---- a/arch/ppc/8260_io/enet.c~remove-pointless-casts-from-void-pointers
-+++ a/arch/ppc/8260_io/enet.c
-@@ -418,7 +418,7 @@ scc_enet_rx(struct net_device *dev)
- 	struct	sk_buff *skb;
- 	ushort	pkt_len;
- 
--	cep = (struct scc_enet_private *)dev->priv;
-+	cep = dev->priv;
- 
- 	/* First, grab all of the stats for the incoming packet.
- 	 * These get messed up if we get called due to a busy condition.
-diff -puN arch/ppc/8260_io/fcc_enet.c~remove-pointless-casts-from-void-pointers arch/ppc/8260_io/fcc_enet.c
---- a/arch/ppc/8260_io/fcc_enet.c~remove-pointless-casts-from-void-pointers
-+++ a/arch/ppc/8260_io/fcc_enet.c
-@@ -682,7 +682,7 @@ fcc_enet_rx(struct net_device *dev)
- 	struct	sk_buff *skb;
- 	ushort	pkt_len;
- 
--	cep = (struct fcc_enet_private *)dev->priv;
-+	cep = dev->priv;
- 
- 	/* First, grab all of the stats for the incoming packet.
- 	 * These get messed up if we get called due to a busy condition.
-diff -puN drivers/input/touchscreen/h3600_ts_input.c~remove-pointless-casts-from-void-pointers drivers/input/touchscreen/h3600_ts_input.c
---- a/drivers/input/touchscreen/h3600_ts_input.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/input/touchscreen/h3600_ts_input.c
-@@ -109,7 +109,7 @@ struct h3600_dev {
- static irqreturn_t action_button_handler(int irq, void *dev_id)
- {
- 	int down = (GPLR & GPIO_BITSY_ACTION_BUTTON) ? 0 : 1;
--	struct input_dev *dev = (struct input_dev *) dev_id;
-+	struct input_dev *dev = dev_id;
- 
- 	input_report_key(dev, KEY_ENTER, down);
- 	input_sync(dev);
-@@ -120,7 +120,7 @@ static irqreturn_t action_button_handler
- static irqreturn_t npower_button_handler(int irq, void *dev_id)
- {
- 	int down = (GPLR & GPIO_BITSY_NPOWER_BUTTON) ? 0 : 1;
--	struct input_dev *dev = (struct input_dev *) dev_id;
-+	struct input_dev *dev = dev_id;
- 
- 	/*
- 	 * This interrupt is only called when we release the key. So we have
-diff -puN drivers/isdn/hardware/eicon/diva.c~remove-pointless-casts-from-void-pointers drivers/isdn/hardware/eicon/diva.c
---- a/drivers/isdn/hardware/eicon/diva.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/isdn/hardware/eicon/diva.c
-@@ -515,12 +515,11 @@ diva_xdi_read(void *adapter, void *os_ha
- 
- irqreturn_t diva_os_irq_wrapper(int irq, void *context)
- {
--	diva_os_xdi_adapter_t *a = (diva_os_xdi_adapter_t *) context;
-+	diva_os_xdi_adapter_t *a = context;
- 	diva_xdi_clear_interrupts_proc_t clear_int_proc;
- 
--	if (!a || !a->xdi_adapter.diva_isr_handler) {
-+	if (!a || !a->xdi_adapter.diva_isr_handler)
- 		return IRQ_NONE;
--	}
- 
- 	if ((clear_int_proc = a->clear_interrupts_proc)) {
- 		(*clear_int_proc) (a);
-diff -puN drivers/scsi/aic7xxx_old.c~remove-pointless-casts-from-void-pointers drivers/scsi/aic7xxx_old.c
---- a/drivers/scsi/aic7xxx_old.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/scsi/aic7xxx_old.c
-@@ -6472,7 +6472,7 @@ do_aic7xxx_isr(int irq, void *dev_id)
-   unsigned long cpu_flags;
-   struct aic7xxx_host *p;
-   
--  p = (struct aic7xxx_host *)dev_id;
-+  p = dev_id;
-   if(!p)
-     return IRQ_NONE;
-   spin_lock_irqsave(p->host->host_lock, cpu_flags);
-diff -puN drivers/scsi/ibmvscsi/ibmvstgt.c~remove-pointless-casts-from-void-pointers drivers/scsi/ibmvscsi/ibmvstgt.c
---- a/drivers/scsi/ibmvscsi/ibmvstgt.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/scsi/ibmvscsi/ibmvstgt.c
-@@ -539,9 +539,9 @@ out:
- 		srp_iu_put(iue);
- }
- 
--static irqreturn_t ibmvstgt_interrupt(int irq, void *data)
-+static irqreturn_t ibmvstgt_interrupt(int dummy, void *data)
- {
--	struct srp_target *target = (struct srp_target *) data;
-+	struct srp_target *target = data;
- 	struct vio_port *vport = target_to_port(target);
- 
- 	vio_disable_interrupts(vport->dma_dev);
-diff -puN drivers/serial/cpm_uart/cpm_uart_core.c~remove-pointless-casts-from-void-pointers drivers/serial/cpm_uart/cpm_uart_core.c
---- a/drivers/serial/cpm_uart/cpm_uart_core.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/serial/cpm_uart/cpm_uart_core.c
-@@ -380,7 +380,7 @@ static void cpm_uart_int_rx(struct uart_
- static irqreturn_t cpm_uart_int(int irq, void *data)
- {
- 	u8 events;
--	struct uart_port *port = (struct uart_port *)data;
-+	struct uart_port *port = data;
- 	struct uart_cpm_port *pinfo = (struct uart_cpm_port *)port;
- 	smc_t __iomem *smcp = pinfo->smcp;
- 	scc_t __iomem *sccp = pinfo->sccp;
-diff -puN drivers/serial/dz.c~remove-pointless-casts-from-void-pointers drivers/serial/dz.c
---- a/drivers/serial/dz.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/serial/dz.c
-@@ -324,7 +324,7 @@ static inline void check_modem_status(st
-  */
- static irqreturn_t dz_interrupt(int irq, void *dev)
- {
--	struct dz_port *dport = (struct dz_port *)dev;
-+	struct dz_port *dport = dev;
- 	unsigned short status;
- 
- 	/* get the reason why we just got an irq */
-diff -puN drivers/serial/imx.c~remove-pointless-casts-from-void-pointers drivers/serial/imx.c
---- a/drivers/serial/imx.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/serial/imx.c
-@@ -308,7 +308,7 @@ static void imx_start_tx(struct uart_por
- 
- static irqreturn_t imx_rtsint(int irq, void *dev_id)
- {
--	struct imx_port *sport = (struct imx_port *)dev_id;
-+	struct imx_port *sport = dev_id;
- 	unsigned int val = readl(sport->port.membase + USR1) & USR1_RTSS;
- 	unsigned long flags;
- 
-@@ -324,7 +324,7 @@ static irqreturn_t imx_rtsint(int irq, v
- 
- static irqreturn_t imx_txint(int irq, void *dev_id)
- {
--	struct imx_port *sport = (struct imx_port *)dev_id;
-+	struct imx_port *sport = dev_id;
- 	struct circ_buf *xmit = &sport->port.info->xmit;
- 	unsigned long flags;
- 
-diff -puN drivers/serial/uartlite.c~remove-pointless-casts-from-void-pointers drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/serial/uartlite.c
-@@ -142,7 +142,7 @@ static int ulite_transmit(struct uart_po
- 
- static irqreturn_t ulite_isr(int irq, void *dev_id)
- {
--	struct uart_port *port = (struct uart_port *)dev_id;
-+	struct uart_port *port = dev_id;
- 	int busy;
- 
- 	do {
-diff -puN drivers/spi/spi_bfin5xx.c~remove-pointless-casts-from-void-pointers drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -616,7 +616,7 @@ static void giveback(struct driver_data 
- 
- static irqreturn_t dma_irq_handler(int irq, void *dev_id)
- {
--	struct driver_data *drv_data = (struct driver_data *)dev_id;
-+	struct driver_data *drv_data = dev_id;
- 	struct chip_data *chip = drv_data->cur_chip;
- 	struct spi_message *msg = drv_data->cur_msg;
- 
-diff -puN drivers/video/bf54x-lq043fb.c~remove-pointless-casts-from-void-pointers drivers/video/bf54x-lq043fb.c
---- a/drivers/video/bf54x-lq043fb.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/video/bf54x-lq043fb.c
-@@ -498,8 +498,7 @@ static struct lcd_device *lcd_dev;
- 
- static irqreturn_t bfin_bf54x_irq_error(int irq, void *dev_id)
- {
--
--	/*struct bfin_bf54xfb_info *info = (struct bfin_bf54xfb_info *)dev_id;*/
-+	/*struct bfin_bf54xfb_info *info = dev_id;*/
- 
- 	u16 status = bfin_read_EPPI0_STATUS();
- 
-diff -puN drivers/video/intelfb/intelfbhw.c~remove-pointless-casts-from-void-pointers drivers/video/intelfb/intelfbhw.c
---- a/drivers/video/intelfb/intelfbhw.c~remove-pointless-casts-from-void-pointers
-+++ a/drivers/video/intelfb/intelfbhw.c
-@@ -1971,7 +1971,7 @@ void intelfbhw_cursor_reset(struct intel
- static irqreturn_t intelfbhw_irq(int irq, void *dev_id)
- {
- 	u16 tmp;
--	struct intelfb_info *dinfo = (struct intelfb_info *)dev_id;
-+	struct intelfb_info *dinfo = dev_id;
- 
- 	spin_lock(&dinfo->int_lock);
- 
+diff -puN drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~ata-drivers-ata-sata_mvc-needs-dmapoolh
++++ a/drivers/ata/sata_mv.c
+@@ -69,6 +69,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/dmapool.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/device.h>
+ #include <scsi/scsi_host.h>
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-libata-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+acpi-backlight-reset-brightness-on-resume.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-cpufreq.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-drm-fix.patch
+drm-convert-from-nopage-to-fault.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+git-input.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+git-mtd.patch
+drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
+git-backlight.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-i8k-allow-i8k-driver-to-be-built-on-x86_64-systems.patch
-i8k-adds-i8k-driver-to-the-x86_64-kconfig.patch
-i8k-inspiron-e1705-fix.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+9p-fix-p9_printfcall-export.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-ipwireless_cs.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xtensa.patch
+git-slub.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-mm_cgroup-to-header-file-fix.patch
+memcontrol-move-mm_cgroup-to-header-file-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+per-zone-and-reclaim-enhancements-for-memory-controller-take-3-modifies-vmscanc-for-isolate-globa-cgroup-lru-activity.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-cleanup.patch
+cgroups-mechanism-to-process-each-task-in-a-cgroup-checkpatch-fixes.patch
+hotplug-cpu-move-tasks-in-empty-cpusets-to-parent-checkpatch-fixes.patch
+cpusets-update_cpumask-revision-fix.patch
+cpusets-update_cpumask-revision-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-powerpc-fix.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-git-x86.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-vs-sanitize-the-type-of-struct-useru_ar0.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
