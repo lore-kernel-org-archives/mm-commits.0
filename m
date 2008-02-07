@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - bnx2c-section-fix-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 14:30:22 -0800
-Message-ID: <200802072230.m17MUMqf026008@imap1.linux-foundation.org>
+Subject: - bnx2x-section-fix-fix.patch removed from -mm tree
+Date: Thu, 07 Feb 2008 14:30:18 -0800
+Message-ID: <200802072230.m17MUIqs026002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56769 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933781AbYBGWah (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:37 -0500
+	by vger.kernel.org with ESMTP id S933744AbYBGWab (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Feb 2008 17:30:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bnx2c-section-fix-fix
+     bnx2x-section-fix-fix
 has been removed from the -mm tree.  Its filename was
-     bnx2c-section-fix-fix.patch
+     bnx2x-section-fix-fix.patch
 
 This patch was dropped because I just remembered __devexitconst :(
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bnx2c-section-fix-fix
+Subject: bnx2x-section-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 fix i386
@@ -32,21 +32,21 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2.c |    2 +-
+ drivers/net/bnx2x.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bnx2.c~bnx2c-section-fix-fix drivers/net/bnx2.c
---- a/drivers/net/bnx2.c~bnx2c-section-fix-fix
-+++ a/drivers/net/bnx2.c
-@@ -90,7 +90,7 @@ typedef enum {
- } board_t;
+diff -puN drivers/net/bnx2x.c~bnx2x-section-fix-fix drivers/net/bnx2x.c
+--- a/drivers/net/bnx2x.c~bnx2x-section-fix-fix
++++ a/drivers/net/bnx2x.c
+@@ -107,7 +107,7 @@ enum bnx2x_board_type {
+ };
  
  /* indexed by board_t, above */
 -static const struct {
 +static struct {
  	char *name;
  } board_info[] __devinitdata = {
- 	{ "Broadcom NetXtreme II BCM5706 1000Base-T" },
+ 	{ "Broadcom NetXtreme II BCM57710 XGb" }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +106,8 @@ memstick-disable-busted-code.patch
 git-mmc.patch
 git-mtd.patch
 drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
+bnx2x-section-fix-fix.patch
+bnx2c-section-fix.patch
 bnx2c-section-fix-fix.patch
 via-velocity-section-fix.patch
 starfire-secton-fix.patch
