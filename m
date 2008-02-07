@@ -1,235 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - coding-style-cleanups-for-drivers-md-mktablesc.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:29:38 -0800
-Message-ID: <200802070029.m170TJW1007263@imap1.linux-foundation.org>
+Subject: - ps3fb-add-support-for-configurable-black-borders.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:29:08 -0800
+Message-ID: <200802070028.m170Snua007209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764447AbYBGAoG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:06 -0500
+	by vger.kernel.org with ESMTP id S1764913AbYBGAoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oliver.pntr@gmail.com, hpa@zytor.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coding style cleanups for drivers/md/mktables.c
+     ps3fb: add support for configurable black borders
 has been removed from the -mm tree.  Its filename was
-     coding-style-cleanups-for-drivers-md-mktablesc.patch
+     ps3fb-add-support-for-configurable-black-borders.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coding style cleanups for drivers/md/mktables.c
-From: Oliver Pinter <oliver.pntr@gmail.com>
+Subject: ps3fb: add support for configurable black borders
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Signed-off-by: Oliver Pinter <oliver.pntr@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Allow all video modes where the visible resolution plus the black borders
+matches a native resolution
+
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/mktables.c |  174 ++++++++++++++++++++--------------------
- 1 file changed, 89 insertions(+), 85 deletions(-)
+ drivers/video/ps3fb.c |   69 ++++++++++++++++++++++++++++------------
+ 1 file changed, 49 insertions(+), 20 deletions(-)
 
-diff -puN drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc drivers/md/mktables.c
---- a/drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc
-+++ a/drivers/md/mktables.c
-@@ -26,100 +26,104 @@
+diff -puN drivers/video/ps3fb.c~ps3fb-add-support-for-configurable-black-borders drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-add-support-for-configurable-black-borders
++++ a/drivers/video/ps3fb.c
+@@ -270,32 +270,57 @@ module_param(ps3fb_mode, int, 0);
  
- static uint8_t gfmul(uint8_t a, uint8_t b)
- {
--  uint8_t v = 0;
-+	uint8_t v = 0;
+ static char *mode_option __devinitdata;
  
--  while ( b ) {
--    if ( b & 1 ) v ^= a;
--    a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
--    b >>= 1;
--  }
--  return v;
-+	while (b) {
-+		if (b & 1)
-+			v ^= a;
-+		a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
-+		b >>= 1;
-+	}
+-static unsigned int ps3fb_find_mode(const struct fb_var_screeninfo *var,
++static int ps3fb_cmp_mode(const struct fb_videomode *vmode,
++			  const struct fb_var_screeninfo *var)
++{
++	/* resolution + black border must match a native resolution */
++	if (vmode->left_margin + vmode->xres + vmode->right_margin !=
++	    var->left_margin + var->xres + var->right_margin ||
++	    vmode->upper_margin + vmode->yres + vmode->lower_margin !=
++	    var->upper_margin + var->yres + var->lower_margin)
++		return -1;
 +
-+	return v;
- }
- 
- static uint8_t gfpow(uint8_t a, int b)
- {
--  uint8_t v = 1;
-+	uint8_t v = 1;
++	/* minimum limits for margins */
++	if (vmode->left_margin > var->left_margin ||
++	    vmode->right_margin > var->right_margin ||
++	    vmode->upper_margin > var->upper_margin ||
++	    vmode->lower_margin > var->lower_margin)
++		return -1;
 +
-+	b %= 255;
-+	if (b < 0)
-+		b += 255;
++	/* these fields must match exactly */
++	if (vmode->pixclock != var->pixclock ||
++	    vmode->hsync_len != var->hsync_len ||
++	    vmode->vsync_len != var->vsync_len ||
++	    vmode->sync != var->sync ||
++	    vmode->vmode != (var->vmode & FB_VMODE_MASK))
++		return -1;
 +
-+	while (b) {
-+		if (b & 1)
-+			v = gfmul(v, a);
-+		a = gfmul(a, a);
-+		b >>= 1;
-+	}
- 
--  b %= 255;
--  if ( b < 0 )
--    b += 255;
--
--  while ( b ) {
--    if ( b & 1 ) v = gfmul(v,a);
--    a = gfmul(a,a);
--    b >>= 1;
--  }
--  return v;
-+	return v;
- }
- 
- int main(int argc, char *argv[])
- {
--  int i, j, k;
--  uint8_t v;
--  uint8_t exptbl[256], invtbl[256];
--
--  printf("#include \"raid6.h\"\n");
--
--  /* Compute multiplication table */
--  printf("\nconst u8  __attribute__((aligned(256)))\n"
--	 "raid6_gfmul[256][256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i++ ) {
--    printf("\t{\n");
--    for ( j = 0 ; j < 256 ; j += 8 ) {
--      printf("\t\t");
--      for ( k = 0 ; k < 8 ; k++ ) {
--	printf("0x%02x, ", gfmul(i,j+k));
--      }
--      printf("\n");
--    }
--    printf("\t},\n");
--  }
--  printf("};\n");
--
--  /* Compute power-of-2 table (exponent) */
--  v = 1;
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfexp[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      exptbl[i+j] = v;
--      printf("0x%02x, ", v);
--      v = gfmul(v,2);
--      if ( v == 1 ) v = 0;	/* For entry 255, not a real entry */
--    }
--    printf("\n");
--  }
--  printf("};\n");
--
--  /* Compute inverse table x^-1 == x^254 */
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfinv[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      invtbl[i+j] = v = gfpow(i+j,254);
--      printf("0x%02x, ", v);
--    }
--    printf("\n");
--  }
--  printf("};\n");
--
--  /* Compute inv(2^x + 1) (exponent-xor-inverse) table */
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfexi[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
--    }
--    printf("\n");
--  }
--  printf("};\n\n");
-+	int i, j, k;
-+	uint8_t v;
-+	uint8_t exptbl[256], invtbl[256];
-+
-+	printf("#include \"raid6.h\"\n");
-+
-+	/* Compute multiplication table */
-+	printf("\nconst u8  __attribute__((aligned(256)))\n"
-+		"raid6_gfmul[256][256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i++) {
-+		printf("\t{\n");
-+		for (j = 0; j < 256; j += 8) {
-+			printf("\t\t");
-+			for (k = 0; k < 8; k++)
-+				printf("0x%02x, ", gfmul(i, j+k));
-+			printf("\n");
-+		}
-+		printf("\t},\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute power-of-2 table (exponent) */
-+	v = 1;
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfexp[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++) {
-+			exptbl[i+j] = v;
-+			printf("0x%02x, ", v);
-+			v = gfmul(v, 2);
-+			if (v == 1)
-+				v = 0;	/* For entry 255, not a real entry */
-+		}
-+		printf("\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute inverse table x^-1 == x^254 */
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfinv[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++) {
-+			v = gfpow(i+j, 254);
-+			invtbl[i+j] = v;
-+			printf("0x%02x, ", v);
-+		}
-+		printf("\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute inv(2^x + 1) (exponent-xor-inverse) table */
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfexi[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++)
-+			printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
-+		printf("\n");
-+	}
-+	printf("};\n\n");
- 
--  return 0;
 +	return 0;
- }
++}
++
++static unsigned int ps3fb_find_mode(struct fb_var_screeninfo *var,
+ 				    u32 *ddr_line_length, u32 *xdr_line_length)
+ {
+-	unsigned int i, fi, mode;
++	unsigned int i, mode;
+ 
+-	for (i = 0; i < ARRAY_SIZE(ps3fb_modedb); i++)
+-		if (var->xres == ps3fb_modedb[i].xres &&
+-		    var->yres == ps3fb_modedb[i].yres &&
+-		    var->pixclock == ps3fb_modedb[i].pixclock &&
+-		    var->hsync_len == ps3fb_modedb[i].hsync_len &&
+-		    var->vsync_len == ps3fb_modedb[i].vsync_len &&
+-		    var->left_margin == ps3fb_modedb[i].left_margin &&
+-		    var->right_margin == ps3fb_modedb[i].right_margin &&
+-		    var->upper_margin == ps3fb_modedb[i].upper_margin &&
+-		    var->lower_margin == ps3fb_modedb[i].lower_margin &&
+-		    var->sync == ps3fb_modedb[i].sync &&
+-		    (var->vmode & FB_VMODE_MASK) == ps3fb_modedb[i].vmode)
++	for (i = PS3AV_MODE_1080P50; i < ARRAY_SIZE(ps3fb_modedb); i++)
++		if (!ps3fb_cmp_mode(&ps3fb_modedb[i], var))
+ 			goto found;
+ 
+ 	pr_debug("ps3fb_find_mode: mode not found\n");
+ 	return 0;
+ 
+ found:
+-	/* Cropped broadcast modes use the full line length */
+-	fi = i < PS3AV_MODE_1080P50 ? i + PS3AV_MODE_WUXGA : i;
+-	*ddr_line_length = ps3fb_modedb[fi].xres * BPP;
++	*ddr_line_length = ps3fb_modedb[i].xres * BPP;
++
++	if (!var->xres) {
++		var->xres = 1;
++		var->right_margin--;
++	}
++	if (!var->yres) {
++		var->yres = 1;
++		var->lower_margin--;
++	}
+ 
+ 	if (ps3_compare_firmware_version(1, 9, 0) >= 0) {
+ 		*xdr_line_length = GPU_ALIGN_UP(max(var->xres,
+@@ -305,10 +330,14 @@ found:
+ 	} else
+ 		*xdr_line_length = *ddr_line_length;
+ 
+-	/* Full broadcast modes have the full mode bit set */
+ 	mode = i+1;
+-	if (mode > PS3AV_MODE_WUXGA)
+-		mode = (mode - PS3AV_MODE_WUXGA) | PS3AV_MODE_FULL;
++	if (mode > PS3AV_MODE_WUXGA) {
++		mode -= PS3AV_MODE_WUXGA;
++		/* Full broadcast modes have the full mode bit set */
++		if (ps3fb_modedb[i].xres == var->xres &&
++		    ps3fb_modedb[i].yres == var->yres)
++			mode |= PS3AV_MODE_FULL;
++	}
+ 
+ 	pr_debug("ps3fb_find_mode: mode %u\n", mode);
+ 
 _
 
-Patches currently in -mm which might be from oliver.pntr@gmail.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
+git-scsi-misc.patch
