@@ -1,92 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-pcf8583-dont-abuse-i2c_m_nostart.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:27:05 -0800
-Message-ID: <200802070026.m170Qk5E006951@imap1.linux-foundation.org>
+Subject: - rtc-remove-more-dev-powerpower_state-usage.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:27:49 -0800
+Message-ID: <200802070027.m170RUUY007050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932514AbYBGApm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:45:42 -0500
+	by vger.kernel.org with ESMTP id S935148AbYBGAqA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-pcf8583: Don't abuse I2C_M_NOSTART
+     rtc: remove more dev->power.power_state usage
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+     rtc-remove-more-dev-powerpower_state-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-pcf8583: Don't abuse I2C_M_NOSTART
-From: Jean Delvare <khali@linux-fr.org>
+Subject: rtc: remove more dev->power.power_state usage
+From: David Brownell <david-b@pacbell.net>
 
-The rtc-pcf8583 driver is using the I2C_M_NOSTART flag but shouldn't.  This
-flag is only meant for broken chips and the PCF8583 RTC chip is not one of
-these.
+Remove some more references to dev->power.power_state.  That field is overdue
+for removal, but we can't do that while it's still referenced in the kernel. 
+The only reason to update it was to make the /sys/devices/.../power/state
+files (now removed) work better.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8583.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ drivers/rtc/rtc-sa1100.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart drivers/rtc/rtc-pcf8583.c
---- a/drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart
-+++ a/drivers/rtc/rtc-pcf8583.c
-@@ -163,27 +163,17 @@ static int pcf8583_read_mem(struct i2c_c
- 
- static int pcf8583_write_mem(struct i2c_client *client, struct rtc_mem *mem)
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-remove-more-dev-powerpower_state-usage drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-remove-more-dev-powerpower_state-usage
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -357,23 +357,15 @@ static int sa1100_rtc_remove(struct plat
+ #ifdef CONFIG_PM
+ static int sa1100_rtc_suspend(struct platform_device *pdev, pm_message_t state)
  {
--	unsigned char addr[1];
--	struct i2c_msg msgs[2] = {
--		{
--			.addr = client->addr,
--			.flags = 0,
--			.len = 1,
--			.buf = addr,
--		}, {
--			.addr = client->addr,
--			.flags = I2C_M_NOSTART,
--			.len = mem->nr,
--			.buf = mem->data,
--		}
--	};
-+	unsigned char buf[9];
-+	int ret;
- 
--	if (mem->loc < 8)
-+	if (mem->loc < 8 || mem->nr > 8)
- 		return -EINVAL;
- 
--	addr[0] = mem->loc;
-+	buf[0] = mem->loc;
-+	memcpy(buf + 1, mem->data, mem->nr);
- 
--	return i2c_transfer(client->adapter, msgs, 2) == 2 ? 0 : -EIO;
-+	ret = i2c_master_send(client, buf, mem->nr + 1);
-+	return ret == mem->nr + 1 ? 0 : -EIO;
+-	if (pdev->dev.power.power_state.event != state.event) {
+-		if (state.event == PM_EVENT_SUSPEND &&
+-		    device_may_wakeup(&pdev->dev))
+-			enable_irq_wake(IRQ_RTCAlrm);
+-
+-		pdev->dev.power.power_state = state;
+-	}
++	if (device_may_wakeup(&pdev->dev))
++		enable_irq_wake(IRQ_RTCAlrm);
+ 	return 0;
  }
  
- static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ static int sa1100_rtc_resume(struct platform_device *pdev)
+ {
+-	if (pdev->dev.power.power_state.event != PM_EVENT_ON) {
+-		if (device_may_wakeup(&pdev->dev))
+-			disable_irq_wake(IRQ_RTCAlrm);
+-		pdev->dev.power.power_state = PMSG_ON;
+-	}
++	if (device_may_wakeup(&pdev->dev))
++		disable_irq_wake(IRQ_RTCAlrm);
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-oz99x-i2c-button-and-led-support-driver.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
 i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+git-input.patch
+git-mmc.patch
+git-mtd.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+basic-pwm-driver-for-avr32-and-at91-fix.patch
+pwm-led-driver.patch
