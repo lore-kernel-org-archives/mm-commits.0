@@ -1,135 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths.patch removed from -mm tree
-Date: Wed, 06 Feb 2008 16:26:03 -0800
-Message-ID: <200802070025.m170PiXt006744@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-validate-display-timings.patch removed from -mm tree
+Date: Wed, 06 Feb 2008 16:28:19 -0800
+Message-ID: <200802070028.m170S0Vt007102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59729 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933933AbYBGAo6 (ORCPT
+	by vger.kernel.org with ESMTP id S933918AbYBGAo6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Feb 2008 19:44:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_bfin: wait for tx to complete on some cs_chg paths
+     atmel_lcdfb: validate display timings
 has been removed from the -mm tree.  Its filename was
-     spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths.patch
+     atmel_lcdfb-validate-display-timings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_bfin: wait for tx to complete on some cs_chg paths
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: atmel_lcdfb: validate display timings
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-PBX 2 SPI devices need the nonstandard "cs change per word" mechanism.
+Setting a display timing parameter too high or too low may cause it to
+wrap around and thus become completely wrong. Validate the timings in
+atmel_lcdfb_check_var() and saturate to the highest or lowest possible
+value if necessary.
 
-This patch is one of three updating this driver to make the last data bits get
-sent before advancing the transfer ...  in this case, before the chipselect
-gets deactivated.
-
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   40 ++++++++++--------------------------
- 1 file changed, 12 insertions(+), 28 deletions(-)
+ drivers/video/atmel_lcdfb.c |   20 ++++++++++++++++++++
+ include/video/atmel_lcdc.h  |   14 +++++++-------
+ 2 files changed, 27 insertions(+), 7 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi_bfin-wait-for-tx-to-complete-on-some-cs_chg-paths
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -294,16 +294,14 @@ static void u8_cs_chg_writer(struct driv
- {
- 	struct chip_data *chip = drv_data->cur_chip;
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-validate-display-timings
++++ a/drivers/video/atmel_lcdfb.c
+@@ -203,6 +203,26 @@ static int atmel_lcdfb_check_var(struct 
+ 	var->transp.offset = var->transp.length = 0;
+ 	var->xoffset = var->yoffset = 0;
  
--	/* poll for SPI completion before start */
--	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		cpu_relax();
--
- 	while (drv_data->tx < drv_data->tx_end) {
- 		cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
- 			cpu_relax();
-+		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
-+			cpu_relax();
- 
- 		cs_deactive(drv_data, chip);
- 
-@@ -342,31 +340,20 @@ static void u8_cs_chg_reader(struct driv
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
--	/* poll for SPI completion before start */
--	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		cpu_relax();
--
--	/* clear TDBR buffer before read(else it will be shifted out) */
--	write_TDBR(drv_data, 0xFFFF);
-+	while (drv_data->rx < drv_data->rx_end) {
-+		cs_active(drv_data, chip);
-+		read_RDBR(drv_data);	/* kick off */
- 
--	cs_active(drv_data, chip);
--	dummy_read(drv_data);
-+		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
-+			cpu_relax();
-+		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
-+			cpu_relax();
- 
--	while (drv_data->rx < drv_data->rx_end - 1) {
-+		*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
- 		cs_deactive(drv_data, chip);
- 
--		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--			cpu_relax();
--		cs_active(drv_data, chip);
--		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
- 		++drv_data->rx;
- 	}
--	cs_deactive(drv_data, chip);
--
--	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
--		cpu_relax();
--	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
--	++drv_data->rx;
- }
- 
- static void u8_duplex(struct driver_data *drv_data)
-@@ -392,15 +379,12 @@ static void u8_cs_chg_duplex(struct driv
- {
- 	struct chip_data *chip = drv_data->cur_chip;
- 
--	/* poll for SPI completion before start */
--	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
--		cpu_relax();
--
- 	while (drv_data->rx < drv_data->rx_end) {
- 		cs_active(drv_data, chip);
- 
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
--		while (read_STAT(drv_data) & BIT_STAT_TXS)
++	/* Saturate vertical and horizontal timings at maximum values */
++	var->vsync_len = min_t(u32, var->vsync_len,
++			(ATMEL_LCDC_VPW >> ATMEL_LCDC_VPW_OFFSET) + 1);
++	var->upper_margin = min_t(u32, var->upper_margin,
++			ATMEL_LCDC_VBP >> ATMEL_LCDC_VBP_OFFSET);
++	var->lower_margin = min_t(u32, var->lower_margin,
++			ATMEL_LCDC_VFP);
++	var->right_margin = min_t(u32, var->right_margin,
++			(ATMEL_LCDC_HFP >> ATMEL_LCDC_HFP_OFFSET) + 1);
++	var->hsync_len = min_t(u32, var->hsync_len,
++			(ATMEL_LCDC_HPW >> ATMEL_LCDC_HPW_OFFSET) + 1);
++	var->left_margin = min_t(u32, var->left_margin,
++			ATMEL_LCDC_HBP + 1);
 +
-+		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
- 			cpu_relax();
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			cpu_relax();
++	/* Some parameters can't be zero */
++	var->vsync_len = max_t(u32, var->vsync_len, 1);
++	var->right_margin = max_t(u32, var->right_margin, 1);
++	var->hsync_len = max_t(u32, var->hsync_len, 1);
++	var->left_margin = max_t(u32, var->left_margin, 1);
++
+ 	switch (var->bits_per_pixel) {
+ 	case 1:
+ 	case 2:
+diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~atmel_lcdfb-validate-display-timings
++++ a/include/video/atmel_lcdc.h
+@@ -115,20 +115,20 @@ struct atmel_lcdfb_info {
+ #define		ATMEL_LCDC_MEMOR_LITTLE		(1 << 31)
+ 
+ #define ATMEL_LCDC_TIM1		0x0808
+-#define	ATMEL_LCDC_VFP		(0xff <<  0)
++#define	ATMEL_LCDC_VFP		(0xffU <<  0)
+ #define	ATMEL_LCDC_VBP_OFFSET		8
+-#define	ATMEL_LCDC_VBP		(0xff <<  ATMEL_LCDC_VBP_OFFSET)
++#define	ATMEL_LCDC_VBP		(0xffU <<  ATMEL_LCDC_VBP_OFFSET)
+ #define	ATMEL_LCDC_VPW_OFFSET		16
+-#define	ATMEL_LCDC_VPW		(0x3f << ATMEL_LCDC_VPW_OFFSET)
++#define	ATMEL_LCDC_VPW		(0x3fU << ATMEL_LCDC_VPW_OFFSET)
+ #define	ATMEL_LCDC_VHDLY_OFFSET		24
+-#define	ATMEL_LCDC_VHDLY	(0xf  << ATMEL_LCDC_VHDLY_OFFSET)
++#define	ATMEL_LCDC_VHDLY	(0xfU  << ATMEL_LCDC_VHDLY_OFFSET)
+ 
+ #define ATMEL_LCDC_TIM2		0x080c
+-#define	ATMEL_LCDC_HBP		(0xff  <<  0)
++#define	ATMEL_LCDC_HBP		(0xffU  <<  0)
+ #define	ATMEL_LCDC_HPW_OFFSET		8
+-#define	ATMEL_LCDC_HPW		(0x3f  <<  ATMEL_LCDC_HPW_OFFSET)
++#define	ATMEL_LCDC_HPW		(0x3fU  <<  ATMEL_LCDC_HPW_OFFSET)
+ #define	ATMEL_LCDC_HFP_OFFSET		21
+-#define	ATMEL_LCDC_HFP		(0x7ff << ATMEL_LCDC_HFP_OFFSET)
++#define	ATMEL_LCDC_HFP		(0x7ffU << ATMEL_LCDC_HFP_OFFSET)
+ 
+ #define ATMEL_LCDC_LCDFRMCFG	0x0810
+ #define	ATMEL_LCDC_LINEVAL	(0x7ff <<  0)
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
+git-avr32.patch
 git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-git-watchdog.patch
 sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-d_path-make-d_path-use-a-struct-path.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-procfs-constify-function-pointer-tables.patch
+add-cmpxchg_local-to-avr32.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
+atmel_serial-clean-up-the-code.patch
+atmel_serial-use-cpu_relax-when-busy-waiting.patch
+atmel_serial-use-existing-console-options-only-if-brg-is-running.patch
+atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
+atmel_serial-split-the-interrupt-handler.patch
+atmel_serial-add-dma-support.patch
+atmel_serial-add-dma-support-fix.patch
+atmel_serial-fix-broken-rx-buffer-allocation.patch
+atmel_serial-use-container_of-instead-of-direct-cast.patch
+atmel_serial-show-tty-name-in-proc-interrupts.patch
+basic-pwm-driver-for-avr32-and-at91.patch
+basic-pwm-driver-for-avr32-and-at91-fix.patch
+pwm-led-driver.patch
