@@ -1,686 +1,755 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-remove-fastcall-in-kernel.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:15:32 -0800
-Message-ID: <200802082015.m18KFDN2010513@imap1.linux-foundation.org>
+Subject: - aout-move-stack_top-to-asm-processorh.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:14:53 -0800
+Message-ID: <200802082014.m18KEYIX010460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752710AbYBHUyA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:54:00 -0500
+	by vger.kernel.org with ESMTP id S1753294AbYBHUyY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:54:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel: remove fastcall in kernel/*
+     aout: move STACK_TOP[_MAX] to asm/processor.h
 has been removed from the -mm tree.  Its filename was
-     kernel-remove-fastcall-in-kernel.patch
+     aout-move-stack_top-to-asm-processorh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel: remove fastcall in kernel/*
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: aout: move STACK_TOP[_MAX] to asm/processor.h
+From: David Howells <dhowells@redhat.com>
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Move STACK_TOP[_MAX] out of asm/a.out.h and into asm/processor.h as they're
+required whether or not A.OUT format is available.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c        |    4 ++--
- kernel/fork.c        |    2 +-
- kernel/irq/chip.c    |   10 +++++-----
- kernel/irq/handle.c  |    4 ++--
- kernel/mutex-debug.c |    2 +-
- kernel/mutex.c       |   29 ++++++++++++++---------------
- kernel/pid.c         |   18 +++++++++---------
- kernel/sched.c       |   16 ++++++++--------
- kernel/softirq.c     |    8 ++++----
- kernel/timer.c       |    6 +++---
- kernel/wait.c        |   26 +++++++++++++-------------
- kernel/workqueue.c   |   10 +++++-----
- 12 files changed, 67 insertions(+), 68 deletions(-)
+ include/asm-alpha/a.out.h          |    8 +-------
+ include/asm-alpha/processor.h      |    5 +++++
+ include/asm-arm/a.out.h            |    6 ------
+ include/asm-arm/processor.h        |    6 ++++++
+ include/asm-avr32/a.out.h          |    7 -------
+ include/asm-avr32/processor.h      |    5 +++++
+ include/asm-blackfin/a.out.h       |    6 ------
+ include/asm-blackfin/processor.h   |    4 ++++
+ include/asm-cris/a.out.h           |    6 ------
+ include/asm-cris/processor.h       |    3 +++
+ include/asm-h8300/a.out.h          |    7 -------
+ include/asm-h8300/processor.h      |    5 +++++
+ include/asm-ia64/a.out.h           |    3 ---
+ include/asm-m32r/a.out.h           |    7 -------
+ include/asm-m32r/processor.h       |    5 +++++
+ include/asm-m68k/a.out.h           |    7 -------
+ include/asm-m68k/processor.h       |    5 +++++
+ include/asm-mips/a.out.h           |   13 -------------
+ include/asm-mips/processor.h       |    7 +++++++
+ include/asm-parisc/a.out.h         |   10 ----------
+ include/asm-parisc/processor.h     |   10 ++++++++++
+ include/asm-powerpc/a.out.h        |   19 -------------------
+ include/asm-powerpc/processor.h    |   19 +++++++++++++++++++
+ include/asm-s390/a.out.h           |    7 -------
+ include/asm-s390/processor.h       |    7 +++++++
+ include/asm-sh/a.out.h             |    7 -------
+ include/asm-sh/processor_32.h      |    3 +++
+ include/asm-sh/processor_64.h      |    3 +++
+ include/asm-sparc/a.out.h          |    9 ---------
+ include/asm-sparc/processor.h      |    4 ++++
+ include/asm-sparc64/a.out.h        |   12 ------------
+ include/asm-sparc64/processor.h    |   12 ++++++++++++
+ include/asm-sparc64/user.h         |    2 +-
+ include/asm-um/a.out.h             |   11 -----------
+ include/asm-um/processor-generic.h |    9 +++++++++
+ include/asm-x86/a.out.h            |   10 ----------
+ include/asm-x86/processor.h        |    5 +++++
+ include/asm-xtensa/a.out.h         |    5 -----
+ include/asm-xtensa/processor.h     |    2 ++
+ 39 files changed, 121 insertions(+), 160 deletions(-)
 
-diff -puN kernel/exit.c~kernel-remove-fastcall-in-kernel kernel/exit.c
---- a/kernel/exit.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/exit.c
-@@ -458,7 +458,7 @@ struct files_struct *get_files_struct(st
- 	return files;
- }
+diff -puN include/asm-alpha/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-alpha/a.out.h
+--- a/include/asm-alpha/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-alpha/a.out.h
+@@ -98,11 +98,5 @@ struct exec
+ 	set_personality (((BFPM->sh_bang || EX.ah.entry < 0x100000000L \
+ 			   ? ADDR_LIMIT_32BIT : 0) | PER_OSF4))
  
--void fastcall put_files_struct(struct files_struct *files)
-+void put_files_struct(struct files_struct *files)
- {
- 	struct fdtable *fdt;
+-#define STACK_TOP \
+-  (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
+-
+-#define STACK_TOP_MAX	0x00120000000UL
+-
+-#endif
+-
++#endif /* __KERNEL__ */
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-alpha/processor.h~aout-move-stack_top-to-asm-processorh include/asm-alpha/processor.h
+--- a/include/asm-alpha/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-alpha/processor.h
+@@ -20,6 +20,11 @@
+  */
+ #define TASK_SIZE (0x40000000000UL)
  
-@@ -887,7 +887,7 @@ static inline void exit_child_reaper(str
- 	zap_pid_ns_processes(tsk->nsproxy->pid_ns);
- }
++#define STACK_TOP \
++  (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
++
++#define STACK_TOP_MAX	0x00120000000UL
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+  */
+diff -puN include/asm-arm/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-arm/a.out.h
+--- a/include/asm-arm/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-arm/a.out.h
+@@ -27,12 +27,6 @@ struct exec
  
--fastcall NORET_TYPE void do_exit(long code)
-+NORET_TYPE void do_exit(long code)
- {
- 	struct task_struct *tsk = current;
- 	int group_dead;
-diff -puN kernel/fork.c~kernel-remove-fastcall-in-kernel kernel/fork.c
---- a/kernel/fork.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/fork.c
-@@ -390,7 +390,7 @@ struct mm_struct * mm_alloc(void)
-  * is dropped: either by a lazy thread or by
-  * mmput. Free the page directory and the mm.
-  */
--void fastcall __mmdrop(struct mm_struct *mm)
-+void __mmdrop(struct mm_struct *mm)
- {
- 	BUG_ON(mm == &init_mm);
- 	mm_free_pgd(mm);
-diff -puN kernel/irq/chip.c~kernel-remove-fastcall-in-kernel kernel/irq/chip.c
---- a/kernel/irq/chip.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/irq/chip.c
-@@ -286,7 +286,7 @@ static inline void mask_ack_irq(struct i
-  *	Note: The caller is expected to handle the ack, clear, mask and
-  *	unmask issues if necessary.
-  */
--void fastcall
-+void
- handle_simple_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	struct irqaction *action;
-@@ -327,7 +327,7 @@ out_unlock:
-  *	it after the associated handler has acknowledged the device, so the
-  *	interrupt line is back to inactive.
-  */
--void fastcall
-+void
- handle_level_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	unsigned int cpu = smp_processor_id();
-@@ -375,7 +375,7 @@ out_unlock:
-  *	for modern forms of interrupt handlers, which handle the flow
-  *	details in hardware, transparently.
-  */
--void fastcall
-+void
- handle_fasteoi_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	unsigned int cpu = smp_processor_id();
-@@ -434,7 +434,7 @@ out:
-  *	the handler was running. If all pending interrupts are handled, the
-  *	loop is left.
-  */
--void fastcall
-+void
- handle_edge_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	const unsigned int cpu = smp_processor_id();
-@@ -505,7 +505,7 @@ out_unlock:
-  *
-  *	Per CPU interrupts on SMP machines without locking requirements
-  */
--void fastcall
-+void
- handle_percpu_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	irqreturn_t action_ret;
-diff -puN kernel/irq/handle.c~kernel-remove-fastcall-in-kernel kernel/irq/handle.c
---- a/kernel/irq/handle.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/irq/handle.c
-@@ -25,7 +25,7 @@
-  *
-  * Handles spurious and unhandled IRQ's. It also prints a debugmessage.
-  */
--void fastcall
-+void
- handle_bad_irq(unsigned int irq, struct irq_desc *desc)
- {
- 	print_irq_desc(irq, desc);
-@@ -163,7 +163,7 @@ irqreturn_t handle_IRQ_event(unsigned in
-  * This is the original x86 implementation which is used for every
-  * interrupt type.
-  */
--fastcall unsigned int __do_IRQ(unsigned int irq)
-+unsigned int __do_IRQ(unsigned int irq)
- {
- 	struct irq_desc *desc = irq_desc + irq;
- 	struct irqaction *action;
-diff -puN kernel/mutex-debug.c~kernel-remove-fastcall-in-kernel kernel/mutex-debug.c
---- a/kernel/mutex-debug.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/mutex-debug.c
-@@ -107,7 +107,7 @@ void debug_mutex_init(struct mutex *lock
-  * use of the mutex is forbidden. The mutex must not be locked when
-  * this function is called.
-  */
--void fastcall mutex_destroy(struct mutex *lock)
-+void mutex_destroy(struct mutex *lock)
- {
- 	DEBUG_LOCKS_WARN_ON(mutex_is_locked(lock));
- 	lock->magic = NULL;
-diff -puN kernel/mutex.c~kernel-remove-fastcall-in-kernel kernel/mutex.c
---- a/kernel/mutex.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/mutex.c
-@@ -58,7 +58,7 @@ EXPORT_SYMBOL(__mutex_init);
-  * We also put the fastpath first in the kernel image, to make sure the
-  * branch is predicted by the CPU as default-untaken.
-  */
--static void fastcall noinline __sched
-+static void noinline __sched
- __mutex_lock_slowpath(atomic_t *lock_count);
+ #define M_ARM 103
  
- /***
-@@ -82,7 +82,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
-  *
-  * This function is similar to (but not equivalent to) down().
+-#ifdef __KERNEL__
+-#define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
+-			 TASK_SIZE : TASK_SIZE_26)
+-#define STACK_TOP_MAX	TASK_SIZE
+-#endif
+-
+ #ifndef LIBRARY_START_TEXT
+ #define LIBRARY_START_TEXT	(0x00c00000)
+ #endif
+diff -puN include/asm-arm/processor.h~aout-move-stack_top-to-asm-processorh include/asm-arm/processor.h
+--- a/include/asm-arm/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-arm/processor.h
+@@ -22,6 +22,12 @@
+ #include <asm/ptrace.h>
+ #include <asm/types.h>
+ 
++#ifdef __KERNEL__
++#define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
++			 TASK_SIZE : TASK_SIZE_26)
++#define STACK_TOP_MAX	TASK_SIZE
++#endif
++
+ union debug_insn {
+ 	u32	arm;
+ 	u16	thumb;
+diff -puN include/asm-avr32/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-avr32/a.out.h
+--- a/include/asm-avr32/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-avr32/a.out.h
+@@ -17,11 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif
+-
+ #endif /* __ASM_AVR32_A_OUT_H */
+diff -puN include/asm-avr32/processor.h~aout-move-stack_top-to-asm-processorh include/asm-avr32/processor.h
+--- a/include/asm-avr32/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-avr32/processor.h
+@@ -13,6 +13,11 @@
+ 
+ #define TASK_SIZE	0x80000000
+ 
++#ifdef __KERNEL__
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++#endif
++
+ #ifndef __ASSEMBLY__
+ 
+ static inline void *current_text_addr(void)
+diff -puN include/asm-blackfin/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-blackfin/a.out.h
+--- a/include/asm-blackfin/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-blackfin/a.out.h
+@@ -16,10 +16,4 @@ struct exec {
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-
+-#endif
+-
+ #endif				/* __BFIN_A_OUT_H__ */
+diff -puN include/asm-blackfin/processor.h~aout-move-stack_top-to-asm-processorh include/asm-blackfin/processor.h
+--- a/include/asm-blackfin/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-blackfin/processor.h
+@@ -30,6 +30,10 @@ static inline void wrusp(unsigned long u
+ extern unsigned long memory_end;
+ #define TASK_SIZE	(memory_end)
+ 
++#ifdef __KERNEL__
++#define STACK_TOP	TASK_SIZE
++#endif
++
+ #define TASK_UNMAPPED_BASE	0
+ 
+ struct thread_struct {
+diff -puN include/asm-cris/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-cris/a.out.h
+--- a/include/asm-cris/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-cris/a.out.h
+@@ -6,11 +6,6 @@
+  * wants to know about a.out even if there is no interpreter available...
   */
--void inline fastcall __sched mutex_lock(struct mutex *lock)
-+void inline __sched mutex_lock(struct mutex *lock)
+ 
+-/* grabbed from the intel stuff  */   
+-#define STACK_TOP TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-
+ struct exec
  {
- 	might_sleep();
- 	/*
-@@ -95,8 +95,7 @@ void inline fastcall __sched mutex_lock(
- EXPORT_SYMBOL(mutex_lock);
+   unsigned long a_info;		/* Use macros N_MAGIC, etc for access */
+@@ -28,5 +23,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-
+ #endif
+diff -puN include/asm-cris/processor.h~aout-move-stack_top-to-asm-processorh include/asm-cris/processor.h
+--- a/include/asm-cris/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-cris/processor.h
+@@ -17,6 +17,9 @@
+ 
+ struct task_struct;
+ 
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+  */
+diff -puN include/asm-h8300/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-h8300/a.out.h
+--- a/include/asm-h8300/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-h8300/a.out.h
+@@ -17,11 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif
+-
+ #endif /* __H8300_A_OUT_H__ */
+diff -puN include/asm-h8300/processor.h~aout-move-stack_top-to-asm-processorh include/asm-h8300/processor.h
+--- a/include/asm-h8300/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-h8300/processor.h
+@@ -39,6 +39,11 @@ static inline void wrusp(unsigned long u
+  */
+ #define TASK_SIZE	(0xFFFFFFFFUL)
+ 
++#ifdef __KERNEL__
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++#endif
++
+ /*
+  * This decides where the kernel will search for a free chunk of vm
+  * space during mmap's. We won't be using it
+diff -puN include/asm-ia64/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-ia64/a.out.h
+--- a/include/asm-ia64/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-ia64/a.out.h
+@@ -29,7 +29,4 @@ struct exec {
+ #define N_SYMSIZE(x)	0
+ #define N_TXTOFF(x)	0
+ 
+-#ifdef __KERNEL__
+-#include <asm/ustack.h>
+-#endif
+ #endif /* _ASM_IA64_A_OUT_H */
+diff -puN include/asm-m32r/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-m32r/a.out.h
+--- a/include/asm-m32r/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-m32r/a.out.h
+@@ -17,11 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif
+-
+ #endif /* _ASM_M32R_A_OUT_H */
+diff -puN include/asm-m32r/processor.h~aout-move-stack_top-to-asm-processorh include/asm-m32r/processor.h
+--- a/include/asm-m32r/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-m32r/processor.h
+@@ -60,6 +60,11 @@ extern struct cpuinfo_m32r cpu_data[];
+ #define TASK_SIZE  (0x00400000UL)
  #endif
  
--static void fastcall noinline __sched
--__mutex_unlock_slowpath(atomic_t *lock_count);
-+static noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count);
- 
- /***
-  * mutex_unlock - release the mutex
-@@ -109,7 +108,7 @@ __mutex_unlock_slowpath(atomic_t *lock_c
-  *
-  * This function is similar to (but not equivalent to) up().
++#ifdef __KERNEL__
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++#endif
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
   */
--void fastcall __sched mutex_unlock(struct mutex *lock)
-+void __sched mutex_unlock(struct mutex *lock)
- {
- 	/*
- 	 * The unlocking fastpath is the 0->1 transition from 'locked'
-@@ -234,7 +233,7 @@ EXPORT_SYMBOL_GPL(mutex_lock_interruptib
+diff -puN include/asm-m68k/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-m68k/a.out.h
+--- a/include/asm-m68k/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-m68k/a.out.h
+@@ -17,11 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif
+-
+ #endif /* __M68K_A_OUT_H__ */
+diff -puN include/asm-m68k/processor.h~aout-move-stack_top-to-asm-processorh include/asm-m68k/processor.h
+--- a/include/asm-m68k/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-m68k/processor.h
+@@ -41,6 +41,11 @@ static inline void wrusp(unsigned long u
+ #define TASK_SIZE	(0x0E000000UL)
+ #endif
+ 
++#ifdef __KERNEL__
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++#endif
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+  */
+diff -puN include/asm-mips/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-mips/a.out.h
+--- a/include/asm-mips/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-mips/a.out.h
+@@ -32,17 +32,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#ifdef CONFIG_32BIT
+-#define STACK_TOP	TASK_SIZE
+-#endif
+-#ifdef CONFIG_64BIT
+-#define STACK_TOP	\
+-      (test_thread_flag(TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+-#endif
+-#define STACK_TOP_MAX	TASK_SIZE
+-
+-#endif
+-
+ #endif /* _ASM_A_OUT_H */
+diff -puN include/asm-mips/processor.h~aout-move-stack_top-to-asm-processorh include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-mips/processor.h
+@@ -39,6 +39,7 @@ extern unsigned int vced_count, vcei_cou
+  * so don't change it unless you know what you are doing.
+  */
+ #define TASK_SIZE	0x7fff8000UL
++#define STACK_TOP	TASK_SIZE
+ 
  /*
-  * Release the lock, slowpath:
+  * This decides where the kernel will search for a free chunk of vm
+@@ -57,6 +58,8 @@ extern unsigned int vced_count, vcei_cou
   */
--static fastcall inline void
-+static inline void
- __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
-@@ -271,7 +270,7 @@ __mutex_unlock_common_slowpath(atomic_t 
+ #define TASK_SIZE32	0x7fff8000UL
+ #define TASK_SIZE	0x10000000000UL
++#define STACK_TOP	\
++      (test_thread_flag(TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ 
  /*
-  * Release the lock, slowpath:
-  */
--static fastcall noinline void
-+static noinline void
- __mutex_unlock_slowpath(atomic_t *lock_count)
- {
- 	__mutex_unlock_common_slowpath(lock_count, 1);
-@@ -282,10 +281,10 @@ __mutex_unlock_slowpath(atomic_t *lock_c
-  * Here come the less common (and hence less performance-critical) APIs:
-  * mutex_lock_interruptible() and mutex_trylock().
-  */
--static int fastcall noinline __sched
-+static noinline int __sched
- __mutex_lock_killable_slowpath(atomic_t *lock_count);
+  * This decides where the kernel will search for a free chunk of vm
+@@ -69,6 +72,10 @@ extern unsigned int vced_count, vcei_cou
+ 	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
  
--static noinline int fastcall __sched
-+static noinline int __sched
- __mutex_lock_interruptible_slowpath(atomic_t *lock_count);
++#ifdef __KERNEL__
++#define STACK_TOP_MAX	TASK_SIZE
++#endif
++
+ #define NUM_FPU_REGS	32
  
- /***
-@@ -299,7 +298,7 @@ __mutex_lock_interruptible_slowpath(atom
-  *
-  * This function is similar to (but not equivalent to) down_interruptible().
-  */
--int fastcall __sched mutex_lock_interruptible(struct mutex *lock)
-+int __sched mutex_lock_interruptible(struct mutex *lock)
- {
- 	might_sleep();
- 	return __mutex_fastpath_lock_retval
-@@ -308,7 +307,7 @@ int fastcall __sched mutex_lock_interrup
+ typedef __u64 fpureg_t;
+diff -puN include/asm-parisc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-parisc/a.out.h
+--- a/include/asm-parisc/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-parisc/a.out.h
+@@ -17,14 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
  
- EXPORT_SYMBOL(mutex_lock_interruptible);
+-#ifdef __KERNEL__
+-
+-/* XXX: STACK_TOP actually should be STACK_BOTTOM for parisc.
+- * prumpf */
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+-
+-#endif
+-
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-parisc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-parisc/processor.h
+--- a/include/asm-parisc/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-parisc/processor.h
+@@ -47,6 +47,16 @@
+ #define DEFAULT_MAP_BASE	DEFAULT_MAP_BASE32
+ #endif
  
--int fastcall __sched mutex_lock_killable(struct mutex *lock)
-+int __sched mutex_lock_killable(struct mutex *lock)
- {
- 	might_sleep();
- 	return __mutex_fastpath_lock_retval
-@@ -316,7 +315,7 @@ int fastcall __sched mutex_lock_killable
- }
- EXPORT_SYMBOL(mutex_lock_killable);
++#ifdef __KERNEL__
++
++/* XXX: STACK_TOP actually should be STACK_BOTTOM for parisc.
++ * prumpf */
++
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
++
++#endif
++
+ #ifndef __ASSEMBLY__
  
--static void fastcall noinline __sched
-+static noinline void __sched
- __mutex_lock_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
-@@ -324,7 +323,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
- 	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
- }
- 
--static int fastcall noinline __sched
-+static noinline int __sched
- __mutex_lock_killable_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
-@@ -332,7 +331,7 @@ __mutex_lock_killable_slowpath(atomic_t 
- 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, _RET_IP_);
- }
- 
--static noinline int fastcall __sched
-+static noinline int __sched
- __mutex_lock_interruptible_slowpath(atomic_t *lock_count)
- {
- 	struct mutex *lock = container_of(lock_count, struct mutex, count);
-@@ -381,7 +380,7 @@ static inline int __mutex_trylock_slowpa
-  * This function must not be used in interrupt context. The
-  * mutex must be released by the same task that acquired it.
-  */
--int fastcall __sched mutex_trylock(struct mutex *lock)
-+int __sched mutex_trylock(struct mutex *lock)
- {
- 	return __mutex_fastpath_trylock(&lock->count,
- 					__mutex_trylock_slowpath);
-diff -puN kernel/pid.c~kernel-remove-fastcall-in-kernel kernel/pid.c
---- a/kernel/pid.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/pid.c
-@@ -111,7 +111,7 @@ EXPORT_SYMBOL(is_container_init);
- 
- static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
- 
--static fastcall void free_pidmap(struct pid_namespace *pid_ns, int pid)
-+static void free_pidmap(struct pid_namespace *pid_ns, int pid)
- {
- 	struct pidmap *map = pid_ns->pidmap + pid / BITS_PER_PAGE;
- 	int offset = pid & BITS_PER_PAGE_MASK;
-@@ -198,7 +198,7 @@ int next_pidmap(struct pid_namespace *pi
- 	return -1;
- }
- 
--fastcall void put_pid(struct pid *pid)
-+void put_pid(struct pid *pid)
- {
- 	struct pid_namespace *ns;
- 
-@@ -220,7 +220,7 @@ static void delayed_put_pid(struct rcu_h
- 	put_pid(pid);
- }
- 
--fastcall void free_pid(struct pid *pid)
-+void free_pid(struct pid *pid)
- {
- 	/* We can be called with write_lock_irq(&tasklist_lock) held */
- 	int i;
-@@ -286,7 +286,7 @@ out_free:
- 	goto out;
- }
- 
--struct pid * fastcall find_pid_ns(int nr, struct pid_namespace *ns)
-+struct pid *find_pid_ns(int nr, struct pid_namespace *ns)
- {
- 	struct hlist_node *elem;
- 	struct upid *pnr;
-@@ -316,7 +316,7 @@ EXPORT_SYMBOL_GPL(find_pid);
  /*
-  * attach_pid() must be called with the tasklist_lock write-held.
+diff -puN include/asm-powerpc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-powerpc/a.out.h
+--- a/include/asm-powerpc/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-powerpc/a.out.h
+@@ -17,23 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-#ifdef __powerpc64__
+-
+-#define STACK_TOP_USER64 TASK_SIZE_USER64
+-#define STACK_TOP_USER32 TASK_SIZE_USER32
+-
+-#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+-		   STACK_TOP_USER32 : STACK_TOP_USER64)
+-
+-#define STACK_TOP_MAX STACK_TOP_USER64
+-
+-#else /* __powerpc64__ */
+-
+-#define STACK_TOP TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif /* __powerpc64__ */
+-#endif /* __KERNEL__ */
+-
+ #endif /* _ASM_POWERPC_A_OUT_H */
+diff -puN include/asm-powerpc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-powerpc/processor.h
+--- a/include/asm-powerpc/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-powerpc/processor.h
+@@ -113,6 +113,25 @@ extern struct task_struct *last_task_use
+ 		TASK_UNMAPPED_BASE_USER32 : TASK_UNMAPPED_BASE_USER64 )
+ #endif
+ 
++#ifdef __KERNEL__
++#ifdef __powerpc64__
++
++#define STACK_TOP_USER64 TASK_SIZE_USER64
++#define STACK_TOP_USER32 TASK_SIZE_USER32
++
++#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
++		   STACK_TOP_USER32 : STACK_TOP_USER64)
++
++#define STACK_TOP_MAX STACK_TOP_USER64
++
++#else /* __powerpc64__ */
++
++#define STACK_TOP TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++
++#endif /* __powerpc64__ */
++#endif /* __KERNEL__ */
++
+ typedef struct {
+ 	unsigned long seg;
+ } mm_segment_t;
+diff -puN include/asm-s390/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-s390/a.out.h
+--- a/include/asm-s390/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-s390/a.out.h
+@@ -29,11 +29,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
+-
+-#endif
+-
+ #endif /* __A_OUT_GNU_H__ */
+diff -puN include/asm-s390/processor.h~aout-move-stack_top-to-asm-processorh include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-s390/processor.h
+@@ -78,6 +78,13 @@ extern int get_cpu_capability(unsigned i
+ 
+ #endif /* __s390x__ */
+ 
++#ifdef __KERNEL__
++
++#define STACK_TOP		TASK_SIZE
++#define STACK_TOP_MAX		DEFAULT_TASK_SIZE
++
++#endif
++
+ #define HAVE_ARCH_PICK_MMAP_LAYOUT
+ 
+ typedef struct {
+diff -puN include/asm-sh/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sh/a.out.h
+--- a/include/asm-sh/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sh/a.out.h
+@@ -17,11 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif
+-
+ #endif /* __ASM_SH_A_OUT_H */
+diff -puN include/asm-sh/processor_32.h~aout-move-stack_top-to-asm-processorh include/asm-sh/processor_32.h
+--- a/include/asm-sh/processor_32.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sh/processor_32.h
+@@ -50,6 +50,9 @@ extern struct sh_cpuinfo cpu_data[];
   */
--int fastcall attach_pid(struct task_struct *task, enum pid_type type,
-+int attach_pid(struct task_struct *task, enum pid_type type,
- 		struct pid *pid)
- {
- 	struct pid_link *link;
-@@ -328,7 +328,7 @@ int fastcall attach_pid(struct task_stru
- 	return 0;
- }
+ #define TASK_SIZE	0x7c000000UL
  
--void fastcall detach_pid(struct task_struct *task, enum pid_type type)
-+void detach_pid(struct task_struct *task, enum pid_type type)
- {
- 	struct pid_link *link;
- 	struct pid *pid;
-@@ -348,7 +348,7 @@ void fastcall detach_pid(struct task_str
- }
- 
- /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
--void fastcall transfer_pid(struct task_struct *old, struct task_struct *new,
-+void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			   enum pid_type type)
- {
- 	new->pids[type].pid = old->pids[type].pid;
-@@ -356,7 +356,7 @@ void fastcall transfer_pid(struct task_s
- 	old->pids[type].pid = NULL;
- }
- 
--struct task_struct * fastcall pid_task(struct pid *pid, enum pid_type type)
-+struct task_struct *pid_task(struct pid *pid, enum pid_type type)
- {
- 	struct task_struct *result = NULL;
- 	if (pid) {
-@@ -408,7 +408,7 @@ struct pid *get_task_pid(struct task_str
- 	return pid;
- }
- 
--struct task_struct *fastcall get_pid_task(struct pid *pid, enum pid_type type)
-+struct task_struct *get_pid_task(struct pid *pid, enum pid_type type)
- {
- 	struct task_struct *result;
- 	rcu_read_lock();
-diff -puN kernel/sched.c~kernel-remove-fastcall-in-kernel kernel/sched.c
---- a/kernel/sched.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/sched.c
-@@ -1893,13 +1893,13 @@ out:
- 	return success;
- }
- 
--int fastcall wake_up_process(struct task_struct *p)
-+int wake_up_process(struct task_struct *p)
- {
- 	return try_to_wake_up(p, TASK_ALL, 0);
- }
- EXPORT_SYMBOL(wake_up_process);
- 
--int fastcall wake_up_state(struct task_struct *p, unsigned int state)
-+int wake_up_state(struct task_struct *p, unsigned int state)
- {
- 	return try_to_wake_up(p, state, 0);
- }
-@@ -1986,7 +1986,7 @@ void sched_fork(struct task_struct *p, i
-  * that must be done for every newly created context, then puts the task
-  * on the runqueue and wakes it.
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
   */
--void fastcall wake_up_new_task(struct task_struct *p, unsigned long clone_flags)
-+void wake_up_new_task(struct task_struct *p, unsigned long clone_flags)
- {
- 	unsigned long flags;
- 	struct rq *rq;
-@@ -3753,7 +3753,7 @@ void scheduler_tick(void)
- 
- #if defined(CONFIG_PREEMPT) && defined(CONFIG_DEBUG_PREEMPT)
- 
--void fastcall add_preempt_count(int val)
-+void add_preempt_count(int val)
- {
- 	/*
- 	 * Underflow?
-@@ -3769,7 +3769,7 @@ void fastcall add_preempt_count(int val)
- }
- EXPORT_SYMBOL(add_preempt_count);
- 
--void fastcall sub_preempt_count(int val)
-+void sub_preempt_count(int val)
- {
- 	/*
- 	 * Underflow?
-@@ -4067,7 +4067,7 @@ static void __wake_up_common(wait_queue_
-  * @nr_exclusive: how many wake-one or wake-many threads to wake up
-  * @key: is directly passed to the wakeup function
+diff -puN include/asm-sh/processor_64.h~aout-move-stack_top-to-asm-processorh include/asm-sh/processor_64.h
+--- a/include/asm-sh/processor_64.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sh/processor_64.h
+@@ -83,6 +83,9 @@ extern struct sh_cpuinfo cpu_data[];
   */
--void fastcall __wake_up(wait_queue_head_t *q, unsigned int mode,
-+void __wake_up(wait_queue_head_t *q, unsigned int mode,
- 			int nr_exclusive, void *key)
+ #define TASK_SIZE	0x7ffff000UL
+ 
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+  */
+diff -puN include/asm-sparc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sparc/a.out.h
+--- a/include/asm-sparc/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sparc/a.out.h
+@@ -87,13 +87,4 @@ struct relocation_info /* used when head
+ 
+ #define N_RELOCATION_INFO_DECLARED 1
+ 
+-#ifdef __KERNEL__
+-
+-#include <asm/page.h>
+-
+-#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
+-#define STACK_TOP_MAX	STACK_TOP
+-
+-#endif /* __KERNEL__ */
+-
+ #endif /* __SPARC_A_OUT_H__ */
+diff -puN include/asm-sparc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-sparc/processor.h
+--- a/include/asm-sparc/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sparc/processor.h
+@@ -33,6 +33,10 @@
+  * we can make our access_ok test faster
+  */
+ #define TASK_SIZE	PAGE_OFFSET
++#ifdef __KERNEL__
++#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
++#define STACK_TOP_MAX	STACK_TOP
++#endif /* __KERNEL__ */
+ 
+ struct task_struct;
+ 
+diff -puN include/asm-sparc64/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/a.out.h
+--- a/include/asm-sparc64/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sparc64/a.out.h
+@@ -93,18 +93,6 @@ struct relocation_info /* used when head
+ 
+ #define N_RELOCATION_INFO_DECLARED 1
+ 
+-#ifdef __KERNEL__
+-
+-#define STACK_TOP32	((1UL << 32UL) - PAGE_SIZE)
+-#define STACK_TOP64	(0x0000080000000000UL - (1UL << 32UL))
+-
+-#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
+-		   STACK_TOP32 : STACK_TOP64)
+-
+-#define STACK_TOP_MAX STACK_TOP64
+-
+-#endif
+-
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(__SPARC64_A_OUT_H__) */
+diff -puN include/asm-sparc64/processor.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/processor.h
+--- a/include/asm-sparc64/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sparc64/processor.h
+@@ -36,7 +36,19 @@
+ #else
+ #define VPTE_SIZE	(1 << (VA_BITS - PAGE_SHIFT + 3))
+ #endif
++
+ #define TASK_SIZE	((unsigned long)-VPTE_SIZE)
++#ifdef __KERNEL__
++
++#define STACK_TOP32	((1UL << 32UL) - PAGE_SIZE)
++#define STACK_TOP64	(0x0000080000000000UL - (1UL << 32UL))
++
++#define STACK_TOP	(test_thread_flag(TIF_32BIT) ? \
++			 STACK_TOP32 : STACK_TOP64)
++
++#define STACK_TOP_MAX	STACK_TOP64
++
++#endif
+ 
+ #ifndef __ASSEMBLY__
+ 
+diff -puN include/asm-sparc64/user.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/user.h
+--- a/include/asm-sparc64/user.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-sparc64/user.h
+@@ -8,7 +8,7 @@
+ #ifndef _SPARC64_USER_H
+ #define _SPARC64_USER_H
+ 
+-#include <asm/a.out.h>
++#include <linux/a.out.h>
+ struct sunos_regs {
+ 	unsigned int psr, pc, npc, y;
+ 	unsigned int regs[15];
+diff -puN include/asm-um/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-um/a.out.h
+--- a/include/asm-um/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-um/a.out.h
+@@ -8,15 +8,4 @@
+ 
+ #include "asm/arch/a.out.h"
+ 
+-#undef STACK_TOP
+-#undef STACK_TOP_MAX
+-
+-extern unsigned long stacksizelim;
+-
+-#define STACK_ROOM (stacksizelim)
+-
+-#define STACK_TOP (TASK_SIZE - 2 * PAGE_SIZE)
+-
+-#define STACK_TOP_MAX STACK_TOP
+-
+ #endif
+diff -puN include/asm-um/processor-generic.h~aout-move-stack_top-to-asm-processorh include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-um/processor-generic.h
+@@ -94,6 +94,15 @@ static inline void mm_copy_segments(stru
+  */
+ #define TASK_SIZE (CONFIG_TOP_ADDR & PGDIR_MASK)
+ 
++#undef STACK_TOP
++#undef STACK_TOP_MAX
++
++extern unsigned long stacksizelim;
++
++#define STACK_ROOM	(stacksizelim)
++#define STACK_TOP	(TASK_SIZE - 2 * PAGE_SIZE)
++#define STACK_TOP_MAX	STACK_TOP
++
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+  */
+diff -puN include/asm-x86/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-x86/a.out.h
+--- a/include/asm-x86/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-x86/a.out.h
+@@ -17,14 +17,4 @@ struct exec
+ #define N_DRSIZE(a)	((a).a_drsize)
+ #define N_SYMSIZE(a)	((a).a_syms)
+ 
+-#ifdef __KERNEL__
+-# include <linux/thread_info.h>
+-# define STACK_TOP	TASK_SIZE
+-# ifdef CONFIG_X86_32
+-#  define STACK_TOP_MAX	STACK_TOP
+-# else
+-#  define STACK_TOP_MAX	TASK_SIZE64
+-# endif
+-#endif
+-
+ #endif /* _ASM_X86_A_OUT_H */
+diff -puN include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh include/asm-x86/processor.h
+--- a/include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-x86/processor.h
+@@ -719,6 +719,8 @@ static inline void prefetchw(const void 
+  * User space process size: 3GB (default).
+  */
+ #define TASK_SIZE	(PAGE_OFFSET)
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
+ #define INIT_THREAD  {							\
+ 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
+@@ -802,6 +804,9 @@ extern unsigned long thread_saved_pc(str
+ #define TASK_SIZE_OF(child) 	((test_tsk_thread_flag(child, TIF_IA32)) ? \
+ 				  IA32_PAGE_OFFSET : TASK_SIZE64)
+ 
++#define STACK_TOP		TASK_SIZE
++#define STACK_TOP_MAX		TASK_SIZE64
++
+ #define INIT_THREAD  { \
+ 	.sp0 = (unsigned long)&init_stack + sizeof(init_stack) \
+ }
+diff -puN include/asm-xtensa/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-xtensa/a.out.h
+--- a/include/asm-xtensa/a.out.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-xtensa/a.out.h
+@@ -14,11 +14,6 @@
+ #ifndef _XTENSA_A_OUT_H
+ #define _XTENSA_A_OUT_H
+ 
+-/* Note: the kernel needs the a.out definitions, even if only ELF is used. */
+-
+-#define STACK_TOP	TASK_SIZE
+-#define STACK_TOP_MAX	STACK_TOP
+-
+ struct exec
  {
- 	unsigned long flags;
-@@ -4081,7 +4081,7 @@ EXPORT_SYMBOL(__wake_up);
+   unsigned long a_info;
+diff -puN include/asm-xtensa/processor.h~aout-move-stack_top-to-asm-processorh include/asm-xtensa/processor.h
+--- a/include/asm-xtensa/processor.h~aout-move-stack_top-to-asm-processorh
++++ a/include/asm-xtensa/processor.h
+@@ -34,6 +34,8 @@
+  */
+ 
+ #define TASK_SIZE	__XTENSA_UL_CONST(0x40000000)
++#define STACK_TOP	TASK_SIZE
++#define STACK_TOP_MAX	STACK_TOP
+ 
  /*
-  * Same as __wake_up but called with the spinlock in wait_queue_head_t held.
-  */
--void fastcall __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
-+void __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
- {
- 	__wake_up_common(q, mode, 1, 0, NULL);
- }
-@@ -4099,7 +4099,7 @@ void fastcall __wake_up_locked(wait_queu
-  *
-  * On UP it can prevent extra preemption.
-  */
--void fastcall
-+void
- __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr_exclusive)
- {
- 	unsigned long flags;
-diff -puN kernel/softirq.c~kernel-remove-fastcall-in-kernel kernel/softirq.c
---- a/kernel/softirq.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/softirq.c
-@@ -320,7 +320,7 @@ void irq_exit(void)
- /*
-  * This function must run with irqs disabled!
-  */
--inline fastcall void raise_softirq_irqoff(unsigned int nr)
-+inline void raise_softirq_irqoff(unsigned int nr)
- {
- 	__raise_softirq_irqoff(nr);
- 
-@@ -337,7 +337,7 @@ inline fastcall void raise_softirq_irqof
- 		wakeup_softirqd();
- }
- 
--void fastcall raise_softirq(unsigned int nr)
-+void raise_softirq(unsigned int nr)
- {
- 	unsigned long flags;
- 
-@@ -363,7 +363,7 @@ struct tasklet_head
- static DEFINE_PER_CPU(struct tasklet_head, tasklet_vec) = { NULL };
- static DEFINE_PER_CPU(struct tasklet_head, tasklet_hi_vec) = { NULL };
- 
--void fastcall __tasklet_schedule(struct tasklet_struct *t)
-+void __tasklet_schedule(struct tasklet_struct *t)
- {
- 	unsigned long flags;
- 
-@@ -376,7 +376,7 @@ void fastcall __tasklet_schedule(struct 
- 
- EXPORT_SYMBOL(__tasklet_schedule);
- 
--void fastcall __tasklet_hi_schedule(struct tasklet_struct *t)
-+void __tasklet_hi_schedule(struct tasklet_struct *t)
- {
- 	unsigned long flags;
- 
-diff -puN kernel/timer.c~kernel-remove-fastcall-in-kernel kernel/timer.c
---- a/kernel/timer.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/timer.c
-@@ -327,7 +327,7 @@ static void timer_stats_account_timer(st
-  * init_timer() must be done to a timer prior calling *any* of the
-  * other timer functions.
-  */
--void fastcall init_timer(struct timer_list *timer)
-+void init_timer(struct timer_list *timer)
- {
- 	timer->entry.next = NULL;
- 	timer->base = __raw_get_cpu_var(tvec_bases);
-@@ -339,7 +339,7 @@ void fastcall init_timer(struct timer_li
- }
- EXPORT_SYMBOL(init_timer);
- 
--void fastcall init_timer_deferrable(struct timer_list *timer)
-+void init_timer_deferrable(struct timer_list *timer)
- {
- 	init_timer(timer);
- 	timer_set_deferrable(timer);
-@@ -1042,7 +1042,7 @@ static void process_timeout(unsigned lon
-  *
-  * In all cases the return value is guaranteed to be non-negative.
-  */
--fastcall signed long __sched schedule_timeout(signed long timeout)
-+signed long __sched schedule_timeout(signed long timeout)
- {
- 	struct timer_list timer;
- 	unsigned long expire;
-diff -puN kernel/wait.c~kernel-remove-fastcall-in-kernel kernel/wait.c
---- a/kernel/wait.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/wait.c
-@@ -18,7 +18,7 @@ void init_waitqueue_head(wait_queue_head
- 
- EXPORT_SYMBOL(init_waitqueue_head);
- 
--void fastcall add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
-+void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
- {
- 	unsigned long flags;
- 
-@@ -29,7 +29,7 @@ void fastcall add_wait_queue(wait_queue_
- }
- EXPORT_SYMBOL(add_wait_queue);
- 
--void fastcall add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
-+void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
- {
- 	unsigned long flags;
- 
-@@ -40,7 +40,7 @@ void fastcall add_wait_queue_exclusive(w
- }
- EXPORT_SYMBOL(add_wait_queue_exclusive);
- 
--void fastcall remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
-+void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
- {
- 	unsigned long flags;
- 
-@@ -63,7 +63,7 @@ EXPORT_SYMBOL(remove_wait_queue);
-  * stops them from bleeding out - it would still allow subsequent
-  * loads to move into the critical region).
-  */
--void fastcall
-+void
- prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state)
- {
- 	unsigned long flags;
-@@ -82,7 +82,7 @@ prepare_to_wait(wait_queue_head_t *q, wa
- }
- EXPORT_SYMBOL(prepare_to_wait);
- 
--void fastcall
-+void
- prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state)
- {
- 	unsigned long flags;
-@@ -101,7 +101,7 @@ prepare_to_wait_exclusive(wait_queue_hea
- }
- EXPORT_SYMBOL(prepare_to_wait_exclusive);
- 
--void fastcall finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
-+void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
- {
- 	unsigned long flags;
- 
-@@ -157,7 +157,7 @@ EXPORT_SYMBOL(wake_bit_function);
-  * waiting, the actions of __wait_on_bit() and __wait_on_bit_lock() are
-  * permitted return codes. Nonzero return codes halt waiting and return.
-  */
--int __sched fastcall
-+int __sched
- __wait_on_bit(wait_queue_head_t *wq, struct wait_bit_queue *q,
- 			int (*action)(void *), unsigned mode)
- {
-@@ -173,7 +173,7 @@ __wait_on_bit(wait_queue_head_t *wq, str
- }
- EXPORT_SYMBOL(__wait_on_bit);
- 
--int __sched fastcall out_of_line_wait_on_bit(void *word, int bit,
-+int __sched out_of_line_wait_on_bit(void *word, int bit,
- 					int (*action)(void *), unsigned mode)
- {
- 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
-@@ -183,7 +183,7 @@ int __sched fastcall out_of_line_wait_on
- }
- EXPORT_SYMBOL(out_of_line_wait_on_bit);
- 
--int __sched fastcall
-+int __sched
- __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
- 			int (*action)(void *), unsigned mode)
- {
-@@ -201,7 +201,7 @@ __wait_on_bit_lock(wait_queue_head_t *wq
- }
- EXPORT_SYMBOL(__wait_on_bit_lock);
- 
--int __sched fastcall out_of_line_wait_on_bit_lock(void *word, int bit,
-+int __sched out_of_line_wait_on_bit_lock(void *word, int bit,
- 					int (*action)(void *), unsigned mode)
- {
- 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
-@@ -211,7 +211,7 @@ int __sched fastcall out_of_line_wait_on
- }
- EXPORT_SYMBOL(out_of_line_wait_on_bit_lock);
- 
--void fastcall __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
-+void __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
- {
- 	struct wait_bit_key key = __WAIT_BIT_KEY_INITIALIZER(word, bit);
- 	if (waitqueue_active(wq))
-@@ -236,13 +236,13 @@ EXPORT_SYMBOL(__wake_up_bit);
-  * may need to use a less regular barrier, such fs/inode.c's smp_mb(),
-  * because spin_unlock() does not guarantee a memory barrier.
-  */
--void fastcall wake_up_bit(void *word, int bit)
-+void wake_up_bit(void *word, int bit)
- {
- 	__wake_up_bit(bit_waitqueue(word, bit), word, bit);
- }
- EXPORT_SYMBOL(wake_up_bit);
- 
--fastcall wait_queue_head_t *bit_waitqueue(void *word, int bit)
-+wait_queue_head_t *bit_waitqueue(void *word, int bit)
- {
- 	const int shift = BITS_PER_LONG == 32 ? 5 : 6;
- 	const struct zone *zone = page_zone(virt_to_page(word));
-diff -puN kernel/workqueue.c~kernel-remove-fastcall-in-kernel kernel/workqueue.c
---- a/kernel/workqueue.c~kernel-remove-fastcall-in-kernel
-+++ a/kernel/workqueue.c
-@@ -161,7 +161,7 @@ static void __queue_work(struct cpu_work
-  * We queue the work to the CPU it was submitted, but there is no
-  * guarantee that it will be processed by that CPU.
-  */
--int fastcall queue_work(struct workqueue_struct *wq, struct work_struct *work)
-+int queue_work(struct workqueue_struct *wq, struct work_struct *work)
- {
- 	int ret = 0;
- 
-@@ -192,7 +192,7 @@ void delayed_work_timer_fn(unsigned long
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-  */
--int fastcall queue_delayed_work(struct workqueue_struct *wq,
-+int queue_delayed_work(struct workqueue_struct *wq,
- 			struct delayed_work *dwork, unsigned long delay)
- {
- 	timer_stats_timer_set_start_info(&dwork->timer);
-@@ -388,7 +388,7 @@ static int flush_cpu_workqueue(struct cp
-  * This function used to run the workqueues itself.  Now we just wait for the
-  * helper threads to do it.
-  */
--void fastcall flush_workqueue(struct workqueue_struct *wq)
-+void flush_workqueue(struct workqueue_struct *wq)
- {
- 	const cpumask_t *cpu_map = wq_cpu_map(wq);
- 	int cpu;
-@@ -546,7 +546,7 @@ static struct workqueue_struct *keventd_
-  *
-  * This puts a job in the kernel-global workqueue.
-  */
--int fastcall schedule_work(struct work_struct *work)
-+int schedule_work(struct work_struct *work)
- {
- 	return queue_work(keventd_wq, work);
- }
-@@ -560,7 +560,7 @@ EXPORT_SYMBOL(schedule_work);
-  * After waiting for a given time this puts a job in the kernel-global
-  * workqueue.
-  */
--int fastcall schedule_delayed_work(struct delayed_work *dwork,
-+int schedule_delayed_work(struct delayed_work *dwork,
- 					unsigned long delay)
- {
- 	timer_stats_timer_set_start_info(&dwork->timer);
+  * General exception cause assigned to debug exceptions. Debug exceptions go
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-git-x86.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
