@@ -1,650 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-add-dma-support.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:37 -0800
-Message-ID: <200802082018.m18KIInY010912@imap1.linux-foundation.org>
+Subject: - ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:16:23 -0800
+Message-ID: <200802082016.m18KG4C9010675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758670AbYBHVEP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:15 -0500
+	by vger.kernel.org with ESMTP id S1757747AbYBHVEC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: coldwell@redhat.com, hskinnemoen@atmel.com, linux@bohmer.net, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: add DMA support
+     ext3: replace all adds to little endians variables with le*_add_cpu
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-add-dma-support.patch
+     ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: add DMA support
-From: Chip Coldwell <coldwell@redhat.com>
+Subject: ext3: replace all adds to little endians variables with le*_add_cpu
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-This patch is based on the DMA-patch by Chip Coldwell for the AT91/AT32 serial
-USARTS, with some tweaks to make it apply neatly on top of the other patches
-in this series.
+replace all:
+	little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+				expression_in_cpu_byteorder);
+with:
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+sparse didn't generate any new warning with this patch
 
-The RX and TX code has been moved to a tasklet and reworked a bit.  Instead of
-depending on the ENDRX and TIMEOUT bits in CSR, we simply grab as much data as
-we can from the DMA buffers.  I think this closes a race where the ENDRX bit
-is set after we read CSR but before we read RPR, although I haven't confirmed
-this.
-
-Similarly, the two TX handlers (ENDTX and TXBUFE) have been combined into one.
- Since the current code only uses a single TX buffer, there's no point in
-handling those interrupts separately.
-
-This also fixes a DMA sync bug in the original patch.
-
-[linux@bohmer.net: rebased onto irq-splitup patch]
-[hskinnemoen@atmel.com: moved to tasklet, fixed dma bug, misc cleanups]
-[hskinnemoen@atmel.com: atmel_serial dma: Misc fixes and cleanups]
-Signed-off-by: Remy Bohmer <linux@bohmer.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig        |   15 +
- drivers/serial/atmel_serial.c |  392 ++++++++++++++++++++++++++++++--
- 2 files changed, 383 insertions(+), 24 deletions(-)
+ fs/ext3/balloc.c |    7 ++-----
+ fs/ext3/ialloc.c |   12 ++++--------
+ fs/ext3/resize.c |   12 ++++--------
+ fs/ext3/super.c  |    2 +-
+ fs/ext3/xattr.c  |    6 ++----
+ 5 files changed, 13 insertions(+), 26 deletions(-)
 
-diff -puN drivers/serial/Kconfig~atmel_serial-add-dma-support drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~atmel_serial-add-dma-support
-+++ a/drivers/serial/Kconfig
-@@ -380,6 +380,21 @@ config SERIAL_ATMEL_CONSOLE
- 	  console is the device which receives all kernel messages and
- 	  warnings and which allows logins in single user mode).
+diff -puN fs/ext3/balloc.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu
++++ a/fs/ext3/balloc.c
+@@ -630,9 +630,7 @@ do_more:
+ 	jbd_unlock_bh_state(bitmap_bh);
  
-+config SERIAL_ATMEL_PDC
-+	bool "Support DMA transfers on AT91 / AT32 serial port"
-+	depends on SERIAL_ATMEL
-+	default y
-+	help
-+	  Say Y here if you wish to use the PDC to do DMA transfers to
-+	  and from the Atmel AT91 / AT32 serial port. In order to
-+	  actually use DMA transfers, make sure that the use_dma_tx
-+	  and use_dma_rx members in the atmel_uart_data struct is set
-+	  appropriately for each port.
-+
-+	  Note that break and error handling currently doesn't work
-+	  properly when DMA is enabled. Make sure that ports where
-+	  this matters don't use DMA.
-+
- config SERIAL_ATMEL_TTYAT
- 	bool "Install as device ttyATn instead of ttySn"
- 	depends on SERIAL_ATMEL=y
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-add-dma-support drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-add-dma-support
-+++ a/drivers/serial/atmel_serial.c
-@@ -7,6 +7,8 @@
-  *  Based on drivers/char/serial_sa1100.c, by Deep Blue Solutions Ltd.
-  *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
-  *
-+ *  DMA support added by Chip Coldwell.
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -33,6 +35,7 @@
- #include <linux/sysrq.h>
- #include <linux/tty_flip.h>
- #include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
- #include <linux/atmel_pdc.h>
- #include <linux/atmel_serial.h>
+ 	spin_lock(sb_bgl_lock(sbi, block_group));
+-	desc->bg_free_blocks_count =
+-		cpu_to_le16(le16_to_cpu(desc->bg_free_blocks_count) +
+-			group_freed);
++	le16_add_cpu(&desc->bg_free_blocks_count, group_freed);
+ 	spin_unlock(sb_bgl_lock(sbi, block_group));
+ 	percpu_counter_add(&sbi->s_freeblocks_counter, count);
  
-@@ -46,6 +49,10 @@
- #include <asm/arch/gpio.h>
- #endif
+@@ -1696,8 +1694,7 @@ allocated:
+ 			ret_block, goal_hits, goal_attempts);
  
-+#define PDC_BUFFER_SIZE		512
-+/* Revisit: We should calculate this based on the actual port settings */
-+#define PDC_RX_TIMEOUT		(3 * 10)		/* 3 bytes */
-+
- #if defined(CONFIG_SERIAL_ATMEL_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
- #define SUPPORT_SYSRQ
- #endif
-@@ -103,6 +110,13 @@
- static int (*atmel_open_hook)(struct uart_port *);
- static void (*atmel_close_hook)(struct uart_port *);
+ 	spin_lock(sb_bgl_lock(sbi, group_no));
+-	gdp->bg_free_blocks_count =
+-			cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count)-num);
++	le16_add_cpu(&gdp->bg_free_blocks_count, -num);
+ 	spin_unlock(sb_bgl_lock(sbi, group_no));
+ 	percpu_counter_sub(&sbi->s_freeblocks_counter, num);
  
-+struct atmel_dma_buffer {
-+	unsigned char	*buf;
-+	dma_addr_t	dma_addr;
-+	unsigned int	dma_size;
-+	unsigned int	ofs;
-+};
-+
- struct atmel_uart_char {
- 	u16		status;
- 	u16		ch;
-@@ -119,6 +133,13 @@ struct atmel_uart_port {
- 	unsigned short		suspended;	/* is port suspended? */
- 	int			break_active;	/* break being received */
+diff -puN fs/ext3/ialloc.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu fs/ext3/ialloc.c
+--- a/fs/ext3/ialloc.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu
++++ a/fs/ext3/ialloc.c
+@@ -164,11 +164,9 @@ void ext3_free_inode (handle_t *handle, 
  
-+	short			use_dma_rx;	/* enable PDC receiver */
-+	short			pdc_rx_idx;	/* current PDC RX buffer */
-+	struct atmel_dma_buffer	pdc_rx[2];	/* PDC receier */
-+
-+	short			use_dma_tx;	/* enable PDC transmitter */
-+	struct atmel_dma_buffer	pdc_tx;		/* PDC transmitter */
-+
- 	struct tasklet_struct	tasklet;
- 	unsigned int		irq_status;
- 	unsigned int		irq_status_prev;
-@@ -132,6 +153,32 @@ static struct atmel_uart_port atmel_port
- static struct console atmel_console;
- #endif
- 
-+#ifdef CONFIG_SERIAL_ATMEL_PDC
-+static bool atmel_use_dma_rx(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
-+	return atmel_port->use_dma_rx;
-+}
-+
-+static bool atmel_use_dma_tx(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
-+	return atmel_port->use_dma_tx;
-+}
-+#else
-+static bool atmel_use_dma_rx(struct uart_port *port)
-+{
-+	return false;
-+}
-+
-+static bool atmel_use_dma_tx(struct uart_port *port)
-+{
-+	return false;
-+}
-+#endif
-+
- /*
-  * Return TIOCSER_TEMT when transmitter FIFO and Shift register is empty.
-  */
-@@ -213,7 +260,12 @@ static u_int atmel_get_mctrl(struct uart
-  */
- static void atmel_stop_tx(struct uart_port *port)
- {
--	UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+	if (atmel_use_dma_tx(port)) {
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+		UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+	} else
-+		UART_PUT_IDR(port, ATMEL_US_TXRDY);
- }
- 
- /*
-@@ -221,7 +273,17 @@ static void atmel_stop_tx(struct uart_po
-  */
- static void atmel_start_tx(struct uart_port *port)
- {
--	UART_PUT_IER(port, ATMEL_US_TXRDY);
-+	if (atmel_use_dma_tx(port)) {
-+		if (UART_GET_PTSR(port) & ATMEL_PDC_TXTEN)
-+			/* The transmitter is already running.  Yes, we
-+			   really need this.*/
-+			return;
-+
-+		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+		/* re-enable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
-+	} else
-+		UART_PUT_IER(port, ATMEL_US_TXRDY);
- }
- 
- /*
-@@ -229,7 +291,12 @@ static void atmel_start_tx(struct uart_p
-  */
- static void atmel_stop_rx(struct uart_port *port)
- {
--	UART_PUT_IDR(port, ATMEL_US_RXRDY);
-+	if (atmel_use_dma_rx(port)) {
-+		/* disable PDC receive */
-+		UART_PUT_PTCR(port, ATMEL_PDC_RXTDIS);
-+		UART_PUT_IDR(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+	} else
-+		UART_PUT_IDR(port, ATMEL_US_RXRDY);
- }
- 
- /*
-@@ -278,6 +345,27 @@ atmel_buffer_rx_char(struct uart_port *p
- }
- 
- /*
-+ * Deal with parity, framing and overrun errors.
-+ */
-+static void atmel_pdc_rxerr(struct uart_port *port, unsigned int status)
-+{
-+	/* clear error */
-+	UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+
-+	if (status & ATMEL_US_RXBRK) {
-+		/* ignore side-effect */
-+		status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
-+		port->icount.brk++;
-+	}
-+	if (status & ATMEL_US_PARE)
-+		port->icount.parity++;
-+	if (status & ATMEL_US_FRAME)
-+		port->icount.frame++;
-+	if (status & ATMEL_US_OVRE)
-+		port->icount.overrun++;
-+}
-+
-+/*
-  * Characters received (called from interrupt handler)
-  */
- static void atmel_rx_chars(struct uart_port *port)
-@@ -364,6 +452,25 @@ atmel_handle_receive(struct uart_port *p
- {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 
-+	if (atmel_use_dma_rx(port)) {
-+		/*
-+		 * PDC receive. Just schedule the tasklet and let it
-+		 * figure out the details.
-+		 *
-+		 * TODO: We're not handling error flags correctly at
-+		 * the moment.
-+		 */
-+		if (pending & (ATMEL_US_ENDRX | ATMEL_US_TIMEOUT)) {
-+			UART_PUT_IDR(port, (ATMEL_US_ENDRX
-+						| ATMEL_US_TIMEOUT));
-+			tasklet_schedule(&atmel_port->tasklet);
-+		}
-+
-+		if (pending & (ATMEL_US_RXBRK | ATMEL_US_OVRE |
-+				ATMEL_US_FRAME | ATMEL_US_PARE))
-+			atmel_pdc_rxerr(port, pending);
-+	}
-+
- 	/* Interrupt receive */
- 	if (pending & ATMEL_US_RXRDY)
- 		atmel_rx_chars(port);
-@@ -386,10 +493,18 @@ atmel_handle_transmit(struct uart_port *
- {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 
--	/* Interrupt transmit */
--	if (pending & ATMEL_US_TXRDY) {
--		UART_PUT_IDR(port, ATMEL_US_TXRDY);
--		tasklet_schedule(&atmel_port->tasklet);
-+	if (atmel_use_dma_tx(port)) {
-+		/* PDC transmit */
-+		if (pending & (ATMEL_US_ENDTX | ATMEL_US_TXBUFE)) {
-+			UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+			tasklet_schedule(&atmel_port->tasklet);
-+		}
-+	} else {
-+		/* Interrupt transmit */
-+		if (pending & ATMEL_US_TXRDY) {
-+			UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+			tasklet_schedule(&atmel_port->tasklet);
-+		}
+ 		if (gdp) {
+ 			spin_lock(sb_bgl_lock(sbi, block_group));
+-			gdp->bg_free_inodes_count = cpu_to_le16(
+-				le16_to_cpu(gdp->bg_free_inodes_count) + 1);
++			le16_add_cpu(&gdp->bg_free_inodes_count, 1);
+ 			if (is_directory)
+-				gdp->bg_used_dirs_count = cpu_to_le16(
+-				  le16_to_cpu(gdp->bg_used_dirs_count) - 1);
++				le16_add_cpu(&gdp->bg_used_dirs_count, -1);
+ 			spin_unlock(sb_bgl_lock(sbi, block_group));
+ 			percpu_counter_inc(&sbi->s_freeinodes_counter);
+ 			if (is_directory)
+@@ -527,11 +525,9 @@ got:
+ 	err = ext3_journal_get_write_access(handle, bh2);
+ 	if (err) goto fail;
+ 	spin_lock(sb_bgl_lock(sbi, group));
+-	gdp->bg_free_inodes_count =
+-		cpu_to_le16(le16_to_cpu(gdp->bg_free_inodes_count) - 1);
++	le16_add_cpu(&gdp->bg_free_inodes_count, -1);
+ 	if (S_ISDIR(mode)) {
+-		gdp->bg_used_dirs_count =
+-			cpu_to_le16(le16_to_cpu(gdp->bg_used_dirs_count) + 1);
++		le16_add_cpu(&gdp->bg_used_dirs_count, 1);
  	}
- }
+ 	spin_unlock(sb_bgl_lock(sbi, group));
+ 	BUFFER_TRACE(bh2, "call ext3_journal_dirty_metadata");
+diff -puN fs/ext3/resize.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu
++++ a/fs/ext3/resize.c
+@@ -518,8 +518,7 @@ static int add_new_gdb(handle_t *handle,
+ 	EXT3_SB(sb)->s_gdb_count++;
+ 	kfree(o_group_desc);
  
-@@ -417,20 +532,63 @@ static irqreturn_t atmel_interrupt(int i
- 	struct uart_port *port = dev_id;
- 	unsigned int status, pending, pass_counter = 0;
- 
--	status = UART_GET_CSR(port);
--	pending = status & UART_GET_IMR(port);
--	while (pending) {
-+	do {
-+		status = UART_GET_CSR(port);
-+		pending = status & UART_GET_IMR(port);
-+		if (!pending)
-+			break;
-+
- 		atmel_handle_receive(port, pending);
- 		atmel_handle_status(port, pending, status);
- 		atmel_handle_transmit(port, pending);
-+	} while (pass_counter++ < ATMEL_ISR_PASS_LIMIT);
- 
--		if (pass_counter++ > ATMEL_ISR_PASS_LIMIT)
--			break;
-+	return IRQ_HANDLED;
-+}
- 
--		status = UART_GET_CSR(port);
--		pending = status & UART_GET_IMR(port);
-+/*
-+ * Called from tasklet with ENDTX and TXBUFE interrupts disabled.
-+ */
-+static void atmel_tx_dma(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *xmit = &port->info->xmit;
-+	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+	int count;
-+
-+	xmit->tail += pdc->ofs;
-+	xmit->tail &= UART_XMIT_SIZE - 1;
-+
-+	port->icount.tx += pdc->ofs;
-+	pdc->ofs = 0;
-+
-+	if (!uart_circ_empty(xmit)) {
-+		/* more to transmit - setup next transfer */
-+
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+		dma_sync_single_for_device(port->dev,
-+					   pdc->dma_addr,
-+					   pdc->dma_size,
-+					   DMA_TO_DEVICE);
-+
-+		count = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
-+		pdc->ofs = count;
-+
-+		UART_PUT_TPR(port, pdc->dma_addr + xmit->tail);
-+		UART_PUT_TCR(port, count);
-+		/* re-enable PDC transmit and interrupts */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
-+		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
-+	} else {
-+		/* nothing left to transmit - disable the transmitter */
-+
-+		/* disable PDC transmit */
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
- 	}
--	return IRQ_HANDLED;
-+
-+	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
-+		uart_write_wakeup(port);
- }
- 
- static void atmel_rx_from_ring(struct uart_port *port)
-@@ -501,6 +659,82 @@ static void atmel_rx_from_ring(struct ua
- 	spin_lock(&port->lock);
- }
- 
-+static void atmel_rx_from_dma(struct uart_port *port)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct tty_struct *tty = port->info->tty;
-+	struct atmel_dma_buffer *pdc;
-+	int rx_idx = atmel_port->pdc_rx_idx;
-+	unsigned int head;
-+	unsigned int tail;
-+	unsigned int count;
-+
-+	do {
-+		/* Reset the UART timeout early so that we don't miss one */
-+		UART_PUT_CR(port, ATMEL_US_STTTO);
-+
-+		pdc = &atmel_port->pdc_rx[rx_idx];
-+		head = UART_GET_RPR(port) - pdc->dma_addr;
-+		tail = pdc->ofs;
-+
-+		/* If the PDC has switched buffers, RPR won't contain
-+		 * any address within the current buffer. Since head
-+		 * is unsigned, we just need a one-way comparison to
-+		 * find out.
-+		 *
-+		 * In this case, we just need to consume the entire
-+		 * buffer and resubmit it for DMA. This will clear the
-+		 * ENDRX bit as well, so that we can safely re-enable
-+		 * all interrupts below.
-+		 */
-+		head = min(head, pdc->dma_size);
-+
-+		if (likely(head != tail)) {
-+			dma_sync_single_for_cpu(port->dev, pdc->dma_addr,
-+					pdc->dma_size, DMA_FROM_DEVICE);
-+
-+			/*
-+			 * head will only wrap around when we recycle
-+			 * the DMA buffer, and when that happens, we
-+			 * explicitly set tail to 0. So head will
-+			 * always be greater than tail.
-+			 */
-+			count = head - tail;
-+
-+			tty_insert_flip_string(tty, pdc->buf + pdc->ofs, count);
-+
-+			dma_sync_single_for_device(port->dev, pdc->dma_addr,
-+					pdc->dma_size, DMA_FROM_DEVICE);
-+
-+			port->icount.rx += count;
-+			pdc->ofs = head;
-+		}
-+
-+		/*
-+		 * If the current buffer is full, we need to check if
-+		 * the next one contains any additional data.
-+		 */
-+		if (head >= pdc->dma_size) {
-+			pdc->ofs = 0;
-+			UART_PUT_RNPR(port, pdc->dma_addr);
-+			UART_PUT_RNCR(port, pdc->dma_size);
-+
-+			rx_idx = !rx_idx;
-+			atmel_port->pdc_rx_idx = rx_idx;
-+		}
-+	} while (head >= pdc->dma_size);
-+
-+	/*
-+	 * Drop the lock here since it might end up calling
-+	 * uart_start(), which takes the lock.
-+	 */
-+	spin_unlock(&port->lock);
-+	tty_flip_buffer_push(tty);
-+	spin_lock(&port->lock);
-+
-+	UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+}
-+
- /*
-  * tasklet handling tty stuff outside the interrupt handler.
-  */
-@@ -514,7 +748,10 @@ static void atmel_tasklet_func(unsigned 
- 	/* The interrupt handler does not take the lock */
- 	spin_lock(&port->lock);
- 
--	atmel_tx_chars(port);
-+	if (atmel_use_dma_tx(port))
-+		atmel_tx_dma(port);
-+	else
-+		atmel_tx_chars(port);
- 
- 	status = atmel_port->irq_status;
- 	status_change = status ^ atmel_port->irq_status_prev;
-@@ -536,7 +773,10 @@ static void atmel_tasklet_func(unsigned 
- 		atmel_port->irq_status_prev = status;
- 	}
- 
--	atmel_rx_from_ring(port);
-+	if (atmel_use_dma_rx(port))
-+		atmel_rx_from_dma(port);
-+	else
-+		atmel_rx_from_ring(port);
- 
- 	spin_unlock(&port->lock);
- }
-@@ -546,6 +786,7 @@ static void atmel_tasklet_func(unsigned 
-  */
- static int atmel_startup(struct uart_port *port)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 	int retval;
- 
- 	/*
-@@ -566,6 +807,56 @@ static int atmel_startup(struct uart_por
- 	}
- 
- 	/*
-+	 * Initialize DMA (if necessary)
-+	 */
-+	if (atmel_use_dma_rx(port)) {
-+		int i;
-+
-+		for (i = 0; i < 2; i++) {
-+			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
-+
-+			pdc->buf = kmalloc(PDC_BUFFER_SIZE, GFP_KERNEL);
-+			if (pdc->buf == NULL) {
-+				if (i != 0) {
-+					dma_unmap_single(port->dev,
-+						atmel_port->pdc_rx[0].dma_addr,
-+						PDC_BUFFER_SIZE,
-+						DMA_FROM_DEVICE);
-+					kfree(atmel_port->pdc_rx[0].buf);
-+				}
-+				free_irq(port->irq, port);
-+				return -ENOMEM;
-+			}
-+			pdc->dma_addr = dma_map_single(port->dev,
-+						       pdc->buf,
-+						       PDC_BUFFER_SIZE,
-+						       DMA_FROM_DEVICE);
-+			pdc->dma_size = PDC_BUFFER_SIZE;
-+			pdc->ofs = 0;
-+		}
-+
-+		atmel_port->pdc_rx_idx = 0;
-+
-+		UART_PUT_RPR(port, atmel_port->pdc_rx[0].dma_addr);
-+		UART_PUT_RCR(port, PDC_BUFFER_SIZE);
-+
-+		UART_PUT_RNPR(port, atmel_port->pdc_rx[1].dma_addr);
-+		UART_PUT_RNCR(port, PDC_BUFFER_SIZE);
-+	}
-+	if (atmel_use_dma_tx(port)) {
-+		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+		struct circ_buf *xmit = &port->info->xmit;
-+
-+		pdc->buf = xmit->buf;
-+		pdc->dma_addr = dma_map_single(port->dev,
-+					       pdc->buf,
-+					       UART_XMIT_SIZE,
-+					       DMA_TO_DEVICE);
-+		pdc->dma_size = UART_XMIT_SIZE;
-+		pdc->ofs = 0;
-+	}
-+
-+	/*
- 	 * If there is a specific "open" function (to register
- 	 * control line interrupts)
- 	 */
-@@ -584,8 +875,18 @@ static int atmel_startup(struct uart_por
- 	/* enable xmit & rcvr */
- 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
- 
--	/* enable receive only */
--	UART_PUT_IER(port, ATMEL_US_RXRDY);
-+	if (atmel_use_dma_rx(port)) {
-+		/* set UART timeout */
-+		UART_PUT_RTOR(port, PDC_RX_TIMEOUT);
-+		UART_PUT_CR(port, ATMEL_US_STTTO);
-+
-+		UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
-+		/* enable PDC controller */
-+		UART_PUT_PTCR(port, ATMEL_PDC_RXTEN);
-+	} else {
-+		/* enable receive only */
-+		UART_PUT_IER(port, ATMEL_US_RXRDY);
-+	}
+-	es->s_reserved_gdt_blocks =
+-		cpu_to_le16(le16_to_cpu(es->s_reserved_gdt_blocks) - 1);
++	le16_add_cpu(&es->s_reserved_gdt_blocks, -1);
+ 	ext3_journal_dirty_metadata(handle, EXT3_SB(sb)->s_sbh);
  
  	return 0;
- }
-@@ -595,6 +896,38 @@ static int atmel_startup(struct uart_por
-  */
- static void atmel_shutdown(struct uart_port *port)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	/*
-+	 * Ensure everything is stopped.
-+	 */
-+	atmel_stop_rx(port);
-+	atmel_stop_tx(port);
-+
-+	/*
-+	 * Shut-down the DMA.
-+	 */
-+	if (atmel_use_dma_rx(port)) {
-+		int i;
-+
-+		for (i = 0; i < 2; i++) {
-+			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
-+
-+			dma_unmap_single(port->dev,
-+					 pdc->dma_addr,
-+					 pdc->dma_size,
-+					 DMA_FROM_DEVICE);
-+			kfree(pdc->buf);
-+		}
-+	}
-+	if (atmel_use_dma_tx(port)) {
-+		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
-+
-+		dma_unmap_single(port->dev,
-+				 pdc->dma_addr,
-+				 pdc->dma_size,
-+				 DMA_TO_DEVICE);
-+	}
-+
- 	/*
- 	 * Disable all interrupts, port and break condition.
+@@ -890,10 +889,8 @@ int ext3_group_add(struct super_block *s
+ 	 * blocks/inodes before the group is live won't actually let us
+ 	 * allocate the new space yet.
  	 */
-@@ -706,6 +1039,10 @@ static void atmel_set_termios(struct uar
- 	if (termios->c_iflag & (BRKINT | PARMRK))
- 		port->read_status_mask |= ATMEL_US_RXBRK;
+-	es->s_blocks_count = cpu_to_le32(le32_to_cpu(es->s_blocks_count) +
+-		input->blocks_count);
+-	es->s_inodes_count = cpu_to_le32(le32_to_cpu(es->s_inodes_count) +
+-		EXT3_INODES_PER_GROUP(sb));
++	le32_add_cpu(&es->s_blocks_count, input->blocks_count);
++	le32_add_cpu(&es->s_inodes_count, EXT3_INODES_PER_GROUP(sb));
  
-+	if (atmel_use_dma_rx(port))
-+		/* need to enable error interrupts */
-+		UART_PUT_IER(port, port->read_status_mask);
-+
  	/*
- 	 * Characters to ignore
- 	 */
-@@ -891,6 +1228,11 @@ static void __devinit atmel_init_port(st
- 		clk_enable(atmel_port->clk);
- 		port->uartclk = clk_get_rate(atmel_port->clk);
- 	}
-+
-+	atmel_port->use_dma_rx = data->use_dma_rx;
-+	atmel_port->use_dma_tx = data->use_dma_tx;
-+	if (atmel_use_dma_tx(port))
-+		port->fifosize = PDC_BUFFER_SIZE;
- }
+ 	 * We need to protect s_groups_count against other CPUs seeing
+@@ -926,8 +923,7 @@ int ext3_group_add(struct super_block *s
  
- /*
-@@ -1125,11 +1467,13 @@ static int __devinit atmel_serial_probe(
- 	port = &atmel_ports[pdev->id];
- 	atmel_init_port(port, pdev);
+ 	/* Update the reserved block counts only once the new group is
+ 	 * active. */
+-	es->s_r_blocks_count = cpu_to_le32(le32_to_cpu(es->s_r_blocks_count) +
+-		input->reserved_blocks);
++	le32_add_cpu(&es->s_r_blocks_count, input->reserved_blocks);
  
--	ret = -ENOMEM;
--	data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
--	if (!data)
--		goto err_alloc_ring;
--	port->rx_ring.buf = data;
-+	if (!atmel_use_dma_rx(&port->uart)) {
-+		ret = -ENOMEM;
-+		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+		if (!data)
-+			goto err_alloc_ring;
-+		port->rx_ring.buf = data;
-+	}
- 
- 	ret = uart_add_one_port(&atmel_uart, &port->uart);
- 	if (ret)
+ 	/* Update the free space counts */
+ 	percpu_counter_add(&sbi->s_freeblocks_counter,
+diff -puN fs/ext3/super.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu
++++ a/fs/ext3/super.c
+@@ -1222,7 +1222,7 @@ static int ext3_setup_super(struct super
+ #endif
+ 	if (!(__s16) le16_to_cpu(es->s_max_mnt_count))
+ 		es->s_max_mnt_count = cpu_to_le16(EXT3_DFL_MAX_MNT_COUNT);
+-	es->s_mnt_count=cpu_to_le16(le16_to_cpu(es->s_mnt_count) + 1);
++	le16_add_cpu(&es->s_mnt_count, 1);
+ 	es->s_mtime = cpu_to_le32(get_seconds());
+ 	ext3_update_dynamic_rev(sb);
+ 	EXT3_SET_INCOMPAT_FEATURE(sb, EXT3_FEATURE_INCOMPAT_RECOVER);
+diff -puN fs/ext3/xattr.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-replace-all-adds-to-little-endians-variables-with-le_add_cpu
++++ a/fs/ext3/xattr.c
+@@ -492,8 +492,7 @@ ext3_xattr_release_block(handle_t *handl
+ 		get_bh(bh);
+ 		ext3_forget(handle, 1, inode, bh, bh->b_blocknr);
+ 	} else {
+-		BHDR(bh)->h_refcount = cpu_to_le32(
+-				le32_to_cpu(BHDR(bh)->h_refcount) - 1);
++		le32_add_cpu(&BHDR(bh)->h_refcount, -1);
+ 		error = ext3_journal_dirty_metadata(handle, bh);
+ 		if (IS_SYNC(inode))
+ 			handle->h_sync = 1;
+@@ -780,8 +779,7 @@ inserted:
+ 				if (error)
+ 					goto cleanup_dquot;
+ 				lock_buffer(new_bh);
+-				BHDR(new_bh)->h_refcount = cpu_to_le32(1 +
+-					le32_to_cpu(BHDR(new_bh)->h_refcount));
++				le32_add_cpu(&BHDR(new_bh)->h_refcount, 1);
+ 				ea_bdebug(new_bh, "reusing; refcount now=%d",
+ 					le32_to_cpu(BHDR(new_bh)->h_refcount));
+ 				unlock_buffer(new_bh);
 _
 
-Patches currently in -mm which might be from coldwell@redhat.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
