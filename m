@@ -1,116 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - serial8250-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:02 -0800
-Message-ID: <200802082012.m18KChjb010230@imap1.linux-foundation.org>
+Subject: - 8250_hp300-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:56 -0800
+Message-ID: <200802082012.m18KCbEQ010218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756490AbYBHUvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:39 -0500
+	by vger.kernel.org with ESMTP id S1752459AbYBHUwL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial8250: coding style
+     8250_hp300: coding style
 has been removed from the -mm tree.  Its filename was
-     serial8250-coding-style.patch
+     8250_hp300-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial8250: coding style
+Subject: 8250_hp300: coding style
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/serial/8250_hp300.c |   35 ++++++++++++++--------------------
+ 1 file changed, 15 insertions(+), 20 deletions(-)
 
-diff -puN drivers/serial/8250.c~serial8250-coding-style drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial8250-coding-style
-+++ a/drivers/serial/8250.c
-@@ -305,7 +305,7 @@ static inline int map_8250_out_reg(struc
- 	return au_io_out_map[offset];
- }
+diff -puN drivers/serial/8250_hp300.c~8250_hp300-coding-style drivers/serial/8250_hp300.c
+--- a/drivers/serial/8250_hp300.c~8250_hp300-coding-style
++++ a/drivers/serial/8250_hp300.c
+@@ -36,7 +36,7 @@ static struct hp300_port *hp300_ports;
+ #ifdef CONFIG_HPDCA
  
--#elif defined (CONFIG_SERIAL_8250_RM9K)
-+#elif defined(CONFIG_SERIAL_8250_RM9K)
+ static int __devinit hpdca_init_one(struct dio_dev *d,
+-                                const struct dio_device_id *ent);
++					const struct dio_device_id *ent);
+ static void __devexit hpdca_remove_one(struct dio_dev *d);
  
- static const u8
- 	regmap_in[8] = {
-@@ -475,7 +475,7 @@ static inline void _serial_dl_write(stru
- 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
- }
+ static struct dio_device_id hpdca_dio_tbl[] = {
+@@ -85,7 +85,7 @@ extern int hp300_uart_scode;
  
--#if defined (CONFIG_SERIAL_8250_AU1X00)
-+#if defined(CONFIG_SERIAL_8250_AU1X00)
- /* Au1x00 haven't got a standard divisor latch */
- static int serial_dl_read(struct uart_8250_port *up)
- {
-@@ -492,7 +492,7 @@ static void serial_dl_write(struct uart_
- 	else
- 		_serial_dl_write(up, value);
- }
--#elif defined (CONFIG_SERIAL_8250_RM9K)
-+#elif defined(CONFIG_SERIAL_8250_RM9K)
- static int serial_dl_read(struct uart_8250_port *up)
- {
- 	return	(up->port.iotype == UPIO_RM9000) ?
-@@ -1185,8 +1185,8 @@ static void autoconfig_irq(struct uart_8
+ #ifdef CONFIG_SERIAL_8250_CONSOLE
+ /*
+- * Parse the bootinfo to find descriptions for headless console and 
++ * Parse the bootinfo to find descriptions for headless console and
+  * debug serial ports and register them with the 8250 driver.
+  * This function should be called before serial_console_init() is called
+  * to make sure the serial console will be available for use. IA-64 kernel
+@@ -126,13 +126,11 @@ int __init hp300_setup_serial_console(vo
+ 		printk(KERN_WARNING "Serial console is APCI but support is disabled (CONFIG_HPAPCI)!\n");
+ 		return 0;
+ #endif
+-	}
+-	else {
++	} else {
+ #ifdef CONFIG_HPDCA
+ 		unsigned long pa = dio_scodetophysaddr(scode);
+-		if (!pa) {
++		if (!pa)
+ 			return 0;
+-		}
  
- 	irqs = probe_irq_on();
- 	serial_outp(up, UART_MCR, 0);
--	udelay (10);
--	if (up->port.flags & UPF_FOURPORT)  {
-+	udelay(10);
-+	if (up->port.flags & UPF_FOURPORT) {
- 		serial_outp(up, UART_MCR,
- 			    UART_MCR_DTR | UART_MCR_RTS);
- 	} else {
-@@ -1199,7 +1199,7 @@ static void autoconfig_irq(struct uart_8
- 	(void)serial_inp(up, UART_IIR);
- 	(void)serial_inp(up, UART_MSR);
- 	serial_outp(up, UART_TX, 0xFF);
--	udelay (20);
-+	udelay(20);
- 	irq = probe_irq_off(irqs);
+ 		printk(KERN_INFO "Serial console is HP DCA at select code %d\n", scode);
  
- 	serial_outp(up, UART_MCR, save_mcr);
-@@ -1343,7 +1343,7 @@ receive_chars(struct uart_8250_port *up,
+@@ -145,26 +143,23 @@ int __init hp300_setup_serial_console(vo
+ 		/* Enable board-interrupts */
+ 		out_8(pa + DIO_VIRADDRBASE + DCA_IC, DCA_IC_IE);
  
- 		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
- 
--	ignore_char:
-+ignore_char:
- 		lsr = serial_inp(up, UART_LSR);
- 	} while ((lsr & UART_LSR_DR) && (max_count-- > 0));
- 	spin_unlock(&up->port.lock);
-@@ -1633,7 +1633,8 @@ static void serial8250_backup_timeout(un
- 		serial_out(up, UART_IER, ier);
- 
- 	/* Standard timer interval plus 0.2s to keep the port running */
--	mod_timer(&up->timer, jiffies + poll_timeout(up->port.timeout) + HZ/5);
-+	mod_timer(&up->timer,
-+		jiffies + poll_timeout(up->port.timeout) + HZ / 5);
- }
- 
- static unsigned int serial8250_tx_empty(struct uart_port *port)
-@@ -1844,7 +1845,7 @@ static int serial8250_startup(struct uar
- 			up->timer.function = serial8250_backup_timeout;
- 			up->timer.data = (unsigned long)up;
- 			mod_timer(&up->timer, jiffies +
--			          poll_timeout(up->port.timeout) + HZ/5);
-+				poll_timeout(up->port.timeout) + HZ / 5);
- 		}
+-		if (DIO_ID(pa + DIO_VIRADDRBASE) & 0x80) {
++		if (DIO_ID(pa + DIO_VIRADDRBASE) & 0x80)
+ 			add_preferred_console("ttyS", port.line, "9600n8");
+-		}
+ #else
+ 		printk(KERN_WARNING "Serial console is DCA but support is disabled (CONFIG_HPDCA)!\n");
+ 		return 0;
+ #endif
  	}
  
+-	if (early_serial_setup(&port) < 0) {
++	if (early_serial_setup(&port) < 0)
+ 		printk(KERN_WARNING "hp300_setup_serial_console(): early_serial_setup() failed.\n");
+-	}
+-
+ 	return 0;
+ }
+ #endif /* CONFIG_SERIAL_8250_CONSOLE */
+ 
+ #ifdef CONFIG_HPDCA
+ static int __devinit hpdca_init_one(struct dio_dev *d,
+-                                const struct dio_device_id *ent)
++				const struct dio_device_id *ent)
+ {
+ 	struct uart_port port;
+ 	int line;
+@@ -210,7 +205,7 @@ static int __devinit hpdca_init_one(stru
+ 
+ static int __init hp300_8250_init(void)
+ {
+-	static int called = 0;
++	static int called;
+ #ifdef CONFIG_HPAPCI
+ 	int line;
+ 	unsigned long base;
+@@ -239,13 +234,12 @@ static int __init hp300_8250_init(void)
+ 	 * Port 1 is either the console or the DCA.
+ 	 */
+ 	for (i = 1; i < 4; i++) {
+-		/* Port 1 is the console on a 425e, on other machines it's mapped to
+-		 * DCA.
++		/* Port 1 is the console on a 425e, on other machines it's
++		 * mapped to DCA.
+ 		 */
+ #ifdef CONFIG_SERIAL_8250_CONSOLE
+-		if (i == 1) {
++		if (i == 1)
+ 			continue;
+-		}
+ #endif
+ 
+ 		/* Create new serial device */
+@@ -259,7 +253,8 @@ static int __init hp300_8250_init(void)
+ 
+ 		/* Memory mapped I/O */
+ 		uport.iotype = UPIO_MEM;
+-		uport.flags = UPF_SKIP_TEST | UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF;
++		uport.flags = UPF_SKIP_TEST | UPF_SHARE_IRQ \
++			      | UPF_BOOT_AUTOCONF;
+ 		/* XXX - no interrupt support yet */
+ 		uport.irq = 0;
+ 		uport.uartclk = HPAPCI_BAUD_BASE * 16;
+@@ -270,8 +265,8 @@ static int __init hp300_8250_init(void)
+ 		line = serial8250_register_port(&uport);
+ 
+ 		if (line < 0) {
+-			printk(KERN_NOTICE "8250_hp300: register_serial() APCI %d"
+-			       " irq %d failed\n", i, uport.irq);
++			printk(KERN_NOTICE "8250_hp300: register_serial() APCI"
++			       " %d irq %d failed\n", i, uport.irq);
+ 			kfree(port);
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
