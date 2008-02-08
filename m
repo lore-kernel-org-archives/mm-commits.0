@@ -1,110 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - reduce-large-do_mount-stack-usage-with-noinlines.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:21:14 -0800
-Message-ID: <200802082020.m18KKtxW011267@imap1.linux-foundation.org>
+Subject: - mount-options-fix-adfs.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:32 -0800
+Message-ID: <200802082019.m18KJDgJ011029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43134 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44482 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933333AbYBHUkF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:40:05 -0500
+	by vger.kernel.org with ESMTP id S934867AbYBHUkR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:40:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, arjan@infradead.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reduce large do_mount stack usage with noinlines
+     mount options: fix adfs
 has been removed from the -mm tree.  Its filename was
-     reduce-large-do_mount-stack-usage-with-noinlines.patch
+     mount-options-fix-adfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reduce large do_mount stack usage with noinlines
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: mount options: fix adfs
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-do_mount() uses a whopping 616 bytes of stack on x86_64 in 2.6.24-mm1,
-largely thanks to gcc inlining the various helper functions.
+Add a .show_options super operation to adfs.
 
-noinlining these can slim it down a lot; on my box this patch gets it down
-to 168, which is mostly the struct nameidata nd; left on the stack.
-
-These functions are called only as do_mount() helpers; none of them should
-be in any path that would see a performance benefit from inlining...
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ fs/adfs/super.c |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines fs/namespace.c
---- a/fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines
-+++ a/fs/namespace.c
-@@ -936,8 +936,9 @@ out_unlock:
+diff -puN fs/adfs/super.c~mount-options-fix-adfs fs/adfs/super.c
+--- a/fs/adfs/super.c~mount-options-fix-adfs
++++ a/fs/adfs/super.c
+@@ -20,6 +20,8 @@
+ #include <linux/vfs.h>
+ #include <linux/parser.h>
+ #include <linux/bitops.h>
++#include <linux/mount.h>
++#include <linux/seq_file.h>
  
- /*
-  * recursively change the type of the mountpoint.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_change_type(struct nameidata *nd, int flag)
-+static noinline int do_change_type(struct nameidata *nd, int flag)
- {
- 	struct vfsmount *m, *mnt = nd->mnt;
- 	int recurse = flag & MS_REC;
-@@ -960,8 +961,10 @@ static int do_change_type(struct nameida
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+@@ -30,6 +32,9 @@
+ #include "dir_f.h"
+ #include "dir_fplus.h"
  
- /*
-  * do loopback mount.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
-+static noinline int do_loopback(struct nameidata *nd, char *old_name,
-+				int recurse)
++#define ADFS_DEFAULT_OWNER_MASK S_IRWXU
++#define ADFS_DEFAULT_OTHER_MASK (S_IRWXG | S_IRWXO)
++
+ void __adfs_error(struct super_block *sb, const char *function, const char *fmt, ...)
  {
- 	struct nameidata old_nd;
- 	struct vfsmount *mnt = NULL;
-@@ -1010,8 +1013,9 @@ out:
-  * change filesystem flags. dir should be a physical root of filesystem.
-  * If you've mounted a non-root directory somewhere and want to do remount
-  * on it - tough luck.
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_remount(struct nameidata *nd, int flags, int mnt_flags,
-+static noinline int do_remount(struct nameidata *nd, int flags, int mnt_flags,
- 		      void *data)
- {
- 	int err;
-@@ -1046,7 +1050,10 @@ static inline int tree_contains_unbindab
- 	return 0;
+ 	char error_buf[128];
+@@ -134,6 +139,22 @@ static void adfs_put_super(struct super_
+ 	sb->s_fs_info = NULL;
  }
  
--static int do_move_mount(struct nameidata *nd, char *old_name)
-+/*
-+ * noinline this do_mount helper to save do_mount stack space.
-+ */
-+static noinline int do_move_mount(struct nameidata *nd, char *old_name)
- {
- 	struct nameidata old_nd, parent_nd;
- 	struct vfsmount *p;
-@@ -1121,8 +1128,9 @@ out:
- /*
-  * create a new mount for userspace and request it to be added into the
-  * namespace's tree
-+ * noinline this do_mount helper to save do_mount stack space.
-  */
--static int do_new_mount(struct nameidata *nd, char *type, int flags,
-+static noinline int do_new_mount(struct nameidata *nd, char *type, int flags,
- 			int mnt_flags, char *name, void *data)
- {
- 	struct vfsmount *mnt;
++static int adfs_show_options(struct seq_file *seq, struct vfsmount *mnt)
++{
++	struct adfs_sb_info *asb = ADFS_SB(mnt->mnt_sb);
++
++	if (asb->s_uid != 0)
++		seq_printf(seq, ",uid=%u", asb->s_uid);
++	if (asb->s_gid != 0)
++		seq_printf(seq, ",gid=%u", asb->s_gid);
++	if (asb->s_owner_mask != ADFS_DEFAULT_OWNER_MASK)
++		seq_printf(seq, ",ownmask=%o", asb->s_owner_mask);
++	if (asb->s_other_mask != ADFS_DEFAULT_OTHER_MASK)
++		seq_printf(seq, ",othmask=%o", asb->s_other_mask);
++
++	return 0;
++}
++
+ enum {Opt_uid, Opt_gid, Opt_ownmask, Opt_othmask, Opt_err};
+ 
+ static match_table_t tokens = {
+@@ -259,6 +280,7 @@ static const struct super_operations adf
+ 	.put_super	= adfs_put_super,
+ 	.statfs		= adfs_statfs,
+ 	.remount_fs	= adfs_remount,
++	.show_options	= adfs_show_options,
+ };
+ 
+ static struct adfs_discmap *adfs_read_map(struct super_block *sb, struct adfs_discrecord *dr)
+@@ -344,8 +366,8 @@ static int adfs_fill_super(struct super_
+ 	/* set default options */
+ 	asb->s_uid = 0;
+ 	asb->s_gid = 0;
+-	asb->s_owner_mask = S_IRWXU;
+-	asb->s_other_mask = S_IRWXG | S_IRWXO;
++	asb->s_owner_mask = ADFS_DEFAULT_OWNER_MASK;
++	asb->s_other_mask = ADFS_DEFAULT_OTHER_MASK;
+ 
+ 	if (parse_options(sb, data))
+ 		goto error;
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+vfs-create-proc-pid-mountinfo.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
