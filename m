@@ -1,159 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-cifs-from-using-iget-and-read_inode-try.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:26 -0800
-Message-ID: <200802080807.m18877Cj014511@imap1.linux-foundation.org>
+Subject: - cpusets-update_cpumask-revision.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:17 -0800
+Message-ID: <200802080804.m1884wtg014295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932307AbYBHIVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:02 -0500
+	by vger.kernel.org with ESMTP id S932981AbYBHIVD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop CIFS from using iget() and read_inode()
+     cpusets: update_cpumask revision
 has been removed from the -mm tree.  Its filename was
-     iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+     cpusets-update_cpumask-revision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop CIFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: cpusets: update_cpumask revision
+From: Cliff Wickman <cpw@sgi.com>
 
-Stop the CIFS filesystem from using iget() and read_inode().  Replace
-cifs_read_inode() with cifs_iget(), and call that instead of iget(). 
-cifs_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+Use the new function cgroup_scan_tasks() to step through all tasks in a
+cpuset.
 
-cifs_read_super() now returns any error incurred when getting the root inode
-instead of ENOMEM.
-
-cifs_iget() needs examining.  The comment "can not call macro FreeXid here
-since in a void func" is no longer true.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Cliff Wickman <cpw@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsfs.c |    8 ++++----
- fs/cifs/cifsfs.h |    1 +
- fs/cifs/inode.c  |   22 +++++++++++++++++++---
- 3 files changed, 24 insertions(+), 7 deletions(-)
+ kernel/cpuset.c |  107 +++++++++++++++++++---------------------------
+ 1 file changed, 46 insertions(+), 61 deletions(-)
 
-diff -puN fs/cifs/cifsfs.c~iget-stop-cifs-from-using-iget-and-read_inode-try fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~iget-stop-cifs-from-using-iget-and-read_inode-try
-+++ a/fs/cifs/cifsfs.c
-@@ -147,10 +147,11 @@ cifs_read_super(struct super_block *sb, 
- #endif
- 	sb->s_blocksize = CIFS_MAX_MSGSIZE;
- 	sb->s_blocksize_bits = 14;	/* default 2**14 = CIFS_MAX_MSGSIZE */
--	inode = iget(sb, ROOT_I);
-+	inode = cifs_iget(sb, ROOT_I);
- 
--	if (!inode) {
--		rc = -ENOMEM;
-+	if (IS_ERR(inode)) {
-+		rc = PTR_ERR(inode);
-+		inode = NULL;
- 		goto out_no_root;
- 	}
- 
-@@ -520,7 +521,6 @@ static int cifs_remount(struct super_blo
+diff -puN kernel/cpuset.c~cpusets-update_cpumask-revision kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-update_cpumask-revision
++++ a/kernel/cpuset.c
+@@ -38,7 +38,6 @@
+ #include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/pagemap.h>
+-#include <linux/prio_heap.h>
+ #include <linux/proc_fs.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched.h>
+@@ -740,22 +739,50 @@ static inline int started_after(void *p1
+ 	return started_after_time(t1, &t2->start_time, t2);
  }
  
- static const struct super_operations cifs_super_ops = {
--	.read_inode = cifs_read_inode,
- 	.put_super = cifs_put_super,
- 	.statfs = cifs_statfs,
- 	.alloc_inode = cifs_alloc_inode,
-diff -puN fs/cifs/cifsfs.h~iget-stop-cifs-from-using-iget-and-read_inode-try fs/cifs/cifsfs.h
---- a/fs/cifs/cifsfs.h~iget-stop-cifs-from-using-iget-and-read_inode-try
-+++ a/fs/cifs/cifsfs.h
-@@ -44,6 +44,7 @@ extern void cifs_read_inode(struct inode
+-/*
++/**
++ * cpuset_test_cpumask - test a task's cpus_allowed versus its cpuset's
++ * @tsk: task to test
++ * @scan: struct cgroup_scanner contained in its struct cpuset_hotplug_scanner
++ *
+  * Call with manage_mutex held.  May take callback_mutex during call.
++ * Called for each task in a cgroup by cgroup_scan_tasks().
++ * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
++ * words, if its mask is not equal to its cpuset's mask).
+  */
++int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
++{
++	return !cpus_equal(tsk->cpus_allowed,
++			(cgroup_cs(scan->cg))->cpus_allowed);
++}
  
- /* Functions related to inodes */
- extern const struct inode_operations cifs_dir_inode_ops;
-+extern struct inode *cifs_iget(struct super_block *, unsigned long);
- extern int cifs_create(struct inode *, struct dentry *, int,
- 		       struct nameidata *);
- extern struct dentry *cifs_lookup(struct inode *, struct dentry *,
-diff -puN fs/cifs/inode.c~iget-stop-cifs-from-using-iget-and-read_inode-try fs/cifs/inode.c
---- a/fs/cifs/inode.c~iget-stop-cifs-from-using-iget-and-read_inode-try
-+++ a/fs/cifs/inode.c
-@@ -586,10 +586,18 @@ static const struct inode_operations cif
- };
- 
- /* gets root inode */
--void cifs_read_inode(struct inode *inode)
-+struct inode *cifs_iget(struct super_block *sb, unsigned long ino)
++/**
++ * cpuset_change_cpumask - make a task's cpus_allowed the same as its cpuset's
++ * @tsk: task to test
++ * @scan: struct cgroup_scanner containing the cgroup of the task
++ *
++ * Called by cgroup_scan_tasks() for each task in a cgroup whose
++ * cpus_allowed mask needs to be changed.
++ *
++ * We don't need to re-check for the cgroup/cpuset membership, since we're
++ * holding cgroup_lock() at this point.
++ */
++void cpuset_change_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
++{
++	set_cpus_allowed(tsk, (cgroup_cs(scan->cg))->cpus_allowed);
++}
++
++/**
++ * update_cpumask - update the cpus_allowed mask of a cpuset and all tasks in it
++ * @cs: the cpuset to consider
++ * @buf: buffer of cpu numbers written to this cpuset
++ */
+ static int update_cpumask(struct cpuset *cs, char *buf)
  {
--	int xid, rc;
-+	int xid;
- 	struct cifs_sb_info *cifs_sb;
-+	struct inode *inode;
-+	long rc;
-+
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
+ 	struct cpuset trialcs;
+-	int retval, i;
+-	int is_load_balanced;
+-	struct cgroup_iter it;
+-	struct cgroup *cgrp = cs->css.cgroup;
+-	struct task_struct *p, *dropped;
+-	/* Never dereference latest_task, since it's not refcounted */
+-	struct task_struct *latest_task = NULL;
++	struct cgroup_scanner scan;
+ 	struct ptr_heap heap;
+-	struct timespec latest_time = { 0, 0 };
++	int retval;
++	int is_load_balanced;
  
- 	cifs_sb = CIFS_SB(inode->i_sb);
- 	xid = GetXid();
-@@ -606,10 +614,18 @@ void cifs_read_inode(struct inode *inode
- 		inode->i_fop = &simple_dir_operations;
- 		inode->i_uid = cifs_sb->mnt_uid;
- 		inode->i_gid = cifs_sb->mnt_gid;
-+		_FreeXid(xid);
-+		iget_failed(inode);
-+		return ERR_PTR(rc);
- 	}
+ 	/* top_cpuset.cpus_allowed tracks cpu_online_map; it's read-only */
+ 	if (cs == &top_cpuset)
+@@ -764,7 +791,7 @@ static int update_cpumask(struct cpuset 
+ 	trialcs = *cs;
  
--	/* can not call macro FreeXid here since in a void func */
-+	unlock_new_inode(inode);
+ 	/*
+-	 * An empty cpus_allowed is ok iff there are no tasks in the cpuset.
++	 * An empty cpus_allowed is ok if there are no tasks in the cpuset.
+ 	 * Since cpulist_parse() fails on an empty mask, we special case
+ 	 * that parsing.  The validate_change() call ensures that cpusets
+ 	 * with tasks have cpus.
+@@ -785,6 +812,7 @@ static int update_cpumask(struct cpuset 
+ 	/* Nothing to do if the cpus didn't change */
+ 	if (cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed))
+ 		return 0;
 +
-+	/* can not call macro FreeXid here since in a void func
-+	 * TODO: This is no longer true
-+	 */
- 	_FreeXid(xid);
-+	return inode;
+ 	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, &started_after);
+ 	if (retval)
+ 		return retval;
+@@ -795,62 +823,19 @@ static int update_cpumask(struct cpuset 
+ 	cs->cpus_allowed = trialcs.cpus_allowed;
+ 	mutex_unlock(&callback_mutex);
+ 
+- again:
+ 	/*
+ 	 * Scan tasks in the cpuset, and update the cpumasks of any
+-	 * that need an update. Since we can't call set_cpus_allowed()
+-	 * while holding tasklist_lock, gather tasks to be processed
+-	 * in a heap structure. If the statically-sized heap fills up,
+-	 * overflow tasks that started later, and in future iterations
+-	 * only consider tasks that started after the latest task in
+-	 * the previous pass. This guarantees forward progress and
+-	 * that we don't miss any tasks
++	 * that need an update.
+ 	 */
+-	heap.size = 0;
+-	cgroup_iter_start(cgrp, &it);
+-	while ((p = cgroup_iter_next(cgrp, &it))) {
+-		/* Only affect tasks that don't have the right cpus_allowed */
+-		if (cpus_equal(p->cpus_allowed, cs->cpus_allowed))
+-			continue;
+-		/*
+-		 * Only process tasks that started after the last task
+-		 * we processed
+-		 */
+-		if (!started_after_time(p, &latest_time, latest_task))
+-			continue;
+-		dropped = heap_insert(&heap, p);
+-		if (dropped == NULL) {
+-			get_task_struct(p);
+-		} else if (dropped != p) {
+-			get_task_struct(p);
+-			put_task_struct(dropped);
+-		}
+-	}
+-	cgroup_iter_end(cgrp, &it);
+-	if (heap.size) {
+-		for (i = 0; i < heap.size; i++) {
+-			struct task_struct *p = heap.ptrs[i];
+-			if (i == 0) {
+-				latest_time = p->start_time;
+-				latest_task = p;
+-			}
+-			set_cpus_allowed(p, cs->cpus_allowed);
+-			put_task_struct(p);
+-		}
+-		/*
+-		 * If we had to process any tasks at all, scan again
+-		 * in case some of them were in the middle of forking
+-		 * children that didn't notice the new cpumask
+-		 * restriction.  Not the most efficient way to do it,
+-		 * but it avoids having to take callback_mutex in the
+-		 * fork path
+-		 */
+-		goto again;
+-	}
++	scan.cg = cs->css.cgroup;
++	scan.test_task = cpuset_test_cpumask;
++	scan.process_task = cpuset_change_cpumask;
++	scan.heap = &heap;
++	cgroup_scan_tasks(&scan);
+ 	heap_free(&heap);
++
+ 	if (is_load_balanced)
+ 		rebuild_sched_domains();
+-
+ 	return 0;
  }
  
- int cifs_unlink(struct inode *inode, struct dentry *direntry)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from cpw@sgi.com are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
