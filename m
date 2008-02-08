@@ -1,155 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - printk_ratelimit-functions-should-use-config_printk.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:16 -0800
-Message-ID: <200802082018.m18KIv5T010989@imap1.linux-foundation.org>
+Subject: - megaraid-driver-management-char-device-moved-to-misc.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:21:24 -0800
+Message-ID: <200802082021.m18KL5Il011287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60983 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750754AbYBHUnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:23 -0500
+	by vger.kernel.org with ESMTP id S1750816AbYBHUnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: thomas@horsten.com, Neela.Kolli@engenio.com, Seokmann.Ju@lsil.com, Sumant.Patro@lsi.com, thomas.horsten@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk_ratelimit() functions should use CONFIG_PRINTK
+     MegaRAID driver management char device moved to misc
 has been removed from the -mm tree.  Its filename was
-     printk_ratelimit-functions-should-use-config_printk.patch
+     megaraid-driver-management-char-device-moved-to-misc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk_ratelimit() functions should use CONFIG_PRINTK
-From: Joe Perches <joe@perches.com>
+Subject: MegaRAID driver management char device moved to misc
+From: Thomas Horsten <thomas@horsten.com>
 
-Makes an embedded image a bit smaller.
+The MegaRAID driver's common management module (megaraid_mm.c) creates a
+char device used by the management tool "megarc" from LSI Logic (and
+possibly other management tools).
 
-Signed-off-by: Joe Perches <joe@perches.com>
+In 2.6 with udev, this device doesn't get created because it is not
+registered in sysfs.
+
+I first fixed this by registering a class "megaraid_mm", but realized that
+this should probably be moved to misc devices, instead of taking up a char
+major.  This is because only 1 device is used, even if there are multiple
+adapters - the minor is never used (the adapter info is in the ioctl block
+sent to the driver, not detected based on the minor number as one might
+think).  So it is a complete waste to have an entire major taken by this.
+
+So it now uses a misc device which I named "megadev0" (the name that megarc
+expects), and has a dynamic minor (previoulsy a dynamic major was used).
+
+I have tested this on my own system with the megarc tool, and it works just
+as fine as before (only now the device gets created correctly by udev).
+
+Cc: <thomas.horsten@gmail.com>
+Cc: Neela Syam Kolli <Neela.Kolli@engenio.com>
+Cc: "Ju, Seokmann" <Seokmann.Ju@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   18 +++++++++++++-----
- kernel/printk.c        |    2 ++
- kernel/sysctl.c        |   20 ++++++++++----------
- 3 files changed, 25 insertions(+), 15 deletions(-)
+ drivers/scsi/megaraid/megaraid_mm.c |   20 +++++++++++++-------
+ drivers/scsi/megaraid/megaraid_mm.h |    1 +
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk include/linux/kernel.h
---- a/include/linux/kernel.h~printk_ratelimit-functions-should-use-config_printk
-+++ a/include/linux/kernel.h
-@@ -180,6 +180,13 @@ asmlinkage int printk(const char * fmt, 
- extern int log_buf_get_len(void);
- extern int log_buf_read(int idx);
- extern int log_buf_copy(char *dest, int idx, int len);
+diff -puN drivers/scsi/megaraid/megaraid_mm.c~megaraid-driver-management-char-device-moved-to-misc drivers/scsi/megaraid/megaraid_mm.c
+--- a/drivers/scsi/megaraid/megaraid_mm.c~megaraid-driver-management-char-device-moved-to-misc
++++ a/drivers/scsi/megaraid/megaraid_mm.c
+@@ -59,7 +59,6 @@ EXPORT_SYMBOL(mraid_mm_register_adp);
+ EXPORT_SYMBOL(mraid_mm_unregister_adp);
+ EXPORT_SYMBOL(mraid_mm_adapter_app_handle);
+ 
+-static int majorno;
+ static uint32_t drvr_ver	= 0x02200207;
+ 
+ static int adapters_count_g;
+@@ -76,6 +75,12 @@ static const struct file_operations lsi_
+ 	.owner	= THIS_MODULE,
+ };
+ 
++static struct miscdevice megaraid_mm_dev = {
++	.minor	= MISC_DYNAMIC_MINOR,
++	.name   = "megadev0",
++	.fops   = &lsi_fops,
++};
 +
-+extern int printk_ratelimit_jiffies;
-+extern int printk_ratelimit_burst;
-+extern int printk_ratelimit(void);
-+extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
-+extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
-+				   unsigned int interval_msec);
- #else
- static inline int vprintk(const char *s, va_list args)
- 	__attribute__ ((format (printf, 1, 0)));
-@@ -190,6 +197,12 @@ static inline int __cold printk(const ch
- static inline int log_buf_get_len(void) { return 0; }
- static inline int log_buf_read(int idx) { return 0; }
- static inline int log_buf_copy(char *dest, int idx, int len) { return 0; }
-+static inline int printk_ratelimit(void) { return 0; }
-+static inline int __printk_ratelimit(int ratelimit_jiffies, \
-+				     int ratelimit_burst) { return 0; }
-+static inline bool printk_timed_ratelimit(unsigned long *caller_jiffies, \
-+					  unsigned int interval_msec)	\
-+		{ return false; }
- #endif
- 
- extern void __attribute__((format(printf, 1, 2)))
-@@ -197,11 +210,6 @@ extern void __attribute__((format(printf
- 
- unsigned long int_sqrt(unsigned long);
- 
--extern int printk_ratelimit(void);
--extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
--extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
--				unsigned int interval_msec);
--
- static inline void console_silent(void)
+ /**
+  * mraid_mm_open - open routine for char node interface
+  * @inode	: unused
+@@ -1184,15 +1189,16 @@ mraid_mm_teardown_dma_pools(mraid_mmadp_
+ static int __init
+ mraid_mm_init(void)
  {
- 	console_loglevel = 0;
-diff -puN kernel/printk.c~printk_ratelimit-functions-should-use-config_printk kernel/printk.c
---- a/kernel/printk.c~printk_ratelimit-functions-should-use-config_printk
-+++ a/kernel/printk.c
-@@ -1251,6 +1251,7 @@ void tty_write_message(struct tty_struct
- 	return;
++	int err;
++
+ 	// Announce the driver version
+ 	con_log(CL_ANN, (KERN_INFO "megaraid cmm: %s %s\n",
+ 		LSI_COMMON_MOD_VERSION, LSI_COMMON_MOD_EXT_VERSION));
+ 
+-	majorno = register_chrdev(0, "megadev", &lsi_fops);
+-
+-	if (majorno < 0) {
+-		con_log(CL_ANN, ("megaraid cmm: cannot get major\n"));
+-		return majorno;
++	err = misc_register(&megaraid_mm_dev);
++	if (err < 0) {
++		con_log(CL_ANN, ("megaraid cmm: cannot register misc device\n"));
++		return err;
+ 	}
+ 
+ 	init_waitqueue_head(&wait_q);
+@@ -1230,7 +1236,7 @@ mraid_mm_exit(void)
+ {
+ 	con_log(CL_DLEVEL1 , ("exiting common mod\n"));
+ 
+-	unregister_chrdev(majorno, "megadev");
++	misc_deregister(&megaraid_mm_dev);
  }
  
-+#if defined CONFIG_PRINTK
- /*
-  * printk rate limiting, lifted from the networking subsystem.
-  *
-@@ -1320,3 +1321,4 @@ bool printk_timed_ratelimit(unsigned lon
- 	return false;
- }
- EXPORT_SYMBOL(printk_timed_ratelimit);
-+#endif
-diff -puN kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk kernel/sysctl.c
---- a/kernel/sysctl.c~printk_ratelimit-functions-should-use-config_printk
-+++ a/kernel/sysctl.c
-@@ -73,8 +73,6 @@ extern int suid_dumpable;
- extern char core_pattern[];
- extern int pid_max;
- extern int min_free_kbytes;
--extern int printk_ratelimit_jiffies;
--extern int printk_ratelimit_burst;
- extern int pid_max_min, pid_max_max;
- extern int sysctl_drop_caches;
- extern int percpu_pagelist_fraction;
-@@ -490,14 +488,6 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
--	{
--		.ctl_name	= KERN_PRINTK,
--		.procname	= "printk",
--		.data		= &console_loglevel,
--		.maxlen		= 4*sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= &proc_dointvec,
--	},
- #ifdef CONFIG_KMOD
- 	{
- 		.ctl_name	= KERN_MODPROBE,
-@@ -644,6 +634,15 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#if defined CONFIG_PRINTK
-+	{
-+		.ctl_name	= KERN_PRINTK,
-+		.procname	= "printk",
-+		.data		= &console_loglevel,
-+		.maxlen		= 4*sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- 	{
- 		.ctl_name	= KERN_PRINTK_RATELIMIT,
- 		.procname	= "printk_ratelimit",
-@@ -661,6 +660,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
- 	},
-+#endif
- 	{
- 		.ctl_name	= KERN_NGROUPS_MAX,
- 		.procname	= "ngroups_max",
+ module_init(mraid_mm_init);
+diff -puN drivers/scsi/megaraid/megaraid_mm.h~megaraid-driver-management-char-device-moved-to-misc drivers/scsi/megaraid/megaraid_mm.h
+--- a/drivers/scsi/megaraid/megaraid_mm.h~megaraid-driver-management-char-device-moved-to-misc
++++ a/drivers/scsi/megaraid/megaraid_mm.h
+@@ -22,6 +22,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/pci.h>
+ #include <linux/list.h>
++#include <linux/miscdevice.h>
+ 
+ #include "mbox_defs.h"
+ #include "megaraid_ioctl.h"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from thomas@horsten.com are
 
-origin.patch
-git-kvm.patch
-git-unionfs.patch
+git-scsi-misc.patch
