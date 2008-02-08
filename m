@@ -1,2203 +1,369 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-move-sharedsubtreestxt-to-filesystems.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:02:24 -0800
-Message-ID: <200802080802.m18825af014013@imap1.linux-foundation.org>
+Subject: - iget-stop-isofs-from-using-read_inode.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:50 -0800
+Message-ID: <200802080807.m1887VSd014558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933144AbYBHIVG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:06 -0500
+	by vger.kernel.org with ESMTP id S1761955AbYBHIVh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@lst.de, hidave.darkstar@gmail.com, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: move sharedsubtrees.txt to filesystems/
+     iget: stop ISOFS from using read_inode()
 has been removed from the -mm tree.  Its filename was
-     documentation-move-sharedsubtreestxt-to-filesystems.patch
+     iget-stop-isofs-from-using-read_inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: move sharedsubtrees.txt to filesystems/
-From: "J. Bruce Fields" <bfields@citi.umich.edu>
+Subject: iget: stop ISOFS from using read_inode()
+From: David Howells <dhowells@redhat.com>
 
-This documentation is also vfs-related.
+Stop the ISOFS filesystem from using read_inode().  Make isofs_read_inode()
+return an error code, and make isofs_iget() pass it on.
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Jan Kara <jack@ucw.cz>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: "Dave Young" <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX                      |    2 
- Documentation/filesystems/00-INDEX          |    2 
- Documentation/filesystems/sharedsubtree.txt | 1061 ++++++++++++++++++
- Documentation/sharedsubtree.txt             | 1061 ------------------
- 4 files changed, 1063 insertions(+), 1063 deletions(-)
+ fs/isofs/export.c |   14 ++++-----
+ fs/isofs/inode.c  |   68 +++++++++++++++++++++++++++++---------------
+ fs/isofs/namei.c  |    4 +-
+ fs/isofs/rock.c   |    4 +-
+ 4 files changed, 58 insertions(+), 32 deletions(-)
 
-diff -puN Documentation/00-INDEX~documentation-move-sharedsubtreestxt-to-filesystems Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-move-sharedsubtreestxt-to-filesystems
-+++ a/Documentation/00-INDEX
-@@ -358,8 +358,6 @@ sgi-visws.txt
- 	- short blurb on the SGI Visual Workstations.
- sh/
- 	- directory with info on porting Linux to a new architecture.
--sharedsubtree.txt
--	- a description of shared subtrees for namespaces.
- smart-config.txt
- 	- description of the Smart Config makefile feature.
- sony-laptop.txt
-diff -puN Documentation/filesystems/00-INDEX~documentation-move-sharedsubtreestxt-to-filesystems Documentation/filesystems/00-INDEX
---- a/Documentation/filesystems/00-INDEX~documentation-move-sharedsubtreestxt-to-filesystems
-+++ a/Documentation/filesystems/00-INDEX
-@@ -82,6 +82,8 @@ relay.txt
- 	- info on relay, for efficient streaming from kernel to user space.
- romfs.txt
- 	- description of the ROMFS filesystem.
-+sharedsubtree.txt
-+	- a description of shared subtrees for namespaces.
- smbfs.txt
- 	- info on using filesystems with the SMB protocol (Win 3.11 and NT).
- spufs.txt
-diff -puN /dev/null Documentation/filesystems/sharedsubtree.txt
---- /dev/null
-+++ a/Documentation/filesystems/sharedsubtree.txt
-@@ -0,0 +1,1061 @@
-+Shared Subtrees
-+---------------
-+
-+Contents:
-+	1) Overview
-+	2) Features
-+	3) smount command
-+	4) Use-case
-+	5) Detailed semantics
-+	6) Quiz
-+	7) FAQ
-+	8) Implementation
-+
-+
-+1) Overview
-+-----------
-+
-+Consider the following situation:
-+
-+A process wants to clone its own namespace, but still wants to access the CD
-+that got mounted recently.  Shared subtree semantics provide the necessary
-+mechanism to accomplish the above.
-+
-+It provides the necessary building blocks for features like per-user-namespace
-+and versioned filesystem.
-+
-+2) Features
-+-----------
-+
-+Shared subtree provides four different flavors of mounts; struct vfsmount to be
-+precise
-+
-+	a. shared mount
-+	b. slave mount
-+	c. private mount
-+	d. unbindable mount
-+
-+
-+2a) A shared mount can be replicated to as many mountpoints and all the
-+replicas continue to be exactly same.
-+
-+	Here is an example:
-+
-+	Lets say /mnt has a mount that is shared.
-+	mount --make-shared /mnt
-+
-+	note: mount command does not yet support the --make-shared flag.
-+	I have included a small C program which does the same by executing
-+	'smount /mnt shared'
-+
-+	#mount --bind /mnt /tmp
-+	The above command replicates the mount at /mnt to the mountpoint /tmp
-+	and the contents of both the mounts remain identical.
-+
-+	#ls /mnt
-+	a b c
-+
-+	#ls /tmp
-+	a b c
-+
-+	Now lets say we mount a device at /tmp/a
-+	#mount /dev/sd0  /tmp/a
-+
-+	#ls /tmp/a
-+	t1 t2 t2
-+
-+	#ls /mnt/a
-+	t1 t2 t2
-+
-+	Note that the mount has propagated to the mount at /mnt as well.
-+
-+	And the same is true even when /dev/sd0 is mounted on /mnt/a. The
-+	contents will be visible under /tmp/a too.
-+
-+
-+2b) A slave mount is like a shared mount except that mount and umount events
-+	only propagate towards it.
-+
-+	All slave mounts have a master mount which is a shared.
-+
-+	Here is an example:
-+
-+	Lets say /mnt has a mount which is shared.
-+	#mount --make-shared /mnt
-+
-+	Lets bind mount /mnt to /tmp
-+	#mount --bind /mnt /tmp
-+
-+	the new mount at /tmp becomes a shared mount and it is a replica of
-+	the mount at /mnt.
-+
-+	Now lets make the mount at /tmp; a slave of /mnt
-+	#mount --make-slave /tmp
-+	[or smount /tmp slave]
-+
-+	lets mount /dev/sd0 on /mnt/a
-+	#mount /dev/sd0 /mnt/a
-+
-+	#ls /mnt/a
-+	t1 t2 t3
-+
-+	#ls /tmp/a
-+	t1 t2 t3
-+
-+	Note the mount event has propagated to the mount at /tmp
-+
-+	However lets see what happens if we mount something on the mount at /tmp
-+
-+	#mount /dev/sd1 /tmp/b
-+
-+	#ls /tmp/b
-+	s1 s2 s3
-+
-+	#ls /mnt/b
-+
-+	Note how the mount event has not propagated to the mount at
-+	/mnt
-+
-+
-+2c) A private mount does not forward or receive propagation.
-+
-+	This is the mount we are familiar with. Its the default type.
-+
-+
-+2d) A unbindable mount is a unbindable private mount
-+
-+	lets say we have a mount at /mnt and we make is unbindable
-+
-+	#mount --make-unbindable /mnt
-+	 [ smount /mnt  unbindable ]
-+
-+	 Lets try to bind mount this mount somewhere else.
-+	 # mount --bind /mnt /tmp
-+	 mount: wrong fs type, bad option, bad superblock on /mnt,
-+	        or too many mounted file systems
-+
-+	Binding a unbindable mount is a invalid operation.
-+
-+
-+3) smount command
-+
-+	Currently the mount command is not aware of shared subtree features.
-+	Work is in progress to add the support in mount ( util-linux package ).
-+	Till then use the following program.
-+
-+	------------------------------------------------------------------------
-+	//
-+	//this code was developed my Miklos Szeredi <miklos@szeredi.hu>
-+	//and modified by Ram Pai <linuxram@us.ibm.com>
-+	// sample usage:
-+	//              smount /tmp shared
-+	//
-+	#include <stdio.h>
-+	#include <stdlib.h>
-+	#include <unistd.h>
-+	#include <string.h>
-+	#include <sys/mount.h>
-+	#include <sys/fsuid.h>
-+
-+	#ifndef MS_REC
-+	#define MS_REC		0x4000	/* 16384: Recursive loopback */
-+	#endif
-+
-+	#ifndef MS_SHARED
-+	#define MS_SHARED		1<<20	/* Shared */
-+	#endif
-+
-+	#ifndef MS_PRIVATE
-+	#define MS_PRIVATE		1<<18	/* Private */
-+	#endif
-+
-+	#ifndef MS_SLAVE
-+	#define MS_SLAVE		1<<19	/* Slave */
-+	#endif
-+
-+	#ifndef MS_UNBINDABLE
-+	#define MS_UNBINDABLE		1<<17	/* Unbindable */
-+	#endif
-+
-+	int main(int argc, char *argv[])
-+	{
-+		int type;
-+		if(argc != 3) {
-+			fprintf(stderr, "usage: %s dir "
-+			"<rshared|rslave|rprivate|runbindable|shared|slave"
-+			"|private|unbindable>\n" , argv[0]);
-+			return 1;
-+		}
-+
-+		fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
-+
-+		if (strcmp(argv[2],"rshared")==0)
-+			type=(MS_SHARED|MS_REC);
-+		else if (strcmp(argv[2],"rslave")==0)
-+			type=(MS_SLAVE|MS_REC);
-+		else if (strcmp(argv[2],"rprivate")==0)
-+			type=(MS_PRIVATE|MS_REC);
-+		else if (strcmp(argv[2],"runbindable")==0)
-+			type=(MS_UNBINDABLE|MS_REC);
-+		else if (strcmp(argv[2],"shared")==0)
-+			type=MS_SHARED;
-+		else if (strcmp(argv[2],"slave")==0)
-+			type=MS_SLAVE;
-+		else if (strcmp(argv[2],"private")==0)
-+			type=MS_PRIVATE;
-+		else if (strcmp(argv[2],"unbindable")==0)
-+			type=MS_UNBINDABLE;
-+		else {
-+			fprintf(stderr, "invalid operation: %s\n", argv[2]);
-+			return 1;
-+		}
-+		setfsuid(getuid());
-+
-+		if(mount("", argv[1], "dontcare", type, "") == -1) {
-+			perror("mount");
-+			return 1;
-+		}
-+		return 0;
-+	}
-+	-----------------------------------------------------------------------
-+
-+	Copy the above code snippet into smount.c
-+	gcc -o smount smount.c
-+
-+
-+	(i) To mark all the mounts under /mnt as shared execute the following
-+	command:
-+
-+	 	smount /mnt rshared
-+		the corresponding syntax planned for mount command is
-+		mount --make-rshared /mnt
-+
-+	    just to mark a mount /mnt as shared, execute the following
-+	    command:
-+	 	smount /mnt shared
-+		the corresponding syntax planned for mount command is
-+		mount --make-shared /mnt
-+
-+	(ii) To mark all the shared mounts under /mnt as slave execute the
-+	following
-+
-+	     command:
-+		smount /mnt rslave
-+		the corresponding syntax planned for mount command is
-+		mount --make-rslave /mnt
-+
-+	    just to mark a mount /mnt as slave, execute the following
-+	    command:
-+	 	smount /mnt slave
-+		the corresponding syntax planned for mount command is
-+		mount --make-slave /mnt
-+
-+	(iii) To mark all the mounts under /mnt as private execute the
-+	following command:
-+
-+		smount /mnt rprivate
-+		the corresponding syntax planned for mount command is
-+		mount --make-rprivate /mnt
-+
-+	    just to mark a mount /mnt as private, execute the following
-+	    command:
-+	 	smount /mnt private
-+		the corresponding syntax planned for mount command is
-+		mount --make-private /mnt
-+
-+	      NOTE: by default all the mounts are created as private. But if
-+	      you want to change some shared/slave/unbindable  mount as
-+	      private at a later point in time, this command can help.
-+
-+	(iv) To mark all the mounts under /mnt as unbindable execute the
-+	following
-+
-+	     command:
-+		smount /mnt runbindable
-+		the corresponding syntax planned for mount command is
-+		mount --make-runbindable /mnt
-+
-+	    just to mark a mount /mnt as unbindable, execute the following
-+	    command:
-+	 	smount /mnt unbindable
-+		the corresponding syntax planned for mount command is
-+		mount --make-unbindable /mnt
-+
-+
-+4) Use cases
-+------------
-+
-+	A) A process wants to clone its own namespace, but still wants to
-+	   access the CD that got mounted recently.
-+
-+	   Solution:
-+
-+		The system administrator can make the mount at /cdrom shared
-+		mount --bind /cdrom /cdrom
-+		mount --make-shared /cdrom
-+
-+		Now any process that clones off a new namespace will have a
-+		mount at /cdrom which is a replica of the same mount in the
-+		parent namespace.
-+
-+		So when a CD is inserted and mounted at /cdrom that mount gets
-+		propagated to the other mount at /cdrom in all the other clone
-+		namespaces.
-+
-+	B) A process wants its mounts invisible to any other process, but
-+	still be able to see the other system mounts.
-+
-+	   Solution:
-+
-+		To begin with, the administrator can mark the entire mount tree
-+		as shareable.
-+
-+		mount --make-rshared /
-+
-+		A new process can clone off a new namespace. And mark some part
-+		of its namespace as slave
-+
-+		mount --make-rslave /myprivatetree
-+
-+		Hence forth any mounts within the /myprivatetree done by the
-+		process will not show up in any other namespace. However mounts
-+		done in the parent namespace under /myprivatetree still shows
-+		up in the process's namespace.
-+
-+
-+	Apart from the above semantics this feature provides the
-+	building blocks to solve the following problems:
-+
-+	C)  Per-user namespace
-+
-+		The above semantics allows a way to share mounts across
-+		namespaces.  But namespaces are associated with processes. If
-+		namespaces are made first class objects with user API to
-+		associate/disassociate a namespace with userid, then each user
-+		could have his/her own namespace and tailor it to his/her
-+		requirements. Offcourse its needs support from PAM.
-+
-+	D)  Versioned files
-+
-+		If the entire mount tree is visible at multiple locations, then
-+		a underlying versioning file system can return different
-+		version of the file depending on the path used to access that
-+		file.
-+
-+		An example is:
-+
-+		mount --make-shared /
-+		mount --rbind / /view/v1
-+		mount --rbind / /view/v2
-+		mount --rbind / /view/v3
-+		mount --rbind / /view/v4
-+
-+		and if /usr has a versioning filesystem mounted, than that
-+		mount appears at /view/v1/usr, /view/v2/usr, /view/v3/usr and
-+		/view/v4/usr too
-+
-+		A user can request v3 version of the file /usr/fs/namespace.c
-+		by accessing /view/v3/usr/fs/namespace.c . The underlying
-+		versioning filesystem can then decipher that v3 version of the
-+		filesystem is being requested and return the corresponding
-+		inode.
-+
-+5) Detailed semantics:
-+-------------------
-+	The section below explains the detailed semantics of
-+	bind, rbind, move, mount, umount and clone-namespace operations.
-+
-+	Note: the word 'vfsmount' and the noun 'mount' have been used
-+	to mean the same thing, throughout this document.
-+
-+5a) Mount states
-+
-+	A given mount can be in one of the following states
-+	1) shared
-+	2) slave
-+	3) shared and slave
-+	4) private
-+	5) unbindable
-+
-+	A 'propagation event' is defined as event generated on a vfsmount
-+	that leads to mount or unmount actions in other vfsmounts.
-+
-+	A 'peer group' is defined as a group of vfsmounts that propagate
-+	events to each other.
-+
-+	(1) Shared mounts
-+
-+		A 'shared mount' is defined as a vfsmount that belongs to a
-+		'peer group'.
-+
-+		For example:
-+			mount --make-shared /mnt
-+			mount --bin /mnt /tmp
-+
-+		The mount at /mnt and that at /tmp are both shared and belong
-+		to the same peer group. Anything mounted or unmounted under
-+		/mnt or /tmp reflect in all the other mounts of its peer
-+		group.
-+
-+
-+	(2) Slave mounts
-+
-+		A 'slave mount' is defined as a vfsmount that receives
-+		propagation events and does not forward propagation events.
-+
-+		A slave mount as the name implies has a master mount from which
-+		mount/unmount events are received. Events do not propagate from
-+		the slave mount to the master.  Only a shared mount can be made
-+		a slave by executing the following command
-+
-+			mount --make-slave mount
-+
-+		A shared mount that is made as a slave is no more shared unless
-+		modified to become shared.
-+
-+	(3) Shared and Slave
-+
-+		A vfsmount can be both shared as well as slave.  This state
-+		indicates that the mount is a slave of some vfsmount, and
-+		has its own peer group too.  This vfsmount receives propagation
-+		events from its master vfsmount, and also forwards propagation
-+		events to its 'peer group' and to its slave vfsmounts.
-+
-+		Strictly speaking, the vfsmount is shared having its own
-+		peer group, and this peer-group is a slave of some other
-+		peer group.
-+
-+		Only a slave vfsmount can be made as 'shared and slave' by
-+		either executing the following command
-+			mount --make-shared mount
-+		or by moving the slave vfsmount under a shared vfsmount.
-+
-+	(4) Private mount
-+
-+		A 'private mount' is defined as vfsmount that does not
-+		receive or forward any propagation events.
-+
-+	(5) Unbindable mount
-+
-+		A 'unbindable mount' is defined as vfsmount that does not
-+		receive or forward any propagation events and cannot
-+		be bind mounted.
-+
-+
-+   	State diagram:
-+   	The state diagram below explains the state transition of a mount,
-+	in response to various commands.
-+	------------------------------------------------------------------------
-+	|             |make-shared |  make-slave  | make-private |make-unbindab|
-+	--------------|------------|--------------|--------------|-------------|
-+	|shared	      |shared	   |*slave/private|   private	 | unbindable  |
-+	|             |            |              |              |             |
-+	|-------------|------------|--------------|--------------|-------------|
-+	|slave	      |shared      |	**slave	  |    private   | unbindable  |
-+	|             |and slave   |              |              |             |
-+	|-------------|------------|--------------|--------------|-------------|
-+	|shared	      |shared      |    slave	  |    private   | unbindable  |
-+	|and slave    |and slave   |              |              |             |
-+	|-------------|------------|--------------|--------------|-------------|
-+	|private      |shared	   |  **private	  |    private   | unbindable  |
-+	|-------------|------------|--------------|--------------|-------------|
-+	|unbindable   |shared	   |**unbindable  |    private   | unbindable  |
-+	------------------------------------------------------------------------
-+
-+	* if the shared mount is the only mount in its peer group, making it
-+	slave, makes it private automatically. Note that there is no master to
-+	which it can be slaved to.
-+
-+	** slaving a non-shared mount has no effect on the mount.
-+
-+	Apart from the commands listed below, the 'move' operation also changes
-+	the state of a mount depending on type of the destination mount. Its
-+	explained in section 5d.
-+
-+5b) Bind semantics
-+
-+	Consider the following command
-+
-+	mount --bind A/a  B/b
-+
-+	where 'A' is the source mount, 'a' is the dentry in the mount 'A', 'B'
-+	is the destination mount and 'b' is the dentry in the destination mount.
-+
-+	The outcome depends on the type of mount of 'A' and 'B'. The table
-+	below contains quick reference.
-+   ---------------------------------------------------------------------------
-+   |         BIND MOUNT OPERATION                                            |
-+   |**************************************************************************
-+   |source(A)->| shared       |       private  |       slave    | unbindable |
-+   | dest(B)  |               |                |                |            |
-+   |   |      |               |                |                |            |
-+   |   v      |               |                |                |            |
-+   |**************************************************************************
-+   |  shared  | shared        |     shared     | shared & slave |  invalid   |
-+   |          |               |                |                |            |
-+   |non-shared| shared        |      private   |      slave     |  invalid   |
-+   ***************************************************************************
-+
-+     	Details:
-+
-+	1. 'A' is a shared mount and 'B' is a shared mount. A new mount 'C'
-+	which is clone of 'A', is created. Its root dentry is 'a' . 'C' is
-+	mounted on mount 'B' at dentry 'b'. Also new mount 'C1', 'C2', 'C3' ...
-+	are created and mounted at the dentry 'b' on all mounts where 'B'
-+	propagates to. A new propagation tree containing 'C1',..,'Cn' is
-+	created. This propagation tree is identical to the propagation tree of
-+	'B'.  And finally the peer-group of 'C' is merged with the peer group
-+	of 'A'.
-+
-+	2. 'A' is a private mount and 'B' is a shared mount. A new mount 'C'
-+	which is clone of 'A', is created. Its root dentry is 'a'. 'C' is
-+	mounted on mount 'B' at dentry 'b'. Also new mount 'C1', 'C2', 'C3' ...
-+	are created and mounted at the dentry 'b' on all mounts where 'B'
-+	propagates to. A new propagation tree is set containing all new mounts
-+	'C', 'C1', .., 'Cn' with exactly the same configuration as the
-+	propagation tree for 'B'.
-+
-+	3. 'A' is a slave mount of mount 'Z' and 'B' is a shared mount. A new
-+	mount 'C' which is clone of 'A', is created. Its root dentry is 'a' .
-+	'C' is mounted on mount 'B' at dentry 'b'. Also new mounts 'C1', 'C2',
-+	'C3' ... are created and mounted at the dentry 'b' on all mounts where
-+	'B' propagates to. A new propagation tree containing the new mounts
-+	'C','C1',..  'Cn' is created. This propagation tree is identical to the
-+	propagation tree for 'B'. And finally the mount 'C' and its peer group
-+	is made the slave of mount 'Z'.  In other words, mount 'C' is in the
-+	state 'slave and shared'.
-+
-+	4. 'A' is a unbindable mount and 'B' is a shared mount. This is a
-+	invalid operation.
-+
-+	5. 'A' is a private mount and 'B' is a non-shared(private or slave or
-+	unbindable) mount. A new mount 'C' which is clone of 'A', is created.
-+	Its root dentry is 'a'. 'C' is mounted on mount 'B' at dentry 'b'.
-+
-+	6. 'A' is a shared mount and 'B' is a non-shared mount. A new mount 'C'
-+	which is a clone of 'A' is created. Its root dentry is 'a'. 'C' is
-+	mounted on mount 'B' at dentry 'b'.  'C' is made a member of the
-+	peer-group of 'A'.
-+
-+	7. 'A' is a slave mount of mount 'Z' and 'B' is a non-shared mount. A
-+	new mount 'C' which is a clone of 'A' is created. Its root dentry is
-+	'a'.  'C' is mounted on mount 'B' at dentry 'b'. Also 'C' is set as a
-+	slave mount of 'Z'. In other words 'A' and 'C' are both slave mounts of
-+	'Z'.  All mount/unmount events on 'Z' propagates to 'A' and 'C'. But
-+	mount/unmount on 'A' do not propagate anywhere else. Similarly
-+	mount/unmount on 'C' do not propagate anywhere else.
-+
-+	8. 'A' is a unbindable mount and 'B' is a non-shared mount. This is a
-+	invalid operation. A unbindable mount cannot be bind mounted.
-+
-+5c) Rbind semantics
-+
-+	rbind is same as bind. Bind replicates the specified mount.  Rbind
-+	replicates all the mounts in the tree belonging to the specified mount.
-+	Rbind mount is bind mount applied to all the mounts in the tree.
-+
-+	If the source tree that is rbind has some unbindable mounts,
-+	then the subtree under the unbindable mount is pruned in the new
-+	location.
-+
-+	eg: lets say we have the following mount tree.
-+
-+		A
-+	      /   \
-+	      B   C
-+	     / \ / \
-+	     D E F G
-+
-+	     Lets say all the mount except the mount C in the tree are
-+	     of a type other than unbindable.
-+
-+	     If this tree is rbound to say Z
-+
-+	     We will have the following tree at the new location.
-+
-+		Z
-+		|
-+		A'
-+	       /
-+	      B'		Note how the tree under C is pruned
-+	     / \ 		in the new location.
-+	    D' E'
-+
-+
-+
-+5d) Move semantics
-+
-+	Consider the following command
-+
-+	mount --move A  B/b
-+
-+	where 'A' is the source mount, 'B' is the destination mount and 'b' is
-+	the dentry in the destination mount.
-+
-+	The outcome depends on the type of the mount of 'A' and 'B'. The table
-+	below is a quick reference.
-+   ---------------------------------------------------------------------------
-+   |         		MOVE MOUNT OPERATION                                 |
-+   |**************************************************************************
-+   | source(A)->| shared      |       private  |       slave    | unbindable |
-+   | dest(B)  |               |                |                |            |
-+   |   |      |               |                |                |            |
-+   |   v      |               |                |                |            |
-+   |**************************************************************************
-+   |  shared  | shared        |     shared     |shared and slave|  invalid   |
-+   |          |               |                |                |            |
-+   |non-shared| shared        |      private   |    slave       | unbindable |
-+   ***************************************************************************
-+	NOTE: moving a mount residing under a shared mount is invalid.
-+
-+      Details follow:
-+
-+	1. 'A' is a shared mount and 'B' is a shared mount.  The mount 'A' is
-+	mounted on mount 'B' at dentry 'b'.  Also new mounts 'A1', 'A2'...'An'
-+	are created and mounted at dentry 'b' on all mounts that receive
-+	propagation from mount 'B'. A new propagation tree is created in the
-+	exact same configuration as that of 'B'. This new propagation tree
-+	contains all the new mounts 'A1', 'A2'...  'An'.  And this new
-+	propagation tree is appended to the already existing propagation tree
-+	of 'A'.
-+
-+	2. 'A' is a private mount and 'B' is a shared mount. The mount 'A' is
-+	mounted on mount 'B' at dentry 'b'. Also new mount 'A1', 'A2'... 'An'
-+	are created and mounted at dentry 'b' on all mounts that receive
-+	propagation from mount 'B'. The mount 'A' becomes a shared mount and a
-+	propagation tree is created which is identical to that of
-+	'B'. This new propagation tree contains all the new mounts 'A1',
-+	'A2'...  'An'.
-+
-+	3. 'A' is a slave mount of mount 'Z' and 'B' is a shared mount.  The
-+	mount 'A' is mounted on mount 'B' at dentry 'b'.  Also new mounts 'A1',
-+	'A2'... 'An' are created and mounted at dentry 'b' on all mounts that
-+	receive propagation from mount 'B'. A new propagation tree is created
-+	in the exact same configuration as that of 'B'. This new propagation
-+	tree contains all the new mounts 'A1', 'A2'...  'An'.  And this new
-+	propagation tree is appended to the already existing propagation tree of
-+	'A'.  Mount 'A' continues to be the slave mount of 'Z' but it also
-+	becomes 'shared'.
-+
-+	4. 'A' is a unbindable mount and 'B' is a shared mount. The operation
-+	is invalid. Because mounting anything on the shared mount 'B' can
-+	create new mounts that get mounted on the mounts that receive
-+	propagation from 'B'.  And since the mount 'A' is unbindable, cloning
-+	it to mount at other mountpoints is not possible.
-+
-+	5. 'A' is a private mount and 'B' is a non-shared(private or slave or
-+	unbindable) mount. The mount 'A' is mounted on mount 'B' at dentry 'b'.
-+
-+	6. 'A' is a shared mount and 'B' is a non-shared mount.  The mount 'A'
-+	is mounted on mount 'B' at dentry 'b'.  Mount 'A' continues to be a
-+	shared mount.
-+
-+	7. 'A' is a slave mount of mount 'Z' and 'B' is a non-shared mount.
-+	The mount 'A' is mounted on mount 'B' at dentry 'b'.  Mount 'A'
-+	continues to be a slave mount of mount 'Z'.
-+
-+	8. 'A' is a unbindable mount and 'B' is a non-shared mount. The mount
-+	'A' is mounted on mount 'B' at dentry 'b'. Mount 'A' continues to be a
-+	unbindable mount.
-+
-+5e) Mount semantics
-+
-+	Consider the following command
-+
-+	mount device  B/b
-+
-+	'B' is the destination mount and 'b' is the dentry in the destination
-+	mount.
-+
-+	The above operation is the same as bind operation with the exception
-+	that the source mount is always a private mount.
-+
-+
-+5f) Unmount semantics
-+
-+	Consider the following command
-+
-+	umount A
-+
-+	where 'A' is a mount mounted on mount 'B' at dentry 'b'.
-+
-+	If mount 'B' is shared, then all most-recently-mounted mounts at dentry
-+	'b' on mounts that receive propagation from mount 'B' and does not have
-+	sub-mounts within them are unmounted.
-+
-+	Example: Lets say 'B1', 'B2', 'B3' are shared mounts that propagate to
-+	each other.
-+
-+	lets say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
-+	'B1', 'B2' and 'B3' respectively.
-+
-+	lets say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
-+	mount 'B1', 'B2' and 'B3' respectively.
-+
-+	if 'C1' is unmounted, all the mounts that are most-recently-mounted on
-+	'B1' and on the mounts that 'B1' propagates-to are unmounted.
-+
-+	'B1' propagates to 'B2' and 'B3'. And the most recently mounted mount
-+	on 'B2' at dentry 'b' is 'C2', and that of mount 'B3' is 'C3'.
-+
-+	So all 'C1', 'C2' and 'C3' should be unmounted.
-+
-+	If any of 'C2' or 'C3' has some child mounts, then that mount is not
-+	unmounted, but all other mounts are unmounted. However if 'C1' is told
-+	to be unmounted and 'C1' has some sub-mounts, the umount operation is
-+	failed entirely.
-+
-+5g) Clone Namespace
-+
-+	A cloned namespace contains all the mounts as that of the parent
-+	namespace.
-+
-+	Lets say 'A' and 'B' are the corresponding mounts in the parent and the
-+	child namespace.
-+
-+	If 'A' is shared, then 'B' is also shared and 'A' and 'B' propagate to
-+	each other.
-+
-+	If 'A' is a slave mount of 'Z', then 'B' is also the slave mount of
-+	'Z'.
-+
-+	If 'A' is a private mount, then 'B' is a private mount too.
-+
-+	If 'A' is unbindable mount, then 'B' is a unbindable mount too.
-+
-+
-+6) Quiz
-+
-+	A. What is the result of the following command sequence?
-+
-+		mount --bind /mnt /mnt
-+		mount --make-shared /mnt
-+		mount --bind /mnt /tmp
-+		mount --move /tmp /mnt/1
-+
-+		what should be the contents of /mnt /mnt/1 /mnt/1/1 should be?
-+		Should they all be identical? or should /mnt and /mnt/1 be
-+		identical only?
-+
-+
-+	B. What is the result of the following command sequence?
-+
-+		mount --make-rshared /
-+		mkdir -p /v/1
-+		mount --rbind / /v/1
-+
-+		what should be the content of /v/1/v/1 be?
-+
-+
-+	C. What is the result of the following command sequence?
-+
-+		mount --bind /mnt /mnt
-+		mount --make-shared /mnt
-+		mkdir -p /mnt/1/2/3 /mnt/1/test
-+		mount --bind /mnt/1 /tmp
-+		mount --make-slave /mnt
-+		mount --make-shared /mnt
-+		mount --bind /mnt/1/2 /tmp1
-+		mount --make-slave /mnt
-+
-+		At this point we have the first mount at /tmp and
-+		its root dentry is 1. Lets call this mount 'A'
-+		And then we have a second mount at /tmp1 with root
-+		dentry 2. Lets call this mount 'B'
-+		Next we have a third mount at /mnt with root dentry
-+		mnt. Lets call this mount 'C'
-+
-+		'B' is the slave of 'A' and 'C' is a slave of 'B'
-+		A -> B -> C
-+
-+		at this point if we execute the following command
-+
-+		mount --bind /bin /tmp/test
-+
-+		The mount is attempted on 'A'
-+
-+		will the mount propagate to 'B' and 'C' ?
-+
-+		what would be the contents of
-+		/mnt/1/test be?
-+
-+7) FAQ
-+
-+	Q1. Why is bind mount needed? How is it different from symbolic links?
-+		symbolic links can get stale if the destination mount gets
-+		unmounted or moved. Bind mounts continue to exist even if the
-+		other mount is unmounted or moved.
-+
-+	Q2. Why can't the shared subtree be implemented using exportfs?
-+
-+		exportfs is a heavyweight way of accomplishing part of what
-+		shared subtree can do. I cannot imagine a way to implement the
-+		semantics of slave mount using exportfs?
-+
-+	Q3 Why is unbindable mount needed?
-+
-+		Lets say we want to replicate the mount tree at multiple
-+		locations within the same subtree.
-+
-+		if one rbind mounts a tree within the same subtree 'n' times
-+		the number of mounts created is an exponential function of 'n'.
-+		Having unbindable mount can help prune the unneeded bind
-+		mounts. Here is a example.
-+
-+		step 1:
-+		   lets say the root tree has just two directories with
-+		   one vfsmount.
-+				    root
-+				   /    \
-+				  tmp    usr
-+
-+		    And we want to replicate the tree at multiple
-+		    mountpoints under /root/tmp
-+
-+		step2:
-+		      mount --make-shared /root
-+
-+		      mkdir -p /tmp/m1
-+
-+		      mount --rbind /root /tmp/m1
-+
-+		      the new tree now looks like this:
-+
-+				    root
-+				   /    \
-+				 tmp    usr
-+				/
-+			       m1
-+			      /  \
-+			     tmp  usr
-+			     /
-+			    m1
-+
-+			  it has two vfsmounts
-+
-+		step3:
-+			    mkdir -p /tmp/m2
-+			    mount --rbind /root /tmp/m2
-+
-+			the new tree now looks like this:
-+
-+				      root
-+				     /    \
-+				   tmp     usr
-+				  /    \
-+				m1       m2
-+			       / \       /  \
-+			     tmp  usr   tmp  usr
-+			     / \          /
-+			    m1  m2      m1
-+				/ \     /  \
-+			      tmp usr  tmp   usr
-+			      /        / \
-+			     m1       m1  m2
-+			    /  \
-+			  tmp   usr
-+			  /  \
-+			 m1   m2
-+
-+		       it has 6 vfsmounts
-+
-+		step 4:
-+			  mkdir -p /tmp/m3
-+			  mount --rbind /root /tmp/m3
-+
-+			  I wont' draw the tree..but it has 24 vfsmounts
-+
-+
-+		at step i the number of vfsmounts is V[i] = i*V[i-1].
-+		This is an exponential function. And this tree has way more
-+		mounts than what we really needed in the first place.
-+
-+		One could use a series of umount at each step to prune
-+		out the unneeded mounts. But there is a better solution.
-+		Unclonable mounts come in handy here.
-+
-+		step 1:
-+		   lets say the root tree has just two directories with
-+		   one vfsmount.
-+				    root
-+				   /    \
-+				  tmp    usr
-+
-+		    How do we set up the same tree at multiple locations under
-+		    /root/tmp
-+
-+		step2:
-+		      mount --bind /root/tmp /root/tmp
-+
-+		      mount --make-rshared /root
-+		      mount --make-unbindable /root/tmp
-+
-+		      mkdir -p /tmp/m1
-+
-+		      mount --rbind /root /tmp/m1
-+
-+		      the new tree now looks like this:
-+
-+				    root
-+				   /    \
-+				 tmp    usr
-+				/
-+			       m1
-+			      /  \
-+			     tmp  usr
-+
-+		step3:
-+			    mkdir -p /tmp/m2
-+			    mount --rbind /root /tmp/m2
-+
-+		      the new tree now looks like this:
-+
-+				    root
-+				   /    \
-+				 tmp    usr
-+				/   \
-+			       m1     m2
-+			      /  \     / \
-+			     tmp  usr tmp usr
-+
-+		step4:
-+
-+			    mkdir -p /tmp/m3
-+			    mount --rbind /root /tmp/m3
-+
-+		      the new tree now looks like this:
-+
-+				    	  root
-+				      /    	  \
-+				     tmp    	   usr
-+			         /    \    \
-+			       m1     m2     m3
-+			      /  \     / \    /  \
-+			     tmp  usr tmp usr tmp usr
-+
-+8) Implementation
-+
-+8A) Datastructure
-+
-+	4 new fields are introduced to struct vfsmount
-+	->mnt_share
-+	->mnt_slave_list
-+	->mnt_slave
-+	->mnt_master
-+
-+	->mnt_share links together all the mount to/from which this vfsmount
-+		send/receives propagation events.
-+
-+	->mnt_slave_list links all the mounts to which this vfsmount propagates
-+		to.
-+
-+	->mnt_slave links together all the slaves that its master vfsmount
-+		propagates to.
-+
-+	->mnt_master points to the master vfsmount from which this vfsmount
-+		receives propagation.
-+
-+	->mnt_flags takes two more flags to indicate the propagation status of
-+		the vfsmount.  MNT_SHARE indicates that the vfsmount is a shared
-+		vfsmount.  MNT_UNCLONABLE indicates that the vfsmount cannot be
-+		replicated.
-+
-+	All the shared vfsmounts in a peer group form a cyclic list through
-+	->mnt_share.
-+
-+	All vfsmounts with the same ->mnt_master form on a cyclic list anchored
-+	in ->mnt_master->mnt_slave_list and going through ->mnt_slave.
-+
-+	 ->mnt_master can point to arbitrary (and possibly different) members
-+	 of master peer group.  To find all immediate slaves of a peer group
-+	 you need to go through _all_ ->mnt_slave_list of its members.
-+	 Conceptually it's just a single set - distribution among the
-+	 individual lists does not affect propagation or the way propagation
-+	 tree is modified by operations.
-+
-+	A example propagation tree looks as shown in the figure below.
-+	[ NOTE: Though it looks like a forest, if we consider all the shared
-+	mounts as a conceptual entity called 'pnode', it becomes a tree]
-+
-+
-+		        A <--> B <--> C <---> D
-+		       /|\	      /|      |\
-+		      / F G	     J K      H I
-+		     /
-+		    E<-->K
-+			/|\
-+		       M L N
-+
-+	In the above figure  A,B,C and D all are shared and propagate to each
-+	other.   'A' has got 3 slave mounts 'E' 'F' and 'G' 'C' has got 2 slave
-+	mounts 'J' and 'K'  and  'D' has got two slave mounts 'H' and 'I'.
-+	'E' is also shared with 'K' and they propagate to each other.  And
-+	'K' has 3 slaves 'M', 'L' and 'N'
-+
-+	A's ->mnt_share links with the ->mnt_share of 'B' 'C' and 'D'
-+
-+	A's ->mnt_slave_list links with ->mnt_slave of 'E', 'K', 'F' and 'G'
-+
-+	E's ->mnt_share links with ->mnt_share of K
-+	'E', 'K', 'F', 'G' have their ->mnt_master point to struct
-+				vfsmount of 'A'
-+	'M', 'L', 'N' have their ->mnt_master point to struct vfsmount of 'K'
-+	K's ->mnt_slave_list links with ->mnt_slave of 'M', 'L' and 'N'
-+
-+	C's ->mnt_slave_list links with ->mnt_slave of 'J' and 'K'
-+	J and K's ->mnt_master points to struct vfsmount of C
-+	and finally D's ->mnt_slave_list links with ->mnt_slave of 'H' and 'I'
-+	'H' and 'I' have their ->mnt_master pointing to struct vfsmount of 'D'.
-+
-+
-+	NOTE: The propagation tree is orthogonal to the mount tree.
-+
-+
-+8B Algorithm:
-+
-+	The crux of the implementation resides in rbind/move operation.
-+
-+	The overall algorithm breaks the operation into 3 phases: (look at
-+	attach_recursive_mnt() and propagate_mnt())
-+
-+	1. prepare phase.
-+	2. commit phases.
-+	3. abort phases.
-+
-+	Prepare phase:
-+
-+	for each mount in the source tree:
-+		   a) Create the necessary number of mount trees to
-+		   	be attached to each of the mounts that receive
-+			propagation from the destination mount.
-+		   b) Do not attach any of the trees to its destination.
-+		      However note down its ->mnt_parent and ->mnt_mountpoint
-+		   c) Link all the new mounts to form a propagation tree that
-+		      is identical to the propagation tree of the destination
-+		      mount.
-+
-+		   If this phase is successful, there should be 'n' new
-+		   propagation trees; where 'n' is the number of mounts in the
-+		   source tree.  Go to the commit phase
-+
-+		   Also there should be 'm' new mount trees, where 'm' is
-+		   the number of mounts to which the destination mount
-+		   propagates to.
-+
-+		   if any memory allocations fail, go to the abort phase.
-+
-+	Commit phase
-+		attach each of the mount trees to their corresponding
-+		destination mounts.
-+
-+	Abort phase
-+		delete all the newly created trees.
-+
-+	NOTE: all the propagation related functionality resides in the file
-+	pnode.c
-+
-+
-+------------------------------------------------------------------------
-+
-+version 0.1  (created the initial document, Ram Pai linuxram@us.ibm.com)
-+version 0.2  (Incorporated comments from Al Viro)
-diff -puN Documentation/sharedsubtree.txt~documentation-move-sharedsubtreestxt-to-filesystems /dev/null
---- a/Documentation/sharedsubtree.txt
-+++ /dev/null
-@@ -1,1061 +0,0 @@
--Shared Subtrees
-----------------
--
--Contents:
--	1) Overview
--	2) Features
--	3) smount command
--	4) Use-case
--	5) Detailed semantics
--	6) Quiz
--	7) FAQ
--	8) Implementation
--
--
--1) Overview
-------------
--
--Consider the following situation:
--
--A process wants to clone its own namespace, but still wants to access the CD
--that got mounted recently.  Shared subtree semantics provide the necessary
--mechanism to accomplish the above.
--
--It provides the necessary building blocks for features like per-user-namespace
--and versioned filesystem.
--
--2) Features
-------------
--
--Shared subtree provides four different flavors of mounts; struct vfsmount to be
--precise
--
--	a. shared mount
--	b. slave mount
--	c. private mount
--	d. unbindable mount
--
--
--2a) A shared mount can be replicated to as many mountpoints and all the
--replicas continue to be exactly same.
--
--	Here is an example:
--
--	Lets say /mnt has a mount that is shared.
--	mount --make-shared /mnt
--
--	note: mount command does not yet support the --make-shared flag.
--	I have included a small C program which does the same by executing
--	'smount /mnt shared'
--
--	#mount --bind /mnt /tmp
--	The above command replicates the mount at /mnt to the mountpoint /tmp
--	and the contents of both the mounts remain identical.
--
--	#ls /mnt
--	a b c
--
--	#ls /tmp
--	a b c
--
--	Now lets say we mount a device at /tmp/a
--	#mount /dev/sd0  /tmp/a
--
--	#ls /tmp/a
--	t1 t2 t2
--
--	#ls /mnt/a
--	t1 t2 t2
--
--	Note that the mount has propagated to the mount at /mnt as well.
--
--	And the same is true even when /dev/sd0 is mounted on /mnt/a. The
--	contents will be visible under /tmp/a too.
--
--
--2b) A slave mount is like a shared mount except that mount and umount events
--	only propagate towards it.
--
--	All slave mounts have a master mount which is a shared.
--
--	Here is an example:
--
--	Lets say /mnt has a mount which is shared.
--	#mount --make-shared /mnt
--
--	Lets bind mount /mnt to /tmp
--	#mount --bind /mnt /tmp
--
--	the new mount at /tmp becomes a shared mount and it is a replica of
--	the mount at /mnt.
--
--	Now lets make the mount at /tmp; a slave of /mnt
--	#mount --make-slave /tmp
--	[or smount /tmp slave]
--
--	lets mount /dev/sd0 on /mnt/a
--	#mount /dev/sd0 /mnt/a
--
--	#ls /mnt/a
--	t1 t2 t3
--
--	#ls /tmp/a
--	t1 t2 t3
--
--	Note the mount event has propagated to the mount at /tmp
--
--	However lets see what happens if we mount something on the mount at /tmp
--
--	#mount /dev/sd1 /tmp/b
--
--	#ls /tmp/b
--	s1 s2 s3
--
--	#ls /mnt/b
--
--	Note how the mount event has not propagated to the mount at
--	/mnt
--
--
--2c) A private mount does not forward or receive propagation.
--
--	This is the mount we are familiar with. Its the default type.
--
--
--2d) A unbindable mount is a unbindable private mount
--
--	lets say we have a mount at /mnt and we make is unbindable
--
--	#mount --make-unbindable /mnt
--	 [ smount /mnt  unbindable ]
--
--	 Lets try to bind mount this mount somewhere else.
--	 # mount --bind /mnt /tmp
--	 mount: wrong fs type, bad option, bad superblock on /mnt,
--	        or too many mounted file systems
--
--	Binding a unbindable mount is a invalid operation.
--
--
--3) smount command
--
--	Currently the mount command is not aware of shared subtree features.
--	Work is in progress to add the support in mount ( util-linux package ).
--	Till then use the following program.
--
--	------------------------------------------------------------------------
--	//
--	//this code was developed my Miklos Szeredi <miklos@szeredi.hu>
--	//and modified by Ram Pai <linuxram@us.ibm.com>
--	// sample usage:
--	//              smount /tmp shared
--	//
--	#include <stdio.h>
--	#include <stdlib.h>
--	#include <unistd.h>
--	#include <string.h>
--	#include <sys/mount.h>
--	#include <sys/fsuid.h>
--
--	#ifndef MS_REC
--	#define MS_REC		0x4000	/* 16384: Recursive loopback */
--	#endif
--
--	#ifndef MS_SHARED
--	#define MS_SHARED		1<<20	/* Shared */
--	#endif
--
--	#ifndef MS_PRIVATE
--	#define MS_PRIVATE		1<<18	/* Private */
--	#endif
--
--	#ifndef MS_SLAVE
--	#define MS_SLAVE		1<<19	/* Slave */
--	#endif
--
--	#ifndef MS_UNBINDABLE
--	#define MS_UNBINDABLE		1<<17	/* Unbindable */
--	#endif
--
--	int main(int argc, char *argv[])
+diff -puN fs/isofs/export.c~iget-stop-isofs-from-using-read_inode fs/isofs/export.c
+--- a/fs/isofs/export.c~iget-stop-isofs-from-using-read_inode
++++ a/fs/isofs/export.c
+@@ -26,11 +26,9 @@ isofs_export_iget(struct super_block *sb
+ 	if (block == 0)
+ 		return ERR_PTR(-ESTALE);
+ 	inode = isofs_iget(sb, block, offset);
+-	if (inode == NULL)
+-		return ERR_PTR(-ENOMEM);
+-	if (is_bad_inode(inode)
+-	    || (generation && inode->i_generation != generation))
 -	{
--		int type;
--		if(argc != 3) {
--			fprintf(stderr, "usage: %s dir "
--			"<rshared|rslave|rprivate|runbindable|shared|slave"
--			"|private|unbindable>\n" , argv[0]);
--			return 1;
--		}
--
--		fprintf(stdout, "%s %s %s\n", argv[0], argv[1], argv[2]);
--
--		if (strcmp(argv[2],"rshared")==0)
--			type=(MS_SHARED|MS_REC);
--		else if (strcmp(argv[2],"rslave")==0)
--			type=(MS_SLAVE|MS_REC);
--		else if (strcmp(argv[2],"rprivate")==0)
--			type=(MS_PRIVATE|MS_REC);
--		else if (strcmp(argv[2],"runbindable")==0)
--			type=(MS_UNBINDABLE|MS_REC);
--		else if (strcmp(argv[2],"shared")==0)
--			type=MS_SHARED;
--		else if (strcmp(argv[2],"slave")==0)
--			type=MS_SLAVE;
--		else if (strcmp(argv[2],"private")==0)
--			type=MS_PRIVATE;
--		else if (strcmp(argv[2],"unbindable")==0)
--			type=MS_UNBINDABLE;
--		else {
--			fprintf(stderr, "invalid operation: %s\n", argv[2]);
--			return 1;
--		}
--		setfsuid(getuid());
--
--		if(mount("", argv[1], "dontcare", type, "") == -1) {
--			perror("mount");
--			return 1;
--		}
--		return 0;
--	}
--	-----------------------------------------------------------------------
--
--	Copy the above code snippet into smount.c
--	gcc -o smount smount.c
--
--
--	(i) To mark all the mounts under /mnt as shared execute the following
--	command:
--
--	 	smount /mnt rshared
--		the corresponding syntax planned for mount command is
--		mount --make-rshared /mnt
--
--	    just to mark a mount /mnt as shared, execute the following
--	    command:
--	 	smount /mnt shared
--		the corresponding syntax planned for mount command is
--		mount --make-shared /mnt
--
--	(ii) To mark all the shared mounts under /mnt as slave execute the
--	following
--
--	     command:
--		smount /mnt rslave
--		the corresponding syntax planned for mount command is
--		mount --make-rslave /mnt
--
--	    just to mark a mount /mnt as slave, execute the following
--	    command:
--	 	smount /mnt slave
--		the corresponding syntax planned for mount command is
--		mount --make-slave /mnt
--
--	(iii) To mark all the mounts under /mnt as private execute the
--	following command:
--
--		smount /mnt rprivate
--		the corresponding syntax planned for mount command is
--		mount --make-rprivate /mnt
--
--	    just to mark a mount /mnt as private, execute the following
--	    command:
--	 	smount /mnt private
--		the corresponding syntax planned for mount command is
--		mount --make-private /mnt
--
--	      NOTE: by default all the mounts are created as private. But if
--	      you want to change some shared/slave/unbindable  mount as
--	      private at a later point in time, this command can help.
--
--	(iv) To mark all the mounts under /mnt as unbindable execute the
--	following
--
--	     command:
--		smount /mnt runbindable
--		the corresponding syntax planned for mount command is
--		mount --make-runbindable /mnt
--
--	    just to mark a mount /mnt as unbindable, execute the following
--	    command:
--	 	smount /mnt unbindable
--		the corresponding syntax planned for mount command is
--		mount --make-unbindable /mnt
--
--
--4) Use cases
--------------
--
--	A) A process wants to clone its own namespace, but still wants to
--	   access the CD that got mounted recently.
--
--	   Solution:
--
--		The system administrator can make the mount at /cdrom shared
--		mount --bind /cdrom /cdrom
--		mount --make-shared /cdrom
--
--		Now any process that clones off a new namespace will have a
--		mount at /cdrom which is a replica of the same mount in the
--		parent namespace.
--
--		So when a CD is inserted and mounted at /cdrom that mount gets
--		propagated to the other mount at /cdrom in all the other clone
--		namespaces.
--
--	B) A process wants its mounts invisible to any other process, but
--	still be able to see the other system mounts.
--
--	   Solution:
--
--		To begin with, the administrator can mark the entire mount tree
--		as shareable.
--
--		mount --make-rshared /
--
--		A new process can clone off a new namespace. And mark some part
--		of its namespace as slave
--
--		mount --make-rslave /myprivatetree
--
--		Hence forth any mounts within the /myprivatetree done by the
--		process will not show up in any other namespace. However mounts
--		done in the parent namespace under /myprivatetree still shows
--		up in the process's namespace.
--
--
--	Apart from the above semantics this feature provides the
--	building blocks to solve the following problems:
--
--	C)  Per-user namespace
--
--		The above semantics allows a way to share mounts across
--		namespaces.  But namespaces are associated with processes. If
--		namespaces are made first class objects with user API to
--		associate/disassociate a namespace with userid, then each user
--		could have his/her own namespace and tailor it to his/her
--		requirements. Offcourse its needs support from PAM.
--
--	D)  Versioned files
--
--		If the entire mount tree is visible at multiple locations, then
--		a underlying versioning file system can return different
--		version of the file depending on the path used to access that
--		file.
--
--		An example is:
--
--		mount --make-shared /
--		mount --rbind / /view/v1
--		mount --rbind / /view/v2
--		mount --rbind / /view/v3
--		mount --rbind / /view/v4
--
--		and if /usr has a versioning filesystem mounted, than that
--		mount appears at /view/v1/usr, /view/v2/usr, /view/v3/usr and
--		/view/v4/usr too
--
--		A user can request v3 version of the file /usr/fs/namespace.c
--		by accessing /view/v3/usr/fs/namespace.c . The underlying
--		versioning filesystem can then decipher that v3 version of the
--		filesystem is being requested and return the corresponding
--		inode.
--
--5) Detailed semantics:
---------------------
--	The section below explains the detailed semantics of
--	bind, rbind, move, mount, umount and clone-namespace operations.
--
--	Note: the word 'vfsmount' and the noun 'mount' have been used
--	to mean the same thing, throughout this document.
--
--5a) Mount states
--
--	A given mount can be in one of the following states
--	1) shared
--	2) slave
--	3) shared and slave
--	4) private
--	5) unbindable
--
--	A 'propagation event' is defined as event generated on a vfsmount
--	that leads to mount or unmount actions in other vfsmounts.
--
--	A 'peer group' is defined as a group of vfsmounts that propagate
--	events to each other.
--
--	(1) Shared mounts
--
--		A 'shared mount' is defined as a vfsmount that belongs to a
--		'peer group'.
--
--		For example:
--			mount --make-shared /mnt
--			mount --bin /mnt /tmp
--
--		The mount at /mnt and that at /tmp are both shared and belong
--		to the same peer group. Anything mounted or unmounted under
--		/mnt or /tmp reflect in all the other mounts of its peer
--		group.
--
--
--	(2) Slave mounts
--
--		A 'slave mount' is defined as a vfsmount that receives
--		propagation events and does not forward propagation events.
--
--		A slave mount as the name implies has a master mount from which
--		mount/unmount events are received. Events do not propagate from
--		the slave mount to the master.  Only a shared mount can be made
--		a slave by executing the following command
--
--			mount --make-slave mount
--
--		A shared mount that is made as a slave is no more shared unless
--		modified to become shared.
--
--	(3) Shared and Slave
--
--		A vfsmount can be both shared as well as slave.  This state
--		indicates that the mount is a slave of some vfsmount, and
--		has its own peer group too.  This vfsmount receives propagation
--		events from its master vfsmount, and also forwards propagation
--		events to its 'peer group' and to its slave vfsmounts.
--
--		Strictly speaking, the vfsmount is shared having its own
--		peer group, and this peer-group is a slave of some other
--		peer group.
--
--		Only a slave vfsmount can be made as 'shared and slave' by
--		either executing the following command
--			mount --make-shared mount
--		or by moving the slave vfsmount under a shared vfsmount.
--
--	(4) Private mount
--
--		A 'private mount' is defined as vfsmount that does not
--		receive or forward any propagation events.
--
--	(5) Unbindable mount
--
--		A 'unbindable mount' is defined as vfsmount that does not
--		receive or forward any propagation events and cannot
--		be bind mounted.
--
--
--   	State diagram:
--   	The state diagram below explains the state transition of a mount,
--	in response to various commands.
--	------------------------------------------------------------------------
--	|             |make-shared |  make-slave  | make-private |make-unbindab|
--	--------------|------------|--------------|--------------|-------------|
--	|shared	      |shared	   |*slave/private|   private	 | unbindable  |
--	|             |            |              |              |             |
--	|-------------|------------|--------------|--------------|-------------|
--	|slave	      |shared      |	**slave	  |    private   | unbindable  |
--	|             |and slave   |              |              |             |
--	|-------------|------------|--------------|--------------|-------------|
--	|shared	      |shared      |    slave	  |    private   | unbindable  |
--	|and slave    |and slave   |              |              |             |
--	|-------------|------------|--------------|--------------|-------------|
--	|private      |shared	   |  **private	  |    private   | unbindable  |
--	|-------------|------------|--------------|--------------|-------------|
--	|unbindable   |shared	   |**unbindable  |    private   | unbindable  |
--	------------------------------------------------------------------------
--
--	* if the shared mount is the only mount in its peer group, making it
--	slave, makes it private automatically. Note that there is no master to
--	which it can be slaved to.
--
--	** slaving a non-shared mount has no effect on the mount.
--
--	Apart from the commands listed below, the 'move' operation also changes
--	the state of a mount depending on type of the destination mount. Its
--	explained in section 5d.
--
--5b) Bind semantics
--
--	Consider the following command
--
--	mount --bind A/a  B/b
--
--	where 'A' is the source mount, 'a' is the dentry in the mount 'A', 'B'
--	is the destination mount and 'b' is the dentry in the destination mount.
--
--	The outcome depends on the type of mount of 'A' and 'B'. The table
--	below contains quick reference.
--   ---------------------------------------------------------------------------
--   |         BIND MOUNT OPERATION                                            |
--   |**************************************************************************
--   |source(A)->| shared       |       private  |       slave    | unbindable |
--   | dest(B)  |               |                |                |            |
--   |   |      |               |                |                |            |
--   |   v      |               |                |                |            |
--   |**************************************************************************
--   |  shared  | shared        |     shared     | shared & slave |  invalid   |
--   |          |               |                |                |            |
--   |non-shared| shared        |      private   |      slave     |  invalid   |
--   ***************************************************************************
--
--     	Details:
--
--	1. 'A' is a shared mount and 'B' is a shared mount. A new mount 'C'
--	which is clone of 'A', is created. Its root dentry is 'a' . 'C' is
--	mounted on mount 'B' at dentry 'b'. Also new mount 'C1', 'C2', 'C3' ...
--	are created and mounted at the dentry 'b' on all mounts where 'B'
--	propagates to. A new propagation tree containing 'C1',..,'Cn' is
--	created. This propagation tree is identical to the propagation tree of
--	'B'.  And finally the peer-group of 'C' is merged with the peer group
--	of 'A'.
--
--	2. 'A' is a private mount and 'B' is a shared mount. A new mount 'C'
--	which is clone of 'A', is created. Its root dentry is 'a'. 'C' is
--	mounted on mount 'B' at dentry 'b'. Also new mount 'C1', 'C2', 'C3' ...
--	are created and mounted at the dentry 'b' on all mounts where 'B'
--	propagates to. A new propagation tree is set containing all new mounts
--	'C', 'C1', .., 'Cn' with exactly the same configuration as the
--	propagation tree for 'B'.
--
--	3. 'A' is a slave mount of mount 'Z' and 'B' is a shared mount. A new
--	mount 'C' which is clone of 'A', is created. Its root dentry is 'a' .
--	'C' is mounted on mount 'B' at dentry 'b'. Also new mounts 'C1', 'C2',
--	'C3' ... are created and mounted at the dentry 'b' on all mounts where
--	'B' propagates to. A new propagation tree containing the new mounts
--	'C','C1',..  'Cn' is created. This propagation tree is identical to the
--	propagation tree for 'B'. And finally the mount 'C' and its peer group
--	is made the slave of mount 'Z'.  In other words, mount 'C' is in the
--	state 'slave and shared'.
--
--	4. 'A' is a unbindable mount and 'B' is a shared mount. This is a
--	invalid operation.
--
--	5. 'A' is a private mount and 'B' is a non-shared(private or slave or
--	unbindable) mount. A new mount 'C' which is clone of 'A', is created.
--	Its root dentry is 'a'. 'C' is mounted on mount 'B' at dentry 'b'.
--
--	6. 'A' is a shared mount and 'B' is a non-shared mount. A new mount 'C'
--	which is a clone of 'A' is created. Its root dentry is 'a'. 'C' is
--	mounted on mount 'B' at dentry 'b'.  'C' is made a member of the
--	peer-group of 'A'.
--
--	7. 'A' is a slave mount of mount 'Z' and 'B' is a non-shared mount. A
--	new mount 'C' which is a clone of 'A' is created. Its root dentry is
--	'a'.  'C' is mounted on mount 'B' at dentry 'b'. Also 'C' is set as a
--	slave mount of 'Z'. In other words 'A' and 'C' are both slave mounts of
--	'Z'.  All mount/unmount events on 'Z' propagates to 'A' and 'C'. But
--	mount/unmount on 'A' do not propagate anywhere else. Similarly
--	mount/unmount on 'C' do not propagate anywhere else.
--
--	8. 'A' is a unbindable mount and 'B' is a non-shared mount. This is a
--	invalid operation. A unbindable mount cannot be bind mounted.
--
--5c) Rbind semantics
--
--	rbind is same as bind. Bind replicates the specified mount.  Rbind
--	replicates all the mounts in the tree belonging to the specified mount.
--	Rbind mount is bind mount applied to all the mounts in the tree.
--
--	If the source tree that is rbind has some unbindable mounts,
--	then the subtree under the unbindable mount is pruned in the new
--	location.
--
--	eg: lets say we have the following mount tree.
--
--		A
--	      /   \
--	      B   C
--	     / \ / \
--	     D E F G
--
--	     Lets say all the mount except the mount C in the tree are
--	     of a type other than unbindable.
--
--	     If this tree is rbound to say Z
--
--	     We will have the following tree at the new location.
--
--		Z
--		|
--		A'
--	       /
--	      B'		Note how the tree under C is pruned
--	     / \ 		in the new location.
--	    D' E'
--
--
--
--5d) Move semantics
--
--	Consider the following command
--
--	mount --move A  B/b
--
--	where 'A' is the source mount, 'B' is the destination mount and 'b' is
--	the dentry in the destination mount.
--
--	The outcome depends on the type of the mount of 'A' and 'B'. The table
--	below is a quick reference.
--   ---------------------------------------------------------------------------
--   |         		MOVE MOUNT OPERATION                                 |
--   |**************************************************************************
--   | source(A)->| shared      |       private  |       slave    | unbindable |
--   | dest(B)  |               |                |                |            |
--   |   |      |               |                |                |            |
--   |   v      |               |                |                |            |
--   |**************************************************************************
--   |  shared  | shared        |     shared     |shared and slave|  invalid   |
--   |          |               |                |                |            |
--   |non-shared| shared        |      private   |    slave       | unbindable |
--   ***************************************************************************
--	NOTE: moving a mount residing under a shared mount is invalid.
--
--      Details follow:
--
--	1. 'A' is a shared mount and 'B' is a shared mount.  The mount 'A' is
--	mounted on mount 'B' at dentry 'b'.  Also new mounts 'A1', 'A2'...'An'
--	are created and mounted at dentry 'b' on all mounts that receive
--	propagation from mount 'B'. A new propagation tree is created in the
--	exact same configuration as that of 'B'. This new propagation tree
--	contains all the new mounts 'A1', 'A2'...  'An'.  And this new
--	propagation tree is appended to the already existing propagation tree
--	of 'A'.
--
--	2. 'A' is a private mount and 'B' is a shared mount. The mount 'A' is
--	mounted on mount 'B' at dentry 'b'. Also new mount 'A1', 'A2'... 'An'
--	are created and mounted at dentry 'b' on all mounts that receive
--	propagation from mount 'B'. The mount 'A' becomes a shared mount and a
--	propagation tree is created which is identical to that of
--	'B'. This new propagation tree contains all the new mounts 'A1',
--	'A2'...  'An'.
--
--	3. 'A' is a slave mount of mount 'Z' and 'B' is a shared mount.  The
--	mount 'A' is mounted on mount 'B' at dentry 'b'.  Also new mounts 'A1',
--	'A2'... 'An' are created and mounted at dentry 'b' on all mounts that
--	receive propagation from mount 'B'. A new propagation tree is created
--	in the exact same configuration as that of 'B'. This new propagation
--	tree contains all the new mounts 'A1', 'A2'...  'An'.  And this new
--	propagation tree is appended to the already existing propagation tree of
--	'A'.  Mount 'A' continues to be the slave mount of 'Z' but it also
--	becomes 'shared'.
--
--	4. 'A' is a unbindable mount and 'B' is a shared mount. The operation
--	is invalid. Because mounting anything on the shared mount 'B' can
--	create new mounts that get mounted on the mounts that receive
--	propagation from 'B'.  And since the mount 'A' is unbindable, cloning
--	it to mount at other mountpoints is not possible.
--
--	5. 'A' is a private mount and 'B' is a non-shared(private or slave or
--	unbindable) mount. The mount 'A' is mounted on mount 'B' at dentry 'b'.
--
--	6. 'A' is a shared mount and 'B' is a non-shared mount.  The mount 'A'
--	is mounted on mount 'B' at dentry 'b'.  Mount 'A' continues to be a
--	shared mount.
--
--	7. 'A' is a slave mount of mount 'Z' and 'B' is a non-shared mount.
--	The mount 'A' is mounted on mount 'B' at dentry 'b'.  Mount 'A'
--	continues to be a slave mount of mount 'Z'.
--
--	8. 'A' is a unbindable mount and 'B' is a non-shared mount. The mount
--	'A' is mounted on mount 'B' at dentry 'b'. Mount 'A' continues to be a
--	unbindable mount.
--
--5e) Mount semantics
--
--	Consider the following command
--
--	mount device  B/b
--
--	'B' is the destination mount and 'b' is the dentry in the destination
--	mount.
--
--	The above operation is the same as bind operation with the exception
--	that the source mount is always a private mount.
--
--
--5f) Unmount semantics
--
--	Consider the following command
--
--	umount A
--
--	where 'A' is a mount mounted on mount 'B' at dentry 'b'.
--
--	If mount 'B' is shared, then all most-recently-mounted mounts at dentry
--	'b' on mounts that receive propagation from mount 'B' and does not have
--	sub-mounts within them are unmounted.
--
--	Example: Lets say 'B1', 'B2', 'B3' are shared mounts that propagate to
--	each other.
--
--	lets say 'A1', 'A2', 'A3' are first mounted at dentry 'b' on mount
--	'B1', 'B2' and 'B3' respectively.
--
--	lets say 'C1', 'C2', 'C3' are next mounted at the same dentry 'b' on
--	mount 'B1', 'B2' and 'B3' respectively.
--
--	if 'C1' is unmounted, all the mounts that are most-recently-mounted on
--	'B1' and on the mounts that 'B1' propagates-to are unmounted.
--
--	'B1' propagates to 'B2' and 'B3'. And the most recently mounted mount
--	on 'B2' at dentry 'b' is 'C2', and that of mount 'B3' is 'C3'.
--
--	So all 'C1', 'C2' and 'C3' should be unmounted.
--
--	If any of 'C2' or 'C3' has some child mounts, then that mount is not
--	unmounted, but all other mounts are unmounted. However if 'C1' is told
--	to be unmounted and 'C1' has some sub-mounts, the umount operation is
--	failed entirely.
--
--5g) Clone Namespace
--
--	A cloned namespace contains all the mounts as that of the parent
--	namespace.
--
--	Lets say 'A' and 'B' are the corresponding mounts in the parent and the
--	child namespace.
--
--	If 'A' is shared, then 'B' is also shared and 'A' and 'B' propagate to
--	each other.
--
--	If 'A' is a slave mount of 'Z', then 'B' is also the slave mount of
--	'Z'.
--
--	If 'A' is a private mount, then 'B' is a private mount too.
--
--	If 'A' is unbindable mount, then 'B' is a unbindable mount too.
--
--
--6) Quiz
--
--	A. What is the result of the following command sequence?
--
--		mount --bind /mnt /mnt
--		mount --make-shared /mnt
--		mount --bind /mnt /tmp
--		mount --move /tmp /mnt/1
--
--		what should be the contents of /mnt /mnt/1 /mnt/1/1 should be?
--		Should they all be identical? or should /mnt and /mnt/1 be
--		identical only?
--
--
--	B. What is the result of the following command sequence?
--
--		mount --make-rshared /
--		mkdir -p /v/1
--		mount --rbind / /v/1
--
--		what should be the content of /v/1/v/1 be?
--
--
--	C. What is the result of the following command sequence?
--
--		mount --bind /mnt /mnt
--		mount --make-shared /mnt
--		mkdir -p /mnt/1/2/3 /mnt/1/test
--		mount --bind /mnt/1 /tmp
--		mount --make-slave /mnt
--		mount --make-shared /mnt
--		mount --bind /mnt/1/2 /tmp1
--		mount --make-slave /mnt
--
--		At this point we have the first mount at /tmp and
--		its root dentry is 1. Lets call this mount 'A'
--		And then we have a second mount at /tmp1 with root
--		dentry 2. Lets call this mount 'B'
--		Next we have a third mount at /mnt with root dentry
--		mnt. Lets call this mount 'C'
--
--		'B' is the slave of 'A' and 'C' is a slave of 'B'
--		A -> B -> C
--
--		at this point if we execute the following command
--
--		mount --bind /bin /tmp/test
--
--		The mount is attempted on 'A'
--
--		will the mount propagate to 'B' and 'C' ?
--
--		what would be the contents of
--		/mnt/1/test be?
--
--7) FAQ
--
--	Q1. Why is bind mount needed? How is it different from symbolic links?
--		symbolic links can get stale if the destination mount gets
--		unmounted or moved. Bind mounts continue to exist even if the
--		other mount is unmounted or moved.
--
--	Q2. Why can't the shared subtree be implemented using exportfs?
--
--		exportfs is a heavyweight way of accomplishing part of what
--		shared subtree can do. I cannot imagine a way to implement the
--		semantics of slave mount using exportfs?
--
--	Q3 Why is unbindable mount needed?
--
--		Lets say we want to replicate the mount tree at multiple
--		locations within the same subtree.
--
--		if one rbind mounts a tree within the same subtree 'n' times
--		the number of mounts created is an exponential function of 'n'.
--		Having unbindable mount can help prune the unneeded bind
--		mounts. Here is a example.
--
--		step 1:
--		   lets say the root tree has just two directories with
--		   one vfsmount.
--				    root
--				   /    \
--				  tmp    usr
--
--		    And we want to replicate the tree at multiple
--		    mountpoints under /root/tmp
--
--		step2:
--		      mount --make-shared /root
--
--		      mkdir -p /tmp/m1
--
--		      mount --rbind /root /tmp/m1
--
--		      the new tree now looks like this:
--
--				    root
--				   /    \
--				 tmp    usr
--				/
--			       m1
--			      /  \
--			     tmp  usr
--			     /
--			    m1
--
--			  it has two vfsmounts
--
--		step3:
--			    mkdir -p /tmp/m2
--			    mount --rbind /root /tmp/m2
--
--			the new tree now looks like this:
--
--				      root
--				     /    \
--				   tmp     usr
--				  /    \
--				m1       m2
--			       / \       /  \
--			     tmp  usr   tmp  usr
--			     / \          /
--			    m1  m2      m1
--				/ \     /  \
--			      tmp usr  tmp   usr
--			      /        / \
--			     m1       m1  m2
--			    /  \
--			  tmp   usr
--			  /  \
--			 m1   m2
--
--		       it has 6 vfsmounts
--
--		step 4:
--			  mkdir -p /tmp/m3
--			  mount --rbind /root /tmp/m3
--
--			  I wont' draw the tree..but it has 24 vfsmounts
--
--
--		at step i the number of vfsmounts is V[i] = i*V[i-1].
--		This is an exponential function. And this tree has way more
--		mounts than what we really needed in the first place.
--
--		One could use a series of umount at each step to prune
--		out the unneeded mounts. But there is a better solution.
--		Unclonable mounts come in handy here.
--
--		step 1:
--		   lets say the root tree has just two directories with
--		   one vfsmount.
--				    root
--				   /    \
--				  tmp    usr
--
--		    How do we set up the same tree at multiple locations under
--		    /root/tmp
--
--		step2:
--		      mount --bind /root/tmp /root/tmp
--
--		      mount --make-rshared /root
--		      mount --make-unbindable /root/tmp
--
--		      mkdir -p /tmp/m1
--
--		      mount --rbind /root /tmp/m1
--
--		      the new tree now looks like this:
--
--				    root
--				   /    \
--				 tmp    usr
--				/
--			       m1
--			      /  \
--			     tmp  usr
--
--		step3:
--			    mkdir -p /tmp/m2
--			    mount --rbind /root /tmp/m2
--
--		      the new tree now looks like this:
--
--				    root
--				   /    \
--				 tmp    usr
--				/   \
--			       m1     m2
--			      /  \     / \
--			     tmp  usr tmp usr
--
--		step4:
--
--			    mkdir -p /tmp/m3
--			    mount --rbind /root /tmp/m3
--
--		      the new tree now looks like this:
--
--				    	  root
--				      /    	  \
--				     tmp    	   usr
--			         /    \    \
--			       m1     m2     m3
--			      /  \     / \    /  \
--			     tmp  usr tmp usr tmp usr
--
--8) Implementation
--
--8A) Datastructure
--
--	4 new fields are introduced to struct vfsmount
--	->mnt_share
--	->mnt_slave_list
--	->mnt_slave
--	->mnt_master
--
--	->mnt_share links together all the mount to/from which this vfsmount
--		send/receives propagation events.
--
--	->mnt_slave_list links all the mounts to which this vfsmount propagates
--		to.
--
--	->mnt_slave links together all the slaves that its master vfsmount
--		propagates to.
--
--	->mnt_master points to the master vfsmount from which this vfsmount
--		receives propagation.
--
--	->mnt_flags takes two more flags to indicate the propagation status of
--		the vfsmount.  MNT_SHARE indicates that the vfsmount is a shared
--		vfsmount.  MNT_UNCLONABLE indicates that the vfsmount cannot be
--		replicated.
--
--	All the shared vfsmounts in a peer group form a cyclic list through
--	->mnt_share.
--
--	All vfsmounts with the same ->mnt_master form on a cyclic list anchored
--	in ->mnt_master->mnt_slave_list and going through ->mnt_slave.
--
--	 ->mnt_master can point to arbitrary (and possibly different) members
--	 of master peer group.  To find all immediate slaves of a peer group
--	 you need to go through _all_ ->mnt_slave_list of its members.
--	 Conceptually it's just a single set - distribution among the
--	 individual lists does not affect propagation or the way propagation
--	 tree is modified by operations.
--
--	A example propagation tree looks as shown in the figure below.
--	[ NOTE: Though it looks like a forest, if we consider all the shared
--	mounts as a conceptual entity called 'pnode', it becomes a tree]
--
--
--		        A <--> B <--> C <---> D
--		       /|\	      /|      |\
--		      / F G	     J K      H I
--		     /
--		    E<-->K
--			/|\
--		       M L N
--
--	In the above figure  A,B,C and D all are shared and propagate to each
--	other.   'A' has got 3 slave mounts 'E' 'F' and 'G' 'C' has got 2 slave
--	mounts 'J' and 'K'  and  'D' has got two slave mounts 'H' and 'I'.
--	'E' is also shared with 'K' and they propagate to each other.  And
--	'K' has 3 slaves 'M', 'L' and 'N'
--
--	A's ->mnt_share links with the ->mnt_share of 'B' 'C' and 'D'
--
--	A's ->mnt_slave_list links with ->mnt_slave of 'E', 'K', 'F' and 'G'
--
--	E's ->mnt_share links with ->mnt_share of K
--	'E', 'K', 'F', 'G' have their ->mnt_master point to struct
--				vfsmount of 'A'
--	'M', 'L', 'N' have their ->mnt_master point to struct vfsmount of 'K'
--	K's ->mnt_slave_list links with ->mnt_slave of 'M', 'L' and 'N'
--
--	C's ->mnt_slave_list links with ->mnt_slave of 'J' and 'K'
--	J and K's ->mnt_master points to struct vfsmount of C
--	and finally D's ->mnt_slave_list links with ->mnt_slave of 'H' and 'I'
--	'H' and 'I' have their ->mnt_master pointing to struct vfsmount of 'D'.
--
--
--	NOTE: The propagation tree is orthogonal to the mount tree.
--
--
--8B Algorithm:
--
--	The crux of the implementation resides in rbind/move operation.
--
--	The overall algorithm breaks the operation into 3 phases: (look at
--	attach_recursive_mnt() and propagate_mnt())
--
--	1. prepare phase.
--	2. commit phases.
--	3. abort phases.
--
--	Prepare phase:
--
--	for each mount in the source tree:
--		   a) Create the necessary number of mount trees to
--		   	be attached to each of the mounts that receive
--			propagation from the destination mount.
--		   b) Do not attach any of the trees to its destination.
--		      However note down its ->mnt_parent and ->mnt_mountpoint
--		   c) Link all the new mounts to form a propagation tree that
--		      is identical to the propagation tree of the destination
--		      mount.
--
--		   If this phase is successful, there should be 'n' new
--		   propagation trees; where 'n' is the number of mounts in the
--		   source tree.  Go to the commit phase
--
--		   Also there should be 'm' new mount trees, where 'm' is
--		   the number of mounts to which the destination mount
--		   propagates to.
--
--		   if any memory allocations fail, go to the abort phase.
--
--	Commit phase
--		attach each of the mount trees to their corresponding
--		destination mounts.
--
--	Abort phase
--		delete all the newly created trees.
--
--	NOTE: all the propagation related functionality resides in the file
--	pnode.c
--
--
--------------------------------------------------------------------------
--
--version 0.1  (created the initial document, Ram Pai linuxram@us.ibm.com)
--version 0.2  (Incorporated comments from Al Viro)
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++	if (generation && inode->i_generation != generation) {
+ 		iput(inode);
+ 		return ERR_PTR(-ESTALE);
+ 	}
+@@ -110,8 +108,10 @@ static struct dentry *isofs_export_get_p
+ 	parent_inode = isofs_iget(child_inode->i_sb,
+ 				  parent_block,
+ 				  parent_offset);
+-	if (parent_inode == NULL) {
+-		rv = ERR_PTR(-EACCES);
++	if (IS_ERR(parent_inode)) {
++		rv = ERR_CAST(parent_inode);
++		if (rv != ERR_PTR(-ENOMEM))
++			rv = ERR_PTR(-EACCES);
+ 		goto out;
+ 	}
+ 
+diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode fs/isofs/inode.c
+--- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode
++++ a/fs/isofs/inode.c
+@@ -54,7 +54,7 @@ static void isofs_put_super(struct super
+ 	return;
+ }
+ 
+-static void isofs_read_inode(struct inode *);
++static int isofs_read_inode(struct inode *);
+ static int isofs_statfs (struct dentry *, struct kstatfs *);
+ 
+ static struct kmem_cache *isofs_inode_cachep;
+@@ -107,7 +107,6 @@ static int isofs_remount(struct super_bl
+ static const struct super_operations isofs_sops = {
+ 	.alloc_inode	= isofs_alloc_inode,
+ 	.destroy_inode	= isofs_destroy_inode,
+-	.read_inode	= isofs_read_inode,
+ 	.put_super	= isofs_put_super,
+ 	.statfs		= isofs_statfs,
+ 	.remount_fs	= isofs_remount,
+@@ -552,7 +551,7 @@ static int isofs_fill_super(struct super
+ 	int joliet_level = 0;
+ 	int iso_blknum, block;
+ 	int orig_zonesize;
+-	int table;
++	int table, error = -EINVAL;
+ 	unsigned int vol_desc_start;
+ 
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+@@ -810,6 +809,8 @@ root_found:
+ 	 * we then decide whether to use the Joliet descriptor.
+ 	 */
+ 	inode = isofs_iget(s, sbi->s_firstdatazone, 0);
++	if (IS_ERR(inode))
++		goto out_no_root;
+ 
+ 	/*
+ 	 * If this disk has both Rock Ridge and Joliet on it, then we
+@@ -829,6 +830,8 @@ root_found:
+ 				"ISOFS: changing to secondary root\n");
+ 			iput(inode);
+ 			inode = isofs_iget(s, sbi->s_firstdatazone, 0);
++			if (IS_ERR(inode))
++				goto out_no_root;
+ 		}
+ 	}
+ 
+@@ -842,8 +845,6 @@ root_found:
+ 	sbi->s_joliet_level = joliet_level;
+ 
+ 	/* check the root inode */
+-	if (!inode)
+-		goto out_no_root;
+ 	if (!inode->i_op)
+ 		goto out_bad_root;
+ 
+@@ -876,11 +877,14 @@ root_found:
+ 	 */
+ out_bad_root:
+ 	printk(KERN_WARNING "%s: root inode not initialized\n", __func__);
+-	goto out_iput;
+-out_no_root:
+-	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
+ out_iput:
+ 	iput(inode);
++	goto out_no_inode;
++out_no_root:
++	error = PTR_ERR(inode);
++	if (error != -ENOMEM)
++		printk(KERN_WARNING "%s: get root inode failed\n", __func__);
++out_no_inode:
+ #ifdef CONFIG_JOLIET
+ 	if (sbi->s_nls_iocharset)
+ 		unload_nls(sbi->s_nls_iocharset);
+@@ -908,7 +912,7 @@ out_freesbi:
+ 	kfree(opt.iocharset);
+ 	kfree(sbi);
+ 	s->s_fs_info = NULL;
+-	return -EINVAL;
++	return error;
+ }
+ 
+ static int isofs_statfs (struct dentry *dentry, struct kstatfs *buf)
+@@ -930,7 +934,7 @@ static int isofs_statfs (struct dentry *
+ /*
+  * Get a set of blocks; filling in buffer_heads if already allocated
+  * or getblk() if they are not.  Returns the number of blocks inserted
+- * (0 == error.)
++ * (-ve == error.)
+  */
+ int isofs_get_blocks(struct inode *inode, sector_t iblock_s,
+ 		     struct buffer_head **bh, unsigned long nblocks)
+@@ -940,11 +944,12 @@ int isofs_get_blocks(struct inode *inode
+ 	unsigned int firstext;
+ 	unsigned long nextblk, nextoff;
+ 	long iblock = (long)iblock_s;
+-	int section, rv;
++	int section, rv, error;
+ 	struct iso_inode_info *ei = ISOFS_I(inode);
+ 
+ 	lock_kernel();
+ 
++	error = -EIO;
+ 	rv = 0;
+ 	if (iblock < 0 || iblock != iblock_s) {
+ 		printk(KERN_DEBUG "%s: block number too large\n", __func__);
+@@ -983,8 +988,10 @@ int isofs_get_blocks(struct inode *inode
+ 
+ 			offset += sect_size;
+ 			ninode = isofs_iget(inode->i_sb, nextblk, nextoff);
+-			if (!ninode)
++			if (IS_ERR(ninode)) {
++				error = PTR_ERR(ninode);
+ 				goto abort;
++			}
+ 			firstext  = ISOFS_I(ninode)->i_first_extent;
+ 			sect_size = ISOFS_I(ninode)->i_section_size >> ISOFS_BUFFER_BITS(ninode);
+ 			nextblk   = ISOFS_I(ninode)->i_next_section_block;
+@@ -1015,9 +1022,10 @@ int isofs_get_blocks(struct inode *inode
+ 		rv++;
+ 	}
+ 
++	error = 0;
+ abort:
+ 	unlock_kernel();
+-	return rv;
++	return rv != 0 ? rv : error;
+ }
+ 
+ /*
+@@ -1026,12 +1034,15 @@ abort:
+ static int isofs_get_block(struct inode *inode, sector_t iblock,
+ 		    struct buffer_head *bh_result, int create)
+ {
++	int ret;
++
+ 	if (create) {
+ 		printk(KERN_DEBUG "%s: Kernel tries to allocate a block\n", __func__);
+ 		return -EROFS;
+ 	}
+ 
+-	return isofs_get_blocks(inode, iblock, &bh_result, 1) ? 0 : -EIO;
++	ret = isofs_get_blocks(inode, iblock, &bh_result, 1);
++	return ret < 0 ? ret : 0;
+ }
+ 
+ static int isofs_bmap(struct inode *inode, sector_t block)
+@@ -1186,7 +1197,7 @@ out_toomany:
+ 	goto out;
+ }
+ 
+-static void isofs_read_inode(struct inode *inode)
++static int isofs_read_inode(struct inode *inode)
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct isofs_sb_info *sbi = ISOFS_SB(sb);
+@@ -1199,6 +1210,7 @@ static void isofs_read_inode(struct inod
+ 	unsigned int de_len;
+ 	unsigned long offset;
+ 	struct iso_inode_info *ei = ISOFS_I(inode);
++	int ret = -EIO;
+ 
+ 	block = ei->i_iget5_block;
+ 	bh = sb_bread(inode->i_sb, block);
+@@ -1216,6 +1228,7 @@ static void isofs_read_inode(struct inod
+ 		tmpde = kmalloc(de_len, GFP_KERNEL);
+ 		if (tmpde == NULL) {
+ 			printk(KERN_INFO "%s: out of memory\n", __func__);
++			ret = -ENOMEM;
+ 			goto fail;
+ 		}
+ 		memcpy(tmpde, bh->b_data + offset, frag1);
+@@ -1259,8 +1272,10 @@ static void isofs_read_inode(struct inod
+ 
+ 	ei->i_section_size = isonum_733(de->size);
+ 	if (de->flags[-high_sierra] & 0x80) {
+-		if(isofs_read_level3_size(inode))
++		ret = isofs_read_level3_size(inode);
++		if (ret < 0)
+ 			goto fail;
++		ret = -EIO;
+ 	} else {
+ 		ei->i_next_section_block = 0;
+ 		ei->i_next_section_offset = 0;
+@@ -1346,16 +1361,16 @@ static void isofs_read_inode(struct inod
+ 		/* XXX - parse_rock_ridge_inode() had already set i_rdev. */
+ 		init_special_inode(inode, inode->i_mode, inode->i_rdev);
+ 
++	ret = 0;
+ out:
+ 	kfree(tmpde);
+ 	if (bh)
+ 		brelse(bh);
+-	return;
++	return ret;
+ 
+ out_badread:
+ 	printk(KERN_WARNING "ISOFS: unable to read i-node block\n");
+ fail:
+-	make_bad_inode(inode);
+ 	goto out;
+ }
+ 
+@@ -1394,9 +1409,10 @@ struct inode *isofs_iget(struct super_bl
+ 	unsigned long hashval;
+ 	struct inode *inode;
+ 	struct isofs_iget5_callback_data data;
++	long ret;
+ 
+ 	if (offset >= 1ul << sb->s_blocksize_bits)
+-		return NULL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	data.block = block;
+ 	data.offset = offset;
+@@ -1406,9 +1422,17 @@ struct inode *isofs_iget(struct super_bl
+ 	inode = iget5_locked(sb, hashval, &isofs_iget5_test,
+ 				&isofs_iget5_set, &data);
+ 
+-	if (inode && (inode->i_state & I_NEW)) {
+-		sb->s_op->read_inode(inode);
+-		unlock_new_inode(inode);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++
++	if (inode->i_state & I_NEW) {
++		ret = isofs_read_inode(inode);
++		if (ret < 0) {
++			iget_failed(inode);
++			inode = ERR_PTR(ret);
++		} else {
++			unlock_new_inode(inode);
++		}
+ 	}
+ 
+ 	return inode;
+diff -puN fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode fs/isofs/namei.c
+--- a/fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode
++++ a/fs/isofs/namei.c
+@@ -179,9 +179,9 @@ struct dentry *isofs_lookup(struct inode
+ 	inode = NULL;
+ 	if (found) {
+ 		inode = isofs_iget(dir->i_sb, block, offset);
+-		if (!inode) {
++		if (IS_ERR(inode)) {
+ 			unlock_kernel();
+-			return ERR_PTR(-EACCES);
++			return ERR_CAST(inode);
+ 		}
+ 	}
+ 	unlock_kernel();
+diff -puN fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode fs/isofs/rock.c
+--- a/fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode
++++ a/fs/isofs/rock.c
+@@ -474,8 +474,10 @@ repeat:
+ 			    isofs_iget(inode->i_sb,
+ 				       ISOFS_I(inode)->i_first_extent,
+ 				       0);
+-			if (!reloc)
++			if (IS_ERR(reloc)) {
++				ret = PTR_ERR(reloc);
+ 				goto out;
++			}
+ 			inode->i_mode = reloc->i_mode;
+ 			inode->i_nlink = reloc->i_nlink;
+ 			inode->i_uid = reloc->i_uid;
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-reiser4.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
+mount-options-fix-afs.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
