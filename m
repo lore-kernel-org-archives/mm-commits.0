@@ -1,69 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-build-fix.patch removed from -mm tree
-Date: Thu, 07 Feb 2008 23:40:18 -0800
-Message-ID: <200802080739.m187dxDo013200@imap1.linux-foundation.org>
+Subject: + git-avr32-fix-git-conflicts.patch added to -mm tree
+Date: Thu, 07 Feb 2008 23:46:51 -0800
+Message-ID: <200802080746.m187kWcA013426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55099 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49384 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932456AbYBHHkN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 02:40:13 -0500
+	by vger.kernel.org with ESMTP id S1752730AbYBHHqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 02:46:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hskinnemoen@atmel.com
 
 
 The patch titled
-     git-alsa-build-fix
-has been removed from the -mm tree.  Its filename was
-     git-alsa-build-fix.patch
+     git-avr32-fix-git-conflicts
+has been added to the -mm tree.  Its filename is
+     git-avr32-fix-git-conflicts.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-build-fix
+Subject: git-avr32-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/pci/hda/hda_intel.c: In function 'azx_pcm_prepare':
-sound/pci/hda/hda_intel.c:1311: error: 'struct azx_dev' has no member named 'fragsize'
-
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/asm-avr32/page.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN sound/pci/hda/hda_intel.c~git-alsa-build-fix sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~git-alsa-build-fix
-+++ a/sound/pci/hda/hda_intel.c
-@@ -1308,9 +1308,6 @@ static int azx_pcm_prepare(struct snd_pc
- 		return -EINVAL;
- 	}
+diff -puN include/asm-avr32/page.h~git-avr32-fix-git-conflicts include/asm-avr32/page.h
+--- a/include/asm-avr32/page.h~git-avr32-fix-git-conflicts
++++ a/include/asm-avr32/page.h
+@@ -8,13 +8,8 @@
+ #ifndef __ASM_AVR32_PAGE_H
+ #define __ASM_AVR32_PAGE_H
  
--	snd_printdd("azx_pcm_prepare: bufsize=0x%x, fragsize=0x%x, "
--		    "format=0x%x\n",
--		    azx_dev->bufsize, azx_dev->fragsize, azx_dev->format_val);
- 	if (azx_setup_periods(substream, azx_dev) < 0)
- 		return -EINVAL;
- 	azx_setup_controller(chip, azx_dev);
+-<<<<<<< HEAD:include/asm-avr32/page.h
+-=======
+-#ifdef __KERNEL__
+-
+ #include <linux/const.h>
+ 
+->>>>>>> FETCH_HEAD:include/asm-avr32/page.h
+ /* PAGE_SHIFT determines the page size */
+ #define PAGE_SHIFT	12
+ #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-build-fix.patch
 git-audit-printk-warning-fix.patch
+git-avr32-fix-git-conflicts.patch
 git-cifs.patch
 revert-agk-dm-dm-loop.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
-git-drm-fix.patch
-drm-convert-from-nopage-to-fault.patch
 drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 revert-git-hrt.patch
@@ -72,7 +80,6 @@ git-kvm.patch
 memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
 memstick-disable-busted-code.patch
 git-mmc.patch
-drivers-mtd-maps-physmapc-fix-compile-remove-ifdef.patch
 typhoon-section-fix.patch
 natsemi-section-fix.patch
 bnx2x-section-fix.patch
@@ -94,7 +101,6 @@ git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-9p-fix-p9_printfcall-export.patch
 git-watchdog.patch
 git-watchdog-fixup.patch
 git-ipwireless_cs.patch
