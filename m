@@ -1,210 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-use-container_of-instead-of-direct-cast.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:45 -0800
-Message-ID: <200802082018.m18KIQs0010924@imap1.linux-foundation.org>
+Subject: - pwm-led-driver.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:07 -0800
+Message-ID: <200802082018.m18KImVV010961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753855AbYBHVCU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:20 -0500
+	by vger.kernel.org with ESMTP id S1754767AbYBHVCY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, linux@maxim.org.za, nicolas.ferre@atmel.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: use container_of instead of direct cast
+     PWM LED driver
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-use-container_of-instead-of-direct-cast.patch
+     pwm-led-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: use container_of instead of direct cast
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: PWM LED driver
+From: David Brownell <david-b@pacbell.net>
 
-As pointed out by David Brownell, we really ought to be using container_of
-when converting from "struct uart_port *" to "struct atmel_uart_port *".
+This is a LED driver using the PWM on newer SOCs from Atmel; brightness is
+controlled by changing the PWM duty cycle.  So for example if you've set up
+two leds labeled "pwm0" and "pwm1":
 
+	echo 0 > /sys/class/leds/pwm2/brightness	# off (0%)
+	echo 80 > /sys/class/leds/pwm2/brightness
+	echo 255 > /sys/class/leds/pwm2/brightness	# on (100%)
+
+Note that "brightness" here isn't linear; maybe that should change.  Going
+from 4 to 8 probably doubles perceived brightness, while 244 to 248 is
+imperceptible.
+
+This is mostly intended to be a simple example of PWM, although it's
+realistic since LCD backlights are often driven with PWM to conserve
+battery power (and offer brightness options).
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Cc: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   40 ++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 17 deletions(-)
+ drivers/leds/Kconfig          |    7 +
+ drivers/leds/Makefile         |    1 
+ drivers/leds/leds-atmel-pwm.c |  157 ++++++++++++++++++++++++++++++++
+ 3 files changed, 165 insertions(+)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-container_of-instead-of-direct-cast drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-use-container_of-instead-of-direct-cast
-+++ a/drivers/serial/atmel_serial.c
-@@ -153,17 +153,23 @@ static struct atmel_uart_port atmel_port
- static struct console atmel_console;
- #endif
+diff -puN drivers/leds/Kconfig~pwm-led-driver drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~pwm-led-driver
++++ a/drivers/leds/Kconfig
+@@ -18,6 +18,13 @@ config LEDS_CLASS
  
-+static inline struct atmel_uart_port *
-+to_atmel_uart_port(struct uart_port *uart)
+ comment "LED drivers"
+ 
++config LEDS_ATMEL_PWM
++	tristate "LED Support using Atmel PWM outputs"
++	depends on LEDS_CLASS && ATMEL_PWM
++	help
++	  This option enables support for LEDs driven using outputs
++	  of the dedicated PWM controller found on newer Atmel SOCs.
++
+ config LEDS_CORGI
+ 	tristate "LED Support for the Sharp SL-C7x0 series"
+ 	depends on LEDS_CLASS && PXA_SHARP_C7xx
+diff -puN drivers/leds/Makefile~pwm-led-driver drivers/leds/Makefile
+--- a/drivers/leds/Makefile~pwm-led-driver
++++ a/drivers/leds/Makefile
+@@ -5,6 +5,7 @@ obj-$(CONFIG_LEDS_CLASS)		+= led-class.o
+ obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
+ 
+ # LED Platform Drivers
++obj-$(CONFIG_LEDS_ATMEL_PWM)		+= leds-atmel-pwm.o
+ obj-$(CONFIG_LEDS_CORGI)		+= leds-corgi.o
+ obj-$(CONFIG_LEDS_LOCOMO)		+= leds-locomo.o
+ obj-$(CONFIG_LEDS_SPITZ)		+= leds-spitz.o
+diff -puN /dev/null drivers/leds/leds-atmel-pwm.c
+--- /dev/null
++++ a/drivers/leds/leds-atmel-pwm.c
+@@ -0,0 +1,157 @@
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/io.h>
++#include <linux/atmel_pwm.h>
++
++
++struct pwmled {
++	struct led_classdev	cdev;
++	struct pwm_channel	pwmc;
++	struct gpio_led		*desc;
++	u32			mult;
++	u8			active_low;
++};
++
++
++/*
++ * For simplicity, we use "brightness" as if it were a linear function
++ * of PWM duty cycle.  However, a logarithmic function of duty cycle is
++ * probably a better match for perceived brightness: two is half as bright
++ * as four, four is half as bright as eight, etc
++ */
++static void pwmled_brightness(struct led_classdev *cdev, enum led_brightness b)
 +{
-+	return container_of(uart, struct atmel_uart_port, uart);
++	struct pwmled		 *led;
++
++	/* update the duty cycle for the *next* period */
++	led = container_of(cdev, struct pwmled, cdev);
++	pwm_channel_writel(&led->pwmc, PWM_CUPD, led->mult * (unsigned) b);
 +}
 +
- #ifdef CONFIG_SERIAL_ATMEL_PDC
- static bool atmel_use_dma_rx(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	return atmel_port->use_dma_rx;
- }
- 
- static bool atmel_use_dma_tx(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	return atmel_port->use_dma_tx;
- }
-@@ -326,7 +332,7 @@ static void
- atmel_buffer_rx_char(struct uart_port *port, unsigned int status,
- 		     unsigned int ch)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	struct circ_buf *ring = &atmel_port->rx_ring;
- 	struct atmel_uart_char *c;
- 
-@@ -370,7 +376,7 @@ static void atmel_pdc_rxerr(struct uart_
-  */
- static void atmel_rx_chars(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	unsigned int status, ch;
- 
- 	status = UART_GET_CSR(port);
-@@ -450,7 +456,7 @@ static void atmel_tx_chars(struct uart_p
- static void
- atmel_handle_receive(struct uart_port *port, unsigned int pending)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	if (atmel_use_dma_rx(port)) {
- 		/*
-@@ -491,7 +497,7 @@ atmel_handle_receive(struct uart_port *p
- static void
- atmel_handle_transmit(struct uart_port *port, unsigned int pending)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	if (atmel_use_dma_tx(port)) {
- 		/* PDC transmit */
-@@ -515,7 +521,7 @@ static void
- atmel_handle_status(struct uart_port *port, unsigned int pending,
- 		    unsigned int status)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
- 				| ATMEL_US_CTSIC)) {
-@@ -551,7 +557,7 @@ static irqreturn_t atmel_interrupt(int i
-  */
- static void atmel_tx_dma(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	struct circ_buf *xmit = &port->info->xmit;
- 	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
- 	int count;
-@@ -593,7 +599,7 @@ static void atmel_tx_dma(struct uart_por
- 
- static void atmel_rx_from_ring(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	struct circ_buf *ring = &atmel_port->rx_ring;
- 	unsigned int flg;
- 	unsigned int status;
-@@ -661,7 +667,7 @@ static void atmel_rx_from_ring(struct ua
- 
- static void atmel_rx_from_dma(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	struct tty_struct *tty = port->info->tty;
- 	struct atmel_dma_buffer *pdc;
- 	int rx_idx = atmel_port->pdc_rx_idx;
-@@ -741,7 +747,7 @@ static void atmel_rx_from_dma(struct uar
- static void atmel_tasklet_func(unsigned long data)
- {
- 	struct uart_port *port = (struct uart_port *)data;
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	unsigned int status;
- 	unsigned int status_change;
- 
-@@ -786,7 +792,7 @@ static void atmel_tasklet_func(unsigned 
-  */
- static int atmel_startup(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	int retval;
- 
- 	/*
-@@ -896,7 +902,7 @@ static int atmel_startup(struct uart_por
-  */
- static void atmel_shutdown(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	/*
- 	 * Ensure everything is stopped.
- 	 */
-@@ -953,7 +959,7 @@ static void atmel_shutdown(struct uart_p
- static void atmel_serial_pm(struct uart_port *port, unsigned int state,
- 			    unsigned int oldstate)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	switch (state) {
- 	case 0:
-@@ -1425,7 +1431,7 @@ static int atmel_serial_suspend(struct p
- 				pm_message_t state)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	if (device_may_wakeup(&pdev->dev)
- 	    && !at91_suspend_entering_slow_clock())
-@@ -1441,7 +1447,7 @@ static int atmel_serial_suspend(struct p
- static int atmel_serial_resume(struct platform_device *pdev)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 
- 	if (atmel_port->suspended) {
- 		uart_resume_port(&atmel_uart, port);
-@@ -1501,7 +1507,7 @@ err_alloc_ring:
- static int __devexit atmel_serial_remove(struct platform_device *pdev)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
- 	int ret = 0;
- 
- 	device_init_wakeup(&pdev->dev, 0);
++/*
++ * NOTE:  we reuse the platform_data structure of GPIO leds,
++ * but repurpose its "gpio" number as a PWM channel number.
++ */
++static int __init pwmled_probe(struct platform_device *pdev)
++{
++	const struct gpio_led_platform_data	*pdata;
++	struct pwmled				*leds;
++	unsigned				i;
++	int					status;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata || pdata->num_leds < 1)
++		return -ENODEV;
++
++	leds = kcalloc(pdata->num_leds, sizeof(*leds), GFP_KERNEL);
++	if (!leds)
++		return -ENOMEM;
++
++	for (i = 0; i < pdata->num_leds; i++) {
++		struct pwmled		*led = leds + i;
++		const struct gpio_led	*dat = pdata->leds + i;
++		u32			tmp;
++
++		led->cdev.name = dat->name;
++		led->cdev.brightness = LED_OFF;
++		led->cdev.brightness_set = pwmled_brightness;
++		led->cdev.default_trigger = dat->default_trigger;
++
++		led->active_low = dat->active_low;
++
++		status = pwm_channel_alloc(dat->gpio, &led->pwmc);
++		if (status < 0)
++			goto err;
++
++		/*
++		 * Prescale clock by 2^x, so PWM counts in low MHz.
++		 * Start each cycle with the LED active, so increasing
++		 * the duty cycle gives us more time on (== brighter).
++		 */
++		tmp = 5;
++		if (!led->active_low)
++			tmp |= PWM_CPR_CPOL;
++		pwm_channel_writel(&led->pwmc, PWM_CMR, tmp);
++
++		/*
++		 * Pick a period so PWM cycles at 100+ Hz; and a multiplier
++		 * for scaling duty cycle:  brightness * mult.
++		 */
++		tmp = (led->pwmc.mck / (1 << 5)) / 100;
++		tmp /= 255;
++		led->mult = tmp;
++		pwm_channel_writel(&led->pwmc, PWM_CDTY,
++				led->cdev.brightness * 255);
++		pwm_channel_writel(&led->pwmc, PWM_CPRD,
++				LED_FULL * tmp);
++
++		pwm_channel_enable(&led->pwmc);
++
++		/* Hand it over to the LED framework */
++		status = led_classdev_register(&pdev->dev, &led->cdev);
++		if (status < 0) {
++			pwm_channel_free(&led->pwmc);
++			goto err;
++		}
++	}
++
++	platform_set_drvdata(pdev, leds);
++	return 0;
++
++err:
++	if (i > 0) {
++		for (i = i - 1; i >= 0; i--) {
++			led_classdev_unregister(&leds[i].cdev);
++			pwm_channel_free(&leds[i].pwmc);
++		}
++	}
++	kfree(leds);
++
++	return status;
++}
++
++static int __exit pwmled_remove(struct platform_device *pdev)
++{
++	const struct gpio_led_platform_data	*pdata;
++	struct pwmled				*leds;
++	unsigned				i;
++
++	pdata = pdev->dev.platform_data;
++	leds = platform_get_drvdata(pdev);
++
++	for (i = 0; i < pdata->num_leds; i++) {
++		struct pwmled		*led = leds + i;
++
++		led_classdev_unregister(&led->cdev);
++		pwm_channel_free(&led->pwmc);
++	}
++
++	kfree(leds);
++	platform_set_drvdata(pdev, NULL);
++	return 0;
++}
++
++static struct platform_driver pwmled_driver = {
++	.driver = {
++		.name =		"leds-atmel-pwm",
++		.owner =	THIS_MODULE,
++	},
++	/* REVISIT add suspend() and resume() methods */
++	.remove =	__exit_p(pwmled_remove),
++};
++
++static int __init modinit(void)
++{
++	return platform_driver_probe(&pwmled_driver, pwmled_probe);
++}
++module_init(modinit);
++
++static void __exit modexit(void)
++{
++	platform_driver_unregister(&pwmled_driver);
++}
++module_exit(modexit);
++
++MODULE_DESCRIPTION("Driver for LEDs with PWM-controlled brightness");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-avr32.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-mmc.patch
