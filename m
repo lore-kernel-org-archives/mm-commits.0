@@ -1,658 +1,686 @@
 From: akpm@linux-foundation.org
-Subject: - basic-pwm-driver-for-avr32-and-at91.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:04 -0800
-Message-ID: <200802082018.m18KIjvV010955@imap1.linux-foundation.org>
+Subject: - kernel-remove-fastcall-in-kernel.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:32 -0800
+Message-ID: <200802082015.m18KFDN2010513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58148 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753355AbYBHUxs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:48 -0500
+	by vger.kernel.org with ESMTP id S1752710AbYBHUyA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, linux@maxim.org.za, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Basic PWM driver for AVR32 and AT91
+     kernel: remove fastcall in kernel/*
 has been removed from the -mm tree.  Its filename was
-     basic-pwm-driver-for-avr32-and-at91.patch
+     kernel-remove-fastcall-in-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Basic PWM driver for AVR32 and AT91
-From: David Brownell <david-b@pacbell.net>
+Subject: kernel: remove fastcall in kernel/*
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-PWM device setup, and a simple PWM driver exposing a programming interface
-giving access to each channel's full capabilities.  Note that this doesn't
-support starting several channels in synch.
-
-[hskinnemoen@atmel.com: allocate platform device dynamically]
-[hskinnemoen@atmel.com: Kconfig fix]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mach-at32ap/at32ap700x.c   |   54 +++
- drivers/misc/Kconfig                  |    9 
- drivers/misc/Makefile                 |    1 
- drivers/misc/atmel_pwm.c              |  409 ++++++++++++++++++++++++
- include/asm-avr32/arch-at32ap/board.h |    3 
- include/linux/atmel_pwm.h             |   70 ++++
- 6 files changed, 546 insertions(+)
+ kernel/exit.c        |    4 ++--
+ kernel/fork.c        |    2 +-
+ kernel/irq/chip.c    |   10 +++++-----
+ kernel/irq/handle.c  |    4 ++--
+ kernel/mutex-debug.c |    2 +-
+ kernel/mutex.c       |   29 ++++++++++++++---------------
+ kernel/pid.c         |   18 +++++++++---------
+ kernel/sched.c       |   16 ++++++++--------
+ kernel/softirq.c     |    8 ++++----
+ kernel/timer.c       |    6 +++---
+ kernel/wait.c        |   26 +++++++++++++-------------
+ kernel/workqueue.c   |   10 +++++-----
+ 12 files changed, 67 insertions(+), 68 deletions(-)
 
-diff -puN arch/avr32/mach-at32ap/at32ap700x.c~basic-pwm-driver-for-avr32-and-at91 arch/avr32/mach-at32ap/at32ap700x.c
---- a/arch/avr32/mach-at32ap/at32ap700x.c~basic-pwm-driver-for-avr32-and-at91
-+++ a/arch/avr32/mach-at32ap/at32ap700x.c
-@@ -1186,6 +1186,59 @@ err_dup_modedb:
+diff -puN kernel/exit.c~kernel-remove-fastcall-in-kernel kernel/exit.c
+--- a/kernel/exit.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/exit.c
+@@ -458,7 +458,7 @@ struct files_struct *get_files_struct(st
+ 	return files;
+ }
+ 
+-void fastcall put_files_struct(struct files_struct *files)
++void put_files_struct(struct files_struct *files)
+ {
+ 	struct fdtable *fdt;
+ 
+@@ -887,7 +887,7 @@ static inline void exit_child_reaper(str
+ 	zap_pid_ns_processes(tsk->nsproxy->pid_ns);
+ }
+ 
+-fastcall NORET_TYPE void do_exit(long code)
++NORET_TYPE void do_exit(long code)
+ {
+ 	struct task_struct *tsk = current;
+ 	int group_dead;
+diff -puN kernel/fork.c~kernel-remove-fastcall-in-kernel kernel/fork.c
+--- a/kernel/fork.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/fork.c
+@@ -390,7 +390,7 @@ struct mm_struct * mm_alloc(void)
+  * is dropped: either by a lazy thread or by
+  * mmput. Free the page directory and the mm.
+  */
+-void fastcall __mmdrop(struct mm_struct *mm)
++void __mmdrop(struct mm_struct *mm)
+ {
+ 	BUG_ON(mm == &init_mm);
+ 	mm_free_pgd(mm);
+diff -puN kernel/irq/chip.c~kernel-remove-fastcall-in-kernel kernel/irq/chip.c
+--- a/kernel/irq/chip.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/irq/chip.c
+@@ -286,7 +286,7 @@ static inline void mask_ack_irq(struct i
+  *	Note: The caller is expected to handle the ack, clear, mask and
+  *	unmask issues if necessary.
+  */
+-void fastcall
++void
+ handle_simple_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	struct irqaction *action;
+@@ -327,7 +327,7 @@ out_unlock:
+  *	it after the associated handler has acknowledged the device, so the
+  *	interrupt line is back to inactive.
+  */
+-void fastcall
++void
+ handle_level_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	unsigned int cpu = smp_processor_id();
+@@ -375,7 +375,7 @@ out_unlock:
+  *	for modern forms of interrupt handlers, which handle the flow
+  *	details in hardware, transparently.
+  */
+-void fastcall
++void
+ handle_fasteoi_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	unsigned int cpu = smp_processor_id();
+@@ -434,7 +434,7 @@ out:
+  *	the handler was running. If all pending interrupts are handled, the
+  *	loop is left.
+  */
+-void fastcall
++void
+ handle_edge_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	const unsigned int cpu = smp_processor_id();
+@@ -505,7 +505,7 @@ out_unlock:
+  *
+  *	Per CPU interrupts on SMP machines without locking requirements
+  */
+-void fastcall
++void
+ handle_percpu_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	irqreturn_t action_ret;
+diff -puN kernel/irq/handle.c~kernel-remove-fastcall-in-kernel kernel/irq/handle.c
+--- a/kernel/irq/handle.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/irq/handle.c
+@@ -25,7 +25,7 @@
+  *
+  * Handles spurious and unhandled IRQ's. It also prints a debugmessage.
+  */
+-void fastcall
++void
+ handle_bad_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	print_irq_desc(irq, desc);
+@@ -163,7 +163,7 @@ irqreturn_t handle_IRQ_event(unsigned in
+  * This is the original x86 implementation which is used for every
+  * interrupt type.
+  */
+-fastcall unsigned int __do_IRQ(unsigned int irq)
++unsigned int __do_IRQ(unsigned int irq)
+ {
+ 	struct irq_desc *desc = irq_desc + irq;
+ 	struct irqaction *action;
+diff -puN kernel/mutex-debug.c~kernel-remove-fastcall-in-kernel kernel/mutex-debug.c
+--- a/kernel/mutex-debug.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/mutex-debug.c
+@@ -107,7 +107,7 @@ void debug_mutex_init(struct mutex *lock
+  * use of the mutex is forbidden. The mutex must not be locked when
+  * this function is called.
+  */
+-void fastcall mutex_destroy(struct mutex *lock)
++void mutex_destroy(struct mutex *lock)
+ {
+ 	DEBUG_LOCKS_WARN_ON(mutex_is_locked(lock));
+ 	lock->magic = NULL;
+diff -puN kernel/mutex.c~kernel-remove-fastcall-in-kernel kernel/mutex.c
+--- a/kernel/mutex.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/mutex.c
+@@ -58,7 +58,7 @@ EXPORT_SYMBOL(__mutex_init);
+  * We also put the fastpath first in the kernel image, to make sure the
+  * branch is predicted by the CPU as default-untaken.
+  */
+-static void fastcall noinline __sched
++static void noinline __sched
+ __mutex_lock_slowpath(atomic_t *lock_count);
+ 
+ /***
+@@ -82,7 +82,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
+  *
+  * This function is similar to (but not equivalent to) down().
+  */
+-void inline fastcall __sched mutex_lock(struct mutex *lock)
++void inline __sched mutex_lock(struct mutex *lock)
+ {
+ 	might_sleep();
+ 	/*
+@@ -95,8 +95,7 @@ void inline fastcall __sched mutex_lock(
+ EXPORT_SYMBOL(mutex_lock);
  #endif
  
- /* --------------------------------------------------------------------
-+ *  PWM
-+ * -------------------------------------------------------------------- */
-+static struct resource atmel_pwm0_resource[] __initdata = {
-+	PBMEM(0xfff01400),
-+	IRQ(24),
-+};
-+static struct clk atmel_pwm0_mck = {
-+	.name		= "mck",
-+	.parent		= &pbb_clk,
-+	.mode		= pbb_clk_mode,
-+	.get_rate	= pbb_clk_get_rate,
-+	.index		= 5,
-+};
-+
-+struct platform_device *__init at32_add_device_pwm(u32 mask)
-+{
-+	struct platform_device *pdev;
-+
-+	if (!mask)
-+		return NULL;
-+
-+	pdev = platform_device_alloc("atmel_pwm", 0);
-+	if (!pdev)
-+		return NULL;
-+
-+	if (platform_device_add_resources(pdev, atmel_pwm0_resource,
-+				ARRAY_SIZE(atmel_pwm0_resource)))
-+		goto out_free_pdev;
-+
-+	if (platform_device_add_data(pdev, &mask, sizeof(mask)))
-+		goto out_free_pdev;
-+
-+	if (mask & (1 << 0))
-+		select_peripheral(PA(28), PERIPH_A, 0);
-+	if (mask & (1 << 1))
-+		select_peripheral(PA(29), PERIPH_A, 0);
-+	if (mask & (1 << 2))
-+		select_peripheral(PA(21), PERIPH_B, 0);
-+	if (mask & (1 << 3))
-+		select_peripheral(PA(22), PERIPH_B, 0);
-+
-+	atmel_pwm0_mck.dev = &pdev->dev;
-+
-+	platform_device_add(pdev);
-+
-+	return pdev;
-+
-+out_free_pdev:
-+	platform_device_put(pdev);
-+	return NULL;
-+}
-+
-+/* --------------------------------------------------------------------
-  *  SSC
-  * -------------------------------------------------------------------- */
- static struct resource ssc0_resource[] = {
-@@ -1646,6 +1699,7 @@ struct clk *at32_clock_list[] = {
- 	&atmel_usart1_usart,
- 	&atmel_usart2_usart,
- 	&atmel_usart3_usart,
-+	&atmel_pwm0_mck,
- #if defined(CONFIG_CPU_AT32AP7000)
- 	&macb0_hclk,
- 	&macb0_pclk,
-diff -puN drivers/misc/Kconfig~basic-pwm-driver-for-avr32-and-at91 drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~basic-pwm-driver-for-avr32-and-at91
-+++ a/drivers/misc/Kconfig
-@@ -13,6 +13,15 @@ menuconfig MISC_DEVICES
+-static void fastcall noinline __sched
+-__mutex_unlock_slowpath(atomic_t *lock_count);
++static noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count);
  
- if MISC_DEVICES
- 
-+config ATMEL_PWM
-+	tristate "Atmel AT32/AT91 PWM support"
-+	depends on AVR32 || ARCH_AT91
-+	help
-+	  This option enables device driver support for the PWM channels
-+	  on certain Atmel prcoessors.  Pulse Width Modulation is used for
-+	  purposes including software controlled power-efficent backlights
-+	  on LCD displays, motor control, and waveform generation.
-+
- config IBM_ASM
- 	tristate "Device driver for IBM RSA service processor"
- 	depends on X86 && PCI && INPUT && EXPERIMENTAL
-diff -puN drivers/misc/Makefile~basic-pwm-driver-for-avr32-and-at91 drivers/misc/Makefile
---- a/drivers/misc/Makefile~basic-pwm-driver-for-avr32-and-at91
-+++ a/drivers/misc/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
- obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
- obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
- obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
-+obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
- obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
- obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_LKDTM)		+= lkdtm.o
-diff -puN /dev/null drivers/misc/atmel_pwm.c
---- /dev/null
-+++ a/drivers/misc/atmel_pwm.c
-@@ -0,0 +1,409 @@
-+#include <linux/module.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+#include <linux/atmel_pwm.h>
-+
-+
-+/*
-+ * This is a simple driver for the PWM controller found in various newer
-+ * Atmel SOCs, including the AVR32 series and the AT91sam9263.
-+ *
-+ * Chips with current Linux ports have only 4 PWM channels, out of max 32.
-+ * AT32UC3A and AT32UC3B chips have 7 channels (but currently no Linux).
-+ * Docs are inconsistent about the width of the channel counter registers;
-+ * it's at least 16 bits, but several places say 20 bits.
-+ */
-+#define	PWM_NCHAN	4		/* max 32 */
-+
-+struct pwm {
-+	spinlock_t		lock;
-+	struct platform_device	*pdev;
-+	u32			mask;
-+	int			irq;
-+	void __iomem		*base;
-+	struct clk		*clk;
-+	struct pwm_channel	*channel[PWM_NCHAN];
-+	void			(*handler[PWM_NCHAN])(struct pwm_channel *);
-+};
-+
-+
-+/* global PWM controller registers */
-+#define PWM_MR		0x00
-+#define PWM_ENA		0x04
-+#define PWM_DIS		0x08
-+#define PWM_SR		0x0c
-+#define PWM_IER		0x10
-+#define PWM_IDR		0x14
-+#define PWM_IMR		0x18
-+#define PWM_ISR		0x1c
-+
-+static inline void pwm_writel(const struct pwm *p, unsigned offset, u32 val)
-+{
-+	__raw_writel(val, p->base + offset);
-+}
-+
-+static inline u32 pwm_readl(const struct pwm *p, unsigned offset)
-+{
-+	return __raw_readl(p->base + offset);
-+}
-+
-+static inline void __iomem *pwmc_regs(const struct pwm *p, int index)
-+{
-+	return p->base + 0x200 + index * 0x20;
-+}
-+
-+static struct pwm *pwm;
-+
-+static void pwm_dumpregs(struct pwm_channel *ch, char *tag)
-+{
-+	struct device	*dev = &pwm->pdev->dev;
-+
-+	dev_dbg(dev, "%s: mr %08x, sr %08x, imr %08x\n",
-+		tag,
-+		pwm_readl(pwm, PWM_MR),
-+		pwm_readl(pwm, PWM_SR),
-+		pwm_readl(pwm, PWM_IMR));
-+	dev_dbg(dev,
-+		"pwm ch%d - mr %08x, dty %u, prd %u, cnt %u\n",
-+		ch->index,
-+		pwm_channel_readl(ch, PWM_CMR),
-+		pwm_channel_readl(ch, PWM_CDTY),
-+		pwm_channel_readl(ch, PWM_CPRD),
-+		pwm_channel_readl(ch, PWM_CCNT));
-+}
-+
-+
-+/**
-+ * pwm_channel_alloc - allocate an unused PWM channel
-+ * @index: identifies the channel
-+ * @ch: structure to be initialized
-+ *
-+ * Drivers allocate PWM channels according to the board's wiring, and
-+ * matching board-specific setup code.  Returns zero or negative errno.
-+ */
-+int pwm_channel_alloc(int index, struct pwm_channel *ch)
-+{
-+	unsigned long	flags;
-+	int		status = 0;
-+
-+	/* insist on PWM init, with this signal pinned out */
-+	if (!pwm || !(pwm->mask & 1 << index))
-+		return -ENODEV;
-+
-+	if (index < 0 || index >= PWM_NCHAN || !ch)
-+		return -EINVAL;
-+	memset(ch, 0, sizeof *ch);
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	if (pwm->channel[index])
-+		status = -EBUSY;
-+	else {
-+		clk_enable(pwm->clk);
-+
-+		ch->regs = pwmc_regs(pwm, index);
-+		ch->index = index;
-+
-+		/* REVISIT: ap7000 seems to go 2x as fast as we expect!! */
-+		ch->mck = clk_get_rate(pwm->clk);
-+
-+		pwm->channel[index] = ch;
-+		pwm->handler[index] = NULL;
-+
-+		/* channel and irq are always disabled when we return */
-+		pwm_writel(pwm, PWM_DIS, 1 << index);
-+		pwm_writel(pwm, PWM_IDR, 1 << index);
-+	}
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+	return status;
-+}
-+EXPORT_SYMBOL(pwm_channel_alloc);
-+
-+static int pwmcheck(struct pwm_channel *ch)
-+{
-+	int		index;
-+
-+	if (!pwm)
-+		return -ENODEV;
-+	if (!ch)
-+		return -EINVAL;
-+	index = ch->index;
-+	if (index < 0 || index >= PWM_NCHAN || pwm->channel[index] != ch)
-+		return -EINVAL;
-+
-+	return index;
-+}
-+
-+/**
-+ * pwm_channel_free - release a previously allocated channel
-+ * @ch: the channel being released
-+ *
-+ * The channel is completely shut down (counter and IRQ disabled),
-+ * and made available for re-use.  Returns zero, or negative errno.
-+ */
-+int pwm_channel_free(struct pwm_channel *ch)
-+{
-+	unsigned long	flags;
-+	int		t;
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	t = pwmcheck(ch);
-+	if (t >= 0) {
-+		pwm->channel[t] = NULL;
-+		pwm->handler[t] = NULL;
-+
-+		/* channel and irq are always disabled when we return */
-+		pwm_writel(pwm, PWM_DIS, 1 << t);
-+		pwm_writel(pwm, PWM_IDR, 1 << t);
-+
-+		clk_disable(pwm->clk);
-+		t = 0;
-+	}
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+	return t;
-+}
-+EXPORT_SYMBOL(pwm_channel_free);
-+
-+int __pwm_channel_onoff(struct pwm_channel *ch, int enabled)
-+{
-+	unsigned long	flags;
-+	int		t;
-+
-+	/* OMITTED FUNCTIONALITY:  starting several channels in synch */
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	t = pwmcheck(ch);
-+	if (t >= 0) {
-+		pwm_writel(pwm, enabled ? PWM_ENA : PWM_DIS, 1 << t);
-+		t = 0;
-+		pwm_dumpregs(ch, enabled ? "enable" : "disable");
-+	}
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+
-+	return t;
-+}
-+EXPORT_SYMBOL(__pwm_channel_onoff);
-+
-+/**
-+ * pwm_clk_alloc - allocate and configure CLKA or CLKB
-+ * @prescale: from 0..10, the power of two used to divide MCK
-+ * @div: from 1..255, the linear divisor to use
-+ *
-+ * Returns PWM_CPR_CLKA, PWM_CPR_CLKB, or negative errno.  The allocated
-+ * clock will run with a period of (2^prescale * div) / MCK, or twice as
-+ * long if center aligned PWM output is used.  The clock must later be
-+ * deconfigured using pwm_clk_free().
-+ */
-+int pwm_clk_alloc(unsigned prescale, unsigned div)
-+{
-+	unsigned long	flags;
-+	u32		mr;
-+	u32		val = (prescale << 8) | div;
-+	int		ret = -EBUSY;
-+
-+	if (prescale >= 10 || div == 0 || div > 255)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	mr = pwm_readl(pwm, PWM_MR);
-+	if ((mr & 0xffff) == 0) {
-+		mr |= val;
-+		ret = PWM_CPR_CLKA;
-+	}
-+	if ((mr & (0xffff << 16)) == 0) {
-+		mr |= val << 16;
-+		ret = PWM_CPR_CLKB;
-+	}
-+	if (ret > 0)
-+		pwm_writel(pwm, PWM_MR, mr);
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL(pwm_clk_alloc);
-+
-+/**
-+ * pwm_clk_free - deconfigure and release CLKA or CLKB
-+ *
-+ * Reverses the effect of pwm_clk_alloc().
-+ */
-+void pwm_clk_free(unsigned clk)
-+{
-+	unsigned long	flags;
-+	u32		mr;
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	mr = pwm_readl(pwm, PWM_MR);
-+	if (clk == PWM_CPR_CLKA)
-+		pwm_writel(pwm, PWM_MR, mr & ~(0xffff << 0));
-+	if (clk == PWM_CPR_CLKB)
-+		pwm_writel(pwm, PWM_MR, mr & ~(0xffff << 16));
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+}
-+EXPORT_SYMBOL(pwm_clk_free);
-+
-+/**
-+ * pwm_channel_handler - manage channel's IRQ handler
-+ * @ch: the channel
-+ * @handler: the handler to use, possibly NULL
-+ *
-+ * If the handler is non-null, the handler will be called after every
-+ * period of this PWM channel.  If the handler is null, this channel
-+ * won't generate an IRQ.
-+ */
-+int pwm_channel_handler(struct pwm_channel *ch,
-+		void (*handler)(struct pwm_channel *ch))
-+{
-+	unsigned long	flags;
-+	int		t;
-+
-+	spin_lock_irqsave(&pwm->lock, flags);
-+	t = pwmcheck(ch);
-+	if (t >= 0) {
-+		pwm->handler[t] = handler;
-+		pwm_writel(pwm, handler ? PWM_IER : PWM_IDR, 1 << t);
-+		t = 0;
-+	}
-+	spin_unlock_irqrestore(&pwm->lock, flags);
-+
-+	return t;
-+}
-+EXPORT_SYMBOL(pwm_channel_handler);
-+
-+static irqreturn_t pwm_irq(int id, void *_pwm)
-+{
-+	struct pwm	*p = _pwm;
-+	irqreturn_t	handled = IRQ_NONE;
-+	u32		irqstat;
-+	int		index;
-+
-+	spin_lock(&p->lock);
-+
-+	/* ack irqs, then handle them */
-+	irqstat = pwm_readl(pwm, PWM_ISR);
-+
-+	while (irqstat) {
-+		struct pwm_channel *ch;
-+		void (*handler)(struct pwm_channel *ch);
-+
-+		index = ffs(irqstat) - 1;
-+		irqstat &= ~(1 << index);
-+		ch = pwm->channel[index];
-+		handler = pwm->handler[index];
-+		if (handler && ch) {
-+			spin_unlock(&p->lock);
-+			handler(ch);
-+			spin_lock(&p->lock);
-+			handled = IRQ_HANDLED;
-+		}
-+	}
-+
-+	spin_unlock(&p->lock);
-+	return handled;
-+}
-+
-+static int __init pwm_probe(struct platform_device *pdev)
-+{
-+	struct resource *r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	int irq = platform_get_irq(pdev, 0);
-+	u32 *mp = pdev->dev.platform_data;
-+	struct pwm *p;
-+	int status = -EIO;
-+
-+	if (pwm)
-+		return -EBUSY;
-+	if (!r || irq < 0 || !mp || !*mp)
-+		return -ENODEV;
-+	if (*mp & ~((1<<PWM_NCHAN)-1)) {
-+		dev_warn(&pdev->dev, "mask 0x%x ... more than %d channels\n",
-+			*mp, PWM_NCHAN);
-+		return -EINVAL;
-+	}
-+
-+	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&p->lock);
-+	p->pdev = pdev;
-+	p->mask = *mp;
-+	p->irq = irq;
-+	p->base = ioremap(r->start, r->end - r->start + 1);
-+	if (!p->base)
-+		goto fail;
-+	p->clk = clk_get(&pdev->dev, "mck");
-+	if (IS_ERR(p->clk)) {
-+		status = PTR_ERR(p->clk);
-+		p->clk = NULL;
-+		goto fail;
-+	}
-+
-+	status = request_irq(irq, pwm_irq, 0, pdev->name, p);
-+	if (status < 0)
-+		goto fail;
-+
-+	pwm = p;
-+	platform_set_drvdata(pdev, p);
-+
-+	return 0;
-+
-+fail:
-+	if (p->clk)
-+		clk_put(p->clk);
-+	if (p->base)
-+		iounmap(p->base);
-+
-+	kfree(p);
-+	return status;
-+}
-+
-+static int __exit pwm_remove(struct platform_device *pdev)
-+{
-+	struct pwm *p = platform_get_drvdata(pdev);
-+
-+	if (p != pwm)
-+		return -EINVAL;
-+
-+	clk_enable(pwm->clk);
-+	pwm_writel(pwm, PWM_DIS, (1 << PWM_NCHAN) - 1);
-+	pwm_writel(pwm, PWM_IDR, (1 << PWM_NCHAN) - 1);
-+	clk_disable(pwm->clk);
-+
-+	pwm = NULL;
-+
-+	free_irq(p->irq, p);
-+	clk_put(p->clk);
-+	iounmap(p->base);
-+	kfree(p);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver atmel_pwm_driver = {
-+	.driver = {
-+		.name = "atmel_pwm",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __exit_p(pwm_remove),
-+
-+	/* NOTE: PWM can keep running in AVR32 "idle" and "frozen" states;
-+	 * and all AT91sam9263 states, albeit at reduced clock rate if
-+	 * MCK becomes the slow clock (i.e. what Linux labels STR).
-+	 */
-+};
-+
-+static int __init pwm_init(void)
-+{
-+	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
-+}
-+module_init(pwm_init);
-+
-+static void __exit pwm_exit(void)
-+{
-+	platform_driver_unregister(&atmel_pwm_driver);
-+}
-+module_exit(pwm_exit);
-+
-+MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
-+MODULE_LICENSE("GPL");
-diff -puN include/asm-avr32/arch-at32ap/board.h~basic-pwm-driver-for-avr32-and-at91 include/asm-avr32/arch-at32ap/board.h
---- a/include/asm-avr32/arch-at32ap/board.h~basic-pwm-driver-for-avr32-and-at91
-+++ a/include/asm-avr32/arch-at32ap/board.h
-@@ -51,6 +51,9 @@ struct platform_device *
- at32_add_device_ide(unsigned int id, unsigned int extint,
- 		    struct ide_platform_data *data);
- 
-+/* mask says which PWM channels to mux */
-+struct platform_device *at32_add_device_pwm(u32 mask);
-+
- /* depending on what's hooked up, not all SSC pins will be used */
- #define	ATMEL_SSC_TK		0x01
- #define	ATMEL_SSC_TF		0x02
-diff -puN /dev/null include/linux/atmel_pwm.h
---- /dev/null
-+++ a/include/linux/atmel_pwm.h
-@@ -0,0 +1,70 @@
-+#ifndef __LINUX_ATMEL_PWM_H
-+#define __LINUX_ATMEL_PWM_H
-+
-+/**
-+ * struct pwm_channel - driver handle to a PWM channel
-+ * @regs: base of this channel's registers
-+ * @index: number of this channel (0..31)
-+ * @mck: base clock rate, which can be prescaled and maybe subdivided
-+ *
-+ * Drivers initialize a pwm_channel structure using pwm_channel_alloc().
-+ * Then they configure its clock rate (derived from MCK), alignment,
-+ * polarity, and duty cycle by writing directly to the channel registers,
-+ * before enabling the channel by calling pwm_channel_enable().
-+ *
-+ * After emitting a PWM signal for the desired length of time, drivers
-+ * may then pwm_channel_disable() or pwm_channel_free().  Both of these
-+ * disable the channel, but when it's freed the IRQ is deconfigured and
-+ * the channel must later be re-allocated and reconfigured.
-+ *
-+ * Note that if the period or duty cycle need to be changed while the
-+ * PWM channel is operating, drivers must use the PWM_CUPD double buffer
-+ * mechanism, either polling until they change or getting implicitly
-+ * notified through a once-per-period interrupt handler.
-+ */
-+struct pwm_channel {
-+	void __iomem	*regs;
-+	unsigned	index;
-+	unsigned long	mck;
-+};
-+
-+extern int pwm_channel_alloc(int index, struct pwm_channel *ch);
-+extern int pwm_channel_free(struct pwm_channel *ch);
-+
-+extern int pwm_clk_alloc(unsigned prescale, unsigned div);
-+extern void pwm_clk_free(unsigned clk);
-+
-+extern int __pwm_channel_onoff(struct pwm_channel *ch, int enabled);
-+
-+#define pwm_channel_enable(ch)	__pwm_channel_onoff((ch), 1)
-+#define pwm_channel_disable(ch)	__pwm_channel_onoff((ch), 0)
-+
-+/* periodic interrupts, mostly for CUPD changes to period or cycle */
-+extern int pwm_channel_handler(struct pwm_channel *ch,
-+		void (*handler)(struct pwm_channel *ch));
-+
-+/* per-channel registers (banked at pwm_channel->regs) */
-+#define PWM_CMR		0x00		/* mode register */
-+#define		PWM_CPR_CPD	(1 << 10)	/* set: CUPD modifies period */
-+#define		PWM_CPR_CPOL	(1 << 9)	/* set: idle high */
-+#define		PWM_CPR_CALG	(1 << 8)	/* set: center align */
-+#define		PWM_CPR_CPRE	(0xf << 0)	/* mask: rate is mck/(2^pre) */
-+#define		PWM_CPR_CLKA	(0xb << 0)	/* rate CLKA */
-+#define		PWM_CPR_CLKB	(0xc << 0)	/* rate CLKB */
-+#define PWM_CDTY	0x04		/* duty cycle (max of CPRD) */
-+#define PWM_CPRD	0x08		/* period (count up from zero) */
-+#define PWM_CCNT	0x0c		/* counter (20 bits?) */
-+#define PWM_CUPD	0x10		/* update CPRD (or CDTY) next period */
-+
+ /***
+  * mutex_unlock - release the mutex
+@@ -109,7 +108,7 @@ __mutex_unlock_slowpath(atomic_t *lock_c
+  *
+  * This function is similar to (but not equivalent to) up().
+  */
+-void fastcall __sched mutex_unlock(struct mutex *lock)
++void __sched mutex_unlock(struct mutex *lock)
+ {
+ 	/*
+ 	 * The unlocking fastpath is the 0->1 transition from 'locked'
+@@ -234,7 +233,7 @@ EXPORT_SYMBOL_GPL(mutex_lock_interruptib
+ /*
+  * Release the lock, slowpath:
+  */
+-static fastcall inline void
 +static inline void
-+pwm_channel_writel(struct pwm_channel *pwmc, unsigned offset, u32 val)
-+{
-+	__raw_writel(val, pwmc->regs + offset);
-+}
-+
-+static inline u32 pwm_channel_readl(struct pwm_channel *pwmc, unsigned offset)
-+{
-+	return __raw_readl(pwmc->regs + offset);
-+}
-+
-+#endif /* __LINUX_ATMEL_PWM_H */
+ __mutex_unlock_common_slowpath(atomic_t *lock_count, int nested)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -271,7 +270,7 @@ __mutex_unlock_common_slowpath(atomic_t 
+ /*
+  * Release the lock, slowpath:
+  */
+-static fastcall noinline void
++static noinline void
+ __mutex_unlock_slowpath(atomic_t *lock_count)
+ {
+ 	__mutex_unlock_common_slowpath(lock_count, 1);
+@@ -282,10 +281,10 @@ __mutex_unlock_slowpath(atomic_t *lock_c
+  * Here come the less common (and hence less performance-critical) APIs:
+  * mutex_lock_interruptible() and mutex_trylock().
+  */
+-static int fastcall noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count);
+ 
+-static noinline int fastcall __sched
++static noinline int __sched
+ __mutex_lock_interruptible_slowpath(atomic_t *lock_count);
+ 
+ /***
+@@ -299,7 +298,7 @@ __mutex_lock_interruptible_slowpath(atom
+  *
+  * This function is similar to (but not equivalent to) down_interruptible().
+  */
+-int fastcall __sched mutex_lock_interruptible(struct mutex *lock)
++int __sched mutex_lock_interruptible(struct mutex *lock)
+ {
+ 	might_sleep();
+ 	return __mutex_fastpath_lock_retval
+@@ -308,7 +307,7 @@ int fastcall __sched mutex_lock_interrup
+ 
+ EXPORT_SYMBOL(mutex_lock_interruptible);
+ 
+-int fastcall __sched mutex_lock_killable(struct mutex *lock)
++int __sched mutex_lock_killable(struct mutex *lock)
+ {
+ 	might_sleep();
+ 	return __mutex_fastpath_lock_retval
+@@ -316,7 +315,7 @@ int fastcall __sched mutex_lock_killable
+ }
+ EXPORT_SYMBOL(mutex_lock_killable);
+ 
+-static void fastcall noinline __sched
++static noinline void __sched
+ __mutex_lock_slowpath(atomic_t *lock_count)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -324,7 +323,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
+ 	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
+ }
+ 
+-static int fastcall noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -332,7 +331,7 @@ __mutex_lock_killable_slowpath(atomic_t 
+ 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, _RET_IP_);
+ }
+ 
+-static noinline int fastcall __sched
++static noinline int __sched
+ __mutex_lock_interruptible_slowpath(atomic_t *lock_count)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -381,7 +380,7 @@ static inline int __mutex_trylock_slowpa
+  * This function must not be used in interrupt context. The
+  * mutex must be released by the same task that acquired it.
+  */
+-int fastcall __sched mutex_trylock(struct mutex *lock)
++int __sched mutex_trylock(struct mutex *lock)
+ {
+ 	return __mutex_fastpath_trylock(&lock->count,
+ 					__mutex_trylock_slowpath);
+diff -puN kernel/pid.c~kernel-remove-fastcall-in-kernel kernel/pid.c
+--- a/kernel/pid.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/pid.c
+@@ -111,7 +111,7 @@ EXPORT_SYMBOL(is_container_init);
+ 
+ static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
+ 
+-static fastcall void free_pidmap(struct pid_namespace *pid_ns, int pid)
++static void free_pidmap(struct pid_namespace *pid_ns, int pid)
+ {
+ 	struct pidmap *map = pid_ns->pidmap + pid / BITS_PER_PAGE;
+ 	int offset = pid & BITS_PER_PAGE_MASK;
+@@ -198,7 +198,7 @@ int next_pidmap(struct pid_namespace *pi
+ 	return -1;
+ }
+ 
+-fastcall void put_pid(struct pid *pid)
++void put_pid(struct pid *pid)
+ {
+ 	struct pid_namespace *ns;
+ 
+@@ -220,7 +220,7 @@ static void delayed_put_pid(struct rcu_h
+ 	put_pid(pid);
+ }
+ 
+-fastcall void free_pid(struct pid *pid)
++void free_pid(struct pid *pid)
+ {
+ 	/* We can be called with write_lock_irq(&tasklist_lock) held */
+ 	int i;
+@@ -286,7 +286,7 @@ out_free:
+ 	goto out;
+ }
+ 
+-struct pid * fastcall find_pid_ns(int nr, struct pid_namespace *ns)
++struct pid *find_pid_ns(int nr, struct pid_namespace *ns)
+ {
+ 	struct hlist_node *elem;
+ 	struct upid *pnr;
+@@ -316,7 +316,7 @@ EXPORT_SYMBOL_GPL(find_pid);
+ /*
+  * attach_pid() must be called with the tasklist_lock write-held.
+  */
+-int fastcall attach_pid(struct task_struct *task, enum pid_type type,
++int attach_pid(struct task_struct *task, enum pid_type type,
+ 		struct pid *pid)
+ {
+ 	struct pid_link *link;
+@@ -328,7 +328,7 @@ int fastcall attach_pid(struct task_stru
+ 	return 0;
+ }
+ 
+-void fastcall detach_pid(struct task_struct *task, enum pid_type type)
++void detach_pid(struct task_struct *task, enum pid_type type)
+ {
+ 	struct pid_link *link;
+ 	struct pid *pid;
+@@ -348,7 +348,7 @@ void fastcall detach_pid(struct task_str
+ }
+ 
+ /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
+-void fastcall transfer_pid(struct task_struct *old, struct task_struct *new,
++void transfer_pid(struct task_struct *old, struct task_struct *new,
+ 			   enum pid_type type)
+ {
+ 	new->pids[type].pid = old->pids[type].pid;
+@@ -356,7 +356,7 @@ void fastcall transfer_pid(struct task_s
+ 	old->pids[type].pid = NULL;
+ }
+ 
+-struct task_struct * fastcall pid_task(struct pid *pid, enum pid_type type)
++struct task_struct *pid_task(struct pid *pid, enum pid_type type)
+ {
+ 	struct task_struct *result = NULL;
+ 	if (pid) {
+@@ -408,7 +408,7 @@ struct pid *get_task_pid(struct task_str
+ 	return pid;
+ }
+ 
+-struct task_struct *fastcall get_pid_task(struct pid *pid, enum pid_type type)
++struct task_struct *get_pid_task(struct pid *pid, enum pid_type type)
+ {
+ 	struct task_struct *result;
+ 	rcu_read_lock();
+diff -puN kernel/sched.c~kernel-remove-fastcall-in-kernel kernel/sched.c
+--- a/kernel/sched.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/sched.c
+@@ -1893,13 +1893,13 @@ out:
+ 	return success;
+ }
+ 
+-int fastcall wake_up_process(struct task_struct *p)
++int wake_up_process(struct task_struct *p)
+ {
+ 	return try_to_wake_up(p, TASK_ALL, 0);
+ }
+ EXPORT_SYMBOL(wake_up_process);
+ 
+-int fastcall wake_up_state(struct task_struct *p, unsigned int state)
++int wake_up_state(struct task_struct *p, unsigned int state)
+ {
+ 	return try_to_wake_up(p, state, 0);
+ }
+@@ -1986,7 +1986,7 @@ void sched_fork(struct task_struct *p, i
+  * that must be done for every newly created context, then puts the task
+  * on the runqueue and wakes it.
+  */
+-void fastcall wake_up_new_task(struct task_struct *p, unsigned long clone_flags)
++void wake_up_new_task(struct task_struct *p, unsigned long clone_flags)
+ {
+ 	unsigned long flags;
+ 	struct rq *rq;
+@@ -3753,7 +3753,7 @@ void scheduler_tick(void)
+ 
+ #if defined(CONFIG_PREEMPT) && defined(CONFIG_DEBUG_PREEMPT)
+ 
+-void fastcall add_preempt_count(int val)
++void add_preempt_count(int val)
+ {
+ 	/*
+ 	 * Underflow?
+@@ -3769,7 +3769,7 @@ void fastcall add_preempt_count(int val)
+ }
+ EXPORT_SYMBOL(add_preempt_count);
+ 
+-void fastcall sub_preempt_count(int val)
++void sub_preempt_count(int val)
+ {
+ 	/*
+ 	 * Underflow?
+@@ -4067,7 +4067,7 @@ static void __wake_up_common(wait_queue_
+  * @nr_exclusive: how many wake-one or wake-many threads to wake up
+  * @key: is directly passed to the wakeup function
+  */
+-void fastcall __wake_up(wait_queue_head_t *q, unsigned int mode,
++void __wake_up(wait_queue_head_t *q, unsigned int mode,
+ 			int nr_exclusive, void *key)
+ {
+ 	unsigned long flags;
+@@ -4081,7 +4081,7 @@ EXPORT_SYMBOL(__wake_up);
+ /*
+  * Same as __wake_up but called with the spinlock in wait_queue_head_t held.
+  */
+-void fastcall __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
++void __wake_up_locked(wait_queue_head_t *q, unsigned int mode)
+ {
+ 	__wake_up_common(q, mode, 1, 0, NULL);
+ }
+@@ -4099,7 +4099,7 @@ void fastcall __wake_up_locked(wait_queu
+  *
+  * On UP it can prevent extra preemption.
+  */
+-void fastcall
++void
+ __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr_exclusive)
+ {
+ 	unsigned long flags;
+diff -puN kernel/softirq.c~kernel-remove-fastcall-in-kernel kernel/softirq.c
+--- a/kernel/softirq.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/softirq.c
+@@ -320,7 +320,7 @@ void irq_exit(void)
+ /*
+  * This function must run with irqs disabled!
+  */
+-inline fastcall void raise_softirq_irqoff(unsigned int nr)
++inline void raise_softirq_irqoff(unsigned int nr)
+ {
+ 	__raise_softirq_irqoff(nr);
+ 
+@@ -337,7 +337,7 @@ inline fastcall void raise_softirq_irqof
+ 		wakeup_softirqd();
+ }
+ 
+-void fastcall raise_softirq(unsigned int nr)
++void raise_softirq(unsigned int nr)
+ {
+ 	unsigned long flags;
+ 
+@@ -363,7 +363,7 @@ struct tasklet_head
+ static DEFINE_PER_CPU(struct tasklet_head, tasklet_vec) = { NULL };
+ static DEFINE_PER_CPU(struct tasklet_head, tasklet_hi_vec) = { NULL };
+ 
+-void fastcall __tasklet_schedule(struct tasklet_struct *t)
++void __tasklet_schedule(struct tasklet_struct *t)
+ {
+ 	unsigned long flags;
+ 
+@@ -376,7 +376,7 @@ void fastcall __tasklet_schedule(struct 
+ 
+ EXPORT_SYMBOL(__tasklet_schedule);
+ 
+-void fastcall __tasklet_hi_schedule(struct tasklet_struct *t)
++void __tasklet_hi_schedule(struct tasklet_struct *t)
+ {
+ 	unsigned long flags;
+ 
+diff -puN kernel/timer.c~kernel-remove-fastcall-in-kernel kernel/timer.c
+--- a/kernel/timer.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/timer.c
+@@ -327,7 +327,7 @@ static void timer_stats_account_timer(st
+  * init_timer() must be done to a timer prior calling *any* of the
+  * other timer functions.
+  */
+-void fastcall init_timer(struct timer_list *timer)
++void init_timer(struct timer_list *timer)
+ {
+ 	timer->entry.next = NULL;
+ 	timer->base = __raw_get_cpu_var(tvec_bases);
+@@ -339,7 +339,7 @@ void fastcall init_timer(struct timer_li
+ }
+ EXPORT_SYMBOL(init_timer);
+ 
+-void fastcall init_timer_deferrable(struct timer_list *timer)
++void init_timer_deferrable(struct timer_list *timer)
+ {
+ 	init_timer(timer);
+ 	timer_set_deferrable(timer);
+@@ -1042,7 +1042,7 @@ static void process_timeout(unsigned lon
+  *
+  * In all cases the return value is guaranteed to be non-negative.
+  */
+-fastcall signed long __sched schedule_timeout(signed long timeout)
++signed long __sched schedule_timeout(signed long timeout)
+ {
+ 	struct timer_list timer;
+ 	unsigned long expire;
+diff -puN kernel/wait.c~kernel-remove-fastcall-in-kernel kernel/wait.c
+--- a/kernel/wait.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/wait.c
+@@ -18,7 +18,7 @@ void init_waitqueue_head(wait_queue_head
+ 
+ EXPORT_SYMBOL(init_waitqueue_head);
+ 
+-void fastcall add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
++void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+ 
+@@ -29,7 +29,7 @@ void fastcall add_wait_queue(wait_queue_
+ }
+ EXPORT_SYMBOL(add_wait_queue);
+ 
+-void fastcall add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
++void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+ 
+@@ -40,7 +40,7 @@ void fastcall add_wait_queue_exclusive(w
+ }
+ EXPORT_SYMBOL(add_wait_queue_exclusive);
+ 
+-void fastcall remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
++void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+ 
+@@ -63,7 +63,7 @@ EXPORT_SYMBOL(remove_wait_queue);
+  * stops them from bleeding out - it would still allow subsequent
+  * loads to move into the critical region).
+  */
+-void fastcall
++void
+ prepare_to_wait(wait_queue_head_t *q, wait_queue_t *wait, int state)
+ {
+ 	unsigned long flags;
+@@ -82,7 +82,7 @@ prepare_to_wait(wait_queue_head_t *q, wa
+ }
+ EXPORT_SYMBOL(prepare_to_wait);
+ 
+-void fastcall
++void
+ prepare_to_wait_exclusive(wait_queue_head_t *q, wait_queue_t *wait, int state)
+ {
+ 	unsigned long flags;
+@@ -101,7 +101,7 @@ prepare_to_wait_exclusive(wait_queue_hea
+ }
+ EXPORT_SYMBOL(prepare_to_wait_exclusive);
+ 
+-void fastcall finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
++void finish_wait(wait_queue_head_t *q, wait_queue_t *wait)
+ {
+ 	unsigned long flags;
+ 
+@@ -157,7 +157,7 @@ EXPORT_SYMBOL(wake_bit_function);
+  * waiting, the actions of __wait_on_bit() and __wait_on_bit_lock() are
+  * permitted return codes. Nonzero return codes halt waiting and return.
+  */
+-int __sched fastcall
++int __sched
+ __wait_on_bit(wait_queue_head_t *wq, struct wait_bit_queue *q,
+ 			int (*action)(void *), unsigned mode)
+ {
+@@ -173,7 +173,7 @@ __wait_on_bit(wait_queue_head_t *wq, str
+ }
+ EXPORT_SYMBOL(__wait_on_bit);
+ 
+-int __sched fastcall out_of_line_wait_on_bit(void *word, int bit,
++int __sched out_of_line_wait_on_bit(void *word, int bit,
+ 					int (*action)(void *), unsigned mode)
+ {
+ 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
+@@ -183,7 +183,7 @@ int __sched fastcall out_of_line_wait_on
+ }
+ EXPORT_SYMBOL(out_of_line_wait_on_bit);
+ 
+-int __sched fastcall
++int __sched
+ __wait_on_bit_lock(wait_queue_head_t *wq, struct wait_bit_queue *q,
+ 			int (*action)(void *), unsigned mode)
+ {
+@@ -201,7 +201,7 @@ __wait_on_bit_lock(wait_queue_head_t *wq
+ }
+ EXPORT_SYMBOL(__wait_on_bit_lock);
+ 
+-int __sched fastcall out_of_line_wait_on_bit_lock(void *word, int bit,
++int __sched out_of_line_wait_on_bit_lock(void *word, int bit,
+ 					int (*action)(void *), unsigned mode)
+ {
+ 	wait_queue_head_t *wq = bit_waitqueue(word, bit);
+@@ -211,7 +211,7 @@ int __sched fastcall out_of_line_wait_on
+ }
+ EXPORT_SYMBOL(out_of_line_wait_on_bit_lock);
+ 
+-void fastcall __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
++void __wake_up_bit(wait_queue_head_t *wq, void *word, int bit)
+ {
+ 	struct wait_bit_key key = __WAIT_BIT_KEY_INITIALIZER(word, bit);
+ 	if (waitqueue_active(wq))
+@@ -236,13 +236,13 @@ EXPORT_SYMBOL(__wake_up_bit);
+  * may need to use a less regular barrier, such fs/inode.c's smp_mb(),
+  * because spin_unlock() does not guarantee a memory barrier.
+  */
+-void fastcall wake_up_bit(void *word, int bit)
++void wake_up_bit(void *word, int bit)
+ {
+ 	__wake_up_bit(bit_waitqueue(word, bit), word, bit);
+ }
+ EXPORT_SYMBOL(wake_up_bit);
+ 
+-fastcall wait_queue_head_t *bit_waitqueue(void *word, int bit)
++wait_queue_head_t *bit_waitqueue(void *word, int bit)
+ {
+ 	const int shift = BITS_PER_LONG == 32 ? 5 : 6;
+ 	const struct zone *zone = page_zone(virt_to_page(word));
+diff -puN kernel/workqueue.c~kernel-remove-fastcall-in-kernel kernel/workqueue.c
+--- a/kernel/workqueue.c~kernel-remove-fastcall-in-kernel
++++ a/kernel/workqueue.c
+@@ -161,7 +161,7 @@ static void __queue_work(struct cpu_work
+  * We queue the work to the CPU it was submitted, but there is no
+  * guarantee that it will be processed by that CPU.
+  */
+-int fastcall queue_work(struct workqueue_struct *wq, struct work_struct *work)
++int queue_work(struct workqueue_struct *wq, struct work_struct *work)
+ {
+ 	int ret = 0;
+ 
+@@ -192,7 +192,7 @@ void delayed_work_timer_fn(unsigned long
+  *
+  * Returns 0 if @work was already on a queue, non-zero otherwise.
+  */
+-int fastcall queue_delayed_work(struct workqueue_struct *wq,
++int queue_delayed_work(struct workqueue_struct *wq,
+ 			struct delayed_work *dwork, unsigned long delay)
+ {
+ 	timer_stats_timer_set_start_info(&dwork->timer);
+@@ -388,7 +388,7 @@ static int flush_cpu_workqueue(struct cp
+  * This function used to run the workqueues itself.  Now we just wait for the
+  * helper threads to do it.
+  */
+-void fastcall flush_workqueue(struct workqueue_struct *wq)
++void flush_workqueue(struct workqueue_struct *wq)
+ {
+ 	const cpumask_t *cpu_map = wq_cpu_map(wq);
+ 	int cpu;
+@@ -546,7 +546,7 @@ static struct workqueue_struct *keventd_
+  *
+  * This puts a job in the kernel-global workqueue.
+  */
+-int fastcall schedule_work(struct work_struct *work)
++int schedule_work(struct work_struct *work)
+ {
+ 	return queue_work(keventd_wq, work);
+ }
+@@ -560,7 +560,7 @@ EXPORT_SYMBOL(schedule_work);
+  * After waiting for a given time this puts a job in the kernel-global
+  * workqueue.
+  */
+-int fastcall schedule_delayed_work(struct delayed_work *dwork,
++int schedule_delayed_work(struct delayed_work *dwork,
+ 					unsigned long delay)
+ {
+ 	timer_stats_timer_set_start_info(&dwork->timer);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-mmc.patch
+git-x86.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
