@@ -1,252 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: - iget-remove-iget-and-the-read_inode-super-op-as.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:20 -0800
-Message-ID: <200802080808.m18881UH014608@imap1.linux-foundation.org>
+Subject: - iget-stop-the-minix-filesystem-from-using-iget-and.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:56 -0800
+Message-ID: <200802080807.m1887bbQ014567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56522 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932636AbYBHIUg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:36 -0500
+	by vger.kernel.org with ESMTP id S1762018AbYBHIUc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: remove iget() and the read_inode() super op as being obsolete
+     iget: stop the MINIX filesystem from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     iget-remove-iget-and-the-read_inode-super-op-as.patch
+     iget-stop-the-minix-filesystem-from-using-iget-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: remove iget() and the read_inode() super op as being obsolete
+Subject: iget: stop the MINIX filesystem from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Remove the old iget() call and the read_inode() superblock operation it uses
-as these are really obsolete, and the use of read_inode() does not produce
-proper error handling (no distinction between ENOMEM and EIO when marking an
-inode bad).
+Stop the MINIX filesystem from using iget() and read_inode().  Replace
+minix_read_inode() with minix_iget(), and call that instead of iget(). 
+minix_iget() then uses iget_locked() directly and returns a proper error code
+instead of an inode in the event of an error.
 
-Furthermore, this removes the temptation to use iget() to find an inode by
-number in a filesystem from code outside that filesystem.
+minix_fill_super() returns any error incurred when getting the root inode
+instead of EINVAL.
 
-iget_locked() should be used instead.  A new function is added in an earlier
-patch (iget_failed) that is to be called to mark an inode as bad, unlock it
-and release it should the get routine fail.  Mark iget() and read_inode() as
-being obsolete and remove references to them from the documentation.
-
-Typically a filesystem will be modified such that the read_inode function
-becomes an internal iget function, for example the following:
-
-	void thingyfs_read_inode(struct inode *inode)
-	{
-		...
-	}
-
-would be changed into something like:
-
-	struct inode *thingyfs_iget(struct super_block *sp, unsigned long ino)
-	{
-		struct inode *inode;
-		int ret;
-
-		inode = iget_locked(sb, ino);
-		if (!inode)
-			return ERR_PTR(-ENOMEM);
-		if (!(inode->i_state & I_NEW))
-			return inode;
-
-		...
-		unlock_new_inode(inode);
-		return inode;
-	error:
-		iget_failed(inode);
-		return ERR_PTR(ret);
-	}
-
-and then thingyfs_iget() would be called rather than iget(), for example:
-
-	ret = -EINVAL;
-	inode = iget(sb, ino);
-	if (!inode || is_bad_inode(inode))
-		goto error;
-
-becomes:
-
-	inode = thingyfs_iget(sb, ino);
-	if (IS_ERR(inode)) {
-		ret = PTR_ERR(inode);
-		goto error;
-	}
-
-Note that is_bad_inode() does not need to be called.  The error returned by
-thingyfs_iget() should render it unnecessary.
-
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: David Howells <dhowells@redhat.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    3 ---
- Documentation/filesystems/porting |   12 ++++++------
- Documentation/filesystems/vfs.txt |   17 +++--------------
- fs/inode.c                        |    4 ----
- include/linux/fs.h                |   14 --------------
- 5 files changed, 9 insertions(+), 41 deletions(-)
+ fs/minix/inode.c |   43 +++++++++++++++++++++++++++++--------------
+ fs/minix/minix.h |    1 +
+ fs/minix/namei.c |    7 +++----
+ 3 files changed, 33 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/filesystems/Locking~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~iget-remove-iget-and-the-read_inode-super-op-as
-+++ a/Documentation/filesystems/Locking
-@@ -90,7 +90,6 @@ of the locking scheme for directory oper
- prototypes:
- 	struct inode *(*alloc_inode)(struct super_block *sb);
- 	void (*destroy_inode)(struct inode *);
--	void (*read_inode) (struct inode *);
- 	void (*dirty_inode) (struct inode *);
- 	int (*write_inode) (struct inode *, int);
- 	void (*put_inode) (struct inode *);
-@@ -114,7 +113,6 @@ locking rules:
- 			BKL	s_lock	s_umount
- alloc_inode:		no	no	no
- destroy_inode:		no
--read_inode:		no				(see below)
- dirty_inode:		no				(must not sleep)
- write_inode:		no
- put_inode:		no
-@@ -133,7 +131,6 @@ show_options:		no				(vfsmount->sem)
- quota_read:		no	no	no		(see below)
- quota_write:		no	no	no		(see below)
+diff -puN fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and fs/minix/inode.c
+--- a/fs/minix/inode.c~iget-stop-the-minix-filesystem-from-using-iget-and
++++ a/fs/minix/inode.c
+@@ -18,7 +18,6 @@
+ #include <linux/highuid.h>
+ #include <linux/vfs.h>
  
--->read_inode() is not a method - it's a callback used in iget().
- ->remount_fs() will have the s_umount lock if it's already mounted.
- When called from get_sb_single, it does NOT have the s_umount lock.
- ->quota_read() and ->quota_write() functions are both guaranteed to
-diff -puN Documentation/filesystems/porting~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/porting
---- a/Documentation/filesystems/porting~iget-remove-iget-and-the-read_inode-super-op-as
-+++ a/Documentation/filesystems/porting
-@@ -34,8 +34,8 @@ FOO_I(inode) (see in-tree filesystems fo
+-static void minix_read_inode(struct inode * inode);
+ static int minix_write_inode(struct inode * inode, int wait);
+ static int minix_statfs(struct dentry *dentry, struct kstatfs *buf);
+ static int minix_remount (struct super_block * sb, int * flags, char * data);
+@@ -96,7 +95,6 @@ static void destroy_inodecache(void)
+ static const struct super_operations minix_sops = {
+ 	.alloc_inode	= minix_alloc_inode,
+ 	.destroy_inode	= minix_destroy_inode,
+-	.read_inode	= minix_read_inode,
+ 	.write_inode	= minix_write_inode,
+ 	.delete_inode	= minix_delete_inode,
+ 	.put_super	= minix_put_super,
+@@ -149,6 +147,7 @@ static int minix_fill_super(struct super
+ 	unsigned long i, block;
+ 	struct inode *root_inode;
+ 	struct minix_sb_info *sbi;
++	int ret = -EINVAL;
  
- Make them ->alloc_inode and ->destroy_inode in your super_operations.
+ 	sbi = kzalloc(sizeof(struct minix_sb_info), GFP_KERNEL);
+ 	if (!sbi)
+@@ -246,10 +245,13 @@ static int minix_fill_super(struct super
  
--Keep in mind that now you need explicit initialization of private data -
--typically in ->read_inode() and after getting an inode from new_inode().
-+Keep in mind that now you need explicit initialization of private data
-+typically between calling iget_locked() and unlocking the inode.
+ 	/* set up enough so that it can read an inode */
+ 	s->s_op = &minix_sops;
+-	root_inode = iget(s, MINIX_ROOT_INO);
+-	if (!root_inode || is_bad_inode(root_inode))
++	root_inode = minix_iget(s, MINIX_ROOT_INO);
++	if (IS_ERR(root_inode)) {
++		ret = PTR_ERR(root_inode);
+ 		goto out_no_root;
++	}
  
- At some point that will become mandatory.
++	ret = -ENOMEM;
+ 	s->s_root = d_alloc_root(root_inode);
+ 	if (!s->s_root)
+ 		goto out_iput;
+@@ -290,6 +292,7 @@ out_freemap:
+ 	goto out_release;
  
-@@ -173,10 +173,10 @@ should be a non-blocking function that i
- newly created inode to allow the test function to succeed. 'data' is
- passed as an opaque value to both test and set functions.
+ out_no_map:
++	ret = -ENOMEM;
+ 	if (!silent)
+ 		printk("MINIX-fs: can't allocate map\n");
+ 	goto out_release;
+@@ -316,7 +319,7 @@ out_bad_sb:
+ out:
+ 	s->s_fs_info = NULL;
+ 	kfree(sbi);
+-	return -EINVAL;
++	return ret;
+ }
  
--When the inode has been created by iget5_locked(), it will be returned with
--the I_NEW flag set and will still be locked. read_inode has not been
--called so the file system still has to finalize the initialization. Once
--the inode is initialized it must be unlocked by calling unlock_new_inode().
-+When the inode has been created by iget5_locked(), it will be returned with the
-+I_NEW flag set and will still be locked.  The filesystem then needs to finalize
-+the initialization. Once the inode is initialized it must be unlocked by
-+calling unlock_new_inode().
+ static int minix_statfs(struct dentry *dentry, struct kstatfs *buf)
+@@ -409,7 +412,7 @@ void minix_set_inode(struct inode *inode
+ /*
+  * The minix V1 function to read an inode.
+  */
+-static void V1_minix_read_inode(struct inode * inode)
++static struct inode *V1_minix_iget(struct inode *inode)
+ {
+ 	struct buffer_head * bh;
+ 	struct minix_inode * raw_inode;
+@@ -418,8 +421,8 @@ static void V1_minix_read_inode(struct i
  
- The filesystem is responsible for setting (and possibly testing) i_ino
- when appropriate. There is also a simpler iget_locked function that
-diff -puN Documentation/filesystems/vfs.txt~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~iget-remove-iget-and-the-read_inode-super-op-as
-+++ a/Documentation/filesystems/vfs.txt
-@@ -203,8 +203,6 @@ struct super_operations {
-         struct inode *(*alloc_inode)(struct super_block *sb);
-         void (*destroy_inode)(struct inode *);
+ 	raw_inode = minix_V1_raw_inode(inode->i_sb, inode->i_ino, &bh);
+ 	if (!raw_inode) {
+-		make_bad_inode(inode);
+-		return;
++		iget_failed(inode);
++		return ERR_PTR(-EIO);
+ 	}
+ 	inode->i_mode = raw_inode->i_mode;
+ 	inode->i_uid = (uid_t)raw_inode->i_uid;
+@@ -435,12 +438,14 @@ static void V1_minix_read_inode(struct i
+ 		minix_inode->u.i1_data[i] = raw_inode->i_zone[i];
+ 	minix_set_inode(inode, old_decode_dev(raw_inode->i_zone[0]));
+ 	brelse(bh);
++	unlock_new_inode(inode);
++	return inode;
+ }
  
--        void (*read_inode) (struct inode *);
--
-         void (*dirty_inode) (struct inode *);
-         int (*write_inode) (struct inode *, int);
-         void (*put_inode) (struct inode *);
-@@ -242,15 +240,6 @@ or bottom half).
-   	->alloc_inode was defined and simply undoes anything done by
- 	->alloc_inode.
+ /*
+  * The minix V2 function to read an inode.
+  */
+-static void V2_minix_read_inode(struct inode * inode)
++static struct inode *V2_minix_iget(struct inode *inode)
+ {
+ 	struct buffer_head * bh;
+ 	struct minix2_inode * raw_inode;
+@@ -449,8 +454,8 @@ static void V2_minix_read_inode(struct i
  
--  read_inode: this method is called to read a specific inode from the
--        mounted filesystem.  The i_ino member in the struct inode is
--	initialized by the VFS to indicate which inode to read. Other
--	members are filled in by this method.
--
--	You can set this to NULL and use iget5_locked() instead of iget()
--	to read inodes.  This is necessary for filesystems for which the
--	inode number is not sufficient to identify an inode.
--
-   dirty_inode: this method is called by the VFS to mark an inode dirty.
+ 	raw_inode = minix_V2_raw_inode(inode->i_sb, inode->i_ino, &bh);
+ 	if (!raw_inode) {
+-		make_bad_inode(inode);
+-		return;
++		iget_failed(inode);
++		return ERR_PTR(-EIO);
+ 	}
+ 	inode->i_mode = raw_inode->i_mode;
+ 	inode->i_uid = (uid_t)raw_inode->i_uid;
+@@ -468,17 +473,27 @@ static void V2_minix_read_inode(struct i
+ 		minix_inode->u.i2_data[i] = raw_inode->i_zone[i];
+ 	minix_set_inode(inode, old_decode_dev(raw_inode->i_zone[0]));
+ 	brelse(bh);
++	unlock_new_inode(inode);
++	return inode;
+ }
  
-   write_inode: this method is called when the VFS needs to write an
-@@ -308,9 +297,9 @@ or bottom half).
+ /*
+  * The global function to read an inode.
+  */
+-static void minix_read_inode(struct inode * inode)
++struct inode *minix_iget(struct super_block *sb, unsigned long ino)
+ {
++	struct inode *inode;
++
++	inode = iget_locked(sb, ino);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
++
+ 	if (INODE_VERSION(inode) == MINIX_V1)
+-		V1_minix_read_inode(inode);
++		return V1_minix_iget(inode);
+ 	else
+-		V2_minix_read_inode(inode);
++		return V2_minix_iget(inode);
+ }
  
-   quota_write: called by the VFS to write to filesystem quota file.
+ /*
+diff -puN fs/minix/minix.h~iget-stop-the-minix-filesystem-from-using-iget-and fs/minix/minix.h
+--- a/fs/minix/minix.h~iget-stop-the-minix-filesystem-from-using-iget-and
++++ a/fs/minix/minix.h
+@@ -45,6 +45,7 @@ struct minix_sb_info {
+ 	unsigned short s_version;
+ };
  
--The read_inode() method is responsible for filling in the "i_op"
--field. This is a pointer to a "struct inode_operations" which
--describes the methods that can be performed on individual inodes.
-+Whoever sets up the inode is responsible for filling in the "i_op" field. This
-+is a pointer to a "struct inode_operations" which describes the methods that
-+can be performed on individual inodes.
++extern struct inode *minix_iget(struct super_block *, unsigned long);
+ extern struct minix_inode * minix_V1_raw_inode(struct super_block *, ino_t, struct buffer_head **);
+ extern struct minix2_inode * minix_V2_raw_inode(struct super_block *, ino_t, struct buffer_head **);
+ extern struct inode * minix_new_inode(const struct inode * dir, int * error);
+diff -puN fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and fs/minix/namei.c
+--- a/fs/minix/namei.c~iget-stop-the-minix-filesystem-from-using-iget-and
++++ a/fs/minix/namei.c
+@@ -54,10 +54,9 @@ static struct dentry *minix_lookup(struc
  
- 
- The Inode Object
-diff -puN fs/inode.c~iget-remove-iget-and-the-read_inode-super-op-as fs/inode.c
---- a/fs/inode.c~iget-remove-iget-and-the-read_inode-super-op-as
-+++ a/fs/inode.c
-@@ -928,8 +928,6 @@ EXPORT_SYMBOL(ilookup);
-  * @set:	callback used to initialize a new struct inode
-  * @data:	opaque data pointer to pass to @test and @set
-  *
-- * This is iget() without the read_inode() portion of get_new_inode().
-- *
-  * iget5_locked() uses ifind() to search for the inode specified by @hashval
-  * and @data in the inode cache and if present it is returned with an increased
-  * reference count. This is a generalized version of iget_locked() for file
-@@ -966,8 +964,6 @@ EXPORT_SYMBOL(iget5_locked);
-  * @sb:		super block of file system
-  * @ino:	inode number to get
-  *
-- * This is iget() without the read_inode() portion of get_new_inode_fast().
-- *
-  * iget_locked() uses ifind_fast() to search for the inode specified by @ino in
-  * the inode cache and if present it is returned with an increased reference
-  * count. This is for file systems where the inode number is sufficient for
-diff -puN include/linux/fs.h~iget-remove-iget-and-the-read_inode-super-op-as include/linux/fs.h
---- a/include/linux/fs.h~iget-remove-iget-and-the-read_inode-super-op-as
-+++ a/include/linux/fs.h
-@@ -1241,8 +1241,6 @@ struct super_operations {
-    	struct inode *(*alloc_inode)(struct super_block *sb);
- 	void (*destroy_inode)(struct inode *);
- 
--	void (*read_inode) (struct inode *);
--  
-    	void (*dirty_inode) (struct inode *);
- 	int (*write_inode) (struct inode *, int);
- 	void (*put_inode) (struct inode *);
-@@ -1767,18 +1765,6 @@ extern struct inode * iget5_locked(struc
- extern struct inode * iget_locked(struct super_block *, unsigned long);
- extern void unlock_new_inode(struct inode *);
- 
--static inline struct inode *iget(struct super_block *sb, unsigned long ino)
--{
--	struct inode *inode = iget_locked(sb, ino);
--	
--	if (inode && (inode->i_state & I_NEW)) {
--		sb->s_op->read_inode(inode);
--		unlock_new_inode(inode);
--	}
--
--	return inode;
--}
--
- extern void __iget(struct inode * inode);
- extern void iget_failed(struct inode *);
- extern void clear_inode(struct inode *);
+ 	ino = minix_inode_by_name(dentry);
+ 	if (ino) {
+-		inode = iget(dir->i_sb, ino);
+- 
+-		if (!inode)
+-			return ERR_PTR(-EACCES);
++		inode = minix_iget(dir->i_sb, ino);
++		if (IS_ERR(inode))
++			return ERR_CAST(inode);
+ 	}
+ 	d_add(dentry, inode);
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
