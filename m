@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch added to -mm tree
-Date: Fri, 08 Feb 2008 15:02:16 -0800
-Message-ID: <200802082302.m18N2Gss018381@imap1.linux-foundation.org>
+Subject: + x86-fix-pgtable_t-build-breakage.patch added to -mm tree
+Date: Fri, 08 Feb 2008 15:48:44 -0800
+Message-ID: <200802082348.m18NmPqn020208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48466 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60965 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751136AbYBHXCY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 18:02:24 -0500
+	by vger.kernel.org with ESMTP id S1754269AbYBHXtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 18:49:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hs4233@mail.mn-solutions.de, ebiederm@xmission.com
+Cc: mingo@elte.hu, schwidefsky@de.ibm.com
 
 
 The patch titled
-     sysctl: allow embedded targets to disable sysctl_check.c
+     x86: fix pgtable_t build breakage
 has been added to the -mm tree.  Its filename is
-     sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch
+     x86-fix-pgtable_t-build-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: allow embedded targets to disable sysctl_check.c
-From: Holger Schurig <hs4233@mail.mn-solutions.de>
+Subject: x86: fix pgtable_t build breakage
+From: Ingo Molnar <mingo@elte.hu>
 
-Disable sysctl_check.c for embedded targets. This saves about about 11 kB
-in .text and another 11 kB in .data on a PXA255 embedded platform.
+Fix build breakage caused by commit 2f569afd9ced9ebec9.
 
-Signed-off-by: Holger Schurig <hs4233@mail.mn-solutions.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig    |   11 +++++++++++
- kernel/Makefile |    2 +-
- kernel/sysctl.c |   10 ++++++++--
- 3 files changed, 20 insertions(+), 3 deletions(-)
+ include/asm-x86/page_32.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN init/Kconfig~sysctl-allow-embedded-targets-to-disable-sysctl_checkc init/Kconfig
---- a/init/Kconfig~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
-+++ a/init/Kconfig
-@@ -511,6 +511,17 @@ config SYSCTL_SYSCALL
+diff -puN include/asm-x86/page_32.h~x86-fix-pgtable_t-build-breakage include/asm-x86/page_32.h
+--- a/include/asm-x86/page_32.h~x86-fix-pgtable_t-build-breakage
++++ a/include/asm-x86/page_32.h
+@@ -50,11 +50,13 @@ typedef unsigned long	phys_addr_t;
+ typedef union { pteval_t pte, pte_low; } pte_t;
+ typedef pte_t boot_pte_t;
  
- 	  If unsure say Y here.
+-typedef struct page *pgtable_t;
+-
+ #endif	/* __ASSEMBLY__ */
+ #endif	/* CONFIG_X86_PAE */
  
-+config SYSCTL_SYSCALL_CHECK
-+	bool "Sysctl checks" if EMBEDDED
-+	depends on SYSCTL_SYSCALL
-+	default y
-+	---help---
-+	  sys_sysctl uses binary paths that have been found challenging
-+	  to properly maintain and use. This enables checks that help
-+	  you to keep things correct.
-+
-+	  If unsure say Y here.
-+
- config KALLSYMS
- 	 bool "Load all symbols for debugging/ksymoops" if EMBEDDED
- 	 default y
-diff -puN kernel/Makefile~sysctl-allow-embedded-targets-to-disable-sysctl_checkc kernel/Makefile
---- a/kernel/Makefile~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
-+++ a/kernel/Makefile
-@@ -11,7 +11,7 @@ obj-y     = sched.o fork.o exec_domain.o
- 	    hrtimer.o rwsem.o nsproxy.o srcu.o \
- 	    notifier.o ksysfs.o pm_qos_params.o
- 
--obj-$(CONFIG_SYSCTL) += sysctl_check.o
-+obj-$(CONFIG_SYSCTL_SYSCALL_CHECK) += sysctl_check.o
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
- obj-y += time/
- obj-$(CONFIG_DEBUG_MUTEXES) += mutex-debug.o
-diff -puN kernel/sysctl.c~sysctl-allow-embedded-targets-to-disable-sysctl_checkc kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
-+++ a/kernel/sysctl.c
-@@ -1612,9 +1612,13 @@ static void sysctl_set_parent(struct ctl
- 
- static __init int sysctl_init(void)
- {
--	int err;
- 	sysctl_set_parent(NULL, root_table);
--	err = sysctl_check_table(current->nsproxy, root_table);
-+#ifdef CONFIG_SYSCTL_SYSCALL_CHECK
-+	{
-+		int err;
-+		err = sysctl_check_table(current->nsproxy, root_table);
-+	}
++#ifndef __ASSEMBLY__
++typedef struct page *pgtable_t;
 +#endif
- 	return 0;
- }
- 
-@@ -1741,10 +1745,12 @@ struct ctl_table_header *__register_sysc
- 	header->unregistering = NULL;
- 	header->root = root;
- 	sysctl_set_parent(NULL, header->ctl_table);
-+#ifdef CONFIG_SYSCTL_SYSCALL_CHECK
- 	if (sysctl_check_table(namespaces, header->ctl_table)) {
- 		kfree(header);
- 		return NULL;
- 	}
-+#endif
- 	spin_lock(&sysctl_lock);
- 	header_list = lookup_header_list(root, namespaces);
- 	list_add_tail(&header->ctl_entry, header_list);
++
+ #ifdef CONFIG_HUGETLB_PAGE
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ #endif
 _
 
-Patches currently in -mm which might be from hs4233@mail.mn-solutions.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch
+revert-proc-fix-the-threaded-proc-self.patch
+x86-fix-pgtable_t-build-breakage.patch
+smack-unlabeled-outgoing-ambient-packets.patch
+git-hrt.patch
+revert-git-hrt.patch
+git-kvm.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+deprecate-find_task_by_pid-kgdb.patch
+x86-amd-thermal-interrupt-support.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
+x86-mmconf-enable-mcfg-early.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
