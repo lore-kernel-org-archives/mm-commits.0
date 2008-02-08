@@ -1,159 +1,432 @@
 From: akpm@linux-foundation.org
-Subject: - do_wait-fix-security-checks.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:44 -0800
-Message-ID: <200802082013.m18KDPvg010289@imap1.linux-foundation.org>
+Subject: - procfs-constify-function-pointer-tables.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:59 -0800
+Message-ID: <200802082018.m18KIeoQ010948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763238AbYBHVEZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:25 -0500
+	by vger.kernel.org with ESMTP id S1757324AbYBHVEF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, chrisw@sous-sol.org, eparis@redhat.com, jmorris@namei.org, roland@redhat.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, bryan.wu@analog.com, dhowells@redhat.com, geert@linux-m68k.org, jesper.nilsson@axis.com, linux-arch@vger.kernel.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_wait: fix security checks
+     procfs: constify function pointer tables
 has been removed from the -mm tree.  Its filename was
-     do_wait-fix-security-checks.patch
+     procfs-constify-function-pointer-tables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: do_wait: fix security checks
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: procfs: constify function pointer tables
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Imho, the current usage of security_task_wait() is not logical.
-
-Suppose we have the single child p, and security_task_wait(p) return -EANY. 
-In that case waitpid(-1) returns this error.  Why?  Isn't it better to return
-ECHLD?  We don't really have the reapable childs.
-
-Now suppose that child was stealed by gdb.  In that case we find this child on
-->ptrace_children and set flag = 1, but we don't check that the child was
-denied.  So, do_wait(..., WNOHANG) returns 0, this doesn't match the behaviour
-above.  Without WNOHANG do_wait() blocks only to return the error later, when
-the child will be untraced.  Inho, really strange.
-
-I think eligible_child() should return the error only if the child's pid was
-requested explicitly, otherwise we should silently ignore the tasks which were
-nacked by security_task_wait().
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
+Acked-By: David Howells <dhowells@redhat.com>
+Acked-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   39 ++++++++++++++++++---------------------
- 1 file changed, 18 insertions(+), 21 deletions(-)
+ arch/alpha/kernel/setup.c     |    2 +-
+ arch/blackfin/kernel/setup.c  |    2 +-
+ arch/cris/kernel/setup.c      |    2 +-
+ arch/frv/kernel/setup.c       |    2 +-
+ arch/h8300/kernel/setup.c     |    2 +-
+ arch/m32r/kernel/setup.c      |    2 +-
+ arch/m68k/kernel/setup.c      |    2 +-
+ arch/m68knommu/kernel/setup.c |    2 +-
+ arch/parisc/kernel/setup.c    |    2 +-
+ arch/ppc/kernel/setup.c       |    2 +-
+ arch/v850/kernel/procfs.c     |    2 +-
+ arch/xtensa/kernel/setup.c    |    2 +-
+ fs/proc/base.c                |    4 ++--
+ fs/proc/nommu.c               |    2 +-
+ fs/proc/proc_misc.c           |   22 +++++++++++-----------
+ fs/proc/proc_sysctl.c         |    4 ++--
+ fs/proc/proc_tty.c            |    2 +-
+ fs/proc/task_mmu.c            |    8 ++++----
+ fs/proc/task_nommu.c          |    2 +-
+ 19 files changed, 34 insertions(+), 34 deletions(-)
 
-diff -puN kernel/exit.c~do_wait-fix-security-checks kernel/exit.c
---- a/kernel/exit.c~do_wait-fix-security-checks
-+++ a/kernel/exit.c
-@@ -1142,10 +1142,14 @@ static int eligible_child(pid_t pid, int
- 		return 0;
- 
- 	err = security_task_wait(p);
--	if (err)
--		return err;
-+	if (likely(!err))
-+		return 1;
- 
--	return 1;
-+	if (pid <= 0)
-+		return 0;
-+	/* This child was explicitly requested, abort */
-+	read_unlock(&tasklist_lock);
-+	return err;
+diff -puN arch/alpha/kernel/setup.c~procfs-constify-function-pointer-tables arch/alpha/kernel/setup.c
+--- a/arch/alpha/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/alpha/kernel/setup.c
+@@ -1471,7 +1471,7 @@ c_stop(struct seq_file *f, void *v)
+ {
  }
  
- static int wait_noreap_copyout(struct task_struct *p, pid_t pid, uid_t uid,
-@@ -1476,7 +1480,6 @@ static long do_wait(pid_t pid, int optio
- 	DECLARE_WAITQUEUE(wait, current);
- 	struct task_struct *tsk;
- 	int flag, retval;
--	int allowed, denied;
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/blackfin/kernel/setup.c~procfs-constify-function-pointer-tables arch/blackfin/kernel/setup.c
+--- a/arch/blackfin/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/blackfin/kernel/setup.c
+@@ -700,7 +700,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
  
- 	add_wait_queue(&current->signal->wait_chldexit,&wait);
- repeat:
-@@ -1484,8 +1487,7 @@ repeat:
- 	 * We will set this flag if we see any child that might later
- 	 * match our criteria, even if we are not able to reap it yet.
- 	 */
--	flag = 0;
--	allowed = denied = 0;
-+	flag = retval = 0;
- 	current->state = TASK_INTERRUPTIBLE;
- 	read_lock(&tasklist_lock);
- 	tsk = current;
-@@ -1498,13 +1500,8 @@ repeat:
- 				continue;
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start = c_start,
+ 	.next = c_next,
+ 	.stop = c_stop,
+diff -puN arch/cris/kernel/setup.c~procfs-constify-function-pointer-tables arch/cris/kernel/setup.c
+--- a/arch/cris/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/cris/kernel/setup.c
+@@ -180,7 +180,7 @@ static void c_stop(struct seq_file *m, v
  
- 			if (unlikely(ret < 0)) {
--				denied = ret;
--				continue;
--			}
--			allowed = 1;
--
--			retval = 0;
--			if (task_is_stopped_or_traced(p)) {
-+				retval = ret;
-+			} else if (task_is_stopped_or_traced(p)) {
- 				/*
- 				 * It's stopped now, so it might later
- 				 * continue, exit, or stop again.
-@@ -1544,11 +1541,14 @@ repeat:
- 		}
- 		if (!flag) {
- 			list_for_each_entry(p, &tsk->ptrace_children,
--					    ptrace_list) {
--				if (!eligible_child(pid, options, p))
-+								ptrace_list) {
-+				flag = eligible_child(pid, options, p);
-+				if (!flag)
- 					continue;
--				flag = 1;
--				break;
-+				if (likely(flag > 0))
-+					break;
-+				retval = flag;
-+				goto end;
- 			}
- 		}
- 		if (options & __WNOTHREAD)
-@@ -1556,10 +1556,9 @@ repeat:
- 		tsk = next_thread(tsk);
- 		BUG_ON(tsk->signal != current->signal);
- 	} while (tsk != current);
--
- 	read_unlock(&tasklist_lock);
-+
- 	if (flag) {
--		retval = 0;
- 		if (options & WNOHANG)
- 			goto end;
- 		retval = -ERESTARTSYS;
-@@ -1569,8 +1568,6 @@ repeat:
- 		goto repeat;
- 	}
- 	retval = -ECHILD;
--	if (unlikely(denied) && !allowed)
--		retval = denied;
- end:
- 	current->state = TASK_RUNNING;
- 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
+ extern int show_cpuinfo(struct seq_file *m, void *v);
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start = c_start,
+ 	.next  = c_next,
+ 	.stop  = c_stop,
+diff -puN arch/frv/kernel/setup.c~procfs-constify-function-pointer-tables arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/frv/kernel/setup.c
+@@ -1113,7 +1113,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/h8300/kernel/setup.c~procfs-constify-function-pointer-tables arch/h8300/kernel/setup.c
+--- a/arch/h8300/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/h8300/kernel/setup.c
+@@ -236,7 +236,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/m32r/kernel/setup.c~procfs-constify-function-pointer-tables arch/m32r/kernel/setup.c
+--- a/arch/m32r/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/m32r/kernel/setup.c
+@@ -369,7 +369,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start = c_start,
+ 	.next = c_next,
+ 	.stop = c_stop,
+diff -puN arch/m68k/kernel/setup.c~procfs-constify-function-pointer-tables arch/m68k/kernel/setup.c
+--- a/arch/m68k/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/m68k/kernel/setup.c
+@@ -450,7 +450,7 @@ static void *c_next(struct seq_file *m, 
+ static void c_stop(struct seq_file *m, void *v)
+ {
+ }
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/m68knommu/kernel/setup.c~procfs-constify-function-pointer-tables arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/m68knommu/kernel/setup.c
+@@ -260,7 +260,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/parisc/kernel/setup.c~procfs-constify-function-pointer-tables arch/parisc/kernel/setup.c
+--- a/arch/parisc/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/parisc/kernel/setup.c
+@@ -190,7 +190,7 @@ c_stop (struct seq_file *m, void *v)
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+diff -puN arch/ppc/kernel/setup.c~procfs-constify-function-pointer-tables arch/ppc/kernel/setup.c
+--- a/arch/ppc/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/ppc/kernel/setup.c
+@@ -275,7 +275,7 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start =c_start,
+ 	.next =	c_next,
+ 	.stop =	c_stop,
+diff -puN arch/v850/kernel/procfs.c~procfs-constify-function-pointer-tables arch/v850/kernel/procfs.c
+--- a/arch/v850/kernel/procfs.c~procfs-constify-function-pointer-tables
++++ a/arch/v850/kernel/procfs.c
+@@ -59,7 +59,7 @@ static void cpuinfo_stop (struct seq_fil
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op = {
++const struct seq_operations cpuinfo_op = {
+ 	.start	= cpuinfo_start,
+ 	.next	= cpuinfo_next,
+ 	.stop	= cpuinfo_stop,
+diff -puN arch/xtensa/kernel/setup.c~procfs-constify-function-pointer-tables arch/xtensa/kernel/setup.c
+--- a/arch/xtensa/kernel/setup.c~procfs-constify-function-pointer-tables
++++ a/arch/xtensa/kernel/setup.c
+@@ -469,7 +469,7 @@ c_stop(struct seq_file *f, void *v)
+ {
+ }
+ 
+-struct seq_operations cpuinfo_op =
++const struct seq_operations cpuinfo_op =
+ {
+ 	start:  c_start,
+ 	next:   c_next,
+diff -puN fs/proc/base.c~procfs-constify-function-pointer-tables fs/proc/base.c
+--- a/fs/proc/base.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/base.c
+@@ -506,7 +506,7 @@ static const struct inode_operations pro
+ 	.setattr	= proc_setattr,
+ };
+ 
+-extern struct seq_operations mounts_op;
++extern const struct seq_operations mounts_op;
+ struct proc_mounts {
+ 	struct seq_file m;
+ 	int event;
+@@ -585,7 +585,7 @@ static const struct file_operations proc
+ 	.poll		= mounts_poll,
+ };
+ 
+-extern struct seq_operations mountstats_op;
++extern const struct seq_operations mountstats_op;
+ static int mountstats_open(struct inode *inode, struct file *file)
+ {
+ 	int ret = seq_open(file, &mountstats_op);
+diff -puN fs/proc/nommu.c~procfs-constify-function-pointer-tables fs/proc/nommu.c
+--- a/fs/proc/nommu.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/nommu.c
+@@ -116,7 +116,7 @@ static void *nommu_vma_list_next(struct 
+ 	return rb_next((struct rb_node *) v);
+ }
+ 
+-static struct seq_operations proc_nommu_vma_list_seqop = {
++static const struct seq_operations proc_nommu_vma_list_seqop = {
+ 	.start	= nommu_vma_list_start,
+ 	.next	= nommu_vma_list_next,
+ 	.stop	= nommu_vma_list_stop,
+diff -puN fs/proc/proc_misc.c~procfs-constify-function-pointer-tables fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/proc_misc.c
+@@ -222,7 +222,7 @@ static int meminfo_read_proc(char *page,
+ #undef K
+ }
+ 
+-extern struct seq_operations fragmentation_op;
++extern const struct seq_operations fragmentation_op;
+ static int fragmentation_open(struct inode *inode, struct file *file)
+ {
+ 	(void)inode;
+@@ -236,7 +236,7 @@ static const struct file_operations frag
+ 	.release	= seq_release,
+ };
+ 
+-extern struct seq_operations pagetypeinfo_op;
++extern const struct seq_operations pagetypeinfo_op;
+ static int pagetypeinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &pagetypeinfo_op);
+@@ -249,7 +249,7 @@ static const struct file_operations page
+ 	.release	= seq_release,
+ };
+ 
+-extern struct seq_operations zoneinfo_op;
++extern const struct seq_operations zoneinfo_op;
+ static int zoneinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &zoneinfo_op);
+@@ -274,7 +274,7 @@ static int version_read_proc(char *page,
+ 	return proc_calc_metrics(page, start, off, count, eof, len);
+ }
+ 
+-extern struct seq_operations cpuinfo_op;
++extern const struct seq_operations cpuinfo_op;
+ static int cpuinfo_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &cpuinfo_op);
+@@ -327,7 +327,7 @@ static void devinfo_stop(struct seq_file
+ 	/* Nothing to do */
+ }
+ 
+-static struct seq_operations devinfo_ops = {
++static const struct seq_operations devinfo_ops = {
+ 	.start = devinfo_start,
+ 	.next  = devinfo_next,
+ 	.stop  = devinfo_stop,
+@@ -346,7 +346,7 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
+ 
+-extern struct seq_operations vmstat_op;
++extern const struct seq_operations vmstat_op;
+ static int vmstat_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &vmstat_op);
+@@ -377,7 +377,7 @@ static int stram_read_proc(char *page, c
+ #endif
+ 
+ #ifdef CONFIG_BLOCK
+-extern struct seq_operations partitions_op;
++extern const struct seq_operations partitions_op;
+ static int partitions_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &partitions_op);
+@@ -389,7 +389,7 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
+ 
+-extern struct seq_operations diskstats_op;
++extern const struct seq_operations diskstats_op;
+ static int diskstats_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &diskstats_op);
+@@ -403,7 +403,7 @@ static const struct file_operations proc
+ #endif
+ 
+ #ifdef CONFIG_MODULES
+-extern struct seq_operations modules_op;
++extern const struct seq_operations modules_op;
+ static int modules_open(struct inode *inode, struct file *file)
+ {
+ 	return seq_open(file, &modules_op);
+@@ -430,7 +430,7 @@ static const struct file_operations proc
+ };
+ 
+ #ifdef CONFIG_DEBUG_SLAB_LEAK
+-extern struct seq_operations slabstats_op;
++extern const struct seq_operations slabstats_op;
+ static int slabstats_open(struct inode *inode, struct file *file)
+ {
+ 	unsigned long *n = kzalloc(PAGE_SIZE, GFP_KERNEL);
+@@ -604,7 +604,7 @@ static void int_seq_stop(struct seq_file
+ }
+ 
+ 
+-static struct seq_operations int_seq_ops = {
++static const struct seq_operations int_seq_ops = {
+ 	.start = int_seq_start,
+ 	.next  = int_seq_next,
+ 	.stop  = int_seq_stop,
+diff -puN fs/proc/proc_sysctl.c~procfs-constify-function-pointer-tables fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/proc_sysctl.c
+@@ -9,7 +9,7 @@
+ 
+ static struct dentry_operations proc_sys_dentry_operations;
+ static const struct file_operations proc_sys_file_operations;
+-static struct inode_operations proc_sys_inode_operations;
++static const struct inode_operations proc_sys_inode_operations;
+ 
+ static void proc_sys_refresh_inode(struct inode *inode, struct ctl_table *table)
+ {
+@@ -446,7 +446,7 @@ static const struct file_operations proc
+ 	.readdir	= proc_sys_readdir,
+ };
+ 
+-static struct inode_operations proc_sys_inode_operations = {
++static const struct inode_operations proc_sys_inode_operations = {
+ 	.lookup		= proc_sys_lookup,
+ 	.permission	= proc_sys_permission,
+ 	.setattr	= proc_sys_setattr,
+diff -puN fs/proc/proc_tty.c~procfs-constify-function-pointer-tables fs/proc/proc_tty.c
+--- a/fs/proc/proc_tty.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/proc_tty.c
+@@ -117,7 +117,7 @@ static void t_stop(struct seq_file *m, v
+ 	mutex_unlock(&tty_mutex);
+ }
+ 
+-static struct seq_operations tty_drivers_op = {
++static const struct seq_operations tty_drivers_op = {
+ 	.start	= t_start,
+ 	.next	= t_next,
+ 	.stop	= t_stop,
+diff -puN fs/proc/task_mmu.c~procfs-constify-function-pointer-tables fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/task_mmu.c
+@@ -216,7 +216,7 @@ static void m_stop(struct seq_file *m, v
+ }
+ 
+ static int do_maps_open(struct inode *inode, struct file *file,
+-			struct seq_operations *ops)
++			const struct seq_operations *ops)
+ {
+ 	struct proc_maps_private *priv;
+ 	int ret = -ENOMEM;
+@@ -299,7 +299,7 @@ static int show_map(struct seq_file *m, 
+ 	return 0;
+ }
+ 
+-static struct seq_operations proc_pid_maps_op = {
++static const struct seq_operations proc_pid_maps_op = {
+ 	.start	= m_start,
+ 	.next	= m_next,
+ 	.stop	= m_stop,
+@@ -434,7 +434,7 @@ static int show_smap(struct seq_file *m,
+ 	return ret;
+ }
+ 
+-static struct seq_operations proc_pid_smaps_op = {
++static const struct seq_operations proc_pid_smaps_op = {
+ 	.start	= m_start,
+ 	.next	= m_next,
+ 	.stop	= m_stop,
+@@ -734,7 +734,7 @@ static int show_numa_map_checked(struct 
+ 	return show_numa_map(m, v);
+ }
+ 
+-static struct seq_operations proc_pid_numa_maps_op = {
++static const struct seq_operations proc_pid_numa_maps_op = {
+         .start  = m_start,
+         .next   = m_next,
+         .stop   = m_stop,
+diff -puN fs/proc/task_nommu.c~procfs-constify-function-pointer-tables fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~procfs-constify-function-pointer-tables
++++ a/fs/proc/task_nommu.c
+@@ -198,7 +198,7 @@ static void *m_next(struct seq_file *m, 
+ 	return vml ? vml->next : NULL;
+ }
+ 
+-static struct seq_operations proc_pid_maps_ops = {
++static const struct seq_operations proc_pid_maps_ops = {
+ 	.start	= m_start,
+ 	.next	= m_next,
+ 	.stop	= m_stop,
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+git-dvb.patch
+git-kvm.patch
+git-ocfs2.patch
+git-unionfs.patch
+git-watchdog.patch
