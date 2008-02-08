@@ -1,208 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: - udf-convert-byte-order-of-constant-instead-of-variable.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:17:31 -0800
-Message-ID: <200802082017.m18KHC4W010797@imap1.linux-foundation.org>
+Subject: + fix-frv-cmpxchg_local.patch added to -mm tree
+Date: Fri, 08 Feb 2008 12:56:07 -0800
+Message-ID: <200802082056.m18Ku7VP012859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754902AbYBHVCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:36 -0500
+	by vger.kernel.org with ESMTP id S1754809AbYBHVCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: compudj@krystal.dyndns.org, bunk@kernel.org, dhowells@redhat.com, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     udf: convert byte order of constant instead of variable
-has been removed from the -mm tree.  Its filename was
-     udf-convert-byte-order-of-constant-instead-of-variable.patch
+     Fix FRV cmpxchg_local
+has been added to the -mm tree.  Its filename is
+     fix-frv-cmpxchg_local.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: convert byte order of constant instead of variable
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: Fix FRV cmpxchg_local
+From: Mathieu Desnoyers <compudj@krystal.dyndns.org>
 
-convert byte order of constant instead of variable,
-which can be done at compile time (vs run time)
+Fix the FRV cmpxchg_local by breaking the following header dependency loop :
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
+linux/kernel.h -> linux/bitops.h -> asm-frv/bitops.h -> asm-frv/atomic.h
+  -> asm-frv/system.h ->
+  asm-generic/cmpxchg_local.h -> typecheck() defined in linux/kernel.h
+
+and
+
+linux/kernel.h -> linux/bitops.h -> asm-frv/bitops.h -> asm-frv/atomic.h ->
+  asm-generic/cmpxchg_local.h -> typecheck() defined in linux/kernel.h
+
+In order to fix this :
+- Move the atomic_test_and_ *_mask inlines from asm-frv/atomic.h (why are they
+  there at all anyway ? They are not touching atomic_t variables!) to
+  asm-frv/bitops.h.
+
+Also fix a build issue with cmpxchg : it does not cast to (unsigned long *)
+like other architectures, to deal with it in the cmpxchg_local macro.
+
+FRV builds fine with this patch.
+
+Thanks to Adrian Bunk <bunk@kernel.org> for spotting this bug.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/directory.c |    4 ++--
- fs/udf/inode.c     |   16 ++++++++--------
- fs/udf/misc.c      |   12 ++++++------
- fs/udf/super.c     |   16 ++++++++--------
- 4 files changed, 24 insertions(+), 24 deletions(-)
+ include/asm-frv/atomic.h |   81 ------------------------------------
+ include/asm-frv/bitops.h |   83 ++++++++++++++++++++++++++++++++++++-
+ include/asm-frv/system.h |    3 -
+ 3 files changed, 83 insertions(+), 84 deletions(-)
 
-diff -puN fs/udf/directory.c~udf-convert-byte-order-of-constant-instead-of-variable fs/udf/directory.c
---- a/fs/udf/directory.c~udf-convert-byte-order-of-constant-instead-of-variable
-+++ a/fs/udf/directory.c
-@@ -225,7 +225,7 @@ struct fileIdentDesc *udf_get_fileident(
- 	if ((*offset > 0) && (*offset < bufsize))
- 		ptr += *offset;
- 	fi = (struct fileIdentDesc *)ptr;
--	if (le16_to_cpu(fi->descTag.tagIdent) != TAG_IDENT_FID) {
-+	if (fi->descTag.tagIdent != cpu_to_le16(TAG_IDENT_FID)) {
- 		udf_debug("0x%x != TAG_IDENT_FID\n",
- 			  le16_to_cpu(fi->descTag.tagIdent));
- 		udf_debug("offset: %u sizeof: %lu bufsize: %u\n",
-@@ -262,7 +262,7 @@ static extent_ad *udf_get_fileextent(voi
+diff -puN include/asm-frv/atomic.h~fix-frv-cmpxchg_local include/asm-frv/atomic.h
+--- a/include/asm-frv/atomic.h~fix-frv-cmpxchg_local
++++ a/include/asm-frv/atomic.h
+@@ -125,87 +125,6 @@ static inline void atomic_dec(atomic_t *
+ #define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
+ #define atomic_inc_and_test(v)		(atomic_add_return(1, (v)) == 0)
  
- 	fe = (struct fileEntry *)buffer;
+-#ifndef CONFIG_FRV_OUTOFLINE_ATOMIC_OPS
+-static inline
+-unsigned long atomic_test_and_ANDNOT_mask(unsigned long mask, volatile unsigned long *v)
+-{
+-	unsigned long old, tmp;
+-
+-	asm volatile(
+-		"0:						\n"
+-		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
+-		"	ckeq		icc3,cc7		\n"
+-		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
+-		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
+-		"	and%I3		%1,%3,%2		\n"
+-		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
+-		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
+-		"	beq		icc3,#0,0b		\n"
+-		: "+U"(*v), "=&r"(old), "=r"(tmp)
+-		: "NPr"(~mask)
+-		: "memory", "cc7", "cc3", "icc3"
+-		);
+-
+-	return old;
+-}
+-
+-static inline
+-unsigned long atomic_test_and_OR_mask(unsigned long mask, volatile unsigned long *v)
+-{
+-	unsigned long old, tmp;
+-
+-	asm volatile(
+-		"0:						\n"
+-		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
+-		"	ckeq		icc3,cc7		\n"
+-		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
+-		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
+-		"	or%I3		%1,%3,%2		\n"
+-		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
+-		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
+-		"	beq		icc3,#0,0b		\n"
+-		: "+U"(*v), "=&r"(old), "=r"(tmp)
+-		: "NPr"(mask)
+-		: "memory", "cc7", "cc3", "icc3"
+-		);
+-
+-	return old;
+-}
+-
+-static inline
+-unsigned long atomic_test_and_XOR_mask(unsigned long mask, volatile unsigned long *v)
+-{
+-	unsigned long old, tmp;
+-
+-	asm volatile(
+-		"0:						\n"
+-		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
+-		"	ckeq		icc3,cc7		\n"
+-		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
+-		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
+-		"	xor%I3		%1,%3,%2		\n"
+-		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
+-		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
+-		"	beq		icc3,#0,0b		\n"
+-		: "+U"(*v), "=&r"(old), "=r"(tmp)
+-		: "NPr"(mask)
+-		: "memory", "cc7", "cc3", "icc3"
+-		);
+-
+-	return old;
+-}
+-
+-#else
+-
+-extern unsigned long atomic_test_and_ANDNOT_mask(unsigned long mask, volatile unsigned long *v);
+-extern unsigned long atomic_test_and_OR_mask(unsigned long mask, volatile unsigned long *v);
+-extern unsigned long atomic_test_and_XOR_mask(unsigned long mask, volatile unsigned long *v);
+-
+-#endif
+-
+-#define atomic_clear_mask(mask, v)	atomic_test_and_ANDNOT_mask((mask), (v))
+-#define atomic_set_mask(mask, v)	atomic_test_and_OR_mask((mask), (v))
+-
+ /*****************************************************************************/
+ /*
+  * exchange value with memory
+diff -puN include/asm-frv/bitops.h~fix-frv-cmpxchg_local include/asm-frv/bitops.h
+--- a/include/asm-frv/bitops.h~fix-frv-cmpxchg_local
++++ a/include/asm-frv/bitops.h
+@@ -16,8 +16,6 @@
  
--	if (le16_to_cpu(fe->descTag.tagIdent) != TAG_IDENT_FE) {
-+	if (fe->descTag.tagIdent != cpu_to_le16(TAG_IDENT_FE)) {
- 		udf_debug("0x%x != TAG_IDENT_FE\n",
- 			  le16_to_cpu(fe->descTag.tagIdent));
- 		return NULL;
-diff -puN fs/udf/inode.c~udf-convert-byte-order-of-constant-instead-of-variable fs/udf/inode.c
---- a/fs/udf/inode.c~udf-convert-byte-order-of-constant-instead-of-variable
-+++ a/fs/udf/inode.c
-@@ -1103,7 +1103,7 @@ static void __udf_read_inode(struct inod
+ #include <linux/compiler.h>
+ #include <asm/byteorder.h>
+-#include <asm/system.h>
+-#include <asm/atomic.h>
  
- 	fe = (struct fileEntry *)bh->b_data;
+ #ifdef __KERNEL__
  
--	if (le16_to_cpu(fe->icbTag.strategyType) == 4096) {
-+	if (fe->icbTag.strategyType == cpu_to_le16(4096)) {
- 		struct buffer_head *ibh = NULL, *nbh = NULL;
- 		struct indirectEntry *ie;
+@@ -33,6 +31,87 @@
+ #define smp_mb__before_clear_bit()	barrier()
+ #define smp_mb__after_clear_bit()	barrier()
  
-@@ -1140,7 +1140,7 @@ static void __udf_read_inode(struct inod
- 		} else {
- 			brelse(ibh);
- 		}
--	} else if (le16_to_cpu(fe->icbTag.strategyType) != 4) {
-+	} else if (fe->icbTag.strategyType != cpu_to_le16(4)) {
- 		printk(KERN_ERR "udf: unsupported strategy type: %d\n",
- 		       le16_to_cpu(fe->icbTag.strategyType));
- 		brelse(bh);
-@@ -1164,9 +1164,9 @@ static void udf_fill_inode(struct inode 
- 	fe = (struct fileEntry *)bh->b_data;
- 	efe = (struct extendedFileEntry *)bh->b_data;
++#ifndef CONFIG_FRV_OUTOFLINE_ATOMIC_OPS
++static inline
++unsigned long atomic_test_and_ANDNOT_mask(unsigned long mask, volatile unsigned long *v)
++{
++	unsigned long old, tmp;
++
++	asm volatile(
++		"0:						\n"
++		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
++		"	ckeq		icc3,cc7		\n"
++		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
++		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
++		"	and%I3		%1,%3,%2		\n"
++		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
++		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
++		"	beq		icc3,#0,0b		\n"
++		: "+U"(*v), "=&r"(old), "=r"(tmp)
++		: "NPr"(~mask)
++		: "memory", "cc7", "cc3", "icc3"
++		);
++
++	return old;
++}
++
++static inline
++unsigned long atomic_test_and_OR_mask(unsigned long mask, volatile unsigned long *v)
++{
++	unsigned long old, tmp;
++
++	asm volatile(
++		"0:						\n"
++		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
++		"	ckeq		icc3,cc7		\n"
++		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
++		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
++		"	or%I3		%1,%3,%2		\n"
++		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
++		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
++		"	beq		icc3,#0,0b		\n"
++		: "+U"(*v), "=&r"(old), "=r"(tmp)
++		: "NPr"(mask)
++		: "memory", "cc7", "cc3", "icc3"
++		);
++
++	return old;
++}
++
++static inline
++unsigned long atomic_test_and_XOR_mask(unsigned long mask, volatile unsigned long *v)
++{
++	unsigned long old, tmp;
++
++	asm volatile(
++		"0:						\n"
++		"	orcc		gr0,gr0,gr0,icc3	\n"	/* set ICC3.Z */
++		"	ckeq		icc3,cc7		\n"
++		"	ld.p		%M0,%1			\n"	/* LD.P/ORCR are atomic */
++		"	orcr		cc7,cc7,cc3		\n"	/* set CC3 to true */
++		"	xor%I3		%1,%3,%2		\n"
++		"	cst.p		%2,%M0		,cc3,#1	\n"	/* if store happens... */
++		"	corcc		gr29,gr29,gr0	,cc3,#1	\n"	/* ... clear ICC3.Z */
++		"	beq		icc3,#0,0b		\n"
++		: "+U"(*v), "=&r"(old), "=r"(tmp)
++		: "NPr"(mask)
++		: "memory", "cc7", "cc3", "icc3"
++		);
++
++	return old;
++}
++
++#else
++
++extern unsigned long atomic_test_and_ANDNOT_mask(unsigned long mask, volatile unsigned long *v);
++extern unsigned long atomic_test_and_OR_mask(unsigned long mask, volatile unsigned long *v);
++extern unsigned long atomic_test_and_XOR_mask(unsigned long mask, volatile unsigned long *v);
++
++#endif
++
++#define atomic_clear_mask(mask, v)	atomic_test_and_ANDNOT_mask((mask), (v))
++#define atomic_set_mask(mask, v)	atomic_test_and_OR_mask((mask), (v))
++
+ static inline int test_and_clear_bit(int nr, volatile void *addr)
+ {
+ 	volatile unsigned long *ptr = addr;
+diff -puN include/asm-frv/system.h~fix-frv-cmpxchg_local include/asm-frv/system.h
+--- a/include/asm-frv/system.h~fix-frv-cmpxchg_local
++++ a/include/asm-frv/system.h
+@@ -14,6 +14,7 @@
  
--	if (le16_to_cpu(fe->icbTag.strategyType) == 4)
-+	if (fe->icbTag.strategyType == cpu_to_le16(4))
- 		UDF_I_STRAT4096(inode) = 0;
--	else /* if (le16_to_cpu(fe->icbTag.strategyType) == 4096) */
-+	else /* if (fe->icbTag.strategyType == cpu_to_le16(4096)) */
- 		UDF_I_STRAT4096(inode) = 1;
+ #include <linux/types.h>
+ #include <linux/linkage.h>
++#include <linux/kernel.h>
  
- 	UDF_I_ALLOCTYPE(inode) = le16_to_cpu(fe->icbTag.flags) &
-@@ -1177,7 +1177,7 @@ static void udf_fill_inode(struct inode 
- 	UDF_I_LENALLOC(inode) = 0;
- 	UDF_I_NEXT_ALLOC_BLOCK(inode) = 0;
- 	UDF_I_NEXT_ALLOC_GOAL(inode) = 0;
--	if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_EFE) {
-+	if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_EFE)) {
- 		UDF_I_EFE(inode) = 1;
- 		UDF_I_USE(inode) = 0;
- 		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize -
-@@ -1189,7 +1189,7 @@ static void udf_fill_inode(struct inode 
- 		       bh->b_data + sizeof(struct extendedFileEntry),
- 		       inode->i_sb->s_blocksize -
- 					sizeof(struct extendedFileEntry));
--	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_FE) {
-+	} else if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_FE)) {
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 0;
- 		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize -
-@@ -1199,7 +1199,7 @@ static void udf_fill_inode(struct inode 
- 		}
- 		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct fileEntry),
- 		       inode->i_sb->s_blocksize - sizeof(struct fileEntry));
--	} else if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_USE) {
-+	} else if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_USE)) {
- 		UDF_I_EFE(inode) = 0;
- 		UDF_I_USE(inode) = 1;
- 		UDF_I_LENALLOC(inode) = le32_to_cpu(
-@@ -1458,7 +1458,7 @@ static int udf_update_inode(struct inode
- 	fe = (struct fileEntry *)bh->b_data;
- 	efe = (struct extendedFileEntry *)bh->b_data;
+ struct thread_struct;
  
--	if (le16_to_cpu(fe->descTag.tagIdent) == TAG_IDENT_USE) {
-+	if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_USE)) {
- 		struct unallocSpaceEntry *use =
- 			(struct unallocSpaceEntry *)bh->b_data;
- 
-diff -puN fs/udf/misc.c~udf-convert-byte-order-of-constant-instead-of-variable fs/udf/misc.c
---- a/fs/udf/misc.c~udf-convert-byte-order-of-constant-instead-of-variable
-+++ a/fs/udf/misc.c
-@@ -74,8 +74,8 @@ struct genericFormat *udf_add_extendedat
- 
- 		if (UDF_I_LENEATTR(inode)) {
- 			/* check checksum/crc */
--			if (le16_to_cpu(eahd->descTag.tagIdent) !=
--					TAG_IDENT_EAHD ||
-+			if (eahd->descTag.tagIdent !=
-+					cpu_to_le16(TAG_IDENT_EAHD) ||
- 			    le32_to_cpu(eahd->descTag.tagLocation) !=
- 					UDF_I_LOCATION(inode).logicalBlockNum)
- 				return NULL;
-@@ -161,8 +161,8 @@ struct genericFormat *udf_get_extendedat
- 		eahd = (struct extendedAttrHeaderDesc *)ea;
- 
- 		/* check checksum/crc */
--		if (le16_to_cpu(eahd->descTag.tagIdent) !=
--				TAG_IDENT_EAHD ||
-+		if (eahd->descTag.tagIdent !=
-+				cpu_to_le16(TAG_IDENT_EAHD) ||
- 		    le32_to_cpu(eahd->descTag.tagLocation) !=
- 				UDF_I_LOCATION(inode).logicalBlockNum)
- 			return NULL;
-@@ -233,8 +233,8 @@ struct buffer_head *udf_read_tagged(stru
+@@ -276,7 +277,7 @@ static inline unsigned long __cmpxchg_lo
+ {
+ 	switch (size) {
+ 	case 4:
+-		return cmpxchg(ptr, old, new);
++		return cmpxchg((unsigned long *)ptr, old, new);
+ 	default:
+ 		return __cmpxchg_local_generic(ptr, old, new, size);
  	}
- 
- 	/* Verify the tag version */
--	if (le16_to_cpu(tag_p->descVersion) != 0x0002U &&
--	    le16_to_cpu(tag_p->descVersion) != 0x0003U) {
-+	if (tag_p->descVersion != cpu_to_le16(0x0002U) &&
-+	    tag_p->descVersion != cpu_to_le16(0x0003U)) {
- 		udf_debug("tag version 0x%04x != 0x0002 || 0x0003 block %d\n",
- 			  le16_to_cpu(tag_p->descVersion), block);
- 		goto error_out;
-diff -puN fs/udf/super.c~udf-convert-byte-order-of-constant-instead-of-variable fs/udf/super.c
---- a/fs/udf/super.c~udf-convert-byte-order-of-constant-instead-of-variable
-+++ a/fs/udf/super.c
-@@ -1014,20 +1014,20 @@ static int udf_load_partdesc(struct supe
- 				le32_to_cpu(p->partitionLength); /* blocks */
- 			map->s_partition_root =
- 				le32_to_cpu(p->partitionStartingLocation);
--			if (le32_to_cpu(p->accessType) ==
--					PD_ACCESS_TYPE_READ_ONLY)
-+			if (p->accessType ==
-+					cpu_to_le32(PD_ACCESS_TYPE_READ_ONLY))
- 				map->s_partition_flags |=
- 						UDF_PART_FLAG_READ_ONLY;
--			if (le32_to_cpu(p->accessType) ==
--					PD_ACCESS_TYPE_WRITE_ONCE)
-+			if (p->accessType ==
-+					cpu_to_le32(PD_ACCESS_TYPE_WRITE_ONCE))
- 				map->s_partition_flags |=
- 						UDF_PART_FLAG_WRITE_ONCE;
--			if (le32_to_cpu(p->accessType) ==
--					PD_ACCESS_TYPE_REWRITABLE)
-+			if (p->accessType ==
-+					cpu_to_le32(PD_ACCESS_TYPE_REWRITABLE))
- 				map->s_partition_flags |=
- 						UDF_PART_FLAG_REWRITABLE;
--			if (le32_to_cpu(p->accessType) ==
--					PD_ACCESS_TYPE_OVERWRITABLE)
-+			if (p->accessType ==
-+				    cpu_to_le32(PD_ACCESS_TYPE_OVERWRITABLE))
- 				map->s_partition_flags |=
- 						UDF_PART_FLAG_OVERWRITABLE;
- 
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from compudj@krystal.dyndns.org are
 
 origin.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+fix-frv-cmpxchg_local.patch
