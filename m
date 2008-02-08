@@ -1,86 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:21 -0800
-Message-ID: <200802082018.m18KI2ub010889@imap1.linux-foundation.org>
+Subject: - clean-up-the-kill_something_info.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:14:39 -0800
+Message-ID: <200802082014.m18KEKp4010406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47107 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54301 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753026AbYBHUu0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:26 -0500
+	by vger.kernel.org with ESMTP id S1752721AbYBHUuT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
+To: xemul@openvz.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: add Haavard as maintainer of the atmel_serial driver
+     Clean up the kill_something_info
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
+     clean-up-the-kill_something_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add Haavard as maintainer of the atmel_serial driver
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: Clean up the kill_something_info
+From: Pavel Emelyanov <xemul@openvz.org>
 
-The following patchset cleans up the atmel_serial driver a bit, moves a
-significant portion of the interrupt handler into a tasklet, and adds DMA
-support.  This is the result of a combined effort by Chip Coldwell, Remy
-Bohmer and me.  The patches should apply cleanly onto Linus' latest git tree,
-and I've also tested it on -mm (with a couple of avr32 fixes applied to make
-the rest of the tree compile.)
+This is the first step (of two) in removing the kill_pgrp_info.
 
-With DMA, I see transfer rates around 92 kbps when transferring a big file
-using ZModem (both directions are roughly the same.) I've also tested the same
-thing with a bunch of debug options enabled.  The transfer rate is slightly
-lower, but no errors are reported.
+All the users of this function are in kernel/signal.c, but all they need is to
+call __kill_pgrp_info() with the tasklist_lock read-locked.
 
-Note that break and error handling doesn't work too well with DMA enabled. 
-This is a common problem with all the efforts I've seen adding DMA support to
-this driver (including my own).  The PDC error handling also accesses icount
-without locking.  I'm tempted to just ignore the problem for now and hopefully
-come up with a solution later.
+Fortunately, one of its users is the kill_something_info(), which already
+needs this lock in one of its branches, so clean these branches up and call
+the __kill_pgrp_info() directly.
 
+Based on Oleg's view of how this function should look.
 
-This patch:
-
-The atmel_serial driver never had a MAINTAINERS entry, although Andrew Victor
-has effectively been acting as a maintainer since he got the driver merged
-into mainline in the first place.
-
-I'll keep Cc'ing Andrew on all patches, but I'm going to take the main
-responsibility for getting things moving upstream from now on.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Acked-by: Andrew Victor <linux@maxim.org.za>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/signal.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver
-+++ a/MAINTAINERS
-@@ -688,6 +688,12 @@ W:	http://www.atmel.com/products/AT91/
- W:	http://www.at91.com/
- S:	Maintained
- 
-+ATMEL AT91 / AT32 SERIAL DRIVER
-+P:	Haavard Skinnemoen
-+M:	hskinnemoen@atmel.com
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
+diff -puN kernel/signal.c~clean-up-the-kill_something_info kernel/signal.c
+--- a/kernel/signal.c~clean-up-the-kill_something_info
++++ a/kernel/signal.c
+@@ -1134,14 +1134,22 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
+ static int kill_something_info(int sig, struct siginfo *info, int pid)
+ {
+ 	int ret;
+-	rcu_read_lock();
+-	if (!pid) {
+-		ret = kill_pgrp_info(sig, info, task_pgrp(current));
+-	} else if (pid == -1) {
 +
- ATMEL LCDFB DRIVER
- P:	Nicolas Ferre
- M:	nicolas.ferre@atmel.com
++	if (pid > 0) {
++		rcu_read_lock();
++		ret = kill_pid_info(sig, info, find_vpid(pid));
++		rcu_read_unlock();
++		return ret;
++	}
++
++	read_lock(&tasklist_lock);
++	if (pid != -1) {
++		ret = __kill_pgrp_info(sig, info,
++				pid ? find_vpid(-pid) : task_pgrp(current));
++	} else {
+ 		int retval = 0, count = 0;
+ 		struct task_struct * p;
+ 
+-		read_lock(&tasklist_lock);
+ 		for_each_process(p) {
+ 			if (p->pid > 1 && !same_thread_group(p, current)) {
+ 				int err = group_send_sig_info(sig, info, p);
+@@ -1150,14 +1158,10 @@ static int kill_something_info(int sig, 
+ 					retval = err;
+ 			}
+ 		}
+-		read_unlock(&tasklist_lock);
+ 		ret = count ? retval : -ESRCH;
+-	} else if (pid < 0) {
+-		ret = kill_pgrp_info(sig, info, find_vpid(-pid));
+-	} else {
+-		ret = kill_pid_info(sig, info, find_vpid(pid));
+ 	}
+-	rcu_read_unlock();
++	read_unlock(&tasklist_lock);
++
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-avr32.patch
+revert-proc-fix-the-threaded-proc-self.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+deprecate-find_task_by_pid-kgdb.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+reiser4.patch
