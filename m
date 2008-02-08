@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - i8k-inspiron-e1705-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:09:23 -0800
-Message-ID: <200802080809.m18894cg014794@imap1.linux-foundation.org>
+Subject: - drivers-edac-i3000-document-type-promotion.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:10 -0800
+Message-ID: <200802080805.m1885p1Q014378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57087 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760560AbYBHIT3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760503AbYBHIT3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: frank@tuxrocks.com, bradjsmith@btinternet.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: juhlenko@akamai.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i8k: Inspiron E1705 fix
+     drivers/edac/i3000: document type promotion
 has been removed from the -mm tree.  Its filename was
-     i8k-inspiron-e1705-fix.patch
+     drivers-edac-i3000-document-type-promotion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i8k: Inspiron E1705 fix
-From: Frank Sorenson <frank@tuxrocks.com>
+Subject: drivers/edac/i3000: document type promotion
+From: Jason Uhlenkott <juhlenko@akamai.com>
 
-Needs the following in order to work correctly on my Inspiron E1705:
+By popular request, add a comment documenting the implicit type promotion
+here.
 
-Add DMI Product name to i8k for Dell MP061 hardware (Inspiron 9400/E1705)
-
-Signed-off-by: Frank Sorenson <frank@tuxrocks.com>
-Cc: Bradley Smith <bradjsmith@btinternet.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/i8k.c |    7 +++++++
+ drivers/edac/i3000_edac.c |    7 +++++++
  1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/i8k.c~i8k-inspiron-e1705-fix drivers/char/i8k.c
---- a/drivers/char/i8k.c~i8k-inspiron-e1705-fix
-+++ a/drivers/char/i8k.c
-@@ -473,6 +473,13 @@ static struct dmi_system_id __initdata i
- 			DMI_MATCH(DMI_PRODUCT_NAME, "MM061"),
- 		},
- 	},
-+	{
-+		.ident = "Dell Inspiron 3",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "MP061"),
-+		},
-+	},
- 	{ }
- };
+diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-document-type-promotion drivers/edac/i3000_edac.c
+--- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-document-type-promotion
++++ a/drivers/edac/i3000_edac.c
+@@ -44,6 +44,13 @@
+ 				 */
+ #define I3000_DEAP_GRAIN 		(1 << 7)
  
++/*
++ * Helper functions to decode the DEAP/EDEAP hardware registers.
++ *
++ * The type promotion here is deliberate; we're deriving an
++ * unsigned long pfn and offset from hardware regs which are u8/u32.
++ */
++
+ static inline unsigned long deap_pfn(u8 edeap, u32 deap)
+ {
+ 	deap >>= PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from frank@tuxrocks.com are
+Patches currently in -mm which might be from juhlenko@akamai.com are
 
 origin.patch
