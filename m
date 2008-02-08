@@ -1,109 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - get-rid-of-the-kill_pgrp_info-function.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:40 -0800
-Message-ID: <200802082014.m18KEL2m010410@imap1.linux-foundation.org>
+Subject: - rocket-first-pass-at-termios-reporting.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:39 -0800
+Message-ID: <200802082012.m18KCKcv010193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53381 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753492AbYBHUvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:01 -0500
+	by vger.kernel.org with ESMTP id S1752288AbYBHUvI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Get rid of the kill_pgrp_info() function
+     rocket: first pass at termios reporting
 has been removed from the -mm tree.  Its filename was
-     get-rid-of-the-kill_pgrp_info-function.patch
+     rocket-first-pass-at-termios-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Get rid of the kill_pgrp_info() function
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: rocket: first pass at termios reporting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-There's only one caller left - the kill_pgrp one - so merge these two
-functions and forget the kill_pgrp_info one.
+Also removes a cflag comparison that caused some mode changes to get wrongly
+ignored
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- kernel/signal.c       |   21 ++++++++-------------
- 2 files changed, 8 insertions(+), 14 deletions(-)
+ drivers/char/rocket.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function include/linux/sched.h
---- a/include/linux/sched.h~get-rid-of-the-kill_pgrp_info-function
-+++ a/include/linux/sched.h
-@@ -1689,7 +1689,6 @@ extern int send_sig_info(int, struct sig
- extern int force_sigsegv(int, struct task_struct *);
- extern int force_sig_info(int, struct siginfo *, struct task_struct *);
- extern int __kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
--extern int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp);
- extern int kill_pid_info(int sig, struct siginfo *info, struct pid *pid);
- extern int kill_pid_info_as_uid(int, struct siginfo *, struct pid *, uid_t, uid_t, u32);
- extern int kill_pgrp(struct pid *pid, int sig, int priv);
-diff -puN kernel/signal.c~get-rid-of-the-kill_pgrp_info-function kernel/signal.c
---- a/kernel/signal.c~get-rid-of-the-kill_pgrp_info-function
-+++ a/kernel/signal.c
-@@ -1018,7 +1018,7 @@ int group_send_sig_info(int sig, struct 
- }
+diff -puN drivers/char/rocket.c~rocket-first-pass-at-termios-reporting drivers/char/rocket.c
+--- a/drivers/char/rocket.c~rocket-first-pass-at-termios-reporting
++++ a/drivers/char/rocket.c
+@@ -715,11 +715,10 @@ static void configure_r_port(struct r_po
+ 	unsigned rocketMode;
+ 	int bits, baud, divisor;
+ 	CHANNEL_t *cp;
++	struct ktermios *t = info->tty->termios;
  
- /*
-- * kill_pgrp_info() sends a signal to a process group: this is what the tty
-+ * __kill_pgrp_info() sends a signal to a process group: this is what the tty
-  * control characters do (^C, ^Z etc)
-  */
+-	if (!info->tty || !info->tty->termios)
+-		return;
+ 	cp = &info->channel;
+-	cflag = info->tty->termios->c_cflag;
++	cflag = t->c_cflag;
  
-@@ -1037,17 +1037,6 @@ int __kill_pgrp_info(int sig, struct sig
- 	return success ? 0 : retval;
- }
+ 	/* Byte size and parity */
+ 	if ((cflag & CSIZE) == CS8) {
+@@ -754,10 +753,7 @@ static void configure_r_port(struct r_po
+ 		baud = 9600;
+ 	divisor = ((rp_baud_base[info->board] + (baud >> 1)) / baud) - 1;
+ 	if ((divisor >= 8192 || divisor < 0) && old_termios) {
+-		info->tty->termios->c_cflag &= ~CBAUD;
+-		info->tty->termios->c_cflag |=
+-		    (old_termios->c_cflag & CBAUD);
+-		baud = tty_get_baud_rate(info->tty);
++		baud = tty_termios_baud_rate(old_termios);
+ 		if (!baud)
+ 			baud = 9600;
+ 		divisor = (rp_baud_base[info->board] / baud) - 1;
+@@ -769,6 +765,9 @@ static void configure_r_port(struct r_po
+ 	info->cps = baud / bits;
+ 	sSetBaud(cp, divisor);
  
--int kill_pgrp_info(int sig, struct siginfo *info, struct pid *pgrp)
--{
--	int retval;
--
--	read_lock(&tasklist_lock);
--	retval = __kill_pgrp_info(sig, info, pgrp);
--	read_unlock(&tasklist_lock);
--
--	return retval;
--}
--
- int kill_pid_info(int sig, struct siginfo *info, struct pid *pid)
- {
- 	int error = -ESRCH;
-@@ -1236,7 +1225,13 @@ force_sigsegv(int sig, struct task_struc
- 
- int kill_pgrp(struct pid *pid, int sig, int priv)
- {
--	return kill_pgrp_info(sig, __si_special(priv), pid);
-+	int ret;
++	/* FIXME: Should really back compute a baud rate from the divisor */
++	tty_encode_baud_rate(info->tty, baud, baud);
 +
-+	read_lock(&tasklist_lock);
-+	ret = __kill_pgrp_info(sig, __si_special(priv), pid);
-+	read_unlock(&tasklist_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(kill_pgrp);
+ 	if (cflag & CRTSCTS) {
+ 		info->intmask |= DELTA_CTS;
+ 		sEnCTSFlowCtl(cp);
+@@ -1202,15 +1201,14 @@ static void rp_set_termios(struct tty_st
+ 
+ 	cflag = tty->termios->c_cflag;
+ 
+-	if (cflag == old_termios->c_cflag)
+-		return;
+-
+ 	/*
+ 	 * This driver doesn't support CS5 or CS6
+ 	 */
+ 	if (((cflag & CSIZE) == CS5) || ((cflag & CSIZE) == CS6))
+ 		tty->termios->c_cflag =
+ 		    ((cflag & ~CSIZE) | (old_termios->c_cflag & CSIZE));
++	/* Or CMSPAR */
++	tty->termios->c_cflag &= ~CMSPAR;
+ 
+ 	configure_r_port(info, old_termios);
  
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
