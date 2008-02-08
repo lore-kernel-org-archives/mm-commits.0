@@ -1,143 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - memcgroup-reinstate-swapoff-mod.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:32 -0800
-Message-ID: <200802080803.m1883DNb014101@imap1.linux-foundation.org>
+Subject: - iget-stop-ufs-from-using-iget-and-read_inode-try.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:07 -0800
+Message-ID: <200802080807.m1887mJP014590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34490 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932842AbYBHI0I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:26:08 -0500
+	by vger.kernel.org with ESMTP id S1762353AbYBHIZ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:25:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@googl
+To: dhowells@redhat.com, dushistov@mail.ru, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup: reinstate swapoff mod
+     iget: stop UFS from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     memcgroup-reinstate-swapoff-mod.patch
+     iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: reinstate swapoff mod
-From: Hugh Dickins <hugh@veritas.com>
+Subject: iget: stop UFS from using iget() and read_inode()
+From: David Howells <dhowells@redhat.com>
 
-This patch reinstates the "swapoff: scan ptes preemptibly" mod we started
-with: in due course it should be rendered down into the earlier patches,
-leaving us with a more straightforward mem_cgroup_charge mod to unuse_pte,
-allocating with GFP_KERNEL while holding no spinlock and no atomic kmap.
+Stop the UFS filesystem from using iget() and read_inode().  Replace
+ufs_read_inode() with ufs_iget(), and call that instead of iget().  ufs_iget()
+then uses iget_locked() directly and returns a proper error code instead of an
+inode in the event of an error.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+ufs_fill_super() returns any error incurred when getting the root inode
+instead of EINVAL.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   42 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 34 insertions(+), 8 deletions(-)
+ fs/ufs/inode.c |   34 ++++++++++++++++++++--------------
+ fs/ufs/namei.c |    6 +++---
+ fs/ufs/super.c |   14 +++++++++-----
+ fs/ufs/ufs.h   |    2 +-
+ 4 files changed, 33 insertions(+), 23 deletions(-)
 
-diff -puN mm/swapfile.c~memcgroup-reinstate-swapoff-mod mm/swapfile.c
---- a/mm/swapfile.c~memcgroup-reinstate-swapoff-mod
-+++ a/mm/swapfile.c
-@@ -507,11 +507,23 @@ unsigned int count_swap_pages(int type, 
-  * just let do_wp_page work it out if a write is requested later - to
-  * force COW, vm_page_prot omits write permission from any private vma.
-  */
--static int unuse_pte(struct vm_area_struct *vma, pte_t *pte,
-+static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
+diff -puN fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/inode.c
+--- a/fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try
++++ a/fs/ufs/inode.c
+@@ -714,26 +714,30 @@ static int ufs2_read_inode(struct inode 
+ 	return 0;
+ }
+ 
+-void ufs_read_inode(struct inode * inode)
++struct inode *ufs_iget(struct super_block *sb, unsigned long ino)
  {
-+	spinlock_t *ptl;
-+	pte_t *pte;
-+	int ret = 1;
+-	struct ufs_inode_info *ufsi = UFS_I(inode);
+-	struct super_block * sb;
+-	struct ufs_sb_private_info * uspi;
++	struct ufs_inode_info *ufsi;
++	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	struct buffer_head * bh;
++	struct inode *inode;
+ 	int err;
+ 
+-	UFSD("ENTER, ino %lu\n", inode->i_ino);
+-
+-	sb = inode->i_sb;
+-	uspi = UFS_SB(sb)->s_uspi;
++	UFSD("ENTER, ino %lu\n", ino);
+ 
+-	if (inode->i_ino < UFS_ROOTINO ||
+-	    inode->i_ino > (uspi->s_ncg * uspi->s_ipg)) {
++	if (ino < UFS_ROOTINO || ino > (uspi->s_ncg * uspi->s_ipg)) {
+ 		ufs_warning(sb, "ufs_read_inode", "bad inode number (%lu)\n",
+-			    inode->i_ino);
+-		goto bad_inode;
++			    ino);
++		return ERR_PTR(-EIO);
+ 	}
+ 
++	inode = iget_locked(sb, ino);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
 +
- 	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
--		return -ENOMEM;
++	ufsi = UFS_I(inode);
++
+ 	bh = sb_bread(sb, uspi->s_sbbase + ufs_inotofsba(inode->i_ino));
+ 	if (!bh) {
+ 		ufs_warning(sb, "ufs_read_inode", "unable to read inode %lu\n",
+@@ -765,10 +769,12 @@ void ufs_read_inode(struct inode * inode
+ 	brelse(bh);
+ 
+ 	UFSD("EXIT\n");
+-	return;
++	unlock_new_inode(inode);
++	return inode;
+ 
+ bad_inode:
+-	make_bad_inode(inode);
++	iget_failed(inode);
++	return ERR_PTR(-EIO);
+ }
+ 
+ static void ufs1_update_inode(struct inode *inode, struct ufs_inode *ufs_inode)
+diff -puN fs/ufs/namei.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/namei.c
+--- a/fs/ufs/namei.c~iget-stop-ufs-from-using-iget-and-read_inode-try
++++ a/fs/ufs/namei.c
+@@ -57,10 +57,10 @@ static struct dentry *ufs_lookup(struct 
+ 	lock_kernel();
+ 	ino = ufs_inode_by_name(dir, dentry);
+ 	if (ino) {
+-		inode = iget(dir->i_sb, ino);
+-		if (!inode) {
++		inode = ufs_iget(dir->i_sb, ino);
++		if (IS_ERR(inode)) {
+ 			unlock_kernel();
+-			return ERR_PTR(-EACCES);
++			return ERR_CAST(inode);
+ 		}
+ 	}
+ 	unlock_kernel();
+diff -puN fs/ufs/super.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/super.c
+--- a/fs/ufs/super.c~iget-stop-ufs-from-using-iget-and-read_inode-try
++++ a/fs/ufs/super.c
+@@ -633,6 +633,7 @@ static int ufs_fill_super(struct super_b
+ 	unsigned block_size, super_block_size;
+ 	unsigned flags;
+ 	unsigned super_block_offset;
++	int ret = -EINVAL;
+ 
+ 	uspi = NULL;
+ 	ubh = NULL;
+@@ -1065,12 +1066,16 @@ magic_found:
+ 		uspi->s_maxsymlinklen =
+ 		    fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen);
+ 
+-	inode = iget(sb, UFS_ROOTINO);
+-	if (!inode || is_bad_inode(inode))
++	inode = ufs_iget(sb, UFS_ROOTINO);
++	if (IS_ERR(inode)) {
++		ret = PTR_ERR(inode);
+ 		goto failed;
++	}
+ 	sb->s_root = d_alloc_root(inode);
+-	if (!sb->s_root)
++	if (!sb->s_root) {
 +		ret = -ENOMEM;
-+
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
-+		if (ret > 0)
-+			mem_cgroup_uncharge_page(page);
-+		ret = 0;
-+		goto out;
+ 		goto dalloc_failed;
 +	}
  
- 	inc_mm_counter(vma->vm_mm, anon_rss);
- 	get_page(page);
-@@ -524,7 +536,9 @@ static int unuse_pte(struct vm_area_stru
- 	 * immediately swapped out again after swapon.
- 	 */
- 	activate_page(page);
--	return 1;
-+out:
-+	pte_unmap_unlock(pte, ptl);
+ 	ufs_setup_cstotal(sb);
+ 	/*
+@@ -1092,7 +1097,7 @@ failed:
+ 	kfree(sbi);
+ 	sb->s_fs_info = NULL;
+ 	UFSD("EXIT (FAILED)\n");
+-	return -EINVAL;
 +	return ret;
- }
  
- static int unuse_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -533,21 +547,33 @@ static int unuse_pte_range(struct vm_are
- {
- 	pte_t swp_pte = swp_entry_to_pte(entry);
- 	pte_t *pte;
--	spinlock_t *ptl;
- 	int ret = 0;
+ failed_nomem:
+ 	UFSD("EXIT (NOMEM)\n");
+@@ -1326,7 +1331,6 @@ static ssize_t ufs_quota_write(struct su
+ static const struct super_operations ufs_super_ops = {
+ 	.alloc_inode	= ufs_alloc_inode,
+ 	.destroy_inode	= ufs_destroy_inode,
+-	.read_inode	= ufs_read_inode,
+ 	.write_inode	= ufs_write_inode,
+ 	.delete_inode	= ufs_delete_inode,
+ 	.put_super	= ufs_put_super,
+diff -puN fs/ufs/ufs.h~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/ufs.h
+--- a/fs/ufs/ufs.h~iget-stop-ufs-from-using-iget-and-read_inode-try
++++ a/fs/ufs/ufs.h
+@@ -106,7 +106,7 @@ extern void ufs_free_inode (struct inode
+ extern struct inode * ufs_new_inode (struct inode *, int);
  
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-+	/*
-+	 * We don't actually need pte lock while scanning for swp_pte: since
-+	 * we hold page lock and mmap_sem, swp_pte cannot be inserted into the
-+	 * page table while we're scanning; though it could get zapped, and on
-+	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
-+	 * of unmatched parts which look like swp_pte, so unuse_pte must
-+	 * recheck under pte lock.  Scanning without pte lock lets it be
-+	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
-+	 */
-+	pte = pte_offset_map(pmd, addr);
- 	do {
- 		/*
- 		 * swapoff spends a _lot_ of time in this loop!
- 		 * Test inline before going to call unuse_pte.
- 		 */
- 		if (unlikely(pte_same(*pte, swp_pte))) {
--			ret = unuse_pte(vma, pte++, addr, entry, page);
--			break;
-+			pte_unmap(pte);
-+			ret = unuse_pte(vma, pmd, addr, entry, page);
-+			if (ret)
-+				goto out;
-+			pte = pte_offset_map(pmd, addr);
- 		}
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
--	pte_unmap_unlock(pte - 1, ptl);
-+	pte_unmap(pte - 1);
-+out:
- 	return ret;
- }
- 
+ /* inode.c */
+-extern void ufs_read_inode (struct inode *);
++extern struct inode *ufs_iget(struct super_block *, unsigned long);
+ extern void ufs_put_inode (struct inode *);
+ extern int ufs_write_inode (struct inode *, int);
+ extern int ufs_sync_inode (struct inode *);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
+mount-options-fix-afs.patch
+remove-aout-interpreter-support-in-elf-loader.patch
 procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-prio_tree-debugging-patch.patch
+mutex-subsystem-synchro-test-module.patch
