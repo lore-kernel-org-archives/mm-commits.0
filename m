@@ -1,263 +1,375 @@
 From: akpm@linux-foundation.org
-Subject: - aout-mark-arches-that-support-aout-format.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:55 -0800
-Message-ID: <200802082014.m18KEaEc010466@imap1.linux-foundation.org>
+Subject: - 8250_pci-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:00 -0800
+Message-ID: <200802082012.m18KCfxg010226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39862 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753102AbYBHUxA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:00 -0500
+	by vger.kernel.org with ESMTP id S1754201AbYBHUxB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aout: mark arches that support A.OUT format
+     8250_pci: coding style
 has been removed from the -mm tree.  Its filename was
-     aout-mark-arches-that-support-aout-format.patch
+     8250_pci-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aout: mark arches that support A.OUT format
-From: David Howells <dhowells@redhat.com>
+Subject: 8250_pci: coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Mark arches that support A.OUT format by including the following in their
-master Kconfig files:
-
-	config ARCH_SUPPORTS_AOUT
-		def_bool y
-
-This should also be set if the arch provides compatibility A.OUT support for
-an older arch, for instance x86_64 for i386 or sparc64 for sparc.
-
-I've guessed at which arches don't, based on comments in the code, however I'm
-sure that some of the ones I've marked as 'yes' actually should be 'no'.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig     |    3 +++
- arch/arm/Kconfig       |    3 +++
- arch/h8300/Kconfig     |    3 +++
- arch/m32r/Kconfig      |    3 +++
- arch/m68k/Kconfig      |    3 +++
- arch/m68knommu/Kconfig |    3 +++
- arch/parisc/Kconfig    |    3 +++
- arch/sh/Kconfig        |    3 +++
- arch/sparc/Kconfig     |    3 +++
- arch/sparc64/Kconfig   |    5 ++++-
- arch/um/Kconfig.i386   |    2 ++
- arch/um/Kconfig.x86_64 |    2 ++
- arch/v850/Kconfig      |    3 +++
- arch/x86/Kconfig       |    5 ++++-
- 14 files changed, 42 insertions(+), 2 deletions(-)
+ drivers/serial/8250_pci.c |  109 +++++++++++++++++-------------------
+ 1 file changed, 54 insertions(+), 55 deletions(-)
 
-diff -puN arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/alpha/Kconfig
-@@ -67,6 +67,9 @@ config AUTO_IRQ_AFFINITY
- 	depends on SMP
- 	default y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
+diff -puN drivers/serial/8250_pci.c~8250_pci-coding-style drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-coding-style
++++ a/drivers/serial/8250_pci.c
+@@ -140,7 +140,7 @@ afavlab_setup(struct serial_private *pri
+ 	      struct uart_port *port, int idx)
+ {
+ 	unsigned int bar, offset = board->first_offset;
+-	
 +
- source "init/Kconfig"
+ 	bar = FL_GET_BASE(board->flags);
+ 	if (idx < 4)
+ 		bar += idx;
+@@ -227,8 +227,8 @@ static int pci_inteli960ni_init(struct p
+ 		return -ENODEV;
  
+ 	/* is firmware started? */
+-	pci_read_config_dword(dev, 0x44, (void*) &oldval); 
+-	if (oldval == 0x00001000L) { /* RESET value */ 
++	pci_read_config_dword(dev, 0x44, (void *)&oldval);
++	if (oldval == 0x00001000L) { /* RESET value */
+ 		printk(KERN_DEBUG "Local i960 firmware missing");
+ 		return -ENODEV;
+ 	}
+@@ -253,11 +253,11 @@ static int pci_plx9050_init(struct pci_d
  
-diff -puN arch/arm/Kconfig~aout-mark-arches-that-support-aout-format arch/arm/Kconfig
---- a/arch/arm/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/arm/Kconfig
-@@ -126,6 +126,9 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
+ 	irq_config = 0x41;
+ 	if (dev->vendor == PCI_VENDOR_ID_PANACOM ||
+-	    dev->subsystem_vendor == PCI_SUBVENDOR_ID_EXSYS) {
++	    dev->subsystem_vendor == PCI_SUBVENDOR_ID_EXSYS)
+ 		irq_config = 0x43;
+-	}
 +
- config ARCH_MAY_HAVE_PC_FDC
- 	bool
+ 	if ((dev->vendor == PCI_VENDOR_ID_PLX) &&
+-	    (dev->device == PCI_DEVICE_ID_PLX_ROMULUS)) {
++	    (dev->device == PCI_DEVICE_ID_PLX_ROMULUS))
+ 		/*
+ 		 * As the megawolf cards have the int pins active
+ 		 * high, and have 2 UART chips, both ints must be
+@@ -267,8 +267,6 @@ static int pci_plx9050_init(struct pci_d
+ 		 * deep FIFOs
+ 		 */
+ 		irq_config = 0x5b;
+-	}
+-
+ 	/*
+ 	 * enable/disable interrupts
+ 	 */
+@@ -343,14 +341,14 @@ static int sbs_init(struct pci_dev *dev)
+ {
+ 	u8 __iomem *p;
  
-diff -puN arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/h8300/Kconfig
-@@ -65,6 +65,9 @@ config TIME_LOW_RES
- 	bool
- 	default y
+-	p = ioremap(pci_resource_start(dev, 0),pci_resource_len(dev,0));
++	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
  
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
+ 	if (p == NULL)
+ 		return -ENOMEM;
+ 	/* Set bit-4 Control Register (UART RESET) in to reset the uarts */
+-	writeb(0x10,p + OCT_REG_CR_OFF);
++	writeb(0x10, p + OCT_REG_CR_OFF);
+ 	udelay(50);
+-	writeb(0x0,p + OCT_REG_CR_OFF);
++	writeb(0x0, p + OCT_REG_CR_OFF);
+ 
+ 	/* Set bit-2 (INTENABLE) of Control Register */
+ 	writeb(0x4, p + OCT_REG_CR_OFF);
+@@ -367,10 +365,10 @@ static void __devexit sbs_exit(struct pc
+ {
+ 	u8 __iomem *p;
+ 
+-	p = ioremap(pci_resource_start(dev, 0),pci_resource_len(dev,0));
+-	if (p != NULL) {
++	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
++	/* FIXME: What if resource_len < OCT_REG_CR_OFF */
++	if (p != NULL)
+ 		writeb(0, p + OCT_REG_CR_OFF);
+-	}
+ 	iounmap(p);
+ }
+ 
+@@ -386,7 +384,7 @@ static void __devexit sbs_exit(struct pc
+  * with other OSes (like M$ DOS).
+  *
+  *  SIIG support added by Andrey Panin <pazke@donpac.ru>, 10/1999
+- * 
++ *
+  * There is two family of SIIG serial cards with different PCI
+  * interface chip and different configuration methods:
+  *     - 10x cards have control registers in IO and/or memory space;
+@@ -489,21 +487,21 @@ static const unsigned short timedia_sing
+ 
+ static const unsigned short timedia_dual_port[] = {
+ 	0x0002, 0x4036, 0x4037, 0x4038, 0x4078, 0x4079, 0x4085,
+-	0x4088, 0x4089, 0x5037, 0x5078, 0x5079, 0x5085, 0x6079, 
+-	0x7079, 0x8079, 0x8137, 0x8138, 0x8237, 0x8238, 0x9079, 
++	0x4088, 0x4089, 0x5037, 0x5078, 0x5079, 0x5085, 0x6079,
++	0x7079, 0x8079, 0x8137, 0x8138, 0x8237, 0x8238, 0x9079,
+ 	0x9137, 0x9138, 0x9237, 0x9238, 0xA079, 0xB079, 0xC079,
+ 	0xD079, 0
+ };
+ 
+ static const unsigned short timedia_quad_port[] = {
+-	0x4055, 0x4056, 0x4095, 0x4096, 0x5056, 0x8156, 0x8157, 
+-	0x8256, 0x8257, 0x9056, 0x9156, 0x9157, 0x9158, 0x9159, 
++	0x4055, 0x4056, 0x4095, 0x4096, 0x5056, 0x8156, 0x8157,
++	0x8256, 0x8257, 0x9056, 0x9156, 0x9157, 0x9158, 0x9159,
+ 	0x9256, 0x9257, 0xA056, 0xA157, 0xA158, 0xA159, 0xB056,
+ 	0xB157, 0
+ };
+ 
+ static const unsigned short timedia_eight_port[] = {
+-	0x4065, 0x4066, 0x5065, 0x5066, 0x8166, 0x9066, 0x9166, 
++	0x4065, 0x4066, 0x5065, 0x5066, 0x8166, 0x9066, 0x9166,
+ 	0x9167, 0x9168, 0xA066, 0xA167, 0xA168, 0
+ };
+ 
+@@ -656,7 +654,8 @@ static int pci_ite887x_init(struct pci_d
+ 				ITE_887x_POSIO_ENABLE | ITE_887x_POSIO_SPEED |
+ 				ITE_887x_POSIO_IOSIZE_32 | inta_addr[i]);
+ 			/* write INTCBAR - ioport */
+-			pci_write_config_dword(dev, ITE_887x_INTCBAR, inta_addr[i]);
++			pci_write_config_dword(dev, ITE_887x_INTCBAR,
++								inta_addr[i]);
+ 			ret = inb(inta_addr[i]);
+ 			if (ret != 0xff) {
+ 				/* ioport connected */
+@@ -755,7 +754,7 @@ pci_default_setup(struct serial_private 
+ 
+ 	if (board->flags & FL_REGION_SZ_CAP && idx >= maxnr)
+ 		return 1;
+-			
 +
- config NO_IOPORT
- 	def_bool y
+ 	return setup_port(priv, port, bar, offset, board->reg_shift);
+ }
  
-diff -puN arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/m32r/Kconfig
-@@ -35,6 +35,9 @@ config NO_IOPORT
- config NO_DMA
- 	def_bool y
+@@ -843,7 +842,7 @@ static struct pci_serial_quirk pci_seria
+ 		.init		= pci_plx9050_init,
+ 		.setup		= pci_default_setup,
+ 		.exit		= __devexit_p(pci_plx9050_exit),
+-	},		
++	},
+ 	{
+ 		.vendor		= PCI_VENDOR_ID_PANACOM,
+ 		.device		= PCI_DEVICE_ID_PANACOM_DUALMODEM,
+@@ -1032,7 +1031,7 @@ static struct pci_serial_quirk *find_qui
+ 		    quirk_id_matches(quirk->device, dev->device) &&
+ 		    quirk_id_matches(quirk->subvendor, dev->subsystem_vendor) &&
+ 		    quirk_id_matches(quirk->subdevice, dev->subsystem_device))
+-		 	break;
++			break;
+ 	return quirk;
+ }
  
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
+@@ -1711,7 +1710,7 @@ static struct pciserial_board pci_boards
+ };
+ 
+ static const struct pci_device_id softmodem_blacklist[] = {
+-	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
++	{ PCI_VDEVICE(AL, 0x5457), }, /* ALi Corporation M5457 AC'97 Modem */
+ };
+ 
+ /*
+@@ -1724,13 +1723,13 @@ serial_pci_guess_board(struct pci_dev *d
+ {
+ 	const struct pci_device_id *blacklist;
+ 	int num_iomem, num_port, first_port = -1, i;
+-	
 +
- source "init/Kconfig"
+ 	/*
+ 	 * If it is not a communications device or the programming
+ 	 * interface is greater than 6, give up.
+ 	 *
+ 	 * (Should we try to make guesses for multiport serial devices
+-	 * later?) 
++	 * later?)
+ 	 */
+ 	if ((((dev->class >> 8) != PCI_CLASS_COMMUNICATION_SERIAL) &&
+ 	     ((dev->class >> 8) != PCI_CLASS_COMMUNICATION_MODEM)) ||
+@@ -1863,25 +1862,23 @@ pciserial_init_ports(struct pci_dev *dev
+ 			break;
  
- 
-diff -puN arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/m68k/Kconfig
-@@ -52,6 +52,9 @@ config NO_IOPORT
- config NO_DMA
- 	def_bool SUN3
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
+ #ifdef SERIAL_DEBUG_PCI
+-		printk("Setup PCI port: port %x, irq %d, type %d\n",
++		printk(KERN_DEBUG "Setup PCI port: port %x, irq %d, type %d\n",
+ 		       serial_port.iobase, serial_port.irq, serial_port.iotype);
+ #endif
+-		
 +
- mainmenu "Linux/68k Kernel Configuration"
+ 		priv->line[i] = serial8250_register_port(&serial_port);
+ 		if (priv->line[i] < 0) {
+ 			printk(KERN_WARNING "Couldn't register serial port %s: %d\n", pci_name(dev), priv->line[i]);
+ 			break;
+ 		}
+ 	}
+-
+ 	priv->nr = i;
+-
+ 	return priv;
  
- source "init/Kconfig"
-diff -puN arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/m68knommu/Kconfig
-@@ -64,6 +64,9 @@ config TIME_LOW_RES
- config NO_IOPORT
- 	def_bool y
+- err_deinit:
++err_deinit:
+ 	if (quirk->exit)
+ 		quirk->exit(dev);
+- err_out:
++err_out:
+ 	return priv;
+ }
+ EXPORT_SYMBOL_GPL(pciserial_init_ports);
+@@ -2171,22 +2168,22 @@ static struct pci_device_id serial_pci_t
+ 		pbn_b0_8_1843200_200 },
  
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- source "init/Kconfig"
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_U530,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_bt_1_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM2,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_bt_2_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM422,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_bt_4_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM232,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_bt_2_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_COMM4,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_bt_4_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_COMM8,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_8_115200 },
+ 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM8,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+@@ -2201,11 +2198,11 @@ static struct pci_device_id serial_pci_t
+ 	/*
+ 	 * VScom SPCOM800, from sl@s.pl
+ 	 */
+-	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_SPCOM800, 
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_SPCOM800,
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_8_921600 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_1077,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b2_4_921600 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_KEYSPAN,
+@@ -2223,27 +2220,27 @@ static struct pci_device_id serial_pci_t
+ 		pbn_b2_4_115200 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
+-		PCI_SUBDEVICE_ID_CHASE_PCIFAST4, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIFAST4, 0, 0,
+ 		pbn_b2_4_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
+-		PCI_SUBDEVICE_ID_CHASE_PCIFAST8, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIFAST8, 0, 0,
+ 		pbn_b2_8_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
+-		PCI_SUBDEVICE_ID_CHASE_PCIFAST16, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIFAST16, 0, 0,
+ 		pbn_b2_16_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
+-		PCI_SUBDEVICE_ID_CHASE_PCIFAST16FMC, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIFAST16FMC, 0, 0,
+ 		pbn_b2_16_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIRAS,
+-		PCI_SUBDEVICE_ID_CHASE_PCIRAS4, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIRAS4, 0, 0,
+ 		pbn_b2_4_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_CHASE_PCIRAS,
+-		PCI_SUBDEVICE_ID_CHASE_PCIRAS8, 0, 0, 
++		PCI_SUBDEVICE_ID_CHASE_PCIRAS8, 0, 0,
+ 		pbn_b2_8_460800 },
+ 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
+ 		PCI_SUBVENDOR_ID_EXSYS,
+@@ -2269,10 +2266,12 @@ static struct pci_device_id serial_pci_t
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b1_8_115200 },
+ 	{	PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_OXSEMI_16PCI954,
+-		PCI_VENDOR_ID_SPECIALIX, PCI_SUBDEVICE_ID_SPECIALIX_SPEED4, 0, 0,
++		PCI_VENDOR_ID_SPECIALIX, PCI_SUBDEVICE_ID_SPECIALIX_SPEED4,
++		0, 0,
+ 		pbn_b0_4_921600 },
+ 	{	PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_16PCI954,
+-		PCI_SUBVENDOR_ID_SIIG, PCI_SUBDEVICE_ID_SIIG_QUARTET_SERIAL, 0, 0,
++		PCI_SUBVENDOR_ID_SIIG, PCI_SUBDEVICE_ID_SIIG_QUARTET_SERIAL,
++		0, 0,
+ 		pbn_b0_4_1152000 },
  
- menu "Processor type and features"
-diff -puN arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/parisc/Kconfig
-@@ -75,6 +75,9 @@ config IRQ_PER_CPU
- 	bool
- 	default y
+ 		/*
+@@ -2312,7 +2311,7 @@ static struct pci_device_id serial_pci_t
+ 	 * Digitan DS560-558, from jimd@esoft.com
+ 	 */
+ 	{	PCI_VENDOR_ID_ATT, PCI_DEVICE_ID_ATT_VENUS_MODEM,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b1_1_115200 },
  
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- # unless you want to implement ACPI on PA-RISC ... ;-)
- config PM
- 	bool
-diff -puN arch/sh/Kconfig~aout-mark-arches-that-support-aout-format arch/sh/Kconfig
---- a/arch/sh/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/sh/Kconfig
-@@ -89,6 +89,9 @@ config ARCH_HAS_ILOG2_U64
- config ARCH_NO_VIRT_TO_BUS
- 	def_bool y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- source "init/Kconfig"
- 
- menu "System type"
-diff -puN arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/sparc/Kconfig
-@@ -27,6 +27,9 @@ config ARCH_NO_VIRT_TO_BUS
- config OF
- 	def_bool y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- source "init/Kconfig"
- 
- menu "General machine setup"
-diff -puN arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/sparc64/Kconfig
-@@ -81,6 +81,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
- 	bool
- 	def_bool y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- choice
- 	prompt "Kernel page size"
- 	default SPARC64_PAGE_SIZE_8KB
-@@ -390,7 +393,7 @@ config BINFMT_ELF32
- 
- config BINFMT_AOUT32
- 	bool "Kernel support for 32-bit (ie. SunOS) a.out binaries"
--	depends on SPARC32_COMPAT
-+	depends on SPARC32_COMPAT && ARCH_SUPPORTS_AOUT
- 	help
- 	  This allows you to run 32-bit a.out format binaries on your Ultra.
- 	  If you want to run SunOS binaries (see SunOS binary emulation below)
-diff -puN arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format arch/um/Kconfig.i386
---- a/arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format
-+++ a/arch/um/Kconfig.i386
-@@ -84,3 +84,5 @@ config GENERIC_HWEIGHT
- 	bool
- 	default y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-diff -puN arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format arch/um/Kconfig.x86_64
---- a/arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format
-+++ a/arch/um/Kconfig.x86_64
-@@ -39,3 +39,5 @@ config GENERIC_HWEIGHT
- 	bool
- 	default y
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-diff -puN arch/v850/Kconfig~aout-mark-arches-that-support-aout-format arch/v850/Kconfig
---- a/arch/v850/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/v850/Kconfig
-@@ -53,6 +53,9 @@ config ARCH_HAS_ILOG2_U64
- 	bool
- 	default n
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- # Turn off some random 386 crap that can affect device config
- config ISA
- 	bool
-diff -puN arch/x86/Kconfig~aout-mark-arches-that-support-aout-format arch/x86/Kconfig
---- a/arch/x86/Kconfig~aout-mark-arches-that-support-aout-format
-+++ a/arch/x86/Kconfig
-@@ -136,6 +136,9 @@ config AUDIT_ARCH
- 	bool
- 	default X86_64
- 
-+config ARCH_SUPPORTS_AOUT
-+	def_bool y
-+
- # Use the generic interrupt handling code in kernel/irq/:
- config GENERIC_HARDIRQS
- 	bool
-@@ -1577,7 +1580,7 @@ config IA32_EMULATION
- 
- config IA32_AOUT
-        tristate "IA32 a.out support"
--       depends on IA32_EMULATION
-+       depends on IA32_EMULATION && ARCH_SUPPORTS_AOUT
-        help
-          Support old a.out binaries in the 32bit emulation.
- 
+ 	/*
+@@ -2320,16 +2319,16 @@ static struct pci_device_id serial_pci_t
+ 	 *  The 400L and 800L have a custom setup quirk.
+ 	 */
+ 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_100,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_1_921600 },
+ 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_200,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_2_921600 },
+ 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_400,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_4_921600 },
+ 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_800B,
+-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
++		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_4_921600 },
+ 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_100L,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
