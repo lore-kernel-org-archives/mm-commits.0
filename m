@@ -1,60 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - rewrite-rd-fix-2.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:43:02 -0800
-Message-ID: <200802080842.m188ghLS016099@imap1.linux-foundation.org>
+Subject: - mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:42:30 -0800
+Message-ID: <200802080842.m188gBwZ016070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54427 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753244AbYBHInW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:43:22 -0500
+	by vger.kernel.org with ESMTP id S1755470AbYBHInc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:43:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: byron.bbradley@gmail.com, npiggin@suse.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ramdisk driver: make rd_size non-static
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
 has been removed from the -mm tree.  Its filename was
-     rewrite-rd-fix-2.patch
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 
-This patch was dropped because it was folded into rewrite-rd.patch
+This patch was dropped because it was folded into mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramdisk driver: make rd_size non-static
-From: Byron Bradley <byron.bbradley@gmail.com>
+Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In arch/arm/kernel/setup.c:setup_ramdisk(), rd_size is set from the boot
-tags.  The replacement ramdisk driver has rd_size as static which causes
-linking to fail when ramdisk is built-in.
+Nuke cvs control strings.
 
-Signed-off-by: Byron Bradley <byron.bbradley@gmail.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/boot/tools/build.c |    2 --
+ drivers/input/joystick/analog.c |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN drivers/block/brd.c~rewrite-rd-fix-2 drivers/block/brd.c
---- a/drivers/block/brd.c~rewrite-rd-fix-2
-+++ a/drivers/block/brd.c
-@@ -350,7 +350,7 @@ static struct block_device_operations br
-  * And now the modules code and kernel interface.
+diff -puN arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix arch/mn10300/boot/tools/build.c
+--- a/arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
++++ a/arch/mn10300/boot/tools/build.c
+@@ -1,6 +1,4 @@
+ /*
+- *  $Id: build.c,v 1.1.2.1 2002/11/12 13:25:46 dhowells Exp $
+- *
+  *  Copyright (C) 1991, 1992  Linus Torvalds
+  *  Copyright (C) 1997 Martin Mares
   */
- static int rd_nr;
--static int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
-+int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
- module_param(rd_nr, int, 0);
- MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
- module_param(rd_size, int, 0);
+diff -puN drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix drivers/input/joystick/analog.c
+--- a/drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
++++ a/drivers/input/joystick/analog.c
+@@ -1,6 +1,4 @@
+ /*
+- * $Id: analog.c,v 1.68 2002/01/22 20:18:32 vojtech Exp $
+- *
+  *  Copyright (c) 1996-2001 Vojtech Pavlik
+  */
+ 
 _
 
-Patches currently in -mm which might be from byron.bbradley@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rewrite-rd.patch
-rewrite-rd-fix-2.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+proc-detect-duplicate-names-on-registration.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+intel-iommu-fault_reason_index_cleanuppatch.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+pid-sys_wait-fixes-v2.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
