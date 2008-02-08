@@ -1,41 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:47 -0800
-Message-ID: <200802080803.m1883Ssq014125@imap1.linux-foundation.org>
+Subject: - bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:50 -0800
+Message-ID: <200802080803.m1883VPB014128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32877 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40386 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755078AbYBHI06 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:26:58 -0500
+	by vger.kernel.org with ESMTP id S933574AbYBHI1b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:27:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     bugfix for memory controller: add helper function for assigning cgroup to page
+     bugfix for memory cgroup controller: migration under memory controller fix
 has been removed from the -mm tree.  Its filename was
-     bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+     bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bugfix for memory controller: add helper function for assigning cgroup to page
+Subject: bugfix for memory cgroup controller: migration under memory controller fix
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch adds following functions.
-   - clear_page_cgroup(page, pc)
-   - page_cgroup_assign_new_page_group(page, pc)
+While using memory control cgroup, page-migration under it works as following.
+==
+ 1. uncharge all refs at try to unmap.
+ 2. charge regs again remove_migration_ptes()
+==
+This is simple but has following problems.
+==
+ The page is uncharged and charged back again if *mapped*.
+    - This means that cgroup before migration can be different from one after
+      migration
+    - If page is not mapped but charged as page cache, charge is just ignored
+      (because not mapped, it will not be uncharged before migration)
+      This is memory leak.
+==
+This patch tries to keep memory cgroup at page migration by increasing
+one refcnt during it. 3 functions are added.
 
-Mainly for cleanup.
+ mem_cgroup_prepare_migration() --- increase refcnt of page->page_cgroup
+ mem_cgroup_end_migration()     --- decrease refcnt of page->page_cgroup
+ mem_cgroup_page_migration() --- copy page->page_cgroup from old page to
+                                 new page.
 
-A manner "check page->cgroup again after lock_page_cgroup()" is
-implemented in straight way.
+During migration
+  - old page is under PG_locked.
+  - new page is under PG_locked, too.
+  - both old page and new page is not on LRU.
 
-A comment in mem_cgroup_uncharge() will be removed by force-empty patch
+These 3 facts guarantee that page_cgroup() migration has no race.
+
+Tested and worked well in x86_64/fake-NUMA box.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -51,162 +71,145 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  105 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 76 insertions(+), 29 deletions(-)
+ include/linux/memcontrol.h |   19 +++++++++++++++
+ mm/memcontrol.c            |   43 +++++++++++++++++++++++++++++++++++
+ mm/migrate.c               |   13 ++++++++--
+ 3 files changed, 72 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page
-+++ a/mm/memcontrol.c
-@@ -162,6 +162,48 @@ static void __always_inline unlock_page_
- 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+diff -puN include/linux/memcontrol.h~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
++++ a/include/linux/memcontrol.h
+@@ -60,6 +60,10 @@ static inline void mem_cgroup_uncharge_p
+ 	mem_cgroup_uncharge(page_get_page_cgroup(page));
  }
  
-+/*
-+ * Tie new page_cgroup to struct page under lock_page_cgroup()
-+ * This can fail if the page has been tied to a page_cgroup.
-+ * If success, returns 0.
-+ */
-+static inline int
-+page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
-+{
-+	int ret = 0;
++extern int mem_cgroup_prepare_migration(struct page *page);
++extern void mem_cgroup_end_migration(struct page *page);
++extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
 +
+ #else /* CONFIG_CGROUP_MEM_CONT */
+ static inline void mm_init_cgroup(struct mm_struct *mm,
+ 					struct task_struct *p)
+@@ -117,6 +121,21 @@ static inline int task_in_mem_cgroup(str
+ 	return 1;
+ }
+ 
++static inline int mem_cgroup_prepare_migration(struct page *page)
++{
++	return 0;
++}
++
++static inline void mem_cgroup_end_migration(struct page *page)
++{
++}
++
++static inline void
++mem_cgroup_page_migration(struct page *page, struct page *newpage)
++{
++}
++
++
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
++++ a/mm/memcontrol.c
+@@ -492,6 +492,49 @@ void mem_cgroup_uncharge(struct page_cgr
+ 		}
+ 	}
+ }
++/*
++ * Returns non-zero if a page (under migration) has valid page_cgroup member.
++ * Refcnt of page_cgroup is incremented.
++ */
++
++int mem_cgroup_prepare_migration(struct page *page)
++{
++	struct page_cgroup *pc;
++	int ret = 0;
 +	lock_page_cgroup(page);
-+	if (!page_get_page_cgroup(page))
-+		page_assign_page_cgroup(page, pc);
-+	else /* A page is tied to other pc. */
++	pc = page_get_page_cgroup(page);
++	if (pc && atomic_inc_not_zero(&pc->ref_cnt))
 +		ret = 1;
 +	unlock_page_cgroup(page);
 +	return ret;
 +}
 +
++void mem_cgroup_end_migration(struct page *page)
++{
++	struct page_cgroup *pc = page_get_page_cgroup(page);
++	mem_cgroup_uncharge(pc);
++}
 +/*
-+ * Clear page->page_cgroup member under lock_page_cgroup().
-+ * If given "pc" value is different from one page->page_cgroup,
-+ * page->cgroup is not cleared.
-+ * Returns a value of page->page_cgroup at lock taken.
-+ * A can can detect failure of clearing by following
-+ *  clear_page_cgroup(page, pc) == pc
++ * We know both *page* and *newpage* are now not-on-LRU and Pg_locked.
++ * And no race with uncharge() routines because page_cgroup for *page*
++ * has extra one reference by mem_cgroup_prepare_migration.
 + */
 +
-+static inline struct page_cgroup *
-+clear_page_cgroup(struct page *page, struct page_cgroup *pc)
++void mem_cgroup_page_migration(struct page *page, struct page *newpage)
 +{
-+	struct page_cgroup *ret;
-+	/* lock and clear */
-+	lock_page_cgroup(page);
-+	ret = page_get_page_cgroup(page);
-+	if (likely(ret == pc))
-+		page_assign_page_cgroup(page, NULL);
-+	unlock_page_cgroup(page);
-+	return ret;
-+}
-+
-+
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
- {
- 	if (active)
-@@ -270,7 +312,7 @@ int mem_cgroup_charge(struct page *page,
- 				gfp_t gfp_mask)
- {
- 	struct mem_cgroup *mem;
--	struct page_cgroup *pc, *race_pc;
 +	struct page_cgroup *pc;
- 	unsigned long flags;
- 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 
-@@ -293,8 +335,10 @@ retry:
- 			unlock_page_cgroup(page);
- 			cpu_relax();
- 			goto retry;
--		} else
-+		} else {
-+			unlock_page_cgroup(page);
- 			goto done;
-+		}
- 	}
- 
- 	unlock_page_cgroup(page);
-@@ -364,31 +408,26 @@ noreclaim:
- 		goto free_pc;
- 	}
- 
--	lock_page_cgroup(page);
--	/*
--	 * Check if somebody else beat us to allocating the page_cgroup
--	 */
--	race_pc = page_get_page_cgroup(page);
--	if (race_pc) {
--		kfree(pc);
--		pc = race_pc;
--		atomic_inc(&pc->ref_cnt);
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--		css_put(&mem->css);
--		goto done;
--	}
--
- 	atomic_set(&pc->ref_cnt, 1);
- 	pc->mem_cgroup = mem;
- 	pc->page = page;
--	page_assign_page_cgroup(page, pc);
-+	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
-+		/*
-+		 * an another charge is added to this page already.
-+		 * we do take lock_page_cgroup(page) again and read
-+		 * page->cgroup, increment refcnt.... just retry is OK.
-+		 */
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
-+		css_put(&mem->css);
-+		kfree(pc);
++retry:
++	pc = page_get_page_cgroup(page);
++	if (!pc)
++		return;
++	if (clear_page_cgroup(page, pc) != pc)
 +		goto retry;
-+	}
++	pc->page = newpage;
++	lock_page_cgroup(newpage);
++	page_assign_page_cgroup(newpage, pc);
++	unlock_page_cgroup(newpage);
++	return;
++}
  
- 	spin_lock_irqsave(&mem->lru_lock, flags);
- 	list_add(&pc->lru, &mem->active_list);
- 	spin_unlock_irqrestore(&mem->lru_lock, flags);
+ int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
+ {
+diff -puN mm/migrate.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix mm/migrate.c
+--- a/mm/migrate.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
++++ a/mm/migrate.c
+@@ -593,9 +593,10 @@ static int move_to_new_page(struct page 
+ 	else
+ 		rc = fallback_migrate_page(mapping, newpage, page);
  
- done:
--	unlock_page_cgroup(page);
- 	return 0;
- free_pc:
- 	kfree(pc);
-@@ -432,17 +471,25 @@ void mem_cgroup_uncharge(struct page_cgr
+-	if (!rc)
++	if (!rc) {
++		mem_cgroup_page_migration(page, newpage);
+ 		remove_migration_ptes(page, newpage);
+-	else
++	} else
+ 		newpage->mapping = NULL;
  
- 	if (atomic_dec_and_test(&pc->ref_cnt)) {
- 		page = pc->page;
--		lock_page_cgroup(page);
--		mem = pc->mem_cgroup;
--		css_put(&mem->css);
--		page_assign_page_cgroup(page, NULL);
--		unlock_page_cgroup(page);
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--
-- 		spin_lock_irqsave(&mem->lru_lock, flags);
-- 		list_del_init(&pc->lru);
-- 		spin_unlock_irqrestore(&mem->lru_lock, flags);
--		kfree(pc);
-+		/*
-+		 * get page->cgroup and clear it under lock.
-+		 */
-+		if (clear_page_cgroup(page, pc) == pc) {
-+			mem = pc->mem_cgroup;
-+			css_put(&mem->css);
-+			res_counter_uncharge(&mem->res, PAGE_SIZE);
-+			spin_lock_irqsave(&mem->lru_lock, flags);
-+			list_del_init(&pc->lru);
-+			spin_unlock_irqrestore(&mem->lru_lock, flags);
-+			kfree(pc);
-+		} else {
-+			/*
-+			 * Note:This will be removed when force-empty patch is
-+			 * applied. just show warning here.
-+			 */
-+			printk(KERN_ERR "Race in mem_cgroup_uncharge() ?");
-+			dump_stack();
-+		}
+ 	unlock_page(newpage);
+@@ -614,6 +615,7 @@ static int unmap_and_move(new_page_t get
+ 	int *result = NULL;
+ 	struct page *newpage = get_new_page(page, private, &result);
+ 	int rcu_locked = 0;
++	int charge = 0;
+ 
+ 	if (!newpage)
+ 		return -ENOMEM;
+@@ -673,14 +675,19 @@ static int unmap_and_move(new_page_t get
+ 		goto rcu_unlock;
  	}
- }
  
++	charge = mem_cgroup_prepare_migration(page);
+ 	/* Establish migration ptes or remove ptes */
+ 	try_to_unmap(page, 1);
+ 
+ 	if (!page_mapped(page))
+ 		rc = move_to_new_page(newpage, page);
+ 
+-	if (rc)
++	if (rc) {
+ 		remove_migration_ptes(page, page);
++		if (charge)
++			mem_cgroup_end_migration(page);
++	} else if (charge)
++ 		mem_cgroup_end_migration(newpage);
+ rcu_unlock:
+ 	if (rcu_locked)
+ 		rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
