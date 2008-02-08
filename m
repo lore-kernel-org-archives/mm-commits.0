@@ -1,54 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-fault_reason_index_cleanuppatch-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:35:59 -0800
-Message-ID: <200802080835.m188Zfvr015853@imap1.linux-foundation.org>
+Subject: - proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:35:11 -0800
+Message-ID: <200802080834.m188YqQZ015835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757148AbYBHIft (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:35:49 -0500
+	by vger.kernel.org with ESMTP id S1756942AbYBHIfo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:35:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgross@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@sw.ru, ebiederm@xmission.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel-iommu-fault_reason_index_cleanuppatch-fix
+     proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+     proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into intel-iommu-fault_reason_index_cleanuppatch.patch
+This patch was dropped because it was folded into proc-fix-openless-usage-due-to-proc_fops-flip.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel-iommu-fault_reason_index_cleanuppatch-fix
+Subject: proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We normally leave those commas there, to make add-a-new-entry patches look
-cleaner and smaller.  Plus it shrinks
-intel-iommu-fault_reason_index_cleanuppatch.patch, too.
+ERROR: need space after that ',' (ctx:VxV)
+#87: FILE: fs/proc/generic.c:608:
++	ent = __proc_create(&parent,name,
+ 	                           ^
 
-Cc: mark gross <mgross@linux.intel.com>
+ERROR: need space after that ',' (ctx:VxV)
+#105: FILE: fs/proc/generic.c:667:
++	ent = __proc_create(&parent,name,mode,nlink);
+ 	                           ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#105: FILE: fs/proc/generic.c:667:
++	ent = __proc_create(&parent,name,mode,nlink);
+ 	                                ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#105: FILE: fs/proc/generic.c:667:
++	ent = __proc_create(&parent,name,mode,nlink);
+ 	                                     ^
+
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#172: FILE: fs/proc/root.c:235:
++EXPORT_SYMBOL(proc_create);
+
+WARNING: line over 80 characters
+#183: FILE: include/linux/proc_fs.h:129:
++struct proc_dir_entry *proc_create(const char *name, mode_t mode, struct proc_dir_entry *parent, const struct file_operations *proc_fops);
+
+WARNING: line over 80 characters
+#192: FILE: include/linux/proc_fs.h:222:
++static inline struct proc_dir_entry *proc_create(const char *name, mode_t mode, struct proc_dir_entry *parent, const struct file_operations *proc_fops)
+
+total: 4 errors, 3 warnings, 108 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c       |    4 ++--
+ include/linux/proc_fs.h |    8 ++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-fault_reason_index_cleanuppatch-fix drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-fault_reason_index_cleanuppatch-fix
-+++ a/drivers/pci/intel-iommu.c
-@@ -759,7 +759,7 @@ static const char *fault_reason_strings[
- 	"Context table ptr is invalid",
- 	"non-zero reserved fields in RTP",
- 	"non-zero reserved fields in CTP",
--	"non-zero reserved fields in PTE"
-+	"non-zero reserved fields in PTE",
- };
- #define MAX_FAULT_REASON_IDX 	(ARRAY_SIZE(fault_reason_strings) - 1)
+diff -puN fs/proc/generic.c~proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes
++++ a/fs/proc/generic.c
+@@ -605,7 +605,7 @@ struct proc_dir_entry *proc_symlink(cons
+ {
+ 	struct proc_dir_entry *ent;
  
+-	ent = __proc_create(&parent,name,
++	ent = __proc_create(&parent, name,
+ 			  (S_IFLNK | S_IRUGO | S_IWUGO | S_IXUGO),1);
+ 
+ 	if (ent) {
+@@ -664,7 +664,7 @@ struct proc_dir_entry *create_proc_entry
+ 		nlink = 1;
+ 	}
+ 
+-	ent = __proc_create(&parent,name,mode,nlink);
++	ent = __proc_create(&parent, name, mode, nlink);
+ 	if (ent) {
+ 		if (proc_register(parent, ent) < 0) {
+ 			kfree(ent);
+diff -puN include/linux/proc_fs.h~proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes
++++ a/include/linux/proc_fs.h
+@@ -126,7 +126,9 @@ void de_put(struct proc_dir_entry *de);
+ 
+ extern struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
+ 						struct proc_dir_entry *parent);
+-struct proc_dir_entry *proc_create(const char *name, mode_t mode, struct proc_dir_entry *parent, const struct file_operations *proc_fops);
++struct proc_dir_entry *proc_create(const char *name, mode_t mode,
++				struct proc_dir_entry *parent,
++				const struct file_operations *proc_fops);
+ extern void remove_proc_entry(const char *name, struct proc_dir_entry *parent);
+ 
+ extern struct vfsmount *proc_mnt;
+@@ -221,7 +223,9 @@ static inline void proc_flush_task(struc
+ 
+ static inline struct proc_dir_entry *create_proc_entry(const char *name,
+ 	mode_t mode, struct proc_dir_entry *parent) { return NULL; }
+-static inline struct proc_dir_entry *proc_create(const char *name, mode_t mode, struct proc_dir_entry *parent, const struct file_operations *proc_fops)
++static inline struct proc_dir_entry *proc_create(const char *name,
++	mode_t mode, struct proc_dir_entry *parent,
++	const struct file_operations *proc_fops)
+ {
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,7 +132,7 @@ cleanup-the-code-managed-with-pid_ns-option.patch
 proc-detect-duplicate-names-on-registration.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 proc-fix-openless-usage-due-to-proc_fops-flip.patch
-intel-iommu-fault_reason_index_cleanuppatch.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
 intel-iommu-fault_reason_index_cleanuppatch-fix.patch
 modules-make-module_address_lookup-safe-fix.patch
 wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
