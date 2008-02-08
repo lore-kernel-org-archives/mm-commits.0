@@ -1,53 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - fs-afs-securityc-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:02 -0800
-Message-ID: <200802082017.m18KHhtD010850@imap1.linux-foundation.org>
+Subject: - aoe-statically-initialise-devlist_lock.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:16:15 -0800
+Message-ID: <200802082015.m18KFu2A010659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029AbYBHUoA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:44:00 -0500
+	by vger.kernel.org with ESMTP id S1751208AbYBHUoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:44:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/afs/security.c: fix uninitialized var warning
+     aoe: statically initialise devlist_lock
 has been removed from the -mm tree.  Its filename was
-     fs-afs-securityc-fix-uninitialized-var-warning.patch
+     aoe-statically-initialise-devlist_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/afs/security.c: fix uninitialized var warning
+Subject: aoe: statically initialise devlist_lock
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/afs/security.c: In function 'afs_permission':
-fs/afs/security.c:290: warning: 'access' may be used uninitialized in this function
+I guess aoedev_init() can go away now.
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Ed L. Cashin" <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/security.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/aoe/aoedev.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/afs/security.c~fs-afs-securityc-fix-uninitialized-var-warning fs/afs/security.c
---- a/fs/afs/security.c~fs-afs-securityc-fix-uninitialized-var-warning
-+++ a/fs/afs/security.c
-@@ -287,7 +287,7 @@ static int afs_check_permit(struct afs_v
- int afs_permission(struct inode *inode, int mask, struct nameidata *nd)
- {
- 	struct afs_vnode *vnode = AFS_FS_I(inode);
--	afs_access_t access;
-+	afs_access_t uninitialized_var(access);
- 	struct key *key;
- 	int ret;
+diff -puN drivers/block/aoe/aoedev.c~aoe-statically-initialise-devlist_lock drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-statically-initialise-devlist_lock
++++ a/drivers/block/aoe/aoedev.c
+@@ -16,7 +16,7 @@ static void freetgt(struct aoedev *d, st
+ static void skbpoolfree(struct aoedev *d);
  
+ static struct aoedev *devlist;
+-static spinlock_t devlist_lock;
++static DEFINE_SPINLOCK(devlist_lock);
+ 
+ int
+ aoedev_isbusy(struct aoedev *d)
+@@ -291,7 +291,5 @@ aoedev_exit(void)
+ int __init
+ aoedev_init(void)
+ {
+-	spin_lock_init(&devlist_lock);
+ 	return 0;
+ }
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
