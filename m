@@ -1,68 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-make-delayed_work_timer_fn-static.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:49 -0800
-Message-ID: <200802082018.m18KIUXY010934@imap1.linux-foundation.org>
+Subject: - remove-the-unused-exports-of-sys_open--sys_read-for-2625.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:07 -0800
+Message-ID: <200802082017.m18KHmBr010860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752328AbYBHUpN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:45:13 -0500
+	by vger.kernel.org with ESMTP id S1752328AbYBHUpJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:45:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: make delayed_work_timer_fn() static
+     remove the unused exports of sys_open/sys_read
 has been removed from the -mm tree.  Its filename was
-     workqueue-make-delayed_work_timer_fn-static.patch
+     remove-the-unused-exports-of-sys_open--sys_read-for-2625.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue: make delayed_work_timer_fn() static
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: remove the unused exports of sys_open/sys_read
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-delayed_work_timer_fn() is a timer function, make it static.
+These exports (which aren't used and which are in fact dangerous to use
+because they pretty much form a security hole to use) have been marked
+_UNUSED since 2.6.24 with removal in 2.6.25.  This patch is their final
+departure from the Linux kernel tree.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    2 --
- kernel/workqueue.c    |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ fs/open.c       |    1 -
+ fs/read_write.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN include/linux/timer.h~workqueue-make-delayed_work_timer_fn-static include/linux/timer.h
---- a/include/linux/timer.h~workqueue-make-delayed_work_timer_fn-static
-+++ a/include/linux/timer.h
-@@ -124,8 +124,6 @@ static inline void timer_stats_timer_cle
+diff -puN fs/open.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625 fs/open.c
+--- a/fs/open.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625
++++ a/fs/open.c
+@@ -1061,7 +1061,6 @@ asmlinkage long sys_open(const char __us
+ 	prevent_tail_call(ret);
+ 	return ret;
  }
- #endif
+-EXPORT_UNUSED_SYMBOL_GPL(sys_open); /* To be deleted for 2.6.25 */
  
--extern void delayed_work_timer_fn(unsigned long __data);
--
- /**
-  * add_timer - start a timer
-  * @timer: the timer to be added
-diff -puN kernel/workqueue.c~workqueue-make-delayed_work_timer_fn-static kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-make-delayed_work_timer_fn-static
-+++ a/kernel/workqueue.c
-@@ -175,7 +175,7 @@ int queue_work(struct workqueue_struct *
+ asmlinkage long sys_openat(int dfd, const char __user *filename, int flags,
+ 			   int mode)
+diff -puN fs/read_write.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625 fs/read_write.c
+--- a/fs/read_write.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625
++++ a/fs/read_write.c
+@@ -366,7 +366,6 @@ asmlinkage ssize_t sys_read(unsigned int
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(queue_work);
+-EXPORT_UNUSED_SYMBOL_GPL(sys_read); /* to be deleted for 2.6.25 */
  
--void delayed_work_timer_fn(unsigned long __data)
-+static void delayed_work_timer_fn(unsigned long __data)
+ asmlinkage ssize_t sys_write(unsigned int fd, const char __user * buf, size_t count)
  {
- 	struct delayed_work *dwork = (struct delayed_work *)__data;
- 	struct cpu_workqueue_struct *cwq = get_wq_data(&dwork->work);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
+git-agpgart.patch
+hci_ldisc-fix-null-pointer-deref.patch
+git-sched.patch
+git-x86.patch
