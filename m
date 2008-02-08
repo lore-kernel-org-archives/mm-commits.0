@@ -1,45 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:08 -0800
-Message-ID: <200802080803.m1883nfD014151@imap1.linux-foundation.org>
+Subject: - memcgroup-revert-swap_state-mods.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:00 -0800
+Message-ID: <200802080803.m1883fx0014140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40013 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757040AbYBHJ0r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 04:26:47 -0500
+	by vger.kernel.org with ESMTP id S1756369AbYBHJbF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 04:31:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
+To: hugh@veritas.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@googl
 
 
 The patch titled
-     memory cgroup enhancements: force_empty interface for dropping all account in empty cgroup
+     memcgroup: revert swap_state mods
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+     memcgroup-revert-swap_state-mods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: force_empty interface for dropping all account in empty cgroup
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcgroup: revert swap_state mods
+From: Hugh Dickins <hugh@veritas.com>
 
-This patch adds an interface "memory.force_empty".  Any write to this file
-will drop all charges in this cgroup if there is no task under.
+If we're charging rss and we're charging cache, it seems obvious that we
+should be charging swapcache - as has been done.  But in practice that
+doesn't work out so well: both swapin readahead and swapoff leave the
+majority of pages charged to the wrong cgroup (the cgroup that happened to
+read them in, rather than the cgroup to which they belong).
 
-%echo 1 > /....../memory.force_empty
+(Which is why unuse_pte's GFP_KERNEL while holding pte lock never showed up
+as a problem: no allocation was ever done there, every page read being
+already charged to the cgroup which initiated the swapoff.)
 
-will drop all charges of memory cgroup if cgroup's tasks is empty.
+It all works rather better if we leave the charging to do_swap_page and
+unuse_pte, and do nothing for swapcache itself: revert mm/swap_state.c to
+what it was before the memory-controller patches.  This also speeds up
+significantly a contained process working at its limit: because it no
+longer needs to keep waiting for swap writeback to complete.
 
-This is useful to invoke rmdir() against memory cgroup successfully.
+Is it unfair that swap pages become uncharged once they're unmapped, even
+though they're still clearly private to particular cgroups?  For a short
+while, yes; but PageReclaim arranges for those pages to go to the end of
+the inactive list and be reclaimed soon if necessary.
 
-Tested and worked well on x86_64/fake-NUMA system.
+shmem/tmpfs pages are a distinct case: their charging also benefits from
+this change, but their second life on the lists as swapcache pages may
+prove more unfair - that I need to check next.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -51,162 +65,67 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  110 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 103 insertions(+), 7 deletions(-)
+ mm/swap_state.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup
-+++ a/mm/memcontrol.c
-@@ -471,6 +471,7 @@ void mem_cgroup_uncharge(struct page_cgr
- 		page = pc->page;
- 		/*
- 		 * get page->cgroup and clear it under lock.
-+		 * force_empty can drop page->cgroup without checking refcnt.
- 		 */
- 		if (clear_page_cgroup(page, pc) == pc) {
- 			mem = pc->mem_cgroup;
-@@ -480,13 +481,6 @@ void mem_cgroup_uncharge(struct page_cgr
- 			list_del_init(&pc->lru);
- 			spin_unlock_irqrestore(&mem->lru_lock, flags);
- 			kfree(pc);
+diff -puN mm/swap_state.c~memcgroup-revert-swap_state-mods mm/swap_state.c
+--- a/mm/swap_state.c~memcgroup-revert-swap_state-mods
++++ a/mm/swap_state.c
+@@ -17,7 +17,6 @@
+ #include <linux/backing-dev.h>
+ #include <linux/pagevec.h>
+ #include <linux/migrate.h>
+-#include <linux/memcontrol.h>
+ 
+ #include <asm/pgtable.h>
+ 
+@@ -75,11 +74,6 @@ int add_to_swap_cache(struct page *page,
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(PageSwapCache(page));
+ 	BUG_ON(PagePrivate(page));
+-
+-	error = mem_cgroup_cache_charge(page, current->mm, gfp_mask);
+-	if (error)
+-		goto out;
+-
+ 	error = radix_tree_preload(gfp_mask);
+ 	if (!error) {
+ 		write_lock_irq(&swapper_space.tree_lock);
+@@ -92,14 +86,10 @@ int add_to_swap_cache(struct page *page,
+ 			total_swapcache_pages++;
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
+ 			INC_CACHE_INFO(add_total);
 -		} else {
--			/*
--			 * Note:This will be removed when force-empty patch is
--			 * applied. just show warning here.
--			 */
--			printk(KERN_ERR "Race in mem_cgroup_uncharge() ?");
--			dump_stack();
+-			mem_cgroup_uncharge_page(page);
  		}
- 	}
- }
-@@ -534,6 +528,76 @@ retry:
- 	return;
- }
- 
-+/*
-+ * This routine traverse page_cgroup in given list and drop them all.
-+ * This routine ignores page_cgroup->ref_cnt.
-+ * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
-+ */
-+#define FORCE_UNCHARGE_BATCH	(128)
-+static void
-+mem_cgroup_force_empty_list(struct mem_cgroup *mem, struct list_head *list)
-+{
-+	struct page_cgroup *pc;
-+	struct page *page;
-+	int count;
-+	unsigned long flags;
-+
-+retry:
-+	count = FORCE_UNCHARGE_BATCH;
-+	spin_lock_irqsave(&mem->lru_lock, flags);
-+
-+	while (--count && !list_empty(list)) {
-+		pc = list_entry(list->prev, struct page_cgroup, lru);
-+		page = pc->page;
-+		/* Avoid race with charge */
-+		atomic_set(&pc->ref_cnt, 0);
-+		if (clear_page_cgroup(page, pc) == pc) {
-+			css_put(&mem->css);
-+			res_counter_uncharge(&mem->res, PAGE_SIZE);
-+			list_del_init(&pc->lru);
-+			kfree(pc);
-+		} else 	/* being uncharged ? ...do relax */
-+			break;
+ 		write_unlock_irq(&swapper_space.tree_lock);
+ 		radix_tree_preload_end();
+-	} else
+-		mem_cgroup_uncharge_page(page);
+-out:
 +	}
-+	spin_unlock_irqrestore(&mem->lru_lock, flags);
-+	if (!list_empty(list)) {
-+		cond_resched();
-+		goto retry;
-+	}
-+	return;
-+}
-+
-+/*
-+ * make mem_cgroup's charge to be 0 if there is no task.
-+ * This enables deleting this mem_cgroup.
-+ */
-+
-+int mem_cgroup_force_empty(struct mem_cgroup *mem)
-+{
-+	int ret = -EBUSY;
-+	css_get(&mem->css);
-+	/*
-+	 * page reclaim code (kswapd etc..) will move pages between
-+`	 * active_list <-> inactive_list while we don't take a lock.
-+	 * So, we have to do loop here until all lists are empty.
-+	 */
-+	while (!(list_empty(&mem->active_list) &&
-+		 list_empty(&mem->inactive_list))) {
-+		if (atomic_read(&mem->css.cgroup->count) > 0)
-+			goto out;
-+		/* drop all page_cgroup in active_list */
-+		mem_cgroup_force_empty_list(mem, &mem->active_list);
-+		/* drop all page_cgroup in inactive_list */
-+		mem_cgroup_force_empty_list(mem, &mem->inactive_list);
-+	}
-+	ret = 0;
-+out:
-+	css_put(&mem->css);
-+	return ret;
-+}
-+
-+
-+
- int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
- {
- 	*tmp = memparse(buf, &buf);
-@@ -619,6 +683,33 @@ static ssize_t mem_control_type_read(str
- 			ppos, buf, s - buf);
+ 	return error;
  }
  
-+
-+static ssize_t mem_force_empty_write(struct cgroup *cont,
-+				struct cftype *cft, struct file *file,
-+				const char __user *userbuf,
-+				size_t nbytes, loff_t *ppos)
-+{
-+	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
-+	int ret;
-+	ret = mem_cgroup_force_empty(mem);
-+	if (!ret)
-+		ret = nbytes;
-+	return ret;
-+}
-+
-+/*
-+ * Note: This should be removed if cgroup supports write-only file.
-+ */
-+
-+static ssize_t mem_force_empty_read(struct cgroup *cont,
-+				struct cftype *cft,
-+				struct file *file, char __user *userbuf,
-+				size_t nbytes, loff_t *ppos)
-+{
-+	return -EINVAL;
-+}
-+
-+
- static struct cftype mem_cgroup_files[] = {
- 	{
- 		.name = "usage_in_bytes",
-@@ -641,6 +732,11 @@ static struct cftype mem_cgroup_files[] 
- 		.write = mem_control_type_write,
- 		.read = mem_control_type_read,
- 	},
-+	{
-+		.name = "force_empty",
-+		.write = mem_force_empty_write,
-+		.read = mem_force_empty_read,
-+	},
- };
+@@ -114,7 +104,6 @@ void __delete_from_swap_cache(struct pag
+ 	BUG_ON(PageWriteback(page));
+ 	BUG_ON(PagePrivate(page));
  
- static struct mem_cgroup init_mem_cgroup;
+-	mem_cgroup_uncharge_page(page);
+ 	radix_tree_delete(&swapper_space.page_tree, page_private(page));
+ 	set_page_private(page, 0);
+ 	ClearPageSwapCache(page);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+git-unionfs.patch
+git-x86.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+mount-options-fix-tmpfs.patch
+mount-options-fix-tmpfs-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+prio_tree-debugging-patch.patch
