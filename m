@@ -1,67 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - reporting-bugs-cc-the-mailing-list-too.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:02:32 -0800
-Message-ID: <200802080802.m1882DUE014019@imap1.linux-foundation.org>
+Subject: - new-cmpxchg_local-optimized-for-up-case-for-m32r.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:58 -0800
+Message-ID: <200802080808.m1888dFT014668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36521 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761780AbYBHITq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:46 -0500
+	by vger.kernel.org with ESMTP id S932176AbYBHITw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     REPORTING-BUGS: cc the mailing list too
+     New cmpxchg_local (optimized for UP case) for m32r
 has been removed from the -mm tree.  Its filename was
-     reporting-bugs-cc-the-mailing-list-too.patch
+     new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: REPORTING-BUGS: cc the mailing list too
-From: "J. Bruce Fields" <bfields@citi.umich.edu>
+Subject: New cmpxchg_local (optimized for UP case) for m32r
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-People should also cc relevant mailing lists when reporting bugs.
+Add __xchg_local, xchg_local (define), __cmpxchg_local_u32, __cmpxchg_local,
+cmpxchg_local(macro).
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+cmpxchg_local and cmpxchg64_local will use the architecture specific
+__cmpxchg_local_u32 for 32 bits arguments, and use the generic
+__cmpxchg_local_generic for 8, 16 and 64 bits arguments.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- REPORTING-BUGS |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/asm-m32r/system.h |  111 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 101 insertions(+), 10 deletions(-)
 
-diff -puN REPORTING-BUGS~reporting-bugs-cc-the-mailing-list-too REPORTING-BUGS
---- a/REPORTING-BUGS~reporting-bugs-cc-the-mailing-list-too
-+++ a/REPORTING-BUGS
-@@ -10,11 +10,12 @@ bug report. This explains what you shoul
- to make it useful to the recipient.
+diff -puN include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r include/asm-m32r/system.h
+--- a/include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r
++++ a/include/asm-m32r/system.h
+@@ -121,8 +121,11 @@ static inline void local_irq_disable(voi
  
-       Send the output to the maintainer of the kernel area that seems to
--be involved with the problem. Don't worry too much about getting the
--wrong person. If you are unsure send it to the person responsible for the
--code relevant to what you were doing. If it occurs repeatably try and
--describe how to recreate it. That is worth even more than the oops itself.
--The list of maintainers is in the MAINTAINERS file in this directory.
-+be involved with the problem, and cc the relevant mailing list. Don't
-+worry too much about getting the wrong person. If you are unsure send it
-+to the person responsible for the code relevant to what you were doing.
-+If it occurs repeatably try and describe how to recreate it. That is
-+worth even more than the oops itself.  The list of maintainers and
-+mailing lists is in the MAINTAINERS file in this directory.
+ #define nop()	__asm__ __volatile__ ("nop" : : )
  
-       If it is a security bug, please copy the Security Contact listed
- in the MAINTAINERS file.  They can help coordinate bugfix and disclosure.
+-#define xchg(ptr,x) \
+-	((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
++#define xchg(ptr, x)							\
++	((__typeof__(*(ptr)))__xchg((unsigned long)(x), (ptr), sizeof(*(ptr))))
++#define xchg_local(ptr, x)						\
++	((__typeof__(*(ptr)))__xchg_local((unsigned long)(x), (ptr),	\
++			sizeof(*(ptr))))
+ 
+ #ifdef CONFIG_SMP
+ extern void  __xchg_called_with_bad_pointer(void);
+@@ -146,7 +149,7 @@ extern void  __xchg_called_with_bad_poin
+ #endif	/* CONFIG_CHIP_M32700_TS1 */
+ 
+ static __always_inline unsigned long
+-__xchg(unsigned long x, volatile void * ptr, int size)
++__xchg(unsigned long x, volatile void *ptr, int size)
+ {
+ 	unsigned long flags;
+ 	unsigned long tmp = 0;
+@@ -196,6 +199,42 @@ __xchg(unsigned long x, volatile void * 
+ 	return (tmp);
+ }
+ 
++static __always_inline unsigned long
++__xchg_local(unsigned long x, volatile void *ptr, int size)
++{
++	unsigned long flags;
++	unsigned long tmp = 0;
++
++	local_irq_save(flags);
++
++	switch (size) {
++	case 1:
++		__asm__ __volatile__ (
++			"ldb	%0, @%2 \n\t"
++			"stb	%1, @%2 \n\t"
++			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
++		break;
++	case 2:
++		__asm__ __volatile__ (
++			"ldh	%0, @%2 \n\t"
++			"sth	%1, @%2 \n\t"
++			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
++		break;
++	case 4:
++		__asm__ __volatile__ (
++			"ld	%0, @%2 \n\t"
++			"st	%1, @%2 \n\t"
++			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
++		break;
++	default:
++		__xchg_called_with_bad_pointer();
++	}
++
++	local_irq_restore(flags);
++
++	return (tmp);
++}
++
+ #define __HAVE_ARCH_CMPXCHG	1
+ 
+ static inline unsigned long
+@@ -228,6 +267,37 @@ __cmpxchg_u32(volatile unsigned int *p, 
+ 	return retval;
+ }
+ 
++static inline unsigned long
++__cmpxchg_local_u32(volatile unsigned int *p, unsigned int old,
++			unsigned int new)
++{
++	unsigned long flags;
++	unsigned int retval;
++
++	local_irq_save(flags);
++	__asm__ __volatile__ (
++			DCACHE_CLEAR("%0", "r4", "%1")
++			"ld %0, @%1;		\n"
++		"	bne	%0, %2, 1f;	\n"
++			"st %3, @%1;		\n"
++		"	bra	2f;		\n"
++		"       .fillinsn		\n"
++		"1:"
++			"st %0, @%1;		\n"
++		"       .fillinsn		\n"
++		"2:"
++			: "=&r" (retval)
++			: "r" (p), "r" (old), "r" (new)
++			: "cbit", "memory"
++#ifdef CONFIG_CHIP_M32700_TS1
++			, "r4"
++#endif  /* CONFIG_CHIP_M32700_TS1 */
++		);
++	local_irq_restore(flags);
++
++	return retval;
++}
++
+ /* This function doesn't exist, so you'll get a linker error
+    if something tries to do an invalid cmpxchg().  */
+ extern void __cmpxchg_called_with_bad_pointer(void);
+@@ -247,13 +317,34 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 	return old;
+ }
+ 
+-#define cmpxchg(ptr,o,n)						 \
+-  ({									 \
+-     __typeof__(*(ptr)) _o_ = (o);					 \
+-     __typeof__(*(ptr)) _n_ = (n);					 \
+-     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+-				    (unsigned long)_n_, sizeof(*(ptr))); \
+-  })
++#define cmpxchg(ptr, o, n)						 \
++	((__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)(o),	 \
++			(unsigned long)(n), sizeof(*(ptr))))
++
++#include <asm-generic/cmpxchg-local.h>
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return __cmpxchg_local_u32(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	    \
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	    \
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
+ 
+ #endif  /* __KERNEL__ */
+ 
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-reiser4.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
