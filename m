@@ -1,91 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - char-mxser-simplify-mxser_get_serial_info.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:10:01 -0800
-Message-ID: <200802080809.m1889g5B014873@imap1.linux-foundation.org>
+Subject: - arch-powerpc-platforms-pseries-add-missing-of_node_put.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:10:35 -0800
+Message-ID: <200802080810.m188AG1Z014927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44179 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761658AbYBHITn (ORCPT
+	by vger.kernel.org with ESMTP id S1761254AbYBHITn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, jengelh@computergmbh.de, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, simplify mxser_get_serial_info
+     arch/powerpc/platforms/pseries: Add missing of_node_put
 has been removed from the -mm tree.  Its filename was
-     char-mxser-simplify-mxser_get_serial_info.patch
+     arch-powerpc-platforms-pseries-add-missing-of_node_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, simplify mxser_get_serial_info
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: arch/powerpc/platforms/pseries: Add missing of_node_put
+From: Julia Lawall <julia@diku.dk>
 
-Initialize temp structure directly with proper values without first zeroing
-it and setting later as suggested by Jan.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
-Reviewed-by: Alan Cox <alan@redhat.com>
+Of_get_parent and of_find_compatible_node do an of_node_get, and thus a
+corresponding of_code_put is needed in the error case.
+
+The problem was found using the following semantic match.
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type T,T1,T2;
+identifier E;
+statement S;
+expression x1,x2,x3;
+int ret;
+@@
+
+  T E;
+  ...
+* E = \(of_get_parent\|of_find_compatible_node\)(...);
+  if (E == NULL) S
+  ... when != of_node_put(...,(T1)E,...)
+      when != if (E != NULL) { ... of_node_put(...,(T1)E,...); ...}
+      when != x1 = (T1)E
+      when != E = x3;
+      when any
+  if (...) {
+    ... when != of_node_put(...,(T2)E,...)
+        when != if (E != NULL) { ... of_node_put(...,(T2)E,...); ...}
+        when != x2 = (T2)E
+(
+*   return;
+|
+*   return ret;
+)
+  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ arch/powerpc/platforms/pseries/reconfig.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/mxser_new.c~char-mxser-simplify-mxser_get_serial_info drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser-simplify-mxser_get_serial_info
-+++ a/drivers/char/mxser_new.c
-@@ -1168,21 +1168,18 @@ static void mxser_flush_buffer(struct tt
- static int mxser_get_serial_info(struct mxser_port *info,
- 		struct serial_struct __user *retinfo)
- {
--	struct serial_struct tmp;
--
--	if (!retinfo)
--		return -EFAULT;
--	memset(&tmp, 0, sizeof(tmp));
--	tmp.type = info->type;
--	tmp.line = info->tty->index;
--	tmp.port = info->ioaddr;
--	tmp.irq = info->board->irq;
--	tmp.flags = info->flags;
--	tmp.baud_base = info->baud_base;
--	tmp.close_delay = info->close_delay;
--	tmp.closing_wait = info->closing_wait;
--	tmp.custom_divisor = info->custom_divisor;
--	tmp.hub6 = 0;
-+	struct serial_struct tmp = {
-+		.type = info->type,
-+		.line = info->tty->index,
-+		.port = info->ioaddr,
-+		.irq = info->board->irq,
-+		.flags = info->flags,
-+		.baud_base = info->baud_base,
-+		.close_delay = info->close_delay,
-+		.closing_wait = info->closing_wait,
-+		.custom_divisor = info->custom_divisor,
-+		.hub6 = 0
-+	};
- 	if (copy_to_user(retinfo, &tmp, sizeof(*retinfo)))
- 		return -EFAULT;
- 	return 0;
+diff -puN arch/powerpc/platforms/pseries/reconfig.c~arch-powerpc-platforms-pseries-add-missing-of_node_put arch/powerpc/platforms/pseries/reconfig.c
+--- a/arch/powerpc/platforms/pseries/reconfig.c~arch-powerpc-platforms-pseries-add-missing-of_node_put
++++ a/arch/powerpc/platforms/pseries/reconfig.c
+@@ -167,6 +167,7 @@ static int pSeries_reconfig_remove_node(
+ 
+ 	if ((child = of_get_next_child(np, NULL))) {
+ 		of_node_put(child);
++		of_node_put(parent);
+ 		return -EBUSY;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-watchdog.patch
-moxa-first-pass-at-termios-reporting.patch
-char-applicom-use-pci_resource_start.patch
-char-applicom-use-pci_match_id.patch
-char-applicom-use-pci_match_id-fix.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
