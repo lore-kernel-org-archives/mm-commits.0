@@ -1,68 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:20:34 -0800
-Message-ID: <200802082020.m18KKFWL011149@imap1.linux-foundation.org>
+Subject: - mount-options-fix-autofs4.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:38 -0800
+Message-ID: <200802082019.m18KJJjF011038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935189AbYBHUf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:35:56 -0500
+	by vger.kernel.org with ESMTP id S935308AbYBHUhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:37:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, ego@in.ibm.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu: fix section mismatch warnings for enable_nonboot_cpus
+     mount options: fix autofs4
 has been removed from the -mm tree.  Its filename was
-     cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus.patch
+     mount-options-fix-autofs4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: fix section mismatch warnings for enable_nonboot_cpus
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: mount options: fix autofs4
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fix following warning:
-WARNING: o-x86_64/kernel/built-in.o(.text+0x36d8b): Section mismatch in reference from the function enable_nonboot_cpus() to the function .cpuinit.text:_cpu_up()
+Add uid= and gid= options to /proc/mounts for autofs4 filesystems.
 
-enable_nonboot_cpus() are used solely from CONFIG_CONFIG_PM_SLEEP_SMP=y
-and PM_SLEEP_SMP imply HOTPLUG_CPU therefore the reference
-to _cpu_up() is valid.
-Annotate enable_nonboot_cpus() with __ref to silence modpost.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/inode.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/cpu.c~cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus kernel/cpu.c
---- a/kernel/cpu.c~cpu-fix-section-mismatch-warnings-for-enable_nonboot_cpus
-+++ a/kernel/cpu.c
-@@ -389,7 +389,7 @@ int disable_nonboot_cpus(void)
- 	return error;
- }
- 
--void enable_nonboot_cpus(void)
-+void __ref enable_nonboot_cpus(void)
+diff -puN fs/autofs4/inode.c~mount-options-fix-autofs4 fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~mount-options-fix-autofs4
++++ a/fs/autofs4/inode.c
+@@ -176,11 +176,16 @@ out_kill_sb:
+ static int autofs4_show_options(struct seq_file *m, struct vfsmount *mnt)
  {
- 	int cpu, error;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(mnt->mnt_sb);
++	struct inode *root_inode = mnt->mnt_sb->s_root->d_inode;
  
+ 	if (!sbi)
+ 		return 0;
+ 
+ 	seq_printf(m, ",fd=%d", sbi->pipefd);
++	if (root_inode->i_uid != 0)
++		seq_printf(m, ",uid=%u", root_inode->i_uid);
++	if (root_inode->i_gid != 0)
++		seq_printf(m, ",gid=%u", root_inode->i_gid);
+ 	seq_printf(m, ",pgrp=%d", sbi->oz_pgrp);
+ 	seq_printf(m, ",timeout=%lu", sbi->exp_timeout/HZ);
+ 	seq_printf(m, ",minproto=%d", sbi->min_proto);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-linux-kernel-markers-create-modpost-file.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
+vfs-create-proc-pid-mountinfo.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
