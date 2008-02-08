@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-compile-error-on-nommu-for-is_swap_pte.patch added to -mm tree
-Date: Fri, 08 Feb 2008 14:35:39 -0800
-Message-ID: <200802082235.m18MZdxB017106@imap1.linux-foundation.org>
+Subject: + moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch added to -mm tree
+Date: Fri, 08 Feb 2008 14:43:39 -0800
+Message-ID: <200802082243.m18Mhdqh017577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40745 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756007AbYBHWga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:36:30 -0500
+	by vger.kernel.org with ESMTP id S1763029AbYBHWob (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:44:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, bunk@stusta.de, vapier@gentoo.org
+Cc: ink@jurassic.park.msu.ru, anton@samba.org, bunk@stusta.de, kamalesh@linux.vnet.ibm.com, paulus@samba.org, rth@twiddle.net, rusty@rustcorp.com.au, tony.luck@intel.com
 
 
 The patch titled
-     Fix compile error on nommu for is_swap_pte
+     moduleparam: fix alpha, ia64 and ppc64 compile failures
 has been added to the -mm tree.  Its filename is
-     fix-compile-error-on-nommu-for-is_swap_pte.patch
+     moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix compile error on nommu for is_swap_pte
-From: Matt Mackall <mpm@selenic.com>
+Subject: moduleparam: fix alpha, ia64 and ppc64 compile failures
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-  CC      mm/vmscan.o
-In file included from 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/vmscan.c:44:
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h: In function 'is_swap_pte':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_none'
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_present'
+On alpha, ia64 and ppc64 only relocations to local data can go into
+read-only sections. The vast majority of module parameters use the global
+generic param_set_*/param_get_* functions, so the 'const' attribute for
+struct kernel_param is not only useless, but it also causes compile
+failures due to 'section type conflict' in those rare cases where
+param_set/get are local functions.
 
-Does it ever make sense to ask "is this pte a swap entry?" on a machine
-with no MMU?  Presumably this also means it has no ptes too, right?  In
-which case, it's better to comment the whole function out.  Then when
-someone tries to ask the above meaningless question, they get a compile
-error rather than a meaningless answer.
+This fixes http://bugzilla.kernel.org/show_bug.cgi?id=8964
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Reported-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/moduleparam.h |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte include/linux/swapops.h
---- a/include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte
-+++ a/include/linux/swapops.h
-@@ -42,11 +42,13 @@ static inline pgoff_t swp_offset(swp_ent
- 	return entry.val & SWP_OFFSET_MASK(entry);
- }
+diff -puN include/linux/moduleparam.h~moduleparam-fix-alpha-ia64-and-ppc64-compile-failures include/linux/moduleparam.h
+--- a/include/linux/moduleparam.h~moduleparam-fix-alpha-ia64-and-ppc64-compile-failures
++++ a/include/linux/moduleparam.h
+@@ -62,6 +62,16 @@ struct kparam_array
+ 	void *elem;
+ };
  
-+#ifdef CONFIG_MMU
- /* check whether a pte points to a swap entry */
- static inline int is_swap_pte(pte_t pte)
- {
- 	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
- }
++/* On alpha, ia64 and ppc64 relocations to global data cannot go into
++   read-only sections (which is part of respective UNIX ABI on these
++   platforms). So 'const' makes no sense and even causes compile failures
++   with some compilers. */
++#if defined(CONFIG_ALPHA) || defined(CONFIG_IA64) || defined(CONFIG_PPC64)
++#define __moduleparam_const
++#else
++#define __moduleparam_const const
 +#endif
- 
- /*
-  * Convert the arch-dependent pte representation of a swp_entry_t into an
++
+ /* This is the fundamental function for registering boot/module
+    parameters.  perm sets the visibility in sysfs: 000 means it's
+    not there, read bits mean it's readable, write bits mean it's
+@@ -71,7 +81,7 @@ struct kparam_array
+ 	static int __param_perm_check_##name __attribute__((unused)) =	\
+ 	BUILD_BUG_ON_ZERO((perm) < 0 || (perm) > 0777 || ((perm) & 2));	\
+ 	static const char __param_str_##name[] = prefix #name;		\
+-	static struct kernel_param const __param_##name			\
++	static struct kernel_param __moduleparam_const __param_##name	\
+ 	__used								\
+     __attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
+ 	= { __param_str_##name, perm, set, get, { arg } }
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
 origin.patch
-fix-compile-error-on-nommu-for-is_swap_pte.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch
+make-sure-nobodys-leaking-resources.patch
