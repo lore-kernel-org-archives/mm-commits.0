@@ -1,72 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:27 -0800
-Message-ID: <200802082014.m18KE8Nx010367@imap1.linux-foundation.org>
+Subject: - libfs-make-simple-attributes-interruptible.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:16:54 -0800
+Message-ID: <200802082016.m18KGZtL010744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51305 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758760AbYBHVDh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:37 -0500
+	by vger.kernel.org with ESMTP id S1758198AbYBHVD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, davidel@xmailserver.org, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: hch@lst.de, arnd@arndb.de, greg@kroah.com, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uglify while_each_pid_task() to make sure we don't count the execing pricess twice
+     libfs: make simple attributes interruptible
 has been removed from the -mm tree.  Its filename was
-     uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice.patch
+     libfs-make-simple-attributes-interruptible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uglify while_each_pid_task() to make sure we don't count the execing pricess twice
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: libfs: make simple attributes interruptible
+From: Christoph Hellwig <hch@lst.de>
 
-There is a window when de_thread() switches the leader and drops
-tasklist_lock.  In that window do_each_pid_task(PIDTYPE_PID) finds both new
-and old leaders.
+Use mutex_lock_interruptible in simple_attr_read/write.
 
-The problem is pretty much theoretical and probably can be ignored.  Currently
-the only users of do_each_pid_task(PIDTYPE_PID) are send_sigio/send_sigurg, so
-they can send the signal to the same process twice.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: <stefano.brivio@polimi.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/libfs.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pid.h~uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice include/linux/pid.h
---- a/include/linux/pid.h~uglify-while_each_pid_task-to-make-sure-we-dont-count-the-execing-pricess-twice
-+++ a/include/linux/pid.h
-@@ -152,7 +152,13 @@ pid_t pid_vnr(struct pid *pid);
- 			hlist_for_each_entry_rcu((task), pos___,	\
- 				&pid->tasks[type], pids[type].node) {
+diff -puN fs/libfs.c~libfs-make-simple-attributes-interruptible fs/libfs.c
+--- a/fs/libfs.c~libfs-make-simple-attributes-interruptible
++++ a/fs/libfs.c
+@@ -634,7 +634,10 @@ ssize_t simple_attr_read(struct file *fi
+ 	if (!attr->get)
+ 		return -EACCES;
  
-+			/*
-+			 * Both old and new leaders may be attached to
-+			 * the same pid in the middle of de_thread().
-+			 */
- #define while_each_pid_task(pid, type, task)				\
-+				if (type == PIDTYPE_PID)		\
-+					break;				\
- 			}						\
- 	} while (0)
+-	mutex_lock(&attr->mutex);
++	ret = mutex_lock_interruptible(&attr->mutex);
++	if (ret)
++		return ret;
++
+ 	if (*ppos) {		/* continued read */
+ 		size = strlen(attr->get_buf);
+ 	} else {		/* first read */
+@@ -666,7 +669,10 @@ ssize_t simple_attr_write(struct file *f
+ 	if (!attr->set)
+ 		return -EACCES;
  
+-	mutex_lock(&attr->mutex);
++	ret = mutex_lock_interruptible(&attr->mutex);
++	if (ret)
++		return ret;
++
+ 	ret = -EFAULT;
+ 	size = min(sizeof(attr->set_buf) - 1, len);
+ 	if (copy_from_user(attr->set_buf, buf, size))
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
+git-unionfs.patch
+git-xfs.patch
+uml-update-defconfig.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+rename-open_namei-to-open_pathname.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+vfs-create-proc-pid-mountinfo.patch
+reiserfs-use-open_bdev_excl.patch
 procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
