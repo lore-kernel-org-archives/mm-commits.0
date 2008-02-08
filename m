@@ -1,92 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:47 -0800
-Message-ID: <200802080808.m1888SHs014641@imap1.linux-foundation.org>
+Subject: - drivers-edac-i3000-missing-init-code.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:05 -0800
+Message-ID: <200802080805.m1885kQQ014375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932426AbYBHIUD (ORCPT
+	by vger.kernel.org with ESMTP id S932454AbYBHIUD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: h.mitake@gmail.com, dougthompson@xmisson.com, juhlenko@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg64 and cmpxchg64_local to powerpc
+     drivers/edac: i3000: missing init code
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+     drivers-edac-i3000-missing-init-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add cmpxchg64 and cmpxchg64_local to powerpc
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: drivers/edac: i3000: missing init code
+From: Hitoshi Mitake <h.mitake@gmail.com>
 
-Make sure that at least cmpxchg64_local is available on all architectures to use
-for unsigned long long values.
+There is a missing sequence of initialization code during startup.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Hitoshi Mitake <h.mitake@gmail.com>
+Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
+Signed-off-by: Doug Thompson <dougthompson@xmisson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/system.h |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/edac/i3000_edac.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN include/asm-powerpc/system.h~add-cmpxchg64-and-cmpxchg64_local-to-powerpc include/asm-powerpc/system.h
---- a/include/asm-powerpc/system.h~add-cmpxchg64-and-cmpxchg64_local-to-powerpc
-+++ a/include/asm-powerpc/system.h
-@@ -463,7 +463,7 @@ __cmpxchg_local(volatile void *ptr, unsi
- 	return old;
- }
+diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-missing-init-code drivers/edac/i3000_edac.c
+--- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-missing-init-code
++++ a/drivers/edac/i3000_edac.c
+@@ -14,6 +14,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
++#include <linux/edac.h>
+ #include "edac_core.h"
  
--#define cmpxchg(ptr,o,n)						 \
-+#define cmpxchg(ptr, o, n)						 \
-   ({									 \
-      __typeof__(*(ptr)) _o_ = (o);					 \
-      __typeof__(*(ptr)) _n_ = (n);					 \
-@@ -472,7 +472,7 @@ __cmpxchg_local(volatile void *ptr, unsi
-   })
+ #define I3000_REVISION		"1.1"
+@@ -318,6 +319,15 @@ static int i3000_probe1(struct pci_dev *
+ 		return -ENODEV;
+ 	}
  
- 
--#define cmpxchg_local(ptr,o,n)						 \
-+#define cmpxchg_local(ptr, o, n)					 \
-   ({									 \
-      __typeof__(*(ptr)) _o_ = (o);					 \
-      __typeof__(*(ptr)) _n_ = (n);					 \
-@@ -492,6 +492,20 @@ __cmpxchg_local(volatile void *ptr, unsi
-  */
- #define NET_IP_ALIGN	0
- #define NET_SKB_PAD	L1_CACHE_BYTES
++	switch (edac_op_state) {
++	case EDAC_OPSTATE_POLL:
++	case EDAC_OPSTATE_NMI:
++		break;
++	default:
++		edac_op_state = EDAC_OPSTATE_POLL;
++		break;
++	}
 +
-+#define cmpxchg64(ptr, o, n)						\
-+  ({									\
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+	cmpxchg((ptr), (o), (n));					\
-+  })
-+#define cmpxchg64_local(ptr, o, n)					\
-+  ({									\
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+	cmpxchg_local((ptr), (o), (n));					\
-+  })
-+#else
-+#include <asm-generic/cmpxchg-local.h>
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
- #endif
- 
- #define arch_align_stack(x) (x)
+ 	c0dra[0] = readb(window + I3000_C0DRA + 0);	/* ranks 0,1 */
+ 	c0dra[1] = readb(window + I3000_C0DRA + 1);	/* ranks 2,3 */
+ 	c1dra[0] = readb(window + I3000_C1DRA + 0);	/* ranks 0,1 */
+@@ -537,3 +547,6 @@ module_exit(i3000_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Akamai Technologies Arthur Ulfeldt/Jason Uhlenkott");
+ MODULE_DESCRIPTION("MC support for Intel 3000 memory hub controllers");
++
++module_param(edac_op_state, int, 0444);
++MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from h.mitake@gmail.com are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
