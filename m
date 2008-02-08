@@ -1,125 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - char-rocket-remove-useless-macros.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:09:30 -0800
-Message-ID: <200802080809.m1889BX1014803@imap1.linux-foundation.org>
+Subject: - drivers-edac-turnon-edac-device-error-logging.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:35 -0800
+Message-ID: <200802080805.m1885GP3014322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760487AbYBHIT3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:29 -0500
+	by vger.kernel.org with ESMTP id S1760519AbYBHITb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rocket, remove useless macros
+     drivers-edac: turn on edac device error logging
 has been removed from the -mm tree.  Its filename was
-     char-rocket-remove-useless-macros.patch
+     drivers-edac-turnon-edac-device-error-logging.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: rocket, remove useless macros
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: drivers-edac: turn on edac device error logging
+From: Doug Thompson <dougthompson@xmission.com>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+ENABLE the 'logging' of CE and UE events for the EDAC_DEVICE class of error
+harvester in EDAC
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c     |   11 ++---------
- drivers/char/rocket_int.h |   18 ------------------
- 2 files changed, 2 insertions(+), 27 deletions(-)
+ drivers/edac/edac_device.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/char/rocket.c~char-rocket-remove-useless-macros drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-remove-useless-macros
-+++ a/drivers/char/rocket.c
-@@ -40,12 +40,6 @@
-  */
+diff -puN drivers/edac/edac_device.c~drivers-edac-turnon-edac-device-error-logging drivers/edac/edac_device.c
+--- a/drivers/edac/edac_device.c~drivers-edac-turnon-edac-device-error-logging
++++ a/drivers/edac/edac_device.c
+@@ -155,6 +155,10 @@ struct edac_device_ctl_info *edac_device
+ 	dev_ctl->instances = dev_inst;
+ 	dev_ctl->pvt_info = pvt;
  
- /****** Defines ******/
--#ifdef PCI_NUM_RESOURCES
--#define PCI_BASE_ADDRESS(dev, r) ((dev)->resource[r].start)
--#else
--#define PCI_BASE_ADDRESS(dev, r) ((dev)->base_address[r])
--#endif
--
- #define ROCKET_PARANOIA_CHECK
- #define ROCKET_DISABLE_SIMUSAGE
++	/* Default logging of CEs and UEs */
++	dev_ctl->log_ce = 1;
++	dev_ctl->log_ue = 1;
++
+ 	/* Name of this edac device */
+ 	snprintf(dev_ctl->name,sizeof(dev_ctl->name),"%s",edac_device_name);
  
-@@ -981,7 +975,7 @@ static int rp_open(struct tty_struct *tt
- 	CHANNEL_t *cp;
- 	unsigned long page;
- 
--	line = TTY_GET_LINE(tty);
-+	line = tty->index;
- 	if ((line < 0) || (line >= MAX_RP_PORTS) || ((info = rp_table[line]) == NULL))
- 		return -ENXIO;
- 
-@@ -1166,8 +1160,7 @@ static void rp_close(struct tty_struct *
- 	if (C_HUPCL(tty))
- 		sClrDTR(cp);
- 
--	if (TTY_DRIVER_FLUSH_BUFFER_EXISTS(tty))
--		TTY_DRIVER_FLUSH_BUFFER(tty);
-+	rp_flush_buffer(tty);
- 		
- 	tty_ldisc_flush(tty);
- 
-diff -puN drivers/char/rocket_int.h~char-rocket-remove-useless-macros drivers/char/rocket_int.h
---- a/drivers/char/rocket_int.h~char-rocket-remove-useless-macros
-+++ a/drivers/char/rocket_int.h
-@@ -105,12 +105,6 @@ static inline unsigned short sInW(unsign
- #define AIOPID_NULL -1		/* no AIOP or channel exists */
- #define AIOPID_0001 0x0001	/* AIOP release 1 */
- 
--#define NULLDEV -1		/* identifies non-existant device */
--#define NULLCTL -1		/* identifies non-existant controller */
--#define NULLCTLPTR (CONTROLLER_T *)0	/* identifies non-existant controller */
--#define NULLAIOP -1		/* identifies non-existant AIOP */
--#define NULLCHAN -1		/* identifies non-existant channel */
--
- /************************************************************************
-  Global Register Offsets - Direct Access - Fixed values
- ************************************************************************/
-@@ -1187,9 +1181,6 @@ struct r_port {
- #define ROCKET_CLOSING		0x40000000	/* Serial port is closing */
- #define ROCKET_NORMAL_ACTIVE	0x20000000	/* Normal port is active */
- 
--/* tty subtypes */
--#define SERIAL_TYPE_NORMAL 1
--
- /*
-  * Assigned major numbers for the Comtrol Rocketport
-  */
-@@ -1240,12 +1231,3 @@ struct r_port {
- /* Compact PCI device */ 
- #define PCI_DEVICE_ID_CRP16INTF		0x0903	/* Rocketport Compact PCI 16 port w/external I/F */
- 
--#define TTY_GET_LINE(t) t->index
--#define TTY_DRIVER_MINOR_START(t) t->driver->minor_start
--#define TTY_DRIVER_SUBTYPE(t) t->driver->subtype
--#define TTY_DRIVER_NAME(t) t->driver->name
--#define TTY_DRIVER_NAME_BASE(t) t->driver->name_base
--#define TTY_DRIVER_FLUSH_BUFFER_EXISTS(t) t->driver->flush_buffer
--#define TTY_DRIVER_FLUSH_BUFFER(t) t->driver->flush_buffer(t)
--
--
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-watchdog.patch
-moxa-first-pass-at-termios-reporting.patch
-char-applicom-use-pci_resource_start.patch
-char-applicom-use-pci_match_id.patch
-char-applicom-use-pci_match_id-fix.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
