@@ -1,107 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:47 -0800
-Message-ID: <200802082013.m18KDSWX010292@imap1.linux-foundation.org>
+Subject: - serial8250-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:02 -0800
+Message-ID: <200802082012.m18KChjb010230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756043AbYBHUv3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:29 -0500
+	by vger.kernel.org with ESMTP id S1756490AbYBHUvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_continued/zombie: don't use task_pid_nr_ns() lockless
+     serial8250: coding style
 has been removed from the -mm tree.  Its filename was
-     wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
+     serial8250-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_continued/zombie: don't use task_pid_nr_ns() lockless
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: serial8250: coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Surprise, other 2 wait_task_() functions also abuse task_pid_nr_ns().  May
-cause read-after-free or report nr == 0 in wait_task_continued(). 
-wait_task_zombie() doesn't have this problem, but still it is better to cache
-pid_t rather than call task_pid_nr_ns() 3 times on the saved pid_namespace.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/serial/8250.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless kernel/exit.c
---- a/kernel/exit.c~wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless
-+++ a/kernel/exit.c
-@@ -1189,12 +1189,9 @@ static int wait_task_zombie(struct task_
+diff -puN drivers/serial/8250.c~serial8250-coding-style drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial8250-coding-style
++++ a/drivers/serial/8250.c
+@@ -305,7 +305,7 @@ static inline int map_8250_out_reg(struc
+ 	return au_io_out_map[offset];
+ }
+ 
+-#elif defined (CONFIG_SERIAL_8250_RM9K)
++#elif defined(CONFIG_SERIAL_8250_RM9K)
+ 
+ static const u8
+ 	regmap_in[8] = {
+@@ -475,7 +475,7 @@ static inline void _serial_dl_write(stru
+ 	serial_outp(up, UART_DLM, value >> 8 & 0xff);
+ }
+ 
+-#if defined (CONFIG_SERIAL_8250_AU1X00)
++#if defined(CONFIG_SERIAL_8250_AU1X00)
+ /* Au1x00 haven't got a standard divisor latch */
+ static int serial_dl_read(struct uart_8250_port *up)
  {
- 	unsigned long state;
- 	int retval, status, traced;
--	struct pid_namespace *ns;
--
--	ns = current->nsproxy->pid_ns;
-+	pid_t pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
+@@ -492,7 +492,7 @@ static void serial_dl_write(struct uart_
+ 	else
+ 		_serial_dl_write(up, value);
+ }
+-#elif defined (CONFIG_SERIAL_8250_RM9K)
++#elif defined(CONFIG_SERIAL_8250_RM9K)
+ static int serial_dl_read(struct uart_8250_port *up)
+ {
+ 	return	(up->port.iotype == UPIO_RM9000) ?
+@@ -1185,8 +1185,8 @@ static void autoconfig_irq(struct uart_8
  
- 	if (unlikely(noreap)) {
--		pid_t pid = task_pid_nr_ns(p, ns);
- 		uid_t uid = p->uid;
- 		int exit_code = p->exit_code;
- 		int why, status;
-@@ -1313,11 +1310,11 @@ static int wait_task_zombie(struct task_
- 			retval = put_user(status, &infop->si_status);
- 	}
- 	if (!retval && infop)
--		retval = put_user(task_pid_nr_ns(p, ns), &infop->si_pid);
-+		retval = put_user(pid, &infop->si_pid);
- 	if (!retval && infop)
- 		retval = put_user(p->uid, &infop->si_uid);
- 	if (!retval)
--		retval = task_pid_nr_ns(p, ns);
-+		retval = pid;
- 
- 	if (traced) {
- 		write_lock_irq(&tasklist_lock);
-@@ -1436,7 +1433,6 @@ static int wait_task_continued(struct ta
- 	int retval;
- 	pid_t pid;
- 	uid_t uid;
--	struct pid_namespace *ns;
- 
- 	if (!(p->signal->flags & SIGNAL_STOP_CONTINUED))
- 		return 0;
-@@ -1451,8 +1447,7 @@ static int wait_task_continued(struct ta
- 		p->signal->flags &= ~SIGNAL_STOP_CONTINUED;
- 	spin_unlock_irq(&p->sighand->siglock);
- 
--	ns = current->nsproxy->pid_ns;
--	pid = task_pid_nr_ns(p, ns);
-+	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
- 	uid = p->uid;
- 	get_task_struct(p);
- 	read_unlock(&tasklist_lock);
-@@ -1463,7 +1458,7 @@ static int wait_task_continued(struct ta
- 		if (!retval && stat_addr)
- 			retval = put_user(0xffff, stat_addr);
- 		if (!retval)
--			retval = task_pid_nr_ns(p, ns);
-+			retval = pid;
+ 	irqs = probe_irq_on();
+ 	serial_outp(up, UART_MCR, 0);
+-	udelay (10);
+-	if (up->port.flags & UPF_FOURPORT)  {
++	udelay(10);
++	if (up->port.flags & UPF_FOURPORT) {
+ 		serial_outp(up, UART_MCR,
+ 			    UART_MCR_DTR | UART_MCR_RTS);
  	} else {
- 		retval = wait_noreap_copyout(p, pid, uid,
- 					     CLD_CONTINUED, SIGCONT,
+@@ -1199,7 +1199,7 @@ static void autoconfig_irq(struct uart_8
+ 	(void)serial_inp(up, UART_IIR);
+ 	(void)serial_inp(up, UART_MSR);
+ 	serial_outp(up, UART_TX, 0xFF);
+-	udelay (20);
++	udelay(20);
+ 	irq = probe_irq_off(irqs);
+ 
+ 	serial_outp(up, UART_MCR, save_mcr);
+@@ -1343,7 +1343,7 @@ receive_chars(struct uart_8250_port *up,
+ 
+ 		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
+ 
+-	ignore_char:
++ignore_char:
+ 		lsr = serial_inp(up, UART_LSR);
+ 	} while ((lsr & UART_LSR_DR) && (max_count-- > 0));
+ 	spin_unlock(&up->port.lock);
+@@ -1633,7 +1633,8 @@ static void serial8250_backup_timeout(un
+ 		serial_out(up, UART_IER, ier);
+ 
+ 	/* Standard timer interval plus 0.2s to keep the port running */
+-	mod_timer(&up->timer, jiffies + poll_timeout(up->port.timeout) + HZ/5);
++	mod_timer(&up->timer,
++		jiffies + poll_timeout(up->port.timeout) + HZ / 5);
+ }
+ 
+ static unsigned int serial8250_tx_empty(struct uart_port *port)
+@@ -1844,7 +1845,7 @@ static int serial8250_startup(struct uar
+ 			up->timer.function = serial8250_backup_timeout;
+ 			up->timer.data = (unsigned long)up;
+ 			mod_timer(&up->timer, jiffies +
+-			          poll_timeout(up->port.timeout) + HZ/5);
++				poll_timeout(up->port.timeout) + HZ / 5);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
