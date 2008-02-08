@@ -1,87 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:22 -0800
-Message-ID: <200802080804.m18843e7014238@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:39 -0800
+Message-ID: <200802080804.m1884K3G014256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53482 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760961AbYBHI3G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:29:06 -0500
+	by vger.kernel.org with ESMTP id S1753339AbYBHI3S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     memory cgroup enhancements: remember "a page is on active list of cgroup or not"
+     per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: remember "a page is on active list of cgroup or not"
+Subject: per-zone and reclaim enhancements for memory controller: nid/zid helper function for cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Remember page_cgroup is on active_list or not in page_cgroup->flags.
+Add macro to get node_id and zone_id of page_cgroup.  Will be used in
+per-zone-xxx patches and others.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-nid-zid-helper-function-for-cgroup
 +++ a/mm/memcontrol.c
-@@ -86,6 +86,7 @@ struct page_cgroup {
- 	int	 flags;
- };
+@@ -135,6 +135,16 @@ struct page_cgroup {
  #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
-+#define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
+ #define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
  
++static inline int page_cgroup_nid(struct page_cgroup *pc)
++{
++	return page_to_nid(pc->page);
++}
++
++static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
++{
++	return page_zonenum(pc->page);
++}
++
  enum {
  	MEM_CGROUP_TYPE_UNSPEC = 0,
-@@ -213,10 +214,13 @@ clear_page_cgroup(struct page *page, str
- 
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
- {
--	if (active)
-+	if (active) {
-+		pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
- 		list_move(&pc->lru, &pc->mem_cgroup->active_list);
--	else
-+	} else {
-+		pc->flags &= ~PAGE_CGROUP_FLAG_ACTIVE;
- 		list_move(&pc->lru, &pc->mem_cgroup->inactive_list);
-+	}
- }
- 
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
-@@ -403,7 +407,7 @@ retry:
- 	atomic_set(&pc->ref_cnt, 1);
- 	pc->mem_cgroup = mem;
- 	pc->page = page;
--	pc->flags = 0;
-+	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
- 		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
- 
+ 	MEM_CGROUP_TYPE_MAPPED,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
