@@ -1,89 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - getdelays-fix-gcc-warnings.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:20:36 -0800
-Message-ID: <200802082020.m18KKH2t011152@imap1.linux-foundation.org>
+Subject: - ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:21:16 -0800
+Message-ID: <200802082020.m18KKvsN011272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934231AbYBHUi5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:38:57 -0500
+	by vger.kernel.org with ESMTP id S1760366AbYBHUj7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:39:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     getdelays: fix gcc warnings
+     ext3 can fail badly when device stops accepting BIO_RW_BARRIER requests
 has been removed from the -mm tree.  Its filename was
-     getdelays-fix-gcc-warnings.patch
+     ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: getdelays: fix gcc warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ext3 can fail badly when device stops accepting BIO_RW_BARRIER requests
+From: Neil Brown <neilb@suse.de>
 
-Fix gcc warnings in getdelays.c:
+Some devices - notably dm and md - can change their behaviour in response
+to BIO_RW_BARRIER requests.  They might start out accepting such requests
+but on reconfiguration, they find out that they cannot any more.
 
-Documentation/accounting/getdelays.c: In function 'task_context_switch_counts':
-Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 4 has type '__u64'
-Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 5 has type '__u64'
-Documentation/accounting/getdelays.c: In function 'main':
-Documentation/accounting/getdelays.c:402: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-Documentation/accounting/getdelays.c: In function 'get_family_id':
-Documentation/accounting/getdelays.c:171: warning: 'id' may be used uninitialized in this function
+ext3 (and other filesystems) deal with this by always testing if
+BIO_RW_BARRIER requests fail with EOPNOTSUPP, and retrying the write
+requests without the barrier (probably after waiting for any pending writes
+to complete).
 
-One warning is not a problem and can be dismissed:
-Documentation/accounting/getdelays.c: In function 'main':
-Documentation/accounting/getdelays.c:236: warning: 'cmd_type' may be used uninitialized in this function
+However there is a bug in the handling for this for ext3.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+When ext3 (jbd actually) decides to submit a BIO_RW_BARRIER request, it
+sets the buffer_ordered flag on the buffer head.  If the request completes
+successfully, the flag STAYS SET.
+
+Other code might then write the same buffer_head after the device has been
+reconfigured to not accept barriers.  This write will then fail, but the
+"other code" is not ready to handle EOPNOTSUPP errors and the error will be
+treated as fatal.
+
+This can be seen without having to reconfigure a device at exactly the
+wrong time by putting:
+
+		if (buffer_ordered(bh))
+			printk("OH DEAR, and ordered buffer\n");
+
+in the while loop in "commit phase 5" of journal_commit_transaction.
+
+If it ever prints the "OH DEAR ..." message (as it does sometimes for
+me), then that request could (in different circumstances) have failed
+with EOPNOTSUPP, but that isn't tested for.
+
+My proposed fix is to clear the buffer_ordered flag after it has been
+used, as in the following patch.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/jbd/commit.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings
-+++ a/Documentation/accounting/getdelays.c
-@@ -168,7 +168,7 @@ int get_family_id(int sd)
- 		char buf[256];
- 	} ans;
+diff -puN fs/jbd/commit.c~ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests fs/jbd/commit.c
+--- a/fs/jbd/commit.c~ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests
++++ a/fs/jbd/commit.c
+@@ -131,6 +131,8 @@ static int journal_write_commit_record(j
+ 		barrier_done = 1;
+ 	}
+ 	ret = sync_dirty_buffer(bh);
++	if (barrier_done)
++		clear_buffer_ordered(bh);
+ 	/* is it possible for another commit to fail at roughly
+ 	 * the same time as this one?  If so, we don't want to
+ 	 * trust the barrier flag in the super, but instead want
+@@ -148,7 +150,6 @@ static int journal_write_commit_record(j
+ 		spin_unlock(&journal->j_state_lock);
  
--	int id, rc;
-+	int id = 0, rc;
- 	struct nlattr *na;
- 	int rep_len;
- 
-@@ -209,7 +209,7 @@ void print_delayacct(struct taskstats *t
- void task_context_switch_counts(struct taskstats *t)
- {
- 	printf("\n\nTask   %15s%15s\n"
--	       "       %15lu%15lu\n",
-+	       "       %15llu%15llu\n",
- 	       "voluntary", "nonvoluntary",
- 	       t->nvcsw, t->nivcsw);
- }
-@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
- 			goto done;
- 		}
- 
--		PRINTF("nlmsghdr size=%d, nlmsg_len=%d, rep_len=%d\n",
-+		PRINTF("nlmsghdr size=%zu, nlmsg_len=%d, rep_len=%d\n",
- 		       sizeof(struct nlmsghdr), msg.n.nlmsg_len, rep_len);
- 
- 
+ 		/* And try again, without the barrier */
+-		clear_buffer_ordered(bh);
+ 		set_buffer_uptodate(bh);
+ 		set_buffer_dirty(bh);
+ 		ret = sync_dirty_buffer(bh);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-profile-likely-unlikely-macros.patch
+one-less-parameter-to-__d_path.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
