@@ -1,94 +1,376 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-parisc.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:09:06 -0800
-Message-ID: <200802080808.m1888lsf014695@imap1.linux-foundation.org>
+Subject: - small-acpica-extension-to-be-able-to-store-the-name-of.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:10:27 -0800
+Message-ID: <200802080810.m188A88N014918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52387 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932585AbYBHIUF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:05 -0500
+	by vger.kernel.org with ESMTP id S1761857AbYBHITv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
+To: trenn@suse.de, akpm@linux-foundation.org, bjorn.helgaas@hp.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to parisc
+     Small ACPICA extension to be able to store the name of operation regions in osl.c later
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-parisc.patch
+     small-acpica-extension-to-be-able-to-store-the-name-of.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to parisc
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Small ACPICA extension to be able to store the name of operation regions in osl.c later
+From: Thomas Renninger <trenn@suse.de>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+In ACPI, AML can define accesses to IO ports and System Memory by Operation
+Regions.  Those are not registered as done by PNPACPI using resource templates
+(and _CRS/_SRS methods).
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <willy@debian.org>
+The IO ports and System Memory regions may get accessed by arbitrary AML code.
+ When native drivers are accessing the same resources bad things can happen
+(e.g.  a critical shutdown temperature of 3000 C every 2 months or so).
+
+It is not really possible to register the operation regions via
+request_resource, as they often overlap with pnp or other resources (e.g. 
+statically setup IO resources below 0x100).
+
+This approach stores all Operation Region declarations (IO and System Memory
+only) at ACPI table parse time.  It offers a similar functionality like
+request_region and let drivers which are known to possibly use the same IO
+ports and Memory which are also often used by ACPI (hwmon and i2c) check for
+ACPI interference.
+
+A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
+is default set to lax:
+  - strict: let conflicting drivers fail to load with an error message
+  - lax:    let conflicting driver work normal with a warning message
+  - no:     no functional change at all
+Depending on the feedback and the kind of interferences we see, this
+should be set to strict at later time.
+
+Goal of this patch set is:
+  - Identify ACPI interferences in bug reports (very hard to reproduce
+    and to identify)
+  - Find BIOSes for that an ACPI driver should exist for specific HW
+    instead of a native one.
+  - stability in general
+
+
+
+Provide acpi_check_{mem_}region.
+
+Drivers can additionally check against possible ACPI interference by also
+invoking this shortly before they call request_region.
+If -EBUSY is returned, the driver must not load.
+Use acpi_enforce_resources=strict/lax/no options to:
+  - strict: let conflicting drivers fail to load with an error message
+  - lax:    let conflicting driver work normal with a warning message
+  - no:     no functional change at all
+
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+DESC
+small-acpica-extension-to-be-able-to-store-the-name-of-fix
+EDESC
+
+drivers/acpi/osl.c: In function 'acpi_os_validate_address':
+drivers/acpi/osl.c:1365: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'long unsigned int'
+drivers/acpi/osl.c:1365: warning: format '%s' expects type 'char *', but argument 5 has type 'long unsigned int'
+
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/atomic.h |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ drivers/acpi/dispatcher/dsopcode.c |    4 
+ drivers/acpi/osl.c                 |  175 ++++++++++++++++++++++++++-
+ include/acpi/acpiosxf.h            |    4 
+ include/linux/acpi.h               |   17 ++
+ 4 files changed, 195 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc include/asm-parisc/atomic.h
---- a/include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc
-+++ a/include/asm-parisc/atomic.h
-@@ -122,6 +122,39 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
+diff -puN drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of drivers/acpi/dispatcher/dsopcode.c
+--- a/drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/drivers/acpi/dispatcher/dsopcode.c
+@@ -359,7 +359,9 @@ acpi_status acpi_ds_get_region_arguments
  
-+#include <asm-generic/cmpxchg-local.h>
+ 	status = acpi_os_validate_address(obj_desc->region.space_id,
+ 					  obj_desc->region.address,
+-					  (acpi_size) obj_desc->region.length);
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
 +
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new_, int size)
+ 	if (ACPI_FAILURE(status)) {
+ 		/*
+ 		 * Invalid address/length. We will emit an error message and mark
+diff -puN drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/drivers/acpi/osl.c
+@@ -44,6 +44,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <linux/efi.h>
++#include <linux/ioport.h>
++#include <linux/list.h>
+ 
+ #define _COMPONENT		ACPI_OS_SERVICES
+ ACPI_MODULE_NAME("osl");
+@@ -74,6 +76,18 @@ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+ 
++struct acpi_res_list {
++	resource_size_t start;
++	resource_size_t end;
++	acpi_adr_space_type resource_type; /* IO port, System memory, ...*/
++	char name[5];   /* only can have a length of 4 chars, make use of this
++			   one instead of res->name, no need to kalloc then */
++	struct list_head resource_list;
++};
++
++static LIST_HEAD(resource_list_head);
++static DEFINE_SPINLOCK(acpi_res_lock);
++
+ #define	OSI_STRING_LENGTH_MAX 64	/* arbitrary */
+ static char osi_additional_string[OSI_STRING_LENGTH_MAX];
+ 
+@@ -1106,6 +1120,127 @@ static int __init acpi_wake_gpes_always_
+ 
+ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+ 
++/* Check of resource interference between native drivers and ACPI
++ * OperationRegions (SystemIO and System Memory only).
++ * IO ports and memory declared in ACPI might be used by the ACPI subsystem
++ * in arbitrary AML code and can interfere with legacy drivers.
++ * acpi_enforce_resources= can be set to:
++ *
++ *   - strict           (2)
++ *     -> further driver trying to access the resources will not load
++ *   - lax (default)    (1)
++ *     -> further driver trying to access the resources will load, but you
++ *     get a system message that something might go wrong...
++ *
++ *   - no               (0)
++ *     -> ACPI Operation Region resources will not be registered
++ *
++ */
++#define ENFORCE_RESOURCES_STRICT 2
++#define ENFORCE_RESOURCES_LAX    1
++#define ENFORCE_RESOURCES_NO     0
++
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++
++static int __init acpi_enforce_resources_setup(char *str)
 +{
-+	switch (size) {
-+#ifdef CONFIG_64BIT
-+	case 8:	return __cmpxchg_u64((unsigned long *)ptr, old, new_);
-+#endif
-+	case 4:	return __cmpxchg_u32(ptr, old, new_);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new_, size);
-+	}
++	if (str == NULL || *str == '\0')
++		return 0;
++
++	if (!strcmp("strict", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
++	else if (!strcmp("lax", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++	else if (!strcmp("no", str))
++		acpi_enforce_resources = ENFORCE_RESOURCES_NO;
++
++	return 1;
 +}
 +
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	\
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#ifdef CONFIG_64BIT
-+#define cmpxchg64_local(ptr, o, n)					\
-+  ({									\
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+	cmpxchg_local((ptr), (o), (n));					\
-+  })
-+#else
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+#endif
++__setup("acpi_enforce_resources=", acpi_enforce_resources_setup);
 +
- /* Note that we need not lock read accesses - aligned word writes/reads
-  * are atomic, so a reader never sees unconsistent values.
++/* Check for resource conflicts between ACPI OperationRegions and native
++ * drivers */
++static int acpi_check_resource_conflict(struct resource *res)
++{
++	struct acpi_res_list *res_list_elem;
++	int ioport;
++	int clash = 0;
++
++	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
++		return 0;
++	if (!(res->flags & IORESOURCE_IO) && !(res->flags & IORESOURCE_MEM))
++		return 0;
++
++	ioport = res->flags & IORESOURCE_IO;
++
++	spin_lock(&acpi_res_lock);
++	list_for_each_entry(res_list_elem, &resource_list_head,
++			    resource_list) {
++		if (ioport && (res_list_elem->resource_type
++			       != ACPI_ADR_SPACE_SYSTEM_IO))
++			continue;
++		if (!ioport && (res_list_elem->resource_type
++				!= ACPI_ADR_SPACE_SYSTEM_MEMORY))
++			continue;
++
++		if (res->end < res_list_elem->start
++		    || res_list_elem->end < res->start)
++			continue;
++		clash = 1;
++		break;
++	}
++	spin_unlock(&acpi_res_lock);
++
++	if (clash) {
++		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
++			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
++			       " conflicts with ACPI region %s"
++			       " [0x%llx-0x%llx]\n",
++			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
++			       ? KERN_WARNING : KERN_ERR,
++			       ioport ? "I/O" : "Memory", res->name,
++			       (long long) res->start, (long long) res->end,
++			       res_list_elem->name,
++			       (long long) res_list_elem->start,
++			       (long long) res_list_elem->end);
++			printk(KERN_INFO "ACPI: Device needs an ACPI driver\n");
++		}
++		if (acpi_enforce_resources == ENFORCE_RESOURCES_STRICT)
++			return -EBUSY;
++	}
++	return 0;
++}
++
++int acpi_check_region(resource_size_t start, resource_size_t n,
++		      const char *name)
++{
++	struct resource res = {
++		.start = start,
++		.end   = start + n - 1,
++		.name  = name,
++		.flags = IORESOURCE_IO,
++	};
++
++	return acpi_check_resource_conflict(&res);
++}
++EXPORT_SYMBOL(acpi_check_region);
++
++int acpi_check_mem_region(resource_size_t start, resource_size_t n,
++		      const char *name)
++{
++	struct resource res = {
++		.start = start,
++		.end   = start + n - 1,
++		.name  = name,
++		.flags = IORESOURCE_MEM,
++	};
++
++	return acpi_check_resource_conflict(&res);
++
++}
++EXPORT_SYMBOL(acpi_check_mem_region);
++
+ /*
+  * Acquire a spinlock.
   *
+@@ -1307,10 +1442,46 @@ acpi_status
+ acpi_os_validate_address (
+     u8                   space_id,
+     acpi_physical_address   address,
+-    acpi_size               length)
++    acpi_size               length,
++    char *name)
+ {
++	struct acpi_res_list *res;
++	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
++		return AE_OK;
+ 
+-    return AE_OK;
++	switch (space_id) {
++	case ACPI_ADR_SPACE_SYSTEM_IO:
++	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
++		/* Only interference checks against SystemIO and SytemMemory
++		   are needed */
++		res = kzalloc(sizeof(struct acpi_res_list), GFP_KERNEL);
++		if (!res)
++			return AE_OK;
++		/* ACPI names are fixed to 4 bytes, still better use strlcpy */
++		strlcpy(res->name, name, 5);
++		res->start = address;
++		res->end = address + length - 1;
++		res->resource_type = space_id;
++		spin_lock(&acpi_res_lock);
++		list_add(&res->resource_list, &resource_list_head);
++		spin_unlock(&acpi_res_lock);
++		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
++			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++			 ? "SystemIO" : "System Memory",
++			 (unsigned long long)res->start,
++			 (unsigned long long)res->end,
++			 res->name);
++		break;
++	case ACPI_ADR_SPACE_PCI_CONFIG:
++	case ACPI_ADR_SPACE_EC:
++	case ACPI_ADR_SPACE_SMBUS:
++	case ACPI_ADR_SPACE_CMOS:
++	case ACPI_ADR_SPACE_PCI_BAR_TARGET:
++	case ACPI_ADR_SPACE_DATA_TABLE:
++	case ACPI_ADR_SPACE_FIXED_HARDWARE:
++		break;
++	}
++	return AE_OK;
+ }
+ 
+ #endif
+diff -puN include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of include/acpi/acpiosxf.h
+--- a/include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/include/acpi/acpiosxf.h
+@@ -240,8 +240,8 @@ acpi_status acpi_os_validate_interface(c
+ acpi_status acpi_osi_invalidate(char* interface);
+ 
+ acpi_status
+-acpi_os_validate_address(u8 space_id,
+-			 acpi_physical_address address, acpi_size length);
++acpi_os_validate_address(u8 space_id, acpi_physical_address address,
++			 acpi_size length, char *name);
+ 
+ u64 acpi_os_get_timer(void);
+ 
+diff -puN include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of include/linux/acpi.h
+--- a/include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/include/linux/acpi.h
+@@ -223,6 +223,11 @@ extern int pnpacpi_disabled;
+ #define PXM_INVAL	(-1)
+ #define NID_INVAL	(-1)
+ 
++int acpi_check_region(resource_size_t start, resource_size_t n,
++		      const char *name);
++int acpi_check_mem_region(resource_size_t start, resource_size_t n,
++		      const char *name);
++
+ #else	/* CONFIG_ACPI */
+ 
+ static inline int acpi_boot_init(void)
+@@ -235,5 +240,17 @@ static inline int acpi_boot_table_init(v
+ 	return 0;
+ }
+ 
++static inline int acpi_check_region(resource_size_t start, resource_size_t n,
++				    const char *name)
++{
++	return 0;
++}
++
++static inline int acpi_check_mem_region(resource_size_t start,
++					resource_size_t n, const char *name)
++{
++	return 0;
++}
++
+ #endif	/* !CONFIG_ACPI */
+ #endif	/*_LINUX_ACPI_H*/
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from trenn@suse.de are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
