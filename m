@@ -1,79 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - modules-handle-symbols-that-have-a-zero-value-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:37:01 -0800
-Message-ID: <200802080836.m188ag3T015867@imap1.linux-foundation.org>
+Subject: - proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:32:59 -0800
+Message-ID: <200802080832.m188Wekv015724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34356 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32782 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756543AbYBHIhC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:37:02 -0500
+	by vger.kernel.org with ESMTP id S1758680AbYBHIh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:37:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ak@suse.de, clameter@sgi.com, kay.sievers@vrfy.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, heiko.carstens@de.ibm.com, kamalesh@linux.vnet.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     module: fix __find_symbl() error checks
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2
 has been removed from the -mm tree.  Its filename was
-     modules-handle-symbols-that-have-a-zero-value-fix.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
 
-This patch was dropped because it was folded into modules-handle-symbols-that-have-a-zero-value.patch
+This patch was dropped because it was folded into proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: module: fix __find_symbl() error checks
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The patch:
+In file included from include/asm/thread_info.h:39,
+                 from include/linux/thread_info.h:21,
+                 from include/linux/preempt.h:9,
+                 from include/linux/spinlock.h:49,
+                 from include/linux/seqlock.h:29,
+                 from include/linux/time.h:8,
+                 from include/linux/timex.h:57,
+                 from include/linux/sched.h:53,
+                 from arch/s390/kernel/asm-offsets.c:7:
+include/asm/processor.h:184: warning: 'struct seq_file' declared inside parameter list
+include/asm/processor.h:184: warning: its scope is only this definition or declaration, which is probably not what you want
 
-http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.24/2.6.24-mm1/broken-out/modules-handle-symbols-that-have-a-zero-value.patch
+arch/s390/kernel/traps.c: In function 'task_show_regs':
+arch/s390/kernel/traps.c:226: error: implicit declaration of function 'seq_printf'
 
-changes the return value of __find_symbol() so that it can handle symbols
-that are zero and now it returns -errno for failure.
-
-But some __find_symbl() error checks remain unchanged.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kay Sievers <kay.sievers@vrfy.org
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/s390/kernel/traps.c     |    1 +
+ include/asm-s390/processor.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN kernel/module.c~modules-handle-symbols-that-have-a-zero-value-fix kernel/module.c
---- a/kernel/module.c~modules-handle-symbols-that-have-a-zero-value-fix
-+++ a/kernel/module.c
-@@ -982,7 +982,7 @@ static unsigned long resolve_symbol(Elf_
+diff -puN arch/s390/kernel/traps.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2 arch/s390/kernel/traps.c
+--- a/arch/s390/kernel/traps.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2
++++ a/arch/s390/kernel/traps.c
+@@ -24,6 +24,7 @@
+ #include <linux/smp.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/seq_file.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/kdebug.h>
+diff -puN include/asm-s390/processor.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2 include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2
++++ a/include/asm-s390/processor.h
+@@ -161,6 +161,7 @@ struct stack_frame {
+ /* Forward declaration, a strange C thing */
+ struct task_struct;
+ struct mm_struct;
++struct seq_file;
  
- 	ret = __find_symbol(name, &owner, &crc,
- 			!(mod->taints & TAINT_PROPRIETARY_MODULE));
--	if (ret) {
-+	if (!IS_ERR_VALUE(ret)) {
- 		/* use_module can fail due to OOM,
- 		   or module initialization or unloading */
- 		if (!check_version(sechdrs, versindex, name, mod, crc) ||
-@@ -1382,7 +1382,9 @@ void *__symbol_get(const char *symbol)
- 
- 	preempt_disable();
- 	value = __find_symbol(symbol, &owner, &crc, 1);
--	if (value && strong_try_module_get(owner) != 0)
-+	if (IS_ERR_VALUE(value))
-+		value = 0;
-+	else if (strong_try_module_get(owner))
- 		value = 0;
- 	preempt_enable();
- 
+ /* Free all resources held by a thread. */
+ extern void release_thread(struct task_struct *);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+proc-detect-duplicate-names-on-registration.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
