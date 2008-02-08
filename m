@@ -1,120 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - 8250_early-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:52 -0800
-Message-ID: <200802082012.m18KCXaJ010211@imap1.linux-foundation.org>
+Subject: - wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:47 -0800
+Message-ID: <200802082013.m18KDSWX010292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47796 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753723AbYBHUv5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:57 -0500
+	by vger.kernel.org with ESMTP id S1756043AbYBHUv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_early: coding style
+     wait_task_continued/zombie: don't use task_pid_nr_ns() lockless
 has been removed from the -mm tree.  Its filename was
-     8250_early-coding-style.patch
+     wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_early: coding style
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: wait_task_continued/zombie: don't use task_pid_nr_ns() lockless
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Surprise, other 2 wait_task_() functions also abuse task_pid_nr_ns().  May
+cause read-after-free or report nr == 0 in wait_task_continued(). 
+wait_task_zombie() doesn't have this problem, but still it is better to cache
+pid_t rather than call task_pid_nr_ns() 3 times on the saved pid_namespace.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_early.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ kernel/exit.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/serial/8250_early.c~8250_early-coding-style drivers/serial/8250_early.c
---- a/drivers/serial/8250_early.c~8250_early-coding-style
-+++ a/drivers/serial/8250_early.c
-@@ -82,7 +82,8 @@ static void __init serial_putc(struct ua
- 	serial_out(port, UART_TX, c);
- }
- 
--static void __init early_serial8250_write(struct console *console, const char *s, unsigned int count)
-+static void __init early_serial8250_write(struct console *console,
-+					const char *s, unsigned int count)
+diff -puN kernel/exit.c~wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless kernel/exit.c
+--- a/kernel/exit.c~wait_task_continued-zombie-dont-use-task_pid_nr_ns-lockless
++++ a/kernel/exit.c
+@@ -1189,12 +1189,9 @@ static int wait_task_zombie(struct task_
  {
- 	struct uart_port *port = &early_device.port;
- 	unsigned int ier;
-@@ -132,7 +133,8 @@ static void __init init_port(struct earl
- 	serial_out(port, UART_LCR, c & ~UART_LCR_DLAB);
- }
+ 	unsigned long state;
+ 	int retval, status, traced;
+-	struct pid_namespace *ns;
+-
+-	ns = current->nsproxy->pid_ns;
++	pid_t pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
  
--static int __init parse_options(struct early_serial8250_device *device, char *options)
-+static int __init parse_options(struct early_serial8250_device *device,
-+								char *options)
- {
- 	struct uart_port *port = &device->port;
- 	int mmio, length;
-@@ -145,8 +147,10 @@ static int __init parse_options(struct e
- 		port->iotype = UPIO_MEM;
- 		port->mapbase = simple_strtoul(options + 5, &options, 0);
- #ifdef CONFIG_FIX_EARLYCON_MEM
--		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE, port->mapbase & PAGE_MASK);
--		port->membase = (void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
-+		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE,
-+					port->mapbase & PAGE_MASK);
-+		port->membase =
-+			(void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
- 		port->membase += port->mapbase & ~PAGE_MASK;
- #else
- 		port->membase = ioremap(port->mapbase, 64);
-@@ -165,7 +169,8 @@ static int __init parse_options(struct e
- 	} else
- 		return -EINVAL;
- 
--	if ((options = strchr(options, ','))) {
-+	options = strchr(options, ',');
-+	if (options) {
- 		options++;
- 		device->baud = simple_strtoul(options, NULL, 0);
- 		length = min(strcspn(options, " "), sizeof(device->options));
-@@ -179,7 +184,7 @@ static int __init parse_options(struct e
- 	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
- 		mmio ? "MMIO" : "I/O port",
- 		mmio ? (unsigned long long) port->mapbase
--	             : (unsigned long long) port->iobase,
-+		     : (unsigned long long) port->iobase,
- 		device->options);
- 	return 0;
- }
-@@ -199,7 +204,8 @@ static int __init early_serial8250_setup
- 	if (device->port.membase || device->port.iobase)
- 		return 0;
- 
--	if ((err = parse_options(device, options)) < 0)
-+	err = parse_options(device, options);
-+	if (err < 0)
- 		return err;
- 
- 	init_port(device);
-@@ -219,7 +225,8 @@ int __init setup_early_serial8250_consol
+ 	if (unlikely(noreap)) {
+-		pid_t pid = task_pid_nr_ns(p, ns);
+ 		uid_t uid = p->uid;
+ 		int exit_code = p->exit_code;
+ 		int why, status;
+@@ -1313,11 +1310,11 @@ static int wait_task_zombie(struct task_
+ 			retval = put_user(status, &infop->si_status);
  	}
+ 	if (!retval && infop)
+-		retval = put_user(task_pid_nr_ns(p, ns), &infop->si_pid);
++		retval = put_user(pid, &infop->si_pid);
+ 	if (!retval && infop)
+ 		retval = put_user(p->uid, &infop->si_uid);
+ 	if (!retval)
+-		retval = task_pid_nr_ns(p, ns);
++		retval = pid;
  
- 	options = strchr(cmdline, ',') + 1;
--	if ((err = early_serial8250_setup(options)) < 0)
-+	err = early_serial8250_setup(options);
-+	if (err < 0)
- 		return err;
+ 	if (traced) {
+ 		write_lock_irq(&tasklist_lock);
+@@ -1436,7 +1433,6 @@ static int wait_task_continued(struct ta
+ 	int retval;
+ 	pid_t pid;
+ 	uid_t uid;
+-	struct pid_namespace *ns;
  
- 	register_console(&early_serial8250_console);
+ 	if (!(p->signal->flags & SIGNAL_STOP_CONTINUED))
+ 		return 0;
+@@ -1451,8 +1447,7 @@ static int wait_task_continued(struct ta
+ 		p->signal->flags &= ~SIGNAL_STOP_CONTINUED;
+ 	spin_unlock_irq(&p->sighand->siglock);
+ 
+-	ns = current->nsproxy->pid_ns;
+-	pid = task_pid_nr_ns(p, ns);
++	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
+ 	uid = p->uid;
+ 	get_task_struct(p);
+ 	read_unlock(&tasklist_lock);
+@@ -1463,7 +1458,7 @@ static int wait_task_continued(struct ta
+ 		if (!retval && stat_addr)
+ 			retval = put_user(0xffff, stat_addr);
+ 		if (!retval)
+-			retval = task_pid_nr_ns(p, ns);
++			retval = pid;
+ 	} else {
+ 		retval = wait_noreap_copyout(p, pid, uid,
+ 					     CLD_CONTINUED, SIGCONT,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
+revert-proc-fix-the-threaded-proc-self.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
