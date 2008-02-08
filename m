@@ -1,205 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:31 -0800
-Message-ID: <200802082013.m18KDC8L010274@imap1.linux-foundation.org>
+Subject: - aout-mark-arches-that-support-aout-format.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:14:55 -0800
+Message-ID: <200802082014.m18KEaEc010466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753722AbYBHUwh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:37 -0500
+	by vger.kernel.org with ESMTP id S1753102AbYBHUxA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
+     aout: mark arches that support A.OUT format
 has been removed from the -mm tree.  Its filename was
-     wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+     aout-mark-arches-that-support-aout-format.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: aout: mark arches that support A.OUT format
+From: David Howells <dhowells@redhat.com>
 
-wait_task_stopped() has multiple races with SIGCONT/SIGKILL.  tasklist_lock
-does not pin the child in TASK_TRACED/TASK_STOPPED stated, almost all info
-reported (including exit_code) may be wrong.
+Mark arches that support A.OUT format by including the following in their
+master Kconfig files:
 
-In fact, the code under write_lock_irq(tasklist_lock) is not safe.  The child
-may be PTRACE_DETACH'ed at this time by another subthread, in that case it is
-possible we are no longer its ->parent.
+	config ARCH_SUPPORTS_AOUT
+		def_bool y
 
-Change wait_task_stopped() to take ->siglock before inspecting the task.  This
-guarantees that the child can't resume and (for example) clear its
-->exit_code, so we don't need to use xchg(&p->exit_code) and re-check.  The
-only exception is ptrace_stop() which changes ->state and ->exit_code without
-->siglock held during abort.  But this can only happen if both the tracer and
-the tracee are dying (coredump is in progress), we don't care.
+This should also be set if the arch provides compatibility A.OUT support for
+an older arch, for instance x86_64 for i386 or sparc64 for sparc.
 
-With this patch wait_task_stopped() doesn't move the child to the end of the
-->parent lis
-t on success.  This optimization could be restored, but in that
-case we have to take write_lock(tasklist) and do some nasty checks.
+I've guessed at which arches don't, based on comments in the code, however I'm
+sure that some of the ones I've marked as 'yes' actually should be 'no'.
 
-Also change the do_wait() since we don't return EAGAIN any longer.
-
-[akpm@linux-foundation.org: fix up after Willy renamed everything]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   88 ++++++++++++++----------------------------------
- 1 file changed, 26 insertions(+), 62 deletions(-)
+ arch/alpha/Kconfig     |    3 +++
+ arch/arm/Kconfig       |    3 +++
+ arch/h8300/Kconfig     |    3 +++
+ arch/m32r/Kconfig      |    3 +++
+ arch/m68k/Kconfig      |    3 +++
+ arch/m68knommu/Kconfig |    3 +++
+ arch/parisc/Kconfig    |    3 +++
+ arch/sh/Kconfig        |    3 +++
+ arch/sparc/Kconfig     |    3 +++
+ arch/sparc64/Kconfig   |    5 ++++-
+ arch/um/Kconfig.i386   |    2 ++
+ arch/um/Kconfig.x86_64 |    2 ++
+ arch/v850/Kconfig      |    3 +++
+ arch/x86/Kconfig       |    5 ++++-
+ 14 files changed, 42 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace kernel/exit.c
---- a/kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace
-+++ a/kernel/exit.c
-@@ -1355,17 +1355,35 @@ static int wait_task_stopped(struct task
- 			     int noreap, struct siginfo __user *infop,
- 			     int __user *stat_addr, struct rusage __user *ru)
- {
--	int retval, exit_code;
-+	int retval, exit_code, why;
-+	uid_t uid = 0; /* unneeded, required by compiler */
- 	pid_t pid;
+diff -puN arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/alpha/Kconfig
+@@ -67,6 +67,9 @@ config AUTO_IRQ_AFFINITY
+ 	depends on SMP
+ 	default y
  
--	if (!p->exit_code)
--		return 0;
-+	exit_code = 0;
-+	spin_lock_irq(&p->sighand->siglock);
++config ARCH_SUPPORTS_AOUT
++	def_bool y
 +
-+	if (unlikely(!task_is_stopped_or_traced(p)))
-+		goto unlock_sig;
-+
- 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
- 	    p->signal->group_stop_count > 0)
- 		/*
- 		 * A group stop is in progress and this is the group leader.
- 		 * We won't report until all threads have stopped.
- 		 */
-+		goto unlock_sig;
-+
-+	exit_code = p->exit_code;
-+	if (!exit_code)
-+		goto unlock_sig;
-+
-+	if (!noreap)
-+		p->exit_code = 0;
-+
-+	uid = p->uid;
-+unlock_sig:
-+	spin_unlock_irq(&p->sighand->siglock);
-+	if (!exit_code)
- 		return 0;
+ source "init/Kconfig"
  
- 	/*
-@@ -1375,65 +1393,15 @@ static int wait_task_stopped(struct task
- 	 * keep holding onto the tasklist_lock while we call getrusage and
- 	 * possibly take page faults for user memory.
- 	 */
--	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
- 	get_task_struct(p);
-+	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
-+	why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
- 	read_unlock(&tasklist_lock);
  
--	if (unlikely(noreap)) {
--		uid_t uid = p->uid;
--		int why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
--
--		exit_code = p->exit_code;
--		if (unlikely(!exit_code) || unlikely(p->exit_state))
--			goto bail_ref;
-+	if (unlikely(noreap))
- 		return wait_noreap_copyout(p, pid, uid,
- 					   why, exit_code,
- 					   infop, ru);
--	}
--
--	write_lock_irq(&tasklist_lock);
--
--	/*
--	 * This uses xchg to be atomic with the thread resuming and setting
--	 * it.  It must also be done with the write lock held to prevent a
--	 * race with the EXIT_ZOMBIE case.
--	 */
--	exit_code = xchg(&p->exit_code, 0);
--	if (unlikely(p->exit_state)) {
--		/*
--		 * The task resumed and then died.  Let the next iteration
--		 * catch it in EXIT_ZOMBIE.  Note that exit_code might
--		 * already be zero here if it resumed and did _exit(0).
--		 * The task itself is dead and won't touch exit_code again;
--		 * other processors in this function are locked out.
--		 */
--		p->exit_code = exit_code;
--		exit_code = 0;
--	}
--	if (unlikely(exit_code == 0)) {
--		/*
--		 * Another thread in this function got to it first, or it
--		 * resumed, or it resumed and then died.
--		 */
--		write_unlock_irq(&tasklist_lock);
--bail_ref:
--		put_task_struct(p);
--		/*
--		 * We are returning to the wait loop without having successfully
--		 * removed the process and having released the lock. We cannot
--		 * continue, since the "p" task pointer is potentially stale.
--		 *
--		 * Return -EAGAIN, and do_wait() will restart the loop from the
--		 * beginning. Do _not_ re-acquire the lock.
--		 */
--		return -EAGAIN;
--	}
--
--	/* move to end of parent's list to avoid starvation */
--	remove_parent(p);
--	add_parent(p);
--
--	write_unlock_irq(&tasklist_lock);
+diff -puN arch/arm/Kconfig~aout-mark-arches-that-support-aout-format arch/arm/Kconfig
+--- a/arch/arm/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/arm/Kconfig
+@@ -126,6 +126,9 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
  
- 	retval = ru ? getrusage(p, RUSAGE_BOTH, ru) : 0;
- 	if (!retval && stat_addr)
-@@ -1443,15 +1411,13 @@ bail_ref:
- 	if (!retval && infop)
- 		retval = put_user(0, &infop->si_errno);
- 	if (!retval && infop)
--		retval = put_user((short)((p->ptrace & PT_PTRACED)
--					  ? CLD_TRAPPED : CLD_STOPPED),
--				  &infop->si_code);
-+		retval = put_user(why, &infop->si_code);
- 	if (!retval && infop)
- 		retval = put_user(exit_code, &infop->si_status);
- 	if (!retval && infop)
- 		retval = put_user(pid, &infop->si_pid);
- 	if (!retval && infop)
--		retval = put_user(p->uid, &infop->si_uid);
-+		retval = put_user(uid, &infop->si_uid);
- 	if (!retval)
- 		retval = pid;
- 	put_task_struct(p);
-@@ -1558,8 +1524,6 @@ repeat:
- 				retval = wait_task_stopped(p, ret == 2,
- 						(options & WNOWAIT), infop,
- 						stat_addr, ru);
--				if (retval == -EAGAIN)
--					goto repeat;
- 				if (retval != 0) /* He released the lock.  */
- 					goto end;
- 			} else if (p->exit_state == EXIT_ZOMBIE) {
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ config ARCH_MAY_HAVE_PC_FDC
+ 	bool
+ 
+diff -puN arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/h8300/Kconfig
+@@ -65,6 +65,9 @@ config TIME_LOW_RES
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ config NO_IOPORT
+ 	def_bool y
+ 
+diff -puN arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m32r/Kconfig
+@@ -35,6 +35,9 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m68k/Kconfig
+@@ -52,6 +52,9 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool SUN3
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ mainmenu "Linux/68k Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/m68knommu/Kconfig
+@@ -64,6 +64,9 @@ config TIME_LOW_RES
+ config NO_IOPORT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+diff -puN arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/parisc/Kconfig
+@@ -75,6 +75,9 @@ config IRQ_PER_CPU
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # unless you want to implement ACPI on PA-RISC ... ;-)
+ config PM
+ 	bool
+diff -puN arch/sh/Kconfig~aout-mark-arches-that-support-aout-format arch/sh/Kconfig
+--- a/arch/sh/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sh/Kconfig
+@@ -89,6 +89,9 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "System type"
+diff -puN arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sparc/Kconfig
+@@ -27,6 +27,9 @@ config ARCH_NO_VIRT_TO_BUS
+ config OF
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/sparc64/Kconfig
+@@ -81,6 +81,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 	bool
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+@@ -390,7 +393,7 @@ config BINFMT_ELF32
+ 
+ config BINFMT_AOUT32
+ 	bool "Kernel support for 32-bit (ie. SunOS) a.out binaries"
+-	depends on SPARC32_COMPAT
++	depends on SPARC32_COMPAT && ARCH_SUPPORTS_AOUT
+ 	help
+ 	  This allows you to run 32-bit a.out format binaries on your Ultra.
+ 	  If you want to run SunOS binaries (see SunOS binary emulation below)
+diff -puN arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format arch/um/Kconfig.i386
+--- a/arch/um/Kconfig.i386~aout-mark-arches-that-support-aout-format
++++ a/arch/um/Kconfig.i386
+@@ -84,3 +84,5 @@ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
+diff -puN arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format arch/um/Kconfig.x86_64
+--- a/arch/um/Kconfig.x86_64~aout-mark-arches-that-support-aout-format
++++ a/arch/um/Kconfig.x86_64
+@@ -39,3 +39,5 @@ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
+diff -puN arch/v850/Kconfig~aout-mark-arches-that-support-aout-format arch/v850/Kconfig
+--- a/arch/v850/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/v850/Kconfig
+@@ -53,6 +53,9 @@ config ARCH_HAS_ILOG2_U64
+ 	bool
+ 	default n
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # Turn off some random 386 crap that can affect device config
+ config ISA
+ 	bool
+diff -puN arch/x86/Kconfig~aout-mark-arches-that-support-aout-format arch/x86/Kconfig
+--- a/arch/x86/Kconfig~aout-mark-arches-that-support-aout-format
++++ a/arch/x86/Kconfig
+@@ -136,6 +136,9 @@ config AUDIT_ARCH
+ 	bool
+ 	default X86_64
+ 
++config ARCH_SUPPORTS_AOUT
++	def_bool y
++
+ # Use the generic interrupt handling code in kernel/irq/:
+ config GENERIC_HARDIRQS
+ 	bool
+@@ -1577,7 +1580,7 @@ config IA32_EMULATION
+ 
+ config IA32_AOUT
+        tristate "IA32 a.out support"
+-       depends on IA32_EMULATION
++       depends on IA32_EMULATION && ARCH_SUPPORTS_AOUT
+        help
+          Support old a.out binaries in the 32bit emulation.
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
 procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
