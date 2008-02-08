@@ -1,182 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-hostfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:15 -0800
-Message-ID: <200802080807.m1887ul9014602@imap1.linux-foundation.org>
+Subject: - iget-stop-fuse-from-using-iget-and-read_inode-try.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:44 -0800
+Message-ID: <200802080807.m1887PIu014532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933073AbYBHIVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:05 -0500
+	by vger.kernel.org with ESMTP id S932960AbYBHIVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, jdike@addtoit.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@lst.de, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop HOSTFS from using iget() and read_inode()
+     iget: stop FUSE from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     iget-stop-hostfs-from-using-iget-and-read_inode.patch
+     iget-stop-fuse-from-using-iget-and-read_inode-try.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop HOSTFS from using iget() and read_inode()
+Subject: iget: stop FUSE from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Stop the HOSTFS filesystem from using iget() and read_inode().  Provide
-hostfs_iget(), and call that instead of iget().  hostfs_iget() then uses
-iget_locked() directly and returns a proper error code instead of an inode in
-the event of an error.
+Stop the FUSE filesystem from using read_inode(), which it doesn't use anyway.
 
-hostfs_fill_sb_common() returns any error incurred when getting the root inode
-instead of EINVAL.
-
-Note that the contents of hostfs_kern.c need to be examined:
-
- (*) hostfs_iget() should perhaps subsume init_inode() and hostfs_read_inode().
-
- (*) It would appear that all hostfs inodes are the same inode because iget()
-     was being called with inode number 0 - which forms the lookup key.
-
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |   57 +++++++++++++++++++++++++-------------
- 1 file changed, 38 insertions(+), 19 deletions(-)
+ fs/fuse/inode.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -202,7 +202,7 @@ static char *follow_link(char *link)
- 	return ERR_PTR(n);
+diff -puN fs/fuse/inode.c~iget-stop-fuse-from-using-iget-and-read_inode-try fs/fuse/inode.c
+--- a/fs/fuse/inode.c~iget-stop-fuse-from-using-iget-and-read_inode-try
++++ a/fs/fuse/inode.c
+@@ -76,11 +76,6 @@ static void fuse_destroy_inode(struct in
+ 	kmem_cache_free(fuse_inode_cachep, inode);
  }
  
--static int read_inode(struct inode *ino)
-+static int hostfs_read_inode(struct inode *ino)
- {
- 	char *name;
- 	int err = 0;
-@@ -233,6 +233,25 @@ static int read_inode(struct inode *ino)
- 	return err;
- }
- 
-+static struct inode *hostfs_iget(struct super_block *sb)
-+{
-+	struct inode *inode;
-+	long ret;
-+
-+	inode = iget_locked(sb, 0);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (inode->i_state & I_NEW) {
-+		ret = hostfs_read_inode(inode);
-+		if (ret < 0) {
-+			iget_failed(inode);
-+			return ERR_PTR(ret);
-+		}
-+		unlock_new_inode(inode);
-+	}
-+	return inode;
-+}
-+
- int hostfs_statfs(struct dentry *dentry, struct kstatfs *sf)
- {
- 	/*
-@@ -303,17 +322,11 @@ static void hostfs_destroy_inode(struct 
- 	kfree(HOSTFS_I(inode));
- }
- 
--static void hostfs_read_inode(struct inode *inode)
+-static void fuse_read_inode(struct inode *inode)
 -{
--	read_inode(inode);
+-	/* No op */
 -}
 -
- static const struct super_operations hostfs_sbops = {
- 	.alloc_inode	= hostfs_alloc_inode,
- 	.drop_inode	= generic_delete_inode,
- 	.delete_inode   = hostfs_delete_inode,
- 	.destroy_inode	= hostfs_destroy_inode,
--	.read_inode	= hostfs_read_inode,
- 	.statfs		= hostfs_statfs,
- };
- 
-@@ -571,10 +584,11 @@ int hostfs_create(struct inode *dir, str
- 	char *name;
- 	int error, fd;
- 
--	error = -ENOMEM;
--	inode = iget(dir->i_sb, 0);
--	if (inode == NULL)
-+	inode = hostfs_iget(dir->i_sb);
-+	if (IS_ERR(inode)) {
-+		error = PTR_ERR(inode);
- 		goto out;
-+	}
- 
- 	error = init_inode(inode, dentry);
- 	if (error)
-@@ -615,10 +629,11 @@ struct dentry *hostfs_lookup(struct inod
- 	char *name;
- 	int err;
- 
--	err = -ENOMEM;
--	inode = iget(ino->i_sb, 0);
--	if (inode == NULL)
-+	inode = hostfs_iget(ino->i_sb);
-+	if (IS_ERR(inode)) {
-+		err = PTR_ERR(inode);
- 		goto out;
-+	}
- 
- 	err = init_inode(inode, dentry);
- 	if (err)
-@@ -736,11 +751,13 @@ int hostfs_mknod(struct inode *dir, stru
+ void fuse_send_forget(struct fuse_conn *fc, struct fuse_req *req,
+ 		      unsigned long nodeid, u64 nlookup)
  {
- 	struct inode *inode;
- 	char *name;
--	int err = -ENOMEM;
-+	int err;
- 
--	inode = iget(dir->i_sb, 0);
--	if (inode == NULL)
-+	inode = hostfs_iget(dir->i_sb);
-+	if (IS_ERR(inode)) {
-+		err = PTR_ERR(inode);
- 		goto out;
-+	}
- 
- 	err = init_inode(inode, dentry);
- 	if (err)
-@@ -952,9 +969,11 @@ static int hostfs_fill_sb_common(struct 
- 
- 	sprintf(host_root_path, "%s/%s", root_ino, req_root);
- 
--	root_inode = iget(sb, 0);
--	if (root_inode == NULL)
-+	root_inode = hostfs_iget(sb);
-+	if (IS_ERR(root_inode)) {
-+		err = PTR_ERR(root_inode);
- 		goto out_free;
-+	}
- 
- 	err = init_inode(root_inode, NULL);
- 	if (err)
-@@ -972,7 +991,7 @@ static int hostfs_fill_sb_common(struct 
- 	if (sb->s_root == NULL)
- 		goto out_put;
- 
--	err = read_inode(root_inode);
-+	err = hostfs_read_inode(root_inode);
- 	if (err) {
- 		/* No iput in this case because the dput does that for us */
- 		dput(sb->s_root);
+@@ -515,7 +510,6 @@ static struct inode *get_root_inode(stru
+ static const struct super_operations fuse_super_operations = {
+ 	.alloc_inode    = fuse_alloc_inode,
+ 	.destroy_inode  = fuse_destroy_inode,
+-	.read_inode	= fuse_read_inode,
+ 	.clear_inode	= fuse_clear_inode,
+ 	.drop_inode	= generic_delete_inode,
+ 	.remount_fs	= fuse_remount_fs,
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
