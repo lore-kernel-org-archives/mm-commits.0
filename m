@@ -1,143 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-hppfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:18 -0800
-Message-ID: <200802080807.m1887xYc014605@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:52 -0800
+Message-ID: <200802080808.m1888XOm014653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58761 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56512 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761950AbYBHIUO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:14 -0500
+	by vger.kernel.org with ESMTP id S932417AbYBHIUH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, bryan.wu@analog.com, michael.frysinger@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop HPPFS from using iget() and read_inode()
+     Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
 has been removed from the -mm tree.  Its filename was
-     iget-stop-hppfs-from-using-iget-and-read_inode.patch
+     add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop HPPFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Stop the HPPFS filesystem from using iget() and read_inode().  Provide an
-hppfs_iget(), and call that instead of iget().  hppfs_iget() then uses
-iget_locked() directly and returns a proper error code instead of an inode in
-the event of an error.
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set since nobody seems to know why __cmpxchg
+has been implemented in assembly in the first place thather than in plain C.
 
-hppfs_fill_sb_common() returns any error incurred when getting the root inode
-instead of EINVAL.
-
-Note that the contents of hppfs_kern.c need to be examined:
-
- (*) The HPPFS inode retains a pointer to the proc dentry it is shadowing, but
-     whilst it does appear to retain a reference to it, it doesn't appear to
-     destroy the reference if the inode goes away.
-
- (*) hppfs_iget() should perhaps subsume init_inode() and hppfs_read_inode().
-
- (*) It would appear that all hppfs inodes are the same inode because iget()
-     was being called with inode number 0, which forms the lookup key.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Michael Frysinger <michael.frysinger@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hppfs/hppfs_kern.c |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ include/asm-blackfin/system.h |   59 ++++++--------------------------
+ 1 file changed, 12 insertions(+), 47 deletions(-)
 
-diff -puN fs/hppfs/hppfs_kern.c~iget-stop-hppfs-from-using-iget-and-read_inode fs/hppfs/hppfs_kern.c
---- a/fs/hppfs/hppfs_kern.c~iget-stop-hppfs-from-using-iget-and-read_inode
-+++ a/fs/hppfs/hppfs_kern.c
-@@ -155,6 +155,20 @@ static void hppfs_read_inode(struct inod
- 	ino->i_blocks = proc_ino->i_blocks;
+diff -puN include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg include/asm-blackfin/system.h
+--- a/include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg
++++ a/include/asm-blackfin/system.h
+@@ -183,55 +183,20 @@ static inline unsigned long __xchg(unsig
+ 	return tmp;
  }
  
-+static struct inode *hppfs_iget(struct super_block *sb)
-+{
-+	struct inode *inode;
++#include <asm-generic/cmpxchg-local.h>
 +
-+	inode = iget_locked(sb, 0);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (inode->i_state & I_NEW) {
-+		hppfs_read_inode(inode);
-+		unlock_new_inode(inode);
-+	}
-+	return inode;
-+}
+ /*
+- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
+- * store NEW in MEM.  Return the initial value in MEM.  Success is
+- * indicated by comparing RETURN with OLD.
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
+  */
+-static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
+-				      unsigned long new, int size)
+-{
+-	unsigned long tmp = 0;
+-	unsigned long flags = 0;
+-
+-	local_irq_save(flags);
+-
+-	switch (size) {
+-	case 1:
+-		__asm__ __volatile__
+-			("%0 = b%3 (z);\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "b%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	case 2:
+-		__asm__ __volatile__
+-			("%0 = w%3 (z);\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "w%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	case 4:
+-		__asm__ __volatile__
+-			("%0 = %3;\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	}
+-	local_irq_restore(flags);
+-	return tmp;
+-}
+-
+-#define cmpxchg(ptr,o,n)\
+-        ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+-                                        (unsigned long)(n),sizeof(*(ptr))))
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
 +
- static struct dentry *hppfs_lookup(struct inode *ino, struct dentry *dentry,
-                                   struct nameidata *nd)
- {
-@@ -190,9 +204,11 @@ static struct dentry *hppfs_lookup(struc
- 	if(IS_ERR(proc_dentry))
- 		return(proc_dentry);
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
  
--	inode = iget(ino->i_sb, 0);
--	if(inode == NULL)
-+	inode = hppfs_iget(ino->i_sb);
-+	if (IS_ERR(inode)) {
-+		err = PTR_ERR(inode);
- 		goto out_dput;
-+	}
+ #define prepare_to_switch()     do { } while(0)
  
- 	err = init_inode(inode, proc_dentry);
- 	if(err)
-@@ -652,7 +668,6 @@ static void hppfs_destroy_inode(struct i
- static const struct super_operations hppfs_sbops = {
- 	.alloc_inode	= hppfs_alloc_inode,
- 	.destroy_inode	= hppfs_destroy_inode,
--	.read_inode	= hppfs_read_inode,
- 	.delete_inode	= hppfs_delete_inode,
- 	.statfs		= hppfs_statfs,
- };
-@@ -745,9 +760,11 @@ static int hppfs_fill_super(struct super
- 	sb->s_magic = HPPFS_SUPER_MAGIC;
- 	sb->s_op = &hppfs_sbops;
- 
--	root_inode = iget(sb, 0);
--	if(root_inode == NULL)
-+	root_inode = hppfs_iget(sb);
-+	if (IS_ERR(root_inode)) {
-+		err = PTR_ERR(root_inode);
- 		goto out;
-+	}
- 
- 	err = init_inode(root_inode, proc_sb->s_root);
- 	if(err)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
