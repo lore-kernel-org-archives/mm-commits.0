@@ -1,237 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - oom-add-sysctl-to-enable-task-memory-dump.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:41 -0800
-Message-ID: <200802080803.m1883M95014119@imap1.linux-foundation.org>
+Subject: - iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:20:56 -0800
+Message-ID: <200802080820.m188KblJ015331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761857AbYBHIVS (ORCPT
+	by vger.kernel.org with ESMTP id S933193AbYBHIVS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, andrea@suse.de, balbir@linux.vnet.ibm.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: add sysctl to enable task memory dump
+     iget-stop-unionfs-from-using-iget-and-read_inode-fix-2
 has been removed from the -mm tree.  Its filename was
-     oom-add-sysctl-to-enable-task-memory-dump.patch
+     iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into iget-stop-unionfs-from-using-iget-and-read_inode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: add sysctl to enable task memory dump
-From: David Rientjes <rientjes@google.com>
+Subject: iget-stop-unionfs-from-using-iget-and-read_inode-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Adds a new sysctl, 'oom_dump_tasks', that enables the kernel to produce a
-dump of all system tasks (excluding kernel threads) when performing an
-OOM-killing.  Information includes pid, uid, tgid, vm size, rss, cpu,
-oom_adj score, and name.
-
-This is helpful for determining why there was an OOM condition and which
-rogue task caused it.
-
-It is configurable so that large systems, such as those with several
-thousand tasks, do not incur a performance penalty associated with dumping
-data they may not desire.
-
-If an OOM was triggered as a result of a memory controller, the tasklist
-shall be filtered to exclude tasks that are not a member of the same
-cgroup.
-
-Cc: Andrea Arcangeli <andrea@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   22 +++++++++++++++
- kernel/sysctl.c             |    9 ++++++
- mm/oom_kill.c               |   49 ++++++++++++++++++++++++++++++----
- 3 files changed, 75 insertions(+), 5 deletions(-)
+ fs/unionfs/super.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~oom-add-sysctl-to-enable-task-memory-dump Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~oom-add-sysctl-to-enable-task-memory-dump
-+++ a/Documentation/sysctl/vm.txt
-@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
- - min_unmapped_ratio
- - min_slab_ratio
- - panic_on_oom
-+- oom_dump_tasks
- - oom_kill_allocating_task
- - mmap_min_address
- - numa_zonelist_order
-@@ -232,6 +233,27 @@ according to your policy of failover.
- 
- =============================================================
- 
-+oom_dump_tasks
-+
-+Enables a system-wide task dump (excluding kernel threads) to be
-+produced when the kernel performs an OOM-killing and includes such
-+information as pid, uid, tgid, vm size, rss, cpu, oom_adj score, and
-+name.  This is helpful to determine why the OOM killer was invoked
-+and to identify the rogue task that caused it.
-+
-+If this is set to zero, this information is suppressed.  On very
-+large systems with thousands of tasks it may not be feasible to dump
-+the memory state information for each one.  Such systems should not
-+be forced to incur a performance penalty in OOM conditions when the
-+information may not be desired.
-+
-+If this is set to non-zero, this information is shown whenever the
-+OOM killer actually kills a memory-hogging task.
-+
-+The default value is 0.
-+
-+=============================================================
-+
- oom_kill_allocating_task
- 
- This enables or disables killing the OOM-triggering task in
-diff -puN kernel/sysctl.c~oom-add-sysctl-to-enable-task-memory-dump kernel/sysctl.c
---- a/kernel/sysctl.c~oom-add-sysctl-to-enable-task-memory-dump
-+++ a/kernel/sysctl.c
-@@ -67,6 +67,7 @@ extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern int sysctl_panic_on_oom;
- extern int sysctl_oom_kill_allocating_task;
-+extern int sysctl_oom_dump_tasks;
- extern int max_threads;
- extern int core_uses_pid;
- extern int suid_dumpable;
-@@ -871,6 +872,14 @@ static struct ctl_table vm_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "oom_dump_tasks",
-+		.data		= &sysctl_oom_dump_tasks,
-+		.maxlen		= sizeof(sysctl_oom_dump_tasks),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= VM_OVERCOMMIT_RATIO,
- 		.procname	= "overcommit_ratio",
- 		.data		= &sysctl_overcommit_ratio,
-diff -puN mm/oom_kill.c~oom-add-sysctl-to-enable-task-memory-dump mm/oom_kill.c
---- a/mm/oom_kill.c~oom-add-sysctl-to-enable-task-memory-dump
-+++ a/mm/oom_kill.c
-@@ -29,6 +29,7 @@
- 
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
-+int sysctl_oom_dump_tasks;
- static DEFINE_SPINLOCK(zone_scan_mutex);
- /* #define DEBUG */
- 
-@@ -263,6 +264,41 @@ static struct task_struct *select_bad_pr
- }
- 
- /**
-+ * Dumps the current memory state of all system tasks, excluding kernel threads.
-+ * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
-+ * score, and name.
-+ *
-+ * If the actual is non-NULL, only tasks that are a member of the mem_cgroup are
-+ * shown.
-+ *
-+ * Call with tasklist_lock read-locked.
-+ */
-+static void dump_tasks(const struct mem_cgroup *mem)
-+{
-+	struct task_struct *g, *p;
-+
-+	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
-+	       "name\n");
-+	do_each_thread(g, p) {
-+		/*
-+		 * total_vm and rss sizes do not exist for tasks with a
-+		 * detached mm so there's no need to report them.
-+		 */
-+		if (!p->mm)
-+			continue;
-+		if (mem && !task_in_mem_cgroup(p, mem))
-+			continue;
-+
-+		task_lock(p);
-+		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
-+		       p->pid, p->uid, p->tgid, p->mm->total_vm,
-+		       get_mm_rss(p->mm), (int)task_cpu(p), p->oomkilladj,
-+		       p->comm);
-+		task_unlock(p);
-+	} while_each_thread(g, p);
-+}
-+
-+/**
-  * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
-  * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
-  * set.
-@@ -339,7 +375,8 @@ static int oom_kill_task(struct task_str
- }
- 
- static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
--			    unsigned long points, const char *message)
-+			    unsigned long points, struct mem_cgroup *mem,
-+			    const char *message)
- {
- 	struct task_struct *c;
- 
-@@ -349,6 +386,8 @@ static int oom_kill_process(struct task_
- 			current->comm, gfp_mask, order, current->oomkilladj);
- 		dump_stack();
- 		show_mem();
-+		if (sysctl_oom_dump_tasks)
-+			dump_tasks(mem);
+diff -puN fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode-fix-2 fs/unionfs/super.c
+--- a/fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode-fix-2
++++ a/fs/unionfs/super.c
+@@ -53,7 +53,6 @@ struct inode *unionfs_iget(struct super_
+ 		printk(KERN_CRIT "unionfs: no kernel memory when allocating "
+ 		       "lower-pointer array!\n");
+ 		iget_failed(inode);
+-		unionfs_read_unlock(sb);
+ 		return ERR_PTR(-ENOMEM);
  	}
- 
- 	/*
-@@ -389,7 +428,7 @@ retry:
- 	if (!p)
- 		p = current;
- 
--	if (oom_kill_process(p, gfp_mask, 0, points,
-+	if (oom_kill_process(p, gfp_mask, 0, points, mem,
- 				"Memory cgroup out of memory"))
- 		goto retry;
- out:
-@@ -495,7 +534,7 @@ void out_of_memory(struct zonelist *zone
- 
- 	switch (constraint) {
- 	case CONSTRAINT_MEMORY_POLICY:
--		oom_kill_process(current, gfp_mask, order, points,
-+		oom_kill_process(current, gfp_mask, order, points, NULL,
- 				"No available memory (MPOL_BIND)");
- 		break;
- 
-@@ -505,7 +544,7 @@ void out_of_memory(struct zonelist *zone
- 		/* Fall-through */
- 	case CONSTRAINT_CPUSET:
- 		if (sysctl_oom_kill_allocating_task) {
--			oom_kill_process(current, gfp_mask, order, points,
-+			oom_kill_process(current, gfp_mask, order, points, NULL,
- 					"Out of memory (oom_kill_allocating_task)");
- 			break;
- 		}
-@@ -525,7 +564,7 @@ retry:
- 			panic("Out of memory and no killable processes...\n");
- 		}
- 
--		if (oom_kill_process(p, gfp_mask, order, points,
-+		if (oom_kill_process(p, gfp_mask, order, points, NULL,
- 				     "Out of memory"))
- 			goto retry;
  
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+git-unionfs.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
