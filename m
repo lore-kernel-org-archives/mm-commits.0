@@ -1,92 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:42:30 -0800
-Message-ID: <200802080842.m188gBwZ016070@imap1.linux-foundation.org>
+Subject: - linux-kernel-markers-support-multiple-probes-update.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:43:54 -0800
+Message-ID: <200802080843.m188hZi0016119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59045 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755470AbYBHInc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:43:32 -0500
+	by vger.kernel.org with ESMTP id S1755470AbYBHIoM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:44:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
+     linux-kernel-markers-support-multiple-probes update
 has been removed from the -mm tree.  Its filename was
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+     linux-kernel-markers-support-multiple-probes-update.patch
 
-This patch was dropped because it was folded into mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+This patch was dropped because it was folded into linux-kernel-markers-support-multiple-probes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-kernel-markers-support-multiple-probes update
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Nuke cvs control strings.
+- Add comments requested by Andrew.
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/boot/tools/build.c |    2 --
- drivers/input/joystick/analog.c |    2 --
- 2 files changed, 4 deletions(-)
+ kernel/marker.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix arch/mn10300/boot/tools/build.c
---- a/arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
-+++ a/arch/mn10300/boot/tools/build.c
-@@ -1,6 +1,4 @@
- /*
-- *  $Id: build.c,v 1.1.2.1 2002/11/12 13:25:46 dhowells Exp $
-- *
-  *  Copyright (C) 1991, 1992  Linus Torvalds
-  *  Copyright (C) 1997 Martin Mares
+diff -puN kernel/marker.c~linux-kernel-markers-support-multiple-probes-update kernel/marker.c
+--- a/kernel/marker.c~linux-kernel-markers-support-multiple-probes-update
++++ a/kernel/marker.c
+@@ -49,6 +49,7 @@ static DEFINE_MUTEX(markers_mutex);
+  * between two consecutive operation (add or remove) on a given marker.  It is
+  * also used to delay the free of multiple probes array until a quiescent state
+  * is reached.
++ * marker entries modifications are protected by the markers_mutex.
   */
-diff -puN drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix drivers/input/joystick/analog.c
---- a/drivers/input/joystick/analog.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
-+++ a/drivers/input/joystick/analog.c
-@@ -1,6 +1,4 @@
- /*
-- * $Id: analog.c,v 1.68 2002/01/22 20:18:32 vojtech Exp $
-- *
-  *  Copyright (c) 1996-2001 Vojtech Pavlik
-  */
+ struct marker_entry {
+ 	struct hlist_node hlist;
+@@ -102,6 +103,11 @@ void marker_probe_cb(const struct marker
+ 	va_list args;
+ 	char ptype;
+ 
++	/*
++	 * disabling preemption to make sure the teardown of the callbacks can
++	 * be done correctly when they are in modules and they insure RCU read
++	 * coherency.
++	 */
+ 	preempt_disable();
+ 	ptype = ACCESS_ONCE(mdata->ptype);
+ 	if (likely(!ptype)) {
+@@ -196,7 +202,7 @@ static void free_old_closure(struct rcu_
+ 	entry->rcu_pending = 0;
+ }
+ 
+-static inline void debug_print_probes(struct marker_entry *entry)
++static void debug_print_probes(struct marker_entry *entry)
+ {
+ 	int i;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-proc-detect-duplicate-names-on-registration.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-intel-iommu-fault_reason_index_cleanuppatch.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-pid-sys_wait-fixes-v2.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-rewrite-rd-fixes.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
-lib-remove-fastcall-from-lib-checkpatch-fixes.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
-aoe-statically-initialise-devlist_lock.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
