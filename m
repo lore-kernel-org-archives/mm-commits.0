@@ -1,202 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - new-cmpxchg_local-optimized-for-up-case-for-m32r.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:58 -0800
-Message-ID: <200802080808.m1888dFT014668@imap1.linux-foundation.org>
+Subject: - update-documentation-controller-memorytxt.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:09 -0800
+Message-ID: <200802080804.m1884oRZ014286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53635 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932176AbYBHITw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:52 -0500
+	by vger.kernel.org with ESMTP id S1761168AbYBHITy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     New cmpxchg_local (optimized for UP case) for m32r
+     update Documentation/controller/memory.txt
 has been removed from the -mm tree.  Its filename was
-     new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+     update-documentation-controller-memorytxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: New cmpxchg_local (optimized for UP case) for m32r
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: update Documentation/controller/memory.txt
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add __xchg_local, xchg_local (define), __cmpxchg_local_u32, __cmpxchg_local,
-cmpxchg_local(macro).
+Documentation updates for memory controller.
 
-cmpxchg_local and cmpxchg64_local will use the architecture specific
-__cmpxchg_local_u32 for 32 bits arguments, and use the generic
-__cmpxchg_local_generic for 8, 16 and 64 bits arguments.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/system.h |  111 ++++++++++++++++++++++++++++++++----
- 1 file changed, 101 insertions(+), 10 deletions(-)
+ Documentation/controllers/memory.txt |   33 ++++++++++++-------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r include/asm-m32r/system.h
---- a/include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r
-+++ a/include/asm-m32r/system.h
-@@ -121,8 +121,11 @@ static inline void local_irq_disable(voi
+diff -puN Documentation/controllers/memory.txt~update-documentation-controller-memorytxt Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~update-documentation-controller-memorytxt
++++ a/Documentation/controllers/memory.txt
+@@ -9,8 +9,7 @@ d. Provides a double LRU: global memory 
+    global LRU; a cgroup on hitting a limit, reclaims from the per
+    cgroup LRU
  
- #define nop()	__asm__ __volatile__ ("nop" : : )
+-NOTE: Page Cache (unmapped) also includes Swap Cache pages as a subset
+-and will not be referred to explicitly in the rest of the documentation.
++NOTE: Swap Cache (unmapped) is not accounted now.
  
--#define xchg(ptr,x) \
--	((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-+#define xchg(ptr, x)							\
-+	((__typeof__(*(ptr)))__xchg((unsigned long)(x), (ptr), sizeof(*(ptr))))
-+#define xchg_local(ptr, x)						\
-+	((__typeof__(*(ptr)))__xchg_local((unsigned long)(x), (ptr),	\
-+			sizeof(*(ptr))))
+ Benefits and Purpose of the memory controller
  
- #ifdef CONFIG_SMP
- extern void  __xchg_called_with_bad_pointer(void);
-@@ -146,7 +149,7 @@ extern void  __xchg_called_with_bad_poin
- #endif	/* CONFIG_CHIP_M32700_TS1 */
+@@ -144,7 +143,7 @@ list.
+ The memory controller uses the following hierarchy
  
- static __always_inline unsigned long
--__xchg(unsigned long x, volatile void * ptr, int size)
-+__xchg(unsigned long x, volatile void *ptr, int size)
- {
- 	unsigned long flags;
- 	unsigned long tmp = 0;
-@@ -196,6 +199,42 @@ __xchg(unsigned long x, volatile void * 
- 	return (tmp);
- }
+ 1. zone->lru_lock is used for selecting pages to be isolated
+-2. mem->lru_lock protects the per cgroup LRU
++2. mem->per_zone->lru_lock protects the per cgroup LRU (per zone)
+ 3. lock_page_cgroup() is used to protect page->page_cgroup
  
-+static __always_inline unsigned long
-+__xchg_local(unsigned long x, volatile void *ptr, int size)
-+{
-+	unsigned long flags;
-+	unsigned long tmp = 0;
-+
-+	local_irq_save(flags);
-+
-+	switch (size) {
-+	case 1:
-+		__asm__ __volatile__ (
-+			"ldb	%0, @%2 \n\t"
-+			"stb	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	case 2:
-+		__asm__ __volatile__ (
-+			"ldh	%0, @%2 \n\t"
-+			"sth	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	case 4:
-+		__asm__ __volatile__ (
-+			"ld	%0, @%2 \n\t"
-+			"st	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	default:
-+		__xchg_called_with_bad_pointer();
-+	}
-+
-+	local_irq_restore(flags);
-+
-+	return (tmp);
-+}
-+
- #define __HAVE_ARCH_CMPXCHG	1
+ 3. User Interface
+@@ -193,6 +192,15 @@ this file after a write to guarantee the
+ The memory.failcnt field gives the number of times that the cgroup limit was
+ exceeded.
  
- static inline unsigned long
-@@ -228,6 +267,37 @@ __cmpxchg_u32(volatile unsigned int *p, 
- 	return retval;
- }
++The memory.stat file gives accounting information. Now, the number of
++caches, RSS and Active pages/Inactive pages are shown.
++
++The memory.force_empty gives an interface to drop *all* charges by force.
++
++# echo -n 1 > memory.force_empty
++
++will drop all charges in cgroup. Currently, this is maintained for test.
++
+ 4. Testing
  
-+static inline unsigned long
-+__cmpxchg_local_u32(volatile unsigned int *p, unsigned int old,
-+			unsigned int new)
-+{
-+	unsigned long flags;
-+	unsigned int retval;
-+
-+	local_irq_save(flags);
-+	__asm__ __volatile__ (
-+			DCACHE_CLEAR("%0", "r4", "%1")
-+			"ld %0, @%1;		\n"
-+		"	bne	%0, %2, 1f;	\n"
-+			"st %3, @%1;		\n"
-+		"	bra	2f;		\n"
-+		"       .fillinsn		\n"
-+		"1:"
-+			"st %0, @%1;		\n"
-+		"       .fillinsn		\n"
-+		"2:"
-+			: "=&r" (retval)
-+			: "r" (p), "r" (old), "r" (new)
-+			: "cbit", "memory"
-+#ifdef CONFIG_CHIP_M32700_TS1
-+			, "r4"
-+#endif  /* CONFIG_CHIP_M32700_TS1 */
-+		);
-+	local_irq_restore(flags);
-+
-+	return retval;
-+}
-+
- /* This function doesn't exist, so you'll get a linker error
-    if something tries to do an invalid cmpxchg().  */
- extern void __cmpxchg_called_with_bad_pointer(void);
-@@ -247,13 +317,34 @@ __cmpxchg(volatile void *ptr, unsigned l
- 	return old;
- }
+ Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
+@@ -222,11 +230,8 @@ reclaimed.
  
--#define cmpxchg(ptr,o,n)						 \
--  ({									 \
--     __typeof__(*(ptr)) _o_ = (o);					 \
--     __typeof__(*(ptr)) _n_ = (n);					 \
--     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
--				    (unsigned long)_n_, sizeof(*(ptr))); \
--  })
-+#define cmpxchg(ptr, o, n)						 \
-+	((__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)(o),	 \
-+			(unsigned long)(n), sizeof(*(ptr))))
-+
-+#include <asm-generic/cmpxchg-local.h>
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_local_u32(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	    \
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	    \
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
+ A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
+ cgroup might have some charge associated with it, even though all
+-tasks have migrated away from it. If some pages are still left, after following
+-the steps listed in sections 4.1 and 4.2, check the Swap Cache usage in
+-/proc/meminfo to see if the Swap Cache usage is showing up in the
+-cgroups memory.usage_in_bytes counter. A simple test of swapoff -a and
+-swapon -a should free any pending Swap Cache usage.
++tasks have migrated away from it. Such charges are automatically dropped at
++rmdir() if there are no tasks.
  
- #endif  /* __KERNEL__ */
+ 4.4 Choosing what to account  -- Page Cache (unmapped) vs RSS (mapped)?
+ 
+@@ -238,15 +243,11 @@ echo -n 1 > memory.control_type
+ 5. TODO
+ 
+ 1. Add support for accounting huge pages (as a separate controller)
+-2. Improve the user interface to accept/display memory limits in KB or MB
+-   rather than pages (since page sizes can differ across platforms/machines).
+-3. Make cgroup lists per-zone
+-4. Make per-cgroup scanner reclaim not-shared pages first
+-5. Teach controller to account for shared-pages
+-6. Start reclamation when the limit is lowered
+-7. Start reclamation in the background when the limit is
++2. Make per-cgroup scanner reclaim not-shared pages first
++3. Teach controller to account for shared-pages
++4. Start reclamation when the limit is lowered
++5. Start reclamation in the background when the limit is
+    not yet hit but the usage is getting closer
+-8. Create per zone LRU lists per cgroup
+ 
+ Summary
  
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
