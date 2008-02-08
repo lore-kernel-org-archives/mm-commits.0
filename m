@@ -1,62 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - remove-fastcall-from-linux-include-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:45:01 -0800
-Message-ID: <200802080844.m188iggR016211@imap1.linux-foundation.org>
+Subject: - constify-tables-in-kernel-sysctl_checkc-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:45:31 -0800
+Message-ID: <200802080845.m188jCZa016220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758043AbYBHIpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:45:15 -0500
+	by vger.kernel.org with ESMTP id S1757980AbYBHIqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, ebiederm@xmission.com, jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-fastcall-from-linux-include-checkpatch-fixes
+     constify-tables-in-kernel-sysctl_checkc-fix
 has been removed from the -mm tree.  Its filename was
-     remove-fastcall-from-linux-include-checkpatch-fixes.patch
+     constify-tables-in-kernel-sysctl_checkc-fix.patch
 
-This patch was dropped because it was folded into remove-fastcall-from-linux-include.patch
+This patch was dropped because it was folded into constify-tables-in-kernel-sysctl_checkc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove-fastcall-from-linux-include-checkpatch-fixes
+Subject: constify-tables-in-kernel-sysctl_checkc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#136: FILE: include/linux/timer.h:38:
-+void init_timer(struct timer_list * timer);
-
-total: 1 errors, 0 warnings, 99 lines checked
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |    2 +-
+ kernel/sysctl_check.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/timer.h~remove-fastcall-from-linux-include-checkpatch-fixes include/linux/timer.h
---- a/include/linux/timer.h~remove-fastcall-from-linux-include-checkpatch-fixes
-+++ a/include/linux/timer.h
-@@ -35,7 +35,7 @@ extern struct tvec_base boot_tvec_bases;
- 	struct timer_list _name =				\
- 		TIMER_INITIALIZER(_function, _expires, _data)
+diff -puN kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix
++++ a/kernel/sysctl_check.c
+@@ -423,7 +423,7 @@ static const struct trans_ctl_table tran
+ 	{}
+ };
  
--void init_timer(struct timer_list * timer);
-+void init_timer(struct timer_list *timer);
- void init_timer_deferrable(struct timer_list *timer);
- 
- static inline void setup_timer(struct timer_list * timer,
+-static const struct trans_ctl_table trans_net_ax25_table[] = {
++static const struct trans_ctl_table trans_net_ax25_param_table[] = {
+ 	{ NET_AX25_IP_DEFAULT_MODE,	"ip_default_mode" },
+ 	{ NET_AX25_DEFAULT_MODE,	"ax25_default_mode" },
+ 	{ NET_AX25_BACKOFF_TYPE,	"backoff_type" },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +68,7 @@ fs-remove-fastcall-it-is-always-empty.patch
 kernel-remove-fastcall-in-kernel.patch
 lib-remove-fastcall-from-lib.patch
 remove-fastcall-from-linux-include.patch
-remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
 aoe-statically-initialise-devlist_lock.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
