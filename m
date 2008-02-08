@@ -1,279 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-move-dnotifytxt-to-filesystems.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:02:21 -0800
-Message-ID: <200802080802.m18822LQ014010@imap1.linux-foundation.org>
+Subject: - iget-stop-bfs-from-using-iget-and-read_inode-try.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:23 -0800
+Message-ID: <200802080807.m18874pd014508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932909AbYBHIUs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:48 -0500
+	by vger.kernel.org with ESMTP id S933085AbYBHIVF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@lst.de, kamalesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: move dnotify.txt to filesystems/
+     iget: stop BFS from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     documentation-move-dnotifytxt-to-filesystems.patch
+     iget-stop-bfs-from-using-iget-and-read_inode-try.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: move dnotify.txt to filesystems/
-From: "J. Bruce Fields" <bfields@citi.umich.edu>
+Subject: iget: stop BFS from using iget() and read_inode()
+From: David Howells <dhowells@redhat.com>
 
-I'm inclined to think dnotify belongs in filesystems/.
+Stop the BFS filesystem from using iget() and read_inode().  Replace
+bfs_read_inode() with bfs_iget(), and call that instead of iget().  bfs_iget()
+then uses iget_locked() directly and returns a proper error code instead of an
+inode in the event of an error.
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+bfs_fill_super() returns any error incurred when getting the root inode
+instead of EINVAL.
+
+[kamalesh@linux.vnet.ibm.com: build fix]
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX                |    2 
- Documentation/dnotify.txt             |   99 ------------------------
- Documentation/filesystems/00-INDEX    |    2 
- Documentation/filesystems/dnotify.txt |   99 ++++++++++++++++++++++++
- 4 files changed, 101 insertions(+), 101 deletions(-)
+ fs/bfs/bfs.h   |    2 ++
+ fs/bfs/dir.c   |    6 +++---
+ fs/bfs/inode.c |   32 ++++++++++++++++++++++----------
+ 3 files changed, 27 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/00-INDEX~documentation-move-dnotifytxt-to-filesystems Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-move-dnotifytxt-to-filesystems
-+++ a/Documentation/00-INDEX
-@@ -126,8 +126,6 @@ devices.txt
- 	- plain ASCII listing of all the nodes in /dev/ with major minor #'s.
- digiepca.txt
- 	- info on Digi Intl. {PC,PCI,EISA}Xx and Xem series cards.
--dnotify.txt
--	- info about directory notification in Linux.
- dontdiff
- 	- file containing a list of files that should never be diff'ed.
- driver-model/
-diff -puN Documentation/dnotify.txt~documentation-move-dnotifytxt-to-filesystems /dev/null
---- a/Documentation/dnotify.txt
-+++ /dev/null
-@@ -1,99 +0,0 @@
--		Linux Directory Notification
--		============================
--
--	   Stephen Rothwell <sfr@canb.auug.org.au>
--
--The intention of directory notification is to allow user applications
--to be notified when a directory, or any of the files in it, are changed.
--The basic mechanism involves the application registering for notification
--on a directory using a fcntl(2) call and the notifications themselves
--being delivered using signals.
--
--The application decides which "events" it wants to be notified about.
--The currently defined events are:
--
--	DN_ACCESS	A file in the directory was accessed (read)
--	DN_MODIFY	A file in the directory was modified (write,truncate)
--	DN_CREATE	A file was created in the directory
--	DN_DELETE	A file was unlinked from directory
--	DN_RENAME	A file in the directory was renamed
--	DN_ATTRIB	A file in the directory had its attributes
--			changed (chmod,chown)
--
--Usually, the application must reregister after each notification, but
--if DN_MULTISHOT is or'ed with the event mask, then the registration will
--remain until explicitly removed (by registering for no events).
--
--By default, SIGIO will be delivered to the process and no other useful
--information.  However, if the F_SETSIG fcntl(2) call is used to let the
--kernel know which signal to deliver, a siginfo structure will be passed to
--the signal handler and the si_fd member of that structure will contain the
--file descriptor associated with the directory in which the event occurred.
--
--Preferably the application will choose one of the real time signals
--(SIGRTMIN + <n>) so that the notifications may be queued.  This is
--especially important if DN_MULTISHOT is specified.  Note that SIGRTMIN
--is often blocked, so it is better to use (at least) SIGRTMIN + 1.
--
--Implementation expectations (features and bugs :-))
-----------------------------
--
--The notification should work for any local access to files even if the
--actual file system is on a remote server.  This implies that remote
--access to files served by local user mode servers should be notified.
--Also, remote accesses to files served by a local kernel NFS server should
--be notified.
--
--In order to make the impact on the file system code as small as possible,
--the problem of hard links to files has been ignored.  So if a file (x)
--exists in two directories (a and b) then a change to the file using the
--name "a/x" should be notified to a program expecting notifications on
--directory "a", but will not be notified to one expecting notifications on
--directory "b".
--
--Also, files that are unlinked, will still cause notifications in the
--last directory that they were linked to.
--
--Configuration
---------------
--
--Dnotify is controlled via the CONFIG_DNOTIFY configuration option.  When
--disabled, fcntl(fd, F_NOTIFY, ...) will return -EINVAL.
--
--Example
---------
--
--	#define _GNU_SOURCE	/* needed to get the defines */
--	#include <fcntl.h>	/* in glibc 2.2 this has the needed
--					   values defined */
--	#include <signal.h>
--	#include <stdio.h>
--	#include <unistd.h>
--	
--	static volatile int event_fd;
--	
--	static void handler(int sig, siginfo_t *si, void *data)
--	{
--		event_fd = si->si_fd;
--	}
--	
--	int main(void)
--	{
--		struct sigaction act;
--		int fd;
--		
--		act.sa_sigaction = handler;
--		sigemptyset(&act.sa_mask);
--		act.sa_flags = SA_SIGINFO;
--		sigaction(SIGRTMIN + 1, &act, NULL);
--		
--		fd = open(".", O_RDONLY);
--		fcntl(fd, F_SETSIG, SIGRTMIN + 1);
--		fcntl(fd, F_NOTIFY, DN_MODIFY|DN_CREATE|DN_MULTISHOT);
--		/* we will now be notified if any of the files
--		   in "." is modified or new files are created */
--		while (1) {
--			pause();
--			printf("Got event on fd=%d\n", event_fd);
--		}
--	}
-diff -puN Documentation/filesystems/00-INDEX~documentation-move-dnotifytxt-to-filesystems Documentation/filesystems/00-INDEX
---- a/Documentation/filesystems/00-INDEX~documentation-move-dnotifytxt-to-filesystems
-+++ a/Documentation/filesystems/00-INDEX
-@@ -32,6 +32,8 @@ directory-locking
- 	- info about the locking scheme used for directory operations.
- dlmfs.txt
- 	- info on the userspace interface to the OCFS2 DLM.
-+dnotify.txt
-+	- info about directory notification in Linux.
- ecryptfs.txt
- 	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
- ext2.txt
-diff -puN /dev/null Documentation/filesystems/dnotify.txt
---- /dev/null
-+++ a/Documentation/filesystems/dnotify.txt
-@@ -0,0 +1,99 @@
-+		Linux Directory Notification
-+		============================
+diff -puN fs/bfs/bfs.h~iget-stop-bfs-from-using-iget-and-read_inode-try fs/bfs/bfs.h
+--- a/fs/bfs/bfs.h~iget-stop-bfs-from-using-iget-and-read_inode-try
++++ a/fs/bfs/bfs.h
+@@ -44,6 +44,8 @@ static inline struct bfs_inode_info *BFS
+ #define printf(format, args...) \
+ 	printk(KERN_ERR "BFS-fs: %s(): " format, __FUNCTION__, ## args)
+ 
++/* inode.c */
++extern struct inode *bfs_iget(struct super_block *sb, unsigned long ino);
+ 
+ /* file.c */
+ extern const struct inode_operations bfs_file_inops;
+diff -puN fs/bfs/dir.c~iget-stop-bfs-from-using-iget-and-read_inode-try fs/bfs/dir.c
+--- a/fs/bfs/dir.c~iget-stop-bfs-from-using-iget-and-read_inode-try
++++ a/fs/bfs/dir.c
+@@ -148,10 +148,10 @@ static struct dentry *bfs_lookup(struct 
+ 	if (bh) {
+ 		unsigned long ino = (unsigned long)le16_to_cpu(de->ino);
+ 		brelse(bh);
+-		inode = iget(dir->i_sb, ino);
+-		if (!inode) {
++		inode = bfs_iget(dir->i_sb, ino);
++		if (IS_ERR(inode)) {
+ 			unlock_kernel();
+-			return ERR_PTR(-EACCES);
++			return ERR_CAST(inode);
+ 		}
+ 	}
+ 	unlock_kernel();
+diff -puN fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try fs/bfs/inode.c
+--- a/fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try
++++ a/fs/bfs/inode.c
+@@ -32,17 +32,22 @@ MODULE_LICENSE("GPL");
+ 
+ void dump_imap(const char *prefix, struct super_block *s);
+ 
+-static void bfs_read_inode(struct inode *inode)
++struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
+ {
+-	unsigned long ino = inode->i_ino;
+ 	struct bfs_inode *di;
++	struct inode *inode;
+ 	struct buffer_head *bh;
+ 	int block, off;
+ 
++	inode = iget_locked(sb, ino);
++	if (IS_ERR(inode))
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
 +
-+	   Stephen Rothwell <sfr@canb.auug.org.au>
+ 	if ((ino < BFS_ROOT_INO) || (ino > BFS_SB(inode->i_sb)->si_lasti)) {
+ 		printf("Bad inode number %s:%08lx\n", inode->i_sb->s_id, ino);
+-		make_bad_inode(inode);
+-		return;
++		goto error;
+ 	}
+ 
+ 	block = (ino - BFS_ROOT_INO) / BFS_INODES_PER_BLOCK + 1;
+@@ -50,8 +55,7 @@ static void bfs_read_inode(struct inode 
+ 	if (!bh) {
+ 		printf("Unable to read inode %s:%08lx\n", inode->i_sb->s_id,
+ 									ino);
+-		make_bad_inode(inode);
+-		return;
++		goto error;
+ 	}
+ 
+ 	off = (ino - BFS_ROOT_INO) % BFS_INODES_PER_BLOCK;
+@@ -85,6 +89,12 @@ static void bfs_read_inode(struct inode 
+ 	inode->i_ctime.tv_nsec = 0;
+ 
+ 	brelse(bh);
++	unlock_new_inode(inode);
++	return inode;
 +
-+The intention of directory notification is to allow user applications
-+to be notified when a directory, or any of the files in it, are changed.
-+The basic mechanism involves the application registering for notification
-+on a directory using a fcntl(2) call and the notifications themselves
-+being delivered using signals.
-+
-+The application decides which "events" it wants to be notified about.
-+The currently defined events are:
-+
-+	DN_ACCESS	A file in the directory was accessed (read)
-+	DN_MODIFY	A file in the directory was modified (write,truncate)
-+	DN_CREATE	A file was created in the directory
-+	DN_DELETE	A file was unlinked from directory
-+	DN_RENAME	A file in the directory was renamed
-+	DN_ATTRIB	A file in the directory had its attributes
-+			changed (chmod,chown)
-+
-+Usually, the application must reregister after each notification, but
-+if DN_MULTISHOT is or'ed with the event mask, then the registration will
-+remain until explicitly removed (by registering for no events).
-+
-+By default, SIGIO will be delivered to the process and no other useful
-+information.  However, if the F_SETSIG fcntl(2) call is used to let the
-+kernel know which signal to deliver, a siginfo structure will be passed to
-+the signal handler and the si_fd member of that structure will contain the
-+file descriptor associated with the directory in which the event occurred.
-+
-+Preferably the application will choose one of the real time signals
-+(SIGRTMIN + <n>) so that the notifications may be queued.  This is
-+especially important if DN_MULTISHOT is specified.  Note that SIGRTMIN
-+is often blocked, so it is better to use (at least) SIGRTMIN + 1.
-+
-+Implementation expectations (features and bugs :-))
-+---------------------------
-+
-+The notification should work for any local access to files even if the
-+actual file system is on a remote server.  This implies that remote
-+access to files served by local user mode servers should be notified.
-+Also, remote accesses to files served by a local kernel NFS server should
-+be notified.
-+
-+In order to make the impact on the file system code as small as possible,
-+the problem of hard links to files has been ignored.  So if a file (x)
-+exists in two directories (a and b) then a change to the file using the
-+name "a/x" should be notified to a program expecting notifications on
-+directory "a", but will not be notified to one expecting notifications on
-+directory "b".
-+
-+Also, files that are unlinked, will still cause notifications in the
-+last directory that they were linked to.
-+
-+Configuration
-+-------------
-+
-+Dnotify is controlled via the CONFIG_DNOTIFY configuration option.  When
-+disabled, fcntl(fd, F_NOTIFY, ...) will return -EINVAL.
-+
-+Example
-+-------
-+
-+	#define _GNU_SOURCE	/* needed to get the defines */
-+	#include <fcntl.h>	/* in glibc 2.2 this has the needed
-+					   values defined */
-+	#include <signal.h>
-+	#include <stdio.h>
-+	#include <unistd.h>
-+
-+	static volatile int event_fd;
-+
-+	static void handler(int sig, siginfo_t *si, void *data)
-+	{
-+		event_fd = si->si_fd;
-+	}
-+
-+	int main(void)
-+	{
-+		struct sigaction act;
-+		int fd;
-+
-+		act.sa_sigaction = handler;
-+		sigemptyset(&act.sa_mask);
-+		act.sa_flags = SA_SIGINFO;
-+		sigaction(SIGRTMIN + 1, &act, NULL);
-+
-+		fd = open(".", O_RDONLY);
-+		fcntl(fd, F_SETSIG, SIGRTMIN + 1);
-+		fcntl(fd, F_NOTIFY, DN_MODIFY|DN_CREATE|DN_MULTISHOT);
-+		/* we will now be notified if any of the files
-+		   in "." is modified or new files are created */
-+		while (1) {
-+			pause();
-+			printf("Got event on fd=%d\n", event_fd);
-+		}
-+	}
++error:
++	iget_failed(inode);
++	return ERR_PTR(-EIO);
+ }
+ 
+ static int bfs_write_inode(struct inode *inode, int unused)
+@@ -276,7 +286,6 @@ static void destroy_inodecache(void)
+ static const struct super_operations bfs_sops = {
+ 	.alloc_inode	= bfs_alloc_inode,
+ 	.destroy_inode	= bfs_destroy_inode,
+-	.read_inode	= bfs_read_inode,
+ 	.write_inode	= bfs_write_inode,
+ 	.delete_inode	= bfs_delete_inode,
+ 	.put_super	= bfs_put_super,
+@@ -312,6 +321,7 @@ static int bfs_fill_super(struct super_b
+ 	struct inode *inode;
+ 	unsigned i, imap_len;
+ 	struct bfs_sb_info *info;
++	long ret = -EINVAL;
+ 
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info)
+@@ -346,14 +356,16 @@ static int bfs_fill_super(struct super_b
+ 		set_bit(i, info->si_imap);
+ 
+ 	s->s_op = &bfs_sops;
+-	inode = iget(s, BFS_ROOT_INO);
+-	if (!inode) {
++	inode = bfs_iget(s, BFS_ROOT_INO);
++	if (IS_ERR(inode)) {
++		ret = PTR_ERR(inode);
+ 		kfree(info->si_imap);
+ 		goto out;
+ 	}
+ 	s->s_root = d_alloc_root(inode);
+ 	if (!s->s_root) {
+ 		iput(inode);
++		ret = -ENOMEM;
+ 		kfree(info->si_imap);
+ 		goto out;
+ 	}
+@@ -404,7 +416,7 @@ out:
+ 	brelse(bh);
+ 	kfree(info);
+ 	s->s_fs_info = NULL;
+-	return -EINVAL;
++	return ret;
+ }
+ 
+ static int bfs_get_sb(struct file_system_type *fs_type,
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-reiser4.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
+mount-options-fix-afs.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
