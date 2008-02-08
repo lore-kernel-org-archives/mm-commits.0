@@ -1,205 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-update_cpumask-revision.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:05:17 -0800
-Message-ID: <200802080804.m1884wtg014295@imap1.linux-foundation.org>
+Subject: - iget-stop-affs-from-using-iget-and-read_inode-try.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:15 -0800
+Message-ID: <200802080806.m1886uoC014493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932981AbYBHIVD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:03 -0500
+	by vger.kernel.org with ESMTP id S933137AbYBHIVJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@lst.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpusets: update_cpumask revision
+     iget: stop AFFS from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     cpusets-update_cpumask-revision.patch
+     iget-stop-affs-from-using-iget-and-read_inode-try.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets: update_cpumask revision
-From: Cliff Wickman <cpw@sgi.com>
+Subject: iget: stop AFFS from using iget() and read_inode()
+From: David Howells <dhowells@redhat.com>
 
-Use the new function cgroup_scan_tasks() to step through all tasks in a
-cpuset.
+Stop the AFFS filesystem from using iget() and read_inode().  Replace
+affs_read_inode() with affs_iget(), and call that instead of iget(). 
+affs_iget() then uses iget_locked() directly and returns a proper error code
+instead of an inode in the event of an error.
+
+affs_fill_super() returns any error incurred when getting the root inode
+instead of EINVAL.
 
 [akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |  107 +++++++++++++++++++---------------------------
- 1 file changed, 46 insertions(+), 61 deletions(-)
+ fs/affs/affs.h     |    3 ++-
+ fs/affs/amigaffs.c |    6 ++++--
+ fs/affs/inode.c    |   20 +++++++++++++-------
+ fs/affs/namei.c    |   10 ++++------
+ fs/affs/super.c    |   12 +++++++++---
+ 5 files changed, 32 insertions(+), 19 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-update_cpumask-revision kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-update_cpumask-revision
-+++ a/kernel/cpuset.c
-@@ -38,7 +38,6 @@
- #include <linux/mount.h>
- #include <linux/namei.h>
- #include <linux/pagemap.h>
--#include <linux/prio_heap.h>
- #include <linux/proc_fs.h>
- #include <linux/rcupdate.h>
- #include <linux/sched.h>
-@@ -740,22 +739,50 @@ static inline int started_after(void *p1
- 	return started_after_time(t1, &t2->start_time, t2);
- }
+diff -puN fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/affs.h
+--- a/fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try
++++ a/fs/affs/affs.h
+@@ -174,7 +174,8 @@ extern void			 affs_put_inode(struct ino
+ extern void			 affs_drop_inode(struct inode *inode);
+ extern void			 affs_delete_inode(struct inode *inode);
+ extern void			 affs_clear_inode(struct inode *inode);
+-extern void			 affs_read_inode(struct inode *inode);
++extern struct inode		*affs_iget(struct super_block *sb,
++					unsigned long ino);
+ extern int			 affs_write_inode(struct inode *inode, int);
+ extern int			 affs_add_entry(struct inode *dir, struct inode *inode, struct dentry *dentry, s32 type);
  
--/*
-+/**
-+ * cpuset_test_cpumask - test a task's cpus_allowed versus its cpuset's
-+ * @tsk: task to test
-+ * @scan: struct cgroup_scanner contained in its struct cpuset_hotplug_scanner
-+ *
-  * Call with manage_mutex held.  May take callback_mutex during call.
-+ * Called for each task in a cgroup by cgroup_scan_tasks().
-+ * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
-+ * words, if its mask is not equal to its cpuset's mask).
-  */
-+int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+{
-+	return !cpus_equal(tsk->cpus_allowed,
-+			(cgroup_cs(scan->cg))->cpus_allowed);
-+}
+diff -puN fs/affs/amigaffs.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~iget-stop-affs-from-using-iget-and-read_inode-try
++++ a/fs/affs/amigaffs.c
+@@ -170,9 +170,11 @@ affs_remove_link(struct dentry *dentry)
+ 		if (!link_bh)
+ 			goto done;
  
-+/**
-+ * cpuset_change_cpumask - make a task's cpus_allowed the same as its cpuset's
-+ * @tsk: task to test
-+ * @scan: struct cgroup_scanner containing the cgroup of the task
-+ *
-+ * Called by cgroup_scan_tasks() for each task in a cgroup whose
-+ * cpus_allowed mask needs to be changed.
-+ *
-+ * We don't need to re-check for the cgroup/cpuset membership, since we're
-+ * holding cgroup_lock() at this point.
-+ */
-+void cpuset_change_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+{
-+	set_cpus_allowed(tsk, (cgroup_cs(scan->cg))->cpus_allowed);
-+}
-+
-+/**
-+ * update_cpumask - update the cpus_allowed mask of a cpuset and all tasks in it
-+ * @cs: the cpuset to consider
-+ * @buf: buffer of cpu numbers written to this cpuset
-+ */
- static int update_cpumask(struct cpuset *cs, char *buf)
+-		dir = iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
+-		if (!dir)
++		dir = affs_iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
++		if (IS_ERR(dir)) {
++			retval = PTR_ERR(dir);
+ 			goto done;
++		}
+ 
+ 		affs_lock_dir(dir);
+ 		affs_fix_dcache(dentry, link_ino);
+diff -puN fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/inode.c
+--- a/fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try
++++ a/fs/affs/inode.c
+@@ -15,20 +15,25 @@
+ extern const struct inode_operations affs_symlink_inode_operations;
+ extern struct timezone sys_tz;
+ 
+-void
+-affs_read_inode(struct inode *inode)
++struct inode *affs_iget(struct super_block *sb, unsigned long ino)
  {
- 	struct cpuset trialcs;
--	int retval, i;
--	int is_load_balanced;
--	struct cgroup_iter it;
--	struct cgroup *cgrp = cs->css.cgroup;
--	struct task_struct *p, *dropped;
--	/* Never dereference latest_task, since it's not refcounted */
--	struct task_struct *latest_task = NULL;
-+	struct cgroup_scanner scan;
- 	struct ptr_heap heap;
--	struct timespec latest_time = { 0, 0 };
-+	int retval;
-+	int is_load_balanced;
+-	struct super_block	*sb = inode->i_sb;
+ 	struct affs_sb_info	*sbi = AFFS_SB(sb);
+ 	struct buffer_head	*bh;
+ 	struct affs_head	*head;
+ 	struct affs_tail	*tail;
++	struct inode		*inode;
+ 	u32			 block;
+ 	u32			 size;
+ 	u32			 prot;
+ 	u16			 id;
  
- 	/* top_cpuset.cpus_allowed tracks cpu_online_map; it's read-only */
- 	if (cs == &top_cpuset)
-@@ -764,7 +791,7 @@ static int update_cpumask(struct cpuset 
- 	trialcs = *cs;
- 
- 	/*
--	 * An empty cpus_allowed is ok iff there are no tasks in the cpuset.
-+	 * An empty cpus_allowed is ok if there are no tasks in the cpuset.
- 	 * Since cpulist_parse() fails on an empty mask, we special case
- 	 * that parsing.  The validate_change() call ensures that cpusets
- 	 * with tasks have cpus.
-@@ -785,6 +812,7 @@ static int update_cpumask(struct cpuset 
- 	/* Nothing to do if the cpus didn't change */
- 	if (cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed))
- 		return 0;
+-	pr_debug("AFFS: read_inode(%lu)\n",inode->i_ino);
++	inode = iget_locked(sb, ino);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
 +
- 	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, &started_after);
- 	if (retval)
- 		return retval;
-@@ -795,62 +823,19 @@ static int update_cpumask(struct cpuset 
- 	cs->cpus_allowed = trialcs.cpus_allowed;
- 	mutex_unlock(&callback_mutex);
++	pr_debug("AFFS: affs_iget(%lu)\n", inode->i_ino);
  
-- again:
- 	/*
- 	 * Scan tasks in the cpuset, and update the cpumasks of any
--	 * that need an update. Since we can't call set_cpus_allowed()
--	 * while holding tasklist_lock, gather tasks to be processed
--	 * in a heap structure. If the statically-sized heap fills up,
--	 * overflow tasks that started later, and in future iterations
--	 * only consider tasks that started after the latest task in
--	 * the previous pass. This guarantees forward progress and
--	 * that we don't miss any tasks
-+	 * that need an update.
- 	 */
--	heap.size = 0;
--	cgroup_iter_start(cgrp, &it);
--	while ((p = cgroup_iter_next(cgrp, &it))) {
--		/* Only affect tasks that don't have the right cpus_allowed */
--		if (cpus_equal(p->cpus_allowed, cs->cpus_allowed))
--			continue;
--		/*
--		 * Only process tasks that started after the last task
--		 * we processed
--		 */
--		if (!started_after_time(p, &latest_time, latest_task))
--			continue;
--		dropped = heap_insert(&heap, p);
--		if (dropped == NULL) {
--			get_task_struct(p);
--		} else if (dropped != p) {
--			get_task_struct(p);
--			put_task_struct(dropped);
--		}
--	}
--	cgroup_iter_end(cgrp, &it);
--	if (heap.size) {
--		for (i = 0; i < heap.size; i++) {
--			struct task_struct *p = heap.ptrs[i];
--			if (i == 0) {
--				latest_time = p->start_time;
--				latest_task = p;
--			}
--			set_cpus_allowed(p, cs->cpus_allowed);
--			put_task_struct(p);
--		}
--		/*
--		 * If we had to process any tasks at all, scan again
--		 * in case some of them were in the middle of forking
--		 * children that didn't notice the new cpumask
--		 * restriction.  Not the most efficient way to do it,
--		 * but it avoids having to take callback_mutex in the
--		 * fork path
--		 */
--		goto again;
--	}
-+	scan.cg = cs->css.cgroup;
-+	scan.test_task = cpuset_test_cpumask;
-+	scan.process_task = cpuset_change_cpumask;
-+	scan.heap = &heap;
-+	cgroup_scan_tasks(&scan);
- 	heap_free(&heap);
-+
- 	if (is_load_balanced)
- 		rebuild_sched_domains();
--
- 	return 0;
+ 	block = inode->i_ino;
+ 	bh = affs_bread(sb, block);
+@@ -154,12 +159,13 @@ affs_read_inode(struct inode *inode)
+ 			 sys_tz.tz_minuteswest * 60;
+ 	inode->i_mtime.tv_nsec = inode->i_ctime.tv_nsec = inode->i_atime.tv_nsec = 0;
+ 	affs_brelse(bh);
+-	return;
++	unlock_new_inode(inode);
++	return inode;
+ 
+ bad_inode:
+-	make_bad_inode(inode);
+ 	affs_brelse(bh);
+-	return;
++	iget_failed(inode);
++	return ERR_PTR(-EIO);
  }
  
+ int
+diff -puN fs/affs/namei.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/namei.c
+--- a/fs/affs/namei.c~iget-stop-affs-from-using-iget-and-read_inode-try
++++ a/fs/affs/namei.c
+@@ -208,9 +208,8 @@ affs_lookup(struct inode *dir, struct de
+ 	affs_lock_dir(dir);
+ 	bh = affs_find_entry(dir, dentry);
+ 	affs_unlock_dir(dir);
+-	if (IS_ERR(bh)) {
++	if (IS_ERR(bh))
+ 		return ERR_CAST(bh);
+-	}
+ 	if (bh) {
+ 		u32 ino = bh->b_blocknr;
+ 
+@@ -223,10 +222,9 @@ affs_lookup(struct inode *dir, struct de
+ 			ino = be32_to_cpu(AFFS_TAIL(sb, bh)->original);
+ 		}
+ 		affs_brelse(bh);
+-		inode = iget(sb, ino);
+-		if (!inode) {
+-			return ERR_PTR(-EACCES);
+-		}
++		inode = affs_iget(sb, ino);
++		if (IS_ERR(inode))
++			return ERR_PTR(PTR_ERR(inode));
+ 	}
+ 	dentry->d_op = AFFS_SB(sb)->s_flags & SF_INTL ? &affs_intl_dentry_operations : &affs_dentry_operations;
+ 	d_add(dentry, inode);
+diff -puN fs/affs/super.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/super.c
+--- a/fs/affs/super.c~iget-stop-affs-from-using-iget-and-read_inode-try
++++ a/fs/affs/super.c
+@@ -113,7 +113,6 @@ static void destroy_inodecache(void)
+ static const struct super_operations affs_sops = {
+ 	.alloc_inode	= affs_alloc_inode,
+ 	.destroy_inode	= affs_destroy_inode,
+-	.read_inode	= affs_read_inode,
+ 	.write_inode	= affs_write_inode,
+ 	.put_inode	= affs_put_inode,
+ 	.drop_inode	= affs_drop_inode,
+@@ -271,6 +270,7 @@ static int affs_fill_super(struct super_
+ 	unsigned long		 mount_flags;
+ 	int			 tmp_flags;	/* fix remount prototype... */
+ 	u8			 sig[4];
++	int			 ret = -EINVAL;
+ 
+ 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+ 
+@@ -444,7 +444,12 @@ got_root:
+ 
+ 	/* set up enough so that it can read an inode */
+ 
+-	root_inode = iget(sb, root_block);
++	root_inode = affs_iget(sb, root_block);
++	if (IS_ERR(root_inode)) {
++		ret = PTR_ERR(root_inode);
++		goto out_error_noinode;
++	}
++
+ 	sb->s_root = d_alloc_root(root_inode);
+ 	if (!sb->s_root) {
+ 		printk(KERN_ERR "AFFS: Get root inode failed\n");
+@@ -461,12 +466,13 @@ got_root:
+ out_error:
+ 	if (root_inode)
+ 		iput(root_inode);
++out_error_noinode:
+ 	kfree(sbi->s_bitmap);
+ 	affs_brelse(root_bh);
+ 	kfree(sbi->s_prefix);
+ 	kfree(sbi);
+ 	sb->s_fs_info = NULL;
+-	return -EINVAL;
++	return ret;
+ }
+ 
+ static int
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
+mount-options-fix-afs.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
