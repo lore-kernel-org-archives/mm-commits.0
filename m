@@ -1,133 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:51 -0800
-Message-ID: <200802080804.m1884WwN014268@imap1.linux-foundation.org>
+Subject: - cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:31:32 -0800
+Message-ID: <200802080831.m188VDxr015677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42943 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760730AbYBHIbR (ORCPT
+	by vger.kernel.org with ESMTP id S1760484AbYBHIbR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:31:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
+     cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup.patch
+     cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into cleanup-the-code-managed-with-pid_ns-option.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: remember reclaim priority in memory cgroup
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Functions to remember reclaim priority per cgroup (as zone->prev_priority)
+WARNING: no space between function name and open parenthesis '('
+#371: FILE: kernel/pid_namespace.c:40:
++	list_for_each_entry (pcache, &pid_caches_lh, list)
 
-[akpm@linux-foundation.org: build fixes]
-[akpm@linux-foundation.org: more build fixes]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
+WARNING: line over 80 characters
+#449: FILE: kernel/pid_namespace.c:118:
++struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *old_ns)
+
+total: 0 errors, 2 warnings, 475 lines checked
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   20 ++++++++++++++++++++
- mm/memcontrol.c            |   20 ++++++++++++++++++++
- 2 files changed, 40 insertions(+)
+ kernel/pid_namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
-+++ a/include/linux/memcontrol.h
-@@ -70,6 +70,11 @@ extern void mem_cgroup_page_migration(st
- extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
- extern long mem_cgroup_reclaim_imbalance(struct mem_cgroup *mem);
+diff -puN kernel/pid_namespace.c~cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes
++++ a/kernel/pid_namespace.c
+@@ -37,7 +37,7 @@ static struct kmem_cache *create_pid_cac
+ 	struct kmem_cache *cachep;
  
-+extern int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem);
-+extern void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
-+							int priority);
-+extern void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
-+							int priority);
+ 	mutex_lock(&pid_caches_mutex);
+-	list_for_each_entry (pcache, &pid_caches_lh, list)
++	list_for_each_entry(pcache, &pid_caches_lh, list)
+ 		if (pcache->nr_ids == nr_ids)
+ 			goto out;
  
- 
- #else /* CONFIG_CGROUP_MEM_CONT */
-@@ -153,6 +158,21 @@ static inline int mem_cgroup_reclaim_imb
- 	return 0;
- }
- 
-+static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
-+{
-+	return 0;
-+}
-+
-+static inline void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem,
-+						int priority)
-+{
-+}
-+
-+static inline void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem,
-+						int priority)
-+{
-+}
-+
- #endif /* CONFIG_CGROUP_MEM_CONT */
- 
- #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-remember-reclaim-priority-in-memory-cgroup
-+++ a/mm/memcontrol.c
-@@ -132,6 +132,7 @@ struct mem_cgroup {
- 	 */
- 	spinlock_t lru_lock;
- 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
-+	int	prev_priority;	/* for recording reclaim priority */
- 	/*
- 	 * statistics.
- 	 */
-@@ -451,6 +452,25 @@ long mem_cgroup_reclaim_imbalance(struct
- 	return (long) (active / (inactive + 1));
- }
- 
-+/*
-+ * prev_priority control...this will be used in memory reclaim path.
-+ */
-+int mem_cgroup_get_reclaim_priority(struct mem_cgroup *mem)
-+{
-+	return mem->prev_priority;
-+}
-+
-+void mem_cgroup_note_reclaim_priority(struct mem_cgroup *mem, int priority)
-+{
-+	if (priority < mem->prev_priority)
-+		mem->prev_priority = priority;
-+}
-+
-+void mem_cgroup_record_reclaim_priority(struct mem_cgroup *mem, int priority)
-+{
-+	mem->prev_priority = priority;
-+}
-+
- unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
- 					struct list_head *dst,
- 					unsigned long *scanned, int order,
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
