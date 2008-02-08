@@ -1,401 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:16:02 -0800
-Message-ID: <200802082015.m18KFi9J010641@imap1.linux-foundation.org>
+Subject: - serial_core-bring-mostly-into-line-with-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:06 -0800
+Message-ID: <200802082012.m18KCl9e010236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51031 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753722AbYBHUwe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:34 -0500
+	by vger.kernel.org with ESMTP id S1754144AbYBHUwn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aoe: dynamically allocate a capped number of skbs when necessary
+     serial_core: bring mostly into line with coding style
 has been removed from the -mm tree.  Its filename was
-     aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary.patch
+     serial_core-bring-mostly-into-line-with-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: dynamically allocate a capped number of skbs when necessary
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: serial_core: bring mostly into line with coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-What this Patch Does
-
-  Even before this recent series of 12 patches to 2.6.22-rc4, the aoe
-  driver was reusing a small set of skbs that were allocated once and
-  were only used for outbound AoE commands.
-
-  The network layer cannot be allowed to put_page on the data that is
-  still associated with a bio we haven't returned to the block layer,
-  so the aoe driver (even before the patch under discussion) is still
-  the owner of skbs that have been handed to the network layer for
-  transmission.  We need to keep track of these skbs so that we can
-  free them, but by tracking them, we can also easily re-use them.
-
-  The new patch was a response to the behavior of certain network
-  drivers.  We cannot reuse an skb that the network driver still has
-  in its transmit ring.  Network drivers can defer transmit ring
-  cleanup and then use the state in the skb to determine how many data
-  segments to clean up in its transmit ring.  The tg3 driver is one
-  driver that behaves in this way.
-
-  When the network driver defers cleanup of its transmit ring, the aoe
-  driver can find itself in a situation where it would like to send an
-  AoE command, and the AoE target is ready for more work, but the
-  network driver still has all of the pre-allocated skbs.  In that
-  case, the new patch just calls alloc_skb, as you'd expect.
-
-  We don't want to get carried away, though.  We try not to do
-  excessive allocation in the write path, so we cap the number of skbs
-  we dynamically allocate.
-
-  Probably calling it a "dynamic pool" is misleading.  We were already
-  trying to use a small fixed-size set of pre-allocated skbs before
-  this patch, and this patch just provides a little headroom (with a
-  ceiling, though) to accomodate network drivers that hang onto skbs,
-  by allocating when needed.  The d->skbpool_hd list of allocated skbs
-  is necessary so that we can free them later.
-
-  We didn't notice the need for this headroom until AoE targets got
-  fast enough.
-
-Alternatives
-
-  If the network layer never did a put_page on the pages in the bio's
-  we get from the block layer, then it would be possible for us to
-  hand skbs to the network layer and forget about them, allowing the
-  network layer to free skbs itself (and thereby calling our own
-  skb->destructor callback function if we needed that).  In that case
-  we could get rid of the pre-allocated skbs and also the
-  d->skbpool_hd, instead just calling alloc_skb every time we wanted
-  to transmit a packet.  The slab allocator would effectively maintain
-  the list of skbs.
-
-  Besides a loss of CPU cache locality, the main concern with that
-  approach the danger that it would increase the likelihood of
-  deadlock when VM is trying to free pages by writing dirty data from
-  the page cache through the aoe driver out to persistent storage on
-  an AoE device.  Right now we have a situation where we have
-  pre-allocation that corresponds to how much we use, which seems
-  ideal.
-
-  Of course, there's still the separate issue of receiving the packets
-  that tell us that a write has successfully completed on the AoE
-  target.  When memory is low and VM is using AoE to flush dirty data
-  to free up pages, it would be perfect if there were a way for us to
-  register a fast callback that could recognize write command
-  completion responses.  But I don't think the current problems with
-  the receive side of the situation are a justification for
-  exacerbating the problem on the transmit side.
-
-Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    5 +
- drivers/block/aoe/aoecmd.c |  117 ++++++++++++++++++++++++-----------
- drivers/block/aoe/aoedev.c |   52 +++++++++++++--
- 3 files changed, 133 insertions(+), 41 deletions(-)
+ drivers/serial/serial_core.c |   55 ++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary
-+++ a/drivers/block/aoe/aoe.h
-@@ -89,6 +89,7 @@ enum {
- 	MIN_BUFS = 16,
- 	NTARGETS = 8,
- 	NAOEIFS = 8,
-+	NSKBPOOLMAX = 128,
+diff -puN drivers/serial/serial_core.c~serial_core-bring-mostly-into-line-with-coding-style drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial_core-bring-mostly-into-line-with-coding-style
++++ a/drivers/serial/serial_core.c
+@@ -58,7 +58,8 @@ static struct lock_class_key port_lock_k
+ #define uart_console(port)	(0)
+ #endif
  
- 	TIMERTICK = HZ / 10,
- 	MINTIMER = HZ >> 2,
-@@ -138,6 +139,7 @@ struct aoetgt {
- 	u16 useme;
- 	ulong lastwadj;		/* last window adjustment */
- 	int wpkts, rpkts;
-+	int dataref;
- };
+-static void uart_change_speed(struct uart_state *state, struct ktermios *old_termios);
++static void uart_change_speed(struct uart_state *state,
++					struct ktermios *old_termios);
+ static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
+ static void uart_change_pm(struct uart_state *state, int pm_state);
  
- struct aoedev {
-@@ -159,6 +161,9 @@ struct aoedev {
- 	spinlock_t lock;
- 	struct sk_buff *sendq_hd; /* packets needing to be sent, list head */
- 	struct sk_buff *sendq_tl;
-+	struct sk_buff *skbpool_hd;
-+	struct sk_buff *skbpool_tl;
-+	int nskbpool;
- 	mempool_t *bufpool;	/* for deadlock-free Buf allocation */
- 	struct list_head bufq;	/* queue of bios to work on */
- 	struct buf *inprocess;	/* the one we're currently working on */
-diff -puN drivers/block/aoe/aoecmd.c~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -106,45 +106,104 @@ ifrotate(struct aoetgt *t)
- 	}
+@@ -129,8 +130,8 @@ uart_update_mctrl(struct uart_port *port
+ 	spin_unlock_irqrestore(&port->lock, flags);
  }
  
-+static void
-+skb_pool_put(struct aoedev *d, struct sk_buff *skb)
-+{
-+	if (!d->skbpool_hd)
-+		d->skbpool_hd = skb;
-+	else
-+		d->skbpool_tl->next = skb;
-+	d->skbpool_tl = skb;
-+}
-+
-+static struct sk_buff *
-+skb_pool_get(struct aoedev *d)
-+{
-+	struct sk_buff *skb;
-+
-+	skb = d->skbpool_hd;
-+	if (skb && atomic_read(&skb_shinfo(skb)->dataref) == 1) {
-+		d->skbpool_hd = skb->next;
-+		skb->next = NULL;
-+		return skb;
-+	}
-+	if (d->nskbpool < NSKBPOOLMAX
-+	&& (skb = new_skb(ETH_ZLEN))) {
-+		d->nskbpool++;
-+		return skb;
-+	}
-+	return NULL;
-+}
-+
-+/* freeframe is where we do our load balancing so it's a little hairy. */
- static struct frame *
- freeframe(struct aoedev *d)
- {
--	struct frame *f, *e;
-+	struct frame *f, *e, *rf;
- 	struct aoetgt **t;
--	ulong n;
-+	struct sk_buff *skb;
+-#define uart_set_mctrl(port,set)	uart_update_mctrl(port,set,0)
+-#define uart_clear_mctrl(port,clear)	uart_update_mctrl(port,0,clear)
++#define uart_set_mctrl(port, set)	uart_update_mctrl(port, set, 0)
++#define uart_clear_mctrl(port, clear)	uart_update_mctrl(port, 0, clear)
  
- 	if (d->targets[0] == NULL) {	/* shouldn't happen, but I'm paranoid */
- 		printk(KERN_ERR "aoe: NULL TARGETS!\n");
- 		return NULL;
+ /*
+  * Startup the port.  This will be called once per open.  All calls
+@@ -290,7 +291,7 @@ uart_update_timeout(struct uart_port *po
+ 		break;
+ 	default:
+ 		bits = 10;
+-		break; // CS8
++		break; /* CS8 */
  	}
--	t = d->targets;
--	do {
--		if (t != d->htgt
--		&& (*t)->ifp->nd
--		&& (*t)->nout < (*t)->maxout) {
--			n = (*t)->nframes;
-+	t = d->tgt;
-+	t++;
-+	if (t >= &d->targets[NTARGETS] || !*t)
-+		t = d->targets;
-+	for (;;) {
-+		if ((*t)->nout < (*t)->maxout
-+		&& t != d->htgt
-+		&& (*t)->ifp->nd) {
-+			rf = NULL;
- 			f = (*t)->frames;
--			e = f + n;
-+			e = f + (*t)->nframes;
- 			for (; f < e; f++) {
- 				if (f->tag != FREETAG)
- 					continue;
--				if (atomic_read(&skb_shinfo(f->skb)->dataref)
-+				skb = f->skb;
-+				if (!skb
-+				&& !(f->skb = skb = new_skb(ETH_ZLEN)))
-+					continue;
-+				if (atomic_read(&skb_shinfo(skb)->dataref)
- 					!= 1) {
--					n--;
-+					if (!rf)
-+						rf = f;
- 					continue;
- 				}
--				skb_shinfo(f->skb)->nr_frags = 0;
--				f->skb->data_len = 0;
--				skb_trim(f->skb, 0);
-+gotone:				skb_shinfo(skb)->nr_frags = skb->data_len = 0;
-+				skb_trim(skb, 0);
- 				d->tgt = t;
- 				ifrotate(*t);
- 				return f;
- 			}
--			if (n == 0)	/* slow polling network card */
-+			/* Work can be done, but the network layer is
-+			   holding our precious packets.  Try to grab
-+			   one from the pool. */
-+			f = rf;
-+			if (f == NULL) {	/* more paranoia */
-+				printk(KERN_ERR
-+					"aoe: freeframe: %s.\n",
-+					"unexpected null rf");
-+				d->flags |= DEVFL_KICKME;
-+				return NULL;
-+			}
-+			skb = skb_pool_get(d);
-+			if (skb) {
-+				skb_pool_put(d, f->skb);
-+				f->skb = skb;
-+				goto gotone;
-+			}
-+			(*t)->dataref++;
-+			if ((*t)->nout == 0)
- 				d->flags |= DEVFL_KICKME;
+ 
+ 	if (cflag & CSTOPB)
+@@ -622,7 +623,7 @@ static int uart_get_info(struct uart_sta
+ 	tmp.close_delay	    = state->close_delay / 10;
+ 	tmp.closing_wait    = state->closing_wait == USF_CLOSING_WAIT_NONE ?
+ 				ASYNC_CLOSING_WAIT_NONE :
+-			        state->closing_wait / 10;
++				state->closing_wait / 10;
+ 	tmp.custom_divisor  = port->custom_divisor;
+ 	tmp.hub6	    = port->hub6;
+ 	tmp.io_type         = port->iotype;
+@@ -788,7 +789,8 @@ static int uart_set_info(struct uart_sta
+ 			 * We failed anyway.
+ 			 */
+ 			retval = -EBUSY;
+-			goto exit;  // Added to return the correct error -Ram Gupta
++			/* Added to return the correct error -Ram Gupta */
++			goto exit;
  		}
-+		if (t == d->tgt)	/* we've looped and found nada */
+ 	}
+ 
+@@ -858,7 +860,7 @@ static int uart_get_lsr_info(struct uart
+ 	    ((uart_circ_chars_pending(&state->info->xmit) > 0) &&
+ 	     !state->info->tty->stopped && !state->info->tty->hw_stopped))
+ 		result &= ~TIOCSER_TEMT;
+-	
++
+ 	return put_user(result, value);
+ }
+ 
+@@ -996,8 +998,8 @@ uart_wait_modem_status(struct uart_state
+ 		    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
+ 		    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
+ 		    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
+-		    	ret = 0;
+-		    	break;
++			ret = 0;
 +			break;
- 		t++;
--	} while (t < &d->targets[NTARGETS] && *t);
-+		if (t >= &d->targets[NTARGETS] || !*t)
-+			t = d->targets;
-+	}
- 	return NULL;
+ 		}
+ 
+ 		schedule();
+@@ -1137,7 +1139,8 @@ uart_ioctl(struct tty_struct *tty, struc
+ 	return ret;
  }
  
-@@ -894,33 +953,23 @@ addtgt(struct aoedev *d, char *addr, ulo
- 		return NULL;
- 
- 	t = kcalloc(1, sizeof *t, GFP_ATOMIC);
-+	if (!t)
-+		return NULL;
- 	f = kcalloc(nframes, sizeof *f, GFP_ATOMIC);
--	if (!t || !f)
--		goto bail;
-+	if (!f) {
-+		kfree(t);
-+		return NULL;
-+	}
-+
- 	t->nframes = nframes;
- 	t->frames = f;
- 	e = f + nframes;
--	for (; f < e; f++) {
-+	for (; f < e; f++)
- 		f->tag = FREETAG;
--		f->skb = new_skb(ETH_ZLEN);
--		if (!f->skb)
--			break;
--	}
--	if (f != e) {
--		while (f > t->frames) {
--			f--;
--			dev_kfree_skb(f->skb);
--		}
--		goto bail;
--	}
- 	memcpy(t->addr, addr, sizeof t->addr);
- 	t->ifp = t->ifs;
- 	t->maxout = t->nframes;
- 	return *tt = t;
--bail:
--	kfree(t);
--	kfree(f);
--	return NULL;
- }
- 
- void
-diff -puN drivers/block/aoe/aoedev.c~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-dynamically-allocate-a-capped-number-of-skbs-when-necessary
-+++ a/drivers/block/aoe/aoedev.c
-@@ -7,11 +7,13 @@
- #include <linux/hdreg.h>
- #include <linux/blkdev.h>
- #include <linux/netdevice.h>
-+#include <linux/delay.h>
- #include "aoe.h"
- 
- static void dummy_timer(ulong);
- static void aoedev_freedev(struct aoedev *);
--static void freetgt(struct aoetgt *t);
-+static void freetgt(struct aoedev *d, struct aoetgt *t);
-+static void skbpoolfree(struct aoedev *d);
- 
- static struct aoedev *devlist;
- static spinlock_t devlist_lock;
-@@ -125,9 +127,10 @@ aoedev_freedev(struct aoedev *d)
- 	t = d->targets;
- 	e = t + NTARGETS;
- 	for (; t < e && *t; t++)
--		freetgt(*t);
-+		freetgt(d, *t);
- 	if (d->bufpool)
- 		mempool_destroy(d->bufpool);
-+	skbpoolfree(d);
- 	kfree(d);
- }
- 
-@@ -176,6 +179,43 @@ aoedev_flush(const char __user *str, siz
- 	return 0;
- }
- 
-+/* I'm not really sure that this is a realistic problem, but if the
-+network driver goes gonzo let's just leak memory after complaining. */
-+static void
-+skbfree(struct sk_buff *skb)
-+{
-+	enum { Sms = 100, Tms = 3*1000};
-+	int i = Tms / Sms;
-+
-+	if (skb == NULL)
-+		return;
-+	while (atomic_read(&skb_shinfo(skb)->dataref) != 1 && i-- > 0)
-+		msleep(Sms);
-+	if (i <= 0) {
-+		printk(KERN_ERR
-+			"aoe: %s holds ref: %s\n",
-+			skb->dev ? skb->dev->name : "netif",
-+			"cannot free skb -- memory leaked.");
-+		return;
-+	}
-+	skb_shinfo(skb)->nr_frags = skb->data_len = 0;
-+	skb_trim(skb, 0);
-+	dev_kfree_skb(skb);
-+}
-+
-+static void
-+skbpoolfree(struct aoedev *d)
-+{
-+	struct sk_buff *skb;
-+
-+	while ((skb = d->skbpool_hd)) {
-+		d->skbpool_hd = skb->next;
-+		skb->next = NULL;
-+		skbfree(skb);
-+	}
-+	d->skbpool_tl = NULL;
-+}
-+
- /* find it or malloc it */
- struct aoedev *
- aoedev_by_sysminor_m(ulong sysminor)
-@@ -215,16 +255,14 @@ aoedev_by_sysminor_m(ulong sysminor)
- }
- 
- static void
--freetgt(struct aoetgt *t)
-+freetgt(struct aoedev *d, struct aoetgt *t)
+-static void uart_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
++static void uart_set_termios(struct tty_struct *tty,
++						struct ktermios *old_termios)
  {
- 	struct frame *f, *e;
+ 	struct uart_state *state = tty->driver_data;
+ 	unsigned long flags;
+@@ -1213,7 +1216,7 @@ static void uart_close(struct tty_struct
+ {
+ 	struct uart_state *state = tty->driver_data;
+ 	struct uart_port *port;
+-	
++
+ 	BUG_ON(!kernel_locked());
  
- 	f = t->frames;
- 	e = f + t->nframes;
--	for (; f < e; f++) {
--		skb_shinfo(f->skb)->nr_frags = 0;
--		dev_kfree_skb(f->skb);
--	}
-+	for (; f < e; f++)
-+		skbfree(f->skb);
- 	kfree(t->frames);
- 	kfree(t);
- }
+ 	if (!state || !state->port)
+@@ -1278,8 +1281,8 @@ static void uart_close(struct tty_struct
+ 	uart_shutdown(state);
+ 	uart_flush_buffer(tty);
+ 
+-	tty_ldisc_flush(tty);	
+-	
++	tty_ldisc_flush(tty);
++
+ 	tty->closing = 0;
+ 	state->info->tty = NULL;
+ 
+@@ -1341,7 +1344,7 @@ static void uart_wait_until_sent(struct 
+ 	expire = jiffies + timeout;
+ 
+ 	pr_debug("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
+-	        port->line, jiffies, expire);
++		port->line, jiffies, expire);
+ 
+ 	/*
+ 	 * Check whether the transmitter is empty every 'char_time'.
+@@ -1460,10 +1463,9 @@ uart_block_til_ready(struct file *filp, 
+ 		 * have set TTY_IO_ERROR for a non-existant port.
+ 		 */
+ 		if ((filp->f_flags & O_NONBLOCK) ||
+-	            (info->tty->termios->c_cflag & CLOCAL) ||
+-		    (info->tty->flags & (1 << TTY_IO_ERROR))) {
++		    (info->tty->termios->c_cflag & CLOCAL) ||
++		    (info->tty->flags & (1 << TTY_IO_ERROR)))
+ 			break;
+-		}
+ 
+ 		/*
+ 		 * Set DTR to allow modem to know we're waiting.  Do
+@@ -1674,7 +1676,7 @@ static int uart_line_info(char *buf, str
+ 			port->line, uart_type(port),
+ 			mmio ? "mmio:0x" : "port:",
+ 			mmio ? (unsigned long long)port->mapbase
+-		             : (unsigned long long) port->iobase,
++			     : (unsigned long long) port->iobase,
+ 			port->irq);
+ 
+ 	if (port->type == PORT_UNKNOWN) {
+@@ -1682,8 +1684,7 @@ static int uart_line_info(char *buf, str
+ 		return ret + 1;
+ 	}
+ 
+-	if(capable(CAP_SYS_ADMIN))
+-	{
++	if (capable(CAP_SYS_ADMIN)) {
+ 		mutex_lock(&state->mutex);
+ 		pm_state = state->pm_state;
+ 		if (pm_state)
+@@ -1709,12 +1710,12 @@ static int uart_line_info(char *buf, str
+ 		if (port->icount.overrun)
+ 			ret += sprintf(buf + ret, " oe:%d",
+ 				port->icount.overrun);
+-	
+-#define INFOBIT(bit,str) \
++
++#define INFOBIT(bit, str) \
+ 	if (port->mctrl & (bit)) \
+ 		strncat(stat_buf, (str), sizeof(stat_buf) - \
+ 			strlen(stat_buf) - 2)
+-#define STATBIT(bit,str) \
++#define STATBIT(bit, str) \
+ 	if (status & (bit)) \
+ 		strncat(stat_buf, (str), sizeof(stat_buf) - \
+ 		       strlen(stat_buf) - 2)
+@@ -1730,7 +1731,7 @@ static int uart_line_info(char *buf, str
+ 		if (stat_buf[0])
+ 			stat_buf[0] = ' ';
+ 		strcat(stat_buf, "\n");
+-	
++
+ 		ret += sprintf(buf + ret, stat_buf);
+ 	} else {
+ 		strcat(buf, "\n");
+@@ -1992,11 +1993,11 @@ int uart_suspend_port(struct uart_driver
+ 		/*
+ 		 * Wait for the transmitter to empty.
+ 		 */
+-		for (tries = 3; !ops->tx_empty(port) && tries; tries--) {
++		for (tries = 3; !ops->tx_empty(port) && tries; tries--)
+ 			msleep(10);
+-		}
+ 		if (!tries)
+-			printk(KERN_ERR "%s%s%s%d: Unable to drain transmitter\n",
++			printk(KERN_ERR "%s%s%s%d: Unable to drain "
++					"transmitter\n",
+ 			       port->dev ? port->dev->bus_id : "",
+ 			       port->dev ? ": " : "",
+ 			       drv->dev_name, port->line);
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
