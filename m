@@ -1,99 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - proc-simplify-function-prototypes.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:11:52 -0800
-Message-ID: <200802082011.m18KBXC5010125@imap1.linux-foundation.org>
+Subject: - asm-generic-remove-fastcall.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:40 -0800
+Message-ID: <200802082015.m18KFLn8010522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752802AbYBHUqL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:11 -0500
+	by vger.kernel.org with ESMTP id S1755562AbYBHUqY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: simplify function prototypes
+     asm-generic: remove fastcall
 has been removed from the -mm tree.  Its filename was
-     proc-simplify-function-prototypes.patch
+     asm-generic-remove-fastcall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: simplify function prototypes
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: asm-generic: remove fastcall
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Move code around so as to reduce the number of forward-declarations.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c  |   18 ++++++------------
- fs/proc/proc_tty.c |    3 ---
- 2 files changed, 6 insertions(+), 15 deletions(-)
+ include/asm-generic/iomap.h      |   36 ++++++++++++++---------------
+ include/asm-generic/mutex-dec.h  |    6 ++--
+ include/asm-generic/mutex-xchg.h |    6 ++--
+ 3 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-simplify-function-prototypes fs/proc/generic.c
---- a/fs/proc/generic.c~proc-simplify-function-prototypes
-+++ a/fs/proc/generic.c
-@@ -25,12 +25,6 @@
- 
- #include "internal.h"
- 
--static ssize_t proc_file_read(struct file *file, char __user *buf,
--			      size_t nbytes, loff_t *ppos);
--static ssize_t proc_file_write(struct file *file, const char __user *buffer,
--			       size_t count, loff_t *ppos);
--static loff_t proc_file_lseek(struct file *, loff_t, int);
--
- DEFINE_SPINLOCK(proc_subdir_lock);
- 
- static int proc_match(int len, const char *name, struct proc_dir_entry *de)
-@@ -40,12 +34,6 @@ static int proc_match(int len, const cha
- 	return !memcmp(name, de->name, len);
- }
- 
--static const struct file_operations proc_file_operations = {
--	.llseek		= proc_file_lseek,
--	.read		= proc_file_read,
--	.write		= proc_file_write,
--};
--
- /* buffer size is one page but our output routines use some slack for overruns */
- #define PROC_BLOCK_SIZE	(PAGE_SIZE - 1024)
- 
-@@ -233,6 +221,12 @@ proc_file_lseek(struct file *file, loff_
- 	return retval;
- }
- 
-+static const struct file_operations proc_file_operations = {
-+	.llseek		= proc_file_lseek,
-+	.read		= proc_file_read,
-+	.write		= proc_file_write,
-+};
-+
- static int proc_notify_change(struct dentry *dentry, struct iattr *iattr)
- {
- 	struct inode *inode = dentry->d_inode;
-diff -puN fs/proc/proc_tty.c~proc-simplify-function-prototypes fs/proc/proc_tty.c
---- a/fs/proc/proc_tty.c~proc-simplify-function-prototypes
-+++ a/fs/proc/proc_tty.c
-@@ -15,9 +15,6 @@
- #include <linux/seq_file.h>
- #include <linux/bitops.h>
- 
--static int tty_ldiscs_read_proc(char *page, char **start, off_t off,
--				int count, int *eof, void *data);
--
- /*
-  * The /proc/tty directory inodes...
+diff -puN include/asm-generic/iomap.h~asm-generic-remove-fastcall include/asm-generic/iomap.h
+--- a/include/asm-generic/iomap.h~asm-generic-remove-fastcall
++++ a/include/asm-generic/iomap.h
+@@ -25,17 +25,17 @@
+  * in the low address range. Architectures for which this is not
+  * true can't use this generic implementation.
   */
+-extern unsigned int fastcall ioread8(void __iomem *);
+-extern unsigned int fastcall ioread16(void __iomem *);
+-extern unsigned int fastcall ioread16be(void __iomem *);
+-extern unsigned int fastcall ioread32(void __iomem *);
+-extern unsigned int fastcall ioread32be(void __iomem *);
+-
+-extern void fastcall iowrite8(u8, void __iomem *);
+-extern void fastcall iowrite16(u16, void __iomem *);
+-extern void fastcall iowrite16be(u16, void __iomem *);
+-extern void fastcall iowrite32(u32, void __iomem *);
+-extern void fastcall iowrite32be(u32, void __iomem *);
++extern unsigned int ioread8(void __iomem *);
++extern unsigned int ioread16(void __iomem *);
++extern unsigned int ioread16be(void __iomem *);
++extern unsigned int ioread32(void __iomem *);
++extern unsigned int ioread32be(void __iomem *);
++
++extern void iowrite8(u8, void __iomem *);
++extern void iowrite16(u16, void __iomem *);
++extern void iowrite16be(u16, void __iomem *);
++extern void iowrite32(u32, void __iomem *);
++extern void iowrite32be(u32, void __iomem *);
+ 
+ /*
+  * "string" versions of the above. Note that they
+@@ -48,13 +48,13 @@ extern void fastcall iowrite32be(u32, vo
+  * memory across multiple ports, use "memcpy_toio()"
+  * and friends.
+  */
+-extern void fastcall ioread8_rep(void __iomem *port, void *buf, unsigned long count);
+-extern void fastcall ioread16_rep(void __iomem *port, void *buf, unsigned long count);
+-extern void fastcall ioread32_rep(void __iomem *port, void *buf, unsigned long count);
+-
+-extern void fastcall iowrite8_rep(void __iomem *port, const void *buf, unsigned long count);
+-extern void fastcall iowrite16_rep(void __iomem *port, const void *buf, unsigned long count);
+-extern void fastcall iowrite32_rep(void __iomem *port, const void *buf, unsigned long count);
++extern void ioread8_rep(void __iomem *port, void *buf, unsigned long count);
++extern void ioread16_rep(void __iomem *port, void *buf, unsigned long count);
++extern void ioread32_rep(void __iomem *port, void *buf, unsigned long count);
++
++extern void iowrite8_rep(void __iomem *port, const void *buf, unsigned long count);
++extern void iowrite16_rep(void __iomem *port, const void *buf, unsigned long count);
++extern void iowrite32_rep(void __iomem *port, const void *buf, unsigned long count);
+ 
+ /* Create a virtual mapping cookie for an IO port range */
+ extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
+diff -puN include/asm-generic/mutex-dec.h~asm-generic-remove-fastcall include/asm-generic/mutex-dec.h
+--- a/include/asm-generic/mutex-dec.h~asm-generic-remove-fastcall
++++ a/include/asm-generic/mutex-dec.h
+@@ -18,7 +18,7 @@
+  * 1 even when the "1" assertion wasn't true.
+  */
+ static inline void
+-__mutex_fastpath_lock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+ 		fail_fn(count);
+@@ -37,7 +37,7 @@ __mutex_fastpath_lock(atomic_t *count, f
+  * or anything the slow path function returns.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, fastcall int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+ 		return fail_fn(count);
+@@ -61,7 +61,7 @@ __mutex_fastpath_lock_retval(atomic_t *c
+  * to return 0 otherwise.
+  */
+ static inline void
+-__mutex_fastpath_unlock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
++__mutex_fastpath_unlock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ {
+ 	smp_mb();
+ 	if (unlikely(atomic_inc_return(count) <= 0))
+diff -puN include/asm-generic/mutex-xchg.h~asm-generic-remove-fastcall include/asm-generic/mutex-xchg.h
+--- a/include/asm-generic/mutex-xchg.h~asm-generic-remove-fastcall
++++ a/include/asm-generic/mutex-xchg.h
+@@ -23,7 +23,7 @@
+  * even when the "1" assertion wasn't true.
+  */
+ static inline void
+-__mutex_fastpath_lock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ {
+ 	if (unlikely(atomic_xchg(count, 0) != 1))
+ 		fail_fn(count);
+@@ -42,7 +42,7 @@ __mutex_fastpath_lock(atomic_t *count, f
+  * or anything the slow path function returns
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, fastcall int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
+ {
+ 	if (unlikely(atomic_xchg(count, 0) != 1))
+ 		return fail_fn(count);
+@@ -65,7 +65,7 @@ __mutex_fastpath_lock_retval(atomic_t *c
+  * to return 0 otherwise.
+  */
+ static inline void
+-__mutex_fastpath_unlock(atomic_t *count, fastcall void (*fail_fn)(atomic_t *))
++__mutex_fastpath_unlock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ {
+ 	smp_mb();
+ 	if (unlikely(atomic_xchg(count, 1) != 0))
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-single_open-seq_release-leak-diagnostics.patch
+git-x86.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
