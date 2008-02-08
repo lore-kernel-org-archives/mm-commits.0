@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_amd-note-in-the-module-description-it-handles-nvidia.patch added to -mm tree
-Date: Fri, 08 Feb 2008 13:38:12 -0800
-Message-ID: <200802082138.m18LcCRJ014601@imap1.linux-foundation.org>
+Subject: + fix-ide-legacy-gaylec-compilation.patch added to -mm tree
+Date: Fri, 08 Feb 2008 13:42:24 -0800
+Message-ID: <200802082142.m18LgOwH014795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55394 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755691AbYBHVlM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:41:12 -0500
+	by vger.kernel.org with ESMTP id S1761513AbYBHVmk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:42:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: bunk@kernel.org, bzolnier@gmail.com
 
 
 The patch titled
-     pata_amd: note in the module description it handles Nvidia
+     fix ide/legacy/gayle.c compilation
 has been added to the -mm tree.  Its filename is
-     pata_amd-note-in-the-module-description-it-handles-nvidia.patch
+     fix-ide-legacy-gaylec-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_amd: note in the module description it handles Nvidia
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: fix ide/legacy/gayle.c compilation
+From: Adrian Bunk <bunk@kernel.org>
 
-This has confused a few people so fix it.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |    2 +-
+ drivers/ide/legacy/gayle.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_amd.c~pata_amd-note-in-the-module-description-it-handles-nvidia drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~pata_amd-note-in-the-module-description-it-handles-nvidia
-+++ a/drivers/ata/pata_amd.c
-@@ -772,7 +772,7 @@ static void __exit amd_exit(void)
- }
+diff -puN drivers/ide/legacy/gayle.c~fix-ide-legacy-gaylec-compilation drivers/ide/legacy/gayle.c
+--- a/drivers/ide/legacy/gayle.c~fix-ide-legacy-gaylec-compilation
++++ a/drivers/ide/legacy/gayle.c
+@@ -94,7 +94,7 @@ static int gayle_ack_intr_a1200(ide_hwif
  
- MODULE_AUTHOR("Alan Cox");
--MODULE_DESCRIPTION("low-level driver for AMD PATA IDE");
-+MODULE_DESCRIPTION("low-level driver for AMD and Nvidia PATA IDE");
- MODULE_LICENSE("GPL");
- MODULE_DEVICE_TABLE(pci, amd);
- MODULE_VERSION(DRV_VERSION);
+ static void __init gayle_setup_ports(hw_regs_t *hw, unsigned long base,
+ 				     unsigned long ctl, unsigned long irq_port,
+-				     ide_ack_intr_t *ack_intr);
++				     ide_ack_intr_t *ack_intr)
+ {
+ 	int i;
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-x25_asy-fix-ref-count-rule-violation.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-note-in-the-module-description-it-handles-nvidia.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-megaraid-outb_p-extermination.patch
-git-watchdog.patch
-tty-bkl-pushdown.patch
+fix-frv-cmpxchg_local.patch
+fix-xtensa-timerfd-breakage.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+fix-ide-legacy-gaylec-compilation.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+reiser4.patch
