@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-constify-function-pointer-tables.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:56 -0800
-Message-ID: <200802082018.m18KIbUW010945@imap1.linux-foundation.org>
+Subject: - tty_audit-fix-checkpatch-complaint.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:44 -0800
+Message-ID: <200802082012.m18KCPxW010200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58270 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763012AbYBHUqy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:54 -0500
+	by vger.kernel.org with ESMTP id S1763414AbYBHUrc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:47:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@computergmbh.de, jeffm@suse.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: constify function pointer tables
+     tty_audit: fix checkpatch complaint
 has been removed from the -mm tree.  Its filename was
-     reiserfs-constify-function-pointer-tables.patch
+     tty_audit-fix-checkpatch-complaint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: constify function pointer tables
-From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: tty_audit: fix checkpatch complaint
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-Acked-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c |    2 +-
+ drivers/char/tty_audit.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/procfs.c~reiserfs-constify-function-pointer-tables fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~reiserfs-constify-function-pointer-tables
-+++ a/fs/reiserfs/procfs.c
-@@ -444,7 +444,7 @@ static int r_show(struct seq_file *m, vo
- 	return show(m, v);
- }
+diff -puN drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint drivers/char/tty_audit.c
+--- a/drivers/char/tty_audit.c~tty_audit-fix-checkpatch-complaint
++++ a/drivers/char/tty_audit.c
+@@ -27,7 +27,7 @@ static struct tty_audit_buf *tty_audit_b
+ {
+ 	struct tty_audit_buf *buf;
  
--static struct seq_operations r_ops = {
-+static const struct seq_operations r_ops = {
- 	.start = r_start,
- 	.next = r_next,
- 	.stop = r_stop,
+-	buf = kmalloc(sizeof (*buf), GFP_KERNEL);
++	buf = kmalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+ 		goto err;
+ 	if (PAGE_SIZE != N_TTY_BUF_SIZE)
 _
 
-Patches currently in -mm which might be from jengelh@computergmbh.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-dvb.patch
-git-kvm.patch
-git-ocfs2.patch
-git-unionfs.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
 git-watchdog.patch
