@@ -1,412 +1,650 @@
 From: akpm@linux-foundation.org
-Subject: - libfs-allow-error-return-from-simple-attributes.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:16:50 -0800
-Message-ID: <200802082016.m18KGVdk010741@imap1.linux-foundation.org>
+Subject: - atmel_serial-add-dma-support.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:37 -0800
+Message-ID: <200802082018.m18KIInY010912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56511 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758652AbYBHVDf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:35 -0500
+	by vger.kernel.org with ESMTP id S1758670AbYBHVEP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, arnd@arndb.de, greg@kroah.com, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: coldwell@redhat.com, hskinnemoen@atmel.com, linux@bohmer.net, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libfs: allow error return from simple attributes
+     atmel_serial: add DMA support
 has been removed from the -mm tree.  Its filename was
-     libfs-allow-error-return-from-simple-attributes.patch
+     atmel_serial-add-dma-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfs: allow error return from simple attributes
-From: Christoph Hellwig <hch@lst.de>
+Subject: atmel_serial: add DMA support
+From: Chip Coldwell <coldwell@redhat.com>
 
-Sometimes simple attributes might need to return an error, e.g. for
-acquiring a mutex interruptibly.  In fact we have that situation in
-spufs already which is the original user of the simple attributes.  This
-patch merged the temporarily forked attributes in spufs back into the
-main ones and allows to return errors.
+This patch is based on the DMA-patch by Chip Coldwell for the AT91/AT32 serial
+USARTS, with some tweaks to make it apply neatly on top of the other patches
+in this series.
 
-[akpm@linux-foundation.org: build fix]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: <stefano.brivio@polimi.it>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The RX and TX code has been moved to a tasklet and reworked a bit.  Instead of
+depending on the ENDRX and TIMEOUT bits in CSR, we simply grab as much data as
+we can from the DMA buffers.  I think this closes a race where the ENDRX bit
+is set after we read CSR but before we read RPR, although I haven't confirmed
+this.
+
+Similarly, the two TX handlers (ENDTX and TXBUFE) have been combined into one.
+ Since the current code only uses a single TX buffer, there's no point in
+handling those interrupts separately.
+
+This also fixes a DMA sync bug in the original patch.
+
+[linux@bohmer.net: rebased onto irq-splitup patch]
+[hskinnemoen@atmel.com: moved to tasklet, fixed dma bug, misc cleanups]
+[hskinnemoen@atmel.com: atmel_serial dma: Misc fixes and cleanups]
+Signed-off-by: Remy Bohmer <linux@bohmer.net>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Tested-by: Marc Pignat <marc.pignat@hevs.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/ocd.c                  |   18 +++++++----
- arch/powerpc/platforms/cell/spufs/file.c |    8 ++---
- fs/debugfs/file.c                        |   32 +++++++++++++--------
- fs/libfs.c                               |   21 ++++++++-----
- include/linux/fs.h                       |    2 -
- lib/fault-inject.c                       |   19 +++++++-----
- virt/kvm/kvm_main.c                      |   16 +++++-----
- 7 files changed, 69 insertions(+), 47 deletions(-)
+ drivers/serial/Kconfig        |   15 +
+ drivers/serial/atmel_serial.c |  392 ++++++++++++++++++++++++++++++--
+ 2 files changed, 383 insertions(+), 24 deletions(-)
 
-diff -puN arch/avr32/kernel/ocd.c~libfs-allow-error-return-from-simple-attributes arch/avr32/kernel/ocd.c
---- a/arch/avr32/kernel/ocd.c~libfs-allow-error-return-from-simple-attributes
-+++ a/arch/avr32/kernel/ocd.c
-@@ -90,25 +90,29 @@ static struct dentry *ocd_debugfs_DC;
- static struct dentry *ocd_debugfs_DS;
- static struct dentry *ocd_debugfs_count;
+diff -puN drivers/serial/Kconfig~atmel_serial-add-dma-support drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~atmel_serial-add-dma-support
++++ a/drivers/serial/Kconfig
+@@ -380,6 +380,21 @@ config SERIAL_ATMEL_CONSOLE
+ 	  console is the device which receives all kernel messages and
+ 	  warnings and which allows logins in single user mode).
  
--static u64 ocd_DC_get(void *data)
-+static int ocd_DC_get(void *data, u64 *val)
- {
--	return ocd_read(DC);
-+	*val = ocd_read(DC);
-+	return 0;
- }
--static void ocd_DC_set(void *data, u64 val)
-+static int ocd_DC_set(void *data, u64 val)
- {
- 	ocd_write(DC, val);
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_DC, ocd_DC_get, ocd_DC_set, "0x%08llx\n");
- 
--static u64 ocd_DS_get(void *data)
-+static int ocd_DS_get(void *data, u64 *val)
- {
--	return ocd_read(DS);
-+	*val = ocd_read(DS);
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_DS, ocd_DS_get, NULL, "0x%08llx\n");
- 
--static u64 ocd_count_get(void *data)
-+static int ocd_count_get(void *data, u64 *val)
- {
--	return ocd_count;
-+	*val = ocd_count;
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_count, ocd_count_get, NULL, "%lld\n");
- 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~libfs-allow-error-return-from-simple-attributes arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~libfs-allow-error-return-from-simple-attributes
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -460,7 +460,7 @@ static int spufs_cntl_open(struct inode 
- 	if (!i->i_openers++)
- 		ctx->cntl = inode->i_mapping;
- 	mutex_unlock(&ctx->mapping_lock);
--	return spufs_attr_open(inode, file, spufs_cntl_get,
-+	return simple_attr_open(inode, file, spufs_cntl_get,
- 					spufs_cntl_set, "0x%08lx");
- }
- 
-@@ -470,7 +470,7 @@ spufs_cntl_release(struct inode *inode, 
- 	struct spufs_inode_info *i = SPUFS_I(inode);
- 	struct spu_context *ctx = i->i_ctx;
- 
--	spufs_attr_release(inode, file);
-+	simple_attr_close(inode, file);
- 
- 	mutex_lock(&ctx->mapping_lock);
- 	if (!--i->i_openers)
-@@ -482,8 +482,8 @@ spufs_cntl_release(struct inode *inode, 
- static const struct file_operations spufs_cntl_fops = {
- 	.open = spufs_cntl_open,
- 	.release = spufs_cntl_release,
--	.read = spufs_attr_read,
--	.write = spufs_attr_write,
-+	.read = simple_attr_read,
-+	.write = simple_attr_write,
- 	.mmap = spufs_cntl_mmap,
- };
- 
-diff -puN fs/debugfs/file.c~libfs-allow-error-return-from-simple-attributes fs/debugfs/file.c
---- a/fs/debugfs/file.c~libfs-allow-error-return-from-simple-attributes
-+++ a/fs/debugfs/file.c
-@@ -56,13 +56,15 @@ const struct inode_operations debugfs_li
- 	.follow_link    = debugfs_follow_link,
- };
- 
--static void debugfs_u8_set(void *data, u64 val)
-+static int debugfs_u8_set(void *data, u64 val)
- {
- 	*(u8 *)data = val;
-+	return 0;
- }
--static u64 debugfs_u8_get(void *data)
-+static int debugfs_u8_get(void *data, u64 *val)
- {
--	return *(u8 *)data;
-+	*val = *(u8 *)data;
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_u8, debugfs_u8_get, debugfs_u8_set, "%llu\n");
- 
-@@ -97,13 +99,15 @@ struct dentry *debugfs_create_u8(const c
- }
- EXPORT_SYMBOL_GPL(debugfs_create_u8);
- 
--static void debugfs_u16_set(void *data, u64 val)
-+static int debugfs_u16_set(void *data, u64 val)
- {
- 	*(u16 *)data = val;
-+	return 0;
- }
--static u64 debugfs_u16_get(void *data)
-+static int debugfs_u16_get(void *data, u64 *val)
- {
--	return *(u16 *)data;
-+	*val = *(u16 *)data;
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_u16, debugfs_u16_get, debugfs_u16_set, "%llu\n");
- 
-@@ -138,13 +142,15 @@ struct dentry *debugfs_create_u16(const 
- }
- EXPORT_SYMBOL_GPL(debugfs_create_u16);
- 
--static void debugfs_u32_set(void *data, u64 val)
-+static int debugfs_u32_set(void *data, u64 val)
- {
- 	*(u32 *)data = val;
-+	return 0;
- }
--static u64 debugfs_u32_get(void *data)
-+static int debugfs_u32_get(void *data, u64 *val)
- {
--	return *(u32 *)data;
-+	*val = *(u32 *)data;
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_u32, debugfs_u32_get, debugfs_u32_set, "%llu\n");
- 
-@@ -179,14 +185,16 @@ struct dentry *debugfs_create_u32(const 
- }
- EXPORT_SYMBOL_GPL(debugfs_create_u32);
- 
--static void debugfs_u64_set(void *data, u64 val)
-+static int debugfs_u64_set(void *data, u64 val)
- {
- 	*(u64 *)data = val;
-+	return 0;
- }
- 
--static u64 debugfs_u64_get(void *data)
-+static int debugfs_u64_get(void *data, u64 *val)
- {
--	return *(u64 *)data;
-+	*val = *(u64 *)data;
-+	return 0;
- }
- DEFINE_SIMPLE_ATTRIBUTE(fops_u64, debugfs_u64_get, debugfs_u64_set, "%llu\n");
- 
-diff -puN fs/libfs.c~libfs-allow-error-return-from-simple-attributes fs/libfs.c
---- a/fs/libfs.c~libfs-allow-error-return-from-simple-attributes
-+++ a/fs/libfs.c
-@@ -583,8 +583,8 @@ int simple_transaction_release(struct in
- /* Simple attribute files */
- 
- struct simple_attr {
--	u64 (*get)(void *);
--	void (*set)(void *, u64);
-+	int (*get)(void *, u64 *);
-+	int (*set)(void *, u64);
- 	char get_buf[24];	/* enough to store a u64 and "\n\0" */
- 	char set_buf[24];
- 	void *data;
-@@ -595,7 +595,7 @@ struct simple_attr {
- /* simple_attr_open is called by an actual attribute open file operation
-  * to set the attribute specific access operations. */
- int simple_attr_open(struct inode *inode, struct file *file,
--		     u64 (*get)(void *), void (*set)(void *, u64),
-+		     int (*get)(void *, u64 *), int (*set)(void *, u64),
- 		     const char *fmt)
- {
- 	struct simple_attr *attr;
-@@ -635,14 +635,20 @@ ssize_t simple_attr_read(struct file *fi
- 		return -EACCES;
- 
- 	mutex_lock(&attr->mutex);
--	if (*ppos) /* continued read */
-+	if (*ppos) {		/* continued read */
- 		size = strlen(attr->get_buf);
--	else	  /* first read */
-+	} else {		/* first read */
-+		u64 val;
-+		ret = attr->get(attr->data, &val);
-+		if (ret)
-+			goto out;
++config SERIAL_ATMEL_PDC
++	bool "Support DMA transfers on AT91 / AT32 serial port"
++	depends on SERIAL_ATMEL
++	default y
++	help
++	  Say Y here if you wish to use the PDC to do DMA transfers to
++	  and from the Atmel AT91 / AT32 serial port. In order to
++	  actually use DMA transfers, make sure that the use_dma_tx
++	  and use_dma_rx members in the atmel_uart_data struct is set
++	  appropriately for each port.
 +
- 		size = scnprintf(attr->get_buf, sizeof(attr->get_buf),
--				 attr->fmt,
--				 (unsigned long long)attr->get(attr->data));
-+				 attr->fmt, (unsigned long long)val);
++	  Note that break and error handling currently doesn't work
++	  properly when DMA is enabled. Make sure that ports where
++	  this matters don't use DMA.
++
+ config SERIAL_ATMEL_TTYAT
+ 	bool "Install as device ttyATn instead of ttySn"
+ 	depends on SERIAL_ATMEL=y
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-add-dma-support drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-add-dma-support
++++ a/drivers/serial/atmel_serial.c
+@@ -7,6 +7,8 @@
+  *  Based on drivers/char/serial_sa1100.c, by Deep Blue Solutions Ltd.
+  *  Based on drivers/char/serial.c, by Linus Torvalds, Theodore Ts'o.
+  *
++ *  DMA support added by Chip Coldwell.
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -33,6 +35,7 @@
+ #include <linux/sysrq.h>
+ #include <linux/tty_flip.h>
+ #include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
+ #include <linux/atmel_pdc.h>
+ #include <linux/atmel_serial.h>
+ 
+@@ -46,6 +49,10 @@
+ #include <asm/arch/gpio.h>
+ #endif
+ 
++#define PDC_BUFFER_SIZE		512
++/* Revisit: We should calculate this based on the actual port settings */
++#define PDC_RX_TIMEOUT		(3 * 10)		/* 3 bytes */
++
+ #if defined(CONFIG_SERIAL_ATMEL_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
+ #define SUPPORT_SYSRQ
+ #endif
+@@ -103,6 +110,13 @@
+ static int (*atmel_open_hook)(struct uart_port *);
+ static void (*atmel_close_hook)(struct uart_port *);
+ 
++struct atmel_dma_buffer {
++	unsigned char	*buf;
++	dma_addr_t	dma_addr;
++	unsigned int	dma_size;
++	unsigned int	ofs;
++};
++
+ struct atmel_uart_char {
+ 	u16		status;
+ 	u16		ch;
+@@ -119,6 +133,13 @@ struct atmel_uart_port {
+ 	unsigned short		suspended;	/* is port suspended? */
+ 	int			break_active;	/* break being received */
+ 
++	short			use_dma_rx;	/* enable PDC receiver */
++	short			pdc_rx_idx;	/* current PDC RX buffer */
++	struct atmel_dma_buffer	pdc_rx[2];	/* PDC receier */
++
++	short			use_dma_tx;	/* enable PDC transmitter */
++	struct atmel_dma_buffer	pdc_tx;		/* PDC transmitter */
++
+ 	struct tasklet_struct	tasklet;
+ 	unsigned int		irq_status;
+ 	unsigned int		irq_status_prev;
+@@ -132,6 +153,32 @@ static struct atmel_uart_port atmel_port
+ static struct console atmel_console;
+ #endif
+ 
++#ifdef CONFIG_SERIAL_ATMEL_PDC
++static bool atmel_use_dma_rx(struct uart_port *port)
++{
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++
++	return atmel_port->use_dma_rx;
++}
++
++static bool atmel_use_dma_tx(struct uart_port *port)
++{
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++
++	return atmel_port->use_dma_tx;
++}
++#else
++static bool atmel_use_dma_rx(struct uart_port *port)
++{
++	return false;
++}
++
++static bool atmel_use_dma_tx(struct uart_port *port)
++{
++	return false;
++}
++#endif
++
+ /*
+  * Return TIOCSER_TEMT when transmitter FIFO and Shift register is empty.
+  */
+@@ -213,7 +260,12 @@ static u_int atmel_get_mctrl(struct uart
+  */
+ static void atmel_stop_tx(struct uart_port *port)
+ {
+-	UART_PUT_IDR(port, ATMEL_US_TXRDY);
++	if (atmel_use_dma_tx(port)) {
++		/* disable PDC transmit */
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++		UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
++	} else
++		UART_PUT_IDR(port, ATMEL_US_TXRDY);
+ }
+ 
+ /*
+@@ -221,7 +273,17 @@ static void atmel_stop_tx(struct uart_po
+  */
+ static void atmel_start_tx(struct uart_port *port)
+ {
+-	UART_PUT_IER(port, ATMEL_US_TXRDY);
++	if (atmel_use_dma_tx(port)) {
++		if (UART_GET_PTSR(port) & ATMEL_PDC_TXTEN)
++			/* The transmitter is already running.  Yes, we
++			   really need this.*/
++			return;
++
++		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
++		/* re-enable PDC transmit */
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
++	} else
++		UART_PUT_IER(port, ATMEL_US_TXRDY);
+ }
+ 
+ /*
+@@ -229,7 +291,12 @@ static void atmel_start_tx(struct uart_p
+  */
+ static void atmel_stop_rx(struct uart_port *port)
+ {
+-	UART_PUT_IDR(port, ATMEL_US_RXRDY);
++	if (atmel_use_dma_rx(port)) {
++		/* disable PDC receive */
++		UART_PUT_PTCR(port, ATMEL_PDC_RXTDIS);
++		UART_PUT_IDR(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
++	} else
++		UART_PUT_IDR(port, ATMEL_US_RXRDY);
+ }
+ 
+ /*
+@@ -278,6 +345,27 @@ atmel_buffer_rx_char(struct uart_port *p
+ }
+ 
+ /*
++ * Deal with parity, framing and overrun errors.
++ */
++static void atmel_pdc_rxerr(struct uart_port *port, unsigned int status)
++{
++	/* clear error */
++	UART_PUT_CR(port, ATMEL_US_RSTSTA);
++
++	if (status & ATMEL_US_RXBRK) {
++		/* ignore side-effect */
++		status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
++		port->icount.brk++;
++	}
++	if (status & ATMEL_US_PARE)
++		port->icount.parity++;
++	if (status & ATMEL_US_FRAME)
++		port->icount.frame++;
++	if (status & ATMEL_US_OVRE)
++		port->icount.overrun++;
++}
++
++/*
+  * Characters received (called from interrupt handler)
+  */
+ static void atmel_rx_chars(struct uart_port *port)
+@@ -364,6 +452,25 @@ atmel_handle_receive(struct uart_port *p
+ {
+ 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 
++	if (atmel_use_dma_rx(port)) {
++		/*
++		 * PDC receive. Just schedule the tasklet and let it
++		 * figure out the details.
++		 *
++		 * TODO: We're not handling error flags correctly at
++		 * the moment.
++		 */
++		if (pending & (ATMEL_US_ENDRX | ATMEL_US_TIMEOUT)) {
++			UART_PUT_IDR(port, (ATMEL_US_ENDRX
++						| ATMEL_US_TIMEOUT));
++			tasklet_schedule(&atmel_port->tasklet);
++		}
++
++		if (pending & (ATMEL_US_RXBRK | ATMEL_US_OVRE |
++				ATMEL_US_FRAME | ATMEL_US_PARE))
++			atmel_pdc_rxerr(port, pending);
++	}
++
+ 	/* Interrupt receive */
+ 	if (pending & ATMEL_US_RXRDY)
+ 		atmel_rx_chars(port);
+@@ -386,10 +493,18 @@ atmel_handle_transmit(struct uart_port *
+ {
+ 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 
+-	/* Interrupt transmit */
+-	if (pending & ATMEL_US_TXRDY) {
+-		UART_PUT_IDR(port, ATMEL_US_TXRDY);
+-		tasklet_schedule(&atmel_port->tasklet);
++	if (atmel_use_dma_tx(port)) {
++		/* PDC transmit */
++		if (pending & (ATMEL_US_ENDTX | ATMEL_US_TXBUFE)) {
++			UART_PUT_IDR(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
++			tasklet_schedule(&atmel_port->tasklet);
++		}
++	} else {
++		/* Interrupt transmit */
++		if (pending & ATMEL_US_TXRDY) {
++			UART_PUT_IDR(port, ATMEL_US_TXRDY);
++			tasklet_schedule(&atmel_port->tasklet);
++		}
+ 	}
+ }
+ 
+@@ -417,20 +532,63 @@ static irqreturn_t atmel_interrupt(int i
+ 	struct uart_port *port = dev_id;
+ 	unsigned int status, pending, pass_counter = 0;
+ 
+-	status = UART_GET_CSR(port);
+-	pending = status & UART_GET_IMR(port);
+-	while (pending) {
++	do {
++		status = UART_GET_CSR(port);
++		pending = status & UART_GET_IMR(port);
++		if (!pending)
++			break;
++
+ 		atmel_handle_receive(port, pending);
+ 		atmel_handle_status(port, pending, status);
+ 		atmel_handle_transmit(port, pending);
++	} while (pass_counter++ < ATMEL_ISR_PASS_LIMIT);
+ 
+-		if (pass_counter++ > ATMEL_ISR_PASS_LIMIT)
+-			break;
++	return IRQ_HANDLED;
++}
+ 
+-		status = UART_GET_CSR(port);
+-		pending = status & UART_GET_IMR(port);
++/*
++ * Called from tasklet with ENDTX and TXBUFE interrupts disabled.
++ */
++static void atmel_tx_dma(struct uart_port *port)
++{
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct circ_buf *xmit = &port->info->xmit;
++	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
++	int count;
++
++	xmit->tail += pdc->ofs;
++	xmit->tail &= UART_XMIT_SIZE - 1;
++
++	port->icount.tx += pdc->ofs;
++	pdc->ofs = 0;
++
++	if (!uart_circ_empty(xmit)) {
++		/* more to transmit - setup next transfer */
++
++		/* disable PDC transmit */
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++		dma_sync_single_for_device(port->dev,
++					   pdc->dma_addr,
++					   pdc->dma_size,
++					   DMA_TO_DEVICE);
++
++		count = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
++		pdc->ofs = count;
++
++		UART_PUT_TPR(port, pdc->dma_addr + xmit->tail);
++		UART_PUT_TCR(port, count);
++		/* re-enable PDC transmit and interrupts */
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
++		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
++	} else {
++		/* nothing left to transmit - disable the transmitter */
++
++		/* disable PDC transmit */
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
+ 	}
+-	return IRQ_HANDLED;
++
++	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
++		uart_write_wakeup(port);
+ }
+ 
+ static void atmel_rx_from_ring(struct uart_port *port)
+@@ -501,6 +659,82 @@ static void atmel_rx_from_ring(struct ua
+ 	spin_lock(&port->lock);
+ }
+ 
++static void atmel_rx_from_dma(struct uart_port *port)
++{
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct tty_struct *tty = port->info->tty;
++	struct atmel_dma_buffer *pdc;
++	int rx_idx = atmel_port->pdc_rx_idx;
++	unsigned int head;
++	unsigned int tail;
++	unsigned int count;
++
++	do {
++		/* Reset the UART timeout early so that we don't miss one */
++		UART_PUT_CR(port, ATMEL_US_STTTO);
++
++		pdc = &atmel_port->pdc_rx[rx_idx];
++		head = UART_GET_RPR(port) - pdc->dma_addr;
++		tail = pdc->ofs;
++
++		/* If the PDC has switched buffers, RPR won't contain
++		 * any address within the current buffer. Since head
++		 * is unsigned, we just need a one-way comparison to
++		 * find out.
++		 *
++		 * In this case, we just need to consume the entire
++		 * buffer and resubmit it for DMA. This will clear the
++		 * ENDRX bit as well, so that we can safely re-enable
++		 * all interrupts below.
++		 */
++		head = min(head, pdc->dma_size);
++
++		if (likely(head != tail)) {
++			dma_sync_single_for_cpu(port->dev, pdc->dma_addr,
++					pdc->dma_size, DMA_FROM_DEVICE);
++
++			/*
++			 * head will only wrap around when we recycle
++			 * the DMA buffer, and when that happens, we
++			 * explicitly set tail to 0. So head will
++			 * always be greater than tail.
++			 */
++			count = head - tail;
++
++			tty_insert_flip_string(tty, pdc->buf + pdc->ofs, count);
++
++			dma_sync_single_for_device(port->dev, pdc->dma_addr,
++					pdc->dma_size, DMA_FROM_DEVICE);
++
++			port->icount.rx += count;
++			pdc->ofs = head;
++		}
++
++		/*
++		 * If the current buffer is full, we need to check if
++		 * the next one contains any additional data.
++		 */
++		if (head >= pdc->dma_size) {
++			pdc->ofs = 0;
++			UART_PUT_RNPR(port, pdc->dma_addr);
++			UART_PUT_RNCR(port, pdc->dma_size);
++
++			rx_idx = !rx_idx;
++			atmel_port->pdc_rx_idx = rx_idx;
++		}
++	} while (head >= pdc->dma_size);
++
++	/*
++	 * Drop the lock here since it might end up calling
++	 * uart_start(), which takes the lock.
++	 */
++	spin_unlock(&port->lock);
++	tty_flip_buffer_push(tty);
++	spin_lock(&port->lock);
++
++	UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
++}
++
+ /*
+  * tasklet handling tty stuff outside the interrupt handler.
+  */
+@@ -514,7 +748,10 @@ static void atmel_tasklet_func(unsigned 
+ 	/* The interrupt handler does not take the lock */
+ 	spin_lock(&port->lock);
+ 
+-	atmel_tx_chars(port);
++	if (atmel_use_dma_tx(port))
++		atmel_tx_dma(port);
++	else
++		atmel_tx_chars(port);
+ 
+ 	status = atmel_port->irq_status;
+ 	status_change = status ^ atmel_port->irq_status_prev;
+@@ -536,7 +773,10 @@ static void atmel_tasklet_func(unsigned 
+ 		atmel_port->irq_status_prev = status;
+ 	}
+ 
+-	atmel_rx_from_ring(port);
++	if (atmel_use_dma_rx(port))
++		atmel_rx_from_dma(port);
++	else
++		atmel_rx_from_ring(port);
+ 
+ 	spin_unlock(&port->lock);
+ }
+@@ -546,6 +786,7 @@ static void atmel_tasklet_func(unsigned 
+  */
+ static int atmel_startup(struct uart_port *port)
+ {
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 	int retval;
+ 
+ 	/*
+@@ -566,6 +807,56 @@ static int atmel_startup(struct uart_por
+ 	}
+ 
+ 	/*
++	 * Initialize DMA (if necessary)
++	 */
++	if (atmel_use_dma_rx(port)) {
++		int i;
++
++		for (i = 0; i < 2; i++) {
++			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
++
++			pdc->buf = kmalloc(PDC_BUFFER_SIZE, GFP_KERNEL);
++			if (pdc->buf == NULL) {
++				if (i != 0) {
++					dma_unmap_single(port->dev,
++						atmel_port->pdc_rx[0].dma_addr,
++						PDC_BUFFER_SIZE,
++						DMA_FROM_DEVICE);
++					kfree(atmel_port->pdc_rx[0].buf);
++				}
++				free_irq(port->irq, port);
++				return -ENOMEM;
++			}
++			pdc->dma_addr = dma_map_single(port->dev,
++						       pdc->buf,
++						       PDC_BUFFER_SIZE,
++						       DMA_FROM_DEVICE);
++			pdc->dma_size = PDC_BUFFER_SIZE;
++			pdc->ofs = 0;
++		}
++
++		atmel_port->pdc_rx_idx = 0;
++
++		UART_PUT_RPR(port, atmel_port->pdc_rx[0].dma_addr);
++		UART_PUT_RCR(port, PDC_BUFFER_SIZE);
++
++		UART_PUT_RNPR(port, atmel_port->pdc_rx[1].dma_addr);
++		UART_PUT_RNCR(port, PDC_BUFFER_SIZE);
++	}
++	if (atmel_use_dma_tx(port)) {
++		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
++		struct circ_buf *xmit = &port->info->xmit;
++
++		pdc->buf = xmit->buf;
++		pdc->dma_addr = dma_map_single(port->dev,
++					       pdc->buf,
++					       UART_XMIT_SIZE,
++					       DMA_TO_DEVICE);
++		pdc->dma_size = UART_XMIT_SIZE;
++		pdc->ofs = 0;
++	}
++
++	/*
+ 	 * If there is a specific "open" function (to register
+ 	 * control line interrupts)
+ 	 */
+@@ -584,8 +875,18 @@ static int atmel_startup(struct uart_por
+ 	/* enable xmit & rcvr */
+ 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
+ 
+-	/* enable receive only */
+-	UART_PUT_IER(port, ATMEL_US_RXRDY);
++	if (atmel_use_dma_rx(port)) {
++		/* set UART timeout */
++		UART_PUT_RTOR(port, PDC_RX_TIMEOUT);
++		UART_PUT_CR(port, ATMEL_US_STTTO);
++
++		UART_PUT_IER(port, ATMEL_US_ENDRX | ATMEL_US_TIMEOUT);
++		/* enable PDC controller */
++		UART_PUT_PTCR(port, ATMEL_PDC_RXTEN);
++	} else {
++		/* enable receive only */
++		UART_PUT_IER(port, ATMEL_US_RXRDY);
 +	}
  
- 	ret = simple_read_from_buffer(buf, len, ppos, attr->get_buf, size);
-+out:
- 	mutex_unlock(&attr->mutex);
- 	return ret;
+ 	return 0;
  }
-@@ -657,7 +663,6 @@ ssize_t simple_attr_write(struct file *f
- 	ssize_t ret;
- 
- 	attr = file->private_data;
--
- 	if (!attr->set)
- 		return -EACCES;
- 
-diff -puN include/linux/fs.h~libfs-allow-error-return-from-simple-attributes include/linux/fs.h
---- a/include/linux/fs.h~libfs-allow-error-return-from-simple-attributes
-+++ a/include/linux/fs.h
-@@ -2068,7 +2068,7 @@ __simple_attr_check_format(const char *f
- }
- 
- int simple_attr_open(struct inode *inode, struct file *file,
--		     u64 (*get)(void *), void (*set)(void *, u64),
-+		     int (*get)(void *, u64 *), int (*set)(void *, u64),
- 		     const char *fmt);
- int simple_attr_close(struct inode *inode, struct file *file);
- ssize_t simple_attr_read(struct file *file, char __user *buf,
-diff -puN lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes lib/fault-inject.c
---- a/lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes
-+++ a/lib/fault-inject.c
-@@ -134,23 +134,26 @@ bool should_fail(struct fault_attr *attr
- 
- #ifdef CONFIG_FAULT_INJECTION_DEBUG_FS
- 
--static void debugfs_ul_set(void *data, u64 val)
-+static int debugfs_ul_set(void *data, u64 val)
+@@ -595,6 +896,38 @@ static int atmel_startup(struct uart_por
+  */
+ static void atmel_shutdown(struct uart_port *port)
  {
- 	*(unsigned long *)data = val;
-+	return 0;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	/*
++	 * Ensure everything is stopped.
++	 */
++	atmel_stop_rx(port);
++	atmel_stop_tx(port);
++
++	/*
++	 * Shut-down the DMA.
++	 */
++	if (atmel_use_dma_rx(port)) {
++		int i;
++
++		for (i = 0; i < 2; i++) {
++			struct atmel_dma_buffer *pdc = &atmel_port->pdc_rx[i];
++
++			dma_unmap_single(port->dev,
++					 pdc->dma_addr,
++					 pdc->dma_size,
++					 DMA_FROM_DEVICE);
++			kfree(pdc->buf);
++		}
++	}
++	if (atmel_use_dma_tx(port)) {
++		struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
++
++		dma_unmap_single(port->dev,
++				 pdc->dma_addr,
++				 pdc->dma_size,
++				 DMA_TO_DEVICE);
++	}
++
+ 	/*
+ 	 * Disable all interrupts, port and break condition.
+ 	 */
+@@ -706,6 +1039,10 @@ static void atmel_set_termios(struct uar
+ 	if (termios->c_iflag & (BRKINT | PARMRK))
+ 		port->read_status_mask |= ATMEL_US_RXBRK;
+ 
++	if (atmel_use_dma_rx(port))
++		/* need to enable error interrupts */
++		UART_PUT_IER(port, port->read_status_mask);
++
+ 	/*
+ 	 * Characters to ignore
+ 	 */
+@@ -891,6 +1228,11 @@ static void __devinit atmel_init_port(st
+ 		clk_enable(atmel_port->clk);
+ 		port->uartclk = clk_get_rate(atmel_port->clk);
+ 	}
++
++	atmel_port->use_dma_rx = data->use_dma_rx;
++	atmel_port->use_dma_tx = data->use_dma_tx;
++	if (atmel_use_dma_tx(port))
++		port->fifosize = PDC_BUFFER_SIZE;
  }
  
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
--static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
-+static int debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
- {
- 	*(unsigned long *)data =
- 		val < MAX_STACK_TRACE_DEPTH ?
- 		val : MAX_STACK_TRACE_DEPTH;
-+	return 0;
- }
- #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ /*
+@@ -1125,11 +1467,13 @@ static int __devinit atmel_serial_probe(
+ 	port = &atmel_ports[pdev->id];
+ 	atmel_init_port(port, pdev);
  
--static u64 debugfs_ul_get(void *data)
-+static int debugfs_ul_get(void *data, u64 *val)
- {
--	return *(unsigned long *)data;
-+	*val = *(unsigned long *)data;
-+	return 0;
- }
+-	ret = -ENOMEM;
+-	data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
+-	if (!data)
+-		goto err_alloc_ring;
+-	port->rx_ring.buf = data;
++	if (!atmel_use_dma_rx(&port->uart)) {
++		ret = -ENOMEM;
++		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
++		if (!data)
++			goto err_alloc_ring;
++		port->rx_ring.buf = data;
++	}
  
- DEFINE_SIMPLE_ATTRIBUTE(fops_ul, debugfs_ul_get, debugfs_ul_set, "%llu\n");
-@@ -174,14 +177,16 @@ static struct dentry *debugfs_create_ul_
- }
- #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
- 
--static void debugfs_atomic_t_set(void *data, u64 val)
-+static int debugfs_atomic_t_set(void *data, u64 val)
- {
- 	atomic_set((atomic_t *)data, val);
-+	return 0;
- }
- 
--static u64 debugfs_atomic_t_get(void *data)
-+static int debugfs_atomic_t_get(void *data, u64 *val)
- {
--	return atomic_read((atomic_t *)data);
-+	*val = atomic_read((atomic_t *)data);
-+	return 0;
- }
- 
- DEFINE_SIMPLE_ATTRIBUTE(fops_atomic_t, debugfs_atomic_t_get,
-diff -puN virt/kvm/kvm_main.c~libfs-allow-error-return-from-simple-attributes virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~libfs-allow-error-return-from-simple-attributes
-+++ a/virt/kvm/kvm_main.c
-@@ -1186,38 +1186,38 @@ static struct notifier_block kvm_cpu_not
- 	.priority = 20, /* must be > scheduler priority */
- };
- 
--static u64 vm_stat_get(void *_offset)
-+static int vm_stat_get(void *_offset, u64 *val)
- {
- 	unsigned offset = (long)_offset;
--	u64 total = 0;
- 	struct kvm *kvm;
- 
-+	*val = 0;
- 	spin_lock(&kvm_lock);
- 	list_for_each_entry(kvm, &vm_list, vm_list)
--		total += *(u32 *)((void *)kvm + offset);
-+		*val += *(u32 *)((void *)kvm + offset);
- 	spin_unlock(&kvm_lock);
--	return total;
-+	return 0;
- }
- 
- DEFINE_SIMPLE_ATTRIBUTE(vm_stat_fops, vm_stat_get, NULL, "%llu\n");
- 
--static u64 vcpu_stat_get(void *_offset)
-+static int vcpu_stat_get(void *_offset, u64 *val)
- {
- 	unsigned offset = (long)_offset;
--	u64 total = 0;
- 	struct kvm *kvm;
- 	struct kvm_vcpu *vcpu;
- 	int i;
- 
-+	*val = 0;
- 	spin_lock(&kvm_lock);
- 	list_for_each_entry(kvm, &vm_list, vm_list)
- 		for (i = 0; i < KVM_MAX_VCPUS; ++i) {
- 			vcpu = kvm->vcpus[i];
- 			if (vcpu)
--				total += *(u32 *)((void *)vcpu + offset);
-+				*val += *(u32 *)((void *)vcpu + offset);
- 		}
- 	spin_unlock(&kvm_lock);
--	return total;
-+	return 0;
- }
- 
- DEFINE_SIMPLE_ATTRIBUTE(vcpu_stat_fops, vcpu_stat_get, NULL, "%llu\n");
+ 	ret = uart_add_one_port(&atmel_uart, &port->uart);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from coldwell@redhat.com are
 
 origin.patch
-git-unionfs.patch
-git-xfs.patch
-uml-update-defconfig.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-vfs-create-proc-pid-mountinfo.patch
-reiserfs-use-open_bdev_excl.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
