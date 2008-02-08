@@ -1,178 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-openpromfs-from-using-iget-and.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:12 -0800
-Message-ID: <200802080807.m1887r8B014599@imap1.linux-foundation.org>
+Subject: - documentation-move-dnotifytxt-to-filesystems.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:02:21 -0800
+Message-ID: <200802080802.m18822LQ014010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44782 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43556 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932918AbYBHIUs (ORCPT
+	by vger.kernel.org with ESMTP id S932909AbYBHIUs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, davem@davemloft.net, hch@lst.de, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop OPENPROMFS from using iget() and read_inode()
+     Documentation: move dnotify.txt to filesystems/
 has been removed from the -mm tree.  Its filename was
-     iget-stop-openpromfs-from-using-iget-and.patch
+     documentation-move-dnotifytxt-to-filesystems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop OPENPROMFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: Documentation: move dnotify.txt to filesystems/
+From: "J. Bruce Fields" <bfields@citi.umich.edu>
 
-Stop the OPENPROMFS filesystem from using iget() and read_inode().  Replace
-openpromfs_read_inode() with openpromfs_iget(), and call that instead of
-iget().  openpromfs_iget() then uses iget_locked() directly and returns a
-proper error code instead of an inode in the event of an error.
+I'm inclined to think dnotify belongs in filesystems/.
 
-openpromfs_fill_super() returns any error incurred when getting the root inode
-instead of ENOMEM (not that it currently incurs any other error).
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/openpromfs/inode.c |   45 ++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 15 deletions(-)
+ Documentation/00-INDEX                |    2 
+ Documentation/dnotify.txt             |   99 ------------------------
+ Documentation/filesystems/00-INDEX    |    2 
+ Documentation/filesystems/dnotify.txt |   99 ++++++++++++++++++++++++
+ 4 files changed, 101 insertions(+), 101 deletions(-)
 
-diff -puN fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and fs/openpromfs/inode.c
---- a/fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and
-+++ a/fs/openpromfs/inode.c
-@@ -38,6 +38,8 @@ struct op_inode_info {
- 	union op_inode_data	u;
- };
- 
-+static struct inode *openprom_iget(struct super_block *sb, ino_t ino);
+diff -puN Documentation/00-INDEX~documentation-move-dnotifytxt-to-filesystems Documentation/00-INDEX
+--- a/Documentation/00-INDEX~documentation-move-dnotifytxt-to-filesystems
++++ a/Documentation/00-INDEX
+@@ -126,8 +126,6 @@ devices.txt
+ 	- plain ASCII listing of all the nodes in /dev/ with major minor #'s.
+ digiepca.txt
+ 	- info on Digi Intl. {PC,PCI,EISA}Xx and Xem series cards.
+-dnotify.txt
+-	- info about directory notification in Linux.
+ dontdiff
+ 	- file containing a list of files that should never be diff'ed.
+ driver-model/
+diff -puN Documentation/dnotify.txt~documentation-move-dnotifytxt-to-filesystems /dev/null
+--- a/Documentation/dnotify.txt
++++ /dev/null
+@@ -1,99 +0,0 @@
+-		Linux Directory Notification
+-		============================
+-
+-	   Stephen Rothwell <sfr@canb.auug.org.au>
+-
+-The intention of directory notification is to allow user applications
+-to be notified when a directory, or any of the files in it, are changed.
+-The basic mechanism involves the application registering for notification
+-on a directory using a fcntl(2) call and the notifications themselves
+-being delivered using signals.
+-
+-The application decides which "events" it wants to be notified about.
+-The currently defined events are:
+-
+-	DN_ACCESS	A file in the directory was accessed (read)
+-	DN_MODIFY	A file in the directory was modified (write,truncate)
+-	DN_CREATE	A file was created in the directory
+-	DN_DELETE	A file was unlinked from directory
+-	DN_RENAME	A file in the directory was renamed
+-	DN_ATTRIB	A file in the directory had its attributes
+-			changed (chmod,chown)
+-
+-Usually, the application must reregister after each notification, but
+-if DN_MULTISHOT is or'ed with the event mask, then the registration will
+-remain until explicitly removed (by registering for no events).
+-
+-By default, SIGIO will be delivered to the process and no other useful
+-information.  However, if the F_SETSIG fcntl(2) call is used to let the
+-kernel know which signal to deliver, a siginfo structure will be passed to
+-the signal handler and the si_fd member of that structure will contain the
+-file descriptor associated with the directory in which the event occurred.
+-
+-Preferably the application will choose one of the real time signals
+-(SIGRTMIN + <n>) so that the notifications may be queued.  This is
+-especially important if DN_MULTISHOT is specified.  Note that SIGRTMIN
+-is often blocked, so it is better to use (at least) SIGRTMIN + 1.
+-
+-Implementation expectations (features and bugs :-))
+----------------------------
+-
+-The notification should work for any local access to files even if the
+-actual file system is on a remote server.  This implies that remote
+-access to files served by local user mode servers should be notified.
+-Also, remote accesses to files served by a local kernel NFS server should
+-be notified.
+-
+-In order to make the impact on the file system code as small as possible,
+-the problem of hard links to files has been ignored.  So if a file (x)
+-exists in two directories (a and b) then a change to the file using the
+-name "a/x" should be notified to a program expecting notifications on
+-directory "a", but will not be notified to one expecting notifications on
+-directory "b".
+-
+-Also, files that are unlinked, will still cause notifications in the
+-last directory that they were linked to.
+-
+-Configuration
+--------------
+-
+-Dnotify is controlled via the CONFIG_DNOTIFY configuration option.  When
+-disabled, fcntl(fd, F_NOTIFY, ...) will return -EINVAL.
+-
+-Example
+--------
+-
+-	#define _GNU_SOURCE	/* needed to get the defines */
+-	#include <fcntl.h>	/* in glibc 2.2 this has the needed
+-					   values defined */
+-	#include <signal.h>
+-	#include <stdio.h>
+-	#include <unistd.h>
+-	
+-	static volatile int event_fd;
+-	
+-	static void handler(int sig, siginfo_t *si, void *data)
+-	{
+-		event_fd = si->si_fd;
+-	}
+-	
+-	int main(void)
+-	{
+-		struct sigaction act;
+-		int fd;
+-		
+-		act.sa_sigaction = handler;
+-		sigemptyset(&act.sa_mask);
+-		act.sa_flags = SA_SIGINFO;
+-		sigaction(SIGRTMIN + 1, &act, NULL);
+-		
+-		fd = open(".", O_RDONLY);
+-		fcntl(fd, F_SETSIG, SIGRTMIN + 1);
+-		fcntl(fd, F_NOTIFY, DN_MODIFY|DN_CREATE|DN_MULTISHOT);
+-		/* we will now be notified if any of the files
+-		   in "." is modified or new files are created */
+-		while (1) {
+-			pause();
+-			printf("Got event on fd=%d\n", event_fd);
+-		}
+-	}
+diff -puN Documentation/filesystems/00-INDEX~documentation-move-dnotifytxt-to-filesystems Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~documentation-move-dnotifytxt-to-filesystems
++++ a/Documentation/filesystems/00-INDEX
+@@ -32,6 +32,8 @@ directory-locking
+ 	- info about the locking scheme used for directory operations.
+ dlmfs.txt
+ 	- info on the userspace interface to the OCFS2 DLM.
++dnotify.txt
++	- info about directory notification in Linux.
+ ecryptfs.txt
+ 	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ ext2.txt
+diff -puN /dev/null Documentation/filesystems/dnotify.txt
+--- /dev/null
++++ a/Documentation/filesystems/dnotify.txt
+@@ -0,0 +1,99 @@
++		Linux Directory Notification
++		============================
 +
- static inline struct op_inode_info *OP_I(struct inode *inode)
- {
- 	return container_of(inode, struct op_inode_info, vfs_inode);
-@@ -226,10 +228,10 @@ static struct dentry *openpromfs_lookup(
- 	return ERR_PTR(-ENOENT);
- 
- found:
--	inode = iget(dir->i_sb, ino);
-+	inode = openprom_iget(dir->i_sb, ino);
- 	mutex_unlock(&op_mutex);
--	if (!inode)
--		return ERR_PTR(-EINVAL);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
- 	ent_oi = OP_I(inode);
- 	ent_oi->type = ent_type;
- 	ent_oi->u = ent_data;
-@@ -348,14 +350,23 @@ static void openprom_destroy_inode(struc
- 	kmem_cache_free(op_inode_cachep, OP_I(inode));
- }
- 
--static void openprom_read_inode(struct inode * inode)
-+static struct inode *openprom_iget(struct super_block *sb, ino_t ino)
- {
--	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
--	if (inode->i_ino == OPENPROM_ROOT_INO) {
--		inode->i_op = &openprom_inode_operations;
--		inode->i_fop = &openprom_operations;
--		inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
-+	struct inode *inode;
++	   Stephen Rothwell <sfr@canb.auug.org.au>
 +
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (inode->i_state & I_NEW) {
-+		inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
-+		if (inode->i_ino == OPENPROM_ROOT_INO) {
-+			inode->i_op = &openprom_inode_operations;
-+			inode->i_fop = &openprom_operations;
-+			inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
-+		}
-+		unlock_new_inode(inode);
- 	}
-+	return inode;
- }
- 
- static int openprom_remount(struct super_block *sb, int *flags, char *data)
-@@ -367,7 +378,6 @@ static int openprom_remount(struct super
- static const struct super_operations openprom_sops = {
- 	.alloc_inode	= openprom_alloc_inode,
- 	.destroy_inode	= openprom_destroy_inode,
--	.read_inode	= openprom_read_inode,
- 	.statfs		= simple_statfs,
- 	.remount_fs	= openprom_remount,
- };
-@@ -376,6 +386,7 @@ static int openprom_fill_super(struct su
- {
- 	struct inode *root_inode;
- 	struct op_inode_info *oi;
-+	int ret;
- 
- 	s->s_flags |= MS_NOATIME;
- 	s->s_blocksize = 1024;
-@@ -383,9 +394,11 @@ static int openprom_fill_super(struct su
- 	s->s_magic = OPENPROM_SUPER_MAGIC;
- 	s->s_op = &openprom_sops;
- 	s->s_time_gran = 1;
--	root_inode = iget(s, OPENPROM_ROOT_INO);
--	if (!root_inode)
-+	root_inode = openprom_iget(s, OPENPROM_ROOT_INO);
-+	if (IS_ERR(root_inode)) {
-+		ret = PTR_ERR(root_inode);
- 		goto out_no_root;
++The intention of directory notification is to allow user applications
++to be notified when a directory, or any of the files in it, are changed.
++The basic mechanism involves the application registering for notification
++on a directory using a fcntl(2) call and the notifications themselves
++being delivered using signals.
++
++The application decides which "events" it wants to be notified about.
++The currently defined events are:
++
++	DN_ACCESS	A file in the directory was accessed (read)
++	DN_MODIFY	A file in the directory was modified (write,truncate)
++	DN_CREATE	A file was created in the directory
++	DN_DELETE	A file was unlinked from directory
++	DN_RENAME	A file in the directory was renamed
++	DN_ATTRIB	A file in the directory had its attributes
++			changed (chmod,chown)
++
++Usually, the application must reregister after each notification, but
++if DN_MULTISHOT is or'ed with the event mask, then the registration will
++remain until explicitly removed (by registering for no events).
++
++By default, SIGIO will be delivered to the process and no other useful
++information.  However, if the F_SETSIG fcntl(2) call is used to let the
++kernel know which signal to deliver, a siginfo structure will be passed to
++the signal handler and the si_fd member of that structure will contain the
++file descriptor associated with the directory in which the event occurred.
++
++Preferably the application will choose one of the real time signals
++(SIGRTMIN + <n>) so that the notifications may be queued.  This is
++especially important if DN_MULTISHOT is specified.  Note that SIGRTMIN
++is often blocked, so it is better to use (at least) SIGRTMIN + 1.
++
++Implementation expectations (features and bugs :-))
++---------------------------
++
++The notification should work for any local access to files even if the
++actual file system is on a remote server.  This implies that remote
++access to files served by local user mode servers should be notified.
++Also, remote accesses to files served by a local kernel NFS server should
++be notified.
++
++In order to make the impact on the file system code as small as possible,
++the problem of hard links to files has been ignored.  So if a file (x)
++exists in two directories (a and b) then a change to the file using the
++name "a/x" should be notified to a program expecting notifications on
++directory "a", but will not be notified to one expecting notifications on
++directory "b".
++
++Also, files that are unlinked, will still cause notifications in the
++last directory that they were linked to.
++
++Configuration
++-------------
++
++Dnotify is controlled via the CONFIG_DNOTIFY configuration option.  When
++disabled, fcntl(fd, F_NOTIFY, ...) will return -EINVAL.
++
++Example
++-------
++
++	#define _GNU_SOURCE	/* needed to get the defines */
++	#include <fcntl.h>	/* in glibc 2.2 this has the needed
++					   values defined */
++	#include <signal.h>
++	#include <stdio.h>
++	#include <unistd.h>
++
++	static volatile int event_fd;
++
++	static void handler(int sig, siginfo_t *si, void *data)
++	{
++		event_fd = si->si_fd;
 +	}
- 
- 	oi = OP_I(root_inode);
- 	oi->type = op_inode_node;
-@@ -393,13 +406,15 @@ static int openprom_fill_super(struct su
- 
- 	s->s_root = d_alloc_root(root_inode);
- 	if (!s->s_root)
--		goto out_no_root;
-+		goto out_no_root_dentry;
- 	return 0;
- 
-+out_no_root_dentry:
-+	iput(root_inode);
-+	ret = -ENOMEM;
- out_no_root:
- 	printk("openprom_fill_super: get root inode failed\n");
--	iput(root_inode);
--	return -ENOMEM;
-+	return ret;
- }
- 
- static int openprom_get_sb(struct file_system_type *fs_type,
++
++	int main(void)
++	{
++		struct sigaction act;
++		int fd;
++
++		act.sa_sigaction = handler;
++		sigemptyset(&act.sa_mask);
++		act.sa_flags = SA_SIGINFO;
++		sigaction(SIGRTMIN + 1, &act, NULL);
++
++		fd = open(".", O_RDONLY);
++		fcntl(fd, F_SETSIG, SIGRTMIN + 1);
++		fcntl(fd, F_NOTIFY, DN_MODIFY|DN_CREATE|DN_MULTISHOT);
++		/* we will now be notified if any of the files
++		   in "." is modified or new files are created */
++		while (1) {
++			pause();
++			printf("Got event on fd=%d\n", event_fd);
++		}
++	}
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+reiser4.patch
