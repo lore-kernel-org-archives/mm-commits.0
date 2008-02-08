@@ -1,375 +1,409 @@
 From: akpm@linux-foundation.org
-Subject: - 8250_pci-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:00 -0800
-Message-ID: <200802082012.m18KCfxg010226@imap1.linux-foundation.org>
+Subject: - aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:00 -0800
+Message-ID: <200802082014.m18KEf2Y010474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56822 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754201AbYBHUxB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:01 -0500
+	by vger.kernel.org with ESMTP id S1754212AbYBHUxK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_pci: coding style
+     aout: remove unnecessary inclusions of {asm, linux}/a.out.h
 has been removed from the -mm tree.  Its filename was
-     8250_pci-coding-style.patch
+     aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_pci: coding style
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: aout: remove unnecessary inclusions of {asm, linux}/a.out.h
+From: David Howells <dhowells@redhat.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Remove now unnecessary inclusions of {asm,linux}/a.out.h.
+
+[akpm@linux-foundation.org: fix alpha build]
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |  109 +++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 55 deletions(-)
+ arch/alpha/kernel/osf_sys.c         |    1 -
+ arch/alpha/kernel/process.c         |    1 -
+ arch/alpha/kernel/setup.c           |    1 -
+ arch/arm/kernel/process.c           |    1 -
+ arch/blackfin/kernel/process.c      |    1 -
+ arch/m68k/kernel/process.c          |    1 -
+ arch/m68k/kernel/traps.c            |    1 -
+ arch/sparc/kernel/process.c         |    1 -
+ arch/sparc/kernel/setup.c           |    1 -
+ arch/sparc/kernel/sparc_ksyms.c     |    1 -
+ arch/sparc/mm/loadmmu.c             |    1 -
+ arch/sparc/mm/srmmu.c               |    1 -
+ arch/sparc64/kernel/binfmt_elf32.c  |    2 --
+ arch/sparc64/kernel/process.c       |    1 -
+ arch/sparc64/kernel/setup.c         |    1 -
+ arch/sparc64/kernel/sparc64_ksyms.c |    1 -
+ arch/sparc64/kernel/sys_sparc.c     |    1 -
+ arch/sparc64/kernel/sys_sparc32.c   |    1 -
+ arch/um/kernel/ksyms.c              |    1 -
+ arch/x86/kernel/process_32.c        |    1 -
+ arch/x86/kernel/process_64.c        |    1 -
+ arch/x86/kernel/setup_64.c          |    1 -
+ drivers/ide/ppc/mpc8xx.c            |    1 -
+ fs/binfmt_flat.c                    |    1 -
+ fs/binfmt_som.c                     |    1 -
+ fs/proc/kcore.c                     |    1 -
+ fs/proc/vmcore.c                    |    1 -
+ include/asm-sparc/uaccess.h         |    1 -
+ include/asm-sparc64/processor.h     |    1 -
+ include/asm-sparc64/uaccess.h       |    1 -
+ 30 files changed, 31 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~8250_pci-coding-style drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250_pci-coding-style
-+++ a/drivers/serial/8250_pci.c
-@@ -140,7 +140,7 @@ afavlab_setup(struct serial_private *pri
- 	      struct uart_port *port, int idx)
- {
- 	unsigned int bar, offset = board->first_offset;
--	
-+
- 	bar = FL_GET_BASE(board->flags);
- 	if (idx < 4)
- 		bar += idx;
-@@ -227,8 +227,8 @@ static int pci_inteli960ni_init(struct p
- 		return -ENODEV;
- 
- 	/* is firmware started? */
--	pci_read_config_dword(dev, 0x44, (void*) &oldval); 
--	if (oldval == 0x00001000L) { /* RESET value */ 
-+	pci_read_config_dword(dev, 0x44, (void *)&oldval);
-+	if (oldval == 0x00001000L) { /* RESET value */
- 		printk(KERN_DEBUG "Local i960 firmware missing");
- 		return -ENODEV;
- 	}
-@@ -253,11 +253,11 @@ static int pci_plx9050_init(struct pci_d
- 
- 	irq_config = 0x41;
- 	if (dev->vendor == PCI_VENDOR_ID_PANACOM ||
--	    dev->subsystem_vendor == PCI_SUBVENDOR_ID_EXSYS) {
-+	    dev->subsystem_vendor == PCI_SUBVENDOR_ID_EXSYS)
- 		irq_config = 0x43;
--	}
-+
- 	if ((dev->vendor == PCI_VENDOR_ID_PLX) &&
--	    (dev->device == PCI_DEVICE_ID_PLX_ROMULUS)) {
-+	    (dev->device == PCI_DEVICE_ID_PLX_ROMULUS))
- 		/*
- 		 * As the megawolf cards have the int pins active
- 		 * high, and have 2 UART chips, both ints must be
-@@ -267,8 +267,6 @@ static int pci_plx9050_init(struct pci_d
- 		 * deep FIFOs
- 		 */
- 		irq_config = 0x5b;
--	}
--
- 	/*
- 	 * enable/disable interrupts
- 	 */
-@@ -343,14 +341,14 @@ static int sbs_init(struct pci_dev *dev)
- {
- 	u8 __iomem *p;
- 
--	p = ioremap(pci_resource_start(dev, 0),pci_resource_len(dev,0));
-+	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
- 
- 	if (p == NULL)
- 		return -ENOMEM;
- 	/* Set bit-4 Control Register (UART RESET) in to reset the uarts */
--	writeb(0x10,p + OCT_REG_CR_OFF);
-+	writeb(0x10, p + OCT_REG_CR_OFF);
- 	udelay(50);
--	writeb(0x0,p + OCT_REG_CR_OFF);
-+	writeb(0x0, p + OCT_REG_CR_OFF);
- 
- 	/* Set bit-2 (INTENABLE) of Control Register */
- 	writeb(0x4, p + OCT_REG_CR_OFF);
-@@ -367,10 +365,10 @@ static void __devexit sbs_exit(struct pc
- {
- 	u8 __iomem *p;
- 
--	p = ioremap(pci_resource_start(dev, 0),pci_resource_len(dev,0));
--	if (p != NULL) {
-+	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
-+	/* FIXME: What if resource_len < OCT_REG_CR_OFF */
-+	if (p != NULL)
- 		writeb(0, p + OCT_REG_CR_OFF);
--	}
- 	iounmap(p);
- }
- 
-@@ -386,7 +384,7 @@ static void __devexit sbs_exit(struct pc
-  * with other OSes (like M$ DOS).
-  *
-  *  SIIG support added by Andrey Panin <pazke@donpac.ru>, 10/1999
-- * 
-+ *
-  * There is two family of SIIG serial cards with different PCI
-  * interface chip and different configuration methods:
-  *     - 10x cards have control registers in IO and/or memory space;
-@@ -489,21 +487,21 @@ static const unsigned short timedia_sing
- 
- static const unsigned short timedia_dual_port[] = {
- 	0x0002, 0x4036, 0x4037, 0x4038, 0x4078, 0x4079, 0x4085,
--	0x4088, 0x4089, 0x5037, 0x5078, 0x5079, 0x5085, 0x6079, 
--	0x7079, 0x8079, 0x8137, 0x8138, 0x8237, 0x8238, 0x9079, 
-+	0x4088, 0x4089, 0x5037, 0x5078, 0x5079, 0x5085, 0x6079,
-+	0x7079, 0x8079, 0x8137, 0x8138, 0x8237, 0x8238, 0x9079,
- 	0x9137, 0x9138, 0x9237, 0x9238, 0xA079, 0xB079, 0xC079,
- 	0xD079, 0
- };
- 
- static const unsigned short timedia_quad_port[] = {
--	0x4055, 0x4056, 0x4095, 0x4096, 0x5056, 0x8156, 0x8157, 
--	0x8256, 0x8257, 0x9056, 0x9156, 0x9157, 0x9158, 0x9159, 
-+	0x4055, 0x4056, 0x4095, 0x4096, 0x5056, 0x8156, 0x8157,
-+	0x8256, 0x8257, 0x9056, 0x9156, 0x9157, 0x9158, 0x9159,
- 	0x9256, 0x9257, 0xA056, 0xA157, 0xA158, 0xA159, 0xB056,
- 	0xB157, 0
- };
- 
- static const unsigned short timedia_eight_port[] = {
--	0x4065, 0x4066, 0x5065, 0x5066, 0x8166, 0x9066, 0x9166, 
-+	0x4065, 0x4066, 0x5065, 0x5066, 0x8166, 0x9066, 0x9166,
- 	0x9167, 0x9168, 0xA066, 0xA167, 0xA168, 0
- };
- 
-@@ -656,7 +654,8 @@ static int pci_ite887x_init(struct pci_d
- 				ITE_887x_POSIO_ENABLE | ITE_887x_POSIO_SPEED |
- 				ITE_887x_POSIO_IOSIZE_32 | inta_addr[i]);
- 			/* write INTCBAR - ioport */
--			pci_write_config_dword(dev, ITE_887x_INTCBAR, inta_addr[i]);
-+			pci_write_config_dword(dev, ITE_887x_INTCBAR,
-+								inta_addr[i]);
- 			ret = inb(inta_addr[i]);
- 			if (ret != 0xff) {
- 				/* ioport connected */
-@@ -755,7 +754,7 @@ pci_default_setup(struct serial_private 
- 
- 	if (board->flags & FL_REGION_SZ_CAP && idx >= maxnr)
- 		return 1;
--			
-+
- 	return setup_port(priv, port, bar, offset, board->reg_shift);
- }
- 
-@@ -843,7 +842,7 @@ static struct pci_serial_quirk pci_seria
- 		.init		= pci_plx9050_init,
- 		.setup		= pci_default_setup,
- 		.exit		= __devexit_p(pci_plx9050_exit),
--	},		
-+	},
- 	{
- 		.vendor		= PCI_VENDOR_ID_PANACOM,
- 		.device		= PCI_DEVICE_ID_PANACOM_DUALMODEM,
-@@ -1032,7 +1031,7 @@ static struct pci_serial_quirk *find_qui
- 		    quirk_id_matches(quirk->device, dev->device) &&
- 		    quirk_id_matches(quirk->subvendor, dev->subsystem_vendor) &&
- 		    quirk_id_matches(quirk->subdevice, dev->subsystem_device))
--		 	break;
-+			break;
- 	return quirk;
- }
- 
-@@ -1711,7 +1710,7 @@ static struct pciserial_board pci_boards
- };
- 
- static const struct pci_device_id softmodem_blacklist[] = {
--	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
-+	{ PCI_VDEVICE(AL, 0x5457), }, /* ALi Corporation M5457 AC'97 Modem */
- };
- 
- /*
-@@ -1724,13 +1723,13 @@ serial_pci_guess_board(struct pci_dev *d
- {
- 	const struct pci_device_id *blacklist;
- 	int num_iomem, num_port, first_port = -1, i;
--	
-+
- 	/*
- 	 * If it is not a communications device or the programming
- 	 * interface is greater than 6, give up.
- 	 *
- 	 * (Should we try to make guesses for multiport serial devices
--	 * later?) 
-+	 * later?)
- 	 */
- 	if ((((dev->class >> 8) != PCI_CLASS_COMMUNICATION_SERIAL) &&
- 	     ((dev->class >> 8) != PCI_CLASS_COMMUNICATION_MODEM)) ||
-@@ -1863,25 +1862,23 @@ pciserial_init_ports(struct pci_dev *dev
- 			break;
- 
- #ifdef SERIAL_DEBUG_PCI
--		printk("Setup PCI port: port %x, irq %d, type %d\n",
-+		printk(KERN_DEBUG "Setup PCI port: port %x, irq %d, type %d\n",
- 		       serial_port.iobase, serial_port.irq, serial_port.iotype);
+diff -puN arch/alpha/kernel/osf_sys.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -22,7 +22,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/utsname.h>
+ #include <linux/time.h>
+ #include <linux/timex.h>
+diff -puN arch/alpha/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/alpha/kernel/process.c
+--- a/arch/alpha/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/alpha/kernel/process.c
+@@ -19,7 +19,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/utsname.h>
+ #include <linux/time.h>
+ #include <linux/major.h>
+diff -puN arch/alpha/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/alpha/kernel/setup.c
+--- a/arch/alpha/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/alpha/kernel/setup.c
+@@ -18,7 +18,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/screen_info.h>
+ #include <linux/delay.h>
+ #include <linux/mc146818rtc.h>
+diff -puN arch/arm/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/arm/kernel/process.c
+@@ -18,7 +18,6 @@
+ #include <linux/unistd.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/interrupt.h>
+diff -puN arch/blackfin/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/blackfin/kernel/process.c
+--- a/arch/blackfin/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/blackfin/kernel/process.c
+@@ -31,7 +31,6 @@
+ #include <linux/smp_lock.h>
+ #include <linux/unistd.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/uaccess.h>
+ #include <linux/fs.h>
+ #include <linux/err.h>
+diff -puN arch/m68k/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/m68k/kernel/process.c
+--- a/arch/m68k/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/m68k/kernel/process.c
+@@ -23,7 +23,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/reboot.h>
+ #include <linux/init_task.h>
+ #include <linux/mqueue.h>
+diff -puN arch/m68k/kernel/traps.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/m68k/kernel/traps.c
+--- a/arch/m68k/kernel/traps.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/m68k/kernel/traps.c
+@@ -23,7 +23,6 @@
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+-#include <linux/a.out.h>
+ #include <linux/user.h>
+ #include <linux/string.h>
+ #include <linux/linkage.h>
+diff -puN arch/sparc/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc/kernel/process.c
+--- a/arch/sparc/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc/kernel/process.c
+@@ -20,7 +20,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/smp.h>
+ #include <linux/reboot.h>
+ #include <linux/delay.h>
+diff -puN arch/sparc/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc/kernel/setup.c
+--- a/arch/sparc/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc/kernel/setup.c
+@@ -16,7 +16,6 @@
+ #include <linux/initrd.h>
+ #include <asm/smp.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/screen_info.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+diff -puN arch/sparc/kernel/sparc_ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc/kernel/sparc_ksyms.c
+--- a/arch/sparc/kernel/sparc_ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc/kernel/sparc_ksyms.c
+@@ -51,7 +51,6 @@
+ #ifdef CONFIG_PCI
+ #include <asm/ebus.h>
  #endif
--		
-+
- 		priv->line[i] = serial8250_register_port(&serial_port);
- 		if (priv->line[i] < 0) {
- 			printk(KERN_WARNING "Couldn't register serial port %s: %d\n", pci_name(dev), priv->line[i]);
- 			break;
- 		}
- 	}
+-#include <asm/a.out.h>
+ #include <asm/io-unit.h>
+ #include <asm/bug.h>
+ 
+diff -puN arch/sparc/mm/loadmmu.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc/mm/loadmmu.c
+--- a/arch/sparc/mm/loadmmu.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc/mm/loadmmu.c
+@@ -14,7 +14,6 @@
+ #include <asm/system.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+-#include <asm/a.out.h>
+ #include <asm/mmu_context.h>
+ #include <asm/oplib.h>
+ 
+diff -puN arch/sparc/mm/srmmu.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc/mm/srmmu.c
+--- a/arch/sparc/mm/srmmu.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc/mm/srmmu.c
+@@ -34,7 +34,6 @@
+ #include <asm/sbus.h>
+ #include <asm/asi.h>
+ #include <asm/msi.h>
+-#include <asm/a.out.h>
+ #include <asm/mmu_context.h>
+ #include <asm/io-unit.h>
+ #include <asm/cacheflush.h>
+diff -puN arch/sparc64/kernel/binfmt_elf32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/binfmt_elf32.c
+--- a/arch/sparc64/kernel/binfmt_elf32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/binfmt_elf32.c
+@@ -128,8 +128,6 @@ MODULE_AUTHOR("Eric Youngdale, David S. 
+ #undef MODULE_DESCRIPTION
+ #undef MODULE_AUTHOR
+ 
+-#include <asm/a.out.h>
 -
- 	priv->nr = i;
--
- 	return priv;
+ #undef TASK_SIZE
+ #define TASK_SIZE STACK_TOP32
  
-- err_deinit:
-+err_deinit:
- 	if (quirk->exit)
- 		quirk->exit(dev);
-- err_out:
-+err_out:
- 	return priv;
- }
- EXPORT_SYMBOL_GPL(pciserial_init_ports);
-@@ -2171,22 +2168,22 @@ static struct pci_device_id serial_pci_t
- 		pbn_b0_8_1843200_200 },
+diff -puN arch/sparc64/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/process.c
+--- a/arch/sparc64/kernel/process.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/process.c
+@@ -24,7 +24,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/reboot.h>
+ #include <linux/delay.h>
+ #include <linux/compat.h>
+diff -puN arch/sparc64/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/setup.c
+--- a/arch/sparc64/kernel/setup.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/setup.c
+@@ -15,7 +15,6 @@
+ #include <linux/slab.h>
+ #include <asm/smp.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/screen_info.h>
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+diff -puN arch/sparc64/kernel/sparc64_ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/sparc64_ksyms.c
+--- a/arch/sparc64/kernel/sparc64_ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/sparc64_ksyms.c
+@@ -53,7 +53,6 @@
+ #include <asm/ebus.h>
+ #include <asm/isa.h>
+ #endif
+-#include <asm/a.out.h>
+ #include <asm/ns87303.h>
+ #include <asm/timer.h>
+ #include <asm/cpudata.h>
+diff -puN arch/sparc64/kernel/sys_sparc.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/sys_sparc.c
+--- a/arch/sparc64/kernel/sys_sparc.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/sys_sparc.c
+@@ -28,7 +28,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/utrap.h>
+ #include <asm/perfctr.h>
+-#include <asm/a.out.h>
+ #include <asm/unistd.h>
  
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_U530,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_bt_1_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM2,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_bt_2_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM422,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_bt_4_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM232,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_bt_2_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_COMM4,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_bt_4_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_COMM8,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_8_115200 },
- 	{	PCI_VENDOR_ID_SEALEVEL, PCI_DEVICE_ID_SEALEVEL_UCOMM8,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-@@ -2201,11 +2198,11 @@ static struct pci_device_id serial_pci_t
- 	/*
- 	 * VScom SPCOM800, from sl@s.pl
- 	 */
--	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_SPCOM800, 
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_SPCOM800,
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_8_921600 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_1077,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b2_4_921600 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_KEYSPAN,
-@@ -2223,27 +2220,27 @@ static struct pci_device_id serial_pci_t
- 		pbn_b2_4_115200 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
--		PCI_SUBDEVICE_ID_CHASE_PCIFAST4, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIFAST4, 0, 0,
- 		pbn_b2_4_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
--		PCI_SUBDEVICE_ID_CHASE_PCIFAST8, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIFAST8, 0, 0,
- 		pbn_b2_8_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
--		PCI_SUBDEVICE_ID_CHASE_PCIFAST16, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIFAST16, 0, 0,
- 		pbn_b2_16_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIFAST,
--		PCI_SUBDEVICE_ID_CHASE_PCIFAST16FMC, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIFAST16FMC, 0, 0,
- 		pbn_b2_16_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIRAS,
--		PCI_SUBDEVICE_ID_CHASE_PCIRAS4, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIRAS4, 0, 0,
- 		pbn_b2_4_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_CHASE_PCIRAS,
--		PCI_SUBDEVICE_ID_CHASE_PCIRAS8, 0, 0, 
-+		PCI_SUBDEVICE_ID_CHASE_PCIRAS8, 0, 0,
- 		pbn_b2_8_460800 },
- 	{	PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
- 		PCI_SUBVENDOR_ID_EXSYS,
-@@ -2269,10 +2266,12 @@ static struct pci_device_id serial_pci_t
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b1_8_115200 },
- 	{	PCI_VENDOR_ID_SPECIALIX, PCI_DEVICE_ID_OXSEMI_16PCI954,
--		PCI_VENDOR_ID_SPECIALIX, PCI_SUBDEVICE_ID_SPECIALIX_SPEED4, 0, 0,
-+		PCI_VENDOR_ID_SPECIALIX, PCI_SUBDEVICE_ID_SPECIALIX_SPEED4,
-+		0, 0,
- 		pbn_b0_4_921600 },
- 	{	PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_16PCI954,
--		PCI_SUBVENDOR_ID_SIIG, PCI_SUBDEVICE_ID_SIIG_QUARTET_SERIAL, 0, 0,
-+		PCI_SUBVENDOR_ID_SIIG, PCI_SUBDEVICE_ID_SIIG_QUARTET_SERIAL,
-+		0, 0,
- 		pbn_b0_4_1152000 },
+ /* #define DEBUG_UNIMP_SYSCALL */
+diff -puN arch/sparc64/kernel/sys_sparc32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/sparc64/kernel/sys_sparc32.c
+--- a/arch/sparc64/kernel/sys_sparc32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/sparc64/kernel/sys_sparc32.c
+@@ -57,7 +57,6 @@
+ #include <asm/fpumacro.h>
+ #include <asm/semaphore.h>
+ #include <asm/mmu_context.h>
+-#include <asm/a.out.h>
+ #include <asm/compat_signal.h>
  
- 		/*
-@@ -2312,7 +2311,7 @@ static struct pci_device_id serial_pci_t
- 	 * Digitan DS560-558, from jimd@esoft.com
- 	 */
- 	{	PCI_VENDOR_ID_ATT, PCI_DEVICE_ID_ATT_VENUS_MODEM,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b1_1_115200 },
+ asmlinkage long sys32_chown16(const char __user * filename, u16 user, u16 group)
+diff -puN arch/um/kernel/ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/um/kernel/ksyms.c
+@@ -5,7 +5,6 @@
  
- 	/*
-@@ -2320,16 +2319,16 @@ static struct pci_device_id serial_pci_t
- 	 *  The 400L and 800L have a custom setup quirk.
- 	 */
- 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_100,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_1_921600 },
- 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_200,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_2_921600 },
- 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_400,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_4_921600 },
- 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_800B,
--		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_4_921600 },
- 	{	PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_100L,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ #include "linux/module.h"
+ #include "linux/syscalls.h"
+-#include "asm/a.out.h"
+ #include "asm/tlbflush.h"
+ #include "asm/uaccess.h"
+ #include "as-layout.h"
+diff -puN arch/x86/kernel/process_32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/x86/kernel/process_32.c
+@@ -23,7 +23,6 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/interrupt.h>
+ #include <linux/utsname.h>
+ #include <linux/delay.h>
+diff -puN arch/x86/kernel/process_64.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/x86/kernel/process_64.c
+@@ -26,7 +26,6 @@
+ #include <linux/smp.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/interrupt.h>
+ #include <linux/utsname.h>
+ #include <linux/delay.h>
+diff -puN arch/x86/kernel/setup_64.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/arch/x86/kernel/setup_64.c
+@@ -15,7 +15,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/screen_info.h>
+ #include <linux/ioport.h>
+ #include <linux/delay.h>
+diff -puN drivers/ide/ppc/mpc8xx.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth drivers/ide/ppc/mpc8xx.c
+--- a/drivers/ide/ppc/mpc8xx.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/drivers/ide/ppc/mpc8xx.c
+@@ -17,7 +17,6 @@
+ #include <linux/ptrace.h>
+ #include <linux/slab.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/tty.h>
+ #include <linux/major.h>
+ #include <linux/interrupt.h>
+diff -puN fs/binfmt_flat.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/fs/binfmt_flat.c
+@@ -20,7 +20,6 @@
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
+-#include <linux/a.out.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/string.h>
+diff -puN fs/binfmt_som.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth fs/binfmt_som.c
+--- a/fs/binfmt_som.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/fs/binfmt_som.c
+@@ -29,7 +29,6 @@
+ #include <linux/personality.h>
+ #include <linux/init.h>
+ 
+-#include <asm/a.out.h>
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+ 
+diff -puN fs/proc/kcore.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth fs/proc/kcore.c
+--- a/fs/proc/kcore.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/fs/proc/kcore.c
+@@ -12,7 +12,6 @@
+ #include <linux/mm.h>
+ #include <linux/proc_fs.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/capability.h>
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
+diff -puN fs/proc/vmcore.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/fs/proc/vmcore.c
+@@ -10,7 +10,6 @@
+ #include <linux/mm.h>
+ #include <linux/proc_fs.h>
+ #include <linux/user.h>
+-#include <linux/a.out.h>
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
+ #include <linux/highmem.h>
+diff -puN include/asm-sparc/uaccess.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth include/asm-sparc/uaccess.h
+--- a/include/asm-sparc/uaccess.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/include/asm-sparc/uaccess.h
+@@ -13,7 +13,6 @@
+ #include <linux/string.h>
+ #include <linux/errno.h>
+ #include <asm/vac-ops.h>
+-#include <asm/a.out.h>
+ #endif
+ 
+ #ifndef __ASSEMBLY__
+diff -puN include/asm-sparc64/processor.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth include/asm-sparc64/processor.h
+--- a/include/asm-sparc64/processor.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/include/asm-sparc64/processor.h
+@@ -14,7 +14,6 @@
+ #define current_text_addr() ({ void *pc; __asm__("rd %%pc, %0" : "=r" (pc)); pc; })
+ 
+ #include <asm/asi.h>
+-#include <asm/a.out.h>
+ #include <asm/pstate.h>
+ #include <asm/ptrace.h>
+ #include <asm/page.h>
+diff -puN include/asm-sparc64/uaccess.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth include/asm-sparc64/uaccess.h
+--- a/include/asm-sparc64/uaccess.h~aout-remove-unnecessary-inclusions-of-asm-linux-aouth
++++ a/include/asm-sparc64/uaccess.h
+@@ -10,7 +10,6 @@
+ #include <linux/compiler.h>
+ #include <linux/sched.h>
+ #include <linux/string.h>
+-#include <asm/a.out.h>
+ #include <asm/asi.h>
+ #include <asm/system.h>
+ #include <asm/spitfire.h>
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
