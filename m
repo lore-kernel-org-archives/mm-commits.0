@@ -1,225 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-qnx4-from-using-iget-and-read_inode-try.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:00 -0800
-Message-ID: <200802080807.m1887f2D014573@imap1.linux-foundation.org>
+Subject: - export-acpi_check_resource_conflict.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:10:30 -0800
+Message-ID: <200802080810.m188ABdu014921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55253 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47393 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933057AbYBHIVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:05 -0500
+	by vger.kernel.org with ESMTP id S932839AbYBHIU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, al@alarsen.net, hch@lst.de, mm-commits@vger.kernel.org
+To: trenn@suse.de, bjorn.helgaas@hp.com, jdelvare@suse.de, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop QNX4 from using iget() and read_inode()
+     Export acpi_check_resource_conflict
 has been removed from the -mm tree.  Its filename was
-     iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+     export-acpi_check_resource_conflict.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop QNX4 from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: Export acpi_check_resource_conflict
+From: Thomas Renninger <trenn@suse.de>
 
-Stop the QNX4 filesystem from using iget() and read_inode().  Replace
-qnx4_read_inode() with qnx4_iget(), and call that instead of iget(). 
-qnx4_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+Export acpi_check_resource_conflict(), sometimes drivers already have
+a struct resource at hand so no need to use the wrappers to build a new
+one.
 
-qnx4_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Anders Larsen <al@alarsen.net>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx4/inode.c         |   47 +++++++++++++++++++++++++-------------
- fs/qnx4/namei.c         |    8 ++++--
- include/linux/qnx4_fs.h |    1 
- 3 files changed, 38 insertions(+), 18 deletions(-)
+ drivers/acpi/osl.c   |    3 ++-
+ include/linux/acpi.h |    8 ++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try fs/qnx4/inode.c
---- a/fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/fs/qnx4/inode.c
-@@ -125,7 +125,6 @@ static int qnx4_write_inode(struct inode
- static void qnx4_put_super(struct super_block *sb);
- static struct inode *qnx4_alloc_inode(struct super_block *sb);
- static void qnx4_destroy_inode(struct inode *inode);
--static void qnx4_read_inode(struct inode *);
- static int qnx4_remount(struct super_block *sb, int *flags, char *data);
- static int qnx4_statfs(struct dentry *, struct kstatfs *);
+diff -puN drivers/acpi/osl.c~export-acpi_check_resource_conflict drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~export-acpi_check_resource_conflict
++++ a/drivers/acpi/osl.c
+@@ -1161,7 +1161,7 @@ __setup("acpi_enforce_resources=", acpi_
  
-@@ -133,7 +132,6 @@ static const struct super_operations qnx
+ /* Check for resource conflicts between ACPI OperationRegions and native
+  * drivers */
+-static int acpi_check_resource_conflict(struct resource *res)
++int acpi_check_resource_conflict(struct resource *res)
  {
- 	.alloc_inode	= qnx4_alloc_inode,
- 	.destroy_inode	= qnx4_destroy_inode,
--	.read_inode	= qnx4_read_inode,
- 	.put_super	= qnx4_put_super,
- 	.statfs		= qnx4_statfs,
- 	.remount_fs	= qnx4_remount,
-@@ -357,6 +355,7 @@ static int qnx4_fill_super(struct super_
- 	struct inode *root;
- 	const char *errmsg;
- 	struct qnx4_sb_info *qs;
-+	int ret = -EINVAL;
- 
- 	qs = kzalloc(sizeof(struct qnx4_sb_info), GFP_KERNEL);
- 	if (!qs)
-@@ -396,12 +395,14 @@ static int qnx4_fill_super(struct super_
+ 	struct acpi_res_list *res_list_elem;
+ 	int ioport;
+@@ -1211,6 +1211,7 @@ static int acpi_check_resource_conflict(
  	}
- 
-  	/* does root not have inode number QNX4_ROOT_INO ?? */
-- 	root = iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
-- 	if (!root) {
-+	root = qnx4_iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
-+	if (IS_ERR(root)) {
-  		printk("qnx4: get inode failed\n");
-+		ret = PTR_ERR(root);
-  		goto out;
-  	}
- 
-+	ret = -ENOMEM;
-  	s->s_root = d_alloc_root(root);
-  	if (s->s_root == NULL)
-  		goto outi;
-@@ -417,7 +418,7 @@ static int qnx4_fill_super(struct super_
-       outnobh:
- 	kfree(qs);
- 	s->s_fs_info = NULL;
--	return -EINVAL;
-+	return ret;
+ 	return 0;
  }
++EXPORT_SYMBOL(acpi_check_resource_conflict);
  
- static void qnx4_put_super(struct super_block *sb)
-@@ -462,29 +463,38 @@ static const struct address_space_operat
- 	.bmap		= qnx4_bmap
- };
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name)
+diff -puN include/linux/acpi.h~export-acpi_check_resource_conflict include/linux/acpi.h
+--- a/include/linux/acpi.h~export-acpi_check_resource_conflict
++++ a/include/linux/acpi.h
+@@ -25,6 +25,7 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
  
--static void qnx4_read_inode(struct inode *inode)
-+struct inode *qnx4_iget(struct super_block *sb, unsigned long ino)
- {
- 	struct buffer_head *bh;
- 	struct qnx4_inode_entry *raw_inode;
--	int block, ino;
--	struct super_block *sb = inode->i_sb;
--	struct qnx4_inode_entry *qnx4_inode = qnx4_raw_inode(inode);
-+	int block;
-+	struct qnx4_inode_entry *qnx4_inode;
-+	struct inode *inode;
++#include <linux/ioport.h>	/* for struct resource */
+ 
+ #ifdef	CONFIG_ACPI
+ 
+@@ -223,6 +224,8 @@ extern int pnpacpi_disabled;
+ #define PXM_INVAL	(-1)
+ #define NID_INVAL	(-1)
+ 
++int acpi_check_resource_conflict(struct resource *res);
 +
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
- 
--	ino = inode->i_ino;
-+	qnx4_inode = qnx4_raw_inode(inode);
- 	inode->i_mode = 0;
- 
- 	QNX4DEBUG(("Reading inode : [%d]\n", ino));
- 	if (!ino) {
--		printk("qnx4: bad inode number on dev %s: %d is out of range\n",
-+		printk(KERN_ERR "qnx4: bad inode number on dev %s: %lu is "
-+				"out of range\n",
- 		       sb->s_id, ino);
--		return;
-+		iget_failed(inode);
-+		return ERR_PTR(-EIO);
- 	}
- 	block = ino / QNX4_INODES_PER_BLOCK;
- 
- 	if (!(bh = sb_bread(sb, block))) {
- 		printk("qnx4: major problem: unable to read inode from dev "
- 		       "%s\n", sb->s_id);
--		return;
-+		iget_failed(inode);
-+		return ERR_PTR(-EIO);
- 	}
- 	raw_inode = ((struct qnx4_inode_entry *) bh->b_data) +
- 	    (ino % QNX4_INODES_PER_BLOCK);
-@@ -515,9 +525,16 @@ static void qnx4_read_inode(struct inode
- 		inode->i_op = &page_symlink_inode_operations;
- 		inode->i_mapping->a_ops = &qnx4_aops;
- 		qnx4_i(inode)->mmu_private = inode->i_size;
--	} else
--		printk("qnx4: bad inode %d on dev %s\n",ino,sb->s_id);
-+	} else {
-+		printk(KERN_ERR "qnx4: bad inode %lu on dev %s\n",
-+			ino, sb->s_id);
-+		iget_failed(inode);
-+		brelse(bh);
-+		return ERR_PTR(-EIO);
-+	}
- 	brelse(bh);
-+	unlock_new_inode(inode);
-+	return inode;
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ int acpi_check_mem_region(resource_size_t start, resource_size_t n,
+@@ -240,6 +243,11 @@ static inline int acpi_boot_table_init(v
+ 	return 0;
  }
  
- static struct kmem_cache *qnx4_inode_cachep;
-diff -puN fs/qnx4/namei.c~iget-stop-qnx4-from-using-iget-and-read_inode-try fs/qnx4/namei.c
---- a/fs/qnx4/namei.c~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/fs/qnx4/namei.c
-@@ -128,10 +128,12 @@ struct dentry * qnx4_lookup(struct inode
- 	}
- 	brelse(bh);
- 
--	if ((foundinode = iget(dir->i_sb, ino)) == NULL) {
-+	foundinode = qnx4_iget(dir->i_sb, ino);
-+	if (IS_ERR(foundinode)) {
- 		unlock_kernel();
--		QNX4DEBUG(("qnx4: lookup->iget -> NULL\n"));
--		return ERR_PTR(-EACCES);
-+		QNX4DEBUG(("qnx4: lookup->iget -> error %ld\n",
-+			   PTR_ERR(foundinode)));
-+		return ERR_CAST(foundinode);
- 	}
- out:
- 	unlock_kernel();
-diff -puN include/linux/qnx4_fs.h~iget-stop-qnx4-from-using-iget-and-read_inode-try include/linux/qnx4_fs.h
---- a/include/linux/qnx4_fs.h~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/include/linux/qnx4_fs.h
-@@ -110,6 +110,7 @@ struct qnx4_inode_info {
- 	struct inode vfs_inode;
- };
- 
-+extern struct inode *qnx4_iget(struct super_block *, unsigned long);
- extern struct dentry *qnx4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd);
- extern unsigned long qnx4_count_free_blocks(struct super_block *sb);
- extern unsigned long qnx4_block_map(struct inode *inode, long iblock);
++static inline int acpi_check_resource_conflict(struct resource *res)
++{
++	return 0;
++}
++
+ static inline int acpi_check_region(resource_size_t start, resource_size_t n,
+ 				    const char *name)
+ {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from trenn@suse.de are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
