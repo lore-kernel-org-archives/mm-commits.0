@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 08 Feb 2008 13:29:04 -0800
-Message-ID: <200802082129.m18LT4P9014196@imap1.linux-foundation.org>
+Subject: + ipc-use-ipc_buildid-directly-from-ipc_addid.patch added to -mm tree
+Date: Fri, 08 Feb 2008 13:31:14 -0800
+Message-ID: <200802082131.m18LVEkd014318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52535 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753404AbYBHV3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:29:39 -0500
+	by vger.kernel.org with ESMTP id S1757029AbYBHVbu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:31:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lee.schermerhorn@hp.com
+Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net
 
 
 The patch titled
-     mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
+     IPC: use ipc_buildid() directly from ipc_addid()
 has been added to the -mm tree.  Its filename is
-     mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
+     ipc-use-ipc_buildid-directly-from-ipc_addid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,125 +33,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: IPC: use ipc_buildid() directly from ipc_addid()
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-ERROR: use tabs not spaces
-#156: FILE: mm/mempolicy.c:163:
-+ ^Ireturn 0;$
+By continuing to consolidate a little the IPC code, each id can be built
+directly in ipc_addid() instead of having it built from each callers of
+ipc_addid()
 
-total: 1 errors, 0 warnings, 116 lines checked
+And I also remove shm_addid() in order to have, as much as possible, the
+same code for shm/sem/msg.
 
-./patches/mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/msg.c  |    2 --
+ ipc/sem.c  |    2 --
+ ipc/shm.c  |   10 +---------
+ ipc/util.c |    1 +
+ 4 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
-+++ a/mm/mempolicy.c
-@@ -160,7 +160,7 @@ static int mpol_check_policy(int mode, n
- 			return -EINVAL;
- 		break;
+diff -puN ipc/msg.c~ipc-use-ipc_buildid-directly-from-ipc_addid ipc/msg.c
+--- a/ipc/msg.c~ipc-use-ipc_buildid-directly-from-ipc_addid
++++ a/ipc/msg.c
+@@ -70,7 +70,6 @@ struct msg_sender {
+ #define msg_ids(ns)	((ns)->ids[IPC_MSG_IDS])
+ 
+ #define msg_unlock(msq)		ipc_unlock(&(msq)->q_perm)
+-#define msg_buildid(id, seq)	ipc_buildid(id, seq)
+ 
+ static void freeque(struct ipc_namespace *, struct kern_ipc_perm *);
+ static int newque(struct ipc_namespace *, struct ipc_params *);
+@@ -186,7 +185,6 @@ static int newque(struct ipc_namespace *
+ 		return id;
  	}
-- 	return 0;
-+	return 0;
+ 
+-	msq->q_perm.id = msg_buildid(id, msq->q_perm.seq);
+ 	msq->q_stime = msq->q_rtime = 0;
+ 	msq->q_ctime = get_seconds();
+ 	msq->q_cbytes = msq->q_qnum = 0;
+diff -puN ipc/sem.c~ipc-use-ipc_buildid-directly-from-ipc_addid ipc/sem.c
+--- a/ipc/sem.c~ipc-use-ipc_buildid-directly-from-ipc_addid
++++ a/ipc/sem.c
+@@ -91,7 +91,6 @@
+ 
+ #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
+ #define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
+-#define sem_buildid(id, seq)	ipc_buildid(id, seq)
+ 
+ static int newary(struct ipc_namespace *, struct ipc_params *);
+ static void freeary(struct ipc_namespace *, struct kern_ipc_perm *);
+@@ -268,7 +267,6 @@ static int newary(struct ipc_namespace *
+ 	}
+ 	ns->used_sems += nsems;
+ 
+-	sma->sem_perm.id = sem_buildid(id, sma->sem_perm.seq);
+ 	sma->sem_base = (struct sem *) &sma[1];
+ 	/* sma->sem_pending = NULL; */
+ 	sma->sem_pending_last = &sma->sem_pending;
+diff -puN ipc/shm.c~ipc-use-ipc_buildid-directly-from-ipc_addid ipc/shm.c
+--- a/ipc/shm.c~ipc-use-ipc_buildid-directly-from-ipc_addid
++++ a/ipc/shm.c
+@@ -60,7 +60,6 @@ static struct vm_operations_struct shm_v
+ 
+ #define shm_unlock(shp)			\
+ 	ipc_unlock(&(shp)->shm_perm)
+-#define shm_buildid(id, seq)	ipc_buildid(id, seq)
+ 
+ static int newseg(struct ipc_namespace *, struct ipc_params *);
+ static void shm_open(struct vm_area_struct *vma);
+@@ -169,12 +168,6 @@ static inline void shm_rmid(struct ipc_n
+ 	ipc_rmid(&shm_ids(ns), &s->shm_perm);
  }
  
- /* Generate a custom zonelist for the BIND policy. */
+-static inline int shm_addid(struct ipc_namespace *ns, struct shmid_kernel *shp)
+-{
+-	return ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
+-}
+-
+-
+ 
+ /* This is called by fork, once for every shm attach. */
+ static void shm_open(struct vm_area_struct *vma)
+@@ -417,7 +410,7 @@ static int newseg(struct ipc_namespace *
+ 	if (IS_ERR(file))
+ 		goto no_file;
+ 
+-	id = shm_addid(ns, shp);
++	id = ipc_addid(&shm_ids(ns), &shp->shm_perm, ns->shm_ctlmni);
+ 	if (id < 0) {
+ 		error = id;
+ 		goto no_id;
+@@ -429,7 +422,6 @@ static int newseg(struct ipc_namespace *
+ 	shp->shm_ctim = get_seconds();
+ 	shp->shm_segsz = size;
+ 	shp->shm_nattch = 0;
+-	shp->shm_perm.id = shm_buildid(id, shp->shm_perm.seq);
+ 	shp->shm_file = file;
+ 	/*
+ 	 * shmid gets reported as "inode#" in /proc/pid/maps.
+diff -puN ipc/util.c~ipc-use-ipc_buildid-directly-from-ipc_addid ipc/util.c
+--- a/ipc/util.c~ipc-use-ipc_buildid-directly-from-ipc_addid
++++ a/ipc/util.c
+@@ -231,6 +231,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 	if(ids->seq > ids->seq_max)
+ 		ids->seq = 0;
+ 
++	new->id =  ipc_buildid(id, new->seq);
+ 	spin_lock_init(&new->lock);
+ 	new->deleted = 0;
+ 	rcu_read_lock();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-x86-mmconf-enable-mcfg-early.patch
-git-xfs-fix-git-conflicts.patch
-git-xtensa.patch
-mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid.patch
