@@ -1,115 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:41:32 -0800
-Message-ID: <200802080841.m188fDEi016044@imap1.linux-foundation.org>
+Subject: - aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:42:03 -0800
+Message-ID: <200802080841.m188fiBe016059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752427AbYBHImi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:42:38 -0500
+	by vger.kernel.org with ESMTP id S1752310AbYBHImv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:42:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, dhowells@redhat.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: re-remove accidentally restored code
+     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
 has been removed from the -mm tree.  Its filename was
-     aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+     aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
 
-This patch was dropped because it was folded into aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+This patch was dropped because it was folded into aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: re-remove accidentally restored code
-From: Jeff Dike <jdike@addtoit.com>
+Subject: aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch restores
-some code which had been deleted by uml-move-um_virt_to_phys.patch and
-uml-add-virt_to_pte.patch, presumably due to a botched diff.
+alpha allnoconfig:
 
-This patch gets rid of it again.
+fs/exec.c: In function 'search_binary_handler':
+fs/exec.c:1191: error: dereferencing pointer to incomplete type
+fs/exec.c:1192: error: dereferencing pointer to incomplete type
+fs/exec.c:1209: error: dereferencing pointer to incomplete type
+
+for struct exec.
 
 Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c |   44 -------------------------------------
- 1 file changed, 44 deletions(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code
-+++ a/arch/um/kernel/process.c
-@@ -6,7 +6,6 @@
- 
- #include <linux/stddef.h>
- #include <linux/err.h>
--#include <linux/module.h>
- #include <linux/hardirq.h>
- #include <linux/gfp.h>
- #include <linux/mm.h>
-@@ -259,49 +258,6 @@ void cpu_idle(void)
- 	default_idle();
- }
- 
--void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
--		      pte_t *pte_out)
--{
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--	pte_t ptent;
--
--	if (task->mm == NULL)
--		return ERR_PTR(-EINVAL);
--	pgd = pgd_offset(task->mm, addr);
--	if (!pgd_present(*pgd))
--		return ERR_PTR(-EINVAL);
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		return ERR_PTR(-EINVAL);
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd))
--		return ERR_PTR(-EINVAL);
--
--	pte = pte_offset_kernel(pmd, addr);
--	ptent = *pte;
--	if (!pte_present(ptent))
--		return ERR_PTR(-EINVAL);
--
--	if (pte_out != NULL)
--		*pte_out = ptent;
--	return (void *) (pte_val(ptent) & PAGE_MASK) + (addr & ~PAGE_MASK);
--}
--
--char *current_cmd(void)
--{
--#if defined(CONFIG_SMP) || defined(CONFIG_HIGHMEM)
--	return "(Unknown)";
--#else
--	void *addr = um_virt_to_phys(current, current->mm->arg_start, NULL);
--	return IS_ERR(addr) ? "(Unknown)": __va((unsigned long) addr);
--#endif
--}
--
- int __cant_sleep(void) {
- 	return in_atomic() || irqs_disabled() || in_interrupt();
- 	/* Is in_interrupt() really needed? */
+diff -puN fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix fs/exec.c
+--- a/fs/exec.c~aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix
++++ a/fs/exec.c
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/mman.h>
++#include <linux/a.out.h>
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-mount-options-fix-hostfs.patch
-uml-runtime-host-vmsplit-detection.patch
-uml-style-fixes-in-arch-um-os-linux.patch
-uml-x86_64-should-copy-%fs-during-fork.patch
-uml-fix-mm_context-memory-leak.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-pid_ns-option.patch
+proc-detect-duplicate-names-on-registration.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-fix-openless-usage-due-to-proc_fops-flip.patch
+intel-iommu-fault_reason_index_cleanuppatch.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
+pid-sys_wait-fixes-v2.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
