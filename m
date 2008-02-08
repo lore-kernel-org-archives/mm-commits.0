@@ -1,91 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - parport_ieee1284_epp_read_addr-patch.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:11 -0800
-Message-ID: <200802082017.m18KHq14010869@imap1.linux-foundation.org>
+Subject: - udf-cleanup-directory-offset-handling.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:17:53 -0800
+Message-ID: <200802082017.m18KHYoh010835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47186 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755553AbYBHUqY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:24 -0500
+	by vger.kernel.org with ESMTP id S1762712AbYBHUqj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boettcher@physik.uni-kiel.de, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport: fix ieee1284_epp_read_addr
+     udf: cleanup directory offset handling
 has been removed from the -mm tree.  Its filename was
-     parport_ieee1284_epp_read_addr-patch.patch
+     udf-cleanup-directory-offset-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: fix ieee1284_epp_read_addr
-From: Stephan Boettcher <boettcher@physik.uni-kiel.de>
+Subject: udf: cleanup directory offset handling
+From: Jan Kara <jack@suse.cz>
 
-We bought chaep notebooks to control our custom data acquisition system, which
-requires EPP mode (read/write, data/addr).  The bios does not offer EPP mode,
-and indeed hardware EPP mode appears not to work, although the parport driver
-tries to use it.  EPPSWE mode does work for data r/w and addr write, but addr
-read requires this patch.  
+Position in directory returned by readdir is offset of directory entry divided
+by four (don't ask me why).  Make this conversion only when reading f_pos from
+userspace / writing it there and internally work in bytes.  It makes things
+more easily readable and also fixes a bug (we forgot to divide length of the
+entry by 4 when advancing f_pos in udf_add_entry()).
 
-(stephan)rshgse3: lspci
-
-00:00.0 Host bridge: Intel Corporation Mobile 945GM/PM/GMS/940GML and 945GT Express Memory Controller Hub (rev 03)
-00:02.0 VGA compatible controller: Intel Corporation Mobile 945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
-00:02.1 Display controller: Intel Corporation Mobile 945GM/GMS/940GML Express Integrated Graphics Controller (rev 03)
-00:1b.0 Audio device: Intel Corporation 82801G (ICH7 Family) High Definition Audio Controller (rev 02)
-00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 1 (rev 02)
-00:1c.1 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 2 (rev 02)
-00:1c.2 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express Port 3 (rev 02)
-00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #1 (rev 02)
-00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #2 (rev 02)
-00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #3 (rev 02)
-00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI #4 (rev 02)
-00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI Controller (rev 02)
-00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev e2)
-00:1f.0 ISA bridge: Intel Corporation 82801GBM (ICH7-M) LPC Interface Bridge (rev 02)
-00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE Controller (rev 02)
-00:1f.2 SATA controller: Intel Corporation 82801GBM/GHM (ICH7 Family) Serial ATA Storage Controller AHCI (rev 02)
-00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller (rev 02)
-02:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8055 PCI-E Gigabit Ethernet Controller (rev 12)
-05:00.0 Network controller: Intel Corporation PRO/Wireless 3945ABG Network Connection (rev 02)
-08:03.0 CardBus bridge: Ricoh Co Ltd RL5c476 II (rev b3)
-08:03.1 FireWire (IEEE 1394): Ricoh Co Ltd R5C552 IEEE 1394 Controller (rev 08)
-08:03.2 Generic system peripheral [0805]: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro Host Adapter (rev 17)
-
-(stephan)rshgse3: grep . /proc/sys/dev/parport/parport0/*
-
-/proc/sys/dev/parport/parport0/base-addr:888    1912
-/proc/sys/dev/parport/parport0/dma:-1
-/proc/sys/dev/parport/parport0/irq:7
-/proc/sys/dev/parport/parport0/modes:PCSPP,TRISTATE,EPP
-/proc/sys/dev/parport/parport0/spintime:500
-
-
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/ieee1284_ops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/udf/directory.c |    7 +++----
+ fs/udf/inode.c     |    8 ++++----
+ fs/udf/namei.c     |   39 +++++++++++++++++----------------------
+ 3 files changed, 24 insertions(+), 30 deletions(-)
 
-diff -puN drivers/parport/ieee1284_ops.c~parport_ieee1284_epp_read_addr-patch drivers/parport/ieee1284_ops.c
---- a/drivers/parport/ieee1284_ops.c~parport_ieee1284_epp_read_addr-patch
-+++ a/drivers/parport/ieee1284_ops.c
-@@ -888,7 +888,7 @@ size_t parport_ieee1284_epp_read_addr (s
+diff -puN fs/udf/directory.c~udf-cleanup-directory-offset-handling fs/udf/directory.c
+--- a/fs/udf/directory.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/directory.c
+@@ -95,7 +95,7 @@ struct fileIdentDesc *udf_fileident_read
+ 		if (!fi)
+ 			return NULL;
  
- 		/* Event 59: set nSelectIn (nAStrb) high */
- 		parport_frob_control (port, PARPORT_CONTROL_SELECT,
--				      PARPORT_CONTROL_SELECT);
-+				      0);
+-		*nf_pos += ((fibh->eoffset - fibh->soffset) >> 2);
++		*nf_pos += fibh->eoffset - fibh->soffset;
  
- 		/* Event 60: wait for Busy to go low */
- 		if (parport_poll_peripheral (port, PARPORT_STATUS_BUSY, 
+ 		memcpy((uint8_t *)cfi, (uint8_t *)fi,
+ 		       sizeof(struct fileIdentDesc));
+@@ -157,7 +157,7 @@ struct fileIdentDesc *udf_fileident_read
+ 	if (!fi)
+ 		return NULL;
+ 
+-	*nf_pos += ((fibh->eoffset - fibh->soffset) >> 2);
++	*nf_pos += fibh->eoffset - fibh->soffset;
+ 
+ 	if (fibh->eoffset <= dir->i_sb->s_blocksize) {
+ 		memcpy((uint8_t *)cfi, (uint8_t *)fi,
+@@ -197,8 +197,7 @@ struct fileIdentDesc *udf_fileident_read
+ 				  cfi->lengthFileIdent +
+ 				  le16_to_cpu(cfi->lengthOfImpUse) + 3) & ~3;
+ 
+-			*nf_pos += (fi_len - (fibh->eoffset - fibh->soffset))
+-					>> 2;
++			*nf_pos += fi_len - (fibh->eoffset - fibh->soffset);
+ 			fibh->eoffset = fibh->soffset + fi_len;
+ 		} else {
+ 			memcpy((uint8_t *)cfi, (uint8_t *)fi,
+diff -puN fs/udf/inode.c~udf-cleanup-directory-offset-handling fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/inode.c
+@@ -219,8 +219,8 @@ struct buffer_head *udf_expand_dir_adini
+ 	struct extent_position epos;
+ 
+ 	struct udf_fileident_bh sfibh, dfibh;
+-	loff_t f_pos = udf_ext0_offset(inode) >> 2;
+-	int size = (udf_ext0_offset(inode) + inode->i_size) >> 2;
++	loff_t f_pos = udf_ext0_offset(inode);
++	int size = udf_ext0_offset(inode) + inode->i_size;
+ 	struct fileIdentDesc cfi, *sfi, *dfi;
+ 	struct udf_inode_info *iinfo = UDF_I(inode);
+ 
+@@ -256,11 +256,11 @@ struct buffer_head *udf_expand_dir_adini
+ 	mark_buffer_dirty_inode(dbh, inode);
+ 
+ 	sfibh.soffset = sfibh.eoffset =
+-			(f_pos & ((inode->i_sb->s_blocksize - 1) >> 2)) << 2;
++			f_pos & (inode->i_sb->s_blocksize - 1);
+ 	sfibh.sbh = sfibh.ebh = NULL;
+ 	dfibh.soffset = dfibh.eoffset = 0;
+ 	dfibh.sbh = dfibh.ebh = dbh;
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		iinfo->i_alloc_type = ICBTAG_FLAG_AD_IN_ICB;
+ 		sfi = udf_fileident_read(inode, &f_pos, &sfibh, &cfi, NULL,
+ 					 NULL, NULL, NULL);
+diff -puN fs/udf/namei.c~udf-cleanup-directory-offset-handling fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-cleanup-directory-offset-handling
++++ a/fs/udf/namei.c
+@@ -160,14 +160,13 @@ static struct fileIdentDesc *udf_find_en
+ 	struct extent_position epos = {};
+ 	struct udf_inode_info *dinfo = UDF_I(dir);
+ 
+-	size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
+-	f_pos = (udf_ext0_offset(dir) >> 2);
++	size = udf_ext0_offset(dir) + dir->i_size;
++	f_pos = udf_ext0_offset(dir);
+ 
+-	fibh->soffset = fibh->eoffset =
+-		(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	fibh->soffset = fibh->eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -189,7 +188,7 @@ static struct fileIdentDesc *udf_find_en
+ 		return NULL;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, fibh, cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 		if (!fi) {
+@@ -342,7 +341,7 @@ static struct fileIdentDesc *udf_add_ent
+ 	loff_t f_pos;
+ 	int flen;
+ 	char *nameptr;
+-	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
++	loff_t size = udf_ext0_offset(dir) + dir->i_size;
+ 	int nfidlen;
+ 	uint8_t lfi;
+ 	uint16_t liu;
+@@ -370,14 +369,13 @@ static struct fileIdentDesc *udf_add_ent
+ 
+ 	nfidlen = (sizeof(struct fileIdentDesc) + namelen + 3) & ~3;
+ 
+-	f_pos = (udf_ext0_offset(dir) >> 2);
++	f_pos = udf_ext0_offset(dir);
+ 
+-	fibh->soffset = fibh->eoffset =
+-			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	fibh->soffset = fibh->eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 	dinfo = UDF_I(dir);
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -405,7 +403,7 @@ static struct fileIdentDesc *udf_add_ent
+ 		goto add;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, fibh, cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 
+@@ -484,7 +482,7 @@ add:
+ 		epos.bh = NULL;
+ 		fibh->soffset -= udf_ext0_offset(dir);
+ 		fibh->eoffset -= udf_ext0_offset(dir);
+-		f_pos -= (udf_ext0_offset(dir) >> 2);
++		f_pos -= udf_ext0_offset(dir);
+ 		if (fibh->sbh != fibh->ebh)
+ 			brelse(fibh->ebh);
+ 		brelse(fibh->sbh);
+@@ -537,8 +535,7 @@ add:
+ 		block = eloc.logicalBlockNum + ((elen - 1) >>
+ 						dir->i_sb->s_blocksize_bits);
+ 		fibh->ebh = udf_bread(dir,
+-				f_pos >> (dir->i_sb->s_blocksize_bits - 2),
+-				1, err);
++				f_pos >> dir->i_sb->s_blocksize_bits, 1, err);
+ 		if (!fibh->ebh) {
+ 			brelse(epos.bh);
+ 			brelse(fibh->sbh);
+@@ -775,7 +772,7 @@ static int empty_dir(struct inode *dir)
+ 	struct fileIdentDesc *fi, cfi;
+ 	struct udf_fileident_bh fibh;
+ 	loff_t f_pos;
+-	loff_t size = (udf_ext0_offset(dir) + dir->i_size) >> 2;
++	loff_t size = udf_ext0_offset(dir) + dir->i_size;
+ 	int block;
+ 	kernel_lb_addr eloc;
+ 	uint32_t elen;
+@@ -783,14 +780,12 @@ static int empty_dir(struct inode *dir)
+ 	struct extent_position epos = {};
+ 	struct udf_inode_info *dinfo = UDF_I(dir);
+ 
+-	f_pos = (udf_ext0_offset(dir) >> 2);
+-
+-	fibh.soffset = fibh.eoffset =
+-			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
++	f_pos = udf_ext0_offset(dir);
++	fibh.soffset = fibh.eoffset = f_pos & (dir->i_sb->s_blocksize - 1);
+ 
+ 	if (dinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh.sbh = fibh.ebh = NULL;
+-	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
++	else if (inode_bmap(dir, f_pos >> dir->i_sb->s_blocksize_bits,
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+@@ -812,7 +807,7 @@ static int empty_dir(struct inode *dir)
+ 		return 0;
+ 	}
+ 
+-	while ((f_pos < size)) {
++	while (f_pos < size) {
+ 		fi = udf_fileident_read(dir, &f_pos, &fibh, &cfi, &epos, &eloc,
+ 					&elen, &offset);
+ 		if (!fi) {
 _
 
-Patches currently in -mm which might be from boettcher@physik.uni-kiel.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
