@@ -1,335 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-i3000-code-tidying.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:05:45 -0800
-Message-ID: <200802080805.m1885QMT014334@imap1.linux-foundation.org>
+Subject: - dz-clean-up-and-improve-the-setup-of-termios-settings.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:29 -0800
+Message-ID: <200802080806.m1886AZH014411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36617 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761027AbYBHIU2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:28 -0500
+	by vger.kernel.org with ESMTP id S1761528AbYBHIUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-edac: i3000 code tidying
+     dz: clean up and improve the setup of termios settings
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-i3000-code-tidying.patch
+     dz-clean-up-and-improve-the-setup-of-termios-settings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-edac: i3000 code tidying
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: dz: clean up and improve the setup of termios settings
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Style cleanup, mostly just 80-column fixes.
+A set of changes to the way termios settings are propagated to the serial
+port hardware.  The DZ11 only supports a selection of fixed baud settings,
+so some requests may not be fulfilled.  Keep the old setting in such a case
+and failing that resort to 9600bps.  Also add a missing update of the
+transmit timeout.  And remove the explicit encoding of the line selected
+from writes to the Line Parameters Register as it has been preencoded by
+the ->set_termios() call already.  Finally, remove a duplicate macro for
+the Receiver Enable bit.
 
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i3000_edac.c |  207 +++++++++++++++++++-----------------
- 1 file changed, 110 insertions(+), 97 deletions(-)
+ drivers/serial/dz.c |  103 ++++++++++++++++++++++--------------------
+ drivers/serial/dz.h |    4 -
+ 2 files changed, 56 insertions(+), 51 deletions(-)
 
-diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying drivers/edac/i3000_edac.c
---- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying
-+++ a/drivers/edac/i3000_edac.c
-@@ -30,105 +30,112 @@
- #define I3000_MCHBAR_MASK	0xffffc000
- #define I3000_MMR_WINDOW_SIZE	16384
- 
--#define I3000_EDEAP		0x70	/* Extended DRAM Error Address Pointer (8b)
--					 *
--					 * 7:1   reserved
--					 * 0     bit 32 of address
--					 */
--#define I3000_DEAP		0x58	/* DRAM Error Address Pointer (32b)
--					 *
--					 * 31:7  address
--					 * 6:1   reserved
--					 * 0     Error channel 0/1
--					 */
--#define I3000_DEAP_GRAIN	(1 << 7)
--#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) | \
--					((deap) >> PAGE_SHIFT))
--#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & ~PAGE_MASK)
-+#define I3000_EDEAP	0x70	/* Extended DRAM Error Address Pointer (8b)
-+				 *
-+				 * 7:1   reserved
-+				 * 0     bit 32 of address
-+				 */
-+#define I3000_DEAP	0x58	/* DRAM Error Address Pointer (32b)
-+				 *
-+				 * 31:7  address
-+				 * 6:1   reserved
-+				 * 0     Error channel 0/1
-+				 */
-+#define I3000_DEAP_GRAIN 		(1 << 7)
-+#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) \
-+					| ((deap) >> PAGE_SHIFT))
-+#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & \
-+					~PAGE_MASK)
- #define I3000_DEAP_CHANNEL(deap)	((deap) & 1)
- 
--#define I3000_DERRSYN		0x5c	/* DRAM Error Syndrome (8b)
--					 *
--					 *  7:0  DRAM ECC Syndrome
--					 */
--
--#define I3000_ERRSTS		0xc8	/* Error Status Register (16b)
--					 *
--					 * 15:12 reserved
--					 * 11    MCH Thermal Sensor Event for SMI/SCI/SERR
--					 * 10    reserved
--					 *  9    LOCK to non-DRAM Memory Flag (LCKF)
--					 *  8    Received Refresh Timeout Flag (RRTOF)
--					 *  7:2  reserved
--					 *  1    Multiple-bit DRAM ECC Error Flag (DMERR)
--					 *  0    Single-bit DRAM ECC Error Flag (DSERR)
--					 */
-+#define I3000_DERRSYN	0x5c	/* DRAM Error Syndrome (8b)
-+				 *
-+				 *  7:0  DRAM ECC Syndrome
-+				 */
-+
-+#define I3000_ERRSTS	0xc8	/* Error Status Register (16b)
-+				 *
-+				 * 15:12 reserved
-+				 * 11    MCH Thermal Sensor Event
-+				 *         for SMI/SCI/SERR
-+				 * 10    reserved
-+				 *  9    LOCK to non-DRAM Memory Flag (LCKF)
-+				 *  8    Received Refresh Timeout Flag (RRTOF)
-+				 *  7:2  reserved
-+				 *  1    Multi-bit DRAM ECC Error Flag (DMERR)
-+				 *  0    Single-bit DRAM ECC Error Flag (DSERR)
-+				 */
- #define I3000_ERRSTS_BITS	0x0b03	/* bits which indicate errors */
- #define I3000_ERRSTS_UE		0x0002
- #define I3000_ERRSTS_CE		0x0001
- 
--#define I3000_ERRCMD		0xca	/* Error Command (16b)
--					 *
--					 * 15:12 reserved
--					 * 11    SERR on MCH Thermal Sensor Event (TSESERR)
--					 * 10    reserved
--					 *  9    SERR on LOCK to non-DRAM Memory (LCKERR)
--					 *  8    SERR on DRAM Refresh Timeout (DRTOERR)
--					 *  7:2  reserved
--					 *  1    SERR Multiple-Bit DRAM ECC Error (DMERR)
--					 *  0    SERR on Single-Bit ECC Error (DSERR)
--					 */
-+#define I3000_ERRCMD	0xca	/* Error Command (16b)
-+				 *
-+				 * 15:12 reserved
-+				 * 11    SERR on MCH Thermal Sensor Event
-+				 *         (TSESERR)
-+				 * 10    reserved
-+				 *  9    SERR on LOCK to non-DRAM Memory
-+				 *         (LCKERR)
-+				 *  8    SERR on DRAM Refresh Timeout
-+				 *         (DRTOERR)
-+				 *  7:2  reserved
-+				 *  1    SERR Multi-Bit DRAM ECC Error
-+				 *         (DMERR)
-+				 *  0    SERR on Single-Bit ECC Error
-+				 *         (DSERR)
-+				 */
- 
- /* Intel  MMIO register space - device 0 function 0 - MMR space */
- 
- #define I3000_DRB_SHIFT 25	/* 32MiB grain */
- 
--#define I3000_C0DRB		0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
--					 *
--					 * 7:0   Channel 0 DRAM Rank Boundary Address
--					 */
--#define I3000_C1DRB		0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
--					 *
--					 * 7:0   Channel 1 DRAM Rank Boundary Address
--					 */
--
--#define I3000_C0DRA		0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
--					 *
--					 * 7     reserved
--					 * 6:4   DRAM odd Rank Attribute
--					 * 3     reserved
--					 * 2:0   DRAM even Rank Attribute
--					 *
--					 * Each attribute defines the page
--					 * size of the corresponding rank:
--					 *     000: unpopulated
--					 *     001: reserved
--					 *     010: 4 KB
--					 *     011: 8 KB
--					 *     100: 16 KB
--					 *     Others: reserved
--					 */
--#define I3000_C1DRA		0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
--#define ODD_RANK_ATTRIB(dra) (((dra) & 0x70) >> 4)
--#define EVEN_RANK_ATTRIB(dra) ((dra) & 0x07)
--
--#define I3000_C0DRC0		0x120	/* DRAM Controller Mode 0 (32b)
--					 *
--					 * 31:30 reserved
--					 * 29    Initialization Complete (IC)
--					 * 28:11 reserved
--					 * 10:8  Refresh Mode Select (RMS)
--					 * 7     reserved
--					 * 6:4   Mode Select (SMS)
--					 * 3:2   reserved
--					 * 1:0   DRAM Type (DT)
--					 */
--
--#define I3000_C0DRC1		0x124	/* DRAM Controller Mode 1 (32b)
--					 *
--					 * 31    Enhanced Addressing Enable (ENHADE)
--					 * 30:0  reserved
--					 */
-+#define I3000_C0DRB	0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
-+				 *
-+				 * 7:0   Channel 0 DRAM Rank Boundary Address
-+				 */
-+#define I3000_C1DRB	0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
-+				 *
-+				 * 7:0   Channel 1 DRAM Rank Boundary Address
-+				 */
-+
-+#define I3000_C0DRA	0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
-+				 *
-+				 * 7     reserved
-+				 * 6:4   DRAM odd Rank Attribute
-+				 * 3     reserved
-+				 * 2:0   DRAM even Rank Attribute
-+				 *
-+				 * Each attribute defines the page
-+				 * size of the corresponding rank:
-+				 *     000: unpopulated
-+				 *     001: reserved
-+				 *     010: 4 KB
-+				 *     011: 8 KB
-+				 *     100: 16 KB
-+				 *     Others: reserved
-+				 */
-+#define I3000_C1DRA	0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
-+#define ODD_RANK_ATTRIB(dra)	(((dra) & 0x70) >> 4)
-+#define EVEN_RANK_ATTRIB(dra)	((dra) & 0x07)
-+
-+#define I3000_C0DRC0	0x120	/* DRAM Controller Mode 0 (32b)
-+				 *
-+				 * 31:30 reserved
-+				 * 29    Initialization Complete (IC)
-+				 * 28:11 reserved
-+				 * 10:8  Refresh Mode Select (RMS)
-+				 * 7     reserved
-+				 * 6:4   Mode Select (SMS)
-+				 * 3:2   reserved
-+				 * 1:0   DRAM Type (DT)
-+				 */
-+
-+#define I3000_C0DRC1	0x124	/* DRAM Controller Mode 1 (32b)
-+				 *
-+				 * 31    Enhanced Addressing Enable (ENHADE)
-+				 * 30:0  reserved
-+				 */
- 
- enum i3000p_chips {
- 	I3000 = 0,
-@@ -187,7 +194,8 @@ static void i3000_get_error_info(struct 
- 		pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
- 	}
- 
--	/* Clear any error bits.
-+	/*
-+	 * Clear any error bits.
- 	 * (Yes, we really clear bits by writing 1 to them.)
- 	 */
- 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-@@ -245,7 +253,8 @@ static int i3000_is_interleaved(const un
+diff -puN drivers/serial/dz.c~dz-clean-up-and-improve-the-setup-of-termios-settings drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dz-clean-up-and-improve-the-setup-of-termios-settings
++++ a/drivers/serial/dz.c
+@@ -128,8 +128,8 @@ static void dz_stop_rx(struct uart_port 
  {
- 	int i;
+ 	struct dz_port *dport = (struct dz_port *)uport;
  
--	/* If the channels aren't populated identically then
-+	/*
-+	 * If the channels aren't populated identically then
- 	 * we're not interleaved.
- 	 */
- 	for (i = 0; i < I3000_RANKS_PER_CHANNEL / 2; i++)
-@@ -254,7 +263,8 @@ static int i3000_is_interleaved(const un
- 						EVEN_RANK_ATTRIB(c1dra[i]))
- 			return 0;
+-	dport->cflag &= ~DZ_CREAD;
+-	dz_out(dport, DZ_LPR, dport->cflag | dport->port.line);
++	dport->cflag &= ~DZ_RXENAB;
++	dz_out(dport, DZ_LPR, dport->cflag);
+ }
  
--	/* If the rank boundaries for the two channels are different
-+	/*
-+	 * If the rank boundaries for the two channels are different
- 	 * then we're not interleaved.
- 	 */
- 	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
-@@ -300,7 +310,8 @@ static int i3000_probe1(struct pci_dev *
+ static void dz_enable_ms(struct uart_port *port)
+@@ -464,12 +464,51 @@ static void dz_break_ctl(struct uart_por
+ 	spin_unlock_irqrestore(&uport->lock, flags);
+ }
  
- 	iounmap(window);
++static int dz_encode_baud_rate(unsigned int baud)
++{
++	switch (baud) {
++	case 50:
++		return DZ_B50;
++	case 75:
++		return DZ_B75;
++	case 110:
++		return DZ_B110;
++	case 134:
++		return DZ_B134;
++	case 150:
++		return DZ_B150;
++	case 300:
++		return DZ_B300;
++	case 600:
++		return DZ_B600;
++	case 1200:
++		return DZ_B1200;
++	case 1800:
++		return DZ_B1800;
++	case 2000:
++		return DZ_B2000;
++	case 2400:
++		return DZ_B2400;
++	case 3600:
++		return DZ_B3600;
++	case 4800:
++		return DZ_B4800;
++	case 7200:
++		return DZ_B7200;
++	case 9600:
++		return DZ_B9600;
++	default:
++		return -1;
++	}
++}
++
+ static void dz_set_termios(struct uart_port *uport, struct ktermios *termios,
+ 			   struct ktermios *old_termios)
+ {
+ 	struct dz_port *dport = (struct dz_port *)uport;
+ 	unsigned long flags;
+ 	unsigned int cflag, baud;
++	int bflag;
  
--	/* Figure out how many channels we have.
-+	/*
-+	 * Figure out how many channels we have.
- 	 *
- 	 * If we have what the datasheet calls "asymmetric channels"
- 	 * (essentially the same as what was called "virtual single
-@@ -363,7 +374,8 @@ static int i3000_probe1(struct pci_dev *
- 		csrow->edac_mode = EDAC_UNKNOWN;
+ 	cflag = dport->port.line;
+ 
+@@ -496,60 +535,26 @@ static void dz_set_termios(struct uart_p
+ 		cflag |= DZ_PARODD;
+ 
+ 	baud = uart_get_baud_rate(uport, termios, old_termios, 50, 9600);
+-	switch (baud) {
+-	case 50:
+-		cflag |= DZ_B50;
+-		break;
+-	case 75:
+-		cflag |= DZ_B75;
+-		break;
+-	case 110:
+-		cflag |= DZ_B110;
+-		break;
+-	case 134:
+-		cflag |= DZ_B134;
+-		break;
+-	case 150:
+-		cflag |= DZ_B150;
+-		break;
+-	case 300:
+-		cflag |= DZ_B300;
+-		break;
+-	case 600:
+-		cflag |= DZ_B600;
+-		break;
+-	case 1200:
+-		cflag |= DZ_B1200;
+-		break;
+-	case 1800:
+-		cflag |= DZ_B1800;
+-		break;
+-	case 2000:
+-		cflag |= DZ_B2000;
+-		break;
+-	case 2400:
+-		cflag |= DZ_B2400;
+-		break;
+-	case 3600:
+-		cflag |= DZ_B3600;
+-		break;
+-	case 4800:
+-		cflag |= DZ_B4800;
+-		break;
+-	case 7200:
+-		cflag |= DZ_B7200;
+-		break;
+-	case 9600:
+-	default:
+-		cflag |= DZ_B9600;
++	bflag = dz_encode_baud_rate(baud);
++	if (bflag < 0)	{			/* Try to keep unchanged.  */
++		baud = uart_get_baud_rate(uport, old_termios, NULL, 50, 9600);
++		bflag = dz_encode_baud_rate(baud);
++		if (bflag < 0)	{		/* Resort to 9600.  */
++			baud = 9600;
++			bflag = DZ_B9600;
++		}
++		tty_termios_encode_baud_rate(termios, baud, baud);
  	}
++	cflag |= bflag;
  
--	/* Clear any error bits.
-+	/*
-+	 * Clear any error bits.
- 	 * (Yes, we really clear bits by writing 1 to them.)
- 	 */
- 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-@@ -390,7 +402,7 @@ static int i3000_probe1(struct pci_dev *
- 	debugf3("MC: %s(): success\n", __func__);
- 	return 0;
+ 	if (termios->c_cflag & CREAD)
+ 		cflag |= DZ_RXENAB;
  
--      fail:
-+fail:
- 	if (mci)
- 		edac_mc_free(mci);
+ 	spin_lock_irqsave(&dport->port.lock, flags);
  
-@@ -409,7 +421,7 @@ static int __devinit i3000_init_one(stru
- 		return -EIO;
+-	dz_out(dport, DZ_LPR, cflag | dport->port.line);
++	uart_update_timeout(uport, termios->c_cflag, baud);
++
++	dz_out(dport, DZ_LPR, cflag);
+ 	dport->cflag = cflag;
  
- 	rc = i3000_probe1(pdev, ent->driver_data);
--	if (mci_pdev == NULL)
-+	if (!mci_pdev)
- 		mci_pdev = pci_dev_get(pdev);
+ 	/* setup accept flag */
+diff -puN drivers/serial/dz.h~dz-clean-up-and-improve-the-setup-of-termios-settings drivers/serial/dz.h
+--- a/drivers/serial/dz.h~dz-clean-up-and-improve-the-setup-of-termios-settings
++++ a/drivers/serial/dz.h
+@@ -109,8 +109,8 @@
+ #define DZ_B7200         0x0D00
+ #define DZ_B9600         0x0E00
  
- 	return rc;
-@@ -424,7 +436,8 @@ static void __devexit i3000_remove_one(s
- 	if (i3000_pci)
- 		edac_pci_release_generic_ctl(i3000_pci);
- 
--	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
-+	mci = edac_mc_del_mc(&pdev->dev);
-+	if (!mci)
- 		return;
- 
- 	edac_mc_free(mci);
-@@ -457,7 +470,7 @@ static int __init i3000_init(void)
- 	if (pci_rc < 0)
- 		goto fail0;
- 
--	if (mci_pdev == NULL) {
-+	if (!mci_pdev) {
- 		i3000_registered = 0;
- 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 					PCI_DEVICE_ID_INTEL_3000_HB, NULL);
+-#define DZ_CREAD         0x1000               /* Enable receiver */
+-#define DZ_RXENAB        0x1000               /* enable receive char */
++#define DZ_RXENAB        0x1000               /* Receiver Enable */
++
+ /*
+  * Addresses for the DZ registers
+  */
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
