@@ -1,104 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - mount-options-fix-affs.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:34 -0800
-Message-ID: <200802082019.m18KJFJZ011032@imap1.linux-foundation.org>
+Subject: - getdelays-fix-gcc-warnings.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:36 -0800
+Message-ID: <200802082020.m18KKH2t011152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43135 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49904 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933608AbYBHUi4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:38:56 -0500
+	by vger.kernel.org with ESMTP id S934231AbYBHUi5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:38:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mount options: fix affs
+     getdelays: fix gcc warnings
 has been removed from the -mm tree.  Its filename was
-     mount-options-fix-affs.patch
+     getdelays-fix-gcc-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix affs
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: getdelays: fix gcc warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add a .show_options super operation to affs.
+Fix gcc warnings in getdelays.c:
 
-Use generic_show_options() and save the complete option string in
-affs_fill_super() and affs_remount().
+Documentation/accounting/getdelays.c: In function 'task_context_switch_counts':
+Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 4 has type '__u64'
+Documentation/accounting/getdelays.c:214: warning: format '%15lu' expects type 'long unsigned int', but argument 5 has type '__u64'
+Documentation/accounting/getdelays.c: In function 'main':
+Documentation/accounting/getdelays.c:402: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+Documentation/accounting/getdelays.c: In function 'get_family_id':
+Documentation/accounting/getdelays.c:171: warning: 'id' may be used uninitialized in this function
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+One warning is not a problem and can be dismissed:
+Documentation/accounting/getdelays.c: In function 'main':
+Documentation/accounting/getdelays.c:236: warning: 'cmd_type' may be used uninitialized in this function
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ Documentation/accounting/getdelays.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/affs/super.c~mount-options-fix-affs fs/affs/super.c
---- a/fs/affs/super.c~mount-options-fix-affs
-+++ a/fs/affs/super.c
-@@ -122,6 +122,7 @@ static const struct super_operations aff
- 	.write_super	= affs_write_super,
- 	.statfs		= affs_statfs,
- 	.remount_fs	= affs_remount,
-+	.show_options	= generic_show_options,
- };
+diff -puN Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~getdelays-fix-gcc-warnings
++++ a/Documentation/accounting/getdelays.c
+@@ -168,7 +168,7 @@ int get_family_id(int sd)
+ 		char buf[256];
+ 	} ans;
  
- enum {
-@@ -272,6 +273,8 @@ static int affs_fill_super(struct super_
- 	u8			 sig[4];
- 	int			 ret = -EINVAL;
+-	int id, rc;
++	int id = 0, rc;
+ 	struct nlattr *na;
+ 	int rep_len;
  
-+	save_mount_options(sb, data);
-+
- 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+@@ -209,7 +209,7 @@ void print_delayacct(struct taskstats *t
+ void task_context_switch_counts(struct taskstats *t)
+ {
+ 	printf("\n\nTask   %15s%15s\n"
+-	       "       %15lu%15lu\n",
++	       "       %15llu%15llu\n",
+ 	       "voluntary", "nonvoluntary",
+ 	       t->nvcsw, t->nivcsw);
+ }
+@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
+ 			goto done;
+ 		}
  
- 	sb->s_magic             = AFFS_SUPER_MAGIC;
-@@ -487,14 +490,21 @@ affs_remount(struct super_block *sb, int
- 	int			 root_block;
- 	unsigned long		 mount_flags;
- 	int			 res = 0;
-+	char			*new_opts = kstrdup(data, GFP_KERNEL);
+-		PRINTF("nlmsghdr size=%d, nlmsg_len=%d, rep_len=%d\n",
++		PRINTF("nlmsghdr size=%zu, nlmsg_len=%d, rep_len=%d\n",
+ 		       sizeof(struct nlmsghdr), msg.n.nlmsg_len, rep_len);
  
- 	pr_debug("AFFS: remount(flags=0x%x,opts=\"%s\")\n",*flags,data);
  
- 	*flags |= MS_NODIRATIME;
- 
--	if (!parse_options(data,&uid,&gid,&mode,&reserved,&root_block,
--	    &blocksize,&sbi->s_prefix,sbi->s_volume,&mount_flags))
-+	if (!parse_options(data, &uid, &gid, &mode, &reserved, &root_block,
-+			   &blocksize, &sbi->s_prefix, sbi->s_volume,
-+			   &mount_flags)) {
-+		kfree(new_opts);
- 		return -EINVAL;
-+	}
-+	kfree(sb->s_options);
-+	sb->s_options = new_opts;
-+
- 	sbi->s_flags = mount_flags;
- 	sbi->s_mode  = mode;
- 	sbi->s_uid   = uid;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-vfs-create-proc-pid-mountinfo.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
+apanel-fix-kconfig-dependencies.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+profile-likely-unlikely-macros.patch
