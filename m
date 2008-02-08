@@ -1,126 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:11 -0800
-Message-ID: <200802080803.m1883qjP014154@imap1.linux-foundation.org>
+Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:45 -0800
+Message-ID: <200802080804.m1884QiT014262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754864AbYBHIa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:30:26 -0500
+	by vger.kernel.org with ESMTP id S1754864AbYBHIah (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     memory cgroup enhancements: remember "a page is charged as page cache"
+     per-zone and reclaim enhancements for memory controller: calculate mapper_ratio per cgroup
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: remember "a page is charged as page cache"
+Subject: per-zone and reclaim enhancements for memory controller: calculate mapper_ratio per cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add a flag to page_cgroup to remember "this page is
-charged as cache."
-cache here includes page caches and swap cache.
-This is useful for implementing precise accounting in memory cgroup.
-TODO:
-  distinguish page-cache and swap-cache
+Define function for calculating mapped_ratio in memory cgroup.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |   11 ++++++++++-
+ mm/memcontrol.c            |   17 +++++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache
-+++ a/mm/memcontrol.c
-@@ -83,7 +83,9 @@ struct page_cgroup {
- 	struct mem_cgroup *mem_cgroup;
- 	atomic_t ref_cnt;		/* Helpful when pages move b/w  */
- 					/* mapped and cached states     */
-+	int	 flags;
- };
-+#define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
+diff -puN include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup
++++ a/include/linux/memcontrol.h
+@@ -64,6 +64,12 @@ extern int mem_cgroup_prepare_migration(
+ extern void mem_cgroup_end_migration(struct page *page);
+ extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
  
- enum {
- 	MEM_CGROUP_TYPE_UNSPEC = 0,
-@@ -93,6 +95,11 @@ enum {
- 	MEM_CGROUP_TYPE_MAX,
- };
- 
-+enum charge_type {
-+	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
-+	MEM_CGROUP_CHARGE_TYPE_MAPPED,
-+};
++/*
++ * For memory reclaim.
++ */
++extern int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem);
 +
- static struct mem_cgroup init_mem_cgroup;
- 
- static inline
-@@ -306,8 +313,8 @@ unsigned long mem_cgroup_isolate_pages(u
-  * 0 if the charge was successful
-  * < 0 if the cgroup is over its limit
-  */
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
--				gfp_t gfp_mask)
-+static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
-+				gfp_t gfp_mask, enum charge_type ctype)
++
+ #else /* CONFIG_CGROUP_MEM_CONT */
+ static inline void mm_init_cgroup(struct mm_struct *mm,
+ 					struct task_struct *p)
+@@ -135,7 +141,10 @@ mem_cgroup_page_migration(struct page *p
  {
- 	struct mem_cgroup *mem;
- 	struct page_cgroup *pc;
-@@ -409,6 +416,9 @@ noreclaim:
- 	atomic_set(&pc->ref_cnt, 1);
- 	pc->mem_cgroup = mem;
- 	pc->page = page;
-+	pc->flags = 0;
-+	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
-+		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
- 	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
- 		/*
- 		 * an another charge is added to this page already.
-@@ -433,6 +443,13 @@ err:
- 	return -ENOMEM;
  }
  
-+int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+			gfp_t gfp_mask)
+-
++static inline int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
 +{
-+	return mem_cgroup_charge_common(page, mm, gfp_mask,
-+			MEM_CGROUP_CHARGE_TYPE_MAPPED);
++	return 0;
++}
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-calculate-mapper_ratio-per-cgroup
++++ a/mm/memcontrol.c
+@@ -420,6 +420,23 @@ void mem_cgroup_move_lists(struct page_c
+ 	spin_unlock(&mem->lru_lock);
+ }
+ 
++/*
++ * Calculate mapped_ratio under memory controller. This will be used in
++ * vmscan.c for deteremining we have to reclaim mapped pages.
++ */
++int mem_cgroup_calc_mapped_ratio(struct mem_cgroup *mem)
++{
++	long total, rss;
++
++	/*
++	 * usage is recorded in bytes. But, here, we assume the number of
++	 * physical pages can be represented by "long" on any arch.
++	 */
++	total = (long) (mem->res.usage >> PAGE_SHIFT) + 1L;
++	rss = (long)mem_cgroup_read_stat(&mem->stat, MEM_CGROUP_STAT_RSS);
++	return (int)((rss * 100L) / total);
 +}
 +
- /*
-  * See if the cached pages should be charged at all?
-  */
-@@ -445,7 +462,8 @@ int mem_cgroup_cache_charge(struct page 
- 
- 	mem = rcu_dereference(mm->mem_cgroup);
- 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
--		return mem_cgroup_charge(page, mm, gfp_mask);
-+		return mem_cgroup_charge_common(page, mm, gfp_mask,
-+				MEM_CGROUP_CHARGE_TYPE_CACHE);
- 	else
- 		return 0;
- }
+ unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+ 					unsigned long *scanned, int order,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
