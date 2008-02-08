@@ -1,58 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-fix-broken-rx-buffer-allocation.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:40 -0800
-Message-ID: <200802082018.m18KILWp010915@imap1.linux-foundation.org>
+Subject: - 8250_hub6-codding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:58 -0800
+Message-ID: <200802082012.m18KCdkw010221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44366 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51163 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751138AbYBHUsg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:48:36 -0500
+	by vger.kernel.org with ESMTP id S1751894AbYBHUsj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:48:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix broken RX buffer allocation
+     8250_hub6: codding style
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-broken-rx-buffer-allocation.patch
+     8250_hub6-codding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix broken RX buffer allocation
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: 8250_hub6: codding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Introduced by atmel_serial-split-the-interrupt-handler.patch.
-
-Thanks to michael <trimarchi@gandalf.sssup.it> for spotting it.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/serial/8250_hub6.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-broken-rx-buffer-allocation
-+++ a/drivers/serial/atmel_serial.c
-@@ -1469,7 +1469,8 @@ static int __devinit atmel_serial_probe(
+diff -puN drivers/serial/8250_hub6.c~8250_hub6-codding-style drivers/serial/8250_hub6.c
+--- a/drivers/serial/8250_hub6.c~8250_hub6-codding-style
++++ a/drivers/serial/8250_hub6.c
+@@ -23,18 +23,18 @@
+ 	}
  
- 	if (!atmel_use_dma_rx(&port->uart)) {
- 		ret = -ENOMEM;
--		data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+		data = kmalloc(sizeof(struct atmel_uart_char)
-+				* ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
- 		if (!data)
- 			goto err_alloc_ring;
- 		port->rx_ring.buf = data;
+ static struct plat_serial8250_port hub6_data[] = {
+-	HUB6(0,0),
+-	HUB6(0,1),
+-	HUB6(0,2),
+-	HUB6(0,3),
+-	HUB6(0,4),
+-	HUB6(0,5),
+-	HUB6(1,0),
+-	HUB6(1,1),
+-	HUB6(1,2),
+-	HUB6(1,3),
+-	HUB6(1,4),
+-	HUB6(1,5),
++	HUB6(0, 0),
++	HUB6(0, 1),
++	HUB6(0, 2),
++	HUB6(0, 3),
++	HUB6(0, 4),
++	HUB6(0, 5),
++	HUB6(1, 0),
++	HUB6(1, 1),
++	HUB6(1, 2),
++	HUB6(1, 3),
++	HUB6(1, 4),
++	HUB6(1, 5),
+ 	{ },
+ };
+ 
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-avr32.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
