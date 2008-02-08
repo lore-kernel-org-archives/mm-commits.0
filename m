@@ -1,72 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-correct-setting-of-struct-useru_ar0.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:10:18 -0800
-Message-ID: <200802080809.m1889xWK014891@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-sparc64.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:09:13 -0800
+Message-ID: <200802080808.m1888sX4014707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52342 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755253AbYBHISz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:18:55 -0500
+	by vger.kernel.org with ESMTP id S1755253AbYBHISw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:18:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k: correct setting of struct user.u_ar0
+     Add cmpxchg_local to sparc64
 has been removed from the -mm tree.  Its filename was
-     m68k-correct-setting-of-struct-useru_ar0.patch
+     add-cmpxchg_local-to-sparc64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: correct setting of struct user.u_ar0
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Add cmpxchg_local to sparc64
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Commit 6e16d89bcd668a95eb22add24c02d80890232b66
+Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local. For other
+type sizes, use the new generic cmpxchg_local (disables interrupt).
 
-    Sanitize the type of struct user.u_ar0
+Change:
+Since the header depends on local_irqsave/local_irqrestore, it must be
+included after their declaration.
 
-    struct user.u_ar0 is defined to contain a pointer offset on all
-    architectures in which it is defined (all architectures which define an
-    a.out format except SPARC.) However, it has a pointer type in the headers,
-    which is pointless -- <asm/user.h> is not exported to userspace, and it
-    just makes the code messy.
+Actually, being below the
+#include <linux/irqflags.h> should be enough, and on sparc64 it is
+included at the beginning of system.h.
 
-    Redefine the field as "unsigned long" (which is the same size as a pointer
-    on all Linux architectures) and change the setting code to user offsetof()
-    instead of hand-coded arithmetic.
+So it makes sense to move it up for sparc64.
 
-forgot to change the m68k setting code, causing the following compiler warning:
-
-    arch/m68k/kernel/process.c:338: warning: assignment makes integer from pointer without a cast
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/process.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-sparc64/system.h |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN arch/m68k/kernel/process.c~m68k-correct-setting-of-struct-useru_ar0 arch/m68k/kernel/process.c
---- a/arch/m68k/kernel/process.c~m68k-correct-setting-of-struct-useru_ar0
-+++ a/arch/m68k/kernel/process.c
-@@ -335,7 +335,7 @@ void dump_thread(struct pt_regs * regs, 
- 	if (dump->start_stack < TASK_SIZE)
- 		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
+diff -puN include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64 include/asm-sparc64/system.h
+--- a/include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64
++++ a/include/asm-sparc64/system.h
+@@ -8,6 +8,7 @@
+ #ifndef __ASSEMBLY__
  
--	dump->u_ar0 = (struct user_regs_struct *)((int)&dump->regs - (int)dump);
-+	dump->u_ar0 = offsetof(struct user, regs);
- 	sw = ((struct switch_stack *)regs) - 1;
- 	dump->regs.d1 = regs->d1;
- 	dump->regs.d2 = regs->d2;
+ #include <linux/irqflags.h>
++#include <asm-generic/cmpxchg-local.h>
+ 
+ /*
+  * Sparc (general) CPU types
+@@ -315,6 +316,34 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
+ 
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++	case 8:	return __cmpxchg(ptr, old, new, size);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++#define cmpxchg_local(ptr, o, n)				  	\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n)					\
++  ({									\
++	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
++	cmpxchg_local((ptr), (o), (n));					\
++  })
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #define arch_align_stack(x) (x)
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
