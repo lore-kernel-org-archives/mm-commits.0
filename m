@@ -1,105 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-cpu-move-tasks-in-empty-cpusets-refinements.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:05:24 -0800
-Message-ID: <200802080805.m18855MG014310@imap1.linux-foundation.org>
+Subject: - iget-stop-fat-from-using-iget-and-read_inode-try.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:07:39 -0800
+Message-ID: <200802080807.m1887KxB014526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48644 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753246AbYBHIUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:51 -0500
+	by vger.kernel.org with ESMTP id S932717AbYBHIUp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, cpw@sgi.com, menage@google.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, hch@lst.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hotplug cpu move tasks in empty cpusets - refinements
+     iget: stop FAT from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     hotplug-cpu-move-tasks-in-empty-cpusets-refinements.patch
+     iget-stop-fat-from-using-iget-and-read_inode-try.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug cpu move tasks in empty cpusets - refinements
-From: Paul Jackson <pj@sgi.com>
+Subject: iget: stop FAT from using iget() and read_inode()
+From: David Howells <dhowells@redhat.com>
 
-- Narrow the scope of callback_mutex in scan_for_empty_cpusets().
+Stop the FAT filesystem from using iget() and read_inode().  Replace the call
+to iget() with a call to ilookup().
 
-- Avoid rewriting the cpus, mems of cpusets except when it is likely that
-  we'll be changing them.
-
-- Have remove_tasks_in_empty_cpuset() also check for empty mems.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Acked-by: Cliff Wickman <cpw@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ fs/fat/inode.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-refinements kernel/cpuset.c
---- a/kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-refinements
-+++ a/kernel/cpuset.c
-@@ -1709,7 +1709,8 @@ static void remove_tasks_in_empty_cpuset
- 	 * has online cpus, so can't be empty).
- 	 */
- 	parent = cs->parent;
--	while (cpus_empty(parent->cpus_allowed))
-+	while (cpus_empty(parent->cpus_allowed) ||
-+			nodes_empty(parent->mems_allowed))
- 		parent = parent->parent;
+diff -puN fs/fat/inode.c~iget-stop-fat-from-using-iget-and-read_inode-try fs/fat/inode.c
+--- a/fs/fat/inode.c~iget-stop-fat-from-using-iget-and-read_inode-try
++++ a/fs/fat/inode.c
+@@ -634,8 +634,6 @@ static const struct super_operations fat
+ 	.clear_inode	= fat_clear_inode,
+ 	.remount_fs	= fat_remount,
  
- 	move_member_tasks_to_cpuset(cs, parent);
-@@ -1741,7 +1742,6 @@ static void scan_for_empty_cpusets(const
+-	.read_inode	= make_bad_inode,
+-
+ 	.show_options	= fat_show_options,
+ };
  
- 	list_add_tail((struct list_head *)&root->stack_list, &queue);
+@@ -663,8 +661,8 @@ static struct dentry *fat_fh_to_dentry(s
+ 	if (fh_len < 5 || fh_type != 3)
+ 		return NULL;
  
--	mutex_lock(&callback_mutex);
- 	while (!list_empty(&queue)) {
- 		cp = container_of(queue.next, struct cpuset, stack_list);
- 		list_del(queue.next);
-@@ -1750,19 +1750,24 @@ static void scan_for_empty_cpusets(const
- 			list_add_tail(&child->stack_list, &queue);
- 		}
- 		cont = cp->css.cgroup;
-+
-+		/* Continue past cpusets with all cpus, mems online */
-+		if (cpus_subset(cp->cpus_allowed, cpu_online_map) &&
-+		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
-+			continue;
-+
- 		/* Remove offline cpus and mems from this cpuset. */
-+		mutex_lock(&callback_mutex);
- 		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
- 		nodes_and(cp->mems_allowed, cp->mems_allowed,
- 						node_states[N_HIGH_MEMORY]);
-+		mutex_unlock(&callback_mutex);
-+
-+		/* Move tasks from the empty cpuset to a parent */
- 		if (cpus_empty(cp->cpus_allowed) ||
--		     nodes_empty(cp->mems_allowed)) {
--			/* Move tasks from the empty cpuset to a parent */
--			mutex_unlock(&callback_mutex);
-+		     nodes_empty(cp->mems_allowed))
- 			remove_tasks_in_empty_cpuset(cp);
--			mutex_lock(&callback_mutex);
--		}
- 	}
--	mutex_unlock(&callback_mutex);
- }
- 
- /*
+-	inode = iget(sb, fh[0]);
+-	if (!inode || is_bad_inode(inode) || inode->i_generation != fh[1]) {
++	inode = ilookup(sb, fh[0]);
++	if (!inode || inode->i_generation != fh[1]) {
+ 		if (inode)
+ 			iput(inode);
+ 		inode = NULL;
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+aout-move-stack_top-to-asm-processorh.patch
+aout-mark-arches-that-support-aout-format.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+usb-net2280-cant-have-a-function-called-show_registers.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+procfs-constify-function-pointer-tables.patch
+avoid-overflows-in-kernel-timec.patch
+mount-options-fix-afs.patch
+remove-aout-interpreter-support-in-elf-loader.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
