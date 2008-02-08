@@ -1,89 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - aoe-clean-up-udev-configuration-example.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:15:55 -0800
-Message-ID: <200802082015.m18KFa0j010632@imap1.linux-foundation.org>
+Subject: - do_wait-factor-out-retval-=-0-checks.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:34 -0800
+Message-ID: <200802082013.m18KDFV0010277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753297AbYBHUur (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:47 -0500
+	by vger.kernel.org with ESMTP id S1753319AbYBHUuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aoe: clean up udev configuration example
+     do_wait: factor out "retval != 0" checks
 has been removed from the -mm tree.  Its filename was
-     aoe-clean-up-udev-configuration-example.patch
+     do_wait-factor-out-retval-=-0-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: clean up udev configuration example
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: do_wait: factor out "retval != 0" checks
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This patch adds a known default location for the udev configuration file and
-uses the more recent "==" syntax for SUBSYSTEM and KERNEL.
+Every branch if the main "if" statement does the same code at the end.  Move
+it down.  Also, fix the indentation.
 
-Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/udev-install.sh |    5 ++++-
- Documentation/aoe/udev.txt        |   15 ++++++++-------
- 2 files changed, 12 insertions(+), 8 deletions(-)
+ kernel/exit.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example Documentation/aoe/udev-install.sh
---- a/Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example
-+++ a/Documentation/aoe/udev-install.sh
-@@ -23,7 +23,10 @@ fi
- # /etc/udev/rules.d
- #
- rules_d="`sed -n '/^udev_rules=/{ s!udev_rules=!!; s!\"!!g; p; }' $conf`"
--if test -z "$rules_d" || test ! -d "$rules_d"; then
-+if test -z "$rules_d" ; then
-+	rules_d=/etc/udev/rules.d
-+fi
-+if test ! -d "$rules_d"; then
- 	echo "$me Error: cannot find udev rules directory" 1>&2
- 	exit 1
- fi
-diff -puN Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example Documentation/aoe/udev.txt
---- a/Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example
-+++ a/Documentation/aoe/udev.txt
-@@ -1,6 +1,7 @@
- # These rules tell udev what device nodes to create for aoe support.
--# They may be installed along the following lines (adjusted to what
--# you see on your system).
-+# They may be installed along the following lines.  Check the section
-+# 8 udev manpage to see whether your udev supports SUBSYSTEM, and
-+# whether it uses one or two equal signs for SUBSYSTEM and KERNEL.
- # 
- #   ecashin@makki ~$ su
- #   Password:
-@@ -15,10 +16,10 @@
- #  
+diff -puN kernel/exit.c~do_wait-factor-out-retval-=-0-checks kernel/exit.c
+--- a/kernel/exit.c~do_wait-factor-out-retval-=-0-checks
++++ a/kernel/exit.c
+@@ -1511,6 +1511,7 @@ repeat:
+ 			}
+ 			allowed = 1;
  
- # aoe char devices
--SUBSYSTEM="aoe", KERNEL="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
--SUBSYSTEM="aoe", KERNEL="err",		NAME="etherd/%k", GROUP="disk", MODE="0440"
--SUBSYSTEM="aoe", KERNEL="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
--SUBSYSTEM="aoe", KERNEL="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
-+SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
-+SUBSYSTEM=="aoe", KERNEL=="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
- 
- # aoe block devices     
--KERNEL="etherd*",       NAME="%k", GROUP="disk"
-+KERNEL=="etherd*",       NAME="%k", GROUP="disk"
++			retval = 0;
+ 			if (task_is_stopped_or_traced(p)) {
+ 				/*
+ 				 * It's stopped now, so it might later
+@@ -1524,8 +1525,6 @@ repeat:
+ 				retval = wait_task_stopped(p, ret == 2,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval != 0) /* He released the lock.  */
+-					goto end;
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
+ 				/*
+ 				 * Eligible but we cannot release it yet:
+@@ -1537,9 +1536,6 @@ repeat:
+ 				retval = wait_task_zombie(p,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				/* He released the lock.  */
+-				if (retval != 0)
+-					goto end;
+ 			} else if (p->exit_state != EXIT_DEAD) {
+ check_continued:
+ 				/*
+@@ -1552,9 +1548,9 @@ check_continued:
+ 				retval = wait_task_continued(p,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval != 0) /* He released the lock.  */
+-					goto end;
+ 			}
++			if (retval != 0) /* tasklist_lock released */
++				goto end;
+ 		}
+ 		if (!flag) {
+ 			list_for_each_entry(p, &tsk->ptrace_children,
+@@ -1590,7 +1586,7 @@ end:
+ 	remove_wait_queue(&current->signal->wait_chldexit,&wait);
+ 	if (infop) {
+ 		if (retval > 0)
+-		retval = 0;
++			retval = 0;
+ 		else {
+ 			/*
+ 			 * For a WNOHANG return, clear out all the fields
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
+revert-proc-fix-the-threaded-proc-self.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
