@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - fixup-container_of-usage.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:16:26 -0800
-Message-ID: <200802082016.m18KG7eC010678@imap1.linux-foundation.org>
+Subject: - ptrace_stop-fix-the-race-with-ptrace-detachattach.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:28 -0800
+Message-ID: <200802082013.m18KD9wL010266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60418 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49321 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752724AbYBHUuT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:19 -0500
+	by vger.kernel.org with ESMTP id S1752376AbYBHUuV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix container_of() usage
+     ptrace_stop: fix the race with ptrace detach+attach
 has been removed from the -mm tree.  Its filename was
-     fixup-container_of-usage.patch
+     ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix container_of() usage
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: ptrace_stop: fix the race with ptrace detach+attach
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Using "attr" twice is not OK, because it effectively prohibits such
-container_of() on variables not named "attr".
+If the tracer went away (may_ptrace_stop() failed), ptrace_stop() drops
+tasklist and then changes the ->state from TASK_TRACED to TASK_RUNNING.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+This can fool another tracer which attaches to us in between.  Change the
+->state under tasklist_lock to ensure that ptrace_check_attach() can't wrongly
+succeed.  Also, remove the unnecessary mb().
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/cpu/sh4/sq.c    |    2 +-
- drivers/lguest/lguest_device.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sh/kernel/cpu/sh4/sq.c~fixup-container_of-usage arch/sh/kernel/cpu/sh4/sq.c
---- a/arch/sh/kernel/cpu/sh4/sq.c~fixup-container_of-usage
-+++ a/arch/sh/kernel/cpu/sh4/sq.c
-@@ -263,7 +263,7 @@ struct sq_sysfs_attr {
- 	ssize_t (*store)(const char *buf, size_t count);
- };
+diff -puN kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach kernel/signal.c
+--- a/kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach
++++ a/kernel/signal.c
+@@ -1638,11 +1638,11 @@ static void ptrace_stop(int exit_code, i
+ 	} else {
+ 		/*
+ 		 * By the time we got the lock, our tracer went away.
+-		 * Don't stop here.
++		 * Don't drop the lock yet, another tracer may come.
+ 		 */
+-		read_unlock(&tasklist_lock);
+-		set_current_state(TASK_RUNNING);
++		__set_current_state(TASK_RUNNING);
+ 		current->exit_code = nostop_code;
++		read_unlock(&tasklist_lock);
+ 	}
  
--#define to_sq_sysfs_attr(attr)	container_of(attr, struct sq_sysfs_attr, attr)
-+#define to_sq_sysfs_attr(a)	container_of(a, struct sq_sysfs_attr, attr)
- 
- static ssize_t sq_sysfs_show(struct kobject *kobj, struct attribute *attr,
- 			     char *buf)
-diff -puN drivers/lguest/lguest_device.c~fixup-container_of-usage drivers/lguest/lguest_device.c
---- a/drivers/lguest/lguest_device.c~fixup-container_of-usage
-+++ a/drivers/lguest/lguest_device.c
-@@ -47,7 +47,7 @@ struct lguest_device {
- /* Since the virtio infrastructure hands us a pointer to the virtio_device all
-  * the time, it helps to have a curt macro to get a pointer to the struct
-  * lguest_device it's enclosed in.  */
--#define to_lgdev(vdev) container_of(vdev, struct lguest_device, vdev)
-+#define to_lgdev(vd) container_of(vd, struct lguest_device, vdev)
- 
- /*D:130
-  * Device configurations
+ 	/*
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-single_open-seq_release-leak-diagnostics.patch
+revert-proc-fix-the-threaded-proc-self.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
