@@ -1,184 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-befs-from-using-iget-and-read_inode-try.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:20 -0800
-Message-ID: <200802080807.m188712Q014499@imap1.linux-foundation.org>
+Subject: - oom-add-sysctl-to-enable-task-memory-dump.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:41 -0800
+Message-ID: <200802080803.m1883M95014119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933213AbYBHIVO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:14 -0500
+	by vger.kernel.org with ESMTP id S1761857AbYBHIVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, will_dyson@pobox.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, andrea@suse.de, balbir@linux.vnet.ibm.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop BEFS from using iget() and read_inode()
+     oom: add sysctl to enable task memory dump
 has been removed from the -mm tree.  Its filename was
-     iget-stop-befs-from-using-iget-and-read_inode-try.patch
+     oom-add-sysctl-to-enable-task-memory-dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop BEFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: oom: add sysctl to enable task memory dump
+From: David Rientjes <rientjes@google.com>
 
-Stop the BEFS filesystem from using iget() and read_inode().  Replace
-befs_read_inode() with befs_iget(), and call that instead of iget(). 
-befs_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+Adds a new sysctl, 'oom_dump_tasks', that enables the kernel to produce a
+dump of all system tasks (excluding kernel threads) when performing an
+OOM-killing.  Information includes pid, uid, tgid, vm size, rss, cpu,
+oom_adj score, and name.
 
-befs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
+This is helpful for determining why there was an OOM condition and which
+rogue task caused it.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Will Dyson <will_dyson@pobox.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
+It is configurable so that large systems, such as those with several
+thousand tasks, do not incur a performance penalty associated with dumping
+data they may not desire.
+
+If an OOM was triggered as a result of a memory controller, the tasklist
+shall be filtered to exclude tasks that are not a member of the same
+cgroup.
+
+Cc: Andrea Arcangeli <andrea@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/linuxvfs.c |   39 +++++++++++++++++++++++++--------------
- 1 file changed, 25 insertions(+), 14 deletions(-)
+ Documentation/sysctl/vm.txt |   22 +++++++++++++++
+ kernel/sysctl.c             |    9 ++++++
+ mm/oom_kill.c               |   49 ++++++++++++++++++++++++++++++----
+ 3 files changed, 75 insertions(+), 5 deletions(-)
 
-diff -puN fs/befs/linuxvfs.c~iget-stop-befs-from-using-iget-and-read_inode-try fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~iget-stop-befs-from-using-iget-and-read_inode-try
-+++ a/fs/befs/linuxvfs.c
-@@ -35,7 +35,7 @@ static int befs_get_block(struct inode *
- static int befs_readpage(struct file *file, struct page *page);
- static sector_t befs_bmap(struct address_space *mapping, sector_t block);
- static struct dentry *befs_lookup(struct inode *, struct dentry *, struct nameidata *);
--static void befs_read_inode(struct inode *ino);
-+static struct inode *befs_iget(struct super_block *, unsigned long);
- static struct inode *befs_alloc_inode(struct super_block *sb);
- static void befs_destroy_inode(struct inode *inode);
- static int befs_init_inodecache(void);
-@@ -52,7 +52,6 @@ static int befs_statfs(struct dentry *, 
- static int parse_options(char *, befs_mount_options *);
+diff -puN Documentation/sysctl/vm.txt~oom-add-sysctl-to-enable-task-memory-dump Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~oom-add-sysctl-to-enable-task-memory-dump
++++ a/Documentation/sysctl/vm.txt
+@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
+ - min_unmapped_ratio
+ - min_slab_ratio
+ - panic_on_oom
++- oom_dump_tasks
+ - oom_kill_allocating_task
+ - mmap_min_address
+ - numa_zonelist_order
+@@ -232,6 +233,27 @@ according to your policy of failover.
  
- static const struct super_operations befs_sops = {
--	.read_inode	= befs_read_inode,	/* initialize & read inode */
- 	.alloc_inode	= befs_alloc_inode,	/* allocate a new inode */
- 	.destroy_inode	= befs_destroy_inode, /* deallocate an inode */
- 	.put_super	= befs_put_super,	/* uninit super */
-@@ -198,9 +197,9 @@ befs_lookup(struct inode *dir, struct de
- 		return ERR_PTR(-ENODATA);
+ =============================================================
+ 
++oom_dump_tasks
++
++Enables a system-wide task dump (excluding kernel threads) to be
++produced when the kernel performs an OOM-killing and includes such
++information as pid, uid, tgid, vm size, rss, cpu, oom_adj score, and
++name.  This is helpful to determine why the OOM killer was invoked
++and to identify the rogue task that caused it.
++
++If this is set to zero, this information is suppressed.  On very
++large systems with thousands of tasks it may not be feasible to dump
++the memory state information for each one.  Such systems should not
++be forced to incur a performance penalty in OOM conditions when the
++information may not be desired.
++
++If this is set to non-zero, this information is shown whenever the
++OOM killer actually kills a memory-hogging task.
++
++The default value is 0.
++
++=============================================================
++
+ oom_kill_allocating_task
+ 
+ This enables or disables killing the OOM-triggering task in
+diff -puN kernel/sysctl.c~oom-add-sysctl-to-enable-task-memory-dump kernel/sysctl.c
+--- a/kernel/sysctl.c~oom-add-sysctl-to-enable-task-memory-dump
++++ a/kernel/sysctl.c
+@@ -67,6 +67,7 @@ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern int sysctl_panic_on_oom;
+ extern int sysctl_oom_kill_allocating_task;
++extern int sysctl_oom_dump_tasks;
+ extern int max_threads;
+ extern int core_uses_pid;
+ extern int suid_dumpable;
+@@ -871,6 +872,14 @@ static struct ctl_table vm_table[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "oom_dump_tasks",
++		.data		= &sysctl_oom_dump_tasks,
++		.maxlen		= sizeof(sysctl_oom_dump_tasks),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
++	{
+ 		.ctl_name	= VM_OVERCOMMIT_RATIO,
+ 		.procname	= "overcommit_ratio",
+ 		.data		= &sysctl_overcommit_ratio,
+diff -puN mm/oom_kill.c~oom-add-sysctl-to-enable-task-memory-dump mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-add-sysctl-to-enable-task-memory-dump
++++ a/mm/oom_kill.c
+@@ -29,6 +29,7 @@
+ 
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
++int sysctl_oom_dump_tasks;
+ static DEFINE_SPINLOCK(zone_scan_mutex);
+ /* #define DEBUG */
+ 
+@@ -263,6 +264,41 @@ static struct task_struct *select_bad_pr
+ }
+ 
+ /**
++ * Dumps the current memory state of all system tasks, excluding kernel threads.
++ * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
++ * score, and name.
++ *
++ * If the actual is non-NULL, only tasks that are a member of the mem_cgroup are
++ * shown.
++ *
++ * Call with tasklist_lock read-locked.
++ */
++static void dump_tasks(const struct mem_cgroup *mem)
++{
++	struct task_struct *g, *p;
++
++	printk(KERN_INFO "[ pid ]   uid  tgid total_vm      rss cpu oom_adj "
++	       "name\n");
++	do_each_thread(g, p) {
++		/*
++		 * total_vm and rss sizes do not exist for tasks with a
++		 * detached mm so there's no need to report them.
++		 */
++		if (!p->mm)
++			continue;
++		if (mem && !task_in_mem_cgroup(p, mem))
++			continue;
++
++		task_lock(p);
++		printk(KERN_INFO "[%5d] %5d %5d %8lu %8lu %3d     %3d %s\n",
++		       p->pid, p->uid, p->tgid, p->mm->total_vm,
++		       get_mm_rss(p->mm), (int)task_cpu(p), p->oomkilladj,
++		       p->comm);
++		task_unlock(p);
++	} while_each_thread(g, p);
++}
++
++/**
+  * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
+  * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
+  * set.
+@@ -339,7 +375,8 @@ static int oom_kill_task(struct task_str
+ }
+ 
+ static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
+-			    unsigned long points, const char *message)
++			    unsigned long points, struct mem_cgroup *mem,
++			    const char *message)
+ {
+ 	struct task_struct *c;
+ 
+@@ -349,6 +386,8 @@ static int oom_kill_process(struct task_
+ 			current->comm, gfp_mask, order, current->oomkilladj);
+ 		dump_stack();
+ 		show_mem();
++		if (sysctl_oom_dump_tasks)
++			dump_tasks(mem);
  	}
  
--	inode = iget(dir->i_sb, (ino_t) offset);
--	if (!inode)
--		return ERR_PTR(-EACCES);
-+	inode = befs_iget(dir->i_sb, (ino_t) offset);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
+ 	/*
+@@ -389,7 +428,7 @@ retry:
+ 	if (!p)
+ 		p = current;
  
- 	d_add(dentry, inode);
+-	if (oom_kill_process(p, gfp_mask, 0, points,
++	if (oom_kill_process(p, gfp_mask, 0, points, mem,
+ 				"Memory cgroup out of memory"))
+ 		goto retry;
+ out:
+@@ -495,7 +534,7 @@ void out_of_memory(struct zonelist *zone
  
-@@ -296,17 +295,23 @@ static void init_once(struct kmem_cache 
- 	inode_init_once(&bi->vfs_inode);
- }
+ 	switch (constraint) {
+ 	case CONSTRAINT_MEMORY_POLICY:
+-		oom_kill_process(current, gfp_mask, order, points,
++		oom_kill_process(current, gfp_mask, order, points, NULL,
+ 				"No available memory (MPOL_BIND)");
+ 		break;
  
--static void
--befs_read_inode(struct inode *inode)
-+static struct inode *befs_iget(struct super_block *sb, unsigned long ino)
- {
- 	struct buffer_head *bh = NULL;
- 	befs_inode *raw_inode = NULL;
+@@ -505,7 +544,7 @@ void out_of_memory(struct zonelist *zone
+ 		/* Fall-through */
+ 	case CONSTRAINT_CPUSET:
+ 		if (sysctl_oom_kill_allocating_task) {
+-			oom_kill_process(current, gfp_mask, order, points,
++			oom_kill_process(current, gfp_mask, order, points, NULL,
+ 					"Out of memory (oom_kill_allocating_task)");
+ 			break;
+ 		}
+@@ -525,7 +564,7 @@ retry:
+ 			panic("Out of memory and no killable processes...\n");
+ 		}
  
--	struct super_block *sb = inode->i_sb;
- 	befs_sb_info *befs_sb = BEFS_SB(sb);
- 	befs_inode_info *befs_ino = NULL;
-+	struct inode *inode;
-+	long ret = -EIO;
+-		if (oom_kill_process(p, gfp_mask, order, points,
++		if (oom_kill_process(p, gfp_mask, order, points, NULL,
+ 				     "Out of memory"))
+ 			goto retry;
  
--	befs_debug(sb, "---> befs_read_inode() " "inode = %lu", inode->i_ino);
-+	befs_debug(sb, "---> befs_read_inode() " "inode = %lu", ino);
-+
-+	inode = iget_locked(sb, ino);
-+	if (IS_ERR(inode))
-+		return inode;
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
- 
- 	befs_ino = BEFS_I(inode);
- 
-@@ -402,15 +407,16 @@ befs_read_inode(struct inode *inode)
- 
- 	brelse(bh);
- 	befs_debug(sb, "<--- befs_read_inode()");
--	return;
-+	unlock_new_inode(inode);
-+	return inode;
- 
-       unacquire_bh:
- 	brelse(bh);
- 
-       unacquire_none:
--	make_bad_inode(inode);
-+	iget_failed(inode);
- 	befs_debug(sb, "<--- befs_read_inode() - Bad inode");
--	return;
-+	return ERR_PTR(ret);
- }
- 
- /* Initialize the inode cache. Called at fs setup.
-@@ -752,6 +758,7 @@ befs_fill_super(struct super_block *sb, 
- 	befs_sb_info *befs_sb;
- 	befs_super_block *disk_sb;
- 	struct inode *root;
-+	long ret = -EINVAL;
- 
- 	const unsigned long sb_block = 0;
- 	const off_t x86_sb_off = 512;
-@@ -833,7 +840,11 @@ befs_fill_super(struct super_block *sb, 
- 	/* Set real blocksize of fs */
- 	sb_set_blocksize(sb, (ulong) befs_sb->block_size);
- 	sb->s_op = (struct super_operations *) &befs_sops;
--	root = iget(sb, iaddr2blockno(sb, &(befs_sb->root_dir)));
-+	root = befs_iget(sb, iaddr2blockno(sb, &(befs_sb->root_dir)));
-+	if (IS_ERR(root)) {
-+		ret = PTR_ERR(root);
-+		goto unacquire_priv_sbp;
-+	}
- 	sb->s_root = d_alloc_root(root);
- 	if (!sb->s_root) {
- 		iput(root);
-@@ -868,7 +879,7 @@ befs_fill_super(struct super_block *sb, 
- 
-       unacquire_none:
- 	sb->s_fs_info = NULL;
--	return -EINVAL;
-+	return ret;
- }
- 
- static int
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
