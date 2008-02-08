@@ -1,83 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - nbd-remove-limit-on-max-number-of-nbd-devices.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:20:23 -0800
-Message-ID: <200802082020.m18KK4mZ011134@imap1.linux-foundation.org>
+Subject: - mount-options-fix-fuse.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:55 -0800
+Message-ID: <200802082019.m18KJaEf011071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756759AbYBHUaG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:30:06 -0500
+	by vger.kernel.org with ESMTP id S1760933AbYBHUaw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:30:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NBD: remove limit on max number of nbd devices
+     mount options: fix fuse
 has been removed from the -mm tree.  Its filename was
-     nbd-remove-limit-on-max-number-of-nbd-devices.patch
+     mount-options-fix-fuse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NBD: remove limit on max number of nbd devices
-From: Paul Clements <paul.clements@steeleye.com>
+Subject: mount options: fix fuse
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Remove the arbitrary 128 device limit for NBD.  nbds_max can now be set to
-any number.  In certain scenarios where devices are used sparsely we have
-run into the 128 device limit.
+Add blksize= option to /proc/mounts for fuseblk filesystems.
 
-Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   10 ++++------
- include/linux/nbd.h |    1 -
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ fs/fuse/inode.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-remove-limit-on-max-number-of-nbd-devices drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-remove-limit-on-max-number-of-nbd-devices
-+++ a/drivers/block/nbd.c
-@@ -54,7 +54,7 @@ static unsigned int debugflags;
- #endif /* NDEBUG */
+diff -puN fs/fuse/inode.c~mount-options-fix-fuse fs/fuse/inode.c
+--- a/fs/fuse/inode.c~mount-options-fix-fuse
++++ a/fs/fuse/inode.c
+@@ -29,6 +29,8 @@ DEFINE_MUTEX(fuse_mutex);
  
- static unsigned int nbds_max = 16;
--static struct nbd_device nbd_dev[MAX_NBD];
-+static struct nbd_device *nbd_dev;
+ #define FUSE_SUPER_MAGIC 0x65735546
  
- /*
-  * Use just one lock (or at most 1 per NIC). Two arguments for this:
-@@ -649,11 +649,9 @@ static int __init nbd_init(void)
++#define FUSE_DEFAULT_BLKSIZE 512
++
+ struct fuse_mount_data {
+ 	int fd;
+ 	unsigned rootmode;
+@@ -355,7 +357,7 @@ static int parse_fuse_opt(char *opt, str
+ 	char *p;
+ 	memset(d, 0, sizeof(struct fuse_mount_data));
+ 	d->max_read = ~0;
+-	d->blksize = 512;
++	d->blksize = FUSE_DEFAULT_BLKSIZE;
  
- 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 	while ((p = strsep(&opt, ",")) != NULL) {
+ 		int token;
+@@ -440,6 +442,9 @@ static int fuse_show_options(struct seq_
+ 		seq_puts(m, ",allow_other");
+ 	if (fc->max_read != ~0)
+ 		seq_printf(m, ",max_read=%u", fc->max_read);
++	if (mnt->mnt_sb->s_bdev &&
++	    mnt->mnt_sb->s_blocksize != FUSE_DEFAULT_BLKSIZE)
++		seq_printf(m, ",blksize=%lu", mnt->mnt_sb->s_blocksize);
+ 	return 0;
+ }
  
--	if (nbds_max > MAX_NBD) {
--		printk(KERN_CRIT "nbd: cannot allocate more than %u nbds; %u requested.\n", MAX_NBD,
--				nbds_max);
--		return -EINVAL;
--	}
-+	nbd_dev = kcalloc(nbds_max, sizeof(*nbd_dev), GFP_KERNEL);
-+	if (!nbd_dev)
-+		return -ENOMEM;
- 
- 	for (i = 0; i < nbds_max; i++) {
- 		struct gendisk *disk = alloc_disk(1);
-diff -puN include/linux/nbd.h~nbd-remove-limit-on-max-number-of-nbd-devices include/linux/nbd.h
---- a/include/linux/nbd.h~nbd-remove-limit-on-max-number-of-nbd-devices
-+++ a/include/linux/nbd.h
-@@ -35,7 +35,6 @@ enum {
- };
- 
- #define nbd_cmd(req) ((req)->cmd[0])
--#define MAX_NBD 128
- 
- /* userspace doesn't need the nbd_device structure */
- #ifdef __KERNEL__
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+vfs-create-proc-pid-mountinfo.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
