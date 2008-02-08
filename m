@@ -1,52 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - char-applicom-use-pci_match_id-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:49:30 -0800
-Message-ID: <200802080849.m188nBfa016393@imap1.linux-foundation.org>
+Subject: - add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:50:18 -0800
+Message-ID: <200802080849.m188nxPP016403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57799 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47217 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755058AbYBHItb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:49:31 -0500
+	by vger.kernel.org with ESMTP id S1753173AbYBHIuD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:50:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, jirislaby@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, rdunlap@xenotime.net, yi.y.yang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char-applicom-use-pci_match_id-fix
+     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
 has been removed from the -mm tree.  Its filename was
-     char-applicom-use-pci_match_id-fix.patch
+     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 
-This patch was dropped because it was folded into char-applicom-use-pci_match_id.patch
+This patch was dropped because it was folded into add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char-applicom-use-pci_match_id-fix
+Subject: add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+lib/vsprintf.c: In function 'strict_strtoul':
+lib/vsprintf.c:245: warning: suggest parentheses around && within ||
+lib/vsprintf.c: In function 'strict_strtoull':
+lib/vsprintf.c:247: warning: suggest parentheses around && within ||
+
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Yi Yang <yi.y.yang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/applicom.c |    2 +-
+ lib/vsprintf.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/applicom.c~char-applicom-use-pci_match_id-fix drivers/char/applicom.c
---- a/drivers/char/applicom.c~char-applicom-use-pci_match_id-fix
-+++ a/drivers/char/applicom.c
-@@ -193,7 +193,7 @@ static int __init applicom_init(void)
- 
- 	while ( (dev = pci_get_class(PCI_CLASS_OTHERS << 16, dev))) {
- 
--		if (!pci_match_id(applicom_pci_tbl, dev));
-+		if (!pci_match_id(applicom_pci_tbl, dev))
- 			continue;
- 		
- 		if (pci_enable_device(dev))
+diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix
++++ a/lib/vsprintf.c
+@@ -220,7 +220,7 @@ int strict_strtou##type(const char *cp, 
+ 									\
+ 	val = simple_strtoul(cp, &tail, base);				\
+ 	if ((*tail == '\0') ||						\
+-		(len == (size_t)(tail - cp) + 1) && (*tail == '\n')) {	\
++		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {\
+ 		*res = val;						\
+ 		return 0;						\
+ 	}								\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +81,6 @@ fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
 mount-options-fix-tmpfs-fix.patch
 char-applicom-use-pci_match_id.patch
-char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
 add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
 add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
