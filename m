@@ -1,61 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - git-avr32-fix-git-conflicts.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:06:18 -0800
-Message-ID: <200802082006.m18K6055009899@imap1.linux-foundation.org>
+Subject: + revert-proc-fix-the-threaded-proc-self.patch added to -mm tree
+Date: Fri, 08 Feb 2008 12:04:40 -0800
+Message-ID: <200802082004.m18K4Lpf009781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54380 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751880AbYBHUHn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:07:43 -0500
+	by vger.kernel.org with ESMTP id S1751783AbYBHUIj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:08:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, guichaz@yahoo.fr, mingo@elte.hu, oleg@tv-sign.ru, rjw@sisk.pl, roland@redhat.com, torvalds@linux-foundation.org, xemul@openvz.org
 
 
 The patch titled
-     git-avr32-fix-git-conflicts
-has been removed from the -mm tree.  Its filename was
-     git-avr32-fix-git-conflicts.patch
+     revert "proc: fix the threaded proc self"
+has been added to the -mm tree.  Its filename is
+     revert-proc-fix-the-threaded-proc-self.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-avr32-fix-git-conflicts
+Subject: revert "proc: fix the threaded proc self"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Revert:
+
+Commit:     c6caeb7c4544608e8ae62731334661fc396c7f85
+Parent:     488e5bc4560d0b510c1ddc451c51a6cc14e3a930
+Author:     Eric W. Biederman <ebiederm@xmission.com>
+AuthorDate: Fri Feb 8 04:18:35 2008 -0800
+Committer:  Linus Torvalds <torvalds@woody.linux-foundation.org>
+CommitDate: Fri Feb 8 09:22:24 2008 -0800
+
+    proc: fix the threaded /proc/self
+
+
+Eric says "The patch really is wrong.  There is at least one corner case in
+procps that cares."
+
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Guillaume Chazarain" <guichaz@yahoo.fr>
+Cc: "Pavel Emelyanov" <xemul@openvz.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/page.h |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/proc/base.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-avr32/page.h~git-avr32-fix-git-conflicts include/asm-avr32/page.h
---- a/include/asm-avr32/page.h~git-avr32-fix-git-conflicts
-+++ a/include/asm-avr32/page.h
-@@ -8,13 +8,8 @@
- #ifndef __ASM_AVR32_PAGE_H
- #define __ASM_AVR32_PAGE_H
+diff -puN fs/proc/base.c~revert-proc-fix-the-threaded-proc-self fs/proc/base.c
+--- a/fs/proc/base.c~revert-proc-fix-the-threaded-proc-self
++++ a/fs/proc/base.c
+@@ -2102,22 +2102,22 @@ static int proc_self_readlink(struct den
+ 			      int buflen)
+ {
+ 	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
+-	pid_t pid = task_pid_nr_ns(current, ns);
++	pid_t tgid = task_tgid_nr_ns(current, ns);
+ 	char tmp[PROC_NUMBUF];
+-	if (!pid)
++	if (!tgid)
+ 		return -ENOENT;
+-	sprintf(tmp, "%d", pid);
++	sprintf(tmp, "%d", tgid);
+ 	return vfs_readlink(dentry,buffer,buflen,tmp);
+ }
  
--<<<<<<< HEAD:include/asm-avr32/page.h
--=======
--#ifdef __KERNEL__
--
- #include <linux/const.h>
+ static void *proc_self_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
+-	pid_t pid = task_pid_nr_ns(current, ns);
++	pid_t tgid = task_tgid_nr_ns(current, ns);
+ 	char tmp[PROC_NUMBUF];
+-	if (!pid)
++	if (!tgid)
+ 		return ERR_PTR(-ENOENT);
+-	sprintf(tmp, "%d", pid);
++	sprintf(tmp, "%d", task_tgid_nr_ns(current, ns));
+ 	return ERR_PTR(vfs_follow_link(nd,tmp));
+ }
  
-->>>>>>> FETCH_HEAD:include/asm-avr32/page.h
- /* PAGE_SHIFT determines the page size */
- #define PAGE_SHIFT	12
- #define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 revert-proc-fix-the-threaded-proc-self.patch
+constify-tables-in-kernel-sysctl_checkc.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2.patch
+libfs-allow-error-return-from-simple-attributes.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-audit-printk-warning-fix.patch
 git-avr32-fix-git-conflicts.patch
