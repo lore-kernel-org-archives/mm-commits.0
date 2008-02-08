@@ -1,109 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - mount-options-fix-devpts.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:48 -0800
-Message-ID: <200802082019.m18KJTg3011057@imap1.linux-foundation.org>
+Subject: - mount-options-fix-hpfs.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:00 -0800
+Message-ID: <200802082019.m18KJfZC011077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52919 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43892 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933561AbYBHUjI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:39:08 -0500
+	by vger.kernel.org with ESMTP id S934269AbYBHUjJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:39:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hpa@zytor.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mount options: fix devpts
+     mount options: fix hpfs
 has been removed from the -mm tree.  Its filename was
-     mount-options-fix-devpts.patch
+     mount-options-fix-hpfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix devpts
+Subject: mount options: fix hpfs
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to devpts.
+Add a .show_options super operation to hpfs.
 
-Small cleanup: when parsing the "mode" option, mask with S_IALLUGO
-instead of ~S_IFMT.
+Use generic_show_options() and save the complete option string in
+hpfs_fill_super() and hpfs_remount_fs().
+
+Also add a small fix: hpfs_remount_fs() should return -EINVAL on
+error, instead of 1, which is not an error value.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ fs/hpfs/super.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN fs/devpts/inode.c~mount-options-fix-devpts fs/devpts/inode.c
---- a/fs/devpts/inode.c~mount-options-fix-devpts
-+++ a/fs/devpts/inode.c
-@@ -20,9 +20,12 @@
- #include <linux/devpts_fs.h>
- #include <linux/parser.h>
- #include <linux/fsnotify.h>
-+#include <linux/seq_file.h>
+diff -puN fs/hpfs/super.c~mount-options-fix-hpfs fs/hpfs/super.c
+--- a/fs/hpfs/super.c~mount-options-fix-hpfs
++++ a/fs/hpfs/super.c
+@@ -386,6 +386,7 @@ static int hpfs_remount_fs(struct super_
+ 	int lowercase, conv, eas, chk, errs, chkdsk, timeshift;
+ 	int o;
+ 	struct hpfs_sb_info *sbi = hpfs_sb(s);
++	char *new_opts = kstrdup(data, GFP_KERNEL);
+ 	
+ 	*flags |= MS_NOATIME;
+ 	
+@@ -398,15 +399,15 @@ static int hpfs_remount_fs(struct super_
+ 	if (!(o = parse_opts(data, &uid, &gid, &umask, &lowercase, &conv,
+ 	    &eas, &chk, &errs, &chkdsk, &timeshift))) {
+ 		printk("HPFS: bad mount options.\n");
+-	    	return 1;
++		goto out_err;
+ 	}
+ 	if (o == 2) {
+ 		hpfs_help();
+-		return 1;
++		goto out_err;
+ 	}
+ 	if (timeshift != sbi->sb_timeshift) {
+ 		printk("HPFS: timeshift can't be changed using remount.\n");
+-		return 1;
++		goto out_err;
+ 	}
  
- #define DEVPTS_SUPER_MAGIC 0x1cd1
+ 	unmark_dirty(s);
+@@ -419,7 +420,14 @@ static int hpfs_remount_fs(struct super_
  
-+#define DEVPTS_DEFAULT_MODE 0600
+ 	if (!(*flags & MS_RDONLY)) mark_dirty(s);
+ 
++	kfree(s->s_options);
++	s->s_options = new_opts;
 +
- static struct vfsmount *devpts_mnt;
- static struct dentry *devpts_root;
- 
-@@ -32,7 +35,7 @@ static struct {
- 	uid_t   uid;
- 	gid_t   gid;
- 	umode_t mode;
--} config = {.mode = 0600};
-+} config = {.mode = DEVPTS_DEFAULT_MODE};
- 
- enum {
- 	Opt_uid, Opt_gid, Opt_mode,
-@@ -54,7 +57,7 @@ static int devpts_remount(struct super_b
- 	config.setgid  = 0;
- 	config.uid     = 0;
- 	config.gid     = 0;
--	config.mode    = 0600;
-+	config.mode    = DEVPTS_DEFAULT_MODE;
- 
- 	while ((p = strsep(&data, ",")) != NULL) {
- 		substring_t args[MAX_OPT_ARGS];
-@@ -81,7 +84,7 @@ static int devpts_remount(struct super_b
- 		case Opt_mode:
- 			if (match_octal(&args[0], &option))
- 				return -EINVAL;
--			config.mode = option & ~S_IFMT;
-+			config.mode = option & S_IALLUGO;
- 			break;
- 		default:
- 			printk(KERN_ERR "devpts: called with bogus options\n");
-@@ -92,9 +95,21 @@ static int devpts_remount(struct super_b
  	return 0;
++
++out_err:
++	kfree(new_opts);
++	return -EINVAL;
  }
  
-+static int devpts_show_options(struct seq_file *seq, struct vfsmount *vfs)
-+{
-+	if (config.setuid)
-+		seq_printf(seq, ",uid=%u", config.uid);
-+	if (config.setgid)
-+		seq_printf(seq, ",gid=%u", config.gid);
-+	seq_printf(seq, ",mode=%03o", config.mode);
-+
-+	return 0;
-+}
-+
- static const struct super_operations devpts_sops = {
- 	.statfs		= simple_statfs,
- 	.remount_fs	= devpts_remount,
-+	.show_options	= devpts_show_options,
+ /* Super operations */
+@@ -432,6 +440,7 @@ static const struct super_operations hpf
+ 	.put_super	= hpfs_put_super,
+ 	.statfs		= hpfs_statfs,
+ 	.remount_fs	= hpfs_remount_fs,
++	.show_options	= generic_show_options,
  };
  
- static int
+ static int hpfs_fill_super(struct super_block *s, void *options, int silent)
+@@ -454,6 +463,8 @@ static int hpfs_fill_super(struct super_
+ 
+ 	int o;
+ 
++	save_mount_options(s, options);
++
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
