@@ -1,234 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-uninline-some-code-from-utilh.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:08 -0800
-Message-ID: <200802082012.m18KCnsL010239@imap1.linux-foundation.org>
+Subject: - wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:31 -0800
+Message-ID: <200802082013.m18KDC8L010274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58101 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754181AbYBHUwq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:46 -0500
+	by vger.kernel.org with ESMTP id S1753722AbYBHUwh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: uninline some code from util.h
+     wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
 has been removed from the -mm tree.  Its filename was
-     ipc-uninline-some-code-from-utilh.patch
+     wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: uninline some code from util.h
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: wait_task_stopped: simplify and fix races with SIGCONT/SIGKILL/untrace
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-ipc_lock_check_down(), ipc_lock_check() and ipcget() seem too large to be
-inline.  Besides, they give no optimization being inline as they perform
-calls inside in any case.
+wait_task_stopped() has multiple races with SIGCONT/SIGKILL.  tasklist_lock
+does not pin the child in TASK_TRACED/TASK_STOPPED stated, almost all info
+reported (including exit_code) may be wrong.
 
-Moving them into ipc/util.c saves 500 bytes of vmlinux and shortens IPC
-internal API.
+In fact, the code under write_lock_irq(tasklist_lock) is not safe.  The child
+may be PTRACE_DETACH'ed at this time by another subthread, in that case it is
+possible we are no longer its ->parent.
 
-$ ./scripts/bloat-o-meter vmlinux-orig vmlinux
-add/remove: 3/2 grow/shrink: 0/10 up/down: 490/-989 (-499)
-function                                     old     new   delta
-ipcget                                         -     392    +392
-ipc_lock_check_down                            -      49     +49
-ipc_lock_check                                 -      49     +49
-sys_semget                                   119     105     -14
-sys_shmget                                   108      86     -22
-sys_msgget                                   100      78     -22
-do_msgsnd                                    665     631     -34
-do_msgrcv                                    680     644     -36
-do_shmat                                     771     733     -38
-sys_msgctl                                  1302    1229     -73
-ipcget_new                                    80       -     -80
-sys_semtimedop                              1534    1452     -82
-sys_semctl                                  2034    1922    -112
-sys_shmctl                                  1919    1765    -154
-ipcget_public                                322       -    -322
+Change wait_task_stopped() to take ->siglock before inspecting the task.  This
+guarantees that the child can't resume and (for example) clear its
+->exit_code, so we don't need to use xchg(&p->exit_code) and re-check.  The
+only exception is ptrace_stop() which changes ->state and ->exit_code without
+->siglock held during abort.  But this can only happen if both the tracer and
+the tracee are dying (coredump is in progress), we don't care.
 
-The ipcget() growth is the result of gcc inlining of currently static
-ipcget_new/_public.
+With this patch wait_task_stopped() doesn't move the child to the end of the
+->parent lis
+t on success.  This optimization could be restored, but in that
+case we have to take write_lock(tasklist) and do some nasty checks.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Also change the do_wait() since we don't return EAGAIN any longer.
+
+[akpm@linux-foundation.org: fix up after Willy renamed everything]
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   55 +++++++++++++++++++++++++++++++++++++++++++++-
- ipc/util.h |   60 +++------------------------------------------------
- 2 files changed, 57 insertions(+), 58 deletions(-)
+ kernel/exit.c |   88 ++++++++++++++----------------------------------
+ 1 file changed, 26 insertions(+), 62 deletions(-)
 
-diff -puN ipc/util.c~ipc-uninline-some-code-from-utilh ipc/util.c
---- a/ipc/util.c~ipc-uninline-some-code-from-utilh
-+++ a/ipc/util.c
-@@ -248,7 +248,7 @@ int ipc_addid(struct ipc_ids* ids, struc
-  *	This routine is called by sys_msgget, sys_semget() and sys_shmget()
-  *	when the key is IPC_PRIVATE.
-  */
--int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
-+static int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
- 		struct ipc_ops *ops, struct ipc_params *params)
+diff -puN kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace kernel/exit.c
+--- a/kernel/exit.c~wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace
++++ a/kernel/exit.c
+@@ -1355,17 +1355,35 @@ static int wait_task_stopped(struct task
+ 			     int noreap, struct siginfo __user *infop,
+ 			     int __user *stat_addr, struct rusage __user *ru)
  {
- 	int err;
-@@ -312,7 +312,7 @@ static int ipc_check_perms(struct kern_i
-  *
-  *	On success, the ipc id is returned.
-  */
--int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
-+static int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
- 		struct ipc_ops *ops, struct ipc_params *params)
- {
- 	struct kern_ipc_perm *ipcp;
-@@ -710,6 +710,57 @@ struct kern_ipc_perm *ipc_lock_down(stru
- 	return out;
- }
+-	int retval, exit_code;
++	int retval, exit_code, why;
++	uid_t uid = 0; /* unneeded, required by compiler */
+ 	pid_t pid;
  
-+struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id)
-+{
-+	struct kern_ipc_perm *out;
+-	if (!p->exit_code)
+-		return 0;
++	exit_code = 0;
++	spin_lock_irq(&p->sighand->siglock);
 +
-+	out = ipc_lock_down(ids, id);
-+	if (IS_ERR(out))
-+		return out;
++	if (unlikely(!task_is_stopped_or_traced(p)))
++		goto unlock_sig;
 +
-+	if (ipc_checkid(out, id)) {
-+		ipc_unlock(out);
-+		return ERR_PTR(-EIDRM);
-+	}
+ 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
+ 	    p->signal->group_stop_count > 0)
+ 		/*
+ 		 * A group stop is in progress and this is the group leader.
+ 		 * We won't report until all threads have stopped.
+ 		 */
++		goto unlock_sig;
 +
-+	return out;
-+}
++	exit_code = p->exit_code;
++	if (!exit_code)
++		goto unlock_sig;
 +
-+struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id)
-+{
-+	struct kern_ipc_perm *out;
++	if (!noreap)
++		p->exit_code = 0;
 +
-+	out = ipc_lock(ids, id);
-+	if (IS_ERR(out))
-+		return out;
-+
-+	if (ipc_checkid(out, id)) {
-+		ipc_unlock(out);
-+		return ERR_PTR(-EIDRM);
-+	}
-+
-+	return out;
-+}
-+
-+/**
-+ * ipcget - Common sys_*get() code
-+ * @ns : namsepace
-+ * @ids : IPC identifier set
-+ * @ops : operations to be called on ipc object creation, permission checks
-+ *        and further checks
-+ * @params : the parameters needed by the previous operations.
-+ *
-+ * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
-+ */
-+int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
-+			struct ipc_ops *ops, struct ipc_params *params)
-+{
-+	if (params->key == IPC_PRIVATE)
-+		return ipcget_new(ns, ids, ops, params);
-+	else
-+		return ipcget_public(ns, ids, ops, params);
-+}
-+
- #ifdef __ARCH_WANT_IPC_PARSE_VERSION
++	uid = p->uid;
++unlock_sig:
++	spin_unlock_irq(&p->sighand->siglock);
++	if (!exit_code)
+ 		return 0;
  
+ 	/*
+@@ -1375,65 +1393,15 @@ static int wait_task_stopped(struct task
+ 	 * keep holding onto the tasklist_lock while we call getrusage and
+ 	 * possibly take page faults for user memory.
+ 	 */
+-	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
+ 	get_task_struct(p);
++	pid = task_pid_nr_ns(p, current->nsproxy->pid_ns);
++	why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
+ 	read_unlock(&tasklist_lock);
  
-diff -puN ipc/util.h~ipc-uninline-some-code-from-utilh ipc/util.h
---- a/ipc/util.h~ipc-uninline-some-code-from-utilh
-+++ a/ipc/util.h
-@@ -131,10 +131,6 @@ int ipc_parse_version (int *cmd);
- extern void free_msg(struct msg_msg *msg);
- extern struct msg_msg *load_msg(const void __user *src, int len);
- extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
--extern int ipcget_new(struct ipc_namespace *, struct ipc_ids *,
--			struct ipc_ops *, struct ipc_params *);
--extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
--			struct ipc_ops *, struct ipc_params *);
- 
- static inline int ipc_buildid(int id, int seq)
- {
-@@ -163,57 +159,9 @@ static inline void ipc_unlock(struct ker
- 	rcu_read_unlock();
- }
- 
--static inline struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids,
--						int id)
--{
--	struct kern_ipc_perm *out;
+-	if (unlikely(noreap)) {
+-		uid_t uid = p->uid;
+-		int why = (p->ptrace & PT_PTRACED) ? CLD_TRAPPED : CLD_STOPPED;
 -
--	out = ipc_lock_down(ids, id);
--	if (IS_ERR(out))
--		return out;
--
--	if (ipc_checkid(out, id)) {
--		ipc_unlock(out);
--		return ERR_PTR(-EIDRM);
+-		exit_code = p->exit_code;
+-		if (unlikely(!exit_code) || unlikely(p->exit_state))
+-			goto bail_ref;
++	if (unlikely(noreap))
+ 		return wait_noreap_copyout(p, pid, uid,
+ 					   why, exit_code,
+ 					   infop, ru);
 -	}
 -
--	return out;
--}
+-	write_lock_irq(&tasklist_lock);
 -
--static inline struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids,
--						int id)
--{
--	struct kern_ipc_perm *out;
--
--	out = ipc_lock(ids, id);
--	if (IS_ERR(out))
--		return out;
--
--	if (ipc_checkid(out, id)) {
--		ipc_unlock(out);
--		return ERR_PTR(-EIDRM);
+-	/*
+-	 * This uses xchg to be atomic with the thread resuming and setting
+-	 * it.  It must also be done with the write lock held to prevent a
+-	 * race with the EXIT_ZOMBIE case.
+-	 */
+-	exit_code = xchg(&p->exit_code, 0);
+-	if (unlikely(p->exit_state)) {
+-		/*
+-		 * The task resumed and then died.  Let the next iteration
+-		 * catch it in EXIT_ZOMBIE.  Note that exit_code might
+-		 * already be zero here if it resumed and did _exit(0).
+-		 * The task itself is dead and won't touch exit_code again;
+-		 * other processors in this function are locked out.
+-		 */
+-		p->exit_code = exit_code;
+-		exit_code = 0;
+-	}
+-	if (unlikely(exit_code == 0)) {
+-		/*
+-		 * Another thread in this function got to it first, or it
+-		 * resumed, or it resumed and then died.
+-		 */
+-		write_unlock_irq(&tasklist_lock);
+-bail_ref:
+-		put_task_struct(p);
+-		/*
+-		 * We are returning to the wait loop without having successfully
+-		 * removed the process and having released the lock. We cannot
+-		 * continue, since the "p" task pointer is potentially stale.
+-		 *
+-		 * Return -EAGAIN, and do_wait() will restart the loop from the
+-		 * beginning. Do _not_ re-acquire the lock.
+-		 */
+-		return -EAGAIN;
 -	}
 -
--	return out;
--}
+-	/* move to end of parent's list to avoid starvation */
+-	remove_parent(p);
+-	add_parent(p);
 -
--/**
-- * ipcget - Common sys_*get() code
-- * @ns : namsepace
-- * @ids : IPC identifier set
-- * @ops : operations to be called on ipc object creation, permission checks
-- *        and further checks
-- * @params : the parameters needed by the previous operations.
-- *
-- * Common routine called by sys_msgget(), sys_semget() and sys_shmget().
-- */
--static inline int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
--			struct ipc_ops *ops, struct ipc_params *params)
--{
--	if (params->key == IPC_PRIVATE)
--		return ipcget_new(ns, ids, ops, params);
--	else
--		return ipcget_public(ns, ids, ops, params);
--}
-+struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id);
-+struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id);
-+int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
-+			struct ipc_ops *ops, struct ipc_params *params);
+-	write_unlock_irq(&tasklist_lock);
  
- #endif
+ 	retval = ru ? getrusage(p, RUSAGE_BOTH, ru) : 0;
+ 	if (!retval && stat_addr)
+@@ -1443,15 +1411,13 @@ bail_ref:
+ 	if (!retval && infop)
+ 		retval = put_user(0, &infop->si_errno);
+ 	if (!retval && infop)
+-		retval = put_user((short)((p->ptrace & PT_PTRACED)
+-					  ? CLD_TRAPPED : CLD_STOPPED),
+-				  &infop->si_code);
++		retval = put_user(why, &infop->si_code);
+ 	if (!retval && infop)
+ 		retval = put_user(exit_code, &infop->si_status);
+ 	if (!retval && infop)
+ 		retval = put_user(pid, &infop->si_pid);
+ 	if (!retval && infop)
+-		retval = put_user(p->uid, &infop->si_uid);
++		retval = put_user(uid, &infop->si_uid);
+ 	if (!retval)
+ 		retval = pid;
+ 	put_task_struct(p);
+@@ -1558,8 +1524,6 @@ repeat:
+ 				retval = wait_task_stopped(p, ret == 2,
+ 						(options & WNOWAIT), infop,
+ 						stat_addr, ru);
+-				if (retval == -EAGAIN)
+-					goto repeat;
+ 				if (retval != 0) /* He released the lock.  */
+ 					goto end;
+ 			} else if (p->exit_state == EXIT_ZOMBIE) {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
 revert-proc-fix-the-threaded-proc-self.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
