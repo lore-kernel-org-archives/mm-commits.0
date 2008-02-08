@@ -1,132 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - libfs-rename-simple_attr_close-to-simple_attr_release.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:16:57 -0800
-Message-ID: <200802082016.m18KGcFr010747@imap1.linux-foundation.org>
+Subject: - byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:16:20 -0800
+Message-ID: <200802082016.m18KG1YX010671__21400.2198925757$1202504679$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757093AbYBHVD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756358AbYBHVD3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, arnd@arndb.de, greg@kroah.com, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libfs: rename simple_attr_close to simple_attr_release
+     byteorder: move le32_add_cpu & friends from OCFS2 to core
 has been removed from the -mm tree.  Its filename was
-     libfs-rename-simple_attr_close-to-simple_attr_release.patch
+     byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfs: rename simple_attr_close to simple_attr_release
-From: Christoph Hellwig <hch@lst.de>
+Subject: byteorder: move le32_add_cpu & friends from OCFS2 to core
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-simple_attr_close implementes ->release so it should be named accordingly.
+This patchset moves le*_add_cpu and be*_add_cpu functions from OCFS2 to core
+header (1st), converts ext3 filesystem to this API (2nd) and replaces XFS
+different named functions with new ones (3rd).
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: <stefano.brivio@polimi.it>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+There are many places where these functions will be useful.  Just look at:
+grep -r 'cpu_to_[ble12346]*([ble12346]*_to_cpu.*[-+]' linux-src/ Patch for
+ext3 is an example how conversions will probably look like.
+
+
+
+This patch:
+
+- move inline functions which add native byte order variable to
+  little/big endian variable to core header
+  * le16_add_cpu(__le16 *var, u16 val)
+  * le32_add_cpu(__le32 *var, u32 val)
+  * le64_add_cpu(__le64 *var, u64 val)
+  * be32_add_cpu(__be32 *var, u32 val)
+- add for completeness:
+  * be16_add_cpu(__be16 *var, u16 val)
+  * be64_add_cpu(__be64 *var, u64 val)
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/cell/spufs/file.c |    2 +-
- fs/libfs.c                               |    4 ++--
- include/linux/fs.h                       |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ fs/ocfs2/cluster/endian.h         |   30 ------------------
+ fs/ocfs2/cluster/nodemanager.c    |    1 
+ fs/ocfs2/dlm/dlmast.c             |    1 
+ fs/ocfs2/endian.h                 |   45 ----------------------------
+ fs/ocfs2/ocfs2.h                  |    1 
+ include/linux/byteorder/generic.h |   30 ++++++++++++++++++
+ 6 files changed, 30 insertions(+), 78 deletions(-)
 
-diff -puN arch/powerpc/platforms/cell/spufs/file.c~libfs-rename-simple_attr_close-to-simple_attr_release arch/powerpc/platforms/cell/spufs/file.c
---- a/arch/powerpc/platforms/cell/spufs/file.c~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/arch/powerpc/platforms/cell/spufs/file.c
-@@ -470,7 +470,7 @@ spufs_cntl_release(struct inode *inode, 
- 	struct spufs_inode_info *i = SPUFS_I(inode);
- 	struct spu_context *ctx = i->i_ctx;
+diff -puN fs/ocfs2/cluster/endian.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core /dev/null
+--- a/fs/ocfs2/cluster/endian.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* -*- mode: c; c-basic-offset: 8; -*-
+- * vim: noexpandtab sw=8 ts=8 sts=0:
+- *
+- * Copyright (C) 2005 Oracle.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation; either
+- * version 2 of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public
+- * License along with this program; if not, write to the
+- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+- * Boston, MA 021110-1307, USA.
+- */
+-
+-#ifndef OCFS2_CLUSTER_ENDIAN_H
+-#define OCFS2_CLUSTER_ENDIAN_H
+-
+-static inline void be32_add_cpu(__be32 *var, u32 val)
+-{
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
+-}
+-
+-#endif /* OCFS2_CLUSTER_ENDIAN_H */
+diff -puN fs/ocfs2/cluster/nodemanager.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/cluster/nodemanager.c
+--- a/fs/ocfs2/cluster/nodemanager.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -24,7 +24,6 @@
+ #include <linux/sysctl.h>
+ #include <linux/configfs.h>
  
--	simple_attr_close(inode, file);
-+	simple_attr_release(inode, file);
+-#include "endian.h"
+ #include "tcp.h"
+ #include "nodemanager.h"
+ #include "heartbeat.h"
+diff -puN fs/ocfs2/dlm/dlmast.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/dlm/dlmast.c
+--- a/fs/ocfs2/dlm/dlmast.c~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/dlm/dlmast.c
+@@ -43,7 +43,6 @@
+ #include "cluster/heartbeat.h"
+ #include "cluster/nodemanager.h"
+ #include "cluster/tcp.h"
+-#include "cluster/endian.h"
  
- 	mutex_lock(&ctx->mapping_lock);
- 	if (!--i->i_openers)
-diff -puN fs/libfs.c~libfs-rename-simple_attr_close-to-simple_attr_release fs/libfs.c
---- a/fs/libfs.c~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/fs/libfs.c
-@@ -615,7 +615,7 @@ int simple_attr_open(struct inode *inode
- 	return nonseekable_open(inode, file);
- }
+ #include "dlmapi.h"
+ #include "dlmcommon.h"
+diff -puN fs/ocfs2/endian.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core /dev/null
+--- a/fs/ocfs2/endian.h
++++ /dev/null
+@@ -1,45 +0,0 @@
+-/* -*- mode: c; c-basic-offset: 8; -*-
+- * vim: noexpandtab sw=8 ts=8 sts=0:
+- *
+- * Copyright (C) 2005 Oracle.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public
+- * License as published by the Free Software Foundation; either
+- * version 2 of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public
+- * License along with this program; if not, write to the
+- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+- * Boston, MA 021110-1307, USA.
+- */
+-
+-#ifndef OCFS2_ENDIAN_H
+-#define OCFS2_ENDIAN_H
+-
+-static inline void le16_add_cpu(__le16 *var, u16 val)
+-{
+-	*var = cpu_to_le16(le16_to_cpu(*var) + val);
+-}
+-
+-static inline void le32_add_cpu(__le32 *var, u32 val)
+-{
+-	*var = cpu_to_le32(le32_to_cpu(*var) + val);
+-}
+-
+-static inline void le64_add_cpu(__le64 *var, u64 val)
+-{
+-	*var = cpu_to_le64(le64_to_cpu(*var) + val);
+-}
+-
+-static inline void be32_add_cpu(__be32 *var, u32 val)
+-{
+-	*var = cpu_to_be32(be32_to_cpu(*var) + val);
+-}
+-
+-#endif /* OCFS2_ENDIAN_H */
+diff -puN fs/ocfs2/ocfs2.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/fs/ocfs2/ocfs2.h
+@@ -43,7 +43,6 @@
+ #include "dlm/dlmapi.h"
  
--int simple_attr_close(struct inode *inode, struct file *file)
-+int simple_attr_release(struct inode *inode, struct file *file)
- {
- 	kfree(file->private_data);
- 	return 0;
-@@ -804,6 +804,6 @@ EXPORT_SYMBOL(simple_transaction_get);
- EXPORT_SYMBOL(simple_transaction_read);
- EXPORT_SYMBOL(simple_transaction_release);
- EXPORT_SYMBOL_GPL(simple_attr_open);
--EXPORT_SYMBOL_GPL(simple_attr_close);
-+EXPORT_SYMBOL_GPL(simple_attr_release);
- EXPORT_SYMBOL_GPL(simple_attr_read);
- EXPORT_SYMBOL_GPL(simple_attr_write);
-diff -puN include/linux/fs.h~libfs-rename-simple_attr_close-to-simple_attr_release include/linux/fs.h
---- a/include/linux/fs.h~libfs-rename-simple_attr_close-to-simple_attr_release
-+++ a/include/linux/fs.h
-@@ -2056,7 +2056,7 @@ static int __fops ## _open(struct inode 
- static struct file_operations __fops = {				\
- 	.owner	 = THIS_MODULE,						\
- 	.open	 = __fops ## _open,					\
--	.release = simple_attr_close,					\
-+	.release = simple_attr_release,					\
- 	.read	 = simple_attr_read,					\
- 	.write	 = simple_attr_write,					\
- };
-@@ -2070,7 +2070,7 @@ __simple_attr_check_format(const char *f
- int simple_attr_open(struct inode *inode, struct file *file,
- 		     int (*get)(void *, u64 *), int (*set)(void *, u64),
- 		     const char *fmt);
--int simple_attr_close(struct inode *inode, struct file *file);
-+int simple_attr_release(struct inode *inode, struct file *file);
- ssize_t simple_attr_read(struct file *file, char __user *buf,
- 			 size_t len, loff_t *ppos);
- ssize_t simple_attr_write(struct file *file, const char __user *buf,
+ #include "ocfs2_fs.h"
+-#include "endian.h"
+ #include "ocfs2_lockid.h"
+ 
+ /* Most user visible OCFS2 inodes will have very few pieces of
+diff -puN include/linux/byteorder/generic.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core include/linux/byteorder/generic.h
+--- a/include/linux/byteorder/generic.h~byteorder-move-le32_add_cpu-friends-from-ocfs2-to-core
++++ a/include/linux/byteorder/generic.h
+@@ -146,6 +146,36 @@
+ #define htons(x) ___htons(x)
+ #define ntohs(x) ___ntohs(x)
+ 
++static inline void le16_add_cpu(__le16 *var, u16 val)
++{
++	*var = cpu_to_le16(le16_to_cpu(*var) + val);
++}
++
++static inline void le32_add_cpu(__le32 *var, u32 val)
++{
++	*var = cpu_to_le32(le32_to_cpu(*var) + val);
++}
++
++static inline void le64_add_cpu(__le64 *var, u64 val)
++{
++	*var = cpu_to_le64(le64_to_cpu(*var) + val);
++}
++
++static inline void be16_add_cpu(__be16 *var, u16 val)
++{
++	*var = cpu_to_be16(be16_to_cpu(*var) + val);
++}
++
++static inline void be32_add_cpu(__be32 *var, u32 val)
++{
++	*var = cpu_to_be32(be32_to_cpu(*var) + val);
++}
++
++static inline void be64_add_cpu(__be64 *var, u64 val)
++{
++	*var = cpu_to_be64(be64_to_cpu(*var) + val);
++}
++
+ #endif /* KERNEL */
+ 
+ #endif /* _LINUX_BYTEORDER_GENERIC_H */
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-git-unionfs.patch
-git-xfs.patch
-uml-update-defconfig.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-vfs-create-proc-pid-mountinfo.patch
-reiserfs-use-open_bdev_excl.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
