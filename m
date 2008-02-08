@@ -1,1071 +1,1814 @@
 From: akpm@linux-foundation.org
-Subject: - aout-suppress-aout-library-support-if-config_arch_supports_aout.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:57 -0800
-Message-ID: <200802082014.m18KEcCW010471@imap1.linux-foundation.org>
+Subject: - udf-remove-udf_i_-macros-and-open-code-them.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:17:33 -0800
+Message-ID: <200802082017.m18KHEw8010800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756437AbYBHVDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:18 -0500
+	by vger.kernel.org with ESMTP id S1757531AbYBHVD0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, jdike@linux.intel.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, hch@lst.de, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aout: suppress A.OUT library support if !CONFIG_ARCH_SUPPORTS_AOUT
+     udf: remove UDF_I_* macros and open code them
 has been removed from the -mm tree.  Its filename was
-     aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
+     udf-remove-udf_i_-macros-and-open-code-them.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aout: suppress A.OUT library support if !CONFIG_ARCH_SUPPORTS_AOUT
-From: David Howells <dhowells@redhat.com>
+Subject: udf: remove UDF_I_* macros and open code them
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Suppress A.OUT library support if CONFIG_ARCH_SUPPORTS_AOUT is not set.
-
-Not all architectures support the A.OUT binfmt, so the ELF binfmt should not
-be permitted to go looking for A.OUT libraries to load in such a case.  Not
-only that, but under such conditions A.OUT core dumps are not produced either.
-
-To make this work, this patch also does the following:
-
- (1) Makes the existence of the contents of linux/a.out.h contingent on
-     CONFIG_ARCH_SUPPORTS_AOUT.
-
- (2) Renames dump_thread() to aout_dump_thread() as it's only called by A.OUT
-     core dumping code.
-
- (3) Moves aout_dump_thread() into asm/a.out-core.h and makes it inline.  This
-     is then included only where needed.  This means that this bit of arch
-     code will be stored in the appropriate A.OUT binfmt module rather than
-     the core kernel.
-
- (4) Drops A.OUT support for Blackfin (according to Mike Frysinger it's not
-     needed) and FRV.
-
-This patch depends on the previous patch to move STACK_TOP[_MAX] out of
-asm/a.out.h and into asm/processor.h as they're required whether or not A.OUT
-format is available.
-
-[jdike@addtoit.com: uml: re-remove accidentally restored code]
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/process.c         |   62 --------------------
- arch/arm/kernel/process.c           |   29 ---------
- arch/m68k/kernel/process.c          |   47 ---------------
- arch/sparc/kernel/process.c         |   32 ----------
- arch/sparc/kernel/sparc_ksyms.c     |    2 
- arch/sparc64/kernel/binfmt_aout32.c |    3 
- arch/sparc64/kernel/process.c       |   11 ---
- arch/um/kernel/ksyms.c              |    1 
- arch/um/kernel/process.c            |    4 -
- arch/x86/kernel/process_32.c        |   49 ---------------
- fs/Kconfig.binfmt                   |    3 
- fs/binfmt_aout.c                    |    3 
- fs/binfmt_elf.c                     |   34 ++++++++---
- fs/exec.c                           |    2 
- include/asm-alpha/a.out-core.h      |   80 ++++++++++++++++++++++++++
- include/asm-arm/a.out-core.h        |   49 +++++++++++++++
- include/asm-frv/a.out.h             |    5 -
- include/asm-generic/Kbuild.asm      |    2 
- include/asm-m68k/a.out-core.h       |   67 +++++++++++++++++++++
- include/asm-sparc/a.out-core.h      |   52 ++++++++++++++++
- include/asm-sparc64/a.out-core.h    |   31 ++++++++++
- include/asm-um/a.out-core.h         |   27 ++++++++
- include/asm-x86/a.out-core.h        |   71 +++++++++++++++++++++++
- include/linux/a.out.h               |   12 +++
- include/linux/kernel.h              |    2 
- 25 files changed, 423 insertions(+), 257 deletions(-)
+ fs/udf/balloc.c    |   30 ++--
+ fs/udf/dir.c       |    7 -
+ fs/udf/directory.c |    6 
+ fs/udf/file.c      |   24 ++-
+ fs/udf/ialloc.c    |   50 +++----
+ fs/udf/inode.c     |  300 +++++++++++++++++++++----------------------
+ fs/udf/misc.c      |   38 ++---
+ fs/udf/namei.c     |  110 ++++++++-------
+ fs/udf/partition.c |    4 
+ fs/udf/super.c     |    2 
+ fs/udf/symlink.c   |    4 
+ fs/udf/truncate.c  |   34 ++--
+ fs/udf/udf_i.h     |   16 --
+ fs/udf/udfdecl.h   |    8 -
+ 14 files changed, 317 insertions(+), 316 deletions(-)
 
-diff -puN arch/alpha/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/alpha/kernel/process.c
---- a/arch/alpha/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/alpha/kernel/process.c
-@@ -318,68 +318,6 @@ copy_thread(int nr, unsigned long clone_
- }
+diff -puN fs/udf/balloc.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/balloc.c
+--- a/fs/udf/balloc.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/balloc.c
+@@ -460,7 +460,7 @@ static void udf_table_free_blocks(struct
  
- /*
-- * Fill in the user structure for an ECOFF core dump.
-- */
--void
--dump_thread(struct pt_regs * pt, struct user * dump)
--{
--	/* switch stack follows right below pt_regs: */
--	struct switch_stack * sw = ((struct switch_stack *) pt) - 1;
--
--	dump->magic = CMAGIC;
--	dump->start_code  = current->mm->start_code;
--	dump->start_data  = current->mm->start_data;
--	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
--	dump->u_tsize = ((current->mm->end_code - dump->start_code)
--			 >> PAGE_SHIFT);
--	dump->u_dsize = ((current->mm->brk + PAGE_SIZE-1 - dump->start_data)
--			 >> PAGE_SHIFT);
--	dump->u_ssize = (current->mm->start_stack - dump->start_stack
--			 + PAGE_SIZE-1) >> PAGE_SHIFT;
--
--	/*
--	 * We store the registers in an order/format that is
--	 * compatible with DEC Unix/OSF/1 as this makes life easier
--	 * for gdb.
--	 */
--	dump->regs[EF_V0]  = pt->r0;
--	dump->regs[EF_T0]  = pt->r1;
--	dump->regs[EF_T1]  = pt->r2;
--	dump->regs[EF_T2]  = pt->r3;
--	dump->regs[EF_T3]  = pt->r4;
--	dump->regs[EF_T4]  = pt->r5;
--	dump->regs[EF_T5]  = pt->r6;
--	dump->regs[EF_T6]  = pt->r7;
--	dump->regs[EF_T7]  = pt->r8;
--	dump->regs[EF_S0]  = sw->r9;
--	dump->regs[EF_S1]  = sw->r10;
--	dump->regs[EF_S2]  = sw->r11;
--	dump->regs[EF_S3]  = sw->r12;
--	dump->regs[EF_S4]  = sw->r13;
--	dump->regs[EF_S5]  = sw->r14;
--	dump->regs[EF_S6]  = sw->r15;
--	dump->regs[EF_A3]  = pt->r19;
--	dump->regs[EF_A4]  = pt->r20;
--	dump->regs[EF_A5]  = pt->r21;
--	dump->regs[EF_T8]  = pt->r22;
--	dump->regs[EF_T9]  = pt->r23;
--	dump->regs[EF_T10] = pt->r24;
--	dump->regs[EF_T11] = pt->r25;
--	dump->regs[EF_RA]  = pt->r26;
--	dump->regs[EF_T12] = pt->r27;
--	dump->regs[EF_AT]  = pt->r28;
--	dump->regs[EF_SP]  = rdusp();
--	dump->regs[EF_PS]  = pt->ps;
--	dump->regs[EF_PC]  = pt->pc;
--	dump->regs[EF_GP]  = pt->gp;
--	dump->regs[EF_A0]  = pt->r16;
--	dump->regs[EF_A1]  = pt->r17;
--	dump->regs[EF_A2]  = pt->r18;
--	memcpy((char *)dump->regs + EF_SIZE, sw->fp, 32 * 8);
--}
--EXPORT_SYMBOL(dump_thread);
--
--/*
-  * Fill in the user structure for a ELF core dump.
-  */
- void
-diff -puN arch/arm/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/arm/kernel/process.c
-@@ -368,35 +368,6 @@ int dump_fpu (struct pt_regs *regs, stru
- EXPORT_SYMBOL(dump_fpu);
+ 	epos.offset = oepos.offset = sizeof(struct unallocSpaceEntry);
+ 	elen = 0;
+-	epos.block = oepos.block = UDF_I_LOCATION(table);
++	epos.block = oepos.block = UDF_I(table)->i_location;
+ 	epos.bh = oepos.bh = NULL;
  
- /*
-- * fill in the user structure for a core dump..
-- */
--void dump_thread(struct pt_regs * regs, struct user * dump)
--{
--	struct task_struct *tsk = current;
--
--	dump->magic = CMAGIC;
--	dump->start_code = tsk->mm->start_code;
--	dump->start_stack = regs->ARM_sp & ~(PAGE_SIZE - 1);
--
--	dump->u_tsize = (tsk->mm->end_code - tsk->mm->start_code) >> PAGE_SHIFT;
--	dump->u_dsize = (tsk->mm->brk - tsk->mm->start_data + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	dump->u_ssize = 0;
--
--	dump->u_debugreg[0] = tsk->thread.debug.bp[0].address;
--	dump->u_debugreg[1] = tsk->thread.debug.bp[1].address;
--	dump->u_debugreg[2] = tsk->thread.debug.bp[0].insn.arm;
--	dump->u_debugreg[3] = tsk->thread.debug.bp[1].insn.arm;
--	dump->u_debugreg[4] = tsk->thread.debug.nsaved;
--
--	if (dump->start_stack < 0x04000000)
--		dump->u_ssize = (0x04000000 - dump->start_stack) >> PAGE_SHIFT;
--
--	dump->regs = *regs;
--	dump->u_fpvalid = dump_fpu (regs, &dump->u_fp);
--}
--EXPORT_SYMBOL(dump_thread);
--
--/*
-  * Shuffle the argument into the correct register before calling the
-  * thread function.  r1 is the thread argument, r2 is the pointer to
-  * the thread function, and r3 points to the exit function.
-diff -puN arch/m68k/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/m68k/kernel/process.c
---- a/arch/m68k/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/m68k/kernel/process.c
-@@ -316,53 +316,6 @@ int dump_fpu (struct pt_regs *regs, stru
- EXPORT_SYMBOL(dump_fpu);
+ 	while (count &&
+@@ -539,9 +539,9 @@ static void udf_table_free_blocks(struct
+ 		elen = EXT_RECORDED_ALLOCATED |
+ 			(count << sb->s_blocksize_bits);
  
- /*
-- * fill in the user structure for a core dump..
-- */
--void dump_thread(struct pt_regs * regs, struct user * dump)
--{
--	struct switch_stack *sw;
--
--/* changed the size calculations - should hopefully work better. lbt */
--	dump->magic = CMAGIC;
--	dump->start_code = 0;
--	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
--	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
--	dump->u_dsize = ((unsigned long) (current->mm->brk +
--					  (PAGE_SIZE-1))) >> PAGE_SHIFT;
--	dump->u_dsize -= dump->u_tsize;
--	dump->u_ssize = 0;
--
--	if (dump->start_stack < TASK_SIZE)
--		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
--
--	dump->u_ar0 = offsetof(struct user, regs);
--	sw = ((struct switch_stack *)regs) - 1;
--	dump->regs.d1 = regs->d1;
--	dump->regs.d2 = regs->d2;
--	dump->regs.d3 = regs->d3;
--	dump->regs.d4 = regs->d4;
--	dump->regs.d5 = regs->d5;
--	dump->regs.d6 = sw->d6;
--	dump->regs.d7 = sw->d7;
--	dump->regs.a0 = regs->a0;
--	dump->regs.a1 = regs->a1;
--	dump->regs.a2 = regs->a2;
--	dump->regs.a3 = sw->a3;
--	dump->regs.a4 = sw->a4;
--	dump->regs.a5 = sw->a5;
--	dump->regs.a6 = sw->a6;
--	dump->regs.d0 = regs->d0;
--	dump->regs.orig_d0 = regs->orig_d0;
--	dump->regs.stkadj = regs->stkadj;
--	dump->regs.sr = regs->sr;
--	dump->regs.pc = regs->pc;
--	dump->regs.fmtvec = (regs->format << 12) | regs->vector;
--	/* dump floating point stuff */
--	dump->u_fpvalid = dump_fpu (regs, &dump->m68kfp);
--}
--EXPORT_SYMBOL(dump_thread);
--
--/*
-  * sys_execve() executes a new program.
-  */
- asmlinkage int sys_execve(char __user *name, char __user * __user *argv, char __user * __user *envp)
-diff -puN arch/sparc/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/sparc/kernel/process.c
---- a/arch/sparc/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/sparc/kernel/process.c
-@@ -567,38 +567,6 @@ int copy_thread(int nr, unsigned long cl
- }
+-		if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_SHORT) {
++		if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_SHORT) {
+ 			adsize = sizeof(short_ad);
+-		} else if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_LONG) {
++		} else if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_LONG) {
+ 			adsize = sizeof(long_ad);
+ 		} else {
+ 			brelse(oepos.bh);
+@@ -573,7 +573,8 @@ static void udf_table_free_blocks(struct
+ 			if (epos.offset + adsize > sb->s_blocksize) {
+ 				loffset = epos.offset;
+ 				aed->lengthAllocDescs = cpu_to_le32(adsize);
+-				sptr = UDF_I_DATA(table) + epos.offset - adsize;
++				sptr = UDF_I(table)->i_ext.i_data + epos.offset
++								- adsize;
+ 				dptr = epos.bh->b_data +
+ 					sizeof(struct allocExtDesc);
+ 				memcpy(dptr, sptr, adsize);
+@@ -591,8 +592,9 @@ static void udf_table_free_blocks(struct
+ 							aed->lengthAllocDescs) +
+ 								adsize);
+ 				} else {
+-					sptr = UDF_I_DATA(table) + epos.offset;
+-					UDF_I_LENALLOC(table) += adsize;
++					sptr = UDF_I(table)->i_ext.i_data +
++								epos.offset;
++					UDF_I(table)->i_lenAlloc += adsize;
+ 					mark_inode_dirty(table);
+ 				}
+ 				epos.offset = sizeof(struct allocExtDesc);
+@@ -606,7 +608,7 @@ static void udf_table_free_blocks(struct
+ 					    2, 1, epos.block.logicalBlockNum,
+ 					    sizeof(tag));
  
- /*
-- * fill in the user structure for a core dump..
-- */
--void dump_thread(struct pt_regs * regs, struct user * dump)
--{
--	unsigned long first_stack_page;
--
--	dump->magic = SUNOS_CORE_MAGIC;
--	dump->len = sizeof(struct user);
--	dump->regs.psr = regs->psr;
--	dump->regs.pc = regs->pc;
--	dump->regs.npc = regs->npc;
--	dump->regs.y = regs->y;
--	/* fuck me plenty */
--	memcpy(&dump->regs.regs[0], &regs->u_regs[1], (sizeof(unsigned long) * 15));
--	dump->uexec = current->thread.core_exec;
--	dump->u_tsize = (((unsigned long) current->mm->end_code) -
--		((unsigned long) current->mm->start_code)) & ~(PAGE_SIZE - 1);
--	dump->u_dsize = ((unsigned long) (current->mm->brk + (PAGE_SIZE-1)));
--	dump->u_dsize -= dump->u_tsize;
--	dump->u_dsize &= ~(PAGE_SIZE - 1);
--	first_stack_page = (regs->u_regs[UREG_FP] & ~(PAGE_SIZE - 1));
--	dump->u_ssize = (TASK_SIZE - first_stack_page) & ~(PAGE_SIZE - 1);
--	memcpy(&dump->fpu.fpstatus.fregs.regs[0], &current->thread.float_regs[0], (sizeof(unsigned long) * 32));
--	dump->fpu.fpstatus.fsr = current->thread.fsr;
--	dump->fpu.fpstatus.flags = dump->fpu.fpstatus.extra = 0;
--	dump->fpu.fpstatus.fpq_count = current->thread.fpqdepth;
--	memcpy(&dump->fpu.fpstatus.fpq[0], &current->thread.fpqueue[0],
--	       ((sizeof(unsigned long) * 2) * 16));
--	dump->sigcode = 0;
--}
--
--/*
-  * fill in the fpu structure for a core dump.
-  */
- int dump_fpu (struct pt_regs * regs, elf_fpregset_t * fpregs)
-diff -puN arch/sparc/kernel/sparc_ksyms.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/sparc/kernel/sparc_ksyms.c
---- a/arch/sparc/kernel/sparc_ksyms.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/sparc/kernel/sparc_ksyms.c
-@@ -214,8 +214,6 @@ EXPORT_SYMBOL(kunmap_atomic);
- EXPORT_SYMBOL(svr4_setcontext);
- EXPORT_SYMBOL(svr4_getcontext);
+-			switch (UDF_I_ALLOCTYPE(table)) {
++			switch (UDF_I(table)->i_alloc_type) {
+ 			case ICBTAG_FLAG_AD_SHORT:
+ 				sad = (short_ad *)sptr;
+ 				sad->extLength = cpu_to_le32(
+@@ -637,7 +639,7 @@ static void udf_table_free_blocks(struct
+ 			udf_write_aext(table, &epos, eloc, elen, 1);
  
--EXPORT_SYMBOL(dump_thread);
--
- /* prom symbols */
- EXPORT_SYMBOL(idprom);
- EXPORT_SYMBOL(prom_root_node);
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -32,6 +32,7 @@
- #include <asm/uaccess.h>
- #include <asm/pgalloc.h>
- #include <asm/mmu_context.h>
-+#include <asm/a.out-core.h>
+ 			if (!epos.bh) {
+-				UDF_I_LENALLOC(table) += adsize;
++				UDF_I(table)->i_lenAlloc += adsize;
+ 				mark_inode_dirty(table);
+ 			} else {
+ 				aed = (struct allocExtDesc *)epos.bh->b_data;
+@@ -675,16 +677,16 @@ static int udf_table_prealloc_blocks(str
+ 		first_block >= sbi->s_partmaps[partition].s_partition_len)
+ 		return 0;
  
- static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout32_library(struct file*);
-@@ -101,7 +102,7 @@ static int aout32_core_dump(long signr, 
- 	current->flags |= PF_DUMPCORE;
-        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
- 	dump.signal = signr;
--	dump_thread(regs, &dump);
-+	aout_dump_thread(regs, &dump);
+-	if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		return 0;
  
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
-diff -puN arch/sparc64/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/sparc64/kernel/process.c
---- a/arch/sparc64/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/sparc64/kernel/process.c
-@@ -725,17 +725,6 @@ pid_t kernel_thread(int (*fn)(void *), v
- 	return retval;
- }
+ 	mutex_lock(&sbi->s_alloc_mutex);
+ 	epos.offset = sizeof(struct unallocSpaceEntry);
+-	epos.block = UDF_I_LOCATION(table);
++	epos.block = UDF_I(table)->i_location;
+ 	epos.bh = NULL;
+ 	eloc.logicalBlockNum = 0xFFFFFFFF;
  
--/*
-- * fill in the user structure for a core dump..
-- */
--void dump_thread(struct pt_regs * regs, struct user * dump)
--{
--	/* Only should be used for SunOS and ancient a.out
--	 * SparcLinux binaries...  Not worth implementing.
--	 */
--	memset(dump, 0, sizeof(struct user));
--}
--
- typedef struct {
- 	union {
- 		unsigned int	pr_regs[32];
-diff -puN arch/um/kernel/ksyms.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/um/kernel/ksyms.c
-@@ -60,7 +60,6 @@ EXPORT_SYMBOL(os_accept_connection);
- EXPORT_SYMBOL(os_rcv_fd);
- EXPORT_SYMBOL(run_helper);
- EXPORT_SYMBOL(start_thread);
--EXPORT_SYMBOL(dump_thread);
+@@ -740,9 +742,9 @@ static int udf_table_new_block(struct su
  
- #ifdef CONFIG_SMP
+ 	*err = -ENOSPC;
  
-diff -puN arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/um/kernel/process.c
-@@ -258,10 +258,6 @@ void cpu_idle(void)
- 	default_idle();
- }
+-	if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(table) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(table)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		return newblock;
+@@ -757,7 +759,7 @@ static int udf_table_new_block(struct su
+ 	   of the current closest match and use that when we are done.
+ 	 */
+ 	epos.offset = sizeof(struct unallocSpaceEntry);
+-	epos.block = UDF_I_LOCATION(table);
++	epos.block = UDF_I(table)->i_location;
+ 	epos.bh = goal_epos.bh = NULL;
  
--void dump_thread(struct pt_regs *regs, struct user *u)
--{
--}
--
- int __cant_sleep(void) {
- 	return in_atomic() || irqs_disabled() || in_interrupt();
- 	/* Is in_interrupt() really needed? */
-diff -puN arch/x86/kernel/process_32.c~aout-suppress-aout-library-support-if-config_arch_supports_aout arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/arch/x86/kernel/process_32.c
-@@ -539,55 +539,6 @@ int copy_thread(int nr, unsigned long cl
- 	return err;
- }
+ 	while (spread &&
+diff -puN fs/udf/dir.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/dir.c
+--- a/fs/udf/dir.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/dir.c
+@@ -125,15 +125,16 @@ do_udf_readdir(struct inode *dir, struct
+ 		nf_pos = (udf_ext0_offset(dir) >> 2);
  
--/*
-- * fill in the user structure for a core dump..
-- */
--void dump_thread(struct pt_regs * regs, struct user * dump)
--{
--	u16 gs;
--
--/* changed the size calculations - should hopefully work better. lbt */
--	dump->magic = CMAGIC;
--	dump->start_code = 0;
--	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
--	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
--	dump->u_dsize = ((unsigned long) (current->mm->brk + (PAGE_SIZE-1))) >> PAGE_SHIFT;
--	dump->u_dsize -= dump->u_tsize;
--	dump->u_ssize = 0;
--	dump->u_debugreg[0] = current->thread.debugreg0;
--	dump->u_debugreg[1] = current->thread.debugreg1;
--	dump->u_debugreg[2] = current->thread.debugreg2;
--	dump->u_debugreg[3] = current->thread.debugreg3;
--	dump->u_debugreg[4] = 0;
--	dump->u_debugreg[5] = 0;
--	dump->u_debugreg[6] = current->thread.debugreg6;
--	dump->u_debugreg[7] = current->thread.debugreg7;
--
--	if (dump->start_stack < TASK_SIZE)
--		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
--
--	dump->regs.bx = regs->bx;
--	dump->regs.cx = regs->cx;
--	dump->regs.dx = regs->dx;
--	dump->regs.si = regs->si;
--	dump->regs.di = regs->di;
--	dump->regs.bp = regs->bp;
--	dump->regs.ax = regs->ax;
--	dump->regs.ds = (u16)regs->ds;
--	dump->regs.es = (u16)regs->es;
--	dump->regs.fs = (u16)regs->fs;
--	savesegment(gs,gs);
--	dump->regs.orig_ax = regs->orig_ax;
--	dump->regs.ip = regs->ip;
--	dump->regs.cs = (u16)regs->cs;
--	dump->regs.flags = regs->flags;
--	dump->regs.sp = regs->sp;
--	dump->regs.ss = (u16)regs->ss;
--
--	dump->u_fpvalid = dump_fpu (regs, &dump->i387);
--}
--EXPORT_SYMBOL(dump_thread);
--
- #ifdef CONFIG_SECCOMP
- static void hard_disable_TSC(void)
- {
-diff -puN fs/Kconfig.binfmt~aout-suppress-aout-library-support-if-config_arch_supports_aout fs/Kconfig.binfmt
---- a/fs/Kconfig.binfmt~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/fs/Kconfig.binfmt
-@@ -61,7 +61,8 @@ config BINFMT_SHARED_FLAT
+ 	fibh.soffset = fibh.eoffset = (nf_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+ 		fibh.sbh = fibh.ebh = NULL;
+ 	} else if (inode_bmap(dir, nf_pos >> (dir->i_sb->s_blocksize_bits - 2),
+ 			      &epos, &eloc, &elen, &offset) == (EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+ 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen) {
+-			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
++			if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 				epos.offset -= sizeof(short_ad);
+-			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
++			else if (UDF_I(dir)->i_alloc_type ==
++					ICBTAG_FLAG_AD_LONG)
+ 				epos.offset -= sizeof(long_ad);
+ 		} else {
+ 			offset = 0;
+diff -puN fs/udf/directory.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/directory.c
+--- a/fs/udf/directory.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/directory.c
+@@ -84,9 +84,9 @@ struct fileIdentDesc *udf_fileident_read
  
- config BINFMT_AOUT
- 	tristate "Kernel support for a.out and ECOFF binaries"
--	depends on X86_32 || ALPHA || ARM || M68K || SPARC32
-+	depends on ARCH_SUPPORTS_AOUT && \
-+		(X86_32 || ALPHA || ARM || M68K || SPARC32)
- 	---help---
- 	  A.out (Assembler.OUTput) is a set of formats for libraries and
- 	  executables used in the earliest versions of UNIX.  Linux used
-diff -puN fs/binfmt_aout.c~aout-suppress-aout-library-support-if-config_arch_supports_aout fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/fs/binfmt_aout.c
-@@ -28,6 +28,7 @@
- #include <asm/system.h>
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
-+#include <asm/a.out-core.h>
+ 	fibh->soffset = fibh->eoffset;
  
- static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout_library(struct file*);
-@@ -118,7 +119,7 @@ static int aout_core_dump(long signr, st
- 	dump.u_ar0 = offsetof(struct user, regs);
- #endif
- 	dump.signal = signr;
--	dump_thread(regs, &dump);
-+	aout_dump_thread(regs, &dump);
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
+-		fi = udf_get_fileident(UDF_I_DATA(dir) -
+-				       (UDF_I_EFE(dir) ?
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
++		fi = udf_get_fileident(UDF_I(dir)->i_ext.i_data -
++				       (UDF_I(dir)->i_efe ?
+ 					sizeof(struct extendedFileEntry) :
+ 					sizeof(struct fileEntry)),
+ 				       dir->i_sb->s_blocksize,
+diff -puN fs/udf/file.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/file.c
+--- a/fs/udf/file.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/file.c
+@@ -50,7 +50,8 @@ static int udf_adinicb_readpage(struct f
  
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
-diff -puN fs/binfmt_elf.c~aout-suppress-aout-library-support-if-config_arch_supports_aout fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/fs/binfmt_elf.c
-@@ -513,6 +513,7 @@ out:
- 	return error;
- }
+ 	kaddr = kmap(page);
+ 	memset(kaddr, 0, PAGE_CACHE_SIZE);
+-	memcpy(kaddr, UDF_I_DATA(inode) + UDF_I_LENEATTR(inode), inode->i_size);
++	memcpy(kaddr, UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr,
++								inode->i_size);
+ 	flush_dcache_page(page);
+ 	SetPageUptodate(page);
+ 	kunmap(page);
+@@ -68,7 +69,8 @@ static int udf_adinicb_writepage(struct 
+ 	BUG_ON(!PageLocked(page));
  
-+#ifdef CONFIG_ARCH_SUPPORTS_AOUT
- static unsigned long load_aout_interp(struct exec *interp_ex,
- 		struct file *interpreter)
- {
-@@ -558,6 +559,14 @@ static unsigned long load_aout_interp(st
- out:
- 	return elf_entry;
- }
-+#else
-+/* dummy extern - the function should never be called if !CONFIG_AOUT_BINFMT */
-+static inline unsigned long load_aout_interp(struct exec *interp_ex,
-+					     struct file *interpreter)
-+{
-+	return -ELIBACC;
-+}
-+#endif
+ 	kaddr = kmap(page);
+-	memcpy(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode), kaddr, inode->i_size);
++	memcpy(UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr, kaddr,
++								inode->i_size);
+ 	mark_inode_dirty(inode);
+ 	SetPageUptodate(page);
+ 	kunmap(page);
+@@ -87,7 +89,7 @@ static int udf_adinicb_write_end(struct 
+ 	char *kaddr;
  
- /*
-  * These are the functions used to load ELF style executables and shared
-@@ -565,9 +574,15 @@ out:
-  */
+ 	kaddr = kmap_atomic(page, KM_USER0);
+-	memcpy(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode) + offset,
++	memcpy(UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr + offset,
+ 		kaddr + offset, copied);
+ 	kunmap_atomic(kaddr, KM_USER0);
  
- #define INTERPRETER_NONE 0
--#define INTERPRETER_AOUT 1
- #define INTERPRETER_ELF 2
+@@ -111,7 +113,7 @@ static ssize_t udf_file_aio_write(struct
+ 	int err, pos;
+ 	size_t count = iocb->ki_left;
  
-+#ifdef CONFIG_ARCH_SUPPORTS_AOUT
-+#define INTERPRETER_AOUT 1
-+#define IS_AOUT_INTERP(x) ((x) == INTERPRETER_AOUT)
-+#else
-+#define IS_AOUT_INTERP(x) (0)
-+#endif
-+
- #ifndef STACK_RND_MASK
- #define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12))	/* 8MB of VA */
- #endif
-@@ -775,6 +790,7 @@ static int load_elf_binary(struct linux_
- 	/* Some simple consistency checks for the interpreter */
- 	if (elf_interpreter) {
- 		static int warn;
-+#ifdef CONFIG_ARCH_SUPPORTS_AOUT
- 		interpreter_type = INTERPRETER_ELF | INTERPRETER_AOUT;
- 
- 		/* Now figure out which format our binary is */
-@@ -782,11 +798,13 @@ static int load_elf_binary(struct linux_
- 		    (N_MAGIC(loc->interp_ex) != ZMAGIC) &&
- 		    (N_MAGIC(loc->interp_ex) != QMAGIC))
- 			interpreter_type = INTERPRETER_ELF;
--
-+#else
-+		interpreter_type = INTERPRETER_ELF;
-+#endif
- 		if (memcmp(loc->interp_elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
- 			interpreter_type &= ~INTERPRETER_ELF;
- 
--		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
-+		if (IS_AOUT_INTERP(interpreter_type) && warn < 10) {
- 			printk(KERN_WARNING "a.out ELF interpreter %s is "
- 				"deprecated and will not be supported "
- 				"after Linux 2.6.25\n", elf_interpreter);
-@@ -815,7 +833,7 @@ static int load_elf_binary(struct linux_
- 
- 	/* OK, we are done with that, now set up the arg stuff,
- 	   and then start this sucker up */
--	if ((!bprm->sh_bang) && (interpreter_type == INTERPRETER_AOUT)) {
-+	if (IS_AOUT_INTERP(interpreter_type) && !bprm->sh_bang) {
- 		char *passed_p = passed_fileno;
- 		sprintf(passed_fileno, "%d", elf_exec_fileno);
- 
-@@ -1004,7 +1022,7 @@ static int load_elf_binary(struct linux_
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB) {
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+ 		if (file->f_flags & O_APPEND)
+ 			pos = inode->i_size;
+ 		else
+@@ -121,15 +123,16 @@ static ssize_t udf_file_aio_write(struct
+ 				(udf_file_entry_alloc_offset(inode) +
+ 						pos + count)) {
+ 			udf_expand_file_adinicb(inode, pos + count, &err);
+-			if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB) {
++			if (UDF_I(inode)->i_alloc_type ==
++							ICBTAG_FLAG_AD_IN_ICB) {
+ 				udf_debug("udf_expand_adinicb: err=%d\n", err);
+ 				return err;
+ 			}
+ 		} else {
+ 			if (pos + count > inode->i_size)
+-				UDF_I_LENALLOC(inode) = pos + count;
++				UDF_I(inode)->i_lenAlloc = pos + count;
+ 			else
+-				UDF_I_LENALLOC(inode) = inode->i_size;
++				UDF_I(inode)->i_lenAlloc = inode->i_size;
+ 		}
  	}
  
- 	if (elf_interpreter) {
--		if (interpreter_type == INTERPRETER_AOUT) {
-+		if (IS_AOUT_INTERP(interpreter_type)) {
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
+@@ -209,11 +212,12 @@ int udf_ioctl(struct inode *inode, struc
+ 			result = put_user(new_block, (long __user *)arg);
+ 		return result;
+ 	case UDF_GETEASIZE:
+-		result = put_user(UDF_I_LENEATTR(inode), (int __user *)arg);
++		result = put_user(UDF_I(inode)->i_lenEAttr, (int __user *)arg);
+ 		break;
+ 	case UDF_GETEABLOCK:
+-		result = copy_to_user((char __user *)arg, UDF_I_DATA(inode),
+-				      UDF_I_LENEATTR(inode)) ? -EFAULT : 0;
++		result = copy_to_user((char __user *)arg,
++				      UDF_I(inode)->i_ext.i_data,
++				      UDF_I(inode)->i_lenEAttr) ? -EFAULT : 0;
+ 		break;
+ 	}
+ 
+diff -puN fs/udf/ialloc.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/ialloc.c
+--- a/fs/udf/ialloc.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/ialloc.c
+@@ -57,7 +57,7 @@ void udf_free_inode(struct inode *inode)
+ 	}
+ 	mutex_unlock(&sbi->s_alloc_mutex);
+ 
+-	udf_free_blocks(sb, NULL, UDF_I_LOCATION(inode), 0, 1);
++	udf_free_blocks(sb, NULL, UDF_I(inode)->i_location, 0, 1);
+ }
+ 
+ struct inode *udf_new_inode(struct inode *dir, int mode, int *err)
+@@ -66,7 +66,7 @@ struct inode *udf_new_inode(struct inode
+ 	struct udf_sb_info *sbi = UDF_SB(sb);
+ 	struct inode *inode;
+ 	int block;
+-	uint32_t start = UDF_I_LOCATION(dir).logicalBlockNum;
++	uint32_t start = UDF_I(dir)->i_location.logicalBlockNum;
+ 
+ 	inode = new_inode(sb);
+ 
+@@ -76,14 +76,14 @@ struct inode *udf_new_inode(struct inode
+ 	}
+ 	*err = -ENOSPC;
+ 
+-	UDF_I_UNIQUE(inode) = 0;
+-	UDF_I_LENEXTENTS(inode) = 0;
+-	UDF_I_NEXT_ALLOC_BLOCK(inode) = 0;
+-	UDF_I_NEXT_ALLOC_GOAL(inode) = 0;
+-	UDF_I_STRAT4096(inode) = 0;
++	UDF_I(inode)->i_unique = 0;
++	UDF_I(inode)->i_lenExtents = 0;
++	UDF_I(inode)->i_next_alloc_block = 0;
++	UDF_I(inode)->i_next_alloc_goal = 0;
++	UDF_I(inode)->i_strat4096 = 0;
+ 
+ 	block = udf_new_block(dir->i_sb, NULL,
+-			      UDF_I_LOCATION(dir).partitionReferenceNum,
++			      UDF_I(dir)->i_location.partitionReferenceNum,
+ 			      start, err);
+ 	if (*err) {
+ 		iput(inode);
+@@ -107,7 +107,7 @@ struct inode *udf_new_inode(struct inode
+ 		else
+ 			lvidiu->numFiles =
+ 				cpu_to_le32(le32_to_cpu(lvidiu->numFiles) + 1);
+-		UDF_I_UNIQUE(inode) = uniqueID = le64_to_cpu(lvhd->uniqueID);
++		UDF_I(inode)->i_unique = uniqueID = le64_to_cpu(lvhd->uniqueID);
+ 		if (!(++uniqueID & 0x00000000FFFFFFFFUL))
+ 			uniqueID += 16;
+ 		lvhd->uniqueID = cpu_to_le64(uniqueID);
+@@ -123,41 +123,41 @@ struct inode *udf_new_inode(struct inode
+ 		inode->i_gid = current->fsgid;
+ 	}
+ 
+-	UDF_I_LOCATION(inode).logicalBlockNum = block;
+-	UDF_I_LOCATION(inode).partitionReferenceNum =
+-				UDF_I_LOCATION(dir).partitionReferenceNum;
+-	inode->i_ino = udf_get_lb_pblock(sb, UDF_I_LOCATION(inode), 0);
++	UDF_I(inode)->i_location.logicalBlockNum = block;
++	UDF_I(inode)->i_location.partitionReferenceNum =
++				UDF_I(dir)->i_location.partitionReferenceNum;
++	inode->i_ino = udf_get_lb_pblock(sb, UDF_I(inode)->i_location, 0);
+ 	inode->i_blocks = 0;
+-	UDF_I_LENEATTR(inode) = 0;
+-	UDF_I_LENALLOC(inode) = 0;
+-	UDF_I_USE(inode) = 0;
++	UDF_I(inode)->i_lenEAttr = 0;
++	UDF_I(inode)->i_lenAlloc = 0;
++	UDF_I(inode)->i_use = 0;
+ 	if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_EXTENDED_FE)) {
+-		UDF_I_EFE(inode) = 1;
++		UDF_I(inode)->i_efe = 1;
+ 		if (UDF_VERS_USE_EXTENDED_FE > sbi->s_udfrev)
+ 			sbi->s_udfrev = UDF_VERS_USE_EXTENDED_FE;
+-		UDF_I_DATA(inode) = kzalloc(inode->i_sb->s_blocksize -
++		UDF_I(inode)->i_ext.i_data = kzalloc(inode->i_sb->s_blocksize -
+ 					    sizeof(struct extendedFileEntry),
+ 					    GFP_KERNEL);
+ 	} else {
+-		UDF_I_EFE(inode) = 0;
+-		UDF_I_DATA(inode) = kzalloc(inode->i_sb->s_blocksize -
++		UDF_I(inode)->i_efe = 0;
++		UDF_I(inode)->i_ext.i_data = kzalloc(inode->i_sb->s_blocksize -
+ 					    sizeof(struct fileEntry),
+ 					    GFP_KERNEL);
+ 	}
+-	if (!UDF_I_DATA(inode)) {
++	if (!UDF_I(inode)->i_ext.i_data) {
+ 		iput(inode);
+ 		*err = -ENOMEM;
+ 		mutex_unlock(&sbi->s_alloc_mutex);
+ 		return NULL;
+ 	}
+ 	if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_AD_IN_ICB))
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_IN_ICB;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_IN_ICB;
+ 	else if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_SHORT_AD))
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_SHORT;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_SHORT;
+ 	else
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_LONG;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_LONG;
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime =
+-		UDF_I_CRTIME(inode) = current_fs_time(inode->i_sb);
++		UDF_I(inode)->i_crtime = current_fs_time(inode->i_sb);
+ 	insert_inode_hash(inode);
+ 	mark_inode_dirty(inode);
+ 	mutex_unlock(&sbi->s_alloc_mutex);
+diff -puN fs/udf/inode.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/inode.c
+@@ -120,8 +120,8 @@ void udf_clear_inode(struct inode *inode
+ 		unlock_kernel();
+ 		write_inode_now(inode, 1);
+ 	}
+-	kfree(UDF_I_DATA(inode));
+-	UDF_I_DATA(inode) = NULL;
++	kfree(UDF_I(inode)->i_ext.i_data);
++	UDF_I(inode)->i_ext.i_data = NULL;
+ }
+ 
+ static int udf_writepage(struct page *page, struct writeback_control *wbc)
+@@ -169,11 +169,11 @@ void udf_expand_file_adinicb(struct inod
+ 	/* from now on we have normal address_space methods */
+ 	inode->i_data.a_ops = &udf_aops;
+ 
+-	if (!UDF_I_LENALLOC(inode)) {
++	if (!UDF_I(inode)->i_lenAlloc) {
+ 		if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_SHORT_AD))
+-			UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_SHORT;
++			UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_SHORT;
+ 		else
+-			UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_LONG;
++			UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_LONG;
+ 		mark_inode_dirty(inode);
+ 		return;
+ 	}
+@@ -183,21 +183,21 @@ void udf_expand_file_adinicb(struct inod
+ 
+ 	if (!PageUptodate(page)) {
+ 		kaddr = kmap(page);
+-		memset(kaddr + UDF_I_LENALLOC(inode), 0x00,
+-		       PAGE_CACHE_SIZE - UDF_I_LENALLOC(inode));
+-		memcpy(kaddr, UDF_I_DATA(inode) + UDF_I_LENEATTR(inode),
+-		       UDF_I_LENALLOC(inode));
++		memset(kaddr + UDF_I(inode)->i_lenAlloc, 0x00,
++		       PAGE_CACHE_SIZE - UDF_I(inode)->i_lenAlloc);
++		memcpy(kaddr, UDF_I(inode)->i_ext.i_data +
++			UDF_I(inode)->i_lenEAttr, UDF_I(inode)->i_lenAlloc);
+ 		flush_dcache_page(page);
+ 		SetPageUptodate(page);
+ 		kunmap(page);
+ 	}
+-	memset(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode), 0x00,
+-	       UDF_I_LENALLOC(inode));
+-	UDF_I_LENALLOC(inode) = 0;
++	memset(UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr, 0x00,
++	       UDF_I(inode)->i_lenAlloc);
++	UDF_I(inode)->i_lenAlloc = 0;
+ 	if (UDF_QUERY_FLAG(inode->i_sb, UDF_FLAG_USE_SHORT_AD))
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_SHORT;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_SHORT;
+ 	else
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_LONG;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_LONG;
+ 
+ 	inode->i_data.a_ops->writepage(page, &udf_wbc);
+ 	page_cache_release(page);
+@@ -226,20 +226,20 @@ struct buffer_head *udf_expand_dir_adini
+ 		alloctype = ICBTAG_FLAG_AD_LONG;
+ 
+ 	if (!inode->i_size) {
+-		UDF_I_ALLOCTYPE(inode) = alloctype;
++		UDF_I(inode)->i_alloc_type = alloctype;
+ 		mark_inode_dirty(inode);
+ 		return NULL;
+ 	}
+ 
+ 	/* alloc block, and copy data to it */
+ 	*block = udf_new_block(inode->i_sb, inode,
+-			       UDF_I_LOCATION(inode).partitionReferenceNum,
+-			       UDF_I_LOCATION(inode).logicalBlockNum, err);
++			       UDF_I(inode)->i_location.partitionReferenceNum,
++			       UDF_I(inode)->i_location.logicalBlockNum, err);
+ 	if (!(*block))
+ 		return NULL;
+ 	newblock = udf_get_pblock(inode->i_sb, *block,
+-				  UDF_I_LOCATION(inode).partitionReferenceNum,
+-				  0);
++				UDF_I(inode)->i_location.partitionReferenceNum,
++				0);
+ 	if (!newblock)
+ 		return NULL;
+ 	dbh = udf_tgetblk(inode->i_sb, newblock);
+@@ -257,14 +257,14 @@ struct buffer_head *udf_expand_dir_adini
+ 	dfibh.soffset = dfibh.eoffset = 0;
+ 	dfibh.sbh = dfibh.ebh = dbh;
+ 	while ((f_pos < size)) {
+-		UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_IN_ICB;
++		UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_IN_ICB;
+ 		sfi = udf_fileident_read(inode, &f_pos, &sfibh, &cfi, NULL,
+ 					 NULL, NULL, NULL);
+ 		if (!sfi) {
+ 			brelse(dbh);
+ 			return NULL;
+ 		}
+-		UDF_I_ALLOCTYPE(inode) = alloctype;
++		UDF_I(inode)->i_alloc_type = alloctype;
+ 		sfi->descTag.tagLocation = cpu_to_le32(*block);
+ 		dfibh.soffset = dfibh.eoffset;
+ 		dfibh.eoffset += (sfibh.eoffset - sfibh.soffset);
+@@ -272,23 +272,23 @@ struct buffer_head *udf_expand_dir_adini
+ 		if (udf_write_fi(inode, sfi, dfi, &dfibh, sfi->impUse,
+ 				 sfi->fileIdent +
+ 					le16_to_cpu(sfi->lengthOfImpUse))) {
+-			UDF_I_ALLOCTYPE(inode) = ICBTAG_FLAG_AD_IN_ICB;
++			UDF_I(inode)->i_alloc_type = ICBTAG_FLAG_AD_IN_ICB;
+ 			brelse(dbh);
+ 			return NULL;
+ 		}
+ 	}
+ 	mark_buffer_dirty_inode(dbh, inode);
+ 
+-	memset(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode), 0,
+-		UDF_I_LENALLOC(inode));
+-	UDF_I_LENALLOC(inode) = 0;
++	memset(UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr, 0,
++		UDF_I(inode)->i_lenAlloc);
++	UDF_I(inode)->i_lenAlloc = 0;
+ 	eloc.logicalBlockNum = *block;
+ 	eloc.partitionReferenceNum =
+-				UDF_I_LOCATION(inode).partitionReferenceNum;
++				UDF_I(inode)->i_location.partitionReferenceNum;
+ 	elen = inode->i_size;
+-	UDF_I_LENEXTENTS(inode) = elen;
++	UDF_I(inode)->i_lenExtents = elen;
+ 	epos.bh = NULL;
+-	epos.block = UDF_I_LOCATION(inode);
++	epos.block = UDF_I(inode)->i_location;
+ 	epos.offset = udf_file_entry_alloc_offset(inode);
+ 	udf_add_aext(inode, &epos, eloc, elen, 0);
+ 	/* UniqueID stuff */
+@@ -321,9 +321,9 @@ static int udf_get_block(struct inode *i
+ 	if (block < 0)
+ 		goto abort_negative;
+ 
+-	if (block == UDF_I_NEXT_ALLOC_BLOCK(inode) + 1) {
+-		UDF_I_NEXT_ALLOC_BLOCK(inode)++;
+-		UDF_I_NEXT_ALLOC_GOAL(inode)++;
++	if (block == UDF_I(inode)->i_next_alloc_block + 1) {
++		UDF_I(inode)->i_next_alloc_block++;
++		UDF_I(inode)->i_next_alloc_goal++;
+ 	}
+ 
+ 	err = 0;
+@@ -392,8 +392,8 @@ int udf_extend_file(struct inode *inode,
+ 			(last_ext->extLength & UDF_EXTENT_FLAG_MASK) |
+ 			(((last_ext->extLength & UDF_EXTENT_LENGTH_MASK) +
+ 			  sb->s_blocksize - 1) & ~(sb->s_blocksize - 1));
+-		UDF_I_LENEXTENTS(inode) =
+-			(UDF_I_LENEXTENTS(inode) + sb->s_blocksize - 1) &
++		UDF_I(inode)->i_lenExtents =
++			(UDF_I(inode)->i_lenExtents + sb->s_blocksize - 1) &
+ 			~(sb->s_blocksize - 1);
+ 	}
+ 
+@@ -470,9 +470,9 @@ out:
+ 	}
+ 
+ 	/* last_pos should point to the last written extent... */
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		last_pos->offset -= sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		last_pos->offset -= sizeof(long_ad);
+ 	else
+ 		return -1;
+@@ -495,11 +495,11 @@ static struct buffer_head *inode_getblk(
+ 	uint32_t newblocknum, newblock;
+ 	sector_t offset = 0;
+ 	int8_t etype;
+-	int goal = 0, pgoal = UDF_I_LOCATION(inode).logicalBlockNum;
++	int goal = 0, pgoal = UDF_I(inode)->i_location.logicalBlockNum;
+ 	int lastblock = 0;
+ 
+ 	prev_epos.offset = udf_file_entry_alloc_offset(inode);
+-	prev_epos.block = UDF_I_LOCATION(inode);
++	prev_epos.block = UDF_I(inode)->i_location;
+ 	prev_epos.bh = NULL;
+ 	cur_epos = next_epos = prev_epos;
+ 	b_off = (loff_t)block << inode->i_sb->s_blocksize_bits;
+@@ -649,23 +649,24 @@ static struct buffer_head *inode_getblk(
+ 	if ((laarr[c].extLength >> 30) == (EXT_NOT_RECORDED_ALLOCATED >> 30))
+ 		newblocknum = laarr[c].extLocation.logicalBlockNum + offset;
+ 	else { /* otherwise, allocate a new block */
+-		if (UDF_I_NEXT_ALLOC_BLOCK(inode) == block)
+-			goal = UDF_I_NEXT_ALLOC_GOAL(inode);
++		if (UDF_I(inode)->i_next_alloc_block == block)
++			goal = UDF_I(inode)->i_next_alloc_goal;
+ 
+ 		if (!goal) {
+ 			if (!(goal = pgoal)) /* XXX: what was intended here? */
+-				goal = UDF_I_LOCATION(inode).logicalBlockNum+1;
++				goal = UDF_I(inode)->
++						i_location.logicalBlockNum + 1;
+ 		}
+ 
+ 		newblocknum = udf_new_block(inode->i_sb, inode,
+-				UDF_I_LOCATION(inode).partitionReferenceNum,
++				UDF_I(inode)->i_location.partitionReferenceNum,
+ 				goal, err);
+ 		if (!newblocknum) {
+ 			brelse(prev_epos.bh);
+ 			*err = -ENOSPC;
+ 			return NULL;
+ 		}
+-		UDF_I_LENEXTENTS(inode) += inode->i_sb->s_blocksize;
++		UDF_I(inode)->i_lenExtents += inode->i_sb->s_blocksize;
+ 	}
+ 
+ 	/* if the extent the requsted block is located in contains multiple
+@@ -690,14 +691,14 @@ static struct buffer_head *inode_getblk(
+ 	brelse(prev_epos.bh);
+ 
+ 	newblock = udf_get_pblock(inode->i_sb, newblocknum,
+-				UDF_I_LOCATION(inode).partitionReferenceNum, 0);
++			UDF_I(inode)->i_location.partitionReferenceNum, 0);
+ 	if (!newblock)
+ 		return NULL;
+ 	*phys = newblock;
+ 	*err = 0;
+ 	*new = 1;
+-	UDF_I_NEXT_ALLOC_BLOCK(inode) = block;
+-	UDF_I_NEXT_ALLOC_GOAL(inode) = newblocknum;
++	UDF_I(inode)->i_next_alloc_block = block;
++	UDF_I(inode)->i_next_alloc_goal = newblocknum;
+ 	inode->i_ctime = current_fs_time(inode->i_sb);
+ 
+ 	if (IS_SYNC(inode))
+@@ -756,7 +757,7 @@ static void udf_split_extents(struct ino
+ 		laarr[curr].extLocation.logicalBlockNum = newblocknum;
+ 		if (etype == (EXT_NOT_RECORDED_NOT_ALLOCATED >> 30))
+ 			laarr[curr].extLocation.partitionReferenceNum =
+-				UDF_I_LOCATION(inode).partitionReferenceNum;
++				UDF_I(inode)->i_location.partitionReferenceNum;
+ 		laarr[curr].extLength = EXT_RECORDED_ALLOCATED |
+ 			blocksize;
+ 		curr++;
+@@ -863,7 +864,7 @@ static void udf_prealloc_extents(struct 
+ 					(*endnum)--;
+ 				}
+ 			}
+-			UDF_I_LENEXTENTS(inode) +=
++			UDF_I(inode)->i_lenExtents +=
+ 				numalloc << inode->i_sb->s_blocksize_bits;
+ 		}
+ 	}
+@@ -1034,23 +1035,25 @@ void udf_truncate(struct inode *inode)
+ 		return;
+ 
+ 	lock_kernel();
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB) {
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+ 		if (inode->i_sb->s_blocksize <
+ 				(udf_file_entry_alloc_offset(inode) +
+ 				 inode->i_size)) {
+ 			udf_expand_file_adinicb(inode, inode->i_size, &err);
+-			if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB) {
+-				inode->i_size = UDF_I_LENALLOC(inode);
++			if (UDF_I(inode)->i_alloc_type ==
++							ICBTAG_FLAG_AD_IN_ICB) {
++				inode->i_size = UDF_I(inode)->i_lenAlloc;
+ 				unlock_kernel();
+ 				return;
+ 			} else
+ 				udf_truncate_extents(inode);
  		} else {
-@@ -1045,7 +1063,7 @@ static int load_elf_binary(struct linux_
+ 			offset = inode->i_size & (inode->i_sb->s_blocksize - 1);
+-			memset(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode) +
+-				offset, 0x00, inode->i_sb->s_blocksize -
++			memset(UDF_I(inode)->i_ext.i_data +
++				UDF_I(inode)->i_lenEAttr + offset,
++				0x00, inode->i_sb->s_blocksize -
+ 				offset - udf_file_entry_alloc_offset(inode));
+-			UDF_I_LENALLOC(inode) = inode->i_size;
++			UDF_I(inode)->i_lenAlloc = inode->i_size;
+ 		}
+ 	} else {
+ 		block_truncate_page(inode->i_mapping, inode->i_size,
+@@ -1084,7 +1087,7 @@ static void __udf_read_inode(struct inod
+ 	 *      i_nlink = 1
+ 	 *      i_op = NULL;
+ 	 */
+-	bh = udf_read_ptagged(inode->i_sb, UDF_I_LOCATION(inode), 0, &ident);
++	bh = udf_read_ptagged(inode->i_sb, UDF_I(inode)->i_location, 0, &ident);
+ 	if (!bh) {
+ 		printk(KERN_ERR "udf: udf_read_inode(ino %ld) failed !bh\n",
+ 		       inode->i_ino);
+@@ -1107,7 +1110,7 @@ static void __udf_read_inode(struct inod
+ 		struct buffer_head *ibh = NULL, *nbh = NULL;
+ 		struct indirectEntry *ie;
  
- 	kfree(elf_phdata);
+-		ibh = udf_read_ptagged(inode->i_sb, UDF_I_LOCATION(inode), 1,
++		ibh = udf_read_ptagged(inode->i_sb, UDF_I(inode)->i_location, 1,
+ 					&ident);
+ 		if (ident == TAG_IDENT_IE) {
+ 			if (ibh) {
+@@ -1121,7 +1124,7 @@ static void __udf_read_inode(struct inod
+ 							    &ident))) {
+ 					if (ident == TAG_IDENT_FE ||
+ 					    ident == TAG_IDENT_EFE) {
+-						memcpy(&UDF_I_LOCATION(inode),
++						memcpy(&UDF_I(inode)->i_location,
+ 						       &loc,
+ 						       sizeof(kernel_lb_addr));
+ 						brelse(bh);
+@@ -1165,44 +1168,45 @@ static void udf_fill_inode(struct inode 
+ 	efe = (struct extendedFileEntry *)bh->b_data;
  
--	if (interpreter_type != INTERPRETER_AOUT)
-+	if (!IS_AOUT_INTERP(interpreter_type))
- 		sys_close(elf_exec_fileno);
+ 	if (fe->icbTag.strategyType == cpu_to_le16(4))
+-		UDF_I_STRAT4096(inode) = 0;
++		UDF_I(inode)->i_strat4096 = 0;
+ 	else /* if (fe->icbTag.strategyType == cpu_to_le16(4096)) */
+-		UDF_I_STRAT4096(inode) = 1;
++		UDF_I(inode)->i_strat4096 = 1;
  
- 	set_binfmt(&elf_format);
-@@ -1061,14 +1079,14 @@ static int load_elf_binary(struct linux_
- 	compute_creds(bprm);
- 	current->flags &= ~PF_FORKNOEXEC;
- 	retval = create_elf_tables(bprm, &loc->elf_ex,
--			  (interpreter_type == INTERPRETER_AOUT),
-+			  IS_AOUT_INTERP(interpreter_type),
- 			  load_addr, interp_load_addr);
- 	if (retval < 0) {
- 		send_sig(SIGKILL, current, 0);
+-	UDF_I_ALLOCTYPE(inode) = le16_to_cpu(fe->icbTag.flags) &
++	UDF_I(inode)->i_alloc_type = le16_to_cpu(fe->icbTag.flags) &
+ 							ICBTAG_FLAG_AD_MASK;
+-	UDF_I_UNIQUE(inode) = 0;
+-	UDF_I_LENEATTR(inode) = 0;
+-	UDF_I_LENEXTENTS(inode) = 0;
+-	UDF_I_LENALLOC(inode) = 0;
+-	UDF_I_NEXT_ALLOC_BLOCK(inode) = 0;
+-	UDF_I_NEXT_ALLOC_GOAL(inode) = 0;
++	UDF_I(inode)->i_unique = 0;
++	UDF_I(inode)->i_lenEAttr = 0;
++	UDF_I(inode)->i_lenExtents = 0;
++	UDF_I(inode)->i_lenAlloc = 0;
++	UDF_I(inode)->i_next_alloc_block = 0;
++	UDF_I(inode)->i_next_alloc_goal = 0;
+ 	if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_EFE)) {
+-		UDF_I_EFE(inode) = 1;
+-		UDF_I_USE(inode) = 0;
++		UDF_I(inode)->i_efe = 1;
++		UDF_I(inode)->i_use = 0;
+ 		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize -
+ 					sizeof(struct extendedFileEntry))) {
+ 			make_bad_inode(inode);
+ 			return;
+ 		}
+-		memcpy(UDF_I_DATA(inode),
++		memcpy(UDF_I(inode)->i_ext.i_data,
+ 		       bh->b_data + sizeof(struct extendedFileEntry),
+ 		       inode->i_sb->s_blocksize -
+ 					sizeof(struct extendedFileEntry));
+ 	} else if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_FE)) {
+-		UDF_I_EFE(inode) = 0;
+-		UDF_I_USE(inode) = 0;
++		UDF_I(inode)->i_efe = 0;
++		UDF_I(inode)->i_use = 0;
+ 		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize -
+ 						sizeof(struct fileEntry))) {
+ 			make_bad_inode(inode);
+ 			return;
+ 		}
+-		memcpy(UDF_I_DATA(inode), bh->b_data + sizeof(struct fileEntry),
++		memcpy(UDF_I(inode)->i_ext.i_data,
++		       bh->b_data + sizeof(struct fileEntry),
+ 		       inode->i_sb->s_blocksize - sizeof(struct fileEntry));
+ 	} else if (fe->descTag.tagIdent == cpu_to_le16(TAG_IDENT_USE)) {
+-		UDF_I_EFE(inode) = 0;
+-		UDF_I_USE(inode) = 1;
+-		UDF_I_LENALLOC(inode) = le32_to_cpu(
++		UDF_I(inode)->i_efe = 0;
++		UDF_I(inode)->i_use = 1;
++		UDF_I(inode)->i_lenAlloc = le32_to_cpu(
+ 				((struct unallocSpaceEntry *)bh->b_data)->
+ 				 lengthAllocDescs);
+ 		if (udf_alloc_i_data(inode, inode->i_sb->s_blocksize -
+@@ -1210,7 +1214,7 @@ static void udf_fill_inode(struct inode 
+ 			make_bad_inode(inode);
+ 			return;
+ 		}
+-		memcpy(UDF_I_DATA(inode),
++		memcpy(UDF_I(inode)->i_ext.i_data,
+ 		       bh->b_data + sizeof(struct unallocSpaceEntry),
+ 		       inode->i_sb->s_blocksize -
+ 					sizeof(struct unallocSpaceEntry));
+@@ -1234,12 +1238,12 @@ static void udf_fill_inode(struct inode 
+ 		inode->i_nlink = 1;
+ 
+ 	inode->i_size = le64_to_cpu(fe->informationLength);
+-	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	UDF_I(inode)->i_lenExtents = inode->i_size;
+ 
+ 	inode->i_mode = udf_convert_permissions(fe);
+ 	inode->i_mode &= ~UDF_SB(inode->i_sb)->s_umask;
+ 
+-	if (UDF_I_EFE(inode) == 0) {
++	if (UDF_I(inode)->i_efe == 0) {
+ 		inode->i_blocks = le64_to_cpu(fe->logicalBlocksRecorded) <<
+ 			(inode->i_sb->s_blocksize_bits - 9);
+ 
+@@ -1267,10 +1271,10 @@ static void udf_fill_inode(struct inode 
+ 			inode->i_ctime = sbi->s_record_time;
+ 		}
+ 
+-		UDF_I_UNIQUE(inode) = le64_to_cpu(fe->uniqueID);
+-		UDF_I_LENEATTR(inode) = le32_to_cpu(fe->lengthExtendedAttr);
+-		UDF_I_LENALLOC(inode) = le32_to_cpu(fe->lengthAllocDescs);
+-		offset = sizeof(struct fileEntry) + UDF_I_LENEATTR(inode);
++		UDF_I(inode)->i_unique = le64_to_cpu(fe->uniqueID);
++		UDF_I(inode)->i_lenEAttr = le32_to_cpu(fe->lengthExtendedAttr);
++		UDF_I(inode)->i_lenAlloc = le32_to_cpu(fe->lengthAllocDescs);
++		offset = sizeof(struct fileEntry) + UDF_I(inode)->i_lenEAttr;
+ 	} else {
+ 		inode->i_blocks = le64_to_cpu(efe->logicalBlocksRecorded) <<
+ 		    (inode->i_sb->s_blocksize_bits - 9);
+@@ -1293,10 +1297,10 @@ static void udf_fill_inode(struct inode 
+ 
+ 		if (udf_stamp_to_time(&convtime, &convtime_usec,
+ 				      lets_to_cpu(efe->createTime))) {
+-			UDF_I_CRTIME(inode).tv_sec = convtime;
+-			UDF_I_CRTIME(inode).tv_nsec = convtime_usec * 1000;
++			UDF_I(inode)->i_crtime.tv_sec = convtime;
++			UDF_I(inode)->i_crtime.tv_nsec = convtime_usec * 1000;
+ 		} else {
+-			UDF_I_CRTIME(inode) = sbi->s_record_time;
++			UDF_I(inode)->i_crtime = sbi->s_record_time;
+ 		}
+ 
+ 		if (udf_stamp_to_time(&convtime, &convtime_usec,
+@@ -1307,11 +1311,11 @@ static void udf_fill_inode(struct inode 
+ 			inode->i_ctime = sbi->s_record_time;
+ 		}
+ 
+-		UDF_I_UNIQUE(inode) = le64_to_cpu(efe->uniqueID);
+-		UDF_I_LENEATTR(inode) = le32_to_cpu(efe->lengthExtendedAttr);
+-		UDF_I_LENALLOC(inode) = le32_to_cpu(efe->lengthAllocDescs);
++		UDF_I(inode)->i_unique = le64_to_cpu(efe->uniqueID);
++		UDF_I(inode)->i_lenEAttr = le32_to_cpu(efe->lengthExtendedAttr);
++		UDF_I(inode)->i_lenAlloc = le32_to_cpu(efe->lengthAllocDescs);
+ 		offset = sizeof(struct extendedFileEntry) +
+-							UDF_I_LENEATTR(inode);
++						UDF_I(inode)->i_lenEAttr;
+ 	}
+ 
+ 	switch (fe->icbTag.fileType) {
+@@ -1324,7 +1328,7 @@ static void udf_fill_inode(struct inode 
+ 	case ICBTAG_FILE_TYPE_REALTIME:
+ 	case ICBTAG_FILE_TYPE_REGULAR:
+ 	case ICBTAG_FILE_TYPE_UNDEF:
+-		if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB)
++		if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 			inode->i_data.a_ops = &udf_adinicb_aops;
+ 		else
+ 			inode->i_data.a_ops = &udf_aops;
+@@ -1371,9 +1375,9 @@ static void udf_fill_inode(struct inode 
+ 
+ static int udf_alloc_i_data(struct inode *inode, size_t size)
+ {
+-	UDF_I_DATA(inode) = kmalloc(size, GFP_KERNEL);
++	UDF_I(inode)->i_ext.i_data = kmalloc(size, GFP_KERNEL);
+ 
+-	if (!UDF_I_DATA(inode)) {
++	if (!UDF_I(inode)->i_ext.i_data) {
+ 		printk(KERN_ERR "udf:udf_alloc_i_data (ino %ld) "
+ 				"no free memory\n", inode->i_ino);
+ 		return -ENOMEM;
+@@ -1447,7 +1451,7 @@ static int udf_update_inode(struct inode
+ 
+ 	bh = udf_tread(inode->i_sb,
+ 			udf_get_lb_pblock(inode->i_sb,
+-					  UDF_I_LOCATION(inode), 0));
++					  UDF_I(inode)->i_location, 0));
+ 	if (!bh) {
+ 		udf_debug("bread failure\n");
+ 		return -EIO;
+@@ -1462,14 +1466,14 @@ static int udf_update_inode(struct inode
+ 		struct unallocSpaceEntry *use =
+ 			(struct unallocSpaceEntry *)bh->b_data;
+ 
+-		use->lengthAllocDescs = cpu_to_le32(UDF_I_LENALLOC(inode));
++		use->lengthAllocDescs = cpu_to_le32(UDF_I(inode)->i_lenAlloc);
+ 		memcpy(bh->b_data + sizeof(struct unallocSpaceEntry),
+-		       UDF_I_DATA(inode), inode->i_sb->s_blocksize -
++		       UDF_I(inode)->i_ext.i_data, inode->i_sb->s_blocksize -
+ 					sizeof(struct unallocSpaceEntry));
+ 		crclen = sizeof(struct unallocSpaceEntry) +
+-				UDF_I_LENALLOC(inode) - sizeof(tag);
++				UDF_I(inode)->i_lenAlloc - sizeof(tag);
+ 		use->descTag.tagLocation = cpu_to_le32(
+-						UDF_I_LOCATION(inode).
++						UDF_I(inode)->i_location.
+ 							logicalBlockNum);
+ 		use->descTag.descCRCLength = cpu_to_le16(crclen);
+ 		use->descTag.descCRC = cpu_to_le16(udf_crc((char *)use +
+@@ -1534,8 +1538,9 @@ static int udf_update_inode(struct inode
+ 		dsea->minorDeviceIdent = cpu_to_le32(iminor(inode));
+ 	}
+ 
+-	if (UDF_I_EFE(inode) == 0) {
+-		memcpy(bh->b_data + sizeof(struct fileEntry), UDF_I_DATA(inode),
++	if (UDF_I(inode)->i_efe == 0) {
++		memcpy(bh->b_data + sizeof(struct fileEntry),
++		       UDF_I(inode)->i_ext.i_data,
+ 		       inode->i_sb->s_blocksize - sizeof(struct fileEntry));
+ 		fe->logicalBlocksRecorded = cpu_to_le64(
+ 			(inode->i_blocks + (1 << (blocksize_bits - 9)) - 1) >>
+@@ -1551,14 +1556,14 @@ static int udf_update_inode(struct inode
+ 		strcpy(fe->impIdent.ident, UDF_ID_DEVELOPER);
+ 		fe->impIdent.identSuffix[0] = UDF_OS_CLASS_UNIX;
+ 		fe->impIdent.identSuffix[1] = UDF_OS_ID_LINUX;
+-		fe->uniqueID = cpu_to_le64(UDF_I_UNIQUE(inode));
+-		fe->lengthExtendedAttr = cpu_to_le32(UDF_I_LENEATTR(inode));
+-		fe->lengthAllocDescs = cpu_to_le32(UDF_I_LENALLOC(inode));
++		fe->uniqueID = cpu_to_le64(UDF_I(inode)->i_unique);
++		fe->lengthExtendedAttr = cpu_to_le32(UDF_I(inode)->i_lenEAttr);
++		fe->lengthAllocDescs = cpu_to_le32(UDF_I(inode)->i_lenAlloc);
+ 		fe->descTag.tagIdent = cpu_to_le16(TAG_IDENT_FE);
+ 		crclen = sizeof(struct fileEntry);
+ 	} else {
+ 		memcpy(bh->b_data + sizeof(struct extendedFileEntry),
+-		       UDF_I_DATA(inode),
++		       UDF_I(inode)->i_ext.i_data,
+ 		       inode->i_sb->s_blocksize -
+ 					sizeof(struct extendedFileEntry));
+ 		efe->objectSize = cpu_to_le64(inode->i_size);
+@@ -1566,26 +1571,26 @@ static int udf_update_inode(struct inode
+ 			(inode->i_blocks + (1 << (blocksize_bits - 9)) - 1) >>
+ 			(blocksize_bits - 9));
+ 
+-		if (UDF_I_CRTIME(inode).tv_sec > inode->i_atime.tv_sec ||
+-		    (UDF_I_CRTIME(inode).tv_sec == inode->i_atime.tv_sec &&
+-		     UDF_I_CRTIME(inode).tv_nsec > inode->i_atime.tv_nsec))
+-			UDF_I_CRTIME(inode) = inode->i_atime;
+-
+-		if (UDF_I_CRTIME(inode).tv_sec > inode->i_mtime.tv_sec ||
+-		    (UDF_I_CRTIME(inode).tv_sec == inode->i_mtime.tv_sec &&
+-		     UDF_I_CRTIME(inode).tv_nsec > inode->i_mtime.tv_nsec))
+-			UDF_I_CRTIME(inode) = inode->i_mtime;
+-
+-		if (UDF_I_CRTIME(inode).tv_sec > inode->i_ctime.tv_sec ||
+-		    (UDF_I_CRTIME(inode).tv_sec == inode->i_ctime.tv_sec &&
+-		     UDF_I_CRTIME(inode).tv_nsec > inode->i_ctime.tv_nsec))
+-			UDF_I_CRTIME(inode) = inode->i_ctime;
++		if (UDF_I(inode)->i_crtime.tv_sec > inode->i_atime.tv_sec ||
++		    (UDF_I(inode)->i_crtime.tv_sec == inode->i_atime.tv_sec &&
++		     UDF_I(inode)->i_crtime.tv_nsec > inode->i_atime.tv_nsec))
++			UDF_I(inode)->i_crtime = inode->i_atime;
++
++		if (UDF_I(inode)->i_crtime.tv_sec > inode->i_mtime.tv_sec ||
++		    (UDF_I(inode)->i_crtime.tv_sec == inode->i_mtime.tv_sec &&
++		     UDF_I(inode)->i_crtime.tv_nsec > inode->i_mtime.tv_nsec))
++			UDF_I(inode)->i_crtime = inode->i_mtime;
++
++		if (UDF_I(inode)->i_crtime.tv_sec > inode->i_ctime.tv_sec ||
++		    (UDF_I(inode)->i_crtime.tv_sec == inode->i_ctime.tv_sec &&
++		     UDF_I(inode)->i_crtime.tv_nsec > inode->i_ctime.tv_nsec))
++			UDF_I(inode)->i_crtime = inode->i_ctime;
+ 
+ 		if (udf_time_to_stamp(&cpu_time, inode->i_atime))
+ 			efe->accessTime = cpu_to_lets(cpu_time);
+ 		if (udf_time_to_stamp(&cpu_time, inode->i_mtime))
+ 			efe->modificationTime = cpu_to_lets(cpu_time);
+-		if (udf_time_to_stamp(&cpu_time, UDF_I_CRTIME(inode)))
++		if (udf_time_to_stamp(&cpu_time, UDF_I(inode)->i_crtime))
+ 			efe->createTime = cpu_to_lets(cpu_time);
+ 		if (udf_time_to_stamp(&cpu_time, inode->i_ctime))
+ 			efe->attrTime = cpu_to_lets(cpu_time);
+@@ -1594,13 +1599,13 @@ static int udf_update_inode(struct inode
+ 		strcpy(efe->impIdent.ident, UDF_ID_DEVELOPER);
+ 		efe->impIdent.identSuffix[0] = UDF_OS_CLASS_UNIX;
+ 		efe->impIdent.identSuffix[1] = UDF_OS_ID_LINUX;
+-		efe->uniqueID = cpu_to_le64(UDF_I_UNIQUE(inode));
+-		efe->lengthExtendedAttr = cpu_to_le32(UDF_I_LENEATTR(inode));
+-		efe->lengthAllocDescs = cpu_to_le32(UDF_I_LENALLOC(inode));
++		efe->uniqueID = cpu_to_le64(UDF_I(inode)->i_unique);
++		efe->lengthExtendedAttr = cpu_to_le32(UDF_I(inode)->i_lenEAttr);
++		efe->lengthAllocDescs = cpu_to_le32(UDF_I(inode)->i_lenAlloc);
+ 		efe->descTag.tagIdent = cpu_to_le16(TAG_IDENT_EFE);
+ 		crclen = sizeof(struct extendedFileEntry);
+ 	}
+-	if (UDF_I_STRAT4096(inode)) {
++	if (UDF_I(inode)->i_strat4096) {
+ 		fe->icbTag.strategyType = cpu_to_le16(4096);
+ 		fe->icbTag.strategyParameter = cpu_to_le16(1);
+ 		fe->icbTag.numEntries = cpu_to_le16(2);
+@@ -1624,7 +1629,7 @@ static int udf_update_inode(struct inode
+ 	else if (S_ISSOCK(inode->i_mode))
+ 		fe->icbTag.fileType = ICBTAG_FILE_TYPE_SOCKET;
+ 
+-	icbflags =	UDF_I_ALLOCTYPE(inode) |
++	icbflags =	UDF_I(inode)->i_alloc_type |
+ 			((inode->i_mode & S_ISUID) ? ICBTAG_FLAG_SETUID : 0) |
+ 			((inode->i_mode & S_ISGID) ? ICBTAG_FLAG_SETGID : 0) |
+ 			((inode->i_mode & S_ISVTX) ? ICBTAG_FLAG_STICKY : 0) |
+@@ -1639,8 +1644,9 @@ static int udf_update_inode(struct inode
+ 		fe->descTag.descVersion = cpu_to_le16(2);
+ 	fe->descTag.tagSerialNum = cpu_to_le16(sbi->s_serial_number);
+ 	fe->descTag.tagLocation = cpu_to_le32(
+-					UDF_I_LOCATION(inode).logicalBlockNum);
+-	crclen += UDF_I_LENEATTR(inode) + UDF_I_LENALLOC(inode) - sizeof(tag);
++				      UDF_I(inode)->i_location.logicalBlockNum);
++	crclen += UDF_I(inode)->i_lenEAttr + UDF_I(inode)->i_lenAlloc -
++								sizeof(tag);
+ 	fe->descTag.descCRCLength = cpu_to_le16(crclen);
+ 	fe->descTag.descCRC = cpu_to_le16(udf_crc((char *)fe + sizeof(tag),
+ 						  crclen, 0));
+@@ -1671,7 +1677,7 @@ struct inode *udf_iget(struct super_bloc
+ 		return NULL;
+ 
+ 	if (inode->i_state & I_NEW) {
+-		memcpy(&UDF_I_LOCATION(inode), &ino, sizeof(kernel_lb_addr));
++		memcpy(&UDF_I(inode)->i_location, &ino, sizeof(kernel_lb_addr));
+ 		__udf_read_inode(inode);
+ 		unlock_new_inode(inode);
+ 	}
+@@ -1705,15 +1711,15 @@ int8_t udf_add_aext(struct inode *inode,
+ 	uint8_t *ptr;
+ 
+ 	if (!epos->bh)
+-		ptr = UDF_I_DATA(inode) + epos->offset -
++		ptr = UDF_I(inode)->i_ext.i_data + epos->offset -
+ 			udf_file_entry_alloc_offset(inode) +
+-			UDF_I_LENEATTR(inode);
++			UDF_I(inode)->i_lenEAttr;
+ 	else
+ 		ptr = epos->bh->b_data + epos->offset;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		return -1;
+@@ -1763,7 +1769,7 @@ int8_t udf_add_aext(struct inode *inode,
+ 					cpu_to_le32(le32_to_cpu(
+ 					aed->lengthAllocDescs) + adsize);
+ 			} else {
+-				UDF_I_LENALLOC(inode) += adsize;
++				UDF_I(inode)->i_lenAlloc += adsize;
+ 				mark_inode_dirty(inode);
+ 			}
+ 		}
+@@ -1773,7 +1779,7 @@ int8_t udf_add_aext(struct inode *inode,
+ 		else
+ 			udf_new_tag(nbh->b_data, TAG_IDENT_AED, 2, 1,
+ 				    epos->block.logicalBlockNum, sizeof(tag));
+-		switch (UDF_I_ALLOCTYPE(inode)) {
++		switch (UDF_I(inode)->i_alloc_type) {
+ 		case ICBTAG_FLAG_AD_SHORT:
+ 			sad = (short_ad *)sptr;
+ 			sad->extLength = cpu_to_le32(EXT_NEXT_EXTENT_ALLOCDECS |
+@@ -1807,7 +1813,7 @@ int8_t udf_add_aext(struct inode *inode,
+ 	etype = udf_write_aext(inode, epos, eloc, elen, inc);
+ 
+ 	if (!epos->bh) {
+-		UDF_I_LENALLOC(inode) += adsize;
++		UDF_I(inode)->i_lenAlloc += adsize;
+ 		mark_inode_dirty(inode);
+ 	} else {
+ 		aed = (struct allocExtDesc *)epos->bh->b_data;
+@@ -1836,13 +1842,13 @@ int8_t udf_write_aext(struct inode *inod
+ 	long_ad *lad;
+ 
+ 	if (!epos->bh)
+-		ptr = UDF_I_DATA(inode) + epos->offset -
++		ptr = UDF_I(inode)->i_ext.i_data + epos->offset -
+ 			udf_file_entry_alloc_offset(inode) +
+-			UDF_I_LENEATTR(inode);
++			UDF_I(inode)->i_lenEAttr;
+ 	else
+ 		ptr = epos->bh->b_data + epos->offset;
+ 
+-	switch (UDF_I_ALLOCTYPE(inode)) {
++	switch (UDF_I(inode)->i_alloc_type) {
+ 	case ICBTAG_FLAG_AD_SHORT:
+ 		sad = (short_ad *)ptr;
+ 		sad->extLength = cpu_to_le32(elen);
+@@ -1914,11 +1920,11 @@ int8_t udf_current_aext(struct inode *in
+ 	if (!epos->bh) {
+ 		if (!epos->offset)
+ 			epos->offset = udf_file_entry_alloc_offset(inode);
+-		ptr = UDF_I_DATA(inode) + epos->offset -
++		ptr = UDF_I(inode)->i_ext.i_data + epos->offset -
+ 			udf_file_entry_alloc_offset(inode) +
+-			UDF_I_LENEATTR(inode);
++			UDF_I(inode)->i_lenEAttr;
+ 		alen = udf_file_entry_alloc_offset(inode) +
+-							UDF_I_LENALLOC(inode);
++						UDF_I(inode)->i_lenAlloc;
+ 	} else {
+ 		if (!epos->offset)
+ 			epos->offset = sizeof(struct allocExtDesc);
+@@ -1928,7 +1934,7 @@ int8_t udf_current_aext(struct inode *in
+ 							lengthAllocDescs);
+ 	}
+ 
+-	switch (UDF_I_ALLOCTYPE(inode)) {
++	switch (UDF_I(inode)->i_alloc_type) {
+ 	case ICBTAG_FLAG_AD_SHORT:
+ 		sad = udf_get_fileshortad(ptr, alen, &epos->offset, inc);
+ 		if (!sad)
+@@ -1936,7 +1942,7 @@ int8_t udf_current_aext(struct inode *in
+ 		etype = le32_to_cpu(sad->extLength) >> 30;
+ 		eloc->logicalBlockNum = le32_to_cpu(sad->extPosition);
+ 		eloc->partitionReferenceNum =
+-				UDF_I_LOCATION(inode).partitionReferenceNum;
++				UDF_I(inode)->i_location.partitionReferenceNum;
+ 		*elen = le32_to_cpu(sad->extLength) & UDF_EXTENT_LENGTH_MASK;
+ 		break;
+ 	case ICBTAG_FLAG_AD_LONG:
+@@ -1949,7 +1955,7 @@ int8_t udf_current_aext(struct inode *in
+ 		break;
+ 	default:
+ 		udf_debug("alloc_type = %d unsupported\n",
+-				UDF_I_ALLOCTYPE(inode));
++				UDF_I(inode)->i_alloc_type);
+ 		return -1;
+ 	}
+ 
+@@ -1990,9 +1996,9 @@ int8_t udf_delete_aext(struct inode *ino
+ 		get_bh(epos.bh);
+ 	}
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		adsize = 0;
+@@ -2019,7 +2025,7 @@ int8_t udf_delete_aext(struct inode *ino
+ 		udf_write_aext(inode, &oepos, eloc, elen, 1);
+ 		udf_write_aext(inode, &oepos, eloc, elen, 1);
+ 		if (!oepos.bh) {
+-			UDF_I_LENALLOC(inode) -= (adsize * 2);
++			UDF_I(inode)->i_lenAlloc -= (adsize * 2);
+ 			mark_inode_dirty(inode);
+ 		} else {
+ 			aed = (struct allocExtDesc *)oepos.bh->b_data;
+@@ -2038,7 +2044,7 @@ int8_t udf_delete_aext(struct inode *ino
+ 	} else {
+ 		udf_write_aext(inode, &oepos, eloc, elen, 1);
+ 		if (!oepos.bh) {
+-			UDF_I_LENALLOC(inode) -= adsize;
++			UDF_I(inode)->i_lenAlloc -= adsize;
+ 			mark_inode_dirty(inode);
+ 		} else {
+ 			aed = (struct allocExtDesc *)oepos.bh->b_data;
+@@ -2077,7 +2083,7 @@ int8_t inode_bmap(struct inode *inode, s
+ 	}
+ 
+ 	pos->offset = 0;
+-	pos->block = UDF_I_LOCATION(inode);
++	pos->block = UDF_I(inode)->i_location;
+ 	pos->bh = NULL;
+ 	*elen = 0;
+ 
+@@ -2085,7 +2091,7 @@ int8_t inode_bmap(struct inode *inode, s
+ 		etype = udf_next_aext(inode, pos, eloc, elen, 1);
+ 		if (etype == -1) {
+ 			*offset = (bcount - lbcount) >> blocksize_bits;
+-			UDF_I_LENEXTENTS(inode) = lbcount;
++			UDF_I(inode)->i_lenExtents = lbcount;
+ 			return -1;
+ 		}
+ 		lbcount += *elen;
+diff -puN fs/udf/misc.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/misc.c
+--- a/fs/udf/misc.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/misc.c
+@@ -52,16 +52,16 @@ struct genericFormat *udf_add_extendedat
+ 	int offset;
+ 	uint16_t crclen;
+ 
+-	ea = UDF_I_DATA(inode);
+-	if (UDF_I_LENEATTR(inode)) {
+-		ad = UDF_I_DATA(inode) + UDF_I_LENEATTR(inode);
++	ea = UDF_I(inode)->i_ext.i_data;
++	if (UDF_I(inode)->i_lenEAttr) {
++		ad = UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr;
+ 	} else {
+ 		ad = ea;
+ 		size += sizeof(struct extendedAttrHeaderDesc);
+ 	}
+ 
+ 	offset = inode->i_sb->s_blocksize - udf_file_entry_alloc_offset(inode) -
+-		UDF_I_LENALLOC(inode);
++		UDF_I(inode)->i_lenAlloc;
+ 
+ 	/* TODO - Check for FreeEASpace */
+ 
+@@ -69,21 +69,21 @@ struct genericFormat *udf_add_extendedat
+ 		struct extendedAttrHeaderDesc *eahd;
+ 		eahd = (struct extendedAttrHeaderDesc *)ea;
+ 
+-		if (UDF_I_LENALLOC(inode))
+-			memmove(&ad[size], ad, UDF_I_LENALLOC(inode));
++		if (UDF_I(inode)->i_lenAlloc)
++			memmove(&ad[size], ad, UDF_I(inode)->i_lenAlloc);
+ 
+-		if (UDF_I_LENEATTR(inode)) {
++		if (UDF_I(inode)->i_lenEAttr) {
+ 			/* check checksum/crc */
+ 			if (eahd->descTag.tagIdent !=
+ 					cpu_to_le16(TAG_IDENT_EAHD) ||
+ 			    le32_to_cpu(eahd->descTag.tagLocation) !=
+-					UDF_I_LOCATION(inode).logicalBlockNum)
++					UDF_I(inode)->i_location.logicalBlockNum)
+ 				return NULL;
+ 		} else {
+ 			struct udf_sb_info *sbi = UDF_SB(inode->i_sb);
+ 
+ 			size -= sizeof(struct extendedAttrHeaderDesc);
+-			UDF_I_LENEATTR(inode) +=
++			UDF_I(inode)->i_lenEAttr +=
+ 				sizeof(struct extendedAttrHeaderDesc);
+ 			eahd->descTag.tagIdent = cpu_to_le16(TAG_IDENT_EAHD);
+ 			if (sbi->s_udfrev >= 0x0200)
+@@ -93,15 +93,15 @@ struct genericFormat *udf_add_extendedat
+ 			eahd->descTag.tagSerialNum =
+ 					cpu_to_le16(sbi->s_serial_number);
+ 			eahd->descTag.tagLocation = cpu_to_le32(
+-					UDF_I_LOCATION(inode).logicalBlockNum);
++				UDF_I(inode)->i_location.logicalBlockNum);
+ 			eahd->impAttrLocation = cpu_to_le32(0xFFFFFFFF);
+ 			eahd->appAttrLocation = cpu_to_le32(0xFFFFFFFF);
+ 		}
+ 
+-		offset = UDF_I_LENEATTR(inode);
++		offset = UDF_I(inode)->i_lenEAttr;
+ 		if (type < 2048) {
+ 			if (le32_to_cpu(eahd->appAttrLocation) <
+-					UDF_I_LENEATTR(inode)) {
++					UDF_I(inode)->i_lenEAttr) {
+ 				uint32_t aal =
+ 					le32_to_cpu(eahd->appAttrLocation);
+ 				memmove(&ea[offset - aal + size],
+@@ -111,7 +111,7 @@ struct genericFormat *udf_add_extendedat
+ 						cpu_to_le32(aal + size);
+ 			}
+ 			if (le32_to_cpu(eahd->impAttrLocation) <
+-					UDF_I_LENEATTR(inode)) {
++					UDF_I(inode)->i_lenEAttr) {
+ 				uint32_t ial =
+ 					le32_to_cpu(eahd->impAttrLocation);
+ 				memmove(&ea[offset - ial + size],
+@@ -122,7 +122,7 @@ struct genericFormat *udf_add_extendedat
+ 			}
+ 		} else if (type < 65536) {
+ 			if (le32_to_cpu(eahd->appAttrLocation) <
+-					UDF_I_LENEATTR(inode)) {
++					UDF_I(inode)->i_lenEAttr) {
+ 				uint32_t aal =
+ 					le32_to_cpu(eahd->appAttrLocation);
+ 				memmove(&ea[offset - aal + size],
+@@ -138,7 +138,7 @@ struct genericFormat *udf_add_extendedat
+ 		eahd->descTag.descCRC = cpu_to_le16(udf_crc((char *)eahd +
+ 						sizeof(tag), crclen, 0));
+ 		eahd->descTag.tagChecksum = udf_tag_checksum(&eahd->descTag);
+-		UDF_I_LENEATTR(inode) += size;
++		UDF_I(inode)->i_lenEAttr += size;
+ 		return (struct genericFormat *)&ea[offset];
+ 	}
+ 	if (loc & 0x02)
+@@ -154,9 +154,9 @@ struct genericFormat *udf_get_extendedat
+ 	uint8_t *ea = NULL;
+ 	uint32_t offset;
+ 
+-	ea = UDF_I_DATA(inode);
++	ea = UDF_I(inode)->i_ext.i_data;
+ 
+-	if (UDF_I_LENEATTR(inode)) {
++	if (UDF_I(inode)->i_lenEAttr) {
+ 		struct extendedAttrHeaderDesc *eahd;
+ 		eahd = (struct extendedAttrHeaderDesc *)ea;
+ 
+@@ -164,7 +164,7 @@ struct genericFormat *udf_get_extendedat
+ 		if (eahd->descTag.tagIdent !=
+ 				cpu_to_le16(TAG_IDENT_EAHD) ||
+ 		    le32_to_cpu(eahd->descTag.tagLocation) !=
+-				UDF_I_LOCATION(inode).logicalBlockNum)
++				UDF_I(inode)->i_location.logicalBlockNum)
+ 			return NULL;
+ 
+ 		if (type < 2048)
+@@ -174,7 +174,7 @@ struct genericFormat *udf_get_extendedat
+ 		else
+ 			offset = le32_to_cpu(eahd->appAttrLocation);
+ 
+-		while (offset < UDF_I_LENEATTR(inode)) {
++		while (offset < UDF_I(inode)->i_lenEAttr) {
+ 			gaf = (struct genericFormat *)&ea[offset];
+ 			if (le32_to_cpu(gaf->attrType) == type &&
+ 					gaf->attrSubtype == subtype)
+diff -puN fs/udf/namei.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/namei.c
+@@ -54,7 +54,7 @@ int udf_write_fi(struct inode *inode, st
+ 		sizeof(struct fileIdentDesc);
+ 	int adinicb = 0;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		adinicb = 1;
+ 
+ 	offset = fibh->soffset + sizeof(struct fileIdentDesc);
+@@ -164,16 +164,17 @@ static struct fileIdentDesc *udf_find_en
+ 
+ 	fibh->soffset = fibh->eoffset =
+ 		(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+ 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+ 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen) {
+-			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
++			if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 				epos.offset -= sizeof(short_ad);
+-			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
++			else if (UDF_I(dir)->i_alloc_type ==
++							ICBTAG_FLAG_AD_LONG)
+ 				epos.offset -= sizeof(long_ad);
+ 		} else
+ 			offset = 0;
+@@ -372,16 +373,17 @@ static struct fileIdentDesc *udf_add_ent
+ 
+ 	fibh->soffset = fibh->eoffset =
+ 			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh->sbh = fibh->ebh = NULL;
+ 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+ 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen) {
+-			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
++			if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 				epos.offset -= sizeof(short_ad);
+-			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
++			else if (UDF_I(dir)->i_alloc_type ==
++							ICBTAG_FLAG_AD_LONG)
+ 				epos.offset -= sizeof(long_ad);
+ 		} else
+ 			offset = 0;
+@@ -393,10 +395,10 @@ static struct fileIdentDesc *udf_add_ent
+ 			return NULL;
+ 		}
+ 
+-		block = UDF_I_LOCATION(dir).logicalBlockNum;
++		block = UDF_I(dir)->i_location.logicalBlockNum;
+ 
+ 	} else {
+-		block = udf_get_lb_pblock(dir->i_sb, UDF_I_LOCATION(dir), 0);
++		block = udf_get_lb_pblock(dir->i_sb, UDF_I(dir)->i_location, 0);
+ 		fibh->sbh = fibh->ebh = NULL;
+ 		fibh->soffset = fibh->eoffset = sb->s_blocksize;
+ 		goto add;
+@@ -475,7 +477,7 @@ static struct fileIdentDesc *udf_add_ent
+ add:
+ 	f_pos += nfidlen;
+ 
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB &&
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB &&
+ 	    sb->s_blocksize - fibh->eoffset < nfidlen) {
+ 		brelse(epos.bh);
+ 		epos.bh = NULL;
+@@ -489,15 +491,15 @@ add:
+ 				udf_expand_dir_adinicb(dir, &block, err);
+ 		if (!fibh->sbh)
+ 			return NULL;
+-		epos.block = UDF_I_LOCATION(dir);
++		epos.block = UDF_I(dir)->i_location;
+ 		eloc.logicalBlockNum = block;
+ 		eloc.partitionReferenceNum =
+-				UDF_I_LOCATION(dir).partitionReferenceNum;
++				UDF_I(dir)->i_location.partitionReferenceNum;
+ 		elen = dir->i_sb->s_blocksize;
+ 		epos.offset = udf_file_entry_alloc_offset(dir);
+-		if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
++		if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 			epos.offset += sizeof(short_ad);
+-		else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
++		else if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 			epos.offset += sizeof(long_ad);
+ 	}
+ 
+@@ -509,12 +511,13 @@ add:
+ 			fibh->sbh = fibh->ebh;
+ 		}
+ 
+-		if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB) {
+-			block = UDF_I_LOCATION(dir).logicalBlockNum;
++		if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
++			block = UDF_I(dir)->i_location.logicalBlockNum;
+ 			fi = (struct fileIdentDesc *)
+-					(UDF_I_DATA(dir) + fibh->soffset -
++					(UDF_I(dir)->i_ext.i_data +
++					 fibh->soffset -
+ 					 udf_ext0_offset(dir) +
+-					 UDF_I_LENEATTR(dir));
++					 UDF_I(dir)->i_lenEAttr);
+ 		} else {
+ 			block = eloc.logicalBlockNum +
+ 					((elen - 1) >>
+@@ -572,8 +575,8 @@ add:
+ 	if (!udf_write_fi(dir, cfi, fi, fibh, NULL, name)) {
+ 		brelse(epos.bh);
+ 		dir->i_size += nfidlen;
+-		if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
+-			UDF_I_LENALLOC(dir) += nfidlen;
++		if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
++			UDF_I(dir)->i_lenAlloc += nfidlen;
+ 		mark_inode_dirty(dir);
+ 		return fi;
+ 	} else {
+@@ -613,7 +616,7 @@ static int udf_create(struct inode *dir,
+ 		return err;
+ 	}
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		inode->i_data.a_ops = &udf_adinicb_aops;
+ 	else
+ 		inode->i_data.a_ops = &udf_aops;
+@@ -631,11 +634,11 @@ static int udf_create(struct inode *dir,
+ 		return err;
+ 	}
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(inode));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(inode)->i_location);
+ 	*(__le32 *)((struct allocDescImpUse *)cfi.icb.impUse)->impUse =
+-		cpu_to_le32(UDF_I_UNIQUE(inode) & 0x00000000FFFFFFFFUL);
++		cpu_to_le32(UDF_I(inode)->i_unique & 0x00000000FFFFFFFFUL);
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		mark_inode_dirty(dir);
+ 	if (fibh.sbh != fibh.ebh)
+ 		brelse(fibh.ebh);
+@@ -674,11 +677,11 @@ static int udf_mknod(struct inode *dir, 
+ 		return err;
+ 	}
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(inode));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(inode)->i_location);
+ 	*(__le32 *)((struct allocDescImpUse *)cfi.icb.impUse)->impUse =
+-		cpu_to_le32(UDF_I_UNIQUE(inode) & 0x00000000FFFFFFFFUL);
++		cpu_to_le32(UDF_I(inode)->i_unique & 0x00000000FFFFFFFFUL);
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		mark_inode_dirty(dir);
+ 	mark_inode_dirty(inode);
+ 
+@@ -721,9 +724,9 @@ static int udf_mkdir(struct inode *dir, 
+ 	}
+ 	inode->i_nlink = 2;
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(dir));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(dir)->i_location);
+ 	*(__le32 *)((struct allocDescImpUse *)cfi.icb.impUse)->impUse =
+-		cpu_to_le32(UDF_I_UNIQUE(dir) & 0x00000000FFFFFFFFUL);
++		cpu_to_le32(UDF_I(dir)->i_unique & 0x00000000FFFFFFFFUL);
+ 	cfi.fileCharacteristics =
+ 			FID_FILE_CHAR_DIRECTORY | FID_FILE_CHAR_PARENT;
+ 	udf_write_fi(inode, &cfi, fi, &fibh, NULL, NULL);
+@@ -741,9 +744,9 @@ static int udf_mkdir(struct inode *dir, 
  		goto out;
  	}
- 	/* N.B. passed_fileno might not be initialized? */
--	if (interpreter_type == INTERPRETER_AOUT)
-+	if (IS_AOUT_INTERP(interpreter_type))
- 		current->mm->arg_start += strlen(passed_fileno) + 1;
- 	current->mm->end_code = end_code;
- 	current->mm->start_code = start_code;
-diff -puN fs/exec.c~aout-suppress-aout-library-support-if-config_arch_supports_aout fs/exec.c
---- a/fs/exec.c~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/fs/exec.c
-@@ -1166,7 +1166,7 @@ int search_binary_handler(struct linux_b
- {
- 	int try,retval;
- 	struct linux_binfmt *fmt;
--#ifdef __alpha__
-+#if defined(__alpha__) && defined(CONFIG_ARCH_SUPPORTS_AOUT)
- 	/* handle /sbin/loader.. */
- 	{
- 	    struct exec * eh = (struct exec *) bprm->buf;
-diff -puN /dev/null include/asm-alpha/a.out-core.h
---- /dev/null
-+++ a/include/asm-alpha/a.out-core.h
-@@ -0,0 +1,80 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+
-+/*
-+ * Fill in the user structure for an ECOFF core dump.
-+ */
-+static inline void aout_dump_thread(struct pt_regs *pt, struct user *dump)
-+{
-+	/* switch stack follows right below pt_regs: */
-+	struct switch_stack * sw = ((struct switch_stack *) pt) - 1;
-+
-+	dump->magic = CMAGIC;
-+	dump->start_code  = current->mm->start_code;
-+	dump->start_data  = current->mm->start_data;
-+	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
-+	dump->u_tsize = ((current->mm->end_code - dump->start_code)
-+			 >> PAGE_SHIFT);
-+	dump->u_dsize = ((current->mm->brk + PAGE_SIZE-1 - dump->start_data)
-+			 >> PAGE_SHIFT);
-+	dump->u_ssize = (current->mm->start_stack - dump->start_stack
-+			 + PAGE_SIZE-1) >> PAGE_SHIFT;
-+
-+	/*
-+	 * We store the registers in an order/format that is
-+	 * compatible with DEC Unix/OSF/1 as this makes life easier
-+	 * for gdb.
-+	 */
-+	dump->regs[EF_V0]  = pt->r0;
-+	dump->regs[EF_T0]  = pt->r1;
-+	dump->regs[EF_T1]  = pt->r2;
-+	dump->regs[EF_T2]  = pt->r3;
-+	dump->regs[EF_T3]  = pt->r4;
-+	dump->regs[EF_T4]  = pt->r5;
-+	dump->regs[EF_T5]  = pt->r6;
-+	dump->regs[EF_T6]  = pt->r7;
-+	dump->regs[EF_T7]  = pt->r8;
-+	dump->regs[EF_S0]  = sw->r9;
-+	dump->regs[EF_S1]  = sw->r10;
-+	dump->regs[EF_S2]  = sw->r11;
-+	dump->regs[EF_S3]  = sw->r12;
-+	dump->regs[EF_S4]  = sw->r13;
-+	dump->regs[EF_S5]  = sw->r14;
-+	dump->regs[EF_S6]  = sw->r15;
-+	dump->regs[EF_A3]  = pt->r19;
-+	dump->regs[EF_A4]  = pt->r20;
-+	dump->regs[EF_A5]  = pt->r21;
-+	dump->regs[EF_T8]  = pt->r22;
-+	dump->regs[EF_T9]  = pt->r23;
-+	dump->regs[EF_T10] = pt->r24;
-+	dump->regs[EF_T11] = pt->r25;
-+	dump->regs[EF_RA]  = pt->r26;
-+	dump->regs[EF_T12] = pt->r27;
-+	dump->regs[EF_AT]  = pt->r28;
-+	dump->regs[EF_SP]  = rdusp();
-+	dump->regs[EF_PS]  = pt->ps;
-+	dump->regs[EF_PC]  = pt->pc;
-+	dump->regs[EF_GP]  = pt->gp;
-+	dump->regs[EF_A0]  = pt->r16;
-+	dump->regs[EF_A1]  = pt->r17;
-+	dump->regs[EF_A2]  = pt->r18;
-+	memcpy((char *)dump->regs + EF_SIZE, sw->fp, 32 * 8);
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN /dev/null include/asm-arm/a.out-core.h
---- /dev/null
-+++ a/include/asm-arm/a.out-core.h
-@@ -0,0 +1,49 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+#include <linux/elfcore.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
-+{
-+	struct task_struct *tsk = current;
-+
-+	dump->magic = CMAGIC;
-+	dump->start_code = tsk->mm->start_code;
-+	dump->start_stack = regs->ARM_sp & ~(PAGE_SIZE - 1);
-+
-+	dump->u_tsize = (tsk->mm->end_code - tsk->mm->start_code) >> PAGE_SHIFT;
-+	dump->u_dsize = (tsk->mm->brk - tsk->mm->start_data + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	dump->u_ssize = 0;
-+
-+	dump->u_debugreg[0] = tsk->thread.debug.bp[0].address;
-+	dump->u_debugreg[1] = tsk->thread.debug.bp[1].address;
-+	dump->u_debugreg[2] = tsk->thread.debug.bp[0].insn.arm;
-+	dump->u_debugreg[3] = tsk->thread.debug.bp[1].insn.arm;
-+	dump->u_debugreg[4] = tsk->thread.debug.nsaved;
-+
-+	if (dump->start_stack < 0x04000000)
-+		dump->u_ssize = (0x04000000 - dump->start_stack) >> PAGE_SHIFT;
-+
-+	dump->regs = *regs;
-+	dump->u_fpvalid = dump_fpu (regs, &dump->u_fp);
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN include/asm-frv/a.out.h~aout-suppress-aout-library-support-if-config_arch_supports_aout /dev/null
---- a/include/asm-frv/a.out.h
-+++ /dev/null
-@@ -1,5 +0,0 @@
--/*
-- * FRV doesn't do AOUT format. This header file should be removed as
-- * soon as fs/exec.c and fs/proc/kcore.c and the archs that require
-- * them to include linux/a.out.h are fixed.
-- */
-diff -puN include/asm-generic/Kbuild.asm~aout-suppress-aout-library-support-if-config_arch_supports_aout include/asm-generic/Kbuild.asm
---- a/include/asm-generic/Kbuild.asm~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/include/asm-generic/Kbuild.asm
-@@ -1,4 +1,6 @@
-+ifeq ($(wildcard include/asm-$(SRCARCH)/a.out.h),include/asm-$(SRCARCH)/a.out.h)
- unifdef-y += a.out.h
-+endif
- unifdef-y += auxvec.h
- unifdef-y += byteorder.h
- unifdef-y += errno.h
-diff -puN /dev/null include/asm-m68k/a.out-core.h
---- /dev/null
-+++ a/include/asm-m68k/a.out-core.h
-@@ -0,0 +1,67 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+#include <linux/elfcore.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
-+{
-+	struct switch_stack *sw;
-+
-+/* changed the size calculations - should hopefully work better. lbt */
-+	dump->magic = CMAGIC;
-+	dump->start_code = 0;
-+	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
-+	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
-+	dump->u_dsize = ((unsigned long) (current->mm->brk +
-+					  (PAGE_SIZE-1))) >> PAGE_SHIFT;
-+	dump->u_dsize -= dump->u_tsize;
-+	dump->u_ssize = 0;
-+
-+	if (dump->start_stack < TASK_SIZE)
-+		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
-+
-+	dump->u_ar0 = offsetof(struct user, regs);
-+	sw = ((struct switch_stack *)regs) - 1;
-+	dump->regs.d1 = regs->d1;
-+	dump->regs.d2 = regs->d2;
-+	dump->regs.d3 = regs->d3;
-+	dump->regs.d4 = regs->d4;
-+	dump->regs.d5 = regs->d5;
-+	dump->regs.d6 = sw->d6;
-+	dump->regs.d7 = sw->d7;
-+	dump->regs.a0 = regs->a0;
-+	dump->regs.a1 = regs->a1;
-+	dump->regs.a2 = regs->a2;
-+	dump->regs.a3 = sw->a3;
-+	dump->regs.a4 = sw->a4;
-+	dump->regs.a5 = sw->a5;
-+	dump->regs.a6 = sw->a6;
-+	dump->regs.d0 = regs->d0;
-+	dump->regs.orig_d0 = regs->orig_d0;
-+	dump->regs.stkadj = regs->stkadj;
-+	dump->regs.sr = regs->sr;
-+	dump->regs.pc = regs->pc;
-+	dump->regs.fmtvec = (regs->format << 12) | regs->vector;
-+	/* dump floating point stuff */
-+	dump->u_fpvalid = dump_fpu (regs, &dump->m68kfp);
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN /dev/null include/asm-sparc/a.out-core.h
---- /dev/null
-+++ a/include/asm-sparc/a.out-core.h
-@@ -0,0 +1,52 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
-+{
-+	unsigned long first_stack_page;
-+
-+	dump->magic = SUNOS_CORE_MAGIC;
-+	dump->len = sizeof(struct user);
-+	dump->regs.psr = regs->psr;
-+	dump->regs.pc = regs->pc;
-+	dump->regs.npc = regs->npc;
-+	dump->regs.y = regs->y;
-+	/* fuck me plenty */
-+	memcpy(&dump->regs.regs[0], &regs->u_regs[1], (sizeof(unsigned long) * 15));
-+	dump->uexec = current->thread.core_exec;
-+	dump->u_tsize = (((unsigned long) current->mm->end_code) -
-+		((unsigned long) current->mm->start_code)) & ~(PAGE_SIZE - 1);
-+	dump->u_dsize = ((unsigned long) (current->mm->brk + (PAGE_SIZE-1)));
-+	dump->u_dsize -= dump->u_tsize;
-+	dump->u_dsize &= ~(PAGE_SIZE - 1);
-+	first_stack_page = (regs->u_regs[UREG_FP] & ~(PAGE_SIZE - 1));
-+	dump->u_ssize = (TASK_SIZE - first_stack_page) & ~(PAGE_SIZE - 1);
-+	memcpy(&dump->fpu.fpstatus.fregs.regs[0], &current->thread.float_regs[0], (sizeof(unsigned long) * 32));
-+	dump->fpu.fpstatus.fsr = current->thread.fsr;
-+	dump->fpu.fpstatus.flags = dump->fpu.fpstatus.extra = 0;
-+	dump->fpu.fpstatus.fpq_count = current->thread.fpqdepth;
-+	memcpy(&dump->fpu.fpstatus.fpq[0], &current->thread.fpqueue[0],
-+	       ((sizeof(unsigned long) * 2) * 16));
-+	dump->sigcode = 0;
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN /dev/null include/asm-sparc64/a.out-core.h
---- /dev/null
-+++ a/include/asm-sparc64/a.out-core.h
-@@ -0,0 +1,31 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
-+{
-+	/* Only should be used for SunOS and ancient a.out
-+	 * SparcLinux binaries...  Not worth implementing.
-+	 */
-+	memset(dump, 0, sizeof(struct user));
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN /dev/null include/asm-um/a.out-core.h
---- /dev/null
-+++ a/include/asm-um/a.out-core.h
-@@ -0,0 +1,27 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef __UM_A_OUT_CORE_H
-+#define __UM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/user.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *u)
-+{
-+}
-+
-+#endif /* __KERNEL__ */
-+#endif /* __UM_A_OUT_CORE_H */
-diff -puN /dev/null include/asm-x86/a.out-core.h
---- /dev/null
-+++ a/include/asm-x86/a.out-core.h
-@@ -0,0 +1,71 @@
-+/* a.out coredump register dumper
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+
-+#ifndef _ASM_A_OUT_CORE_H
-+#define _ASM_A_OUT_CORE_H
-+
-+#ifdef __KERNEL__
-+#ifdef CONFIG_X86_32
-+
-+#include <linux/user.h>
-+#include <linux/elfcore.h>
-+
-+/*
-+ * fill in the user structure for an a.out core dump
-+ */
-+static inline void aout_dump_thread(struct pt_regs *regs, struct user *dump)
-+{
-+	u16 gs;
-+
-+/* changed the size calculations - should hopefully work better. lbt */
-+	dump->magic = CMAGIC;
-+	dump->start_code = 0;
-+	dump->start_stack = regs->sp & ~(PAGE_SIZE - 1);
-+	dump->u_tsize = ((unsigned long) current->mm->end_code) >> PAGE_SHIFT;
-+	dump->u_dsize = ((unsigned long) (current->mm->brk + (PAGE_SIZE-1))) >> PAGE_SHIFT;
-+	dump->u_dsize -= dump->u_tsize;
-+	dump->u_ssize = 0;
-+	dump->u_debugreg[0] = current->thread.debugreg0;
-+	dump->u_debugreg[1] = current->thread.debugreg1;
-+	dump->u_debugreg[2] = current->thread.debugreg2;
-+	dump->u_debugreg[3] = current->thread.debugreg3;
-+	dump->u_debugreg[4] = 0;
-+	dump->u_debugreg[5] = 0;
-+	dump->u_debugreg[6] = current->thread.debugreg6;
-+	dump->u_debugreg[7] = current->thread.debugreg7;
-+
-+	if (dump->start_stack < TASK_SIZE)
-+		dump->u_ssize = ((unsigned long) (TASK_SIZE - dump->start_stack)) >> PAGE_SHIFT;
-+
-+	dump->regs.bx = regs->bx;
-+	dump->regs.cx = regs->cx;
-+	dump->regs.dx = regs->dx;
-+	dump->regs.si = regs->si;
-+	dump->regs.di = regs->di;
-+	dump->regs.bp = regs->bp;
-+	dump->regs.ax = regs->ax;
-+	dump->regs.ds = (u16)regs->ds;
-+	dump->regs.es = (u16)regs->es;
-+	dump->regs.fs = (u16)regs->fs;
-+	savesegment(gs,gs);
-+	dump->regs.orig_ax = regs->orig_ax;
-+	dump->regs.ip = regs->ip;
-+	dump->regs.cs = (u16)regs->cs;
-+	dump->regs.flags = regs->flags;
-+	dump->regs.sp = regs->sp;
-+	dump->regs.ss = (u16)regs->ss;
-+
-+	dump->u_fpvalid = dump_fpu (regs, &dump->i387);
-+}
-+
-+#endif /* CONFIG_X86_32 */
-+#endif /* __KERNEL__ */
-+#endif /* _ASM_A_OUT_CORE_H */
-diff -puN include/linux/a.out.h~aout-suppress-aout-library-support-if-config_arch_supports_aout include/linux/a.out.h
---- a/include/linux/a.out.h~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/include/linux/a.out.h
-@@ -1,6 +1,8 @@
- #ifndef __A_OUT_GNU_H__
- #define __A_OUT_GNU_H__
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(inode));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(inode)->i_location);
+ 	*(__le32 *)((struct allocDescImpUse *)cfi.icb.impUse)->impUse =
+-		cpu_to_le32(UDF_I_UNIQUE(inode) & 0x00000000FFFFFFFFUL);
++		cpu_to_le32(UDF_I(inode)->i_unique & 0x00000000FFFFFFFFUL);
+ 	cfi.fileCharacteristics |= FID_FILE_CHAR_DIRECTORY;
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+ 	inc_nlink(dir);
+@@ -776,16 +779,17 @@ static int empty_dir(struct inode *dir)
+ 	fibh.soffset = fibh.eoffset =
+ 			(f_pos & ((dir->i_sb->s_blocksize - 1) >> 2)) << 2;
  
-+#ifdef CONFIG_ARCH_SUPPORTS_AOUT
-+
- #define __GNU_EXEC_MACROS__
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		fibh.sbh = fibh.ebh = NULL;
+ 	else if (inode_bmap(dir, f_pos >> (dir->i_sb->s_blocksize_bits - 2),
+ 			      &epos, &eloc, &elen, &offset) ==
+ 					(EXT_RECORDED_ALLOCATED >> 30)) {
+ 		block = udf_get_lb_pblock(dir->i_sb, eloc, offset);
+ 		if ((++offset << dir->i_sb->s_blocksize_bits) < elen) {
+-			if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_SHORT)
++			if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 				epos.offset -= sizeof(short_ad);
+-			else if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_LONG)
++			else if (UDF_I(dir)->i_alloc_type ==
++							ICBTAG_FLAG_AD_LONG)
+ 				epos.offset -= sizeof(long_ad);
+ 		} else
+ 			offset = 0;
+@@ -945,28 +949,28 @@ static int udf_symlink(struct inode *dir
+ 	inode->i_data.a_ops = &udf_symlink_aops;
+ 	inode->i_op = &page_symlink_inode_operations;
  
- #ifndef __STRUCT_EXEC_OVERRIDE__
-@@ -9,6 +11,8 @@
+-	if (UDF_I_ALLOCTYPE(inode) != ICBTAG_FLAG_AD_IN_ICB) {
++	if (UDF_I(inode)->i_alloc_type != ICBTAG_FLAG_AD_IN_ICB) {
+ 		kernel_lb_addr eloc;
+ 		uint32_t elen;
  
- #endif /* __STRUCT_EXEC_OVERRIDE__ */
+ 		block = udf_new_block(inode->i_sb, inode,
+-				UDF_I_LOCATION(inode).partitionReferenceNum,
+-				UDF_I_LOCATION(inode).logicalBlockNum, &err);
++				UDF_I(inode)->i_location.partitionReferenceNum,
++				UDF_I(inode)->i_location.logicalBlockNum, &err);
+ 		if (!block)
+ 			goto out_no_entry;
+-		epos.block = UDF_I_LOCATION(inode);
++		epos.block = UDF_I(inode)->i_location;
+ 		epos.offset = udf_file_entry_alloc_offset(inode);
+ 		epos.bh = NULL;
+ 		eloc.logicalBlockNum = block;
+ 		eloc.partitionReferenceNum =
+-				UDF_I_LOCATION(inode).partitionReferenceNum;
++				UDF_I(inode)->i_location.partitionReferenceNum;
+ 		elen = inode->i_sb->s_blocksize;
+-		UDF_I_LENEXTENTS(inode) = elen;
++		UDF_I(inode)->i_lenExtents = elen;
+ 		udf_add_aext(inode, &epos, eloc, elen, 0);
+ 		brelse(epos.bh);
  
-+#ifndef __ASSEMBLY__
-+
- /* these go in the N_MACHTYPE field */
- enum machine_type {
- #if defined (M_OLDSUN2)
-@@ -272,5 +276,11 @@ struct relocation_info
- };
- #endif /* no N_RELOCATION_INFO_DECLARED.  */
+ 		block = udf_get_pblock(inode->i_sb, block,
+-				UDF_I_LOCATION(inode).partitionReferenceNum,
++				UDF_I(inode)->i_location.partitionReferenceNum,
+ 				0);
+ 		epos.bh = udf_tread(inode->i_sb, block);
+ 		lock_buffer(epos.bh);
+@@ -976,7 +980,7 @@ static int udf_symlink(struct inode *dir
+ 		mark_buffer_dirty_inode(epos.bh, inode);
+ 		ea = epos.bh->b_data + udf_ext0_offset(inode);
+ 	} else {
+-		ea = UDF_I_DATA(inode) + UDF_I_LENEATTR(inode);
++		ea = UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr;
+ 	}
  
+ 	eoffset = inode->i_sb->s_blocksize - udf_ext0_offset(inode);
+@@ -1045,15 +1049,15 @@ static int udf_symlink(struct inode *dir
+ 
+ 	brelse(epos.bh);
+ 	inode->i_size = elen;
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB)
+-		UDF_I_LENALLOC(inode) = inode->i_size;
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
++		UDF_I(inode)->i_lenAlloc = inode->i_size;
+ 	mark_inode_dirty(inode);
+ 
+ 	fi = udf_add_entry(dir, dentry, &fibh, &cfi, &err);
+ 	if (!fi)
+ 		goto out_no_entry;
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(inode));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(inode)->i_location);
+ 	bh = UDF_SB(inode->i_sb)->s_lvid_bh;
+ 	if (bh) {
+ 		struct logicalVolIntegrityDesc *lvid =
+@@ -1071,7 +1075,7 @@ static int udf_symlink(struct inode *dir
+ 		mark_buffer_dirty(bh);
+ 	}
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		mark_inode_dirty(dir);
+ 	if (fibh.sbh != fibh.ebh)
+ 		brelse(fibh.ebh);
+@@ -1110,7 +1114,7 @@ static int udf_link(struct dentry *old_d
+ 		return err;
+ 	}
+ 	cfi.icb.extLength = cpu_to_le32(inode->i_sb->s_blocksize);
+-	cfi.icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(inode));
++	cfi.icb.extLocation = cpu_to_lelb(UDF_I(inode)->i_location);
+ 	bh = UDF_SB(inode->i_sb)->s_lvid_bh;
+ 	if (bh) {
+ 		struct logicalVolIntegrityDesc *lvid =
+@@ -1128,7 +1132,7 @@ static int udf_link(struct dentry *old_d
+ 		mark_buffer_dirty(bh);
+ 	}
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+-	if (UDF_I_ALLOCTYPE(dir) == ICBTAG_FLAG_AD_IN_ICB)
++	if (UDF_I(dir)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 		mark_inode_dirty(dir);
+ 
+ 	if (fibh.sbh != fibh.ebh)
+@@ -1189,10 +1193,10 @@ static int udf_rename(struct inode *old_
+ 				goto end_rename;
+ 		}
+ 		retval = -EIO;
+-		if (UDF_I_ALLOCTYPE(old_inode) == ICBTAG_FLAG_AD_IN_ICB) {
++		if (UDF_I(old_inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+ 			dir_fi = udf_get_fileident(
+-					UDF_I_DATA(old_inode) -
+-					  (UDF_I_EFE(old_inode) ?
++					UDF_I(old_inode)->i_ext.i_data -
++					  (UDF_I(old_inode)->i_efe ?
+ 					   sizeof(struct extendedFileEntry) :
+ 					   sizeof(struct fileEntry)),
+ 					old_inode->i_sb->s_blocksize, &offset);
+@@ -1250,11 +1254,11 @@ static int udf_rename(struct inode *old_
+ 	mark_inode_dirty(old_dir);
+ 
+ 	if (dir_fi) {
+-		dir_fi->icb.extLocation = cpu_to_lelb(UDF_I_LOCATION(new_dir));
++		dir_fi->icb.extLocation = cpu_to_lelb(UDF_I(new_dir)->i_location);
+ 		udf_update_tag((char *)dir_fi,
+ 				(sizeof(struct fileIdentDesc) +
+ 				le16_to_cpu(dir_fi->lengthOfImpUse) + 3) & ~3);
+-		if (UDF_I_ALLOCTYPE(old_inode) == ICBTAG_FLAG_AD_IN_ICB)
++		if (UDF_I(old_inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB)
+ 			mark_inode_dirty(old_inode);
+ 		else
+ 			mark_buffer_dirty_inode(dir_bh, old_inode);
+diff -puN fs/udf/partition.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/partition.c
+--- a/fs/udf/partition.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/partition.c
+@@ -88,14 +88,14 @@ uint32_t udf_get_pblock_virt15(struct su
+ 
+ 	brelse(bh);
+ 
+-	if (UDF_I_LOCATION(sbi->s_vat_inode).partitionReferenceNum ==
++	if (UDF_I(sbi->s_vat_inode)->i_location.partitionReferenceNum ==
+ 								partition) {
+ 		udf_debug("recursive call to udf_get_pblock!\n");
+ 		return 0xFFFFFFFF;
+ 	}
+ 
+ 	return udf_get_pblock(sb, loc,
+-			      UDF_I_LOCATION(sbi->s_vat_inode).
++			      UDF_I(sbi->s_vat_inode)->i_location.
+ 							partitionReferenceNum,
+ 			      offset);
+ }
+diff -puN fs/udf/super.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/super.c
+--- a/fs/udf/super.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/super.c
+@@ -2046,7 +2046,7 @@ static unsigned int udf_count_free_table
+ 
+ 	lock_kernel();
+ 
+-	epos.block = UDF_I_LOCATION(table);
++	epos.block = UDF_I(table)->i_location;
+ 	epos.offset = sizeof(struct unallocSpaceEntry);
+ 	epos.bh = NULL;
+ 
+diff -puN fs/udf/symlink.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/symlink.c
+--- a/fs/udf/symlink.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/symlink.c
+@@ -81,8 +81,8 @@ static int udf_symlink_filler(struct fil
+ 	char *p = kmap(page);
+ 
+ 	lock_kernel();
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB) {
+-		symlink = UDF_I_DATA(inode) + UDF_I_LENEATTR(inode);
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
++		symlink = UDF_I(inode)->i_ext.i_data + UDF_I(inode)->i_lenEAttr;
+ 	} else {
+ 		bh = sb_bread(inode->i_sb, udf_block_map(inode, 0));
+ 
+diff -puN fs/udf/truncate.c~udf-remove-udf_i_-macros-and-open-code-them fs/udf/truncate.c
+--- a/fs/udf/truncate.c~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/truncate.c
+@@ -75,16 +75,16 @@ void udf_truncate_tail_extent(struct ino
+ 	int8_t etype = -1, netype;
+ 	int adsize;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
+-	    inode->i_size == UDF_I_LENEXTENTS(inode))
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB ||
++	    inode->i_size == UDF_I(inode)->i_lenExtents)
+ 		return;
+ 	/* Are we going to delete the file anyway? */
+ 	if (inode->i_nlink == 0)
+ 		return;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		BUG();
+@@ -117,7 +117,7 @@ void udf_truncate_tail_extent(struct ino
+ 	}
+ 	/* This inode entry is in-memory only and thus we don't have to mark
+ 	 * the inode dirty */
+-	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	UDF_I(inode)->i_lenExtents = inode->i_size;
+ 	brelse(epos.bh);
+ }
+ 
+@@ -130,18 +130,18 @@ void udf_discard_prealloc(struct inode *
+ 	int8_t etype = -1, netype;
+ 	int adsize;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ||
+-	    inode->i_size == UDF_I_LENEXTENTS(inode))
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB ||
++	    inode->i_size == UDF_I(inode)->i_lenExtents)
+ 		return;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		adsize = 0;
+ 
+-	epos.block = UDF_I_LOCATION(inode);
++	epos.block = UDF_I(inode)->i_location;
+ 
+ 	/* Find the last extent in the file */
+ 	while ((netype = udf_next_aext(inode, &epos, &eloc, &elen, 1)) != -1) {
+@@ -153,7 +153,7 @@ void udf_discard_prealloc(struct inode *
+ 		lbcount -= elen;
+ 		extent_trunc(inode, &epos, eloc, etype, elen, 0);
+ 		if (!epos.bh) {
+-			UDF_I_LENALLOC(inode) =
++			UDF_I(inode)->i_lenAlloc =
+ 				epos.offset -
+ 				udf_file_entry_alloc_offset(inode);
+ 			mark_inode_dirty(inode);
+@@ -174,7 +174,7 @@ void udf_discard_prealloc(struct inode *
+ 	}
+ 	/* This inode entry is in-memory only and thus we don't have to mark
+ 	 * the inode dirty */
+-	UDF_I_LENEXTENTS(inode) = lbcount;
++	UDF_I(inode)->i_lenExtents = lbcount;
+ 	brelse(epos.bh);
+ }
+ 
+@@ -190,9 +190,9 @@ void udf_truncate_extents(struct inode *
+ 	loff_t byte_offset;
+ 	int adsize;
+ 
+-	if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_SHORT)
++	if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_SHORT)
+ 		adsize = sizeof(short_ad);
+-	else if (UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_LONG)
++	else if (UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_LONG)
+ 		adsize = sizeof(long_ad);
+ 	else
+ 		BUG();
+@@ -227,7 +227,7 @@ void udf_truncate_extents(struct inode *
+ 							0, indirect_ext_len);
+ 				} else {
+ 					if (!epos.bh) {
+-						UDF_I_LENALLOC(inode) =
++						UDF_I(inode)->i_lenAlloc =
+ 								lenalloc;
+ 						mark_inode_dirty(inode);
+ 					} else {
+@@ -275,7 +275,7 @@ void udf_truncate_extents(struct inode *
+ 					indirect_ext_len);
+ 		} else {
+ 			if (!epos.bh) {
+-				UDF_I_LENALLOC(inode) = lenalloc;
++				UDF_I(inode)->i_lenAlloc = lenalloc;
+ 				mark_inode_dirty(inode);
+ 			} else {
+ 				struct allocExtDesc *aed =
+@@ -325,7 +325,7 @@ void udf_truncate_extents(struct inode *
+ 						(sb->s_blocksize - 1)) != 0));
+ 		}
+ 	}
+-	UDF_I_LENEXTENTS(inode) = inode->i_size;
++	UDF_I(inode)->i_lenExtents = inode->i_size;
+ 
+ 	brelse(epos.bh);
+ }
+diff -puN fs/udf/udf_i.h~udf-remove-udf_i_-macros-and-open-code-them fs/udf/udf_i.h
+--- a/fs/udf/udf_i.h~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/udf_i.h
+@@ -7,20 +7,4 @@ static inline struct udf_inode_info *UDF
+ 	return list_entry(inode, struct udf_inode_info, vfs_inode);
+ }
+ 
+-#define UDF_I_LOCATION(X)	( UDF_I(X)->i_location )
+-#define UDF_I_LENEATTR(X)	( UDF_I(X)->i_lenEAttr )
+-#define UDF_I_LENALLOC(X)	( UDF_I(X)->i_lenAlloc )
+-#define UDF_I_LENEXTENTS(X)	( UDF_I(X)->i_lenExtents )
+-#define UDF_I_UNIQUE(X)		( UDF_I(X)->i_unique )
+-#define UDF_I_ALLOCTYPE(X)	( UDF_I(X)->i_alloc_type )
+-#define UDF_I_EFE(X)		( UDF_I(X)->i_efe )
+-#define UDF_I_USE(X)		( UDF_I(X)->i_use )
+-#define UDF_I_STRAT4096(X)	( UDF_I(X)->i_strat4096 )
+-#define UDF_I_NEXT_ALLOC_BLOCK(X)	( UDF_I(X)->i_next_alloc_block )
+-#define UDF_I_NEXT_ALLOC_GOAL(X)	( UDF_I(X)->i_next_alloc_goal )
+-#define UDF_I_CRTIME(X)		( UDF_I(X)->i_crtime )
+-#define UDF_I_SAD(X)		( UDF_I(X)->i_ext.i_sad )
+-#define UDF_I_LAD(X)		( UDF_I(X)->i_ext.i_lad )
+-#define UDF_I_DATA(X)		( UDF_I(X)->i_ext.i_data )
 -
-+#endif /*__ASSEMBLY__ */
-+#else /* CONFIG_ARCH_SUPPORTS_AOUT */
-+#ifndef __ASSEMBLY__
-+struct exec {
-+};
-+#endif
-+#endif /* CONFIG_ARCH_SUPPORTS_AOUT */
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/linux/kernel.h~aout-suppress-aout-library-support-if-config_arch_supports_aout include/linux/kernel.h
---- a/include/linux/kernel.h~aout-suppress-aout-library-support-if-config_arch_supports_aout
-+++ a/include/linux/kernel.h
-@@ -172,8 +172,6 @@ extern int kernel_text_address(unsigned 
- struct pid;
- extern struct pid *session_of_pgrp(struct pid *pgrp);
+ #endif /* !defined(_LINUX_UDF_I_H) */
+diff -puN fs/udf/udfdecl.h~udf-remove-udf_i_-macros-and-open-code-them fs/udf/udfdecl.h
+--- a/fs/udf/udfdecl.h~udf-remove-udf_i_-macros-and-open-code-them
++++ a/fs/udf/udfdecl.h
+@@ -24,14 +24,14 @@
+ #define UDF_PATH_LEN		1023
  
--extern void dump_thread(struct pt_regs *regs, struct user *dump);
--
- #ifdef CONFIG_PRINTK
- asmlinkage int vprintk(const char *fmt, va_list args)
- 	__attribute__ ((format (printf, 1, 0)));
+ #define udf_file_entry_alloc_offset(inode)\
+-	(UDF_I_USE(inode) ?\
++	(UDF_I(inode)->i_use ?\
+ 		sizeof(struct unallocSpaceEntry) :\
+-		((UDF_I_EFE(inode) ?\
++		((UDF_I(inode)->i_efe ?\
+ 			sizeof(struct extendedFileEntry) :\
+-			sizeof(struct fileEntry)) + UDF_I_LENEATTR(inode)))
++			sizeof(struct fileEntry)) + UDF_I(inode)->i_lenEAttr))
+ 
+ #define udf_ext0_offset(inode)\
+-	(UDF_I_ALLOCTYPE(inode) == ICBTAG_FLAG_AD_IN_ICB ?\
++	(UDF_I(inode)->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB ?\
+ 		udf_file_entry_alloc_offset(inode) : 0)
+ 
+ #define udf_get_lb_pblock(sb,loc,offset) udf_get_pblock((sb), (loc).logicalBlockNum, (loc).partitionReferenceNum, (offset))
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
