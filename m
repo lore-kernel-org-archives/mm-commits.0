@@ -1,118 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: - update-documentation-controller-memorytxt.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:05:09 -0800
-Message-ID: <200802080804.m1884oRZ014286@imap1.linux-foundation.org>
+Subject: - mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:09:52 -0800
+Message-ID: <200802080809.m1889X5E014842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761168AbYBHITy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:54 -0500
+	by vger.kernel.org with ESMTP id S932235AbYBHIT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update Documentation/controller/memory.txt
+     mxser/mxser_new: first pass over termios reporting for the mxser cards
 has been removed from the -mm tree.  Its filename was
-     update-documentation-controller-memorytxt.patch
+     mxser-mxser_new-first-pass-over-termios-reporting-for-the.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: update Documentation/controller/memory.txt
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mxser/mxser_new: first pass over termios reporting for the mxser cards
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Documentation updates for memory controller.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |   33 ++++++++++++-------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ drivers/char/mxser.c     |   27 +++++++++++++++++++--------
+ drivers/char/mxser_new.c |   16 +++++++++-------
+ 2 files changed, 28 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/controllers/memory.txt~update-documentation-controller-memorytxt Documentation/controllers/memory.txt
---- a/Documentation/controllers/memory.txt~update-documentation-controller-memorytxt
-+++ a/Documentation/controllers/memory.txt
-@@ -9,8 +9,7 @@ d. Provides a double LRU: global memory 
-    global LRU; a cgroup on hitting a limit, reclaims from the per
-    cgroup LRU
+diff -puN drivers/char/mxser.c~mxser-mxser_new-first-pass-over-termios-reporting-for-the drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-mxser_new-first-pass-over-termios-reporting-for-the
++++ a/drivers/char/mxser.c
+@@ -1391,7 +1391,8 @@ static int mxser_ioctl(struct tty_struct
+ 			long baud;
+ 			if (get_user(baud, (long __user *)argp))
+ 				return -EFAULT;
+-			mxser_set_baud(info, baud);
++			if (mxser_set_baud(info, baud) == -1)
++				return -1;
+ 			return 0;
+ 		}
+ 	case MOXA_ASPP_GETBAUD:
+@@ -2517,7 +2518,13 @@ static int mxser_change_speed(struct mxs
+ #endif
+ 	if (mxser_set_baud_method[info->port] == 0) {
+ 		baud = tty_get_baud_rate(info->tty);
+-		mxser_set_baud(info, baud);
++		if (mxser_set_baud(info, baud) == -1) {
++			/* Use previous rate on a failure */
++			if (old_termios) {
++				baud = tty_termios_baud_rate(old_termios);
++				tty_encode_baud_rate(info->tty, baud, baud);
++			}
++		}
+ 	}
  
--NOTE: Page Cache (unmapped) also includes Swap Cache pages as a subset
--and will not be referred to explicitly in the rest of the documentation.
-+NOTE: Swap Cache (unmapped) is not accounted now.
+ 	/* byte size and parity */
+@@ -2691,27 +2698,31 @@ static int mxser_set_baud(struct mxser_s
+ {
+ 	int quot = 0;
+ 	unsigned char cval;
+-	int ret = 0;
+ 	unsigned long flags;
++	unsigned int baud;
  
- Benefits and Purpose of the memory controller
+ 	if (!info->tty || !info->tty->termios)
+-		return ret;
++		return -1;
  
-@@ -144,7 +143,7 @@ list.
- The memory controller uses the following hierarchy
+ 	if (!(info->base))
+-		return ret;
++		return -1;
  
- 1. zone->lru_lock is used for selecting pages to be isolated
--2. mem->lru_lock protects the per cgroup LRU
-+2. mem->per_zone->lru_lock protects the per cgroup LRU (per zone)
- 3. lock_page_cgroup() is used to protect page->page_cgroup
+ 	if (newspd > info->MaxCanSetBaudRate)
+-		return 0;
++		return -1;
  
- 3. User Interface
-@@ -193,6 +192,15 @@ this file after a write to guarantee the
- The memory.failcnt field gives the number of times that the cgroup limit was
- exceeded.
+ 	info->realbaud = newspd;
+ 	if (newspd == 134) {
+ 		quot = (2 * info->baud_base / 269);
++		tty_encode_baud_rate(info->tty, 134, 134);
+ 	} else if (newspd) {
+ 		quot = info->baud_base / newspd;
+ 		if (quot == 0)
+ 			quot = 1;
++		baud = info->baud_base / quot;
++		tty_encode_baud_rate(info->tty, baud, baud);
+ 	} else {
+ 		quot = 0;
++		tty_encode_baud_rate(info->tty, 0, 0);
+ 	}
  
-+The memory.stat file gives accounting information. Now, the number of
-+caches, RSS and Active pages/Inactive pages are shown.
-+
-+The memory.force_empty gives an interface to drop *all* charges by force.
-+
-+# echo -n 1 > memory.force_empty
-+
-+will drop all charges in cgroup. Currently, this is maintained for test.
-+
- 4. Testing
+ 	info->timeout = ((info->xmit_fifo_size * HZ * 10 * quot) / info->baud_base);
+@@ -2727,7 +2738,7 @@ static int mxser_set_baud(struct mxser_s
+ 		info->MCR &= ~UART_MCR_DTR;
+ 		outb(info->MCR, info->base + UART_MCR);
+ 		spin_unlock_irqrestore(&info->slock, flags);
+-		return ret;
++		return 0;
+ 	}
  
- Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
-@@ -222,11 +230,8 @@ reclaimed.
+ 	cval = inb(info->base + UART_LCR);
+@@ -2739,7 +2750,7 @@ static int mxser_set_baud(struct mxser_s
+ 	outb(cval, info->base + UART_LCR);	/* reset DLAB */
  
- A cgroup can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
- cgroup might have some charge associated with it, even though all
--tasks have migrated away from it. If some pages are still left, after following
--the steps listed in sections 4.1 and 4.2, check the Swap Cache usage in
--/proc/meminfo to see if the Swap Cache usage is showing up in the
--cgroups memory.usage_in_bytes counter. A simple test of swapoff -a and
--swapon -a should free any pending Swap Cache usage.
-+tasks have migrated away from it. Such charges are automatically dropped at
-+rmdir() if there are no tasks.
  
- 4.4 Choosing what to account  -- Page Cache (unmapped) vs RSS (mapped)?
+-	return ret;
++	return 0;
+ }
  
-@@ -238,15 +243,11 @@ echo -n 1 > memory.control_type
- 5. TODO
+ /*
+diff -puN drivers/char/mxser_new.c~mxser-mxser_new-first-pass-over-termios-reporting-for-the drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~mxser-mxser_new-first-pass-over-termios-reporting-for-the
++++ a/drivers/char/mxser_new.c
+@@ -452,18 +452,17 @@ static int mxser_block_til_ready(struct 
+ static int mxser_set_baud(struct mxser_port *info, long newspd)
+ {
+ 	unsigned int i;
+-	int quot = 0;
++	int quot = 0, baud;
+ 	unsigned char cval;
+-	int ret = 0;
  
- 1. Add support for accounting huge pages (as a separate controller)
--2. Improve the user interface to accept/display memory limits in KB or MB
--   rather than pages (since page sizes can differ across platforms/machines).
--3. Make cgroup lists per-zone
--4. Make per-cgroup scanner reclaim not-shared pages first
--5. Teach controller to account for shared-pages
--6. Start reclamation when the limit is lowered
--7. Start reclamation in the background when the limit is
-+2. Make per-cgroup scanner reclaim not-shared pages first
-+3. Teach controller to account for shared-pages
-+4. Start reclamation when the limit is lowered
-+5. Start reclamation in the background when the limit is
-    not yet hit but the usage is getting closer
--8. Create per zone LRU lists per cgroup
+ 	if (!info->tty || !info->tty->termios)
+-		return ret;
++		return -1;
  
- Summary
+ 	if (!(info->ioaddr))
+-		return ret;
++		return -1;
  
+ 	if (newspd > info->max_baud)
+-		return 0;
++		return -1;
+ 
+ 	info->realbaud = newspd;
+ 	for (i = 0; i < BAUD_TABLE_NO; i++)
+@@ -476,10 +475,13 @@ static int mxser_set_baud(struct mxser_p
+ 	} else {
+ 		if (newspd == 134) {
+ 			quot = (2 * info->baud_base / 269);
++			tty_encode_baud_rate(info->tty, 134, 134);
+ 		} else if (newspd) {
+ 			quot = info->baud_base / newspd;
+ 			if (quot == 0)
+ 				quot = 1;
++			baud = info->baud_base/quot;
++			tty_encode_baud_rate(info->tty, baud, baud);
+ 		} else {
+ 			quot = 0;
+ 		}
+@@ -494,7 +496,7 @@ static int mxser_set_baud(struct mxser_p
+ 	} else {
+ 		info->MCR &= ~UART_MCR_DTR;
+ 		outb(info->MCR, info->ioaddr + UART_MCR);
+-		return ret;
++		return 0;
+ 	}
+ 
+ 	cval = inb(info->ioaddr + UART_LCR);
+@@ -518,7 +520,7 @@ static int mxser_set_baud(struct mxser_p
+ 	} else
+ 		SET_MOXA_MUST_ENUM_VALUE(info->ioaddr, 0);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
+tty-let-architectures-override-the-user-kernel-macros.patch
+tty-s390-support-for-termios2.patch
+moxa-first-pass-at-termios-reporting.patch
+n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+rocket-first-pass-at-termios-reporting.patch
+rocket-dont-let-random-users-reset-the-controller.patch
+tty_audit-fix-checkpatch-complaint.patch
+tty_io-drag-screaming-into-coding-style-compliance.patch
+tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
+8250_early-coding-style.patch
+8250_gsc-coding-style.patch
+8250_hp300-coding-style.patch
+8250_hub6-codding-style.patch
+8250_pci-coding-style.patch
+serial8250-coding-style.patch
+8250-enable-rate-reporting-via-termios.patch
+serial_core-bring-mostly-into-line-with-coding-style.patch
+smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+irq_noprobe-helper-functions.patch
+mips-mark-all-but-i8259-interrupts-as-no-probe.patch
