@@ -1,130 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - memcgroup-temporarily-revert-swapoff-mod.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:02:54 -0800
-Message-ID: <200802080802.m1882ZDD014049@imap1.linux-foundation.org>
+Subject: - fix-m32r-__xchg.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:59 -0800
+Message-ID: <200802080808.m1888e0Q014671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49757 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761594AbYBHIUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:16 -0500
+	by vger.kernel.org with ESMTP id S1761991AbYBHIUS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, bunk@kernel.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup: temporarily revert swapoff mod
+     Fix m32r __xchg
 has been removed from the -mm tree.  Its filename was
-     memcgroup-temporarily-revert-swapoff-mod.patch
+     fix-m32r-__xchg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: temporarily revert swapoff mod
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Fix m32r __xchg
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-This patch precisely reverts the "swapoff: scan ptes preemptibly" patch
-just presented.  It's a temporary measure to allow existing memory
-controller patches to apply without rejects: in due course they should be
-rendered down into one sensible patch, and this reversion disappear.
+the #endif  /* CONFIG_SMP */ should cover the default condition, or it may cause
+bad parameter to be silently missed.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To make it work correctly, we have to remove the ifdef CONFIG SMP surrounding
+__xchg_called_with_bad_pointer declaration. Thanks to Adrian Bunk for detecting
+this.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   38 +++++++-------------------------------
- 1 file changed, 7 insertions(+), 31 deletions(-)
+ include/asm-m32r/system.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~memcgroup-temporarily-revert-swapoff-mod mm/swapfile.c
---- a/mm/swapfile.c~memcgroup-temporarily-revert-swapoff-mod
-+++ a/mm/swapfile.c
-@@ -506,19 +506,9 @@ unsigned int count_swap_pages(int type, 
-  * just let do_wp_page work it out if a write is requested later - to
-  * force COW, vm_page_prot omits write permission from any private vma.
-  */
--static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
-+static void unuse_pte(struct vm_area_struct *vma, pte_t *pte,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
- {
--	spinlock_t *ptl;
--	pte_t *pte;
--	int found = 1;
--
--	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
--	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
--		found = 0;
--		goto out;
--	}
--
- 	inc_mm_counter(vma->vm_mm, anon_rss);
- 	get_page(page);
- 	set_pte_at(vma->vm_mm, addr, pte,
-@@ -530,9 +520,6 @@ static int unuse_pte(struct vm_area_stru
- 	 * immediately swapped out again after swapon.
- 	 */
- 	activate_page(page);
--out:
--	pte_unmap_unlock(pte, ptl);
--	return found;
- }
+diff -puN include/asm-m32r/system.h~fix-m32r-__xchg include/asm-m32r/system.h
+--- a/include/asm-m32r/system.h~fix-m32r-__xchg
++++ a/include/asm-m32r/system.h
+@@ -127,9 +127,7 @@ static inline void local_irq_disable(voi
+ 	((__typeof__(*(ptr)))__xchg_local((unsigned long)(x), (ptr),	\
+ 			sizeof(*(ptr))))
  
- static int unuse_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -541,33 +528,22 @@ static int unuse_pte_range(struct vm_are
- {
- 	pte_t swp_pte = swp_entry_to_pte(entry);
- 	pte_t *pte;
-+	spinlock_t *ptl;
- 	int found = 0;
+-#ifdef CONFIG_SMP
+ extern void  __xchg_called_with_bad_pointer(void);
+-#endif
  
--	/*
--	 * We don't actually need pte lock while scanning for swp_pte: since
--	 * we hold page lock and mmap_sem, swp_pte cannot be inserted into the
--	 * page table while we're scanning; though it could get zapped, and on
--	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
--	 * of unmatched parts which look like swp_pte, so unuse_pte must
--	 * recheck under pte lock.  Scanning without pte lock lets it be
--	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
--	 */
--	pte = pte_offset_map(pmd, addr);
-+	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	do {
- 		/*
- 		 * swapoff spends a _lot_ of time in this loop!
- 		 * Test inline before going to call unuse_pte.
- 		 */
- 		if (unlikely(pte_same(*pte, swp_pte))) {
--			pte_unmap(pte);
--			found = unuse_pte(vma, pmd, addr, entry, page);
--			if (found)
--				goto out;
--			pte = pte_offset_map(pmd, addr);
-+			unuse_pte(vma, pte++, addr, entry, page);
-+			found = 1;
-+			break;
- 		}
- 	} while (pte++, addr += PAGE_SIZE, addr != end);
--	pte_unmap(pte - 1);
--out:
-+	pte_unmap_unlock(pte - 1, ptl);
- 	return found;
- }
+ #ifdef CONFIG_CHIP_M32700_TS1
+ #define DCACHE_CLEAR(reg0, reg1, addr)				\
+@@ -189,9 +187,9 @@ __xchg(unsigned long x, volatile void *p
+ #endif	/* CONFIG_CHIP_M32700_TS1 */
+ 		);
+ 		break;
++#endif  /* CONFIG_SMP */
+ 	default:
+ 		__xchg_called_with_bad_pointer();
+-#endif  /* CONFIG_SMP */
+ 	}
  
+ 	local_irq_restore(flags);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-prio_tree-debugging-patch.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
