@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-compile-error-on-nommu-for-is_swap_pte.patch added to -mm tree
-Date: Fri, 08 Feb 2008 14:06:32 -0800
-Message-ID: <200802082206.m18M6WGt015826@imap1.linux-foundation.org>
+Subject: + tty-bkl-pushdown-fix1.patch added to -mm tree
+Date: Fri, 08 Feb 2008 14:08:40 -0800
+Message-ID: <200802082208.m18M8ev6015981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38050 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45346 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751521AbYBHWHo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:07:44 -0500
+	by vger.kernel.org with ESMTP id S1761604AbYBHWJj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:09:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, vapier@gentoo.org
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     Fix compile error on nommu for is_swap_pte
+     tty: BKL pushdown fix1
 has been added to the -mm tree.  Its filename is
-     fix-compile-error-on-nommu-for-is_swap_pte.patch
+     tty-bkl-pushdown-fix1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix compile error on nommu for is_swap_pte
-From: Matt Mackall <mpm@selenic.com>
+Subject: tty: BKL pushdown fix1
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Does it ever make sense to ask "is this pte a swap entry?" on a machine
-with no MMU?  Presumably this also means it has no ptes too, right?  In
-which case, it's better to comment the whole function out.  Then when
-someone tries to ask the above meaningless question, they get a compile
-error rather than a meaningless answer.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/compat_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte include/linux/swapops.h
---- a/include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte
-+++ a/include/linux/swapops.h
-@@ -42,11 +42,13 @@ static inline pgoff_t swp_offset(swp_ent
- 	return entry.val & SWP_OFFSET_MASK(entry);
- }
- 
-+#ifdef CONFIG_MMU
- /* check whether a pte points to a swap entry */
- static inline int is_swap_pte(pte_t pte)
- {
- 	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
- }
-+#endif
- 
- /*
-  * Convert the arch-dependent pte representation of a swp_entry_t into an
+diff -puN fs/compat_ioctl.c~tty-bkl-pushdown-fix1 fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~tty-bkl-pushdown-fix1
++++ a/fs/compat_ioctl.c
+@@ -1046,7 +1046,7 @@ static int vt_check(struct file *file)
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct vc_data *vc;
+ 	
+-	if (file->f_op->ioctl != tty_ioctl)
++	if (file->f_op->unlocked_ioctl != tty_ioctl)
+ 		return -EINVAL;
+ 	                
+ 	tty = (struct tty_struct *)file->private_data;
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-fix-compile-error-on-nommu-for-is_swap_pte.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-watchdog.patch
+tty-bkl-pushdown-fix1.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
