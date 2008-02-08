@@ -1,44 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: - fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:44:10 -0800
-Message-ID: <200802080843.m188hpiO016127@imap1.linux-foundation.org>
+Subject: - lib-remove-fastcall-from-lib-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:44:48 -0800
+Message-ID: <200802080844.m188iTfl016208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755852AbYBHIoZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:44:25 -0500
+	by vger.kernel.org with ESMTP id S1756862AbYBHIpA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:45:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs-remove-fastcall-it-is-always-empty-checkpatch-fixes
+     lib-remove-fastcall-from-lib-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+     lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fs-remove-fastcall-it-is-always-empty.patch
+This patch was dropped because it was folded into lib-remove-fastcall-from-lib.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-remove-fastcall-it-is-always-empty-checkpatch-fixes
+Subject: lib-remove-fastcall-from-lib-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: "foo * bar" should be "foo *bar"
-#188: FILE: fs/namei.c:827:
-+static int __link_path_walk(const char * name, struct nameidata *nd)
+#244: FILE: lib/semaphore-sleepers.c:56:
++void __sched __down(struct semaphore * sem)
 
 ERROR: "foo * bar" should be "foo *bar"
-#206: FILE: fs/namei.c:1043:
-+static int path_walk(const char * name, struct nameidata *nd)
+#253: FILE: lib/semaphore-sleepers.c:93:
++int __sched __down_interruptible(struct semaphore * sem)
 
 ERROR: "foo * bar" should be "foo *bar"
-#263: FILE: fs/open.c:1017:
-+void fd_install(unsigned int fd, struct file * file)
+#262: FILE: lib/semaphore-sleepers.c:156:
++int __down_trylock(struct semaphore * sem)
 
-total: 3 errors, 0 warnings, 209 lines checked
+total: 3 errors, 0 warnings, 222 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -50,43 +50,39 @@ Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    4 ++--
- fs/open.c  |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ lib/semaphore-sleepers.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/namei.c~fs-remove-fastcall-it-is-always-empty-checkpatch-fixes fs/namei.c
---- a/fs/namei.c~fs-remove-fastcall-it-is-always-empty-checkpatch-fixes
-+++ a/fs/namei.c
-@@ -833,7 +833,7 @@ fail:
-  * Returns 0 and nd will have valid dentry and mnt on success.
-  * Returns error and drops reference to input namei data on failure.
-  */
--static int __link_path_walk(const char * name, struct nameidata *nd)
-+static int __link_path_walk(const char *name, struct nameidata *nd)
- {
- 	struct path next;
- 	struct inode *inode;
-@@ -1051,7 +1051,7 @@ static int link_path_walk(const char *na
- 	return result;
+diff -puN lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes lib/semaphore-sleepers.c
+--- a/lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes
++++ a/lib/semaphore-sleepers.c
+@@ -53,7 +53,7 @@ void __up(struct semaphore *sem)
+ 	wake_up(&sem->wait);
  }
  
--static int path_walk(const char * name, struct nameidata *nd)
-+static int path_walk(const char *name, struct nameidata *nd)
+-void __sched __down(struct semaphore * sem)
++void __sched __down(struct semaphore *sem)
  {
- 	current->total_link_count = 0;
- 	return link_path_walk(name, nd);
-diff -puN fs/open.c~fs-remove-fastcall-it-is-always-empty-checkpatch-fixes fs/open.c
---- a/fs/open.c~fs-remove-fastcall-it-is-always-empty-checkpatch-fixes
-+++ a/fs/open.c
-@@ -1050,7 +1050,7 @@ EXPORT_SYMBOL(put_unused_fd);
-  * will follow.
-  */
+ 	struct task_struct *tsk = current;
+ 	DECLARE_WAITQUEUE(wait, tsk);
+@@ -90,7 +90,7 @@ void __sched __down(struct semaphore * s
+ 	tsk->state = TASK_RUNNING;
+ }
  
--void fd_install(unsigned int fd, struct file * file)
-+void fd_install(unsigned int fd, struct file *file)
+-int __sched __down_interruptible(struct semaphore * sem)
++int __sched __down_interruptible(struct semaphore *sem)
  {
- 	struct files_struct *files = current->files;
- 	struct fdtable *fdt;
+ 	int retval = 0;
+ 	struct task_struct *tsk = current;
+@@ -153,7 +153,7 @@ int __sched __down_interruptible(struct 
+  * single "cmpxchg" without failure cases,
+  * but then it wouldn't work on a 386.
+  */
+-int __down_trylock(struct semaphore * sem)
++int __down_trylock(struct semaphore *sem)
+ {
+ 	int sleepers;
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,8 +101,8 @@ aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
 rewrite-rd.patch
 fs-remove-fastcall-it-is-always-empty.patch
-fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
-kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel.patch
+lib-remove-fastcall-from-lib.patch
 lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 remove-fastcall-from-linux-include-checkpatch-fixes.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
