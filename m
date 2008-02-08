@@ -1,64 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:50 -0800
-Message-ID: <200802080803.m1883VPB014128@imap1.linux-foundation.org>
+Subject: - memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:21 -0800
+Message-ID: <200802080803.m18832j6014089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40386 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933574AbYBHI1b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:27:31 -0500
+	by vger.kernel.org with ESMTP id S1761277AbYBHI2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
+To: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, bunk@kernel.org, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.
 
 
 The patch titled
-     bugfix for memory cgroup controller: migration under memory controller fix
+     Memory controller: add switch to control what type of pages to limit
 has been removed from the -mm tree.  Its filename was
-     bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+     memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bugfix for memory cgroup controller: migration under memory controller fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Memory controller: add switch to control what type of pages to limit
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-While using memory control cgroup, page-migration under it works as following.
-==
- 1. uncharge all refs at try to unmap.
- 2. charge regs again remove_migration_ptes()
-==
-This is simple but has following problems.
-==
- The page is uncharged and charged back again if *mapped*.
-    - This means that cgroup before migration can be different from one after
-      migration
-    - If page is not mapped but charged as page cache, charge is just ignored
-      (because not mapped, it will not be uncharged before migration)
-      This is memory leak.
-==
-This patch tries to keep memory cgroup at page migration by increasing
-one refcnt during it. 3 functions are added.
+Choose if we want cached pages to be accounted or not.  By default both are
+accounted for.  A new set of tunables are added.
 
- mem_cgroup_prepare_migration() --- increase refcnt of page->page_cgroup
- mem_cgroup_end_migration()     --- decrease refcnt of page->page_cgroup
- mem_cgroup_page_migration() --- copy page->page_cgroup from old page to
-                                 new page.
+echo -n 1 > mem_control_type
 
-During migration
-  - old page is under PG_locked.
-  - new page is under PG_locked, too.
-  - both old page and new page is not on LRU.
+switches the accounting to account for only mapped pages
 
-These 3 facts guarantee that page_cgroup() migration has no race.
+echo -n 3 > mem_control_type
 
-Tested and worked well in x86_64/fake-NUMA box.
+switches the behaviour back
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+[bunk@kernel.org: mm/memcontrol.c: clenups]
+[akpm@linux-foundation.org: fix sparc32 build]
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -68,153 +49,249 @@ Cc: Kirill Korotaev <dev@sw.ru>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   19 +++++++++++++++
- mm/memcontrol.c            |   43 +++++++++++++++++++++++++++++++++++
- mm/migrate.c               |   13 ++++++++--
- 3 files changed, 72 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |    9 +++
+ mm/filemap.c               |    2 
+ mm/memcontrol.c            |   98 +++++++++++++++++++++++++++++++++--
+ mm/swap_state.c            |    2 
+ 4 files changed, 106 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
+diff -puN include/linux/memcontrol.h~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7
 +++ a/include/linux/memcontrol.h
-@@ -60,6 +60,10 @@ static inline void mem_cgroup_uncharge_p
- 	mem_cgroup_uncharge(page_get_page_cgroup(page));
+@@ -22,6 +22,8 @@
+ 
+ struct mem_cgroup;
+ struct page_cgroup;
++struct page;
++struct mm_struct;
+ 
+ #ifdef CONFIG_CGROUP_MEM_CONT
+ 
+@@ -40,6 +42,7 @@ extern unsigned long mem_cgroup_isolate_
+ 					struct mem_cgroup *mem_cont,
+ 					int active);
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
++extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm);
+ 
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+@@ -84,6 +87,12 @@ static inline void mem_cgroup_move_lists
+ {
  }
  
-+extern int mem_cgroup_prepare_migration(struct page *page);
-+extern void mem_cgroup_end_migration(struct page *page);
-+extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
-+
- #else /* CONFIG_CGROUP_MEM_CONT */
- static inline void mm_init_cgroup(struct mm_struct *mm,
- 					struct task_struct *p)
-@@ -117,6 +121,21 @@ static inline int task_in_mem_cgroup(str
- 	return 1;
- }
- 
-+static inline int mem_cgroup_prepare_migration(struct page *page)
++static inline int mem_cgroup_cache_charge(struct page *page,
++						struct mm_struct *mm)
 +{
 +	return 0;
 +}
 +
-+static inline void mem_cgroup_end_migration(struct page *page)
-+{
-+}
-+
-+static inline void
-+mem_cgroup_page_migration(struct page *page, struct page *newpage)
-+{
-+}
-+
-+
  #endif /* CONFIG_CGROUP_MEM_CONT */
  
  #endif /* _LINUX_MEMCONTROL_H */
-diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
+diff -puN mm/filemap.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7 mm/filemap.c
+--- a/mm/filemap.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7
++++ a/mm/filemap.c
+@@ -464,7 +464,7 @@ int add_to_page_cache(struct page *page,
+ 
+ 	if (error == 0) {
+ 
+-		error = mem_cgroup_charge(page, current->mm);
++		error = mem_cgroup_cache_charge(page, current->mm);
+ 		if (error)
+ 			goto out;
+ 
+diff -puN mm/memcontrol.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7
 +++ a/mm/memcontrol.c
-@@ -492,6 +492,49 @@ void mem_cgroup_uncharge(struct page_cgr
- 		}
- 	}
- }
-+/*
-+ * Returns non-zero if a page (under migration) has valid page_cgroup member.
-+ * Refcnt of page_cgroup is incremented.
-+ */
+@@ -29,6 +29,8 @@
+ #include <linux/spinlock.h>
+ #include <linux/fs.h>
+ 
++#include <asm/uaccess.h>
 +
-+int mem_cgroup_prepare_migration(struct page *page)
+ struct cgroup_subsys mem_cgroup_subsys;
+ static const int MEM_CGROUP_RECLAIM_RETRIES = 5;
+ 
+@@ -60,6 +62,7 @@ struct mem_cgroup {
+ 	 * spin_lock to protect the per cgroup LRU
+ 	 */
+ 	spinlock_t lru_lock;
++	unsigned long control_type;	/* control RSS or RSS+Pagecache */
+ };
+ 
+ /*
+@@ -82,6 +85,15 @@ struct page_cgroup {
+ 					/* mapped and cached states     */
+ };
+ 
++enum {
++	MEM_CGROUP_TYPE_UNSPEC = 0,
++	MEM_CGROUP_TYPE_MAPPED,
++	MEM_CGROUP_TYPE_CACHED,
++	MEM_CGROUP_TYPE_ALL,
++	MEM_CGROUP_TYPE_MAX,
++};
++
++static struct mem_cgroup init_mem_cgroup;
+ 
+ static inline
+ struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+@@ -139,18 +151,18 @@ struct page_cgroup *page_get_page_cgroup
+ 		(page->page_cgroup & ~PAGE_CGROUP_LOCK);
+ }
+ 
+-void __always_inline lock_page_cgroup(struct page *page)
++static void __always_inline lock_page_cgroup(struct page *page)
+ {
+ 	bit_spin_lock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ 	VM_BUG_ON(!page_cgroup_locked(page));
+ }
+ 
+-void __always_inline unlock_page_cgroup(struct page *page)
++static void __always_inline unlock_page_cgroup(struct page *page)
+ {
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ }
+ 
+-void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
++static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+ 	if (active)
+ 		list_move(&pc->lru, &pc->mem_cgroup->active_list);
+@@ -366,6 +378,22 @@ err:
+ }
+ 
+ /*
++ * See if the cached pages should be charged at all?
++ */
++int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm)
 +{
-+	struct page_cgroup *pc;
-+	int ret = 0;
-+	lock_page_cgroup(page);
-+	pc = page_get_page_cgroup(page);
-+	if (pc && atomic_inc_not_zero(&pc->ref_cnt))
-+		ret = 1;
-+	unlock_page_cgroup(page);
++	struct mem_cgroup *mem;
++	if (!mm)
++		mm = &init_mm;
++
++	mem = rcu_dereference(mm->mem_cgroup);
++	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
++		return mem_cgroup_charge(page, mm);
++	else
++		return 0;
++}
++
++/*
+  * Uncharging is always a welcome operation, we never complain, simply
+  * uncharge.
+  */
+@@ -375,6 +403,10 @@ void mem_cgroup_uncharge(struct page_cgr
+ 	struct page *page;
+ 	unsigned long flags;
+ 
++	/*
++	 * This can handle cases when a page is not charged at all and we
++	 * are switching between handling the control_type.
++	 */
+ 	if (!pc)
+ 		return;
+ 
+@@ -425,6 +457,60 @@ static ssize_t mem_cgroup_write(struct c
+ 				mem_cgroup_write_strategy);
+ }
+ 
++static ssize_t mem_control_type_write(struct cgroup *cont,
++			struct cftype *cft, struct file *file,
++			const char __user *userbuf,
++			size_t nbytes, loff_t *pos)
++{
++	int ret;
++	char *buf, *end;
++	unsigned long tmp;
++	struct mem_cgroup *mem;
++
++	mem = mem_cgroup_from_cont(cont);
++	buf = kmalloc(nbytes + 1, GFP_KERNEL);
++	ret = -ENOMEM;
++	if (buf == NULL)
++		goto out;
++
++	buf[nbytes] = 0;
++	ret = -EFAULT;
++	if (copy_from_user(buf, userbuf, nbytes))
++		goto out_free;
++
++	ret = -EINVAL;
++	tmp = simple_strtoul(buf, &end, 10);
++	if (*end != '\0')
++		goto out_free;
++
++	if (tmp <= MEM_CGROUP_TYPE_UNSPEC || tmp >= MEM_CGROUP_TYPE_MAX)
++		goto out_free;
++
++	mem->control_type = tmp;
++	ret = nbytes;
++out_free:
++	kfree(buf);
++out:
 +	return ret;
 +}
 +
-+void mem_cgroup_end_migration(struct page *page)
++static ssize_t mem_control_type_read(struct cgroup *cont,
++				struct cftype *cft,
++				struct file *file, char __user *userbuf,
++				size_t nbytes, loff_t *ppos)
 +{
-+	struct page_cgroup *pc = page_get_page_cgroup(page);
-+	mem_cgroup_uncharge(pc);
-+}
-+/*
-+ * We know both *page* and *newpage* are now not-on-LRU and Pg_locked.
-+ * And no race with uncharge() routines because page_cgroup for *page*
-+ * has extra one reference by mem_cgroup_prepare_migration.
-+ */
++	unsigned long val;
++	char buf[64], *s;
++	struct mem_cgroup *mem;
 +
-+void mem_cgroup_page_migration(struct page *page, struct page *newpage)
-+{
-+	struct page_cgroup *pc;
-+retry:
-+	pc = page_get_page_cgroup(page);
-+	if (!pc)
-+		return;
-+	if (clear_page_cgroup(page, pc) != pc)
-+		goto retry;
-+	pc->page = newpage;
-+	lock_page_cgroup(newpage);
-+	page_assign_page_cgroup(newpage, pc);
-+	unlock_page_cgroup(newpage);
-+	return;
++	mem = mem_cgroup_from_cont(cont);
++	s = buf;
++	val = mem->control_type;
++	s += sprintf(s, "%lu\n", val);
++	return simple_read_from_buffer((void __user *)userbuf, nbytes,
++			ppos, buf, s - buf);
 +}
++
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+@@ -442,6 +528,11 @@ static struct cftype mem_cgroup_files[] 
+ 		.private = RES_FAILCNT,
+ 		.read = mem_cgroup_read,
+ 	},
++	{
++		.name = "control_type",
++		.write = mem_control_type_write,
++		.read = mem_control_type_read,
++	},
+ };
  
- int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
- {
-diff -puN mm/migrate.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix mm/migrate.c
---- a/mm/migrate.c~bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix
-+++ a/mm/migrate.c
-@@ -593,9 +593,10 @@ static int move_to_new_page(struct page 
- 	else
- 		rc = fallback_migrate_page(mapping, newpage, page);
+ static struct mem_cgroup init_mem_cgroup;
+@@ -464,6 +555,7 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	INIT_LIST_HEAD(&mem->active_list);
+ 	INIT_LIST_HEAD(&mem->inactive_list);
+ 	spin_lock_init(&mem->lru_lock);
++	mem->control_type = MEM_CGROUP_TYPE_ALL;
+ 	return &mem->css;
+ }
  
--	if (!rc)
-+	if (!rc) {
-+		mem_cgroup_page_migration(page, newpage);
- 		remove_migration_ptes(page, newpage);
--	else
-+	} else
- 		newpage->mapping = NULL;
+diff -puN mm/swap_state.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7 mm/swap_state.c
+--- a/mm/swap_state.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7
++++ a/mm/swap_state.c
+@@ -78,7 +78,7 @@ int add_to_swap_cache(struct page *page,
+ 	error = radix_tree_preload(gfp_mask);
+ 	if (!error) {
  
- 	unlock_page(newpage);
-@@ -614,6 +615,7 @@ static int unmap_and_move(new_page_t get
- 	int *result = NULL;
- 	struct page *newpage = get_new_page(page, private, &result);
- 	int rcu_locked = 0;
-+	int charge = 0;
+-		error = mem_cgroup_charge(page, current->mm);
++		error = mem_cgroup_cache_charge(page, current->mm);
+ 		if (error)
+ 			goto out;
  
- 	if (!newpage)
- 		return -ENOMEM;
-@@ -673,14 +675,19 @@ static int unmap_and_move(new_page_t get
- 		goto rcu_unlock;
- 	}
- 
-+	charge = mem_cgroup_prepare_migration(page);
- 	/* Establish migration ptes or remove ptes */
- 	try_to_unmap(page, 1);
- 
- 	if (!page_mapped(page))
- 		rc = move_to_new_page(newpage, page);
- 
--	if (rc)
-+	if (rc) {
- 		remove_migration_ptes(page, page);
-+		if (charge)
-+			mem_cgroup_end_migration(page);
-+	} else if (charge)
-+ 		mem_cgroup_end_migration(newpage);
- rcu_unlock:
- 	if (rcu_locked)
- 		rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+getdelays-fix-gcc-warnings.patch
