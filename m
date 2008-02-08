@@ -1,182 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: - char-stallion-remove-bottomhalf.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:09:46 -0800
-Message-ID: <200802080809.m1889RaV014830@imap1.linux-foundation.org>
+Subject: - char-mxser-remove-special-baudrate-processing.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:09:54 -0800
+Message-ID: <200802080809.m1889ZK9014845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761115AbYBHITk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:40 -0500
+	by vger.kernel.org with ESMTP id S1761448AbYBHITl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, remove bottomhalf
+     Char: mxser, remove special baudrate processing
 has been removed from the -mm tree.  Its filename was
-     char-stallion-remove-bottomhalf.patch
+     char-mxser-remove-special-baudrate-processing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: stallion, remove bottomhalf
+Subject: Char: mxser, remove special baudrate processing
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- tty_hangup schedules a bottomhalf itself, tty_wakeup doesn't need it
-- call the CD code (part of work handler previously) directly from the code
-  (it wakes somebody up or calls tty_hangup at worse)
+Let the special baudrate processing on the tty layer.  Also remove
+set/get_special_rate ioctls introduced in commit
+f64c84a1668930d1ca2b7dbaa92146c2139cb508, since it is no longer needed.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Reviewed-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c  |   68 +++++++++++++------------------------
- include/linux/stallion.h |    1 
- 2 files changed, 24 insertions(+), 45 deletions(-)
+ drivers/char/mxser_new.c |  120 +++++++------------------------------
+ drivers/char/mxser_new.h |    4 -
+ 2 files changed, 23 insertions(+), 101 deletions(-)
 
-diff -puN drivers/char/stallion.c~char-stallion-remove-bottomhalf drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-remove-bottomhalf
-+++ a/drivers/char/stallion.c
-@@ -145,8 +145,7 @@ static struct stlbrd		*stl_brds[STL_MAXB
-  */
- #define	ASYI_TXBUSY	1
- #define	ASYI_TXLOW	2
--#define	ASYI_DCDCHANGE	3
--#define	ASYI_TXFLOWED	4
-+#define	ASYI_TXFLOWED	3
- 
- /*
-  *	Define an array of board names as printable strings. Handy for
-@@ -610,6 +609,23 @@ static const struct file_operations	stl_
- 
- static struct class *stallion_class;
- 
-+static void stl_cd_change(struct stlport *portp)
-+{
-+	unsigned int oldsigs = portp->sigs;
-+
-+	if (!portp->tty)
-+		return;
-+
-+	portp->sigs = stl_getsignals(portp);
-+
-+	if ((portp->sigs & TIOCM_CD) && ((oldsigs & TIOCM_CD) == 0))
-+		wake_up_interruptible(&portp->open_wait);
-+
-+	if ((oldsigs & TIOCM_CD) && ((portp->sigs & TIOCM_CD) == 0))
-+		if (portp->flags & ASYNC_CHECK_CD)
-+			tty_hangup(portp->tty);
-+}
-+
- /*
-  *	Check for any arguments passed in on the module load command line.
-  */
-@@ -1771,41 +1787,6 @@ static int stl_echpci64intr(struct stlbr
- /*****************************************************************************/
- 
- /*
-- *	Service an off-level request for some channel.
-- */
--static void stl_offintr(struct work_struct *work)
--{
--	struct stlport		*portp = container_of(work, struct stlport, tqueue);
--	struct tty_struct	*tty;
--	unsigned int		oldsigs;
--
--	pr_debug("stl_offintr(portp=%p)\n", portp);
--
--	if (portp == NULL)
--		return;
--
--	tty = portp->tty;
--	if (tty == NULL)
--		return;
--
--	if (test_bit(ASYI_TXLOW, &portp->istate))
--		tty_wakeup(tty);
--
--	if (test_bit(ASYI_DCDCHANGE, &portp->istate)) {
--		clear_bit(ASYI_DCDCHANGE, &portp->istate);
--		oldsigs = portp->sigs;
--		portp->sigs = stl_getsignals(portp);
--		if ((portp->sigs & TIOCM_CD) && ((oldsigs & TIOCM_CD) == 0))
--			wake_up_interruptible(&portp->open_wait);
--		if ((oldsigs & TIOCM_CD) && ((portp->sigs & TIOCM_CD) == 0))
--			if (portp->flags & ASYNC_CHECK_CD)
--				tty_hangup(tty);	/* FIXME: module removal race here - AKPM */
--	}
--}
--
--/*****************************************************************************/
--
--/*
-  *	Initialize all the ports on a panel.
-  */
- 
-@@ -1840,7 +1821,6 @@ static int __devinit stl_initports(struc
- 		portp->baud_base = STL_BAUDBASE;
- 		portp->close_delay = STL_CLOSEDELAY;
- 		portp->closing_wait = 30 * HZ;
--		INIT_WORK(&portp->tqueue, stl_offintr);
- 		init_waitqueue_head(&portp->open_wait);
- 		init_waitqueue_head(&portp->close_wait);
- 		portp->stats.brd = portp->brdnr;
-@@ -3530,7 +3510,8 @@ static void stl_cd1400txisr(struct stlpa
- 	if ((len == 0) || ((len < STL_TXBUFLOW) &&
- 	    (test_bit(ASYI_TXLOW, &portp->istate) == 0))) {
- 		set_bit(ASYI_TXLOW, &portp->istate);
--		schedule_work(&portp->tqueue);
-+		if (portp->tty)
-+			tty_wakeup(portp->tty);
- 	}
- 
- 	if (len == 0) {
-@@ -3693,8 +3674,7 @@ static void stl_cd1400mdmisr(struct stlp
- 	outb((MISR + portp->uartaddr), ioaddr);
- 	misr = inb(ioaddr + EREG_DATA);
- 	if (misr & MISR_DCD) {
--		set_bit(ASYI_DCDCHANGE, &portp->istate);
--		schedule_work(&portp->tqueue);
-+		stl_cd_change(portp);
- 		portp->stats.modem++;
- 	}
- 
-@@ -4448,7 +4428,8 @@ static void stl_sc26198txisr(struct stlp
- 	if ((len == 0) || ((len < STL_TXBUFLOW) &&
- 	    (test_bit(ASYI_TXLOW, &portp->istate) == 0))) {
- 		set_bit(ASYI_TXLOW, &portp->istate);
--		schedule_work(&portp->tqueue); 
-+		if (portp->tty)
-+			tty_wakeup(portp->tty);
- 	}
- 
- 	if (len == 0) {
-@@ -4649,8 +4630,7 @@ static void stl_sc26198otherisr(struct s
- 	case CIR_SUBCOS:
- 		ipr = stl_sc26198getreg(portp, IPR);
- 		if (ipr & IPR_DCDCHANGE) {
--			set_bit(ASYI_DCDCHANGE, &portp->istate);
--			schedule_work(&portp->tqueue); 
-+			stl_cd_change(portp);
- 			portp->stats.modem++;
- 		}
- 		break;
-diff -puN include/linux/stallion.h~char-stallion-remove-bottomhalf include/linux/stallion.h
---- a/include/linux/stallion.h~char-stallion-remove-bottomhalf
-+++ a/include/linux/stallion.h
-@@ -95,7 +95,6 @@ struct stlport {
- 	struct tty_struct	*tty;
- 	wait_queue_head_t	open_wait;
- 	wait_queue_head_t	close_wait;
--	struct work_struct	tqueue;
- 	comstats_t		stats;
- 	struct stlrq		tx;
+diff -puN drivers/char/mxser_new.c~char-mxser-remove-special-baudrate-processing drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser-remove-special-baudrate-processing
++++ a/drivers/char/mxser_new.c
+@@ -173,18 +173,6 @@ static struct pci_device_id mxser_pcibrd
  };
+ MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
+ 
+-static int mxvar_baud_table[] = {
+-	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400,
+-	4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
+-};
+-static unsigned int mxvar_baud_table1[] = {
+-	0, B50, B75, B110, B134, B150, B200, B300, B600, B1200, B1800, B2400,
+-	B4800, B9600, B19200, B38400, B57600, B115200, B230400, B460800, B921600
+-};
+-#define BAUD_TABLE_NO ARRAY_SIZE(mxvar_baud_table)
+-
+-#define B_SPEC	B2000000
+-
+ static int ioaddr[MXSER_BOARDS] = { 0, 0, 0, 0 };
+ static int ttymajor = MXSERMAJOR;
+ static int calloutmajor = MXSERCUMAJOR;
+@@ -243,10 +231,8 @@ struct mxser_port {
+ 	int rx_trigger;		/* Rx fifo trigger level */
+ 	int rx_low_water;
+ 	int baud_base;		/* max. speed */
+-	long realbaud;
+ 	int type;		/* UART type */
+ 	int flags;		/* defined in tty.h */
+-	int speed;
+ 
+ 	int x_char;		/* xon/xoff character */
+ 	int IER;		/* Interrupt Enable Register */
+@@ -451,7 +437,6 @@ static int mxser_block_til_ready(struct 
+ 
+ static int mxser_set_baud(struct mxser_port *info, long newspd)
+ {
+-	unsigned int i;
+ 	int quot = 0, baud;
+ 	unsigned char cval;
+ 
+@@ -464,27 +449,17 @@ static int mxser_set_baud(struct mxser_p
+ 	if (newspd > info->max_baud)
+ 		return -1;
+ 
+-	info->realbaud = newspd;
+-	for (i = 0; i < BAUD_TABLE_NO; i++)
+-	       if (newspd == mxvar_baud_table[i])
+-		       break;
+-	if (i == BAUD_TABLE_NO) {
+-		quot = info->baud_base / info->speed;
+-		if (info->speed <= 0 || info->speed > info->max_baud)
+-			quot = 0;
++	if (newspd == 134) {
++		quot = 2 * info->baud_base / 269;
++		tty_encode_baud_rate(info->tty, 134, 134);
++	} else if (newspd) {
++		quot = info->baud_base / newspd;
++		if (quot == 0)
++			quot = 1;
++		baud = info->baud_base/quot;
++		tty_encode_baud_rate(info->tty, baud, baud);
+ 	} else {
+-		if (newspd == 134) {
+-			quot = (2 * info->baud_base / 269);
+-			tty_encode_baud_rate(info->tty, 134, 134);
+-		} else if (newspd) {
+-			quot = info->baud_base / newspd;
+-			if (quot == 0)
+-				quot = 1;
+-			baud = info->baud_base/quot;
+-			tty_encode_baud_rate(info->tty, baud, baud);
+-		} else {
+-			quot = 0;
+-		}
++		quot = 0;
+ 	}
+ 
+ 	info->timeout = ((info->xmit_fifo_size * HZ * 10 * quot) / info->baud_base);
+@@ -507,17 +482,19 @@ static int mxser_set_baud(struct mxser_p
+ 	outb(quot >> 8, info->ioaddr + UART_DLM);	/* MS of divisor */
+ 	outb(cval, info->ioaddr + UART_LCR);	/* reset DLAB */
+ 
+-	if (i == BAUD_TABLE_NO) {
+-		quot = info->baud_base % info->speed;
++#ifdef BOTHER
++	if (C_BAUD(info->tty) == BOTHER) {
++		quot = info->baud_base % newspd;
+ 		quot *= 8;
+-		if ((quot % info->speed) > (info->speed / 2)) {
+-			quot /= info->speed;
++		if (quot % newspd > newspd / 2) {
++			quot /= newspd;
+ 			quot++;
+-		} else {
+-			quot /= info->speed;
+-		}
++		} else
++			quot /= newspd;
++
+ 		SET_MOXA_MUST_ENUM_VALUE(info->ioaddr, quot);
+ 	} else
++#endif
+ 		SET_MOXA_MUST_ENUM_VALUE(info->ioaddr, 0);
+ 
+ 	return 0;
+@@ -533,7 +510,6 @@ static int mxser_change_speed(struct mxs
+ 	unsigned cflag, cval, fcr;
+ 	int ret = 0;
+ 	unsigned char status;
+-	long baud;
+ 
+ 	if (!info->tty || !info->tty->termios)
+ 		return ret;
+@@ -541,13 +517,8 @@ static int mxser_change_speed(struct mxs
+ 	if (!(info->ioaddr))
+ 		return ret;
+ 
+-	if (mxser_set_baud_method[info->tty->index] == 0) {
+-		if ((cflag & CBAUD) == B_SPEC)
+-			baud = info->speed;
+-		else
+-			baud = tty_get_baud_rate(info->tty);
+-		mxser_set_baud(info, baud);
+-	}
++	if (mxser_set_baud_method[info->tty->index] == 0)
++		mxser_set_baud(info, tty_get_baud_rate(info->tty));
+ 
+ 	/* byte size and parity */
+ 	switch (cflag & CSIZE) {
+@@ -1587,7 +1558,8 @@ static int mxser_ioctl_special(unsigned 
+ 					port->mon_data.up_txcnt;
+ 				mon_data_ext.modem_status[i] =
+ 					port->mon_data.modem_status;
+-				mon_data_ext.baudrate[i] = port->realbaud;
++				mon_data_ext.baudrate[i] =
++					tty_get_baud_rate(port->tty);
+ 
+ 				if (!port->tty || !port->tty->termios) {
+ 					cflag = port->normal_termios.c_cflag;
+@@ -1645,7 +1617,6 @@ static int mxser_ioctl(struct tty_struct
+ 	struct serial_icounter_struct __user *p_cuser;
+ 	unsigned long templ;
+ 	unsigned long flags;
+-	unsigned int i;
+ 	void __user *argp = (void __user *)arg;
+ 	int retval;
+ 
+@@ -1684,36 +1655,6 @@ static int mxser_ioctl(struct tty_struct
+ 		return 0;
+ 	}
+ 
+-	if (cmd == MOXA_SET_SPECIAL_BAUD_RATE) {
+-		int speed;
+-
+-		if (get_user(speed, (int __user *)argp))
+-			return -EFAULT;
+-		if (speed <= 0 || speed > info->max_baud)
+-			return -EFAULT;
+-		if (!info->tty || !info->tty->termios || !info->ioaddr)
+-			return 0;
+-		info->tty->termios->c_cflag &= ~(CBAUD | CBAUDEX);
+-		for (i = 0; i < BAUD_TABLE_NO; i++)
+-			if (speed == mxvar_baud_table[i])
+-				break;
+-		if (i == BAUD_TABLE_NO) {
+-			info->tty->termios->c_cflag |= B_SPEC;
+-		} else if (speed != 0)
+-			info->tty->termios->c_cflag |= mxvar_baud_table1[i];
+-
+-		info->speed = speed;
+-		spin_lock_irqsave(&info->slock, flags);
+-		mxser_change_speed(info, NULL);
+-		spin_unlock_irqrestore(&info->slock, flags);
+-
+-		return 0;
+-	} else if (cmd == MOXA_GET_SPECIAL_BAUD_RATE) {
+-		if (copy_to_user(argp, &info->speed, sizeof(int)))
+-		     return -EFAULT;
+-		return 0;
+-	}
+-
+ 	if (cmd != TIOCGSERIAL && cmd != TIOCMIWAIT && cmd != TIOCGICOUNT &&
+ 			test_bit(TTY_IO_ERROR, &tty->flags))
+ 		return -EIO;
+@@ -1807,20 +1748,6 @@ static int mxser_ioctl(struct tty_struct
+ 		info->mon_data.rxcnt = 0;
+ 		info->mon_data.txcnt = 0;
+ 		return 0;
+-	case MOXA_ASPP_SETBAUD:{
+-		long baud;
+-		if (get_user(baud, (long __user *)argp))
+-			return -EFAULT;
+-		spin_lock_irqsave(&info->slock, flags);
+-		mxser_set_baud(info, baud);
+-		spin_unlock_irqrestore(&info->slock, flags);
+-		return 0;
+-	}
+-	case MOXA_ASPP_GETBAUD:
+-		if (copy_to_user(argp, &info->realbaud, sizeof(long)))
+-			return -EFAULT;
+-
+-		return 0;
+ 
+ 	case MOXA_ASPP_OQUEUE:{
+ 		int len, lsr;
+@@ -2434,7 +2361,6 @@ static int __devinit mxser_initbrd(struc
+ 		info->normal_termios = mxvar_sdriver->init_termios;
+ 		init_waitqueue_head(&info->open_wait);
+ 		init_waitqueue_head(&info->delta_msr_wait);
+-		info->speed = 9600;
+ 		memset(&info->mon_data, 0, sizeof(struct mxser_mon));
+ 		info->err_shadow = 0;
+ 		spin_lock_init(&info->slock);
+diff -puN drivers/char/mxser_new.h~char-mxser-remove-special-baudrate-processing drivers/char/mxser_new.h
+--- a/drivers/char/mxser_new.h~char-mxser-remove-special-baudrate-processing
++++ a/drivers/char/mxser_new.h
+@@ -29,14 +29,10 @@
+ 
+ #define MOXA_SDS_RSTICOUNTER	(MOXA + 69)
+ #define MOXA_ASPP_OQUEUE  	(MOXA + 70)
+-#define MOXA_ASPP_SETBAUD 	(MOXA + 71)
+-#define MOXA_ASPP_GETBAUD 	(MOXA + 72)
+ #define MOXA_ASPP_MON     	(MOXA + 73)
+ #define MOXA_ASPP_LSTATUS 	(MOXA + 74)
+ #define MOXA_ASPP_MON_EXT 	(MOXA + 75)
+ #define MOXA_SET_BAUD_METHOD	(MOXA + 76)
+-#define MOXA_SET_SPECIAL_BAUD_RATE	(MOXA + 77)
+-#define MOXA_GET_SPECIAL_BAUD_RATE	(MOXA + 78)
+ 
+ /* --------------------------------------------------- */
+ 
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
