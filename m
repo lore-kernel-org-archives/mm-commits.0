@@ -1,136 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-procfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:58 -0800
-Message-ID: <200802080807.m1887dCO014570@imap1.linux-foundation.org>
+Subject: - iget-stop-openpromfs-from-using-iget-and.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:12 -0800
+Message-ID: <200802080807.m1887r8B014599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44782 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932851AbYBHIUr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:47 -0500
+	by vger.kernel.org with ESMTP id S932918AbYBHIUs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, ebiederm@xmission.com, hch@lst.de, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, davem@davemloft.net, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop PROCFS from using iget() and read_inode()
+     iget: stop OPENPROMFS from using iget() and read_inode()
 has been removed from the -mm tree.  Its filename was
-     iget-stop-procfs-from-using-iget-and-read_inode.patch
+     iget-stop-openpromfs-from-using-iget-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop PROCFS from using iget() and read_inode()
+Subject: iget: stop OPENPROMFS from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Stop the PROCFS filesystem from using iget() and read_inode().  Merge
-procfs_read_inode() into procfs_get_inode(), and have that call iget_locked()
-instead of iget().
+Stop the OPENPROMFS filesystem from using iget() and read_inode().  Replace
+openpromfs_read_inode() with openpromfs_iget(), and call that instead of
+iget().  openpromfs_iget() then uses iget_locked() directly and returns a
+proper error code instead of an inode in the event of an error.
 
-[akpm@linux-foundation.org: coding-style fixes]
+openpromfs_fill_super() returns any error incurred when getting the root inode
+instead of ENOMEM (not that it currently incurs any other error).
+
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |   60 +++++++++++++++++++++-------------------------
- 1 file changed, 28 insertions(+), 32 deletions(-)
+ fs/openpromfs/inode.c |   45 ++++++++++++++++++++++++++--------------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
 
-diff -puN fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode fs/proc/inode.c
---- a/fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode
-+++ a/fs/proc/inode.c
-@@ -73,11 +73,6 @@ static void proc_delete_inode(struct ino
+diff -puN fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and fs/openpromfs/inode.c
+--- a/fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and
++++ a/fs/openpromfs/inode.c
+@@ -38,6 +38,8 @@ struct op_inode_info {
+ 	union op_inode_data	u;
+ };
  
- struct vfsmount *proc_mnt;
++static struct inode *openprom_iget(struct super_block *sb, ino_t ino);
++
+ static inline struct op_inode_info *OP_I(struct inode *inode)
+ {
+ 	return container_of(inode, struct op_inode_info, vfs_inode);
+@@ -226,10 +228,10 @@ static struct dentry *openpromfs_lookup(
+ 	return ERR_PTR(-ENOENT);
  
--static void proc_read_inode(struct inode * inode)
--{
+ found:
+-	inode = iget(dir->i_sb, ino);
++	inode = openprom_iget(dir->i_sb, ino);
+ 	mutex_unlock(&op_mutex);
+-	if (!inode)
+-		return ERR_PTR(-EINVAL);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
+ 	ent_oi = OP_I(inode);
+ 	ent_oi->type = ent_type;
+ 	ent_oi->u = ent_data;
+@@ -348,14 +350,23 @@ static void openprom_destroy_inode(struc
+ 	kmem_cache_free(op_inode_cachep, OP_I(inode));
+ }
+ 
+-static void openprom_read_inode(struct inode * inode)
++static struct inode *openprom_iget(struct super_block *sb, ino_t ino)
+ {
 -	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
--}
--
- static struct kmem_cache * proc_inode_cachep;
- 
- static struct inode *proc_alloc_inode(struct super_block *sb)
-@@ -128,7 +123,6 @@ static int proc_remount(struct super_blo
- static const struct super_operations proc_sops = {
- 	.alloc_inode	= proc_alloc_inode,
- 	.destroy_inode	= proc_destroy_inode,
--	.read_inode	= proc_read_inode,
- 	.drop_inode	= generic_delete_inode,
- 	.delete_inode	= proc_delete_inode,
- 	.statfs		= simple_statfs,
-@@ -401,39 +395,41 @@ struct inode *proc_get_inode(struct supe
- 	if (de != NULL && !try_module_get(de->owner))
- 		goto out_mod;
- 
--	inode = iget(sb, ino);
+-	if (inode->i_ino == OPENPROM_ROOT_INO) {
+-		inode->i_op = &openprom_inode_operations;
+-		inode->i_fop = &openprom_operations;
+-		inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
++	struct inode *inode;
++
 +	inode = iget_locked(sb, ino);
- 	if (!inode)
- 		goto out_ino;
--
--	PROC_I(inode)->fd = 0;
--	PROC_I(inode)->pde = de;
--	if (de) {
--		if (de->mode) {
--			inode->i_mode = de->mode;
--			inode->i_uid = de->uid;
--			inode->i_gid = de->gid;
--		}
--		if (de->size)
--			inode->i_size = de->size;
--		if (de->nlink)
--			inode->i_nlink = de->nlink;
--		if (de->proc_iops)
--			inode->i_op = de->proc_iops;
--		if (de->proc_fops) {
--			if (S_ISREG(inode->i_mode)) {
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
 +	if (inode->i_state & I_NEW) {
 +		inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
-+		PROC_I(inode)->fd = 0;
-+		PROC_I(inode)->pde = de;
-+		if (de) {
-+			if (de->mode) {
-+				inode->i_mode = de->mode;
-+				inode->i_uid = de->uid;
-+				inode->i_gid = de->gid;
-+			}
-+			if (de->size)
-+				inode->i_size = de->size;
-+			if (de->nlink)
-+				inode->i_nlink = de->nlink;
-+			if (de->proc_iops)
-+				inode->i_op = de->proc_iops;
-+			if (de->proc_fops) {
-+				if (S_ISREG(inode->i_mode)) {
- #ifdef CONFIG_COMPAT
--				if (!de->proc_fops->compat_ioctl)
--					inode->i_fop =
--						&proc_reg_file_ops_no_compat;
--				else
-+					if (!de->proc_fops->compat_ioctl)
-+						inode->i_fop =
-+							&proc_reg_file_ops_no_compat;
-+					else
- #endif
--					inode->i_fop = &proc_reg_file_ops;
-+						inode->i_fop = &proc_reg_file_ops;
-+				} else {
-+					inode->i_fop = de->proc_fops;
-+				}
- 			}
--			else
--				inode->i_fop = de->proc_fops;
- 		}
++		if (inode->i_ino == OPENPROM_ROOT_INO) {
++			inode->i_op = &openprom_inode_operations;
++			inode->i_fop = &openprom_operations;
++			inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
++		}
 +		unlock_new_inode(inode);
  	}
--
- 	return inode;
++	return inode;
+ }
  
- out_ino:
+ static int openprom_remount(struct super_block *sb, int *flags, char *data)
+@@ -367,7 +378,6 @@ static int openprom_remount(struct super
+ static const struct super_operations openprom_sops = {
+ 	.alloc_inode	= openprom_alloc_inode,
+ 	.destroy_inode	= openprom_destroy_inode,
+-	.read_inode	= openprom_read_inode,
+ 	.statfs		= simple_statfs,
+ 	.remount_fs	= openprom_remount,
+ };
+@@ -376,6 +386,7 @@ static int openprom_fill_super(struct su
+ {
+ 	struct inode *root_inode;
+ 	struct op_inode_info *oi;
++	int ret;
+ 
+ 	s->s_flags |= MS_NOATIME;
+ 	s->s_blocksize = 1024;
+@@ -383,9 +394,11 @@ static int openprom_fill_super(struct su
+ 	s->s_magic = OPENPROM_SUPER_MAGIC;
+ 	s->s_op = &openprom_sops;
+ 	s->s_time_gran = 1;
+-	root_inode = iget(s, OPENPROM_ROOT_INO);
+-	if (!root_inode)
++	root_inode = openprom_iget(s, OPENPROM_ROOT_INO);
++	if (IS_ERR(root_inode)) {
++		ret = PTR_ERR(root_inode);
+ 		goto out_no_root;
++	}
+ 
+ 	oi = OP_I(root_inode);
+ 	oi->type = op_inode_node;
+@@ -393,13 +406,15 @@ static int openprom_fill_super(struct su
+ 
+ 	s->s_root = d_alloc_root(root_inode);
+ 	if (!s->s_root)
+-		goto out_no_root;
++		goto out_no_root_dentry;
+ 	return 0;
+ 
++out_no_root_dentry:
++	iput(root_inode);
++	ret = -ENOMEM;
+ out_no_root:
+ 	printk("openprom_fill_super: get root inode failed\n");
+-	iput(root_inode);
+-	return -ENOMEM;
++	return ret;
+ }
+ 
+ static int openprom_get_sb(struct file_system_type *fs_type,
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
