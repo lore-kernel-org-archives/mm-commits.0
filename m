@@ -1,213 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-freevxfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:42 -0800
-Message-ID: <200802080807.m1887NDf014529@imap1.linux-foundation.org>
+Subject: - iget-remove-iget-and-the-read_inode-super-op-as.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:20 -0800
+Message-ID: <200802080808.m18881UH014608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51206 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33209 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762000AbYBHIUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:31 -0500
+	by vger.kernel.org with ESMTP id S932636AbYBHIUg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop FreeVXFS from using iget() and read_inode()
+     iget: remove iget() and the read_inode() super op as being obsolete
 has been removed from the -mm tree.  Its filename was
-     iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+     iget-remove-iget-and-the-read_inode-super-op-as.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop FreeVXFS from using iget() and read_inode()
+Subject: iget: remove iget() and the read_inode() super op as being obsolete
 From: David Howells <dhowells@redhat.com>
 
-Stop the FreeVXFS filesystem from using iget() and read_inode().  Replace
-vxfs_read_inode() with vxfs_iget(), and call that instead of iget(). 
-vxfs_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+Remove the old iget() call and the read_inode() superblock operation it uses
+as these are really obsolete, and the use of read_inode() does not produce
+proper error handling (no distinction between ENOMEM and EIO when marking an
+inode bad).
 
-vxfs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
+Furthermore, this removes the temptation to use iget() to find an inode by
+number in a filesystem from code outside that filesystem.
 
-[akpm@linux-foundation.org: coding-style fixes]
+iget_locked() should be used instead.  A new function is added in an earlier
+patch (iget_failed) that is to be called to mark an inode as bad, unlock it
+and release it should the get routine fail.  Mark iget() and read_inode() as
+being obsolete and remove references to them from the documentation.
+
+Typically a filesystem will be modified such that the read_inode function
+becomes an internal iget function, for example the following:
+
+	void thingyfs_read_inode(struct inode *inode)
+	{
+		...
+	}
+
+would be changed into something like:
+
+	struct inode *thingyfs_iget(struct super_block *sp, unsigned long ino)
+	{
+		struct inode *inode;
+		int ret;
+
+		inode = iget_locked(sb, ino);
+		if (!inode)
+			return ERR_PTR(-ENOMEM);
+		if (!(inode->i_state & I_NEW))
+			return inode;
+
+		...
+		unlock_new_inode(inode);
+		return inode;
+	error:
+		iget_failed(inode);
+		return ERR_PTR(ret);
+	}
+
+and then thingyfs_iget() would be called rather than iget(), for example:
+
+	ret = -EINVAL;
+	inode = iget(sb, ino);
+	if (!inode || is_bad_inode(inode))
+		goto error;
+
+becomes:
+
+	inode = thingyfs_iget(sb, ino);
+	if (IS_ERR(inode)) {
+		ret = PTR_ERR(inode);
+		goto error;
+	}
+
+Note that is_bad_inode() does not need to be called.  The error returned by
+thingyfs_iget() should render it unnecessary.
+
 Signed-off-by: David Howells <dhowells@redhat.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_extern.h |    2 -
- fs/freevxfs/vxfs_inode.c  |   43 +++++++++++++++++++++++-------------
- fs/freevxfs/vxfs_lookup.c |    6 ++---
- fs/freevxfs/vxfs_super.c  |   10 +++++---
- 4 files changed, 39 insertions(+), 22 deletions(-)
+ Documentation/filesystems/Locking |    3 ---
+ Documentation/filesystems/porting |   12 ++++++------
+ Documentation/filesystems/vfs.txt |   17 +++--------------
+ fs/inode.c                        |    4 ----
+ include/linux/fs.h                |   14 --------------
+ 5 files changed, 9 insertions(+), 41 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_extern.h~iget-stop-freevxfs-from-using-iget-and-read_inode fs/freevxfs/vxfs_extern.h
---- a/fs/freevxfs/vxfs_extern.h~iget-stop-freevxfs-from-using-iget-and-read_inode
-+++ a/fs/freevxfs/vxfs_extern.h
-@@ -58,7 +58,7 @@ extern struct inode *		vxfs_get_fake_ino
- extern void			vxfs_put_fake_inode(struct inode *);
- extern struct vxfs_inode_info *	vxfs_blkiget(struct super_block *, u_long, ino_t);
- extern struct vxfs_inode_info *	vxfs_stiget(struct super_block *, ino_t);
--extern void			vxfs_read_inode(struct inode *);
-+extern struct inode *		vxfs_iget(struct super_block *, ino_t);
- extern void			vxfs_clear_inode(struct inode *);
+diff -puN Documentation/filesystems/Locking~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~iget-remove-iget-and-the-read_inode-super-op-as
++++ a/Documentation/filesystems/Locking
+@@ -90,7 +90,6 @@ of the locking scheme for directory oper
+ prototypes:
+ 	struct inode *(*alloc_inode)(struct super_block *sb);
+ 	void (*destroy_inode)(struct inode *);
+-	void (*read_inode) (struct inode *);
+ 	void (*dirty_inode) (struct inode *);
+ 	int (*write_inode) (struct inode *, int);
+ 	void (*put_inode) (struct inode *);
+@@ -114,7 +113,6 @@ locking rules:
+ 			BKL	s_lock	s_umount
+ alloc_inode:		no	no	no
+ destroy_inode:		no
+-read_inode:		no				(see below)
+ dirty_inode:		no				(must not sleep)
+ write_inode:		no
+ put_inode:		no
+@@ -133,7 +131,6 @@ show_options:		no				(vfsmount->sem)
+ quota_read:		no	no	no		(see below)
+ quota_write:		no	no	no		(see below)
  
- /* vxfs_lookup.c */
-diff -puN fs/freevxfs/vxfs_inode.c~iget-stop-freevxfs-from-using-iget-and-read_inode fs/freevxfs/vxfs_inode.c
---- a/fs/freevxfs/vxfs_inode.c~iget-stop-freevxfs-from-using-iget-and-read_inode
-+++ a/fs/freevxfs/vxfs_inode.c
-@@ -129,7 +129,7 @@ fail:
-  * Description:
-  *  Search the for inode number @ino in the filesystem
-  *  described by @sbp.  Use the specified inode table (@ilistp).
-- *  Returns the matching VxFS inode on success, else a NULL pointer.
-+ *  Returns the matching VxFS inode on success, else an error code.
-  */
- static struct vxfs_inode_info *
- __vxfs_iget(ino_t ino, struct inode *ilistp)
-@@ -157,12 +157,12 @@ __vxfs_iget(ino_t ino, struct inode *ili
- 	}
+-->read_inode() is not a method - it's a callback used in iget().
+ ->remount_fs() will have the s_umount lock if it's already mounted.
+ When called from get_sb_single, it does NOT have the s_umount lock.
+ ->quota_read() and ->quota_write() functions are both guaranteed to
+diff -puN Documentation/filesystems/porting~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/porting
+--- a/Documentation/filesystems/porting~iget-remove-iget-and-the-read_inode-super-op-as
++++ a/Documentation/filesystems/porting
+@@ -34,8 +34,8 @@ FOO_I(inode) (see in-tree filesystems fo
  
- 	printk(KERN_WARNING "vxfs: error on page %p\n", pp);
--	return NULL;
-+	return ERR_CAST(pp);
+ Make them ->alloc_inode and ->destroy_inode in your super_operations.
  
- fail:
- 	printk(KERN_WARNING "vxfs: unable to read inode %ld\n", (unsigned long)ino);
- 	vxfs_put_page(pp);
--	return NULL;
-+	return ERR_PTR(-ENOMEM);
- }
+-Keep in mind that now you need explicit initialization of private data -
+-typically in ->read_inode() and after getting an inode from new_inode().
++Keep in mind that now you need explicit initialization of private data
++typically between calling iget_locked() and unlocking the inode.
  
- /**
-@@ -178,7 +178,10 @@ fail:
- struct vxfs_inode_info *
- vxfs_stiget(struct super_block *sbp, ino_t ino)
- {
--        return __vxfs_iget(ino, VXFS_SBI(sbp)->vsi_stilist);
-+	struct vxfs_inode_info *vip;
-+
-+	vip = __vxfs_iget(ino, VXFS_SBI(sbp)->vsi_stilist);
-+	return IS_ERR(vip) ? NULL : vip;
- }
+ At some point that will become mandatory.
  
- /**
-@@ -282,23 +285,32 @@ vxfs_put_fake_inode(struct inode *ip)
- }
+@@ -173,10 +173,10 @@ should be a non-blocking function that i
+ newly created inode to allow the test function to succeed. 'data' is
+ passed as an opaque value to both test and set functions.
  
- /**
-- * vxfs_read_inode - fill in inode information
-- * @ip:		inode pointer to fill
-+ * vxfs_iget - get an inode
-+ * @sbp:	the superblock to get the inode for
-+ * @ino:	the number of the inode to get
+-When the inode has been created by iget5_locked(), it will be returned with
+-the I_NEW flag set and will still be locked. read_inode has not been
+-called so the file system still has to finalize the initialization. Once
+-the inode is initialized it must be unlocked by calling unlock_new_inode().
++When the inode has been created by iget5_locked(), it will be returned with the
++I_NEW flag set and will still be locked.  The filesystem then needs to finalize
++the initialization. Once the inode is initialized it must be unlocked by
++calling unlock_new_inode().
+ 
+ The filesystem is responsible for setting (and possibly testing) i_ino
+ when appropriate. There is also a simpler iget_locked function that
+diff -puN Documentation/filesystems/vfs.txt~iget-remove-iget-and-the-read_inode-super-op-as Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~iget-remove-iget-and-the-read_inode-super-op-as
++++ a/Documentation/filesystems/vfs.txt
+@@ -203,8 +203,6 @@ struct super_operations {
+         struct inode *(*alloc_inode)(struct super_block *sb);
+         void (*destroy_inode)(struct inode *);
+ 
+-        void (*read_inode) (struct inode *);
+-
+         void (*dirty_inode) (struct inode *);
+         int (*write_inode) (struct inode *, int);
+         void (*put_inode) (struct inode *);
+@@ -242,15 +240,6 @@ or bottom half).
+   	->alloc_inode was defined and simply undoes anything done by
+ 	->alloc_inode.
+ 
+-  read_inode: this method is called to read a specific inode from the
+-        mounted filesystem.  The i_ino member in the struct inode is
+-	initialized by the VFS to indicate which inode to read. Other
+-	members are filled in by this method.
+-
+-	You can set this to NULL and use iget5_locked() instead of iget()
+-	to read inodes.  This is necessary for filesystems for which the
+-	inode number is not sufficient to identify an inode.
+-
+   dirty_inode: this method is called by the VFS to mark an inode dirty.
+ 
+   write_inode: this method is called when the VFS needs to write an
+@@ -308,9 +297,9 @@ or bottom half).
+ 
+   quota_write: called by the VFS to write to filesystem quota file.
+ 
+-The read_inode() method is responsible for filling in the "i_op"
+-field. This is a pointer to a "struct inode_operations" which
+-describes the methods that can be performed on individual inodes.
++Whoever sets up the inode is responsible for filling in the "i_op" field. This
++is a pointer to a "struct inode_operations" which describes the methods that
++can be performed on individual inodes.
+ 
+ 
+ The Inode Object
+diff -puN fs/inode.c~iget-remove-iget-and-the-read_inode-super-op-as fs/inode.c
+--- a/fs/inode.c~iget-remove-iget-and-the-read_inode-super-op-as
++++ a/fs/inode.c
+@@ -928,8 +928,6 @@ EXPORT_SYMBOL(ilookup);
+  * @set:	callback used to initialize a new struct inode
+  * @data:	opaque data pointer to pass to @test and @set
   *
-  * Description:
-- *  vxfs_read_inode reads the disk inode for @ip and fills
-- *  in all relevant fields in @ip.
-+ *  vxfs_read_inode creates an inode, reads the disk inode for @ino and fills
-+ *  in all relevant fields in the new inode.
-  */
--void
--vxfs_read_inode(struct inode *ip)
-+struct inode *
-+vxfs_iget(struct super_block *sbp, ino_t ino)
- {
--	struct super_block		*sbp = ip->i_sb;
- 	struct vxfs_inode_info		*vip;
- 	const struct address_space_operations	*aops;
--	ino_t				ino = ip->i_ino;
-+	struct inode *ip;
+- * This is iget() without the read_inode() portion of get_new_inode().
+- *
+  * iget5_locked() uses ifind() to search for the inode specified by @hashval
+  * and @data in the inode cache and if present it is returned with an increased
+  * reference count. This is a generalized version of iget_locked() for file
+@@ -966,8 +964,6 @@ EXPORT_SYMBOL(iget5_locked);
+  * @sb:		super block of file system
+  * @ino:	inode number to get
+  *
+- * This is iget() without the read_inode() portion of get_new_inode_fast().
+- *
+  * iget_locked() uses ifind_fast() to search for the inode specified by @ino in
+  * the inode cache and if present it is returned with an increased reference
+  * count. This is for file systems where the inode number is sufficient for
+diff -puN include/linux/fs.h~iget-remove-iget-and-the-read_inode-super-op-as include/linux/fs.h
+--- a/include/linux/fs.h~iget-remove-iget-and-the-read_inode-super-op-as
++++ a/include/linux/fs.h
+@@ -1241,8 +1241,6 @@ struct super_operations {
+    	struct inode *(*alloc_inode)(struct super_block *sb);
+ 	void (*destroy_inode)(struct inode *);
  
--	if (!(vip = __vxfs_iget(ino, VXFS_SBI(sbp)->vsi_ilist)))
--		return;
-+	ip = iget_locked(sbp, ino);
-+	if (!ip)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(ip->i_state & I_NEW))
-+		return ip;
-+
-+	vip = __vxfs_iget(ino, VXFS_SBI(sbp)->vsi_ilist);
-+	if (IS_ERR(vip)) {
-+		iget_failed(ip);
-+		return ERR_CAST(vip);
-+	}
+-	void (*read_inode) (struct inode *);
+-  
+    	void (*dirty_inode) (struct inode *);
+ 	int (*write_inode) (struct inode *, int);
+ 	void (*put_inode) (struct inode *);
+@@ -1767,18 +1765,6 @@ extern struct inode * iget5_locked(struc
+ extern struct inode * iget_locked(struct super_block *, unsigned long);
+ extern void unlock_new_inode(struct inode *);
  
- 	vxfs_iinit(ip, vip);
- 
-@@ -323,7 +335,8 @@ vxfs_read_inode(struct inode *ip)
- 	} else
- 		init_special_inode(ip, ip->i_mode, old_decode_dev(vip->vii_rdev));
- 
--	return;
-+	unlock_new_inode(ip);
-+	return ip;
- }
- 
- /**
-diff -puN fs/freevxfs/vxfs_lookup.c~iget-stop-freevxfs-from-using-iget-and-read_inode fs/freevxfs/vxfs_lookup.c
---- a/fs/freevxfs/vxfs_lookup.c~iget-stop-freevxfs-from-using-iget-and-read_inode
-+++ a/fs/freevxfs/vxfs_lookup.c
-@@ -213,10 +213,10 @@ vxfs_lookup(struct inode *dip, struct de
- 	lock_kernel();
- 	ino = vxfs_inode_by_name(dip, dp);
- 	if (ino) {
--		ip = iget(dip->i_sb, ino);
--		if (!ip) {
-+		ip = vxfs_iget(dip->i_sb, ino);
-+		if (IS_ERR(ip)) {
- 			unlock_kernel();
--			return ERR_PTR(-EACCES);
-+			return ERR_CAST(ip);
- 		}
- 	}
- 	unlock_kernel();
-diff -puN fs/freevxfs/vxfs_super.c~iget-stop-freevxfs-from-using-iget-and-read_inode fs/freevxfs/vxfs_super.c
---- a/fs/freevxfs/vxfs_super.c~iget-stop-freevxfs-from-using-iget-and-read_inode
-+++ a/fs/freevxfs/vxfs_super.c
-@@ -60,7 +60,6 @@ static int		vxfs_statfs(struct dentry *,
- static int		vxfs_remount(struct super_block *, int *, char *);
- 
- static const struct super_operations vxfs_super_ops = {
--	.read_inode =		vxfs_read_inode,
- 	.clear_inode =		vxfs_clear_inode,
- 	.put_super =		vxfs_put_super,
- 	.statfs =		vxfs_statfs,
-@@ -153,6 +152,7 @@ static int vxfs_fill_super(struct super_
- 	struct buffer_head	*bp = NULL;
- 	u_long			bsize;
- 	struct inode *root;
-+	int ret = -EINVAL;
- 
- 	sbp->s_flags |= MS_RDONLY;
- 
-@@ -219,7 +219,11 @@ static int vxfs_fill_super(struct super_
- 	}
- 
- 	sbp->s_op = &vxfs_super_ops;
--	root = iget(sbp, VXFS_ROOT_INO);
-+	root = vxfs_iget(sbp, VXFS_ROOT_INO);
-+	if (IS_ERR(root)) {
-+		ret = PTR_ERR(root);
-+		goto out;
-+	}
- 	sbp->s_root = d_alloc_root(root);
- 	if (!sbp->s_root) {
- 		iput(root);
-@@ -236,7 +240,7 @@ out_free_ilist:
- out:
- 	brelse(bp);
- 	kfree(infp);
--	return -EINVAL;
-+	return ret;
- }
- 
- /*
+-static inline struct inode *iget(struct super_block *sb, unsigned long ino)
+-{
+-	struct inode *inode = iget_locked(sb, ino);
+-	
+-	if (inode && (inode->i_state & I_NEW)) {
+-		sb->s_op->read_inode(inode);
+-		unlock_new_inode(inode);
+-	}
+-
+-	return inode;
+-}
+-
+ extern void __iget(struct inode * inode);
+ extern void iget_failed(struct inode *);
+ extern void clear_inode(struct inode *);
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
