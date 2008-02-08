@@ -1,52 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - constify-tables-in-kernel-sysctl_checkc-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:45:31 -0800
-Message-ID: <200802080845.m188jCZa016220@imap1.linux-foundation.org>
+Subject: - ufs-fix-symlink-creation-on-ufs2-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:46:25 -0800
+Message-ID: <200802080846.m188k6Pj016232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39193 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757980AbYBHIqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:46:08 -0500
+	by vger.kernel.org with ESMTP id S1758053AbYBHIqn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:46:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@codemonkey.org.uk, ebiederm@xmission.com, jbeulich@novell.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dushistov@mail.ru, stevenaaus@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     constify-tables-in-kernel-sysctl_checkc-fix
+     ufs-fix-symlink-creation-on-ufs2-fix
 has been removed from the -mm tree.  Its filename was
-     constify-tables-in-kernel-sysctl_checkc-fix.patch
+     ufs-fix-symlink-creation-on-ufs2-fix.patch
 
-This patch was dropped because it was folded into constify-tables-in-kernel-sysctl_checkc.patch
+This patch was dropped because it was folded into ufs-fix-symlink-creation-on-ufs2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: constify-tables-in-kernel-sysctl_checkc-fix
+Subject: ufs-fix-symlink-creation-on-ufs2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Steven <stevenaaus@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    2 +-
+ fs/ufs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~constify-tables-in-kernel-sysctl_checkc-fix
-+++ a/kernel/sysctl_check.c
-@@ -423,7 +423,7 @@ static const struct trans_ctl_table tran
- 	{}
- };
- 
--static const struct trans_ctl_table trans_net_ax25_table[] = {
-+static const struct trans_ctl_table trans_net_ax25_param_table[] = {
- 	{ NET_AX25_IP_DEFAULT_MODE,	"ip_default_mode" },
- 	{ NET_AX25_DEFAULT_MODE,	"ax25_default_mode" },
- 	{ NET_AX25_BACKOFF_TYPE,	"backoff_type" },
+diff -puN fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix
++++ a/fs/ufs/super.c
+@@ -132,7 +132,7 @@ static void ufs_print_super_stuff(struct
+ 		       (unsigned long long)
+ 		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
+ 		printk(KERN_INFO"  fs_maxsymlinklen: %u\n",
+-		       usb3->fs_un2.fs_44.fs_maxsymlinklen);
++		       fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen));
+ 	} else {
+ 		printk(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
+ 		printk(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,8 +68,8 @@ kernel-remove-fastcall-in-kernel.patch
 lib-remove-fastcall-from-lib.patch
 remove-fastcall-from-linux-include.patch
 constify-tables-in-kernel-sysctl_checkc.patch
-constify-tables-in-kernel-sysctl_checkc-fix.patch
 aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2.patch
 ufs-fix-symlink-creation-on-ufs2-fix.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
