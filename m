@@ -1,93 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:53 -0800
-Message-ID: <200802080803.m1883YQX014134@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-add-pre_destroy-handler.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:31 -0800
+Message-ID: <200802080804.m1884Cjd014247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41652 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932074AbYBHIYm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:24:42 -0500
+	by vger.kernel.org with ESMTP id S1761504AbYBHIZG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:25:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     bugfix for memory cgroup controller: avoid !PageLRU page in mem_cgroup_isolate_pages
+     memory cgroup enhancements: add- pre_destroy() handler
 has been removed from the -mm tree.  Its filename was
-     bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+     memory-cgroup-enhancements-add-pre_destroy-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bugfix for memory cgroup controller: avoid !PageLRU page in mem_cgroup_isolate_pages
+Subject: memory cgroup enhancements: add- pre_destroy() handler
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This patch makes mem_cgroup_isolate_pages() to be
+Add a handler "pre_destroy" to cgroup_subsys.  It is called before
+cgroup_rmdir() checks all subsys's refcnt.
 
-  - ignore !PageLRU pages.
-  - fixes the bug that isolation makes no progress if page_zone(page) != zone
-    page once find. (just increment scan in this case.)
-
-kswapd and memory migration removes a page from list when it handles
-a page for reclaiming/migration.
-
-Because __isolate_lru_page() doesn't moves page !PageLRU pages, it will
-be safe to avoid touching !PageLRU() page and its page_cgroup.
+I think this is useful for subsys which have some extra refs even if there
+are no tasks in cgroup.  By adding pre_destroy(), the kernel keeps the rule
+"destroy() against subsystem is called only when refcnt=0." and allows css
+ref to be used by other objects than tasks.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/cgroup.h |    1 +
+ kernel/cgroup.c        |   22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages
-+++ a/mm/memcontrol.c
-@@ -250,7 +250,7 @@ unsigned long mem_cgroup_isolate_pages(u
- 	unsigned long scan;
- 	LIST_HEAD(pc_list);
- 	struct list_head *src;
--	struct page_cgroup *pc;
-+	struct page_cgroup *pc, *tmp;
+diff -puN include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler include/linux/cgroup.h
+--- a/include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler
++++ a/include/linux/cgroup.h
+@@ -233,6 +233,7 @@ int cgroup_is_descendant(const struct cg
+ struct cgroup_subsys {
+ 	struct cgroup_subsys_state *(*create)(struct cgroup_subsys *ss,
+ 						  struct cgroup *cont);
++	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
+ 	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
+ 	int (*can_attach)(struct cgroup_subsys *ss,
+ 			  struct cgroup *cont, struct task_struct *tsk);
+diff -puN kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler kernel/cgroup.c
+--- a/kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler
++++ a/kernel/cgroup.c
+@@ -586,6 +586,21 @@ static struct inode *cgroup_new_inode(mo
+ 	return inode;
+ }
  
- 	if (active)
- 		src = &mem_cont->active_list;
-@@ -258,11 +258,18 @@ unsigned long mem_cgroup_isolate_pages(u
- 		src = &mem_cont->inactive_list;
- 
- 	spin_lock(&mem_cont->lru_lock);
--	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
--		pc = list_entry(src->prev, struct page_cgroup, lru);
-+	scan = 0;
-+	list_for_each_entry_safe_reverse(pc, tmp, src, lru) {
-+		if (scan++ > nr_to_scan)
-+			break;
- 		page = pc->page;
- 		VM_BUG_ON(!pc);
- 
-+		if (unlikely(!PageLRU(page))) {
-+			scan--;
-+			continue;
-+		}
++/*
++ * Call subsys's pre_destroy handler.
++ * This is called before css refcnt check.
++ */
 +
- 		if (PageActive(page) && !active) {
- 			__mem_cgroup_move_lists(pc, true);
- 			scan--;
++static void cgroup_call_pre_destroy(struct cgroup *cgrp)
++{
++	struct cgroup_subsys *ss;
++	for_each_subsys(cgrp->root, ss)
++		if (ss->pre_destroy && cgrp->subsys[ss->subsys_id])
++			ss->pre_destroy(ss, cgrp);
++	return;
++}
++
++
+ static void cgroup_diput(struct dentry *dentry, struct inode *inode)
+ {
+ 	/* is dentry a directory ? if so, kfree() associated cgroup */
+@@ -2160,6 +2175,13 @@ static int cgroup_rmdir(struct inode *un
+ 	parent = cgrp->parent;
+ 	root = cgrp->root;
+ 	sb = root->sb;
++	/*
++	 * Call pre_destroy handlers of subsys
++	 */
++	cgroup_call_pre_destroy(cgrp);
++	/*
++	 * Notify subsyses that rmdir() request comes.
++	 */
+ 
+ 	if (cgroup_has_css_refs(cgrp)) {
+ 		mutex_unlock(&cgroup_mutex);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
