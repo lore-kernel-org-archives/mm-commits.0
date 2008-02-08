@@ -1,96 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - 8250_gsc-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:54 -0800
-Message-ID: <200802082012.m18KCZYr010214@imap1.linux-foundation.org>
+Subject: - aoe-eliminate-goto-and-improve-readability.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:57 -0800
+Message-ID: <200802082015.m18KFcKA010635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48009 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753319AbYBHUum (ORCPT
+	by vger.kernel.org with ESMTP id S1753297AbYBHUum (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_gsc: coding style
+     aoe: eliminate goto and improve readability
 has been removed from the -mm tree.  Its filename was
-     8250_gsc-coding-style.patch
+     aoe-eliminate-goto-and-improve-readability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_gsc: coding style
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: aoe: eliminate goto and improve readability
+From: "Ed L. Cashin" <ecashin@coraid.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Adam Richter suggested eliminating this goto.
+
+Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/block/aoe/aoechr.c |   71 +++++++++++++++++------------------
+ 1 file changed, 35 insertions(+), 36 deletions(-)
 
-diff -puN drivers/serial/8250_gsc.c~8250_gsc-coding-style drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~8250_gsc-coding-style
-+++ a/drivers/serial/8250_gsc.c
-@@ -25,8 +25,7 @@
+diff -puN drivers/block/aoe/aoechr.c~aoe-eliminate-goto-and-improve-readability drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~aoe-eliminate-goto-and-improve-readability
++++ a/drivers/block/aoe/aoechr.c
+@@ -194,52 +194,51 @@ aoechr_read(struct file *filp, char __us
+ 	ulong flags;
  
- #include "8250.h"
+ 	n = (unsigned long) filp->private_data;
+-	switch (n) {
+-	case MINOR_ERR:
+-		spin_lock_irqsave(&emsgs_lock, flags);
+-loop:
+-		em = emsgs + emsgs_head_idx;
+-		if ((em->flags & EMFL_VALID) == 0) {
+-			if (filp->f_flags & O_NDELAY) {
+-				spin_unlock_irqrestore(&emsgs_lock, flags);
+-				return -EAGAIN;
+-			}
+-			nblocked_emsgs_readers++;
++	if (n != MINOR_ERR)
++		return -EFAULT;
  
--static int __init 
--serial_init_chip(struct parisc_device *dev)
-+static int __init serial_init_chip(struct parisc_device *dev)
- {
- 	struct uart_port port;
- 	unsigned long address;
-@@ -38,18 +37,17 @@ serial_init_chip(struct parisc_device *d
- 		 * what we have here is a missing parent device, so tell
- 		 * the user what they're missing.
- 		 */
--		if (parisc_parent(dev)->id.hw_type != HPHW_IOA) {
--			printk(KERN_INFO "Serial: device 0x%lx not configured.\n"
-+		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
-+			printk(KERN_INFO
-+				"Serial: device 0x%lx not configured.\n"
- 				"Enable support for Wax, Lasi, Asp or Dino.\n",
- 				dev->hpa.start);
--		}
- 		return -ENODEV;
- 	}
- 
- 	address = dev->hpa.start;
--	if (dev->id.sversion != 0x8d) {
-+	if (dev->id.sversion != 0x8d)
- 		address += 0x800;
--	}
- 
- 	memset(&port, 0, sizeof(port));
- 	port.iotype	= UPIO_MEM;
-@@ -63,11 +61,12 @@ serial_init_chip(struct parisc_device *d
- 
- 	err = serial8250_register_port(&port);
- 	if (err < 0) {
--		printk(KERN_WARNING "serial8250_register_port returned error %d\n", err);
-+		printk(KERN_WARNING
-+			"serial8250_register_port returned error %d\n", err);
- 		iounmap(port.membase);
- 		return err;
- 	}
--        
++	spin_lock_irqsave(&emsgs_lock, flags);
 +
- 	return 0;
++	for (;;) {
++		em = emsgs + emsgs_head_idx;
++		if ((em->flags & EMFL_VALID) != 0)
++			break;
++		if (filp->f_flags & O_NDELAY) {
+ 			spin_unlock_irqrestore(&emsgs_lock, flags);
++			return -EAGAIN;
++		}
++		nblocked_emsgs_readers++;
+ 
+-			n = down_interruptible(&emsgs_sema);
++		spin_unlock_irqrestore(&emsgs_lock, flags);
+ 
+-			spin_lock_irqsave(&emsgs_lock, flags);
++		n = down_interruptible(&emsgs_sema);
+ 
+-			nblocked_emsgs_readers--;
++		spin_lock_irqsave(&emsgs_lock, flags);
+ 
+-			if (n) {
+-				spin_unlock_irqrestore(&emsgs_lock, flags);
+-				return -ERESTARTSYS;
+-			}
+-			goto loop;
+-		}
+-		if (em->len > cnt) {
++		nblocked_emsgs_readers--;
++
++		if (n) {
+ 			spin_unlock_irqrestore(&emsgs_lock, flags);
+-			return -EAGAIN;
++			return -ERESTARTSYS;
+ 		}
+-		mp = em->msg;
+-		len = em->len;
+-		em->msg = NULL;
+-		em->flags &= ~EMFL_VALID;
+-
+-		emsgs_head_idx++;
+-		emsgs_head_idx %= ARRAY_SIZE(emsgs);
+-
++	}
++	if (em->len > cnt) {
+ 		spin_unlock_irqrestore(&emsgs_lock, flags);
+-
+-		n = copy_to_user(buf, mp, len);
+-		kfree(mp);
+-		return n == 0 ? len : -EFAULT;
+-	default:
+-		return -EFAULT;
++		return -EAGAIN;
+ 	}
++	mp = em->msg;
++	len = em->len;
++	em->msg = NULL;
++	em->flags &= ~EMFL_VALID;
++
++	emsgs_head_idx++;
++	emsgs_head_idx %= ARRAY_SIZE(emsgs);
++
++	spin_unlock_irqrestore(&emsgs_lock, flags);
++
++	n = copy_to_user(buf, mp, len);
++	kfree(mp);
++	return n == 0 ? len : -EFAULT;
  }
  
+ static const struct file_operations aoe_fops = {
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
