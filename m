@@ -1,69 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-dmapool-fix-fatal-changed-filename.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:01:42 -0800
-Message-ID: <200802080801.m1881N6R013959@imap1.linux-foundation.org>
+Subject: - ds1wm-decouple-host-irq-and-intr-active-state-settings.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:01:39 -0800
+Message-ID: <200802080801.m1881KZU013956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38635 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51730 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753494AbYBHICu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:02:50 -0500
+	by vger.kernel.org with ESMTP id S1754390AbYBHIQR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:16:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, willy@debian.org, mm-commits@vger.kernel.org
+To: philipp.zabel@gmail.com, johnpol@2ka.mipt.ru, mreimer@vpop.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: dmapool: fix fatal changed filename
+     DS1WM: decouple host IRQ and INTR active state settings
 has been removed from the -mm tree.  Its filename was
-     docbook-dmapool-fix-fatal-changed-filename.patch
+     ds1wm-decouple-host-irq-and-intr-active-state-settings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: dmapool: fix fatal changed filename
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: DS1WM: decouple host IRQ and INTR active state settings
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Docbook fatal error, file was moved:
-docproc: linux-2.6.24-git15/drivers/base/dmapool.c: No such file or directory
+The DS1WM driver incorrectly infers the IAS bit (1-wire interrupt active
+high) from IRQ settings.  There are devices that have IAS=0 but still need
+the IRQ to trigger on a rising edge.  With this patch, machines with DS1WM
+that need IAS=1 have to set .active_high=1 in the ds1wm_platform_data.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Acked-by: Matt Reimer <mreimer@vpop.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/masters/ds1wm.c |    9 +++++----
+ include/linux/ds1wm.h      |    1 +
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-dmapool-fix-fatal-changed-filename Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbook-dmapool-fix-fatal-changed-filename
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -165,6 +165,7 @@ X!Ilib/string.c
- !Emm/vmalloc.c
- !Imm/page_alloc.c
- !Emm/mempool.c
-+!Emm/dmapool.c
- !Emm/page-writeback.c
- !Emm/truncate.c
-      </sect1>
-@@ -371,7 +372,6 @@ X!Iinclude/linux/device.h
- !Edrivers/base/class.c
- !Edrivers/base/firmware_class.c
- !Edrivers/base/transport_class.c
--!Edrivers/base/dmapool.c
- <!-- Cannot be included, because
-      attribute_container_add_class_device_adapter
-  and attribute_container_classdev_to_container
+diff -puN drivers/w1/masters/ds1wm.c~ds1wm-decouple-host-irq-and-intr-active-state-settings drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~ds1wm-decouple-host-irq-and-intr-active-state-settings
++++ a/drivers/w1/masters/ds1wm.c
+@@ -361,11 +361,12 @@ static int ds1wm_probe(struct platform_d
+ 		goto err1;
+ 	}
+ 	ds1wm_data->irq = res->start;
+-	ds1wm_data->active_high = (res->flags & IORESOURCE_IRQ_HIGHEDGE) ?
+-		1 : 0;
++	ds1wm_data->active_high = plat->active_high;
+ 
+-	set_irq_type(ds1wm_data->irq, ds1wm_data->active_high ?
+-			IRQ_TYPE_EDGE_RISING : IRQ_TYPE_EDGE_FALLING);
++	if (res->flags & IORESOURCE_IRQ_HIGHEDGE)
++		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_RISING);
++	if (res->flags & IORESOURCE_IRQ_LOWEDGE)
++		set_irq_type(ds1wm_data->irq, IRQ_TYPE_EDGE_FALLING);
+ 
+ 	ret = request_irq(ds1wm_data->irq, ds1wm_isr, IRQF_DISABLED,
+ 			  "ds1wm", ds1wm_data);
+diff -puN include/linux/ds1wm.h~ds1wm-decouple-host-irq-and-intr-active-state-settings include/linux/ds1wm.h
+--- a/include/linux/ds1wm.h~ds1wm-decouple-host-irq-and-intr-active-state-settings
++++ a/include/linux/ds1wm.h
+@@ -6,6 +6,7 @@ struct ds1wm_platform_data {
+ 			     * e.g. on h5xxx and h2200 this is 2
+ 			     * (registers aligned to 4-byte boundaries),
+ 			     * while on hx4700 this is 1 */
++	int active_high;
+ 	void (*enable)(struct platform_device *pdev);
+ 	void (*disable)(struct platform_device *pdev);
+ };
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from philipp.zabel@gmail.com are
 
 origin.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-the-scheduled-time-option-removal.patch
-getdelays-fix-gcc-warnings.patch
-profile-likely-unlikely-macros.patch
