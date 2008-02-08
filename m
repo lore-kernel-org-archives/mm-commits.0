@@ -1,38 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - proc-implement-proc_single_file_operations.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:11:58 -0800
-Message-ID: <200802082011.m18KBdAk010134@imap1.linux-foundation.org>
+Subject: - proc-seqfile-convert-proc_pid_statm.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:02 -0800
+Message-ID: <200802082011.m18KBhMq010140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47757 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752224AbYBHVA6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:00:58 -0500
+	by vger.kernel.org with ESMTP id S1752087AbYBHVAy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: implement proc_single_file_operations
+     seqfile convert proc_pid_statm
 has been removed from the -mm tree.  Its filename was
-     proc-implement-proc_single_file_operations.patch
+     proc-seqfile-convert-proc_pid_statm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: implement proc_single_file_operations
+Subject: seqfile convert proc_pid_statm
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Currently many /proc/pid files use a crufty precursor to the current seq_file
-api, and they don't have direct access to the pid_namespace or the pid of for
-which they are displaying data.
-
-So implement proc_single_file_operations to make the seq_file routines easy to
-use, and to give access to the full state of the pid of we are displaying data
-for.
+This conversion is just for code cleanliness, uniformity, and general safety.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -40,83 +34,69 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c          |   43 ++++++++++++++++++++++++++++++++++++++
- include/linux/proc_fs.h |    3 ++
- 2 files changed, 46 insertions(+)
+ fs/proc/array.c    |    8 +++++---
+ fs/proc/base.c     |    4 ++--
+ fs/proc/internal.h |    3 ++-
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/base.c~proc-implement-proc_single_file_operations fs/proc/base.c
---- a/fs/proc/base.c~proc-implement-proc_single_file_operations
-+++ a/fs/proc/base.c
-@@ -121,6 +121,10 @@ struct pid_entry {
- 	NOD(NAME, (S_IFREG|(MODE)), 			\
- 		NULL, &proc_info_file_operations,	\
- 		{ .proc_read = &proc_##OTYPE } )
-+#define ONE(NAME, MODE, OTYPE)				\
-+	NOD(NAME, (S_IFREG|(MODE)), 			\
-+		NULL, &proc_single_file_operations,	\
-+		{ .proc_show = &proc_##OTYPE } )
+diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_statm fs/proc/array.c
+--- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_statm
++++ a/fs/proc/array.c
+@@ -563,7 +563,8 @@ int proc_tgid_stat(struct seq_file *m, s
+ 	return do_task_stat(m, ns, pid, task, 1);
+ }
  
- int maps_protect;
- EXPORT_SYMBOL(maps_protect);
-@@ -658,6 +662,45 @@ static const struct file_operations proc
- 	.read		= proc_info_read,
- };
- 
-+static int proc_single_show(struct seq_file *m, void *v)
-+{
-+	struct inode *inode = m->private;
-+	struct pid_namespace *ns;
-+	struct pid *pid;
-+	struct task_struct *task;
-+	int ret;
-+
-+	ns = inode->i_sb->s_fs_info;
-+	pid = proc_pid(inode);
-+	task = get_pid_task(pid, PIDTYPE_PID);
-+	if (!task)
-+		return -ESRCH;
-+
-+	ret = PROC_I(inode)->op.proc_show(m, ns, pid, task);
-+
-+	put_task_struct(task);
-+	return ret;
-+}
-+
-+static int proc_single_open(struct inode *inode, struct file *filp)
-+{
-+	int ret;
-+	ret = single_open(filp, proc_single_show, NULL);
-+	if (!ret) {
-+		struct seq_file *m = filp->private_data;
-+
-+		m->private = inode;
-+	}
-+	return ret;
-+}
-+
-+static const struct file_operations proc_single_file_operations = {
-+	.open		= proc_single_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- static int mem_open(struct inode* inode, struct file* file)
+-int proc_pid_statm(struct task_struct *task, char *buffer)
++int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
++			struct pid *pid, struct task_struct *task)
  {
- 	file->private_data = (void*)((long)current->self_exec_id);
-diff -puN include/linux/proc_fs.h~proc-implement-proc_single_file_operations include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-implement-proc_single_file_operations
-+++ a/include/linux/proc_fs.h
-@@ -262,6 +262,9 @@ extern void kclist_add(struct kcore_list
- union proc_op {
- 	int (*proc_get_link)(struct inode *, struct dentry **, struct vfsmount **);
- 	int (*proc_read)(struct task_struct *task, char *page);
-+	int (*proc_show)(struct seq_file *m,
-+		struct pid_namespace *ns, struct pid *pid,
-+		struct task_struct *task);
- };
+ 	int size = 0, resident = 0, shared = 0, text = 0, lib = 0, data = 0;
+ 	struct mm_struct *mm = get_task_mm(task);
+@@ -572,7 +573,8 @@ int proc_pid_statm(struct task_struct *t
+ 		size = task_statm(mm, &shared, &text, &data, &resident);
+ 		mmput(mm);
+ 	}
++	seq_printf(m, "%d %d %d %d %d %d %d\n",
++			size, resident, shared, text, lib, data, 0);
  
- struct proc_inode {
+-	return sprintf(buffer, "%d %d %d %d %d %d %d\n",
+-		       size, resident, shared, text, lib, data, 0);
++	return 0;
+ }
+diff -puN fs/proc/base.c~proc-seqfile-convert-proc_pid_statm fs/proc/base.c
+--- a/fs/proc/base.c~proc-seqfile-convert-proc_pid_statm
++++ a/fs/proc/base.c
+@@ -2281,7 +2281,7 @@ static const struct pid_entry tgid_base_
+ #endif
+ 	INF("cmdline",    S_IRUGO, pid_cmdline),
+ 	ONE("stat",       S_IRUGO, tgid_stat),
+-	INF("statm",      S_IRUGO, pid_statm),
++	ONE("statm",      S_IRUGO, pid_statm),
+ 	REG("maps",       S_IRUGO, maps),
+ #ifdef CONFIG_NUMA
+ 	REG("numa_maps",  S_IRUGO, numa_maps),
+@@ -2612,7 +2612,7 @@ static const struct pid_entry tid_base_s
+ #endif
+ 	INF("cmdline",   S_IRUGO, pid_cmdline),
+ 	ONE("stat",      S_IRUGO, tid_stat),
+-	INF("statm",     S_IRUGO, pid_statm),
++	ONE("statm",     S_IRUGO, pid_statm),
+ 	REG("maps",      S_IRUGO, maps),
+ #ifdef CONFIG_NUMA
+ 	REG("numa_maps", S_IRUGO, numa_maps),
+diff -puN fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm
++++ a/fs/proc/internal.h
+@@ -54,7 +54,8 @@ extern int proc_tid_stat(struct seq_file
+ extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *task);
+ extern int proc_pid_status(struct task_struct *, char *);
+-extern int proc_pid_statm(struct task_struct *, char *);
++extern int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
++				struct pid *pid, struct task_struct *task);
+ extern loff_t mem_lseek(struct file *file, loff_t offset, int orig);
+ 
+ extern const struct file_operations proc_maps_operations;
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
