@@ -1,228 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:25 -0800
-Message-ID: <200802080804.m18846Gf014241@imap1.linux-foundation.org>
+Subject: - cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:31:16 -0800
+Message-ID: <200802080830.m188UvMq015668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56870 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47021 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759364AbYBHIbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:31:01 -0500
+	by vger.kernel.org with ESMTP id S1760344AbYBHIbO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:31:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory cgroup enhancements: add status accounting function for memory cgroup
+     cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+     cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into cleanup-the-code-managed-with-the-user_ns-option.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: add status accounting function for memory cgroup
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add statistics account infrastructure for memory controller.  All account
-information is stored per-cpu and caller will not have to take lock or use
-atomic ops.  This will be used by memory.stat file later.
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#94: FILE: kernel/user.c:27:
++EXPORT_SYMBOL_GPL(init_user_ns);
 
-CACHE includes swapcache now. I'd like to divide it to
-PAGECACHE and SWAPCACHE later.
+total: 0 errors, 1 warnings, 93 lines checked
 
-This patch adds 3 functions for accounting.
- * __mem_cgroup_stat_add() ... for usual routine.
- * __mem_cgroup_stat_add_safe ... for calling under irq_disabled section.
- * mem_cgroup_read_stat() ... for reading stat value.
- * renamed PAGECACHE to CACHE (because it may include swapcache *now*)
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: fix smp_processor_id-in-preemptible]
-[akpm@linux-foundation.org: uninline things]
-[akpm@linux-foundation.org: remove dead code]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Please run checkpatch prior to sending patches
+
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   77 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 72 insertions(+), 5 deletions(-)
+ kernel/user.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup
-+++ a/mm/memcontrol.c
-@@ -21,6 +21,7 @@
- #include <linux/memcontrol.h>
- #include <linux/cgroup.h>
- #include <linux/mm.h>
-+#include <linux/smp.h>
- #include <linux/page-flags.h>
- #include <linux/backing-dev.h>
- #include <linux/bit_spinlock.h>
-@@ -35,6 +36,47 @@ struct cgroup_subsys mem_cgroup_subsys;
- static const int MEM_CGROUP_RECLAIM_RETRIES = 5;
- 
- /*
-+ * Statistics for memory cgroup.
-+ */
-+enum mem_cgroup_stat_index {
-+	/*
-+	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
-+	 */
-+	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
-+	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
-+
-+	MEM_CGROUP_STAT_NSTATS,
-+};
-+
-+struct mem_cgroup_stat_cpu {
-+	s64 count[MEM_CGROUP_STAT_NSTATS];
-+} ____cacheline_aligned_in_smp;
-+
-+struct mem_cgroup_stat {
-+	struct mem_cgroup_stat_cpu cpustat[NR_CPUS];
-+};
-+
-+/*
-+ * For accounting under irq disable, no need for increment preempt count.
-+ */
-+static void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
-+		enum mem_cgroup_stat_index idx, int val)
-+{
-+	int cpu = smp_processor_id();
-+	stat->cpustat[cpu].count[idx] += val;
-+}
-+
-+static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
-+		enum mem_cgroup_stat_index idx)
-+{
-+	int cpu;
-+	s64 ret = 0;
-+	for_each_possible_cpu(cpu)
-+		ret += stat->cpustat[cpu].count[idx];
-+	return ret;
-+}
-+
-+/*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-  * statistics based on the statistics developed by Rik Van Riel for clock-pro,
-@@ -63,6 +105,10 @@ struct mem_cgroup {
- 	 */
- 	spinlock_t lru_lock;
- 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
-+	/*
-+	 * statistics.
-+	 */
-+	struct mem_cgroup_stat stat;
+diff -puN kernel/user.c~cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes kernel/user.c
+--- a/kernel/user.c~cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes
++++ a/kernel/user.c
+@@ -23,7 +23,6 @@ struct user_namespace init_user_ns = {
+ 	},
+ 	.root_user = &root_user,
  };
- 
- /*
-@@ -101,6 +147,24 @@ enum charge_type {
- 	MEM_CGROUP_CHARGE_TYPE_MAPPED,
- };
- 
-+/*
-+ * Always modified under lru lock. Then, not necessary to preempt_disable()
-+ */
-+static void mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags,
-+					bool charge)
-+{
-+	int val = (charge)? 1 : -1;
-+	struct mem_cgroup_stat *stat = &mem->stat;
-+	VM_BUG_ON(!irqs_disabled());
-+
-+	if (flags & PAGE_CGROUP_FLAG_CACHE)
-+		__mem_cgroup_stat_add_safe(stat,
-+					MEM_CGROUP_STAT_CACHE, val);
-+	else
-+		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
-+
-+}
-+
- static struct mem_cgroup init_mem_cgroup;
- 
- static inline
-@@ -175,8 +239,8 @@ static void __always_inline unlock_page_
-  * This can fail if the page has been tied to a page_cgroup.
-  * If success, returns 0.
-  */
--static inline int
--page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static int page_cgroup_assign_new_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	int ret = 0;
- 
-@@ -198,8 +262,8 @@ page_cgroup_assign_new_page_cgroup(struc
-  *  clear_page_cgroup(page, pc) == pc
-  */
- 
--static inline struct page_cgroup *
--clear_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static struct page_cgroup *clear_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	struct page_cgroup *ret;
- 	/* lock and clear */
-@@ -211,7 +275,6 @@ clear_page_cgroup(struct page *page, str
- 	return ret;
- }
- 
 -
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
- {
- 	if (active) {
-@@ -426,6 +489,8 @@ retry:
- 	}
+ EXPORT_SYMBOL_GPL(init_user_ns);
  
- 	spin_lock_irqsave(&mem->lru_lock, flags);
-+	/* Update statistics vector */
-+	mem_cgroup_charge_statistics(mem, pc->flags, true);
- 	list_add(&pc->lru, &mem->active_list);
- 	spin_unlock_irqrestore(&mem->lru_lock, flags);
- 
-@@ -496,6 +561,7 @@ void mem_cgroup_uncharge(struct page_cgr
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			spin_lock_irqsave(&mem->lru_lock, flags);
- 			list_del_init(&pc->lru);
-+			mem_cgroup_charge_statistics(mem, pc->flags, false);
- 			spin_unlock_irqrestore(&mem->lru_lock, flags);
- 			kfree(pc);
- 		}
-@@ -572,6 +638,7 @@ retry:
- 			css_put(&mem->css);
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			list_del_init(&pc->lru);
-+			mem_cgroup_charge_statistics(mem, pc->flags, false);
- 			kfree(pc);
- 		} else 	/* being uncharged ? ...do relax */
- 			break;
+ /*
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+cleanup-the-code-managed-with-the-user_ns-option.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-detect-duplicate-names-on-registration-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-checkpatch-fixes.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
+proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
+proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
+intel-iommu-fault_reason_index_cleanuppatch-fix.patch
+modules-make-module_address_lookup-safe-fix.patch
+wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace-fix.patch
+pid-sys_wait-fixes-v2-checkpatch-fixes.patch
+aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+rewrite-rd-fixes.patch
+fs-remove-fastcall-it-is-always-empty-checkpatch-fixes.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
+lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+remove-fastcall-from-linux-include-checkpatch-fixes.patch
+constify-tables-in-kernel-sysctl_checkc-fix.patch
+aoe-statically-initialise-devlist_lock.patch
+ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes-fix.patch
+fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+fs-afs-securityc-fix-uninitialized-var-warning.patch
+mount-options-fix-tmpfs-fix.patch
+char-applicom-use-pci_match_id-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
+add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
