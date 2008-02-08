@@ -1,94 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:45 -0800
-Message-ID: <200802080808.m1888QcN014635@imap1.linux-foundation.org>
+Subject: - memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:14 -0800
+Message-ID: <200802080803.m1883tQs014157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45023 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35320 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761254AbYBHIUV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:21 -0500
+	by vger.kernel.org with ESMTP id S1762015AbYBHIUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg64 and cmpxchg64_local to alpha
+     Memory controller use rcu_read_lock() in mem_cgroup_cache_charge()
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+     memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add cmpxchg64 and cmpxchg64_local to alpha
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Memory controller use rcu_read_lock() in mem_cgroup_cache_charge()
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Make sure that at least cmpxchg64_local is available on all architectures to use
-for unsigned long long values.
+Hugh Dickins noticed that we were using rcu_dereference() without
+rcu_read_lock() in the cache charging routine. The patch below fixes
+this problem
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/system.h |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha include/asm-alpha/system.h
---- a/include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha
-+++ a/include/asm-alpha/system.h
-@@ -681,13 +681,18 @@ __cmpxchg(volatile void *ptr, unsigned l
- 	return old;
+diff -puN mm/memcontrol.c~memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-use-rcu_read_lock-in-mem_cgroup_cache_charge
++++ a/mm/memcontrol.c
+@@ -456,16 +456,20 @@ int mem_cgroup_charge(struct page *page,
+ int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask)
+ {
++	int ret = 0;
+ 	struct mem_cgroup *mem;
+ 	if (!mm)
+ 		mm = &init_mm;
+ 
++	rcu_read_lock();
+ 	mem = rcu_dereference(mm->mem_cgroup);
++	css_get(&mem->css);
++	rcu_read_unlock();
+ 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
+-		return mem_cgroup_charge_common(page, mm, gfp_mask,
++		ret = mem_cgroup_charge_common(page, mm, gfp_mask,
+ 				MEM_CGROUP_CHARGE_TYPE_CACHE);
+-	else
+-		return 0;
++	css_put(&mem->css);
++	return ret;
  }
  
--#define cmpxchg(ptr,o,n)						 \
-+#define cmpxchg(ptr, o, n)						 \
-   ({									 \
-      __typeof__(*(ptr)) _o_ = (o);					 \
-      __typeof__(*(ptr)) _n_ = (n);					 \
-      (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
-+#define cmpxchg64(ptr, o, n)						 \
-+  ({									 \
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				 \
-+	cmpxchg((ptr), (o), (n));					 \
-+  })
- 
- static inline unsigned long
- __cmpxchg_u8_local(volatile char *m, long old, long new)
-@@ -803,13 +808,19 @@ __cmpxchg_local(volatile void *ptr, unsi
- 	return old;
- }
- 
--#define cmpxchg_local(ptr,o,n)						 \
-+#define cmpxchg_local(ptr, o, n)					 \
-   ({									 \
-      __typeof__(*(ptr)) _o_ = (o);					 \
-      __typeof__(*(ptr)) _n_ = (n);					 \
-      (__typeof__(*(ptr))) __cmpxchg_local((ptr), (unsigned long)_o_,	 \
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
-+#define cmpxchg64_local(ptr, o, n)					 \
-+  ({									 \
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				 \
-+	cmpxchg_local((ptr), (o), (n));					 \
-+  })
-+
- 
- #endif /* __ASSEMBLY__ */
- 
+ /*
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+getdelays-fix-gcc-warnings.patch
