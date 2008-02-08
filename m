@@ -1,77 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - proc-proper-pidns-handling-for-proc-self.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:07 -0800
-Message-ID: <200802082011.m18KBms1010146@imap1.linux-foundation.org>
+Subject: - pid-fix-solaris_procids.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:14:21 -0800
+Message-ID: <200802082014.m18KE2w9010350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57981 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755006AbYBHVCo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:44 -0500
+	by vger.kernel.org with ESMTP id S1754939AbYBHVCn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru, xemul@openvz.org, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, davem@davemloft.net, oleg@tv-sign.ru, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: proper pidns handling for /proc/self
+     pid: fix solaris_procids
 has been removed from the -mm tree.  Its filename was
-     proc-proper-pidns-handling-for-proc-self.patch
+     pid-fix-solaris_procids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: proper pidns handling for /proc/self
+Subject: pid: fix solaris_procids
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Currently if you access a /proc that is not mounted with your processes
-current pid namespace /proc/self will point at a completely
-
-This patch fixes /proc/self to point to the current process if it is
-available in the particular mount of /proc or to return -ENOENT if the
-current process is not visible.
+Use task_pgrp_vnr not task_pgrp_nr so we return the process id the processes
+pid namespace and not in the initial pid namespace.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/sparc64/solaris/misc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-proper-pidns-handling-for-proc-self fs/proc/base.c
---- a/fs/proc/base.c~proc-proper-pidns-handling-for-proc-self
-+++ a/fs/proc/base.c
-@@ -2101,15 +2101,23 @@ static const struct file_operations proc
- static int proc_self_readlink(struct dentry *dentry, char __user *buffer,
- 			      int buflen)
- {
-+	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
-+	pid_t tgid = task_tgid_nr_ns(current, ns);
- 	char tmp[PROC_NUMBUF];
--	sprintf(tmp, "%d", task_tgid_vnr(current));
-+	if (!tgid)
-+		return -ENOENT;
-+	sprintf(tmp, "%d", tgid);
- 	return vfs_readlink(dentry,buffer,buflen,tmp);
- }
- 
- static void *proc_self_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
-+	struct pid_namespace *ns = dentry->d_sb->s_fs_info;
-+	pid_t tgid = task_tgid_nr_ns(current, ns);
- 	char tmp[PROC_NUMBUF];
--	sprintf(tmp, "%d", task_tgid_vnr(current));
-+	if (!tgid)
-+		return ERR_PTR(-ENOENT);
-+	sprintf(tmp, "%d", task_tgid_nr_ns(current, ns));
- 	return ERR_PTR(vfs_follow_link(nd,tmp));
- }
- 
+diff -puN arch/sparc64/solaris/misc.c~pid-fix-solaris_procids arch/sparc64/solaris/misc.c
+--- a/arch/sparc64/solaris/misc.c~pid-fix-solaris_procids
++++ a/arch/sparc64/solaris/misc.c
+@@ -415,7 +415,7 @@ asmlinkage int solaris_procids(int cmd, 
+ 	
+ 	switch (cmd) {
+ 	case 0: /* getpgrp */
+-		return task_pgrp_nr(current);
++		return task_pgrp_vnr(current);
+ 	case 1: /* setpgrp */
+ 		{
+ 			int (*sys_setpgid)(pid_t,pid_t) =
+@@ -426,7 +426,7 @@ asmlinkage int solaris_procids(int cmd, 
+ 			ret = sys_setpgid(0, 0);
+ 			if (ret) return ret;
+ 			proc_clear_tty(current);
+-			return task_pgrp_nr(current);
++			return task_pgrp_vnr(current);
+ 		}
+ 	case 2: /* getsid */
+ 		{
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
