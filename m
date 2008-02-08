@@ -1,67 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:10:25 -0800
-Message-ID: <200802080810.m188A6se014912@imap1.linux-foundation.org>
+Subject: - char-mxser_new-ioaddresses-are-ulong.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:09:34 -0800
+Message-ID: <200802080809.m1889F4o014810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753681AbYBHISt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:18:49 -0500
+	by vger.kernel.org with ESMTP id S1755042AbYBHIS5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:18:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of list_for_each()
+     Char: mxser_new, ioaddresses are ulong
 has been removed from the -mm tree.  Its filename was
-     acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each.patch
+     char-mxser_new-ioaddresses-are-ulong.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of list_for_each()
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: Char: mxser_new, ioaddresses are ulong
+From: Jiri Slaby <jirislaby@gmail.com>
 
-acpi_pci_irq_find_prt_entry(): use list_for_each_entry() instead of
-list_for_each()
+To not pass ulong address as int parameter, switch it to ulong.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_irq.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/char/mxser_new.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each drivers/acpi/pci_irq.c
---- a/drivers/acpi/pci_irq.c~acpi_pci_irq_find_prt_entry-use-list_for_each_entry-instead-of-list_for_each
-+++ a/drivers/acpi/pci_irq.c
-@@ -51,10 +51,8 @@ static struct acpi_prt_entry *acpi_pci_i
- 							  int bus,
- 							  int device, int pin)
+diff -puN drivers/char/mxser_new.c~char-mxser_new-ioaddresses-are-ulong drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-ioaddresses-are-ulong
++++ a/drivers/char/mxser_new.c
+@@ -320,7 +320,7 @@ static struct mxser_mon_ext mon_data_ext
+ static int mxser_set_baud_method[MXSER_PORTS + 1];
+ 
+ #ifdef CONFIG_PCI
+-static int __devinit CheckIsMoxaMust(int io)
++static int __devinit CheckIsMoxaMust(unsigned long io)
  {
--	struct list_head *node = NULL;
- 	struct acpi_prt_entry *entry = NULL;
- 
--
- 	if (!acpi_prt.count)
- 		return NULL;
- 
-@@ -64,8 +62,7 @@ static struct acpi_prt_entry *acpi_pci_i
- 	 *
- 	 */
- 	spin_lock(&acpi_prt_lock);
--	list_for_each(node, &acpi_prt.entries) {
--		entry = list_entry(node, struct acpi_prt_entry, node);
-+	list_for_each_entry(entry, &acpi_prt.entries, node) {
- 		if ((segment == entry->id.segment)
- 		    && (bus == entry->id.bus)
- 		    && (device == entry->id.device)
+ 	u8 oldmcr, hwid;
+ 	int i;
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-watchdog.patch
+moxa-first-pass-at-termios-reporting.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
