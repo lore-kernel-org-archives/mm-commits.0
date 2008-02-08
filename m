@@ -1,133 +1,410 @@
 From: akpm@linux-foundation.org
-Subject: - move-the-related-code-from-exit_notify-to-exit_signals.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:06 -0800
-Message-ID: <200802082013.m18KDlHW010320@imap1.linux-foundation.org>
+Subject: - ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:15 -0800
+Message-ID: <200802082012.m18KCu3g010245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59815 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38883 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758670AbYBHVDf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:35 -0500
+	by vger.kernel.org with ESMTP id S1760245AbYBHVDm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, davidel@xmailserver.org, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, clg@fr.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move the related code from exit_notify() to exit_signals()
+     IPC: make struct ipc_ids static in ipc_namespace
 has been removed from the -mm tree.  Its filename was
-     move-the-related-code-from-exit_notify-to-exit_signals.patch
+     ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move the related code from exit_notify() to exit_signals()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: IPC: make struct ipc_ids static in ipc_namespace
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-The previous bugfix was not optimal, we shouldn't care about group stop
-when we are the only thread or the group stop is in progress.  In that case
-nothing special is needed, just set PF_EXITING and return.
+Each ipc_namespace contains a table of 3 pointers to struct ipc_ids (3 for
+msg, sem and shm, structure used to store all ipcs) These 'struct ipc_ids'
+are dynamically allocated for each icp_namespace as the ipc_namespace
+itself (for the init namespace, they are initialized with pointers to
+static variables instead)
 
-Also, take the related "TIF_SIGPENDING re-targeting" code from exit_notify().
+It is so for historical reason: in fact, before the use of idr to store the
+ipcs, the ipcs were stored in tables of variable length, depending of the
+maximum number of ipc allowed.  Now, these 'struct ipc_ids' have a fixed
+size.  As they are allocated in any cases for each new ipc_namespace, there
+is no gain of memory in having them allocated separately of the struct
+ipc_namespace.
 
-So, from the performance POV the only difference is that we don't trust
-!signal_pending() until we take ->siglock.  But this in fact fixes another
-___pure___ theoretical minor race.  __group_complete_signal() finds the
-task without PF_EXITING and chooses it as the target for signal_wake_up(). 
-But nothing prevents this task from exiting in between without noticing the
-pending signal and thus unpredictably delaying the actual delivery.
+This patch proposes to make this table static in the struct ipc_namespace. 
+Thus, we can allocate all in once and get rid of all the code needed to
+allocate and free these ipc_ids separately.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c   |   18 ------------------
- kernel/signal.c |   27 ++++++++++++++++++++++-----
- 2 files changed, 22 insertions(+), 23 deletions(-)
+ include/linux/ipc_namespace.h |   13 +++++++++++--
+ ipc/msg.c                     |   26 ++++----------------------
+ ipc/namespace.c               |   25 ++++---------------------
+ ipc/sem.c                     |   26 ++++----------------------
+ ipc/shm.c                     |   26 ++++----------------------
+ ipc/util.c                    |    6 +++---
+ ipc/util.h                    |   16 ++++------------
+ 7 files changed, 34 insertions(+), 104 deletions(-)
 
-diff -puN kernel/exit.c~move-the-related-code-from-exit_notify-to-exit_signals kernel/exit.c
---- a/kernel/exit.c~move-the-related-code-from-exit_notify-to-exit_signals
-+++ a/kernel/exit.c
-@@ -745,24 +745,6 @@ static void exit_notify(struct task_stru
- 	struct task_struct *t;
- 	struct pid *pgrp;
+diff -puN include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/include/linux/ipc_namespace.h
+@@ -2,11 +2,20 @@
+ #define __IPC_NAMESPACE_H__
  
--	if (signal_pending(tsk) && !(tsk->signal->flags & SIGNAL_GROUP_EXIT)
--	    && !thread_group_empty(tsk)) {
--		/*
--		 * This occurs when there was a race between our exit
--		 * syscall and a group signal choosing us as the one to
--		 * wake up.  It could be that we are the only thread
--		 * alerted to check for pending signals, but another thread
--		 * should be woken now to take the signal since we will not.
--		 * Now we'll wake all the threads in the group just to make
--		 * sure someone gets all the pending signals.
--		 */
--		spin_lock_irq(&tsk->sighand->siglock);
--		for (t = next_thread(tsk); t != tsk; t = next_thread(t))
--			if (!signal_pending(t) && !(t->flags & PF_EXITING))
--				recalc_sigpending_and_wake(t);
--		spin_unlock_irq(&tsk->sighand->siglock);
--	}
+ #include <linux/err.h>
++#include <linux/idr.h>
++#include <linux/rwsem.h>
++
++struct ipc_ids {
++	int in_use;
++	unsigned short seq;
++	unsigned short seq_max;
++	struct rw_semaphore rw_mutex;
++	struct idr ipcs_idr;
++};
+ 
+-struct ipc_ids;
+ struct ipc_namespace {
+ 	struct kref	kref;
+-	struct ipc_ids	*ids[3];
++	struct ipc_ids	ids[3];
+ 
+ 	int		sem_ctls[4];
+ 	int		used_sems;
+diff -puN ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/msg.c
+--- a/ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/msg.c
+@@ -67,9 +67,7 @@ struct msg_sender {
+ #define SEARCH_NOTEQUAL		3
+ #define SEARCH_LESSEQUAL	4
+ 
+-static struct ipc_ids init_msg_ids;
 -
- 	/*
- 	 * This does two things:
- 	 *
-diff -puN kernel/signal.c~move-the-related-code-from-exit_notify-to-exit_signals kernel/signal.c
---- a/kernel/signal.c~move-the-related-code-from-exit_notify-to-exit_signals
-+++ a/kernel/signal.c
-@@ -1903,19 +1903,36 @@ relock:
- void exit_signals(struct task_struct *tsk)
- {
- 	int group_stop = 0;
-+	struct task_struct *t;
+-#define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
++#define msg_ids(ns)	((ns)->ids[IPC_MSG_IDS])
  
--	spin_lock_irq(&tsk->sighand->siglock);
--	if (unlikely(tsk->signal->group_stop_count) &&
--			!--tsk->signal->group_stop_count) {
--		tsk->signal->flags = SIGNAL_STOP_STOPPED;
--		group_stop = 1;
-+	if (thread_group_empty(tsk) || signal_group_exit(tsk->signal)) {
-+		tsk->flags |= PF_EXITING;
-+		return;
+ #define msg_unlock(msq)		ipc_unlock(&(msq)->q_perm)
+ #define msg_buildid(id, seq)	ipc_buildid(id, seq)
+@@ -80,30 +78,17 @@ static int newque(struct ipc_namespace *
+ static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
+ #endif
+ 
+-static void __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void msg_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_MSG_IDS] = ids;
+ 	ns->msg_ctlmax = MSGMAX;
+ 	ns->msg_ctlmnb = MSGMNB;
+ 	ns->msg_ctlmni = MSGMNI;
+ 	atomic_set(&ns->msg_bytes, 0);
+ 	atomic_set(&ns->msg_hdrs, 0);
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
+ }
+ 
+ #ifdef CONFIG_IPC_NS
+-int msg_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__msg_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void msg_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct msg_queue *msq;
+@@ -126,15 +111,12 @@ void msg_exit_ns(struct ipc_namespace *n
  	}
  
-+	spin_lock_irq(&tsk->sighand->siglock);
- 	/*
- 	 * From now this task is not visible for group-wide signals,
- 	 * see wants_signal(), do_signal_stop().
- 	 */
- 	tsk->flags |= PF_EXITING;
-+	if (!signal_pending(tsk))
-+		goto out;
-+
-+	/* It could be that __group_complete_signal() choose us to
-+	 * notify about group-wide signal. Another thread should be
-+	 * woken now to take the signal since we will not.
-+	 */
-+	for (t = tsk; (t = next_thread(t)) != tsk; )
-+		if (!signal_pending(t) && !(t->flags & PF_EXITING))
-+			recalc_sigpending_and_wake(t);
-+
-+	if (unlikely(tsk->signal->group_stop_count) &&
-+			!--tsk->signal->group_stop_count) {
-+		tsk->signal->flags = SIGNAL_STOP_STOPPED;
-+		group_stop = 1;
-+	}
-+out:
- 	spin_unlock_irq(&tsk->sighand->siglock);
+ 	up_write(&msg_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_MSG_IDS]);
+-	ns->ids[IPC_MSG_IDS] = NULL;
+ }
+ #endif
  
- 	if (unlikely(group_stop)) {
+ void __init msg_init(void)
+ {
+-	__msg_init_ns(&init_ipc_ns, &init_msg_ids);
++	msg_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/msg",
+ 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
+ 				IPC_MSG_IDS, sysvipc_msg_proc_show);
+diff -puN ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/namespace.c
+--- a/ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/namespace.c
+@@ -14,35 +14,18 @@
+ 
+ static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
+ {
+-	int err;
+ 	struct ipc_namespace *ns;
+ 
+-	err = -ENOMEM;
+ 	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
+ 	if (ns == NULL)
+-		goto err_mem;
++		return ERR_PTR(-ENOMEM);
+ 
+-	err = sem_init_ns(ns);
+-	if (err)
+-		goto err_sem;
+-	err = msg_init_ns(ns);
+-	if (err)
+-		goto err_msg;
+-	err = shm_init_ns(ns);
+-	if (err)
+-		goto err_shm;
++	sem_init_ns(ns);
++	msg_init_ns(ns);
++	shm_init_ns(ns);
+ 
+ 	kref_init(&ns->kref);
+ 	return ns;
+-
+-err_shm:
+-	msg_exit_ns(ns);
+-err_msg:
+-	sem_exit_ns(ns);
+-err_sem:
+-	kfree(ns);
+-err_mem:
+-	return ERR_PTR(err);
+ }
+ 
+ struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
+diff -puN ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/sem.c
+--- a/ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/sem.c
+@@ -87,14 +87,12 @@
+ #include <asm/uaccess.h>
+ #include "util.h"
+ 
+-#define sem_ids(ns)	(*((ns)->ids[IPC_SEM_IDS]))
++#define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
+ 
+ #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
+ #define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
+ #define sem_buildid(id, seq)	ipc_buildid(id, seq)
+ 
+-static struct ipc_ids init_sem_ids;
+-
+ static int newary(struct ipc_namespace *, struct ipc_params *);
+ static void freeary(struct ipc_namespace *, struct sem_array *);
+ #ifdef CONFIG_PROC_FS
+@@ -118,30 +116,17 @@ static int sysvipc_sem_proc_show(struct 
+ #define sc_semopm	sem_ctls[2]
+ #define sc_semmni	sem_ctls[3]
+ 
+-static void __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void sem_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_SEM_IDS] = ids;
+ 	ns->sc_semmsl = SEMMSL;
+ 	ns->sc_semmns = SEMMNS;
+ 	ns->sc_semopm = SEMOPM;
+ 	ns->sc_semmni = SEMMNI;
+ 	ns->used_sems = 0;
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_SEM_IDS]);
+ }
+ 
+ #ifdef CONFIG_IPC_NS
+-int sem_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__sem_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void sem_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct sem_array *sma;
+@@ -163,15 +148,12 @@ void sem_exit_ns(struct ipc_namespace *n
+ 		total++;
+ 	}
+ 	up_write(&sem_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_SEM_IDS]);
+-	ns->ids[IPC_SEM_IDS] = NULL;
+ }
+ #endif
+ 
+ void __init sem_init (void)
+ {
+-	__sem_init_ns(&init_ipc_ns, &init_sem_ids);
++	sem_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/sem",
+ 				"       key      semid perms      nsems   uid   gid  cuid  cgid      otime      ctime\n",
+ 				IPC_SEM_IDS, sysvipc_sem_proc_show);
+diff -puN ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/shm.c
+--- a/ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/shm.c
+@@ -56,9 +56,7 @@ struct shm_file_data {
+ static const struct file_operations shm_file_operations;
+ static struct vm_operations_struct shm_vm_ops;
+ 
+-static struct ipc_ids init_shm_ids;
+-
+-#define shm_ids(ns)	(*((ns)->ids[IPC_SHM_IDS]))
++#define shm_ids(ns)	((ns)->ids[IPC_SHM_IDS])
+ 
+ #define shm_unlock(shp)			\
+ 	ipc_unlock(&(shp)->shm_perm)
+@@ -72,14 +70,13 @@ static void shm_destroy (struct ipc_name
+ static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
+ #endif
+ 
+-static void __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
++void shm_init_ns(struct ipc_namespace *ns)
+ {
+-	ns->ids[IPC_SHM_IDS] = ids;
+ 	ns->shm_ctlmax = SHMMAX;
+ 	ns->shm_ctlall = SHMALL;
+ 	ns->shm_ctlmni = SHMMNI;
+ 	ns->shm_tot = 0;
+-	ipc_init_ids(ids);
++	ipc_init_ids(&ns->ids[IPC_SHM_IDS]);
+ }
+ 
+ /*
+@@ -98,18 +95,6 @@ static void do_shm_rmid(struct ipc_names
+ }
+ 
+ #ifdef CONFIG_IPC_NS
+-int shm_init_ns(struct ipc_namespace *ns)
+-{
+-	struct ipc_ids *ids;
+-
+-	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
+-	if (ids == NULL)
+-		return -ENOMEM;
+-
+-	__shm_init_ns(ns, ids);
+-	return 0;
+-}
+-
+ void shm_exit_ns(struct ipc_namespace *ns)
+ {
+ 	struct shmid_kernel *shp;
+@@ -131,15 +116,12 @@ void shm_exit_ns(struct ipc_namespace *n
+ 		total++;
+ 	}
+ 	up_write(&shm_ids(ns).rw_mutex);
+-
+-	kfree(ns->ids[IPC_SHM_IDS]);
+-	ns->ids[IPC_SHM_IDS] = NULL;
+ }
+ #endif
+ 
+ void __init shm_init (void)
+ {
+-	__shm_init_ns(&init_ipc_ns, &init_shm_ids);
++	shm_init_ns(&init_ipc_ns);
+ 	ipc_init_proc_interface("sysvipc/shm",
+ 				"       key      shmid perms       size  cpid  lpid nattch   uid   gid  cuid  cgid      atime      dtime      ctime\n",
+ 				IPC_SHM_IDS, sysvipc_shm_proc_show);
+diff -puN ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.c
+--- a/ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/util.c
+@@ -833,7 +833,7 @@ static void *sysvipc_proc_next(struct se
+ 	if (ipc && ipc != SEQ_START_TOKEN)
+ 		ipc_unlock(ipc);
+ 
+-	return sysvipc_find_ipc(iter->ns->ids[iface->ids], *pos, pos);
++	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], *pos, pos);
+ }
+ 
+ /*
+@@ -846,7 +846,7 @@ static void *sysvipc_proc_start(struct s
+ 	struct ipc_proc_iface *iface = iter->iface;
+ 	struct ipc_ids *ids;
+ 
+-	ids = iter->ns->ids[iface->ids];
++	ids = &iter->ns->ids[iface->ids];
+ 
+ 	/*
+ 	 * Take the lock - this will be released by the corresponding
+@@ -877,7 +877,7 @@ static void sysvipc_proc_stop(struct seq
+ 	if (ipc && ipc != SEQ_START_TOKEN)
+ 		ipc_unlock(ipc);
+ 
+-	ids = iter->ns->ids[iface->ids];
++	ids = &iter->ns->ids[iface->ids];
+ 	/* Release the lock we took in start() */
+ 	up_read(&ids->rw_mutex);
+ }
+diff -puN ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.h
+--- a/ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
++++ a/ipc/util.h
+@@ -10,7 +10,6 @@
+ #ifndef _IPC_UTIL_H
+ #define _IPC_UTIL_H
+ 
+-#include <linux/idr.h>
+ #include <linux/err.h>
+ 
+ #define USHRT_MAX 0xffff
+@@ -22,22 +21,14 @@ void shm_init (void);
+ 
+ struct ipc_namespace;
+ 
+-int sem_init_ns(struct ipc_namespace *ns);
+-int msg_init_ns(struct ipc_namespace *ns);
+-int shm_init_ns(struct ipc_namespace *ns);
++void sem_init_ns(struct ipc_namespace *ns);
++void msg_init_ns(struct ipc_namespace *ns);
++void shm_init_ns(struct ipc_namespace *ns);
+ 
+ void sem_exit_ns(struct ipc_namespace *ns);
+ void msg_exit_ns(struct ipc_namespace *ns);
+ void shm_exit_ns(struct ipc_namespace *ns);
+ 
+-struct ipc_ids {
+-	int in_use;
+-	unsigned short seq;
+-	unsigned short seq_max;
+-	struct rw_semaphore rw_mutex;
+-	struct idr ipcs_idr;
+-};
+-
+ /*
+  * Structure that holds the parameters needed by the ipc operations
+  * (see after)
+@@ -68,6 +59,7 @@ struct ipc_ops {
+ };
+ 
+ struct seq_file;
++struct ipc_ids;
+ 
+ void ipc_init_ids(struct ipc_ids *);
+ #ifdef CONFIG_PROC_FS
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
