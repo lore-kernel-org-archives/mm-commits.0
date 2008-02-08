@@ -1,195 +1,342 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-romfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:03 -0800
-Message-ID: <200802080807.m1887iFs014583@imap1.linux-foundation.org>
+Subject: - drivers-edac-add-cell-mc-driver.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:42 -0800
+Message-ID: <200802080805.m1885NBg014331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762011AbYBHIU2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:28 -0500
+	by vger.kernel.org with ESMTP id S932587AbYBHIU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop ROMFS from using iget() and read_inode()
+     drivers-edac: add Cell MC driver
 has been removed from the -mm tree.  Its filename was
-     iget-stop-romfs-from-using-iget-and-read_inode.patch
+     drivers-edac-add-cell-mc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop ROMFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: drivers-edac: add Cell MC driver
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Stop the ROMFS filesystem from using iget() and read_inode().  Replace
-romfs_read_inode() with romfs_iget(), and call that instead of iget(). 
-romfs_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+Adds driver for the Cell memory controller when used without a Hypervisor such
+as on the IBM Cell blades.  There might still be some improvements to do to
+this such as finding if it's possible to properly obtain more details about
+the address of the error but it's good enough already to report CE counts
+which is our main priority at the moment.
 
-romfs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |   46 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 32 insertions(+), 14 deletions(-)
+ drivers/edac/Kconfig     |    7 +
+ drivers/edac/Makefile    |    1 
+ drivers/edac/cell_edac.c |  258 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 266 insertions(+)
 
-diff -puN fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode fs/romfs/inode.c
---- a/fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode
-+++ a/fs/romfs/inode.c
-@@ -84,6 +84,8 @@ struct romfs_inode_info {
- 	struct inode vfs_inode;
- };
+diff -puN drivers/edac/Kconfig~drivers-edac-add-cell-mc-driver drivers/edac/Kconfig
+--- a/drivers/edac/Kconfig~drivers-edac-add-cell-mc-driver
++++ a/drivers/edac/Kconfig
+@@ -131,5 +131,12 @@ config EDAC_PASEMI
+ 	  Support for error detection and correction on PA Semi
+ 	  PWRficient.
  
-+static struct inode *romfs_iget(struct super_block *, unsigned long);
++config EDAC_CELL
++	tristate "Cell Broadband Engine memory controller"
++	depends on EDAC_MM_EDAC && PPC_CELL_NATIVE
++	help
++	  Support for error detection and correction on the
++	  Cell Broadband Engine internal memory controller
++	  on platform without a hypervisor
+ 
+ endif # EDAC
+diff -puN drivers/edac/Makefile~drivers-edac-add-cell-mc-driver drivers/edac/Makefile
+--- a/drivers/edac/Makefile~drivers-edac-add-cell-mc-driver
++++ a/drivers/edac/Makefile
+@@ -28,4 +28,5 @@ obj-$(CONFIG_EDAC_I3000)		+= i3000_edac.
+ obj-$(CONFIG_EDAC_I82860)		+= i82860_edac.o
+ obj-$(CONFIG_EDAC_R82600)		+= r82600_edac.o
+ obj-$(CONFIG_EDAC_PASEMI)		+= pasemi_edac.o
++obj-$(CONFIG_EDAC_CELL)			+= cell_edac.o
+ 
+diff -puN /dev/null drivers/edac/cell_edac.c
+--- /dev/null
++++ a/drivers/edac/cell_edac.c
+@@ -0,0 +1,258 @@
++/*
++ * Cell MIC driver for ECC counting
++ *
++ * Copyright 2007 Benjamin Herrenschmidt, IBM Corp.
++ *                <benh@kernel.crashing.org>
++ *
++ * This file may be distributed under the terms of the
++ * GNU General Public License.
++ */
++#undef DEBUG
 +
- /* instead of private superblock data */
- static inline unsigned long romfs_maxsize(struct super_block *sb)
- {
-@@ -117,7 +119,7 @@ static int romfs_fill_super(struct super
- 	struct buffer_head *bh;
- 	struct romfs_super_block *rsb;
- 	struct inode *root;
--	int sz;
-+	int sz, ret = -EINVAL;
- 
- 	/* I would parse the options here, but there are none.. :) */
- 
-@@ -157,10 +159,13 @@ static int romfs_fill_super(struct super
- 	     & ROMFH_MASK;
- 
- 	s->s_op	= &romfs_ops;
--	root = iget(s, sz);
--	if (!root)
-+	root = romfs_iget(s, sz);
-+	if (IS_ERR(root)) {
-+		ret = PTR_ERR(root);
- 		goto out;
-+	}
- 
-+	ret = -ENOMEM;
- 	s->s_root = d_alloc_root(root);
- 	if (!s->s_root)
- 		goto outiput;
-@@ -173,7 +178,7 @@ outiput:
- out:
- 	brelse(bh);
- outnobh:
--	return -EINVAL;
-+	return ret;
- }
- 
- /* That's simple too. */
-@@ -389,8 +394,11 @@ romfs_lookup(struct inode *dir, struct d
- 	if ((be32_to_cpu(ri.next) & ROMFH_TYPE) == ROMFH_HRD)
- 		offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
- 
--	if ((inode = iget(dir->i_sb, offset)))
--		goto outi;
-+	inode = romfs_iget(dir->i_sb, offset);
-+	if (IS_ERR(inode)) {
-+		res = PTR_ERR(inode);
-+		goto out;
-+	}
- 
- 	/*
- 	 * it's a bit funky, _lookup needs to return an error code
-@@ -402,7 +410,7 @@ romfs_lookup(struct inode *dir, struct d
- 	 */
- 
- out0:	inode = NULL;
--outi:	res = 0;
-+	res = 0;
- 	d_add (dentry, inode);
- 
- out:	unlock_kernel();
-@@ -478,20 +486,29 @@ static mode_t romfs_modemap[] =
- 	S_IFBLK+0600, S_IFCHR+0600, S_IFSOCK+0644, S_IFIFO+0644
- };
- 
--static void
--romfs_read_inode(struct inode *i)
-+static struct inode *
-+romfs_iget(struct super_block *sb, unsigned long ino)
- {
--	int nextfh, ino;
-+	int nextfh;
- 	struct romfs_inode ri;
-+	struct inode *i;
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/stop_machine.h>
++#include <linux/io.h>
++#include <asm/machdep.h>
++#include <asm/cell-regs.h>
 +
-+	ino &= ROMFH_MASK;
-+	i = iget_locked(sb, ino);
-+	if (!i)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(i->i_state & I_NEW))
-+		return i;
- 
--	ino = i->i_ino & ROMFH_MASK;
- 	i->i_mode = 0;
- 
- 	/* Loop for finding the real hard link */
- 	for(;;) {
- 		if (romfs_copyfrom(i, &ri, ino, ROMFH_SIZE) <= 0) {
--			printk("romfs: read error for inode 0x%x\n", ino);
--			return;
-+			printk(KERN_ERR "romfs: read error for inode 0x%lx\n",
-+				ino);
-+			iget_failed(i);
-+			return ERR_PTR(-EIO);
- 		}
- 		/* XXX: do romfs_checksum here too (with name) */
- 
-@@ -548,6 +565,8 @@ romfs_read_inode(struct inode *i)
- 			init_special_inode(i, ino,
- 					MKDEV(nextfh>>16,nextfh&0xffff));
- 	}
-+	unlock_new_inode(i);
-+	return i;
- }
- 
- static struct kmem_cache * romfs_inode_cachep;
-@@ -599,7 +618,6 @@ static int romfs_remount(struct super_bl
- static const struct super_operations romfs_ops = {
- 	.alloc_inode	= romfs_alloc_inode,
- 	.destroy_inode	= romfs_destroy_inode,
--	.read_inode	= romfs_read_inode,
- 	.statfs		= romfs_statfs,
- 	.remount_fs	= romfs_remount,
- };
++#include "edac_core.h"
++
++struct cell_edac_priv
++{
++	struct cbe_mic_tm_regs __iomem	*regs;
++	int				node;
++	int				chanmask;
++#ifdef DEBUG
++	u64				prev_fir;
++#endif
++};
++
++static void cell_edac_count_ce(struct mem_ctl_info *mci, int chan, u64 ar)
++{
++	struct cell_edac_priv		*priv = mci->pvt_info;
++	struct csrow_info		*csrow = &mci->csrows[0];
++	unsigned long			address, pfn, offset;
++
++	dev_dbg(mci->dev, "ECC CE err on node %d, channel %d, ar = 0x%016lx\n",
++		priv->node, chan, ar);
++
++	/* Address decoding is likely a bit bogus, to dbl check */
++	address = (ar & 0xffffffffe0000000ul) >> 29;
++	if (priv->chanmask == 0x3)
++		address = (address << 1) | chan;
++	pfn = address >> PAGE_SHIFT;
++	offset = address & ~PAGE_MASK;
++
++	/* TODO: Decoding of the error addresss */
++	edac_mc_handle_ce(mci, csrow->first_page + pfn, offset,
++			  0, 0, chan, "");
++}
++
++static void cell_edac_count_ue(struct mem_ctl_info *mci, int chan, u64 ar)
++{
++	struct cell_edac_priv		*priv = mci->pvt_info;
++	struct csrow_info		*csrow = &mci->csrows[0];
++	unsigned long			address, pfn, offset;
++
++	dev_dbg(mci->dev, "ECC UE err on node %d, channel %d, ar = 0x%016lx\n",
++		priv->node, chan, ar);
++
++	/* Address decoding is likely a bit bogus, to dbl check */
++	address = (ar & 0xffffffffe0000000ul) >> 29;
++	if (priv->chanmask == 0x3)
++		address = (address << 1) | chan;
++	pfn = address >> PAGE_SHIFT;
++	offset = address & ~PAGE_MASK;
++
++	/* TODO: Decoding of the error addresss */
++	edac_mc_handle_ue(mci, csrow->first_page + pfn, offset, 0, "");
++}
++
++static void cell_edac_check(struct mem_ctl_info *mci)
++{
++	struct cell_edac_priv		*priv = mci->pvt_info;
++	u64				fir, addreg, clear = 0;
++
++	fir = in_be64(&priv->regs->mic_fir);
++#ifdef DEBUG
++	if (fir != priv->prev_fir) {
++		dev_dbg(mci->dev, "fir change : 0x%016lx\n", fir);
++		priv->prev_fir = fir;
++	}
++#endif
++	if ((priv->chanmask & 0x1) && (fir & CBE_MIC_FIR_ECC_SINGLE_0_ERR)) {
++		addreg = in_be64(&priv->regs->mic_df_ecc_address_0);
++		clear |= CBE_MIC_FIR_ECC_SINGLE_0_RESET;
++		cell_edac_count_ce(mci, 0, addreg);
++	}
++	if ((priv->chanmask & 0x2) && (fir & CBE_MIC_FIR_ECC_SINGLE_1_ERR)) {
++		addreg = in_be64(&priv->regs->mic_df_ecc_address_1);
++		clear |= CBE_MIC_FIR_ECC_SINGLE_1_RESET;
++		cell_edac_count_ce(mci, 1, addreg);
++	}
++	if ((priv->chanmask & 0x1) && (fir & CBE_MIC_FIR_ECC_MULTI_0_ERR)) {
++		addreg = in_be64(&priv->regs->mic_df_ecc_address_0);
++		clear |= CBE_MIC_FIR_ECC_MULTI_0_RESET;
++		cell_edac_count_ue(mci, 0, addreg);
++	}
++	if ((priv->chanmask & 0x2) && (fir & CBE_MIC_FIR_ECC_MULTI_1_ERR)) {
++		addreg = in_be64(&priv->regs->mic_df_ecc_address_1);
++		clear |= CBE_MIC_FIR_ECC_MULTI_1_RESET;
++		cell_edac_count_ue(mci, 1, addreg);
++	}
++
++	/* The procedure for clearing FIR bits is a bit ... weird */
++	if (clear) {
++		fir &= ~(CBE_MIC_FIR_ECC_ERR_MASK | CBE_MIC_FIR_ECC_SET_MASK);
++		fir |= CBE_MIC_FIR_ECC_RESET_MASK;
++		fir &= ~clear;
++		out_be64(&priv->regs->mic_fir, fir);
++		(void)in_be64(&priv->regs->mic_fir);
++
++		mb();	/* sync up */
++#ifdef DEBUG
++		fir = in_be64(&priv->regs->mic_fir);
++		dev_dbg(mci->dev, "fir clear  : 0x%016lx\n", fir);
++#endif
++	}
++}
++
++static void __devinit cell_edac_init_csrows(struct mem_ctl_info *mci)
++{
++	struct csrow_info		*csrow = &mci->csrows[0];
++	struct cell_edac_priv		*priv = mci->pvt_info;
++	struct device_node		*np;
++
++	for (np = NULL;
++	     (np = of_find_node_by_name(np, "memory")) != NULL;) {
++		struct resource r;
++
++		/* We "know" that the Cell firmware only creates one entry
++		 * in the "memory" nodes. If that changes, this code will
++		 * need to be adapted.
++		 */
++		if (of_address_to_resource(np, 0, &r))
++			continue;
++		if (of_node_to_nid(np) != priv->node)
++			continue;
++		csrow->first_page = r.start >> PAGE_SHIFT;
++		csrow->nr_pages = (r.end - r.start + 1) >> PAGE_SHIFT;
++		csrow->last_page = csrow->first_page + csrow->nr_pages - 1;
++		csrow->mtype = MEM_XDR;
++		csrow->edac_mode = EDAC_FLAG_EC | EDAC_FLAG_SECDED;
++		dev_dbg(mci->dev,
++			"Initialized on node %d, chanmask=0x%x,"
++			" first_page=0x%lx, nr_pages=0x%x\n",
++			priv->node, priv->chanmask,
++			csrow->first_page, csrow->nr_pages);
++		break;
++	}
++}
++
++static int __devinit cell_edac_probe(struct platform_device *pdev)
++{
++	struct cbe_mic_tm_regs __iomem	*regs;
++	struct mem_ctl_info		*mci;
++	struct cell_edac_priv		*priv;
++	u64				reg;
++	int				rc, chanmask;
++
++	regs = cbe_get_cpu_mic_tm_regs(cbe_node_to_cpu(pdev->id));
++	if (regs == NULL)
++		return -ENODEV;
++
++	/* Get channel population */
++	reg = in_be64(&regs->mic_mnt_cfg);
++	dev_dbg(&pdev->dev, "MIC_MNT_CFG = 0x%016lx\n", reg);
++	chanmask = 0;
++	if (reg & CBE_MIC_MNT_CFG_CHAN_0_POP)
++		chanmask |= 0x1;
++	if (reg & CBE_MIC_MNT_CFG_CHAN_1_POP)
++		chanmask |= 0x2;
++	if (chanmask == 0) {
++		dev_warn(&pdev->dev,
++			 "Yuck ! No channel populated ? Aborting !\n");
++		return -ENODEV;
++	}
++	dev_dbg(&pdev->dev, "Initial FIR = 0x%016lx\n",
++		in_be64(&regs->mic_fir));
++
++	/* Allocate & init EDAC MC data structure */
++	mci = edac_mc_alloc(sizeof(struct cell_edac_priv), 1,
++			    chanmask == 3 ? 2 : 1, pdev->id);
++	if (mci == NULL)
++		return -ENOMEM;
++	priv = mci->pvt_info;
++	priv->regs = regs;
++	priv->node = pdev->id;
++	priv->chanmask = chanmask;
++	mci->dev = &pdev->dev;
++	mci->mtype_cap = MEM_FLAG_XDR;
++	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_EC | EDAC_FLAG_SECDED;
++	mci->edac_cap = EDAC_FLAG_EC | EDAC_FLAG_SECDED;
++	mci->mod_name = "cell_edac";
++	mci->ctl_name = "MIC";
++	mci->dev_name = pdev->dev.bus_id;
++	mci->edac_check = cell_edac_check;
++	cell_edac_init_csrows(mci);
++
++	/* Register with EDAC core */
++	rc = edac_mc_add_mc(mci);
++	if (rc) {
++		dev_err(&pdev->dev, "failed to register with EDAC core\n");
++		edac_mc_free(mci);
++		return rc;
++	}
++
++	return 0;
++}
++
++static int __devexit cell_edac_remove(struct platform_device *pdev)
++{
++	struct mem_ctl_info *mci = edac_mc_del_mc(&pdev->dev);
++	if (mci)
++		edac_mc_free(mci);
++	return 0;
++}
++
++static struct platform_driver cell_edac_driver = {
++	.driver		= {
++		.name	= "cbe-mic",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= cell_edac_probe,
++	.remove		= cell_edac_remove,
++};
++
++static int __init cell_edac_init(void)
++{
++	/* Sanity check registers data structure */
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_df_ecc_address_0) != 0xf8);
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_df_ecc_address_1) != 0x1b8);
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_df_config) != 0x218);
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_fir) != 0x230);
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_mnt_cfg) != 0x210);
++	BUILD_BUG_ON(offsetof(struct cbe_mic_tm_regs,
++			      mic_exc) != 0x208);
++
++	return platform_driver_register(&cell_edac_driver);
++}
++
++static void __exit cell_edac_exit(void)
++{
++	platform_driver_unregister(&cell_edac_driver);
++}
++
++module_init(cell_edac_init);
++module_exit(cell_edac_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Benjamin Herrenschmidt <benh@kernel.crashing.org>");
++MODULE_DESCRIPTION("ECC counting for Cell MIC");
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+add-remove_memory-for-ppc64-3.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
