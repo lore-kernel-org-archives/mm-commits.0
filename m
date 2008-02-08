@@ -1,64 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - mount-options-fix-autofs.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:40 -0800
-Message-ID: <200802082019.m18KJL6a011041@imap1.linux-foundation.org>
+Subject: - mount-options-fix-isofs.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:05 -0800
+Message-ID: <200802082019.m18KJkiC011083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56064 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933312AbYBHUgf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:36:35 -0500
+	by vger.kernel.org with ESMTP id S1762041AbYBHUg3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:36:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hpa@zytor.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mount options: fix autofs
+     mount options: fix isofs
 has been removed from the -mm tree.  Its filename was
-     mount-options-fix-autofs.patch
+     mount-options-fix-isofs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix autofs
+Subject: mount options: fix isofs
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to autofs.
+Add a .show_options super operation to isofs.
 
 Use generic_show_options() and save the complete option string in
-autofs_fill_super().
+isofs_fill_super().
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs/inode.c |    3 +++
+ fs/isofs/inode.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN fs/autofs/inode.c~mount-options-fix-autofs fs/autofs/inode.c
---- a/fs/autofs/inode.c~mount-options-fix-autofs
-+++ a/fs/autofs/inode.c
-@@ -54,6 +54,7 @@ out_kill_sb:
- 
- static const struct super_operations autofs_sops = {
- 	.statfs		= simple_statfs,
+diff -puN fs/isofs/inode.c~mount-options-fix-isofs fs/isofs/inode.c
+--- a/fs/isofs/inode.c~mount-options-fix-isofs
++++ a/fs/isofs/inode.c
+@@ -110,6 +110,7 @@ static const struct super_operations iso
+ 	.put_super	= isofs_put_super,
+ 	.statfs		= isofs_statfs,
+ 	.remount_fs	= isofs_remount,
 +	.show_options	= generic_show_options,
  };
  
- enum {Opt_err, Opt_fd, Opt_uid, Opt_gid, Opt_pgrp, Opt_minproto, Opt_maxproto};
-@@ -140,6 +141,8 @@ int autofs_fill_super(struct super_block
- 	int minproto, maxproto;
- 	pid_t pgid;
+ 
+@@ -561,6 +562,8 @@ static int isofs_fill_super(struct super
+ 	int table, error = -EINVAL;
+ 	unsigned int vol_desc_start;
  
 +	save_mount_options(s, data);
 +
  	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
  	if (!sbi)
- 		goto fail_unlock;
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
