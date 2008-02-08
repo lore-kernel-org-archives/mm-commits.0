@@ -1,155 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - kill-do_generic_mapping_read.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:14 -0800
-Message-ID: <200802082018.m18KIthO010986@imap1.linux-foundation.org>
+Subject: - fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:17:59 -0800
+Message-ID: <200802082017.m18KHeVv010846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750908AbYBHUnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:19 -0500
+	by vger.kernel.org with ESMTP id S1750816AbYBHUnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kill do_generic_mapping_read
+     fs/hfsplus/unicode.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     kill-do_generic_mapping_read.patch
+     fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill do_generic_mapping_read
-From: Christoph Hellwig <hch@lst.de>
+Subject: fs/hfsplus/unicode.c: fix uninitialized var warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-do_generic_mapping_read was used by gfs2 for internals reads, but this use
-of the interface was rather suboptimal (as was the whole interface) and has
-been replaced by an internal helper now.  This patch kills
-do_generic_mapping_read and surrounding damage in preparation of additional
-cleanups for the buffered read path.
+fs/hfsplus/unicode.c: In function 'hfsplus_hash_dentry':
+fs/hfsplus/unicode.c:328: warning: 'dsize' may be used uninitialized in this function
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   15 ---------------
- mm/filemap.c       |   18 +++++-------------
- 2 files changed, 5 insertions(+), 28 deletions(-)
+ fs/hfsplus/unicode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~kill-do_generic_mapping_read include/linux/fs.h
---- a/include/linux/fs.h~kill-do_generic_mapping_read
-+++ a/include/linux/fs.h
-@@ -1807,9 +1807,6 @@ extern ssize_t generic_file_buffered_wri
- 		unsigned long, loff_t, loff_t *, size_t, ssize_t);
- extern ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos);
- extern ssize_t do_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos);
--extern void do_generic_mapping_read(struct address_space *mapping,
--				    struct file_ra_state *, struct file *,
--				    loff_t *, read_descriptor_t *, read_actor_t);
- extern int generic_segment_checks(const struct iovec *iov,
- 		unsigned long *nr_segs, size_t *count, int access_flags);
- 
-@@ -1847,18 +1844,6 @@ static inline int xip_truncate_page(stru
- }
- #endif
- 
--static inline void do_generic_file_read(struct file * filp, loff_t *ppos,
--					read_descriptor_t * desc,
--					read_actor_t actor)
--{
--	do_generic_mapping_read(filp->f_mapping,
--				&filp->f_ra,
--				filp,
--				ppos,
--				desc,
--				actor);
--}
--
- #ifdef CONFIG_BLOCK
- ssize_t __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
- 	struct block_device *bdev, const struct iovec *iov, loff_t offset,
-diff -puN mm/filemap.c~kill-do_generic_mapping_read mm/filemap.c
---- a/mm/filemap.c~kill-do_generic_mapping_read
-+++ a/mm/filemap.c
-@@ -875,9 +875,7 @@ static void shrink_readahead_size_eio(st
- }
- 
- /**
-- * do_generic_mapping_read - generic file read routine
-- * @mapping:	address_space to be read
-- * @ra:		file's readahead state
-+ * do_generic_file_read - generic file read routine
-  * @filp:	the file to read
-  * @ppos:	current file position
-  * @desc:	read_descriptor
-@@ -888,18 +886,13 @@ static void shrink_readahead_size_eio(st
-  *
-  * This is really ugly. But the goto's actually try to clarify some
-  * of the logic when it comes to error handling etc.
-- *
-- * Note the struct file* is only passed for the use of readpage.
-- * It may be NULL.
-  */
--void do_generic_mapping_read(struct address_space *mapping,
--			     struct file_ra_state *ra,
--			     struct file *filp,
--			     loff_t *ppos,
--			     read_descriptor_t *desc,
--			     read_actor_t actor)
-+static void do_generic_file_read(struct file *filp, loff_t *ppos,
-+		read_descriptor_t *desc, read_actor_t actor)
- {
-+	struct address_space *mapping = filp->f_mapping;
- 	struct inode *inode = mapping->host;
-+	struct file_ra_state *ra = &filp->f_ra;
- 	pgoff_t index;
- 	pgoff_t last_index;
- 	pgoff_t prev_index;
-@@ -1091,7 +1084,6 @@ out:
- 	if (filp)
- 		file_accessed(filp);
- }
--EXPORT_SYMBOL(do_generic_mapping_read);
- 
- int file_read_actor(read_descriptor_t *desc, struct page *page,
- 			unsigned long offset, unsigned long size)
+diff -puN fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning fs/hfsplus/unicode.c
+--- a/fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning
++++ a/fs/hfsplus/unicode.c
+@@ -325,7 +325,7 @@ int hfsplus_hash_dentry(struct dentry *d
+ 	struct super_block *sb = dentry->d_sb;
+ 	const char *astr;
+ 	const u16 *dstr;
+-	int casefold, decompose, size, dsize, len;
++	int casefold, decompose, size, len;
+ 	unsigned long hash;
+ 	wchar_t c;
+ 	u16 c2;
+@@ -336,6 +336,7 @@ int hfsplus_hash_dentry(struct dentry *d
+ 	astr = str->name;
+ 	len = str->len;
+ 	while (len > 0) {
++		int uninitialized_var(dsize);
+ 		size = asc2unichar(sb, astr, len, &c);
+ 		astr += size;
+ 		len -= size;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-proc-fix-the-threaded-proc-self.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+typhoon-section-fix.patch
+natsemi-section-fix.patch
+bnx2x-section-fix.patch
+bnx2c-section-fix.patch
+via-velocity-section-fix.patch
+starfire-secton-fix.patch
+pppol2tp-fix-printk-warnings.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
 git-unionfs.patch
-git-xfs.patch
-uml-update-defconfig.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xfs-fix-git-conflicts.patch
+git-xtensa.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kill-filp_open.patch
 rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
 r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-vfs-create-proc-pid-mountinfo.patch
-reiserfs-use-open_bdev_excl.patch
-procfs-task-exe-symlink.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
