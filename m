@@ -1,515 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - move-the-ipc-namespace-under-ipc_ns-option.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:11:36 -0800
-Message-ID: <200802082011.m18KBHwc010102@imap1.linux-foundation.org>
+Subject: + rename-open_namei-to-open_pathname-vs-git-acpi.patch added to -mm tree
+Date: Fri, 08 Feb 2008 12:57:09 -0800
+Message-ID: <200802082106.m18L62rh013260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48435 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756198AbYBHVFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:05:35 -0500
+	by vger.kernel.org with ESMTP id S1751310AbYBHVGw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:06:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, lenb@kernel.org
 
 
 The patch titled
-     namespaces: move the IPC namespace under IPC_NS option
-has been removed from the -mm tree.  Its filename was
-     move-the-ipc-namespace-under-ipc_ns-option.patch
+     rename-open_namei-to-open_pathname-vs-git-acpi
+has been added to the -mm tree.  Its filename is
+     rename-open_namei-to-open_pathname-vs-git-acpi.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: namespaces: move the IPC namespace under IPC_NS option
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: rename-open_namei-to-open_pathname-vs-git-acpi
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently the IPC namespace management code is spread over the ipc/*.c files. 
-I moved this code into ipc/namespace.c file which is compiled out when needed.
-
-The linux/ipc_namespace.h file is used to store the prototypes of the
-functions in namespace.c and the stubs for NAMESPACES=n case.  This is done
-so, because the stub for copy_ipc_namespace requires the knowledge of the
-CLONE_NEWIPC flag, which is in sched.h.  But the linux/ipc.h file itself in
-included into many many .c files via the sys.h->sem.h sequence so adding the
-sched.h into it will make all these .c depend on sched.h which is not that
-good.  On the other hand the knowledge about the namespaces stuff is required
-in 4 .c files only.
-
-Besides, this patch compiles out some auxiliary functions from ipc/sem.c,
-msg.c and shm.c files.  It turned out that moving these functions into
-namespaces.c is not that easy because they use many other calls and macros
-from the original file.  Moving them would make this patch complicated.  On
-the other hand all these functions can be consolidated, so I will send a
-separate patch doing this a bit later.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h           |   52 ----------------------
- include/linux/ipc_namespace.h |   69 ++++++++++++++++++++++++++++++
- init/Kconfig                  |    7 +++
- ipc/Makefile                  |    1 
- ipc/ipc_sysctl.c              |    1 
- ipc/msg.c                     |    3 +
- ipc/namespace.c               |   73 ++++++++++++++++++++++++++++++++
- ipc/sem.c                     |    3 +
- ipc/shm.c                     |    3 +
- ipc/util.c                    |   61 --------------------------
- ipc/util.h                    |    2 
- kernel/nsproxy.c              |    1 
- 12 files changed, 164 insertions(+), 112 deletions(-)
+ drivers/acpi/osl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ipc.h~move-the-ipc-namespace-under-ipc_ns-option include/linux/ipc.h
---- a/include/linux/ipc.h~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/include/linux/ipc.h
-@@ -100,58 +100,6 @@ struct kern_ipc_perm
- 	void		*security;
- };
+diff -puN drivers/acpi/osl.c~rename-open_namei-to-open_pathname-vs-git-acpi drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~rename-open_namei-to-open_pathname-vs-git-acpi
++++ a/drivers/acpi/osl.c
+@@ -361,7 +361,7 @@ struct acpi_table_header *acpi_find_dsdt
+ 		return ret;
+ 	}
  
--struct ipc_ids;
--struct ipc_namespace {
--	struct kref	kref;
--	struct ipc_ids	*ids[3];
--
--	int		sem_ctls[4];
--	int		used_sems;
--
--	int		msg_ctlmax;
--	int		msg_ctlmnb;
--	int		msg_ctlmni;
--	atomic_t	msg_bytes;
--	atomic_t	msg_hdrs;
--
--	size_t		shm_ctlmax;
--	size_t		shm_ctlall;
--	int		shm_ctlmni;
--	int		shm_tot;
--};
--
--extern struct ipc_namespace init_ipc_ns;
--
--#ifdef CONFIG_SYSVIPC
--#define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
--extern void free_ipc_ns(struct kref *kref);
--extern struct ipc_namespace *copy_ipcs(unsigned long flags,
--						struct ipc_namespace *ns);
--#else
--#define INIT_IPC_NS(ns)
--static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
--						struct ipc_namespace *ns)
--{
--	return ns;
--}
--#endif
--
--static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
--{
--#ifdef CONFIG_SYSVIPC
--	if (ns)
--		kref_get(&ns->kref);
--#endif
--	return ns;
--}
--
--static inline void put_ipc_ns(struct ipc_namespace *ns)
--{
--#ifdef CONFIG_SYSVIPC
--	kref_put(&ns->kref, free_ipc_ns);
--#endif
--}
--
- #endif /* __KERNEL__ */
- 
- #endif /* _LINUX_IPC_H */
-diff -puN /dev/null include/linux/ipc_namespace.h
---- /dev/null
-+++ a/include/linux/ipc_namespace.h
-@@ -0,0 +1,69 @@
-+#ifndef __IPC_NAMESPACE_H__
-+#define __IPC_NAMESPACE_H__
-+
-+#include <linux/err.h>
-+
-+struct ipc_ids;
-+struct ipc_namespace {
-+	struct kref	kref;
-+	struct ipc_ids	*ids[3];
-+
-+	int		sem_ctls[4];
-+	int		used_sems;
-+
-+	int		msg_ctlmax;
-+	int		msg_ctlmnb;
-+	int		msg_ctlmni;
-+	atomic_t	msg_bytes;
-+	atomic_t	msg_hdrs;
-+
-+	size_t		shm_ctlmax;
-+	size_t		shm_ctlall;
-+	int		shm_ctlmni;
-+	int		shm_tot;
-+};
-+
-+extern struct ipc_namespace init_ipc_ns;
-+
-+#ifdef CONFIG_SYSVIPC
-+#define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
-+#else
-+#define INIT_IPC_NS(ns)
-+#endif
-+
-+#if defined(CONFIG_SYSVIPC) && defined(CONFIG_IPC_NS)
-+extern void free_ipc_ns(struct kref *kref);
-+extern struct ipc_namespace *copy_ipcs(unsigned long flags,
-+						struct ipc_namespace *ns);
-+
-+static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
-+{
-+	if (ns)
-+		kref_get(&ns->kref);
-+	return ns;
-+}
-+
-+static inline void put_ipc_ns(struct ipc_namespace *ns)
-+{
-+	kref_put(&ns->kref, free_ipc_ns);
-+}
-+#else
-+static inline struct ipc_namespace *copy_ipcs(unsigned long flags,
-+		struct ipc_namespace *ns)
-+{
-+	if (flags & CLONE_NEWIPC)
-+		return ERR_PTR(-EINVAL);
-+
-+	return ns;
-+}
-+
-+static inline struct ipc_namespace *get_ipc_ns(struct ipc_namespace *ns)
-+{
-+	return ns;
-+}
-+
-+static inline void put_ipc_ns(struct ipc_namespace *ns)
-+{
-+}
-+#endif
-+#endif
-diff -puN init/Kconfig~move-the-ipc-namespace-under-ipc_ns-option init/Kconfig
---- a/init/Kconfig~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/init/Kconfig
-@@ -436,6 +436,13 @@ config UTS_NS
- 	  In this namespace tasks see different info provided with the
- 	  uname() system call
- 
-+config IPC_NS
-+	bool "IPC namespace"
-+	depends on NAMESPACES && SYSVIPC
-+	help
-+	  In this namespace tasks work with IPC ids which correspond to
-+	  different IPC objects in different namespaces
-+
- config BLK_DEV_INITRD
- 	bool "Initial RAM filesystem and RAM disk (initramfs/initrd) support"
- 	depends on BROKEN || !FRV
-diff -puN ipc/Makefile~move-the-ipc-namespace-under-ipc_ns-option ipc/Makefile
---- a/ipc/Makefile~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/Makefile
-@@ -7,4 +7,5 @@ obj-$(CONFIG_SYSVIPC) += util.o msgutil.
- obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysctl.o
- obj_mq-$(CONFIG_COMPAT) += compat_mq.o
- obj-$(CONFIG_POSIX_MQUEUE) += mqueue.o msgutil.o $(obj_mq-y)
-+obj-$(CONFIG_IPC_NS) += namespace.o
- 
-diff -puN ipc/ipc_sysctl.c~move-the-ipc-namespace-under-ipc_ns-option ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/ipc_sysctl.c
-@@ -14,6 +14,7 @@
- #include <linux/nsproxy.h>
- #include <linux/sysctl.h>
- #include <linux/uaccess.h>
-+#include <linux/ipc_namespace.h>
- 
- static void *get_ipc(ctl_table *table)
- {
-diff -puN ipc/msg.c~move-the-ipc-namespace-under-ipc_ns-option ipc/msg.c
---- a/ipc/msg.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/msg.c
-@@ -36,6 +36,7 @@
- #include <linux/seq_file.h>
- #include <linux/rwsem.h>
- #include <linux/nsproxy.h>
-+#include <linux/ipc_namespace.h>
- 
- #include <asm/current.h>
- #include <asm/uaccess.h>
-@@ -90,6 +91,7 @@ static void __msg_init_ns(struct ipc_nam
- 	ipc_init_ids(ids);
- }
- 
-+#ifdef CONFIG_IPC_NS
- int msg_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -128,6 +130,7 @@ void msg_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_MSG_IDS]);
- 	ns->ids[IPC_MSG_IDS] = NULL;
- }
-+#endif
- 
- void __init msg_init(void)
- {
-diff -puN /dev/null ipc/namespace.c
---- /dev/null
-+++ a/ipc/namespace.c
-@@ -0,0 +1,73 @@
-+/*
-+ * linux/ipc/namespace.c
-+ * Copyright (C) 2006 Pavel Emelyanov <xemul@openvz.org> OpenVZ, SWsoft Inc.
-+ */
-+
-+#include <linux/ipc.h>
-+#include <linux/msg.h>
-+#include <linux/ipc_namespace.h>
-+#include <linux/rcupdate.h>
-+#include <linux/nsproxy.h>
-+#include <linux/slab.h>
-+
-+#include "util.h"
-+
-+static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
-+{
-+	int err;
-+	struct ipc_namespace *ns;
-+
-+	err = -ENOMEM;
-+	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
-+	if (ns == NULL)
-+		goto err_mem;
-+
-+	err = sem_init_ns(ns);
-+	if (err)
-+		goto err_sem;
-+	err = msg_init_ns(ns);
-+	if (err)
-+		goto err_msg;
-+	err = shm_init_ns(ns);
-+	if (err)
-+		goto err_shm;
-+
-+	kref_init(&ns->kref);
-+	return ns;
-+
-+err_shm:
-+	msg_exit_ns(ns);
-+err_msg:
-+	sem_exit_ns(ns);
-+err_sem:
-+	kfree(ns);
-+err_mem:
-+	return ERR_PTR(err);
-+}
-+
-+struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
-+{
-+	struct ipc_namespace *new_ns;
-+
-+	BUG_ON(!ns);
-+	get_ipc_ns(ns);
-+
-+	if (!(flags & CLONE_NEWIPC))
-+		return ns;
-+
-+	new_ns = clone_ipc_ns(ns);
-+
-+	put_ipc_ns(ns);
-+	return new_ns;
-+}
-+
-+void free_ipc_ns(struct kref *kref)
-+{
-+	struct ipc_namespace *ns;
-+
-+	ns = container_of(kref, struct ipc_namespace, kref);
-+	sem_exit_ns(ns);
-+	msg_exit_ns(ns);
-+	shm_exit_ns(ns);
-+	kfree(ns);
-+}
-diff -puN ipc/sem.c~move-the-ipc-namespace-under-ipc_ns-option ipc/sem.c
---- a/ipc/sem.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/sem.c
-@@ -82,6 +82,7 @@
- #include <linux/seq_file.h>
- #include <linux/rwsem.h>
- #include <linux/nsproxy.h>
-+#include <linux/ipc_namespace.h>
- 
- #include <asm/uaccess.h>
- #include "util.h"
-@@ -128,6 +129,7 @@ static void __sem_init_ns(struct ipc_nam
- 	ipc_init_ids(ids);
- }
- 
-+#ifdef CONFIG_IPC_NS
- int sem_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -165,6 +167,7 @@ void sem_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SEM_IDS]);
- 	ns->ids[IPC_SEM_IDS] = NULL;
- }
-+#endif
- 
- void __init sem_init (void)
- {
-diff -puN ipc/shm.c~move-the-ipc-namespace-under-ipc_ns-option ipc/shm.c
---- a/ipc/shm.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/shm.c
-@@ -38,6 +38,7 @@
- #include <linux/rwsem.h>
- #include <linux/nsproxy.h>
- #include <linux/mount.h>
-+#include <linux/ipc_namespace.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -96,6 +97,7 @@ static void do_shm_rmid(struct ipc_names
- 		shm_destroy(ns, shp);
- }
- 
-+#ifdef CONFIG_IPC_NS
- int shm_init_ns(struct ipc_namespace *ns)
- {
- 	struct ipc_ids *ids;
-@@ -133,6 +135,7 @@ void shm_exit_ns(struct ipc_namespace *n
- 	kfree(ns->ids[IPC_SHM_IDS]);
- 	ns->ids[IPC_SHM_IDS] = NULL;
- }
-+#endif
- 
- void __init shm_init (void)
- {
-diff -puN ipc/util.c~move-the-ipc-namespace-under-ipc_ns-option ipc/util.c
---- a/ipc/util.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/util.c
-@@ -33,6 +33,7 @@
- #include <linux/audit.h>
- #include <linux/nsproxy.h>
- #include <linux/rwsem.h>
-+#include <linux/ipc_namespace.h>
- 
- #include <asm/unistd.h>
- 
-@@ -51,66 +52,6 @@ struct ipc_namespace init_ipc_ns = {
- 	},
- };
- 
--static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
--{
--	int err;
--	struct ipc_namespace *ns;
--
--	err = -ENOMEM;
--	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
--	if (ns == NULL)
--		goto err_mem;
--
--	err = sem_init_ns(ns);
--	if (err)
--		goto err_sem;
--	err = msg_init_ns(ns);
--	if (err)
--		goto err_msg;
--	err = shm_init_ns(ns);
--	if (err)
--		goto err_shm;
--
--	kref_init(&ns->kref);
--	return ns;
--
--err_shm:
--	msg_exit_ns(ns);
--err_msg:
--	sem_exit_ns(ns);
--err_sem:
--	kfree(ns);
--err_mem:
--	return ERR_PTR(err);
--}
--
--struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
--{
--	struct ipc_namespace *new_ns;
--
--	BUG_ON(!ns);
--	get_ipc_ns(ns);
--
--	if (!(flags & CLONE_NEWIPC))
--		return ns;
--
--	new_ns = clone_ipc_ns(ns);
--
--	put_ipc_ns(ns);
--	return new_ns;
--}
--
--void free_ipc_ns(struct kref *kref)
--{
--	struct ipc_namespace *ns;
--
--	ns = container_of(kref, struct ipc_namespace, kref);
--	sem_exit_ns(ns);
--	msg_exit_ns(ns);
--	shm_exit_ns(ns);
--	kfree(ns);
--}
--
- /**
-  *	ipc_init	-	initialise IPC subsystem
-  *
-diff -puN ipc/util.h~move-the-ipc-namespace-under-ipc_ns-option ipc/util.h
---- a/ipc/util.h~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/ipc/util.h
-@@ -20,6 +20,8 @@ void sem_init (void);
- void msg_init (void);
- void shm_init (void);
- 
-+struct ipc_namespace;
-+
- int sem_init_ns(struct ipc_namespace *ns);
- int msg_init_ns(struct ipc_namespace *ns);
- int shm_init_ns(struct ipc_namespace *ns);
-diff -puN kernel/nsproxy.c~move-the-ipc-namespace-under-ipc_ns-option kernel/nsproxy.c
---- a/kernel/nsproxy.c~move-the-ipc-namespace-under-ipc_ns-option
-+++ a/kernel/nsproxy.c
-@@ -21,6 +21,7 @@
- #include <linux/utsname.h>
- #include <linux/pid_namespace.h>
- #include <net/net_namespace.h>
-+#include <linux/ipc_namespace.h>
- 
- static struct kmem_cache *nsproxy_cachep;
- 
+-	firmware_file = filp_open(ramfs_dsdt_name, O_RDONLY, 0);
++	firmware_file = open_pathname(AT_FDCWD, ramfs_dsdt_name, O_RDONLY, 0);
+ 	if (IS_ERR(firmware_file)) {
+ 		printk(KERN_ERR PREFIX "Failed to open %s.\n", ramfs_dsdt_name);
+ 		return ret;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 revert-proc-fix-the-threaded-proc-self.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
+memstick-disable-busted-code.patch
+git-mmc.patch
+typhoon-section-fix.patch
+natsemi-section-fix.patch
+bnx2x-section-fix.patch
+bnx2c-section-fix.patch
+via-velocity-section-fix.patch
+starfire-secton-fix.patch
+pppol2tp-fix-printk-warnings.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+x86-validate-against-acpi-motherboard-resources.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+x86-mmconf-enable-mcfg-early.patch
+git-xfs-fix-git-conflicts.patch
+git-xtensa.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+procfs-task-exe-symlink-fix.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
