@@ -1,83 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - start-the-global-sbin-init-with-00-special-pids.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:59 -0800
-Message-ID: <200802082013.m18KDeIc010310@imap1.linux-foundation.org>
+Subject: - sys_setpgid-simplify-pid-ns-interaction.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:51 -0800
+Message-ID: <200802082013.m18KDWae010298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754323AbYBHU6f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:58:35 -0500
+	by vger.kernel.org with ESMTP id S1751418AbYBHU7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:59:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, ebiederm@xmission.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     start the global /sbin/init with 0,0 special pids
+     sys_setpgid(): simplify pid/ns interaction
 has been removed from the -mm tree.  Its filename was
-     start-the-global-sbin-init-with-00-special-pids.patch
+     sys_setpgid-simplify-pid-ns-interaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: start the global /sbin/init with 0,0 special pids
+Subject: sys_setpgid(): simplify pid/ns interaction
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-As Eric pointed out, there is no problem with init starting with sid == pgid
-== 0, and this was historical linux behavior changed in 2.6.18.
+sys_setpgid() does unneeded conversions from pid_t to "struct pid" and vice
+versa.  Use "struct pid" more consistently.  Saves one find_vpid() and
+eliminates the explicit usage of ->nsproxy->pid_ns.  Imho, cleanups the
+code.
 
-Remove kernel_init()->__set_special_pids(), this is unneeded and complicates
-the rules for sys_setsid().
-
-This change and the previous change in daemonize() mean that /sbin/init does
-not need the special "session != 1" hack in sys_setsid() any longer. We can't
-remove this check yet, we should cleanup copy_process(CLONE_NEWPID) first, so
-update the comment only.
+Also use the same_thread_group() helper.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c  |    1 -
- kernel/sys.c |    9 ++++-----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ kernel/sys.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN init/main.c~start-the-global-sbin-init-with-00-special-pids init/main.c
---- a/init/main.c~start-the-global-sbin-init-with-00-special-pids
-+++ a/init/main.c
-@@ -833,7 +833,6 @@ static int __init kernel_init(void * unu
- 	 */
- 	init_pid_ns.child_reaper = current;
- 
--	__set_special_pids(task_pid(current));
- 	cad_pid = task_pid(current);
- 
- 	smp_prepare_cpus(setup_max_cpus);
-diff -puN kernel/sys.c~start-the-global-sbin-init-with-00-special-pids kernel/sys.c
---- a/kernel/sys.c~start-the-global-sbin-init-with-00-special-pids
+diff -puN kernel/sys.c~sys_setpgid-simplify-pid-ns-interaction kernel/sys.c
+--- a/kernel/sys.c~sys_setpgid-simplify-pid-ns-interaction
 +++ a/kernel/sys.c
-@@ -1054,12 +1054,11 @@ asmlinkage long sys_setsid(void)
- 	if (group_leader->signal->leader)
+@@ -916,8 +916,8 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ {
+ 	struct task_struct *p;
+ 	struct task_struct *group_leader = current->group_leader;
+-	int err = -EINVAL;
+-	struct pid_namespace *ns;
++	struct pid *pgrp;
++	int err;
+ 
+ 	if (!pid)
+ 		pid = task_pid_vnr(group_leader);
+@@ -929,12 +929,10 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	/* From this point forward we keep holding onto the tasklist lock
+ 	 * so that our parent does not change from under us. -DaveM
+ 	 */
+-	ns = current->nsproxy->pid_ns;
+-
+ 	write_lock_irq(&tasklist_lock);
+ 
+ 	err = -ESRCH;
+-	p = find_task_by_pid_ns(pid, ns);
++	p = find_task_by_vpid(pid);
+ 	if (!p)
  		goto out;
  
--	/* Fail if a process group id already exists that equals the proposed
--	 * session id.
-+	/* Fail if a process group id already exists that equals the
-+	 * proposed session id.
- 	 *
--	 * Don't check if session == 1 because kernel threads and CLONE_NEWPID
--	 * tasks use this session id and so the check will always fail and make
--	 * it so init cannot successfully call setsid.
-+	 * Don't check if session == 1, clone(CLONE_NEWPID) creates
-+	 * this group/session beforehand.
- 	 */
- 	if (session != 1 && pid_task(sid, PIDTYPE_PGID))
+@@ -942,7 +940,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (!thread_group_leader(p))
  		goto out;
+ 
+-	if (p->real_parent->tgid == group_leader->tgid) {
++	if (same_thread_group(p->real_parent, group_leader)) {
+ 		err = -EPERM;
+ 		if (task_session(p) != task_session(group_leader))
+ 			goto out;
+@@ -959,10 +957,12 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (p->signal->leader)
+ 		goto out;
+ 
++	pgrp = task_pid(p);
+ 	if (pgid != pid) {
+ 		struct task_struct *g;
+ 
+-		g = find_task_by_pid_type_ns(PIDTYPE_PGID, pgid, ns);
++		pgrp = find_vpid(pgid);
++		g = pid_task(pgrp, PIDTYPE_PGID);
+ 		if (!g || task_session(g) != task_session(group_leader))
+ 			goto out;
+ 	}
+@@ -971,13 +971,10 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 	if (err)
+ 		goto out;
+ 
+-	if (task_pgrp_nr_ns(p, ns) != pgid) {
+-		struct pid *pid;
+-
++	if (task_pgrp(p) != pgrp) {
+ 		detach_pid(p, PIDTYPE_PGID);
+-		pid = find_vpid(pgid);
+-		attach_pid(p, PIDTYPE_PGID, pid);
+-		set_task_pgrp(p, pid_nr(pid));
++		attach_pid(p, PIDTYPE_PGID, pgrp);
++		set_task_pgrp(p, pid_nr(pgrp));
+ 	}
+ 
+ 	err = 0;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
