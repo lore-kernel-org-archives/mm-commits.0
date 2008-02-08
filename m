@@ -1,369 +1,388 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-isofs-from-using-read_inode.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:50 -0800
-Message-ID: <200802080807.m1887VSd014558@imap1.linux-foundation.org>
+Subject: - hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:14 -0800
+Message-ID: <200802080804.m1884toN014292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761955AbYBHIVh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:37 -0500
+	by vger.kernel.org with ESMTP id S933233AbYBHIVW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, hidave.darkstar@gmail.com, jack@ucw.cz, mm-commits@vger.kernel.org
+To: cpw@sgi.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop ISOFS from using read_inode()
+     hotplug cpu: move tasks in empty cpusets to parent
 has been removed from the -mm tree.  Its filename was
-     iget-stop-isofs-from-using-read_inode.patch
+     hotplug-cpu-move-tasks-in-empty-cpusets-to-parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop ISOFS from using read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: hotplug cpu: move tasks in empty cpusets to parent
+From: Cliff Wickman <cpw@sgi.com>
 
-Stop the ISOFS filesystem from using read_inode().  Make isofs_read_inode()
-return an error code, and make isofs_iget() pass it on.
+This patch corrects a situation that occurs when one disables all the cpus in
+a cpuset.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jan Kara <jack@ucw.cz>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: "Dave Young" <hidave.darkstar@gmail.com>
+Currently, the disabled (cpu-less) cpuset inherits the cpus of its parent,
+which is incorrect because it may then overlap its cpu-exclusive sibling.
+
+Tasks of an empty cpuset should be moved to the cpuset which is the parent of
+their current cpuset.  Or if the parent cpuset has no cpus, to its parent,
+etc.
+
+And the empty cpuset should be released (if it is flagged notify_on_release).
+
+Depends on the cgroup_scan_tasks() function (proposed by David Rientjes) to
+iterate through all tasks in the cpu-less cpuset.  We are deliberately
+avoiding a walk of the tasklist.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Cliff Wickman <cpw@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/export.c |   14 ++++-----
- fs/isofs/inode.c  |   68 +++++++++++++++++++++++++++++---------------
- fs/isofs/namei.c  |    4 +-
- fs/isofs/rock.c   |    4 +-
- 4 files changed, 58 insertions(+), 32 deletions(-)
+ include/linux/cgroup.h |    1 
+ kernel/cgroup.c        |   22 ++---
+ kernel/cpuset.c        |  167 +++++++++++++++++++++++++++++++--------
+ 3 files changed, 145 insertions(+), 45 deletions(-)
 
-diff -puN fs/isofs/export.c~iget-stop-isofs-from-using-read_inode fs/isofs/export.c
---- a/fs/isofs/export.c~iget-stop-isofs-from-using-read_inode
-+++ a/fs/isofs/export.c
-@@ -26,11 +26,9 @@ isofs_export_iget(struct super_block *sb
- 	if (block == 0)
- 		return ERR_PTR(-ESTALE);
- 	inode = isofs_iget(sb, block, offset);
--	if (inode == NULL)
--		return ERR_PTR(-ENOMEM);
--	if (is_bad_inode(inode)
--	    || (generation && inode->i_generation != generation))
--	{
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+	if (generation && inode->i_generation != generation) {
- 		iput(inode);
- 		return ERR_PTR(-ESTALE);
- 	}
-@@ -110,8 +108,10 @@ static struct dentry *isofs_export_get_p
- 	parent_inode = isofs_iget(child_inode->i_sb,
- 				  parent_block,
- 				  parent_offset);
--	if (parent_inode == NULL) {
--		rv = ERR_PTR(-EACCES);
-+	if (IS_ERR(parent_inode)) {
-+		rv = ERR_CAST(parent_inode);
-+		if (rv != ERR_PTR(-ENOMEM))
-+			rv = ERR_PTR(-EACCES);
- 		goto out;
- 	}
+diff -puN include/linux/cgroup.h~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent include/linux/cgroup.h
+--- a/include/linux/cgroup.h~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent
++++ a/include/linux/cgroup.h
+@@ -318,6 +318,7 @@ struct task_struct *cgroup_iter_next(str
+ 					struct cgroup_iter *it);
+ void cgroup_iter_end(struct cgroup *cont, struct cgroup_iter *it);
+ int cgroup_scan_tasks(struct cgroup_scanner *scan);
++int cgroup_attach_task(struct cgroup *, struct task_struct *);
  
-diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode fs/isofs/inode.c
---- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode
-+++ a/fs/isofs/inode.c
-@@ -54,7 +54,7 @@ static void isofs_put_super(struct super
- 	return;
- }
+ #else /* !CONFIG_CGROUPS */
  
--static void isofs_read_inode(struct inode *);
-+static int isofs_read_inode(struct inode *);
- static int isofs_statfs (struct dentry *, struct kstatfs *);
- 
- static struct kmem_cache *isofs_inode_cachep;
-@@ -107,7 +107,6 @@ static int isofs_remount(struct super_bl
- static const struct super_operations isofs_sops = {
- 	.alloc_inode	= isofs_alloc_inode,
- 	.destroy_inode	= isofs_destroy_inode,
--	.read_inode	= isofs_read_inode,
- 	.put_super	= isofs_put_super,
- 	.statfs		= isofs_statfs,
- 	.remount_fs	= isofs_remount,
-@@ -552,7 +551,7 @@ static int isofs_fill_super(struct super
- 	int joliet_level = 0;
- 	int iso_blknum, block;
- 	int orig_zonesize;
--	int table;
-+	int table, error = -EINVAL;
- 	unsigned int vol_desc_start;
- 
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
-@@ -810,6 +809,8 @@ root_found:
- 	 * we then decide whether to use the Joliet descriptor.
- 	 */
- 	inode = isofs_iget(s, sbi->s_firstdatazone, 0);
-+	if (IS_ERR(inode))
-+		goto out_no_root;
- 
- 	/*
- 	 * If this disk has both Rock Ridge and Joliet on it, then we
-@@ -829,6 +830,8 @@ root_found:
- 				"ISOFS: changing to secondary root\n");
- 			iput(inode);
- 			inode = isofs_iget(s, sbi->s_firstdatazone, 0);
-+			if (IS_ERR(inode))
-+				goto out_no_root;
- 		}
- 	}
- 
-@@ -842,8 +845,6 @@ root_found:
- 	sbi->s_joliet_level = joliet_level;
- 
- 	/* check the root inode */
--	if (!inode)
--		goto out_no_root;
- 	if (!inode->i_op)
- 		goto out_bad_root;
- 
-@@ -876,11 +877,14 @@ root_found:
- 	 */
- out_bad_root:
- 	printk(KERN_WARNING "%s: root inode not initialized\n", __func__);
--	goto out_iput;
--out_no_root:
--	printk(KERN_WARNING "%s: get root inode failed\n", __func__);
- out_iput:
- 	iput(inode);
-+	goto out_no_inode;
-+out_no_root:
-+	error = PTR_ERR(inode);
-+	if (error != -ENOMEM)
-+		printk(KERN_WARNING "%s: get root inode failed\n", __func__);
-+out_no_inode:
- #ifdef CONFIG_JOLIET
- 	if (sbi->s_nls_iocharset)
- 		unload_nls(sbi->s_nls_iocharset);
-@@ -908,7 +912,7 @@ out_freesbi:
- 	kfree(opt.iocharset);
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--	return -EINVAL;
-+	return error;
- }
- 
- static int isofs_statfs (struct dentry *dentry, struct kstatfs *buf)
-@@ -930,7 +934,7 @@ static int isofs_statfs (struct dentry *
- /*
-  * Get a set of blocks; filling in buffer_heads if already allocated
-  * or getblk() if they are not.  Returns the number of blocks inserted
-- * (0 == error.)
-+ * (-ve == error.)
+diff -puN kernel/cgroup.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent kernel/cgroup.c
+--- a/kernel/cgroup.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent
++++ a/kernel/cgroup.c
+@@ -489,7 +489,7 @@ static struct css_set *find_css_set(
+  * Any task can increment and decrement the count field without lock.
+  * So in general, code holding cgroup_mutex can't rely on the count
+  * field not changing.  However, if the count goes to zero, then only
+- * attach_task() can increment it again.  Because a count of zero
++ * cgroup_attach_task() can increment it again.  Because a count of zero
+  * means that no tasks are currently attached, therefore there is no
+  * way a task attached to that cgroup can fork (the other way to
+  * increment the count).  So code holding cgroup_mutex can safely
+@@ -520,17 +520,17 @@ static struct css_set *find_css_set(
+  *	The task_lock() exception
+  *
+  * The need for this exception arises from the action of
+- * attach_task(), which overwrites one tasks cgroup pointer with
++ * cgroup_attach_task(), which overwrites one tasks cgroup pointer with
+  * another.  It does so using cgroup_mutexe, however there are
+  * several performance critical places that need to reference
+  * task->cgroup without the expense of grabbing a system global
+  * mutex.  Therefore except as noted below, when dereferencing or, as
+- * in attach_task(), modifying a task'ss cgroup pointer we use
++ * in cgroup_attach_task(), modifying a task'ss cgroup pointer we use
+  * task_lock(), which acts on a spinlock (task->alloc_lock) already in
+  * the task_struct routinely used for such matters.
+  *
+  * P.S.  One more locking exception.  RCU is used to guard the
+- * update of a tasks cgroup pointer by attach_task()
++ * update of a tasks cgroup pointer by cgroup_attach_task()
   */
- int isofs_get_blocks(struct inode *inode, sector_t iblock_s,
- 		     struct buffer_head **bh, unsigned long nblocks)
-@@ -940,11 +944,12 @@ int isofs_get_blocks(struct inode *inode
- 	unsigned int firstext;
- 	unsigned long nextblk, nextoff;
- 	long iblock = (long)iblock_s;
--	int section, rv;
-+	int section, rv, error;
- 	struct iso_inode_info *ei = ISOFS_I(inode);
  
- 	lock_kernel();
- 
-+	error = -EIO;
- 	rv = 0;
- 	if (iblock < 0 || iblock != iblock_s) {
- 		printk(KERN_DEBUG "%s: block number too large\n", __func__);
-@@ -983,8 +988,10 @@ int isofs_get_blocks(struct inode *inode
- 
- 			offset += sect_size;
- 			ninode = isofs_iget(inode->i_sb, nextblk, nextoff);
--			if (!ninode)
-+			if (IS_ERR(ninode)) {
-+				error = PTR_ERR(ninode);
- 				goto abort;
-+			}
- 			firstext  = ISOFS_I(ninode)->i_first_extent;
- 			sect_size = ISOFS_I(ninode)->i_section_size >> ISOFS_BUFFER_BITS(ninode);
- 			nextblk   = ISOFS_I(ninode)->i_next_section_block;
-@@ -1015,9 +1022,10 @@ int isofs_get_blocks(struct inode *inode
- 		rv++;
+ /**
+@@ -1194,7 +1194,7 @@ static void get_first_subsys(const struc
+  * Call holding cgroup_mutex.  May take task_lock of
+  * the task 'pid' during call.
+  */
+-static int attach_task(struct cgroup *cgrp, struct task_struct *tsk)
++int cgroup_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
+ {
+ 	int retval = 0;
+ 	struct cgroup_subsys *ss;
+@@ -1287,7 +1287,7 @@ static int attach_task_by_pid(struct cgr
+ 		get_task_struct(tsk);
  	}
  
-+	error = 0;
- abort:
- 	unlock_kernel();
--	return rv;
-+	return rv != 0 ? rv : error;
+-	ret = attach_task(cgrp, tsk);
++	ret = cgroup_attach_task(cgrp, tsk);
+ 	put_task_struct(tsk);
+ 	return ret;
  }
+@@ -2514,7 +2514,7 @@ out:
+  *  - Used for /proc/<pid>/cgroup.
+  *  - No need to task_lock(tsk) on this tsk->cgroup reference, as it
+  *    doesn't really matter if tsk->cgroup changes after we read it,
+- *    and we take cgroup_mutex, keeping attach_task() from changing it
++ *    and we take cgroup_mutex, keeping cgroup_attach_task() from changing it
+  *    anyway.  No need to check that tsk->cgroup != NULL, thanks to
+  *    the_top_cgroup_hack in cgroup_exit(), which sets an exiting tasks
+  *    cgroup to top_cgroup.
+@@ -2625,7 +2625,7 @@ static struct file_operations proc_cgrou
+  * A pointer to the shared css_set was automatically copied in
+  * fork.c by dup_task_struct().  However, we ignore that copy, since
+  * it was not made under the protection of RCU or cgroup_mutex, so
+- * might no longer be a valid cgroup pointer.  attach_task() might
++ * might no longer be a valid cgroup pointer.  cgroup_attach_task() might
+  * have already changed current->cgroups, allowing the previously
+  * referenced cgroup group to be removed and freed.
+  *
+@@ -2704,8 +2704,8 @@ void cgroup_post_fork(struct task_struct
+  *    attach us to a different cgroup, decrementing the count on
+  *    the first cgroup that we never incremented.  But in this case,
+  *    top_cgroup isn't going away, and either task has PF_EXITING set,
+- *    which wards off any attach_task() attempts, or task is a failed
+- *    fork, never visible to attach_task.
++ *    which wards off any cgroup_attach_task() attempts, or task is a failed
++ *    fork, never visible to cgroup_attach_task.
+  *
+  */
+ void cgroup_exit(struct task_struct *tsk, int run_callbacks)
+@@ -2845,7 +2845,7 @@ int cgroup_clone(struct task_struct *tsk
+ 	}
+ 
+ 	/* All seems fine. Finish by moving the task into the new cgroup */
+-	ret = attach_task(child, tsk);
++	ret = cgroup_attach_task(child, tsk);
+ 	mutex_unlock(&cgroup_mutex);
+ 
+  out_release:
+diff -puN kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent kernel/cpuset.c
+--- a/kernel/cpuset.c~hotplug-cpu-move-tasks-in-empty-cpusets-to-parent
++++ a/kernel/cpuset.c
+@@ -56,6 +56,8 @@
+ #include <asm/atomic.h>
+ #include <linux/mutex.h>
+ #include <linux/kfifo.h>
++#include <linux/workqueue.h>
++#include <linux/cgroup.h>
  
  /*
-@@ -1026,12 +1034,15 @@ abort:
- static int isofs_get_block(struct inode *inode, sector_t iblock,
- 		    struct buffer_head *bh_result, int create)
- {
-+	int ret;
+  * Tracks how many cpusets are currently defined in system.
+@@ -96,6 +98,9 @@ struct cpuset {
+ 
+ 	/* partition number for rebuild_sched_domains() */
+ 	int pn;
 +
- 	if (create) {
- 		printk(KERN_DEBUG "%s: Kernel tries to allocate a block\n", __func__);
- 		return -EROFS;
- 	}
++	/* used for walking a cpuset heirarchy */
++	struct list_head stack_list;
+ };
  
--	return isofs_get_blocks(inode, iblock, &bh_result, 1) ? 0 : -EIO;
-+	ret = isofs_get_blocks(inode, iblock, &bh_result, 1);
-+	return ret < 0 ? ret : 0;
+ /* Retrieve the cpuset for a cgroup */
+@@ -111,7 +116,10 @@ static inline struct cpuset *task_cs(str
+ 	return container_of(task_subsys_state(task, cpuset_subsys_id),
+ 			    struct cpuset, css);
+ }
+-
++struct cpuset_hotplug_scanner {
++	struct cgroup_scanner scan;
++	struct cgroup *to;
++};
+ 
+ /* bits in struct cpuset flags field */
+ typedef enum {
+@@ -1687,53 +1695,146 @@ int __init cpuset_init(void)
+ 	return 0;
  }
  
- static int isofs_bmap(struct inode *inode, sector_t block)
-@@ -1186,7 +1197,7 @@ out_toomany:
- 	goto out;
- }
- 
--static void isofs_read_inode(struct inode *inode)
-+static int isofs_read_inode(struct inode *inode)
- {
- 	struct super_block *sb = inode->i_sb;
- 	struct isofs_sb_info *sbi = ISOFS_SB(sb);
-@@ -1199,6 +1210,7 @@ static void isofs_read_inode(struct inod
- 	unsigned int de_len;
- 	unsigned long offset;
- 	struct iso_inode_info *ei = ISOFS_I(inode);
-+	int ret = -EIO;
- 
- 	block = ei->i_iget5_block;
- 	bh = sb_bread(inode->i_sb, block);
-@@ -1216,6 +1228,7 @@ static void isofs_read_inode(struct inod
- 		tmpde = kmalloc(de_len, GFP_KERNEL);
- 		if (tmpde == NULL) {
- 			printk(KERN_INFO "%s: out of memory\n", __func__);
-+			ret = -ENOMEM;
- 			goto fail;
- 		}
- 		memcpy(tmpde, bh->b_data + offset, frag1);
-@@ -1259,8 +1272,10 @@ static void isofs_read_inode(struct inod
- 
- 	ei->i_section_size = isonum_733(de->size);
- 	if (de->flags[-high_sierra] & 0x80) {
--		if(isofs_read_level3_size(inode))
-+		ret = isofs_read_level3_size(inode);
-+		if (ret < 0)
- 			goto fail;
-+		ret = -EIO;
- 	} else {
- 		ei->i_next_section_block = 0;
- 		ei->i_next_section_offset = 0;
-@@ -1346,16 +1361,16 @@ static void isofs_read_inode(struct inod
- 		/* XXX - parse_rock_ridge_inode() had already set i_rdev. */
- 		init_special_inode(inode, inode->i_mode, inode->i_rdev);
- 
-+	ret = 0;
- out:
- 	kfree(tmpde);
- 	if (bh)
- 		brelse(bh);
--	return;
-+	return ret;
- 
- out_badread:
- 	printk(KERN_WARNING "ISOFS: unable to read i-node block\n");
- fail:
--	make_bad_inode(inode);
- 	goto out;
- }
- 
-@@ -1394,9 +1409,10 @@ struct inode *isofs_iget(struct super_bl
- 	unsigned long hashval;
- 	struct inode *inode;
- 	struct isofs_iget5_callback_data data;
-+	long ret;
- 
- 	if (offset >= 1ul << sb->s_blocksize_bits)
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 
- 	data.block = block;
- 	data.offset = offset;
-@@ -1406,9 +1422,17 @@ struct inode *isofs_iget(struct super_bl
- 	inode = iget5_locked(sb, hashval, &isofs_iget5_test,
- 				&isofs_iget5_set, &data);
- 
--	if (inode && (inode->i_state & I_NEW)) {
--		sb->s_op->read_inode(inode);
--		unlock_new_inode(inode);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
++/**
++ * cpuset_do_move_task - move a given task to another cpuset
++ * @tsk: pointer to task_struct the task to move
++ * @scan: struct cgroup_scanner contained in its struct cpuset_hotplug_scanner
++ *
++ * Called by cgroup_scan_tasks() for each task in a cgroup.
++ * Return nonzero to stop the walk through the tasks.
++ */
++void cpuset_do_move_task(struct task_struct *tsk, struct cgroup_scanner *scan)
++{
++	struct cpuset_hotplug_scanner *chsp;
 +
-+	if (inode->i_state & I_NEW) {
-+		ret = isofs_read_inode(inode);
-+		if (ret < 0) {
-+			iget_failed(inode);
-+			inode = ERR_PTR(ret);
-+		} else {
-+			unlock_new_inode(inode);
++	chsp = container_of(scan, struct cpuset_hotplug_scanner, scan);
++	cgroup_attach_task(chsp->to, tsk);
++}
++
++/**
++ * move_member_tasks_to_cpuset - move tasks from one cpuset to another
++ * @from: cpuset in which the tasks currently reside
++ * @to: cpuset to which the tasks will be moved
++ *
++ * Called with manage_sem held
++ * callback_mutex must not be held, as attach_task() will take it.
++ *
++ * The cgroup_scan_tasks() function will scan all the tasks in a cgroup,
++ * calling callback functions for each.
++ */
++static void move_member_tasks_to_cpuset(struct cpuset *from, struct cpuset *to)
++{
++	struct cpuset_hotplug_scanner scan;
++
++	scan.scan.cg = from->css.cgroup;
++	scan.scan.test_task = NULL; /* select all tasks in cgroup */
++	scan.scan.process_task = cpuset_do_move_task;
++	scan.scan.heap = NULL;
++	scan.to = to->css.cgroup;
++
++	if (cgroup_scan_tasks((struct cgroup_scanner *)&scan))
++		printk(KERN_ERR "move_member_tasks_to_cpuset: "
++				"cgroup_scan_tasks failed\n");
++}
++
+ /*
+  * If common_cpu_mem_hotplug_unplug(), below, unplugs any CPUs
+  * or memory nodes, we need to walk over the cpuset hierarchy,
+  * removing that CPU or node from all cpusets.  If this removes the
+- * last CPU or node from a cpuset, then the guarantee_online_cpus()
+- * or guarantee_online_mems() code will use that emptied cpusets
+- * parent online CPUs or nodes.  Cpusets that were already empty of
+- * CPUs or nodes are left empty.
+- *
+- * This routine is intentionally inefficient in a couple of regards.
+- * It will check all cpusets in a subtree even if the top cpuset of
+- * the subtree has no offline CPUs or nodes.  It checks both CPUs and
+- * nodes, even though the caller could have been coded to know that
+- * only one of CPUs or nodes needed to be checked on a given call.
+- * This was done to minimize text size rather than cpu cycles.
++ * last CPU or node from a cpuset, then move the tasks in the empty
++ * cpuset to its next-highest non-empty parent.
+  *
+- * Call with both manage_mutex and callback_mutex held.
++ * The parent cpuset has some superset of the 'mems' nodes that the
++ * newly empty cpuset held, so no migration of memory is necessary.
+  *
+- * Recursive, on depth of cpuset subtree.
++ * Called with both manage_sem and callback_sem held
+  */
++static void remove_tasks_in_empty_cpuset(struct cpuset *cs)
++{
++	struct cpuset *parent;
++
++	/* the cgroup's css_sets list is in use if there are tasks
++	   in the cpuset; the list is empty if there are none;
++	   the cs->css.refcnt seems always 0 */
++	if (list_empty(&cs->css.cgroup->css_sets))
++		return;
+ 
+-static void guarantee_online_cpus_mems_in_subtree(const struct cpuset *cur)
++	/*
++	 * Find its next-highest non-empty parent, (top cpuset
++	 * has online cpus, so can't be empty).
++	 */
++	parent = cs->parent;
++	while (cpus_empty(parent->cpus_allowed)) {
++		/*
++		 * this empty cpuset should now be considered to
++		 * have been used, and therefore eligible for
++		 * release when empty (if it is notify_on_release)
++		 */
++		parent = parent->parent;
++	}
++
++	move_member_tasks_to_cpuset(cs, parent);
++}
++
++/*
++ * Walk the specified cpuset subtree and look for empty cpusets.
++ * The tasks of such cpuset must be moved to a parent cpuset.
++ *
++ * Note that such a notify_on_release cpuset must have had, at some time,
++ * member tasks or cpuset descendants and cpus and memory, before it can
++ * be a candidate for release.
++ *
++ * Called with manage_mutex held.  We take callback_mutex to modify
++ * cpus_allowed and mems_allowed.
++ *
++ * This walk processes the tree from top to bottom, completing one layer
++ * before dropping down to the next.  It always processes a node before
++ * any of its children.
++ *
++ * For now, since we lack memory hot unplug, we'll never see a cpuset
++ * that has tasks along with an empty 'mems'.  But if we did see such
++ * a cpuset, we'd handle it just like we do if its 'cpus' was empty.
++ */
++static void scan_for_empty_cpusets(const struct cpuset *root)
+ {
++	struct cpuset *cp;	/* scans cpusets being updated */
++	struct cpuset *child;	/* scans child cpusets of cp */
++	struct list_head queue;
+ 	struct cgroup *cont;
+-	struct cpuset *c;
+ 
+-	/* Each of our child cpusets mems must be online */
+-	list_for_each_entry(cont, &cur->css.cgroup->children, sibling) {
+-		c = cgroup_cs(cont);
+-		guarantee_online_cpus_mems_in_subtree(c);
+-		if (!cpus_empty(c->cpus_allowed))
+-			guarantee_online_cpus(c, &c->cpus_allowed);
+-		if (!nodes_empty(c->mems_allowed))
+-			guarantee_online_mems(c, &c->mems_allowed);
++	INIT_LIST_HEAD(&queue);
++
++	list_add_tail((struct list_head *)&root->stack_list, &queue);
++
++	mutex_lock(&callback_mutex);
++	while (!list_empty(&queue)) {
++		cp = container_of(queue.next, struct cpuset, stack_list);
++		list_del(queue.next);
++		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
++			child = cgroup_cs(cont);
++			list_add_tail(&child->stack_list, &queue);
++		}
++		cont = cp->css.cgroup;
++		/* Remove offline cpus and mems from this cpuset. */
++		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
++		nodes_and(cp->mems_allowed, cp->mems_allowed,
++						node_states[N_HIGH_MEMORY]);
++		if ((cpus_empty(cp->cpus_allowed) ||
++		     nodes_empty(cp->mems_allowed))) {
++			/* Move tasks from the empty cpuset to a parent */
++			mutex_unlock(&callback_mutex);
++			remove_tasks_in_empty_cpuset(cp);
++			mutex_lock(&callback_mutex);
 +		}
  	}
++	mutex_unlock(&callback_mutex);
++	return;
+ }
  
- 	return inode;
-diff -puN fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode fs/isofs/namei.c
---- a/fs/isofs/namei.c~iget-stop-isofs-from-using-read_inode
-+++ a/fs/isofs/namei.c
-@@ -179,9 +179,9 @@ struct dentry *isofs_lookup(struct inode
- 	inode = NULL;
- 	if (found) {
- 		inode = isofs_iget(dir->i_sb, block, offset);
--		if (!inode) {
-+		if (IS_ERR(inode)) {
- 			unlock_kernel();
--			return ERR_PTR(-EACCES);
-+			return ERR_CAST(inode);
- 		}
- 	}
- 	unlock_kernel();
-diff -puN fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode fs/isofs/rock.c
---- a/fs/isofs/rock.c~iget-stop-isofs-from-using-read_inode
-+++ a/fs/isofs/rock.c
-@@ -474,8 +474,10 @@ repeat:
- 			    isofs_iget(inode->i_sb,
- 				       ISOFS_I(inode)->i_first_extent,
- 				       0);
--			if (!reloc)
-+			if (IS_ERR(reloc)) {
-+				ret = PTR_ERR(reloc);
- 				goto out;
-+			}
- 			inode->i_mode = reloc->i_mode;
- 			inode->i_nlink = reloc->i_nlink;
- 			inode->i_uid = reloc->i_uid;
+ /*
+  * The cpus_allowed and mems_allowed nodemasks in the top_cpuset track
+  * cpu_online_map and node_states[N_HIGH_MEMORY].  Force the top cpuset to
+- * track what's online after any CPU or memory node hotplug or unplug
+- * event.
+- *
+- * To ensure that we don't remove a CPU or node from the top cpuset
+- * that is currently in use by a child cpuset (which would violate
+- * the rule that cpusets must be subsets of their parent), we first
+- * call the recursive routine guarantee_online_cpus_mems_in_subtree().
++ * track what's online after any CPU or memory node hotplug or unplug event.
+  *
+  * Since there are two callers of this routine, one for CPU hotplug
+  * events and one for memory node hotplug events, we could have coded
+@@ -1744,13 +1845,11 @@ static void guarantee_online_cpus_mems_i
+ static void common_cpu_mem_hotplug_unplug(void)
+ {
+ 	cgroup_lock();
+-	mutex_lock(&callback_mutex);
+ 
+-	guarantee_online_cpus_mems_in_subtree(&top_cpuset);
+ 	top_cpuset.cpus_allowed = cpu_online_map;
+ 	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
++	scan_for_empty_cpusets(&top_cpuset);
+ 
+-	mutex_unlock(&callback_mutex);
+ 	cgroup_unlock();
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from cpw@sgi.com are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
