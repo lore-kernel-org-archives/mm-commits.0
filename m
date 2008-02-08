@@ -1,138 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-semaphores-consolidate-sem_stat-and.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:13 -0800
-Message-ID: <200802082012.m18KCsmA010242@imap1.linux-foundation.org>
+Subject: - 8250_early-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:52 -0800
+Message-ID: <200802082012.m18KCXaJ010211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35016 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756400AbYBHUvk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:40 -0500
+	by vger.kernel.org with ESMTP id S1753723AbYBHUv5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPC/semaphores: consolidate SEM_STAT and IPC_STAT commands
+     8250_early: coding style
 has been removed from the -mm tree.  Its filename was
-     ipc-semaphores-consolidate-sem_stat-and.patch
+     8250_early-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC/semaphores: consolidate SEM_STAT and IPC_STAT commands
-From: Pierre Peiffer <pierre.peiffer@bull.net>
+Subject: 8250_early: coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-These commands (SEM_STAT and IPC_STAT) are rather doing the same things
-(only the meaning of the id given as input and the return value differ). 
-However, for the semaphores, they are handled in two different places (two
-different functions).
-
-This patch consolidates this for clarification by handling these both
-commands in the same place in semctl_nolock().  It also removes one unused
-parameter for this function.
-
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   38 ++++++++++++++++----------------------
- 1 file changed, 16 insertions(+), 22 deletions(-)
+ drivers/serial/8250_early.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semaphores-consolidate-sem_stat-and ipc/sem.c
---- a/ipc/sem.c~ipc-semaphores-consolidate-sem_stat-and
-+++ a/ipc/sem.c
-@@ -617,8 +617,8 @@ static unsigned long copy_semid_to_user(
- 	}
+diff -puN drivers/serial/8250_early.c~8250_early-coding-style drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~8250_early-coding-style
++++ a/drivers/serial/8250_early.c
+@@ -82,7 +82,8 @@ static void __init serial_putc(struct ua
+ 	serial_out(port, UART_TX, c);
  }
  
--static int semctl_nolock(struct ipc_namespace *ns, int semid, int semnum,
--		int cmd, int version, union semun arg)
-+static int semctl_nolock(struct ipc_namespace *ns, int semid,
-+			 int cmd, int version, union semun arg)
+-static void __init early_serial8250_write(struct console *console, const char *s, unsigned int count)
++static void __init early_serial8250_write(struct console *console,
++					const char *s, unsigned int count)
  {
- 	int err = -EINVAL;
- 	struct sem_array *sma;
-@@ -657,14 +657,23 @@ static int semctl_nolock(struct ipc_name
- 			return -EFAULT;
- 		return (max_id < 0) ? 0: max_id;
- 	}
-+	case IPC_STAT:
- 	case SEM_STAT:
- 	{
- 		struct semid64_ds tbuf;
- 		int id;
+ 	struct uart_port *port = &early_device.port;
+ 	unsigned int ier;
+@@ -132,7 +133,8 @@ static void __init init_port(struct earl
+ 	serial_out(port, UART_LCR, c & ~UART_LCR_DLAB);
+ }
  
--		sma = sem_lock(ns, semid);
--		if (IS_ERR(sma))
--			return PTR_ERR(sma);
-+		if (cmd == SEM_STAT) {
-+			sma = sem_lock(ns, semid);
-+			if (IS_ERR(sma))
-+				return PTR_ERR(sma);
-+			id = sma->sem_perm.id;
-+		} else {
-+			sma = sem_lock_check(ns, semid);
-+			if (IS_ERR(sma))
-+				return PTR_ERR(sma);
-+			id = 0;
-+		}
+-static int __init parse_options(struct early_serial8250_device *device, char *options)
++static int __init parse_options(struct early_serial8250_device *device,
++								char *options)
+ {
+ 	struct uart_port *port = &device->port;
+ 	int mmio, length;
+@@ -145,8 +147,10 @@ static int __init parse_options(struct e
+ 		port->iotype = UPIO_MEM;
+ 		port->mapbase = simple_strtoul(options + 5, &options, 0);
+ #ifdef CONFIG_FIX_EARLYCON_MEM
+-		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE, port->mapbase & PAGE_MASK);
+-		port->membase = (void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
++		set_fixmap_nocache(FIX_EARLYCON_MEM_BASE,
++					port->mapbase & PAGE_MASK);
++		port->membase =
++			(void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
+ 		port->membase += port->mapbase & ~PAGE_MASK;
+ #else
+ 		port->membase = ioremap(port->mapbase, 64);
+@@ -165,7 +169,8 @@ static int __init parse_options(struct e
+ 	} else
+ 		return -EINVAL;
  
- 		err = -EACCES;
- 		if (ipcperms (&sma->sem_perm, S_IRUGO))
-@@ -674,8 +683,6 @@ static int semctl_nolock(struct ipc_name
- 		if (err)
- 			goto out_unlock;
+-	if ((options = strchr(options, ','))) {
++	options = strchr(options, ',');
++	if (options) {
+ 		options++;
+ 		device->baud = simple_strtoul(options, NULL, 0);
+ 		length = min(strcspn(options, " "), sizeof(device->options));
+@@ -179,7 +184,7 @@ static int __init parse_options(struct e
+ 	printk(KERN_INFO "Early serial console at %s 0x%llx (options '%s')\n",
+ 		mmio ? "MMIO" : "I/O port",
+ 		mmio ? (unsigned long long) port->mapbase
+-	             : (unsigned long long) port->iobase,
++		     : (unsigned long long) port->iobase,
+ 		device->options);
+ 	return 0;
+ }
+@@ -199,7 +204,8 @@ static int __init early_serial8250_setup
+ 	if (device->port.membase || device->port.iobase)
+ 		return 0;
  
--		id = sma->sem_perm.id;
--
- 		memset(&tbuf, 0, sizeof(tbuf));
- 
- 		kernel_to_ipc64_perm(&sma->sem_perm, &tbuf.sem_perm);
-@@ -810,19 +817,6 @@ static int semctl_main(struct ipc_namesp
- 		err = 0;
- 		goto out_unlock;
- 	}
--	case IPC_STAT:
--	{
--		struct semid64_ds tbuf;
--		memset(&tbuf,0,sizeof(tbuf));
--		kernel_to_ipc64_perm(&sma->sem_perm, &tbuf.sem_perm);
--		tbuf.sem_otime  = sma->sem_otime;
--		tbuf.sem_ctime  = sma->sem_ctime;
--		tbuf.sem_nsems  = sma->sem_nsems;
--		sem_unlock(sma);
--		if (copy_semid_to_user (arg.buf, &tbuf, version))
--			return -EFAULT;
--		return 0;
--	}
- 	/* GETVAL, GETPID, GETNCTN, GETZCNT, SETVAL: fall-through */
- 	}
- 	err = -EINVAL;
-@@ -989,15 +983,15 @@ asmlinkage long sys_semctl (int semid, i
- 	switch(cmd) {
- 	case IPC_INFO:
- 	case SEM_INFO:
-+	case IPC_STAT:
- 	case SEM_STAT:
--		err = semctl_nolock(ns,semid,semnum,cmd,version,arg);
-+		err = semctl_nolock(ns, semid, cmd, version, arg);
+-	if ((err = parse_options(device, options)) < 0)
++	err = parse_options(device, options);
++	if (err < 0)
  		return err;
- 	case GETALL:
- 	case GETVAL:
- 	case GETPID:
- 	case GETNCNT:
- 	case GETZCNT:
--	case IPC_STAT:
- 	case SETVAL:
- 	case SETALL:
- 		err = semctl_main(ns,semid,semnum,cmd,version,arg);
+ 
+ 	init_port(device);
+@@ -219,7 +225,8 @@ int __init setup_early_serial8250_consol
+ 	}
+ 
+ 	options = strchr(cmdline, ',') + 1;
+-	if ((err = early_serial8250_setup(options)) < 0)
++	err = early_serial8250_setup(options);
++	if (err < 0)
+ 		return err;
+ 
+ 	register_console(&early_serial8250_console);
 _
 
-Patches currently in -mm which might be from pierre.peiffer@bull.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
