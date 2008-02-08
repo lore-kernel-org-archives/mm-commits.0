@@ -1,62 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:32:57 -0800
-Message-ID: <200802080832.m188Wcw2015719@imap1.linux-foundation.org>
+Subject: - proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:33:01 -0800
+Message-ID: <200802080832.m188WgnE015727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48847 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761703AbYBHIcq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:32:46 -0500
+	by vger.kernel.org with ESMTP id S1761291AbYBHIco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:32:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, morgan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
 has been removed from the -mm tree.  Its filename was
-     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
+     proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 
 This patch was dropped because it was folded into proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
+Subject: proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/cpuset.c: In function 'cpuset_task_status_allowed':
-kernel/cpuset.c:2232: error: 'buffer' undeclared (first use in this function)
-kernel/cpuset.c:2232: error: (Each undeclared identifier is reported only once
-kernel/cpuset.c:2232: error: for each function it appears in.)
-
-Cc: Andrew Morgan <morgan@kernel.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix kernel/cpuset.c
---- a/kernel/cpuset.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix
-+++ a/kernel/cpuset.c
-@@ -2262,7 +2262,6 @@ const struct file_operations proc_cpuset
- /* Display task cpus_allowed, mems_allowed in /proc/<pid>/status file. */
- void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
- {
--	int len;
- 	seq_printf(m, "Cpus_allowed:\t");
- 	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
- 					task->cpus_allowed);
-@@ -2270,5 +2269,5 @@ void cpuset_task_status_allowed(struct s
- 	seq_printf(m, "Mems_allowed:\t");
- 	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
- 					task->mems_allowed);
--	seq_printf(buffer, "\n");
-+	seq_printf(m, "\n");
- }
+diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3 fs/proc/array.c
+--- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3
++++ a/fs/proc/array.c
+@@ -98,9 +98,9 @@ static inline void task_name(struct seq_
+ 
+ 	get_task_comm(tcomm, p);
+ 
++	seq_printf(m, "Name:\t");
+ 	end = m->buf + m->size;
+ 	buf = m->buf + m->count;
+-	seq_printf(m, "Name:\n");
+ 	name = tcomm;
+ 	i = sizeof(tcomm);
+ 	while (i && (buf < end)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,8 +56,6 @@ cleanup-the-code-managed-with-the-user_ns-option.patch
 cleanup-the-code-managed-with-pid_ns-option.patch
 proc-detect-duplicate-names-on-registration.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-2.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-fix-3.patch
 proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces-nommu-fix.patch
 proc-fix-openless-usage-due-to-proc_fops-flip-checkpatch-fixes.patch
