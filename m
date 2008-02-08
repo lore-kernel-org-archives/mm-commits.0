@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-fix-symlink-creation-on-ufs2-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:46:25 -0800
-Message-ID: <200802080846.m188k6Pj016232@imap1.linux-foundation.org>
+Subject: - libfs-allow-error-return-from-simple-attributes-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:47:07 -0800
+Message-ID: <200802080846.m188kmpp016246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39193 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758053AbYBHIqn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:46:43 -0500
+	by vger.kernel.org with ESMTP id S933157AbYBHIr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dushistov@mail.ru, stevenaaus@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, greg@kroah.com, hch@lst.de, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs-fix-symlink-creation-on-ufs2-fix
+     libfs-allow-error-return-from-simple-attributes fix
 has been removed from the -mm tree.  Its filename was
-     ufs-fix-symlink-creation-on-ufs2-fix.patch
+     libfs-allow-error-return-from-simple-attributes-fix.patch
 
-This patch was dropped because it was folded into ufs-fix-symlink-creation-on-ufs2.patch
+This patch was dropped because it was folded into libfs-allow-error-return-from-simple-attributes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs-fix-symlink-creation-on-ufs2-fix
+Subject: libfs-allow-error-return-from-simple-attributes fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Steven <stevenaaus@yahoo.com>
+lib/fault-inject.c: In function 'fops_ul_MAX_STACK_TRACE_DEPTH_open':
+lib/fault-inject.c:167: warning: passing argument 4 of 'simple_attr_open' from i
+
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <stefano.brivio@polimi.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/fault-inject.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-fix-symlink-creation-on-ufs2-fix
-+++ a/fs/ufs/super.c
-@@ -132,7 +132,7 @@ static void ufs_print_super_stuff(struct
- 		       (unsigned long long)
- 		       fs64_to_cpu(sb, usb3->fs_un1.fs_u2.cs_nffree));
- 		printk(KERN_INFO"  fs_maxsymlinklen: %u\n",
--		       usb3->fs_un2.fs_44.fs_maxsymlinklen);
-+		       fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen));
- 	} else {
- 		printk(" sblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_sblkno));
- 		printk(" cblkno:      %u\n", fs32_to_cpu(sb, usb1->fs_cblkno));
+diff -puN lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix lib/fault-inject.c
+--- a/lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix
++++ a/lib/fault-inject.c
+@@ -141,11 +141,12 @@ static int debugfs_ul_set(void *data, u6
+ }
+ 
+ #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
+-static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
++static int debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
+ {
+ 	*(unsigned long *)data =
+ 		val < MAX_STACK_TRACE_DEPTH ?
+ 		val : MAX_STACK_TRACE_DEPTH;
++	return 0;
+ }
+ #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +81,7 @@ remove-fastcall-from-linux-include.patch
 constify-tables-in-kernel-sysctl_checkc.patch
 aoe-statically-initialise-devlist_lock.patch
 ufs-fix-symlink-creation-on-ufs2.patch
-ufs-fix-symlink-creation-on-ufs2-fix.patch
+libfs-allow-error-return-from-simple-attributes.patch
 libfs-allow-error-return-from-simple-attributes-fix.patch
 fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
 fs-afs-securityc-fix-uninitialized-var-warning.patch
