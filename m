@@ -1,106 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-edac-pci-broken-parity-regression.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:05:56 -0800
-Message-ID: <200802080805.m1885bNA014366@imap1.linux-foundation.org>
+Subject: - dz-add-and-reorder-inclusions-remove-unneeded-ones.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:19 -0800
+Message-ID: <200802080806.m18860Uj014390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761594AbYBHITn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:43 -0500
+	by vger.kernel.org with ESMTP id S1761506AbYBHITm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: b1@omega71.com, dougthompson@xmisson.com, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac: pci: broken parity regression
+     dz: add and reorder inclusions, remove unneeded ones
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-pci-broken-parity-regression.patch
+     dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/edac: pci: broken parity regression
-From: Bryan Boatright <b1@omega71.com>
+Subject: dz: add and reorder inclusions, remove unneeded ones
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Using the EDAC code in kernel.org kernel version 2.6.23.8 I am seeing the
-following problem:
+Sort the header inclusions, add a few that are needed but pulled indirectly
+only and remove ones that are not really used.
 
-    In the kernel there is a pci device attribute located in sysfs that is
-    checked by the EDAC PCI scanning code. If that attribute is set,
-    PCI parity/error scannining is skipped for that device. The attribute
-    is:
-
-            broken_parity_status
-
-    as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
-    PCI devices.
-
-I don't think this check was actually implemented.  I have a misbehaved card
-that reports a parity error every 1000 ms:
-
-Nov 25 07:28:43 beta kernel: EDAC PCI: Master Data Parity Error on 0000:05:01.0
-Nov 25 07:28:44 beta kernel: EDAC PCI: Master Data Parity Error on 0000:05:01.0
-Nov 25 07:28:45 beta kernel: EDAC PCI: Master Data Parity Error on 0000:05:01.0
-
-Setting that card's broken_parity_status bit did not mask the error:
-
-echo "1" > /sys/bus/pci/devices/0000:05:01.0/broken_parity_status
-
-I looked through the EDAC code and did not readily see any reference to
-broken_parity_status at all (which makes sense based on the behavior I am
-seeing).  I applied the following patch as a proof-of-concept and now EDAC's
-PCI parity error reporting behaves as documented:
-
-bryan
-
-Good regression find, bryan. It used to work. sigh.
-I added more logic to your patch, for more coverage of the error.
-
-Doug T
-
-Signed-off-by: Bryan Boatright <b1@omega71.com>
-Signed-off-by: Doug Thompson <dougthompson@xmisson.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_pci_sysfs.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/serial/dz.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN drivers/edac/edac_pci_sysfs.c~drivers-edac-pci-broken-parity-regression drivers/edac/edac_pci_sysfs.c
---- a/drivers/edac/edac_pci_sysfs.c~drivers-edac-pci-broken-parity-regression
-+++ a/drivers/edac/edac_pci_sysfs.c
-@@ -558,8 +558,10 @@ static void edac_pci_dev_parity_test(str
+diff -puN drivers/serial/dz.c~dz-add-and-reorder-inclusions-remove-unneeded-ones drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dz-add-and-reorder-inclusions-remove-unneeded-ones
++++ a/drivers/serial/dz.c
+@@ -6,7 +6,7 @@
+  *
+  * Email: olivier.lebaillif@ifrsys.com
+  *
+- * Copyright (C) 2004, 2006  Maciej W. Rozycki
++ * Copyright (C) 2004, 2006, 2007  Maciej W. Rozycki
+  *
+  * [31-AUG-98] triemer
+  * Changed IRQ to use Harald's dec internals interrupts.h
+@@ -32,26 +32,29 @@
+ #define SUPPORT_SYSRQ
+ #endif
  
- 	debugf4("PCI STATUS= 0x%04x %s\n", status, dev->dev.bus_id);
++#include <linux/bitops.h>
++#include <linux/compiler.h>
++#include <linux/console.h>
+ #include <linux/delay.h>
+-#include <linux/module.h>
+-#include <linux/interrupt.h>
++#include <linux/errno.h>
+ #include <linux/init.h>
+-#include <linux/console.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/major.h>
++#include <linux/module.h>
++#include <linux/serial.h>
++#include <linux/serial_core.h>
+ #include <linux/sysrq.h>
+ #include <linux/tty.h>
+-#include <linux/tty_flip.h>
+-#include <linux/serial_core.h>
+-#include <linux/serial.h>
  
--	/* check the status reg for errors */
--	if (status) {
-+	/* check the status reg for errors on boards NOT marked as broken
-+	 * if broken, we cannot trust any of the status bits
-+	 */
-+	if (status && !dev->broken_parity_status) {
- 		if (status & (PCI_STATUS_SIG_SYSTEM_ERROR)) {
- 			edac_printk(KERN_CRIT, EDAC_PCI,
- 				"Signaled System Error on %s\n",
-@@ -593,8 +595,10 @@ static void edac_pci_dev_parity_test(str
+ #include <asm/bootinfo.h>
++#include <asm/system.h>
++
+ #include <asm/dec/interrupts.h>
+ #include <asm/dec/kn01.h>
+ #include <asm/dec/kn02.h>
+ #include <asm/dec/machtype.h>
+ #include <asm/dec/prom.h>
+-#include <asm/irq.h>
+-#include <asm/system.h>
+-#include <asm/uaccess.h>
  
- 		debugf4("PCI SEC_STATUS= 0x%04x %s\n", status, dev->dev.bus_id);
+ #include "dz.h"
  
--		/* check the secondary status reg for errors */
--		if (status) {
-+		/* check the secondary status reg for errors,
-+		 * on NOT broken boards
-+		 */
-+		if (status && !dev->broken_parity_status) {
- 			if (status & (PCI_STATUS_SIG_SYSTEM_ERROR)) {
- 				edac_printk(KERN_CRIT, EDAC_PCI, "Bridge "
- 					"Signaled System Error on %s\n",
 _
 
-Patches currently in -mm which might be from b1@omega71.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
