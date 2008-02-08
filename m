@@ -1,131 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - memcgroup-revert-swap_state-mods.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:00 -0800
-Message-ID: <200802080803.m1883fx0014140@imap1.linux-foundation.org>
+Subject: + documentation-patch-tags-one-more-time.patch added to -mm tree
+Date: Fri, 08 Feb 2008 10:15:38 -0800
+Message-ID: <200802081815.m18IFJuK005787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756369AbYBHJbF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 04:31:05 -0500
+	by vger.kernel.org with ESMTP id S1758463AbYBHSP3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 13:15:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@googl
+To: mm-commits@vger.kernel.org
+Cc: corbet@lwn.net, penberg@cs.helsinki.fi
 
 
 The patch titled
-     memcgroup: revert swap_state mods
-has been removed from the -mm tree.  Its filename was
-     memcgroup-revert-swap_state-mods.patch
+     Documentation/patch-tags, one more time
+has been added to the -mm tree.  Its filename is
+     documentation-patch-tags-one-more-time.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: revert swap_state mods
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Documentation/patch-tags, one more time
+From: Jonathan Corbet <corbet@lwn.net>
 
-If we're charging rss and we're charging cache, it seems obvious that we
-should be charging swapcache - as has been done.  But in practice that
-doesn't work out so well: both swapin readahead and swapoff leave the
-majority of pages charged to the wrong cgroup (the cgroup that happened to
-read them in, rather than the cgroup to which they belong).
+Add a document describing the various tags attached to patches.
 
-(Which is why unuse_pte's GFP_KERNEL while holding pte lock never showed up
-as a problem: no allocation was ever done there, every page read being
-already charged to the cgroup which initiated the swapoff.)
-
-It all works rather better if we leave the charging to do_swap_page and
-unuse_pte, and do nothing for swapcache itself: revert mm/swap_state.c to
-what it was before the memory-controller patches.  This also speeds up
-significantly a contained process working at its limit: because it no
-longer needs to keep waiting for swap writeback to complete.
-
-Is it unfair that swap pages become uncharged once they're unmapped, even
-though they're still clearly private to particular cgroups?  For a short
-while, yes; but PageReclaim arranges for those pages to go to the end of
-the inactive list and be reclaimed soon if necessary.
-
-shmem/tmpfs pages are a distinct case: their charging also benefits from
-this change, but their second life on the lists as swapcache pages may
-prove more unfair - that I need to check next.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ Documentation/00-INDEX   |    2 
+ Documentation/patch-tags |   76 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
-diff -puN mm/swap_state.c~memcgroup-revert-swap_state-mods mm/swap_state.c
---- a/mm/swap_state.c~memcgroup-revert-swap_state-mods
-+++ a/mm/swap_state.c
-@@ -17,7 +17,6 @@
- #include <linux/backing-dev.h>
- #include <linux/pagevec.h>
- #include <linux/migrate.h>
--#include <linux/memcontrol.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -75,11 +74,6 @@ int add_to_swap_cache(struct page *page,
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(PageSwapCache(page));
- 	BUG_ON(PagePrivate(page));
--
--	error = mem_cgroup_cache_charge(page, current->mm, gfp_mask);
--	if (error)
--		goto out;
--
- 	error = radix_tree_preload(gfp_mask);
- 	if (!error) {
- 		write_lock_irq(&swapper_space.tree_lock);
-@@ -92,14 +86,10 @@ int add_to_swap_cache(struct page *page,
- 			total_swapcache_pages++;
- 			__inc_zone_page_state(page, NR_FILE_PAGES);
- 			INC_CACHE_INFO(add_total);
--		} else {
--			mem_cgroup_uncharge_page(page);
- 		}
- 		write_unlock_irq(&swapper_space.tree_lock);
- 		radix_tree_preload_end();
--	} else
--		mem_cgroup_uncharge_page(page);
--out:
-+	}
- 	return error;
- }
- 
-@@ -114,7 +104,6 @@ void __delete_from_swap_cache(struct pag
- 	BUG_ON(PageWriteback(page));
- 	BUG_ON(PagePrivate(page));
- 
--	mem_cgroup_uncharge_page(page);
- 	radix_tree_delete(&swapper_space.page_tree, page_private(page));
- 	set_page_private(page, 0);
- 	ClearPageSwapCache(page);
+diff -puN Documentation/00-INDEX~documentation-patch-tags-one-more-time Documentation/00-INDEX
+--- a/Documentation/00-INDEX~documentation-patch-tags-one-more-time
++++ a/Documentation/00-INDEX
+@@ -289,6 +289,8 @@ parport.txt
+ 	- how to use the parallel-port driver.
+ parport-lowlevel.txt
+ 	- description and usage of the low level parallel port functions.
++patch-tags
++	- description of the tags which can be added to patches
+ pci-error-recovery.txt
+ 	- info on PCI error recovery.
+ pci.txt
+diff -puN /dev/null Documentation/patch-tags
+--- /dev/null
++++ a/Documentation/patch-tags
+@@ -0,0 +1,76 @@
++Patches headed for the mainline may contain a variety of tags documenting
++who played a hand in (or was at least aware of) their progress.  All of
++these tags have the form:
++
++	Something-done-by: Full name <email@address> [optional random stuff]
++
++These tags are:
++
++From: 	   	The original author of the patch.  This tag will ensure
++		that credit is properly given when somebody other than the
++		original author submits the patch.
++
++Signed-off-by:  A person adding a Signed-off-by tag is attesting that the
++		patch, to the best of his or her knowledge, can legally be
++		merged into the mainline and distributed under the terms of
++		the GNU General Public License, version 2.  See the
++		Developer's Certificate of Origin, found in
++		Documentation/SubmittingPatches, for the precise meaning of
++		Signed-off-by.  This tag assures upstream maintainers that
++		the provenance of the patch is known and allows the origin
++		of the patch to be reviewed should copyright questions
++		arise.
++
++Acked-by:	The person named (who should be an active developer in the
++		area addressed by the patch) is aware of the patch and has
++		no objection to its inclusion; it informs upstream
++		maintainers that a certain degree of consensus on the patch
++		as been achieved..  An Acked-by tag does not imply any
++		involvement in the development of the patch or that a
++		detailed review was done.
++
++Reviewed-by:	The patch has been reviewed and found acceptable according
++		to the Reviewer's Statement as found at the bottom of this
++		file.  A Reviewed-by tag is a statement of opinion that the
++		patch is an appropriate modification of the kernel without
++		any remaining serious technical issues.  Any interested
++		reviewer (who has done the work) can offer a Reviewed-by
++		tag for a patch.  This tag serves to give credit to
++		reviewers and to inform maintainers of the degree of review
++		which has been done on the patch.
++
++Cc:		The person named was given the opportunity to comment on
++		the patch.  This is the only tag which might be added
++		without an explicit action by the person it names.  This
++		tag documents that potentially interested parties have been
++		included in the discussion.
++
++Tested-by:	The patch has been successfully tested (in some
++		environment) by the person named.  This tag informs
++		maintainers that some testing has been performed, provides
++		a means to locate testers for future patches, and ensures
++		credit for the testers.
++
++
++----
++
++Reviewer's statement of oversight
++
++By offering my Reviewed-by: tag, I state that:
++
++ (a) I have carried out a technical review of this patch to evaluate its
++     appropriateness and readiness for inclusion into the mainline kernel.
++
++ (b) Any problems, concerns, or questions relating to the patch have been
++     communicated back to the submitter.  I am satisfied with the
++     submitter's response to my comments.
++
++ (c) While there may be things that could be improved with this submission,
++     I believe that it is, at this time, (1) a worthwhile modification to
++     the kernel, and (2) free of known issues which would argue against its
++     inclusion.
++
++ (d) While I have reviewed the patch and believe it to be sound, I do not
++     (unless explicitly stated elsewhere) make any warranties or guarantees
++     that it will achieve its stated purpose or function properly in any
++     given situation.
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from corbet@lwn.net are
 
-origin.patch
-git-unionfs.patch
-git-x86.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-mount-options-fix-tmpfs.patch
-mount-options-fix-tmpfs-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-prio_tree-debugging-patch.patch
+git-hrt.patch
+revert-git-hrt.patch
+documentation-patch-tags-one-more-time.patch
