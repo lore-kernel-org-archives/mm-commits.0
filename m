@@ -1,548 +1,450 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-clean-up-the-code.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:24 -0800
-Message-ID: <200802082018.m18KI5Od010892@imap1.linux-foundation.org>
+Subject: - asm-posix_typesh-scrub-__glibc__.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:16:35 -0800
+Message-ID: <200802082016.m18KGGqR010698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45281 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32875 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757093AbYBHVDn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:43 -0500
+	by vger.kernel.org with ESMTP id S1762346AbYBHVEA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@bohmer.net, hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, drepper@redhat.com, linux-arch@vger.kernel.org, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: clean up the code
+     asm-*/posix_types.h: scrub __GLIBC__
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-clean-up-the-code.patch
+     asm-posix_typesh-scrub-__glibc__.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: clean up the code
-From: Remy Bohmer <linux@bohmer.net>
+Subject: asm-*/posix_types.h: scrub __GLIBC__
+From: Mike Frysinger <vapier@gentoo.org>
 
-Clean up the atmel_serial driver to conform the coding rules.  It contains no
-functional change.
+Some arches (like alpha and ia64) already have a clean posix_types.h header.
+This brings all the others in line by removing all references to __GLIBC__
+(and some undocumented __USE_ALL).
 
-Signed-off-by: Remy Bohmer <linux@bohmer.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Acked-by: Andrew Victor <linux@maxim.org.za>
-Tested-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |  255 ++++++++++++++++++--------------
- 1 file changed, 150 insertions(+), 105 deletions(-)
+ include/asm-arm/posix_types.h      |    6 +-----
+ include/asm-avr32/posix_types.h    |    4 ----
+ include/asm-blackfin/posix_types.h |    8 ++------
+ include/asm-cris/posix_types.h     |    4 ----
+ include/asm-frv/posix_types.h      |    8 ++------
+ include/asm-h8300/posix_types.h    |    8 ++------
+ include/asm-m32r/posix_types.h     |    8 ++------
+ include/asm-m68k/posix_types.h     |    8 ++------
+ include/asm-mips/posix_types.h     |    4 ++--
+ include/asm-parisc/posix_types.h   |    8 ++------
+ include/asm-powerpc/posix_types.h  |    5 ++---
+ include/asm-sparc/posix_types.h    |    8 ++------
+ include/asm-sparc64/posix_types.h  |    8 ++------
+ include/asm-v850/posix_types.h     |    8 ++------
+ include/asm-x86/posix_types_32.h   |    8 ++------
+ include/asm-xtensa/posix_types.h   |    5 ++---
+ 16 files changed, 27 insertions(+), 81 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-clean-up-the-code drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-clean-up-the-code
-+++ a/drivers/serial/atmel_serial.c
-@@ -73,6 +73,7 @@
- 
- #define ATMEL_ISR_PASS_LIMIT	256
- 
-+/* UART registers. CR is write-only, hence no GET macro */
- #define UART_PUT_CR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_CR)
- #define UART_GET_MR(port)	__raw_readl((port)->membase + ATMEL_US_MR)
- #define UART_PUT_MR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_MR)
-@@ -86,8 +87,6 @@
- #define UART_PUT_BRGR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_BRGR)
- #define UART_PUT_RTOR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_RTOR)
- 
--// #define UART_GET_CR(port)	__raw_readl((port)->membase + ATMEL_US_CR)		// is write-only
--
-  /* PDC registers */
- #define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
- #define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
-@@ -100,8 +99,6 @@
- 
- #define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
- #define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
--//#define UART_PUT_TNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNPR)
--//#define UART_PUT_TNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNCR)
- 
- static int (*atmel_open_hook)(struct uart_port *);
- static void (*atmel_close_hook)(struct uart_port *);
-@@ -141,8 +138,8 @@ static void atmel_set_mctrl(struct uart_
- #ifdef CONFIG_ARCH_AT91RM9200
- 	if (cpu_is_at91rm9200()) {
- 		/*
--		 * AT91RM9200 Errata #39: RTS0 is not internally connected to PA21.
--		 *  We need to drive the pin manually.
-+		 * AT91RM9200 Errata #39: RTS0 is not internally connected
-+		 * to PA21. We need to drive the pin manually.
- 		 */
- 		if (port->mapbase == AT91RM9200_BASE_US0) {
- 			if (mctrl & TIOCM_RTS)
-@@ -227,7 +224,8 @@ static void atmel_stop_rx(struct uart_po
-  */
- static void atmel_enable_ms(struct uart_port *port)
- {
--	UART_PUT_IER(port, ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC | ATMEL_US_CTSIC);
-+	UART_PUT_IER(port, ATMEL_US_RIIC | ATMEL_US_DSRIC
-+			| ATMEL_US_DCDIC | ATMEL_US_CTSIC);
- }
- 
- /*
-@@ -246,7 +244,7 @@ static void atmel_break_ctl(struct uart_
-  */
- static void atmel_rx_chars(struct uart_port *port)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 	struct tty_struct *tty = port->info->tty;
- 	unsigned int status, ch, flg;
- 
-@@ -265,10 +263,12 @@ static void atmel_rx_chars(struct uart_p
- 		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
- 				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
- 			     || atmel_port->break_active)) {
--			UART_PUT_CR(port, ATMEL_US_RSTSTA);	/* clear error */
-+			/* clear error */
-+			UART_PUT_CR(port, ATMEL_US_RSTSTA);
- 			if (status & ATMEL_US_RXBRK
- 			    && !atmel_port->break_active) {
--				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);	/* ignore side-effect */
-+				/* ignore side-effect */
-+				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
- 				port->icount.brk++;
- 				atmel_port->break_active = 1;
- 				UART_PUT_IER(port, ATMEL_US_RXBRK);
-@@ -308,7 +308,7 @@ static void atmel_rx_chars(struct uart_p
- 
- 		uart_insert_char(port, status, ATMEL_US_OVRE, ch, flg);
- 
--	ignore_char:
-+ignore_char:
- 		status = UART_GET_CSR(port);
- 	}
- 
-@@ -349,44 +349,73 @@ static void atmel_tx_chars(struct uart_p
- }
- 
- /*
-+ * receive interrupt handler.
-+ */
-+static void
-+atmel_handle_receive(struct uart_port *port, unsigned int pending)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
-+	/* Interrupt receive */
-+	if (pending & ATMEL_US_RXRDY)
-+		atmel_rx_chars(port);
-+	else if (pending & ATMEL_US_RXBRK) {
-+		/*
-+		 * End of break detected. If it came along with a
-+		 * character, atmel_rx_chars will handle it.
-+		 */
-+		UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+		UART_PUT_IDR(port, ATMEL_US_RXBRK);
-+		atmel_port->break_active = 0;
-+	}
-+}
-+
-+/*
-+ * transmit interrupt handler.
-+ */
-+static void
-+atmel_handle_transmit(struct uart_port *port, unsigned int pending)
-+{
-+	/* Interrupt transmit */
-+	if (pending & ATMEL_US_TXRDY)
-+		atmel_tx_chars(port);
-+}
-+
-+/*
-+ * status flags interrupt handler.
-+ */
-+static void
-+atmel_handle_status(struct uart_port *port, unsigned int pending,
-+		    unsigned int status)
-+{
-+	/* TODO: All reads to CSR will clear these interrupts! */
-+	if (pending & ATMEL_US_RIIC)
-+		port->icount.rng++;
-+	if (pending & ATMEL_US_DSRIC)
-+		port->icount.dsr++;
-+	if (pending & ATMEL_US_DCDIC)
-+		uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
-+	if (pending & ATMEL_US_CTSIC)
-+		uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
-+	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
-+				| ATMEL_US_CTSIC))
-+		wake_up_interruptible(&port->info->delta_msr_wait);
-+}
-+
-+/*
-  * Interrupt handler
-  */
- static irqreturn_t atmel_interrupt(int irq, void *dev_id)
- {
- 	struct uart_port *port = dev_id;
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
- 	unsigned int status, pending, pass_counter = 0;
- 
- 	status = UART_GET_CSR(port);
- 	pending = status & UART_GET_IMR(port);
- 	while (pending) {
--		/* Interrupt receive */
--		if (pending & ATMEL_US_RXRDY)
--			atmel_rx_chars(port);
--		else if (pending & ATMEL_US_RXBRK) {
--			/*
--			 * End of break detected. If it came along
--			 * with a character, atmel_rx_chars will
--			 * handle it.
--			 */
--			UART_PUT_CR(port, ATMEL_US_RSTSTA);
--			UART_PUT_IDR(port, ATMEL_US_RXBRK);
--			atmel_port->break_active = 0;
--		}
--
--		// TODO: All reads to CSR will clear these interrupts!
--		if (pending & ATMEL_US_RIIC) port->icount.rng++;
--		if (pending & ATMEL_US_DSRIC) port->icount.dsr++;
--		if (pending & ATMEL_US_DCDIC)
--			uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
--		if (pending & ATMEL_US_CTSIC)
--			uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
--		if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC | ATMEL_US_CTSIC))
--			wake_up_interruptible(&port->info->delta_msr_wait);
--
--		/* Interrupt transmit */
--		if (pending & ATMEL_US_TXRDY)
--			atmel_tx_chars(port);
-+		atmel_handle_receive(port, pending);
-+		atmel_handle_status(port, pending, status);
-+		atmel_handle_transmit(port, pending);
- 
- 		if (pass_counter++ > ATMEL_ISR_PASS_LIMIT)
- 			break;
-@@ -414,7 +443,8 @@ static int atmel_startup(struct uart_por
- 	/*
- 	 * Allocate the IRQ
- 	 */
--	retval = request_irq(port->irq, atmel_interrupt, IRQF_SHARED, "atmel_serial", port);
-+	retval = request_irq(port->irq, atmel_interrupt, IRQF_SHARED,
-+			"atmel_serial", port);
- 	if (retval) {
- 		printk("atmel_serial: atmel_startup - Can't get irq\n");
- 		return retval;
-@@ -436,9 +466,11 @@ static int atmel_startup(struct uart_por
- 	 * Finally, enable the serial port
- 	 */
- 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
--	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);		/* enable xmit & rcvr */
-+	/* enable xmit & rcvr */
-+	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
- 
--	UART_PUT_IER(port, ATMEL_US_RXRDY);		/* enable receive only */
-+	/* enable receive only */
-+	UART_PUT_IER(port, ATMEL_US_RXRDY);
- 
- 	return 0;
- }
-@@ -470,45 +502,48 @@ static void atmel_shutdown(struct uart_p
- /*
-  * Power / Clock management.
-  */
--static void atmel_serial_pm(struct uart_port *port, unsigned int state, unsigned int oldstate)
-+static void atmel_serial_pm(struct uart_port *port, unsigned int state,
-+			    unsigned int oldstate)
- {
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 
- 	switch (state) {
--		case 0:
--			/*
--			 * Enable the peripheral clock for this serial port.
--			 * This is called on uart_open() or a resume event.
--			 */
--			clk_enable(atmel_port->clk);
--			break;
--		case 3:
--			/*
--			 * Disable the peripheral clock for this serial port.
--			 * This is called on uart_close() or a suspend event.
--			 */
--			clk_disable(atmel_port->clk);
--			break;
--		default:
--			printk(KERN_ERR "atmel_serial: unknown pm %d\n", state);
-+	case 0:
-+		/*
-+		 * Enable the peripheral clock for this serial port.
-+		 * This is called on uart_open() or a resume event.
-+		 */
-+		clk_enable(atmel_port->clk);
-+		break;
-+	case 3:
-+		/*
-+		 * Disable the peripheral clock for this serial port.
-+		 * This is called on uart_close() or a suspend event.
-+		 */
-+		clk_disable(atmel_port->clk);
-+		break;
-+	default:
-+		printk(KERN_ERR "atmel_serial: unknown pm %d\n", state);
- 	}
- }
- 
- /*
-  * Change the port parameters
-  */
--static void atmel_set_termios(struct uart_port *port, struct ktermios * termios, struct ktermios * old)
-+static void atmel_set_termios(struct uart_port *port, struct ktermios *termios,
-+			      struct ktermios *old)
- {
- 	unsigned long flags;
- 	unsigned int mode, imr, quot, baud;
- 
- 	/* Get current mode register */
--	mode = UART_GET_MR(port) & ~(ATMEL_US_USCLKS | ATMEL_US_CHRL | ATMEL_US_NBSTOP | ATMEL_US_PAR);
-+	mode = UART_GET_MR(port) & ~(ATMEL_US_USCLKS | ATMEL_US_CHRL
-+					| ATMEL_US_NBSTOP | ATMEL_US_PAR);
- 
--	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
-+	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk / 16);
- 	quot = uart_get_divisor(port, baud);
- 
--	if (quot > 65535) {		/* BRGR is 16-bit, so switch to slower clock */
-+	if (quot > 65535) {	/* BRGR is 16-bit, so switch to slower clock */
- 		quot /= 8;
- 		mode |= ATMEL_US_USCLKS_MCK_DIV8;
- 	}
-@@ -535,18 +570,17 @@ static void atmel_set_termios(struct uar
- 
- 	/* parity */
- 	if (termios->c_cflag & PARENB) {
--		if (termios->c_cflag & CMSPAR) {			/* Mark or Space parity */
-+		/* Mark or Space parity */
-+		if (termios->c_cflag & CMSPAR) {
- 			if (termios->c_cflag & PARODD)
- 				mode |= ATMEL_US_PAR_MARK;
- 			else
- 				mode |= ATMEL_US_PAR_SPACE;
--		}
--		else if (termios->c_cflag & PARODD)
-+		} else if (termios->c_cflag & PARODD)
- 			mode |= ATMEL_US_PAR_ODD;
- 		else
- 			mode |= ATMEL_US_PAR_EVEN;
--	}
--	else
-+	} else
- 		mode |= ATMEL_US_PAR_NONE;
- 
- 	spin_lock_irqsave(&port->lock, flags);
-@@ -572,16 +606,16 @@ static void atmel_set_termios(struct uar
- 		if (termios->c_iflag & IGNPAR)
- 			port->ignore_status_mask |= ATMEL_US_OVRE;
- 	}
--
--	// TODO: Ignore all characters if CREAD is set.
-+	/* TODO: Ignore all characters if CREAD is set.*/
- 
- 	/* update the per-port timeout */
- 	uart_update_timeout(port, termios->c_cflag, baud);
- 
--	/* disable interrupts and drain transmitter */
--	imr = UART_GET_IMR(port);	/* get interrupt mask */
--	UART_PUT_IDR(port, -1);		/* disable all interrupts */
--	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY)) { barrier(); }
-+	/* save/disable interrupts and drain transmitter */
-+	imr = UART_GET_IMR(port);
-+	UART_PUT_IDR(port, -1);
-+	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY))
-+		barrier();
- 
- 	/* disable receiver and transmitter */
- 	UART_PUT_CR(port, ATMEL_US_TXDIS | ATMEL_US_RXDIS);
-@@ -707,7 +741,8 @@ static struct uart_ops atmel_pops = {
- /*
-  * Configure the port from the platform device resource info.
-  */
--static void __devinit atmel_init_port(struct atmel_uart_port *atmel_port, struct platform_device *pdev)
-+static void __devinit atmel_init_port(struct atmel_uart_port *atmel_port,
-+				      struct platform_device *pdev)
- {
- 	struct uart_port *port = &atmel_port->uart;
- 	struct atmel_uart_data *data = pdev->dev.platform_data;
-@@ -730,7 +765,8 @@ static void __devinit atmel_init_port(st
- 		port->membase	= NULL;
- 	}
- 
--	if (!atmel_port->clk) {		/* for console, the clock could already be configured */
-+	/* for console, the clock could already be configured */
-+	if (!atmel_port->clk) {
- 		atmel_port->clk = clk_get(&pdev->dev, "usart");
- 		clk_enable(atmel_port->clk);
- 		port->uartclk = clk_get_rate(atmel_port->clk);
-@@ -754,7 +790,6 @@ void __init atmel_register_uart_fns(stru
- 	atmel_pops.set_wake	= fns->set_wake;
- }
- 
--
- #ifdef CONFIG_SERIAL_ATMEL_CONSOLE
- static void atmel_console_putchar(struct uart_port *port, int ch)
- {
-@@ -772,28 +807,30 @@ static void atmel_console_write(struct c
- 	unsigned int status, imr;
- 
- 	/*
--	 *	First, save IMR and then disable interrupts
-+	 * First, save IMR and then disable interrupts
- 	 */
--	imr = UART_GET_IMR(port);	/* get interrupt mask */
-+	imr = UART_GET_IMR(port);
- 	UART_PUT_IDR(port, ATMEL_US_RXRDY | ATMEL_US_TXRDY);
- 
- 	uart_console_write(port, s, count, atmel_console_putchar);
- 
- 	/*
--	 *	Finally, wait for transmitter to become empty
--	 *	and restore IMR
-+	 * Finally, wait for transmitter to become empty
-+	 * and restore IMR
- 	 */
- 	do {
- 		status = UART_GET_CSR(port);
- 	} while (!(status & ATMEL_US_TXRDY));
--	UART_PUT_IER(port, imr);	/* set interrupts back the way they were */
-+	/* set interrupts back the way they were */
-+	UART_PUT_IER(port, imr);
- }
- 
- /*
-- * If the port was already initialised (eg, by a boot loader), try to determine
-- * the current setup.
-+ * If the port was already initialised (eg, by a boot loader),
-+ * try to determine the current setup.
-  */
--static void __init atmel_console_get_options(struct uart_port *port, int *baud, int *parity, int *bits)
-+static void __init atmel_console_get_options(struct uart_port *port, int *baud,
-+					     int *parity, int *bits)
- {
- 	unsigned int mr, quot;
- 
-@@ -835,10 +872,12 @@ static int __init atmel_console_setup(st
- 	int parity = 'n';
- 	int flow = 'n';
- 
--	if (port->membase == 0)		/* Port not initialized yet - delay setup */
-+	if (port->membase == NULL) {
-+		/* Port not initialized yet - delay setup */
- 		return -ENODEV;
-+	}
- 
--	UART_PUT_IDR(port, -1);				/* disable interrupts */
-+	UART_PUT_IDR(port, -1);
- 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
- 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
- 
-@@ -870,13 +909,16 @@ static struct console atmel_console = {
- static int __init atmel_console_init(void)
- {
- 	if (atmel_default_console_device) {
--		add_preferred_console(ATMEL_DEVICENAME, atmel_default_console_device->id, NULL);
--		atmel_init_port(&(atmel_ports[atmel_default_console_device->id]), atmel_default_console_device);
-+		add_preferred_console(ATMEL_DEVICENAME,
-+				      atmel_default_console_device->id, NULL);
-+		atmel_init_port(&atmel_ports[atmel_default_console_device->id],
-+				atmel_default_console_device);
- 		register_console(&atmel_console);
- 	}
- 
- 	return 0;
- }
-+
- console_initcall(atmel_console_init);
- 
- /*
-@@ -884,11 +926,13 @@ console_initcall(atmel_console_init);
-  */
- static int __init atmel_late_console_init(void)
- {
--	if (atmel_default_console_device && !(atmel_console.flags & CON_ENABLED))
-+	if (atmel_default_console_device
-+	    && !(atmel_console.flags & CON_ENABLED))
- 		register_console(&atmel_console);
- 
- 	return 0;
- }
-+
- core_initcall(atmel_late_console_init);
- 
- #else
-@@ -896,22 +940,24 @@ core_initcall(atmel_late_console_init);
+diff -puN include/asm-arm/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-arm/posix_types.h
+--- a/include/asm-arm/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-arm/posix_types.h
+@@ -51,14 +51,10 @@ typedef long long		__kernel_loff_t;
  #endif
  
- static struct uart_driver atmel_uart = {
--	.owner			= THIS_MODULE,
--	.driver_name		= "atmel_serial",
--	.dev_name		= ATMEL_DEVICENAME,
--	.major			= SERIAL_ATMEL_MAJOR,
--	.minor			= MINOR_START,
--	.nr			= ATMEL_MAX_UART,
--	.cons			= ATMEL_CONSOLE_DEVICE,
-+	.owner		= THIS_MODULE,
-+	.driver_name	= "atmel_serial",
-+	.dev_name	= ATMEL_DEVICENAME,
-+	.major		= SERIAL_ATMEL_MAJOR,
-+	.minor		= MINOR_START,
-+	.nr		= ATMEL_MAX_UART,
-+	.cons		= ATMEL_CONSOLE_DEVICE,
- };
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
  
- #ifdef CONFIG_PM
--static int atmel_serial_suspend(struct platform_device *pdev, pm_message_t state)
-+static int atmel_serial_suspend(struct platform_device *pdev,
-+				pm_message_t state)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
  
--	if (device_may_wakeup(&pdev->dev) && !at91_suspend_entering_slow_clock())
-+	if (device_may_wakeup(&pdev->dev)
-+	    && !at91_suspend_entering_slow_clock())
- 		enable_irq_wake(port->irq);
- 	else {
- 		uart_suspend_port(&atmel_uart, port);
-@@ -924,13 +970,12 @@ static int atmel_serial_suspend(struct p
- static int atmel_serial_resume(struct platform_device *pdev)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ #undef	__FD_SET
+ #define __FD_SET(fd, fdsetp) \
+diff -puN include/asm-avr32/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-avr32/posix_types.h
+--- a/include/asm-avr32/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-avr32/posix_types.h
+@@ -46,11 +46,7 @@ typedef long long       __kernel_loff_t;
+ #endif
  
- 	if (atmel_port->suspended) {
- 		uart_resume_port(&atmel_uart, port);
- 		atmel_port->suspended = 0;
--	}
--	else
-+	} else
- 		disable_irq_wake(port->irq);
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+     int     val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-    int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
  
- 	return 0;
-@@ -960,7 +1005,7 @@ static int __devinit atmel_serial_probe(
- static int __devexit atmel_serial_remove(struct platform_device *pdev)
- {
- 	struct uart_port *port = platform_get_drvdata(pdev);
--	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
- 	int ret = 0;
+ #if defined(__KERNEL__)
+diff -puN include/asm-blackfin/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-blackfin/posix_types.h
+--- a/include/asm-blackfin/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-blackfin/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long __kernel_loff_t;
+ #endif
  
- 	clk_disable(atmel_port->clk);
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int val[2];
+-#else				/* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int __val[2];
+-#endif				/* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,6 +56,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif				/* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif				/* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-cris/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-cris/posix_types.h
+--- a/include/asm-cris/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-cris/posix_types.h
+@@ -44,11 +44,7 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ #ifdef __KERNEL__
+diff -puN include/asm-frv/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-frv/posix_types.h
+--- a/include/asm-frv/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-frv/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,7 +56,7 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+ 
+diff -puN include/asm-h8300/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-h8300/posix_types.h
+--- a/include/asm-h8300/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-h8300/posix_types.h
+@@ -38,14 +38,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -59,6 +55,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-m32r/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-m32r/posix_types.h
+--- a/include/asm-m32r/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-m32r/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -117,6 +113,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif  /* _ASM_M32R_POSIX_TYPES_H */
+diff -puN include/asm-m68k/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-m68k/posix_types.h
+--- a/include/asm-m68k/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-m68k/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+@@ -60,6 +56,6 @@ typedef struct {
+ #undef	__FD_ZERO
+ #define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-mips/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-mips/posix_types.h
+--- a/include/asm-mips/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-mips/posix_types.h
+@@ -69,7 +69,7 @@ typedef struct {
+ #endif
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -139,6 +139,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* _ASM_POSIX_TYPES_H */
+diff -puN include/asm-parisc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-parisc/posix_types.h
+--- a/include/asm-parisc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-parisc/posix_types.h
+@@ -47,18 +47,14 @@ typedef unsigned long long	__kernel_ino6
+ typedef unsigned int		__kernel_old_dev_t;
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ /* compatibility stuff */
+ typedef __kernel_uid_t __kernel_old_uid_t;
+ typedef __kernel_gid_t __kernel_old_gid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+@@ -128,6 +124,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-powerpc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-powerpc/posix_types.h
+--- a/include/asm-powerpc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-powerpc/posix_types.h
+@@ -64,8 +64,7 @@ typedef struct {
+ 
+ #else /* __GNUC__ */
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) \
+-    || (__GLIBC__ == 2 && __GLIBC_MINOR__ == 0)
++#if defined(__KERNEL__)
+ /* With GNU C, use inline functions instead so args are evaluated only once: */
+ 
+ #undef __FD_SET
+@@ -124,6 +123,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ #endif /* __GNUC__ */
+ #endif /* _ASM_POWERPC_POSIX_TYPES_H */
+diff -puN include/asm-sparc/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-sparc/posix_types.h
+--- a/include/asm-sparc/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-sparc/posix_types.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+@@ -117,6 +113,6 @@ static inline void __FD_ZERO(__kernel_fd
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* !(__ARCH_SPARC_POSIX_TYPES_H) */
+diff -puN include/asm-sparc64/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-sparc64/posix_types.h
+--- a/include/asm-sparc64/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-sparc64/posix_types.h
+@@ -43,14 +43,10 @@ typedef long long              __kernel_
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int     __val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef __FD_SET
+ static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+@@ -121,6 +117,6 @@ static inline void __FD_ZERO(__kernel_fd
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* !(__ARCH_SPARC64_POSIX_TYPES_H) */
+diff -puN include/asm-v850/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-v850/posix_types.h
+--- a/include/asm-v850/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-v850/posix_types.h
+@@ -44,15 +44,11 @@ typedef __kernel_uid_t __kernel_old_uid_
+ typedef unsigned int	__kernel_old_dev_t;
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ /* We used to include <asm/bitops.h> here, which seems the right thing, but
+    it caused nasty include-file definition order problems.  Removing the
+@@ -71,6 +67,6 @@ typedef struct {
+ #define __FD_ZERO(fd_set) \
+   memset (fd_set, 0, sizeof (*(fd_set *)fd_set))
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif /* __V850_POSIX_TYPES_H__ */
+diff -puN include/asm-x86/posix_types_32.h~asm-posix_typesh-scrub-__glibc__ include/asm-x86/posix_types_32.h
+--- a/include/asm-x86/posix_types_32.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-x86/posix_types_32.h
+@@ -39,14 +39,10 @@ typedef long long	__kernel_loff_t;
+ #endif
+ 
+ typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+ 	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+ } __kernel_fsid_t;
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
++#if defined(__KERNEL__)
+ 
+ #undef	__FD_SET
+ #define __FD_SET(fd,fdsetp) \
+@@ -77,6 +73,6 @@ do { \
+ 			"2" ((__kernel_fd_set *) (fdsetp)) : "memory"); \
+ } while (0)
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ 
+ #endif
+diff -puN include/asm-xtensa/posix_types.h~asm-posix_typesh-scrub-__glibc__ include/asm-xtensa/posix_types.h
+--- a/include/asm-xtensa/posix_types.h~asm-posix_typesh-scrub-__glibc__
++++ a/include/asm-xtensa/posix_types.h
+@@ -64,8 +64,7 @@ typedef struct {
+ 
+ #else /* __GNUC__ */
+ 
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) \
+-    || (__GLIBC__ == 2 && __GLIBC_MINOR__ == 0)
++#if defined(__KERNEL__)
+ /* With GNU C, use inline functions instead so args are evaluated only once: */
+ 
+ #undef __FD_SET
+@@ -118,6 +117,6 @@ static __inline__ void __FD_ZERO(__kerne
+ 	}
+ }
+ 
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
++#endif /* defined(__KERNEL__) */
+ #endif /* __GNUC__ */
+ #endif /* _XTENSA_POSIX_TYPES_H */
 _
 
-Patches currently in -mm which might be from linux@bohmer.net are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
