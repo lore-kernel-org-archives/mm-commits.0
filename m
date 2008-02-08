@@ -1,66 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - aio-partial-write-should-not-return-error-code.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:43 -0800
-Message-ID: <200802082018.m18KIO01010920@imap1.linux-foundation.org>
+Subject: - udf-fix-signedness-issue.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:17:50 -0800
+Message-ID: <200802082017.m18KHVaH010829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38344 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752060AbYBHUtG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:49:06 -0500
+	by vger.kernel.org with ESMTP id S1752026AbYBHUtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aio: partial write should not return error code
+     udf: fix signedness issue
 has been removed from the -mm tree.  Its filename was
-     aio-partial-write-should-not-return-error-code.patch
+     udf-fix-signedness-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: partial write should not return error code
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: udf: fix signedness issue
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-When an AIO write gets an error after writing some data (eg.  ENOSPC), it
-should return the amount written already, not the error.  Just like write()
-is supposed to.
+sparse generated:
+fs/udf/namei.c:896:15: originally declared here
+fs/udf/namei.c:1147:41: warning: incorrect type in argument 3 (different signedness)
+fs/udf/namei.c:1147:41:    expected int *offset
+fs/udf/namei.c:1147:41:    got unsigned int *<noident>
+fs/udf/namei.c:1152:78: warning: incorrect type in argument 3 (different signedness)
+fs/udf/namei.c:1152:78:    expected int *offset
+fs/udf/namei.c:1152:78:    got unsigned int *<noident>
 
-This was found by the libaio test suite.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-By: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/udf/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-partial-write-should-not-return-error-code fs/aio.c
---- a/fs/aio.c~aio-partial-write-should-not-return-error-code
-+++ a/fs/aio.c
-@@ -1347,6 +1347,13 @@ static ssize_t aio_rw_vect_retry(struct 
- 	if ((ret == 0) || (iocb->ki_left == 0))
- 		ret = iocb->ki_nbytes - iocb->ki_left;
+diff -puN fs/udf/namei.c~udf-fix-signedness-issue fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-fix-signedness-issue
++++ a/fs/udf/namei.c
+@@ -1195,7 +1195,7 @@ static int udf_rename(struct inode *old_
+ 		}
+ 	}
+ 	if (S_ISDIR(old_inode->i_mode)) {
+-		uint32_t offset = udf_ext0_offset(old_inode);
++		int offset = udf_ext0_offset(old_inode);
  
-+	/* If we managed to write some out we return that, rather than
-+	 * the eventual error. */
-+	if (opcode == IOCB_CMD_PWRITEV
-+	    && ret < 0 && ret != -EIOCBQUEUED && ret != -EIOCBRETRY
-+	    && iocb->ki_nbytes - iocb->ki_left)
-+		ret = iocb->ki_nbytes - iocb->ki_left;
-+
- 	return ret;
- }
- 
+ 		if (new_inode) {
+ 			retval = -ENOTEMPTY;
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-git-kvm.patch
-reiser4.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
