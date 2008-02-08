@@ -1,116 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - proc-seqfile-convert-proc_pid_statm.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:02 -0800
-Message-ID: <200802082011.m18KBhMq010140@imap1.linux-foundation.org>
+Subject: + fix-xtensa-timerfd-breakage.patch added to -mm tree
+Date: Fri, 08 Feb 2008 12:56:50 -0800
+Message-ID: <200802082056.m18KuowR012893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52105 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752087AbYBHVAy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:00:54 -0500
+	by vger.kernel.org with ESMTP id S1755049AbYBHVBF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:01:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@gmail.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bunk@kernel.org, chris@zankel.net
 
 
 The patch titled
-     seqfile convert proc_pid_statm
-has been removed from the -mm tree.  Its filename was
-     proc-seqfile-convert-proc_pid_statm.patch
+     fix xtensa timerfd breakage
+has been added to the -mm tree.  Its filename is
+     fix-xtensa-timerfd-breakage.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seqfile convert proc_pid_statm
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: fix xtensa timerfd breakage
+From: Adrian Bunk <bunk@kernel.org>
 
-This conversion is just for code cleanliness, uniformity, and general safety.
+In file included from /home/bunk/linux/kernel-2.6/git/linux-2.6/arch/xtensa/kernel/syscall.c:39:
+include2/asm/unistd.h:681: error: 'sys_timerfd' undeclared here (not in a function)
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c    |    8 +++++---
- fs/proc/base.c     |    4 ++--
- fs/proc/internal.h |    3 ++-
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ include/asm-xtensa/unistd.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/array.c~proc-seqfile-convert-proc_pid_statm fs/proc/array.c
---- a/fs/proc/array.c~proc-seqfile-convert-proc_pid_statm
-+++ a/fs/proc/array.c
-@@ -563,7 +563,8 @@ int proc_tgid_stat(struct seq_file *m, s
- 	return do_task_stat(m, ns, pid, task, 1);
- }
+diff -puN include/asm-xtensa/unistd.h~fix-xtensa-timerfd-breakage include/asm-xtensa/unistd.h
+--- a/include/asm-xtensa/unistd.h~fix-xtensa-timerfd-breakage
++++ a/include/asm-xtensa/unistd.h
+@@ -677,8 +677,8 @@ __SYSCALL(303, sys_ni_syscall, 0)
  
--int proc_pid_statm(struct task_struct *task, char *buffer)
-+int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task)
- {
- 	int size = 0, resident = 0, shared = 0, text = 0, lib = 0, data = 0;
- 	struct mm_struct *mm = get_task_mm(task);
-@@ -572,7 +573,8 @@ int proc_pid_statm(struct task_struct *t
- 		size = task_statm(mm, &shared, &text, &data, &resident);
- 		mmput(mm);
- 	}
-+	seq_printf(m, "%d %d %d %d %d %d %d\n",
-+			size, resident, shared, text, lib, data, 0);
+ #define __NR_signalfd				304
+ __SYSCALL(304, sys_signalfd, 3)
+-#define __NR_timerfd				305
+-__SYSCALL(305, sys_timerfd, 4)
++/*  305 was __NR_timerfd  */
++__SYSCALL(305, sys_ni_syscall, 0)
+ #define __NR_eventfd				306
+ __SYSCALL(306, sys_eventfd, 1)
  
--	return sprintf(buffer, "%d %d %d %d %d %d %d\n",
--		       size, resident, shared, text, lib, data, 0);
-+	return 0;
- }
-diff -puN fs/proc/base.c~proc-seqfile-convert-proc_pid_statm fs/proc/base.c
---- a/fs/proc/base.c~proc-seqfile-convert-proc_pid_statm
-+++ a/fs/proc/base.c
-@@ -2281,7 +2281,7 @@ static const struct pid_entry tgid_base_
- #endif
- 	INF("cmdline",    S_IRUGO, pid_cmdline),
- 	ONE("stat",       S_IRUGO, tgid_stat),
--	INF("statm",      S_IRUGO, pid_statm),
-+	ONE("statm",      S_IRUGO, pid_statm),
- 	REG("maps",       S_IRUGO, maps),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps",  S_IRUGO, numa_maps),
-@@ -2612,7 +2612,7 @@ static const struct pid_entry tid_base_s
- #endif
- 	INF("cmdline",   S_IRUGO, pid_cmdline),
- 	ONE("stat",      S_IRUGO, tid_stat),
--	INF("statm",     S_IRUGO, pid_statm),
-+	ONE("statm",     S_IRUGO, pid_statm),
- 	REG("maps",      S_IRUGO, maps),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps", S_IRUGO, numa_maps),
-diff -puN fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm fs/proc/internal.h
---- a/fs/proc/internal.h~proc-seqfile-convert-proc_pid_statm
-+++ a/fs/proc/internal.h
-@@ -54,7 +54,8 @@ extern int proc_tid_stat(struct seq_file
- extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *task);
- extern int proc_pid_status(struct task_struct *, char *);
--extern int proc_pid_statm(struct task_struct *, char *);
-+extern int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
-+				struct pid *pid, struct task_struct *task);
- extern loff_t mem_lseek(struct file *file, loff_t offset, int orig);
- 
- extern const struct file_operations proc_maps_operations;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-x86.patch
-deprecate-find_task_by_pid-kgdb.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+fix-frv-cmpxchg_local.patch
+fix-xtensa-timerfd-breakage.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+reiser4.patch
