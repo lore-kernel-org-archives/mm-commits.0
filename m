@@ -1,94 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - aoe-the-aoeminor-doesnt-need-a-long-format.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:16:09 -0800
-Message-ID: <200802082015.m18KFoDi010650@imap1.linux-foundation.org>
+Subject: - aoe-clean-up-udev-configuration-example.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:55 -0800
+Message-ID: <200802082015.m18KFa0j010632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41762 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46647 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbYBHUul (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:41 -0500
+	by vger.kernel.org with ESMTP id S1753297AbYBHUur (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aoe: the aoeminor doesn't need a long format
+     aoe: clean up udev configuration example
 has been removed from the -mm tree.  Its filename was
-     aoe-the-aoeminor-doesnt-need-a-long-format.patch
+     aoe-clean-up-udev-configuration-example.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aoe: the aoeminor doesn't need a long format
+Subject: aoe: clean up udev configuration example
 From: "Ed L. Cashin" <ecashin@coraid.com>
 
-The aoedev aoeminor member doesn't need a long format.
+This patch adds a known default location for the udev configuration file and
+uses the more recent "==" syntax for SUBSYSTEM and KERNEL.
 
 Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |    7 ++++---
- drivers/block/aoe/aoecmd.c |    5 +++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ Documentation/aoe/udev-install.sh |    5 ++++-
+ Documentation/aoe/udev.txt        |   15 ++++++++-------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/aoe/aoeblk.c~aoe-the-aoeminor-doesnt-need-a-long-format drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-the-aoeminor-doesnt-need-a-long-format
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -202,7 +202,7 @@ aoeblk_make_request(struct request_queue
- 	spin_lock_irqsave(&d->lock, flags);
+diff -puN Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example Documentation/aoe/udev-install.sh
+--- a/Documentation/aoe/udev-install.sh~aoe-clean-up-udev-configuration-example
++++ a/Documentation/aoe/udev-install.sh
+@@ -23,7 +23,10 @@ fi
+ # /etc/udev/rules.d
+ #
+ rules_d="`sed -n '/^udev_rules=/{ s!udev_rules=!!; s!\"!!g; p; }' $conf`"
+-if test -z "$rules_d" || test ! -d "$rules_d"; then
++if test -z "$rules_d" ; then
++	rules_d=/etc/udev/rules.d
++fi
++if test ! -d "$rules_d"; then
+ 	echo "$me Error: cannot find udev rules directory" 1>&2
+ 	exit 1
+ fi
+diff -puN Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example Documentation/aoe/udev.txt
+--- a/Documentation/aoe/udev.txt~aoe-clean-up-udev-configuration-example
++++ a/Documentation/aoe/udev.txt
+@@ -1,6 +1,7 @@
+ # These rules tell udev what device nodes to create for aoe support.
+-# They may be installed along the following lines (adjusted to what
+-# you see on your system).
++# They may be installed along the following lines.  Check the section
++# 8 udev manpage to see whether your udev supports SUBSYSTEM, and
++# whether it uses one or two equal signs for SUBSYSTEM and KERNEL.
+ # 
+ #   ecashin@makki ~$ su
+ #   Password:
+@@ -15,10 +16,10 @@
+ #  
  
- 	if ((d->flags & DEVFL_UP) == 0) {
--		printk(KERN_INFO "aoe: device %ld.%ld is not up\n",
-+		printk(KERN_INFO "aoe: device %ld.%d is not up\n",
- 			d->aoemajor, d->aoeminor);
- 		spin_unlock_irqrestore(&d->lock, flags);
- 		mempool_free(buf, d->bufpool);
-@@ -255,14 +255,15 @@ aoeblk_gdalloc(void *vp)
+ # aoe char devices
+-SUBSYSTEM="aoe", KERNEL="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+-SUBSYSTEM="aoe", KERNEL="err",		NAME="etherd/%k", GROUP="disk", MODE="0440"
+-SUBSYSTEM="aoe", KERNEL="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+-SUBSYSTEM="aoe", KERNEL="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
++SUBSYSTEM=="aoe", KERNEL=="discover",	NAME="etherd/%k", GROUP="disk", MODE="0220"
++SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
++SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
++SUBSYSTEM=="aoe", KERNEL=="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
  
- 	gd = alloc_disk(AOE_PARTITIONS);
- 	if (gd == NULL) {
--		printk(KERN_ERR "aoe: cannot allocate disk structure for %ld.%ld\n",
-+		printk(KERN_ERR
-+			"aoe: cannot allocate disk structure for %ld.%d\n",
- 			d->aoemajor, d->aoeminor);
- 		goto err;
- 	}
- 
- 	d->bufpool = mempool_create_slab_pool(MIN_BUFS, buf_pool_cache);
- 	if (d->bufpool == NULL) {
--		printk(KERN_ERR "aoe: cannot allocate bufpool for %ld.%ld\n",
-+		printk(KERN_ERR "aoe: cannot allocate bufpool for %ld.%d\n",
- 			d->aoemajor, d->aoeminor);
- 		goto err_disk;
- 	}
-diff -puN drivers/block/aoe/aoecmd.c~aoe-the-aoeminor-doesnt-need-a-long-format drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-the-aoeminor-doesnt-need-a-long-format
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -697,7 +697,8 @@ ataid_complete(struct aoedev *d, struct 
- 	}
- 
- 	if (d->ssize != ssize)
--		printk(KERN_INFO "aoe: %012llx e%lu.%lu v%04x has %llu sectors\n",
-+		printk(KERN_INFO
-+			"aoe: %012llx e%ld.%d v%04x has %llu sectors\n",
- 			mac_addr(t->addr),
- 			d->aoemajor, d->aoeminor,
- 			d->fw_ver, (long long)ssize);
-@@ -822,7 +823,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 
- 	if (ahin->cmdstat & 0xa9) {	/* these bits cleared on success */
- 		printk(KERN_ERR
--			"aoe: ata error cmd=%2.2Xh stat=%2.2Xh from e%ld.%ld\n",
-+			"aoe: ata error cmd=%2.2Xh stat=%2.2Xh from e%ld.%d\n",
- 			ahout->cmdstat, ahin->cmdstat,
- 			d->aoemajor, d->aoeminor);
- 		if (buf)
+ # aoe block devices     
+-KERNEL="etherd*",       NAME="%k", GROUP="disk"
++KERNEL=="etherd*",       NAME="%k", GROUP="disk"
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
