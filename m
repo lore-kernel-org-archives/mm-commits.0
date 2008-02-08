@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - tty-kill-tty_flipbuf_size.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:01:56 -0800
-Message-ID: <200802080801.m1881bDL013977@imap1.linux-foundation.org>
+Subject: - docbook-dmapool-fix-fatal-changed-filename.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:01:42 -0800
+Message-ID: <200802080801.m1881N6R013959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754895AbYBHICY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:02:24 -0500
+	by vger.kernel.org with ESMTP id S1753494AbYBHICu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:02:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: Kill TTY_FLIPBUF_SIZE
+     docbook: dmapool: fix fatal changed filename
 has been removed from the -mm tree.  Its filename was
-     tty-kill-tty_flipbuf_size.patch
+     docbook-dmapool-fix-fatal-changed-filename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: Kill TTY_FLIPBUF_SIZE
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: docbook: dmapool: fix fatal changed filename
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This legacy define from the old buffer code is now only used in a single
-power pc driver than doesn't compile anyway.
+Docbook fatal error, file was moved:
+docproc: linux-2.6.24-git15/drivers/base/dmapool.c: No such file or directory
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    7 -------
- 1 file changed, 7 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/tty.h~tty-kill-tty_flipbuf_size include/linux/tty.h
---- a/include/linux/tty.h~tty-kill-tty_flipbuf_size
-+++ a/include/linux/tty.h
-@@ -53,13 +53,6 @@
-  */
- #define __DISABLED_CHAR '\0'
- 
--/*
-- * This is the flip buffer used for the tty driver.  The buffer is
-- * located in the tty structure, and is used as a high speed interface
-- * between the tty driver and the tty line discipline.
-- */
--#define TTY_FLIPBUF_SIZE 512
--
- struct tty_buffer {
- 	struct tty_buffer *next;
- 	char *char_buf_ptr;
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-dmapool-fix-fatal-changed-filename Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-dmapool-fix-fatal-changed-filename
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -165,6 +165,7 @@ X!Ilib/string.c
+ !Emm/vmalloc.c
+ !Imm/page_alloc.c
+ !Emm/mempool.c
++!Emm/dmapool.c
+ !Emm/page-writeback.c
+ !Emm/truncate.c
+      </sect1>
+@@ -371,7 +372,6 @@ X!Iinclude/linux/device.h
+ !Edrivers/base/class.c
+ !Edrivers/base/firmware_class.c
+ !Edrivers/base/transport_class.c
+-!Edrivers/base/dmapool.c
+ <!-- Cannot be included, because
+      attribute_container_add_class_device_adapter
+  and attribute_container_classdev_to_container
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-tty-s390-support-for-termios2.patch
-moxa-first-pass-at-termios-reporting.patch
-n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
-rocket-first-pass-at-termios-reporting.patch
-rocket-dont-let-random-users-reset-the-controller.patch
-tty_audit-fix-checkpatch-complaint.patch
-tty_io-drag-screaming-into-coding-style-compliance.patch
-tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
-8250_early-coding-style.patch
-8250_gsc-coding-style.patch
-8250_hp300-coding-style.patch
-8250_hub6-codding-style.patch
-8250_pci-coding-style.patch
-serial8250-coding-style.patch
-8250-enable-rate-reporting-via-termios.patch
-serial_core-bring-mostly-into-line-with-coding-style.patch
-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
-irq_noprobe-helper-functions.patch
-mips-mark-all-but-i8259-interrupts-as-no-probe.patch
+apanel-fix-kconfig-dependencies.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+the-scheduled-time-option-removal.patch
+getdelays-fix-gcc-warnings.patch
+profile-likely-unlikely-macros.patch
