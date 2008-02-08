@@ -1,115 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - sys_setpgid-simplify-pid-ns-interaction.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:51 -0800
-Message-ID: <200802082013.m18KDWae010298@imap1.linux-foundation.org>
+Subject: - fix-setsid-for-sub-namespace-sbin-init.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:53 -0800
+Message-ID: <200802082013.m18KDYAO010301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44940 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751418AbYBHU7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:59:24 -0500
+	by vger.kernel.org with ESMTP id S1751418AbYBHU7Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:59:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, ebiederm@xmission.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_setpgid(): simplify pid/ns interaction
+     fix setsid() for sub-namespace /sbin/init
 has been removed from the -mm tree.  Its filename was
-     sys_setpgid-simplify-pid-ns-interaction.patch
+     fix-setsid-for-sub-namespace-sbin-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_setpgid(): simplify pid/ns interaction
+Subject: fix setsid() for sub-namespace /sbin/init
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-sys_setpgid() does unneeded conversions from pid_t to "struct pid" and vice
-versa.  Use "struct pid" more consistently.  Saves one find_vpid() and
-eliminates the explicit usage of ->nsproxy->pid_ns.  Imho, cleanups the
-code.
+sys_setsid() still deals with pid_t's from the global namespace. This means
+that the "session > 1" check can't help for sub-namespace init, setsid() can't
+succeed because copy_process(CLONE_NEWPID) populates PIDTYPE_PGID/SID links.
 
-Also use the same_thread_group() helper.
+Remove the usage of task_struct->pid and convert the code to use "struct pid".
+This also simplifies and speedups the code, saves one find_pid().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Acked-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ kernel/sys.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN kernel/sys.c~sys_setpgid-simplify-pid-ns-interaction kernel/sys.c
---- a/kernel/sys.c~sys_setpgid-simplify-pid-ns-interaction
+diff -puN kernel/sys.c~fix-setsid-for-sub-namespace-sbin-init kernel/sys.c
+--- a/kernel/sys.c~fix-setsid-for-sub-namespace-sbin-init
 +++ a/kernel/sys.c
-@@ -916,8 +916,8 @@ asmlinkage long sys_setpgid(pid_t pid, p
+@@ -1045,35 +1045,33 @@ asmlinkage long sys_getsid(pid_t pid)
+ asmlinkage long sys_setsid(void)
  {
- 	struct task_struct *p;
  	struct task_struct *group_leader = current->group_leader;
--	int err = -EINVAL;
--	struct pid_namespace *ns;
-+	struct pid *pgrp;
-+	int err;
+-	pid_t session;
++	struct pid *sid = task_pid(group_leader);
++	pid_t session = pid_vnr(sid);
+ 	int err = -EPERM;
  
- 	if (!pid)
- 		pid = task_pid_vnr(group_leader);
-@@ -929,12 +929,10 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	/* From this point forward we keep holding onto the tasklist lock
- 	 * so that our parent does not change from under us. -DaveM
- 	 */
--	ns = current->nsproxy->pid_ns;
--
  	write_lock_irq(&tasklist_lock);
- 
- 	err = -ESRCH;
--	p = find_task_by_pid_ns(pid, ns);
-+	p = find_task_by_vpid(pid);
- 	if (!p)
- 		goto out;
- 
-@@ -942,7 +940,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (!thread_group_leader(p))
- 		goto out;
- 
--	if (p->real_parent->tgid == group_leader->tgid) {
-+	if (same_thread_group(p->real_parent, group_leader)) {
- 		err = -EPERM;
- 		if (task_session(p) != task_session(group_leader))
- 			goto out;
-@@ -959,10 +957,12 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (p->signal->leader)
- 		goto out;
- 
-+	pgrp = task_pid(p);
- 	if (pgid != pid) {
- 		struct task_struct *g;
- 
--		g = find_task_by_pid_type_ns(PIDTYPE_PGID, pgid, ns);
-+		pgrp = find_vpid(pgid);
-+		g = pid_task(pgrp, PIDTYPE_PGID);
- 		if (!g || task_session(g) != task_session(group_leader))
- 			goto out;
- 	}
-@@ -971,13 +971,10 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (err)
- 		goto out;
- 
--	if (task_pgrp_nr_ns(p, ns) != pgid) {
--		struct pid *pid;
 -
-+	if (task_pgrp(p) != pgrp) {
- 		detach_pid(p, PIDTYPE_PGID);
--		pid = find_vpid(pgid);
--		attach_pid(p, PIDTYPE_PGID, pid);
--		set_task_pgrp(p, pid_nr(pid));
-+		attach_pid(p, PIDTYPE_PGID, pgrp);
-+		set_task_pgrp(p, pid_nr(pgrp));
- 	}
+ 	/* Fail if I am already a session leader */
+ 	if (group_leader->signal->leader)
+ 		goto out;
  
- 	err = 0;
+-	session = group_leader->pid;
+-	/* Fail if a process group id already exists that equals the
+-	 * proposed session id.
++	/* Fail if a process group id already exists that equals the proposed
++	 * session id.
+ 	 *
+-	 * Don't check if session id == 1 because kernel threads use this
+-	 * session id and so the check will always fail and make it so
+-	 * init cannot successfully call setsid.
++	 * Don't check if session == 1 because kernel threads and CLONE_NEWPID
++	 * tasks use this session id and so the check will always fail and make
++	 * it so init cannot successfully call setsid.
+ 	 */
+-	if (session > 1 && find_task_by_pid_type_ns(PIDTYPE_PGID,
+-				session, &init_pid_ns))
++	if (session != 1 && pid_task(sid, PIDTYPE_PGID))
+ 		goto out;
+ 
+ 	group_leader->signal->leader = 1;
+-	__set_special_pids(session, session);
++	__set_special_pids(pid_nr(sid), pid_nr(sid));
+ 
+ 	spin_lock(&group_leader->sighand->siglock);
+ 	group_leader->signal->tty = NULL;
+ 	spin_unlock(&group_leader->sighand->siglock);
+ 
+-	err = task_pgrp_vnr(group_leader);
++	err = session;
+ out:
+ 	write_unlock_irq(&tasklist_lock);
+ 	return err;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
