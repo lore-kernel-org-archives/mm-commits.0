@@ -1,91 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - libfs-allow-error-return-from-simple-attributes-fix.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:47:07 -0800
-Message-ID: <200802080846.m188kmpp016246@imap1.linux-foundation.org>
+Subject: - isofs-implement-dmode-option-fix.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:48:34 -0800
+Message-ID: <200802080848.m188mGOV016300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55373 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933157AbYBHIr4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:47:56 -0500
+	by vger.kernel.org with ESMTP id S933260AbYBHIsV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:48:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, greg@kroah.com, hch@lst.de, stefano.brivio@polimi.it, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libfs-allow-error-return-from-simple-attributes fix
+     Add documentation for isofs dmode option
 has been removed from the -mm tree.  Its filename was
-     libfs-allow-error-return-from-simple-attributes-fix.patch
+     isofs-implement-dmode-option-fix.patch
 
-This patch was dropped because it was folded into libfs-allow-error-return-from-simple-attributes.patch
+This patch was dropped because it was folded into isofs-implement-dmode-option.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libfs-allow-error-return-from-simple-attributes fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add documentation for isofs dmode option
+From: Jan Kara <jack@suse.cz>
 
-lib/fault-inject.c: In function 'fops_ul_MAX_STACK_TRACE_DEPTH_open':
-lib/fault-inject.c:167: warning: passing argument 4 of 'simple_attr_open' from i
+Add documentation to for new dmode option.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stefano.brivio@polimi.it>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/filesystems/isofs.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix lib/fault-inject.c
---- a/lib/fault-inject.c~libfs-allow-error-return-from-simple-attributes-fix
-+++ a/lib/fault-inject.c
-@@ -141,11 +141,12 @@ static int debugfs_ul_set(void *data, u6
- }
- 
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
--static void debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
-+static int debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
- {
- 	*(unsigned long *)data =
- 		val < MAX_STACK_TRACE_DEPTH ?
- 		val : MAX_STACK_TRACE_DEPTH;
-+	return 0;
- }
- #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
- 
+diff -puN Documentation/filesystems/isofs.txt~isofs-implement-dmode-option-fix Documentation/filesystems/isofs.txt
+--- a/Documentation/filesystems/isofs.txt~isofs-implement-dmode-option-fix
++++ a/Documentation/filesystems/isofs.txt
+@@ -24,6 +24,7 @@ Mount options unique to the isofs filesy
+   map=normal    Map non-Rock Ridge filenames to lower case
+   map=acorn     As map=normal but also apply Acorn extensions if present
+   mode=xxx      Sets the permissions on files to xxx
++  dmode=xxx     Sets the permissions on directories to xxx
+   nojoliet      Ignore Joliet extensions if they are present.
+   norock        Ignore Rock Ridge extensions if they are present.
+   hide		Completely strip hidden files from the file system.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-cleanup-the-code-managed-with-the-user_ns-option.patch
-cleanup-the-code-managed-with-pid_ns-option.patch
-proc-detect-duplicate-names-on-registration.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-fix-openless-usage-due-to-proc_fops-flip.patch
-intel-iommu-fault_reason_index_cleanuppatch.patch
-modules-make-module_address_lookup-safe-fix.patch
-wait_task_stopped-simplify-and-fix-races-with-sigcont-sigkill-untrace.patch
-pid-sys_wait-fixes-v2.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-rewrite-rd.patch
-fs-remove-fastcall-it-is-always-empty.patch
-kernel-remove-fastcall-in-kernel.patch
-lib-remove-fastcall-from-lib.patch
-remove-fastcall-from-linux-include.patch
-constify-tables-in-kernel-sysctl_checkc.patch
-aoe-statically-initialise-devlist_lock.patch
-ufs-fix-symlink-creation-on-ufs2.patch
-libfs-allow-error-return-from-simple-attributes.patch
-libfs-allow-error-return-from-simple-attributes-fix.patch
-fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-mount-options-fix-tmpfs-fix.patch
-char-applicom-use-pci_match_id-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix.patch
-add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them-fix-2.patch
+use-pgoff_t-instead-of-unsigned-long.patch
+write_inode_now-avoid-unnecessary-synchronous-write.patch
+udf-fix-coding-style-of-superc.patch
+udf-remove-some-ugly-macros.patch
+udf-convert-udf_sb_alloc_partmaps-macro-to-udf_sb_alloc_partition_maps-function.patch
+udf-check-if-udf_load_logicalvol-failed.patch
+udf-convert-macros-related-to-bitmaps-to-functions.patch
+udf-move-calculating-of-nr_groups-into-helper-function.patch
+udf-fix-sparse-warnings-shadowing-mismatch-between-declaration-and-definition.patch
+udf-fix-coding-style.patch
+udf-create-common-function-for-tag-checksumming.patch
+udf-create-common-function-for-changing-free-space-counter.patch
+udf-replace-loops-coded-with-goto-to-real-loops.patch
+udf-convert-byte-order-of-constant-instead-of-variable.patch
+udf-remove-udf_i_-macros-and-open-code-them.patch
+udf-cache-struct-udf_inode_info.patch
+udf-fix-udf_debug-macro.patch
+udf-improve-readability-of-udf_load_partition.patch
+udf-remove-wrong-prototype-of-udf_readdir.patch
+udf-fix-3-signedness-1-unitialized-variable-warnings.patch
+udf-fix-signedness-issue.patch
+udf-avoid-unnecessary-synchronous-writes.patch
+udf-cleanup-directory-offset-handling.patch
+udf-fix-adding-entry-to-a-directory.patch
+change-udf-maintainer.patch
+isofs-implement-dmode-option.patch
+isofs-implement-dmode-option-fix.patch
+mount-options-fix-ext2.patch
+mount-options-fix-isofs.patch
+mount-options-fix-udf.patch
+buffer_head-fix-private_list-handling.patch
+quota-turn-quotas-off-when-remounting-read-only.patch
