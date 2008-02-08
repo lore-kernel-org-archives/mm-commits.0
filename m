@@ -1,95 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:04:36 -0800
-Message-ID: <200802080804.m1884HTc014253@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:04:11 -0800
+Message-ID: <200802080803.m1883qjP014154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38273 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761701AbYBHIaC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:30:02 -0500
+	by vger.kernel.org with ESMTP id S1754864AbYBHIa0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:30:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     per-zone and reclaim enhancements for memory controller: add scan_global_lru macro
+     memory cgroup enhancements: remember "a page is charged as page cache"
 has been removed from the -mm tree.  Its filename was
-     per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro.patch
+     memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: per-zone and reclaim enhancements for memory controller: add scan_global_lru macro
+Subject: memory cgroup enhancements: remember "a page is charged as page cache"
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This is used to detect which scan_control scans global lru or mem_cgroup lru. 
-And compiled to be static value (1) when memory controller is not configured. 
-This may make the meaning obvious.
+Add a flag to page_cgroup to remember "this page is
+charged as cache."
+cache here includes page caches and swap cache.
+This is useful for implementing precise accounting in memory cgroup.
+TODO:
+  distinguish page-cache and swap-cache
 
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro mm/vmscan.c
---- a/mm/vmscan.c~per-zone-and-reclaim-enhancements-for-memory-controller-take-3-add-scan_global_lru-macro
-+++ a/mm/vmscan.c
-@@ -126,6 +126,12 @@ long vm_total_pages;	/* The total number
- static LIST_HEAD(shrinker_list);
- static DECLARE_RWSEM(shrinker_rwsem);
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache
++++ a/mm/memcontrol.c
+@@ -83,7 +83,9 @@ struct page_cgroup {
+ 	struct mem_cgroup *mem_cgroup;
+ 	atomic_t ref_cnt;		/* Helpful when pages move b/w  */
+ 					/* mapped and cached states     */
++	int	 flags;
+ };
++#define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
  
-+#ifdef CONFIG_CGROUP_MEM_CONT
-+#define scan_global_lru(sc)	(!(sc)->mem_cgroup)
-+#else
-+#define scan_global_lru(sc)	(1)
-+#endif
+ enum {
+ 	MEM_CGROUP_TYPE_UNSPEC = 0,
+@@ -93,6 +95,11 @@ enum {
+ 	MEM_CGROUP_TYPE_MAX,
+ };
+ 
++enum charge_type {
++	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
++	MEM_CGROUP_CHARGE_TYPE_MAPPED,
++};
++
+ static struct mem_cgroup init_mem_cgroup;
+ 
+ static inline
+@@ -306,8 +313,8 @@ unsigned long mem_cgroup_isolate_pages(u
+  * 0 if the charge was successful
+  * < 0 if the cgroup is over its limit
+  */
+-int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
+-				gfp_t gfp_mask)
++static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
++				gfp_t gfp_mask, enum charge_type ctype)
+ {
+ 	struct mem_cgroup *mem;
+ 	struct page_cgroup *pc;
+@@ -409,6 +416,9 @@ noreclaim:
+ 	atomic_set(&pc->ref_cnt, 1);
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
++	pc->flags = 0;
++	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
++		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
+ 	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
+ 		/*
+ 		 * an another charge is added to this page already.
+@@ -433,6 +443,13 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
++			gfp_t gfp_mask)
++{
++	return mem_cgroup_charge_common(page, mm, gfp_mask,
++			MEM_CGROUP_CHARGE_TYPE_MAPPED);
++}
 +
  /*
-  * Add a shrinker callback to be called from the vm
+  * See if the cached pages should be charged at all?
   */
-@@ -1280,11 +1286,12 @@ static unsigned long do_try_to_free_page
- 		 * Don't shrink slabs when reclaiming memory from
- 		 * over limit cgroups
- 		 */
--		if (sc->mem_cgroup == NULL)
-+		if (scan_global_lru(sc)) {
- 			shrink_slab(sc->nr_scanned, gfp_mask, lru_pages);
--		if (reclaim_state) {
--			nr_reclaimed += reclaim_state->reclaimed_slab;
--			reclaim_state->reclaimed_slab = 0;
-+			if (reclaim_state) {
-+				nr_reclaimed += reclaim_state->reclaimed_slab;
-+				reclaim_state->reclaimed_slab = 0;
-+			}
- 		}
- 		total_scanned += sc->nr_scanned;
- 		if (nr_reclaimed >= sc->swap_cluster_max) {
-@@ -1311,7 +1318,7 @@ static unsigned long do_try_to_free_page
- 			congestion_wait(WRITE, HZ/10);
- 	}
- 	/* top priority shrink_caches still had more to do? don't OOM, then */
--	if (!sc->all_unreclaimable && sc->mem_cgroup == NULL)
-+	if (!sc->all_unreclaimable && scan_global_lru(sc))
- 		ret = 1;
- out:
- 	/*
+@@ -445,7 +462,8 @@ int mem_cgroup_cache_charge(struct page 
+ 
+ 	mem = rcu_dereference(mm->mem_cgroup);
+ 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
+-		return mem_cgroup_charge(page, mm, gfp_mask);
++		return mem_cgroup_charge_common(page, mm, gfp_mask,
++				MEM_CGROUP_CHARGE_TYPE_CACHE);
+ 	else
+ 		return 0;
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
