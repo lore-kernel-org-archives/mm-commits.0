@@ -1,72 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-unused-exports-of-sys_open--sys_read-for-2625.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:07 -0800
-Message-ID: <200802082017.m18KHmBr010860@imap1.linux-foundation.org>
+Subject: - proc-remove-useless-check-on-symlink-removal.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:11:54 -0800
+Message-ID: <200802082011.m18KBZkR010128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752328AbYBHUpJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:45:09 -0500
+	by vger.kernel.org with ESMTP id S1753355AbYBHUp0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:45:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove the unused exports of sys_open/sys_read
+     proc: remove useless check on symlink removal
 has been removed from the -mm tree.  Its filename was
-     remove-the-unused-exports-of-sys_open--sys_read-for-2625.patch
+     proc-remove-useless-check-on-symlink-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove the unused exports of sys_open/sys_read
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: proc: remove useless check on symlink removal
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-These exports (which aren't used and which are in fact dangerous to use
-because they pretty much form a security hole to use) have been marked
-_UNUSED since 2.6.24 with removal in 2.6.25.  This patch is their final
-departure from the Linux kernel tree.
+proc symlinks always have valid ->data containing destination of symlink.  No
+need to check it on removal -- proc_symlink() already done it.
 
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c       |    1 -
- fs/read_write.c |    1 -
- 2 files changed, 2 deletions(-)
+ fs/proc/generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/open.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625 fs/open.c
---- a/fs/open.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625
-+++ a/fs/open.c
-@@ -1061,7 +1061,6 @@ asmlinkage long sys_open(const char __us
- 	prevent_tail_call(ret);
- 	return ret;
+diff -puN fs/proc/generic.c~proc-remove-useless-check-on-symlink-removal fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-remove-useless-check-on-symlink-removal
++++ a/fs/proc/generic.c
+@@ -673,7 +673,7 @@ void free_proc_entry(struct proc_dir_ent
+ 
+ 	release_inode_number(ino);
+ 
+-	if (S_ISLNK(de->mode) && de->data)
++	if (S_ISLNK(de->mode))
+ 		kfree(de->data);
+ 	kfree(de);
  }
--EXPORT_UNUSED_SYMBOL_GPL(sys_open); /* To be deleted for 2.6.25 */
- 
- asmlinkage long sys_openat(int dfd, const char __user *filename, int flags,
- 			   int mode)
-diff -puN fs/read_write.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625 fs/read_write.c
---- a/fs/read_write.c~remove-the-unused-exports-of-sys_open--sys_read-for-2625
-+++ a/fs/read_write.c
-@@ -366,7 +366,6 @@ asmlinkage ssize_t sys_read(unsigned int
- 
- 	return ret;
- }
--EXPORT_UNUSED_SYMBOL_GPL(sys_read); /* to be deleted for 2.6.25 */
- 
- asmlinkage ssize_t sys_write(unsigned int fd, const char __user * buf, size_t count)
- {
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-agpgart.patch
-hci_ldisc-fix-null-pointer-deref.patch
-git-sched.patch
-git-x86.patch
+single_open-seq_release-leak-diagnostics.patch
