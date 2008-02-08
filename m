@@ -1,107 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:21:16 -0800
-Message-ID: <200802082020.m18KKvsN011272@imap1.linux-foundation.org>
+Subject: - reduce-large-do_mount-stack-usage-with-noinlines.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:21:14 -0800
+Message-ID: <200802082020.m18KKtxW011267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52304 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43134 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760366AbYBHUj7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:39:59 -0500
+	by vger.kernel.org with ESMTP id S933333AbYBHUkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:40:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, arjan@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3 can fail badly when device stops accepting BIO_RW_BARRIER requests
+     reduce large do_mount stack usage with noinlines
 has been removed from the -mm tree.  Its filename was
-     ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests.patch
+     reduce-large-do_mount-stack-usage-with-noinlines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3 can fail badly when device stops accepting BIO_RW_BARRIER requests
-From: Neil Brown <neilb@suse.de>
+Subject: reduce large do_mount stack usage with noinlines
+From: Eric Sandeen <sandeen@redhat.com>
 
-Some devices - notably dm and md - can change their behaviour in response
-to BIO_RW_BARRIER requests.  They might start out accepting such requests
-but on reconfiguration, they find out that they cannot any more.
+do_mount() uses a whopping 616 bytes of stack on x86_64 in 2.6.24-mm1,
+largely thanks to gcc inlining the various helper functions.
 
-ext3 (and other filesystems) deal with this by always testing if
-BIO_RW_BARRIER requests fail with EOPNOTSUPP, and retrying the write
-requests without the barrier (probably after waiting for any pending writes
-to complete).
+noinlining these can slim it down a lot; on my box this patch gets it down
+to 168, which is mostly the struct nameidata nd; left on the stack.
 
-However there is a bug in the handling for this for ext3.
+These functions are called only as do_mount() helpers; none of them should
+be in any path that would see a performance benefit from inlining...
 
-When ext3 (jbd actually) decides to submit a BIO_RW_BARRIER request, it
-sets the buffer_ordered flag on the buffer head.  If the request completes
-successfully, the flag STAYS SET.
-
-Other code might then write the same buffer_head after the device has been
-reconfigured to not accept barriers.  This write will then fail, but the
-"other code" is not ready to handle EOPNOTSUPP errors and the error will be
-treated as fatal.
-
-This can be seen without having to reconfigure a device at exactly the
-wrong time by putting:
-
-		if (buffer_ordered(bh))
-			printk("OH DEAR, and ordered buffer\n");
-
-in the while loop in "commit phase 5" of journal_commit_transaction.
-
-If it ever prints the "OH DEAR ..." message (as it does sometimes for
-me), then that request could (in different circumstances) have failed
-with EOPNOTSUPP, but that isn't tested for.
-
-My proposed fix is to clear the buffer_ordered flag after it has been
-used, as in the following patch.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namespace.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/jbd/commit.c~ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests fs/jbd/commit.c
---- a/fs/jbd/commit.c~ext3-can-fail-badly-when-device-stops-accepting-bio_rw_barrier-requests
-+++ a/fs/jbd/commit.c
-@@ -131,6 +131,8 @@ static int journal_write_commit_record(j
- 		barrier_done = 1;
- 	}
- 	ret = sync_dirty_buffer(bh);
-+	if (barrier_done)
-+		clear_buffer_ordered(bh);
- 	/* is it possible for another commit to fail at roughly
- 	 * the same time as this one?  If so, we don't want to
- 	 * trust the barrier flag in the super, but instead want
-@@ -148,7 +150,6 @@ static int journal_write_commit_record(j
- 		spin_unlock(&journal->j_state_lock);
+diff -puN fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines fs/namespace.c
+--- a/fs/namespace.c~reduce-large-do_mount-stack-usage-with-noinlines
++++ a/fs/namespace.c
+@@ -936,8 +936,9 @@ out_unlock:
  
- 		/* And try again, without the barrier */
--		clear_buffer_ordered(bh);
- 		set_buffer_uptodate(bh);
- 		set_buffer_dirty(bh);
- 		ret = sync_dirty_buffer(bh);
+ /*
+  * recursively change the type of the mountpoint.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_change_type(struct nameidata *nd, int flag)
++static noinline int do_change_type(struct nameidata *nd, int flag)
+ {
+ 	struct vfsmount *m, *mnt = nd->mnt;
+ 	int recurse = flag & MS_REC;
+@@ -960,8 +961,10 @@ static int do_change_type(struct nameida
+ 
+ /*
+  * do loopback mount.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_loopback(struct nameidata *nd, char *old_name, int recurse)
++static noinline int do_loopback(struct nameidata *nd, char *old_name,
++				int recurse)
+ {
+ 	struct nameidata old_nd;
+ 	struct vfsmount *mnt = NULL;
+@@ -1010,8 +1013,9 @@ out:
+  * change filesystem flags. dir should be a physical root of filesystem.
+  * If you've mounted a non-root directory somewhere and want to do remount
+  * on it - tough luck.
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_remount(struct nameidata *nd, int flags, int mnt_flags,
++static noinline int do_remount(struct nameidata *nd, int flags, int mnt_flags,
+ 		      void *data)
+ {
+ 	int err;
+@@ -1046,7 +1050,10 @@ static inline int tree_contains_unbindab
+ 	return 0;
+ }
+ 
+-static int do_move_mount(struct nameidata *nd, char *old_name)
++/*
++ * noinline this do_mount helper to save do_mount stack space.
++ */
++static noinline int do_move_mount(struct nameidata *nd, char *old_name)
+ {
+ 	struct nameidata old_nd, parent_nd;
+ 	struct vfsmount *p;
+@@ -1121,8 +1128,9 @@ out:
+ /*
+  * create a new mount for userspace and request it to be added into the
+  * namespace's tree
++ * noinline this do_mount helper to save do_mount stack space.
+  */
+-static int do_new_mount(struct nameidata *nd, char *type, int flags,
++static noinline int do_new_mount(struct nameidata *nd, char *type, int flags,
+ 			int mnt_flags, char *name, void *data)
+ {
+ 	struct vfsmount *mnt;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
