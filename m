@@ -1,122 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:52 -0800
-Message-ID: <200802080808.m1888XOm014653@imap1.linux-foundation.org>
+Subject: - drivers-edac-add-cell-xdr-memory-types.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:40 -0800
+Message-ID: <200802080805.m1885LPe014328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56512 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49396 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932417AbYBHIUH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:07 -0500
+	by vger.kernel.org with ESMTP id S1761464AbYBHIUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, bryan.wu@analog.com, michael.frysinger@analog.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
+     drivers-edac: add Cell XDR memory types
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+     drivers-edac-add-cell-xdr-memory-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: drivers-edac: add Cell XDR memory types
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set since nobody seems to know why __cmpxchg
-has been implemented in assembly in the first place thather than in plain C.
+Add the definitions for the Rambus XDR memory type used by the Cell processor.
+It's a pre-requisite for the followup Cell EDAC patch.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Michael Frysinger <michael.frysinger@analog.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-blackfin/system.h |   59 ++++++--------------------------
- 1 file changed, 12 insertions(+), 47 deletions(-)
+ drivers/edac/edac_core.h     |    2 ++
+ drivers/edac/edac_mc_sysfs.c |    3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg include/asm-blackfin/system.h
---- a/include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg
-+++ a/include/asm-blackfin/system.h
-@@ -183,55 +183,20 @@ static inline unsigned long __xchg(unsig
- 	return tmp;
- }
+diff -puN drivers/edac/edac_core.h~drivers-edac-add-cell-xdr-memory-types drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-add-cell-xdr-memory-types
++++ a/drivers/edac/edac_core.h
+@@ -136,6 +136,7 @@ enum mem_type {
+ 	MEM_DDR2,		/* DDR2 RAM */
+ 	MEM_FB_DDR2,		/* fully buffered DDR2 */
+ 	MEM_RDDR2,		/* Registered DDR2 RAM */
++	MEM_XDR,		/* Rambus XDR */
+ };
  
-+#include <asm-generic/cmpxchg-local.h>
-+
- /*
-- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
-- * store NEW in MEM.  Return the initial value in MEM.  Success is
-- * indicated by comparing RETURN with OLD.
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-  */
--static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
--				      unsigned long new, int size)
--{
--	unsigned long tmp = 0;
--	unsigned long flags = 0;
--
--	local_irq_save(flags);
--
--	switch (size) {
--	case 1:
--		__asm__ __volatile__
--			("%0 = b%3 (z);\n\t"
--			 "CC = %1 == %0;\n\t"
--			 "IF !CC JUMP 1f;\n\t"
--			 "b%3 = %2;\n\t"
--			 "1:\n\t"
--			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
--		break;
--	case 2:
--		__asm__ __volatile__
--			("%0 = w%3 (z);\n\t"
--			 "CC = %1 == %0;\n\t"
--			 "IF !CC JUMP 1f;\n\t"
--			 "w%3 = %2;\n\t"
--			 "1:\n\t"
--			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
--		break;
--	case 4:
--		__asm__ __volatile__
--			("%0 = %3;\n\t"
--			 "CC = %1 == %0;\n\t"
--			 "IF !CC JUMP 1f;\n\t"
--			 "%3 = %2;\n\t"
--			 "1:\n\t"
--			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
--		break;
--	}
--	local_irq_restore(flags);
--	return tmp;
--}
--
--#define cmpxchg(ptr,o,n)\
--        ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
--                                        (unsigned long)(n),sizeof(*(ptr))))
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
+ #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
+@@ -152,6 +153,7 @@ enum mem_type {
+ #define MEM_FLAG_DDR2           BIT(MEM_DDR2)
+ #define MEM_FLAG_FB_DDR2        BIT(MEM_FB_DDR2)
+ #define MEM_FLAG_RDDR2          BIT(MEM_RDDR2)
++#define MEM_FLAG_XDR            BIT(MEM_XDR)
  
- #define prepare_to_switch()     do { } while(0)
+ /* chipset Error Detection and Correction capabilities and mode */
+ enum edac_type {
+diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-add-cell-xdr-memory-types drivers/edac/edac_mc_sysfs.c
+--- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-add-cell-xdr-memory-types
++++ a/drivers/edac/edac_mc_sysfs.c
+@@ -73,7 +73,8 @@ static const char *mem_types[] = {
+ 	[MEM_RMBS] = "RMBS",
+ 	[MEM_DDR2] = "Unbuffered-DDR2",
+ 	[MEM_FB_DDR2] = "FullyBuffered-DDR2",
+-	[MEM_RDDR2] = "Registered-DDR2"
++	[MEM_RDDR2] = "Registered-DDR2",
++	[MEM_XDR] = "XDR"
+ };
  
+ static const char *dev_types[] = {
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-modules-handle-symbols-that-have-a-zero-value.patch
-modules-handle-symbols-that-have-a-zero-value-fix.patch
-linux-kernel-markers-support-multiple-probes.patch
-linux-kernel-markers-support-multiple-probes-update.patch
-linux-kernel-markers-create-modpost-file.patch
+add-remove_memory-for-ppc64-3.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
