@@ -1,109 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - mount-options-fix-hpfs.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:20:00 -0800
-Message-ID: <200802082019.m18KJfZC011077@imap1.linux-foundation.org>
+Subject: - mount-options-fix-affs.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:34 -0800
+Message-ID: <200802082019.m18KJFJZ011032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43892 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934269AbYBHUjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:39:09 -0500
+	by vger.kernel.org with ESMTP id S933608AbYBHUi4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:38:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mikulas@artax.karlin.mff.cuni.cz, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mount options: fix hpfs
+     mount options: fix affs
 has been removed from the -mm tree.  Its filename was
-     mount-options-fix-hpfs.patch
+     mount-options-fix-affs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mount options: fix hpfs
+Subject: mount options: fix affs
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a .show_options super operation to hpfs.
+Add a .show_options super operation to affs.
 
 Use generic_show_options() and save the complete option string in
-hpfs_fill_super() and hpfs_remount_fs().
-
-Also add a small fix: hpfs_remount_fs() should return -EINVAL on
-error, instead of 1, which is not an error value.
+affs_fill_super() and affs_remount().
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/super.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ fs/affs/super.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/hpfs/super.c~mount-options-fix-hpfs fs/hpfs/super.c
---- a/fs/hpfs/super.c~mount-options-fix-hpfs
-+++ a/fs/hpfs/super.c
-@@ -386,6 +386,7 @@ static int hpfs_remount_fs(struct super_
- 	int lowercase, conv, eas, chk, errs, chkdsk, timeshift;
- 	int o;
- 	struct hpfs_sb_info *sbi = hpfs_sb(s);
-+	char *new_opts = kstrdup(data, GFP_KERNEL);
- 	
- 	*flags |= MS_NOATIME;
- 	
-@@ -398,15 +399,15 @@ static int hpfs_remount_fs(struct super_
- 	if (!(o = parse_opts(data, &uid, &gid, &umask, &lowercase, &conv,
- 	    &eas, &chk, &errs, &chkdsk, &timeshift))) {
- 		printk("HPFS: bad mount options.\n");
--	    	return 1;
-+		goto out_err;
- 	}
- 	if (o == 2) {
- 		hpfs_help();
--		return 1;
-+		goto out_err;
- 	}
- 	if (timeshift != sbi->sb_timeshift) {
- 		printk("HPFS: timeshift can't be changed using remount.\n");
--		return 1;
-+		goto out_err;
- 	}
- 
- 	unmark_dirty(s);
-@@ -419,7 +420,14 @@ static int hpfs_remount_fs(struct super_
- 
- 	if (!(*flags & MS_RDONLY)) mark_dirty(s);
- 
-+	kfree(s->s_options);
-+	s->s_options = new_opts;
-+
- 	return 0;
-+
-+out_err:
-+	kfree(new_opts);
-+	return -EINVAL;
- }
- 
- /* Super operations */
-@@ -432,6 +440,7 @@ static const struct super_operations hpf
- 	.put_super	= hpfs_put_super,
- 	.statfs		= hpfs_statfs,
- 	.remount_fs	= hpfs_remount_fs,
+diff -puN fs/affs/super.c~mount-options-fix-affs fs/affs/super.c
+--- a/fs/affs/super.c~mount-options-fix-affs
++++ a/fs/affs/super.c
+@@ -122,6 +122,7 @@ static const struct super_operations aff
+ 	.write_super	= affs_write_super,
+ 	.statfs		= affs_statfs,
+ 	.remount_fs	= affs_remount,
 +	.show_options	= generic_show_options,
  };
  
- static int hpfs_fill_super(struct super_block *s, void *options, int silent)
-@@ -454,6 +463,8 @@ static int hpfs_fill_super(struct super_
+ enum {
+@@ -272,6 +273,8 @@ static int affs_fill_super(struct super_
+ 	u8			 sig[4];
+ 	int			 ret = -EINVAL;
  
- 	int o;
- 
-+	save_mount_options(s, options);
++	save_mount_options(sb, data);
 +
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		return -ENOMEM;
+ 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+ 
+ 	sb->s_magic             = AFFS_SUPER_MAGIC;
+@@ -487,14 +490,21 @@ affs_remount(struct super_block *sb, int
+ 	int			 root_block;
+ 	unsigned long		 mount_flags;
+ 	int			 res = 0;
++	char			*new_opts = kstrdup(data, GFP_KERNEL);
+ 
+ 	pr_debug("AFFS: remount(flags=0x%x,opts=\"%s\")\n",*flags,data);
+ 
+ 	*flags |= MS_NODIRATIME;
+ 
+-	if (!parse_options(data,&uid,&gid,&mode,&reserved,&root_block,
+-	    &blocksize,&sbi->s_prefix,sbi->s_volume,&mount_flags))
++	if (!parse_options(data, &uid, &gid, &mode, &reserved, &root_block,
++			   &blocksize, &sbi->s_prefix, sbi->s_volume,
++			   &mount_flags)) {
++		kfree(new_opts);
+ 		return -EINVAL;
++	}
++	kfree(sb->s_options);
++	sb->s_options = new_opts;
++
+ 	sbi->s_flags = mount_flags;
+ 	sbi->s_mode  = mode;
+ 	sbi->s_uid   = uid;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
