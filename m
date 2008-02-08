@@ -1,95 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - char-stallion-fix-compiler-warnings.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:09:36 -0800
-Message-ID: <200802080809.m1889HUW014815@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-xtensa.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:09:16 -0800
+Message-ID: <200802080808.m1888vmi014713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43829 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754985AbYBHITA (ORCPT
+	by vger.kernel.org with ESMTP id S1756868AbYBHITA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: stallion, fix compiler warnings
+     Add cmpxchg_local to xtensa
 has been removed from the -mm tree.  Its filename was
-     char-stallion-fix-compiler-warnings.patch
+     add-cmpxchg_local-to-xtensa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: stallion, fix compiler warnings
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Add cmpxchg_local to xtensa
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Don't emit warnings on 64 bit platforms from min(). sizeof() on those
-is not uint, neither 2 pointers difference, cast it to uint by min_t in
-both cases.
+Use the architecture specific __cmpxchg_u32 for 32 bits cmpxchg)_local. Else,
+use the new generic cmpxchg_local (disables interrupt).
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-xtensa/system.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN drivers/char/stallion.c~char-stallion-fix-compiler-warnings drivers/char/stallion.c
---- a/drivers/char/stallion.c~char-stallion-fix-compiler-warnings
-+++ a/drivers/char/stallion.c
-@@ -3546,7 +3546,8 @@ static void stl_cd1400txisr(struct stlpa
- 	} else {
- 		len = min(len, CD1400_TXFIFOSIZE);
- 		portp->stats.txtotal += len;
--		stlen = min(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
-+		stlen = min_t(unsigned int, len,
-+				(portp->tx.buf + STL_TXBUFSIZE) - tail);
- 		outb((TDR + portp->uartaddr), ioaddr);
- 		outsb((ioaddr + EREG_DATA), tail, stlen);
- 		len -= stlen;
-@@ -3599,7 +3600,7 @@ static void stl_cd1400rxisr(struct stlpa
- 		outb((RDCR + portp->uartaddr), ioaddr);
- 		len = inb(ioaddr + EREG_DATA);
- 		if (tty == NULL || (buflen = tty_buffer_request_room(tty, len)) == 0) {
--			len = min(len, sizeof(stl_unwanted));
-+			len = min_t(unsigned int, len, sizeof(stl_unwanted));
- 			outb((RDSR + portp->uartaddr), ioaddr);
- 			insb((ioaddr + EREG_DATA), &stl_unwanted[0], len);
- 			portp->stats.rxlost += len;
-@@ -4465,7 +4466,8 @@ static void stl_sc26198txisr(struct stlp
- 	} else {
- 		len = min(len, SC26198_TXFIFOSIZE);
- 		portp->stats.txtotal += len;
--		stlen = min(len, ((portp->tx.buf + STL_TXBUFSIZE) - tail));
-+		stlen = min_t(unsigned int, len,
-+				(portp->tx.buf + STL_TXBUFSIZE) - tail);
- 		outb(GTXFIFO, (ioaddr + XP_ADDR));
- 		outsb((ioaddr + XP_DATA), tail, stlen);
- 		len -= stlen;
-@@ -4506,7 +4508,7 @@ static void stl_sc26198rxisr(struct stlp
+diff -puN include/asm-xtensa/system.h~add-cmpxchg_local-to-xtensa include/asm-xtensa/system.h
+--- a/include/asm-xtensa/system.h~add-cmpxchg_local-to-xtensa
++++ a/include/asm-xtensa/system.h
+@@ -156,8 +156,30 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 	   			        (unsigned long)_n_, sizeof (*(ptr))); \
+ 	})
  
- 	if ((iack & IVR_TYPEMASK) == IVR_RXDATA) {
- 		if (tty == NULL || (buflen = tty_buffer_request_room(tty, len)) == 0) {
--			len = min(len, sizeof(stl_unwanted));
-+			len = min_t(unsigned int, len, sizeof(stl_unwanted));
- 			outb(GRXFIFO, (ioaddr + XP_ADDR));
- 			insb((ioaddr + XP_DATA), &stl_unwanted[0], len);
- 			portp->stats.rxlost += len;
++#include <asm-generic/cmpxchg-local.h>
+ 
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return __cmpxchg_u32(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
+ 
++	return old;
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
+ 
+ /*
+  * xchg_u32
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-watchdog.patch
-moxa-first-pass-at-termios-reporting.patch
-char-applicom-use-pci_resource_start.patch
-char-applicom-use-pci_match_id.patch
-char-applicom-use-pci_match_id-fix.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
