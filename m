@@ -1,100 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - unexport-asm-elfh.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:28 -0800
-Message-ID: <200802080808.m18889IF014623@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-arm.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:50 -0800
+Message-ID: <200802080808.m1888VNI014647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41395 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53067 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761027AbYBHITp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:45 -0500
+	by vger.kernel.org with ESMTP id S1761528AbYBHITn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.shutemov@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Unexport asm/elf.h
+     Add cmpxchg_local to arm
 has been removed from the -mm tree.  Its filename was
-     unexport-asm-elfh.patch
+     add-cmpxchg_local-to-arm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Unexport asm/elf.h
-From: "Kirill A. Shutemov" <k.shutemov@gmail.com>
+Subject: Add cmpxchg_local to arm
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Do not export asm/elf.h during make headers_install.
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
-Signed-off-by: Kirill A. Shutemov <k.shutemov@gmail.com>
-Reviewed-by: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/Kbuild.asm |    1 -
- include/linux/Kbuild           |    2 +-
- include/linux/elf.h            |    2 ++
- include/linux/elfcore.h        |    2 ++
- 4 files changed, 5 insertions(+), 2 deletions(-)
+ include/asm-arm/system.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/asm-generic/Kbuild.asm~unexport-asm-elfh include/asm-generic/Kbuild.asm
---- a/include/asm-generic/Kbuild.asm~unexport-asm-elfh
-+++ a/include/asm-generic/Kbuild.asm
-@@ -29,5 +29,4 @@ unifdef-y += types.h
- unifdef-y += unistd.h
+diff -puN include/asm-arm/system.h~add-cmpxchg_local-to-arm include/asm-arm/system.h
+--- a/include/asm-arm/system.h~add-cmpxchg_local-to-arm
++++ a/include/asm-arm/system.h
+@@ -363,6 +363,21 @@ static inline unsigned long __xchg(unsig
+ extern void disable_hlt(void);
+ extern void enable_hlt(void);
  
- # These probably shouldn't be exported
--unifdef-y += elf.h
- unifdef-y += page.h
-diff -puN include/linux/Kbuild~unexport-asm-elfh include/linux/Kbuild
---- a/include/linux/Kbuild~unexport-asm-elfh
-+++ a/include/linux/Kbuild
-@@ -60,7 +60,6 @@ header-y += dqblk_v2.h
- header-y += dqblk_xfs.h
- header-y += efs_fs_sb.h
- header-y += elf-fdpic.h
--header-y += elf.h
- header-y += elf-em.h
- header-y += fadvise.h
- header-y += fd.h
-@@ -190,6 +189,7 @@ unifdef-y += dccp.h
- unifdef-y += dirent.h
- unifdef-y += dlm.h
- unifdef-y += edd.h
-+unifdef-y += elf.h
- unifdef-y += elfcore.h
- unifdef-y += errno.h
- unifdef-y += errqueue.h
-diff -puN include/linux/elf.h~unexport-asm-elfh include/linux/elf.h
---- a/include/linux/elf.h~unexport-asm-elfh
-+++ a/include/linux/elf.h
-@@ -3,7 +3,9 @@
- 
- #include <linux/types.h>
- #include <linux/elf-em.h>
-+#ifdef __KERNEL__
- #include <asm/elf.h>
++#include <asm-generic/cmpxchg-local.h>
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
 +#endif
++
+ #endif /* __ASSEMBLY__ */
  
- struct file;
- 
-diff -puN include/linux/elfcore.h~unexport-asm-elfh include/linux/elfcore.h
---- a/include/linux/elfcore.h~unexport-asm-elfh
-+++ a/include/linux/elfcore.h
-@@ -16,7 +16,9 @@ struct elf_siginfo
- 	int	si_errno;			/* errno */
- };
- 
-+#ifdef __KERNEL__
- #include <asm/elf.h>
-+#endif
- 
- #ifndef __KERNEL__
- typedef elf_greg_t greg_t;
+ #define arch_align_stack(x) (x)
 _
 
-Patches currently in -mm which might be from k.shutemov@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
