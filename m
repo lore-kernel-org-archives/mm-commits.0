@@ -1,80 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_stopped-remove-unneeded-delay_group_leader-check.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:38 -0800
-Message-ID: <200802082013.m18KDJpL010283@imap1.linux-foundation.org>
+Subject: - atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:32 -0800
+Message-ID: <200802082018.m18KID8d010906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54778 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753924AbYBHU6e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:58:34 -0500
+	by vger.kernel.org with ESMTP id S1753924AbYBHU63 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:58:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mika.penttila@kolumbus.fi, roland@redhat.com, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_stopped(): remove unneeded delay_group_leader check
+     atmel_serial: fix bugs in probe() error path and remove()
 has been removed from the -mm tree.  Its filename was
-     wait_task_stopped-remove-unneeded-delay_group_leader-check.patch
+     atmel_serial-fix-bugs-in-probe-error-path-and-remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_stopped(): remove unneeded delay_group_leader check
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: atmel_serial: fix bugs in probe() error path and remove()
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-wait_task_stopped() doesn't need the "delay_group_leader" parameter.  If
-the child is not traced it must be a group leader.  With or without
-subthreads ->group_stop_count == 0 when the whole task is stopped.
+When an error happens in probe(), the clocks should be disabled, but
+only if the port isn't already used as a console.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Mika Penttila <mika.penttila@kolumbus.fi>
-Acked-by: Roland McGrath <roland@redhat.com>
+In remove(), the port struct shouldn't be freed because it's defined
+statically.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Tested-by: Marc Pignat <marc.pignat@hevs.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/serial/atmel_serial.c |   39 +++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_stopped-remove-unneeded-delay_group_leader-check kernel/exit.c
---- a/kernel/exit.c~wait_task_stopped-remove-unneeded-delay_group_leader-check
-+++ a/kernel/exit.c
-@@ -1351,7 +1351,7 @@ static int wait_task_zombie(struct task_
-  * the lock and this task is uninteresting.  If we return nonzero, we have
-  * released the lock and the system call should return.
-  */
--static int wait_task_stopped(struct task_struct *p, int delayed_group_leader,
-+static int wait_task_stopped(struct task_struct *p,
- 			     int noreap, struct siginfo __user *infop,
- 			     int __user *stat_addr, struct rusage __user *ru)
- {
-@@ -1365,8 +1365,7 @@ static int wait_task_stopped(struct task
- 	if (unlikely(!task_is_stopped_or_traced(p)))
- 		goto unlock_sig;
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-bugs-in-probe-error-path-and-remove drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-bugs-in-probe-error-path-and-remove
++++ a/drivers/serial/atmel_serial.c
+@@ -934,8 +934,18 @@ static int __init atmel_late_console_ini
  
--	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
--	    p->signal->group_stop_count > 0)
-+	if (!(p->ptrace & PT_PTRACED) && p->signal->group_stop_count > 0)
- 		/*
- 		 * A group stop is in progress and this is the group leader.
- 		 * We won't report until all threads have stopped.
-@@ -1522,7 +1521,7 @@ repeat:
- 				    !(options & WUNTRACED))
- 					continue;
+ core_initcall(atmel_late_console_init);
  
--				retval = wait_task_stopped(p, ret == 2,
-+				retval = wait_task_stopped(p,
- 						(options & WNOWAIT), infop,
- 						stat_addr, ru);
- 			} else if (p->exit_state == EXIT_ZOMBIE) {
++static inline bool atmel_is_console_port(struct uart_port *port)
++{
++	return port->cons && port->cons->index == port->line;
++}
++
+ #else
+ #define ATMEL_CONSOLE_DEVICE	NULL
++
++static inline bool atmel_is_console_port(struct uart_port *port)
++{
++	return false;
++}
+ #endif
+ 
+ static struct uart_driver atmel_uart = {
+@@ -993,9 +1003,19 @@ static int __devinit atmel_serial_probe(
+ 	atmel_init_port(port, pdev);
+ 
+ 	ret = uart_add_one_port(&atmel_uart, &port->uart);
+-	if (!ret) {
+-		device_init_wakeup(&pdev->dev, 1);
+-		platform_set_drvdata(pdev, port);
++	if (ret)
++		goto err_add_port;
++
++	device_init_wakeup(&pdev->dev, 1);
++	platform_set_drvdata(pdev, port);
++
++	return 0;
++
++err_add_port:
++	if (!atmel_is_console_port(&port->uart)) {
++		clk_disable(port->clk);
++		clk_put(port->clk);
++		port->clk = NULL;
+ 	}
+ 
+ 	return ret;
+@@ -1007,16 +1027,15 @@ static int __devexit atmel_serial_remove
+ 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 	int ret = 0;
+ 
+-	clk_disable(atmel_port->clk);
+-	clk_put(atmel_port->clk);
+-
+ 	device_init_wakeup(&pdev->dev, 0);
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	if (port) {
+-		ret = uart_remove_one_port(&atmel_uart, port);
+-		kfree(port);
+-	}
++	ret = uart_remove_one_port(&atmel_uart, port);
++
++	/* "port" is allocated statically, so we shouldn't free it */
++
++	clk_disable(atmel_port->clk);
++	clk_put(atmel_port->clk);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+git-avr32.patch
