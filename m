@@ -1,228 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - serial_core-bring-mostly-into-line-with-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:06 -0800
-Message-ID: <200802082012.m18KCl9e010236@imap1.linux-foundation.org>
+Subject: - mn10300-add-platform-mtd-support-for-the-asb2303-board.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:23 -0800
+Message-ID: <200802082015.m18KF4ua010501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51031 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36444 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754144AbYBHUwn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:43 -0500
+	by vger.kernel.org with ESMTP id S1754155AbYBHUwp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial_core: bring mostly into line with coding style
+     mn10300: add platform MTD support for the ASB2303 board
 has been removed from the -mm tree.  Its filename was
-     serial_core-bring-mostly-into-line-with-coding-style.patch
+     mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial_core: bring mostly into line with coding style
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: mn10300: add platform MTD support for the ASB2303 board
+From: David Howells <dhowells@redhat.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Add platform MTD support for the ASB2303 board.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   55 ++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 27 deletions(-)
+ arch/mn10300/configs/asb2303_defconfig |    5 -
+ arch/mn10300/unit-asb2303/Makefile     |    2 
+ arch/mn10300/unit-asb2303/flash.c      |  100 +++++++++++++++++++++++
+ 3 files changed, 105 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~serial_core-bring-mostly-into-line-with-coding-style drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial_core-bring-mostly-into-line-with-coding-style
-+++ a/drivers/serial/serial_core.c
-@@ -58,7 +58,8 @@ static struct lock_class_key port_lock_k
- #define uart_console(port)	(0)
- #endif
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-add-platform-mtd-support-for-the-asb2303-board arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-add-platform-mtd-support-for-the-asb2303-board
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -282,7 +282,10 @@ CONFIG_MTD_CFI_UTIL=y
+ # Mapping drivers for chip access
+ #
+ # CONFIG_MTD_COMPLEX_MAPPINGS is not set
+-# CONFIG_MTD_PHYSMAP is not set
++CONFIG_MTD_PHYSMAP=y
++CONFIG_MTD_PHYSMAP_START=0x8000000
++CONFIG_MTD_PHYSMAP_LEN=0x0
++CONFIG_MTD_PHYSMAP_BANKWIDTH=2
+ # CONFIG_MTD_PLATRAM is not set
  
--static void uart_change_speed(struct uart_state *state, struct ktermios *old_termios);
-+static void uart_change_speed(struct uart_state *state,
-+					struct ktermios *old_termios);
- static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
- static void uart_change_pm(struct uart_state *state, int pm_state);
- 
-@@ -129,8 +130,8 @@ uart_update_mctrl(struct uart_port *port
- 	spin_unlock_irqrestore(&port->lock, flags);
- }
- 
--#define uart_set_mctrl(port,set)	uart_update_mctrl(port,set,0)
--#define uart_clear_mctrl(port,clear)	uart_update_mctrl(port,0,clear)
-+#define uart_set_mctrl(port, set)	uart_update_mctrl(port, set, 0)
-+#define uart_clear_mctrl(port, clear)	uart_update_mctrl(port, 0, clear)
- 
- /*
-  * Startup the port.  This will be called once per open.  All calls
-@@ -290,7 +291,7 @@ uart_update_timeout(struct uart_port *po
- 		break;
- 	default:
- 		bits = 10;
--		break; // CS8
-+		break; /* CS8 */
- 	}
- 
- 	if (cflag & CSTOPB)
-@@ -622,7 +623,7 @@ static int uart_get_info(struct uart_sta
- 	tmp.close_delay	    = state->close_delay / 10;
- 	tmp.closing_wait    = state->closing_wait == USF_CLOSING_WAIT_NONE ?
- 				ASYNC_CLOSING_WAIT_NONE :
--			        state->closing_wait / 10;
-+				state->closing_wait / 10;
- 	tmp.custom_divisor  = port->custom_divisor;
- 	tmp.hub6	    = port->hub6;
- 	tmp.io_type         = port->iotype;
-@@ -788,7 +789,8 @@ static int uart_set_info(struct uart_sta
- 			 * We failed anyway.
- 			 */
- 			retval = -EBUSY;
--			goto exit;  // Added to return the correct error -Ram Gupta
-+			/* Added to return the correct error -Ram Gupta */
-+			goto exit;
- 		}
- 	}
- 
-@@ -858,7 +860,7 @@ static int uart_get_lsr_info(struct uart
- 	    ((uart_circ_chars_pending(&state->info->xmit) > 0) &&
- 	     !state->info->tty->stopped && !state->info->tty->hw_stopped))
- 		result &= ~TIOCSER_TEMT;
--	
+ #
+diff -puN arch/mn10300/unit-asb2303/Makefile~mn10300-add-platform-mtd-support-for-the-asb2303-board arch/mn10300/unit-asb2303/Makefile
+--- a/arch/mn10300/unit-asb2303/Makefile~mn10300-add-platform-mtd-support-for-the-asb2303-board
++++ a/arch/mn10300/unit-asb2303/Makefile
+@@ -3,4 +3,4 @@
+ # Makefile for the ASB2303 board
+ #
+ ###############################################################################
+-obj-y   := unit-init.o smc91111.o leds.o
++obj-y   := unit-init.o smc91111.o flash.o leds.o
+diff -puN /dev/null arch/mn10300/unit-asb2303/flash.c
+--- /dev/null
++++ a/arch/mn10300/unit-asb2303/flash.c
+@@ -0,0 +1,100 @@
++/* Handle mapping of the flash on the ASB2303 board
++ *
++ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public Licence
++ * as published by the Free Software Foundation; either version
++ * 2 of the Licence, or (at your option) any later version.
++ */
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/physmap.h>
 +
- 	return put_user(result, value);
- }
- 
-@@ -996,8 +998,8 @@ uart_wait_modem_status(struct uart_state
- 		    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
- 		    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
- 		    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
--		    	ret = 0;
--		    	break;
-+			ret = 0;
-+			break;
- 		}
- 
- 		schedule();
-@@ -1137,7 +1139,8 @@ uart_ioctl(struct tty_struct *tty, struc
- 	return ret;
- }
- 
--static void uart_set_termios(struct tty_struct *tty, struct ktermios *old_termios)
-+static void uart_set_termios(struct tty_struct *tty,
-+						struct ktermios *old_termios)
- {
- 	struct uart_state *state = tty->driver_data;
- 	unsigned long flags;
-@@ -1213,7 +1216,7 @@ static void uart_close(struct tty_struct
- {
- 	struct uart_state *state = tty->driver_data;
- 	struct uart_port *port;
--	
++#define ASB2303_PROM_ADDR	0xA0000000	/* Boot PROM */
++#define ASB2303_PROM_SIZE	(2 * 1024 * 1024)
++#define ASB2303_FLASH_ADDR	0xA4000000	/* System Flash */
++#define ASB2303_FLASH_SIZE	(32 * 1024 * 1024)
++#define ASB2303_CONFIG_ADDR	0xA6000000	/* System Config EEPROM */
++#define ASB2303_CONFIG_SIZE	(8 * 1024)
 +
- 	BUG_ON(!kernel_locked());
- 
- 	if (!state || !state->port)
-@@ -1278,8 +1281,8 @@ static void uart_close(struct tty_struct
- 	uart_shutdown(state);
- 	uart_flush_buffer(tty);
- 
--	tty_ldisc_flush(tty);	
--	
-+	tty_ldisc_flush(tty);
++/*
++ * default MTD partition table for both main flash devices, expected to be
++ * overridden by RedBoot
++ */
++static struct mtd_partition asb2303_partitions[] = {
++	{
++		.name		= "Bootloader",
++		.size		= 0x00040000,
++		.offset		= 0,
++		.mask_flags	= MTD_CAP_ROM /* force read-only */
++	}, {
++		.name		= "Kernel",
++		.size		= 0x00400000,
++		.offset		= 0x00040000,
++	}, {
++		.name		= "Filesystem",
++		.size		= MTDPART_SIZ_FULL,
++		.offset		= 0x00440000
++	}
++};
 +
- 	tty->closing = 0;
- 	state->info->tty = NULL;
- 
-@@ -1341,7 +1344,7 @@ static void uart_wait_until_sent(struct 
- 	expire = jiffies + timeout;
- 
- 	pr_debug("uart_wait_until_sent(%d), jiffies=%lu, expire=%lu...\n",
--	        port->line, jiffies, expire);
-+		port->line, jiffies, expire);
- 
- 	/*
- 	 * Check whether the transmitter is empty every 'char_time'.
-@@ -1460,10 +1463,9 @@ uart_block_til_ready(struct file *filp, 
- 		 * have set TTY_IO_ERROR for a non-existant port.
- 		 */
- 		if ((filp->f_flags & O_NONBLOCK) ||
--	            (info->tty->termios->c_cflag & CLOCAL) ||
--		    (info->tty->flags & (1 << TTY_IO_ERROR))) {
-+		    (info->tty->termios->c_cflag & CLOCAL) ||
-+		    (info->tty->flags & (1 << TTY_IO_ERROR)))
- 			break;
--		}
- 
- 		/*
- 		 * Set DTR to allow modem to know we're waiting.  Do
-@@ -1674,7 +1676,7 @@ static int uart_line_info(char *buf, str
- 			port->line, uart_type(port),
- 			mmio ? "mmio:0x" : "port:",
- 			mmio ? (unsigned long long)port->mapbase
--		             : (unsigned long long) port->iobase,
-+			     : (unsigned long long) port->iobase,
- 			port->irq);
- 
- 	if (port->type == PORT_UNKNOWN) {
-@@ -1682,8 +1684,7 @@ static int uart_line_info(char *buf, str
- 		return ret + 1;
- 	}
- 
--	if(capable(CAP_SYS_ADMIN))
--	{
-+	if (capable(CAP_SYS_ADMIN)) {
- 		mutex_lock(&state->mutex);
- 		pm_state = state->pm_state;
- 		if (pm_state)
-@@ -1709,12 +1710,12 @@ static int uart_line_info(char *buf, str
- 		if (port->icount.overrun)
- 			ret += sprintf(buf + ret, " oe:%d",
- 				port->icount.overrun);
--	
--#define INFOBIT(bit,str) \
++/*
++ * the ASB2303 Boot PROM definition
++ */
++static struct physmap_flash_data asb2303_bootprom_data = {
++	.width		= 2,
++	.nr_parts	= 1,
++	.parts		= asb2303_partitions,
++};
 +
-+#define INFOBIT(bit, str) \
- 	if (port->mctrl & (bit)) \
- 		strncat(stat_buf, (str), sizeof(stat_buf) - \
- 			strlen(stat_buf) - 2)
--#define STATBIT(bit,str) \
-+#define STATBIT(bit, str) \
- 	if (status & (bit)) \
- 		strncat(stat_buf, (str), sizeof(stat_buf) - \
- 		       strlen(stat_buf) - 2)
-@@ -1730,7 +1731,7 @@ static int uart_line_info(char *buf, str
- 		if (stat_buf[0])
- 			stat_buf[0] = ' ';
- 		strcat(stat_buf, "\n");
--	
++static struct resource asb2303_bootprom_resource = {
++	.start		= ASB2303_PROM_ADDR,
++	.end		= ASB2303_PROM_ADDR + ASB2303_PROM_SIZE,
++	.flags		= IORESOURCE_MEM,
++};
 +
- 		ret += sprintf(buf + ret, stat_buf);
- 	} else {
- 		strcat(buf, "\n");
-@@ -1992,11 +1993,11 @@ int uart_suspend_port(struct uart_driver
- 		/*
- 		 * Wait for the transmitter to empty.
- 		 */
--		for (tries = 3; !ops->tx_empty(port) && tries; tries--) {
-+		for (tries = 3; !ops->tx_empty(port) && tries; tries--)
- 			msleep(10);
--		}
- 		if (!tries)
--			printk(KERN_ERR "%s%s%s%d: Unable to drain transmitter\n",
-+			printk(KERN_ERR "%s%s%s%d: Unable to drain "
-+					"transmitter\n",
- 			       port->dev ? port->dev->bus_id : "",
- 			       port->dev ? ": " : "",
- 			       drv->dev_name, port->line);
++static struct platform_device asb2303_bootprom = {
++	.name		= "physmap-flash",
++	.id		= 0,
++	.dev.platform_data = &asb2303_bootprom_data,
++	.num_resources	= 1,
++	.resource	= &asb2303_bootprom_resource,
++};
++
++/*
++ * the ASB2303 System Flash definition
++ */
++static struct physmap_flash_data asb2303_sysflash_data = {
++	.width		= 4,
++	.nr_parts	= 1,
++	.parts		= asb2303_partitions,
++};
++
++static struct resource asb2303_sysflash_resource = {
++	.start		= ASB2303_FLASH_ADDR,
++	.end		= ASB2303_FLASH_ADDR + ASB2303_FLASH_SIZE,
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device asb2303_sysflash = {
++	.name		= "physmap-flash",
++	.id		= 1,
++	.dev.platform_data = &asb2303_sysflash_data,
++	.num_resources	= 1,
++	.resource	= &asb2303_sysflash_resource,
++};
++
++/*
++ * register the ASB2303 flashes
++ */
++static int __init asb2303_mtd_init(void)
++{
++	platform_device_register(&asb2303_bootprom);
++	platform_device_register(&asb2303_sysflash);
++	return 0;
++}
++
++module_init(asb2303_mtd_init);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
