@@ -1,262 +1,1541 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-ext2-from-using-iget-and-read_inode-try.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:30 -0800
-Message-ID: <200802080807.m1887BpT014517__42473.6579916955$1202459038$gmane$org@imap1.linux-foundation.org>
+Subject: - move-edactxt-two-levels-up.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:02:15 -0800
+Message-ID: <200802080801.m1881uJ9014001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41079 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761670AbYBHIVp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:45 -0500
+	by vger.kernel.org with ESMTP id S1762018AbYBHIVr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:21:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, hch@lst.de, linux-ext4@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, alan@redhat.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop EXT2 from using iget() and read_inode()
+     move edac.txt two levels up
 has been removed from the -mm tree.  Its filename was
-     iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+     move-edactxt-two-levels-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop EXT2 from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: move edac.txt two levels up
+From: Adrian Bunk <bunk@kernel.org>
 
-Stop the EXT2 filesystem from using iget() and read_inode().  Replace
-ext2_read_inode() with ext2_iget(), and call that instead of iget(). 
-ext2_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+There's no reason for edac.txt for being at this unusual place.
 
-ext2_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h  |    2 +-
- fs/ext2/inode.c |   29 +++++++++++++++++++++--------
- fs/ext2/namei.c |   12 ++++++------
- fs/ext2/super.c |   32 ++++++++++++++++++--------------
- 4 files changed, 46 insertions(+), 29 deletions(-)
+ Documentation/00-INDEX              |    4 
+ Documentation/drivers/edac/edac.txt |  727 --------------------------
+ Documentation/edac.txt              |  727 ++++++++++++++++++++++++++
+ 3 files changed, 729 insertions(+), 729 deletions(-)
 
-diff -puN fs/ext2/ext2.h~iget-stop-ext2-from-using-iget-and-read_inode-try fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~iget-stop-ext2-from-using-iget-and-read_inode-try
-+++ a/fs/ext2/ext2.h
-@@ -124,7 +124,7 @@ extern void ext2_check_inodes_bitmap (st
- extern unsigned long ext2_count_free (struct buffer_head *, unsigned);
- 
- /* inode.c */
--extern void ext2_read_inode (struct inode *);
-+extern struct inode *ext2_iget (struct super_block *, unsigned long);
- extern int ext2_write_inode (struct inode *, int);
- extern void ext2_put_inode (struct inode *);
- extern void ext2_delete_inode (struct inode *);
-diff -puN fs/ext2/inode.c~iget-stop-ext2-from-using-iget-and-read_inode-try fs/ext2/inode.c
---- a/fs/ext2/inode.c~iget-stop-ext2-from-using-iget-and-read_inode-try
-+++ a/fs/ext2/inode.c
-@@ -1181,22 +1181,33 @@ void ext2_get_inode_flags(struct ext2_in
- 		ei->i_flags |= EXT2_DIRSYNC_FL;
- }
- 
--void ext2_read_inode (struct inode * inode)
-+struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
- {
--	struct ext2_inode_info *ei = EXT2_I(inode);
--	ino_t ino = inode->i_ino;
-+	struct ext2_inode_info *ei;
- 	struct buffer_head * bh;
--	struct ext2_inode * raw_inode = ext2_get_inode(inode->i_sb, ino, &bh);
-+	struct ext2_inode *raw_inode;
-+	struct inode *inode;
-+	long ret = -EIO;
- 	int n;
- 
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
+diff -puN Documentation/00-INDEX~move-edactxt-two-levels-up Documentation/00-INDEX
+--- a/Documentation/00-INDEX~move-edactxt-two-levels-up
++++ a/Documentation/00-INDEX
+@@ -132,12 +132,12 @@ dontdiff
+ 	- file containing a list of files that should never be diff'ed.
+ driver-model/
+ 	- directory with info about Linux driver model.
+-drivers/
+-	- directory with driver documentation (currently only EDAC).
+ dvb/
+ 	- info on Linux Digital Video Broadcast (DVB) subsystem.
+ early-userspace/
+ 	- info about initramfs, klibc, and userspace early during boot.
++edac.txt
++	- information on EDAC - Error Detection And Correction
+ eisa.txt
+ 	- info on EISA bus support.
+ exception.txt
+diff -puN Documentation/drivers/edac/edac.txt~move-edactxt-two-levels-up /dev/null
+--- a/Documentation/drivers/edac/edac.txt
++++ /dev/null
+@@ -1,727 +0,0 @@
+-
+-
+-EDAC - Error Detection And Correction
+-
+-Written by Doug Thompson <dougthompson@xmission.com>
+-7 Dec 2005
+-17 Jul 2007	Updated
+-
+-
+-EDAC is maintained and written by:
+-
+-	Doug Thompson, Dave Jiang, Dave Peterson et al,
+-	original author: Thayne Harbaugh,
+-
+-Contact:
+-	website:	bluesmoke.sourceforge.net
+-	mailing list:	bluesmoke-devel@lists.sourceforge.net
+-
+-"bluesmoke" was the name for this device driver when it was "out-of-tree"
+-and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
+-first time, it was renamed to 'EDAC'.
+-
+-The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
+-for EDAC development, before it is sent upstream to kernel.org
+-
+-At the bluesmoke/EDAC project site, is a series of quilt patches against
+-recent kernels, stored in a SVN respository. For easier downloading, there
+-is also a tarball snapshot available.
+-
+-============================================================================
+-EDAC PURPOSE
+-
+-The 'edac' kernel module goal is to detect and report errors that occur
+-within the computer system running under linux.
+-
+-MEMORY
+-
+-In the initial release, memory Correctable Errors (CE) and Uncorrectable
+-Errors (UE) are the primary errors being harvested. These types of errors
+-are harvested by the 'edac_mc' class of device.
+-
+-Detecting CE events, then harvesting those events and reporting them,
+-CAN be a predictor of future UE events.  With CE events, the system can
+-continue to operate, but with less safety. Preventive maintenance and
+-proactive part replacement of memory DIMMs exhibiting CEs can reduce
+-the likelihood of the dreaded UE events and system 'panics'.
+-
+-NON-MEMORY
+-
+-A new feature for EDAC, the edac_device class of device, was added in
+-the 2.6.23 version of the kernel.
+-
+-This new device type allows for non-memory type of ECC hardware detectors
+-to have their states harvested and presented to userspace via the sysfs
+-interface.
+-
+-Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
+-engines, fabric switches, main data path switches, interconnections,
+-and various other hardware data paths. If the hardware reports it, then
+-a edac_device device probably can be constructed to harvest and present
+-that to userspace.
+-
+-
+-PCI BUS SCANNING
+-
+-In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
+-in order to determine if errors are occurring on data transfers.
+-
+-The presence of PCI Parity errors must be examined with a grain of salt.
+-There are several add-in adapters that do NOT follow the PCI specification
+-with regards to Parity generation and reporting. The specification says
+-the vendor should tie the parity status bits to 0 if they do not intend
+-to generate parity.  Some vendors do not do this, and thus the parity bit
+-can "float" giving false positives.
+-
+-In the kernel there is a pci device attribute located in sysfs that is
+-checked by the EDAC PCI scanning code. If that attribute is set,
+-PCI parity/error scannining is skipped for that device. The attribute
+-is:
+-
+-	broken_parity_status
+-
+-as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
+-PCI devices.
+-
+-FUTURE HARDWARE SCANNING
+-
+-EDAC will have future error detectors that will be integrated with
+-EDAC or added to it, in the following list:
+-
+-	MCE	Machine Check Exception
+-	MCA	Machine Check Architecture
+-	NMI	NMI notification of ECC errors
+-	MSRs 	Machine Specific Register error cases
+-	and other mechanisms.
+-
+-These errors are usually bus errors, ECC errors, thermal throttling
+-and the like.
+-
+-
+-============================================================================
+-EDAC VERSIONING
+-
+-EDAC is composed of a "core" module (edac_core.ko) and several Memory
+-Controller (MC) driver modules. On a given system, the CORE
+-is loaded and one MC driver will be loaded. Both the CORE and
+-the MC driver (or edac_device driver) have individual versions that reflect
+-current release level of their respective modules.
+-
+-Thus, to "report" on what version a system is running, one must report both
+-the CORE's and the MC driver's versions.
+-
+-
+-LOADING
+-
+-If 'edac' was statically linked with the kernel then no loading is
+-necessary.  If 'edac' was built as modules then simply modprobe the
+-'edac' pieces that you need.  You should be able to modprobe
+-hardware-specific modules and have the dependencies load the necessary core
+-modules.
+-
+-Example:
+-
+-$> modprobe amd76x_edac
+-
+-loads both the amd76x_edac.ko memory controller module and the edac_mc.ko
+-core module.
+-
+-
+-============================================================================
+-EDAC sysfs INTERFACE
+-
+-EDAC presents a 'sysfs' interface for control, reporting and attribute
+-reporting purposes.
+-
+-EDAC lives in the /sys/devices/system/edac directory.
+-
+-Within this directory there currently reside 2 'edac' components:
+-
+-	mc	memory controller(s) system
+-	pci	PCI control and status system
+-
+-
+-============================================================================
+-Memory Controller (mc) Model
+-
+-First a background on the memory controller's model abstracted in EDAC.
+-Each 'mc' device controls a set of DIMM memory modules. These modules are
+-laid out in a Chip-Select Row (csrowX) and Channel table (chX). There can
+-be multiple csrows and multiple channels.
+-
+-Memory controllers allow for several csrows, with 8 csrows being a typical value.
+-Yet, the actual number of csrows depends on the electrical "loading"
+-of a given motherboard, memory controller and DIMM characteristics.
+-
+-Dual channels allows for 128 bit data transfers to the CPU from memory.
+-Some newer chipsets allow for more than 2 channels, like Fully Buffered DIMMs
+-(FB-DIMMs). The following example will assume 2 channels:
+-
+-
+-		Channel 0	Channel 1
+-	===================================
+-	csrow0	| DIMM_A0	| DIMM_B0 |
+-	csrow1	| DIMM_A0	| DIMM_B0 |
+-	===================================
+-
+-	===================================
+-	csrow2	| DIMM_A1	| DIMM_B1 |
+-	csrow3	| DIMM_A1	| DIMM_B1 |
+-	===================================
+-
+-In the above example table there are 4 physical slots on the motherboard
+-for memory DIMMs:
+-
+-	DIMM_A0
+-	DIMM_B0
+-	DIMM_A1
+-	DIMM_B1
+-
+-Labels for these slots are usually silk screened on the motherboard. Slots
+-labeled 'A' are channel 0 in this example. Slots labeled 'B'
+-are channel 1. Notice that there are two csrows possible on a
+-physical DIMM. These csrows are allocated their csrow assignment
+-based on the slot into which the memory DIMM is placed. Thus, when 1 DIMM
+-is placed in each Channel, the csrows cross both DIMMs.
+-
+-Memory DIMMs come single or dual "ranked". A rank is a populated csrow.
+-Thus, 2 single ranked DIMMs, placed in slots DIMM_A0 and DIMM_B0 above
+-will have 1 csrow, csrow0. csrow1 will be empty. On the other hand,
+-when 2 dual ranked DIMMs are similarly placed, then both csrow0 and
+-csrow1 will be populated. The pattern repeats itself for csrow2 and
+-csrow3.
+-
+-The representation of the above is reflected in the directory tree
+-in EDAC's sysfs interface. Starting in directory
+-/sys/devices/system/edac/mc each memory controller will be represented
+-by its own 'mcX' directory, where 'X" is the index of the MC.
+-
+-
+-	..../edac/mc/
+-		   |
+-		   |->mc0
+-		   |->mc1
+-		   |->mc2
+-		   ....
+-
+-Under each 'mcX' directory each 'csrowX' is again represented by a
+-'csrowX', where 'X" is the csrow index:
+-
+-
+-	.../mc/mc0/
+-		|
+-		|->csrow0
+-		|->csrow2
+-		|->csrow3
+-		....
+-
+-Notice that there is no csrow1, which indicates that csrow0 is
+-composed of a single ranked DIMMs. This should also apply in both
+-Channels, in order to have dual-channel mode be operational. Since
+-both csrow2 and csrow3 are populated, this indicates a dual ranked
+-set of DIMMs for channels 0 and 1.
+-
+-
+-Within each of the 'mc','mcX' and 'csrowX' directories are several
+-EDAC control and attribute files.
+-
+-
+-============================================================================
+-DIRECTORY 'mc'
+-
+-In directory 'mc' are EDAC system overall control and attribute files:
+-
+-
+-Panic on UE control file:
+-
+-	'edac_mc_panic_on_ue'
+-
+-	An uncorrectable error will cause a machine panic.  This is usually
+-	desirable.  It is a bad idea to continue when an uncorrectable error
+-	occurs - it is indeterminate what was uncorrected and the operating
+-	system context might be so mangled that continuing will lead to further
+-	corruption. If the kernel has MCE configured, then EDAC will never
+-	notice the UE.
+-
+-	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
+-
+-	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
+-
+-
+-Log UE control file:
+-
+-	'edac_mc_log_ue'
+-
+-	Generate kernel messages describing uncorrectable errors.  These errors
+-	are reported through the system message log system.  UE statistics
+-	will be accumulated even when UE logging is disabled.
+-
+-	LOAD TIME: module/kernel parameter: log_ue=[0|1]
+-
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
+-
+-
+-Log CE control file:
+-
+-	'edac_mc_log_ce'
+-
+-	Generate kernel messages describing correctable errors.  These
+-	errors are reported through the system message log system.
+-	CE statistics will be accumulated even when CE logging is disabled.
+-
+-	LOAD TIME: module/kernel parameter: log_ce=[0|1]
+-
+-	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
+-
+-
+-Polling period control file:
+-
+-	'edac_mc_poll_msec'
+-
+-	The time period, in milliseconds, for polling for error information.
+-	Too small a value wastes resources.  Too large a value might delay
+-	necessary handling of errors and might loose valuable information for
+-	locating the error.  1000 milliseconds (once each second) is the current
+-	default. Systems which require all the bandwidth they can get, may
+-	increase this.
+-
+-	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
+-
+-	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
+-
+-
+-============================================================================
+-'mcX' DIRECTORIES
+-
+-
+-In 'mcX' directories are EDAC control and attribute files for
+-this 'X" instance of the memory controllers:
+-
+-
+-Counter reset control file:
+-
+-	'reset_counters'
+-
+-	This write-only control file will zero all the statistical counters
+-	for UE and CE errors.  Zeroing the counters will also reset the timer
+-	indicating how long since the last counter zero.  This is useful
+-	for computing errors/time.  Since the counters are always reset at
+-	driver initialization time, no module/kernel parameter is available.
+-
+-	RUN TIME: echo "anything" >/sys/devices/system/edac/mc/mc0/counter_reset
+-
+-		This resets the counters on memory controller 0
+-
+-
+-Seconds since last counter reset control file:
+-
+-	'seconds_since_reset'
+-
+-	This attribute file displays how many seconds have elapsed since the
+-	last counter reset. This can be used with the error counters to
+-	measure error rates.
+-
+-
+-
+-Memory Controller name attribute file:
+-
+-	'mc_name'
+-
+-	This attribute file displays the type of memory controller
+-	that is being utilized.
+-
+-
+-Total memory managed by this memory controller attribute file:
+-
+-	'size_mb'
+-
+-	This attribute file displays, in count of megabytes, of memory
+-	that this instance of memory controller manages.
+-
+-
+-Total Uncorrectable Errors count attribute file:
+-
+-	'ue_count'
+-
+-	This attribute file displays the total count of uncorrectable
+-	errors that have occurred on this memory controller. If panic_on_ue
+-	is set this counter will not have a chance to increment,
+-	since EDAC will panic the system.
+-
+-
+-Total UE count that had no information attribute fileY:
+-
+-	'ue_noinfo_count'
+-
+-	This attribute file displays the number of UEs that
+-	have occurred have occurred with  no informations as to which DIMM
+-	slot is having errors.
+-
+-
+-Total Correctable Errors count attribute file:
+-
+-	'ce_count'
+-
+-	This attribute file displays the total count of correctable
+-	errors that have occurred on this memory controller. This
+-	count is very important to examine. CEs provide early
+-	indications that a DIMM is beginning to fail. This count
+-	field should be monitored for non-zero values and report
+-	such information to the system administrator.
+-
+-
+-Total Correctable Errors count attribute file:
+-
+-	'ce_noinfo_count'
+-
+-	This attribute file displays the number of CEs that
+-	have occurred wherewith no informations as to which DIMM slot
+-	is having errors. Memory is handicapped, but operational,
+-	yet no information is available to indicate which slot
+-	the failing memory is in. This count field should be also
+-	be monitored for non-zero values.
+-
+-Device Symlink:
+-
+-	'device'
+-
+-	Symlink to the memory controller device.
+-
+-Sdram memory scrubbing rate:
+-
+-	'sdram_scrub_rate'
+-
+-	Read/Write attribute file that controls memory scrubbing. The scrubbing
+-	rate is set by writing a minimum bandwith in bytes/sec to the attribute
+-	file. The rate will be translated to an internal value that gives at
+-	least the specified rate.
+-
+-	Reading the file will return the actual scrubbing rate employed.
+-
+-	If configuration fails or memory scrubbing is not implemented, the value
+-	of the attribute file will be -1.
+-
+-
+-
+-============================================================================
+-'csrowX' DIRECTORIES
+-
+-In the 'csrowX' directories are EDAC control and attribute files for
+-this 'X" instance of csrow:
+-
+-
+-Total Uncorrectable Errors count attribute file:
+-
+-	'ue_count'
+-
+-	This attribute file displays the total count of uncorrectable
+-	errors that have occurred on this csrow. If panic_on_ue is set
+-	this counter will not have a chance to increment, since EDAC
+-	will panic the system.
+-
+-
+-Total Correctable Errors count attribute file:
+-
+-	'ce_count'
+-
+-	This attribute file displays the total count of correctable
+-	errors that have occurred on this csrow. This
+-	count is very important to examine. CEs provide early
+-	indications that a DIMM is beginning to fail. This count
+-	field should be monitored for non-zero values and report
+-	such information to the system administrator.
+-
+-
+-Total memory managed by this csrow attribute file:
+-
+-	'size_mb'
+-
+-	This attribute file displays, in count of megabytes, of memory
+-	that this csrow contains.
+-
+-
+-Memory Type attribute file:
+-
+-	'mem_type'
+-
+-	This attribute file will display what type of memory is currently
+-	on this csrow. Normally, either buffered or unbuffered memory.
+-	Examples:
+-		Registered-DDR
+-		Unbuffered-DDR
+-
+-
+-EDAC Mode of operation attribute file:
+-
+-	'edac_mode'
+-
+-	This attribute file will display what type of Error detection
+-	and correction is being utilized.
+-
+-
+-Device type attribute file:
+-
+-	'dev_type'
+-
+-	This attribute file will display what type of DRAM device is
+-	being utilized on this DIMM.
+-	Examples:
+-		x1
+-		x2
+-		x4
+-		x8
+-
+-
+-Channel 0 CE Count attribute file:
+-
+-	'ch0_ce_count'
+-
+-	This attribute file will display the count of CEs on this
+-	DIMM located in channel 0.
+-
+-
+-Channel 0 UE Count attribute file:
+-
+-	'ch0_ue_count'
+-
+-	This attribute file will display the count of UEs on this
+-	DIMM located in channel 0.
+-
+-
+-Channel 0 DIMM Label control file:
+-
+-	'ch0_dimm_label'
+-
+-	This control file allows this DIMM to have a label assigned
+-	to it. With this label in the module, when errors occur
+-	the output can provide the DIMM label in the system log.
+-	This becomes vital for panic events to isolate the
+-	cause of the UE event.
+-
+-	DIMM Labels must be assigned after booting, with information
+-	that correctly identifies the physical slot with its
+-	silk screen label. This information is currently very
+-	motherboard specific and determination of this information
+-	must occur in userland at this time.
+-
+-
+-Channel 1 CE Count attribute file:
+-
+-	'ch1_ce_count'
+-
+-	This attribute file will display the count of CEs on this
+-	DIMM located in channel 1.
+-
+-
+-Channel 1 UE Count attribute file:
+-
+-	'ch1_ue_count'
+-
+-	This attribute file will display the count of UEs on this
+-	DIMM located in channel 0.
+-
+-
+-Channel 1 DIMM Label control file:
+-
+-	'ch1_dimm_label'
+-
+-	This control file allows this DIMM to have a label assigned
+-	to it. With this label in the module, when errors occur
+-	the output can provide the DIMM label in the system log.
+-	This becomes vital for panic events to isolate the
+-	cause of the UE event.
+-
+-	DIMM Labels must be assigned after booting, with information
+-	that correctly identifies the physical slot with its
+-	silk screen label. This information is currently very
+-	motherboard specific and determination of this information
+-	must occur in userland at this time.
+-
+-
+-============================================================================
+-SYSTEM LOGGING
+-
+-If logging for UEs and CEs are enabled then system logs will have
+-error notices indicating errors that have been detected:
+-
+-EDAC MC0: CE page 0x283, offset 0xce0, grain 8, syndrome 0x6ec3, row 0,
+-channel 1 "DIMM_B1": amd76x_edac
+-
+-EDAC MC0: CE page 0x1e5, offset 0xfb0, grain 8, syndrome 0xb741, row 0,
+-channel 1 "DIMM_B1": amd76x_edac
+-
+-
+-The structure of the message is:
+-	the memory controller			(MC0)
+-	Error type				(CE)
+-	memory page				(0x283)
+-	offset in the page			(0xce0)
+-	the byte granularity 			(grain 8)
+-		or resolution of the error
+-	the error syndrome			(0xb741)
+-	memory row				(row 0)
+-	memory channel				(channel 1)
+-	DIMM label, if set prior		(DIMM B1
+-	and then an optional, driver-specific message that may
+-		have additional information.
+-
+-Both UEs and CEs with no info will lack all but memory controller,
+-error type, a notice of "no info" and then an optional,
+-driver-specific error message.
+-
+-
+-
+-============================================================================
+-PCI Bus Parity Detection
+-
+-
+-On Header Type 00 devices the primary status is looked at
+-for any parity error regardless of whether Parity is enabled on the
+-device.  (The spec indicates parity is generated in some cases).
+-On Header Type 01 bridges, the secondary status register is also
+-looked at to see if parity occurred on the bus on the other side of
+-the bridge.
+-
+-
+-SYSFS CONFIGURATION
+-
+-Under /sys/devices/system/edac/pci are control and attribute files as follows:
+-
+-
+-Enable/Disable PCI Parity checking control file:
+-
+-	'check_pci_parity'
+-
+-
+-	This control file enables or disables the PCI Bus Parity scanning
+-	operation. Writing a 1 to this file enables the scanning. Writing
+-	a 0 to this file disables the scanning.
+-
+-	Enable:
+-	echo "1" >/sys/devices/system/edac/pci/check_pci_parity
+-
+-	Disable:
+-	echo "0" >/sys/devices/system/edac/pci/check_pci_parity
+-
+-
+-
+-Panic on PCI PARITY Error:
+-
+-	'panic_on_pci_parity'
+-
+-
+-	This control files enables or disables panicking when a parity
+-	error has been detected.
+-
+-
+-	module/kernel parameter: panic_on_pci_parity=[0|1]
+-
+-	Enable:
+-	echo "1" >/sys/devices/system/edac/pci/panic_on_pci_parity
+-
+-	Disable:
+-	echo "0" >/sys/devices/system/edac/pci/panic_on_pci_parity
+-
+-
+-Parity Count:
+-
+-	'pci_parity_count'
+-
+-	This attribute file will display the number of parity errors that
+-	have been detected.
+-
+-
+-
+-=======================================================================
+-
+-
+-EDAC_DEVICE type of device
+-
+-In the header file, edac_core.h, there is a series of edac_device structures
+-and APIs for the EDAC_DEVICE.
+-
+-User space access to an edac_device is through the sysfs interface.
+-
+-At the location /sys/devices/system/edac (sysfs) new edac_device devices will
+-appear.
+-
+-There is a three level tree beneath the above 'edac' directory. For example,
+-the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
+-installs itself as:
+-
+-	/sys/devices/systm/edac/test-instance
+-
+-in this directory are various controls, a symlink and one or more 'instance'
+-directorys.
+-
+-The standard default controls are:
+-
+-	log_ce		boolean to log CE events
+-	log_ue		boolean to log UE events
+-	panic_on_ue	boolean to 'panic' the system if an UE is encountered
+-			(default off, can be set true via startup script)
+-	poll_msec	time period between POLL cycles for events
+-
+-The test_device_edac device adds at least one of its own custom control:
+-
+-	test_bits	which in the current test driver does nothing but
+-			show how it is installed. A ported driver can
+-			add one or more such controls and/or attributes
+-			for specific uses.
+-			One out-of-tree driver uses controls here to allow
+-			for ERROR INJECTION operations to hardware
+-			injection registers
+-
+-The symlink points to the 'struct dev' that is registered for this edac_device.
+-
+-INSTANCES
+-
+-One or more instance directories are present. For the 'test_device_edac' case:
+-
+-	test-instance0
+-
+-
+-In this directory there are two default counter attributes, which are totals of
+-counter in deeper subdirectories.
+-
+-	ce_count	total of CE events of subdirectories
+-	ue_count	total of UE events of subdirectories
+-
+-BLOCKS
+-
+-At the lowest directory level is the 'block' directory. There can be 0, 1
+-or more blocks specified in each instance.
+-
+-	test-block0
+-
+-
+-In this directory the default attributes are:
+-
+-	ce_count	which is counter of CE events for this 'block'
+-			of hardware being monitored
+-	ue_count	which is counter of UE events for this 'block'
+-			of hardware being monitored
+-
+-
+-The 'test_device_edac' device adds 4 attributes and 1 control:
+-
+-	test-block-bits-0	for every POLL cycle this counter
+-				is incremented
+-	test-block-bits-1	every 10 cycles, this counter is bumped once,
+-				and test-block-bits-0 is set to 0
+-	test-block-bits-2	every 100 cycles, this counter is bumped once,
+-				and test-block-bits-1 is set to 0
+-	test-block-bits-3	every 1000 cycles, this counter is bumped once,
+-				and test-block-bits-2 is set to 0
+-
+-
+-	reset-counters		writing ANY thing to this control will
+-				reset all the above counters.
+-
+-
+-Use of the 'test_device_edac' driver should any others to create their own
+-unique drivers for their hardware systems.
+-
+-The 'test_device_edac' sample driver is located at the
+-bluesmoke.sourceforge.net project site for EDAC.
+-
+diff -puN /dev/null Documentation/edac.txt
+--- /dev/null
++++ a/Documentation/edac.txt
+@@ -0,0 +1,727 @@
 +
-+	ei = EXT2_I(inode);
- #ifdef CONFIG_EXT2_FS_POSIX_ACL
- 	ei->i_acl = EXT2_ACL_NOT_CACHED;
- 	ei->i_default_acl = EXT2_ACL_NOT_CACHED;
- #endif
- 	ei->i_block_alloc_info = NULL;
- 
--	if (IS_ERR(raw_inode))
-+	raw_inode = ext2_get_inode(inode->i_sb, ino, &bh);
-+	if (IS_ERR(raw_inode)) {
-+		ret = PTR_ERR(raw_inode);
-  		goto bad_inode;
-+	}
- 
- 	inode->i_mode = le16_to_cpu(raw_inode->i_mode);
- 	inode->i_uid = (uid_t)le16_to_cpu(raw_inode->i_uid_low);
-@@ -1220,6 +1231,7 @@ void ext2_read_inode (struct inode * ino
- 	if (inode->i_nlink == 0 && (inode->i_mode == 0 || ei->i_dtime)) {
- 		/* this inode is deleted */
- 		brelse (bh);
-+		ret = -ESTALE;
- 		goto bad_inode;
- 	}
- 	inode->i_blocks = le32_to_cpu(raw_inode->i_blocks);
-@@ -1286,11 +1298,12 @@ void ext2_read_inode (struct inode * ino
- 	}
- 	brelse (bh);
- 	ext2_set_inode_flags(inode);
--	return;
-+	unlock_new_inode(inode);
-+	return inode;
- 	
- bad_inode:
--	make_bad_inode(inode);
--	return;
-+	iget_failed(inode);
-+	return ERR_PTR(ret);
- }
- 
- static int ext2_update_inode(struct inode * inode, int do_sync)
-diff -puN fs/ext2/namei.c~iget-stop-ext2-from-using-iget-and-read_inode-try fs/ext2/namei.c
---- a/fs/ext2/namei.c~iget-stop-ext2-from-using-iget-and-read_inode-try
-+++ a/fs/ext2/namei.c
-@@ -63,9 +63,9 @@ static struct dentry *ext2_lookup(struct
- 	ino = ext2_inode_by_name(dir, dentry);
- 	inode = NULL;
- 	if (ino) {
--		inode = iget(dir->i_sb, ino);
--		if (!inode)
--			return ERR_PTR(-EACCES);
-+		inode = ext2_iget(dir->i_sb, ino);
-+		if (IS_ERR(inode))
-+			return ERR_CAST(inode);
- 	}
- 	return d_splice_alias(inode, dentry);
- }
-@@ -83,10 +83,10 @@ struct dentry *ext2_get_parent(struct de
- 	ino = ext2_inode_by_name(child->d_inode, &dotdot);
- 	if (!ino)
- 		return ERR_PTR(-ENOENT);
--	inode = iget(child->d_inode->i_sb, ino);
-+	inode = ext2_iget(child->d_inode->i_sb, ino);
- 
--	if (!inode)
--		return ERR_PTR(-EACCES);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
- 	parent = d_alloc_anon(inode);
- 	if (!parent) {
- 		iput(inode);
-diff -puN fs/ext2/super.c~iget-stop-ext2-from-using-iget-and-read_inode-try fs/ext2/super.c
---- a/fs/ext2/super.c~iget-stop-ext2-from-using-iget-and-read_inode-try
-+++ a/fs/ext2/super.c
-@@ -296,7 +296,6 @@ static ssize_t ext2_quota_write(struct s
- static const struct super_operations ext2_sops = {
- 	.alloc_inode	= ext2_alloc_inode,
- 	.destroy_inode	= ext2_destroy_inode,
--	.read_inode	= ext2_read_inode,
- 	.write_inode	= ext2_write_inode,
- 	.delete_inode	= ext2_delete_inode,
- 	.put_super	= ext2_put_super,
-@@ -326,11 +325,10 @@ static struct inode *ext2_nfs_get_inode(
- 	 * it might be "neater" to call ext2_get_inode first and check
- 	 * if the inode is valid.....
- 	 */
--	inode = iget(sb, ino);
--	if (inode == NULL)
--		return ERR_PTR(-ENOMEM);
--	if (is_bad_inode(inode) ||
--	    (generation && inode->i_generation != generation)) {
-+	inode = ext2_iget(sb, ino);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
-+	if (generation && inode->i_generation != generation) {
- 		/* we didn't find the right inode.. */
- 		iput(inode);
- 		return ERR_PTR(-ESTALE);
-@@ -746,6 +744,7 @@ static int ext2_fill_super(struct super_
- 	unsigned long logic_sb_block;
- 	unsigned long offset = 0;
- 	unsigned long def_mount_opts;
-+	long ret = -EINVAL;
- 	int blocksize = BLOCK_SIZE;
- 	int db_count;
- 	int i, j;
-@@ -1041,19 +1040,24 @@ static int ext2_fill_super(struct super_
- 	sb->s_op = &ext2_sops;
- 	sb->s_export_op = &ext2_export_ops;
- 	sb->s_xattr = ext2_xattr_handlers;
--	root = iget(sb, EXT2_ROOT_INO);
--	sb->s_root = d_alloc_root(root);
--	if (!sb->s_root) {
--		iput(root);
--		printk(KERN_ERR "EXT2-fs: get root inode failed\n");
-+	root = ext2_iget(sb, EXT2_ROOT_INO);
-+	if (IS_ERR(root)) {
-+		ret = PTR_ERR(root);
- 		goto failed_mount3;
- 	}
- 	if (!S_ISDIR(root->i_mode) || !root->i_blocks || !root->i_size) {
--		dput(sb->s_root);
--		sb->s_root = NULL;
-+		iput(root);
- 		printk(KERN_ERR "EXT2-fs: corrupt root inode, run e2fsck\n");
- 		goto failed_mount3;
- 	}
 +
-+	sb->s_root = d_alloc_root(root);
-+	if (!sb->s_root) {
-+		iput(root);
-+		printk(KERN_ERR "EXT2-fs: get root inode failed\n");
-+		ret = -ENOMEM;
-+		goto failed_mount3;
-+	}
- 	if (EXT2_HAS_COMPAT_FEATURE(sb, EXT3_FEATURE_COMPAT_HAS_JOURNAL))
- 		ext2_warning(sb, __FUNCTION__,
- 			"mounting ext3 filesystem as ext2");
-@@ -1080,7 +1084,7 @@ failed_mount:
- failed_sbi:
- 	sb->s_fs_info = NULL;
- 	kfree(sbi);
--	return -EINVAL;
-+	return ret;
- }
- 
- static void ext2_commit_super (struct super_block * sb,
++EDAC - Error Detection And Correction
++
++Written by Doug Thompson <dougthompson@xmission.com>
++7 Dec 2005
++17 Jul 2007	Updated
++
++
++EDAC is maintained and written by:
++
++	Doug Thompson, Dave Jiang, Dave Peterson et al,
++	original author: Thayne Harbaugh,
++
++Contact:
++	website:	bluesmoke.sourceforge.net
++	mailing list:	bluesmoke-devel@lists.sourceforge.net
++
++"bluesmoke" was the name for this device driver when it was "out-of-tree"
++and maintained at sourceforge.net.  When it was pushed into 2.6.16 for the
++first time, it was renamed to 'EDAC'.
++
++The bluesmoke project at sourceforge.net is now utilized as a 'staging area'
++for EDAC development, before it is sent upstream to kernel.org
++
++At the bluesmoke/EDAC project site, is a series of quilt patches against
++recent kernels, stored in a SVN respository. For easier downloading, there
++is also a tarball snapshot available.
++
++============================================================================
++EDAC PURPOSE
++
++The 'edac' kernel module goal is to detect and report errors that occur
++within the computer system running under linux.
++
++MEMORY
++
++In the initial release, memory Correctable Errors (CE) and Uncorrectable
++Errors (UE) are the primary errors being harvested. These types of errors
++are harvested by the 'edac_mc' class of device.
++
++Detecting CE events, then harvesting those events and reporting them,
++CAN be a predictor of future UE events.  With CE events, the system can
++continue to operate, but with less safety. Preventive maintenance and
++proactive part replacement of memory DIMMs exhibiting CEs can reduce
++the likelihood of the dreaded UE events and system 'panics'.
++
++NON-MEMORY
++
++A new feature for EDAC, the edac_device class of device, was added in
++the 2.6.23 version of the kernel.
++
++This new device type allows for non-memory type of ECC hardware detectors
++to have their states harvested and presented to userspace via the sysfs
++interface.
++
++Some architectures have ECC detectors for L1, L2 and L3 caches, along with DMA
++engines, fabric switches, main data path switches, interconnections,
++and various other hardware data paths. If the hardware reports it, then
++a edac_device device probably can be constructed to harvest and present
++that to userspace.
++
++
++PCI BUS SCANNING
++
++In addition, PCI Bus Parity and SERR Errors are scanned for on PCI devices
++in order to determine if errors are occurring on data transfers.
++
++The presence of PCI Parity errors must be examined with a grain of salt.
++There are several add-in adapters that do NOT follow the PCI specification
++with regards to Parity generation and reporting. The specification says
++the vendor should tie the parity status bits to 0 if they do not intend
++to generate parity.  Some vendors do not do this, and thus the parity bit
++can "float" giving false positives.
++
++In the kernel there is a pci device attribute located in sysfs that is
++checked by the EDAC PCI scanning code. If that attribute is set,
++PCI parity/error scannining is skipped for that device. The attribute
++is:
++
++	broken_parity_status
++
++as is located in /sys/devices/pci<XXX>/0000:XX:YY.Z directorys for
++PCI devices.
++
++FUTURE HARDWARE SCANNING
++
++EDAC will have future error detectors that will be integrated with
++EDAC or added to it, in the following list:
++
++	MCE	Machine Check Exception
++	MCA	Machine Check Architecture
++	NMI	NMI notification of ECC errors
++	MSRs 	Machine Specific Register error cases
++	and other mechanisms.
++
++These errors are usually bus errors, ECC errors, thermal throttling
++and the like.
++
++
++============================================================================
++EDAC VERSIONING
++
++EDAC is composed of a "core" module (edac_core.ko) and several Memory
++Controller (MC) driver modules. On a given system, the CORE
++is loaded and one MC driver will be loaded. Both the CORE and
++the MC driver (or edac_device driver) have individual versions that reflect
++current release level of their respective modules.
++
++Thus, to "report" on what version a system is running, one must report both
++the CORE's and the MC driver's versions.
++
++
++LOADING
++
++If 'edac' was statically linked with the kernel then no loading is
++necessary.  If 'edac' was built as modules then simply modprobe the
++'edac' pieces that you need.  You should be able to modprobe
++hardware-specific modules and have the dependencies load the necessary core
++modules.
++
++Example:
++
++$> modprobe amd76x_edac
++
++loads both the amd76x_edac.ko memory controller module and the edac_mc.ko
++core module.
++
++
++============================================================================
++EDAC sysfs INTERFACE
++
++EDAC presents a 'sysfs' interface for control, reporting and attribute
++reporting purposes.
++
++EDAC lives in the /sys/devices/system/edac directory.
++
++Within this directory there currently reside 2 'edac' components:
++
++	mc	memory controller(s) system
++	pci	PCI control and status system
++
++
++============================================================================
++Memory Controller (mc) Model
++
++First a background on the memory controller's model abstracted in EDAC.
++Each 'mc' device controls a set of DIMM memory modules. These modules are
++laid out in a Chip-Select Row (csrowX) and Channel table (chX). There can
++be multiple csrows and multiple channels.
++
++Memory controllers allow for several csrows, with 8 csrows being a typical value.
++Yet, the actual number of csrows depends on the electrical "loading"
++of a given motherboard, memory controller and DIMM characteristics.
++
++Dual channels allows for 128 bit data transfers to the CPU from memory.
++Some newer chipsets allow for more than 2 channels, like Fully Buffered DIMMs
++(FB-DIMMs). The following example will assume 2 channels:
++
++
++		Channel 0	Channel 1
++	===================================
++	csrow0	| DIMM_A0	| DIMM_B0 |
++	csrow1	| DIMM_A0	| DIMM_B0 |
++	===================================
++
++	===================================
++	csrow2	| DIMM_A1	| DIMM_B1 |
++	csrow3	| DIMM_A1	| DIMM_B1 |
++	===================================
++
++In the above example table there are 4 physical slots on the motherboard
++for memory DIMMs:
++
++	DIMM_A0
++	DIMM_B0
++	DIMM_A1
++	DIMM_B1
++
++Labels for these slots are usually silk screened on the motherboard. Slots
++labeled 'A' are channel 0 in this example. Slots labeled 'B'
++are channel 1. Notice that there are two csrows possible on a
++physical DIMM. These csrows are allocated their csrow assignment
++based on the slot into which the memory DIMM is placed. Thus, when 1 DIMM
++is placed in each Channel, the csrows cross both DIMMs.
++
++Memory DIMMs come single or dual "ranked". A rank is a populated csrow.
++Thus, 2 single ranked DIMMs, placed in slots DIMM_A0 and DIMM_B0 above
++will have 1 csrow, csrow0. csrow1 will be empty. On the other hand,
++when 2 dual ranked DIMMs are similarly placed, then both csrow0 and
++csrow1 will be populated. The pattern repeats itself for csrow2 and
++csrow3.
++
++The representation of the above is reflected in the directory tree
++in EDAC's sysfs interface. Starting in directory
++/sys/devices/system/edac/mc each memory controller will be represented
++by its own 'mcX' directory, where 'X" is the index of the MC.
++
++
++	..../edac/mc/
++		   |
++		   |->mc0
++		   |->mc1
++		   |->mc2
++		   ....
++
++Under each 'mcX' directory each 'csrowX' is again represented by a
++'csrowX', where 'X" is the csrow index:
++
++
++	.../mc/mc0/
++		|
++		|->csrow0
++		|->csrow2
++		|->csrow3
++		....
++
++Notice that there is no csrow1, which indicates that csrow0 is
++composed of a single ranked DIMMs. This should also apply in both
++Channels, in order to have dual-channel mode be operational. Since
++both csrow2 and csrow3 are populated, this indicates a dual ranked
++set of DIMMs for channels 0 and 1.
++
++
++Within each of the 'mc','mcX' and 'csrowX' directories are several
++EDAC control and attribute files.
++
++
++============================================================================
++DIRECTORY 'mc'
++
++In directory 'mc' are EDAC system overall control and attribute files:
++
++
++Panic on UE control file:
++
++	'edac_mc_panic_on_ue'
++
++	An uncorrectable error will cause a machine panic.  This is usually
++	desirable.  It is a bad idea to continue when an uncorrectable error
++	occurs - it is indeterminate what was uncorrected and the operating
++	system context might be so mangled that continuing will lead to further
++	corruption. If the kernel has MCE configured, then EDAC will never
++	notice the UE.
++
++	LOAD TIME: module/kernel parameter: panic_on_ue=[0|1]
++
++	RUN TIME:  echo "1" >/sys/devices/system/edac/mc/edac_mc_panic_on_ue
++
++
++Log UE control file:
++
++	'edac_mc_log_ue'
++
++	Generate kernel messages describing uncorrectable errors.  These errors
++	are reported through the system message log system.  UE statistics
++	will be accumulated even when UE logging is disabled.
++
++	LOAD TIME: module/kernel parameter: log_ue=[0|1]
++
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ue
++
++
++Log CE control file:
++
++	'edac_mc_log_ce'
++
++	Generate kernel messages describing correctable errors.  These
++	errors are reported through the system message log system.
++	CE statistics will be accumulated even when CE logging is disabled.
++
++	LOAD TIME: module/kernel parameter: log_ce=[0|1]
++
++	RUN TIME: echo "1" >/sys/devices/system/edac/mc/edac_mc_log_ce
++
++
++Polling period control file:
++
++	'edac_mc_poll_msec'
++
++	The time period, in milliseconds, for polling for error information.
++	Too small a value wastes resources.  Too large a value might delay
++	necessary handling of errors and might loose valuable information for
++	locating the error.  1000 milliseconds (once each second) is the current
++	default. Systems which require all the bandwidth they can get, may
++	increase this.
++
++	LOAD TIME: module/kernel parameter: poll_msec=[0|1]
++
++	RUN TIME: echo "1000" >/sys/devices/system/edac/mc/edac_mc_poll_msec
++
++
++============================================================================
++'mcX' DIRECTORIES
++
++
++In 'mcX' directories are EDAC control and attribute files for
++this 'X" instance of the memory controllers:
++
++
++Counter reset control file:
++
++	'reset_counters'
++
++	This write-only control file will zero all the statistical counters
++	for UE and CE errors.  Zeroing the counters will also reset the timer
++	indicating how long since the last counter zero.  This is useful
++	for computing errors/time.  Since the counters are always reset at
++	driver initialization time, no module/kernel parameter is available.
++
++	RUN TIME: echo "anything" >/sys/devices/system/edac/mc/mc0/counter_reset
++
++		This resets the counters on memory controller 0
++
++
++Seconds since last counter reset control file:
++
++	'seconds_since_reset'
++
++	This attribute file displays how many seconds have elapsed since the
++	last counter reset. This can be used with the error counters to
++	measure error rates.
++
++
++
++Memory Controller name attribute file:
++
++	'mc_name'
++
++	This attribute file displays the type of memory controller
++	that is being utilized.
++
++
++Total memory managed by this memory controller attribute file:
++
++	'size_mb'
++
++	This attribute file displays, in count of megabytes, of memory
++	that this instance of memory controller manages.
++
++
++Total Uncorrectable Errors count attribute file:
++
++	'ue_count'
++
++	This attribute file displays the total count of uncorrectable
++	errors that have occurred on this memory controller. If panic_on_ue
++	is set this counter will not have a chance to increment,
++	since EDAC will panic the system.
++
++
++Total UE count that had no information attribute fileY:
++
++	'ue_noinfo_count'
++
++	This attribute file displays the number of UEs that
++	have occurred have occurred with  no informations as to which DIMM
++	slot is having errors.
++
++
++Total Correctable Errors count attribute file:
++
++	'ce_count'
++
++	This attribute file displays the total count of correctable
++	errors that have occurred on this memory controller. This
++	count is very important to examine. CEs provide early
++	indications that a DIMM is beginning to fail. This count
++	field should be monitored for non-zero values and report
++	such information to the system administrator.
++
++
++Total Correctable Errors count attribute file:
++
++	'ce_noinfo_count'
++
++	This attribute file displays the number of CEs that
++	have occurred wherewith no informations as to which DIMM slot
++	is having errors. Memory is handicapped, but operational,
++	yet no information is available to indicate which slot
++	the failing memory is in. This count field should be also
++	be monitored for non-zero values.
++
++Device Symlink:
++
++	'device'
++
++	Symlink to the memory controller device.
++
++Sdram memory scrubbing rate:
++
++	'sdram_scrub_rate'
++
++	Read/Write attribute file that controls memory scrubbing. The scrubbing
++	rate is set by writing a minimum bandwith in bytes/sec to the attribute
++	file. The rate will be translated to an internal value that gives at
++	least the specified rate.
++
++	Reading the file will return the actual scrubbing rate employed.
++
++	If configuration fails or memory scrubbing is not implemented, the value
++	of the attribute file will be -1.
++
++
++
++============================================================================
++'csrowX' DIRECTORIES
++
++In the 'csrowX' directories are EDAC control and attribute files for
++this 'X" instance of csrow:
++
++
++Total Uncorrectable Errors count attribute file:
++
++	'ue_count'
++
++	This attribute file displays the total count of uncorrectable
++	errors that have occurred on this csrow. If panic_on_ue is set
++	this counter will not have a chance to increment, since EDAC
++	will panic the system.
++
++
++Total Correctable Errors count attribute file:
++
++	'ce_count'
++
++	This attribute file displays the total count of correctable
++	errors that have occurred on this csrow. This
++	count is very important to examine. CEs provide early
++	indications that a DIMM is beginning to fail. This count
++	field should be monitored for non-zero values and report
++	such information to the system administrator.
++
++
++Total memory managed by this csrow attribute file:
++
++	'size_mb'
++
++	This attribute file displays, in count of megabytes, of memory
++	that this csrow contains.
++
++
++Memory Type attribute file:
++
++	'mem_type'
++
++	This attribute file will display what type of memory is currently
++	on this csrow. Normally, either buffered or unbuffered memory.
++	Examples:
++		Registered-DDR
++		Unbuffered-DDR
++
++
++EDAC Mode of operation attribute file:
++
++	'edac_mode'
++
++	This attribute file will display what type of Error detection
++	and correction is being utilized.
++
++
++Device type attribute file:
++
++	'dev_type'
++
++	This attribute file will display what type of DRAM device is
++	being utilized on this DIMM.
++	Examples:
++		x1
++		x2
++		x4
++		x8
++
++
++Channel 0 CE Count attribute file:
++
++	'ch0_ce_count'
++
++	This attribute file will display the count of CEs on this
++	DIMM located in channel 0.
++
++
++Channel 0 UE Count attribute file:
++
++	'ch0_ue_count'
++
++	This attribute file will display the count of UEs on this
++	DIMM located in channel 0.
++
++
++Channel 0 DIMM Label control file:
++
++	'ch0_dimm_label'
++
++	This control file allows this DIMM to have a label assigned
++	to it. With this label in the module, when errors occur
++	the output can provide the DIMM label in the system log.
++	This becomes vital for panic events to isolate the
++	cause of the UE event.
++
++	DIMM Labels must be assigned after booting, with information
++	that correctly identifies the physical slot with its
++	silk screen label. This information is currently very
++	motherboard specific and determination of this information
++	must occur in userland at this time.
++
++
++Channel 1 CE Count attribute file:
++
++	'ch1_ce_count'
++
++	This attribute file will display the count of CEs on this
++	DIMM located in channel 1.
++
++
++Channel 1 UE Count attribute file:
++
++	'ch1_ue_count'
++
++	This attribute file will display the count of UEs on this
++	DIMM located in channel 0.
++
++
++Channel 1 DIMM Label control file:
++
++	'ch1_dimm_label'
++
++	This control file allows this DIMM to have a label assigned
++	to it. With this label in the module, when errors occur
++	the output can provide the DIMM label in the system log.
++	This becomes vital for panic events to isolate the
++	cause of the UE event.
++
++	DIMM Labels must be assigned after booting, with information
++	that correctly identifies the physical slot with its
++	silk screen label. This information is currently very
++	motherboard specific and determination of this information
++	must occur in userland at this time.
++
++
++============================================================================
++SYSTEM LOGGING
++
++If logging for UEs and CEs are enabled then system logs will have
++error notices indicating errors that have been detected:
++
++EDAC MC0: CE page 0x283, offset 0xce0, grain 8, syndrome 0x6ec3, row 0,
++channel 1 "DIMM_B1": amd76x_edac
++
++EDAC MC0: CE page 0x1e5, offset 0xfb0, grain 8, syndrome 0xb741, row 0,
++channel 1 "DIMM_B1": amd76x_edac
++
++
++The structure of the message is:
++	the memory controller			(MC0)
++	Error type				(CE)
++	memory page				(0x283)
++	offset in the page			(0xce0)
++	the byte granularity 			(grain 8)
++		or resolution of the error
++	the error syndrome			(0xb741)
++	memory row				(row 0)
++	memory channel				(channel 1)
++	DIMM label, if set prior		(DIMM B1
++	and then an optional, driver-specific message that may
++		have additional information.
++
++Both UEs and CEs with no info will lack all but memory controller,
++error type, a notice of "no info" and then an optional,
++driver-specific error message.
++
++
++
++============================================================================
++PCI Bus Parity Detection
++
++
++On Header Type 00 devices the primary status is looked at
++for any parity error regardless of whether Parity is enabled on the
++device.  (The spec indicates parity is generated in some cases).
++On Header Type 01 bridges, the secondary status register is also
++looked at to see if parity occurred on the bus on the other side of
++the bridge.
++
++
++SYSFS CONFIGURATION
++
++Under /sys/devices/system/edac/pci are control and attribute files as follows:
++
++
++Enable/Disable PCI Parity checking control file:
++
++	'check_pci_parity'
++
++
++	This control file enables or disables the PCI Bus Parity scanning
++	operation. Writing a 1 to this file enables the scanning. Writing
++	a 0 to this file disables the scanning.
++
++	Enable:
++	echo "1" >/sys/devices/system/edac/pci/check_pci_parity
++
++	Disable:
++	echo "0" >/sys/devices/system/edac/pci/check_pci_parity
++
++
++
++Panic on PCI PARITY Error:
++
++	'panic_on_pci_parity'
++
++
++	This control files enables or disables panicking when a parity
++	error has been detected.
++
++
++	module/kernel parameter: panic_on_pci_parity=[0|1]
++
++	Enable:
++	echo "1" >/sys/devices/system/edac/pci/panic_on_pci_parity
++
++	Disable:
++	echo "0" >/sys/devices/system/edac/pci/panic_on_pci_parity
++
++
++Parity Count:
++
++	'pci_parity_count'
++
++	This attribute file will display the number of parity errors that
++	have been detected.
++
++
++
++=======================================================================
++
++
++EDAC_DEVICE type of device
++
++In the header file, edac_core.h, there is a series of edac_device structures
++and APIs for the EDAC_DEVICE.
++
++User space access to an edac_device is through the sysfs interface.
++
++At the location /sys/devices/system/edac (sysfs) new edac_device devices will
++appear.
++
++There is a three level tree beneath the above 'edac' directory. For example,
++the 'test_device_edac' device (found at the bluesmoke.sourceforget.net website)
++installs itself as:
++
++	/sys/devices/systm/edac/test-instance
++
++in this directory are various controls, a symlink and one or more 'instance'
++directorys.
++
++The standard default controls are:
++
++	log_ce		boolean to log CE events
++	log_ue		boolean to log UE events
++	panic_on_ue	boolean to 'panic' the system if an UE is encountered
++			(default off, can be set true via startup script)
++	poll_msec	time period between POLL cycles for events
++
++The test_device_edac device adds at least one of its own custom control:
++
++	test_bits	which in the current test driver does nothing but
++			show how it is installed. A ported driver can
++			add one or more such controls and/or attributes
++			for specific uses.
++			One out-of-tree driver uses controls here to allow
++			for ERROR INJECTION operations to hardware
++			injection registers
++
++The symlink points to the 'struct dev' that is registered for this edac_device.
++
++INSTANCES
++
++One or more instance directories are present. For the 'test_device_edac' case:
++
++	test-instance0
++
++
++In this directory there are two default counter attributes, which are totals of
++counter in deeper subdirectories.
++
++	ce_count	total of CE events of subdirectories
++	ue_count	total of UE events of subdirectories
++
++BLOCKS
++
++At the lowest directory level is the 'block' directory. There can be 0, 1
++or more blocks specified in each instance.
++
++	test-block0
++
++
++In this directory the default attributes are:
++
++	ce_count	which is counter of CE events for this 'block'
++			of hardware being monitored
++	ue_count	which is counter of UE events for this 'block'
++			of hardware being monitored
++
++
++The 'test_device_edac' device adds 4 attributes and 1 control:
++
++	test-block-bits-0	for every POLL cycle this counter
++				is incremented
++	test-block-bits-1	every 10 cycles, this counter is bumped once,
++				and test-block-bits-0 is set to 0
++	test-block-bits-2	every 100 cycles, this counter is bumped once,
++				and test-block-bits-1 is set to 0
++	test-block-bits-3	every 1000 cycles, this counter is bumped once,
++				and test-block-bits-2 is set to 0
++
++
++	reset-counters		writing ANY thing to this control will
++				reset all the above counters.
++
++
++Use of the 'test_device_edac' driver should any others to create their own
++unique drivers for their hardware systems.
++
++The 'test_device_edac' sample driver is located at the
++bluesmoke.sourceforge.net project site for EDAC.
++
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+kill-udffs_dateversion.patch
+the-scheduled-time-option-removal.patch
+reiser4.patch
