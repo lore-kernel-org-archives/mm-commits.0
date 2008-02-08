@@ -1,215 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-ufs-from-using-iget-and-read_inode-try.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:08:07 -0800
-Message-ID: <200802080807.m1887mJP014590@imap1.linux-foundation.org>
+Subject: - bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:47 -0800
+Message-ID: <200802080803.m1883Ssq014125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46315 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32877 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762353AbYBHIZ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:25:58 -0500
+	by vger.kernel.org with ESMTP id S1755078AbYBHI06 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:26:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, dushistov@mail.ru, hch@lst.de, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     iget: stop UFS from using iget() and read_inode()
+     bugfix for memory controller: add helper function for assigning cgroup to page
 has been removed from the -mm tree.  Its filename was
-     iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+     bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop UFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: bugfix for memory controller: add helper function for assigning cgroup to page
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Stop the UFS filesystem from using iget() and read_inode().  Replace
-ufs_read_inode() with ufs_iget(), and call that instead of iget().  ufs_iget()
-then uses iget_locked() directly and returns a proper error code instead of an
-inode in the event of an error.
+This patch adds following functions.
+   - clear_page_cgroup(page, pc)
+   - page_cgroup_assign_new_page_group(page, pc)
 
-ufs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
+Mainly for cleanup.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Acked-by: Christoph Hellwig <hch@lst.de>
+A manner "check page->cgroup again after lock_page_cgroup()" is
+implemented in straight way.
+
+A comment in mem_cgroup_uncharge() will be removed by force-empty patch
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |   34 ++++++++++++++++++++--------------
- fs/ufs/namei.c |    6 +++---
- fs/ufs/super.c |   14 +++++++++-----
- fs/ufs/ufs.h   |    2 +-
- 4 files changed, 33 insertions(+), 23 deletions(-)
+ mm/memcontrol.c |  105 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 76 insertions(+), 29 deletions(-)
 
-diff -puN fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/inode.c
---- a/fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try
-+++ a/fs/ufs/inode.c
-@@ -714,26 +714,30 @@ static int ufs2_read_inode(struct inode 
- 	return 0;
+diff -puN mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page mm/memcontrol.c
+--- a/mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page
++++ a/mm/memcontrol.c
+@@ -162,6 +162,48 @@ static void __always_inline unlock_page_
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
  }
  
--void ufs_read_inode(struct inode * inode)
-+struct inode *ufs_iget(struct super_block *sb, unsigned long ino)
- {
--	struct ufs_inode_info *ufsi = UFS_I(inode);
--	struct super_block * sb;
--	struct ufs_sb_private_info * uspi;
-+	struct ufs_inode_info *ufsi;
-+	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
- 	struct buffer_head * bh;
-+	struct inode *inode;
- 	int err;
- 
--	UFSD("ENTER, ino %lu\n", inode->i_ino);
--
--	sb = inode->i_sb;
--	uspi = UFS_SB(sb)->s_uspi;
-+	UFSD("ENTER, ino %lu\n", ino);
- 
--	if (inode->i_ino < UFS_ROOTINO ||
--	    inode->i_ino > (uspi->s_ncg * uspi->s_ipg)) {
-+	if (ino < UFS_ROOTINO || ino > (uspi->s_ncg * uspi->s_ipg)) {
- 		ufs_warning(sb, "ufs_read_inode", "bad inode number (%lu)\n",
--			    inode->i_ino);
--		goto bad_inode;
-+			    ino);
-+		return ERR_PTR(-EIO);
- 	}
- 
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
++/*
++ * Tie new page_cgroup to struct page under lock_page_cgroup()
++ * This can fail if the page has been tied to a page_cgroup.
++ * If success, returns 0.
++ */
++static inline int
++page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
++{
++	int ret = 0;
 +
-+	ufsi = UFS_I(inode);
-+
- 	bh = sb_bread(sb, uspi->s_sbbase + ufs_inotofsba(inode->i_ino));
- 	if (!bh) {
- 		ufs_warning(sb, "ufs_read_inode", "unable to read inode %lu\n",
-@@ -765,10 +769,12 @@ void ufs_read_inode(struct inode * inode
- 	brelse(bh);
- 
- 	UFSD("EXIT\n");
--	return;
-+	unlock_new_inode(inode);
-+	return inode;
- 
- bad_inode:
--	make_bad_inode(inode);
-+	iget_failed(inode);
-+	return ERR_PTR(-EIO);
- }
- 
- static void ufs1_update_inode(struct inode *inode, struct ufs_inode *ufs_inode)
-diff -puN fs/ufs/namei.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/namei.c
---- a/fs/ufs/namei.c~iget-stop-ufs-from-using-iget-and-read_inode-try
-+++ a/fs/ufs/namei.c
-@@ -57,10 +57,10 @@ static struct dentry *ufs_lookup(struct 
- 	lock_kernel();
- 	ino = ufs_inode_by_name(dir, dentry);
- 	if (ino) {
--		inode = iget(dir->i_sb, ino);
--		if (!inode) {
-+		inode = ufs_iget(dir->i_sb, ino);
-+		if (IS_ERR(inode)) {
- 			unlock_kernel();
--			return ERR_PTR(-EACCES);
-+			return ERR_CAST(inode);
- 		}
- 	}
- 	unlock_kernel();
-diff -puN fs/ufs/super.c~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/super.c
---- a/fs/ufs/super.c~iget-stop-ufs-from-using-iget-and-read_inode-try
-+++ a/fs/ufs/super.c
-@@ -633,6 +633,7 @@ static int ufs_fill_super(struct super_b
- 	unsigned block_size, super_block_size;
- 	unsigned flags;
- 	unsigned super_block_offset;
-+	int ret = -EINVAL;
- 
- 	uspi = NULL;
- 	ubh = NULL;
-@@ -1065,12 +1066,16 @@ magic_found:
- 		uspi->s_maxsymlinklen =
- 		    fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen);
- 
--	inode = iget(sb, UFS_ROOTINO);
--	if (!inode || is_bad_inode(inode))
-+	inode = ufs_iget(sb, UFS_ROOTINO);
-+	if (IS_ERR(inode)) {
-+		ret = PTR_ERR(inode);
- 		goto failed;
-+	}
- 	sb->s_root = d_alloc_root(inode);
--	if (!sb->s_root)
-+	if (!sb->s_root) {
-+		ret = -ENOMEM;
- 		goto dalloc_failed;
-+	}
- 
- 	ufs_setup_cstotal(sb);
- 	/*
-@@ -1092,7 +1097,7 @@ failed:
- 	kfree(sbi);
- 	sb->s_fs_info = NULL;
- 	UFSD("EXIT (FAILED)\n");
--	return -EINVAL;
++	lock_page_cgroup(page);
++	if (!page_get_page_cgroup(page))
++		page_assign_page_cgroup(page, pc);
++	else /* A page is tied to other pc. */
++		ret = 1;
++	unlock_page_cgroup(page);
 +	return ret;
++}
++
++/*
++ * Clear page->page_cgroup member under lock_page_cgroup().
++ * If given "pc" value is different from one page->page_cgroup,
++ * page->cgroup is not cleared.
++ * Returns a value of page->page_cgroup at lock taken.
++ * A can can detect failure of clearing by following
++ *  clear_page_cgroup(page, pc) == pc
++ */
++
++static inline struct page_cgroup *
++clear_page_cgroup(struct page *page, struct page_cgroup *pc)
++{
++	struct page_cgroup *ret;
++	/* lock and clear */
++	lock_page_cgroup(page);
++	ret = page_get_page_cgroup(page);
++	if (likely(ret == pc))
++		page_assign_page_cgroup(page, NULL);
++	unlock_page_cgroup(page);
++	return ret;
++}
++
++
+ static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+ 	if (active)
+@@ -270,7 +312,7 @@ int mem_cgroup_charge(struct page *page,
+ 				gfp_t gfp_mask)
+ {
+ 	struct mem_cgroup *mem;
+-	struct page_cgroup *pc, *race_pc;
++	struct page_cgroup *pc;
+ 	unsigned long flags;
+ 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
  
- failed_nomem:
- 	UFSD("EXIT (NOMEM)\n");
-@@ -1326,7 +1331,6 @@ static ssize_t ufs_quota_write(struct su
- static const struct super_operations ufs_super_ops = {
- 	.alloc_inode	= ufs_alloc_inode,
- 	.destroy_inode	= ufs_destroy_inode,
--	.read_inode	= ufs_read_inode,
- 	.write_inode	= ufs_write_inode,
- 	.delete_inode	= ufs_delete_inode,
- 	.put_super	= ufs_put_super,
-diff -puN fs/ufs/ufs.h~iget-stop-ufs-from-using-iget-and-read_inode-try fs/ufs/ufs.h
---- a/fs/ufs/ufs.h~iget-stop-ufs-from-using-iget-and-read_inode-try
-+++ a/fs/ufs/ufs.h
-@@ -106,7 +106,7 @@ extern void ufs_free_inode (struct inode
- extern struct inode * ufs_new_inode (struct inode *, int);
+@@ -293,8 +335,10 @@ retry:
+ 			unlock_page_cgroup(page);
+ 			cpu_relax();
+ 			goto retry;
+-		} else
++		} else {
++			unlock_page_cgroup(page);
+ 			goto done;
++		}
+ 	}
  
- /* inode.c */
--extern void ufs_read_inode (struct inode *);
-+extern struct inode *ufs_iget(struct super_block *, unsigned long);
- extern void ufs_put_inode (struct inode *);
- extern int ufs_write_inode (struct inode *, int);
- extern int ufs_sync_inode (struct inode *);
+ 	unlock_page_cgroup(page);
+@@ -364,31 +408,26 @@ noreclaim:
+ 		goto free_pc;
+ 	}
+ 
+-	lock_page_cgroup(page);
+-	/*
+-	 * Check if somebody else beat us to allocating the page_cgroup
+-	 */
+-	race_pc = page_get_page_cgroup(page);
+-	if (race_pc) {
+-		kfree(pc);
+-		pc = race_pc;
+-		atomic_inc(&pc->ref_cnt);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		css_put(&mem->css);
+-		goto done;
+-	}
+-
+ 	atomic_set(&pc->ref_cnt, 1);
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+-	page_assign_page_cgroup(page, pc);
++	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
++		/*
++		 * an another charge is added to this page already.
++		 * we do take lock_page_cgroup(page) again and read
++		 * page->cgroup, increment refcnt.... just retry is OK.
++		 */
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
++		css_put(&mem->css);
++		kfree(pc);
++		goto retry;
++	}
+ 
+ 	spin_lock_irqsave(&mem->lru_lock, flags);
+ 	list_add(&pc->lru, &mem->active_list);
+ 	spin_unlock_irqrestore(&mem->lru_lock, flags);
+ 
+ done:
+-	unlock_page_cgroup(page);
+ 	return 0;
+ free_pc:
+ 	kfree(pc);
+@@ -432,17 +471,25 @@ void mem_cgroup_uncharge(struct page_cgr
+ 
+ 	if (atomic_dec_and_test(&pc->ref_cnt)) {
+ 		page = pc->page;
+-		lock_page_cgroup(page);
+-		mem = pc->mem_cgroup;
+-		css_put(&mem->css);
+-		page_assign_page_cgroup(page, NULL);
+-		unlock_page_cgroup(page);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-
+- 		spin_lock_irqsave(&mem->lru_lock, flags);
+- 		list_del_init(&pc->lru);
+- 		spin_unlock_irqrestore(&mem->lru_lock, flags);
+-		kfree(pc);
++		/*
++		 * get page->cgroup and clear it under lock.
++		 */
++		if (clear_page_cgroup(page, pc) == pc) {
++			mem = pc->mem_cgroup;
++			css_put(&mem->css);
++			res_counter_uncharge(&mem->res, PAGE_SIZE);
++			spin_lock_irqsave(&mem->lru_lock, flags);
++			list_del_init(&pc->lru);
++			spin_unlock_irqrestore(&mem->lru_lock, flags);
++			kfree(pc);
++		} else {
++			/*
++			 * Note:This will be removed when force-empty patch is
++			 * applied. just show warning here.
++			 */
++			printk(KERN_ERR "Race in mem_cgroup_uncharge() ?");
++			dump_stack();
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
