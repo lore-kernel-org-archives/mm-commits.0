@@ -1,125 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:19:10 -0800
-Message-ID: <200802082018.m18KIpoS010964@imap1.linux-foundation.org>
+Subject: - dont-operate-with-pid_t-in-rtmutex-tester.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:27 -0800
+Message-ID: <200802082020.m18KK8dK011140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53075 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752246AbYBHUnV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:21 -0500
+	by vger.kernel.org with ESMTP id S1751892AbYBHUnC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@suse.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BKL-Removal: convert pipe to use unlocked_ioctl too
+     Don't operate with pid_t in rtmutex tester
 has been removed from the -mm tree.  Its filename was
-     bkl-removal-convert-pipe-to-use-unlocked_ioctl-too.patch
+     dont-operate-with-pid_t-in-rtmutex-tester.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BKL-Removal: convert pipe to use unlocked_ioctl too
-From: Andi Kleen <ak@suse.de>
+Subject: Don't operate with pid_t in rtmutex tester
+From: Pavel Emelyanov <xemul@openvz.org>
 
-No BKL needed in pipe_ioctl
+The proper behavior to store task's pid and get this task later is to get the
+struct pid pointer and get the task with the pid_task() call.
 
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Make it for rt_mutex_waiter->deadlock_task_pid field.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ kernel/rtmutex-debug.c  |   12 +++++++++---
+ kernel/rtmutex_common.h |    2 +-
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN fs/pipe.c~bkl-removal-convert-pipe-to-use-unlocked_ioctl-too fs/pipe.c
---- a/fs/pipe.c~bkl-removal-convert-pipe-to-use-unlocked_ioctl-too
-+++ a/fs/pipe.c
-@@ -576,9 +576,7 @@ bad_pipe_w(struct file *filp, const char
- 	return -EBADF;
+diff -puN kernel/rtmutex-debug.c~dont-operate-with-pid_t-in-rtmutex-tester kernel/rtmutex-debug.c
+--- a/kernel/rtmutex-debug.c~dont-operate-with-pid_t-in-rtmutex-tester
++++ a/kernel/rtmutex-debug.c
+@@ -130,7 +130,7 @@ void debug_rt_mutex_deadlock(int detect,
+ 
+ 	task = rt_mutex_owner(act_waiter->lock);
+ 	if (task && task != current) {
+-		act_waiter->deadlock_task_pid = task->pid;
++		act_waiter->deadlock_task_pid = get_pid(task_pid(task));
+ 		act_waiter->deadlock_lock = lock;
+ 	}
+ }
+@@ -142,9 +142,12 @@ void debug_rt_mutex_print_deadlock(struc
+ 	if (!waiter->deadlock_lock || !rt_trace_on)
+ 		return;
+ 
+-	task = find_task_by_pid(waiter->deadlock_task_pid);
+-	if (!task)
++	rcu_read_lock();
++	task = pid_task(waiter->deadlock_task_pid, PIDTYPE_PID);
++	if (!task) {
++		rcu_read_unlock();
+ 		return;
++	}
+ 
+ 	TRACE_OFF_NOLOCK();
+ 
+@@ -173,6 +176,7 @@ void debug_rt_mutex_print_deadlock(struc
+ 		current->comm, task_pid_nr(current));
+ 	dump_stack();
+ 	debug_show_all_locks();
++	rcu_read_unlock();
+ 
+ 	printk("[ turning off deadlock detection."
+ 	       "Please report this trace. ]\n\n");
+@@ -203,10 +207,12 @@ void debug_rt_mutex_init_waiter(struct r
+ 	memset(waiter, 0x11, sizeof(*waiter));
+ 	plist_node_init(&waiter->list_entry, MAX_PRIO);
+ 	plist_node_init(&waiter->pi_list_entry, MAX_PRIO);
++	waiter->deadlock_task_pid = NULL;
  }
  
--static int
--pipe_ioctl(struct inode *pino, struct file *filp,
--	   unsigned int cmd, unsigned long arg)
-+static long pipe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ void debug_rt_mutex_free_waiter(struct rt_mutex_waiter *waiter)
  {
- 	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct pipe_inode_info *pipe;
-@@ -785,7 +783,7 @@ const struct file_operations read_fifo_f
- 	.aio_read	= pipe_read,
- 	.write		= bad_pipe_w,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_read_open,
- 	.release	= pipe_read_release,
- 	.fasync		= pipe_read_fasync,
-@@ -797,7 +795,7 @@ const struct file_operations write_fifo_
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_write_open,
- 	.release	= pipe_write_release,
- 	.fasync		= pipe_write_fasync,
-@@ -810,7 +808,7 @@ const struct file_operations rdwr_fifo_f
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_rdwr_open,
- 	.release	= pipe_rdwr_release,
- 	.fasync		= pipe_rdwr_fasync,
-@@ -822,7 +820,7 @@ static const struct file_operations read
- 	.aio_read	= pipe_read,
- 	.write		= bad_pipe_w,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_read_open,
- 	.release	= pipe_read_release,
- 	.fasync		= pipe_read_fasync,
-@@ -834,7 +832,7 @@ static const struct file_operations writ
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_write_open,
- 	.release	= pipe_write_release,
- 	.fasync		= pipe_write_fasync,
-@@ -847,7 +845,7 @@ static const struct file_operations rdwr
- 	.write		= do_sync_write,
- 	.aio_write	= pipe_write,
- 	.poll		= pipe_poll,
--	.ioctl		= pipe_ioctl,
-+	.unlocked_ioctl	= pipe_ioctl,
- 	.open		= pipe_rdwr_open,
- 	.release	= pipe_rdwr_release,
- 	.fasync		= pipe_rdwr_fasync,
++	put_pid(waiter->deadlock_task_pid);
+ 	TRACE_WARN_ON(!plist_node_empty(&waiter->list_entry));
+ 	TRACE_WARN_ON(!plist_node_empty(&waiter->pi_list_entry));
+ 	TRACE_WARN_ON(waiter->task);
+diff -puN kernel/rtmutex_common.h~dont-operate-with-pid_t-in-rtmutex-tester kernel/rtmutex_common.h
+--- a/kernel/rtmutex_common.h~dont-operate-with-pid_t-in-rtmutex-tester
++++ a/kernel/rtmutex_common.h
+@@ -51,7 +51,7 @@ struct rt_mutex_waiter {
+ 	struct rt_mutex		*lock;
+ #ifdef CONFIG_DEBUG_RT_MUTEXES
+ 	unsigned long		ip;
+-	pid_t			deadlock_task_pid;
++	struct pid		*deadlock_task_pid;
+ 	struct rt_mutex		*deadlock_lock;
+ #endif
+ };
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
-git-ocfs2.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-x86.patch
-x86-amd-thermal-interrupt-support.patch
-x86-clear-pci_mmcfg_virt-when-mmcfg-get-rejected.patch
-x86-mmconf-enable-mcfg-early.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron-v3.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-git-xfs.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+revert-proc-fix-the-threaded-proc-self.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
+deprecate-find_task_by_pid-kgdb.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+reiser4.patch
