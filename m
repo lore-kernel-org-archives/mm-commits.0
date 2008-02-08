@@ -1,108 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-the-kill_something_info.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:39 -0800
-Message-ID: <200802082014.m18KEKp4010406@imap1.linux-foundation.org>
+Subject: - 8250_gsc-coding-style.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:54 -0800
+Message-ID: <200802082012.m18KCZYr010214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54301 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36783 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752721AbYBHUuT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:19 -0500
+	by vger.kernel.org with ESMTP id S1753319AbYBHUum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up the kill_something_info
+     8250_gsc: coding style
 has been removed from the -mm tree.  Its filename was
-     clean-up-the-kill_something_info.patch
+     8250_gsc-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Clean up the kill_something_info
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: 8250_gsc: coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This is the first step (of two) in removing the kill_pgrp_info.
-
-All the users of this function are in kernel/signal.c, but all they need is to
-call __kill_pgrp_info() with the tasklist_lock read-locked.
-
-Fortunately, one of its users is the kill_something_info(), which already
-needs this lock in one of its branches, so clean these branches up and call
-the __kill_pgrp_info() directly.
-
-Based on Oleg's view of how this function should look.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/serial/8250_gsc.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN kernel/signal.c~clean-up-the-kill_something_info kernel/signal.c
---- a/kernel/signal.c~clean-up-the-kill_something_info
-+++ a/kernel/signal.c
-@@ -1134,14 +1134,22 @@ EXPORT_SYMBOL_GPL(kill_pid_info_as_uid);
- static int kill_something_info(int sig, struct siginfo *info, int pid)
- {
- 	int ret;
--	rcu_read_lock();
--	if (!pid) {
--		ret = kill_pgrp_info(sig, info, task_pgrp(current));
--	} else if (pid == -1) {
-+
-+	if (pid > 0) {
-+		rcu_read_lock();
-+		ret = kill_pid_info(sig, info, find_vpid(pid));
-+		rcu_read_unlock();
-+		return ret;
-+	}
-+
-+	read_lock(&tasklist_lock);
-+	if (pid != -1) {
-+		ret = __kill_pgrp_info(sig, info,
-+				pid ? find_vpid(-pid) : task_pgrp(current));
-+	} else {
- 		int retval = 0, count = 0;
- 		struct task_struct * p;
+diff -puN drivers/serial/8250_gsc.c~8250_gsc-coding-style drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~8250_gsc-coding-style
++++ a/drivers/serial/8250_gsc.c
+@@ -25,8 +25,7 @@
  
--		read_lock(&tasklist_lock);
- 		for_each_process(p) {
- 			if (p->pid > 1 && !same_thread_group(p, current)) {
- 				int err = group_send_sig_info(sig, info, p);
-@@ -1150,14 +1158,10 @@ static int kill_something_info(int sig, 
- 					retval = err;
- 			}
- 		}
--		read_unlock(&tasklist_lock);
- 		ret = count ? retval : -ESRCH;
--	} else if (pid < 0) {
--		ret = kill_pgrp_info(sig, info, find_vpid(-pid));
--	} else {
--		ret = kill_pid_info(sig, info, find_vpid(pid));
+ #include "8250.h"
+ 
+-static int __init 
+-serial_init_chip(struct parisc_device *dev)
++static int __init serial_init_chip(struct parisc_device *dev)
+ {
+ 	struct uart_port port;
+ 	unsigned long address;
+@@ -38,18 +37,17 @@ serial_init_chip(struct parisc_device *d
+ 		 * what we have here is a missing parent device, so tell
+ 		 * the user what they're missing.
+ 		 */
+-		if (parisc_parent(dev)->id.hw_type != HPHW_IOA) {
+-			printk(KERN_INFO "Serial: device 0x%lx not configured.\n"
++		if (parisc_parent(dev)->id.hw_type != HPHW_IOA)
++			printk(KERN_INFO
++				"Serial: device 0x%lx not configured.\n"
+ 				"Enable support for Wax, Lasi, Asp or Dino.\n",
+ 				dev->hpa.start);
+-		}
+ 		return -ENODEV;
  	}
--	rcu_read_unlock();
-+	read_unlock(&tasklist_lock);
+ 
+ 	address = dev->hpa.start;
+-	if (dev->id.sversion != 0x8d) {
++	if (dev->id.sversion != 0x8d)
+ 		address += 0x800;
+-	}
+ 
+ 	memset(&port, 0, sizeof(port));
+ 	port.iotype	= UPIO_MEM;
+@@ -63,11 +61,12 @@ serial_init_chip(struct parisc_device *d
+ 
+ 	err = serial8250_register_port(&port);
+ 	if (err < 0) {
+-		printk(KERN_WARNING "serial8250_register_port returned error %d\n", err);
++		printk(KERN_WARNING
++			"serial8250_register_port returned error %d\n", err);
+ 		iounmap(port.membase);
+ 		return err;
+ 	}
+-        
 +
- 	return ret;
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-deprecate-find_task_by_pid-kgdb.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
