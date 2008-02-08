@@ -1,43 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-make-charging-gfp-mask-aware.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:27 -0800
-Message-ID: <200802080803.m188382n014095@imap1.linux-foundation.org>
+Subject: - memory-controller-improve-user-interface.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:15 -0800
+Message-ID: <200802080802.m1882umK014077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758570AbYBHI22 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:28:28 -0500
+	by vger.kernel.org with ESMTP id S1758504AbYBHI21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:28:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     Memory controller: make charging gfp mask aware
+     Memory controller improve user interface 
 has been removed from the -mm tree.  Its filename was
-     memory-controller-make-charging-gfp-mask-aware.patch
+     memory-controller-improve-user-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory controller: make charging gfp mask aware
+Subject: Memory controller improve user interface 
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Nick Piggin pointed out that swap cache and page cache addition routines
-could be called from non GFP_KERNEL contexts.  This patch makes the
-charging routine aware of the gfp context.  Charging might fail if the
-cgroup is over it's limit, in which case a suitable error is returned.
+Change the interface to use bytes instead of pages.  Page sizes can vary
+across platforms and configurations.  A new strategy routine has been added
+to the resource counters infrastructure to format the data as desired.
 
-This patch was tested on a Powerpc box.  I am still looking at being able
-to test the path, through which allocations happen in non GFP_KERNEL
-contexts.
+Suggested by David Rientjes, Andrew Morton and Herbert Poetzl
 
-[kamezawa.hiroyu@jp.fujitsu.com: problem with ZONE_MOVABLE]
+Tested on a UML setup with the config for memory control enabled.
+
+[kamezawa.hiroyu@jp.fujitsu.com: possible race fix in res_counter]
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
+Signed-off-by: Pavel Emelianov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -50,274 +49,262 @@ Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   12 ++++++++----
- include/linux/swap.h       |    3 ++-
- mm/filemap.c               |    2 +-
- mm/memcontrol.c            |   24 +++++++++++++++++-------
- mm/memory.c                |   10 +++++-----
- mm/migrate.c               |    2 +-
- mm/swap_state.c            |    2 +-
- mm/swapfile.c              |    2 +-
- mm/vmscan.c                |   14 +++++---------
- 9 files changed, 41 insertions(+), 30 deletions(-)
+ Documentation/controllers/memory.txt |   29 ++++++++++++++++----
+ include/linux/res_counter.h          |   12 ++++----
+ kernel/res_counter.c                 |   36 +++++++++++++++++--------
+ mm/memcontrol.c                      |   35 +++++++++++++++++-------
+ 4 files changed, 81 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memory-controller-make-charging-gfp-mask-aware include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-make-charging-gfp-mask-aware
-+++ a/include/linux/memcontrol.h
-@@ -32,7 +32,8 @@ extern void mm_free_cgroup(struct mm_str
- extern void page_assign_page_cgroup(struct page *page,
- 					struct page_cgroup *pc);
- extern struct page_cgroup *page_get_page_cgroup(struct page *page);
--extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm);
-+extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+				gfp_t gfp_mask);
- extern void mem_cgroup_uncharge(struct page_cgroup *pc);
- extern void mem_cgroup_move_lists(struct page_cgroup *pc, bool active);
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-@@ -42,7 +43,8 @@ extern unsigned long mem_cgroup_isolate_
- 					struct mem_cgroup *mem_cont,
- 					int active);
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
--extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm);
-+extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-+					gfp_t gfp_mask);
- extern struct mem_cgroup *mm_cgroup(struct mm_struct *mm);
+diff -puN Documentation/controllers/memory.txt~memory-controller-improve-user-interface Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memory-controller-improve-user-interface
++++ a/Documentation/controllers/memory.txt
+@@ -165,11 +165,30 @@ c. Enable CONFIG_CGROUP_MEM_CONT
  
- static inline void mem_cgroup_uncharge_page(struct page *page)
-@@ -70,7 +72,8 @@ static inline struct page_cgroup *page_g
- 	return NULL;
- }
+ Since now we're in the 0 cgroup,
+ We can alter the memory limit:
+-# echo -n 6000 > /cgroups/0/memory.limit
++# echo -n 4M > /cgroups/0/memory.limit_in_bytes
++
++NOTE: We can use a suffix (k, K, m, M, g or G) to indicate values in kilo,
++mega or gigabytes.
++
++# cat /cgroups/0/memory.limit_in_bytes
++4194304 Bytes
++
++NOTE: The interface has now changed to display the usage in bytes
++instead of pages
  
--static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm)
-+static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+					gfp_t gfp_mask)
- {
- 	return 0;
- }
-@@ -89,7 +92,8 @@ static inline void mem_cgroup_move_lists
- }
+ We can check the usage:
+-# cat /cgroups/0/memory.usage
+-25
++# cat /cgroups/0/memory.usage_in_bytes
++1216512 Bytes
++
++A successful write to this file does not guarantee a successful set of
++this limit to the value written into the file.  This can be due to a
++number of factors, such as rounding up to page boundaries or the total
++availability of memory on the system.  The user is required to re-read
++this file after a write to guarantee the value committed by the kernel.
++
++# echo -n 1 > memory.limit_in_bytes
++# cat memory.limit_in_bytes
++4096 Bytes
  
- static inline int mem_cgroup_cache_charge(struct page *page,
--						struct mm_struct *mm)
-+						struct mm_struct *mm,
-+						gfp_t gfp_mask)
- {
- 	return 0;
- }
-diff -puN include/linux/swap.h~memory-controller-make-charging-gfp-mask-aware include/linux/swap.h
---- a/include/linux/swap.h~memory-controller-make-charging-gfp-mask-aware
-+++ a/include/linux/swap.h
-@@ -183,7 +183,8 @@ extern void swap_setup(void);
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zone **zones, int order,
- 					gfp_t gfp_mask);
--extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem);
-+extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
-+							gfp_t gfp_mask);
- extern int __isolate_lru_page(struct page *page, int mode);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
-diff -puN mm/filemap.c~memory-controller-make-charging-gfp-mask-aware mm/filemap.c
---- a/mm/filemap.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/filemap.c
-@@ -464,7 +464,7 @@ int add_to_page_cache(struct page *page,
+ The memory.failcnt field gives the number of times that the cgroup limit was
+ exceeded.
+@@ -206,8 +225,8 @@ cgroup might have some charge associated
+ tasks have migrated away from it. If some pages are still left, after following
+ the steps listed in sections 4.1 and 4.2, check the Swap Cache usage in
+ /proc/meminfo to see if the Swap Cache usage is showing up in the
+-cgroups memory.usage counter. A simple test of swapoff -a and swapon -a
+-should free any pending Swap Cache usage.
++cgroups memory.usage_in_bytes counter. A simple test of swapoff -a and
++swapon -a should free any pending Swap Cache usage.
  
- 	if (error == 0) {
+ 4.4 Choosing what to account  -- Page Cache (unmapped) vs RSS (mapped)?
  
--		error = mem_cgroup_cache_charge(page, current->mm);
-+		error = mem_cgroup_cache_charge(page, current->mm, gfp_mask);
- 		if (error)
- 			goto out;
- 
-diff -puN mm/memcontrol.c~memory-controller-make-charging-gfp-mask-aware mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/memcontrol.c
-@@ -261,7 +261,8 @@ unsigned long mem_cgroup_isolate_pages(u
-  * 0 if the charge was successful
-  * < 0 if the cgroup is over its limit
+diff -puN include/linux/res_counter.h~memory-controller-improve-user-interface include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memory-controller-improve-user-interface
++++ a/include/linux/res_counter.h
+@@ -23,15 +23,15 @@ struct res_counter {
+ 	/*
+ 	 * the current resource consumption level
+ 	 */
+-	unsigned long usage;
++	unsigned long long usage;
+ 	/*
+ 	 * the limit that usage cannot exceed
+ 	 */
+-	unsigned long limit;
++	unsigned long long limit;
+ 	/*
+ 	 * the number of unsuccessful attempts to consume the resource
+ 	 */
+-	unsigned long failcnt;
++	unsigned long long failcnt;
+ 	/*
+ 	 * the lock to protect all of the above.
+ 	 * the routines below consider this to be IRQ-safe
+@@ -52,9 +52,11 @@ struct res_counter {
   */
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm)
-+int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+				gfp_t gfp_mask)
+ 
+ ssize_t res_counter_read(struct res_counter *counter, int member,
+-		const char __user *buf, size_t nbytes, loff_t *pos);
++		const char __user *buf, size_t nbytes, loff_t *pos,
++		int (*read_strategy)(unsigned long long val, char *s));
+ ssize_t res_counter_write(struct res_counter *counter, int member,
+-		const char __user *buf, size_t nbytes, loff_t *pos);
++		const char __user *buf, size_t nbytes, loff_t *pos,
++		int (*write_strategy)(char *buf, unsigned long long *val));
+ 
+ /*
+  * the field descriptors. one for each member of res_counter
+diff -puN kernel/res_counter.c~memory-controller-improve-user-interface kernel/res_counter.c
+--- a/kernel/res_counter.c~memory-controller-improve-user-interface
++++ a/kernel/res_counter.c
+@@ -16,7 +16,7 @@
+ void res_counter_init(struct res_counter *counter)
  {
- 	struct mem_cgroup *mem;
- 	struct page_cgroup *pc, *race_pc;
-@@ -293,7 +294,7 @@ retry:
+ 	spin_lock_init(&counter->lock);
+-	counter->limit = (unsigned long)LONG_MAX;
++	counter->limit = (unsigned long long)LLONG_MAX;
+ }
  
- 	unlock_page_cgroup(page);
+ int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
+@@ -59,8 +59,8 @@ void res_counter_uncharge(struct res_cou
+ }
  
--	pc = kzalloc(sizeof(struct page_cgroup), GFP_KERNEL);
-+	pc = kzalloc(sizeof(struct page_cgroup), gfp_mask);
- 	if (pc == NULL)
- 		goto err;
  
-@@ -320,7 +321,14 @@ retry:
+-static inline unsigned long *res_counter_member(struct res_counter *counter,
+-						int member)
++static inline unsigned long long *
++res_counter_member(struct res_counter *counter, int member)
+ {
+ 	switch (member) {
+ 	case RES_USAGE:
+@@ -76,24 +76,30 @@ static inline unsigned long *res_counter
+ }
+ 
+ ssize_t res_counter_read(struct res_counter *counter, int member,
+-		const char __user *userbuf, size_t nbytes, loff_t *pos)
++		const char __user *userbuf, size_t nbytes, loff_t *pos,
++		int (*read_strategy)(unsigned long long val, char *st_buf))
+ {
+-	unsigned long *val;
++	unsigned long long *val;
+ 	char buf[64], *s;
+ 
+ 	s = buf;
+ 	val = res_counter_member(counter, member);
+-	s += sprintf(s, "%lu\n", *val);
++	if (read_strategy)
++		s += read_strategy(*val, s);
++	else
++		s += sprintf(s, "%llu\n", *val);
+ 	return simple_read_from_buffer((void __user *)userbuf, nbytes,
+ 			pos, buf, s - buf);
+ }
+ 
+ ssize_t res_counter_write(struct res_counter *counter, int member,
+-		const char __user *userbuf, size_t nbytes, loff_t *pos)
++		const char __user *userbuf, size_t nbytes, loff_t *pos,
++		int (*write_strategy)(char *st_buf, unsigned long long *val))
+ {
+ 	int ret;
+ 	char *buf, *end;
+-	unsigned long tmp, *val;
++	unsigned long flags;
++	unsigned long long tmp, *val;
+ 
+ 	buf = kmalloc(nbytes + 1, GFP_KERNEL);
+ 	ret = -ENOMEM;
+@@ -106,12 +112,20 @@ ssize_t res_counter_write(struct res_cou
+ 		goto out_free;
+ 
+ 	ret = -EINVAL;
+-	tmp = simple_strtoul(buf, &end, 10);
+-	if (*end != '\0')
+-		goto out_free;
+ 
++	if (write_strategy) {
++		if (write_strategy(buf, &tmp)) {
++			goto out_free;
++		}
++	} else {
++		tmp = simple_strtoull(buf, &end, 10);
++		if (*end != '\0')
++			goto out_free;
++	}
++	spin_lock_irqsave(&counter->lock, flags);
+ 	val = res_counter_member(counter, member);
+ 	*val = tmp;
++	spin_unlock_irqrestore(&counter->lock, flags);
+ 	ret = nbytes;
+ out_free:
+ 	kfree(buf);
+diff -puN mm/memcontrol.c~memory-controller-improve-user-interface mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-improve-user-interface
++++ a/mm/memcontrol.c
+@@ -302,7 +302,7 @@ retry:
+ 	 * If we created the page_cgroup, we should free it on exceeding
  	 * the cgroup limit.
  	 */
- 	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
--		if (try_to_free_mem_cgroup_pages(mem))
-+		bool is_atomic = gfp_mask & GFP_ATOMIC;
-+		/*
-+		 * We cannot reclaim under GFP_ATOMIC, fail the charge
-+		 */
-+		if (is_atomic)
-+			goto noreclaim;
-+
-+		if (try_to_free_mem_cgroup_pages(mem, gfp_mask))
+-	while (res_counter_charge(&mem->res, 1)) {
++	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
+ 		if (try_to_free_mem_cgroup_pages(mem))
  			continue;
  
- 		/*
-@@ -344,9 +352,10 @@ retry:
- 			congestion_wait(WRITE, HZ/10);
- 			continue;
- 		}
--
-+noreclaim:
+@@ -341,7 +341,7 @@ retry:
+ 		kfree(pc);
+ 		pc = race_pc;
+ 		atomic_inc(&pc->ref_cnt);
+-		res_counter_uncharge(&mem->res, 1);
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
  		css_put(&mem->css);
--		mem_cgroup_out_of_memory(mem, GFP_KERNEL);
-+		if (!is_atomic)
-+			mem_cgroup_out_of_memory(mem, GFP_KERNEL);
- 		goto free_pc;
+ 		goto done;
  	}
+@@ -384,7 +384,7 @@ void mem_cgroup_uncharge(struct page_cgr
+ 		css_put(&mem->css);
+ 		page_assign_page_cgroup(page, NULL);
+ 		unlock_page_cgroup(page);
+-		res_counter_uncharge(&mem->res, 1);
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
  
-@@ -385,7 +394,8 @@ err:
- /*
-  * See if the cached pages should be charged at all?
-  */
--int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm)
-+int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-+				gfp_t gfp_mask)
- {
- 	struct mem_cgroup *mem;
- 	if (!mm)
-@@ -393,7 +403,7 @@ int mem_cgroup_cache_charge(struct page 
- 
- 	mem = rcu_dereference(mm->mem_cgroup);
- 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
--		return mem_cgroup_charge(page, mm);
-+		return mem_cgroup_charge(page, mm, gfp_mask);
- 	else
- 		return 0;
+  		spin_lock_irqsave(&mem->lru_lock, flags);
+  		list_del_init(&pc->lru);
+@@ -393,12 +393,26 @@ void mem_cgroup_uncharge(struct page_cgr
+ 	}
  }
-diff -puN mm/memory.c~memory-controller-make-charging-gfp-mask-aware mm/memory.c
---- a/mm/memory.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/memory.c
-@@ -1147,7 +1147,7 @@ static int insert_page(struct mm_struct 
- 	pte_t *pte;
- 	spinlock_t *ptl;
  
--	retval = mem_cgroup_charge(page, mm);
-+	retval = mem_cgroup_charge(page, mm, GFP_KERNEL);
- 	if (retval)
- 		goto out;
- 
-@@ -1650,7 +1650,7 @@ gotten:
- 	cow_user_page(new_page, old_page, address, vma);
- 	__SetPageUptodate(new_page);
- 
--	if (mem_cgroup_charge(new_page, mm))
-+	if (mem_cgroup_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
- 
- 	/*
-@@ -2052,7 +2052,7 @@ static int do_swap_page(struct mm_struct
- 		count_vm_event(PGMAJFAULT);
- 	}
- 
--	if (mem_cgroup_charge(page, mm)) {
-+	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
- 		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 		ret = VM_FAULT_OOM;
- 		goto out;
-@@ -2139,7 +2139,7 @@ static int do_anonymous_page(struct mm_s
- 		goto oom;
- 	__SetPageUptodate(page);
- 
--	if (mem_cgroup_charge(page, mm))
-+	if (mem_cgroup_charge(page, mm, GFP_KERNEL))
- 		goto oom_free_page;
- 
- 	entry = mk_pte(page, vma->vm_page_prot);
-@@ -2277,7 +2277,7 @@ static int __do_fault(struct mm_struct *
- 
- 	}
- 
--	if (mem_cgroup_charge(page, mm)) {
-+	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
- 		ret = VM_FAULT_OOM;
- 		goto out;
- 	}
-diff -puN mm/migrate.c~memory-controller-make-charging-gfp-mask-aware mm/migrate.c
---- a/mm/migrate.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/migrate.c
-@@ -153,7 +153,7 @@ static void remove_migration_pte(struct 
-  		return;
-  	}
- 
--	if (mem_cgroup_charge(new, mm)) {
-+	if (mem_cgroup_charge(new, mm, GFP_KERNEL)) {
- 		pte_unmap(ptep);
- 		return;
- 	}
-diff -puN mm/swap_state.c~memory-controller-make-charging-gfp-mask-aware mm/swap_state.c
---- a/mm/swap_state.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/swap_state.c
-@@ -78,7 +78,7 @@ int add_to_swap_cache(struct page *page,
- 	error = radix_tree_preload(gfp_mask);
- 	if (!error) {
- 
--		error = mem_cgroup_cache_charge(page, current->mm);
-+		error = mem_cgroup_cache_charge(page, current->mm, gfp_mask);
- 		if (error)
- 			goto out;
- 
-diff -puN mm/swapfile.c~memory-controller-make-charging-gfp-mask-aware mm/swapfile.c
---- a/mm/swapfile.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/swapfile.c
-@@ -510,7 +510,7 @@ unsigned int count_swap_pages(int type, 
- static int unuse_pte(struct vm_area_struct *vma, pte_t *pte,
- 		unsigned long addr, swp_entry_t entry, struct page *page)
+-static ssize_t mem_cgroup_read(struct cgroup *cont, struct cftype *cft,
+-			struct file *file, char __user *userbuf, size_t nbytes,
+-			loff_t *ppos)
++int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
++{
++	*tmp = memparse(buf, &buf);
++	if (*buf != '\0')
++		return -EINVAL;
++
++	/*
++	 * Round up the value to the closest page size
++	 */
++	*tmp = ((*tmp + PAGE_SIZE - 1) >> PAGE_SHIFT) << PAGE_SHIFT;
++	return 0;
++}
++
++static ssize_t mem_cgroup_read(struct cgroup *cont,
++			struct cftype *cft, struct file *file,
++			char __user *userbuf, size_t nbytes, loff_t *ppos)
  {
--	if (mem_cgroup_charge(page, vma->vm_mm))
-+	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
- 		return -ENOMEM;
+ 	return res_counter_read(&mem_cgroup_from_cont(cont)->res,
+-				cft->private, userbuf, nbytes, ppos);
++				cft->private, userbuf, nbytes, ppos,
++				NULL);
+ }
  
- 	inc_mm_counter(vma->vm_mm, anon_rss);
-diff -puN mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware mm/vmscan.c
---- a/mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware
-+++ a/mm/vmscan.c
-@@ -1337,16 +1337,11 @@ unsigned long try_to_free_pages(struct z
- 
- #ifdef CONFIG_CGROUP_MEM_CONT
- 
--#ifdef CONFIG_HIGHMEM
--#define ZONE_USERPAGES ZONE_HIGHMEM
--#else
--#define ZONE_USERPAGES ZONE_NORMAL
--#endif
--
--unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont)
-+unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
-+						gfp_t gfp_mask)
+ static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
+@@ -406,17 +420,18 @@ static ssize_t mem_cgroup_write(struct c
+ 				size_t nbytes, loff_t *ppos)
  {
- 	struct scan_control sc = {
--		.gfp_mask = GFP_KERNEL,
-+		.gfp_mask = gfp_mask,
- 		.may_writepage = !laptop_mode,
- 		.may_swap = 1,
- 		.swap_cluster_max = SWAP_CLUSTER_MAX,
-@@ -1357,9 +1352,10 @@ unsigned long try_to_free_mem_cgroup_pag
- 	};
- 	int node;
- 	struct zone **zones;
-+	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
+ 	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
+-				cft->private, userbuf, nbytes, ppos);
++				cft->private, userbuf, nbytes, ppos,
++				mem_cgroup_write_strategy);
+ }
  
- 	for_each_online_node(node) {
--		zones = NODE_DATA(node)->node_zonelists[ZONE_USERPAGES].zones;
-+		zones = NODE_DATA(node)->node_zonelists[target_zone].zones;
- 		if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
- 			return 1;
- 	}
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+-		.name = "usage",
++		.name = "usage_in_bytes",
+ 		.private = RES_USAGE,
+ 		.read = mem_cgroup_read,
+ 	},
+ 	{
+-		.name = "limit",
++		.name = "limit_in_bytes",
+ 		.private = RES_LIMIT,
+ 		.write = mem_cgroup_write,
+ 		.read = mem_cgroup_read,
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
