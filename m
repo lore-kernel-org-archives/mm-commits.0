@@ -1,92 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-mm_context-memory-leak.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:21:12 -0800
-Message-ID: <200802082020.m18KKrWh011264@imap1.linux-foundation.org>
+Subject: - char-applicom-use-pci_match_id.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:21 -0800
+Message-ID: <200802082020.m18KK2A4011131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932890AbYBHUlc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:41:32 -0500
+	by vger.kernel.org with ESMTP id S1762047AbYBHUlk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:41:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, dwmw2@infradead.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix mm_context memory leak
+     Char: applicom, use pci_match_id
 has been removed from the -mm tree.  Its filename was
-     uml-fix-mm_context-memory-leak.patch
+     char-applicom-use-pci_match_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix mm_context memory leak
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Char: applicom, use pci_match_id
+From: Jiri Slaby <jirislaby@gmail.com>
 
-[ Spotted by Miklos ]
+Instead of testing hardcoded values, use pci_match_id to reference the
+pci_device_id table. Sideways, it allows easy new additions to the table.
 
-Fix a memory leak in init_new_context.  The struct page ** buffer allocated
-for install_special_mapping was never recorded, and thus leaked when the
-mm_struct was freed.  Fix it by saving the pointer in mm_context_t and freeing
-it in arch_exit_mmap.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+[akpm@linux-foundation.org: remove wrongly-added semicolon]
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/um_mmu.h  |    1 +
- arch/um/kernel/skas/mmu.c |    5 +++++
- 2 files changed, 6 insertions(+)
+ drivers/char/applicom.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/include/um_mmu.h~uml-fix-mm_context-memory-leak arch/um/include/um_mmu.h
---- a/arch/um/include/um_mmu.h~uml-fix-mm_context-memory-leak
-+++ a/arch/um/include/um_mmu.h
-@@ -13,6 +13,7 @@
- typedef struct mm_context {
- 	struct mm_id id;
- 	struct uml_ldt ldt;
-+	struct page **stub_pages;
- } mm_context_t;
+diff -puN drivers/char/applicom.c~char-applicom-use-pci_match_id drivers/char/applicom.c
+--- a/drivers/char/applicom.c~char-applicom-use-pci_match_id
++++ a/drivers/char/applicom.c
+@@ -57,7 +57,6 @@
+ #define PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN 0x0002
+ #define PCI_DEVICE_ID_APPLICOM_PCI2000PFB     0x0003
+ #endif
+-#define MAX_PCI_DEVICE_NUM 3
  
- extern void __switch_mm(struct mm_id * mm_idp);
-diff -puN arch/um/kernel/skas/mmu.c~uml-fix-mm_context-memory-leak arch/um/kernel/skas/mmu.c
---- a/arch/um/kernel/skas/mmu.c~uml-fix-mm_context-memory-leak
-+++ a/arch/um/kernel/skas/mmu.c
-@@ -91,6 +91,8 @@ int init_new_context(struct task_struct 
- 		goto out_free;
- 	}
+ static char *applicom_pci_devnames[] = {
+ 	"PCI board",
+@@ -66,12 +65,9 @@ static char *applicom_pci_devnames[] = {
+ };
  
-+	to_mm->stub_pages = NULL;
-+
- 	return 0;
+ static struct pci_device_id applicom_pci_tbl[] = {
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCIGENERIC,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+-	{ PCI_VENDOR_ID_APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000PFB,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCIGENERIC) },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000IBS_CAN) },
++	{ PCI_VDEVICE(APPLICOM, PCI_DEVICE_ID_APPLICOM_PCI2000PFB) },
+ 	{ 0 }
+ };
+ MODULE_DEVICE_TABLE(pci, applicom_pci_tbl);
+@@ -197,10 +193,7 @@ static int __init applicom_init(void)
  
-  out_free:
-@@ -126,6 +128,7 @@ void arch_dup_mmap(struct mm_struct *old
+ 	while ( (dev = pci_get_class(PCI_CLASS_OTHERS << 16, dev))) {
  
- 	pages[0] = virt_to_page(&__syscall_stub_start);
- 	pages[1] = virt_to_page(mm->context.id.stack);
-+	mm->context.stub_pages = pages;
- 
- 	/* dup_mmap already holds mmap_sem */
- 	err = install_special_mapping(mm, STUB_START, STUB_END - STUB_START,
-@@ -147,6 +150,8 @@ void arch_exit_mmap(struct mm_struct *mm
- {
- 	pte_t *pte;
- 
-+	if (mm->context.stub_pages != NULL)
-+		kfree(mm->context.stub_pages);
- 	pte = virt_to_pte(mm, STUB_CODE);
- 	if (pte != NULL)
- 		pte_clear(mm, STUB_CODE, pte);
+-		if (dev->vendor != PCI_VENDOR_ID_APPLICOM)
+-			continue;
+-		
+-		if (dev->device  > MAX_PCI_DEVICE_NUM || dev->device == 0)
++		if (!pci_match_id(applicom_pci_tbl, dev))
+ 			continue;
+ 		
+ 		if (pci_enable_device(dev))
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-kvm.patch
-uml-update-defconfig.patch
-random-add-async-notification-support-to-dev-random.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-watchdog.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
