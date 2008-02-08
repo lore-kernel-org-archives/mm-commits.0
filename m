@@ -1,69 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace_stop-fix-the-race-with-ptrace-detachattach.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:28 -0800
-Message-ID: <200802082013.m18KD9wL010266@imap1.linux-foundation.org>
+Subject: - maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:21 -0800
+Message-ID: <200802082018.m18KI2ub010889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47107 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752376AbYBHUuV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:21 -0500
+	by vger.kernel.org with ESMTP id S1753026AbYBHUu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:50:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, linux@maxim.org.za, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace_stop: fix the race with ptrace detach+attach
+     MAINTAINERS: add Haavard as maintainer of the atmel_serial driver
 has been removed from the -mm tree.  Its filename was
-     ptrace_stop-fix-the-race-with-ptrace-detachattach.patch
+     maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_stop: fix the race with ptrace detach+attach
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: MAINTAINERS: add Haavard as maintainer of the atmel_serial driver
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-If the tracer went away (may_ptrace_stop() failed), ptrace_stop() drops
-tasklist and then changes the ->state from TASK_TRACED to TASK_RUNNING.
+The following patchset cleans up the atmel_serial driver a bit, moves a
+significant portion of the interrupt handler into a tasklet, and adds DMA
+support.  This is the result of a combined effort by Chip Coldwell, Remy
+Bohmer and me.  The patches should apply cleanly onto Linus' latest git tree,
+and I've also tested it on -mm (with a couple of avr32 fixes applied to make
+the rest of the tree compile.)
 
-This can fool another tracer which attaches to us in between.  Change the
-->state under tasklist_lock to ensure that ptrace_check_attach() can't wrongly
-succeed.  Also, remove the unnecessary mb().
+With DMA, I see transfer rates around 92 kbps when transferring a big file
+using ZModem (both directions are roughly the same.) I've also tested the same
+thing with a bunch of debug options enabled.  The transfer rate is slightly
+lower, but no errors are reported.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland Dreier <rolandd@cisco.com>
+Note that break and error handling doesn't work too well with DMA enabled. 
+This is a common problem with all the efforts I've seen adding DMA support to
+this driver (including my own).  The PDC error handling also accesses icount
+without locking.  I'm tempted to just ignore the problem for now and hopefully
+come up with a solution later.
+
+
+This patch:
+
+The atmel_serial driver never had a MAINTAINERS entry, although Andrew Victor
+has effectively been acting as a maintainer since he got the driver merged
+into mainline in the first place.
+
+I'll keep Cc'ing Andrew on all patches, but I'm going to take the main
+responsibility for getting things moving upstream from now on.
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Andrew Victor <linux@maxim.org.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach kernel/signal.c
---- a/kernel/signal.c~ptrace_stop-fix-the-race-with-ptrace-detachattach
-+++ a/kernel/signal.c
-@@ -1638,11 +1638,11 @@ static void ptrace_stop(int exit_code, i
- 	} else {
- 		/*
- 		 * By the time we got the lock, our tracer went away.
--		 * Don't stop here.
-+		 * Don't drop the lock yet, another tracer may come.
- 		 */
--		read_unlock(&tasklist_lock);
--		set_current_state(TASK_RUNNING);
-+		__set_current_state(TASK_RUNNING);
- 		current->exit_code = nostop_code;
-+		read_unlock(&tasklist_lock);
- 	}
+diff -puN MAINTAINERS~maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-haavard-as-maintainer-of-the-atmel_serial-driver
++++ a/MAINTAINERS
+@@ -688,6 +688,12 @@ W:	http://www.atmel.com/products/AT91/
+ W:	http://www.at91.com/
+ S:	Maintained
  
- 	/*
++ATMEL AT91 / AT32 SERIAL DRIVER
++P:	Haavard Skinnemoen
++M:	hskinnemoen@atmel.com
++L:	linux-kernel@vger.kernel.org
++S:	Supported
++
+ ATMEL LCDFB DRIVER
+ P:	Nicolas Ferre
+ M:	nicolas.ferre@atmel.com
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+git-avr32.patch
