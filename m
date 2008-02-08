@@ -1,125 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - moxa-first-pass-at-termios-reporting.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:34 -0800
-Message-ID: <200802082012.m18KCFtJ010186@imap1.linux-foundation.org>
+Subject: - kill-pt_attached.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:13:21 -0800
+Message-ID: <200802082013.m18KD2Bu010257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756212AbYBHVBa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:01:30 -0500
+	by vger.kernel.org with ESMTP id S1757531AbYBHVB1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:01:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, hch@lst.de, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     moxa: first pass at termios reporting
+     kill PT_ATTACHED
 has been removed from the -mm tree.  Its filename was
-     moxa-first-pass-at-termios-reporting.patch
+     kill-pt_attached.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: moxa: first pass at termios reporting
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: kill PT_ATTACHED
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Since the patch
+
+	"Fix ptrace_attach()/ptrace_traceme()/de_thread() race"
+	commit f5b40e363ad6041a96e3da32281d8faa191597b9
+
+we set PT_ATTACHED and change child->parent "atomically" wrt task_list lock.
+
+This means we can remove the checks like "PT_ATTACHED && ->parent != ptracer"
+which were needed to catch the "ptrace attach is in progress" case.  We can
+also remove the flag itself since nobody else uses it.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ include/linux/ptrace.h |    1 -
+ kernel/exit.c          |   13 +------------
+ kernel/ptrace.c        |    6 ++----
+ kernel/signal.c        |    5 -----
+ 4 files changed, 3 insertions(+), 22 deletions(-)
 
-diff -puN drivers/char/moxa.c~moxa-first-pass-at-termios-reporting drivers/char/moxa.c
---- a/drivers/char/moxa.c~moxa-first-pass-at-termios-reporting
-+++ a/drivers/char/moxa.c
-@@ -207,7 +207,7 @@ static int moxa_tiocmget(struct tty_stru
- static int moxa_tiocmset(struct tty_struct *tty, struct file *file,
- 			 unsigned int set, unsigned int clear);
- static void moxa_poll(unsigned long);
--static void moxa_set_tty_param(struct tty_struct *);
-+static void moxa_set_tty_param(struct tty_struct *, struct ktermios *);
- static int moxa_block_till_ready(struct tty_struct *, struct file *,
- 			    struct moxa_port *);
- static void moxa_setup_empty_event(struct tty_struct *);
-@@ -500,7 +500,7 @@ static int moxa_open(struct tty_struct *
- 	ch->tty = tty;
- 	if (!(ch->asyncflags & ASYNC_INITIALIZED)) {
- 		ch->statusflags = 0;
--		moxa_set_tty_param(tty);
-+		moxa_set_tty_param(tty, tty->termios);
- 		MoxaPortLineCtrl(ch->port, 1, 1);
- 		MoxaPortEnable(ch->port);
- 		ch->asyncflags |= ASYNC_INITIALIZED;
-@@ -803,7 +803,7 @@ static void moxa_set_termios(struct tty_
+diff -puN include/linux/ptrace.h~kill-pt_attached include/linux/ptrace.h
+--- a/include/linux/ptrace.h~kill-pt_attached
++++ a/include/linux/ptrace.h
+@@ -67,7 +67,6 @@
+ #define PT_TRACE_EXEC	0x00000080
+ #define PT_TRACE_VFORK_DONE	0x00000100
+ #define PT_TRACE_EXIT	0x00000200
+-#define PT_ATTACHED	0x00000400	/* parent != real_parent */
  
- 	if (ch == NULL)
- 		return;
--	moxa_set_tty_param(tty);
-+	moxa_set_tty_param(tty, old_termios);
- 	if (!(old_termios->c_cflag & CLOCAL) &&
- 	    (tty->termios->c_cflag & CLOCAL))
- 		wake_up_interruptible(&ch->open_wait);
-@@ -903,11 +903,11 @@ static void moxa_poll(unsigned long igno
+ #define PT_TRACE_MASK	0x000003f4
  
- /******************************************************************************/
+diff -puN kernel/exit.c~kill-pt_attached kernel/exit.c
+--- a/kernel/exit.c~kill-pt_attached
++++ a/kernel/exit.c
+@@ -1514,18 +1514,7 @@ static int wait_task_continued(struct ta
  
--static void moxa_set_tty_param(struct tty_struct *tty)
-+static void moxa_set_tty_param(struct tty_struct *tty, struct ktermios *old_termios)
+ static inline int my_ptrace_child(struct task_struct *p)
  {
- 	register struct ktermios *ts;
- 	struct moxa_port *ch;
--	int rts, cts, txflow, rxflow, xany;
-+	int rts, cts, txflow, rxflow, xany, baud;
- 
- 	ch = (struct moxa_port *) tty->driver_data;
- 	ts = tty->termios;
-@@ -924,8 +924,15 @@ static void moxa_set_tty_param(struct tt
- 		rxflow = 1;
- 	if (ts->c_iflag & IXANY)
- 		xany = 1;
-+
-+	/* Clear the features we don't support */
-+	ts->c_cflag &= ~CMSPAR;
- 	MoxaPortFlowCtrl(ch->port, rts, cts, txflow, rxflow, xany);
--	MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
-+	baud = MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
-+	if (baud == -1)
-+		baud = tty_termios_baud_rate(old_termios);
-+	/* Not put the baud rate into the termios data */
-+	tty_encode_baud_rate(tty, baud, baud);
+-	if (!(p->ptrace & PT_PTRACED))
+-		return 0;
+-	if (!(p->ptrace & PT_ATTACHED))
+-		return 1;
+-	/*
+-	 * This child was PTRACE_ATTACH'd.  We should be seeing it only if
+-	 * we are the attacher.  If we are the real parent, this is a race
+-	 * inside ptrace_attach.  It is waiting for the tasklist_lock,
+-	 * which we have to switch the parent links, but has already set
+-	 * the flags in p->ptrace.
+-	 */
+-	return (p->parent != p->real_parent);
++	return p->ptrace & PT_PTRACED;
  }
  
- static int moxa_block_till_ready(struct tty_struct *tty, struct file *filp,
-@@ -2065,7 +2072,7 @@ int MoxaPortSetTermio(int port, struct k
- 		if (baud >= 921600L)
- 			return (-1);
- 	}
--	MoxaPortSetBaud(port, baud);
-+	baud = MoxaPortSetBaud(port, baud);
+ static long do_wait(pid_t pid, int options, struct siginfo __user *infop,
+diff -puN kernel/ptrace.c~kill-pt_attached kernel/ptrace.c
+--- a/kernel/ptrace.c~kill-pt_attached
++++ a/kernel/ptrace.c
+@@ -100,8 +100,7 @@ int ptrace_check_attach(struct task_stru
+ 	 */
+ 	read_lock(&tasklist_lock);
+ 	if ((child->ptrace & PT_PTRACED) && child->parent == current &&
+-	    (!(child->ptrace & PT_ATTACHED) || child->real_parent != current)
+-	    && child->signal != NULL) {
++	     child->signal != NULL) {
+ 		ret = 0;
+ 		spin_lock_irq(&child->sighand->siglock);
+ 		if (task_is_stopped(child))
+@@ -200,8 +199,7 @@ repeat:
+ 		goto bad;
  
- 	if (termio->c_iflag & (IXON | IXOFF | IXANY)) {
- 		writeb(termio->c_cc[VSTART], ofsAddr + FuncArg);
-@@ -2074,7 +2081,7 @@ int MoxaPortSetTermio(int port, struct k
- 		moxa_wait_finish(ofsAddr);
+ 	/* Go */
+-	task->ptrace |= PT_PTRACED | ((task->real_parent != current)
+-				      ? PT_ATTACHED : 0);
++	task->ptrace |= PT_PTRACED;
+ 	if (capable(CAP_SYS_PTRACE))
+ 		task->ptrace |= PT_PTRACE_CAP;
  
- 	}
--	return (0);
-+	return (baud);
- }
- 
- int MoxaPortGetLineOut(int port, int *dtrState, int *rtsState)
+diff -puN kernel/signal.c~kill-pt_attached kernel/signal.c
+--- a/kernel/signal.c~kill-pt_attached
++++ a/kernel/signal.c
+@@ -1556,11 +1556,6 @@ static inline int may_ptrace_stop(void)
+ {
+ 	if (!likely(current->ptrace & PT_PTRACED))
+ 		return 0;
+-
+-	if (unlikely(current->parent == current->real_parent &&
+-		    (current->ptrace & PT_ATTACHED)))
+-		return 0;
+-
+ 	/*
+ 	 * Are we in the middle of do_coredump?
+ 	 * If so and our tracer is also part of the coredump stopping
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
+revert-proc-fix-the-threaded-proc-self.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
