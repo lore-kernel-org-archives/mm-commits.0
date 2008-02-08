@@ -1,92 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - add-an-err_cast-function-to-complement-err_ptr-and-co.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:07:06 -0800
-Message-ID: <200802080806.m1886lCn014481@imap1.linux-foundation.org>
+Subject: - dz-handle-special-conditions-on-reception-correctly.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:27 -0800
+Message-ID: <200802080806.m18868Zc014408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51823 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932268AbYBHIT6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:58 -0500
+	by vger.kernel.org with ESMTP id S1761535AbYBHITv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add an ERR_CAST() function to complement ERR_PTR and co.
+     dz: handle special conditions on reception correctly
 has been removed from the -mm tree.  Its filename was
-     add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+     dz-handle-special-conditions-on-reception-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add an ERR_CAST() function to complement ERR_PTR and co.
-From: David Howells <dhowells@redhat.com>
+Subject: dz: handle special conditions on reception correctly
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Add an ERR_CAST() function to complement ERR_PTR and co.  for the purposes
-of casting an error entyped as one pointer type to an error of another
-pointer type whilst making it explicit as to what is going on.
+Handle the read and ignore status masks correctly.  Handle the BREAK condition
+as expected: a framing error with a null character is a BREAK, any other
+framing error is a framing error indeed.
 
-This provides a replacement for the ERR_PTR(PTR_ERR(p)) construct.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/serial/dz.c |   82 ++++++++++++++++++++++--------------------
+ drivers/serial/dz.h |    2 +
+ 2 files changed, 46 insertions(+), 38 deletions(-)
 
-diff -puN include/linux/err.h~add-an-err_cast-function-to-complement-err_ptr-and-co include/linux/err.h
---- a/include/linux/err.h~add-an-err_cast-function-to-complement-err_ptr-and-co
-+++ a/include/linux/err.h
-@@ -34,6 +34,19 @@ static inline long IS_ERR(const void *pt
- 	return IS_ERR_VALUE((unsigned long)ptr);
- }
+diff -puN drivers/serial/dz.c~dz-handle-special-conditions-on-reception-correctly drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dz-handle-special-conditions-on-reception-correctly
++++ a/drivers/serial/dz.c
+@@ -166,6 +166,7 @@ static void dz_enable_ms(struct uart_por
+  */
+ static inline void dz_receive_chars(struct dz_port *dport_in)
+ {
++	struct uart_port *uport;
+ 	struct dz_port *dport;
+ 	struct tty_struct *tty = NULL;
+ 	struct uart_icount *icount;
+@@ -176,57 +177,56 @@ static inline void dz_receive_chars(stru
  
-+/**
-+ * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
-+ * @ptr: The pointer to cast.
-+ *
-+ * Explicitly cast an error-valued pointer to another pointer type in such a
-+ * way as to make it clear that's what's going on.
-+ */
-+static inline void *ERR_CAST(const void *ptr)
-+{
-+	/* cast away the const */
-+	return (void *) ptr;
-+}
+ 	while ((status = dz_in(dport_in, DZ_RBUF)) & DZ_DVAL) {
+ 		dport = &dz_ports[LINE(status)];
+-		tty = dport->port.info->tty;	/* point to the proper dev */
++		uport = &dport->port;
++		tty = uport->info->tty;		/* point to the proper dev */
+ 
+ 		ch = UCHAR(status);		/* grab the char */
++		flag = TTY_NORMAL;
+ 
+-		icount = &dport->port.icount;
++		icount = &uport->icount;
+ 		icount->rx++;
+ 
+-		flag = TTY_NORMAL;
+-		if (status & DZ_FERR) {		/* frame error */
++		if (unlikely(status & (DZ_OERR | DZ_FERR | DZ_PERR))) {
 +
- #endif
+ 			/*
+-			 * There is no separate BREAK status bit, so
+-			 * treat framing errors as BREAKs for Magic SysRq
+-			 * and SAK; normally, otherwise.
++			 * There is no separate BREAK status bit, so treat
++			 * null characters with framing errors as BREAKs;
++			 * normally, otherwise.  For this move the Framing
++			 * Error bit to a simulated BREAK bit.
+ 			 */
+-			if (uart_handle_break(&dport->port))
+-				continue;
+-			if (dport->port.flags & UPF_SAK)
++			if (!ch) {
++				status |= (status & DZ_FERR) >>
++					  (ffs(DZ_FERR) - ffs(DZ_BREAK));
++				status &= ~DZ_FERR;
++			}
++
++			/* Handle SysRq/SAK & keep track of the statistics. */
++			if (status & DZ_BREAK) {
++				icount->brk++;
++				if (uart_handle_break(uport))
++					continue;
++			} else if (status & DZ_FERR)
++				icount->frame++;
++			else if (status & DZ_PERR)
++				icount->parity++;
++			if (status & DZ_OERR)
++				icount->overrun++;
++
++			status &= uport->read_status_mask;
++			if (status & DZ_BREAK)
+ 				flag = TTY_BREAK;
+-			else
++			else if (status & DZ_FERR)
+ 				flag = TTY_FRAME;
+-		} else if (status & DZ_OERR)	/* overrun error */
+-			flag = TTY_OVERRUN;
+-		else if (status & DZ_PERR)	/* parity error */
+-			flag = TTY_PARITY;
+-
+-		/* keep track of the statistics */
+-		switch (flag) {
+-		case TTY_FRAME:
+-			icount->frame++;
+-			break;
+-		case TTY_PARITY:
+-			icount->parity++;
+-			break;
+-		case TTY_OVERRUN:
+-			icount->overrun++;
+-			break;
+-		case TTY_BREAK:
+-			icount->brk++;
+-			break;
+-		default:
+-			break;
++			else if (status & DZ_PERR)
++				flag = TTY_PARITY;
++
+ 		}
  
- #endif /* _LINUX_ERR_H */
+-		if (uart_handle_sysrq_char(&dport->port, ch))
++		if (uart_handle_sysrq_char(uport, ch))
+ 			continue;
+ 
+-		if ((status & dport->port.ignore_status_mask) == 0) {
+-			uart_insert_char(&dport->port,
+-					 status, DZ_OERR, ch, flag);
+-			lines_rx[LINE(status)] = 1;
+-		}
++		uart_insert_char(uport, status, DZ_OERR, ch, flag);
++		lines_rx[LINE(status)] = 1;
+ 	}
+ 	for (i = 0; i < DZ_NB_PORT; i++)
+ 		if (lines_rx[i])
+@@ -556,11 +556,17 @@ static void dz_set_termios(struct uart_p
+ 	dport->port.read_status_mask = DZ_OERR;
+ 	if (termios->c_iflag & INPCK)
+ 		dport->port.read_status_mask |= DZ_FERR | DZ_PERR;
++	if (termios->c_iflag & (BRKINT | PARMRK))
++		dport->port.read_status_mask |= DZ_BREAK;
+ 
+ 	/* characters to ignore */
+ 	uport->ignore_status_mask = 0;
++	if ((termios->c_iflag & (IGNPAR | IGNBRK)) == (IGNPAR | IGNBRK))
++		dport->port.ignore_status_mask |= DZ_OERR;
+ 	if (termios->c_iflag & IGNPAR)
+ 		dport->port.ignore_status_mask |= DZ_FERR | DZ_PERR;
++	if (termios->c_iflag & IGNBRK)
++		dport->port.ignore_status_mask |= DZ_BREAK;
+ 
+ 	spin_unlock_irqrestore(&dport->port.lock, flags);
+ }
+diff -puN drivers/serial/dz.h~dz-handle-special-conditions-on-reception-correctly drivers/serial/dz.h
+--- a/drivers/serial/dz.h~dz-handle-special-conditions-on-reception-correctly
++++ a/drivers/serial/dz.h
+@@ -33,6 +33,8 @@
+ #define DZ_FERR        0x2000                 /* Frame error indicator */
+ #define DZ_PERR        0x1000                 /* Parity error indicator */
+ 
++#define DZ_BREAK       0x0800                 /* BREAK event software flag */
++
+ #define LINE(x) ((x & DZ_LINE_MASK) >> 8)     /* Get the line number
+                                                  from the input buffer */
+ #define UCHAR(x) ((unsigned char)(x & DZ_RBUF_MASK))
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix-2.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-tty-let-architectures-override-the-user-kernel-macros.patch
-aout-move-stack_top-to-asm-processorh.patch
-aout-mark-arches-that-support-aout-format.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout.patch
-aout-suppress-aout-library-support-if-config_arch_supports_aout-uml-re-remove-accidentally-restored-code.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth.patch
-aout-remove-unnecessary-inclusions-of-asm-linux-aouth-alpha-fix.patch
-usb-net2280-cant-have-a-function-called-show_registers.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial-ports.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-platform-mtd-support-for-the-asb2303-board.patch
-fs-afs-securityc-fix-uninitialized-var-warning.patch
-procfs-constify-function-pointer-tables.patch
-avoid-overflows-in-kernel-timec.patch
-mount-options-fix-afs.patch
-remove-aout-interpreter-support-in-elf-loader.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
