@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-bkl-pushdown-fix1.patch added to -mm tree
-Date: Fri, 08 Feb 2008 14:08:40 -0800
-Message-ID: <200802082208.m18M8ev6015981@imap1.linux-foundation.org>
+Subject: + tty-bkl-pushdown-fix.patch added to -mm tree
+Date: Fri, 08 Feb 2008 14:09:57 -0800
+Message-ID: <200802082209.m18M9vqA016006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761604AbYBHWJj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:09:39 -0500
+	by vger.kernel.org with ESMTP id S1758029AbYBHWKa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:10:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     tty: BKL pushdown fix1
+     tty: BKL pushdown fix
 has been added to the -mm tree.  Its filename is
-     tty-bkl-pushdown-fix1.patch
+     tty-bkl-pushdown-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: BKL pushdown fix1
+Subject: tty: BKL pushdown fix
 From: Jiri Slaby <jirislaby@gmail.com>
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_io.c |    8 +++++---
+ drivers/char/vt.c     |    4 ++--
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/compat_ioctl.c~tty-bkl-pushdown-fix1 fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~tty-bkl-pushdown-fix1
-+++ a/fs/compat_ioctl.c
-@@ -1046,7 +1046,7 @@ static int vt_check(struct file *file)
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct vc_data *vc;
- 	
--	if (file->f_op->ioctl != tty_ioctl)
-+	if (file->f_op->unlocked_ioctl != tty_ioctl)
- 		return -EINVAL;
- 	                
- 	tty = (struct tty_struct *)file->private_data;
+diff -puN drivers/char/tty_io.c~tty-bkl-pushdown-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-bkl-pushdown-fix
++++ a/drivers/char/tty_io.c
+@@ -1207,8 +1207,8 @@ static unsigned int hung_up_tty_poll(str
+ 	return POLLIN | POLLOUT | POLLERR | POLLHUP | POLLRDNORM | POLLWRNORM;
+ }
+ 
+-static long hung_up_tty_ioctl(struct inode *inode, struct file *file,
+-			     unsigned int cmd, unsigned long arg)
++static long hung_up_tty_ioctl(struct file *file, unsigned int cmd,
++		unsigned long arg)
+ {
+ 	return cmd == TIOCSPGRP ? -ENOTTY : -EIO;
+ }
+@@ -1262,7 +1262,7 @@ static const struct file_operations hung
+ 	.read		= hung_up_tty_read,
+ 	.write		= hung_up_tty_write,
+ 	.poll		= hung_up_tty_poll,
+-	.ioctl		= hung_up_tty_ioctl,
++	.unlocked_ioctl	= hung_up_tty_ioctl,
+ 	.compat_ioctl	= hung_up_tty_compat_ioctl,
+ 	.release	= tty_release,
+ };
+@@ -3215,6 +3215,8 @@ static int tiocsetd(struct tty_struct *t
+ 	lock_kernel();
+ 	ret = tty_set_ldisc(tty, ldisc);
+ 	unlock_kernel();
++
++	return ret;
+ }
+ 
+ /**
+diff -puN drivers/char/vt.c~tty-bkl-pushdown-fix drivers/char/vt.c
+--- a/drivers/char/vt.c~tty-bkl-pushdown-fix
++++ a/drivers/char/vt.c
+@@ -2553,7 +2553,7 @@ int tioclinux(struct tty_struct *tty, un
+ 			ret = sel_loadlut(p);
+ 			break;
+ 		case TIOCL_GETSHIFTSTATE:
+-			
++
+ 	/*
+ 	 * Make it possible to react to Shift+Mousebutton.
+ 	 * Note that 'shift_state' is an undocumented
+@@ -3823,7 +3823,7 @@ static int con_font_get(struct vc_data *
+ 		goto out;
+ 
+ 	c = (font.width+7)/8 * 32 * font.charcount;
+-	
++
+ 	if (op->data && font.charcount > op->charcount)
+ 		rc = -ENOSPC;
+ 	if (!(op->flags & KD_FONT_FLAG_OLD)) {
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -64,6 +105,7 @@ origin.patch
 git-drm.patch
 drm-i915-fix-oops-after-killing-x.patch
 git-watchdog.patch
+tty-bkl-pushdown-fix.patch
 tty-bkl-pushdown-fix1.patch
 mxser-convert-large-macros-to-functions.patch
 reiser4.patch
