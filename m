@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - rocket-dont-let-random-users-reset-the-controller.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:42 -0800
-Message-ID: <200802082012.m18KCNUq010197@imap1.linux-foundation.org>
+Subject: - reiserfs-constify-function-pointer-tables.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:56 -0800
+Message-ID: <200802082018.m18KIbUW010945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58270 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750999AbYBHUry (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:47:54 -0500
+	by vger.kernel.org with ESMTP id S1763012AbYBHUqy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:46:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rocket: don't let random users reset the controller
+     reiserfs: constify function pointer tables
 has been removed from the -mm tree.  Its filename was
-     rocket-dont-let-random-users-reset-the-controller.patch
+     reiserfs-constify-function-pointer-tables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rocket: don't let random users reset the controller
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: reiserfs: constify function pointer tables
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Acked-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/reiserfs/procfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/rocket.c~rocket-dont-let-random-users-reset-the-controller drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocket-dont-let-random-users-reset-the-controller
-+++ a/drivers/char/rocket.c
-@@ -1399,6 +1399,9 @@ static int reset_rm2(struct r_port *info
- {
- 	int reset;
+diff -puN fs/reiserfs/procfs.c~reiserfs-constify-function-pointer-tables fs/reiserfs/procfs.c
+--- a/fs/reiserfs/procfs.c~reiserfs-constify-function-pointer-tables
++++ a/fs/reiserfs/procfs.c
+@@ -444,7 +444,7 @@ static int r_show(struct seq_file *m, vo
+ 	return show(m, v);
+ }
  
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
- 	if (copy_from_user(&reset, arg, sizeof (int)))
- 		return -EFAULT;
- 	if (reset)
+-static struct seq_operations r_ops = {
++static const struct seq_operations r_ops = {
+ 	.start = r_start,
+ 	.next = r_next,
+ 	.stop = r_stop,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
+git-dvb.patch
+git-kvm.patch
+git-ocfs2.patch
+git-unionfs.patch
 git-watchdog.patch
