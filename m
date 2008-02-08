@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-bkl-pushdown-fix.patch added to -mm tree
-Date: Fri, 08 Feb 2008 14:09:57 -0800
-Message-ID: <200802082209.m18M9vqA016006@imap1.linux-foundation.org>
+Subject: + fix-compile-error-on-nommu-for-is_swap_pte.patch added to -mm tree
+Date: Fri, 08 Feb 2008 14:35:39 -0800
+Message-ID: <200802082235.m18MZdxB017106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758029AbYBHWKa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:10:30 -0500
+	by vger.kernel.org with ESMTP id S1756007AbYBHWga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:36:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: mpm@selenic.com, bunk@stusta.de, vapier@gentoo.org
 
 
 The patch titled
-     tty: BKL pushdown fix
+     Fix compile error on nommu for is_swap_pte
 has been added to the -mm tree.  Its filename is
-     tty-bkl-pushdown-fix.patch
+     fix-compile-error-on-nommu-for-is_swap_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: BKL pushdown fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Fix compile error on nommu for is_swap_pte
+From: Matt Mackall <mpm@selenic.com>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+  CC      mm/vmscan.o
+In file included from 
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/vmscan.c:44:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h: In function 'is_swap_pte':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_none'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_present'
+
+Does it ever make sense to ask "is this pte a swap entry?" on a machine
+with no MMU?  Presumably this also means it has no ptes too, right?  In
+which case, it's better to comment the whole function out.  Then when
+someone tries to ask the above meaningless question, they get a compile
+error rather than a meaningless answer.
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Reported-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    8 +++++---
- drivers/char/vt.c     |    4 ++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ include/linux/swapops.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/tty_io.c~tty-bkl-pushdown-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-bkl-pushdown-fix
-+++ a/drivers/char/tty_io.c
-@@ -1207,8 +1207,8 @@ static unsigned int hung_up_tty_poll(str
- 	return POLLIN | POLLOUT | POLLERR | POLLHUP | POLLRDNORM | POLLWRNORM;
+diff -puN include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte include/linux/swapops.h
+--- a/include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte
++++ a/include/linux/swapops.h
+@@ -42,11 +42,13 @@ static inline pgoff_t swp_offset(swp_ent
+ 	return entry.val & SWP_OFFSET_MASK(entry);
  }
  
--static long hung_up_tty_ioctl(struct inode *inode, struct file *file,
--			     unsigned int cmd, unsigned long arg)
-+static long hung_up_tty_ioctl(struct file *file, unsigned int cmd,
-+		unsigned long arg)
++#ifdef CONFIG_MMU
+ /* check whether a pte points to a swap entry */
+ static inline int is_swap_pte(pte_t pte)
  {
- 	return cmd == TIOCSPGRP ? -ENOTTY : -EIO;
+ 	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
  }
-@@ -1262,7 +1262,7 @@ static const struct file_operations hung
- 	.read		= hung_up_tty_read,
- 	.write		= hung_up_tty_write,
- 	.poll		= hung_up_tty_poll,
--	.ioctl		= hung_up_tty_ioctl,
-+	.unlocked_ioctl	= hung_up_tty_ioctl,
- 	.compat_ioctl	= hung_up_tty_compat_ioctl,
- 	.release	= tty_release,
- };
-@@ -3215,6 +3215,8 @@ static int tiocsetd(struct tty_struct *t
- 	lock_kernel();
- 	ret = tty_set_ldisc(tty, ldisc);
- 	unlock_kernel();
-+
-+	return ret;
- }
++#endif
  
- /**
-diff -puN drivers/char/vt.c~tty-bkl-pushdown-fix drivers/char/vt.c
---- a/drivers/char/vt.c~tty-bkl-pushdown-fix
-+++ a/drivers/char/vt.c
-@@ -2553,7 +2553,7 @@ int tioclinux(struct tty_struct *tty, un
- 			ret = sel_loadlut(p);
- 			break;
- 		case TIOCL_GETSHIFTSTATE:
--			
-+
- 	/*
- 	 * Make it possible to react to Shift+Mousebutton.
- 	 * Note that 'shift_state' is an undocumented
-@@ -3823,7 +3823,7 @@ static int con_font_get(struct vc_data *
- 		goto out;
- 
- 	c = (font.width+7)/8 * 32 * font.charcount;
--	
-+
- 	if (op->data && font.charcount > op->charcount)
- 		rc = -ENOSPC;
- 	if (!(op->flags & KD_FONT_FLAG_OLD)) {
+ /*
+  * Convert the arch-dependent pte representation of a swp_entry_t into an
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-watchdog.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+fix-compile-error-on-nommu-for-is_swap_pte.patch
+random-clean-up-checkpatch-complaints.patch
+random-clean-up-checkpatch-complaints-fix.patch
+random-consolidate-wakeup-logic.patch
+random-use-unlocked_ioctl.patch
+random-reuse-rand_initialize.patch
+random-improve-variable-naming-clear-extract-buffer.patch
+random-make-backtracking-attacks-harder.patch
+random-remove-cacheline-alignment-for-locks.patch
+random-eliminate-redundant-new_rotate-variable.patch
+random-remove-some-prefetch-logic.patch
+random-simplify-add_ptr-logic.patch
+random-make-mixing-interface-byte-oriented.patch
+random-simplify-and-rename-credit_entropy_store.patch
+random-add-async-notification-support-to-dev-random.patch
