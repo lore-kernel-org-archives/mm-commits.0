@@ -1,77 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - eccbuf-is-statically-defined-and-always-evaluate-to-true.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:10:50 -0800
-Message-ID: <200802080810.m188AVLB014946@imap1.linux-foundation.org>
+Subject: - dz-dont-panic-when-request_irq-fails.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:06:17 -0800
+Message-ID: <200802080805.m1885wxo014387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40450 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759927AbYBHITf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:35 -0500
+	by vger.kernel.org with ESMTP id S1761076AbYBHITg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@rfc1149.net, dwmw2@infradead.org, joern@logfs.org, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: eccbuf is statically defined and always evaluate to true
+     dz: don't panic() when request_irq() fails
 has been removed from the -mm tree.  Its filename was
-     eccbuf-is-statically-defined-and-always-evaluate-to-true.patch
+     dz-dont-panic-when-request_irq-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: eccbuf is statically defined and always evaluate to true
-From: Samuel Tardieu <sam@rfc1149.net>
+Subject: dz: don't panic() when request_irq() fails
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Signed-off-by: Samuel Tardieu <sam@rfc1149.net>
-Acked-by: Joern Engel <joern@logfs.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Well, panic() is a little bit undue if request_irq() fails; there is probably
+no need to justify it any further.  Handle the case gracefully, by
+unregistering the driver.
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/doc2000.c     |    4 ++--
- drivers/mtd/devices/doc2001plus.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/serial/dz.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mtd/devices/doc2000.c~eccbuf-is-statically-defined-and-always-evaluate-to-true drivers/mtd/devices/doc2000.c
---- a/drivers/mtd/devices/doc2000.c~eccbuf-is-statically-defined-and-always-evaluate-to-true
-+++ a/drivers/mtd/devices/doc2000.c
-@@ -632,7 +632,7 @@ static int doc_read(struct mtd_info *mtd
- 			len = ((from | 0x1ff) + 1) - from;
+diff -puN drivers/serial/dz.c~dz-dont-panic-when-request_irq-fails drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dz-dont-panic-when-request_irq-fails
++++ a/drivers/serial/dz.c
+@@ -794,18 +794,28 @@ static int __init dz_init(void)
+ 	dz_reset(&dz_ports[0]);
+ #endif
  
- 		/* The ECC will not be calculated correctly if less than 512 is read */
--		if (len != 0x200 && eccbuf)
-+		if (len != 0x200)
- 			printk(KERN_WARNING
- 			       "ECC needs a full sector read (adr: %lx size %lx)\n",
- 			       (long) from, (long) len);
-@@ -896,7 +896,7 @@ static int doc_write(struct mtd_info *mt
- 		/* Let the caller know we completed it */
- 		*retlen += len;
+-	if (request_irq(dz_ports[0].port.irq, dz_interrupt,
+-			IRQF_DISABLED, "DZ", &dz_ports[0]))
+-		panic("Unable to register DZ interrupt");
+-
+ 	ret = uart_register_driver(&dz_reg);
+ 	if (ret != 0)
+-		return ret;
++		goto out;
++
++	ret = request_irq(dz_ports[0].port.irq, dz_interrupt, IRQF_DISABLED,
++			  "DZ", &dz_ports[0]);
++	if (ret != 0) {
++		printk(KERN_ERR "dz: Cannot get IRQ %d!\n",
++		       dz_ports[0].port.irq);
++		goto out_unregister;
++	}
  
--		if (eccbuf) {
-+		{
- 			unsigned char x[8];
- 			size_t dummy;
- 			int ret;
-diff -puN drivers/mtd/devices/doc2001plus.c~eccbuf-is-statically-defined-and-always-evaluate-to-true drivers/mtd/devices/doc2001plus.c
---- a/drivers/mtd/devices/doc2001plus.c~eccbuf-is-statically-defined-and-always-evaluate-to-true
-+++ a/drivers/mtd/devices/doc2001plus.c
-@@ -748,7 +748,7 @@ static int doc_write(struct mtd_info *mt
- 	WriteDOC(DoC_GetDataOffset(mtd, &fto), docptr, Mplus_FlashCmd);
+ 	for (i = 0; i < DZ_NB_PORT; i++)
+ 		uart_add_one_port(&dz_reg, &dz_ports[i].port);
  
- 	/* On interleaved devices the flags for 2nd half 512 are before data */
--	if (eccbuf && before)
-+	if (before)
- 		fto -= 2;
+ 	return ret;
++
++out_unregister:
++	uart_unregister_driver(&dz_reg);
++
++out:
++	return ret;
+ }
  
- 	/* issue the Serial Data In command to initial the Page Program process */
+ module_init(dz_init);
 _
 
-Patches currently in -mm which might be from sam@rfc1149.net are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-git-watchdog.patch
