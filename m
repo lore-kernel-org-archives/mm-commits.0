@@ -1,441 +1,544 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-split-the-interrupt-handler.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:18:34 -0800
-Message-ID: <200802082018.m18KIFmw010909@imap1.linux-foundation.org>
+Subject: - atmel_serial-clean-up-the-code.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:24 -0800
+Message-ID: <200802082018.m18KI5Od010892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33946 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756358AbYBHVDo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:44 -0500
+	by vger.kernel.org with ESMTP id S1757093AbYBHVDn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@bohmer.net, hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: split the interrupt handler
+     atmel_serial: clean up the code
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-split-the-interrupt-handler.patch
+     atmel_serial-clean-up-the-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: split the interrupt handler
+Subject: atmel_serial: clean up the code
 From: Remy Bohmer <linux@bohmer.net>
 
-Split up the interrupt handler of the serial port into a interrupt top-half
-and a tasklet.
+Clean up the atmel_serial driver to conform the coding rules.  It contains no
+functional change.
 
-The goal is to get the interrupt top-half as short as possible to minimize
-latencies on interrupts.  But the old code also does some calls in the
-interrupt handler that are not allowed on preempt-RT in IRQF_NODELAY context. 
-This handler is executed in this context because of the interrupt sharing with
-the timer interrupt.  The timer interrupt on Preempt-RT runs in IRQF_NODELAY
-context.
-
-The tasklet takes care of handling control status changes, pushing incoming
-characters to the tty layer, handling break and other errors.  It also handles
-pushing TX data into the data register.
-
-Reading the complete receive queue is still done in the top-half because we
-never want to miss any incoming character.
-
-[hskinnemoen@atmel.com: misc cleanups and simplifications]
 Signed-off-by: Remy Bohmer <linux@bohmer.net>
 Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
+Acked-by: Andrew Victor <linux@maxim.org.za>
 Tested-by: Marc Pignat <marc.pignat@hevs.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |  245 ++++++++++++++++++++++++--------
- 1 file changed, 190 insertions(+), 55 deletions(-)
+ drivers/serial/atmel_serial.c |  255 ++++++++++++++++++--------------
+ 1 file changed, 150 insertions(+), 105 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-split-the-interrupt-handler drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-split-the-interrupt-handler
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-clean-up-the-code drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-clean-up-the-code
 +++ a/drivers/serial/atmel_serial.c
-@@ -103,6 +103,13 @@
+@@ -73,6 +73,7 @@
+ 
+ #define ATMEL_ISR_PASS_LIMIT	256
+ 
++/* UART registers. CR is write-only, hence no GET macro */
+ #define UART_PUT_CR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_CR)
+ #define UART_GET_MR(port)	__raw_readl((port)->membase + ATMEL_US_MR)
+ #define UART_PUT_MR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_MR)
+@@ -86,8 +87,6 @@
+ #define UART_PUT_BRGR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_BRGR)
+ #define UART_PUT_RTOR(port,v)	__raw_writel(v, (port)->membase + ATMEL_US_RTOR)
+ 
+-// #define UART_GET_CR(port)	__raw_readl((port)->membase + ATMEL_US_CR)		// is write-only
+-
+  /* PDC registers */
+ #define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
+ #define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
+@@ -100,8 +99,6 @@
+ 
+ #define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
+ #define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
+-//#define UART_PUT_TNPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNPR)
+-//#define UART_PUT_TNCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TNCR)
+ 
  static int (*atmel_open_hook)(struct uart_port *);
  static void (*atmel_close_hook)(struct uart_port *);
- 
-+struct atmel_uart_char {
-+	u16		status;
-+	u16		ch;
-+};
-+
-+#define ATMEL_SERIAL_RINGSIZE 1024
-+
- /*
-  * We wrap our port structure around the generic uart_port.
+@@ -141,8 +138,8 @@ static void atmel_set_mctrl(struct uart_
+ #ifdef CONFIG_ARCH_AT91RM9200
+ 	if (cpu_is_at91rm9200()) {
+ 		/*
+-		 * AT91RM9200 Errata #39: RTS0 is not internally connected to PA21.
+-		 *  We need to drive the pin manually.
++		 * AT91RM9200 Errata #39: RTS0 is not internally connected
++		 * to PA21. We need to drive the pin manually.
+ 		 */
+ 		if (port->mapbase == AT91RM9200_BASE_US0) {
+ 			if (mctrl & TIOCM_RTS)
+@@ -227,7 +224,8 @@ static void atmel_stop_rx(struct uart_po
   */
-@@ -111,6 +118,12 @@ struct atmel_uart_port {
- 	struct clk		*clk;		/* uart clock */
- 	unsigned short		suspended;	/* is port suspended? */
- 	int			break_active;	/* break being received */
-+
-+	struct tasklet_struct	tasklet;
-+	unsigned int		irq_status;
-+	unsigned int		irq_status_prev;
-+
-+	struct circ_buf		rx_ring;
- };
- 
- static struct atmel_uart_port atmel_ports[ATMEL_MAX_UART];
-@@ -240,22 +253,42 @@ static void atmel_break_ctl(struct uart_
+ static void atmel_enable_ms(struct uart_port *port)
+ {
+-	UART_PUT_IER(port, ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC | ATMEL_US_CTSIC);
++	UART_PUT_IER(port, ATMEL_US_RIIC | ATMEL_US_DSRIC
++			| ATMEL_US_DCDIC | ATMEL_US_CTSIC);
  }
  
  /*
-+ * Stores the incoming character in the ring buffer
-+ */
-+static void
-+atmel_buffer_rx_char(struct uart_port *port, unsigned int status,
-+		     unsigned int ch)
-+{
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *ring = &atmel_port->rx_ring;
-+	struct atmel_uart_char *c;
-+
-+	if (!CIRC_SPACE(ring->head, ring->tail, ATMEL_SERIAL_RINGSIZE))
-+		/* Buffer overflow, ignore char */
-+		return;
-+
-+	c = &((struct atmel_uart_char *)ring->buf)[ring->head];
-+	c->status	= status;
-+	c->ch		= ch;
-+
-+	/* Make sure the character is stored before we update head. */
-+	smp_wmb();
-+
-+	ring->head = (ring->head + 1) & (ATMEL_SERIAL_RINGSIZE - 1);
-+}
-+
-+/*
-  * Characters received (called from interrupt handler)
+@@ -246,7 +244,7 @@ static void atmel_break_ctl(struct uart_
   */
  static void atmel_rx_chars(struct uart_port *port)
  {
- 	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
--	struct tty_struct *tty = port->info->tty;
--	unsigned int status, ch, flg;
-+	unsigned int status, ch;
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 	struct tty_struct *tty = port->info->tty;
+ 	unsigned int status, ch, flg;
  
- 	status = UART_GET_CSR(port);
- 	while (status & ATMEL_US_RXRDY) {
- 		ch = UART_GET_CHAR(port);
- 
--		port->icount.rx++;
--
--		flg = TTY_NORMAL;
--
- 		/*
- 		 * note that the error handling code is
- 		 * out of the main execution path
-@@ -263,17 +296,14 @@ static void atmel_rx_chars(struct uart_p
+@@ -265,10 +263,12 @@ static void atmel_rx_chars(struct uart_p
  		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
  				       | ATMEL_US_OVRE | ATMEL_US_RXBRK)
  			     || atmel_port->break_active)) {
-+
- 			/* clear error */
- 			UART_PUT_CR(port, ATMEL_US_RSTSTA);
-+
+-			UART_PUT_CR(port, ATMEL_US_RSTSTA);	/* clear error */
++			/* clear error */
++			UART_PUT_CR(port, ATMEL_US_RSTSTA);
  			if (status & ATMEL_US_RXBRK
  			    && !atmel_port->break_active) {
--				/* ignore side-effect */
--				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
--				port->icount.brk++;
+-				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);	/* ignore side-effect */
++				/* ignore side-effect */
++				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
+ 				port->icount.brk++;
  				atmel_port->break_active = 1;
  				UART_PUT_IER(port, ATMEL_US_RXBRK);
--				if (uart_handle_break(port))
--					goto ignore_char;
- 			} else {
- 				/*
- 				 * This is either the end-of-break
-@@ -286,52 +316,30 @@ static void atmel_rx_chars(struct uart_p
- 				status &= ~ATMEL_US_RXBRK;
- 				atmel_port->break_active = 0;
- 			}
--			if (status & ATMEL_US_PARE)
--				port->icount.parity++;
--			if (status & ATMEL_US_FRAME)
--				port->icount.frame++;
--			if (status & ATMEL_US_OVRE)
--				port->icount.overrun++;
--
--			status &= port->read_status_mask;
--
--			if (status & ATMEL_US_RXBRK)
--				flg = TTY_BREAK;
--			else if (status & ATMEL_US_PARE)
--				flg = TTY_PARITY;
--			else if (status & ATMEL_US_FRAME)
--				flg = TTY_FRAME;
- 		}
+@@ -308,7 +308,7 @@ static void atmel_rx_chars(struct uart_p
  
--		if (uart_handle_sysrq_char(port, ch))
--			goto ignore_char;
--
--		uart_insert_char(port, status, ATMEL_US_OVRE, ch, flg);
--
--ignore_char:
-+		atmel_buffer_rx_char(port, status, ch);
+ 		uart_insert_char(port, status, ATMEL_US_OVRE, ch, flg);
+ 
+-	ignore_char:
++ignore_char:
  		status = UART_GET_CSR(port);
  	}
  
--	tty_flip_buffer_push(tty);
-+	tasklet_schedule(&atmel_port->tasklet);
+@@ -349,44 +349,73 @@ static void atmel_tx_chars(struct uart_p
  }
  
  /*
-- * Transmit characters (called from interrupt handler)
-+ * Transmit characters (called from tasklet with TXRDY interrupt
-+ * disabled)
-  */
- static void atmel_tx_chars(struct uart_port *port)
- {
- 	struct circ_buf *xmit = &port->info->xmit;
- 
--	if (port->x_char) {
-+	if (port->x_char && UART_GET_CSR(port) & ATMEL_US_TXRDY) {
- 		UART_PUT_CHAR(port, port->x_char);
- 		port->icount.tx++;
- 		port->x_char = 0;
--		return;
- 	}
--	if (uart_circ_empty(xmit) || uart_tx_stopped(port)) {
--		atmel_stop_tx(port);
-+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
- 		return;
--	}
- 
- 	while (UART_GET_CSR(port) & ATMEL_US_TXRDY) {
- 		UART_PUT_CHAR(port, xmit->buf[xmit->tail]);
-@@ -344,8 +352,8 @@ static void atmel_tx_chars(struct uart_p
- 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
- 		uart_write_wakeup(port);
- 
--	if (uart_circ_empty(xmit))
--		atmel_stop_tx(port);
-+	if (!uart_circ_empty(xmit))
-+		UART_PUT_IER(port, ATMEL_US_TXRDY);
- }
- 
- /*
-@@ -371,14 +379,18 @@ atmel_handle_receive(struct uart_port *p
- }
- 
- /*
-- * transmit interrupt handler.
-+ * transmit interrupt handler. (Transmit is IRQF_NODELAY safe)
-  */
- static void
- atmel_handle_transmit(struct uart_port *port, unsigned int pending)
- {
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
- 	/* Interrupt transmit */
--	if (pending & ATMEL_US_TXRDY)
--		atmel_tx_chars(port);
-+	if (pending & ATMEL_US_TXRDY) {
-+		UART_PUT_IDR(port, ATMEL_US_TXRDY);
-+		tasklet_schedule(&atmel_port->tasklet);
-+	}
- }
- 
- /*
-@@ -388,18 +400,13 @@ static void
- atmel_handle_status(struct uart_port *port, unsigned int pending,
- 		    unsigned int status)
- {
--	/* TODO: All reads to CSR will clear these interrupts! */
--	if (pending & ATMEL_US_RIIC)
--		port->icount.rng++;
--	if (pending & ATMEL_US_DSRIC)
--		port->icount.dsr++;
--	if (pending & ATMEL_US_DCDIC)
--		uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
--	if (pending & ATMEL_US_CTSIC)
--		uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+
- 	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
--				| ATMEL_US_CTSIC))
--		wake_up_interruptible(&port->info->delta_msr_wait);
-+				| ATMEL_US_CTSIC)) {
-+		atmel_port->irq_status = status;
-+		tasklet_schedule(&atmel_port->tasklet);
-+	}
- }
- 
- /*
-@@ -426,6 +433,114 @@ static irqreturn_t atmel_interrupt(int i
- 	return IRQ_HANDLED;
- }
- 
-+static void atmel_rx_from_ring(struct uart_port *port)
++ * receive interrupt handler.
++ */
++static void
++atmel_handle_receive(struct uart_port *port, unsigned int pending)
 +{
 +	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	struct circ_buf *ring = &atmel_port->rx_ring;
-+	unsigned int flg;
-+	unsigned int status;
 +
-+	while (ring->head != ring->tail) {
-+		struct atmel_uart_char c;
-+
-+		/* Make sure c is loaded after head. */
-+		smp_rmb();
-+
-+		c = ((struct atmel_uart_char *)ring->buf)[ring->tail];
-+
-+		ring->tail = (ring->tail + 1) & (ATMEL_SERIAL_RINGSIZE - 1);
-+
-+		port->icount.rx++;
-+		status = c.status;
-+		flg = TTY_NORMAL;
-+
++	/* Interrupt receive */
++	if (pending & ATMEL_US_RXRDY)
++		atmel_rx_chars(port);
++	else if (pending & ATMEL_US_RXBRK) {
 +		/*
-+		 * note that the error handling code is
-+		 * out of the main execution path
++		 * End of break detected. If it came along with a
++		 * character, atmel_rx_chars will handle it.
 +		 */
-+		if (unlikely(status & (ATMEL_US_PARE | ATMEL_US_FRAME
-+				       | ATMEL_US_OVRE | ATMEL_US_RXBRK))) {
-+			if (status & ATMEL_US_RXBRK) {
-+				/* ignore side-effect */
-+				status &= ~(ATMEL_US_PARE | ATMEL_US_FRAME);
-+
-+				port->icount.brk++;
-+				if (uart_handle_break(port))
-+					continue;
-+			}
-+			if (status & ATMEL_US_PARE)
-+				port->icount.parity++;
-+			if (status & ATMEL_US_FRAME)
-+				port->icount.frame++;
-+			if (status & ATMEL_US_OVRE)
-+				port->icount.overrun++;
-+
-+			status &= port->read_status_mask;
-+
-+			if (status & ATMEL_US_RXBRK)
-+				flg = TTY_BREAK;
-+			else if (status & ATMEL_US_PARE)
-+				flg = TTY_PARITY;
-+			else if (status & ATMEL_US_FRAME)
-+				flg = TTY_FRAME;
-+		}
-+
-+
-+		if (uart_handle_sysrq_char(port, c.ch))
-+			continue;
-+
-+		uart_insert_char(port, status, ATMEL_US_OVRE, c.ch, flg);
++		UART_PUT_CR(port, ATMEL_US_RSTSTA);
++		UART_PUT_IDR(port, ATMEL_US_RXBRK);
++		atmel_port->break_active = 0;
 +	}
-+
-+	/*
-+	 * Drop the lock here since it might end up calling
-+	 * uart_start(), which takes the lock.
-+	 */
-+	spin_unlock(&port->lock);
-+	tty_flip_buffer_push(port->info->tty);
-+	spin_lock(&port->lock);
 +}
 +
 +/*
-+ * tasklet handling tty stuff outside the interrupt handler.
++ * transmit interrupt handler.
 + */
-+static void atmel_tasklet_func(unsigned long data)
++static void
++atmel_handle_transmit(struct uart_port *port, unsigned int pending)
 +{
-+	struct uart_port *port = (struct uart_port *)data;
-+	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
-+	unsigned int status;
-+	unsigned int status_change;
-+
-+	/* The interrupt handler does not take the lock */
-+	spin_lock(&port->lock);
-+
-+	atmel_tx_chars(port);
-+
-+	status = atmel_port->irq_status;
-+	status_change = status ^ atmel_port->irq_status_prev;
-+
-+	if (status_change & (ATMEL_US_RI | ATMEL_US_DSR
-+				| ATMEL_US_DCD | ATMEL_US_CTS)) {
-+		/* TODO: All reads to CSR will clear these interrupts! */
-+		if (status_change & ATMEL_US_RI)
-+			port->icount.rng++;
-+		if (status_change & ATMEL_US_DSR)
-+			port->icount.dsr++;
-+		if (status_change & ATMEL_US_DCD)
-+			uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
-+		if (status_change & ATMEL_US_CTS)
-+			uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
-+
-+		wake_up_interruptible(&port->info->delta_msr_wait);
-+
-+		atmel_port->irq_status_prev = status;
-+	}
-+
-+	atmel_rx_from_ring(port);
-+
-+	spin_unlock(&port->lock);
++	/* Interrupt transmit */
++	if (pending & ATMEL_US_TXRDY)
++		atmel_tx_chars(port);
 +}
 +
- /*
-  * Perform initialization and enable port for reception
++/*
++ * status flags interrupt handler.
++ */
++static void
++atmel_handle_status(struct uart_port *port, unsigned int pending,
++		    unsigned int status)
++{
++	/* TODO: All reads to CSR will clear these interrupts! */
++	if (pending & ATMEL_US_RIIC)
++		port->icount.rng++;
++	if (pending & ATMEL_US_DSRIC)
++		port->icount.dsr++;
++	if (pending & ATMEL_US_DCDIC)
++		uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
++	if (pending & ATMEL_US_CTSIC)
++		uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
++	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
++				| ATMEL_US_CTSIC))
++		wake_up_interruptible(&port->info->delta_msr_wait);
++}
++
++/*
+  * Interrupt handler
   */
-@@ -757,6 +872,11 @@ static void __devinit atmel_init_port(st
- 	port->mapbase	= pdev->resource[0].start;
- 	port->irq	= pdev->resource[1].start;
- 
-+	tasklet_init(&atmel_port->tasklet, atmel_tasklet_func,
-+			(unsigned long)port);
-+
-+	memset(&atmel_port->rx_ring, 0, sizeof(atmel_port->rx_ring));
-+
- 	if (data->regs)
- 		/* Already mapped by setup code */
- 		port->membase = data->regs;
-@@ -997,11 +1117,20 @@ static int atmel_serial_resume(struct pl
- static int __devinit atmel_serial_probe(struct platform_device *pdev)
+ static irqreturn_t atmel_interrupt(int irq, void *dev_id)
  {
- 	struct atmel_uart_port *port;
-+	void *data;
- 	int ret;
+ 	struct uart_port *port = dev_id;
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+ 	unsigned int status, pending, pass_counter = 0;
  
-+	BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
-+
- 	port = &atmel_ports[pdev->id];
- 	atmel_init_port(port, pdev);
+ 	status = UART_GET_CSR(port);
+ 	pending = status & UART_GET_IMR(port);
+ 	while (pending) {
+-		/* Interrupt receive */
+-		if (pending & ATMEL_US_RXRDY)
+-			atmel_rx_chars(port);
+-		else if (pending & ATMEL_US_RXBRK) {
+-			/*
+-			 * End of break detected. If it came along
+-			 * with a character, atmel_rx_chars will
+-			 * handle it.
+-			 */
+-			UART_PUT_CR(port, ATMEL_US_RSTSTA);
+-			UART_PUT_IDR(port, ATMEL_US_RXBRK);
+-			atmel_port->break_active = 0;
+-		}
+-
+-		// TODO: All reads to CSR will clear these interrupts!
+-		if (pending & ATMEL_US_RIIC) port->icount.rng++;
+-		if (pending & ATMEL_US_DSRIC) port->icount.dsr++;
+-		if (pending & ATMEL_US_DCDIC)
+-			uart_handle_dcd_change(port, !(status & ATMEL_US_DCD));
+-		if (pending & ATMEL_US_CTSIC)
+-			uart_handle_cts_change(port, !(status & ATMEL_US_CTS));
+-		if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC | ATMEL_US_CTSIC))
+-			wake_up_interruptible(&port->info->delta_msr_wait);
+-
+-		/* Interrupt transmit */
+-		if (pending & ATMEL_US_TXRDY)
+-			atmel_tx_chars(port);
++		atmel_handle_receive(port, pending);
++		atmel_handle_status(port, pending, status);
++		atmel_handle_transmit(port, pending);
  
-+	ret = -ENOMEM;
-+	data = kmalloc(ATMEL_SERIAL_RINGSIZE, GFP_KERNEL);
-+	if (!data)
-+		goto err_alloc_ring;
-+	port->rx_ring.buf = data;
-+
- 	ret = uart_add_one_port(&atmel_uart, &port->uart);
- 	if (ret)
- 		goto err_add_port;
-@@ -1012,6 +1141,9 @@ static int __devinit atmel_serial_probe(
+ 		if (pass_counter++ > ATMEL_ISR_PASS_LIMIT)
+ 			break;
+@@ -414,7 +443,8 @@ static int atmel_startup(struct uart_por
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
+-	retval = request_irq(port->irq, atmel_interrupt, IRQF_SHARED, "atmel_serial", port);
++	retval = request_irq(port->irq, atmel_interrupt, IRQF_SHARED,
++			"atmel_serial", port);
+ 	if (retval) {
+ 		printk("atmel_serial: atmel_startup - Can't get irq\n");
+ 		return retval;
+@@ -436,9 +466,11 @@ static int atmel_startup(struct uart_por
+ 	 * Finally, enable the serial port
+ 	 */
+ 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
+-	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);		/* enable xmit & rcvr */
++	/* enable xmit & rcvr */
++	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
+ 
+-	UART_PUT_IER(port, ATMEL_US_RXRDY);		/* enable receive only */
++	/* enable receive only */
++	UART_PUT_IER(port, ATMEL_US_RXRDY);
+ 
  	return 0;
+ }
+@@ -470,45 +502,48 @@ static void atmel_shutdown(struct uart_p
+ /*
+  * Power / Clock management.
+  */
+-static void atmel_serial_pm(struct uart_port *port, unsigned int state, unsigned int oldstate)
++static void atmel_serial_pm(struct uart_port *port, unsigned int state,
++			    unsigned int oldstate)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
  
- err_add_port:
-+	kfree(port->rx_ring.buf);
-+	port->rx_ring.buf = NULL;
-+err_alloc_ring:
- 	if (!atmel_is_console_port(&port->uart)) {
- 		clk_disable(port->clk);
- 		clk_put(port->clk);
-@@ -1032,6 +1164,9 @@ static int __devexit atmel_serial_remove
+ 	switch (state) {
+-		case 0:
+-			/*
+-			 * Enable the peripheral clock for this serial port.
+-			 * This is called on uart_open() or a resume event.
+-			 */
+-			clk_enable(atmel_port->clk);
+-			break;
+-		case 3:
+-			/*
+-			 * Disable the peripheral clock for this serial port.
+-			 * This is called on uart_close() or a suspend event.
+-			 */
+-			clk_disable(atmel_port->clk);
+-			break;
+-		default:
+-			printk(KERN_ERR "atmel_serial: unknown pm %d\n", state);
++	case 0:
++		/*
++		 * Enable the peripheral clock for this serial port.
++		 * This is called on uart_open() or a resume event.
++		 */
++		clk_enable(atmel_port->clk);
++		break;
++	case 3:
++		/*
++		 * Disable the peripheral clock for this serial port.
++		 * This is called on uart_close() or a suspend event.
++		 */
++		clk_disable(atmel_port->clk);
++		break;
++	default:
++		printk(KERN_ERR "atmel_serial: unknown pm %d\n", state);
+ 	}
+ }
  
- 	ret = uart_remove_one_port(&atmel_uart, port);
+ /*
+  * Change the port parameters
+  */
+-static void atmel_set_termios(struct uart_port *port, struct ktermios * termios, struct ktermios * old)
++static void atmel_set_termios(struct uart_port *port, struct ktermios *termios,
++			      struct ktermios *old)
+ {
+ 	unsigned long flags;
+ 	unsigned int mode, imr, quot, baud;
  
-+	tasklet_kill(&atmel_port->tasklet);
-+	kfree(atmel_port->rx_ring.buf);
+ 	/* Get current mode register */
+-	mode = UART_GET_MR(port) & ~(ATMEL_US_USCLKS | ATMEL_US_CHRL | ATMEL_US_NBSTOP | ATMEL_US_PAR);
++	mode = UART_GET_MR(port) & ~(ATMEL_US_USCLKS | ATMEL_US_CHRL
++					| ATMEL_US_NBSTOP | ATMEL_US_PAR);
+ 
+-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16);
++	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk / 16);
+ 	quot = uart_get_divisor(port, baud);
+ 
+-	if (quot > 65535) {		/* BRGR is 16-bit, so switch to slower clock */
++	if (quot > 65535) {	/* BRGR is 16-bit, so switch to slower clock */
+ 		quot /= 8;
+ 		mode |= ATMEL_US_USCLKS_MCK_DIV8;
+ 	}
+@@ -535,18 +570,17 @@ static void atmel_set_termios(struct uar
+ 
+ 	/* parity */
+ 	if (termios->c_cflag & PARENB) {
+-		if (termios->c_cflag & CMSPAR) {			/* Mark or Space parity */
++		/* Mark or Space parity */
++		if (termios->c_cflag & CMSPAR) {
+ 			if (termios->c_cflag & PARODD)
+ 				mode |= ATMEL_US_PAR_MARK;
+ 			else
+ 				mode |= ATMEL_US_PAR_SPACE;
+-		}
+-		else if (termios->c_cflag & PARODD)
++		} else if (termios->c_cflag & PARODD)
+ 			mode |= ATMEL_US_PAR_ODD;
+ 		else
+ 			mode |= ATMEL_US_PAR_EVEN;
+-	}
+-	else
++	} else
+ 		mode |= ATMEL_US_PAR_NONE;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -572,16 +606,16 @@ static void atmel_set_termios(struct uar
+ 		if (termios->c_iflag & IGNPAR)
+ 			port->ignore_status_mask |= ATMEL_US_OVRE;
+ 	}
+-
+-	// TODO: Ignore all characters if CREAD is set.
++	/* TODO: Ignore all characters if CREAD is set.*/
+ 
+ 	/* update the per-port timeout */
+ 	uart_update_timeout(port, termios->c_cflag, baud);
+ 
+-	/* disable interrupts and drain transmitter */
+-	imr = UART_GET_IMR(port);	/* get interrupt mask */
+-	UART_PUT_IDR(port, -1);		/* disable all interrupts */
+-	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY)) { barrier(); }
++	/* save/disable interrupts and drain transmitter */
++	imr = UART_GET_IMR(port);
++	UART_PUT_IDR(port, -1);
++	while (!(UART_GET_CSR(port) & ATMEL_US_TXEMPTY))
++		barrier();
+ 
+ 	/* disable receiver and transmitter */
+ 	UART_PUT_CR(port, ATMEL_US_TXDIS | ATMEL_US_RXDIS);
+@@ -707,7 +741,8 @@ static struct uart_ops atmel_pops = {
+ /*
+  * Configure the port from the platform device resource info.
+  */
+-static void __devinit atmel_init_port(struct atmel_uart_port *atmel_port, struct platform_device *pdev)
++static void __devinit atmel_init_port(struct atmel_uart_port *atmel_port,
++				      struct platform_device *pdev)
+ {
+ 	struct uart_port *port = &atmel_port->uart;
+ 	struct atmel_uart_data *data = pdev->dev.platform_data;
+@@ -730,7 +765,8 @@ static void __devinit atmel_init_port(st
+ 		port->membase	= NULL;
+ 	}
+ 
+-	if (!atmel_port->clk) {		/* for console, the clock could already be configured */
++	/* for console, the clock could already be configured */
++	if (!atmel_port->clk) {
+ 		atmel_port->clk = clk_get(&pdev->dev, "usart");
+ 		clk_enable(atmel_port->clk);
+ 		port->uartclk = clk_get_rate(atmel_port->clk);
+@@ -754,7 +790,6 @@ void __init atmel_register_uart_fns(stru
+ 	atmel_pops.set_wake	= fns->set_wake;
+ }
+ 
+-
+ #ifdef CONFIG_SERIAL_ATMEL_CONSOLE
+ static void atmel_console_putchar(struct uart_port *port, int ch)
+ {
+@@ -772,28 +807,30 @@ static void atmel_console_write(struct c
+ 	unsigned int status, imr;
+ 
+ 	/*
+-	 *	First, save IMR and then disable interrupts
++	 * First, save IMR and then disable interrupts
+ 	 */
+-	imr = UART_GET_IMR(port);	/* get interrupt mask */
++	imr = UART_GET_IMR(port);
+ 	UART_PUT_IDR(port, ATMEL_US_RXRDY | ATMEL_US_TXRDY);
+ 
+ 	uart_console_write(port, s, count, atmel_console_putchar);
+ 
+ 	/*
+-	 *	Finally, wait for transmitter to become empty
+-	 *	and restore IMR
++	 * Finally, wait for transmitter to become empty
++	 * and restore IMR
+ 	 */
+ 	do {
+ 		status = UART_GET_CSR(port);
+ 	} while (!(status & ATMEL_US_TXRDY));
+-	UART_PUT_IER(port, imr);	/* set interrupts back the way they were */
++	/* set interrupts back the way they were */
++	UART_PUT_IER(port, imr);
+ }
+ 
+ /*
+- * If the port was already initialised (eg, by a boot loader), try to determine
+- * the current setup.
++ * If the port was already initialised (eg, by a boot loader),
++ * try to determine the current setup.
+  */
+-static void __init atmel_console_get_options(struct uart_port *port, int *baud, int *parity, int *bits)
++static void __init atmel_console_get_options(struct uart_port *port, int *baud,
++					     int *parity, int *bits)
+ {
+ 	unsigned int mr, quot;
+ 
+@@ -835,10 +872,12 @@ static int __init atmel_console_setup(st
+ 	int parity = 'n';
+ 	int flow = 'n';
+ 
+-	if (port->membase == 0)		/* Port not initialized yet - delay setup */
++	if (port->membase == NULL) {
++		/* Port not initialized yet - delay setup */
+ 		return -ENODEV;
++	}
+ 
+-	UART_PUT_IDR(port, -1);				/* disable interrupts */
++	UART_PUT_IDR(port, -1);
+ 	UART_PUT_CR(port, ATMEL_US_RSTSTA | ATMEL_US_RSTRX);
+ 	UART_PUT_CR(port, ATMEL_US_TXEN | ATMEL_US_RXEN);
+ 
+@@ -870,13 +909,16 @@ static struct console atmel_console = {
+ static int __init atmel_console_init(void)
+ {
+ 	if (atmel_default_console_device) {
+-		add_preferred_console(ATMEL_DEVICENAME, atmel_default_console_device->id, NULL);
+-		atmel_init_port(&(atmel_ports[atmel_default_console_device->id]), atmel_default_console_device);
++		add_preferred_console(ATMEL_DEVICENAME,
++				      atmel_default_console_device->id, NULL);
++		atmel_init_port(&atmel_ports[atmel_default_console_device->id],
++				atmel_default_console_device);
+ 		register_console(&atmel_console);
+ 	}
+ 
+ 	return 0;
+ }
 +
- 	/* "port" is allocated statically, so we shouldn't free it */
+ console_initcall(atmel_console_init);
+ 
+ /*
+@@ -884,11 +926,13 @@ console_initcall(atmel_console_init);
+  */
+ static int __init atmel_late_console_init(void)
+ {
+-	if (atmel_default_console_device && !(atmel_console.flags & CON_ENABLED))
++	if (atmel_default_console_device
++	    && !(atmel_console.flags & CON_ENABLED))
+ 		register_console(&atmel_console);
+ 
+ 	return 0;
+ }
++
+ core_initcall(atmel_late_console_init);
+ 
+ #else
+@@ -896,22 +940,24 @@ core_initcall(atmel_late_console_init);
+ #endif
+ 
+ static struct uart_driver atmel_uart = {
+-	.owner			= THIS_MODULE,
+-	.driver_name		= "atmel_serial",
+-	.dev_name		= ATMEL_DEVICENAME,
+-	.major			= SERIAL_ATMEL_MAJOR,
+-	.minor			= MINOR_START,
+-	.nr			= ATMEL_MAX_UART,
+-	.cons			= ATMEL_CONSOLE_DEVICE,
++	.owner		= THIS_MODULE,
++	.driver_name	= "atmel_serial",
++	.dev_name	= ATMEL_DEVICENAME,
++	.major		= SERIAL_ATMEL_MAJOR,
++	.minor		= MINOR_START,
++	.nr		= ATMEL_MAX_UART,
++	.cons		= ATMEL_CONSOLE_DEVICE,
+ };
+ 
+ #ifdef CONFIG_PM
+-static int atmel_serial_suspend(struct platform_device *pdev, pm_message_t state)
++static int atmel_serial_suspend(struct platform_device *pdev,
++				pm_message_t state)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 
+-	if (device_may_wakeup(&pdev->dev) && !at91_suspend_entering_slow_clock())
++	if (device_may_wakeup(&pdev->dev)
++	    && !at91_suspend_entering_slow_clock())
+ 		enable_irq_wake(port->irq);
+ 	else {
+ 		uart_suspend_port(&atmel_uart, port);
+@@ -924,13 +970,12 @@ static int atmel_serial_suspend(struct p
+ static int atmel_serial_resume(struct platform_device *pdev)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 
+ 	if (atmel_port->suspended) {
+ 		uart_resume_port(&atmel_uart, port);
+ 		atmel_port->suspended = 0;
+-	}
+-	else
++	} else
+ 		disable_irq_wake(port->irq);
+ 
+ 	return 0;
+@@ -960,7 +1005,7 @@ static int __devinit atmel_serial_probe(
+ static int __devexit atmel_serial_remove(struct platform_device *pdev)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
++	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
+ 	int ret = 0;
  
  	clk_disable(atmel_port->clk);
 _
