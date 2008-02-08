@@ -1,755 +1,669 @@
 From: akpm@linux-foundation.org
-Subject: - aout-move-stack_top-to-asm-processorh.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:14:53 -0800
-Message-ID: <200802082014.m18KEYIX010460@imap1.linux-foundation.org>
+Subject: - tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:49 -0800
+Message-ID: <200802082012.m18KCUdJ010208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753294AbYBHUyY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:54:24 -0500
+	by vger.kernel.org with ESMTP id S1753936AbYBHUyd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:54:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aout: move STACK_TOP[_MAX] to asm/processor.h
+     tty_ioctl: drag screaming into compliance with the coding style
 has been removed from the -mm tree.  Its filename was
-     aout-move-stack_top-to-asm-processorh.patch
+     tty_ioctl-drag-screaming-into-compliance-with-the-coding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aout: move STACK_TOP[_MAX] to asm/processor.h
-From: David Howells <dhowells@redhat.com>
+Subject: tty_ioctl: drag screaming into compliance with the coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Move STACK_TOP[_MAX] out of asm/a.out.h and into asm/processor.h as they're
-required whether or not A.OUT format is available.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/a.out.h          |    8 +-------
- include/asm-alpha/processor.h      |    5 +++++
- include/asm-arm/a.out.h            |    6 ------
- include/asm-arm/processor.h        |    6 ++++++
- include/asm-avr32/a.out.h          |    7 -------
- include/asm-avr32/processor.h      |    5 +++++
- include/asm-blackfin/a.out.h       |    6 ------
- include/asm-blackfin/processor.h   |    4 ++++
- include/asm-cris/a.out.h           |    6 ------
- include/asm-cris/processor.h       |    3 +++
- include/asm-h8300/a.out.h          |    7 -------
- include/asm-h8300/processor.h      |    5 +++++
- include/asm-ia64/a.out.h           |    3 ---
- include/asm-m32r/a.out.h           |    7 -------
- include/asm-m32r/processor.h       |    5 +++++
- include/asm-m68k/a.out.h           |    7 -------
- include/asm-m68k/processor.h       |    5 +++++
- include/asm-mips/a.out.h           |   13 -------------
- include/asm-mips/processor.h       |    7 +++++++
- include/asm-parisc/a.out.h         |   10 ----------
- include/asm-parisc/processor.h     |   10 ++++++++++
- include/asm-powerpc/a.out.h        |   19 -------------------
- include/asm-powerpc/processor.h    |   19 +++++++++++++++++++
- include/asm-s390/a.out.h           |    7 -------
- include/asm-s390/processor.h       |    7 +++++++
- include/asm-sh/a.out.h             |    7 -------
- include/asm-sh/processor_32.h      |    3 +++
- include/asm-sh/processor_64.h      |    3 +++
- include/asm-sparc/a.out.h          |    9 ---------
- include/asm-sparc/processor.h      |    4 ++++
- include/asm-sparc64/a.out.h        |   12 ------------
- include/asm-sparc64/processor.h    |   12 ++++++++++++
- include/asm-sparc64/user.h         |    2 +-
- include/asm-um/a.out.h             |   11 -----------
- include/asm-um/processor-generic.h |    9 +++++++++
- include/asm-x86/a.out.h            |   10 ----------
- include/asm-x86/processor.h        |    5 +++++
- include/asm-xtensa/a.out.h         |    5 -----
- include/asm-xtensa/processor.h     |    2 ++
- 39 files changed, 121 insertions(+), 160 deletions(-)
+ drivers/char/tty_ioctl.c |  366 ++++++++++++++++++-------------------
+ 1 file changed, 182 insertions(+), 184 deletions(-)
 
-diff -puN include/asm-alpha/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-alpha/a.out.h
---- a/include/asm-alpha/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-alpha/a.out.h
-@@ -98,11 +98,5 @@ struct exec
- 	set_personality (((BFPM->sh_bang || EX.ah.entry < 0x100000000L \
- 			   ? ADDR_LIMIT_32BIT : 0) | PER_OSF4))
- 
--#define STACK_TOP \
--  (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
--
--#define STACK_TOP_MAX	0x00120000000UL
--
--#endif
--
-+#endif /* __KERNEL__ */
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/asm-alpha/processor.h~aout-move-stack_top-to-asm-processorh include/asm-alpha/processor.h
---- a/include/asm-alpha/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-alpha/processor.h
-@@ -20,6 +20,11 @@
-  */
- #define TASK_SIZE (0x40000000000UL)
- 
-+#define STACK_TOP \
-+  (current->personality & ADDR_LIMIT_32BIT ? 0x80000000 : 0x00120000000UL)
-+
-+#define STACK_TOP_MAX	0x00120000000UL
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-arm/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-arm/a.out.h
---- a/include/asm-arm/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-arm/a.out.h
-@@ -27,12 +27,6 @@ struct exec
- 
- #define M_ARM 103
- 
--#ifdef __KERNEL__
--#define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
--			 TASK_SIZE : TASK_SIZE_26)
--#define STACK_TOP_MAX	TASK_SIZE
--#endif
--
- #ifndef LIBRARY_START_TEXT
- #define LIBRARY_START_TEXT	(0x00c00000)
- #endif
-diff -puN include/asm-arm/processor.h~aout-move-stack_top-to-asm-processorh include/asm-arm/processor.h
---- a/include/asm-arm/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-arm/processor.h
-@@ -22,6 +22,12 @@
- #include <asm/ptrace.h>
- #include <asm/types.h>
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	((current->personality == PER_LINUX_32BIT) ? \
-+			 TASK_SIZE : TASK_SIZE_26)
-+#define STACK_TOP_MAX	TASK_SIZE
-+#endif
-+
- union debug_insn {
- 	u32	arm;
- 	u16	thumb;
-diff -puN include/asm-avr32/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-avr32/a.out.h
---- a/include/asm-avr32/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-avr32/a.out.h
-@@ -17,11 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif
--
- #endif /* __ASM_AVR32_A_OUT_H */
-diff -puN include/asm-avr32/processor.h~aout-move-stack_top-to-asm-processorh include/asm-avr32/processor.h
---- a/include/asm-avr32/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-avr32/processor.h
-@@ -13,6 +13,11 @@
- 
- #define TASK_SIZE	0x80000000
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+#endif
-+
- #ifndef __ASSEMBLY__
- 
- static inline void *current_text_addr(void)
-diff -puN include/asm-blackfin/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-blackfin/a.out.h
---- a/include/asm-blackfin/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-blackfin/a.out.h
-@@ -16,10 +16,4 @@ struct exec {
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--
--#endif
--
- #endif				/* __BFIN_A_OUT_H__ */
-diff -puN include/asm-blackfin/processor.h~aout-move-stack_top-to-asm-processorh include/asm-blackfin/processor.h
---- a/include/asm-blackfin/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-blackfin/processor.h
-@@ -30,6 +30,10 @@ static inline void wrusp(unsigned long u
- extern unsigned long memory_end;
- #define TASK_SIZE	(memory_end)
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	TASK_SIZE
-+#endif
-+
- #define TASK_UNMAPPED_BASE	0
- 
- struct thread_struct {
-diff -puN include/asm-cris/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-cris/a.out.h
---- a/include/asm-cris/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-cris/a.out.h
-@@ -6,11 +6,6 @@
-  * wants to know about a.out even if there is no interpreter available...
+diff -puN drivers/char/tty_ioctl.c~tty_ioctl-drag-screaming-into-compliance-with-the-coding drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty_ioctl-drag-screaming-into-compliance-with-the-coding
++++ a/drivers/char/tty_ioctl.c
+@@ -50,11 +50,11 @@
+  *	Locking: none
   */
  
--/* grabbed from the intel stuff  */   
--#define STACK_TOP TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--
- struct exec
+-void tty_wait_until_sent(struct tty_struct * tty, long timeout)
++void tty_wait_until_sent(struct tty_struct *tty, long timeout)
  {
-   unsigned long a_info;		/* Use macros N_MAGIC, etc for access */
-@@ -28,5 +23,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--
+ #ifdef TTY_DEBUG_WAIT_UNTIL_SENT
+ 	char buf[64];
+-	
++
+ 	printk(KERN_DEBUG "%s wait until sent...\n", tty_name(tty, buf));
  #endif
-diff -puN include/asm-cris/processor.h~aout-move-stack_top-to-asm-processorh include/asm-cris/processor.h
---- a/include/asm-cris/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-cris/processor.h
-@@ -17,6 +17,9 @@
- 
- struct task_struct;
- 
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-h8300/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-h8300/a.out.h
---- a/include/asm-h8300/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-h8300/a.out.h
-@@ -17,11 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif
--
- #endif /* __H8300_A_OUT_H__ */
-diff -puN include/asm-h8300/processor.h~aout-move-stack_top-to-asm-processorh include/asm-h8300/processor.h
---- a/include/asm-h8300/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-h8300/processor.h
-@@ -39,6 +39,11 @@ static inline void wrusp(unsigned long u
-  */
- #define TASK_SIZE	(0xFFFFFFFFUL)
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+#endif
-+
- /*
-  * This decides where the kernel will search for a free chunk of vm
-  * space during mmap's. We won't be using it
-diff -puN include/asm-ia64/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-ia64/a.out.h
---- a/include/asm-ia64/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-ia64/a.out.h
-@@ -29,7 +29,4 @@ struct exec {
- #define N_SYMSIZE(x)	0
- #define N_TXTOFF(x)	0
- 
--#ifdef __KERNEL__
--#include <asm/ustack.h>
--#endif
- #endif /* _ASM_IA64_A_OUT_H */
-diff -puN include/asm-m32r/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-m32r/a.out.h
---- a/include/asm-m32r/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-m32r/a.out.h
-@@ -17,11 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif
--
- #endif /* _ASM_M32R_A_OUT_H */
-diff -puN include/asm-m32r/processor.h~aout-move-stack_top-to-asm-processorh include/asm-m32r/processor.h
---- a/include/asm-m32r/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-m32r/processor.h
-@@ -60,6 +60,11 @@ extern struct cpuinfo_m32r cpu_data[];
- #define TASK_SIZE  (0x00400000UL)
- #endif
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+#endif
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-m68k/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-m68k/a.out.h
---- a/include/asm-m68k/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-m68k/a.out.h
-@@ -17,11 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif
--
- #endif /* __M68K_A_OUT_H__ */
-diff -puN include/asm-m68k/processor.h~aout-move-stack_top-to-asm-processorh include/asm-m68k/processor.h
---- a/include/asm-m68k/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-m68k/processor.h
-@@ -41,6 +41,11 @@ static inline void wrusp(unsigned long u
- #define TASK_SIZE	(0x0E000000UL)
- #endif
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+#endif
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-mips/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-mips/a.out.h
---- a/include/asm-mips/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-mips/a.out.h
-@@ -32,17 +32,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#ifdef CONFIG_32BIT
--#define STACK_TOP	TASK_SIZE
--#endif
--#ifdef CONFIG_64BIT
--#define STACK_TOP	\
--      (test_thread_flag(TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
--#endif
--#define STACK_TOP_MAX	TASK_SIZE
--
--#endif
--
- #endif /* _ASM_A_OUT_H */
-diff -puN include/asm-mips/processor.h~aout-move-stack_top-to-asm-processorh include/asm-mips/processor.h
---- a/include/asm-mips/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-mips/processor.h
-@@ -39,6 +39,7 @@ extern unsigned int vced_count, vcei_cou
-  * so don't change it unless you know what you are doing.
-  */
- #define TASK_SIZE	0x7fff8000UL
-+#define STACK_TOP	TASK_SIZE
- 
- /*
-  * This decides where the kernel will search for a free chunk of vm
-@@ -57,6 +58,8 @@ extern unsigned int vced_count, vcei_cou
-  */
- #define TASK_SIZE32	0x7fff8000UL
- #define TASK_SIZE	0x10000000000UL
-+#define STACK_TOP	\
-+      (test_thread_flag(TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- 
- /*
-  * This decides where the kernel will search for a free chunk of vm
-@@ -69,6 +72,10 @@ extern unsigned int vced_count, vcei_cou
- 	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- #endif
- 
-+#ifdef __KERNEL__
-+#define STACK_TOP_MAX	TASK_SIZE
-+#endif
-+
- #define NUM_FPU_REGS	32
- 
- typedef __u64 fpureg_t;
-diff -puN include/asm-parisc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-parisc/a.out.h
---- a/include/asm-parisc/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-parisc/a.out.h
-@@ -17,14 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--/* XXX: STACK_TOP actually should be STACK_BOTTOM for parisc.
-- * prumpf */
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
--
--#endif
--
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/asm-parisc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-parisc/processor.h
---- a/include/asm-parisc/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-parisc/processor.h
-@@ -47,6 +47,16 @@
- #define DEFAULT_MAP_BASE	DEFAULT_MAP_BASE32
- #endif
- 
-+#ifdef __KERNEL__
-+
-+/* XXX: STACK_TOP actually should be STACK_BOTTOM for parisc.
-+ * prumpf */
-+
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
-+
-+#endif
-+
- #ifndef __ASSEMBLY__
- 
- /*
-diff -puN include/asm-powerpc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-powerpc/a.out.h
---- a/include/asm-powerpc/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-powerpc/a.out.h
-@@ -17,23 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--#ifdef __powerpc64__
--
--#define STACK_TOP_USER64 TASK_SIZE_USER64
--#define STACK_TOP_USER32 TASK_SIZE_USER32
--
--#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
--		   STACK_TOP_USER32 : STACK_TOP_USER64)
--
--#define STACK_TOP_MAX STACK_TOP_USER64
--
--#else /* __powerpc64__ */
--
--#define STACK_TOP TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif /* __powerpc64__ */
--#endif /* __KERNEL__ */
--
- #endif /* _ASM_POWERPC_A_OUT_H */
-diff -puN include/asm-powerpc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-powerpc/processor.h
---- a/include/asm-powerpc/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-powerpc/processor.h
-@@ -113,6 +113,25 @@ extern struct task_struct *last_task_use
- 		TASK_UNMAPPED_BASE_USER32 : TASK_UNMAPPED_BASE_USER64 )
- #endif
- 
-+#ifdef __KERNEL__
-+#ifdef __powerpc64__
-+
-+#define STACK_TOP_USER64 TASK_SIZE_USER64
-+#define STACK_TOP_USER32 TASK_SIZE_USER32
-+
-+#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
-+		   STACK_TOP_USER32 : STACK_TOP_USER64)
-+
-+#define STACK_TOP_MAX STACK_TOP_USER64
-+
-+#else /* __powerpc64__ */
-+
-+#define STACK_TOP TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+
-+#endif /* __powerpc64__ */
-+#endif /* __KERNEL__ */
-+
- typedef struct {
- 	unsigned long seg;
- } mm_segment_t;
-diff -puN include/asm-s390/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-s390/a.out.h
---- a/include/asm-s390/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-s390/a.out.h
-@@ -29,11 +29,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	DEFAULT_TASK_SIZE
--
--#endif
--
- #endif /* __A_OUT_GNU_H__ */
-diff -puN include/asm-s390/processor.h~aout-move-stack_top-to-asm-processorh include/asm-s390/processor.h
---- a/include/asm-s390/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-s390/processor.h
-@@ -78,6 +78,13 @@ extern int get_cpu_capability(unsigned i
- 
- #endif /* __s390x__ */
- 
-+#ifdef __KERNEL__
-+
-+#define STACK_TOP		TASK_SIZE
-+#define STACK_TOP_MAX		DEFAULT_TASK_SIZE
-+
-+#endif
-+
- #define HAVE_ARCH_PICK_MMAP_LAYOUT
- 
- typedef struct {
-diff -puN include/asm-sh/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sh/a.out.h
---- a/include/asm-sh/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sh/a.out.h
-@@ -17,11 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif
--
- #endif /* __ASM_SH_A_OUT_H */
-diff -puN include/asm-sh/processor_32.h~aout-move-stack_top-to-asm-processorh include/asm-sh/processor_32.h
---- a/include/asm-sh/processor_32.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sh/processor_32.h
-@@ -50,6 +50,9 @@ extern struct sh_cpuinfo cpu_data[];
-  */
- #define TASK_SIZE	0x7c000000UL
- 
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-sh/processor_64.h~aout-move-stack_top-to-asm-processorh include/asm-sh/processor_64.h
---- a/include/asm-sh/processor_64.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sh/processor_64.h
-@@ -83,6 +83,9 @@ extern struct sh_cpuinfo cpu_data[];
-  */
- #define TASK_SIZE	0x7ffff000UL
- 
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-sparc/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sparc/a.out.h
---- a/include/asm-sparc/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sparc/a.out.h
-@@ -87,13 +87,4 @@ struct relocation_info /* used when head
- 
- #define N_RELOCATION_INFO_DECLARED 1
- 
--#ifdef __KERNEL__
--
--#include <asm/page.h>
--
--#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
--#define STACK_TOP_MAX	STACK_TOP
--
--#endif /* __KERNEL__ */
--
- #endif /* __SPARC_A_OUT_H__ */
-diff -puN include/asm-sparc/processor.h~aout-move-stack_top-to-asm-processorh include/asm-sparc/processor.h
---- a/include/asm-sparc/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sparc/processor.h
-@@ -33,6 +33,10 @@
-  * we can make our access_ok test faster
-  */
- #define TASK_SIZE	PAGE_OFFSET
-+#ifdef __KERNEL__
-+#define STACK_TOP	(PAGE_OFFSET - PAGE_SIZE)
-+#define STACK_TOP_MAX	STACK_TOP
-+#endif /* __KERNEL__ */
- 
- struct task_struct;
- 
-diff -puN include/asm-sparc64/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/a.out.h
---- a/include/asm-sparc64/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sparc64/a.out.h
-@@ -93,18 +93,6 @@ struct relocation_info /* used when head
- 
- #define N_RELOCATION_INFO_DECLARED 1
- 
--#ifdef __KERNEL__
--
--#define STACK_TOP32	((1UL << 32UL) - PAGE_SIZE)
--#define STACK_TOP64	(0x0000080000000000UL - (1UL << 32UL))
--
--#define STACK_TOP (test_thread_flag(TIF_32BIT) ? \
--		   STACK_TOP32 : STACK_TOP64)
--
--#define STACK_TOP_MAX STACK_TOP64
--
--#endif
--
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC64_A_OUT_H__) */
-diff -puN include/asm-sparc64/processor.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/processor.h
---- a/include/asm-sparc64/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sparc64/processor.h
-@@ -36,7 +36,19 @@
- #else
- #define VPTE_SIZE	(1 << (VA_BITS - PAGE_SHIFT + 3))
- #endif
-+
- #define TASK_SIZE	((unsigned long)-VPTE_SIZE)
-+#ifdef __KERNEL__
-+
-+#define STACK_TOP32	((1UL << 32UL) - PAGE_SIZE)
-+#define STACK_TOP64	(0x0000080000000000UL - (1UL << 32UL))
-+
-+#define STACK_TOP	(test_thread_flag(TIF_32BIT) ? \
-+			 STACK_TOP32 : STACK_TOP64)
-+
-+#define STACK_TOP_MAX	STACK_TOP64
-+
-+#endif
- 
- #ifndef __ASSEMBLY__
- 
-diff -puN include/asm-sparc64/user.h~aout-move-stack_top-to-asm-processorh include/asm-sparc64/user.h
---- a/include/asm-sparc64/user.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-sparc64/user.h
-@@ -8,7 +8,7 @@
- #ifndef _SPARC64_USER_H
- #define _SPARC64_USER_H
- 
--#include <asm/a.out.h>
-+#include <linux/a.out.h>
- struct sunos_regs {
- 	unsigned int psr, pc, npc, y;
- 	unsigned int regs[15];
-diff -puN include/asm-um/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-um/a.out.h
---- a/include/asm-um/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-um/a.out.h
-@@ -8,15 +8,4 @@
- 
- #include "asm/arch/a.out.h"
- 
--#undef STACK_TOP
--#undef STACK_TOP_MAX
--
--extern unsigned long stacksizelim;
--
--#define STACK_ROOM (stacksizelim)
--
--#define STACK_TOP (TASK_SIZE - 2 * PAGE_SIZE)
--
--#define STACK_TOP_MAX STACK_TOP
--
- #endif
-diff -puN include/asm-um/processor-generic.h~aout-move-stack_top-to-asm-processorh include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-um/processor-generic.h
-@@ -94,6 +94,15 @@ static inline void mm_copy_segments(stru
-  */
- #define TASK_SIZE (CONFIG_TOP_ADDR & PGDIR_MASK)
- 
-+#undef STACK_TOP
-+#undef STACK_TOP_MAX
-+
-+extern unsigned long stacksizelim;
-+
-+#define STACK_ROOM	(stacksizelim)
-+#define STACK_TOP	(TASK_SIZE - 2 * PAGE_SIZE)
-+#define STACK_TOP_MAX	STACK_TOP
-+
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-  */
-diff -puN include/asm-x86/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-x86/a.out.h
---- a/include/asm-x86/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-x86/a.out.h
-@@ -17,14 +17,4 @@ struct exec
- #define N_DRSIZE(a)	((a).a_drsize)
- #define N_SYMSIZE(a)	((a).a_syms)
- 
--#ifdef __KERNEL__
--# include <linux/thread_info.h>
--# define STACK_TOP	TASK_SIZE
--# ifdef CONFIG_X86_32
--#  define STACK_TOP_MAX	STACK_TOP
--# else
--#  define STACK_TOP_MAX	TASK_SIZE64
--# endif
--#endif
--
- #endif /* _ASM_X86_A_OUT_H */
-diff -puN include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh include/asm-x86/processor.h
---- a/include/asm-x86/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-x86/processor.h
-@@ -719,6 +719,8 @@ static inline void prefetchw(const void 
-  * User space process size: 3GB (default).
-  */
- #define TASK_SIZE	(PAGE_OFFSET)
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
- 
- #define INIT_THREAD  {							\
- 	.sp0 = sizeof(init_stack) + (long)&init_stack,			\
-@@ -802,6 +804,9 @@ extern unsigned long thread_saved_pc(str
- #define TASK_SIZE_OF(child) 	((test_tsk_thread_flag(child, TIF_IA32)) ? \
- 				  IA32_PAGE_OFFSET : TASK_SIZE64)
- 
-+#define STACK_TOP		TASK_SIZE
-+#define STACK_TOP_MAX		TASK_SIZE64
-+
- #define INIT_THREAD  { \
- 	.sp0 = (unsigned long)&init_stack + sizeof(init_stack) \
+ 	if (!tty->driver->chars_in_buffer)
+@@ -67,7 +67,6 @@ void tty_wait_until_sent(struct tty_stru
+ 	if (tty->driver->wait_until_sent)
+ 		tty->driver->wait_until_sent(tty, timeout);
  }
-diff -puN include/asm-xtensa/a.out.h~aout-move-stack_top-to-asm-processorh include/asm-xtensa/a.out.h
---- a/include/asm-xtensa/a.out.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-xtensa/a.out.h
-@@ -14,11 +14,6 @@
- #ifndef _XTENSA_A_OUT_H
- #define _XTENSA_A_OUT_H
+-
+ EXPORT_SYMBOL(tty_wait_until_sent);
  
--/* Note: the kernel needs the a.out definitions, even if only ELF is used. */
--
--#define STACK_TOP	TASK_SIZE
--#define STACK_TOP_MAX	STACK_TOP
--
- struct exec
+ static void unset_locked_termios(struct ktermios *termios,
+@@ -75,8 +74,8 @@ static void unset_locked_termios(struct 
+ 				 struct ktermios *locked)
  {
-   unsigned long a_info;
-diff -puN include/asm-xtensa/processor.h~aout-move-stack_top-to-asm-processorh include/asm-xtensa/processor.h
---- a/include/asm-xtensa/processor.h~aout-move-stack_top-to-asm-processorh
-+++ a/include/asm-xtensa/processor.h
-@@ -34,6 +34,8 @@
+ 	int	i;
+-	
+-#define NOSET_MASK(x,y,z) (x = ((x) & ~(z)) | ((y) & (z)))
++
++#define NOSET_MASK(x, y, z) (x = ((x) & ~(z)) | ((y) & (z)))
+ 
+ 	if (!locked) {
+ 		printk(KERN_WARNING "Warning?!? termios_locked is NULL.\n");
+@@ -88,7 +87,7 @@ static void unset_locked_termios(struct 
+ 	NOSET_MASK(termios->c_cflag, old->c_cflag, locked->c_cflag);
+ 	NOSET_MASK(termios->c_lflag, old->c_lflag, locked->c_lflag);
+ 	termios->c_line = locked->c_line ? old->c_line : termios->c_line;
+-	for (i=0; i < NCCS; i++)
++	for (i = 0; i < NCCS; i++)
+ 		termios->c_cc[i] = locked->c_cc[i] ?
+ 			old->c_cc[i] : termios->c_cc[i];
+ 	/* FIXME: What should we do for i/ospeed */
+@@ -163,7 +162,6 @@ speed_t tty_termios_baud_rate(struct kte
+ 	}
+ 	return baud_table[cbaud];
+ }
+-
+ EXPORT_SYMBOL(tty_termios_baud_rate);
+ 
+ /**
+@@ -203,7 +201,6 @@ speed_t tty_termios_input_baud_rate(stru
+ 	return tty_termios_baud_rate(termios);
+ #endif
+ }
+-
+ EXPORT_SYMBOL(tty_termios_input_baud_rate);
+ 
+ /**
+@@ -338,7 +335,6 @@ speed_t tty_get_baud_rate(struct tty_str
+ 
+ 	return baud;
+ }
+-
+ EXPORT_SYMBOL(tty_get_baud_rate);
+ 
+ /**
+@@ -361,7 +357,6 @@ void tty_termios_copy_hw(struct ktermios
+ 	new->c_ispeed = old->c_ispeed;
+ 	new->c_ospeed = old->c_ospeed;
+ }
+-
+ EXPORT_SYMBOL(tty_termios_copy_hw);
+ 
+ /**
+@@ -395,16 +390,16 @@ EXPORT_SYMBOL(tty_termios_hw_change);
+  *	Locking: termios_sem
   */
  
- #define TASK_SIZE	__XTENSA_UL_CONST(0x40000000)
-+#define STACK_TOP	TASK_SIZE
-+#define STACK_TOP_MAX	STACK_TOP
+-static void change_termios(struct tty_struct * tty, struct ktermios * new_termios)
++static void change_termios(struct tty_struct *tty, struct ktermios *new_termios)
+ {
+ 	int canon_change;
+ 	struct ktermios old_termios = *tty->termios;
+ 	struct tty_ldisc *ld;
+-	
++
+ 	/*
+ 	 *	Perform the actual termios internal changes under lock.
+ 	 */
+-	 
++
  
- /*
-  * General exception cause assigned to debug exceptions. Debug exceptions go
+ 	/* FIXME: we need to decide on some locking/ordering semantics
+ 	   for the set_termios notification eventually */
+@@ -419,7 +414,7 @@ static void change_termios(struct tty_st
+ 		tty->canon_data = 0;
+ 		tty->erasing = 0;
+ 	}
+-	
++
+ 	/* This bit should be in the ldisc code */
+ 	if (canon_change && !L_ICANON(tty) && tty->read_cnt)
+ 		/* Get characters left over from canonical mode. */
+@@ -442,7 +437,7 @@ static void change_termios(struct tty_st
+ 			wake_up_interruptible(&tty->link->read_wait);
+ 		}
+ 	}
+-	   
++
+ 	if (tty->driver->set_termios)
+ 		(*tty->driver->set_termios)(tty, &old_termios);
+ 	else
+@@ -470,7 +465,7 @@ static void change_termios(struct tty_st
+  *		Called functions take ldisc and termios_sem locks
+  */
+ 
+-static int set_termios(struct tty_struct * tty, void __user *arg, int opt)
++static int set_termios(struct tty_struct *tty, void __user *arg, int opt)
+ {
+ 	struct ktermios tmp_termios;
+ 	struct tty_ldisc *ld;
+@@ -501,19 +496,19 @@ static int set_termios(struct tty_struct
+ 		return -EFAULT;
+ #endif
+ 
+-	/* If old style Bfoo values are used then load c_ispeed/c_ospeed with the real speed
+-	   so its unconditionally usable */
++	/* If old style Bfoo values are used then load c_ispeed/c_ospeed
++	 * with the real speed so its unconditionally usable */
+ 	tmp_termios.c_ispeed = tty_termios_input_baud_rate(&tmp_termios);
+ 	tmp_termios.c_ospeed = tty_termios_baud_rate(&tmp_termios);
+ 
+ 	ld = tty_ldisc_ref(tty);
+-	
++
+ 	if (ld != NULL) {
+ 		if ((opt & TERMIOS_FLUSH) && ld->flush_buffer)
+ 			ld->flush_buffer(tty);
+ 		tty_ldisc_deref(ld);
+ 	}
+-	
++
+ 	if (opt & TERMIOS_WAIT) {
+ 		tty_wait_until_sent(tty, 0);
+ 		if (signal_pending(current))
+@@ -529,14 +524,14 @@ static int set_termios(struct tty_struct
+ 	return 0;
+ }
+ 
+-static int get_termio(struct tty_struct * tty, struct termio __user * termio)
++static int get_termio(struct tty_struct *tty, struct termio __user *termio)
+ {
+ 	if (kernel_termios_to_user_termio(termio, tty->termios))
+ 		return -EFAULT;
+ 	return 0;
+ }
+ 
+-static unsigned long inq_canon(struct tty_struct * tty)
++static unsigned long inq_canon(struct tty_struct *tty)
+ {
+ 	int nr, head, tail;
+ 
+@@ -561,7 +556,7 @@ static unsigned long inq_canon(struct tt
+  *
+  * The "sg_flags" translation is a joke..
+  */
+-static int get_sgflags(struct tty_struct * tty)
++static int get_sgflags(struct tty_struct *tty)
+ {
+ 	int flags = 0;
+ 
+@@ -579,7 +574,7 @@ static int get_sgflags(struct tty_struct
+ 	return flags;
+ }
+ 
+-static int get_sgttyb(struct tty_struct * tty, struct sgttyb __user * sgttyb)
++static int get_sgttyb(struct tty_struct *tty, struct sgttyb __user *sgttyb)
+ {
+ 	struct sgttyb tmp;
+ 
+@@ -590,11 +585,11 @@ static int get_sgttyb(struct tty_struct 
+ 	tmp.sg_kill = tty->termios->c_cc[VKILL];
+ 	tmp.sg_flags = get_sgflags(tty);
+ 	mutex_unlock(&tty->termios_mutex);
+-	
++
+ 	return copy_to_user(sgttyb, &tmp, sizeof(tmp)) ? -EFAULT : 0;
+ }
+ 
+-static void set_sgflags(struct ktermios * termios, int flags)
++static void set_sgflags(struct ktermios *termios, int flags)
+ {
+ 	termios->c_iflag = ICRNL | IXON;
+ 	termios->c_oflag = 0;
+@@ -631,7 +626,7 @@ static void set_sgflags(struct ktermios 
+  *	Locking: termios_sem
+  */
+ 
+-static int set_sgttyb(struct tty_struct * tty, struct sgttyb __user * sgttyb)
++static int set_sgttyb(struct tty_struct *tty, struct sgttyb __user *sgttyb)
+ {
+ 	int retval;
+ 	struct sgttyb tmp;
+@@ -640,7 +635,7 @@ static int set_sgttyb(struct tty_struct 
+ 	retval = tty_check_change(tty);
+ 	if (retval)
+ 		return retval;
+-	
++
+ 	if (copy_from_user(&tmp, sgttyb, sizeof(tmp)))
+ 		return -EFAULT;
+ 
+@@ -651,7 +646,8 @@ static int set_sgttyb(struct tty_struct 
+ 	set_sgflags(&termios, tmp.sg_flags);
+ 	/* Try and encode into Bfoo format */
+ #ifdef BOTHER
+-	tty_termios_encode_baud_rate(&termios, termios.c_ispeed, termios.c_ospeed);
++	tty_termios_encode_baud_rate(&termios, termios.c_ispeed,
++						termios.c_ospeed);
+ #endif
+ 	mutex_unlock(&tty->termios_mutex);
+ 	change_termios(tty, &termios);
+@@ -660,7 +656,7 @@ static int set_sgttyb(struct tty_struct 
+ #endif
+ 
+ #ifdef TIOCGETC
+-static int get_tchars(struct tty_struct * tty, struct tchars __user * tchars)
++static int get_tchars(struct tty_struct *tty, struct tchars __user *tchars)
+ {
+ 	struct tchars tmp;
+ 
+@@ -673,7 +669,7 @@ static int get_tchars(struct tty_struct 
+ 	return copy_to_user(tchars, &tmp, sizeof(tmp)) ? -EFAULT : 0;
+ }
+ 
+-static int set_tchars(struct tty_struct * tty, struct tchars __user * tchars)
++static int set_tchars(struct tty_struct *tty, struct tchars __user *tchars)
+ {
+ 	struct tchars tmp;
+ 
+@@ -690,20 +686,22 @@ static int set_tchars(struct tty_struct 
+ #endif
+ 
+ #ifdef TIOCGLTC
+-static int get_ltchars(struct tty_struct * tty, struct ltchars __user * ltchars)
++static int get_ltchars(struct tty_struct *tty, struct ltchars __user *ltchars)
+ {
+ 	struct ltchars tmp;
+ 
+ 	tmp.t_suspc = tty->termios->c_cc[VSUSP];
+-	tmp.t_dsuspc = tty->termios->c_cc[VSUSP];	/* what is dsuspc anyway? */
++	/* what is dsuspc anyway? */
++	tmp.t_dsuspc = tty->termios->c_cc[VSUSP];
+ 	tmp.t_rprntc = tty->termios->c_cc[VREPRINT];
+-	tmp.t_flushc = tty->termios->c_cc[VEOL2];	/* what is flushc anyway? */
++	/* what is flushc anyway? */
++	tmp.t_flushc = tty->termios->c_cc[VEOL2];
+ 	tmp.t_werasc = tty->termios->c_cc[VWERASE];
+ 	tmp.t_lnextc = tty->termios->c_cc[VLNEXT];
+ 	return copy_to_user(ltchars, &tmp, sizeof(tmp)) ? -EFAULT : 0;
+ }
+ 
+-static int set_ltchars(struct tty_struct * tty, struct ltchars __user * ltchars)
++static int set_ltchars(struct tty_struct *tty, struct ltchars __user *ltchars)
+ {
+ 	struct ltchars tmp;
+ 
+@@ -711,9 +709,11 @@ static int set_ltchars(struct tty_struct
+ 		return -EFAULT;
+ 
+ 	tty->termios->c_cc[VSUSP] = tmp.t_suspc;
+-	tty->termios->c_cc[VEOL2] = tmp.t_dsuspc;	/* what is dsuspc anyway? */
++	/* what is dsuspc anyway? */
++	tty->termios->c_cc[VEOL2] = tmp.t_dsuspc;
+ 	tty->termios->c_cc[VREPRINT] = tmp.t_rprntc;
+-	tty->termios->c_cc[VEOL2] = tmp.t_flushc;	/* what is flushc anyway? */
++	/* what is flushc anyway? */
++	tty->termios->c_cc[VEOL2] = tmp.t_flushc;
+ 	tty->termios->c_cc[VWERASE] = tmp.t_werasc;
+ 	tty->termios->c_cc[VLNEXT] = tmp.t_lnextc;
+ 	return 0;
+@@ -761,10 +761,10 @@ static int send_prio_char(struct tty_str
+  *	consistent mode setting.
+  */
+ 
+-int tty_mode_ioctl(struct tty_struct * tty, struct file *file,
++int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
+ 			unsigned int cmd, unsigned long arg)
+ {
+-	struct tty_struct * real_tty;
++	struct tty_struct *real_tty;
+ 	void __user *p = (void __user *)arg;
+ 
+ 	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
+@@ -775,100 +775,100 @@ int tty_mode_ioctl(struct tty_struct * t
+ 
+ 	switch (cmd) {
+ #ifdef TIOCGETP
+-		case TIOCGETP:
+-			return get_sgttyb(real_tty, (struct sgttyb __user *) arg);
+-		case TIOCSETP:
+-		case TIOCSETN:
+-			return set_sgttyb(real_tty, (struct sgttyb __user *) arg);
++	case TIOCGETP:
++		return get_sgttyb(real_tty, (struct sgttyb __user *) arg);
++	case TIOCSETP:
++	case TIOCSETN:
++		return set_sgttyb(real_tty, (struct sgttyb __user *) arg);
+ #endif
+ #ifdef TIOCGETC
+-		case TIOCGETC:
+-			return get_tchars(real_tty, p);
+-		case TIOCSETC:
+-			return set_tchars(real_tty, p);
++	case TIOCGETC:
++		return get_tchars(real_tty, p);
++	case TIOCSETC:
++		return set_tchars(real_tty, p);
+ #endif
+ #ifdef TIOCGLTC
+-		case TIOCGLTC:
+-			return get_ltchars(real_tty, p);
+-		case TIOCSLTC:
+-			return set_ltchars(real_tty, p);
+-#endif
+-		case TCSETSF:
+-			return set_termios(real_tty, p,  TERMIOS_FLUSH | TERMIOS_WAIT | TERMIOS_OLD);
+-		case TCSETSW:
+-			return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_OLD);
+-		case TCSETS:
+-			return set_termios(real_tty, p, TERMIOS_OLD);
++	case TIOCGLTC:
++		return get_ltchars(real_tty, p);
++	case TIOCSLTC:
++		return set_ltchars(real_tty, p);
++#endif
++	case TCSETSF:
++		return set_termios(real_tty, p,  TERMIOS_FLUSH | TERMIOS_WAIT | TERMIOS_OLD);
++	case TCSETSW:
++		return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_OLD);
++	case TCSETS:
++		return set_termios(real_tty, p, TERMIOS_OLD);
+ #ifndef TCGETS2
+-		case TCGETS:
+-			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios))
+-				return -EFAULT;
+-			return 0;
++	case TCGETS:
++		if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios))
++			return -EFAULT;
++		return 0;
+ #else
+-		case TCGETS:
+-			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios))
+-				return -EFAULT;
+-			return 0;
+-		case TCGETS2:
+-			if (kernel_termios_to_user_termios((struct termios2 __user *)arg, real_tty->termios))
+-				return -EFAULT;
+-			return 0;
+-		case TCSETSF2:
+-			return set_termios(real_tty, p,  TERMIOS_FLUSH | TERMIOS_WAIT);
+-		case TCSETSW2:
+-			return set_termios(real_tty, p, TERMIOS_WAIT);
+-		case TCSETS2:
+-			return set_termios(real_tty, p, 0);
+-#endif
+-		case TCGETA:
+-			return get_termio(real_tty, p);
+-		case TCSETAF:
+-			return set_termios(real_tty, p, TERMIOS_FLUSH | TERMIOS_WAIT | TERMIOS_TERMIO);
+-		case TCSETAW:
+-			return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_TERMIO);
+-		case TCSETA:
+-			return set_termios(real_tty, p, TERMIOS_TERMIO);
++	case TCGETS:
++		if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios))
++			return -EFAULT;
++		return 0;
++	case TCGETS2:
++		if (kernel_termios_to_user_termios((struct termios2 __user *)arg, real_tty->termios))
++			return -EFAULT;
++		return 0;
++	case TCSETSF2:
++		return set_termios(real_tty, p,  TERMIOS_FLUSH | TERMIOS_WAIT);
++	case TCSETSW2:
++		return set_termios(real_tty, p, TERMIOS_WAIT);
++	case TCSETS2:
++		return set_termios(real_tty, p, 0);
++#endif
++	case TCGETA:
++		return get_termio(real_tty, p);
++	case TCSETAF:
++		return set_termios(real_tty, p, TERMIOS_FLUSH | TERMIOS_WAIT | TERMIOS_TERMIO);
++	case TCSETAW:
++		return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_TERMIO);
++	case TCSETA:
++		return set_termios(real_tty, p, TERMIOS_TERMIO);
+ #ifndef TCGETS2
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
+-			return 0;
++	case TIOCGLCKTRMIOS:
++		if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
++			return -EFAULT;
++		return 0;
++	case TIOCSLCKTRMIOS:
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		if (user_termios_to_kernel_termios(real_tty->termios_locked,
++					       (struct termios __user *) arg))
++			return -EFAULT;
++		return 0;
+ #else
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
++	case TIOCGLCKTRMIOS:
++		if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
++			return -EFAULT;
++		return 0;
++	case TIOCSLCKTRMIOS:
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		if (user_termios_to_kernel_termios_1(real_tty->termios_locked,
++					       (struct termios __user *) arg))
++			return -EFAULT;
+ 			return 0;
+ #endif
+-		case TIOCGSOFTCAR:
+-			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
+-		case TIOCSSOFTCAR:
+-			if (get_user(arg, (unsigned int __user *) arg))
+-				return -EFAULT;
+-			mutex_lock(&tty->termios_mutex);
+-			tty->termios->c_cflag =
+-				((tty->termios->c_cflag & ~CLOCAL) |
+-				 (arg ? CLOCAL : 0));
+-			mutex_unlock(&tty->termios_mutex);
+-			return 0;
+-		default:
+-			return -ENOIOCTLCMD;
++	case TIOCGSOFTCAR:
++		return put_user(C_CLOCAL(tty) ? 1 : 0,
++						(int __user *)arg);
++	case TIOCSSOFTCAR:
++		if (get_user(arg, (unsigned int __user *) arg))
++			return -EFAULT;
++		mutex_lock(&tty->termios_mutex);
++		tty->termios->c_cflag =
++			((tty->termios->c_cflag & ~CLOCAL) |
++			 (arg ? CLOCAL : 0));
++		mutex_unlock(&tty->termios_mutex);
++		return 0;
++	default:
++		return -ENOIOCTLCMD;
+ 	}
+ }
+-
+ EXPORT_SYMBOL_GPL(tty_mode_ioctl);
+ 
+ int tty_perform_flush(struct tty_struct *tty, unsigned long arg)
+@@ -899,13 +899,12 @@ int tty_perform_flush(struct tty_struct 
+ 	tty_ldisc_deref(ld);
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL_GPL(tty_perform_flush);
+ 
+-int n_tty_ioctl(struct tty_struct * tty, struct file * file,
++int n_tty_ioctl(struct tty_struct *tty, struct file *file,
+ 		       unsigned int cmd, unsigned long arg)
+ {
+-	struct tty_struct * real_tty;
++	struct tty_struct *real_tty;
+ 	int retval;
+ 
+ 	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
+@@ -915,68 +914,67 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 		real_tty = tty;
+ 
+ 	switch (cmd) {
+-		case TCXONC:
+-			retval = tty_check_change(tty);
+-			if (retval)
+-				return retval;
+-			switch (arg) {
+-			case TCOOFF:
+-				if (!tty->flow_stopped) {
+-					tty->flow_stopped = 1;
+-					stop_tty(tty);
+-				}
+-				break;
+-			case TCOON:
+-				if (tty->flow_stopped) {
+-					tty->flow_stopped = 0;
+-					start_tty(tty);
+-				}
+-				break;
+-			case TCIOFF:
+-				if (STOP_CHAR(tty) != __DISABLED_CHAR)
+-					return send_prio_char(tty, STOP_CHAR(tty));
+-				break;
+-			case TCION:
+-				if (START_CHAR(tty) != __DISABLED_CHAR)
+-					return send_prio_char(tty, START_CHAR(tty));
+-				break;
+-			default:
+-				return -EINVAL;
++	case TCXONC:
++		retval = tty_check_change(tty);
++		if (retval)
++			return retval;
++		switch (arg) {
++		case TCOOFF:
++			if (!tty->flow_stopped) {
++				tty->flow_stopped = 1;
++				stop_tty(tty);
+ 			}
+-			return 0;
+-		case TCFLSH:
+-			return tty_perform_flush(tty, arg);
+-		case TIOCOUTQ:
+-			return put_user(tty->driver->chars_in_buffer ?
+-					tty->driver->chars_in_buffer(tty) : 0,
+-					(int __user *) arg);
+-		case TIOCINQ:
+-			retval = tty->read_cnt;
+-			if (L_ICANON(tty))
+-				retval = inq_canon(tty);
+-			return put_user(retval, (unsigned int __user *) arg);
+-		case TIOCPKT:
+-		{
+-			int pktmode;
+-
+-			if (tty->driver->type != TTY_DRIVER_TYPE_PTY ||
+-			    tty->driver->subtype != PTY_TYPE_MASTER)
+-				return -ENOTTY;
+-			if (get_user(pktmode, (int __user *) arg))
+-				return -EFAULT;
+-			if (pktmode) {
+-				if (!tty->packet) {
+-					tty->packet = 1;
+-					tty->link->ctrl_status = 0;
+-				}
+-			} else
+-				tty->packet = 0;
+-			return 0;
+-		}
++			break;
++		case TCOON:
++			if (tty->flow_stopped) {
++				tty->flow_stopped = 0;
++				start_tty(tty);
++			}
++			break;
++		case TCIOFF:
++			if (STOP_CHAR(tty) != __DISABLED_CHAR)
++				return send_prio_char(tty, STOP_CHAR(tty));
++			break;
++		case TCION:
++			if (START_CHAR(tty) != __DISABLED_CHAR)
++				return send_prio_char(tty, START_CHAR(tty));
++			break;
+ 		default:
+-			/* Try the mode commands */
+-			return tty_mode_ioctl(tty, file, cmd, arg);
++			return -EINVAL;
+ 		}
++		return 0;
++	case TCFLSH:
++		return tty_perform_flush(tty, arg);
++	case TIOCOUTQ:
++		return put_user(tty->driver->chars_in_buffer ?
++				tty->driver->chars_in_buffer(tty) : 0,
++				(int __user *) arg);
++	case TIOCINQ:
++		retval = tty->read_cnt;
++		if (L_ICANON(tty))
++			retval = inq_canon(tty);
++		return put_user(retval, (unsigned int __user *) arg);
++	case TIOCPKT:
++	{
++		int pktmode;
++
++		if (tty->driver->type != TTY_DRIVER_TYPE_PTY ||
++		    tty->driver->subtype != PTY_TYPE_MASTER)
++			return -ENOTTY;
++		if (get_user(pktmode, (int __user *) arg))
++			return -EFAULT;
++		if (pktmode) {
++			if (!tty->packet) {
++				tty->packet = 1;
++				tty->link->ctrl_status = 0;
++			}
++		} else
++			tty->packet = 0;
++		return 0;
++	}
++	default:
++		/* Try the mode commands */
++		return tty_mode_ioctl(tty, file, cmd, arg);
++	}
+ }
+-
+ EXPORT_SYMBOL(n_tty_ioctl);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-mutex-subsystem-synchro-test-module.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
