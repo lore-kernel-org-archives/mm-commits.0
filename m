@@ -1,410 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:15 -0800
-Message-ID: <200802082012.m18KCu3g010245@imap1.linux-foundation.org>
+Subject: - smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:15 -0800
+Message-ID: <200802082017.m18KHunJ010878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41965 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760245AbYBHVDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:42 -0500
+	by vger.kernel.org with ESMTP id S1757354AbYBHVET (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:04:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, clg@fr.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: wim@iguana.be, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, khali@linux-fr.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPC: make struct ipc_ids static in ipc_namespace
+     SMBIOS/DMI: add type 41 = Onboard Devices Extended Information
 has been removed from the -mm tree.  Its filename was
-     ipc-make-struct-ipc_ids-static-in-ipc_namespace.patch
+     smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC: make struct ipc_ids static in ipc_namespace
-From: Pierre Peiffer <pierre.peiffer@bull.net>
+Subject: SMBIOS/DMI: add type 41 = Onboard Devices Extended Information
+From: Wim Van Sebroeck <wim@iguana.be>
 
-Each ipc_namespace contains a table of 3 pointers to struct ipc_ids (3 for
-msg, sem and shm, structure used to store all ipcs) These 'struct ipc_ids'
-are dynamically allocated for each icp_namespace as the ipc_namespace
-itself (for the init namespace, they are initialized with pointers to
-static variables instead)
+From version 2.6 of the SMBIOS standard, type 10 (On Board Devices
+Information) becomes obsolete.  The reason for this is that no further
+fields can be added to this structure without adversely affecting existing
+software's ability to properly parse the data.
 
-It is so for historical reason: in fact, before the use of idr to store the
-ipcs, the ipcs were stored in tables of variable length, depending of the
-maximum number of ipc allowed.  Now, these 'struct ipc_ids' have a fixed
-size.  As they are allocated in any cases for each new ipc_namespace, there
-is no gain of memory in having them allocated separately of the struct
-ipc_namespace.
+Therefore type 41 (Onboard Devices Extended Information) was added.
+The structure is as follows:
 
-This patch proposes to make this table static in the struct ipc_namespace. 
-Thus, we can allocate all in once and get rid of all the code needed to
-allocate and free these ipc_ids separately.
+struct smbios_type_41 {
+	u8 type;
+	u8 length;
+	u16 handle;
+	u8 reference_designation_string;
+	u8 device_type;		/* same device type as in type 10 */
+	u8 device_type_instance;
+	u16 segment_group_number;
+	u8 bus_number;
+	u8 device_function_number;
+};
 
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+For more info: http://www.dmtf.org/standards/smbios
+
+Signed-off-by: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |   13 +++++++++++--
- ipc/msg.c                     |   26 ++++----------------------
- ipc/namespace.c               |   25 ++++---------------------
- ipc/sem.c                     |   26 ++++----------------------
- ipc/shm.c                     |   26 ++++----------------------
- ipc/util.c                    |    6 +++---
- ipc/util.h                    |   16 ++++------------
- 7 files changed, 34 insertions(+), 104 deletions(-)
+ drivers/firmware/dmi_scan.c |   25 +++++++++++++++++++++++++
+ include/linux/dmi.h         |    5 ++++-
+ 2 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/include/linux/ipc_namespace.h
-@@ -2,11 +2,20 @@
- #define __IPC_NAMESPACE_H__
+diff -puN drivers/firmware/dmi_scan.c~smbios-dmi-add-type-41-=-onboard-devices-extended-information drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~smbios-dmi-add-type-41-=-onboard-devices-extended-information
++++ a/drivers/firmware/dmi_scan.c
+@@ -250,6 +250,28 @@ static void __init dmi_save_ipmi_device(
+ 	list_add(&dev->list, &dmi_devices);
+ }
  
- #include <linux/err.h>
-+#include <linux/idr.h>
-+#include <linux/rwsem.h>
++static void __init dmi_save_extended_devices(const struct dmi_header *dm)
++{
++	const u8 *d = (u8*) dm + 5;
++	struct dmi_device *dev;
 +
-+struct ipc_ids {
-+	int in_use;
-+	unsigned short seq;
-+	unsigned short seq_max;
-+	struct rw_semaphore rw_mutex;
-+	struct idr ipcs_idr;
-+};
- 
--struct ipc_ids;
- struct ipc_namespace {
- 	struct kref	kref;
--	struct ipc_ids	*ids[3];
-+	struct ipc_ids	ids[3];
- 
- 	int		sem_ctls[4];
- 	int		used_sems;
-diff -puN ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/msg.c
---- a/ipc/msg.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/msg.c
-@@ -67,9 +67,7 @@ struct msg_sender {
- #define SEARCH_NOTEQUAL		3
- #define SEARCH_LESSEQUAL	4
- 
--static struct ipc_ids init_msg_ids;
--
--#define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
-+#define msg_ids(ns)	((ns)->ids[IPC_MSG_IDS])
- 
- #define msg_unlock(msq)		ipc_unlock(&(msq)->q_perm)
- #define msg_buildid(id, seq)	ipc_buildid(id, seq)
-@@ -80,30 +78,17 @@ static int newque(struct ipc_namespace *
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __msg_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+void msg_init_ns(struct ipc_namespace *ns)
- {
--	ns->ids[IPC_MSG_IDS] = ids;
- 	ns->msg_ctlmax = MSGMAX;
- 	ns->msg_ctlmnb = MSGMNB;
- 	ns->msg_ctlmni = MSGMNI;
- 	atomic_set(&ns->msg_bytes, 0);
- 	atomic_set(&ns->msg_hdrs, 0);
--	ipc_init_ids(ids);
-+	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
- }
- 
- #ifdef CONFIG_IPC_NS
--int msg_init_ns(struct ipc_namespace *ns)
--{
--	struct ipc_ids *ids;
--
--	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
--	if (ids == NULL)
--		return -ENOMEM;
--
--	__msg_init_ns(ns, ids);
--	return 0;
--}
--
- void msg_exit_ns(struct ipc_namespace *ns)
- {
- 	struct msg_queue *msq;
-@@ -126,15 +111,12 @@ void msg_exit_ns(struct ipc_namespace *n
- 	}
- 
- 	up_write(&msg_ids(ns).rw_mutex);
--
--	kfree(ns->ids[IPC_MSG_IDS]);
--	ns->ids[IPC_MSG_IDS] = NULL;
- }
- #endif
- 
- void __init msg_init(void)
- {
--	__msg_init_ns(&init_ipc_ns, &init_msg_ids);
-+	msg_init_ns(&init_ipc_ns);
- 	ipc_init_proc_interface("sysvipc/msg",
- 				"       key      msqid perms      cbytes       qnum lspid lrpid   uid   gid  cuid  cgid      stime      rtime      ctime\n",
- 				IPC_MSG_IDS, sysvipc_msg_proc_show);
-diff -puN ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/namespace.c
---- a/ipc/namespace.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/namespace.c
-@@ -14,35 +14,18 @@
- 
- static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
- {
--	int err;
- 	struct ipc_namespace *ns;
- 
--	err = -ENOMEM;
- 	ns = kmalloc(sizeof(struct ipc_namespace), GFP_KERNEL);
- 	if (ns == NULL)
--		goto err_mem;
-+		return ERR_PTR(-ENOMEM);
- 
--	err = sem_init_ns(ns);
--	if (err)
--		goto err_sem;
--	err = msg_init_ns(ns);
--	if (err)
--		goto err_msg;
--	err = shm_init_ns(ns);
--	if (err)
--		goto err_shm;
-+	sem_init_ns(ns);
-+	msg_init_ns(ns);
-+	shm_init_ns(ns);
- 
- 	kref_init(&ns->kref);
- 	return ns;
--
--err_shm:
--	msg_exit_ns(ns);
--err_msg:
--	sem_exit_ns(ns);
--err_sem:
--	kfree(ns);
--err_mem:
--	return ERR_PTR(err);
- }
- 
- struct ipc_namespace *copy_ipcs(unsigned long flags, struct ipc_namespace *ns)
-diff -puN ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/sem.c
---- a/ipc/sem.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/sem.c
-@@ -87,14 +87,12 @@
- #include <asm/uaccess.h>
- #include "util.h"
- 
--#define sem_ids(ns)	(*((ns)->ids[IPC_SEM_IDS]))
-+#define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
- 
- #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
- #define sem_checkid(sma, semid)	ipc_checkid(&sma->sem_perm, semid)
- #define sem_buildid(id, seq)	ipc_buildid(id, seq)
- 
--static struct ipc_ids init_sem_ids;
--
- static int newary(struct ipc_namespace *, struct ipc_params *);
- static void freeary(struct ipc_namespace *, struct sem_array *);
- #ifdef CONFIG_PROC_FS
-@@ -118,30 +116,17 @@ static int sysvipc_sem_proc_show(struct 
- #define sc_semopm	sem_ctls[2]
- #define sc_semmni	sem_ctls[3]
- 
--static void __sem_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+void sem_init_ns(struct ipc_namespace *ns)
- {
--	ns->ids[IPC_SEM_IDS] = ids;
- 	ns->sc_semmsl = SEMMSL;
- 	ns->sc_semmns = SEMMNS;
- 	ns->sc_semopm = SEMOPM;
- 	ns->sc_semmni = SEMMNI;
- 	ns->used_sems = 0;
--	ipc_init_ids(ids);
-+	ipc_init_ids(&ns->ids[IPC_SEM_IDS]);
- }
- 
- #ifdef CONFIG_IPC_NS
--int sem_init_ns(struct ipc_namespace *ns)
--{
--	struct ipc_ids *ids;
--
--	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
--	if (ids == NULL)
--		return -ENOMEM;
--
--	__sem_init_ns(ns, ids);
--	return 0;
--}
--
- void sem_exit_ns(struct ipc_namespace *ns)
- {
- 	struct sem_array *sma;
-@@ -163,15 +148,12 @@ void sem_exit_ns(struct ipc_namespace *n
- 		total++;
- 	}
- 	up_write(&sem_ids(ns).rw_mutex);
--
--	kfree(ns->ids[IPC_SEM_IDS]);
--	ns->ids[IPC_SEM_IDS] = NULL;
- }
- #endif
- 
- void __init sem_init (void)
- {
--	__sem_init_ns(&init_ipc_ns, &init_sem_ids);
-+	sem_init_ns(&init_ipc_ns);
- 	ipc_init_proc_interface("sysvipc/sem",
- 				"       key      semid perms      nsems   uid   gid  cuid  cgid      otime      ctime\n",
- 				IPC_SEM_IDS, sysvipc_sem_proc_show);
-diff -puN ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/shm.c
---- a/ipc/shm.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/shm.c
-@@ -56,9 +56,7 @@ struct shm_file_data {
- static const struct file_operations shm_file_operations;
- static struct vm_operations_struct shm_vm_ops;
- 
--static struct ipc_ids init_shm_ids;
--
--#define shm_ids(ns)	(*((ns)->ids[IPC_SHM_IDS]))
-+#define shm_ids(ns)	((ns)->ids[IPC_SHM_IDS])
- 
- #define shm_unlock(shp)			\
- 	ipc_unlock(&(shp)->shm_perm)
-@@ -72,14 +70,13 @@ static void shm_destroy (struct ipc_name
- static int sysvipc_shm_proc_show(struct seq_file *s, void *it);
- #endif
- 
--static void __shm_init_ns(struct ipc_namespace *ns, struct ipc_ids *ids)
-+void shm_init_ns(struct ipc_namespace *ns)
- {
--	ns->ids[IPC_SHM_IDS] = ids;
- 	ns->shm_ctlmax = SHMMAX;
- 	ns->shm_ctlall = SHMALL;
- 	ns->shm_ctlmni = SHMMNI;
- 	ns->shm_tot = 0;
--	ipc_init_ids(ids);
-+	ipc_init_ids(&ns->ids[IPC_SHM_IDS]);
- }
- 
++	/* Skip disabled device */
++	if ((*d & 0x80) == 0)
++		return;
++
++	dev = dmi_alloc(sizeof(*dev));
++	if (!dev) {
++		printk(KERN_ERR "dmi_save_extended_devices: out of memory.\n");
++		return;
++	}
++
++	dev->type = *d-- & 0x7f;
++	dev->name = dmi_string(dm, *d);
++	dev->device_data = NULL;
++
++	list_add(&dev->list, &dmi_devices);
++}
++
  /*
-@@ -98,18 +95,6 @@ static void do_shm_rmid(struct ipc_names
- }
- 
- #ifdef CONFIG_IPC_NS
--int shm_init_ns(struct ipc_namespace *ns)
--{
--	struct ipc_ids *ids;
--
--	ids = kmalloc(sizeof(struct ipc_ids), GFP_KERNEL);
--	if (ids == NULL)
--		return -ENOMEM;
--
--	__shm_init_ns(ns, ids);
--	return 0;
--}
--
- void shm_exit_ns(struct ipc_namespace *ns)
- {
- 	struct shmid_kernel *shp;
-@@ -131,15 +116,12 @@ void shm_exit_ns(struct ipc_namespace *n
- 		total++;
+  *	Process a DMI table entry. Right now all we care about are the BIOS
+  *	and machine entries. For 2.5 we should pull the smbus controller info
+@@ -292,6 +314,9 @@ static void __init dmi_decode(const stru
+ 		break;
+ 	case 38:	/* IPMI Device Information */
+ 		dmi_save_ipmi_device(dm);
++		break;
++	case 41:	/* Onboard Devices Extended Information */
++		dmi_save_extended_devices(dm);
  	}
- 	up_write(&shm_ids(ns).rw_mutex);
--
--	kfree(ns->ids[IPC_SHM_IDS]);
--	ns->ids[IPC_SHM_IDS] = NULL;
- }
- #endif
- 
- void __init shm_init (void)
- {
--	__shm_init_ns(&init_ipc_ns, &init_shm_ids);
-+	shm_init_ns(&init_ipc_ns);
- 	ipc_init_proc_interface("sysvipc/shm",
- 				"       key      shmid perms       size  cpid  lpid nattch   uid   gid  cuid  cgid      atime      dtime      ctime\n",
- 				IPC_SHM_IDS, sysvipc_shm_proc_show);
-diff -puN ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.c
---- a/ipc/util.c~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/util.c
-@@ -833,7 +833,7 @@ static void *sysvipc_proc_next(struct se
- 	if (ipc && ipc != SEQ_START_TOKEN)
- 		ipc_unlock(ipc);
- 
--	return sysvipc_find_ipc(iter->ns->ids[iface->ids], *pos, pos);
-+	return sysvipc_find_ipc(&iter->ns->ids[iface->ids], *pos, pos);
  }
  
- /*
-@@ -846,7 +846,7 @@ static void *sysvipc_proc_start(struct s
- 	struct ipc_proc_iface *iface = iter->iface;
- 	struct ipc_ids *ids;
- 
--	ids = iter->ns->ids[iface->ids];
-+	ids = &iter->ns->ids[iface->ids];
- 
- 	/*
- 	 * Take the lock - this will be released by the corresponding
-@@ -877,7 +877,7 @@ static void sysvipc_proc_stop(struct seq
- 	if (ipc && ipc != SEQ_START_TOKEN)
- 		ipc_unlock(ipc);
- 
--	ids = iter->ns->ids[iface->ids];
-+	ids = &iter->ns->ids[iface->ids];
- 	/* Release the lock we took in start() */
- 	up_read(&ids->rw_mutex);
- }
-diff -puN ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace ipc/util.h
---- a/ipc/util.h~ipc-make-struct-ipc_ids-static-in-ipc_namespace
-+++ a/ipc/util.h
-@@ -10,7 +10,6 @@
- #ifndef _IPC_UTIL_H
- #define _IPC_UTIL_H
- 
--#include <linux/idr.h>
- #include <linux/err.h>
- 
- #define USHRT_MAX 0xffff
-@@ -22,22 +21,14 @@ void shm_init (void);
- 
- struct ipc_namespace;
- 
--int sem_init_ns(struct ipc_namespace *ns);
--int msg_init_ns(struct ipc_namespace *ns);
--int shm_init_ns(struct ipc_namespace *ns);
-+void sem_init_ns(struct ipc_namespace *ns);
-+void msg_init_ns(struct ipc_namespace *ns);
-+void shm_init_ns(struct ipc_namespace *ns);
- 
- void sem_exit_ns(struct ipc_namespace *ns);
- void msg_exit_ns(struct ipc_namespace *ns);
- void shm_exit_ns(struct ipc_namespace *ns);
- 
--struct ipc_ids {
--	int in_use;
--	unsigned short seq;
--	unsigned short seq_max;
--	struct rw_semaphore rw_mutex;
--	struct idr ipcs_idr;
--};
--
- /*
-  * Structure that holds the parameters needed by the ipc operations
-  * (see after)
-@@ -68,6 +59,7 @@ struct ipc_ops {
+diff -puN include/linux/dmi.h~smbios-dmi-add-type-41-=-onboard-devices-extended-information include/linux/dmi.h
+--- a/include/linux/dmi.h~smbios-dmi-add-type-41-=-onboard-devices-extended-information
++++ a/include/linux/dmi.h
+@@ -35,8 +35,11 @@ enum dmi_device_type {
+ 	DMI_DEV_TYPE_ETHERNET,
+ 	DMI_DEV_TYPE_TOKENRING,
+ 	DMI_DEV_TYPE_SOUND,
++	DMI_DEV_TYPE_PATA,
++	DMI_DEV_TYPE_SATA,
++	DMI_DEV_TYPE_SAS,
+ 	DMI_DEV_TYPE_IPMI = -1,
+-	DMI_DEV_TYPE_OEM_STRING = -2
++	DMI_DEV_TYPE_OEM_STRING = -2,
  };
  
- struct seq_file;
-+struct ipc_ids;
- 
- void ipc_init_ids(struct ipc_ids *);
- #ifdef CONFIG_PROC_FS
+ struct dmi_header {
 _
 
-Patches currently in -mm which might be from pierre.peiffer@bull.net are
+Patches currently in -mm which might be from wim@iguana.be are
 
 origin.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
