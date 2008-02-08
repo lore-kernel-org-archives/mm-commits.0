@@ -1,44 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - lib-remove-fastcall-from-lib-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:44:48 -0800
-Message-ID: <200802080844.m188iTfl016208@imap1.linux-foundation.org>
+Subject: - kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:44:32 -0800
+Message-ID: <200802080844.m188iDmd016205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756862AbYBHIpA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:45:00 -0500
+	by vger.kernel.org with ESMTP id S1751323AbYBHIo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib-remove-fastcall-from-lib-checkpatch-fixes
+     kernel-remove-fastcall-in-kernel-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     lib-remove-fastcall-from-lib-checkpatch-fixes.patch
+     kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into lib-remove-fastcall-from-lib.patch
+This patch was dropped because it was folded into kernel-remove-fastcall-in-kernel.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-remove-fastcall-from-lib-checkpatch-fixes
+Subject: kernel-remove-fastcall-in-kernel-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#244: FILE: lib/semaphore-sleepers.c:56:
-+void __sched __down(struct semaphore * sem)
+ERROR: inline keyword should sit between storage class and type
+#144: FILE: kernel/mutex.c:61:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#153: FILE: kernel/mutex.c:85:
++void inline __sched mutex_lock(struct mutex *lock)
+
+ERROR: inline keyword should sit between storage class and type
+#162: FILE: kernel/mutex.c:98:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#198: FILE: kernel/mutex.c:285:
++static int noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#229: FILE: kernel/mutex.c:319:
++static void noinline __sched
+
+ERROR: inline keyword should sit between storage class and type
+#238: FILE: kernel/mutex.c:327:
++static int noinline __sched
 
 ERROR: "foo * bar" should be "foo *bar"
-#253: FILE: lib/semaphore-sleepers.c:93:
-+int __sched __down_interruptible(struct semaphore * sem)
+#295: FILE: kernel/pid.c:290:
++struct pid * find_pid_ns(int nr, struct pid_namespace *ns)
 
 ERROR: "foo * bar" should be "foo *bar"
-#262: FILE: lib/semaphore-sleepers.c:156:
-+int __down_trylock(struct semaphore * sem)
+#331: FILE: kernel/pid.c:360:
++struct task_struct * pid_task(struct pid *pid, enum pid_type type)
 
-total: 3 errors, 0 warnings, 222 lines checked
+total: 8 errors, 0 warnings, 530 lines checked
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -46,43 +66,78 @@ CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+(akpm: this is a bit weird)
+
 Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/semaphore-sleepers.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/mutex.c |    9 ++++-----
+ kernel/pid.c   |    4 ++--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes lib/semaphore-sleepers.c
---- a/lib/semaphore-sleepers.c~lib-remove-fastcall-from-lib-checkpatch-fixes
-+++ a/lib/semaphore-sleepers.c
-@@ -53,7 +53,7 @@ void __up(struct semaphore *sem)
- 	wake_up(&sem->wait);
- }
+diff -puN kernel/mutex.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes kernel/mutex.c
+--- a/kernel/mutex.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes
++++ a/kernel/mutex.c
+@@ -95,8 +95,7 @@ void inline __sched mutex_lock(struct mu
+ EXPORT_SYMBOL(mutex_lock);
+ #endif
  
--void __sched __down(struct semaphore * sem)
-+void __sched __down(struct semaphore *sem)
- {
- 	struct task_struct *tsk = current;
- 	DECLARE_WAITQUEUE(wait, tsk);
-@@ -90,7 +90,7 @@ void __sched __down(struct semaphore * s
- 	tsk->state = TASK_RUNNING;
- }
+-static void noinline __sched
+-__mutex_unlock_slowpath(atomic_t *lock_count);
++static noinline void __sched __mutex_unlock_slowpath(atomic_t *lock_count);
  
--int __sched __down_interruptible(struct semaphore * sem)
-+int __sched __down_interruptible(struct semaphore *sem)
- {
- 	int retval = 0;
- 	struct task_struct *tsk = current;
-@@ -153,7 +153,7 @@ int __sched __down_interruptible(struct 
-  * single "cmpxchg" without failure cases,
-  * but then it wouldn't work on a 386.
+ /***
+  * mutex_unlock - release the mutex
+@@ -282,7 +281,7 @@ __mutex_unlock_slowpath(atomic_t *lock_c
+  * Here come the less common (and hence less performance-critical) APIs:
+  * mutex_lock_interruptible() and mutex_trylock().
   */
--int __down_trylock(struct semaphore * sem)
-+int __down_trylock(struct semaphore *sem)
+-static int noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count);
+ 
+ static noinline int __sched
+@@ -316,7 +315,7 @@ int __sched mutex_lock_killable(struct m
+ }
+ EXPORT_SYMBOL(mutex_lock_killable);
+ 
+-static void noinline __sched
++static noinline void __sched
+ __mutex_lock_slowpath(atomic_t *lock_count)
  {
- 	int sleepers;
- 	unsigned long flags;
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+@@ -324,7 +323,7 @@ __mutex_lock_slowpath(atomic_t *lock_cou
+ 	__mutex_lock_common(lock, TASK_UNINTERRUPTIBLE, 0, _RET_IP_);
+ }
+ 
+-static int noinline __sched
++static noinline int __sched
+ __mutex_lock_killable_slowpath(atomic_t *lock_count)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);
+diff -puN kernel/pid.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes kernel/pid.c
+--- a/kernel/pid.c~kernel-remove-fastcall-in-kernel-checkpatch-fixes
++++ a/kernel/pid.c
+@@ -286,7 +286,7 @@ out_free:
+ 	goto out;
+ }
+ 
+-struct pid * find_pid_ns(int nr, struct pid_namespace *ns)
++struct pid *find_pid_ns(int nr, struct pid_namespace *ns)
+ {
+ 	struct hlist_node *elem;
+ 	struct upid *pnr;
+@@ -356,7 +356,7 @@ void transfer_pid(struct task_struct *ol
+ 	old->pids[type].pid = NULL;
+ }
+ 
+-struct task_struct * pid_task(struct pid *pid, enum pid_type type)
++struct task_struct *pid_task(struct pid *pid, enum pid_type type)
+ {
+ 	struct task_struct *result = NULL;
+ 	if (pid) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +157,7 @@ mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
 rewrite-rd.patch
 fs-remove-fastcall-it-is-always-empty.patch
 kernel-remove-fastcall-in-kernel.patch
-lib-remove-fastcall-from-lib.patch
+kernel-remove-fastcall-in-kernel-checkpatch-fixes.patch
 lib-remove-fastcall-from-lib-checkpatch-fixes.patch
 remove-fastcall-from-linux-include-checkpatch-fixes.patch
 constify-tables-in-kernel-sysctl_checkc-fix.patch
