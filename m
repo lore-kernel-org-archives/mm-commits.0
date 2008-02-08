@@ -1,561 +1,658 @@
 From: akpm@linux-foundation.org
-Subject: - n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:36 -0800
-Message-ID: <200802082012.m18KCHZi010189@imap1.linux-foundation.org>
+Subject: - basic-pwm-driver-for-avr32-and-at91.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:19:04 -0800
+Message-ID: <200802082018.m18KIjvV010955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756751AbYBHUxb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:31 -0500
+	by vger.kernel.org with ESMTP id S1753355AbYBHUxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:53:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, linux@maxim.org.za, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     n_tty: clean up old code to follow coding style and (mostly) checkpatch
+     Basic PWM driver for AVR32 and AT91
 has been removed from the -mm tree.  Its filename was
-     n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch.patch
+     basic-pwm-driver-for-avr32-and-at91.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: n_tty: clean up old code to follow coding style and (mostly) checkpatch
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Basic PWM driver for AVR32 and AT91
+From: David Brownell <david-b@pacbell.net>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+PWM device setup, and a simple PWM driver exposing a programming interface
+giving access to each channel's full capabilities.  Note that this doesn't
+support starting several channels in synch.
+
+[hskinnemoen@atmel.com: allocate platform device dynamically]
+[hskinnemoen@atmel.com: Kconfig fix]
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |  148 ++++++++++++++++++++---------------------
- 1 file changed, 73 insertions(+), 75 deletions(-)
+ arch/avr32/mach-at32ap/at32ap700x.c   |   54 +++
+ drivers/misc/Kconfig                  |    9 
+ drivers/misc/Makefile                 |    1 
+ drivers/misc/atmel_pwm.c              |  409 ++++++++++++++++++++++++
+ include/asm-avr32/arch-at32ap/board.h |    3 
+ include/linux/atmel_pwm.h             |   70 ++++
+ 6 files changed, 546 insertions(+)
 
-diff -puN drivers/char/n_tty.c~n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~n_tty-clean-up-old-code-to-follow-coding-style-and-mostly-checkpatch
-+++ a/drivers/char/n_tty.c
-@@ -1,6 +1,6 @@
- /*
-  * n_tty.c --- implements the N_TTY line discipline.
-- * 
-+ *
-  * This code used to be in tty_io.c, but things are getting hairy
-  * enough that it made sense to split things off.  (The N_TTY
-  * processing has changed so much that it's hardly recognizable,
-@@ -8,19 +8,19 @@
-  *
-  * Note that the open routine for N_TTY is guaranteed never to return
-  * an error.  This is because Linux will fall back to setting a line
-- * to N_TTY if it can not switch to any other line discipline.  
-+ * to N_TTY if it can not switch to any other line discipline.
-  *
-  * Written by Theodore Ts'o, Copyright 1994.
-- * 
-+ *
-  * This file also contains code originally written by Linus Torvalds,
-  * Copyright 1991, 1992, 1993, and by Julian Cowley, Copyright 1994.
-- * 
-+ *
-  * This file may be redistributed under the terms of the GNU General Public
-  * License.
-  *
-  * Reduced memory usage for older ARM systems  - Russell King.
-  *
-- * 2000/01/20   Fixed SMP locking on put_tty_queue using bits of 
-+ * 2000/01/20   Fixed SMP locking on put_tty_queue using bits of
-  *		the patch by Andrew J. Kroll <ag784@freenet.buffalo.edu>
-  *		who actually finally proved there really was a race.
-  *
-@@ -144,11 +144,11 @@ static void put_tty_queue(unsigned char 
-  *	Can sleep, may be called under the atomic_read_lock mutex but
-  *	this is not guaranteed.
-  */
-- 
--static void check_unthrottle(struct tty_struct * tty)
-+
-+static void check_unthrottle(struct tty_struct *tty)
- {
- 	if (tty->count &&
--	    test_and_clear_bit(TTY_THROTTLED, &tty->flags) && 
-+	    test_and_clear_bit(TTY_THROTTLED, &tty->flags) &&
- 	    tty->driver->unthrottle)
- 		tty->driver->unthrottle(tty);
- }
-@@ -157,7 +157,7 @@ static void check_unthrottle(struct tty_
-  *	reset_buffer_flags	-	reset buffer state
-  *	@tty: terminal to reset
-  *
-- *	Reset the read buffer counters, clear the flags, 
-+ *	Reset the read buffer counters, clear the flags,
-  *	and make sure the driver is unthrottled. Called
-  *	from n_tty_open() and n_tty_flush_buffer().
-  */
-@@ -186,12 +186,12 @@ static void reset_buffer_flags(struct tt
-  *	FIXME: tty->ctrl_status is not spinlocked and relies on
-  *	lock_kernel() still.
-  */
-- 
--static void n_tty_flush_buffer(struct tty_struct * tty)
-+
-+static void n_tty_flush_buffer(struct tty_struct *tty)
- {
- 	/* clear everything and unthrottle the driver */
- 	reset_buffer_flags(tty);
--	
-+
- 	if (!tty->link)
- 		return;
+diff -puN arch/avr32/mach-at32ap/at32ap700x.c~basic-pwm-driver-for-avr32-and-at91 arch/avr32/mach-at32ap/at32ap700x.c
+--- a/arch/avr32/mach-at32ap/at32ap700x.c~basic-pwm-driver-for-avr32-and-at91
++++ a/arch/avr32/mach-at32ap/at32ap700x.c
+@@ -1186,6 +1186,59 @@ err_dup_modedb:
+ #endif
  
-@@ -206,9 +206,9 @@ static void n_tty_flush_buffer(struct tt
-  *	@tty: tty device
-  *
-  *	Report the number of characters buffered to be delivered to user
-- *	at this instant in time. 
-+ *	at this instant in time.
-  */
-- 
+ /* --------------------------------------------------------------------
++ *  PWM
++ * -------------------------------------------------------------------- */
++static struct resource atmel_pwm0_resource[] __initdata = {
++	PBMEM(0xfff01400),
++	IRQ(24),
++};
++static struct clk atmel_pwm0_mck = {
++	.name		= "mck",
++	.parent		= &pbb_clk,
++	.mode		= pbb_clk_mode,
++	.get_rate	= pbb_clk_get_rate,
++	.index		= 5,
++};
 +
- static ssize_t n_tty_chars_in_buffer(struct tty_struct *tty)
- {
- 	unsigned long flags;
-@@ -234,7 +234,7 @@ static ssize_t n_tty_chars_in_buffer(str
-  *	character. We use this to correctly compute the on screen size
-  *	of the character when printing
-  */
-- 
++struct platform_device *__init at32_add_device_pwm(u32 mask)
++{
++	struct platform_device *pdev;
 +
- static inline int is_utf8_continuation(unsigned char c)
- {
- 	return (c & 0xc0) == 0x80;
-@@ -247,7 +247,7 @@ static inline int is_utf8_continuation(u
-  *	Returns true if the utf8 character 'c' is a multibyte continuation
-  *	character and the terminal is in unicode mode.
-  */
-- 
++	if (!mask)
++		return NULL;
 +
- static inline int is_continuation(unsigned char c, struct tty_struct *tty)
- {
- 	return I_IUTF8(tty) && is_utf8_continuation(c);
-@@ -266,7 +266,7 @@ static inline int is_continuation(unsign
-  *	Called from both the receive and transmit sides and can be called
-  *	re-entrantly. Relies on lock_kernel() still.
-  */
-- 
++	pdev = platform_device_alloc("atmel_pwm", 0);
++	if (!pdev)
++		return NULL;
 +
- static int opost(unsigned char c, struct tty_struct *tty)
- {
- 	int	space, spaces;
-@@ -339,9 +339,9 @@ static int opost(unsigned char c, struct
-  *
-  *	Called from write_chan under the tty layer write lock.
-  */
-- 
--static ssize_t opost_block(struct tty_struct * tty,
--		       const unsigned char * buf, unsigned int nr)
++	if (platform_device_add_resources(pdev, atmel_pwm0_resource,
++				ARRAY_SIZE(atmel_pwm0_resource)))
++		goto out_free_pdev;
 +
-+static ssize_t opost_block(struct tty_struct *tty,
-+		       const unsigned char *buf, unsigned int nr)
- {
- 	int	space;
- 	int 	i;
-@@ -386,7 +386,7 @@ static ssize_t opost_block(struct tty_st
- break_out:
- 	if (tty->driver->flush_chars)
- 		tty->driver->flush_chars(tty);
--	i = tty->driver->write(tty, buf, i);	
-+	i = tty->driver->write(tty, buf, i);
- 	return i;
- }
- 
-@@ -398,7 +398,7 @@ break_out:
-  *
-  *	Queue a byte to the driver layer for output
-  */
-- 
++	if (platform_device_add_data(pdev, &mask, sizeof(mask)))
++		goto out_free_pdev;
 +
- static inline void put_char(unsigned char c, struct tty_struct *tty)
- {
- 	tty->driver->put_char(tty, c);
-@@ -409,7 +409,7 @@ static inline void put_char(unsigned cha
-  *	@c: unicode byte to echo
-  *	@tty: terminal device
-  *
-- *	Echo user input back onto the screen. This must be called only when 
-+ *	Echo user input back onto the screen. This must be called only when
-  *	L_ECHO(tty) is true. Called from the driver receive_buf path.
-  */
- 
-@@ -441,7 +441,7 @@ static inline void finish_erasing(struct
-  *	present in the stream from the driver layer. Handles the complexities
-  *	of UTF-8 multibyte symbols.
-  */
-- 
++	if (mask & (1 << 0))
++		select_peripheral(PA(28), PERIPH_A, 0);
++	if (mask & (1 << 1))
++		select_peripheral(PA(29), PERIPH_A, 0);
++	if (mask & (1 << 2))
++		select_peripheral(PA(21), PERIPH_B, 0);
++	if (mask & (1 << 3))
++		select_peripheral(PA(22), PERIPH_B, 0);
 +
- static void eraser(unsigned char c, struct tty_struct *tty)
- {
- 	enum { ERASE, WERASE, KILL } kill_type;
-@@ -541,7 +541,7 @@ static void eraser(unsigned char c, stru
- 
- 				/* should never happen */
- 				if (tty->column > 0x80000000)
--					tty->column = 0; 
-+					tty->column = 0;
- 
- 				/* Now backup to that column. */
- 				while (tty->column > col) {
-@@ -585,7 +585,7 @@ static void eraser(unsigned char c, stru
-  *	settings and character used. Called from the driver receive_buf
-  *	path so serialized.
-  */
-- 
++	atmel_pwm0_mck.dev = &pdev->dev;
 +
- static inline void isig(int sig, struct tty_struct *tty, int flush)
- {
- 	if (tty->pgrp)
-@@ -606,7 +606,7 @@ static inline void isig(int sig, struct 
-  *
-  *	Called from the receive_buf path so single threaded.
-  */
-- 
++	platform_device_add(pdev);
 +
- static inline void n_tty_receive_break(struct tty_struct *tty)
- {
- 	if (I_IGNBRK(tty))
-@@ -635,7 +635,7 @@ static inline void n_tty_receive_break(s
-  *	need locking as num_overrun and overrun_time are function
-  *	private.
-  */
-- 
++	return pdev;
 +
- static inline void n_tty_receive_overrun(struct tty_struct *tty)
- {
- 	char buf[64];
-@@ -662,9 +662,8 @@ static inline void n_tty_receive_overrun
- static inline void n_tty_receive_parity_error(struct tty_struct *tty,
- 					      unsigned char c)
- {
--	if (I_IGNPAR(tty)) {
-+	if (I_IGNPAR(tty))
- 		return;
--	}
- 	if (I_PARMRK(tty)) {
- 		put_tty_queue('\377', tty);
- 		put_tty_queue('\0', tty);
-@@ -682,7 +681,7 @@ static inline void n_tty_receive_parity_
-  *	@c: character
-  *
-  *	Process an individual character of input received from the driver.
-- *	This is serialized with respect to itself by the rules for the 
-+ *	This is serialized with respect to itself by the rules for the
-  *	driver above.
-  */
- 
-@@ -694,7 +693,7 @@ static inline void n_tty_receive_char(st
- 		put_tty_queue(c, tty);
- 		return;
- 	}
--	
-+
- 	if (I_ISTRIP(tty))
- 		c &= 0x7f;
- 	if (I_IUCLC(tty) && L_IEXTEN(tty))
-@@ -739,7 +738,7 @@ static inline void n_tty_receive_char(st
- 		put_tty_queue(c, tty);
- 		return;
- 	}
--		
-+
- 	if (c == '\r') {
- 		if (I_IGNCR(tty))
- 			return;
-@@ -825,8 +824,8 @@ send_signal:
- 			goto handle_newline;
- 		}
- 		if (c == EOF_CHAR(tty)) {
--		        if (tty->canon_head != tty->read_head)
--			        set_bit(TTY_PUSH, &tty->flags);
-+			if (tty->canon_head != tty->read_head)
-+				set_bit(TTY_PUSH, &tty->flags);
- 			c = __DISABLED_CHAR;
- 			goto handle_newline;
- 		}
-@@ -850,7 +849,7 @@ send_signal:
- 			if (I_PARMRK(tty) && c == (unsigned char) '\377')
- 				put_tty_queue(c, tty);
- 
--		handle_newline:
-+handle_newline:
- 			spin_lock_irqsave(&tty->read_lock, flags);
- 			set_bit(tty->read_head, tty->read_flags);
- 			put_tty_queue_nolock(c, tty);
-@@ -863,7 +862,7 @@ send_signal:
- 			return;
- 		}
- 	}
--	
-+
- 	finish_erasing(tty);
- 	if (L_ECHO(tty)) {
- 		if (tty->read_cnt >= N_TTY_BUF_SIZE-1) {
-@@ -884,7 +883,7 @@ send_signal:
- 		put_tty_queue(c, tty);
- 
- 	put_tty_queue(c, tty);
--}	
++out_free_pdev:
++	platform_device_put(pdev);
++	return NULL;
 +}
- 
- 
- /**
-@@ -898,12 +897,10 @@ send_signal:
- 
- static void n_tty_write_wakeup(struct tty_struct *tty)
- {
--	if (tty->fasync)
--	{
-- 		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
-+	if (tty->fasync) {
-+		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
- 		kill_fasync(&tty->fasync, SIGIO, POLL_OUT);
- 	}
--	return;
- }
- 
- /**
-@@ -918,7 +915,7 @@ static void n_tty_write_wakeup(struct tt
-  *	not from interrupt context. The driver is responsible for making
-  *	calls one at a time and in order (or using flush_to_ldisc)
-  */
-- 
 +
- static void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
- 			      char *fp, int count)
- {
-@@ -950,7 +947,7 @@ static void n_tty_receive_buf(struct tty
- 		tty->read_cnt += i;
- 		spin_unlock_irqrestore(&tty->read_lock, cpuflags);
- 	} else {
--		for (i=count, p = cp, f = fp; i; i--, p++) {
-+		for (i = count, p = cp, f = fp; i; i--, p++) {
- 			if (f)
- 				flags = *f++;
- 			switch (flags) {
-@@ -968,7 +965,7 @@ static void n_tty_receive_buf(struct tty
- 				n_tty_receive_overrun(tty);
- 				break;
- 			default:
--				printk("%s: unknown flag %d\n",
-+				printk(KERN_ERR "%s: unknown flag %d\n",
- 				       tty_name(tty, buf), flags);
- 				break;
- 			}
-@@ -1001,7 +998,7 @@ static void n_tty_receive_buf(struct tty
- int is_ignored(int sig)
- {
- 	return (sigismember(&current->blocked, sig) ||
--	        current->sighand->action[sig-1].sa.sa_handler == SIG_IGN);
-+		current->sighand->action[sig-1].sa.sa_handler == SIG_IGN);
- }
++/* --------------------------------------------------------------------
+  *  SSC
+  * -------------------------------------------------------------------- */
+ static struct resource ssc0_resource[] = {
+@@ -1646,6 +1699,7 @@ struct clk *at32_clock_list[] = {
+ 	&atmel_usart1_usart,
+ 	&atmel_usart2_usart,
+ 	&atmel_usart3_usart,
++	&atmel_pwm0_mck,
+ #if defined(CONFIG_CPU_AT32AP7000)
+ 	&macb0_hclk,
+ 	&macb0_pclk,
+diff -puN drivers/misc/Kconfig~basic-pwm-driver-for-avr32-and-at91 drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~basic-pwm-driver-for-avr32-and-at91
++++ a/drivers/misc/Kconfig
+@@ -13,6 +13,15 @@ menuconfig MISC_DEVICES
  
- /**
-@@ -1011,16 +1008,16 @@ int is_ignored(int sig)
-  *
-  *	Called by the tty layer when the user changes termios flags so
-  *	that the line discipline can plan ahead. This function cannot sleep
-- *	and is protected from re-entry by the tty layer. The user is 
-+ *	and is protected from re-entry by the tty layer. The user is
-  *	guaranteed that this function will not be re-entered or in progress
-  *	when the ldisc is closed.
-  */
-- 
--static void n_tty_set_termios(struct tty_struct *tty, struct ktermios * old)
-+
-+static void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
- {
- 	if (!tty)
- 		return;
--	
-+
- 	tty->icanon = (L_ICANON(tty) != 0);
- 	if (test_bit(TTY_HW_COOK_IN, &tty->flags)) {
- 		tty->raw = 1;
-@@ -1085,12 +1082,12 @@ static void n_tty_set_termios(struct tty
-  *	n_tty_close		-	close the ldisc for this tty
-  *	@tty: device
-  *
-- *	Called from the terminal layer when this line discipline is 
-- *	being shut down, either because of a close or becsuse of a 
-+ *	Called from the terminal layer when this line discipline is
-+ *	being shut down, either because of a close or becsuse of a
-  *	discipline change. The function will not be called while other
-  *	ldisc methods are in progress.
-  */
-- 
-+
- static void n_tty_close(struct tty_struct *tty)
- {
- 	n_tty_flush_buffer(tty);
-@@ -1104,7 +1101,7 @@ static void n_tty_close(struct tty_struc
-  *	n_tty_open		-	open an ldisc
-  *	@tty: terminal to open
-  *
-- *	Called when this line discipline is being attached to the 
-+ *	Called when this line discipline is being attached to the
-  *	terminal device. Can sleep. Called serialized so that no
-  *	other events will occur in parallel. No further open will occur
-  *	until a close.
-@@ -1157,7 +1154,7 @@ static inline int input_available_p(stru
-  *	Called under the tty->atomic_read_lock sem
-  *
-  */
-- 
-+
- static int copy_from_read_buf(struct tty_struct *tty,
- 				      unsigned char __user **b,
- 				      size_t *nr)
-@@ -1186,7 +1183,8 @@ static int copy_from_read_buf(struct tty
- 	return retval;
- }
+ if MISC_DEVICES
  
--extern ssize_t redirected_tty_write(struct file *,const char *,size_t,loff_t *);
-+extern ssize_t redirected_tty_write(struct file *, const char *,
-+							size_t, loff_t *);
++config ATMEL_PWM
++	tristate "Atmel AT32/AT91 PWM support"
++	depends on AVR32 || ARCH_AT91
++	help
++	  This option enables device driver support for the PWM channels
++	  on certain Atmel prcoessors.  Pulse Width Modulation is used for
++	  purposes including software controlled power-efficent backlights
++	  on LCD displays, motor control, and waveform generation.
++
+ config IBM_ASM
+ 	tristate "Device driver for IBM RSA service processor"
+ 	depends on X86 && PCI && INPUT && EXPERIMENTAL
+diff -puN drivers/misc/Makefile~basic-pwm-driver-for-avr32-and-at91 drivers/misc/Makefile
+--- a/drivers/misc/Makefile~basic-pwm-driver-for-avr32-and-at91
++++ a/drivers/misc/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_HDPU_FEATURES)	+= hdpuftrs/
+ obj-$(CONFIG_MSI_LAPTOP)     += msi-laptop.o
+ obj-$(CONFIG_ACER_WMI)     += acer-wmi.o
+ obj-$(CONFIG_ASUS_LAPTOP)     += asus-laptop.o
++obj-$(CONFIG_ATMEL_PWM)		+= atmel_pwm.o
+ obj-$(CONFIG_ATMEL_SSC)		+= atmel-ssc.o
+ obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
+ obj-$(CONFIG_LKDTM)		+= lkdtm.o
+diff -puN /dev/null drivers/misc/atmel_pwm.c
+--- /dev/null
++++ a/drivers/misc/atmel_pwm.c
+@@ -0,0 +1,409 @@
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++#include <linux/atmel_pwm.h>
++
++
++/*
++ * This is a simple driver for the PWM controller found in various newer
++ * Atmel SOCs, including the AVR32 series and the AT91sam9263.
++ *
++ * Chips with current Linux ports have only 4 PWM channels, out of max 32.
++ * AT32UC3A and AT32UC3B chips have 7 channels (but currently no Linux).
++ * Docs are inconsistent about the width of the channel counter registers;
++ * it's at least 16 bits, but several places say 20 bits.
++ */
++#define	PWM_NCHAN	4		/* max 32 */
++
++struct pwm {
++	spinlock_t		lock;
++	struct platform_device	*pdev;
++	u32			mask;
++	int			irq;
++	void __iomem		*base;
++	struct clk		*clk;
++	struct pwm_channel	*channel[PWM_NCHAN];
++	void			(*handler[PWM_NCHAN])(struct pwm_channel *);
++};
++
++
++/* global PWM controller registers */
++#define PWM_MR		0x00
++#define PWM_ENA		0x04
++#define PWM_DIS		0x08
++#define PWM_SR		0x0c
++#define PWM_IER		0x10
++#define PWM_IDR		0x14
++#define PWM_IMR		0x18
++#define PWM_ISR		0x1c
++
++static inline void pwm_writel(const struct pwm *p, unsigned offset, u32 val)
++{
++	__raw_writel(val, p->base + offset);
++}
++
++static inline u32 pwm_readl(const struct pwm *p, unsigned offset)
++{
++	return __raw_readl(p->base + offset);
++}
++
++static inline void __iomem *pwmc_regs(const struct pwm *p, int index)
++{
++	return p->base + 0x200 + index * 0x20;
++}
++
++static struct pwm *pwm;
++
++static void pwm_dumpregs(struct pwm_channel *ch, char *tag)
++{
++	struct device	*dev = &pwm->pdev->dev;
++
++	dev_dbg(dev, "%s: mr %08x, sr %08x, imr %08x\n",
++		tag,
++		pwm_readl(pwm, PWM_MR),
++		pwm_readl(pwm, PWM_SR),
++		pwm_readl(pwm, PWM_IMR));
++	dev_dbg(dev,
++		"pwm ch%d - mr %08x, dty %u, prd %u, cnt %u\n",
++		ch->index,
++		pwm_channel_readl(ch, PWM_CMR),
++		pwm_channel_readl(ch, PWM_CDTY),
++		pwm_channel_readl(ch, PWM_CPRD),
++		pwm_channel_readl(ch, PWM_CCNT));
++}
++
++
++/**
++ * pwm_channel_alloc - allocate an unused PWM channel
++ * @index: identifies the channel
++ * @ch: structure to be initialized
++ *
++ * Drivers allocate PWM channels according to the board's wiring, and
++ * matching board-specific setup code.  Returns zero or negative errno.
++ */
++int pwm_channel_alloc(int index, struct pwm_channel *ch)
++{
++	unsigned long	flags;
++	int		status = 0;
++
++	/* insist on PWM init, with this signal pinned out */
++	if (!pwm || !(pwm->mask & 1 << index))
++		return -ENODEV;
++
++	if (index < 0 || index >= PWM_NCHAN || !ch)
++		return -EINVAL;
++	memset(ch, 0, sizeof *ch);
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	if (pwm->channel[index])
++		status = -EBUSY;
++	else {
++		clk_enable(pwm->clk);
++
++		ch->regs = pwmc_regs(pwm, index);
++		ch->index = index;
++
++		/* REVISIT: ap7000 seems to go 2x as fast as we expect!! */
++		ch->mck = clk_get_rate(pwm->clk);
++
++		pwm->channel[index] = ch;
++		pwm->handler[index] = NULL;
++
++		/* channel and irq are always disabled when we return */
++		pwm_writel(pwm, PWM_DIS, 1 << index);
++		pwm_writel(pwm, PWM_IDR, 1 << index);
++	}
++	spin_unlock_irqrestore(&pwm->lock, flags);
++	return status;
++}
++EXPORT_SYMBOL(pwm_channel_alloc);
++
++static int pwmcheck(struct pwm_channel *ch)
++{
++	int		index;
++
++	if (!pwm)
++		return -ENODEV;
++	if (!ch)
++		return -EINVAL;
++	index = ch->index;
++	if (index < 0 || index >= PWM_NCHAN || pwm->channel[index] != ch)
++		return -EINVAL;
++
++	return index;
++}
++
++/**
++ * pwm_channel_free - release a previously allocated channel
++ * @ch: the channel being released
++ *
++ * The channel is completely shut down (counter and IRQ disabled),
++ * and made available for re-use.  Returns zero, or negative errno.
++ */
++int pwm_channel_free(struct pwm_channel *ch)
++{
++	unsigned long	flags;
++	int		t;
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	t = pwmcheck(ch);
++	if (t >= 0) {
++		pwm->channel[t] = NULL;
++		pwm->handler[t] = NULL;
++
++		/* channel and irq are always disabled when we return */
++		pwm_writel(pwm, PWM_DIS, 1 << t);
++		pwm_writel(pwm, PWM_IDR, 1 << t);
++
++		clk_disable(pwm->clk);
++		t = 0;
++	}
++	spin_unlock_irqrestore(&pwm->lock, flags);
++	return t;
++}
++EXPORT_SYMBOL(pwm_channel_free);
++
++int __pwm_channel_onoff(struct pwm_channel *ch, int enabled)
++{
++	unsigned long	flags;
++	int		t;
++
++	/* OMITTED FUNCTIONALITY:  starting several channels in synch */
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	t = pwmcheck(ch);
++	if (t >= 0) {
++		pwm_writel(pwm, enabled ? PWM_ENA : PWM_DIS, 1 << t);
++		t = 0;
++		pwm_dumpregs(ch, enabled ? "enable" : "disable");
++	}
++	spin_unlock_irqrestore(&pwm->lock, flags);
++
++	return t;
++}
++EXPORT_SYMBOL(__pwm_channel_onoff);
++
++/**
++ * pwm_clk_alloc - allocate and configure CLKA or CLKB
++ * @prescale: from 0..10, the power of two used to divide MCK
++ * @div: from 1..255, the linear divisor to use
++ *
++ * Returns PWM_CPR_CLKA, PWM_CPR_CLKB, or negative errno.  The allocated
++ * clock will run with a period of (2^prescale * div) / MCK, or twice as
++ * long if center aligned PWM output is used.  The clock must later be
++ * deconfigured using pwm_clk_free().
++ */
++int pwm_clk_alloc(unsigned prescale, unsigned div)
++{
++	unsigned long	flags;
++	u32		mr;
++	u32		val = (prescale << 8) | div;
++	int		ret = -EBUSY;
++
++	if (prescale >= 10 || div == 0 || div > 255)
++		return -EINVAL;
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	mr = pwm_readl(pwm, PWM_MR);
++	if ((mr & 0xffff) == 0) {
++		mr |= val;
++		ret = PWM_CPR_CLKA;
++	}
++	if ((mr & (0xffff << 16)) == 0) {
++		mr |= val << 16;
++		ret = PWM_CPR_CLKB;
++	}
++	if (ret > 0)
++		pwm_writel(pwm, PWM_MR, mr);
++	spin_unlock_irqrestore(&pwm->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(pwm_clk_alloc);
++
++/**
++ * pwm_clk_free - deconfigure and release CLKA or CLKB
++ *
++ * Reverses the effect of pwm_clk_alloc().
++ */
++void pwm_clk_free(unsigned clk)
++{
++	unsigned long	flags;
++	u32		mr;
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	mr = pwm_readl(pwm, PWM_MR);
++	if (clk == PWM_CPR_CLKA)
++		pwm_writel(pwm, PWM_MR, mr & ~(0xffff << 0));
++	if (clk == PWM_CPR_CLKB)
++		pwm_writel(pwm, PWM_MR, mr & ~(0xffff << 16));
++	spin_unlock_irqrestore(&pwm->lock, flags);
++}
++EXPORT_SYMBOL(pwm_clk_free);
++
++/**
++ * pwm_channel_handler - manage channel's IRQ handler
++ * @ch: the channel
++ * @handler: the handler to use, possibly NULL
++ *
++ * If the handler is non-null, the handler will be called after every
++ * period of this PWM channel.  If the handler is null, this channel
++ * won't generate an IRQ.
++ */
++int pwm_channel_handler(struct pwm_channel *ch,
++		void (*handler)(struct pwm_channel *ch))
++{
++	unsigned long	flags;
++	int		t;
++
++	spin_lock_irqsave(&pwm->lock, flags);
++	t = pwmcheck(ch);
++	if (t >= 0) {
++		pwm->handler[t] = handler;
++		pwm_writel(pwm, handler ? PWM_IER : PWM_IDR, 1 << t);
++		t = 0;
++	}
++	spin_unlock_irqrestore(&pwm->lock, flags);
++
++	return t;
++}
++EXPORT_SYMBOL(pwm_channel_handler);
++
++static irqreturn_t pwm_irq(int id, void *_pwm)
++{
++	struct pwm	*p = _pwm;
++	irqreturn_t	handled = IRQ_NONE;
++	u32		irqstat;
++	int		index;
++
++	spin_lock(&p->lock);
++
++	/* ack irqs, then handle them */
++	irqstat = pwm_readl(pwm, PWM_ISR);
++
++	while (irqstat) {
++		struct pwm_channel *ch;
++		void (*handler)(struct pwm_channel *ch);
++
++		index = ffs(irqstat) - 1;
++		irqstat &= ~(1 << index);
++		ch = pwm->channel[index];
++		handler = pwm->handler[index];
++		if (handler && ch) {
++			spin_unlock(&p->lock);
++			handler(ch);
++			spin_lock(&p->lock);
++			handled = IRQ_HANDLED;
++		}
++	}
++
++	spin_unlock(&p->lock);
++	return handled;
++}
++
++static int __init pwm_probe(struct platform_device *pdev)
++{
++	struct resource *r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	int irq = platform_get_irq(pdev, 0);
++	u32 *mp = pdev->dev.platform_data;
++	struct pwm *p;
++	int status = -EIO;
++
++	if (pwm)
++		return -EBUSY;
++	if (!r || irq < 0 || !mp || !*mp)
++		return -ENODEV;
++	if (*mp & ~((1<<PWM_NCHAN)-1)) {
++		dev_warn(&pdev->dev, "mask 0x%x ... more than %d channels\n",
++			*mp, PWM_NCHAN);
++		return -EINVAL;
++	}
++
++	p = kzalloc(sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return -ENOMEM;
++
++	spin_lock_init(&p->lock);
++	p->pdev = pdev;
++	p->mask = *mp;
++	p->irq = irq;
++	p->base = ioremap(r->start, r->end - r->start + 1);
++	if (!p->base)
++		goto fail;
++	p->clk = clk_get(&pdev->dev, "mck");
++	if (IS_ERR(p->clk)) {
++		status = PTR_ERR(p->clk);
++		p->clk = NULL;
++		goto fail;
++	}
++
++	status = request_irq(irq, pwm_irq, 0, pdev->name, p);
++	if (status < 0)
++		goto fail;
++
++	pwm = p;
++	platform_set_drvdata(pdev, p);
++
++	return 0;
++
++fail:
++	if (p->clk)
++		clk_put(p->clk);
++	if (p->base)
++		iounmap(p->base);
++
++	kfree(p);
++	return status;
++}
++
++static int __exit pwm_remove(struct platform_device *pdev)
++{
++	struct pwm *p = platform_get_drvdata(pdev);
++
++	if (p != pwm)
++		return -EINVAL;
++
++	clk_enable(pwm->clk);
++	pwm_writel(pwm, PWM_DIS, (1 << PWM_NCHAN) - 1);
++	pwm_writel(pwm, PWM_IDR, (1 << PWM_NCHAN) - 1);
++	clk_disable(pwm->clk);
++
++	pwm = NULL;
++
++	free_irq(p->irq, p);
++	clk_put(p->clk);
++	iounmap(p->base);
++	kfree(p);
++
++	return 0;
++}
++
++static struct platform_driver atmel_pwm_driver = {
++	.driver = {
++		.name = "atmel_pwm",
++		.owner = THIS_MODULE,
++	},
++	.remove = __exit_p(pwm_remove),
++
++	/* NOTE: PWM can keep running in AVR32 "idle" and "frozen" states;
++	 * and all AT91sam9263 states, albeit at reduced clock rate if
++	 * MCK becomes the slow clock (i.e. what Linux labels STR).
++	 */
++};
++
++static int __init pwm_init(void)
++{
++	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
++}
++module_init(pwm_init);
++
++static void __exit pwm_exit(void)
++{
++	platform_driver_unregister(&atmel_pwm_driver);
++}
++module_exit(pwm_exit);
++
++MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
++MODULE_LICENSE("GPL");
+diff -puN include/asm-avr32/arch-at32ap/board.h~basic-pwm-driver-for-avr32-and-at91 include/asm-avr32/arch-at32ap/board.h
+--- a/include/asm-avr32/arch-at32ap/board.h~basic-pwm-driver-for-avr32-and-at91
++++ a/include/asm-avr32/arch-at32ap/board.h
+@@ -51,6 +51,9 @@ struct platform_device *
+ at32_add_device_ide(unsigned int id, unsigned int extint,
+ 		    struct ide_platform_data *data);
  
- /**
-  *	job_control		-	check job control
-@@ -1194,10 +1192,10 @@ extern ssize_t redirected_tty_write(stru
-  *	@file: file handle
-  *
-  *	Perform job control management checks on this file/tty descriptor
-- *	and if appropriate send any needed signals and return a negative 
-+ *	and if appropriate send any needed signals and return a negative
-  *	error code if action should be taken.
-  */
-- 
++/* mask says which PWM channels to mux */
++struct platform_device *at32_add_device_pwm(u32 mask);
 +
- static int job_control(struct tty_struct *tty, struct file *file)
- {
- 	/* Job control check -- must be done at start and after
-@@ -1208,7 +1206,7 @@ static int job_control(struct tty_struct
- 	if (file->f_op->write != redirected_tty_write &&
- 	    current->signal->tty == tty) {
- 		if (!tty->pgrp)
--			printk("read_chan: no tty->pgrp!\n");
-+			printk(KERN_ERR "read_chan: no tty->pgrp!\n");
- 		else if (task_pgrp(current) != tty->pgrp) {
- 			if (is_ignored(SIGTTIN) ||
- 			    is_current_pgrp_orphaned())
-@@ -1220,7 +1218,7 @@ static int job_control(struct tty_struct
- 	}
- 	return 0;
- }
-- 
+ /* depending on what's hooked up, not all SSC pins will be used */
+ #define	ATMEL_SSC_TK		0x01
+ #define	ATMEL_SSC_TF		0x02
+diff -puN /dev/null include/linux/atmel_pwm.h
+--- /dev/null
++++ a/include/linux/atmel_pwm.h
+@@ -0,0 +1,70 @@
++#ifndef __LINUX_ATMEL_PWM_H
++#define __LINUX_ATMEL_PWM_H
 +
- 
- /**
-  *	read_chan		-	read function for tty
-@@ -1236,7 +1234,7 @@ static int job_control(struct tty_struct
-  *
-  *	This code must be sure never to sleep through a hangup.
-  */
-- 
++/**
++ * struct pwm_channel - driver handle to a PWM channel
++ * @regs: base of this channel's registers
++ * @index: number of this channel (0..31)
++ * @mck: base clock rate, which can be prescaled and maybe subdivided
++ *
++ * Drivers initialize a pwm_channel structure using pwm_channel_alloc().
++ * Then they configure its clock rate (derived from MCK), alignment,
++ * polarity, and duty cycle by writing directly to the channel registers,
++ * before enabling the channel by calling pwm_channel_enable().
++ *
++ * After emitting a PWM signal for the desired length of time, drivers
++ * may then pwm_channel_disable() or pwm_channel_free().  Both of these
++ * disable the channel, but when it's freed the IRQ is deconfigured and
++ * the channel must later be re-allocated and reconfigured.
++ *
++ * Note that if the period or duty cycle need to be changed while the
++ * PWM channel is operating, drivers must use the PWM_CUPD double buffer
++ * mechanism, either polling until they change or getting implicitly
++ * notified through a once-per-period interrupt handler.
++ */
++struct pwm_channel {
++	void __iomem	*regs;
++	unsigned	index;
++	unsigned long	mck;
++};
 +
- static ssize_t read_chan(struct tty_struct *tty, struct file *file,
- 			 unsigned char __user *buf, size_t nr)
- {
-@@ -1252,14 +1250,14 @@ static ssize_t read_chan(struct tty_stru
- do_it_again:
- 
- 	if (!tty->read_buf) {
--		printk("n_tty_read_chan: called with read_buf == NULL?!?\n");
-+		printk(KERN_ERR "n_tty_read_chan: read_buf == NULL?!?\n");
- 		return -EIO;
- 	}
- 
- 	c = job_control(tty, file);
--	if(c < 0)
-+	if (c < 0)
- 		return c;
--	
++extern int pwm_channel_alloc(int index, struct pwm_channel *ch);
++extern int pwm_channel_free(struct pwm_channel *ch);
 +
- 	minimum = time = 0;
- 	timeout = MAX_SCHEDULE_TIMEOUT;
- 	if (!tty->icanon) {
-@@ -1287,8 +1285,7 @@ do_it_again:
- 	if (file->f_flags & O_NONBLOCK) {
- 		if (!mutex_trylock(&tty->atomic_read_lock))
- 			return -EAGAIN;
--	}
--	else {
-+	} else {
- 		if (mutex_lock_interruptible(&tty->atomic_read_lock))
- 			return -ERESTARTSYS;
- 	}
-@@ -1314,11 +1311,11 @@ do_it_again:
- 		   so that any interrupt will set the state back to
- 		   TASK_RUNNING. */
- 		set_current_state(TASK_INTERRUPTIBLE);
--		
++extern int pwm_clk_alloc(unsigned prescale, unsigned div);
++extern void pwm_clk_free(unsigned clk);
 +
- 		if (((minimum - (b - buf)) < tty->minimum_to_wake) &&
- 		    ((minimum - (b - buf)) >= 1))
- 			tty->minimum_to_wake = (minimum - (b - buf));
--		
++extern int __pwm_channel_onoff(struct pwm_channel *ch, int enabled);
 +
- 		if (!input_available_p(tty, 0)) {
- 			if (test_bit(TTY_OTHER_CLOSED, &tty->flags)) {
- 				retval = -EIO;
-@@ -1355,7 +1352,7 @@ do_it_again:
- 		if (tty->icanon) {
- 			/* N.B. avoid overrun if nr == 0 */
- 			while (nr && tty->read_cnt) {
-- 				int eol;
-+				int eol;
- 
- 				eol = test_and_clear_bit(tty->read_tail,
- 						tty->read_flags);
-@@ -1427,7 +1424,7 @@ do_it_again:
- 	if (size) {
- 		retval = size;
- 		if (nr)
--	       		clear_bit(TTY_PUSH, &tty->flags);
-+			clear_bit(TTY_PUSH, &tty->flags);
- 	} else if (test_and_clear_bit(TTY_PUSH, &tty->flags))
- 		 goto do_it_again;
- 
-@@ -1450,9 +1447,9 @@ do_it_again:
-  *
-  *	This code must be sure never to sleep through a hangup.
-  */
-- 
--static ssize_t write_chan(struct tty_struct * tty, struct file * file,
--			  const unsigned char * buf, size_t nr)
++#define pwm_channel_enable(ch)	__pwm_channel_onoff((ch), 1)
++#define pwm_channel_disable(ch)	__pwm_channel_onoff((ch), 0)
 +
-+static ssize_t write_chan(struct tty_struct *tty, struct file *file,
-+			  const unsigned char *buf, size_t nr)
- {
- 	const unsigned char *b = buf;
- 	DECLARE_WAITQUEUE(wait, current);
-@@ -1542,8 +1539,9 @@ break_out:
-  *	recompute the new limits. Possibly set_termios should issue
-  *	a read wakeup to fix this bug.
-  */
-- 
--static unsigned int normal_poll(struct tty_struct * tty, struct file * file, poll_table *wait)
++/* periodic interrupts, mostly for CUPD changes to period or cycle */
++extern int pwm_channel_handler(struct pwm_channel *ch,
++		void (*handler)(struct pwm_channel *ch));
 +
-+static unsigned int normal_poll(struct tty_struct *tty, struct file *file,
-+							poll_table *wait)
- {
- 	unsigned int mask = 0;
- 
++/* per-channel registers (banked at pwm_channel->regs) */
++#define PWM_CMR		0x00		/* mode register */
++#define		PWM_CPR_CPD	(1 << 10)	/* set: CUPD modifies period */
++#define		PWM_CPR_CPOL	(1 << 9)	/* set: idle high */
++#define		PWM_CPR_CALG	(1 << 8)	/* set: center align */
++#define		PWM_CPR_CPRE	(0xf << 0)	/* mask: rate is mck/(2^pre) */
++#define		PWM_CPR_CLKA	(0xb << 0)	/* rate CLKA */
++#define		PWM_CPR_CLKB	(0xc << 0)	/* rate CLKB */
++#define PWM_CDTY	0x04		/* duty cycle (max of CPRD) */
++#define PWM_CPRD	0x08		/* period (count up from zero) */
++#define PWM_CCNT	0x0c		/* counter (20 bits?) */
++#define PWM_CUPD	0x10		/* update CPRD (or CDTY) next period */
++
++static inline void
++pwm_channel_writel(struct pwm_channel *pwmc, unsigned offset, u32 val)
++{
++	__raw_writel(val, pwmc->regs + offset);
++}
++
++static inline u32 pwm_channel_readl(struct pwm_channel *pwmc, unsigned offset)
++{
++	return __raw_readl(pwmc->regs + offset);
++}
++
++#endif /* __LINUX_ATMEL_PWM_H */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-mmc.patch
