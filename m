@@ -1,116 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:06:46 -0800
-Message-ID: <200802080806.m1886RP0014454@imap1.linux-foundation.org>
+Subject: - add-cmpxchg_local-to-frv.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:08:54 -0800
+Message-ID: <200802080808.m1888Z0w014659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49607 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761933AbYBHIUR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:17 -0500
+	by vger.kernel.org with ESMTP id S1761948AbYBHIUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, horms@verge.net.au, rientjes@google.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmcoreinfo: rename vmcoreinfo's macros returning the size
+     Add cmpxchg_local to frv
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size.patch
+     add-cmpxchg_local-to-frv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmcoreinfo: rename vmcoreinfo's macros returning the size
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: Add cmpxchg_local to frv
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-This patchset is for the vmcoreinfo data.
+Use the new generic cmpxchg_local (disables interrupt) for 8, 16 and 64 bits
+arguments. Use the 32 bits cmpxchg available on the architecture for 32 bits
+arguments.
 
-The vmcoreinfo data has the minimum debugging information only for dump
-filtering.  makedumpfile (dump filtering command) gets it to distinguish
-unnecessary pages, and makedumpfile creates a small dumpfile.
-
-
-This patch:
-
-VMCOREINFO_SIZE() should be renamed VMCOREINFO_STRUCT_SIZE() since it's always
-returning the size of the struct with a given name. This change would allow
-VMCOREINFO_TYPEDEF_SIZE() to simply become VMCOREINFO_SIZE() since it need not
-be used exclusively for typedefs.
-
-This discussion is the following:
-http://www.ussg.iu.edu/hypermail/linux/kernel/0709.3/0582.html
-
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/machine_kexec.c |    2 +-
- include/linux/kexec.h            |    6 +++---
- kernel/kexec.c                   |   14 +++++++-------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ include/asm-frv/system.h |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN arch/ia64/kernel/machine_kexec.c~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -135,7 +135,7 @@ void arch_crash_save_vmcoreinfo(void)
+diff -puN include/asm-frv/system.h~add-cmpxchg_local-to-frv include/asm-frv/system.h
+--- a/include/asm-frv/system.h~add-cmpxchg_local-to-frv
++++ a/include/asm-frv/system.h
+@@ -268,5 +268,29 @@ extern uint32_t __cmpxchg_32(uint32_t *v
  
- 	VMCOREINFO_SYMBOL(node_memblk);
- 	VMCOREINFO_LENGTH(node_memblk, NR_NODE_MEMBLKS);
--	VMCOREINFO_SIZE(node_memblk_s);
-+	VMCOREINFO_STRUCT_SIZE(node_memblk_s);
- 	VMCOREINFO_OFFSET(node_memblk_s, start_paddr);
- 	VMCOREINFO_OFFSET(node_memblk_s, size);
  #endif
-diff -puN include/linux/kexec.h~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size include/linux/kexec.h
---- a/include/linux/kexec.h~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size
-+++ a/include/linux/kexec.h
-@@ -131,10 +131,10 @@ unsigned long paddr_vmcoreinfo_note(void
- 	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)&name)
- #define VMCOREINFO_SIZE(name) \
- 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
--			      (unsigned long)sizeof(struct name))
--#define VMCOREINFO_TYPEDEF_SIZE(name) \
--	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
- 			      (unsigned long)sizeof(name))
-+#define VMCOREINFO_STRUCT_SIZE(name) \
-+	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
-+			      (unsigned long)sizeof(struct name))
- #define VMCOREINFO_OFFSET(name, field) \
- 	vmcoreinfo_append_str("OFFSET(%s.%s)=%lu\n", #name, #field, \
- 			      (unsigned long)&(((struct name *)0)->field))
-diff -puN kernel/kexec.c~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size kernel/kexec.c
---- a/kernel/kexec.c~vmcoreinfo-rename-vmcoreinfos-macros-returning-the-size
-+++ a/kernel/kexec.c
-@@ -1376,15 +1376,15 @@ static int __init crash_save_vmcoreinfo_
- #ifdef CONFIG_SPARSEMEM
- 	VMCOREINFO_SYMBOL(mem_section);
- 	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
--	VMCOREINFO_SIZE(mem_section);
-+	VMCOREINFO_STRUCT_SIZE(mem_section);
- 	VMCOREINFO_OFFSET(mem_section, section_mem_map);
- #endif
--	VMCOREINFO_SIZE(page);
--	VMCOREINFO_SIZE(pglist_data);
--	VMCOREINFO_SIZE(zone);
--	VMCOREINFO_SIZE(free_area);
--	VMCOREINFO_SIZE(list_head);
--	VMCOREINFO_TYPEDEF_SIZE(nodemask_t);
-+	VMCOREINFO_STRUCT_SIZE(page);
-+	VMCOREINFO_STRUCT_SIZE(pglist_data);
-+	VMCOREINFO_STRUCT_SIZE(zone);
-+	VMCOREINFO_STRUCT_SIZE(free_area);
-+	VMCOREINFO_STRUCT_SIZE(list_head);
-+	VMCOREINFO_SIZE(nodemask_t);
- 	VMCOREINFO_OFFSET(page, flags);
- 	VMCOREINFO_OFFSET(page, _count);
- 	VMCOREINFO_OFFSET(page, mapping);
+ 
++#include <asm-generic/cmpxchg-local.h>
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return cmpxchg(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
+ 
+ #endif /* _ASM_SYSTEM_H */
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
+modules-handle-symbols-that-have-a-zero-value.patch
+modules-handle-symbols-that-have-a-zero-value-fix.patch
+linux-kernel-markers-support-multiple-probes.patch
+linux-kernel-markers-support-multiple-probes-update.patch
+linux-kernel-markers-create-modpost-file.patch
