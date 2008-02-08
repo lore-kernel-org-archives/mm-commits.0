@@ -1,34 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-accounting-setup-v7.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:03:03 -0800
-Message-ID: <200802080802.m1882iJe014065@imap1.linux-foundation.org>
+Subject: - memory-controller-oom-handling-v7.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:03:18 -0800
+Message-ID: <200802080802.m1882xSx014080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42953 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761794AbYBHIW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:22:57 -0500
+	by vger.kernel.org with ESMTP id S932268AbYBHIWx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:22:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xemul@openvz.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@googl
 
 
 The patch titled
-     Memory controller: accounting setup
+     Memory controller: OOM handling
 has been removed from the -mm tree.  Its filename was
-     memory-controller-accounting-setup-v7.patch
+     memory-controller-oom-handling-v7.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory controller: accounting setup
+Subject: Memory controller: OOM handling
 From: Pavel Emelianov <xemul@openvz.org>
 
-Basic setup routines, the mm_struct has a pointer to the cgroup that
-it belongs to and the the page has a page_cgroup associated with it.
+Out of memory handling for cgroups over their limit. A task from the
+cgroup over limit is chosen using the existing OOM logic and killed.
 
+TODO:
+1. As discussed in the OLS BOF session, consider implementing a user
+space policy for OOM handling.
+
+[akpm@linux-foundation.org: fix build due to oom-killer changes]
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
@@ -38,268 +43,132 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Kirill Korotaev <dev@sw.ru>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   36 ++++++++++++++++++++++
- include/linux/mm_types.h   |    6 +++
- include/linux/sched.h      |    1 
- kernel/fork.c              |   11 ++++--
- mm/memcontrol.c            |   57 ++++++++++++++++++++++++++++++++---
- 5 files changed, 104 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    1 
+ mm/memcontrol.c            |    1 
+ mm/oom_kill.c              |   43 +++++++++++++++++++++++++++++++----
+ 3 files changed, 41 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memory-controller-accounting-setup-v7 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-accounting-setup-v7
+diff -puN include/linux/memcontrol.h~memory-controller-oom-handling-v7 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-oom-handling-v7
 +++ a/include/linux/memcontrol.h
-@@ -3,6 +3,9 @@
-  * Copyright IBM Corporation, 2007
-  * Author Balbir Singh <balbir@linux.vnet.ibm.com>
-  *
-+ * Copyright 2007 OpenVZ SWsoft Inc
-+ * Author: Pavel Emelianov <xemul@openvz.org>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -17,5 +20,38 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
+@@ -39,6 +39,7 @@ extern unsigned long mem_cgroup_isolate_
+ 					int mode, struct zone *z,
+ 					struct mem_cgroup *mem_cont,
+ 					int active);
++extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
  
-+struct mem_cgroup;
-+struct page_cgroup;
-+
-+#ifdef CONFIG_CGROUP_MEM_CONT
-+
-+extern void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p);
-+extern void mm_free_cgroup(struct mm_struct *mm);
-+extern void page_assign_page_cgroup(struct page *page,
-+					struct page_cgroup *pc);
-+extern struct page_cgroup *page_get_page_cgroup(struct page *page);
-+
-+#else /* CONFIG_CGROUP_MEM_CONT */
-+static inline void mm_init_cgroup(struct mm_struct *mm,
-+					struct task_struct *p)
-+{
-+}
-+
-+static inline void mm_free_cgroup(struct mm_struct *mm)
-+{
-+}
-+
-+static inline void page_assign_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
-+{
-+}
-+
-+static inline struct page_cgroup *page_get_page_cgroup(struct page *page)
-+{
-+	return NULL;
-+}
-+
-+#endif /* CONFIG_CGROUP_MEM_CONT */
-+
- #endif /* _LINUX_MEMCONTROL_H */
- 
-diff -puN include/linux/mm_types.h~memory-controller-accounting-setup-v7 include/linux/mm_types.h
---- a/include/linux/mm_types.h~memory-controller-accounting-setup-v7
-+++ a/include/linux/mm_types.h
-@@ -88,6 +88,9 @@ struct page {
- 	void *virtual;			/* Kernel virtual address (NULL if
- 					   not kmapped, ie. highmem) */
- #endif /* WANT_PAGE_VIRTUAL */
-+#ifdef CONFIG_CGROUP_MEM_CONT
-+	unsigned long page_cgroup;
-+#endif
- };
- 
- /*
-@@ -219,6 +222,9 @@ struct mm_struct {
- 	/* aio bits */
- 	rwlock_t		ioctx_list_lock;
- 	struct kioctx		*ioctx_list;
-+#ifdef CONFIG_CGROUP_MEM_CONT
-+	struct mem_cgroup *mem_cgroup;
-+#endif
- };
- 
- #endif /* _LINUX_MM_TYPES_H */
-diff -puN include/linux/sched.h~memory-controller-accounting-setup-v7 include/linux/sched.h
---- a/include/linux/sched.h~memory-controller-accounting-setup-v7
-+++ a/include/linux/sched.h
-@@ -92,6 +92,7 @@ struct sched_param {
- 
- #include <asm/processor.h>
- 
-+struct mem_cgroup;
- struct exec_domain;
- struct futex_pi_state;
- struct robust_list_head;
-diff -puN kernel/fork.c~memory-controller-accounting-setup-v7 kernel/fork.c
---- a/kernel/fork.c~memory-controller-accounting-setup-v7
-+++ a/kernel/fork.c
-@@ -40,6 +40,7 @@
- #include <linux/ptrace.h>
- #include <linux/mount.h>
- #include <linux/audit.h>
-+#include <linux/memcontrol.h>
- #include <linux/profile.h>
- #include <linux/rmap.h>
- #include <linux/acct.h>
-@@ -340,7 +341,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLO
- 
- #include <linux/init_task.h>
- 
--static struct mm_struct * mm_init(struct mm_struct * mm)
-+static struct mm_struct * mm_init(struct mm_struct * mm, struct task_struct *p)
+ static inline void mem_cgroup_uncharge_page(struct page *page)
  {
- 	atomic_set(&mm->mm_users, 1);
- 	atomic_set(&mm->mm_count, 1);
-@@ -357,11 +358,14 @@ static struct mm_struct * mm_init(struct
- 	mm->ioctx_list = NULL;
- 	mm->free_area_cache = TASK_UNMAPPED_BASE;
- 	mm->cached_hole_size = ~0UL;
-+	mm_init_cgroup(mm, p);
- 
- 	if (likely(!mm_alloc_pgd(mm))) {
- 		mm->def_flags = 0;
- 		return mm;
- 	}
-+
-+	mm_free_cgroup(mm);
- 	free_mm(mm);
- 	return NULL;
- }
-@@ -376,7 +380,7 @@ struct mm_struct * mm_alloc(void)
- 	mm = allocate_mm();
- 	if (mm) {
- 		memset(mm, 0, sizeof(*mm));
--		mm = mm_init(mm);
-+		mm = mm_init(mm, current);
- 	}
- 	return mm;
- }
-@@ -390,6 +394,7 @@ void fastcall __mmdrop(struct mm_struct 
- {
- 	BUG_ON(mm == &init_mm);
- 	mm_free_pgd(mm);
-+	mm_free_cgroup(mm);
- 	destroy_context(mm);
- 	free_mm(mm);
- }
-@@ -511,7 +516,7 @@ static struct mm_struct *dup_mm(struct t
- 	mm->token_priority = 0;
- 	mm->last_interval = 0;
- 
--	if (!mm_init(mm))
-+	if (!mm_init(mm, tsk))
- 		goto fail_nomem;
- 
- 	if (init_new_context(tsk, mm))
-diff -puN mm/memcontrol.c~memory-controller-accounting-setup-v7 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-accounting-setup-v7
+diff -puN mm/memcontrol.c~memory-controller-oom-handling-v7 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-oom-handling-v7
 +++ a/mm/memcontrol.c
-@@ -3,6 +3,9 @@
-  * Copyright IBM Corporation, 2007
-  * Author Balbir Singh <balbir@linux.vnet.ibm.com>
-  *
-+ * Copyright 2007 OpenVZ SWsoft Inc
-+ * Author: Pavel Emelianov <xemul@openvz.org>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -17,6 +20,7 @@
- #include <linux/res_counter.h>
- #include <linux/memcontrol.h>
- #include <linux/cgroup.h>
-+#include <linux/mm.h>
+@@ -329,6 +329,7 @@ retry:
+ 		}
  
- struct cgroup_subsys mem_cgroup_subsys;
+ 		css_put(&mem->css);
++		mem_cgroup_out_of_memory(mem, GFP_KERNEL);
+ 		goto free_pc;
+ 	}
  
-@@ -35,6 +39,13 @@ struct mem_cgroup {
- 	 * the counter to account for memory usage
+diff -puN mm/oom_kill.c~memory-controller-oom-handling-v7 mm/oom_kill.c
+--- a/mm/oom_kill.c~memory-controller-oom-handling-v7
++++ a/mm/oom_kill.c
+@@ -25,6 +25,7 @@
+ #include <linux/cpuset.h>
+ #include <linux/module.h>
+ #include <linux/notifier.h>
++#include <linux/memcontrol.h>
+ 
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
+@@ -50,7 +51,8 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
+  *    of least surprise ... (be careful when you change it)
+  */
+ 
+-unsigned long badness(struct task_struct *p, unsigned long uptime)
++unsigned long badness(struct task_struct *p, unsigned long uptime,
++			struct mem_cgroup *mem)
+ {
+ 	unsigned long points, cpu_time, run_time, s;
+ 	struct mm_struct *mm;
+@@ -63,6 +65,13 @@ unsigned long badness(struct task_struct
+ 		return 0;
+ 	}
+ 
++#ifdef CONFIG_CGROUP_MEM_CONT
++	if (mem != NULL && mm->mem_cgroup != mem) {
++		task_unlock(p);
++		return 0;
++	}
++#endif
++
+ 	/*
+ 	 * The memory size of the process is the basis for the badness.
  	 */
- 	struct res_counter res;
-+	/*
-+	 * Per cgroup active and inactive list, similar to the
-+	 * per zone LRU lists.
-+	 * TODO: Consider making these lists per zone
-+	 */
-+	struct list_head active_list;
-+	struct list_head inactive_list;
- };
+@@ -193,7 +202,8 @@ static inline enum oom_constraint constr
+  *
+  * (not docbooked, we don't want this one cluttering up the manual)
+  */
+-static struct task_struct *select_bad_process(unsigned long *ppoints)
++static struct task_struct *select_bad_process(unsigned long *ppoints,
++						struct mem_cgroup *mem)
+ {
+ 	struct task_struct *g, *p;
+ 	struct task_struct *chosen = NULL;
+@@ -247,7 +257,7 @@ static struct task_struct *select_bad_pr
+ 		if (p->oomkilladj == OOM_DISABLE)
+ 			continue;
  
- /*
-@@ -56,6 +67,37 @@ struct mem_cgroup *mem_cgroup_from_cont(
- 				css);
+-		points = badness(p, uptime.tv_sec);
++		points = badness(p, uptime.tv_sec, mem);
+ 		if (points > *ppoints || !chosen) {
+ 			chosen = p;
+ 			*ppoints = points;
+@@ -368,6 +378,31 @@ static int oom_kill_process(struct task_
+ 	return oom_kill_task(p);
  }
  
-+static inline
-+struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
++#ifdef CONFIG_CGROUP_MEM_CONT
++void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
 +{
-+	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
-+				struct mem_cgroup, css);
++	unsigned long points = 0;
++	struct task_struct *p;
++
++	cgroup_lock();
++	rcu_read_lock();
++retry:
++	p = select_bad_process(&points, mem);
++	if (PTR_ERR(p) == -1UL)
++		goto out;
++
++	if (!p)
++		p = current;
++
++	if (oom_kill_process(p, gfp_mask, 0, points,
++				"Memory cgroup out of memory"))
++		goto retry;
++out:
++	rcu_read_unlock();
++	cgroup_unlock();
 +}
++#endif
 +
-+void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p)
-+{
-+	struct mem_cgroup *mem;
-+
-+	mem = mem_cgroup_from_task(p);
-+	css_get(&mem->css);
-+	mm->mem_cgroup = mem;
-+}
-+
-+void mm_free_cgroup(struct mm_struct *mm)
-+{
-+	css_put(&mm->mem_cgroup->css);
-+}
-+
-+void page_assign_page_cgroup(struct page *page, struct page_cgroup *pc)
-+{
-+	page->page_cgroup = (unsigned long)pc;
-+}
-+
-+struct page_cgroup *page_get_page_cgroup(struct page *page)
-+{
-+	return page->page_cgroup;
-+}
-+
- static ssize_t mem_cgroup_read(struct cgroup *cont, struct cftype *cft,
- 			struct file *file, char __user *userbuf, size_t nbytes,
- 			loff_t *ppos)
-@@ -91,14 +133,21 @@ static struct cftype mem_cgroup_files[] 
- 	},
- };
+ static BLOCKING_NOTIFIER_HEAD(oom_notify_list);
  
-+static struct mem_cgroup init_mem_cgroup;
-+
- static struct cgroup_subsys_state *
- mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
- {
- 	struct mem_cgroup *mem;
+ int register_oom_notifier(struct notifier_block *nb)
+@@ -484,7 +519,7 @@ retry:
+ 		 * Rambo mode: Shoot down a process and hope it solves whatever
+ 		 * issues we may have.
+ 		 */
+-		p = select_bad_process(&points);
++		p = select_bad_process(&points, NULL);
  
--	mem = kzalloc(sizeof(struct mem_cgroup), GFP_KERNEL);
--	if (!mem)
--		return -ENOMEM;
-+	if (unlikely((cont->parent) == NULL)) {
-+		mem = &init_mem_cgroup;
-+		init_mm.mem_cgroup = mem;
-+	} else
-+		mem = kzalloc(sizeof(struct mem_cgroup), GFP_KERNEL);
-+
-+	if (mem == NULL)
-+		return NULL;
- 
- 	res_counter_init(&mem->res);
- 	return &mem->css;
-@@ -123,5 +172,5 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.create = mem_cgroup_create,
- 	.destroy = mem_cgroup_destroy,
- 	.populate = mem_cgroup_populate,
--	.early_init = 0,
-+	.early_init = 1,
- };
+ 		if (PTR_ERR(p) == -1UL)
+ 			goto out;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
