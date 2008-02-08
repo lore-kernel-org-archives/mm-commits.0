@@ -1,159 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - 8250_hp300-coding-style.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:12:56 -0800
-Message-ID: <200802082012.m18KCbEQ010218@imap1.linux-foundation.org>
+Subject: - aoe-user-can-ask-driver-to-forget-previously-detected-devices.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:59 -0800
+Message-ID: <200802082015.m18KFegk010638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459AbYBHUwL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:11 -0500
+	by vger.kernel.org with ESMTP id S1754181AbYBHUwB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:52:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_hp300: coding style
+     aoe: user can ask driver to forget previously detected devices
 has been removed from the -mm tree.  Its filename was
-     8250_hp300-coding-style.patch
+     aoe-user-can-ask-driver-to-forget-previously-detected-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250_hp300: coding style
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: aoe: user can ask driver to forget previously detected devices
+From: "Ed L. Cashin" <ecashin@coraid.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+When an AoE device is detected, the kernel is informed, and a new block device
+is created.  If the device is unused, the block device corresponding to remote
+device that is no longer available may be removed from the system by telling
+the aoe driver to "flush" its list of devices.
+
+Without this patch, software like GPFS and LVM may attempt to read from AoE
+devices that were discovered earlier but are no longer present, blocking until
+the I/O attempt times out.
+
+Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_hp300.c |   35 ++++++++++++++--------------------
- 1 file changed, 15 insertions(+), 20 deletions(-)
+ Documentation/aoe/mkdevs.sh |    2 
+ Documentation/aoe/udev.txt  |    1 
+ drivers/block/aoe/aoe.h     |    1 
+ drivers/block/aoe/aoechr.c  |    5 +
+ drivers/block/aoe/aoedev.c  |   87 ++++++++++++++++++++++++++--------
+ 5 files changed, 77 insertions(+), 19 deletions(-)
 
-diff -puN drivers/serial/8250_hp300.c~8250_hp300-coding-style drivers/serial/8250_hp300.c
---- a/drivers/serial/8250_hp300.c~8250_hp300-coding-style
-+++ a/drivers/serial/8250_hp300.c
-@@ -36,7 +36,7 @@ static struct hp300_port *hp300_ports;
- #ifdef CONFIG_HPDCA
+diff -puN Documentation/aoe/mkdevs.sh~aoe-user-can-ask-driver-to-forget-previously-detected-devices Documentation/aoe/mkdevs.sh
+--- a/Documentation/aoe/mkdevs.sh~aoe-user-can-ask-driver-to-forget-previously-detected-devices
++++ a/Documentation/aoe/mkdevs.sh
+@@ -29,6 +29,8 @@ rm -f $dir/interfaces
+ mknod -m 0200 $dir/interfaces c $MAJOR 4
+ rm -f $dir/revalidate
+ mknod -m 0200 $dir/revalidate c $MAJOR 5
++rm -f $dir/flush
++mknod -m 0200 $dir/flush c $MAJOR 6
  
- static int __devinit hpdca_init_one(struct dio_dev *d,
--                                const struct dio_device_id *ent);
-+					const struct dio_device_id *ent);
- static void __devexit hpdca_remove_one(struct dio_dev *d);
+ export n_partitions
+ mkshelf=`echo $0 | sed 's!mkdevs!mkshelf!'`
+diff -puN Documentation/aoe/udev.txt~aoe-user-can-ask-driver-to-forget-previously-detected-devices Documentation/aoe/udev.txt
+--- a/Documentation/aoe/udev.txt~aoe-user-can-ask-driver-to-forget-previously-detected-devices
++++ a/Documentation/aoe/udev.txt
+@@ -20,6 +20,7 @@ SUBSYSTEM=="aoe", KERNEL=="discover",	NA
+ SUBSYSTEM=="aoe", KERNEL=="err",	NAME="etherd/%k", GROUP="disk", MODE="0440"
+ SUBSYSTEM=="aoe", KERNEL=="interfaces",	NAME="etherd/%k", GROUP="disk", MODE="0220"
+ SUBSYSTEM=="aoe", KERNEL=="revalidate",	NAME="etherd/%k", GROUP="disk", MODE="0220"
++SUBSYSTEM=="aoe", KERNEL=="flush",	NAME="etherd/%k", GROUP="disk", MODE="0220"
  
- static struct dio_device_id hpdca_dio_tbl[] = {
-@@ -85,7 +85,7 @@ extern int hp300_uart_scode;
+ # aoe block devices     
+ KERNEL=="etherd*",       NAME="%k", GROUP="disk"
+diff -puN drivers/block/aoe/aoe.h~aoe-user-can-ask-driver-to-forget-previously-detected-devices drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-user-can-ask-driver-to-forget-previously-detected-devices
++++ a/drivers/block/aoe/aoe.h
+@@ -191,6 +191,7 @@ struct aoedev *aoedev_by_aoeaddr(int maj
+ struct aoedev *aoedev_by_sysminor_m(ulong sysminor);
+ void aoedev_downdev(struct aoedev *d);
+ int aoedev_isbusy(struct aoedev *d);
++int aoedev_flush(const char __user *str, size_t size);
  
- #ifdef CONFIG_SERIAL_8250_CONSOLE
- /*
-- * Parse the bootinfo to find descriptions for headless console and 
-+ * Parse the bootinfo to find descriptions for headless console and
-  * debug serial ports and register them with the 8250 driver.
-  * This function should be called before serial_console_init() is called
-  * to make sure the serial console will be available for use. IA-64 kernel
-@@ -126,13 +126,11 @@ int __init hp300_setup_serial_console(vo
- 		printk(KERN_WARNING "Serial console is APCI but support is disabled (CONFIG_HPAPCI)!\n");
- 		return 0;
- #endif
--	}
--	else {
-+	} else {
- #ifdef CONFIG_HPDCA
- 		unsigned long pa = dio_scodetophysaddr(scode);
--		if (!pa) {
-+		if (!pa)
- 			return 0;
--		}
+ int aoenet_init(void);
+ void aoenet_exit(void);
+diff -puN drivers/block/aoe/aoechr.c~aoe-user-can-ask-driver-to-forget-previously-detected-devices drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~aoe-user-can-ask-driver-to-forget-previously-detected-devices
++++ a/drivers/block/aoe/aoechr.c
+@@ -15,6 +15,7 @@ enum {
+ 	MINOR_DISCOVER,
+ 	MINOR_INTERFACES,
+ 	MINOR_REVALIDATE,
++	MINOR_FLUSH,
+ 	MSGSZ = 2048,
+ 	NMSG = 100,		/* message backlog to retain */
+ };
+@@ -43,6 +44,7 @@ static struct aoe_chardev chardevs[] = {
+ 	{ MINOR_DISCOVER, "discover" },
+ 	{ MINOR_INTERFACES, "interfaces" },
+ 	{ MINOR_REVALIDATE, "revalidate" },
++	{ MINOR_FLUSH, "flush" },
+ };
  
- 		printk(KERN_INFO "Serial console is HP DCA at select code %d\n", scode);
- 
-@@ -145,26 +143,23 @@ int __init hp300_setup_serial_console(vo
- 		/* Enable board-interrupts */
- 		out_8(pa + DIO_VIRADDRBASE + DCA_IC, DCA_IC_IE);
- 
--		if (DIO_ID(pa + DIO_VIRADDRBASE) & 0x80) {
-+		if (DIO_ID(pa + DIO_VIRADDRBASE) & 0x80)
- 			add_preferred_console("ttyS", port.line, "9600n8");
--		}
- #else
- 		printk(KERN_WARNING "Serial console is DCA but support is disabled (CONFIG_HPDCA)!\n");
- 		return 0;
- #endif
+ static int
+@@ -158,6 +160,9 @@ aoechr_write(struct file *filp, const ch
+ 		break;
+ 	case MINOR_REVALIDATE:
+ 		ret = revalidate(buf, cnt);
++		break;
++	case MINOR_FLUSH:
++		ret = aoedev_flush(buf, cnt);
  	}
+ 	if (ret == 0)
+ 		ret = cnt;
+diff -puN drivers/block/aoe/aoedev.c~aoe-user-can-ask-driver-to-forget-previously-detected-devices drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-user-can-ask-driver-to-forget-previously-detected-devices
++++ a/drivers/block/aoe/aoedev.c
+@@ -9,6 +9,10 @@
+ #include <linux/netdevice.h>
+ #include "aoe.h"
  
--	if (early_serial_setup(&port) < 0) {
-+	if (early_serial_setup(&port) < 0)
- 		printk(KERN_WARNING "hp300_setup_serial_console(): early_serial_setup() failed.\n");
--	}
--
- 	return 0;
++static void dummy_timer(ulong);
++static void aoedev_freedev(struct aoedev *);
++static void freetgt(struct aoetgt *t);
++
+ static struct aoedev *devlist;
+ static spinlock_t devlist_lock;
+ 
+@@ -108,6 +112,70 @@ aoedev_downdev(struct aoedev *d)
+ 	d->flags &= ~DEVFL_UP;
  }
- #endif /* CONFIG_SERIAL_8250_CONSOLE */
  
- #ifdef CONFIG_HPDCA
- static int __devinit hpdca_init_one(struct dio_dev *d,
--                                const struct dio_device_id *ent)
-+				const struct dio_device_id *ent)
++static void
++aoedev_freedev(struct aoedev *d)
++{
++	struct aoetgt **t, **e;
++
++	if (d->gd) {
++		aoedisk_rm_sysfs(d);
++		del_gendisk(d->gd);
++		put_disk(d->gd);
++	}
++	t = d->targets;
++	e = t + NTARGETS;
++	for (; t < e && *t; t++)
++		freetgt(*t);
++	if (d->bufpool)
++		mempool_destroy(d->bufpool);
++	kfree(d);
++}
++
++int
++aoedev_flush(const char __user *str, size_t cnt)
++{
++	ulong flags;
++	struct aoedev *d, **dd;
++	struct aoedev *rmd = NULL;
++	char buf[16];
++	int all = 0;
++
++	if (cnt >= 3) {
++		if (cnt > sizeof buf)
++			cnt = sizeof buf;
++		if (copy_from_user(buf, str, cnt))
++			return -EFAULT;
++		all = !strncmp(buf, "all", 3);
++	}
++
++	flush_scheduled_work();
++	spin_lock_irqsave(&devlist_lock, flags);
++	dd = &devlist;
++	while ((d = *dd)) {
++		spin_lock(&d->lock);
++		if ((!all && (d->flags & DEVFL_UP))
++		|| (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
++		|| d->nopen) {
++			spin_unlock(&d->lock);
++			dd = &d->next;
++			continue;
++		}
++		*dd = d->next;
++		aoedev_downdev(d);
++		d->flags |= DEVFL_TKILL;
++		spin_unlock(&d->lock);
++		d->next = rmd;
++		rmd = d;
++	}
++	spin_unlock_irqrestore(&devlist_lock, flags);
++	while ((d = rmd)) {
++		rmd = d->next;
++		del_timer_sync(&d->timer);
++		aoedev_freedev(d);	/* must be able to sleep */
++	}
++	return 0;
++}
++
+ /* find it or malloc it */
+ struct aoedev *
+ aoedev_by_sysminor_m(ulong sysminor)
+@@ -161,25 +229,6 @@ freetgt(struct aoetgt *t)
+ 	kfree(t);
+ }
+ 
+-static void
+-aoedev_freedev(struct aoedev *d)
+-{
+-	struct aoetgt **t, **e;
+-
+-	if (d->gd) {
+-		aoedisk_rm_sysfs(d);
+-		del_gendisk(d->gd);
+-		put_disk(d->gd);
+-	}
+-	t = d->targets;
+-	e = t + NTARGETS;
+-	for (; t < e && *t; t++)
+-		freetgt(*t);
+-	if (d->bufpool)
+-		mempool_destroy(d->bufpool);
+-	kfree(d);
+-}
+-
+ void
+ aoedev_exit(void)
  {
- 	struct uart_port port;
- 	int line;
-@@ -210,7 +205,7 @@ static int __devinit hpdca_init_one(stru
- 
- static int __init hp300_8250_init(void)
- {
--	static int called = 0;
-+	static int called;
- #ifdef CONFIG_HPAPCI
- 	int line;
- 	unsigned long base;
-@@ -239,13 +234,12 @@ static int __init hp300_8250_init(void)
- 	 * Port 1 is either the console or the DCA.
- 	 */
- 	for (i = 1; i < 4; i++) {
--		/* Port 1 is the console on a 425e, on other machines it's mapped to
--		 * DCA.
-+		/* Port 1 is the console on a 425e, on other machines it's
-+		 * mapped to DCA.
- 		 */
- #ifdef CONFIG_SERIAL_8250_CONSOLE
--		if (i == 1) {
-+		if (i == 1)
- 			continue;
--		}
- #endif
- 
- 		/* Create new serial device */
-@@ -259,7 +253,8 @@ static int __init hp300_8250_init(void)
- 
- 		/* Memory mapped I/O */
- 		uport.iotype = UPIO_MEM;
--		uport.flags = UPF_SKIP_TEST | UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF;
-+		uport.flags = UPF_SKIP_TEST | UPF_SHARE_IRQ \
-+			      | UPF_BOOT_AUTOCONF;
- 		/* XXX - no interrupt support yet */
- 		uport.irq = 0;
- 		uport.uartclk = HPAPCI_BAUD_BASE * 16;
-@@ -270,8 +265,8 @@ static int __init hp300_8250_init(void)
- 		line = serial8250_register_port(&uport);
- 
- 		if (line < 0) {
--			printk(KERN_NOTICE "8250_hp300: register_serial() APCI %d"
--			       " irq %d failed\n", i, uport.irq);
-+			printk(KERN_NOTICE "8250_hp300: register_serial() APCI"
-+			       " %d irq %d failed\n", i, uport.irq);
- 			kfree(port);
- 			continue;
- 		}
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
 origin.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-hci_ldisc-fix-null-pointer-deref.patch
-parisc-new-termios-definitions.patch
-git-sh.patch
-git-watchdog.patch
