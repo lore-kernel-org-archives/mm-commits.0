@@ -1,221 +1,348 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:02:46 -0800
-Message-ID: <200802080802.m1882RaG014040@imap1.linux-foundation.org>
+Subject: - cgroups-update-comments-in-cpusetc.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:05:19 -0800
+Message-ID: <200802080805.m18850de014298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60714 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932243AbYBHIUA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:00 -0500
+	by vger.kernel.org with ESMTP id S1761946AbYBHIUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:20:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: move cgroups destroy() callbacks to cgroup_diput()
+     cgroups: update comments in cpuset.c
 has been removed from the -mm tree.  Its filename was
-     cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput.patch
+     cgroups-update-comments-in-cpusetc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: move cgroups destroy() callbacks to cgroup_diput()
+Subject: cgroups: update comments in cpuset.c
 From: Paul Menage <menage@google.com>
 
-Move the calls to the cgroup subsystem destroy() methods from
-cgroup_rmdir() to cgroup_diput().  This allows control file reads and
-writes to access their subsystem state without having to be concerned with
-locking against cgroup destruction - the control file dentry will keep the
-cgroup and its subsystem state objects alive until the file is closed.
-
-The documentation is updated to reflect the changed semantics of destroy();
-additionally the locking comments for destroy() and some other methods were
-clarified and decrustified.
+Some of the comments in kernel/cpuset.c were stale following the
+transition to control groups; this patch updates them to more closely
+match reality.
 
 Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups.txt |   22 +++++++++++-----------
- kernel/cgroup.c           |   36 ++++++++++++++++++++++++------------
- 2 files changed, 35 insertions(+), 23 deletions(-)
+ kernel/cpuset.c |  128 +++++++++++++++-------------------------------
+ 1 file changed, 43 insertions(+), 85 deletions(-)
 
-diff -puN Documentation/cgroups.txt~cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput Documentation/cgroups.txt
---- a/Documentation/cgroups.txt~cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput
-+++ a/Documentation/cgroups.txt
-@@ -456,7 +456,7 @@ methods are create/destroy. Any others t
- be successful no-ops.
+diff -puN kernel/cpuset.c~cgroups-update-comments-in-cpusetc kernel/cpuset.c
+--- a/kernel/cpuset.c~cgroups-update-comments-in-cpusetc
++++ a/kernel/cpuset.c
+@@ -65,7 +65,7 @@
+  */
+ int number_of_cpusets __read_mostly;
  
- struct cgroup_subsys_state *create(struct cgroup *cont)
--LL=cgroup_mutex
-+(cgroup_mutex held by caller)
+-/* Retrieve the cpuset from a cgroup */
++/* Forward declare cgroup structures */
+ struct cgroup_subsys cpuset_subsys;
+ struct cpuset;
  
- Called to create a subsystem state object for a cgroup. The
- subsystem should allocate its subsystem state object for the passed
-@@ -471,14 +471,19 @@ it's the root of the hierarchy) and may 
- initialization code.
+@@ -167,17 +167,17 @@ static inline int is_spread_slab(const s
+  * number, and avoid having to lock and reload mems_allowed unless
+  * the cpuset they're using changes generation.
+  *
+- * A single, global generation is needed because attach_task() could
++ * A single, global generation is needed because cpuset_attach_task() could
+  * reattach a task to a different cpuset, which must not have its
+  * generation numbers aliased with those of that tasks previous cpuset.
+  *
+  * Generations are needed for mems_allowed because one task cannot
+- * modify anothers memory placement.  So we must enable every task,
++ * modify another's memory placement.  So we must enable every task,
+  * on every visit to __alloc_pages(), to efficiently check whether
+  * its current->cpuset->mems_allowed has changed, requiring an update
+  * of its current->mems_allowed.
+  *
+- * Since cpuset_mems_generation is guarded by manage_mutex,
++ * Since writes to cpuset_mems_generation are guarded by the cgroup lock
+  * there is no need to mark it atomic.
+  */
+ static int cpuset_mems_generation;
+@@ -189,17 +189,20 @@ static struct cpuset top_cpuset = {
+ };
  
- void destroy(struct cgroup *cont)
--LL=cgroup_mutex
-+(cgroup_mutex held by caller)
+ /*
+- * We have two global cpuset mutexes below.  They can nest.
+- * It is ok to first take manage_mutex, then nest callback_mutex.  We also
+- * require taking task_lock() when dereferencing a tasks cpuset pointer.
+- * See "The task_lock() exception", at the end of this comment.
++ * There are two global mutexes guarding cpuset structures.  The first
++ * is the main control groups cgroup_mutex, accessed via
++ * cgroup_lock()/cgroup_unlock().  The second is the cpuset-specific
++ * callback_mutex, below. They can nest.  It is ok to first take
++ * cgroup_mutex, then nest callback_mutex.  We also require taking
++ * task_lock() when dereferencing a task's cpuset pointer.  See "The
++ * task_lock() exception", at the end of this comment.
+  *
+  * A task must hold both mutexes to modify cpusets.  If a task
+- * holds manage_mutex, then it blocks others wanting that mutex,
++ * holds cgroup_mutex, then it blocks others wanting that mutex,
+  * ensuring that it is the only task able to also acquire callback_mutex
+  * and be able to modify cpusets.  It can perform various checks on
+  * the cpuset structure first, knowing nothing will change.  It can
+- * also allocate memory while just holding manage_mutex.  While it is
++ * also allocate memory while just holding cgroup_mutex.  While it is
+  * performing these checks, various callback routines can briefly
+  * acquire callback_mutex to query cpusets.  Once it is ready to make
+  * the changes, it takes callback_mutex, blocking everyone else.
+@@ -215,60 +218,16 @@ static struct cpuset top_cpuset = {
+  * The task_struct fields mems_allowed and mems_generation may only
+  * be accessed in the context of that task, so require no locks.
+  *
+- * Any task can increment and decrement the count field without lock.
+- * So in general, code holding manage_mutex or callback_mutex can't rely
+- * on the count field not changing.  However, if the count goes to
+- * zero, then only attach_task(), which holds both mutexes, can
+- * increment it again.  Because a count of zero means that no tasks
+- * are currently attached, therefore there is no way a task attached
+- * to that cpuset can fork (the other way to increment the count).
+- * So code holding manage_mutex or callback_mutex can safely assume that
+- * if the count is zero, it will stay zero.  Similarly, if a task
+- * holds manage_mutex or callback_mutex on a cpuset with zero count, it
+- * knows that the cpuset won't be removed, as cpuset_rmdir() needs
+- * both of those mutexes.
+- *
+  * The cpuset_common_file_write handler for operations that modify
+- * the cpuset hierarchy holds manage_mutex across the entire operation,
++ * the cpuset hierarchy holds cgroup_mutex across the entire operation,
+  * single threading all such cpuset modifications across the system.
+  *
+  * The cpuset_common_file_read() handlers only hold callback_mutex across
+  * small pieces of code, such as when reading out possibly multi-word
+  * cpumasks and nodemasks.
+  *
+- * The fork and exit callbacks cpuset_fork() and cpuset_exit(), don't
+- * (usually) take either mutex.  These are the two most performance
+- * critical pieces of code here.  The exception occurs on cpuset_exit(),
+- * when a task in a notify_on_release cpuset exits.  Then manage_mutex
+- * is taken, and if the cpuset count is zero, a usermode call made
+- * to /sbin/cpuset_release_agent with the name of the cpuset (path
+- * relative to the root of cpuset file system) as the argument.
+- *
+- * A cpuset can only be deleted if both its 'count' of using tasks
+- * is zero, and its list of 'children' cpusets is empty.  Since all
+- * tasks in the system use _some_ cpuset, and since there is always at
+- * least one task in the system (init), therefore, top_cpuset
+- * always has either children cpusets and/or using tasks.  So we don't
+- * need a special hack to ensure that top_cpuset cannot be deleted.
+- *
+- * The above "Tale of Two Semaphores" would be complete, but for:
+- *
+- *	The task_lock() exception
+- *
+- * The need for this exception arises from the action of attach_task(),
+- * which overwrites one tasks cpuset pointer with another.  It does
+- * so using both mutexes, however there are several performance
+- * critical places that need to reference task->cpuset without the
+- * expense of grabbing a system global mutex.  Therefore except as
+- * noted below, when dereferencing or, as in attach_task(), modifying
+- * a tasks cpuset pointer we use task_lock(), which acts on a spinlock
+- * (task->alloc_lock) already in the task_struct routinely used for
+- * such matters.
+- *
+- * P.S.  One more locking exception.  RCU is used to guard the
+- * update of a tasks cpuset pointer by attach_task() and the
+- * access of task->cpuset->mems_generation via that pointer in
+- * the routine cpuset_update_task_memory_state().
++ * Accessing a task's cpuset should be done in accordance with the
++ * guidelines for accessing subsystem state in kernel/cgroup.c
+  */
  
--The cgroup system is about to destroy the passed cgroup; the
--subsystem should do any necessary cleanup
-+The cgroup system is about to destroy the passed cgroup; the subsystem
-+should do any necessary cleanup and free its subsystem state
-+object. By the time this method is called, the cgroup has already been
-+unlinked from the file system and from the child list of its parent;
-+cgroup->parent is still valid. (Note - can also be called for a
-+newly-created cgroup if an error occurs after this subsystem's
-+create() method has been called for the new cgroup).
+ static DEFINE_MUTEX(callback_mutex);
+@@ -361,15 +320,14 @@ static void guarantee_online_mems(const 
+  * Do not call this routine if in_interrupt().
+  *
+  * Call without callback_mutex or task_lock() held.  May be
+- * called with or without manage_mutex held.  Thanks in part to
+- * 'the_top_cpuset_hack', the tasks cpuset pointer will never
++ * called with or without cgroup_mutex held.  Thanks in part to
++ * 'the_top_cpuset_hack', the task's cpuset pointer will never
+  * be NULL.  This routine also might acquire callback_mutex and
+  * current->mm->mmap_sem during call.
+  *
+  * Reading current->cpuset->mems_generation doesn't need task_lock
+  * to guard the current->cpuset derefence, because it is guarded
+- * from concurrent freeing of current->cpuset by attach_task(),
+- * using RCU.
++ * from concurrent freeing of current->cpuset using RCU.
+  *
+  * The rcu_dereference() is technically probably not needed,
+  * as I don't actually mind if I see a new cpuset pointer but
+@@ -431,7 +389,7 @@ void cpuset_update_task_memory_state(voi
+  *
+  * One cpuset is a subset of another if all its allowed CPUs and
+  * Memory Nodes are a subset of the other, and its exclusive flags
+- * are only set if the other's are set.  Call holding manage_mutex.
++ * are only set if the other's are set.  Call holding cgroup_mutex.
+  */
  
- int can_attach(struct cgroup_subsys *ss, struct cgroup *cont,
- 	       struct task_struct *task)
--LL=cgroup_mutex
-+(cgroup_mutex held by caller)
+ static int is_cpuset_subset(const struct cpuset *p, const struct cpuset *q)
+@@ -449,7 +407,7 @@ static int is_cpuset_subset(const struct
+  * If we replaced the flag and mask values of the current cpuset
+  * (cur) with those values in the trial cpuset (trial), would
+  * our various subset and exclusive rules still be valid?  Presumes
+- * manage_mutex held.
++ * cgroup_mutex held.
+  *
+  * 'cur' is the address of an actual, in-use cpuset.  Operations
+  * such as list traversal that depend on the actual address of the
+@@ -483,7 +441,10 @@ static int validate_change(const struct 
+ 	if (!is_cpuset_subset(trial, par))
+ 		return -EACCES;
  
- Called prior to moving a task into a cgroup; if the subsystem
- returns an error, this will abort the attach operation.  If a NULL
-@@ -489,25 +494,20 @@ remain valid while the caller holds cgro
- 
- void attach(struct cgroup_subsys *ss, struct cgroup *cont,
- 	    struct cgroup *old_cont, struct task_struct *task)
--LL=cgroup_mutex
--
- 
- Called after the task has been attached to the cgroup, to allow any
- post-attachment activity that requires memory allocations or blocking.
- 
- void fork(struct cgroup_subsy *ss, struct task_struct *task)
--LL=callback_mutex, maybe read_lock(tasklist_lock)
- 
- Called when a task is forked into a cgroup. Also called during
- registration for all existing tasks.
- 
- void exit(struct cgroup_subsys *ss, struct task_struct *task)
--LL=callback_mutex
- 
- Called during task exit
- 
- int populate(struct cgroup_subsys *ss, struct cgroup *cont)
--LL=none
- 
- Called after creation of a cgroup to allow a subsystem to populate
- the cgroup directory with file entries.  The subsystem should make
-@@ -524,7 +524,7 @@ example in cpusets, no task may attach b
- up.
- 
- void bind(struct cgroup_subsys *ss, struct cgroup *root)
--LL=callback_mutex
-+(cgroup_mutex held by caller)
- 
- Called when a cgroup subsystem is rebound to a different hierarchy
- and root cgroup. Currently this will only involve movement between
-diff -puN kernel/cgroup.c~cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput
-+++ a/kernel/cgroup.c
-@@ -591,6 +591,7 @@ static void cgroup_diput(struct dentry *
- 	/* is dentry a directory ? if so, kfree() associated cgroup */
- 	if (S_ISDIR(inode->i_mode)) {
- 		struct cgroup *cgrp = dentry->d_fsdata;
-+		struct cgroup_subsys *ss;
- 		BUG_ON(!(cgroup_is_removed(cgrp)));
- 		/* It's possible for external users to be holding css
- 		 * reference counts on a cgroup; css_put() needs to
-@@ -599,6 +600,23 @@ static void cgroup_diput(struct dentry *
- 		 * queue the cgroup to be handled by the release
- 		 * agent */
- 		synchronize_rcu();
-+
-+		mutex_lock(&cgroup_mutex);
-+		/*
-+		 * Release the subsystem state objects.
-+		 */
-+		for_each_subsys(cgrp->root, ss) {
-+			if (cgrp->subsys[ss->subsys_id])
-+				ss->destroy(ss, cgrp);
-+		}
-+
-+		cgrp->root->number_of_cgroups--;
-+		mutex_unlock(&cgroup_mutex);
-+
-+		/* Drop the active superblock reference that we took when we
-+		 * created the cgroup */
-+		deactivate_super(cgrp->root->sb);
-+
- 		kfree(cgrp);
- 	}
- 	iput(inode);
-@@ -1330,6 +1348,10 @@ static ssize_t cgroup_common_file_write(
- 
- 	mutex_lock(&cgroup_mutex);
- 
+-	/* If either I or some sibling (!= me) is exclusive, we can't overlap */
 +	/*
-+	 * This was already checked for in cgroup_file_write(), but
-+	 * check again now we're holding cgroup_mutex.
++	 * If either I or some sibling (!= me) is exclusive, we can't
++	 * overlap
 +	 */
- 	if (cgroup_is_removed(cgrp)) {
- 		retval = -ENODEV;
- 		goto out2;
-@@ -1370,7 +1392,7 @@ static ssize_t cgroup_file_write(struct 
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
- 
--	if (!cft)
-+	if (!cft || cgroup_is_removed(cgrp))
- 		return -ENODEV;
- 	if (cft->write)
- 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
-@@ -1440,7 +1462,7 @@ static ssize_t cgroup_file_read(struct f
- 	struct cftype *cft = __d_cft(file->f_dentry);
- 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
- 
--	if (!cft)
-+	if (!cft || cgroup_is_removed(cgrp))
- 		return -ENODEV;
- 
- 	if (cft->read)
-@@ -2120,7 +2142,6 @@ static int cgroup_rmdir(struct inode *un
- 	struct cgroup *cgrp = dentry->d_fsdata;
- 	struct dentry *d;
- 	struct cgroup *parent;
--	struct cgroup_subsys *ss;
- 	struct super_block *sb;
- 	struct cgroupfs_root *root;
- 
-@@ -2145,11 +2166,6 @@ static int cgroup_rmdir(struct inode *un
- 		return -EBUSY;
+ 	list_for_each_entry(cont, &par->css.cgroup->children, sibling) {
+ 		c = cgroup_cs(cont);
+ 		if ((is_cpu_exclusive(trial) || is_cpu_exclusive(c)) &&
+@@ -744,7 +705,7 @@ static inline int started_after(void *p1
+  * @tsk: task to test
+  * @scan: struct cgroup_scanner contained in its struct cpuset_hotplug_scanner
+  *
+- * Call with manage_mutex held.  May take callback_mutex during call.
++ * Call with cgroup_mutex held.  May take callback_mutex during call.
+  * Called for each task in a cgroup by cgroup_scan_tasks().
+  * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
+  * words, if its mask is not equal to its cpuset's mask).
+@@ -847,11 +808,11 @@ static int update_cpumask(struct cpuset 
+  *    Temporarilly set tasks mems_allowed to target nodes of migration,
+  *    so that the migration code can allocate pages on these nodes.
+  *
+- *    Call holding manage_mutex, so our current->cpuset won't change
+- *    during this call, as manage_mutex holds off any attach_task()
++ *    Call holding cgroup_mutex, so current's cpuset won't change
++ *    during this call, as cgroup_mutex holds off any attach_task()
+  *    calls.  Therefore we don't need to take task_lock around the
+  *    call to guarantee_online_mems(), as we know no one is changing
+- *    our tasks cpuset.
++ *    our task's cpuset.
+  *
+  *    Hold callback_mutex around the two modifications of our tasks
+  *    mems_allowed to synchronize with cpuset_mems_allowed().
+@@ -896,7 +857,7 @@ static void cpuset_migrate_mm(struct mm_
+  * the cpuset is marked 'memory_migrate', migrate the tasks
+  * pages to the new memory.
+  *
+- * Call with manage_mutex held.  May take callback_mutex during call.
++ * Call with cgroup_mutex held.  May take callback_mutex during call.
+  * Will take tasklist_lock, scan tasklist for tasks in cpuset cs,
+  * lock each such tasks mm->mmap_sem, scan its vma's and rebind
+  * their mempolicies to the cpusets new mems_allowed.
+@@ -1009,7 +970,7 @@ static int update_nodemask(struct cpuset
+ 	 * tasklist_lock.  Forks can happen again now - the mpol_copy()
+ 	 * cpuset_being_rebound check will catch such forks, and rebind
+ 	 * their vma mempolicies too.  Because we still hold the global
+-	 * cpuset manage_mutex, we know that no other rebind effort will
++	 * cgroup_mutex, we know that no other rebind effort will
+ 	 * be contending for the global variable cpuset_being_rebound.
+ 	 * It's ok if we rebind the same mm twice; mpol_rebind_mm()
+ 	 * is idempotent.  Also migrate pages in each mm to new nodes.
+@@ -1024,7 +985,7 @@ static int update_nodemask(struct cpuset
+ 		mmput(mm);
  	}
  
--	for_each_subsys(root, ss) {
--		if (cgrp->subsys[ss->subsys_id])
--			ss->destroy(ss, cgrp);
--	}
--
- 	spin_lock(&release_list_lock);
- 	set_bit(CGRP_REMOVED, &cgrp->flags);
- 	if (!list_empty(&cgrp->release_list))
-@@ -2164,15 +2180,11 @@ static int cgroup_rmdir(struct inode *un
- 
- 	cgroup_d_remove_dir(d);
- 	dput(d);
--	root->number_of_cgroups--;
- 
- 	set_bit(CGRP_RELEASABLE, &parent->flags);
- 	check_for_release(parent);
- 
- 	mutex_unlock(&cgroup_mutex);
--	/* Drop the active superblock reference that we took when we
--	 * created the cgroup */
--	deactivate_super(sb);
- 	return 0;
+-	/* We're done rebinding vma's to this cpusets new mems_allowed. */
++	/* We're done rebinding vmas to this cpuset's new mems_allowed. */
+ 	kfree(mmarray);
+ 	cpuset_being_rebound = NULL;
+ 	retval = 0;
+@@ -1038,7 +999,7 @@ int current_cpuset_is_being_rebound(void
  }
  
+ /*
+- * Call with manage_mutex held.
++ * Call with cgroup_mutex held.
+  */
+ 
+ static int update_memory_pressure_enabled(struct cpuset *cs, char *buf)
+@@ -1059,7 +1020,7 @@ static int update_memory_pressure_enable
+  * cs:	the cpuset to update
+  * buf:	the buffer where we read the 0 or 1
+  *
+- * Call with manage_mutex held.
++ * Call with cgroup_mutex held.
+  */
+ 
+ static int update_flag(cpuset_flagbits_t bit, struct cpuset *cs, char *buf)
+@@ -1193,6 +1154,7 @@ static int fmeter_getrate(struct fmeter 
+ 	return val;
+ }
+ 
++/* Called by cgroups to determine if a cpuset is usable; cgroup_mutex held */
+ static int cpuset_can_attach(struct cgroup_subsys *ss,
+ 			     struct cgroup *cont, struct task_struct *tsk)
+ {
+@@ -1540,7 +1502,8 @@ static int cpuset_populate(struct cgroup
+  * If this becomes a problem for some users who wish to
+  * allow that scenario, then cpuset_post_clone() could be
+  * changed to grant parent->cpus_allowed-sibling_cpus_exclusive
+- * (and likewise for mems) to the new cgroup.
++ * (and likewise for mems) to the new cgroup. Called with cgroup_mutex
++ * held.
+  */
+ static void cpuset_post_clone(struct cgroup_subsys *ss,
+ 			      struct cgroup *cgroup)
+@@ -1564,11 +1527,8 @@ static void cpuset_post_clone(struct cgr
+ 
+ /*
+  *	cpuset_create - create a cpuset
+- *	parent:	cpuset that will be parent of the new cpuset.
+- *	name:		name of the new cpuset. Will be strcpy'ed.
+- *	mode:		mode to set on new inode
+- *
+- *	Must be called with the mutex on the parent inode held
++ *	ss:	cpuset cgroup subsystem
++ *	cont:	control group that the new cpuset will be part of
+  */
+ 
+ static struct cgroup_subsys_state *cpuset_create(
+@@ -1769,7 +1729,7 @@ static void remove_tasks_in_empty_cpuset
+  * member tasks or cpuset descendants and cpus and memory, before it can
+  * be a candidate for release.
+  *
+- * Called with manage_mutex held.  We take callback_mutex to modify
++ * Called with cgroup_mutex held.  We take callback_mutex to modify
+  * cpus_allowed and mems_allowed.
+  *
+  * This walk processes the tree from top to bottom, completing one layer
+@@ -1910,7 +1870,7 @@ cpumask_t cpuset_cpus_allowed(struct tas
+ 
+ /**
+  * cpuset_cpus_allowed_locked - return cpus_allowed mask from a tasks cpuset.
+- * Must be  called with callback_mutex held.
++ * Must be called with callback_mutex held.
+  **/
+ cpumask_t cpuset_cpus_allowed_locked(struct task_struct *tsk)
+ {
+@@ -2247,10 +2207,8 @@ void __cpuset_memory_pressure_bump(void)
+  *  - Used for /proc/<pid>/cpuset.
+  *  - No need to task_lock(tsk) on this tsk->cpuset reference, as it
+  *    doesn't really matter if tsk->cpuset changes after we read it,
+- *    and we take manage_mutex, keeping attach_task() from changing it
+- *    anyway.  No need to check that tsk->cpuset != NULL, thanks to
+- *    the_top_cpuset_hack in cpuset_exit(), which sets an exiting tasks
+- *    cpuset to top_cpuset.
++ *    and we take cgroup_mutex, keeping attach_task() from changing it
++ *    anyway.
+  */
+ static int proc_cpuset_show(struct seq_file *m, void *unused_v)
+ {
 _
 
 Patches currently in -mm which might be from menage@google.com are
