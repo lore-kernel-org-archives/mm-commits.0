@@ -1,102 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace_stop-fix-racy-nonstop_code-setting.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:36 -0800
-Message-ID: <200802082013.m18KDHbA010280@imap1.linux-foundation.org>
+Subject: - aoe-mac_addr-avoid-64-bit-arch-compiler-warnings.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:15:53 -0800
+Message-ID: <200802082015.m18KFYug010629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755543AbYBHUvZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:25 -0500
+	by vger.kernel.org with ESMTP id S1755895AbYBHUv1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:51:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace_stop: fix racy nonstop_code setting
+     aoe: mac_addr: avoid 64-bit arch compiler warnings
 has been removed from the -mm tree.  Its filename was
-     ptrace_stop-fix-racy-nonstop_code-setting.patch
+     aoe-mac_addr-avoid-64-bit-arch-compiler-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_stop: fix racy nonstop_code setting
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: aoe: mac_addr: avoid 64-bit arch compiler warnings
+From: "Ed L. Cashin" <ecashin@coraid.com>
 
-If the tracer is gone and we are not going to stop, ptrace_stop() sets
-->exit_code = nostop_code.  However, the tracer could actually clear the
-exit code before detaching.  In that case get_signal_to_deliver() "resends"
-the signal which was cancelled by the debugger.  For example, it is
-possible that a quick PTRACE_ATTACH + PTRACE_DETACH can leave the tracee in
-STOPPED state.
+By returning unsigned long long, mac_addr does not generate compiler warnings
+on 64-bit architectures.
 
-Change the behaviour of ptrace_stop().  If the caller is ptrace notify(),
-we should always clear ->exit_code.  If the caller is
-get_signal_to_deliver(), we should not touch it at all.  To do so, change
-the nonstop_code parameter to "bool clear_code" and change the callers
-accordingly.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ed L. Cashin <ecashin@coraid.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/block/aoe/aoe.h    |    2 +-
+ drivers/block/aoe/aoeblk.c |    3 +--
+ drivers/block/aoe/aoecmd.c |   10 +++++-----
+ drivers/block/aoe/aoenet.c |    4 ++--
+ 4 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN kernel/signal.c~ptrace_stop-fix-racy-nonstop_code-setting kernel/signal.c
---- a/kernel/signal.c~ptrace_stop-fix-racy-nonstop_code-setting
-+++ a/kernel/signal.c
-@@ -1591,10 +1591,10 @@ static int sigkill_pending(struct task_s
-  * That makes it a way to test a stopped process for
-  * being ptrace-stopped vs being job-control-stopped.
-  *
-- * If we actually decide not to stop at all because the tracer is gone,
-- * we leave nostop_code in current->exit_code.
-+ * If we actually decide not to stop at all because the tracer
-+ * is gone, we keep current->exit_code unless clear_code.
-  */
--static void ptrace_stop(int exit_code, int nostop_code, siginfo_t *info)
-+static void ptrace_stop(int exit_code, int clear_code, siginfo_t *info)
- {
- 	int killed = 0;
+diff -puN drivers/block/aoe/aoe.h~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings
++++ a/drivers/block/aoe/aoe.h
+@@ -198,4 +198,4 @@ void aoenet_xmit(struct sk_buff *);
+ int is_aoe_netif(struct net_device *ifp);
+ int set_aoe_iflist(const char __user *str, size_t size);
  
-@@ -1641,7 +1641,8 @@ static void ptrace_stop(int exit_code, i
- 		 * Don't drop the lock yet, another tracer may come.
- 		 */
- 		__set_current_state(TASK_RUNNING);
--		current->exit_code = nostop_code;
-+		if (clear_code)
-+			current->exit_code = 0;
- 		read_unlock(&tasklist_lock);
+-u64 mac_addr(char addr[6]);
++unsigned long long mac_addr(char addr[6]);
+diff -puN drivers/block/aoe/aoeblk.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings
++++ a/drivers/block/aoe/aoeblk.c
+@@ -37,8 +37,7 @@ static ssize_t aoedisk_show_mac(struct d
+ 
+ 	if (t == NULL)
+ 		return snprintf(page, PAGE_SIZE, "none\n");
+-	return snprintf(page, PAGE_SIZE, "%012llx\n",
+-			(unsigned long long)mac_addr(t->addr));
++	return snprintf(page, PAGE_SIZE, "%012llx\n", mac_addr(t->addr));
+ }
+ static ssize_t aoedisk_show_netif(struct device *dev,
+ 				  struct device_attribute *attr, char *page)
+diff -puN drivers/block/aoe/aoecmd.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings
++++ a/drivers/block/aoe/aoecmd.c
+@@ -309,7 +309,8 @@ resend(struct aoedev *d, struct aoetgt *
+ 		"%15s e%ld.%d oldtag=%08x@%08lx newtag=%08x "
+ 		"s=%012llx d=%012llx nout=%d\n",
+ 		"retransmit", d->aoemajor, d->aoeminor, f->tag, jiffies, n,
+-		mac_addr(h->src), mac_addr(h->dst), t->nout);
++		mac_addr(h->src),
++		mac_addr(h->dst), t->nout);
+ 	aoechr_error(buf);
+ 
+ 	f->tag = n;
+@@ -633,7 +634,7 @@ ataid_complete(struct aoedev *d, struct 
+ 
+ 	if (d->ssize != ssize)
+ 		printk(KERN_INFO "aoe: %012llx e%lu.%lu v%04x has %llu sectors\n",
+-			(unsigned long long)mac_addr(t->addr),
++			mac_addr(t->addr),
+ 			d->aoemajor, d->aoeminor,
+ 			d->fw_ver, (long long)ssize);
+ 	d->ssize = ssize;
+@@ -727,8 +728,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 	t = gettgt(d, hin->src);
+ 	if (t == NULL) {
+ 		printk(KERN_INFO "aoe: can't find target e%ld.%d:%012llx\n",
+-			d->aoemajor, d->aoeminor,
+-			(unsigned long long) mac_addr(hin->src));
++			d->aoemajor, d->aoeminor, mac_addr(hin->src));
+ 		spin_unlock_irqrestore(&d->lock, flags);
+ 		return;
  	}
- 
-@@ -1675,7 +1676,7 @@ void ptrace_notify(int exit_code)
- 
- 	/* Let the debugger run.  */
- 	spin_lock_irq(&current->sighand->siglock);
--	ptrace_stop(exit_code, 0, &info);
-+	ptrace_stop(exit_code, 1, &info);
- 	spin_unlock_irq(&current->sighand->siglock);
+@@ -1003,7 +1003,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
+ 				"aoe: e%ld.%d: setting %d%s%s:%012llx\n",
+ 				d->aoemajor, d->aoeminor, n,
+ 				" byte data frames on ", ifp->nd->name,
+-				(unsigned long long) mac_addr(t->addr));
++				mac_addr(t->addr));
+ 			ifp->maxbcnt = n;
+ 		}
+ 	}
+diff -puN drivers/block/aoe/aoenet.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-mac_addr-avoid-64-bit-arch-compiler-warnings
++++ a/drivers/block/aoe/aoenet.c
+@@ -83,7 +83,7 @@ set_aoe_iflist(const char __user *user_s
+ 	return 0;
  }
  
-@@ -1782,7 +1783,7 @@ relock:
- 			ptrace_signal_deliver(regs, cookie);
+-u64
++unsigned long long
+ mac_addr(char addr[6])
+ {
+ 	__be64 n = 0;
+@@ -91,7 +91,7 @@ mac_addr(char addr[6])
  
- 			/* Let the debugger run.  */
--			ptrace_stop(signr, signr, info);
-+			ptrace_stop(signr, 0, info);
+ 	memcpy(p + 2, addr, 6);	/* (sizeof addr != 6) */
  
- 			/* We're back.  Did the debugger cancel the sig?  */
- 			signr = current->exit_code;
+-	return __be64_to_cpu(n);
++	return (unsigned long long) __be64_to_cpu(n);
+ }
+ 
+ void
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
