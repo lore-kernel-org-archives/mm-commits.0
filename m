@@ -1,153 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - teach-set_special_pids-to-use-struct-pid.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:13:55 -0800
-Message-ID: <200802082013.m18KDad6010304@imap1.linux-foundation.org>
+Subject: - moxa-first-pass-at-termios-reporting.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:12:34 -0800
+Message-ID: <200802082012.m18KCFtJ010186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757844AbYBHVBa (ORCPT
+	by vger.kernel.org with ESMTP id S1756212AbYBHVBa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:01:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     teach set_special_pids() to use struct pid
+     moxa: first pass at termios reporting
 has been removed from the -mm tree.  Its filename was
-     teach-set_special_pids-to-use-struct-pid.patch
+     moxa-first-pass-at-termios-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: teach set_special_pids() to use struct pid
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: moxa: first pass at termios reporting
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Change set_special_pids() to work with struct pid, not pid_t from global name
-space. This again speedups and imho cleanups the code, also a preparation for
-the next patch.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- init/main.c           |    2 +-
- kernel/exit.c         |   30 +++++++++++++++---------------
- kernel/sys.c          |    2 +-
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/char/moxa.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~teach-set_special_pids-to-use-struct-pid include/linux/sched.h
---- a/include/linux/sched.h~teach-set_special_pids-to-use-struct-pid
-+++ a/include/linux/sched.h
-@@ -1632,7 +1632,7 @@ extern struct task_struct *find_task_by_
- extern struct task_struct *find_task_by_pid_ns(pid_t nr,
- 		struct pid_namespace *ns);
+diff -puN drivers/char/moxa.c~moxa-first-pass-at-termios-reporting drivers/char/moxa.c
+--- a/drivers/char/moxa.c~moxa-first-pass-at-termios-reporting
++++ a/drivers/char/moxa.c
+@@ -207,7 +207,7 @@ static int moxa_tiocmget(struct tty_stru
+ static int moxa_tiocmset(struct tty_struct *tty, struct file *file,
+ 			 unsigned int set, unsigned int clear);
+ static void moxa_poll(unsigned long);
+-static void moxa_set_tty_param(struct tty_struct *);
++static void moxa_set_tty_param(struct tty_struct *, struct ktermios *);
+ static int moxa_block_till_ready(struct tty_struct *, struct file *,
+ 			    struct moxa_port *);
+ static void moxa_setup_empty_event(struct tty_struct *);
+@@ -500,7 +500,7 @@ static int moxa_open(struct tty_struct *
+ 	ch->tty = tty;
+ 	if (!(ch->asyncflags & ASYNC_INITIALIZED)) {
+ 		ch->statusflags = 0;
+-		moxa_set_tty_param(tty);
++		moxa_set_tty_param(tty, tty->termios);
+ 		MoxaPortLineCtrl(ch->port, 1, 1);
+ 		MoxaPortEnable(ch->port);
+ 		ch->asyncflags |= ASYNC_INITIALIZED;
+@@ -803,7 +803,7 @@ static void moxa_set_termios(struct tty_
  
--extern void __set_special_pids(pid_t session, pid_t pgrp);
-+extern void __set_special_pids(struct pid *pid);
+ 	if (ch == NULL)
+ 		return;
+-	moxa_set_tty_param(tty);
++	moxa_set_tty_param(tty, old_termios);
+ 	if (!(old_termios->c_cflag & CLOCAL) &&
+ 	    (tty->termios->c_cflag & CLOCAL))
+ 		wake_up_interruptible(&ch->open_wait);
+@@ -903,11 +903,11 @@ static void moxa_poll(unsigned long igno
  
- /* per-UID process charging. */
- extern struct user_struct * alloc_uid(struct user_namespace *, uid_t);
-diff -puN init/main.c~teach-set_special_pids-to-use-struct-pid init/main.c
---- a/init/main.c~teach-set_special_pids-to-use-struct-pid
-+++ a/init/main.c
-@@ -833,7 +833,7 @@ static int __init kernel_init(void * unu
- 	 */
- 	init_pid_ns.child_reaper = current;
+ /******************************************************************************/
  
--	__set_special_pids(1, 1);
-+	__set_special_pids(task_pid(current));
- 	cad_pid = task_pid(current);
- 
- 	smp_prepare_cpus(setup_max_cpus);
-diff -puN kernel/exit.c~teach-set_special_pids-to-use-struct-pid kernel/exit.c
---- a/kernel/exit.c~teach-set_special_pids-to-use-struct-pid
-+++ a/kernel/exit.c
-@@ -293,26 +293,27 @@ static void reparent_to_kthreadd(void)
- 	switch_uid(INIT_USER);
- }
- 
--void __set_special_pids(pid_t session, pid_t pgrp)
-+void __set_special_pids(struct pid *pid)
+-static void moxa_set_tty_param(struct tty_struct *tty)
++static void moxa_set_tty_param(struct tty_struct *tty, struct ktermios *old_termios)
  {
- 	struct task_struct *curr = current->group_leader;
-+	pid_t nr = pid_nr(pid);
+ 	register struct ktermios *ts;
+ 	struct moxa_port *ch;
+-	int rts, cts, txflow, rxflow, xany;
++	int rts, cts, txflow, rxflow, xany, baud;
  
--	if (task_session_nr(curr) != session) {
-+	if (task_session(curr) != pid) {
- 		detach_pid(curr, PIDTYPE_SID);
--		set_task_session(curr, session);
--		attach_pid(curr, PIDTYPE_SID, find_pid(session));
-+		attach_pid(curr, PIDTYPE_SID, pid);
-+		set_task_session(curr, nr);
- 	}
--	if (task_pgrp_nr(curr) != pgrp) {
-+	if (task_pgrp(curr) != pid) {
- 		detach_pid(curr, PIDTYPE_PGID);
--		set_task_pgrp(curr, pgrp);
--		attach_pid(curr, PIDTYPE_PGID, find_pid(pgrp));
-+		attach_pid(curr, PIDTYPE_PGID, pid);
-+		set_task_pgrp(curr, nr);
- 	}
+ 	ch = (struct moxa_port *) tty->driver_data;
+ 	ts = tty->termios;
+@@ -924,8 +924,15 @@ static void moxa_set_tty_param(struct tt
+ 		rxflow = 1;
+ 	if (ts->c_iflag & IXANY)
+ 		xany = 1;
++
++	/* Clear the features we don't support */
++	ts->c_cflag &= ~CMSPAR;
+ 	MoxaPortFlowCtrl(ch->port, rts, cts, txflow, rxflow, xany);
+-	MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
++	baud = MoxaPortSetTermio(ch->port, ts, tty_get_baud_rate(tty));
++	if (baud == -1)
++		baud = tty_termios_baud_rate(old_termios);
++	/* Not put the baud rate into the termios data */
++	tty_encode_baud_rate(tty, baud, baud);
  }
  
--static void set_special_pids(pid_t session, pid_t pgrp)
-+static void set_special_pids(struct pid *pid)
- {
- 	write_lock_irq(&tasklist_lock);
--	__set_special_pids(session, pgrp);
-+	__set_special_pids(pid);
- 	write_unlock_irq(&tasklist_lock);
+ static int moxa_block_till_ready(struct tty_struct *tty, struct file *filp,
+@@ -2065,7 +2072,7 @@ int MoxaPortSetTermio(int port, struct k
+ 		if (baud >= 921600L)
+ 			return (-1);
+ 	}
+-	MoxaPortSetBaud(port, baud);
++	baud = MoxaPortSetBaud(port, baud);
+ 
+ 	if (termio->c_iflag & (IXON | IXOFF | IXANY)) {
+ 		writeb(termio->c_cc[VSTART], ofsAddr + FuncArg);
+@@ -2074,7 +2081,7 @@ int MoxaPortSetTermio(int port, struct k
+ 		moxa_wait_finish(ofsAddr);
+ 
+ 	}
+-	return (0);
++	return (baud);
  }
  
-@@ -383,7 +384,11 @@ void daemonize(const char *name, ...)
- 	 */
- 	current->flags |= PF_NOFREEZE;
- 
--	set_special_pids(1, 1);
-+	if (current->nsproxy != &init_nsproxy) {
-+		get_nsproxy(&init_nsproxy);
-+		switch_task_namespaces(current, &init_nsproxy);
-+	}
-+	set_special_pids(find_pid(1));
- 	proc_clear_tty(current);
- 
- 	/* Block and flush all signals */
-@@ -398,11 +403,6 @@ void daemonize(const char *name, ...)
- 	current->fs = fs;
- 	atomic_inc(&fs->count);
- 
--	if (current->nsproxy != init_task.nsproxy) {
--		get_nsproxy(init_task.nsproxy);
--		switch_task_namespaces(current, init_task.nsproxy);
--	}
--
- 	exit_files(current);
- 	current->files = init_task.files;
- 	atomic_inc(&current->files->count);
-diff -puN kernel/sys.c~teach-set_special_pids-to-use-struct-pid kernel/sys.c
---- a/kernel/sys.c~teach-set_special_pids-to-use-struct-pid
-+++ a/kernel/sys.c
-@@ -1065,7 +1065,7 @@ asmlinkage long sys_setsid(void)
- 		goto out;
- 
- 	group_leader->signal->leader = 1;
--	__set_special_pids(pid_nr(sid), pid_nr(sid));
-+	__set_special_pids(sid);
- 
- 	spin_lock(&group_leader->sighand->siglock);
- 	group_leader->signal->tty = NULL;
+ int MoxaPortGetLineOut(int port, int *dtrState, int *rtsState)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+hci_ldisc-fix-null-pointer-deref.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+git-watchdog.patch
