@@ -1,144 +1,305 @@
 From: akpm@linux-foundation.org
-Subject: - fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:17:59 -0800
-Message-ID: <200802082017.m18KHeVv010846@imap1.linux-foundation.org>
+Subject: - add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:20:38 -0800
+Message-ID: <200802082020.m18KKJVs011155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60934 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750816AbYBHUnh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:37 -0500
+	by vger.kernel.org with ESMTP id S1750959AbYBHUnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 15:43:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: yi.y.yang@intel.com, greg@kroah.com, hugh@veritas.com, rdunlap@xenotime.net, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/hfsplus/unicode.c: fix uninitialized var warning
+     Add new string functions strict_strto* and convert kernel params to use them
 has been removed from the -mm tree.  Its filename was
-     fs-hfsplus-unicodec-fix-uninitialized-var-warning.patch
+     add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/hfsplus/unicode.c: fix uninitialized var warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add new string functions strict_strto* and convert kernel params to use them
+From: Yi Yang <yi.y.yang@intel.com>
 
-fs/hfsplus/unicode.c: In function 'hfsplus_hash_dentry':
-fs/hfsplus/unicode.c:328: warning: 'dsize' may be used uninitialized in this function
+Currently, for every sysfs node, the callers will be responsible for
+implementing store operation, so many many callers are doing duplicate
+things to validate input, they have the same mistakes because they are
+calling simple_strtol/ul/ll/uul, especially for module params, they are
+just numeric, but you can echo such values as 0x1234xxx, 07777888 and
+1234aaa, for these cases, module params store operation just ignores
+succesive invalid char and converts prefix part to a numeric although input
+is acctually invalid.
 
-Cc: Roman Zippel <zippel@linux-m68k.org>
+This patch tries to fix the aforementioned issues and implements
+strict_strtox serial functions, kernel/params.c uses them to strictly
+validate input, so module params will reject such values as 0x1234xxxx and
+returns an error:
+
+write error: Invalid argument
+
+Any modules which export numeric sysfs node can use strict_strtox instead of
+simple_strtox to reject any invalid input.
+
+Here are some test results:
+
+Before applying this patch:
+
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000g > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000gggggggg > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 010000 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0100008 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 010000aaaaa > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]#
+
+After applying this patch:
+
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000g > /sys/module/e1000/parameters/copybreak
+-bash: echo: write error: Invalid argument
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo 0x1000gggggggg > /sys/module/e1000/parameters/copybreak
+-bash: echo: write error: Invalid argument
+[root@yangyi-dev /]# echo 010000 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# echo 0100008 > /sys/module/e1000/parameters/copybreak
+-bash: echo: write error: Invalid argument
+[root@yangyi-dev /]# echo 010000aaaaa > /sys/module/e1000/parameters/copybreak
+-bash: echo: write error: Invalid argument
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]# echo -n 4096 > /sys/module/e1000/parameters/copybreak
+[root@yangyi-dev /]# cat /sys/module/e1000/parameters/copybreak
+4096
+[root@yangyi-dev /]#
+
+[akpm@linux-foundation.org: fix compiler warnings]
+[akpm@linux-foundation.org: fix off-by-one found by tiwai@suse.de]
+Signed-off-by: Yi Yang <yi.y.yang@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/unicode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/kernel.h |    4 +
+ kernel/params.c        |   20 +++---
+ lib/vsprintf.c         |  123 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 137 insertions(+), 10 deletions(-)
 
-diff -puN fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning fs/hfsplus/unicode.c
---- a/fs/hfsplus/unicode.c~fs-hfsplus-unicodec-fix-uninitialized-var-warning
-+++ a/fs/hfsplus/unicode.c
-@@ -325,7 +325,7 @@ int hfsplus_hash_dentry(struct dentry *d
- 	struct super_block *sb = dentry->d_sb;
- 	const char *astr;
- 	const u16 *dstr;
--	int casefold, decompose, size, dsize, len;
-+	int casefold, decompose, size, len;
- 	unsigned long hash;
- 	wchar_t c;
- 	u16 c2;
-@@ -336,6 +336,7 @@ int hfsplus_hash_dentry(struct dentry *d
- 	astr = str->name;
- 	len = str->len;
- 	while (len > 0) {
-+		int uninitialized_var(dsize);
- 		size = asc2unichar(sb, astr, len, &c);
- 		astr += size;
- 		len -= size;
+diff -puN include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them include/linux/kernel.h
+--- a/include/linux/kernel.h~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
++++ a/include/linux/kernel.h
+@@ -141,6 +141,10 @@ extern unsigned long simple_strtoul(cons
+ extern long simple_strtol(const char *,char **,unsigned int);
+ extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+ extern long long simple_strtoll(const char *,char **,unsigned int);
++extern int strict_strtoul(const char *, unsigned int, unsigned long *);
++extern int strict_strtol(const char *, unsigned int, long *);
++extern int strict_strtoull(const char *, unsigned int, unsigned long long *);
++extern int strict_strtoll(const char *, unsigned int, long long *);
+ extern int sprintf(char * buf, const char * fmt, ...)
+ 	__attribute__ ((format (printf, 2, 3)));
+ extern int vsprintf(char *buf, const char *, va_list)
+diff -puN kernel/params.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them kernel/params.c
+--- a/kernel/params.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
++++ a/kernel/params.c
+@@ -180,12 +180,12 @@ int parse_args(const char *name,
+ #define STANDARD_PARAM_DEF(name, type, format, tmptype, strtolfn)      	\
+ 	int param_set_##name(const char *val, struct kernel_param *kp)	\
+ 	{								\
+-		char *endp;						\
+ 		tmptype l;						\
++		int ret;						\
+ 									\
+ 		if (!val) return -EINVAL;				\
+-		l = strtolfn(val, &endp, 0);				\
+-		if (endp == val || ((type)l != l))			\
++		ret = strtolfn(val, 0, &l);				\
++		if (ret == -EINVAL || ((type)l != l))			\
+ 			return -EINVAL;					\
+ 		*((type *)kp->arg) = l;					\
+ 		return 0;						\
+@@ -195,13 +195,13 @@ int parse_args(const char *name,
+ 		return sprintf(buffer, format, *((type *)kp->arg));	\
+ 	}
+ 
+-STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, simple_strtoul);
+-STANDARD_PARAM_DEF(short, short, "%hi", long, simple_strtol);
+-STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, simple_strtoul);
+-STANDARD_PARAM_DEF(int, int, "%i", long, simple_strtol);
+-STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, simple_strtoul);
+-STANDARD_PARAM_DEF(long, long, "%li", long, simple_strtol);
+-STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, simple_strtoul);
++STANDARD_PARAM_DEF(byte, unsigned char, "%c", unsigned long, strict_strtoul);
++STANDARD_PARAM_DEF(short, short, "%hi", long, strict_strtol);
++STANDARD_PARAM_DEF(ushort, unsigned short, "%hu", unsigned long, strict_strtoul);
++STANDARD_PARAM_DEF(int, int, "%i", long, strict_strtol);
++STANDARD_PARAM_DEF(uint, unsigned int, "%u", unsigned long, strict_strtoul);
++STANDARD_PARAM_DEF(long, long, "%li", long, strict_strtol);
++STANDARD_PARAM_DEF(ulong, unsigned long, "%lu", unsigned long, strict_strtoul);
+ 
+ int param_set_charp(const char *val, struct kernel_param *kp)
+ {
+diff -puN lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them lib/vsprintf.c
+--- a/lib/vsprintf.c~add-new-string-functions-strict_strto-and-convert-kernel-params-to-use-them
++++ a/lib/vsprintf.c
+@@ -126,6 +126,129 @@ long long simple_strtoll(const char *cp,
+ 	return simple_strtoull(cp,endp,base);
+ }
+ 
++
++/**
++ * strict_strtoul - convert a string to an unsigned long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoul converts a string to an unsigned long only if the
++ * string is really an unsigned long string, any string containing
++ * any invalid char at the tail will be rejected and -EINVAL is returned,
++ * only a newline char at the tail is acceptible because people generally
++ * change a module parameter in the following way:
++ *
++ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
++ *
++ * echo will append a newline to the tail.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ *
++ * simple_strtoul just ignores the successive invalid characters and
++ * return the converted value of prefix part of the string.
++ */
++int strict_strtoul(const char *cp, unsigned int base, unsigned long *res);
++
++/**
++ * strict_strtol - convert a string to a long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtol is similiar to strict_strtoul, but it allows the first
++ * character of a string is '-'.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ */
++int strict_strtol(const char *cp, unsigned int base, long *res);
++
++/**
++ * strict_strtoull - convert a string to an unsigned long long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoull converts a string to an unsigned long long only if the
++ * string is really an unsigned long long string, any string containing
++ * any invalid char at the tail will be rejected and -EINVAL is returned,
++ * only a newline char at the tail is acceptible because people generally
++ * change a module parameter in the following way:
++ *
++ * 	echo 1024 > /sys/module/e1000/parameters/copybreak
++ *
++ * echo will append a newline to the tail of the string.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ *
++ * simple_strtoull just ignores the successive invalid characters and
++ * return the converted value of prefix part of the string.
++ */
++int strict_strtoull(const char *cp, unsigned int base, unsigned long long *res);
++
++/**
++ * strict_strtoll - convert a string to a long long strictly
++ * @cp: The string to be converted
++ * @base: The number base to use
++ * @res: The converted result value
++ *
++ * strict_strtoll is similiar to strict_strtoull, but it allows the first
++ * character of a string is '-'.
++ *
++ * It returns 0 if conversion is successful and *res is set to the converted
++ * value, otherwise it returns -EINVAL and *res is set to 0.
++ */
++int strict_strtoll(const char *cp, unsigned int base, long long *res);
++
++#define define_strict_strtoux(type, valtype)				\
++int strict_strtou##type(const char *cp, unsigned int base, valtype *res)\
++{									\
++	char *tail;							\
++	valtype val;							\
++	size_t len;							\
++									\
++	*res = 0;							\
++	len = strlen(cp);						\
++	if (len == 0)							\
++		return -EINVAL;						\
++									\
++	val = simple_strtoul(cp, &tail, base);				\
++	if ((*tail == '\0') ||						\
++		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {\
++		*res = val;						\
++		return 0;						\
++	}								\
++									\
++	return -EINVAL;							\
++}									\
++
++#define define_strict_strtox(type, valtype)				\
++int strict_strto##type(const char *cp, unsigned int base, valtype *res)	\
++{									\
++	int ret;							\
++	if (*cp == '-') {						\
++		ret = strict_strtou##type(cp+1, base, res);		\
++		if (ret != 0)						\
++			*res = -(*res);					\
++	} else								\
++		ret = strict_strtou##type(cp, base, res);		\
++									\
++	return ret;							\
++}									\
++
++define_strict_strtoux(l, unsigned long)
++define_strict_strtox(l, long)
++define_strict_strtoux(ll, unsigned long long)
++define_strict_strtox(ll, long long)
++
++EXPORT_SYMBOL(strict_strtoul);
++EXPORT_SYMBOL(strict_strtol);
++EXPORT_SYMBOL(strict_strtoll);
++EXPORT_SYMBOL(strict_strtoull);
++
+ static int skip_atoi(const char **s)
+ {
+ 	int i=0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yi.y.yang@intel.com are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
-memstick-disable-busted-code.patch
-git-mmc.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-x86-validate-against-acpi-motherboard-resources.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-x86-mmconf-enable-mcfg-early.patch
-git-xfs-fix-git-conflicts.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
