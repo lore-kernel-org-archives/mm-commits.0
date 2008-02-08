@@ -1,191 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - udf-replace-loops-coded-with-goto-to-real-loops.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:17:29 -0800
-Message-ID: <200802082017.m18KHARj010794@imap1.linux-foundation.org>
+Subject: - atmel_serial-use-container_of-instead-of-direct-cast.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:18:45 -0800
+Message-ID: <200802082018.m18KIQs0010924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754754AbYBHVCH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:07 -0500
+	by vger.kernel.org with ESMTP id S1753855AbYBHVCU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:02:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, hch@infradead.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: hskinnemoen@atmel.com, linux@maxim.org.za, marc.pignat@hevs.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf: replace loops coded with goto to real loops
+     atmel_serial: use container_of instead of direct cast
 has been removed from the -mm tree.  Its filename was
-     udf-replace-loops-coded-with-goto-to-real-loops.patch
+     atmel_serial-use-container_of-instead-of-direct-cast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: udf: replace loops coded with goto to real loops
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: atmel_serial: use container_of instead of direct cast
+From: Haavard Skinnemoen <hskinnemoen@atmel.com>
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
+As pointed out by David Brownell, we really ought to be using container_of
+when converting from "struct uart_port *" to "struct atmel_uart_port *".
+
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
+Tested-by: Marc Pignat <marc.pignat@hevs.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/balloc.c |  118 +++++++++++++++++++++++-----------------------
- 1 file changed, 59 insertions(+), 59 deletions(-)
+ drivers/serial/atmel_serial.c |   40 ++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 17 deletions(-)
 
-diff -puN fs/udf/balloc.c~udf-replace-loops-coded-with-goto-to-real-loops fs/udf/balloc.c
---- a/fs/udf/balloc.c~udf-replace-loops-coded-with-goto-to-real-loops
-+++ a/fs/udf/balloc.c
-@@ -183,46 +183,46 @@ static void udf_bitmap_free_blocks(struc
- 	block = bloc.logicalBlockNum + offset +
- 		(sizeof(struct spaceBitmapDesc) << 3);
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-use-container_of-instead-of-direct-cast drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-use-container_of-instead-of-direct-cast
++++ a/drivers/serial/atmel_serial.c
+@@ -153,17 +153,23 @@ static struct atmel_uart_port atmel_port
+ static struct console atmel_console;
+ #endif
  
--do_more:
--	overflow = 0;
--	block_group = block >> (sb->s_blocksize_bits + 3);
--	bit = block % (sb->s_blocksize << 3);
-+	do {
-+		overflow = 0;
-+		block_group = block >> (sb->s_blocksize_bits + 3);
-+		bit = block % (sb->s_blocksize << 3);
- 
--	/*
--	 * Check to see if we are freeing blocks across a group boundary.
--	 */
--	if (bit + count > (sb->s_blocksize << 3)) {
--		overflow = bit + count - (sb->s_blocksize << 3);
--		count -= overflow;
--	}
--	bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
--	if (bitmap_nr < 0)
--		goto error_return;
-+		/*
-+		* Check to see if we are freeing blocks across a group boundary.
-+		*/
-+		if (bit + count > (sb->s_blocksize << 3)) {
-+			overflow = bit + count - (sb->s_blocksize << 3);
-+			count -= overflow;
-+		}
-+		bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
-+		if (bitmap_nr < 0)
-+			goto error_return;
- 
--	bh = bitmap->s_block_bitmap[bitmap_nr];
--	for (i = 0; i < count; i++) {
--		if (udf_set_bit(bit + i, bh->b_data)) {
--			udf_debug("bit %ld already set\n", bit + i);
--			udf_debug("byte=%2x\n",
--				  ((char *)bh->b_data)[(bit + i) >> 3]);
--		} else {
--			if (inode)
--				DQUOT_FREE_BLOCK(inode, 1);
--			udf_add_free_space(sbi, sbi->s_partition, 1);
-+		bh = bitmap->s_block_bitmap[bitmap_nr];
-+		for (i = 0; i < count; i++) {
-+			if (udf_set_bit(bit + i, bh->b_data)) {
-+				udf_debug("bit %ld already set\n", bit + i);
-+				udf_debug("byte=%2x\n",
-+					((char *)bh->b_data)[(bit + i) >> 3]);
-+			} else {
-+				if (inode)
-+					DQUOT_FREE_BLOCK(inode, 1);
-+				udf_add_free_space(sbi, sbi->s_partition, 1);
-+			}
- 		}
--	}
--	mark_buffer_dirty(bh);
--	if (overflow) {
--		block += count;
--		count = overflow;
--		goto do_more;
--	}
-+		mark_buffer_dirty(bh);
-+		if (overflow) {
-+			block += count;
-+			count = overflow;
-+		}
-+	} while (overflow);
++static inline struct atmel_uart_port *
++to_atmel_uart_port(struct uart_port *uart)
++{
++	return container_of(uart, struct atmel_uart_port, uart);
++}
 +
- error_return:
- 	sb->s_dirt = 1;
- 	if (sbi->s_lvid_bh)
- 		mark_buffer_dirty(sbi->s_lvid_bh);
- 	mutex_unlock(&sbi->s_alloc_mutex);
--	return;
+ #ifdef CONFIG_SERIAL_ATMEL_PDC
+ static bool atmel_use_dma_rx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	return atmel_port->use_dma_rx;
  }
  
- static int udf_bitmap_prealloc_blocks(struct super_block *sb,
-@@ -246,37 +246,37 @@ static int udf_bitmap_prealloc_blocks(st
- 	if (first_block + block_count > part_len)
- 		block_count = part_len - first_block;
+ static bool atmel_use_dma_tx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
  
--repeat:
--	nr_groups = udf_compute_nr_groups(sb, partition);
--	block = first_block + (sizeof(struct spaceBitmapDesc) << 3);
--	block_group = block >> (sb->s_blocksize_bits + 3);
--	group_start = block_group ? 0 : sizeof(struct spaceBitmapDesc);
-+	do {
-+		nr_groups = udf_compute_nr_groups(sb, partition);
-+		block = first_block + (sizeof(struct spaceBitmapDesc) << 3);
-+		block_group = block >> (sb->s_blocksize_bits + 3);
-+		group_start = block_group ? 0 : sizeof(struct spaceBitmapDesc);
+ 	return atmel_port->use_dma_tx;
+ }
+@@ -326,7 +332,7 @@ static void
+ atmel_buffer_rx_char(struct uart_port *port, unsigned int status,
+ 		     unsigned int ch)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	struct circ_buf *ring = &atmel_port->rx_ring;
+ 	struct atmel_uart_char *c;
  
--	bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
--	if (bitmap_nr < 0)
--		goto out;
--	bh = bitmap->s_block_bitmap[bitmap_nr];
-+		bitmap_nr = load_block_bitmap(sb, bitmap, block_group);
-+		if (bitmap_nr < 0)
-+			goto out;
-+		bh = bitmap->s_block_bitmap[bitmap_nr];
+@@ -370,7 +376,7 @@ static void atmel_pdc_rxerr(struct uart_
+  */
+ static void atmel_rx_chars(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	unsigned int status, ch;
  
--	bit = block % (sb->s_blocksize << 3);
-+		bit = block % (sb->s_blocksize << 3);
+ 	status = UART_GET_CSR(port);
+@@ -450,7 +456,7 @@ static void atmel_tx_chars(struct uart_p
+ static void
+ atmel_handle_receive(struct uart_port *port, unsigned int pending)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
  
--	while (bit < (sb->s_blocksize << 3) && block_count > 0) {
--		if (!udf_test_bit(bit, bh->b_data)) {
--			goto out;
--		} else if (DQUOT_PREALLOC_BLOCK(inode, 1)) {
--			goto out;
--		} else if (!udf_clear_bit(bit, bh->b_data)) {
--			udf_debug("bit already cleared for block %d\n", bit);
--			DQUOT_FREE_BLOCK(inode, 1);
--			goto out;
-+		while (bit < (sb->s_blocksize << 3) && block_count > 0) {
-+			if (!udf_test_bit(bit, bh->b_data))
-+				goto out;
-+			else if (DQUOT_PREALLOC_BLOCK(inode, 1))
-+				goto out;
-+			else if (!udf_clear_bit(bit, bh->b_data)) {
-+				udf_debug("bit already cleared for block %d\n", bit);
-+				DQUOT_FREE_BLOCK(inode, 1);
-+				goto out;
-+			}
-+			block_count--;
-+			alloc_count++;
-+			bit++;
-+			block++;
- 		}
--		block_count--;
--		alloc_count++;
--		bit++;
--		block++;
--	}
--	mark_buffer_dirty(bh);
--	if (block_count > 0)
--		goto repeat;
-+		mark_buffer_dirty(bh);
-+	} while (block_count > 0);
-+
- out:
- 	if (udf_add_free_space(sbi, partition, -alloc_count))
- 		mark_buffer_dirty(sbi->s_lvid_bh);
+ 	if (atmel_use_dma_rx(port)) {
+ 		/*
+@@ -491,7 +497,7 @@ atmel_handle_receive(struct uart_port *p
+ static void
+ atmel_handle_transmit(struct uart_port *port, unsigned int pending)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	if (atmel_use_dma_tx(port)) {
+ 		/* PDC transmit */
+@@ -515,7 +521,7 @@ static void
+ atmel_handle_status(struct uart_port *port, unsigned int pending,
+ 		    unsigned int status)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	if (pending & (ATMEL_US_RIIC | ATMEL_US_DSRIC | ATMEL_US_DCDIC
+ 				| ATMEL_US_CTSIC)) {
+@@ -551,7 +557,7 @@ static irqreturn_t atmel_interrupt(int i
+  */
+ static void atmel_tx_dma(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	struct circ_buf *xmit = &port->info->xmit;
+ 	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
+ 	int count;
+@@ -593,7 +599,7 @@ static void atmel_tx_dma(struct uart_por
+ 
+ static void atmel_rx_from_ring(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	struct circ_buf *ring = &atmel_port->rx_ring;
+ 	unsigned int flg;
+ 	unsigned int status;
+@@ -661,7 +667,7 @@ static void atmel_rx_from_ring(struct ua
+ 
+ static void atmel_rx_from_dma(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	struct tty_struct *tty = port->info->tty;
+ 	struct atmel_dma_buffer *pdc;
+ 	int rx_idx = atmel_port->pdc_rx_idx;
+@@ -741,7 +747,7 @@ static void atmel_rx_from_dma(struct uar
+ static void atmel_tasklet_func(unsigned long data)
+ {
+ 	struct uart_port *port = (struct uart_port *)data;
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	unsigned int status;
+ 	unsigned int status_change;
+ 
+@@ -786,7 +792,7 @@ static void atmel_tasklet_func(unsigned 
+  */
+ static int atmel_startup(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	int retval;
+ 
+ 	/*
+@@ -896,7 +902,7 @@ static int atmel_startup(struct uart_por
+  */
+ static void atmel_shutdown(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	/*
+ 	 * Ensure everything is stopped.
+ 	 */
+@@ -953,7 +959,7 @@ static void atmel_shutdown(struct uart_p
+ static void atmel_serial_pm(struct uart_port *port, unsigned int state,
+ 			    unsigned int oldstate)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	switch (state) {
+ 	case 0:
+@@ -1425,7 +1431,7 @@ static int atmel_serial_suspend(struct p
+ 				pm_message_t state)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	if (device_may_wakeup(&pdev->dev)
+ 	    && !at91_suspend_entering_slow_clock())
+@@ -1441,7 +1447,7 @@ static int atmel_serial_suspend(struct p
+ static int atmel_serial_resume(struct platform_device *pdev)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 
+ 	if (atmel_port->suspended) {
+ 		uart_resume_port(&atmel_uart, port);
+@@ -1501,7 +1507,7 @@ err_alloc_ring:
+ static int __devexit atmel_serial_remove(struct platform_device *pdev)
+ {
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *)port;
++	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
+ 	int ret = 0;
+ 
+ 	device_init_wakeup(&pdev->dev, 0);
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from hskinnemoen@atmel.com are
 
 origin.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+git-avr32.patch
