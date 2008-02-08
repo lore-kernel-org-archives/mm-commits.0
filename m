@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch added to -mm tree
-Date: Fri, 08 Feb 2008 14:43:39 -0800
-Message-ID: <200802082243.m18Mhdqh017577@imap1.linux-foundation.org>
+Subject: + sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch added to -mm tree
+Date: Fri, 08 Feb 2008 15:02:16 -0800
+Message-ID: <200802082302.m18N2Gss018381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763029AbYBHWob (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 17:44:31 -0500
+	by vger.kernel.org with ESMTP id S1751136AbYBHXCY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 18:02:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ink@jurassic.park.msu.ru, anton@samba.org, bunk@stusta.de, kamalesh@linux.vnet.ibm.com, paulus@samba.org, rth@twiddle.net, rusty@rustcorp.com.au, tony.luck@intel.com
+Cc: hs4233@mail.mn-solutions.de, ebiederm@xmission.com
 
 
 The patch titled
-     moduleparam: fix alpha, ia64 and ppc64 compile failures
+     sysctl: allow embedded targets to disable sysctl_check.c
 has been added to the -mm tree.  Its filename is
-     moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch
+     sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: moduleparam: fix alpha, ia64 and ppc64 compile failures
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: sysctl: allow embedded targets to disable sysctl_check.c
+From: Holger Schurig <hs4233@mail.mn-solutions.de>
 
-On alpha, ia64 and ppc64 only relocations to local data can go into
-read-only sections. The vast majority of module parameters use the global
-generic param_set_*/param_get_* functions, so the 'const' attribute for
-struct kernel_param is not only useless, but it also causes compile
-failures due to 'section type conflict' in those rare cases where
-param_set/get are local functions.
+Disable sysctl_check.c for embedded targets. This saves about about 11 kB
+in .text and another 11 kB in .data on a PXA255 embedded platform.
 
-This fixes http://bugzilla.kernel.org/show_bug.cgi?id=8964
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Holger Schurig <hs4233@mail.mn-solutions.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/moduleparam.h |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ init/Kconfig    |   11 +++++++++++
+ kernel/Makefile |    2 +-
+ kernel/sysctl.c |   10 ++++++++--
+ 3 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/moduleparam.h~moduleparam-fix-alpha-ia64-and-ppc64-compile-failures include/linux/moduleparam.h
---- a/include/linux/moduleparam.h~moduleparam-fix-alpha-ia64-and-ppc64-compile-failures
-+++ a/include/linux/moduleparam.h
-@@ -62,6 +62,16 @@ struct kparam_array
- 	void *elem;
- };
+diff -puN init/Kconfig~sysctl-allow-embedded-targets-to-disable-sysctl_checkc init/Kconfig
+--- a/init/Kconfig~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
++++ a/init/Kconfig
+@@ -511,6 +511,17 @@ config SYSCTL_SYSCALL
  
-+/* On alpha, ia64 and ppc64 relocations to global data cannot go into
-+   read-only sections (which is part of respective UNIX ABI on these
-+   platforms). So 'const' makes no sense and even causes compile failures
-+   with some compilers. */
-+#if defined(CONFIG_ALPHA) || defined(CONFIG_IA64) || defined(CONFIG_PPC64)
-+#define __moduleparam_const
-+#else
-+#define __moduleparam_const const
-+#endif
+ 	  If unsure say Y here.
+ 
++config SYSCTL_SYSCALL_CHECK
++	bool "Sysctl checks" if EMBEDDED
++	depends on SYSCTL_SYSCALL
++	default y
++	---help---
++	  sys_sysctl uses binary paths that have been found challenging
++	  to properly maintain and use. This enables checks that help
++	  you to keep things correct.
 +
- /* This is the fundamental function for registering boot/module
-    parameters.  perm sets the visibility in sysfs: 000 means it's
-    not there, read bits mean it's readable, write bits mean it's
-@@ -71,7 +81,7 @@ struct kparam_array
- 	static int __param_perm_check_##name __attribute__((unused)) =	\
- 	BUILD_BUG_ON_ZERO((perm) < 0 || (perm) > 0777 || ((perm) & 2));	\
- 	static const char __param_str_##name[] = prefix #name;		\
--	static struct kernel_param const __param_##name			\
-+	static struct kernel_param __moduleparam_const __param_##name	\
- 	__used								\
-     __attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
- 	= { __param_str_##name, perm, set, get, { arg } }
++	  If unsure say Y here.
++
+ config KALLSYMS
+ 	 bool "Load all symbols for debugging/ksymoops" if EMBEDDED
+ 	 default y
+diff -puN kernel/Makefile~sysctl-allow-embedded-targets-to-disable-sysctl_checkc kernel/Makefile
+--- a/kernel/Makefile~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
++++ a/kernel/Makefile
+@@ -11,7 +11,7 @@ obj-y     = sched.o fork.o exec_domain.o
+ 	    hrtimer.o rwsem.o nsproxy.o srcu.o \
+ 	    notifier.o ksysfs.o pm_qos_params.o
+ 
+-obj-$(CONFIG_SYSCTL) += sysctl_check.o
++obj-$(CONFIG_SYSCTL_SYSCALL_CHECK) += sysctl_check.o
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+ obj-y += time/
+ obj-$(CONFIG_DEBUG_MUTEXES) += mutex-debug.o
+diff -puN kernel/sysctl.c~sysctl-allow-embedded-targets-to-disable-sysctl_checkc kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-allow-embedded-targets-to-disable-sysctl_checkc
++++ a/kernel/sysctl.c
+@@ -1612,9 +1612,13 @@ static void sysctl_set_parent(struct ctl
+ 
+ static __init int sysctl_init(void)
+ {
+-	int err;
+ 	sysctl_set_parent(NULL, root_table);
+-	err = sysctl_check_table(current->nsproxy, root_table);
++#ifdef CONFIG_SYSCTL_SYSCALL_CHECK
++	{
++		int err;
++		err = sysctl_check_table(current->nsproxy, root_table);
++	}
++#endif
+ 	return 0;
+ }
+ 
+@@ -1741,10 +1745,12 @@ struct ctl_table_header *__register_sysc
+ 	header->unregistering = NULL;
+ 	header->root = root;
+ 	sysctl_set_parent(NULL, header->ctl_table);
++#ifdef CONFIG_SYSCTL_SYSCALL_CHECK
+ 	if (sysctl_check_table(namespaces, header->ctl_table)) {
+ 		kfree(header);
+ 		return NULL;
+ 	}
++#endif
+ 	spin_lock(&sysctl_lock);
+ 	header_list = lookup_header_list(root, namespaces);
+ 	list_add_tail(&header->ctl_entry, header_list);
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from hs4233@mail.mn-solutions.de are
 
 origin.patch
-moduleparam-fix-alpha-ia64-and-ppc64-compile-failures.patch
-make-sure-nobodys-leaking-resources.patch
+sysctl-allow-embedded-targets-to-disable-sysctl_checkc.patch
