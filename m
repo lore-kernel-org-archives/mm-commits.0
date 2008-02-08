@@ -1,120 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: - arch-powerpc-sysdev-add-missing-of_node_put.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 00:10:39 -0800
-Message-ID: <200802080810.m188AKil014930@imap1.linux-foundation.org>
+Subject: - char-mxser-ioctl-cleanup.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 00:10:03 -0800
+Message-ID: <200802080809.m1889irc014878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761837AbYBHITr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:47 -0500
+	by vger.kernel.org with ESMTP id S932289AbYBHIT7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 03:19:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/powerpc/sysdev: Add missing of_node_put
+     Char: mxser, ioctl cleanup
 has been removed from the -mm tree.  Its filename was
-     arch-powerpc-sysdev-add-missing-of_node_put.patch
+     char-mxser-ioctl-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/sysdev: Add missing of_node_put
-From: Julia Lawall <julia@diku.dk>
+Subject: Char: mxser, ioctl cleanup
+From: Jiri Slaby <jirislaby@gmail.com>
 
+- remove dead MOXA_GET_CONF (always returned -ENXIO)
+- remove useless MOXA_GET_CUMAJOR (unused)
+- use get/put_user instead of copy_from/to_user for simple types
+- cleanup TIOCMIWAIT -- return -ERESTARTSYS on signal, move condition into
+  separate function
 
-The functions of_find_compatible_node and of_find_node_by_type both call
-of_node_get on their result.  So any error handling code thereafter should
-call of_node_put(np).  This is taken care of in the case where there is a goto
-out, but not when there is a direct return.
-
-The function irq_alloc_host puts np into the returned structure, which is
-stored in the global variable mpc8xx_pic_host, so the reference count
-should be set for the lifetime of that variable.  The current solution ups
-the reference count again in the argument to irq_alloc_host so that it can
-be decremented on the way out.  This seems a bit unnecessary, and also
-doesn't work in the case where irq_alloc_host fails, because then the
-reference count only goes does by one, whereas it should go down by two.  A
-better solution is to not increment the reference count in the argument to
-irq_alloc_host and only decrement it on the way out in an error case.
-
-The problem was found using the following semantic match.
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-type T,T1,T2;
-identifier E;
-statement S;
-expression x1,x2,x3;
-int ret;
-@@
-
-  T E;
-  ...
-* E = \(of_get_parent\|of_find_compatible_node\)(...);
-  if (E == NULL) S
-  ... when != of_node_put(...,(T1)E,...)
-      when != if (E != NULL) { ... of_node_put(...,(T1)E,...); ...}
-      when != x1 = (T1)E
-      when != E = x3;
-      when any
-  if (...) {
-    ... when != of_node_put(...,(T2)E,...)
-        when != if (E != NULL) { ... of_node_put(...,(T2)E,...); ...}
-        when != x2 = (T2)E
-(
-*   return;
-|
-*   return ret;
-)
-  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Reviewed-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/mpc8xx_pic.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/char/mxser_new.c |   74 +++++++++++++++----------------------
+ drivers/char/mxser_new.h |    2 -
+ 2 files changed, 31 insertions(+), 45 deletions(-)
 
-diff -puN arch/powerpc/sysdev/mpc8xx_pic.c~arch-powerpc-sysdev-add-missing-of_node_put arch/powerpc/sysdev/mpc8xx_pic.c
---- a/arch/powerpc/sysdev/mpc8xx_pic.c~arch-powerpc-sysdev-add-missing-of_node_put
-+++ a/arch/powerpc/sysdev/mpc8xx_pic.c
-@@ -174,15 +174,19 @@ int mpc8xx_pic_init(void)
- 		goto out;
+diff -puN drivers/char/mxser_new.c~char-mxser-ioctl-cleanup drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser-ioctl-cleanup
++++ a/drivers/char/mxser_new.c
+@@ -175,7 +175,6 @@ MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
  
- 	siu_reg = ioremap(res.start, res.end - res.start + 1);
--	if (siu_reg == NULL)
--		return -EINVAL;
-+	if (siu_reg == NULL) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
+ static int ioaddr[MXSER_BOARDS] = { 0, 0, 0, 0 };
+ static int ttymajor = MXSERMAJOR;
+-static int calloutmajor = MXSERCUMAJOR;
  
--	mpc8xx_pic_host = irq_alloc_host(of_node_get(np), IRQ_HOST_MAP_LINEAR,
-+	mpc8xx_pic_host = irq_alloc_host(np, IRQ_HOST_MAP_LINEAR,
- 					 64, &mpc8xx_pic_host_ops, 64);
- 	if (mpc8xx_pic_host == NULL) {
- 		printk(KERN_ERR "MPC8xx PIC: failed to allocate irq host!\n");
- 		ret = -ENOMEM;
-+		goto out;
+ /* Variables for insmod */
+ 
+@@ -1454,21 +1453,8 @@ static int mxser_ioctl_special(unsigned 
+ 	unsigned int i, j;
+ 
+ 	switch (cmd) {
+-	case MOXA_GET_CONF:
+-/*		if (copy_to_user(argp, mxsercfg,
+-				sizeof(struct mxser_hwconf) * 4))
+-			return -EFAULT;
+-		return 0;*/
+-		return -ENXIO;
+ 	case MOXA_GET_MAJOR:
+-		if (copy_to_user(argp, &ttymajor, sizeof(int)))
+-			return -EFAULT;
+-		return 0;
+-
+-	case MOXA_GET_CUMAJOR:
+-		if (copy_to_user(argp, &calloutmajor, sizeof(int)))
+-			return -EFAULT;
+-		return 0;
++		return put_user(ttymajor, (int __user *)argp);
+ 
+ 	case MOXA_CHKPORTENABLE:
+ 		result = 0;
+@@ -1606,13 +1592,33 @@ static int mxser_ioctl_special(unsigned 
+ 	return 0;
+ }
+ 
++static int mxser_cflags_changed(struct mxser_port *info, unsigned long arg,
++		struct async_icount *cprev)
++{
++	struct async_icount cnow;
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&info->slock, flags);
++	cnow = info->icount;	/* atomic copy */
++	spin_unlock_irqrestore(&info->slock, flags);
++
++	ret =	((arg & TIOCM_RNG) && (cnow.rng != cprev->rng)) ||
++		((arg & TIOCM_DSR) && (cnow.dsr != cprev->dsr)) ||
++		((arg & TIOCM_CD)  && (cnow.dcd != cprev->dcd)) ||
++		((arg & TIOCM_CTS) && (cnow.cts != cprev->cts));
++
++	*cprev = cnow;
++
++	return ret;
++}
++
+ static int mxser_ioctl(struct tty_struct *tty, struct file *file,
+ 		unsigned int cmd, unsigned long arg)
+ {
+ 	struct mxser_port *info = tty->driver_data;
+-	struct async_icount cprev, cnow;	/* kernel counter temps */
++	struct async_icount cnow;
+ 	struct serial_icounter_struct __user *p_cuser;
+-	unsigned long templ;
+ 	unsigned long flags;
+ 	void __user *argp = (void __user *)arg;
+ 	int retval;
+@@ -1646,7 +1652,7 @@ static int mxser_ioctl(struct tty_struct
+ 			shiftbit = p * 2;
+ 			opmode = inb(info->opmode_ioaddr) >> shiftbit;
+ 			opmode &= OP_MODE_MASK;
+-			if (copy_to_user(argp, &opmode, sizeof(int)))
++			if (put_user(opmode, (int __user *)argp))
+ 				return -EFAULT;
+ 		}
+ 		return 0;
+@@ -1673,11 +1679,10 @@ static int mxser_ioctl(struct tty_struct
+ 		mxser_send_break(info, arg ? arg * (HZ / 10) : HZ / 4);
+ 		return 0;
+ 	case TIOCGSOFTCAR:
+-		return put_user(C_CLOCAL(tty) ? 1 : 0, (unsigned long __user *)argp);
++		return put_user(!!C_CLOCAL(tty), (unsigned long __user *)argp);
+ 	case TIOCSSOFTCAR:
+-		if (get_user(templ, (unsigned long __user *) argp))
++		if (get_user(arg, (unsigned long __user *)argp))
+ 			return -EFAULT;
+-		arg = templ;
+ 		tty->termios->c_cflag = ((tty->termios->c_cflag & ~CLOCAL) | (arg ? CLOCAL : 0));
+ 		return 0;
+ 	case TIOCGSERIAL:
+@@ -1697,18 +1702,8 @@ static int mxser_ioctl(struct tty_struct
+ 		cnow = info->icount;	/* note the counters on entry */
+ 		spin_unlock_irqrestore(&info->slock, flags);
+ 
+-		wait_event_interruptible(info->delta_msr_wait, ({
+-			cprev = cnow;
+-			spin_lock_irqsave(&info->slock, flags);
+-			cnow = info->icount;	/* atomic copy */
+-			spin_unlock_irqrestore(&info->slock, flags);
+-
+-			((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
+-			((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
+-			((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
+-			((arg & TIOCM_CTS) && (cnow.cts != cprev.cts));
+-		}));
+-		break;
++		return wait_event_interruptible(info->delta_msr_wait,
++				mxser_cflags_changed(info, arg, &cnow));
+ 	/*
+ 	 * Get counter of input serial line interrupts (DCD,RI,DSR,CTS)
+ 	 * Return: write counters to the user passed counter struct
+@@ -1755,10 +1750,7 @@ static int mxser_ioctl(struct tty_struct
+ 
+ 		len += (lsr ? 0 : 1);
+ 
+-		if (copy_to_user(argp, &len, sizeof(int)))
+-			return -EFAULT;
+-
+-		return 0;
++		return put_user(len, (int __user *)argp);
  	}
-+	return 0;
+ 	case MOXA_ASPP_MON: {
+ 		int mcr, status;
+@@ -1789,8 +1781,7 @@ static int mxser_ioctl(struct tty_struct
+ 		return 0;
+ 	}
+ 	case MOXA_ASPP_LSTATUS: {
+-		if (copy_to_user(argp, &info->err_shadow,
+-				sizeof(unsigned char)))
++		if (put_user(info->err_shadow, (unsigned char __user *)argp))
+ 			return -EFAULT;
  
- out:
- 	of_node_put(np);
+ 		info->err_shadow = 0;
+@@ -1802,10 +1793,7 @@ static int mxser_ioctl(struct tty_struct
+ 		if (get_user(method, (int __user *)argp))
+ 			return -EFAULT;
+ 		mxser_set_baud_method[tty->index] = method;
+-		if (copy_to_user(argp, &method, sizeof(int)))
+-			return -EFAULT;
+-
+-		return 0;
++		return put_user(method, (int __user *)argp);
+ 	}
+ 	default:
+ 		return -ENOIOCTLCMD;
+diff -puN drivers/char/mxser_new.h~char-mxser-ioctl-cleanup drivers/char/mxser_new.h
+--- a/drivers/char/mxser_new.h~char-mxser-ioctl-cleanup
++++ a/drivers/char/mxser_new.h
+@@ -11,12 +11,10 @@
+ 
+ #define MOXA			0x400
+ #define MOXA_GETDATACOUNT	(MOXA + 23)
+-#define	MOXA_GET_CONF		(MOXA + 35)
+ #define MOXA_DIAGNOSE		(MOXA + 50)
+ #define MOXA_CHKPORTENABLE	(MOXA + 60)
+ #define MOXA_HighSpeedOn	(MOXA + 61)
+ #define MOXA_GET_MAJOR		(MOXA + 63)
+-#define MOXA_GET_CUMAJOR	(MOXA + 64)
+ #define MOXA_GETMSTATUS		(MOXA + 65)
+ #define MOXA_SET_OP_MODE	(MOXA + 66)
+ #define MOXA_GET_OP_MODE	(MOXA + 67)
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-watchdog.patch
+moxa-first-pass-at-termios-reporting.patch
+char-applicom-use-pci_resource_start.patch
+char-applicom-use-pci_match_id.patch
+char-applicom-use-pci_match_id-fix.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
