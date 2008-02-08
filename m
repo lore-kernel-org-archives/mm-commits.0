@@ -1,96 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-add-locking-for-overcommit-sysctl.patch removed from -mm tree
-Date: Fri, 08 Feb 2008 12:11:23 -0800
-Message-ID: <200802082011.m18KB4gW010093@imap1.linux-foundation.org>
+Subject: - time-fix-typo-in-comments.patch removed from -mm tree
+Date: Fri, 08 Feb 2008 12:14:50 -0800
+Message-ID: <200802082014.m18KEV1p010456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758189AbYBHVD1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:27 -0500
+	by vger.kernel.org with ESMTP id S1758584AbYBHVDd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 16:03:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, stable@kernel.org, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: add locking for overcommit sysctl
+     time: fix typo in comments
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-locking-for-overcommit-sysctl.patch
+     time-fix-typo-in-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: add locking for overcommit sysctl
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: time: fix typo in comments
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-When I replaced hugetlb_dynamic_pool with nr_overcommit_hugepages I used
-proc_doulongvec_minmax() directly.  However, hugetlb.c's locking rules
-require that all counter modifications occur under the hugetlb_lock.  Add a
-callback into the hugetlb code similar to the one for nr_hugepages.  Grab
-the lock around the manipulation of nr_overcommit_hugepages in
-proc_doulongvec_minmax().
+Fix typo in comments.
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: <stable@kernel.org>
+BTW: I have to fix coding style in arch/ia64/kernel/time.c also, otherwise
+checkpatch.pl will be complaining.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- kernel/sysctl.c         |    2 +-
- mm/hugetlb.c            |   10 ++++++++++
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ arch/ia64/kernel/time.c   |   14 +++++++-------
+ arch/x86/kernel/time_64.c |    2 +-
+ include/linux/hrtimer.h   |    2 +-
+ include/linux/jiffies.h   |    6 +++---
+ kernel/time.c             |    4 ++--
+ kernel/time/clockevents.c |    2 +-
+ kernel/time/timekeeping.c |    2 +-
+ 7 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-add-locking-for-overcommit-sysctl include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-add-locking-for-overcommit-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -17,6 +17,7 @@ static inline int is_vm_hugetlb_page(str
- }
- 
- int hugetlb_sysctl_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
-+int hugetlb_overcommit_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
- int hugetlb_treat_movable_handler(struct ctl_table *, int, struct file *, void __user *, size_t *, loff_t *);
- int copy_hugetlb_page_range(struct mm_struct *, struct mm_struct *, struct vm_area_struct *);
- int follow_hugetlb_page(struct mm_struct *, struct vm_area_struct *, struct page **, struct vm_area_struct **, unsigned long *, int *, int, int);
-diff -puN kernel/sysctl.c~hugetlb-add-locking-for-overcommit-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~hugetlb-add-locking-for-overcommit-sysctl
-+++ a/kernel/sysctl.c
-@@ -982,7 +982,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &nr_overcommit_huge_pages,
- 		.maxlen		= sizeof(nr_overcommit_huge_pages),
- 		.mode		= 0644,
--		.proc_handler	= &proc_doulongvec_minmax,
-+		.proc_handler	= &hugetlb_overcommit_handler,
- 	},
+diff -puN arch/ia64/kernel/time.c~time-fix-typo-in-comments arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~time-fix-typo-in-comments
++++ a/arch/ia64/kernel/time.c
+@@ -49,13 +49,13 @@ EXPORT_SYMBOL(last_cli_ip);
  #endif
- 	{
-diff -puN mm/hugetlb.c~hugetlb-add-locking-for-overcommit-sysctl mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-locking-for-overcommit-sysctl
-+++ a/mm/hugetlb.c
-@@ -605,6 +605,16 @@ int hugetlb_treat_movable_handler(struct
- 	return 0;
+ 
+ static struct clocksource clocksource_itc = {
+-        .name           = "itc",
+-        .rating         = 350,
+-        .read           = itc_get_cycles,
+-        .mask           = CLOCKSOURCE_MASK(64),
+-        .mult           = 0, /*to be caluclated*/
+-        .shift          = 16,
+-        .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
++	.name           = "itc",
++	.rating         = 350,
++	.read           = itc_get_cycles,
++	.mask           = CLOCKSOURCE_MASK(64),
++	.mult           = 0, /*to be calculated*/
++	.shift          = 16,
++	.flags          = CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ static struct clocksource *itc_clocksource;
+ 
+diff -puN arch/x86/kernel/time_64.c~time-fix-typo-in-comments arch/x86/kernel/time_64.c
+--- a/arch/x86/kernel/time_64.c~time-fix-typo-in-comments
++++ a/arch/x86/kernel/time_64.c
+@@ -77,7 +77,7 @@ unsigned long __init native_calculate_cp
+ 		reserve_evntsel_nmi(MSR_K7_EVNTSEL0 + i);
+ 	}
+ 	local_irq_save(flags);
+-	/* start meauring cycles, incrementing from 0 */
++	/* start measuring cycles, incrementing from 0 */
+ 	wrmsrl(MSR_K7_PERFCTR0 + i, 0);
+ 	wrmsrl(MSR_K7_EVNTSEL0 + i, 1 << 22 | 3 << 16 | 0x76);
+ 	rdtscl(tsc_start);
+diff -puN include/linux/hrtimer.h~time-fix-typo-in-comments include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~time-fix-typo-in-comments
++++ a/include/linux/hrtimer.h
+@@ -78,7 +78,7 @@ enum hrtimer_cb_mode {
+  * as otherwise the timer could be removed before the softirq code finishes the
+  * the handling of the timer.
+  *
+- * The HRTIMER_STATE_ENQUEUE bit is always or'ed to the current state to
++ * The HRTIMER_STATE_ENQUEUED bit is always or'ed to the current state to
+  * preserve the HRTIMER_STATE_CALLBACK bit in the above scenario.
+  *
+  * All state transitions are protected by cpu_base->lock.
+diff -puN include/linux/jiffies.h~time-fix-typo-in-comments include/linux/jiffies.h
+--- a/include/linux/jiffies.h~time-fix-typo-in-comments
++++ a/include/linux/jiffies.h
+@@ -42,7 +42,7 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
+ 
+-/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, the we can
++/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, then we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+  * This however means trouble for large NOM, because (NOM << LSH) may no
+@@ -160,7 +160,7 @@ extern unsigned long preset_lpj;
+  * We want to do realistic conversions of time so we need to use the same
+  * values the update wall clock code uses as the jiffies size.  This value
+  * is: TICK_NSEC (which is defined in timex.h).  This
+- * is a constant and is in nanoseconds.  We will used scaled math
++ * is a constant and is in nanoseconds.  We will use scaled math
+  * with a set of scales defined here as SEC_JIFFIE_SC,  USEC_JIFFIE_SC and
+  * NSEC_JIFFIE_SC.  Note that these defines contain nothing but
+  * constants and so are computed at compile time.  SHIFT_HZ (computed in
+@@ -204,7 +204,7 @@ extern unsigned long preset_lpj;
+  * operator if the result is a long long AND at least one of the
+  * operands is cast to long long (usually just prior to the "*" so as
+  * not to confuse it into thinking it really has a 64-bit operand,
+- * which, buy the way, it can do, but it take more code and at least 2
++ * which, buy the way, it can do, but it takes more code and at least 2
+  * mpys).
+ 
+  * We also need to be aware that one second in nanoseconds is only a
+diff -puN kernel/time.c~time-fix-typo-in-comments kernel/time.c
+--- a/kernel/time.c~time-fix-typo-in-comments
++++ a/kernel/time.c
+@@ -267,7 +267,7 @@ EXPORT_SYMBOL(jiffies_to_usecs);
+  *
+  * This function should be only used for timestamps returned by
+  * current_kernel_time() or CURRENT_TIME, not with do_gettimeofday() because
+- * it doesn't handle the better resolution of the later.
++ * it doesn't handle the better resolution of the latter.
+  */
+ struct timespec timespec_trunc(struct timespec t, unsigned gran)
+ {
+@@ -315,7 +315,7 @@ EXPORT_SYMBOL_GPL(getnstimeofday);
+  * This algorithm was first published by Gauss (I think).
+  *
+  * WARNING: this function will overflow on 2106-02-07 06:28:16 on
+- * machines were long is 32-bit! (However, as time_t is signed, we
++ * machines where long is 32-bit! (However, as time_t is signed, we
+  * will already get problems at other places on 2038-01-19 03:14:08)
+  */
+ unsigned long
+diff -puN kernel/time/clockevents.c~time-fix-typo-in-comments kernel/time/clockevents.c
+--- a/kernel/time/clockevents.c~time-fix-typo-in-comments
++++ a/kernel/time/clockevents.c
+@@ -133,7 +133,7 @@ static void clockevents_do_notify(unsign
  }
  
-+int hugetlb_overcommit_handler(struct ctl_table *table, int write,
-+			struct file *file, void __user *buffer,
-+			size_t *length, loff_t *ppos)
-+{
-+	spin_lock(&hugetlb_lock);
-+	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
-+	spin_unlock(&hugetlb_lock);
-+	return 0;
-+}
-+
- #endif /* CONFIG_SYSCTL */
- 
- int hugetlb_report_meminfo(char *buf)
+ /*
+- * Called after a notify add to make devices availble which were
++ * Called after a notify add to make devices available which were
+  * released from the notifier call.
+  */
+ static void clockevents_notify_released(void)
+diff -puN kernel/time/timekeeping.c~time-fix-typo-in-comments kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-fix-typo-in-comments
++++ a/kernel/time/timekeeping.c
+@@ -364,7 +364,7 @@ static __always_inline int clocksource_b
+ 	 * with losing too many ticks, otherwise we would overadjust and
+ 	 * produce an even larger error.  The smaller the adjustment the
+ 	 * faster we try to adjust for it, as lost ticks can do less harm
+-	 * here.  This is tuned so that an error of about 1 msec is adusted
++	 * here.  This is tuned so that an error of about 1 msec is adjusted
+ 	 * within about 1 sec (or 2^20 nsec in 2^SHIFT_HZ ticks).
+ 	 */
+ 	error2 = clock->error >> (TICK_LENGTH_SHIFT + 22 - 2 * SHIFT_HZ);
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
