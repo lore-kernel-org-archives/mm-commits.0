@@ -1,64 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - memstick-disable-busted-code.patch removed from -mm tree
-Date: Sat, 09 Feb 2008 10:19:26 -0800
-Message-ID: <200802091820.m19IKILs025573@imap1.linux-foundation.org>
+Subject: - memstick-initial-commit-for-sony-memorystick-support-fix-2.patch removed from -mm tree
+Date: Sat, 09 Feb 2008 10:19:05 -0800
+Message-ID: <200802091819.m19IJwg7025527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753176AbYBISVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Feb 2008 13:21:21 -0500
+	by vger.kernel.org with ESMTP id S1752435AbYBISqV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Feb 2008 13:46:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: disable busted code
+     memstick-initial-commit-for-sony-memorystick-support-fix-2
 has been removed from the -mm tree.  Its filename was
-     memstick-disable-busted-code.patch
+     memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into memstick-initial-commit-for-sony-memorystick-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: disable busted code
+Subject: memstick-initial-commit-for-sony-memorystick-support-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
+
+alpha:
+
+drivers/memstick/host/tifm_ms.c: In function 'tifm_ms_move_block':
+drivers/memstick/host/tifm_ms.c:157: error: implicit declaration of function 'sg_page'
+drivers/memstick/host/tifm_ms.c:157: warning: initialization makes pointer from integer without a cast
+drivers/memstick/host/tifm_ms.c:157: warning: initialization makes pointer from integer without a cast
+
 
 Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/memstick/host/tifm_ms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-disable-busted-code drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-disable-busted-code
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -269,7 +269,6 @@ static ssize_t mspro_block_attr_show_def
- 	struct mspro_sys_attr *s_attr = container_of(attr,
- 						     struct mspro_sys_attr,
- 						     dev_attr);
--
- 	ssize_t cnt, rc = 0;
+diff -puN drivers/memstick/host/tifm_ms.c~memstick-initial-commit-for-sony-memorystick-support-fix-2 drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~memstick-initial-commit-for-sony-memorystick-support-fix-2
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -15,6 +15,7 @@
+ #include <linux/tifm.h>
+ #include <linux/memstick.h>
+ #include <linux/highmem.h>
++#include <linux/scatterlist.h>
+ #include <linux/log2.h>
+ #include <asm/io.h>
  
- 	for (cnt = 0; cnt < s_attr->size; cnt++) {
-@@ -1233,11 +1232,12 @@ static int mspro_block_resume(struct mem
- 	unsigned long flags;
- 	int rc = 0;
- 
--#ifdef CONFIG_MEMSTICK_UNSAFE_RESUME
-+#if defined(CONFIG_MEMSTICK_UNSAFE_RESUME) && 0
- 
- 	struct mspro_block_data *new_msb;
- 	struct memstick_host *host = card->host;
--	struct mspro_sys_attr s_attr, r_attr;
-+	struct mspro_sys_attr *s_attr;
-+	struct mspro_sys_attr *r_attr;
- 	unsigned char cnt;
- 
- 	mutex_lock(&host->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +70,7 @@ revert-git-hrt.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 memstick-initial-commit-for-sony-memorystick-support.patch
+memstick-initial-commit-for-sony-memorystick-support-fix-2.patch
 memstick-disable-busted-code.patch
 git-mmc.patch
 typhoon-section-fix.patch
