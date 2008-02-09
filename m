@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-patch-tags-one-more-time.patch added to -mm tree
-Date: Fri, 08 Feb 2008 17:47:09 -0800
-Message-ID: <200802090147.m191koUW024731@imap1.linux-foundation.org>
+Subject: + input-i8042-fix-warning-on-non-x86-builds.patch added to -mm tree
+Date: Fri, 08 Feb 2008 21:05:12 -0800
+Message-ID: <200802090505.m1954r9F031128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752628AbYBIByw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Feb 2008 20:54:52 -0500
+	by vger.kernel.org with ESMTP id S1751001AbYBIFMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Feb 2008 00:12:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: corbet@lwn.net, penberg@cs.helsinki.fi, pj@sgi.com
+Cc: rdreier@cisco.com, dtor@mail.ru, rolandd@cisco.com
 
 
 The patch titled
-     Documentation/patch-tags, one more time
+     Input: i8042: fix warning on non-x86 builds
 has been added to the -mm tree.  Its filename is
-     documentation-patch-tags-one-more-time.patch
+     input-i8042-fix-warning-on-non-x86-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/patch-tags, one more time
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: Input: i8042: fix warning on non-x86 builds
+From: Roland Dreier <rdreier@cisco.com>
 
-Add a document describing the various tags attached to patches.
+Commit c18bab80 ("Input: i8042 - non-x86 build fix") introduced the
+following warning on non-x86 builds:
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
-Reviewed-by: Paul Jackson <pj@sgi.com>
-Acked-by: Paul Jackson <pj@sgi.com>
-Tested-by: Paul Jackson <pj@sgi.com>
+    drivers/input/serio/i8042.c: In function 'i8042_probe':
+    drivers/input/serio/i8042.c:1154: warning: unused variable 'param'
+
+Fix this by moving the parameter variable declaration into the #ifdef too.
+
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |   54 ++++++++++++++++++++++++++++--
- 1 file changed, 51 insertions(+), 3 deletions(-)
+ drivers/input/serio/i8042.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~documentation-patch-tags-one-more-time Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~documentation-patch-tags-one-more-time
-+++ a/Documentation/SubmittingPatches
-@@ -328,7 +328,7 @@ now, but you can do this to mark interna
- point out some special detail about the sign-off. 
+diff -puN drivers/input/serio/i8042.c~input-i8042-fix-warning-on-non-x86-builds drivers/input/serio/i8042.c
+--- a/drivers/input/serio/i8042.c~input-i8042-fix-warning-on-non-x86-builds
++++ a/drivers/input/serio/i8042.c
+@@ -1151,7 +1151,6 @@ static int __devinit i8042_setup_kbd(voi
+ static int __devinit i8042_probe(struct platform_device *dev)
+ {
+ 	int error;
+-	char param;
  
- 
--13) When to use Acked-by:
-+13) When to use Acked-by: and Cc:
- 
- The Signed-off-by: tag indicates that the signer was involved in the
- development of the patch, or that he/she was in the patch's delivery path.
-@@ -349,11 +349,59 @@ Acked-by: does not necessarily indicate 
- For example, if a patch affects multiple subsystems and has an Acked-by: from
- one subsystem maintainer then this usually indicates acknowledgement of just
- the part which affects that maintainer's code.  Judgement should be used here.
-- When in doubt people should refer to the original discussion in the mailing
-+When in doubt people should refer to the original discussion in the mailing
- list archives.
- 
-+If a person has had the opportunity to comment on a patch, but has not
-+provided such comments, you may optionally add a "Cc:" tag to the patch.
-+This is the only tag which might be added without an explicit action by the
-+person it names.  This tag documents that potentially interested parties
-+have been included in the discussion
- 
--14) The canonical patch format
-+
-+14) Using Test-by: and Reviewed-by:
-+
-+A Tested-by: tag indicates that the patch has been successfully tested (in
-+some environment) by the person named.  This tag informs maintainers that
-+some testing has been performed, provides a means to locate testers for
-+future patches, and ensures credit for the testers.
-+
-+Reviewed-by:, instead, indicates that the patch has been reviewed and found
-+acceptable according to the Reviewer's Statement:
-+
-+	Reviewer's statement of oversight
-+
-+	By offering my Reviewed-by: tag, I state that:
-+
-+ 	 (a) I have carried out a technical review of this patch to
-+	     evaluate its appropriateness and readiness for inclusion into
-+	     the mainline kernel.
-+
-+	 (b) Any problems, concerns, or questions relating to the patch
-+	     have been communicated back to the submitter.  I am satisfied
-+	     with the submitter's response to my comments.
-+
-+	 (c) While there may be things that could be improved with this
-+	     submission, I believe that it is, at this time, (1) a
-+	     worthwhile modification to the kernel, and (2) free of known
-+	     issues which would argue against its inclusion.
-+
-+	 (d) While I have reviewed the patch and believe it to be sound, I
-+	     do not (unless explicitly stated elsewhere) make any
-+	     warranties or guarantees that it will achieve its stated
-+	     purpose or function properly in any given situation.
-+
-+A Reviewed-by tag is a statement of opinion that the patch is an
-+appropriate modification of the kernel without any remaining serious
-+technical issues.  Any interested reviewer (who has done the work) can
-+offer a Reviewed-by tag for a patch.  This tag serves to give credit to
-+reviewers and to inform maintainers of the degree of review which has been
-+done on the patch.  Reviewed-by: tags, when supplied by reviewers known to
-+understand the subject area and to perform thorough reviews, will normally
-+increase the liklihood of your patch getting into the kernel.
-+
-+
-+15) The canonical patch format
- 
- The canonical patch subject line is:
- 
+ 	error = i8042_controller_selftest();
+ 	if (error)
+@@ -1174,7 +1173,7 @@ static int __devinit i8042_probe(struct 
+ 	}
+ #ifdef CONFIG_X86
+ 	if (i8042_dritek) {
+-		param = 0x90;
++		char param = 0x90;
+ 		error = i8042_command(&param, 0x1059);
+ 		if (error)
+ 			goto out_fail;
 _
 
-Patches currently in -mm which might be from corbet@lwn.net are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
-git-hrt.patch
-revert-git-hrt.patch
-documentation-patch-tags-one-more-time.patch
+origin.patch
+input-i8042-fix-warning-on-non-x86-builds.patch
