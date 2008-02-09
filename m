@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch added to -mm tree
-Date: Fri, 08 Feb 2008 23:30:26 -0800
-Message-ID: <200802090730.m197U7bX003265@imap1.linux-foundation.org>
+Subject: + ub-fix-up-the-conversion-to-sg_init_table.patch added to -mm tree
+Date: Sat, 09 Feb 2008 00:06:53 -0800
+Message-ID: <200802090806.m1986Yds004504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57324 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35841 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751742AbYBIHcK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Feb 2008 02:32:10 -0500
+	by vger.kernel.org with ESMTP id S1752202AbYBIIJK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 9 Feb 2008 03:09:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, ezk@cs.sunysb.edu, rdunlap@xenotime.net
+Cc: zaitcev@redhat.com, fujita.tomonori@lab.ntt.co.jp, greg@kroah.com, oliver.pntr@gmail.com
 
 
 The patch titled
-     fix up kerneldoc in fs/ioctl.c a little bit
+     ub: fix up the conversion to sg_init_table()
 has been added to the -mm tree.  Its filename is
-     fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch
+     ub-fix-up-the-conversion-to-sg_init_table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix up kerneldoc in fs/ioctl.c a little bit
-From: Christoph Hellwig <hch@lst.de>
+Subject: ub: fix up the conversion to sg_init_table()
+From: Pete Zaitcev <zaitcev@redhat.com>
 
- - remove non-standard in/out markers
- - use tabs for formatting
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Cc: "Oliver Pinter" <oliver.pntr@gmail.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/ub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ioctl.c~fix-up-kerneldoc-in-fs-ioctlc-a-little-bit fs/ioctl.c
---- a/fs/ioctl.c~fix-up-kerneldoc-in-fs-ioctlc-a-little-bit
-+++ a/fs/ioctl.c
-@@ -18,12 +18,12 @@
+diff -puN drivers/block/ub.c~ub-fix-up-the-conversion-to-sg_init_table drivers/block/ub.c
+--- a/drivers/block/ub.c~ub-fix-up-the-conversion-to-sg_init_table
++++ a/drivers/block/ub.c
+@@ -657,7 +657,6 @@ static int ub_request_fn_1(struct ub_lun
+ 	if ((cmd = ub_get_cmd(lun)) == NULL)
+ 		return -1;
+ 	memset(cmd, 0, sizeof(struct ub_scsi_cmd));
+-	sg_init_table(cmd->sgv, UB_MAX_REQ_SG);
  
- /**
-  * vfs_ioctl - call filesystem specific ioctl methods
-- * @filp: [in]     open file to invoke ioctl method on
-- * @cmd:  [in]     ioctl command to execute
-- * @arg:  [in/out] command-specific argument for ioctl
-+ * @filp:	open file to invoke ioctl method on
-+ * @cmd:	ioctl command to execute
-+ * @arg:	command-specific argument for ioctl
-  *
-  * Invokes filesystem specific ->unlocked_ioctl, if one exists; otherwise
-- * invokes * filesystem specific ->ioctl method.  If neither method exists,
-+ * invokes filesystem specific ->ioctl method.  If neither method exists,
-  * returns -ENOTTY.
-  *
-  * Returns 0 on success, -errno on error.
+ 	blkdev_dequeue_request(rq);
+ 
+@@ -668,6 +667,7 @@ static int ub_request_fn_1(struct ub_lun
+ 	/*
+ 	 * get scatterlist from block layer
+ 	 */
++	sg_init_table(&urq->sgv[0], UB_MAX_REQ_SG);
+ 	n_elem = blk_rq_map_sg(lun->disk->queue, rq, &urq->sgv[0]);
+ 	if (n_elem < 0) {
+ 		/* Impossible, because blk_rq_map_sg should not hit ENOMEM. */
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
 origin.patch
-fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch
-git-unionfs.patch
-git-xfs.patch
-uml-update-defconfig.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-mxser-convert-large-macros-to-functions.patch
-vfs-create-proc-pid-mountinfo.patch
-reiserfs-use-open_bdev_excl.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
+ub-fix-up-the-conversion-to-sg_init_table.patch
+usb-libusual-locking-cleanup.patch
