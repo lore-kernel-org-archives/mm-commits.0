@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-recompute-msgmni-on-memory-add--remove.patch added to -mm tree
-Date: Mon, 11 Feb 2008 12:47:24 -0800
-Message-ID: <200802112047.m1BKlP0Z032145@imap1.linux-foundation.org>
+Subject: + ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch added to -mm tree
+Date: Mon, 11 Feb 2008 12:51:34 -0800
+Message-ID: <200802112052.m1BKpZts032327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33808 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50889 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752951AbYBKU7j (ORCPT
+	by vger.kernel.org with ESMTP id S1751069AbYBKVBB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 15:59:39 -0500
+	Mon, 11 Feb 2008 16:01:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Nadia.Derbey@bull.net, cmm@us.ibm.com, matthltc@us.ibm.com, pierre.peiffer@b
 
 
 The patch titled
-     ipc: recompute msgmni on memory add / remove
+     ipc: re-enable msgmni automatic recomputing msgmni if set to negative
 has been added to the -mm tree.  Its filename is
-     ipc-recompute-msgmni-on-memory-add--remove.patch
+     ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: recompute msgmni on memory add / remove
+Subject: ipc: re-enable msgmni automatic recomputing msgmni if set to negative
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Introduce the registration of a callback routine that recomputes msg_ctlmni
-upon memory add / remove.
+The enhancement as asked for by Yasunori: if msgmni is set to a negative
+value, register it back into the ipcns notifier chain.
 
-A single notifier block is registered in the hotplug memory chain for all the
-ipc namespaces.
-
-Since the ipc namespaces are not linked together, they have their own
-notification chain: one notifier_block is defined per ipc namespace.
-
-Each time an ipc namespace is created (removed) it registers (unregisters) its
-notifier block in (from) the ipcns chain.  The callback routine registered in
-the memory chain invokes the ipcns notifier chain with the IPCNS_LOWMEM event.
- Each callback routine registered in the ipcns namespace, in turn, recomputes
-msgmni for the owning namespace.
+A new interface has been added to the notification mechanism:
+notifier_chain_cond_register() registers a notifier block only if not already
+registered.  With that new interface we avoid taking care of the states
+changes in procfs.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
@@ -60,297 +53,195 @@ Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |   43 ++++++++++++++++++-
- include/linux/memory.h        |    1 
- ipc/Makefile                  |    3 -
- ipc/ipcns_notifier.c          |   71 ++++++++++++++++++++++++++++++++
- ipc/msg.c                     |    2 
- ipc/namespace.c               |   11 ++++
- ipc/util.c                    |   33 ++++++++++++++
- ipc/util.h                    |    2 
- 8 files changed, 162 insertions(+), 4 deletions(-)
+ include/linux/ipc_namespace.h |    1 
+ include/linux/notifier.h      |    4 ++
+ ipc/ipc_sysctl.c              |   45 ++++++++++++++++++++++++--------
+ ipc/ipcns_notifier.c          |    9 ++++++
+ kernel/notifier.c             |   38 +++++++++++++++++++++++++++
+ 5 files changed, 87 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-recompute-msgmni-on-memory-add--remove include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-recompute-msgmni-on-memory-add--remove
+diff -puN include/linux/ipc_namespace.h~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative
 +++ a/include/linux/ipc_namespace.h
-@@ -4,6 +4,17 @@
- #include <linux/err.h>
- #include <linux/idr.h>
- #include <linux/rwsem.h>
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+#include <linux/notifier.h>
-+#endif /* CONFIG_MEMORY_HOTPLUG */
-+
-+/*
-+ * ipc namespace events
-+ */
-+#define IPCNS_MEMCHANGED   0x00000001   /* Notify lowmem size changed */
-+
-+#define IPCNS_CALLBACK_PRI 0
-+
- 
- struct ipc_ids {
- 	int in_use;
-@@ -30,6 +41,10 @@ struct ipc_namespace {
- 	size_t		shm_ctlall;
- 	int		shm_ctlmni;
- 	int		shm_tot;
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+	struct notifier_block ipcns_nb;
-+#endif
- };
- 
- extern struct ipc_namespace init_ipc_ns;
-@@ -37,9 +52,33 @@ extern atomic_t nr_ipc_ns;
- 
- #ifdef CONFIG_SYSVIPC
+@@ -52,6 +52,7 @@ extern atomic_t nr_ipc_ns;
  #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
--#else
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+
-+extern int register_ipcns_notifier(struct ipc_namespace *);
-+extern int unregister_ipcns_notifier(struct ipc_namespace *);
-+extern int ipcns_notify(unsigned long);
-+
-+#else /* CONFIG_MEMORY_HOTPLUG */
-+
-+static inline int register_ipcns_notifier(struct ipc_namespace *ipcns)
-+{
-+	return 0;
-+}
-+static inline int unregister_ipcns_notifier(struct ipc_namespace *ipcns)
-+{
-+	return 0;
-+}
-+static inline int ipcns_notify(unsigned long ev)
-+{
-+	return 0;
-+}
-+
-+#endif /* CONFIG_MEMORY_HOTPLUG */
-+
-+#else /* CONFIG_SYSVIPC */
- #define INIT_IPC_NS(ns)
--#endif
-+#endif /* CONFIG_SYSVIPC */
  
- #if defined(CONFIG_SYSVIPC) && defined(CONFIG_IPC_NS)
- extern void free_ipc_ns(struct kref *kref);
-diff -puN include/linux/memory.h~ipc-recompute-msgmni-on-memory-add--remove include/linux/memory.h
---- a/include/linux/memory.h~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/include/linux/memory.h
-@@ -58,6 +58,7 @@ struct mem_section;
-  * order in the callback chain)
-  */
- #define SLAB_CALLBACK_PRI       1
-+#define IPC_CALLBACK_PRI        10
+ extern int register_ipcns_notifier(struct ipc_namespace *);
++extern int cond_register_ipcns_notifier(struct ipc_namespace *);
+ extern int unregister_ipcns_notifier(struct ipc_namespace *);
+ extern int ipcns_notify(unsigned long);
  
- #ifndef CONFIG_MEMORY_HOTPLUG_SPARSE
- static inline int memory_dev_init(void)
-diff -puN ipc/Makefile~ipc-recompute-msgmni-on-memory-add--remove ipc/Makefile
---- a/ipc/Makefile~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/ipc/Makefile
-@@ -3,7 +3,8 @@
- #
+diff -puN include/linux/notifier.h~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative include/linux/notifier.h
+--- a/include/linux/notifier.h~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative
++++ a/include/linux/notifier.h
+@@ -121,6 +121,10 @@ extern int raw_notifier_chain_register(s
+ extern int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
+ 		struct notifier_block *nb);
  
- obj-$(CONFIG_SYSVIPC_COMPAT) += compat.o
--obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o
-+obj_mem-$(CONFIG_MEMORY_HOTPLUG) += ipcns_notifier.o
-+obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o $(obj_mem-y)
- obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysctl.o
- obj_mq-$(CONFIG_COMPAT) += compat_mq.o
- obj-$(CONFIG_POSIX_MQUEUE) += mqueue.o msgutil.o $(obj_mq-y)
-diff -puN /dev/null ipc/ipcns_notifier.c
---- /dev/null
-+++ a/ipc/ipcns_notifier.c
-@@ -0,0 +1,71 @@
-+/*
-+ * linux/ipc/ipcns_notifier.c
-+ * Copyright (C) 2007 BULL SA. Nadia Derbey
-+ *
-+ * Notification mechanism for ipc namespaces:
-+ * The callback routine registered in the memory chain invokes the ipcns
-+ * notifier chain with the IPCNS_MEMCHANGED event.
-+ * Each callback routine registered in the ipcns namespace recomputes msgmni
-+ * for the owning namespace.
-+ */
++extern int blocking_notifier_chain_cond_register(
++		struct blocking_notifier_head *nh,
++		struct notifier_block *nb);
 +
+ extern int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
+ 		struct notifier_block *nb);
+ extern int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
+diff -puN ipc/ipc_sysctl.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative
++++ a/ipc/ipc_sysctl.c
+@@ -15,6 +15,8 @@
+ #include <linux/sysctl.h>
+ #include <linux/uaccess.h>
+ #include <linux/ipc_namespace.h>
 +#include <linux/msg.h>
-+#include <linux/rcupdate.h>
-+#include <linux/notifier.h>
-+#include <linux/nsproxy.h>
-+#include <linux/ipc_namespace.h>
-+
 +#include "util.h"
-+
-+
-+
-+static BLOCKING_NOTIFIER_HEAD(ipcns_chain);
-+
-+
-+static int ipcns_callback(struct notifier_block *self,
-+				unsigned long action, void *arg)
+ 
+ static void *get_ipc(ctl_table *table)
+ {
+@@ -24,6 +26,27 @@ static void *get_ipc(ctl_table *table)
+ 	return which;
+ }
+ 
++/*
++ * Routine that is called when a tunable has successfully been changed by
++ * hand and it has a callback routine registered on the ipc namespace notifier
++ * chain: we don't want such tunables to be recomputed anymore upon memory
++ * add/remove or ipc namespace creation/removal.
++ * They can come back to a recomputable state by being set to a <0 value.
++ */
++static void tunable_set_callback(int val)
 +{
-+	struct ipc_namespace *ns;
-+
-+	switch (action) {
-+	case IPCNS_MEMCHANGED:   /* amount of lowmem has changed */
++	if (val >= 0)
++		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
++	else {
 +		/*
-+		 * It's time to recompute msgmni
++		 * Re-enable automatic recomputing only if not already
++		 * enabled.
 +		 */
-+		ns = container_of(self, struct ipc_namespace, ipcns_nb);
-+		/*
-+		 * No need to get a reference on the ns: the 1st job of
-+		 * free_ipc_ns() is to unregister the callback routine.
-+		 * blocking_notifier_chain_unregister takes the wr lock to do
-+		 * it.
-+		 * When this callback routine is called the rd lock is held by
-+		 * blocking_notifier_call_chain.
-+		 * So the ipc ns cannot be freed while we are here.
-+		 */
-+		recompute_msgmni(ns);
-+		break;
-+	default:
-+		break;
++		recompute_msgmni(current->nsproxy->ipc_ns);
++		cond_register_ipcns_notifier(current->nsproxy->ipc_ns);
 +	}
-+
-+	return NOTIFY_OK;
 +}
 +
-+int register_ipcns_notifier(struct ipc_namespace *ns)
+ #ifdef CONFIG_PROC_FS
+ static int proc_ipc_dointvec(ctl_table *table, int write, struct file *filp,
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -38,17 +61,17 @@ static int proc_ipc_dointvec(ctl_table *
+ static int proc_ipc_callback_dointvec(ctl_table *table, int write,
+ 	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
++	struct ctl_table ipc_table;
+ 	size_t lenp_bef = *lenp;
+ 	int rc;
+ 
+-	rc = proc_ipc_dointvec(table, write, filp, buffer, lenp, ppos);
++	memcpy(&ipc_table, table, sizeof(ipc_table));
++	ipc_table.data = get_ipc(table);
++
++	rc = proc_dointvec(&ipc_table, write, filp, buffer, lenp, ppos);
+ 
+ 	if (write && !rc && lenp_bef == *lenp)
+-		/*
+-		 * Tunable has successfully been changed from userland:
+-		 * disable its automatic recomputing.
+-		 */
+-		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
++		tunable_set_callback(*((int *)(ipc_table.data)));
+ 
+ 	return rc;
+ }
+@@ -119,12 +142,14 @@ static int sysctl_ipc_registered_data(ct
+ 	rc = sysctl_ipc_data(table, name, nlen, oldval, oldlenp, newval,
+ 		newlen);
+ 
+-	if (newval && newlen && rc > 0)
++	if (newval && newlen && rc > 0) {
+ 		/*
+-		 * Tunable has successfully been changed from userland:
+-		 * disable its automatic recomputing.
++		 * Tunable has successfully been changed from userland
+ 		 */
+-		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
++		int *data = get_ipc(table);
++
++		tunable_set_callback(*data);
++	}
+ 
+ 	return rc;
+ }
+diff -puN ipc/ipcns_notifier.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative ipc/ipcns_notifier.c
+--- a/ipc/ipcns_notifier.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative
++++ a/ipc/ipcns_notifier.c
+@@ -61,6 +61,15 @@ int register_ipcns_notifier(struct ipc_n
+ 	return blocking_notifier_chain_register(&ipcns_chain, &ns->ipcns_nb);
+ }
+ 
++int cond_register_ipcns_notifier(struct ipc_namespace *ns)
 +{
 +	memset(&ns->ipcns_nb, 0, sizeof(ns->ipcns_nb));
 +	ns->ipcns_nb.notifier_call = ipcns_callback;
 +	ns->ipcns_nb.priority = IPCNS_CALLBACK_PRI;
-+	return blocking_notifier_chain_register(&ipcns_chain, &ns->ipcns_nb);
++	return blocking_notifier_chain_cond_register(&ipcns_chain,
++							&ns->ipcns_nb);
 +}
 +
-+int unregister_ipcns_notifier(struct ipc_namespace *ns)
-+{
-+	return blocking_notifier_chain_unregister(&ipcns_chain,
-+						&ns->ipcns_nb);
-+}
-+
-+int ipcns_notify(unsigned long val)
-+{
-+	return blocking_notifier_call_chain(&ipcns_chain, val, NULL);
-+}
-diff -puN ipc/msg.c~ipc-recompute-msgmni-on-memory-add--remove ipc/msg.c
---- a/ipc/msg.c~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/ipc/msg.c
-@@ -84,7 +84,7 @@ static int sysvipc_msg_proc_show(struct 
-  * Also take into account the number of nsproxies created so far.
-  * This should be done staying within the (MSGMNI , IPCMNI/nr_ipc_ns) range.
-  */
--static void recompute_msgmni(struct ipc_namespace *ns)
-+void recompute_msgmni(struct ipc_namespace *ns)
+ int unregister_ipcns_notifier(struct ipc_namespace *ns)
  {
- 	struct sysinfo i;
- 	unsigned long allowed;
-diff -puN ipc/namespace.c~ipc-recompute-msgmni-on-memory-add--remove ipc/namespace.c
---- a/ipc/namespace.c~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/ipc/namespace.c
-@@ -26,6 +26,8 @@ static struct ipc_namespace *clone_ipc_n
- 	msg_init_ns(ns);
- 	shm_init_ns(ns);
- 
-+	register_ipcns_notifier(ns);
-+
- 	kref_init(&ns->kref);
- 	return ns;
- }
-@@ -81,6 +83,15 @@ void free_ipc_ns(struct kref *kref)
- 	struct ipc_namespace *ns;
- 
- 	ns = container_of(kref, struct ipc_namespace, kref);
-+	/*
-+	 * Unregistering the hotplug notifier at the beginning guarantees
-+	 * that the ipc namespace won't be freed while we are inside the
-+	 * callback routine. Since the blocking_notifier_chain_XXX routines
-+	 * hold a rw lock on the notifier list, unregister_ipcns_notifier()
-+	 * won't take the rw lock before blocking_notifier_call_chain() has
-+	 * released the rd lock.
-+	 */
-+	unregister_ipcns_notifier(ns);
- 	sem_exit_ns(ns);
- 	msg_exit_ns(ns);
- 	shm_exit_ns(ns);
-diff -puN ipc/util.c~ipc-recompute-msgmni-on-memory-add--remove ipc/util.c
---- a/ipc/util.c~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/ipc/util.c
-@@ -33,6 +33,7 @@
- #include <linux/audit.h>
- #include <linux/nsproxy.h>
- #include <linux/rwsem.h>
-+#include <linux/memory.h>
- #include <linux/ipc_namespace.h>
- 
- #include <asm/unistd.h>
-@@ -55,11 +56,41 @@ struct ipc_namespace init_ipc_ns = {
- atomic_t nr_ipc_ns = ATOMIC_INIT(1);
- 
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+
-+static int ipc_memory_callback(struct notifier_block *self,
-+				unsigned long action, void *arg)
-+{
-+	switch (action) {
-+	case MEM_ONLINE:    /* memory successfully brought online */
-+	case MEM_OFFLINE:   /* or offline: it's time to recompute msgmni */
-+		/*
-+		 * This is done by invoking the ipcns notifier chain with the
-+		 * IPC_MEMCHANGED event.
-+		 */
-+		ipcns_notify(IPCNS_MEMCHANGED);
-+		break;
-+	case MEM_GOING_ONLINE:
-+	case MEM_GOING_OFFLINE:
-+	case MEM_CANCEL_ONLINE:
-+	case MEM_CANCEL_OFFLINE:
-+	default:
-+		break;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+#endif /* CONFIG_MEMORY_HOTPLUG */
-+
- /**
-  *	ipc_init	-	initialise IPC subsystem
-  *
-  *	The various system5 IPC resources (semaphores, messages and shared
-  *	memory) are initialised
-+ *	A callback routine is registered into the memory hotplug notifier
-+ *	chain: since msgmni scales to lowmem this callback routine will be
-+ *	called upon successful memory add / remove to recompute msmgni.
-  */
-  
- static int __init ipc_init(void)
-@@ -67,6 +98,8 @@ static int __init ipc_init(void)
- 	sem_init();
- 	msg_init();
- 	shm_init();
-+	hotplug_memory_notifier(ipc_memory_callback, IPC_CALLBACK_PRI);
-+	register_ipcns_notifier(&init_ipc_ns);
+ 	return blocking_notifier_chain_unregister(&ipcns_chain,
+diff -puN kernel/notifier.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative kernel/notifier.c
+--- a/kernel/notifier.c~ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative
++++ a/kernel/notifier.c
+@@ -31,6 +31,21 @@ static int notifier_chain_register(struc
  	return 0;
  }
- __initcall(ipc_init);
-diff -puN ipc/util.h~ipc-recompute-msgmni-on-memory-add--remove ipc/util.h
---- a/ipc/util.h~ipc-recompute-msgmni-on-memory-add--remove
-+++ a/ipc/util.h
-@@ -124,6 +124,8 @@ extern void free_msg(struct msg_msg *msg
- extern struct msg_msg *load_msg(const void __user *src, int len);
- extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
  
-+extern void recompute_msgmni(struct ipc_namespace *);
++static int notifier_chain_cond_register(struct notifier_block **nl,
++		struct notifier_block *n)
++{
++	while ((*nl) != NULL) {
++		if ((*nl) == n)
++			return 0;
++		if (n->priority > (*nl)->priority)
++			break;
++		nl = &((*nl)->next);
++	}
++	n->next = *nl;
++	rcu_assign_pointer(*nl, n);
++	return 0;
++}
 +
- static inline int ipc_buildid(int id, int seq)
+ static int notifier_chain_unregister(struct notifier_block **nl,
+ 		struct notifier_block *n)
  {
- 	return SEQ_MULTIPLIER * seq + id;
+@@ -205,6 +220,29 @@ int blocking_notifier_chain_register(str
+ EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
+ 
+ /**
++ *	blocking_notifier_chain_cond_register - Cond add notifier to a blocking notifier chain
++ *	@nh: Pointer to head of the blocking notifier chain
++ *	@n: New entry in notifier chain
++ *
++ *	Adds a notifier to a blocking notifier chain, only if not already
++ *	present in the chain.
++ *	Must be called in process context.
++ *
++ *	Currently always returns zero.
++ */
++int blocking_notifier_chain_cond_register(struct blocking_notifier_head *nh,
++		struct notifier_block *n)
++{
++	int ret;
++
++	down_write(&nh->rwsem);
++	ret = notifier_chain_cond_register(&nh->head, n);
++	up_write(&nh->rwsem);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(blocking_notifier_chain_cond_register);
++
++/**
+  *	blocking_notifier_chain_unregister - Remove notifier from a blocking notifier chain
+  *	@nh: Pointer to head of the blocking notifier chain
+  *	@n: Entry to remove from notifier chain
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
