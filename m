@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-avoid-kmemcheck-warning.patch added to -mm tree
-Date: Mon, 11 Feb 2008 14:57:05 -0800
-Message-ID: <200802112257.m1BMv54K005440@imap1.linux-foundation.org>
+Subject: + parport-section-fixup.patch added to -mm tree
+Date: Mon, 11 Feb 2008 14:58:56 -0800
+Message-ID: <200802112258.m1BMwvVT005517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758999AbYBKW5k (ORCPT
+	by vger.kernel.org with ESMTP id S1751830AbYBKW7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:57:40 -0500
+	Mon, 11 Feb 2008 17:59:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, vegard.nossum@gmail.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     epoll: avoid kmemcheck warning
+     parport: section fixup
 has been added to the -mm tree.  Its filename is
-     epoll-avoid-kmemcheck-warning.patch
+     parport-section-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: avoid kmemcheck warning
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: parport: section fixup
+From: David Brownell <david-b@pacbell.net>
 
-Epoll calls rb_set_parent(n, n) to initialize the rb-tree node, but
-rb_set_parent() accesses node's pointer in its code.  This creates a
-warning in kmemcheck (reported by Vegard Nossum) about an uninitialized
-memory access.  The warning is harmless since the following rb-tree node
-insert is going to overwrite the node data.  In any case I think it's
-better to not have that happening at all, and fix it by properly
-initializing the data.
+Fix section warning for parport_ECP_supported(); it's called from a routine
+exported to modules, so it can't be removed with __devinit section pruning.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c         |    2 +-
- include/linux/rbtree.h |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/parport/parport_pc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-avoid-kmemcheck-warning fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-avoid-kmemcheck-warning
-+++ a/fs/eventpoll.c
-@@ -260,7 +260,7 @@ static inline int ep_cmp_ffd(struct epol
- /* Special initialization for the RB tree node to detect linkage */
- static inline void ep_rb_initnode(struct rb_node *n)
- {
--	rb_set_parent(n, n);
-+	rb_init_node(n, n);
+diff -puN drivers/parport/parport_pc.c~parport-section-fixup drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport-section-fixup
++++ a/drivers/parport/parport_pc.c
+@@ -1768,7 +1768,7 @@ static int parport_PS2_supported(struct 
  }
  
- /* Removes a node from the RB tree and marks it for a fast is-linked check */
-diff -puN include/linux/rbtree.h~epoll-avoid-kmemcheck-warning include/linux/rbtree.h
---- a/include/linux/rbtree.h~epoll-avoid-kmemcheck-warning
-+++ a/include/linux/rbtree.h
-@@ -112,6 +112,18 @@ struct rb_root
- 	struct rb_node *rb_node;
- };
- 
-+/**
-+ * rb_init_node - Initializes the node internal data
-+ *
-+ * @node: Pointer to the RB-Tree node
-+ * @parent: Pointer to the parent node, or NULL
-+ *
-+ */
-+static inline void rb_init_node(struct rb_node *node, struct rb_node *parent)
-+{
-+	node->rb_parent_color = (unsigned long) parent;
-+	node->rb_left = node->rb_right = NULL;
-+}
- 
- #define rb_parent(r)   ((struct rb_node *)((r)->rb_parent_color & ~3))
- #define rb_color(r)   ((r)->rb_parent_color & 1)
+ #ifdef CONFIG_PARPORT_PC_FIFO
+-static int __devinit parport_ECP_supported(struct parport *pb)
++static int parport_ECP_supported(struct parport *pb)
+ {
+ 	int i;
+ 	int config, configb;
+@@ -1992,7 +1992,7 @@ static int parport_ECPEPP_supported(stru
+ /* Don't bother probing for modes we know we won't use. */
+ static int __devinit parport_PS2_supported(struct parport *pb) { return 0; }
+ #ifdef CONFIG_PARPORT_PC_FIFO
+-static int __devinit parport_ECP_supported(struct parport *pb) { return 0; }
++static int parport_ECP_supported(struct parport *pb) { return 0; }
+ #endif
+ static int __devinit parport_EPP_supported(struct parport *pb) { return 0; }
+ static int __devinit parport_ECPEPP_supported(struct parport *pb){return 0;}
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-epoll-avoid-kmemcheck-warning.patch
-git-kvm.patch
+parport-section-fixup.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-mmc.patch
+usb-ehci-tolerates-some-buggy-devices.patch
+rtc-cmos-display-hpet-emulation-mode.patch
