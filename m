@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-better-rmmod-infrastructure.patch added to -mm tree
-Date: Mon, 11 Feb 2008 14:33:40 -0800
-Message-ID: <200802112233.m1BMXfUY004253@imap1.linux-foundation.org>
+Subject: + gpiolib-i2c-spi-drivers-handle-rmmod-better.patch added to -mm tree
+Date: Mon, 11 Feb 2008 14:34:44 -0800
+Message-ID: <200802112234.m1BMYi5N004360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55097 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754387AbYBKWem (ORCPT
+	by vger.kernel.org with ESMTP id S1752315AbYBKWfe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:34:42 -0500
+	Mon, 11 Feb 2008 17:35:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     gpiolib: better rmmod infrastructure
+     gpiolib: i2c/spi drivers: handle rmmod better
 has been added to the -mm tree.  Its filename is
-     gpiolib-better-rmmod-infrastructure.patch
+     gpiolib-i2c-spi-drivers-handle-rmmod-better.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: better rmmod infrastructure
+Subject: gpiolib: i2c/spi drivers: handle rmmod better
 From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-As long as one or more GPIOs on a gpio chip are used its driver should not be
-unloaded.  The existing mechanism (gpiochip_remove failure) doesn't address
-that, since rmmod can no longer be made to fail by having the cleanup code
-report errors.  Module usecounts are the solution.
-
-Assuming standard "initialize struct to zero" policies, this change won't
-affect SOC platform drivers.  However, drivers for external chips (on I2C and
-SPI busses) should be updated if they can be built as modules.
+Use the newly introduced owner field in struct gpio_chip to protect the
+current (small) set of non-SOC GPIO drivers from being unloaded while any of
+their GPIOs are in use.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-[ gpio_ensure_requested() needs to update module usecounts too ]
+[ add mcp23s08 and pcf857x ]
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c     |   15 ++++++++++++---
- include/asm-generic/gpio.h |    2 ++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/gpio/mcp23s08.c |    1 +
+ drivers/gpio/pca953x.c  |    1 +
+ drivers/gpio/pcf857x.c  |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-better-rmmod-infrastructure drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-better-rmmod-infrastructure
-+++ a/drivers/gpio/gpiolib.c
-@@ -68,6 +68,9 @@ static void gpio_ensure_requested(struct
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
- 		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
- 		desc_set_label(desc, "[auto]");
-+		if (!try_module_get(desc->chip->owner))
-+			pr_err("GPIO-%d: module can't be gotten \n",
-+					(int)(desc - gpio_desc));
- 	}
+diff -puN drivers/gpio/mcp23s08.c~gpiolib-i2c-spi-drivers-handle-rmmod-better drivers/gpio/mcp23s08.c
+--- a/drivers/gpio/mcp23s08.c~gpiolib-i2c-spi-drivers-handle-rmmod-better
++++ a/drivers/gpio/mcp23s08.c
+@@ -239,6 +239,7 @@ static int mcp23s08_probe(struct spi_dev
+ 	mcp->chip.base = pdata->base;
+ 	mcp->chip.ngpio = 8;
+ 	mcp->chip.can_sleep = 1;
++	mcp->chip.owner = THIS_MODULE;
+ 
+ 	spi_set_drvdata(spi, mcp);
+ 
+diff -puN drivers/gpio/pca953x.c~gpiolib-i2c-spi-drivers-handle-rmmod-better drivers/gpio/pca953x.c
+--- a/drivers/gpio/pca953x.c~gpiolib-i2c-spi-drivers-handle-rmmod-better
++++ a/drivers/gpio/pca953x.c
+@@ -188,6 +188,7 @@ static void pca953x_setup_gpio(struct pc
+ 	gc->base = chip->gpio_start;
+ 	gc->ngpio = gpios;
+ 	gc->label = chip->client->name;
++	gc->owner = THIS_MODULE;
  }
  
-@@ -177,6 +180,9 @@ int gpio_request(unsigned gpio, const ch
- 	if (desc->chip == NULL)
- 		goto done;
+ static int __devinit pca953x_probe(struct i2c_client *client)
+diff -puN drivers/gpio/pcf857x.c~gpiolib-i2c-spi-drivers-handle-rmmod-better drivers/gpio/pcf857x.c
+--- a/drivers/gpio/pcf857x.c~gpiolib-i2c-spi-drivers-handle-rmmod-better
++++ a/drivers/gpio/pcf857x.c
+@@ -159,6 +159,7 @@ static int pcf857x_probe(struct i2c_clie
  
-+	if (!try_module_get(desc->chip->owner))
-+		goto done;
-+
- 	/* NOTE:  gpio_request() can be called in early boot,
- 	 * before IRQs are enabled.
- 	 */
-@@ -184,8 +190,10 @@ int gpio_request(unsigned gpio, const ch
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
- 		desc_set_label(desc, label ? : "?");
- 		status = 0;
--	} else
-+	} else {
- 		status = -EBUSY;
-+		module_put(desc->chip->owner);
-+	}
+ 	gpio->chip.base = pdata->gpio_base;
+ 	gpio->chip.can_sleep = 1;
++	gpio->chip.owner = THIS_MODULE;
  
- done:
- 	if (status)
-@@ -209,9 +217,10 @@ void gpio_free(unsigned gpio)
- 	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	desc = &gpio_desc[gpio];
--	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags))
-+	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
- 		desc_set_label(desc, NULL);
--	else
-+		module_put(desc->chip->owner);
-+	} else
- 		WARN_ON(extra_checks);
- 
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-diff -puN include/asm-generic/gpio.h~gpiolib-better-rmmod-infrastructure include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-better-rmmod-infrastructure
-+++ a/include/asm-generic/gpio.h
-@@ -17,6 +17,7 @@
- #endif
- 
- struct seq_file;
-+struct module;
- 
- /**
-  * struct gpio_chip - abstract a GPIO controller
-@@ -48,6 +49,7 @@ struct seq_file;
-  */
- struct gpio_chip {
- 	char			*label;
-+	struct module		*owner;
- 
- 	int			(*direction_input)(struct gpio_chip *chip,
- 						unsigned offset);
+ 	/* NOTE:  the OnSemi jlc1562b is also largely compatible with
+ 	 * these parts, notably for output.  It has a low-resolution
 _
 
 Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
@@ -131,5 +93,5 @@ origin.patch
 lib-scatterlisto-needed-by-a-module-only-link-it-in-unconditionally.patch
 git-dvb.patch
 gpiolib-better-rmmod-infrastructure.patch
-gpiolib-i2c-spi-drivers-handler-rmmod-better.patch
+gpiolib-i2c-spi-drivers-handle-rmmod-better.patch
 gpio-define-gpio_is_valid.patch
