@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-prune-redundant-submitchecklist-items.patch added to -mm tree
-Date: Mon, 11 Feb 2008 14:50:14 -0800
-Message-ID: <200802112250.m1BMoE1g005117@imap1.linux-foundation.org>
+Subject: + sparc-fix-build.patch added to -mm tree
+Date: Mon, 11 Feb 2008 14:51:04 -0800
+Message-ID: <200802112251.m1BMp5UZ005137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754072AbYBKWvN (ORCPT
+	by vger.kernel.org with ESMTP id S1753096AbYBKWwT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:51:13 -0500
+	Mon, 11 Feb 2008 17:52:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bfields@citi.umich.edu, rdunlap@xenotime.net
+Cc: rientjes@google.com, bunk@kernel.org, davem@davemloft.net, reif@earthlink.net
 
 
 The patch titled
-     Documentation: prune redundant SubmitChecklist items
+     sparc: fix build
 has been added to the -mm tree.  Its filename is
-     documentation-prune-redundant-submitchecklist-items.patch
+     sparc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation: prune redundant SubmitChecklist items
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: sparc: fix build
+From: David Rientjes <rientjes@google.com>
 
-Kernel style is mentioned twice, and the git apply trick is a bit redundant
-given the checkpatch.pl recommendation (which also checks for bad
-whitespace).
+Fix build failures on sparc:
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+	In file included from include/linux/mm.h:39,
+	                from include/linux/memcontrol.h:24,
+	                from include/linux/swap.h:8,
+	                from include/linux/suspend.h:7,
+	                from init/do_mounts.c:6:
+	include/asm/pgtable.h:344: warning: parameter names (without
+		types) in function declaration
+	include/asm/pgtable.h:345: warning: parameter names (without
+		types) in function declaration
+	include/asm/pgtable.h:346: error: expected '=', ',', ';', 'asm' or
+		'__attribute__' before '___f___swp_entry'
+
+and
+
+	arch/sparc/kernel/led.c: In function 'led_blink':
+	arch/sparc/kernel/led.c:35: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:35: error: 'jiffies' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:35: error: (Each undeclared identifier is
+		reported only once
+	arch/sparc/kernel/led.c:35: error: for each function it appears
+		in.)
+	arch/sparc/kernel/led.c:36: error: 'avenrun' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:36: error: 'FSHIFT' undeclared (first use
+		in this function)
+	arch/sparc/kernel/led.c:36: error: 'HZ' undeclared (first use in
+		this function)
+	arch/sparc/kernel/led.c:37: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:39: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:40: error: invalid use of undefined type
+		'struct timer_list'
+	arch/sparc/kernel/led.c:42: error: implicit declaration of
+		function 'add_timer'
+	arch/sparc/kernel/led.c: In function 'led_write_proc':
+	arch/sparc/kernel/led.c:70: error: implicit declaration of
+		function 'copy_from_user'
+	arch/sparc/kernel/led.c:84: error: implicit declaration of
+		function 'del_timer_sync'
+	arch/sparc/kernel/led.c: In function 'led_init':
+	arch/sparc/kernel/led.c:109: error: implicit declaration of
+		function 'init_timer'
+	arch/sparc/kernel/led.c:110: error: invalid use of undefined type
+		'struct timer_list'
+
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Robert Reif <reif@earthlink.net>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmitChecklist |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ arch/sparc/kernel/led.c    |    3 ++-
+ include/linux/memcontrol.h |    3 ---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/SubmitChecklist~documentation-prune-redundant-submitchecklist-items Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~documentation-prune-redundant-submitchecklist-items
-+++ a/Documentation/SubmitChecklist
-@@ -20,7 +20,11 @@ kernel patches.
- 4: ppc64 is a good architecture for cross-compilation checking because it
-    tends to use `unsigned long' for 64-bit quantities.
+diff -puN arch/sparc/kernel/led.c~sparc-fix-build arch/sparc/kernel/led.c
+--- a/arch/sparc/kernel/led.c~sparc-fix-build
++++ a/arch/sparc/kernel/led.c
+@@ -1,8 +1,9 @@
+-#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/string.h>
++#include <linux/sched.h>
++#include <linux/uaccess.h>
  
--5: Matches kernel coding style(!)
-+5: Check your patch for general style as detailed in
-+   Documentation/CodingStyle.  Check for trivial violations with the
-+   patch style checker prior to submission (scripts/checkpatch.pl).
-+   You should be able to justify all violations that remain in
-+   your patch.
+ #include <asm/auxio.h>
  
- 6: Any new or modified CONFIG options don't muck up the config menu.
+diff -puN include/linux/memcontrol.h~sparc-fix-build include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~sparc-fix-build
++++ a/include/linux/memcontrol.h
+@@ -20,9 +20,6 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
  
-@@ -79,13 +83,3 @@ kernel patches.
- 23: Tested after it has been merged into the -mm patchset to make sure
-     that it still works with all of the other queued patches and various
-     changes in the VM, VFS, and other subsystems.
+-#include <linux/rcupdate.h>
+-#include <linux/mm.h>
 -
--24: Avoid whitespace damage such as indenting with spaces or whitespace
--    at the end of lines.  You can test this by feeding the patch to
--    "git apply --check --whitespace=error-all"
--
--25: Check your patch for general style as detailed in
--    Documentation/CodingStyle.  Check for trivial violations with the
--    patch style checker prior to submission (scripts/checkpatch.pl).
--    You should be able to justify all violations that remain in
--    your patch.
+ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-documentation-prune-redundant-submitchecklist-items.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-reiser4.patch
+memcontrol-add-vm_match_cgroup.patch
+sparc-fix-build.patch
+mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
