@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-configurable-dmi-scanning-code.patch added to -mm tree
-Date: Mon, 11 Feb 2008 13:28:44 -0800
-Message-ID: <200802112129.m1BLSihb001252@imap1.linux-foundation.org>
+Subject: + remove-final-fastcall-users-fix.patch added to -mm tree
+Date: Mon, 11 Feb 2008 14:31:47 -0800
+Message-ID: <200802112231.m1BMVlSj004165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34164 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751561AbYBKWZ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753539AbYBKWcR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:25:27 -0500
+	Mon, 11 Feb 2008 17:32:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.petazzoni@free-electrons.com, hpa@zytor.com, mingo@elte.hu, mpm@selenic.com, tglx@linutronix.de
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     x86: configurable DMI scanning code
+     Documentation: Remove references to FASTCALL/fastcall
 has been added to the -mm tree.  Its filename is
-     x86-configurable-dmi-scanning-code.patch
+     remove-final-fastcall-users-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: configurable DMI scanning code
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Documentation: Remove references to FASTCALL/fastcall
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Turn CONFIG_DMI into a selectable option if EMBEDDED is defined, in
-order to be able to remove the DMI table scanning code if it's not
-needed, and then reduce the kernel code size.
+An example function prototype and description of options that
+modify how arguments are passed had references to fastcall.
 
-With CONFIG_DMI (i.e before) :
-
-   text    data     bss     dec     hex filename
-1076076  128656   98304 1303036  13e1fc vmlinux
-
-Without CONFIG_DMI (i.e after) :
-
-   text    data     bss     dec     hex filename
-1068092  126308   98304 1292704  13b9a0 vmlinux
-
-Result:
-
-   text    data     bss     dec     hex filename
-  -7984   -2348       0  -10332   -285c vmlinux
-
-The new option appears in "Processor type and features", only when
-CONFIG_EMBEDDED is defined.
-
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Anvin" <hpa@zytor.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig    |   12 +++++++++---
- include/linux/dmi.h |    1 +
- 2 files changed, 10 insertions(+), 3 deletions(-)
+ Documentation/RCU/NMI-RCU.txt |    2 +-
+ Documentation/kprobes.txt     |   11 +++++------
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-configurable-dmi-scanning-code arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-configurable-dmi-scanning-code
-+++ a/arch/x86/Kconfig
-@@ -87,9 +87,6 @@ config GENERIC_GPIO
- config ARCH_MAY_HAVE_PC_FDC
- 	def_bool y
+diff -puN Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users-fix Documentation/RCU/NMI-RCU.txt
+--- a/Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users-fix
++++ a/Documentation/RCU/NMI-RCU.txt
+@@ -25,7 +25,7 @@ the NMI handler to take the default mach
+ This nmi_callback variable is a global function pointer to the current
+ NMI handler.
  
--config DMI
--	def_bool y
--
- config RWSEM_GENERIC_SPINLOCK
- 	def_bool !X86_XADD
+-	fastcall void do_nmi(struct pt_regs * regs, long error_code)
++	void do_nmi(struct pt_regs * regs, long error_code)
+ 	{
+ 		int cpu;
  
-@@ -429,6 +426,15 @@ config HPET_EMULATE_RTC
+diff -puN Documentation/kprobes.txt~remove-final-fastcall-users-fix Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~remove-final-fastcall-users-fix
++++ a/Documentation/kprobes.txt
+@@ -92,9 +92,8 @@ handler has run.  Up to MAX_STACK_SIZE b
+ 64 bytes on i386.
  
- # Mark as embedded because too many people got it wrong.
- # The code disables itself when not needed.
-+config DMI
-+	default y
-+	bool "Enable DMI scanning" if EMBEDDED
-+	help
-+	  Enabled scanning of DMI to identify machine quirks. Say Y
-+	  here unless you have verified that your setup is not
-+	  affected by entries in the DMI blacklist. Required by PNP
-+	  BIOS code.
-+
- config GART_IOMMU
- 	bool "GART IOMMU support" if EMBEDDED
- 	default y
-diff -puN include/linux/dmi.h~x86-configurable-dmi-scanning-code include/linux/dmi.h
---- a/include/linux/dmi.h~x86-configurable-dmi-scanning-code
-+++ a/include/linux/dmi.h
-@@ -90,6 +90,7 @@ static inline int dmi_check_system(const
- static inline const char * dmi_get_system_info(int field) { return NULL; }
- static inline const struct dmi_device * dmi_find_device(int type, const char *name,
- 	const struct dmi_device *from) { return NULL; }
-+static inline void dmi_scan_machine(void) { return; }
- static inline int dmi_get_year(int year) { return 0; }
- static inline int dmi_name_in_vendors(const char *s) { return 0; }
- #define dmi_available 0
+ Note that the probed function's args may be passed on the stack
+-or in registers (e.g., for x86_64 or for an i386 fastcall function).
+-The jprobe will work in either case, so long as the handler's
+-prototype matches that of the probed function.
++or in registers.  The jprobe will work in either case, so long as the
++handler's prototype matches that of the probed function.
+ 
+ 1.3 Return Probes
+ 
+@@ -270,9 +269,9 @@ Kprobes runs the handler whose address i
+ The handler should have the same arg list and return type as the probed
+ function; and just before it returns, it must call jprobe_return().
+ (The handler never actually returns, since jprobe_return() returns
+-control to Kprobes.)  If the probed function is declared asmlinkage,
+-fastcall, or anything else that affects how args are passed, the
+-handler's declaration must match.
++control to Kprobes.)  If the probed function is declared asmlinkage
++or anything else that affects how args are passed, the handler's
++declaration must match.
+ 
+ register_jprobe() returns 0 on success, or a negative errno otherwise.
+ 
 _
 
-Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-x86-configurable-dmi-scanning-code.patch
+origin.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
+remove-final-fastcall-users.patch
+remove-final-fastcall-users-fix.patch
+final-removal-of-fastcall-fastcall.patch
+git-x86.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
