@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch added to -mm tree
-Date: Mon, 11 Feb 2008 12:50:31 -0800
-Message-ID: <200802112050.m1BKoWq2032307@imap1.linux-foundation.org>
+Subject: + ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch added to -mm tree
+Date: Mon, 11 Feb 2008 12:49:29 -0800
+Message-ID: <200802112049.m1BKnUuX032282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39937 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42033 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756875AbYBKVNm (ORCPT
+	by vger.kernel.org with ESMTP id S1752281AbYBKVQR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 16:13:42 -0500
+	Mon, 11 Feb 2008 16:16:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Nadia.Derbey@bull.net, cmm@us.ibm.com, matthltc@us.ibm.com, pierre.peiffer@b
 
 
 The patch titled
-     ipc: do not recompute msgmni anymore if explicitly set by user
+     ipc: recompute msgmni on ipc namespace creation/removal
 has been added to the -mm tree.  Its filename is
-     ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
+     ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: do not recompute msgmni anymore if explicitly set by user
+Subject: ipc: recompute msgmni on ipc namespace creation/removal
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Make msgmni not recomputed anymore upon ipc namespace creation / removal or
-memory add/remove, as soon as it has been set from userland.
+Introduce a notification mechanism that aims at recomputing msgmni each time
+an ipc namespace is created or removed.
 
-As soon as msgmni is explicitly set via procfs or sysctl(), the associated
-callback routine is unregistered from the ipc namespace notifier chain.
+The ipc namespace notifier chain already defined for memory hotplug management
+is used for that purpose too.
+
+Each time a new ipc namespace is allocated or an existing ipc namespace is
+removed, the ipcns notifier chain is notified.  The callback routine for each
+registered ipc namespace is then activated in order to recompute msgmni for
+that namespace.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
@@ -51,85 +56,124 @@ Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/ipc_sysctl.c |   43 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
+ include/linux/ipc_namespace.h |   25 ++-----------------------
+ ipc/Makefile                  |    3 +--
+ ipc/ipcns_notifier.c          |    2 ++
+ ipc/namespace.c               |   12 ++++++++++++
+ 4 files changed, 17 insertions(+), 25 deletions(-)
 
-diff -puN ipc/ipc_sysctl.c~ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user
-+++ a/ipc/ipc_sysctl.c
-@@ -35,6 +35,24 @@ static int proc_ipc_dointvec(ctl_table *
- 	return proc_dointvec(&ipc_table, write, filp, buffer, lenp, ppos);
+diff -puN include/linux/ipc_namespace.h~ipc-recompute-msgmni-on-ipc-namespace-creation-removal include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-recompute-msgmni-on-ipc-namespace-creation-removal
++++ a/include/linux/ipc_namespace.h
+@@ -4,14 +4,14 @@
+ #include <linux/err.h>
+ #include <linux/idr.h>
+ #include <linux/rwsem.h>
+-#ifdef CONFIG_MEMORY_HOTPLUG
+ #include <linux/notifier.h>
+-#endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ /*
+  * ipc namespace events
+  */
+ #define IPCNS_MEMCHANGED   0x00000001   /* Notify lowmem size changed */
++#define IPCNS_CREATED  0x00000002   /* Notify new ipc namespace created */
++#define IPCNS_REMOVED  0x00000003   /* Notify ipc namespace removed */
+ 
+ #define IPCNS_CALLBACK_PRI 0
+ 
+@@ -42,9 +42,7 @@ struct ipc_namespace {
+ 	int		shm_ctlmni;
+ 	int		shm_tot;
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG
+ 	struct notifier_block ipcns_nb;
+-#endif
+ };
+ 
+ extern struct ipc_namespace init_ipc_ns;
+@@ -53,29 +51,10 @@ extern atomic_t nr_ipc_ns;
+ #ifdef CONFIG_SYSVIPC
+ #define INIT_IPC_NS(ns)		.ns		= &init_ipc_ns,
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-
+ extern int register_ipcns_notifier(struct ipc_namespace *);
+ extern int unregister_ipcns_notifier(struct ipc_namespace *);
+ extern int ipcns_notify(unsigned long);
+ 
+-#else /* CONFIG_MEMORY_HOTPLUG */
+-
+-static inline int register_ipcns_notifier(struct ipc_namespace *ipcns)
+-{
+-	return 0;
+-}
+-static inline int unregister_ipcns_notifier(struct ipc_namespace *ipcns)
+-{
+-	return 0;
+-}
+-static inline int ipcns_notify(unsigned long ev)
+-{
+-	return 0;
+-}
+-
+-#endif /* CONFIG_MEMORY_HOTPLUG */
+-
+ #else /* CONFIG_SYSVIPC */
+ #define INIT_IPC_NS(ns)
+ #endif /* CONFIG_SYSVIPC */
+diff -puN ipc/Makefile~ipc-recompute-msgmni-on-ipc-namespace-creation-removal ipc/Makefile
+--- a/ipc/Makefile~ipc-recompute-msgmni-on-ipc-namespace-creation-removal
++++ a/ipc/Makefile
+@@ -3,8 +3,7 @@
+ #
+ 
+ obj-$(CONFIG_SYSVIPC_COMPAT) += compat.o
+-obj_mem-$(CONFIG_MEMORY_HOTPLUG) += ipcns_notifier.o
+-obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o $(obj_mem-y)
++obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o ipcns_notifier.o
+ obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysctl.o
+ obj_mq-$(CONFIG_COMPAT) += compat_mq.o
+ obj-$(CONFIG_POSIX_MQUEUE) += mqueue.o msgutil.o $(obj_mq-y)
+diff -puN ipc/ipcns_notifier.c~ipc-recompute-msgmni-on-ipc-namespace-creation-removal ipc/ipcns_notifier.c
+--- a/ipc/ipcns_notifier.c~ipc-recompute-msgmni-on-ipc-namespace-creation-removal
++++ a/ipc/ipcns_notifier.c
+@@ -29,6 +29,8 @@ static int ipcns_callback(struct notifie
+ 
+ 	switch (action) {
+ 	case IPCNS_MEMCHANGED:   /* amount of lowmem has changed */
++	case IPCNS_CREATED:
++	case IPCNS_REMOVED:
+ 		/*
+ 		 * It's time to recompute msgmni
+ 		 */
+diff -puN ipc/namespace.c~ipc-recompute-msgmni-on-ipc-namespace-creation-removal ipc/namespace.c
+--- a/ipc/namespace.c~ipc-recompute-msgmni-on-ipc-namespace-creation-removal
++++ a/ipc/namespace.c
+@@ -26,6 +26,12 @@ static struct ipc_namespace *clone_ipc_n
+ 	msg_init_ns(ns);
+ 	shm_init_ns(ns);
+ 
++	/*
++	 * msgmni has already been computed for the new ipc ns.
++	 * Thus, do the ipcns creation notification before registering that
++	 * new ipcns in the chain.
++	 */
++	ipcns_notify(IPCNS_CREATED);
+ 	register_ipcns_notifier(ns);
+ 
+ 	kref_init(&ns->kref);
+@@ -97,4 +103,10 @@ void free_ipc_ns(struct kref *kref)
+ 	shm_exit_ns(ns);
+ 	kfree(ns);
+ 	atomic_dec(&nr_ipc_ns);
++
++	/*
++	 * Do the ipcns removal notification after decrementing nr_ipc_ns in
++	 * order to have a correct value when recomputing msgmni.
++	 */
++	ipcns_notify(IPCNS_REMOVED);
  }
- 
-+static int proc_ipc_callback_dointvec(ctl_table *table, int write,
-+	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	size_t lenp_bef = *lenp;
-+	int rc;
-+
-+	rc = proc_ipc_dointvec(table, write, filp, buffer, lenp, ppos);
-+
-+	if (write && !rc && lenp_bef == *lenp)
-+		/*
-+		 * Tunable has successfully been changed from userland:
-+		 * disable its automatic recomputing.
-+		 */
-+		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
-+
-+	return rc;
-+}
-+
- static int proc_ipc_doulongvec_minmax(ctl_table *table, int write,
- 	struct file *filp, void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -49,6 +67,7 @@ static int proc_ipc_doulongvec_minmax(ct
- #else
- #define proc_ipc_doulongvec_minmax NULL
- #define proc_ipc_dointvec	   NULL
-+#define proc_ipc_callback_dointvec NULL
- #endif
- 
- #ifdef CONFIG_SYSCTL_SYSCALL
-@@ -90,8 +109,28 @@ static int sysctl_ipc_data(ctl_table *ta
- 	}
- 	return 1;
- }
-+
-+static int sysctl_ipc_registered_data(ctl_table *table, int __user *name,
-+		int nlen, void __user *oldval, size_t __user *oldlenp,
-+		void __user *newval, size_t newlen)
-+{
-+	int rc;
-+
-+	rc = sysctl_ipc_data(table, name, nlen, oldval, oldlenp, newval,
-+		newlen);
-+
-+	if (newval && newlen && rc > 0)
-+		/*
-+		 * Tunable has successfully been changed from userland:
-+		 * disable its automatic recomputing.
-+		 */
-+		unregister_ipcns_notifier(current->nsproxy->ipc_ns);
-+
-+	return rc;
-+}
- #else
- #define sysctl_ipc_data NULL
-+#define sysctl_ipc_registered_data NULL
- #endif
- 
- static struct ctl_table ipc_kern_table[] = {
-@@ -137,8 +176,8 @@ static struct ctl_table ipc_kern_table[]
- 		.data		= &init_ipc_ns.msg_ctlmni,
- 		.maxlen		= sizeof (init_ipc_ns.msg_ctlmni),
- 		.mode		= 0644,
--		.proc_handler	= proc_ipc_dointvec,
--		.strategy	= sysctl_ipc_data,
-+		.proc_handler	= proc_ipc_callback_dointvec,
-+		.strategy	= sysctl_ipc_registered_data,
- 	},
- 	{
- 		.ctl_name	= KERN_MSGMNB,
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
