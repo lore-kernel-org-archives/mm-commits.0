@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + modules-warn-about-suspicious-return-values-from-modules-init-hook.patch added to -mm tree
-Date: Mon, 11 Feb 2008 14:54:21 -0800
-Message-ID: <200802112254.m1BMsL7x005330@imap1.linux-foundation.org>
+Subject: + epoll-avoid-kmemcheck-warning.patch added to -mm tree
+Date: Mon, 11 Feb 2008 14:57:05 -0800
+Message-ID: <200802112257.m1BMv54K005440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34670 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37592 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752170AbYBKWyp (ORCPT
+	by vger.kernel.org with ESMTP id S1758999AbYBKW5k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 17:54:45 -0500
+	Mon, 11 Feb 2008 17:57:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, rusty@rustcorp.com.au
+Cc: davidel@xmailserver.org, vegard.nossum@gmail.com
 
 
 The patch titled
-     modules: warn about suspicious return values from module's ->init() hook
+     epoll: avoid kmemcheck warning
 has been added to the -mm tree.  Its filename is
-     modules-warn-about-suspicious-return-values-from-modules-init-hook.patch
+     epoll-avoid-kmemcheck-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: warn about suspicious return values from module's ->init() hook
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: epoll: avoid kmemcheck warning
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Return value convention of module's init functions is 0/-E.  Sometimes,
-e.g.  during forward-porting mistakes happen and buggy module created,
-where result of comparison "workqueue != NULL" is propagated all the way up
-to sys_init_module.  What happens is that some other module created
-workqueue in question, our module created it again and module was
-successfully loaded.
+Epoll calls rb_set_parent(n, n) to initialize the rb-tree node, but
+rb_set_parent() accesses node's pointer in its code.  This creates a
+warning in kmemcheck (reported by Vegard Nossum) about an uninitialized
+memory access.  The warning is harmless since the following rb-tree node
+insert is going to overwrite the node data.  In any case I think it's
+better to not have that happening at all, and fix it by properly
+initializing the data.
 
-Or it could be some other bug.
-
-Let's make such mistakes much more visible.  In retrospective, such
-messages would noticeably shorten some of my head-scratching sessions.
-
-Note, that dump_stack() is just a way to get attention from user.  Sample
-message:
-
-sys_init_module: 'foo'->init suspiciously returned 1, it should follow 0/-E convention
-sys_init_module: loading module anyway...
-Pid: 4223, comm: modprobe Not tainted 2.6.24-25f666300625d894ebe04bac2b4b3aadb907c861 #5
-
-Call Trace:
- [<ffffffff80254b05>] sys_init_module+0xe5/0x1d0
- [<ffffffff8020b39b>] system_call_after_swapgs+0x7b/0x80
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/eventpoll.c         |    2 +-
+ include/linux/rbtree.h |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN kernel/module.c~modules-warn-about-suspicious-return-values-from-modules-init-hook kernel/module.c
---- a/kernel/module.c~modules-warn-about-suspicious-return-values-from-modules-init-hook
-+++ a/kernel/module.c
-@@ -2184,6 +2184,14 @@ sys_init_module(void __user *umod,
- 		wake_up(&module_wq);
- 		return ret;
- 	}
-+	if (ret > 0) {
-+		printk(KERN_WARNING "%s: '%s'->init suspiciously returned %d, "
-+				    "it should follow 0/-E convention\n"
-+		       KERN_WARNING "%s: loading module anyway...\n",
-+		       __func__, mod->name, ret,
-+		       __func__);
-+		dump_stack();
-+	}
+diff -puN fs/eventpoll.c~epoll-avoid-kmemcheck-warning fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-avoid-kmemcheck-warning
++++ a/fs/eventpoll.c
+@@ -260,7 +260,7 @@ static inline int ep_cmp_ffd(struct epol
+ /* Special initialization for the RB tree node to detect linkage */
+ static inline void ep_rb_initnode(struct rb_node *n)
+ {
+-	rb_set_parent(n, n);
++	rb_init_node(n, n);
+ }
  
- 	/* Now it's a first class citizen! */
- 	mutex_lock(&module_mutex);
+ /* Removes a node from the RB tree and marks it for a fast is-linked check */
+diff -puN include/linux/rbtree.h~epoll-avoid-kmemcheck-warning include/linux/rbtree.h
+--- a/include/linux/rbtree.h~epoll-avoid-kmemcheck-warning
++++ a/include/linux/rbtree.h
+@@ -112,6 +112,18 @@ struct rb_root
+ 	struct rb_node *rb_node;
+ };
+ 
++/**
++ * rb_init_node - Initializes the node internal data
++ *
++ * @node: Pointer to the RB-Tree node
++ * @parent: Pointer to the parent node, or NULL
++ *
++ */
++static inline void rb_init_node(struct rb_node *node, struct rb_node *parent)
++{
++	node->rb_parent_color = (unsigned long) parent;
++	node->rb_left = node->rb_right = NULL;
++}
+ 
+ #define rb_parent(r)   ((struct rb_node *)((r)->rb_parent_color & ~3))
+ #define rb_color(r)   ((r)->rb_parent_color & 1)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-modules-warn-about-suspicious-return-values-from-modules-init-hook.patch
+epoll-avoid-kmemcheck-warning.patch
+git-kvm.patch
