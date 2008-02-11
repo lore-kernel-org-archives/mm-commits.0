@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch added to -mm tree
-Date: Mon, 11 Feb 2008 11:48:26 -0800
-Message-ID: <200802111948.m1BJmQA6029908@imap1.linux-foundation.org>
+Subject: + taint-kernel-after-warn_oncondition.patch added to -mm tree
+Date: Mon, 11 Feb 2008 12:11:24 -0800
+Message-ID: <200802112011.m1BKBOBE030820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143AbYBKUWJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754324AbYBKU37 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 15:22:09 -0500
+	Mon, 11 Feb 2008 15:29:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pbadari@us.ibm.com, apw@shadowen.org, gregkh@suse.de, kay.sievers@vrfy.org, y-goto@jp.fujitsu.com
+Cc: nurhussein@gmail.com, a.p.zijlstra@chello.nl, arjan@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     register_memory/unregister_memory: fix use-after-free and refcounting
+     Taint kernel after WARN_ON(condition)
 has been added to the -mm tree.  Its filename is
-     register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch
+     taint-kernel-after-warn_oncondition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: register_memory/unregister_memory: fix use-after-free and refcounting
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: Taint kernel after WARN_ON(condition)
+From: Nur Hussein <nurhussein@gmail.com>
 
-register_memory()/unregister_memory() never gets called with "root". 
-unregister_memory() is accessing kobject_name of the object just freed up. 
-Since no one uses the code, lets take the code out.  And also, make
-register_memory() static.
+Taint the kernel with a new flag, 'W', whenever a warning is issued with
+WARN_ON(condition).  Whenever a warning occurs, it is helpful to record
+this within the kernel state as a taint.  When a BUG happens, it'd be
+useful to know if it was also preceded by a WARN.
 
-Another bug fix - before calling unregister_memory() remove_memory_block()
-gets a ref on kobject.  unregister_memory() need to drop that ref before
-calling sysdev_unregister().
-
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Nur Hussein (nurhussein@gmail.com)
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ include/asm-generic/bug.h |    6 +++++-
+ include/linux/kernel.h    |    1 +
+ kernel/panic.c            |    7 +++++--
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/memory.c~register_memory-unregister_memory-fix-use-after-free-and-refcounting drivers/base/memory.c
---- a/drivers/base/memory.c~register_memory-unregister_memory-fix-use-after-free-and-refcounting
-+++ a/drivers/base/memory.c
-@@ -62,8 +62,8 @@ void unregister_memory_notifier(struct n
- /*
-  * register_memory - Setup a sysfs device for a memory block
+diff -puN include/asm-generic/bug.h~taint-kernel-after-warn_oncondition include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~taint-kernel-after-warn_oncondition
++++ a/include/asm-generic/bug.h
+@@ -42,8 +42,10 @@ extern void warn_on_slowpath(const char 
+ #ifndef WARN_ON
+ #define WARN_ON(condition) ({						\
+ 	int __ret_warn_on = !!(condition);				\
+-	if (unlikely(__ret_warn_on))					\
++	if (unlikely(__ret_warn_on)) {					\
+ 		__WARN();						\
++		add_taint(TAINT_WARN);					\
++	}								\
+ 	unlikely(__ret_warn_on);					\
+ })
+ #endif
+@@ -60,6 +62,8 @@ extern void warn_on_slowpath(const char 
+ #ifndef HAVE_ARCH_WARN_ON
+ #define WARN_ON(condition) ({						\
+ 	int __ret_warn_on = !!(condition);				\
++	if (unlikely(__ret_warn_on)) 					\
++		add_taint(TAINT_WARN);					\
+ 	unlikely(__ret_warn_on);					\
+ })
+ #endif
+diff -puN include/linux/kernel.h~taint-kernel-after-warn_oncondition include/linux/kernel.h
+--- a/include/linux/kernel.h~taint-kernel-after-warn_oncondition
++++ a/include/linux/kernel.h
+@@ -255,6 +255,7 @@ extern enum system_states {
+ #define TAINT_USER			(1<<6)
+ #define TAINT_DIE			(1<<7)
+ #define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
++#define TAINT_WARN			(1<<9)
+ 
+ extern void dump_stack(void) __cold;
+ 
+diff -puN kernel/panic.c~taint-kernel-after-warn_oncondition kernel/panic.c
+--- a/kernel/panic.c~taint-kernel-after-warn_oncondition
++++ a/kernel/panic.c
+@@ -153,6 +153,8 @@ EXPORT_SYMBOL(panic);
+  *  'M' - System experienced a machine check exception.
+  *  'B' - System has hit bad_page.
+  *  'U' - Userspace-defined naughtiness.
++ *  'A' - ACPI table overridden.
++ *  'W' - Taint on warning.
+  *
+  *	The string is overwritten by the next call to print_taint().
   */
--int register_memory(struct memory_block *memory, struct mem_section *section,
--		struct node *root)
-+static
-+int register_memory(struct memory_block *memory, struct mem_section *section)
+@@ -161,7 +163,7 @@ const char *print_tainted(void)
  {
- 	int error;
- 
-@@ -71,26 +71,18 @@ int register_memory(struct memory_block 
- 	memory->sysdev.id = __section_nr(section);
- 
- 	error = sysdev_register(&memory->sysdev);
--
--	if (root && !error)
--		error = sysfs_create_link(&root->sysdev.kobj,
--					  &memory->sysdev.kobj,
--					  kobject_name(&memory->sysdev.kobj));
--
- 	return error;
- }
- 
- static void
--unregister_memory(struct memory_block *memory, struct mem_section *section,
--		struct node *root)
-+unregister_memory(struct memory_block *memory, struct mem_section *section)
- {
- 	BUG_ON(memory->sysdev.cls != &memory_sysdev_class);
- 	BUG_ON(memory->sysdev.id != __section_nr(section));
- 
-+	/* drop the ref. we got in remove_memory_block() */
-+	kobject_put(&memory->sysdev.kobj);
- 	sysdev_unregister(&memory->sysdev);
--	if (root)
--		sysfs_remove_link(&root->sysdev.kobj,
--				  kobject_name(&memory->sysdev.kobj));
- }
- 
- /*
-@@ -345,7 +337,7 @@ static int add_memory_block(unsigned lon
- 	mutex_init(&mem->state_mutex);
- 	mem->phys_device = phys_device;
- 
--	ret = register_memory(mem, section, NULL);
-+	ret = register_memory(mem, section);
- 	if (!ret)
- 		ret = mem_create_simple_file(mem, phys_index);
- 	if (!ret)
-@@ -396,7 +388,7 @@ int remove_memory_block(unsigned long no
- 	mem_remove_simple_file(mem, phys_index);
- 	mem_remove_simple_file(mem, state);
- 	mem_remove_simple_file(mem, phys_device);
--	unregister_memory(mem, section, NULL);
-+	unregister_memory(mem, section);
- 
- 	return 0;
- }
+ 	static char buf[20];
+ 	if (tainted) {
+-		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c",
++		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c%c",
+ 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
+ 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
+ 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
+@@ -170,7 +172,8 @@ const char *print_tainted(void)
+ 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
+ 			tainted & TAINT_USER ? 'U' : ' ',
+ 			tainted & TAINT_DIE ? 'D' : ' ',
+-			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ');
++			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ',
++			tainted & TAINT_WARN ? 'W' : ' ');
+ 	}
+ 	else
+ 		snprintf(buf, sizeof(buf), "Not tainted");
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from nurhussein@gmail.com are
 
-origin.patch
-add-remove_memory-for-ppc64-3.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+taint-kernel-after-warn_oncondition.patch
