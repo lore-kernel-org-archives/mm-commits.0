@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + taint-kernel-after-warn_oncondition.patch added to -mm tree
-Date: Mon, 11 Feb 2008 12:11:24 -0800
-Message-ID: <200802112011.m1BKBOBE030820@imap1.linux-foundation.org>
+Subject: + acer-wmi-fail-gracefully-if-acpi-is-disabled.patch added to -mm tree
+Date: Mon, 11 Feb 2008 12:13:08 -0800
+Message-ID: <200802112013.m1BKD853030882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754324AbYBKU37 (ORCPT
+	by vger.kernel.org with ESMTP id S1751247AbYBKUmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 15:29:59 -0500
+	Mon, 11 Feb 2008 15:42:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nurhussein@gmail.com, a.p.zijlstra@chello.nl, arjan@infradead.org, mingo@elte.hu
+Cc: carlos@strangeworlds.co.uk, akpm@linux-foundation.org, lenb@kernel.org, mingo@elte.hu, torvalds@linux-foundation.org
 
 
 The patch titled
-     Taint kernel after WARN_ON(condition)
+     acer-wmi: fail gracefully if ACPI is disabled
 has been added to the -mm tree.  Its filename is
-     taint-kernel-after-warn_oncondition.patch
+     acer-wmi-fail-gracefully-if-acpi-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Taint kernel after WARN_ON(condition)
-From: Nur Hussein <nurhussein@gmail.com>
+Subject: acer-wmi: fail gracefully if ACPI is disabled
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-Taint the kernel with a new flag, 'W', whenever a warning is issued with
-WARN_ON(condition).  Whenever a warning occurs, it is helpful to record
-this within the kernel state as a taint.  When a BUG happens, it'd be
-useful to know if it was also preceded by a WARN.
+WMI drivers, like their ACPI counterparts, should also check if ACPI is
+disabled or not, and bail out if so, otherwise we cause a crash.
 
-Signed-off-by: Nur Hussein (nurhussein@gmail.com)
+Spotted by Ingo Molnar.
+
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    6 +++++-
- include/linux/kernel.h    |    1 +
- kernel/panic.c            |    7 +++++--
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/misc/acer-wmi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-generic/bug.h~taint-kernel-after-warn_oncondition include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~taint-kernel-after-warn_oncondition
-+++ a/include/asm-generic/bug.h
-@@ -42,8 +42,10 @@ extern void warn_on_slowpath(const char 
- #ifndef WARN_ON
- #define WARN_ON(condition) ({						\
- 	int __ret_warn_on = !!(condition);				\
--	if (unlikely(__ret_warn_on))					\
-+	if (unlikely(__ret_warn_on)) {					\
- 		__WARN();						\
-+		add_taint(TAINT_WARN);					\
-+	}								\
- 	unlikely(__ret_warn_on);					\
- })
- #endif
-@@ -60,6 +62,8 @@ extern void warn_on_slowpath(const char 
- #ifndef HAVE_ARCH_WARN_ON
- #define WARN_ON(condition) ({						\
- 	int __ret_warn_on = !!(condition);				\
-+	if (unlikely(__ret_warn_on)) 					\
-+		add_taint(TAINT_WARN);					\
- 	unlikely(__ret_warn_on);					\
- })
- #endif
-diff -puN include/linux/kernel.h~taint-kernel-after-warn_oncondition include/linux/kernel.h
---- a/include/linux/kernel.h~taint-kernel-after-warn_oncondition
-+++ a/include/linux/kernel.h
-@@ -255,6 +255,7 @@ extern enum system_states {
- #define TAINT_USER			(1<<6)
- #define TAINT_DIE			(1<<7)
- #define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
-+#define TAINT_WARN			(1<<9)
- 
- extern void dump_stack(void) __cold;
- 
-diff -puN kernel/panic.c~taint-kernel-after-warn_oncondition kernel/panic.c
---- a/kernel/panic.c~taint-kernel-after-warn_oncondition
-+++ a/kernel/panic.c
-@@ -153,6 +153,8 @@ EXPORT_SYMBOL(panic);
-  *  'M' - System experienced a machine check exception.
-  *  'B' - System has hit bad_page.
-  *  'U' - Userspace-defined naughtiness.
-+ *  'A' - ACPI table overridden.
-+ *  'W' - Taint on warning.
-  *
-  *	The string is overwritten by the next call to print_taint().
-  */
-@@ -161,7 +163,7 @@ const char *print_tainted(void)
+diff -puN drivers/misc/acer-wmi.c~acer-wmi-fail-gracefully-if-acpi-is-disabled drivers/misc/acer-wmi.c
+--- a/drivers/misc/acer-wmi.c~acer-wmi-fail-gracefully-if-acpi-is-disabled
++++ a/drivers/misc/acer-wmi.c
+@@ -1031,6 +1031,9 @@ static int __init acer_wmi_init(void)
  {
- 	static char buf[20];
- 	if (tainted) {
--		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c",
-+		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c%c",
- 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
- 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
- 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
-@@ -170,7 +172,8 @@ const char *print_tainted(void)
- 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
- 			tainted & TAINT_USER ? 'U' : ' ',
- 			tainted & TAINT_DIE ? 'D' : ' ',
--			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ');
-+			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ',
-+			tainted & TAINT_WARN ? 'W' : ' ');
- 	}
- 	else
- 		snprintf(buf, sizeof(buf), "Not tainted");
+ 	int err;
+ 
++	if (acpi_disabled)
++		return -ENODEV;
++
+ 	printk(ACER_INFO "Acer Laptop ACPI-WMI Extras version %s\n",
+ 			ACER_WMI_VERSION);
+ 
 _
 
-Patches currently in -mm which might be from nurhussein@gmail.com are
+Patches currently in -mm which might be from carlos@strangeworlds.co.uk are
 
-taint-kernel-after-warn_oncondition.patch
+origin.patch
+acer-wmi-fail-gracefully-if-acpi-is-disabled.patch
