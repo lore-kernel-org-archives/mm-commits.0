@@ -1,80 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-fix-a-potential-race-condition-in-watchdog-2.patch removed from -mm tree
-Date: Mon, 11 Feb 2008 16:39:49 -0800
-Message-ID: <200802120048.m1C0mjTh010158@imap1.linux-foundation.org>
+Subject: + rcupdate-fix-comment.patch added to -mm tree
+Date: Mon, 11 Feb 2008 18:47:41 -0800
+Message-ID: <200802120248.m1C2mmco014363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53128 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52316 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbYBLAtc (ORCPT
+	by vger.kernel.org with ESMTP id S1755441AbYBLCtD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Feb 2008 19:49:32 -0500
+	Mon, 11 Feb 2008 21:49:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmitry.adamushko@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulmck@linux.vnet.ibm.com, harvey.harrison@gmail.com
 
 
 The patch titled
-     softlockup: fix a potential race condition in watchdog()
-has been removed from the -mm tree.  Its filename was
-     softlockup-fix-a-potential-race-condition-in-watchdog-2.patch
+     rcupdate: fix comment
+has been added to the -mm tree.  Its filename is
+     rcupdate-fix-comment.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: softlockup: fix a potential race condition in watchdog()
-From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Subject: rcupdate: fix comment
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-kthread_stop() can be called when a 'watchdog' thread is executing after
-kthread_should_stop() but before set_task_state(TASK_INTERRUPTIBLE).
+This comment caused some consternation during fastcall removal.  Make it
+truthful.
 
-Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ kernel/rcupdate.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/softlockup.c~softlockup-fix-a-potential-race-condition-in-watchdog-2 kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-fix-a-potential-race-condition-in-watchdog-2
-+++ a/kernel/softlockup.c
-@@ -217,26 +217,25 @@ static int watchdog(void *__bind_cpu)
- 	/* initialize timestamp */
- 	touch_softlockup_watchdog();
+diff -puN kernel/rcupdate.c~rcupdate-fix-comment kernel/rcupdate.c
+--- a/kernel/rcupdate.c~rcupdate-fix-comment
++++ a/kernel/rcupdate.c
+@@ -56,7 +56,10 @@ static atomic_t rcu_barrier_cpu_count;
+ static DEFINE_MUTEX(rcu_barrier_mutex);
+ static struct completion rcu_barrier_completion;
  
-+	set_current_state(TASK_INTERRUPTIBLE);
- 	/*
- 	 * Run briefly once per second to reset the softlockup timestamp.
- 	 * If this gets delayed for more than 60 seconds then the
- 	 * debug-printout triggers in softlockup_tick().
- 	 */
- 	while (!kthread_should_stop()) {
--		set_current_state(TASK_INTERRUPTIBLE);
- 		touch_softlockup_watchdog();
- 		schedule();
- 
- 		if (kthread_should_stop())
- 			break;
- 
--		if (this_cpu != check_cpu)
--			continue;
--
--		if (sysctl_hung_task_timeout_secs)
-+		if (this_cpu == check_cpu && sysctl_hung_task_timeout_secs)
- 			check_hung_uninterruptible_tasks(this_cpu);
- 
-+		set_current_state(TASK_INTERRUPTIBLE);
- 	}
-+	__set_current_state(TASK_RUNNING);
- 
- 	return 0;
- }
+-/* Because of FASTCALL declaration of complete, we use this wrapper */
++/*
++ * Awaken the corresponding synchronize_rcu() instance now that a
++ * grace period has elapsed.
++ */
+ static void wakeme_after_rcu(struct rcu_head  *head)
+ {
+ 	struct rcu_synchronize *rcu;
 _
 
-Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
-softlockup-fix-a-potential-race-condition-in-watchdog-2.patch
+rcupdate-fix-comment.patch
+git-sched.patch
