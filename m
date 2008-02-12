@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-message-queues-introduce-msgctl_down.patch added to -mm tree
-Date: Tue, 12 Feb 2008 13:28:01 -0800
-Message-ID: <200802122128.m1CLS248023069@imap1.linux-foundation.org>
+Subject: + ipc-consolidate-all-xxxctl_down-functions.patch added to -mm tree
+Date: Tue, 12 Feb 2008 13:28:55 -0800
+Message-ID: <200802122128.m1CLStAp023108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58535 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751102AbYBLV3P (ORCPT
+	by vger.kernel.org with ESMTP id S1751132AbYBLVad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 16:29:15 -0500
+	Tue, 12 Feb 2008 16:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com
 
 
 The patch titled
-     IPC/message queues: introduce msgctl_down
+     IPC: consolidate all xxxctl_down() functions
 has been added to the -mm tree.  Its filename is
-     ipc-message-queues-introduce-msgctl_down.patch
+     ipc-consolidate-all-xxxctl_down-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC/message queues: introduce msgctl_down
+Subject: IPC: consolidate all xxxctl_down() functions
 From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Currently, sys_msgctl is not easy to read.
+semctl_down(), msgctl_down() and shmctl_down() are used to handle the same set
+of commands for each kind of IPC.  They all start to do the same job (they
+retrieve the ipc and do some permission checks) before handling the commands
+on their own.
 
-This patch tries to improve that by introducing the msgctl_down function to
-handle all commands requiring the rwmutex to be taken in write mode (ie
-IPC_SET and IPC_RMID for now).  It is the equivalent function of semctl_down
-for message queues.
+This patch proposes to consolidate this by moving these same pieces of code
+into one common function called ipcctl_pre_down().
 
-This greatly changes the readability of sys_msgctl and also harmonizes the way
-these commands are handled among all IPCs.
+It simplifies a little these xxxctl_down() functions and increases a little
+the maintainability.
 
 Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -53,125 +54,40 @@ Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |  162 ++++++++++++++++++++++++++++------------------------
- 1 file changed, 89 insertions(+), 73 deletions(-)
+ ipc/msg.c  |   48 +++++-------------------------------------------
+ ipc/sem.c  |   42 ++++--------------------------------------
+ ipc/shm.c  |   42 ++++--------------------------------------
+ ipc/util.c |   51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ ipc/util.h |    2 ++
+ 5 files changed, 66 insertions(+), 119 deletions(-)
 
-diff -puN ipc/msg.c~ipc-message-queues-introduce-msgctl_down ipc/msg.c
---- a/ipc/msg.c~ipc-message-queues-introduce-msgctl_down
+diff -puN ipc/msg.c~ipc-consolidate-all-xxxctl_down-functions ipc/msg.c
+--- a/ipc/msg.c~ipc-consolidate-all-xxxctl_down-functions
 +++ a/ipc/msg.c
-@@ -436,10 +436,95 @@ copy_msqid_from_user(struct msq_setbuf *
- 	}
+@@ -142,21 +142,6 @@ void __init msg_init(void)
  }
  
--asmlinkage long sys_msgctl(int msqid, int cmd, struct msqid_ds __user *buf)
-+/*
-+ * This function handles some msgctl commands which require the rw_mutex
-+ * to be held in write mode.
-+ * NOTE: no locks must be held, the rw_mutex is taken inside this function.
-+ */
-+static int msgctl_down(struct ipc_namespace *ns, int msqid, int cmd,
-+		       struct msqid_ds __user *buf, int version)
- {
- 	struct kern_ipc_perm *ipcp;
--	struct msq_setbuf uninitialized_var(setbuf);
-+	struct msq_setbuf setbuf;
-+	struct msg_queue *msq;
-+	int err;
-+
-+	if (cmd == IPC_SET) {
-+		if (copy_msqid_from_user(&setbuf, buf, version))
-+			return -EFAULT;
-+	}
-+
-+	down_write(&msg_ids(ns).rw_mutex);
-+	msq = msg_lock_check_down(ns, msqid);
-+	if (IS_ERR(msq)) {
-+		err = PTR_ERR(msq);
-+		goto out_up;
-+	}
-+
-+	ipcp = &msq->q_perm;
-+
-+	err = audit_ipc_obj(ipcp);
-+	if (err)
-+		goto out_unlock;
-+
-+	if (cmd == IPC_SET) {
-+		err = audit_ipc_set_perm(setbuf.qbytes, setbuf.uid, setbuf.gid,
-+					 setbuf.mode);
-+		if (err)
-+			goto out_unlock;
-+	}
-+
-+	if (current->euid != ipcp->cuid &&
-+	    current->euid != ipcp->uid &&
-+	    !capable(CAP_SYS_ADMIN)) {
-+		/* We _could_ check for CAP_CHOWN above, but we don't */
-+		err = -EPERM;
-+		goto out_unlock;
-+	}
-+
-+	err = security_msg_queue_msgctl(msq, cmd);
-+	if (err)
-+		goto out_unlock;
-+
-+	switch (cmd) {
-+	case IPC_RMID:
-+		freeque(ns, ipcp);
-+		goto out_up;
-+	case IPC_SET:
-+		if (setbuf.qbytes > ns->msg_ctlmnb &&
-+		    !capable(CAP_SYS_RESOURCE)) {
-+			err = -EPERM;
-+			goto out_unlock;
-+		}
-+
-+		msq->q_qbytes = setbuf.qbytes;
-+
-+		ipcp->uid = setbuf.uid;
-+		ipcp->gid = setbuf.gid;
-+		ipcp->mode = (ipcp->mode & ~S_IRWXUGO) |
-+			     (S_IRWXUGO & setbuf.mode);
-+		msq->q_ctime = get_seconds();
-+		/* sleeping receivers might be excluded by
-+		 * stricter permissions.
-+		 */
-+		expunge_all(msq, -EAGAIN);
-+		/* sleeping senders might be able to send
-+		 * due to a larger queue size.
-+		 */
-+		ss_wakeup(&msq->q_senders, 0);
-+		break;
-+	default:
-+		err = -EINVAL;
-+	}
-+out_unlock:
-+	msg_unlock(msq);
-+out_up:
-+	up_write(&msg_ids(ns).rw_mutex);
-+	return err;
-+}
-+
-+asmlinkage long sys_msgctl(int msqid, int cmd, struct msqid_ds __user *buf)
-+{
- 	struct msg_queue *msq;
- 	int err, version;
- 	struct ipc_namespace *ns;
-@@ -535,82 +620,13 @@ asmlinkage long sys_msgctl(int msqid, in
- 		return success_return;
- 	}
- 	case IPC_SET:
--		if (!buf)
--			return -EFAULT;
--		if (copy_msqid_from_user(&setbuf, buf, version))
--			return -EFAULT;
--		break;
- 	case IPC_RMID:
--		break;
-+		err = msgctl_down(ns, msqid, cmd, buf, version);
-+		return err;
- 	default:
- 		return  -EINVAL;
+ /*
+- * This routine is called in the paths where the rw_mutex is held to protect
+- * access to the idr tree.
+- */
+-static inline struct msg_queue *msg_lock_check_down(struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&msg_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct msg_queue *)ipcp;
+-
+-	return container_of(ipcp, struct msg_queue, q_perm);
+-}
+-
+-/*
+  * msg_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+  */
+@@ -437,35 +422,12 @@ static int msgctl_down(struct ipc_namesp
+ 			return -EFAULT;
  	}
  
 -	down_write(&msg_ids(ns).rw_mutex);
@@ -185,63 +101,226 @@ diff -puN ipc/msg.c~ipc-message-queues-introduce-msgctl_down ipc/msg.c
 -
 -	err = audit_ipc_obj(ipcp);
 -	if (err)
--		goto out_unlock_up;
+-		goto out_unlock;
+-
 -	if (cmd == IPC_SET) {
--		err = audit_ipc_set_perm(setbuf.qbytes, setbuf.uid, setbuf.gid,
--					 setbuf.mode);
+-		err = audit_ipc_set_perm(msqid64.msg_qbytes,
+-					 msqid64.msg_perm.uid,
+-					 msqid64.msg_perm.gid,
+-					 msqid64.msg_perm.mode);
 -		if (err)
--			goto out_unlock_up;
+-			goto out_unlock;
 -	}
--
--	err = -EPERM;
++	ipcp = ipcctl_pre_down(&msg_ids(ns), msqid, cmd,
++			       &msqid64.msg_perm, msqid64.msg_qbytes);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
 -	if (current->euid != ipcp->cuid &&
--	    current->euid != ipcp->uid && !capable(CAP_SYS_ADMIN))
+-	    current->euid != ipcp->uid &&
+-	    !capable(CAP_SYS_ADMIN)) {
 -		/* We _could_ check for CAP_CHOWN above, but we don't */
--		goto out_unlock_up;
--
--	err = security_msg_queue_msgctl(msq, cmd);
--	if (err)
--		goto out_unlock_up;
--
--	switch (cmd) {
--	case IPC_SET:
--	{
 -		err = -EPERM;
--		if (setbuf.qbytes > ns->msg_ctlmnb && !capable(CAP_SYS_RESOURCE))
--			goto out_unlock_up;
--
--		msq->q_qbytes = setbuf.qbytes;
--
--		ipcp->uid = setbuf.uid;
--		ipcp->gid = setbuf.gid;
--		ipcp->mode = (ipcp->mode & ~S_IRWXUGO) |
--			     (S_IRWXUGO & setbuf.mode);
--		msq->q_ctime = get_seconds();
--		/* sleeping receivers might be excluded by
--		 * stricter permissions.
--		 */
--		expunge_all(msq, -EAGAIN);
--		/* sleeping senders might be able to send
--		 * due to a larger queue size.
--		 */
--		ss_wakeup(&msq->q_senders, 0);
--		msg_unlock(msq);
--		break;
+-		goto out_unlock;
 -	}
--	case IPC_RMID:
--		freeque(ns, &msq->q_perm);
--		break;
++	msq = container_of(ipcp, struct msg_queue, q_perm);
+ 
+ 	err = security_msg_queue_msgctl(msq, cmd);
+ 	if (err)
+diff -puN ipc/sem.c~ipc-consolidate-all-xxxctl_down-functions ipc/sem.c
+--- a/ipc/sem.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/sem.c
+@@ -141,21 +141,6 @@ void __init sem_init (void)
+ }
+ 
+ /*
+- * This routine is called in the paths where the rw_mutex is held to protect
+- * access to the idr tree.
+- */
+-static inline struct sem_array *sem_lock_check_down(struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&sem_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct sem_array *)ipcp;
+-
+-	return container_of(ipcp, struct sem_array, sem_perm);
+-}
+-
+-/*
+  * sem_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+  */
+@@ -878,31 +863,12 @@ static int semctl_down(struct ipc_namesp
+ 		if (copy_semid_from_user(&semid64, arg.buf, version))
+ 			return -EFAULT;
+ 	}
+-	down_write(&sem_ids(ns).rw_mutex);
+-	sma = sem_lock_check_down(ns, semid);
+-	if (IS_ERR(sma)) {
+-		err = PTR_ERR(sma);
+-		goto out_up;
 -	}
--	err = 0;
--out_up:
--	up_write(&msg_ids(ns).rw_mutex);
--	return err;
--out_unlock_up:
--	msg_unlock(msq);
--	goto out_up;
- out_unlock:
- 	msg_unlock(msq);
- 	return err;
+-
+-	ipcp = &sma->sem_perm;
+ 
+-	err = audit_ipc_obj(ipcp);
+-	if (err)
+-		goto out_unlock;
++	ipcp = ipcctl_pre_down(&sem_ids(ns), semid, cmd, &semid64.sem_perm, 0);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
+-	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, semid64.sem_perm.uid,
+-					 semid64.sem_perm.gid,
+-					 semid64.sem_perm.mode);
+-		if (err)
+-			goto out_unlock;
+-	}
+-	if (current->euid != ipcp->cuid && 
+-	    current->euid != ipcp->uid && !capable(CAP_SYS_ADMIN)) {
+-	    	err=-EPERM;
+-		goto out_unlock;
+-	}
++	sma = container_of(ipcp, struct sem_array, sem_perm);
+ 
+ 	err = security_sem_semctl(sma, cmd);
+ 	if (err)
+diff -puN ipc/shm.c~ipc-consolidate-all-xxxctl_down-functions ipc/shm.c
+--- a/ipc/shm.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/shm.c
+@@ -126,18 +126,6 @@ static inline struct shmid_kernel *shm_l
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+-static inline struct shmid_kernel *shm_lock_check_down(
+-						struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&shm_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct shmid_kernel *)ipcp;
+-
+-	return container_of(ipcp, struct shmid_kernel, shm_perm);
+-}
+-
+ /*
+  * shm_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+@@ -621,33 +609,11 @@ static int shmctl_down(struct ipc_namesp
+ 			return -EFAULT;
+ 	}
+ 
+-	down_write(&shm_ids(ns).rw_mutex);
+-	shp = shm_lock_check_down(ns, shmid);
+-	if (IS_ERR(shp)) {
+-		err = PTR_ERR(shp);
+-		goto out_up;
+-	}
+-
+-	ipcp = &shp->shm_perm;
+-
+-	err = audit_ipc_obj(ipcp);
+-	if (err)
+-		goto out_unlock;
+-
+-	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, shmid64.shm_perm.uid,
+-					 shmid64.shm_perm.gid,
+-					 shmid64.shm_perm.mode);
+-		if (err)
+-			goto out_unlock;
+-	}
++	ipcp = ipcctl_pre_down(&shm_ids(ns), shmid, cmd, &shmid64.shm_perm, 0);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
+-	if (current->euid != ipcp->uid &&
+-	    current->euid != ipcp->cuid &&
+-	    !capable(CAP_SYS_ADMIN)) {
+-		err = -EPERM;
+-		goto out_unlock;
+-	}
++	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
+ 
+ 	err = security_shm_shmctl(shp, cmd);
+ 	if (err)
+diff -puN ipc/util.c~ipc-consolidate-all-xxxctl_down-functions ipc/util.c
+--- a/ipc/util.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/util.c
+@@ -824,6 +824,57 @@ void ipc_update_perm(struct ipc64_perm *
+ 		| (in->mode & S_IRWXUGO);
+ }
+ 
++/**
++ * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
++ * @ids:  the table of ids where to look for the ipc
++ * @id:   the id of the ipc to retrieve
++ * @cmd:  the cmd to check
++ * @perm: the permission to set
++ * @extra_perm: one extra permission parameter used by msq
++ *
++ * This function does some common audit and permissions check for some IPC_XXX
++ * cmd and is called from semctl_down, shmctl_down and msgctl_down.
++ * It must be called without any lock held and
++ *  - retrieves the ipc with the given id in the given table.
++ *  - performs some audit and permission check, depending on the given cmd
++ *  - returns the ipc with both ipc and rw_mutex locks held in case of success
++ *    or an err-code without any lock held otherwise.
++ */
++struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
++				      struct ipc64_perm *perm, int extrat_perm)
++{
++	struct kern_ipc_perm *ipcp;
++	int err;
++
++	down_write(&ids->rw_mutex);
++	ipcp = ipc_lock_check_down(ids, id);
++	if (IS_ERR(ipcp)) {
++		err = PTR_ERR(ipcp);
++		goto out_up;
++	}
++
++	err = audit_ipc_obj(ipcp);
++	if (err)
++		goto out_unlock;
++
++	if (cmd == IPC_SET) {
++		err = audit_ipc_set_perm(extrat_perm, perm->uid,
++					 perm->gid, perm->mode);
++		if (err)
++			goto out_unlock;
++	}
++	if (current->euid == ipcp->cuid ||
++	    current->euid == ipcp->uid || capable(CAP_SYS_ADMIN))
++		return ipcp;
++
++	err = -EPERM;
++out_unlock:
++	ipc_unlock(ipcp);
++out_up:
++	up_write(&ids->rw_mutex);
++	return ERR_PTR(err);
++}
++
+ #ifdef __ARCH_WANT_IPC_PARSE_VERSION
+ 
+ 
+diff -puN ipc/util.h~ipc-consolidate-all-xxxctl_down-functions ipc/util.h
+--- a/ipc/util.h~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/util.h
+@@ -113,6 +113,8 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
++struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
++				      struct ipc64_perm *perm, int extrat_perm);
+ 
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
 _
 
 Patches currently in -mm which might be from pierre.peiffer@bull.net are
