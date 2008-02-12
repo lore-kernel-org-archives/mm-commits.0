@@ -1,71 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-debug.patch added to -mm tree
-Date: Tue, 12 Feb 2008 11:41:33 -0800
-Message-ID: <200802121941.m1CJfXYB018808@imap1.linux-foundation.org>
+Subject: - revert-acpi-ec-dont-init-ec-early-if-it-has-no-_ini.patch removed from -mm tree
+Date: Tue, 12 Feb 2008 11:41:57 -0800
+Message-ID: <200802121941.m1CJfvFg018817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030AbYBLTmQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751383AbYBLTmZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 14:42:16 -0500
+	Tue, 12 Feb 2008 14:42:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dmitry.adamushko@gmail.com, mingo@elte.hu
+To: akpm@linux-foundation.org, astarikovskiy@suse.de, dl9pf@gmx.de, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softlockup debug
-has been added to the -mm tree.  Its filename is
-     softlockup-debug.patch
+     revert "ACPI: EC: Don't init EC early if it has no _INI"
+has been removed from the -mm tree.  Its filename was
+     revert-acpi-ec-dont-init-ec-early-if-it-has-no-_ini.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: softlockup debug
-From: "Dmitry Adamushko" <dmitry.adamushko@gmail.com>
+Subject: revert "ACPI: EC: Don't init EC early if it has no _INI"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Revert
+
+commit 5870a8cd23181703cc76f88f630372f8602c7648
+Author: Alexey Starikovskiy <astarikovskiy@suse.de>
+Date:   Thu Nov 15 21:52:47 2007 +0300
+
+    ACPI: EC: Don't init EC early if it has no _INI
+
+due to the regression reported in
+http://bugzilla.kernel.org/show_bug.cgi?id=9939
+
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Jan-Simon Mller <dl9pf@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/ec.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/softlockup.c~softlockup-debug kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-debug
-+++ a/kernel/softlockup.c
-@@ -236,6 +236,7 @@ static int watchdog(void *__bind_cpu)
- 			check_hung_uninterruptible_tasks(this_cpu);
- 
+diff -puN drivers/acpi/ec.c~revert-acpi-ec-dont-init-ec-early-if-it-has-no-_ini drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~revert-acpi-ec-dont-init-ec-early-if-it-has-no-_ini
++++ a/drivers/acpi/ec.c
+@@ -945,21 +945,12 @@ int __init acpi_ec_ecdt_probe(void)
+ 		boot_ec->gpe = ecdt_ptr->gpe;
+ 		boot_ec->handle = ACPI_ROOT_OBJECT;
+ 	} else {
+-		/* This workaround is needed only on some broken machines,
+-		 * which require early EC, but fail to provide ECDT */
+-		acpi_handle x;
+ 		printk(KERN_DEBUG PREFIX "Look up EC in DSDT\n");
+ 		status = acpi_get_devices(ec_device_ids[0].id, ec_parse_device,
+ 						boot_ec, NULL);
+ 		/* Check that acpi_get_devices actually find something */
+ 		if (ACPI_FAILURE(status) || !boot_ec->handle)
+ 			goto error;
+-		/* We really need to limit this workaround, the only ASUS,
+-		 * which needs it, has fake EC._INI method, so use it as flag.
+-		 * Keep boot_ec struct as it will be needed soon.
+-		 */
+-		if (ACPI_FAILURE(acpi_get_handle(boot_ec->handle, "_INI", &x)))
+-			return -ENODEV;
  	}
-+	printk(KERN_ERR "watchdog(cpu: %d) -- exit\n", this_cpu);
  
- 	return 0;
- }
-@@ -289,6 +290,7 @@ cpu_callback(struct notifier_block *nfb,
- 	case CPU_DEAD_FROZEN:
- 		p = per_cpu(watchdog_task, hotcpu);
- 		per_cpu(watchdog_task, hotcpu) = NULL;
-+		printk(KERN_ERR "kthread_stop(watchdog on cpu: %d)\n", hotcpu);
- 		kthread_stop(p);
- 		break;
- #endif /* CONFIG_HOTPLUG_CPU */
+ 	ret = ec_install_handlers(boot_ec);
 _
 
-Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-softlockup-debug.patch
+revert-proc-fix-the-threaded-proc-self.patch
+memstick-initial-commit-for-sony-memorystick-support.patch
+include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+revert-acpi-ec-dont-init-ec-early-if-it-has-no-_ini.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-agk-dm-dm-loop.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+revert-git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-mmc.patch
+typhoon-section-fix.patch
+natsemi-section-fix.patch
+bnx2x-section-fix.patch
+bnx2c-section-fix.patch
+via-velocity-section-fix.patch
+starfire-secton-fix.patch
+pppol2tp-fix-printk-warnings.patch
+drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fix-git-conflicts.patch
+git-sh.patch
+git-scsi-misc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-fixup.patch
+git-x86.patch
+git-x86-fix-git-conflicts.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-fix-git-conflicts.patch
+git-xtensa.patch
+mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
