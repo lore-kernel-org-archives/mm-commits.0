@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-semaphores-code-factorisation.patch added to -mm tree
-Date: Tue, 12 Feb 2008 13:27:20 -0800
-Message-ID: <200802122127.m1CLRKPl023023@imap1.linux-foundation.org>
+Subject: + ipc-get-rid-of-the-use-_setbuf-structure.patch added to -mm tree
+Date: Tue, 12 Feb 2008 13:28:29 -0800
+Message-ID: <200802122128.m1CLSU7R023089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54861 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730AbYBLV22 (ORCPT
+	by vger.kernel.org with ESMTP id S1751145AbYBLV3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 16:28:28 -0500
+	Tue, 12 Feb 2008 16:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com
 
 
 The patch titled
-     IPC/semaphores: code factorisation
+     IPC: get rid of the use *_setbuf structure.
 has been added to the -mm tree.  Its filename is
-     ipc-semaphores-code-factorisation.patch
+     ipc-get-rid-of-the-use-_setbuf-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC/semaphores: code factorisation
+Subject: IPC: get rid of the use *_setbuf structure.
 From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Trivial patch which adds some small locking functions and makes use of them to
-factorize some part of the code and to make it cleaner.
+All IPCs make use of an intermetiate *_setbuf structure to handle the IPC_SET
+command.  This is not really needed and, moreover, it complicates a little bit
+the code.
+
+This patch gets rid of the use of it and uses directly the semid64_ds/
+msgid64_ds/shmid64_ds structure.
+
+In addition of removing one struture declaration, it also simplifies and
+improves a little bit the common 64-bits path.
 
 Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -46,138 +53,296 @@ Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   61 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 31 insertions(+), 30 deletions(-)
+ ipc/msg.c |   51 ++++++++++++++++++---------------------------------
+ ipc/sem.c |   40 ++++++++++++++--------------------------
+ ipc/shm.c |   41 ++++++++++++++---------------------------
+ 3 files changed, 46 insertions(+), 86 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semaphores-code-factorisation ipc/sem.c
---- a/ipc/sem.c~ipc-semaphores-code-factorisation
-+++ a/ipc/sem.c
-@@ -180,6 +180,25 @@ static inline struct sem_array *sem_lock
- 	return container_of(ipcp, struct sem_array, sem_perm);
+diff -puN ipc/msg.c~ipc-get-rid-of-the-use-_setbuf-structure ipc/msg.c
+--- a/ipc/msg.c~ipc-get-rid-of-the-use-_setbuf-structure
++++ a/ipc/msg.c
+@@ -388,31 +388,14 @@ copy_msqid_to_user(void __user *buf, str
+ 	}
  }
  
-+static inline void sem_lock_and_putref(struct sem_array *sma)
-+{
-+	ipc_lock_by_ptr(&sma->sem_perm);
-+	ipc_rcu_putref(sma);
-+}
-+
-+static inline void sem_getref_and_unlock(struct sem_array *sma)
-+{
-+	ipc_rcu_getref(sma);
-+	ipc_unlock(&(sma)->sem_perm);
-+}
-+
-+static inline void sem_putref(struct sem_array *sma)
-+{
-+	ipc_lock_by_ptr(&sma->sem_perm);
-+	ipc_rcu_putref(sma);
-+	ipc_unlock(&(sma)->sem_perm);
-+}
-+
- static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+-struct msq_setbuf {
+-	unsigned long	qbytes;
+-	uid_t		uid;
+-	gid_t		gid;
+-	mode_t		mode;
+-};
+-
+ static inline unsigned long
+-copy_msqid_from_user(struct msq_setbuf *out, void __user *buf, int version)
++copy_msqid_from_user(struct msqid64_ds *out, void __user *buf, int version)
  {
- 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
-@@ -698,19 +717,15 @@ static int semctl_main(struct ipc_namesp
- 		int i;
+ 	switch(version) {
+ 	case IPC_64:
+-	{
+-		struct msqid64_ds tbuf;
+-
+-		if (copy_from_user(&tbuf, buf, sizeof(tbuf)))
++		if (copy_from_user(out, buf, sizeof(*out)))
+ 			return -EFAULT;
+-
+-		out->qbytes		= tbuf.msg_qbytes;
+-		out->uid		= tbuf.msg_perm.uid;
+-		out->gid		= tbuf.msg_perm.gid;
+-		out->mode		= tbuf.msg_perm.mode;
+-
+ 		return 0;
+-	}
+ 	case IPC_OLD:
+ 	{
+ 		struct msqid_ds tbuf_old;
+@@ -420,14 +403,14 @@ copy_msqid_from_user(struct msq_setbuf *
+ 		if (copy_from_user(&tbuf_old, buf, sizeof(tbuf_old)))
+ 			return -EFAULT;
  
- 		if(nsems > SEMMSL_FAST) {
--			ipc_rcu_getref(sma);
--			sem_unlock(sma);			
-+			sem_getref_and_unlock(sma);
+-		out->uid		= tbuf_old.msg_perm.uid;
+-		out->gid		= tbuf_old.msg_perm.gid;
+-		out->mode		= tbuf_old.msg_perm.mode;
++		out->msg_perm.uid      	= tbuf_old.msg_perm.uid;
++		out->msg_perm.gid      	= tbuf_old.msg_perm.gid;
++		out->msg_perm.mode     	= tbuf_old.msg_perm.mode;
  
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
- 			if(sem_io == NULL) {
--				ipc_lock_by_ptr(&sma->sem_perm);
--				ipc_rcu_putref(sma);
--				sem_unlock(sma);
-+				sem_putref(sma);
- 				return -ENOMEM;
- 			}
+ 		if (tbuf_old.msg_qbytes == 0)
+-			out->qbytes	= tbuf_old.msg_lqbytes;
++			out->msg_qbytes	= tbuf_old.msg_lqbytes;
+ 		else
+-			out->qbytes	= tbuf_old.msg_qbytes;
++			out->msg_qbytes	= tbuf_old.msg_qbytes;
  
--			ipc_lock_by_ptr(&sma->sem_perm);
--			ipc_rcu_putref(sma);
-+			sem_lock_and_putref(sma);
- 			if (sma->sem_perm.deleted) {
- 				sem_unlock(sma);
- 				err = -EIDRM;
-@@ -731,38 +746,30 @@ static int semctl_main(struct ipc_namesp
- 		int i;
- 		struct sem_undo *un;
- 
--		ipc_rcu_getref(sma);
--		sem_unlock(sma);
-+		sem_getref_and_unlock(sma);
- 
- 		if(nsems > SEMMSL_FAST) {
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
- 			if(sem_io == NULL) {
--				ipc_lock_by_ptr(&sma->sem_perm);
--				ipc_rcu_putref(sma);
--				sem_unlock(sma);
-+				sem_putref(sma);
- 				return -ENOMEM;
- 			}
- 		}
- 
- 		if (copy_from_user (sem_io, arg.array, nsems*sizeof(ushort))) {
--			ipc_lock_by_ptr(&sma->sem_perm);
--			ipc_rcu_putref(sma);
--			sem_unlock(sma);
-+			sem_putref(sma);
- 			err = -EFAULT;
- 			goto out_free;
- 		}
- 
- 		for (i = 0; i < nsems; i++) {
- 			if (sem_io[i] > SEMVMX) {
--				ipc_lock_by_ptr(&sma->sem_perm);
--				ipc_rcu_putref(sma);
--				sem_unlock(sma);
-+				sem_putref(sma);
- 				err = -ERANGE;
- 				goto out_free;
- 			}
- 		}
--		ipc_lock_by_ptr(&sma->sem_perm);
--		ipc_rcu_putref(sma);
-+		sem_lock_and_putref(sma);
- 		if (sma->sem_perm.deleted) {
- 			sem_unlock(sma);
- 			err = -EIDRM;
-@@ -1042,14 +1049,11 @@ static struct sem_undo *find_undo(struct
- 		return ERR_PTR(PTR_ERR(sma));
- 
- 	nsems = sma->sem_nsems;
--	ipc_rcu_getref(sma);
--	sem_unlock(sma);
-+	sem_getref_and_unlock(sma);
- 
- 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
- 	if (!new) {
--		ipc_lock_by_ptr(&sma->sem_perm);
--		ipc_rcu_putref(sma);
--		sem_unlock(sma);
-+		sem_putref(sma);
- 		return ERR_PTR(-ENOMEM);
+ 		return 0;
  	}
- 	new->semadj = (short *) &new[1];
-@@ -1060,13 +1064,10 @@ static struct sem_undo *find_undo(struct
- 	if (un) {
- 		spin_unlock(&ulp->lock);
- 		kfree(new);
--		ipc_lock_by_ptr(&sma->sem_perm);
--		ipc_rcu_putref(sma);
--		sem_unlock(sma);
-+		sem_putref(sma);
- 		goto out;
+@@ -445,12 +428,12 @@ static int msgctl_down(struct ipc_namesp
+ 		       struct msqid_ds __user *buf, int version)
+ {
+ 	struct kern_ipc_perm *ipcp;
+-	struct msq_setbuf setbuf;
++	struct msqid64_ds msqid64;
+ 	struct msg_queue *msq;
+ 	int err;
+ 
+ 	if (cmd == IPC_SET) {
+-		if (copy_msqid_from_user(&setbuf, buf, version))
++		if (copy_msqid_from_user(&msqid64, buf, version))
+ 			return -EFAULT;
  	}
--	ipc_lock_by_ptr(&sma->sem_perm);
--	ipc_rcu_putref(sma);
-+	sem_lock_and_putref(sma);
- 	if (sma->sem_perm.deleted) {
- 		sem_unlock(sma);
- 		spin_unlock(&ulp->lock);
+ 
+@@ -468,8 +451,10 @@ static int msgctl_down(struct ipc_namesp
+ 		goto out_unlock;
+ 
+ 	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(setbuf.qbytes, setbuf.uid, setbuf.gid,
+-					 setbuf.mode);
++		err = audit_ipc_set_perm(msqid64.msg_qbytes,
++					 msqid64.msg_perm.uid,
++					 msqid64.msg_perm.gid,
++					 msqid64.msg_perm.mode);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -491,18 +476,18 @@ static int msgctl_down(struct ipc_namesp
+ 		freeque(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		if (setbuf.qbytes > ns->msg_ctlmnb &&
++		if (msqid64.msg_qbytes > ns->msg_ctlmnb &&
+ 		    !capable(CAP_SYS_RESOURCE)) {
+ 			err = -EPERM;
+ 			goto out_unlock;
+ 		}
+ 
+-		msq->q_qbytes = setbuf.qbytes;
++		msq->q_qbytes = msqid64.msg_qbytes;
+ 
+-		ipcp->uid = setbuf.uid;
+-		ipcp->gid = setbuf.gid;
++		ipcp->uid = msqid64.msg_perm.uid;
++		ipcp->gid = msqid64.msg_perm.gid;
+ 		ipcp->mode = (ipcp->mode & ~S_IRWXUGO) |
+-			     (S_IRWXUGO & setbuf.mode);
++			     (S_IRWXUGO & msqid64.msg_perm.mode);
+ 		msq->q_ctime = get_seconds();
+ 		/* sleeping receivers might be excluded by
+ 		 * stricter permissions.
+diff -puN ipc/sem.c~ipc-get-rid-of-the-use-_setbuf-structure ipc/sem.c
+--- a/ipc/sem.c~ipc-get-rid-of-the-use-_setbuf-structure
++++ a/ipc/sem.c
+@@ -835,28 +835,14 @@ out_free:
+ 	return err;
+ }
+ 
+-struct sem_setbuf {
+-	uid_t	uid;
+-	gid_t	gid;
+-	mode_t	mode;
+-};
+-
+-static inline unsigned long copy_semid_from_user(struct sem_setbuf *out, void __user *buf, int version)
++static inline unsigned long
++copy_semid_from_user(struct semid64_ds *out, void __user *buf, int version)
+ {
+ 	switch(version) {
+ 	case IPC_64:
+-	    {
+-		struct semid64_ds tbuf;
+-
+-		if(copy_from_user(&tbuf, buf, sizeof(tbuf)))
++		if (copy_from_user(out, buf, sizeof(*out)))
+ 			return -EFAULT;
+-
+-		out->uid	= tbuf.sem_perm.uid;
+-		out->gid	= tbuf.sem_perm.gid;
+-		out->mode	= tbuf.sem_perm.mode;
+-
+ 		return 0;
+-	    }
+ 	case IPC_OLD:
+ 	    {
+ 		struct semid_ds tbuf_old;
+@@ -864,9 +850,9 @@ static inline unsigned long copy_semid_f
+ 		if(copy_from_user(&tbuf_old, buf, sizeof(tbuf_old)))
+ 			return -EFAULT;
+ 
+-		out->uid	= tbuf_old.sem_perm.uid;
+-		out->gid	= tbuf_old.sem_perm.gid;
+-		out->mode	= tbuf_old.sem_perm.mode;
++		out->sem_perm.uid	= tbuf_old.sem_perm.uid;
++		out->sem_perm.gid	= tbuf_old.sem_perm.gid;
++		out->sem_perm.mode	= tbuf_old.sem_perm.mode;
+ 
+ 		return 0;
+ 	    }
+@@ -885,11 +871,11 @@ static int semctl_down(struct ipc_namesp
+ {
+ 	struct sem_array *sma;
+ 	int err;
+-	struct sem_setbuf uninitialized_var(setbuf);
++	struct semid64_ds semid64;
+ 	struct kern_ipc_perm *ipcp;
+ 
+ 	if(cmd == IPC_SET) {
+-		if(copy_semid_from_user (&setbuf, arg.buf, version))
++		if (copy_semid_from_user(&semid64, arg.buf, version))
+ 			return -EFAULT;
+ 	}
+ 	down_write(&sem_ids(ns).rw_mutex);
+@@ -906,7 +892,9 @@ static int semctl_down(struct ipc_namesp
+ 		goto out_unlock;
+ 
+ 	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, setbuf.uid, setbuf.gid, setbuf.mode);
++		err = audit_ipc_set_perm(0, semid64.sem_perm.uid,
++					 semid64.sem_perm.gid,
++					 semid64.sem_perm.mode);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -925,10 +913,10 @@ static int semctl_down(struct ipc_namesp
+ 		freeary(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = setbuf.uid;
+-		ipcp->gid = setbuf.gid;
++		ipcp->uid = semid64.sem_perm.uid;
++		ipcp->gid = semid64.sem_perm.gid;
+ 		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-				| (setbuf.mode & S_IRWXUGO);
++				| (semid64.sem_perm.mode & S_IRWXUGO);
+ 		sma->sem_ctime = get_seconds();
+ 		break;
+ 	default:
+diff -puN ipc/shm.c~ipc-get-rid-of-the-use-_setbuf-structure ipc/shm.c
+--- a/ipc/shm.c~ipc-get-rid-of-the-use-_setbuf-structure
++++ a/ipc/shm.c
+@@ -512,28 +512,14 @@ static inline unsigned long copy_shmid_t
+ 	}
+ }
+ 
+-struct shm_setbuf {
+-	uid_t	uid;
+-	gid_t	gid;
+-	mode_t	mode;
+-};	
+-
+-static inline unsigned long copy_shmid_from_user(struct shm_setbuf *out, void __user *buf, int version)
++static inline unsigned long
++copy_shmid_from_user(struct shmid64_ds *out, void __user *buf, int version)
+ {
+ 	switch(version) {
+ 	case IPC_64:
+-	    {
+-		struct shmid64_ds tbuf;
+-
+-		if (copy_from_user(&tbuf, buf, sizeof(tbuf)))
++		if (copy_from_user(out, buf, sizeof(*out)))
+ 			return -EFAULT;
+-
+-		out->uid	= tbuf.shm_perm.uid;
+-		out->gid	= tbuf.shm_perm.gid;
+-		out->mode	= tbuf.shm_perm.mode;
+-
+ 		return 0;
+-	    }
+ 	case IPC_OLD:
+ 	    {
+ 		struct shmid_ds tbuf_old;
+@@ -541,9 +527,9 @@ static inline unsigned long copy_shmid_f
+ 		if (copy_from_user(&tbuf_old, buf, sizeof(tbuf_old)))
+ 			return -EFAULT;
+ 
+-		out->uid	= tbuf_old.shm_perm.uid;
+-		out->gid	= tbuf_old.shm_perm.gid;
+-		out->mode	= tbuf_old.shm_perm.mode;
++		out->shm_perm.uid	= tbuf_old.shm_perm.uid;
++		out->shm_perm.gid	= tbuf_old.shm_perm.gid;
++		out->shm_perm.mode	= tbuf_old.shm_perm.mode;
+ 
+ 		return 0;
+ 	    }
+@@ -626,12 +612,12 @@ static int shmctl_down(struct ipc_namesp
+ 		       struct shmid_ds __user *buf, int version)
+ {
+ 	struct kern_ipc_perm *ipcp;
+-	struct shm_setbuf setbuf;
++	struct shmid64_ds shmid64;
+ 	struct shmid_kernel *shp;
+ 	int err;
+ 
+ 	if (cmd == IPC_SET) {
+-		if (copy_shmid_from_user(&setbuf, buf, version))
++		if (copy_shmid_from_user(&shmid64, buf, version))
+ 			return -EFAULT;
+ 	}
+ 
+@@ -649,8 +635,9 @@ static int shmctl_down(struct ipc_namesp
+ 		goto out_unlock;
+ 
+ 	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, setbuf.uid,
+-					 setbuf.gid, setbuf.mode);
++		err = audit_ipc_set_perm(0, shmid64.shm_perm.uid,
++					 shmid64.shm_perm.gid,
++					 shmid64.shm_perm.mode);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -670,10 +657,10 @@ static int shmctl_down(struct ipc_namesp
+ 		do_shm_rmid(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = setbuf.uid;
+-		ipcp->gid = setbuf.gid;
++		ipcp->uid = shmid64.shm_perm.uid;
++		ipcp->gid = shmid64.shm_perm.gid;
+ 		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-			| (setbuf.mode & S_IRWXUGO);
++			| (shmid64.shm_perm.mode & S_IRWXUGO);
+ 		shp->shm_ctim = get_seconds();
+ 		break;
+ 	default:
 _
 
 Patches currently in -mm which might be from pierre.peiffer@bull.net are
