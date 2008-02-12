@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:38:32 -0800
-Message-ID: <200802122338.m1CNcWqR028924@imap1.linux-foundation.org>
+Subject: + powerpc-fix-debug_preempt-warning-when-warning.patch added to -mm tree
+Date: Tue, 12 Feb 2008 15:40:40 -0800
+Message-ID: <200802122340.m1CNeeXK029069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751300AbYBLXi6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751154AbYBLXku (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:38:58 -0500
+	Tue, 12 Feb 2008 18:40:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sergio@uece.br, akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: hugh@veritas.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     fs/smbfs/inode.c: fix warning message deprecating smbfs
+     powerpc: fix DEBUG_PREEMPT warning when warning
 has been added to the -mm tree.  Its filename is
-     fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+     powerpc-fix-debug_preempt-warning-when-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/smbfs/inode.c: fix warning message deprecating smbfs
-From: Sergio Luis <sergio@uece.br>
+Subject: powerpc: fix DEBUG_PREEMPT warning when warning
+From: Hugh Dickins <hugh@veritas.com>
 
-Fix the warning message regarding smbfs to
+The powerpc show_regs prints CPU using smp_processor_id: change that to
+raw_smp_processor_id, so that when it's showing a WARN_ON backtrace without
+preemption disabled, DEBUG_PREEMPT doesn't mess up that warning with its
+own.
 
-"smbfs is deprecated and will be removed from the 2.6.27 kernel. Please migrate to cifs"
-
-instead of
-
-"smbfs is deprecated and will be removedfrom the 2.6.27 kernel.  Please migrate to cifs"
-
-Signed-off-by: Sergio Luis <sergio@uece.br>
-Screwed-up-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/smbfs/inode.c |    2 +-
+ arch/powerpc/kernel/process.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/smbfs/inode.c~fs-smbfs-inodec-fix-warning-message-deprecating-smbfs fs/smbfs/inode.c
---- a/fs/smbfs/inode.c~fs-smbfs-inodec-fix-warning-message-deprecating-smbfs
-+++ a/fs/smbfs/inode.c
-@@ -505,7 +505,7 @@ static int smb_fill_super(struct super_b
- 	if (warn_count < 5) {
- 		warn_count++;
- 		printk(KERN_EMERG "smbfs is deprecated and will be removed"
--			"from the 2.6.27 kernel.  Please migrate to cifs\n");
-+			" from the 2.6.27 kernel. Please migrate to cifs\n");
- 	}
+diff -puN arch/powerpc/kernel/process.c~powerpc-fix-debug_preempt-warning-when-warning arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~powerpc-fix-debug_preempt-warning-when-warning
++++ a/arch/powerpc/kernel/process.c
+@@ -462,7 +462,7 @@ void show_regs(struct pt_regs * regs)
+ 	       current, task_pid_nr(current), current->comm, task_thread_info(current));
  
- 	if (!raw_data)
+ #ifdef CONFIG_SMP
+-	printk(" CPU: %d", smp_processor_id());
++	printk(" CPU: %d", raw_smp_processor_id());
+ #endif /* CONFIG_SMP */
+ 
+ 	for (i = 0;  i < 32;  i++) {
 _
 
-Patches currently in -mm which might be from sergio@uece.br are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+origin.patch
+git-unionfs.patch
+git-x86.patch
+percpu-fix-debug_preempt-per_cpu-checking.patch
+powerpc-fix-debug_preempt-warning-when-warning.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+prio_tree-debugging-patch.patch
