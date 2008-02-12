@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sunprc-fix-printk-format-warning-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:24:53 -0800
-Message-ID: <200802122324.m1CNOrfe028299@imap1.linux-foundation.org>
+Subject: + oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch added to -mm tree
+Date: Tue, 12 Feb 2008 15:35:07 -0800
+Message-ID: <200802122335.m1CNZ7hK028797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752377AbYBLXZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752307AbYBLXfN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:25:16 -0500
+	Tue, 12 Feb 2008 18:35:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rolandd@cisco.com
+Cc: travis@sgi.com, phil.el@wanadoo.fr
 
 
 The patch titled
-     sunprc-fix-printk-format-warning-checkpatch-fixes
+     oprofile: change cpu_buffer from array to per_cpu variable
 has been added to the -mm tree.  Its filename is
-     sunprc-fix-printk-format-warning-checkpatch-fixes.patch
+     oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunprc-fix-printk-format-warning-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oprofile: change cpu_buffer from array to per_cpu variable
+From: Mike Travis <travis@sgi.com>
 
-WARNING: line over 80 characters
-#20: FILE: net/sunrpc/xprtrdma/svc_rdma_sendto.c:162:
-+		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
+Change cpu_buffer from array to per_cpu variable in oprofile functions.
 
-total: 0 errors, 1 warnings, 8 lines checked
-
-./patches/sunprc-fix-printk-format-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/oprofile/buffer_sync.c    |    2 +-
+ drivers/oprofile/cpu_buffer.c     |   16 ++++++++--------
+ drivers/oprofile/cpu_buffer.h     |    3 ++-
+ drivers/oprofile/oprofile_stats.c |    4 ++--
+ 4 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes net/sunrpc/xprtrdma/svc_rdma_sendto.c
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes
-+++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -159,7 +159,8 @@ static int send_write(struct svcxprt_rdm
- 	BUG_ON(sge_count >= 32);
- 	dprintk("svcrdma: RDMA_WRITE rmr=%x, to=%llx, xdr_off=%d, "
- 		"write_len=%d, xdr_sge=%p, sge_count=%d\n",
--		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
-+		rmr, (unsigned long long) to, xdr_off, write_len,
-+		xdr_sge, sge_count);
+diff -puN drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/buffer_sync.c
+--- a/drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
++++ a/drivers/oprofile/buffer_sync.c
+@@ -494,7 +494,7 @@ typedef enum {
+  */
+ void sync_buffer(int cpu)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
++	struct oprofile_cpu_buffer * cpu_buf = &per_cpu(cpu_buffer, cpu);
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct * new;
+ 	unsigned long cookie = 0;
+diff -puN drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/cpu_buffer.c
+--- a/drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
++++ a/drivers/oprofile/cpu_buffer.c
+@@ -27,7 +27,7 @@
+ #include "buffer_sync.h"
+ #include "oprof.h"
  
- 	ctxt = svc_rdma_get_context(xprt);
- 	ctxt->count = 0;
+-struct oprofile_cpu_buffer cpu_buffer[NR_CPUS] __cacheline_aligned;
++DEFINE_PER_CPU_SHARED_ALIGNED(struct oprofile_cpu_buffer, cpu_buffer);
+ 
+ static void wq_sync_buffer(struct work_struct *work);
+ 
+@@ -39,7 +39,7 @@ void free_cpu_buffers(void)
+ 	int i;
+  
+ 	for_each_online_cpu(i)
+-		vfree(cpu_buffer[i].buffer);
++		vfree(per_cpu(cpu_buffer, i).buffer);
+ }
+ 
+ int alloc_cpu_buffers(void)
+@@ -49,7 +49,7 @@ int alloc_cpu_buffers(void)
+ 	unsigned long buffer_size = fs_cpu_buffer_size;
+  
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+  
+ 		b->buffer = vmalloc_node(sizeof(struct op_sample) * buffer_size,
+ 			cpu_to_node(i));
+@@ -83,7 +83,7 @@ void start_cpu_work(void)
+ 	work_enabled = 1;
+ 
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+ 
+ 		/*
+ 		 * Spread the work by 1 jiffy per cpu so they dont all
+@@ -100,7 +100,7 @@ void end_cpu_work(void)
+ 	work_enabled = 0;
+ 
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+ 
+ 		cancel_delayed_work(&b->work);
+ 	}
+@@ -227,7 +227,7 @@ static void oprofile_end_trace(struct op
+ void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
+ 				unsigned long event, int is_kernel)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+ 
+ 	if (!backtrace_depth) {
+ 		log_sample(cpu_buf, pc, is_kernel, event);
+@@ -254,13 +254,13 @@ void oprofile_add_sample(struct pt_regs 
+ 
+ void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+ 	log_sample(cpu_buf, pc, is_kernel, event);
+ }
+ 
+ void oprofile_add_trace(unsigned long pc)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+ 
+ 	if (!cpu_buf->tracing)
+ 		return;
+diff -puN drivers/oprofile/cpu_buffer.h~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/cpu_buffer.h
+--- a/drivers/oprofile/cpu_buffer.h~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
++++ a/drivers/oprofile/cpu_buffer.h
+@@ -14,6 +14,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/workqueue.h>
+ #include <linux/cache.h>
++#include <linux/sched.h>
+  
+ struct task_struct;
+  
+@@ -47,7 +48,7 @@ struct oprofile_cpu_buffer {
+ 	struct delayed_work work;
+ } ____cacheline_aligned;
+ 
+-extern struct oprofile_cpu_buffer cpu_buffer[];
++DECLARE_PER_CPU(struct oprofile_cpu_buffer, cpu_buffer);
+ 
+ void cpu_buffer_reset(struct oprofile_cpu_buffer * cpu_buf);
+ 
+diff -puN drivers/oprofile/oprofile_stats.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/oprofile_stats.c
+--- a/drivers/oprofile/oprofile_stats.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
++++ a/drivers/oprofile/oprofile_stats.c
+@@ -23,7 +23,7 @@ void oprofile_reset_stats(void)
+ 	int i;
+  
+ 	for_each_possible_cpu(i) {
+-		cpu_buf = &cpu_buffer[i]; 
++		cpu_buf = &per_cpu(cpu_buffer, i);
+ 		cpu_buf->sample_received = 0;
+ 		cpu_buf->sample_lost_overflow = 0;
+ 		cpu_buf->backtrace_aborted = 0;
+@@ -49,7 +49,7 @@ void oprofile_create_stats_files(struct 
+ 		return;
+ 
+ 	for_each_possible_cpu(i) {
+-		cpu_buf = &cpu_buffer[i]; 
++		cpu_buf = &per_cpu(cpu_buffer, i);
+ 		snprintf(buf, 10, "cpu%d", i);
+ 		cpudir = oprofilefs_mkdir(sb, dir, buf);
+  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
-softlockup-workaround.patch
-revert-proc-fix-the-threaded-proc-self.patch
-memstick-initial-commit-for-sony-memorystick-support.patch
-include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-mmc.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-fix-git-conflicts.patch
-git-xtensa.patch
-mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
-sunprc-fix-printk-format-warning-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+x86-minor-cleanup-of-comments-in-processorh.patch
