@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + remove-set_migrateflags.patch added to -mm tree
-Date: Tue, 12 Feb 2008 13:46:23 -0800
-Message-ID: <200802122146.m1CLkNSr023883@imap1.linux-foundation.org>
+Subject: + wireless-rt2x00-fix-driver-menu-indenting.patch added to -mm tree
+Date: Tue, 12 Feb 2008 13:57:24 -0800
+Message-ID: <200802122157.m1CLvOhV024288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40775 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981AbYBLVqh (ORCPT
+	by vger.kernel.org with ESMTP id S1755804AbYBLV5n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 16:46:37 -0500
+	Tue, 12 Feb 2008 16:57:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mel@csn.ul.ie
+Cc: randy.dunlap@oracle.com, IvDoorn@gmail.com, m.bueker@berlin.de
 
 
 The patch titled
-     Remove set_migrateflags()
+     wireless: rt2x00: fix driver menu indenting
 has been added to the -mm tree.  Its filename is
-     remove-set_migrateflags.patch
+     wireless-rt2x00-fix-driver-menu-indenting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,119 +29,123 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: Remove set_migrateflags()
-From: Christoph Lameter <clameter@sgi.com>
+Subject: wireless: rt2x00: fix driver menu indenting
+=46rom: Randy Dunlap <randy.dunlap@oracle.com>
 
-Migrate flags must be set on slab creation as agreed upon when the antifrag
-logic was reviewed.  Otherwise some slabs of a slabcache will end up in the
-unmovable and others in the reclaimable section depending on which flag was
-active when a new slab page was allocated.
+Michael B=FCker reports that the RT2x00 drivers are not indented as the=
+y
+should be, so use proper dependencies to make them be indented as expec=
+ted.
 
-This likely slid in somehow when antifrag was merged. Remove it.
-
-The buffer_heads are always allocated with __GFP_RECLAIMABLE because the
-SLAB_RECLAIM_ACCOUNT option is set.  The set_migrateflags() never had any
-effect there.
-
-Radix tree allocations are not directly reclaimable but they are allocated
-with __GFP_RECLAIMABLE set on each allocation.  We now set
-SLAB_RECLAIM_ACCOUNT on radix tree slab creation making sure that radix
-tree slabs are consistently placed in the reclaimable section.  Radix tree
-slabs will also be accounted as such.
-
-There is then no user left of set_migratepages. So remove it.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Michael B=FCker <m.bueker@berlin.de>
+Acked-by: Ivo van Doorn <IvDoorn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c         |    3 +--
- include/linux/gfp.h |    6 ------
- lib/radix-tree.c    |    9 ++++-----
- 3 files changed, 5 insertions(+), 13 deletions(-)
+ drivers/net/wireless/rt2x00/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/buffer.c~remove-set_migrateflags fs/buffer.c
---- a/fs/buffer.c~remove-set_migrateflags
-+++ a/fs/buffer.c
-@@ -3169,8 +3169,7 @@ static void recalc_bh_state(void)
- 	
- struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
- {
--	struct buffer_head *ret = kmem_cache_alloc(bh_cachep,
--				set_migrateflags(gfp_flags, __GFP_RECLAIMABLE));
-+	struct buffer_head *ret = kmem_cache_alloc(bh_cachep, gfp_flags);
- 	if (ret) {
- 		INIT_LIST_HEAD(&ret->b_assoc_buffers);
- 		get_cpu_var(bh_accounting).nr++;
-diff -puN include/linux/gfp.h~remove-set_migrateflags include/linux/gfp.h
---- a/include/linux/gfp.h~remove-set_migrateflags
-+++ a/include/linux/gfp.h
-@@ -144,12 +144,6 @@ static inline enum zone_type gfp_zone(gf
- 	return base + ZONE_NORMAL;
- }
- 
--static inline gfp_t set_migrateflags(gfp_t gfp, gfp_t migrate_flags)
--{
--	BUG_ON((gfp & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
--	return (gfp & ~(GFP_MOVABLE_MASK)) | migrate_flags;
--}
--
- /*
-  * There is only one page-allocator function, and two main namespaces to
-  * it. The alloc_page*() variants return 'struct page *' and as such
-diff -puN lib/radix-tree.c~remove-set_migrateflags lib/radix-tree.c
---- a/lib/radix-tree.c~remove-set_migrateflags
-+++ a/lib/radix-tree.c
-@@ -114,8 +114,7 @@ radix_tree_node_alloc(struct radix_tree_
- 		}
- 	}
- 	if (ret == NULL)
--		ret = kmem_cache_alloc(radix_tree_node_cachep,
--				set_migrateflags(gfp_mask, __GFP_RECLAIMABLE));
-+		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
- 
- 	BUG_ON(radix_tree_is_indirect_ptr(ret));
- 	return ret;
-@@ -150,8 +149,7 @@ int radix_tree_preload(gfp_t gfp_mask)
- 	rtp = &__get_cpu_var(radix_tree_preloads);
- 	while (rtp->nr < ARRAY_SIZE(rtp->nodes)) {
- 		preempt_enable();
--		node = kmem_cache_alloc(radix_tree_node_cachep,
--				set_migrateflags(gfp_mask, __GFP_RECLAIMABLE));
-+		node = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
- 		if (node == NULL)
- 			goto out;
- 		preempt_disable();
-@@ -1098,7 +1096,8 @@ void __init radix_tree_init(void)
- {
- 	radix_tree_node_cachep = kmem_cache_create("radix_tree_node",
- 			sizeof(struct radix_tree_node), 0,
--			SLAB_PANIC, radix_tree_node_ctor);
-+			SLAB_PANIC | SLAB_RECLAIM_ACCOUNT,
-+			radix_tree_node_ctor);
- 	radix_tree_init_maxindex();
- 	hotcpu_notifier(radix_tree_callback, 0);
- }
+diff -puN drivers/net/wireless/rt2x00/Kconfig~wireless-rt2x00-fix-drive=
+r-menu-indenting drivers/net/wireless/rt2x00/Kconfig
+--- a/drivers/net/wireless/rt2x00/Kconfig~wireless-rt2x00-fix-driver-me=
+nu-indenting
++++ a/drivers/net/wireless/rt2x00/Kconfig
+@@ -11,18 +11,17 @@ config RT2X00
+ 	  will also be created. That library (when the driver is built as
+ 	  a module) will be called "rt2x00lib.ko".
+=20
++if RT2X00
++
+ config RT2X00_LIB
+ 	tristate
+-	depends on RT2X00
+=20
+ config RT2X00_LIB_PCI
+ 	tristate
+-	depends on RT2X00
+ 	select RT2X00_LIB
+=20
+ config RT2X00_LIB_USB
+ 	tristate
+-	depends on RT2X00
+ 	select RT2X00_LIB
+=20
+ config RT2X00_LIB_FIRMWARE
+@@ -39,7 +38,7 @@ config RT2X00_LIB_RFKILL
+=20
+ config RT2400PCI
+ 	tristate "Ralink rt2400 pci/pcmcia support"
+-	depends on RT2X00 && PCI
++	depends on PCI
+ 	select RT2X00_LIB_PCI
+ 	select EEPROM_93CX6
+ 	---help---
+@@ -58,7 +57,7 @@ config RT2400PCI_RFKILL
+=20
+ config RT2500PCI
+ 	tristate "Ralink rt2500 pci/pcmcia support"
+-	depends on RT2X00 && PCI
++	depends on PCI
+ 	select RT2X00_LIB_PCI
+ 	select EEPROM_93CX6
+ 	---help---
+@@ -77,7 +76,7 @@ config RT2500PCI_RFKILL
+=20
+ config RT61PCI
+ 	tristate "Ralink rt61 pci/pcmcia support"
+-	depends on RT2X00 && PCI
++	depends on PCI
+ 	select RT2X00_LIB_PCI
+ 	select RT2X00_LIB_FIRMWARE
+ 	select EEPROM_93CX6
+@@ -97,7 +96,7 @@ config RT61PCI_RFKILL
+=20
+ config RT2500USB
+ 	tristate "Ralink rt2500 usb support"
+-	depends on RT2X00 && USB
++	depends on USB
+ 	select RT2X00_LIB_USB
+ 	---help---
+ 	  This is an experimental driver for the Ralink rt2500 wireless chip.
+@@ -106,7 +105,7 @@ config RT2500USB
+=20
+ config RT73USB
+ 	tristate "Ralink rt73 usb support"
+-	depends on RT2X00 && USB
++	depends on USB
+ 	select RT2X00_LIB_USB
+ 	select RT2X00_LIB_FIRMWARE
+ 	---help---
+@@ -128,3 +127,4 @@ config RT2X00_DEBUG
+ 	---help---
+ 	  Enable debugging output for all rt2x00 modules
+=20
++endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com ar=
+e
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+kernel-doc-fix-fs-pipec-notation.patch
+docbook-move-pipe-and-splice-to-filesystems-docbook.patch
+docbook-sunrpc-filenames-and-notation-fixes.patch
+docbook-make-a-networking-book-and-fix-a-few-errors.patch
+apanel-fix-kconfig-dependencies.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 git-unionfs.patch
-mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
-remove-set_migrateflags.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-visws-fix-printk-format-warnings.patch
+profile-likely-unlikely-macros.patch
