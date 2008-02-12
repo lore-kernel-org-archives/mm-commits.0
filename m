@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-visws-fix-printk-format-warnings.patch added to -mm tree
-Date: Mon, 11 Feb 2008 23:53:50 -0800
-Message-ID: <200802120754.m1C7swcd024706@imap1.linux-foundation.org>
+Subject: + ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch added to -mm tree
+Date: Tue, 12 Feb 2008 00:04:19 -0800
+Message-ID: <200802120805.m1C85RSn025086__34329.9632230357$1202803585$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756984AbYBLHz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750702AbYBLIFh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 02:55:56 -0500
+	Tue, 12 Feb 2008 03:05:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mingo@elte.hu, tglx@linutronix.de
+Cc: hifumi.hisashi@oss.ntt.co.jp, jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     x86/visws: fix printk format warnings
+     ext3: fdatasync should skip metadata writeout when overwriting
 has been added to the -mm tree.  Its filename is
-     x86-visws-fix-printk-format-warnings.patch
+     ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/visws: fix printk format warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ext3: fdatasync should skip metadata writeout when overwriting
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-Fix visws printk format warnings:
+Currently fdatasync is identical to fsync in ext3.
 
-/local/linsrc/linux-2.6.24-git15/arch/x86/mach-visws/traps.c:50: warning: format '%#lx' expects type 'long unsigned int', but argument 2 has type 'u32'
-/local/linsrc/linux-2.6.24-git15/arch/x86/mach-visws/traps.c:50: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'u32'
+I think fdatasync should skip journal flush in data=ordered and
+data=writeback mode when it overwrites to already-instantiated blocks on
+HDD.  When I_DIRTY_DATASYNC flag is not set, fdatasync should skip journal
+writeout because this indicates only atime or/and mtime updates.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Following patch is the same approach of ext2's fsync code(ext2_sync_file).
+
+I did a performance test using the sysbench.
+
+#sysbench --num-threads=128 --max-requests=50000 --test=fileio --file-total-size=128G
+--file-test-mode=rndwr --file-fsync-mode=fdatasync run
+
+The result on ext3 was:
+
+	-2.6.24
+	Operations performed:  0 Read, 50080 Write, 59600 Other = 109680 Total
+	Read 0b  Written 782.5Mb  Total transferred 782.5Mb  (12.116Mb/sec)
+	  775.45 Requests/sec executed
+
+	Test execution summary:
+	    total time:                          64.5814s
+	    total number of events:              50080
+	    total time taken by event execution: 3713.9836
+	    per-request statistics:
+	         min:                            0.0000s
+	         avg:                            0.0742s
+	         max:                            0.9375s
+	         approx.  95 percentile:         0.2901s
+
+	Threads fairness:
+	    events (avg/stddev):           391.2500/23.26
+	    execution time (avg/stddev):   29.0155/1.99
+
+	-2.6.24-patched
+	Operations performed:  0 Read, 50009 Write, 61596 Other = 111605 Total
+	Read 0b  Written 781.39Mb  Total transferred 781.39Mb  (16.419Mb/sec)
+	1050.83 Requests/sec executed
+
+	Test execution summary:
+	    total time:                          47.5900s
+	    total number of events:              50009
+	    total time taken by event execution: 2934.5768
+	    per-request statistics:
+ 	         min:                            0.0000s
+	         avg:                            0.0587s
+ 	         max:                            0.8938s
+	         approx.  95 percentile:         0.1993s
+
+	Threads fairness:
+	    events (avg/stddev):           390.6953/22.64
+	    execution time (avg/stddev):   22.9264/1.17
+
+Filesystem I/O throughput was improved.
+
+Signed-off-by :Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mach-visws/traps.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ext3/fsync.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/mach-visws/traps.c~x86-visws-fix-printk-format-warnings arch/x86/mach-visws/traps.c
---- a/arch/x86/mach-visws/traps.c~x86-visws-fix-printk-format-warnings
-+++ a/arch/x86/mach-visws/traps.c
-@@ -46,8 +46,9 @@ static __init void cobalt_init(void)
- 	 */
- 	set_fixmap(FIX_APIC_BASE, APIC_DEFAULT_PHYS_BASE);
- 	setup_local_APIC();
--	printk(KERN_INFO "Local APIC Version %#lx, ID %#lx\n",
--		apic_read(APIC_LVR), apic_read(APIC_ID));
-+	printk(KERN_INFO "Local APIC Version %#x, ID %#x\n",
-+		(unsigned int)apic_read(APIC_LVR),
-+		(unsigned int)apic_read(APIC_ID));
+diff -puN fs/ext3/fsync.c~ext3-fdatasync-should-skip-metadata-writeout-when-overwriting fs/ext3/fsync.c
+--- a/fs/ext3/fsync.c~ext3-fdatasync-should-skip-metadata-writeout-when-overwriting
++++ a/fs/ext3/fsync.c
+@@ -72,6 +72,9 @@ int ext3_sync_file(struct file * file, s
+ 		goto out;
+ 	}
  
- 	set_fixmap(FIX_CO_CPU, CO_CPU_PHYS);
- 	set_fixmap(FIX_CO_APIC, CO_APIC_PHYS);
++	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
++		goto out;
++
+ 	/*
+ 	 * The VFS has written the file data.  If the inode is unaltered
+ 	 * then we need not start a commit.
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
 
 origin.patch
-kernel-doc-fix-fs-pipec-notation.patch
-docbook-move-pipe-and-splice-to-filesystems-docbook.patch
-docbook-sunrpc-filenames-and-notation-fixes.patch
-docbook-make-a-networking-book-and-fix-a-few-errors.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-x86-visws-fix-printk-format-warnings.patch
-profile-likely-unlikely-macros.patch
+ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+ext4-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
