@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-unused-sigcontext-accessors.patch added to -mm tree
-Date: Tue, 12 Feb 2008 12:05:42 -0800
-Message-ID: <200802122005.m1CK5gIr019800@imap1.linux-foundation.org>
+Subject: + uml-fix-initrd-printk.patch added to -mm tree
+Date: Tue, 12 Feb 2008 12:05:40 -0800
+Message-ID: <200802122005.m1CK5eLv019795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752254AbYBLUG3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750968AbYBLUGR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 15:06:29 -0500
+	Tue, 12 Feb 2008 15:06:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, olsajiri@gmail.com
+Cc: johfel@users.sourceforge.net, jdike@linux.intel.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: remove unused sigcontext accessors
+     uml: fix initrd printk
 has been added to the -mm tree.  Its filename is
-     uml-remove-unused-sigcontext-accessors.patch
+     uml-fix-initrd-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove unused sigcontext accessors
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml: fix initrd printk
+From: Johann Felix Soden <johfel@users.sourceforge.net>
 
-The macros which extract registers from a struct sigcontext are no longer
-needed and can be removed.  They are starting not to build anyway, given the
-removal of the 'e' and 'r' from register names during the x86 merge.
+If the initrd file has zero-length, the error message should contain
+the filepath.
 
-Cc: Jiri Olsa <olsajiri@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/user-offsets.c   |   27 ---------------------------
- arch/um/sys-x86_64/user-offsets.c |   28 ----------------------------
- 2 files changed, 55 deletions(-)
+ arch/um/kernel/initrd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/sys-i386/user-offsets.c~uml-remove-unused-sigcontext-accessors arch/um/sys-i386/user-offsets.c
---- a/arch/um/sys-i386/user-offsets.c~uml-remove-unused-sigcontext-accessors
-+++ a/arch/um/sys-i386/user-offsets.c
-@@ -17,36 +17,9 @@
+diff -puN arch/um/kernel/initrd.c~uml-fix-initrd-printk arch/um/kernel/initrd.c
+--- a/arch/um/kernel/initrd.c~uml-fix-initrd-printk
++++ a/arch/um/kernel/initrd.c
+@@ -32,7 +32,7 @@ static int __init read_initrd(void)
+ 	 * ask for no memory.
+ 	 */
+ 	if (size == 0) {
+-		printk(KERN_ERR "\"%\" is a zero-size initrd\n");
++		printk(KERN_ERR "\"%s\" is a zero-size initrd\n", initrd);
+ 		return 0;
+ 	}
  
- void foo(void)
- {
--	OFFSET(HOST_SC_IP, sigcontext, eip);
--	OFFSET(HOST_SC_SP, sigcontext, esp);
--	OFFSET(HOST_SC_FS, sigcontext, fs);
--	OFFSET(HOST_SC_GS, sigcontext, gs);
--	OFFSET(HOST_SC_DS, sigcontext, ds);
--	OFFSET(HOST_SC_ES, sigcontext, es);
--	OFFSET(HOST_SC_SS, sigcontext, ss);
--	OFFSET(HOST_SC_CS, sigcontext, cs);
--	OFFSET(HOST_SC_EFLAGS, sigcontext, eflags);
--	OFFSET(HOST_SC_EAX, sigcontext, eax);
--	OFFSET(HOST_SC_EBX, sigcontext, ebx);
--	OFFSET(HOST_SC_ECX, sigcontext, ecx);
--	OFFSET(HOST_SC_EDX, sigcontext, edx);
--	OFFSET(HOST_SC_EDI, sigcontext, edi);
--	OFFSET(HOST_SC_ESI, sigcontext, esi);
--	OFFSET(HOST_SC_EBP, sigcontext, ebp);
- 	OFFSET(HOST_SC_TRAPNO, sigcontext, trapno);
- 	OFFSET(HOST_SC_ERR, sigcontext, err);
- 	OFFSET(HOST_SC_CR2, sigcontext, cr2);
--	OFFSET(HOST_SC_FPSTATE, sigcontext, fpstate);
--	OFFSET(HOST_SC_SIGMASK, sigcontext, oldmask);
--	OFFSET(HOST_SC_FP_CW, _fpstate, cw);
--	OFFSET(HOST_SC_FP_SW, _fpstate, sw);
--	OFFSET(HOST_SC_FP_TAG, _fpstate, tag);
--	OFFSET(HOST_SC_FP_IPOFF, _fpstate, ipoff);
--	OFFSET(HOST_SC_FP_CSSEL, _fpstate, cssel);
--	OFFSET(HOST_SC_FP_DATAOFF, _fpstate, dataoff);
--	OFFSET(HOST_SC_FP_DATASEL, _fpstate, datasel);
--	OFFSET(HOST_SC_FP_ST, _fpstate, _st);
--	OFFSET(HOST_SC_FXSR_ENV, _fpstate, _fxsr_env);
- 
- 	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_fpregs_struct));
- 	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fpxregs_struct));
-diff -puN arch/um/sys-x86_64/user-offsets.c~uml-remove-unused-sigcontext-accessors arch/um/sys-x86_64/user-offsets.c
---- a/arch/um/sys-x86_64/user-offsets.c~uml-remove-unused-sigcontext-accessors
-+++ a/arch/um/sys-x86_64/user-offsets.c
-@@ -19,37 +19,9 @@
- 
- void foo(void)
- {
--	OFFSET(HOST_SC_RBX, sigcontext, rbx);
--	OFFSET(HOST_SC_RCX, sigcontext, rcx);
--	OFFSET(HOST_SC_RDX, sigcontext, rdx);
--	OFFSET(HOST_SC_RSI, sigcontext, rsi);
--	OFFSET(HOST_SC_RDI, sigcontext, rdi);
--	OFFSET(HOST_SC_RBP, sigcontext, rbp);
--	OFFSET(HOST_SC_RAX, sigcontext, rax);
--	OFFSET(HOST_SC_R8, sigcontext, r8);
--	OFFSET(HOST_SC_R9, sigcontext, r9);
--	OFFSET(HOST_SC_R10, sigcontext, r10);
--	OFFSET(HOST_SC_R11, sigcontext, r11);
--	OFFSET(HOST_SC_R12, sigcontext, r12);
--	OFFSET(HOST_SC_R13, sigcontext, r13);
--	OFFSET(HOST_SC_R14, sigcontext, r14);
--	OFFSET(HOST_SC_R15, sigcontext, r15);
--	OFFSET(HOST_SC_IP, sigcontext, rip);
--	OFFSET(HOST_SC_SP, sigcontext, rsp);
- 	OFFSET(HOST_SC_CR2, sigcontext, cr2);
- 	OFFSET(HOST_SC_ERR, sigcontext, err);
- 	OFFSET(HOST_SC_TRAPNO, sigcontext, trapno);
--	OFFSET(HOST_SC_CS, sigcontext, cs);
--	OFFSET(HOST_SC_FS, sigcontext, fs);
--	OFFSET(HOST_SC_GS, sigcontext, gs);
--	OFFSET(HOST_SC_EFLAGS, sigcontext, eflags);
--	OFFSET(HOST_SC_SIGMASK, sigcontext, oldmask);
--#if 0
--	OFFSET(HOST_SC_ORIG_RAX, sigcontext, orig_rax);
--	OFFSET(HOST_SC_DS, sigcontext, ds);
--	OFFSET(HOST_SC_ES, sigcontext, es);
--	OFFSET(HOST_SC_SS, sigcontext, ss);
--#endif
- 
- 	DEFINE(HOST_FP_SIZE, sizeof(struct _fpstate) / sizeof(unsigned long));
- 	DEFINE(HOST_XFP_SIZE, 0);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from johfel@users.sourceforge.net are
 
 origin.patch
-uml-fix-hostfs-build.patch
-git-kvm.patch
-uml-remove-unused-sigcontext-accessors.patch
-uml-fix-fp-register-corruption.patch
-uml-update-defconfig.patch
-random-add-async-notification-support-to-dev-random.patch
+rtc-remove-unused-var-in-drivers-rtc-rtc-r9701o.patch
+uml-fix-initrd-printk.patch
+uml-fix-helper_wait-calls-in-watchdog.patch
