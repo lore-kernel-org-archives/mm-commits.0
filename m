@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-rlimit_rttime-to-proc-pid-limits.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:56:03 -0800
-Message-ID: <200802122356.m1CNu3Dq029730@imap1.linux-foundation.org>
+Subject: + documentation-sysctl-kerneltxt-fix-documentation-reference.patch added to -mm tree
+Date: Tue, 12 Feb 2008 15:56:36 -0800
+Message-ID: <200802122356.m1CNuamX029741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818AbYBLX4Y (ORCPT
+	by vger.kernel.org with ESMTP id S1761978AbYBLX5N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:56:24 -0500
+	Tue, 12 Feb 2008 18:57:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eugeneteo@kernel.sg, a.p.zijlstra@chello.nl, mingo@elte.hu
+Cc: michael-lists@free-electrons.com, michael@free-electrons.com, rdunlap@xenotime.net
 
 
 The patch titled
-     proc: add RLIMIT_RTTIME to /proc/<pid>/limits
+     Documentation: sysctl/kernel.txt: fix documentation reference
 has been added to the -mm tree.  Its filename is
-     proc-add-rlimit_rttime-to-proc-pid-limits.patch
+     documentation-sysctl-kerneltxt-fix-documentation-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: add RLIMIT_RTTIME to /proc/<pid>/limits
-From: Eugene Teo <eugeneteo@kernel.sg>
+Subject: Documentation: sysctl/kernel.txt: fix documentation reference
+From: Michael Opdenacker <michael-lists@free-electrons.com>
 
-RLIMIT_RTTIME was introduced to allow the user to set a runtime timeout on
-real-time tasks: http://lkml.org/lkml/2007/12/18/218. This patch updates
-/proc/<pid>/limits with the new rlimit.
+This patch fixes a reference to Documentation/kmod.txt
+which was apparently renamed to Documentation/debugging-modules.txt
 
-Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Michael Opdenacker <michael@free-electrons.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/sysctl/kernel.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-add-rlimit_rttime-to-proc-pid-limits fs/proc/base.c
---- a/fs/proc/base.c~proc-add-rlimit_rttime-to-proc-pid-limits
-+++ a/fs/proc/base.c
-@@ -416,6 +416,7 @@ static const struct limit_names lnames[R
- 	[RLIMIT_MSGQUEUE] = {"Max msgqueue size", "bytes"},
- 	[RLIMIT_NICE] = {"Max nice priority", NULL},
- 	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
-+	[RLIMIT_RTTIME] = {"Max realtime timeout", "us"},
- };
- 
- /* Display limits for a process */
+diff -puN Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-fix-documentation-reference Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-fix-documentation-reference
++++ a/Documentation/sysctl/kernel.txt
+@@ -29,7 +29,7 @@ show up in /proc/sys/kernel:
+ - java-interpreter            [ binfmt_java, obsolete ]
+ - kstack_depth_to_print       [ X86 only ]
+ - l2cr                        [ PPC only ]
+-- modprobe                    ==> Documentation/kmod.txt
++- modprobe                    ==> Documentation/debugging-modules.txt
+ - msgmax
+ - msgmnb
+ - msgmni
 _
 
-Patches currently in -mm which might be from eugeneteo@kernel.sg are
+Patches currently in -mm which might be from michael-lists@free-electrons.com are
 
-proc-add-rlimit_rttime-to-proc-pid-limits.patch
+origin.patch
+documentation-sysctl-kerneltxt-fix-documentation-reference.patch
