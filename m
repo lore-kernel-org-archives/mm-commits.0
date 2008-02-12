@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486-fix.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:06:46 -0800
-Message-ID: <200802122306.m1CN6kIu027475@imap1.linux-foundation.org>
+Subject: - x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486-fix.patch removed from -mm tree
+Date: Tue, 12 Feb 2008 15:06:57 -0800
+Message-ID: <200802122306.m1CN6vB2027479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45131 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51896 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755027AbYBLXHg (ORCPT
+	by vger.kernel.org with ESMTP id S1753335AbYBLXHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:07:36 -0500
+	Tue, 12 Feb 2008 18:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, mingo@elte.hu, penberg@cs.helsinki.fi, tglx@linutronix.de, vegard.nossum@gmail.com
+To: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, mingo@elte.hu, penberg@cs.helsinki.fi, tglx@linutronix.de, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Cast cmpxchg64 and cmpxchg64_local result for 386 and 486 - Fix missing parenthesis
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
