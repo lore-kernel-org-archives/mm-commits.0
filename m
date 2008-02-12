@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-move-pipe-and-splice-to-filesystems-docbook.patch added to -mm tree
-Date: Mon, 11 Feb 2008 23:52:12 -0800
-Message-ID: <200802120753.m1C7rKC3024663@imap1.linux-foundation.org>
+Subject: + docbook-sunrpc-filenames-and-notation-fixes.patch added to -mm tree
+Date: Mon, 11 Feb 2008 23:52:15 -0800
+Message-ID: <200802120753.m1C7rMxh024667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33409 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33005 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753838AbYBLHyL (ORCPT
+	by vger.kernel.org with ESMTP id S1756676AbYBLHyi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 02:54:11 -0500
+	Tue, 12 Feb 2008 02:54:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jens.axboe@oracle.com
+Cc: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     docbook: move pipe and splice to filesystems docbook
+     docbook: sunrpc filenames and notation fixes
 has been added to the -mm tree.  Its filename is
-     docbook-move-pipe-and-splice-to-filesystems-docbook.patch
+     docbook-sunrpc-filenames-and-notation-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: move pipe and splice to filesystems docbook
+Subject: docbook: sunrpc filenames and notation fixes
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Move pipes and splice docbook to filesystems book.
-kernel-api book is huge (10x most other books) & slow to process.
+Use updated file list for docbook files and
+fix kernel-doc warnings in sunrpc:
+Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:689): No description found for parameter 'rpc_client'
+Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:765): No description found for parameter 'flags'
+Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:584): No description found for parameter 'tk_ops'
+Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:618): No description found for parameter 'bufsize'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/filesystems.tmpl |   20 ++++++++++++++++++++
- Documentation/DocBook/kernel-api.tmpl  |   20 --------------------
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    8 +++++++-
+ net/sunrpc/clnt.c                     |   10 +++++-----
+ net/sunrpc/rpc_pipe.c                 |    3 ++-
+ net/sunrpc/xprt.c                     |    2 +-
+ 4 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/DocBook/filesystems.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook Documentation/DocBook/filesystems.tmpl
---- a/Documentation/DocBook/filesystems.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook
-+++ a/Documentation/DocBook/filesystems.tmpl
-@@ -398,4 +398,24 @@ an example.
- 
-   </chapter>
- 
-+  <chapter id="splice">
-+      <title>splice API</title>
-+  <para>
-+	splice is a method for moving blocks of data around inside the
-+	kernel, without continually transferring them between the kernel
-+	and user space.
-+  </para>
-+!Ffs/splice.c
-+  </chapter>
-+
-+  <chapter id="pipes">
-+      <title>pipes API</title>
-+  <para>
-+	Pipe interfaces are all for in-kernel (builtin image) use.
-+	They are not exported for use by modules.
-+  </para>
-+!Iinclude/linux/pipe_fs_i.h
-+!Ffs/pipe.c
-+  </chapter>
-+
- </book>
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes
 +++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -712,24 +712,4 @@ X!Idrivers/video/console/fonts.c
- !Edrivers/i2c/i2c-core.c
+@@ -231,8 +231,14 @@ X!Ilib/string.c
+ !Dnet/sunrpc/sunrpc_syms.c
+ -->
+ !Enet/sunrpc/xdr.c
+-!Enet/sunrpc/svcsock.c
++!Enet/sunrpc/svc_xprt.c
++!Enet/sunrpc/xprt.c
+ !Enet/sunrpc/sched.c
++!Enet/sunrpc/socklib.c
++!Enet/sunrpc/stats.c
++!Enet/sunrpc/rpc_pipe.c
++!Enet/sunrpc/rpcb_clnt.c
++!Enet/sunrpc/clnt.c
+      </sect1>
    </chapter>
  
--  <chapter id="splice">
--      <title>splice API</title>
--  <para>
--	splice is a method for moving blocks of data around inside the
--	kernel, without continually transferring them between the kernel
--	and user space.
--  </para>
--!Ffs/splice.c
--  </chapter>
--
--  <chapter id="pipes">
--      <title>pipes API</title>
--  <para>
--	Pipe interfaces are all for in-kernel (builtin image) use.
--	They are not exported for use by modules.
--  </para>
--!Iinclude/linux/pipe_fs_i.h
--!Ffs/pipe.c
--  </chapter>
--
- </book>
+diff -puN net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/clnt.c
+--- a/net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/clnt.c
+@@ -464,9 +464,9 @@ rpc_release_client(struct rpc_clnt *clnt
+ 
+ /**
+  * rpc_bind_new_program - bind a new RPC program to an existing client
+- * @old - old rpc_client
+- * @program - rpc program to set
+- * @vers - rpc program version
++ * @old: old rpc_client
++ * @program: rpc program to set
++ * @vers: rpc program version
+  *
+  * Clones the rpc client and sets up a new RPC program. This is mainly
+  * of use for enabling different RPC programs to share the same transport.
+@@ -575,7 +575,7 @@ EXPORT_SYMBOL_GPL(rpc_call_sync);
+  * @clnt: pointer to RPC client
+  * @msg: RPC call parameters
+  * @flags: RPC call flags
+- * @ops: RPC call ops
++ * @tk_ops: RPC call ops
+  * @data: user call data
+  */
+ int
+@@ -610,7 +610,7 @@ EXPORT_SYMBOL_GPL(rpc_call_start);
+  * rpc_peeraddr - extract remote peer address from clnt's xprt
+  * @clnt: RPC client structure
+  * @buf: target buffer
+- * @size: length of target buffer
++ * @bufsize: length of target buffer
+  *
+  * Returns the number of bytes that are actually in the stored address.
+  */
+diff -puN net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/rpc_pipe.c
+@@ -677,7 +677,7 @@ rpc_lookup_negative(char *path, struct n
+ /**
+  * rpc_mkdir - Create a new directory in rpc_pipefs
+  * @path: path from the rpc_pipefs root to the new directory
+- * @rpc_clnt: rpc client to associate with this directory
++ * @rpc_client: rpc client to associate with this directory
+  *
+  * This creates a directory at the given @path associated with
+  * @rpc_clnt, which will contain a file named "info" with some basic
+@@ -748,6 +748,7 @@ rpc_rmdir(struct dentry *dentry)
+  * @private: private data to associate with the pipe, for the caller's use
+  * @ops: operations defining the behavior of the pipe: upcall, downcall,
+  *	release_pipe, and destroy_msg.
++ * @flags: rpc_inode flags
+  *
+  * Data is made available for userspace to read by calls to
+  * rpc_queue_upcall().  The actual reads will result in calls to
+diff -puN net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/xprt.c
+--- a/net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/xprt.c
+@@ -124,7 +124,7 @@ EXPORT_SYMBOL_GPL(xprt_register_transpor
+ 
+ /**
+  * xprt_unregister_transport - unregister a transport implementation
+- * transport: transport to unregister
++ * @transport: transport to unregister
+  *
+  * Returns:
+  * 0:		transport successfully unregistered
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
