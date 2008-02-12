@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-drop-z85230-library-from-kernel-api.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:21:43 -0800
-Message-ID: <200802122321.m1CNLhYn028177@imap1.linux-foundation.org>
+Subject: + sunprc-fix-printk-format-warning.patch added to -mm tree
+Date: Tue, 12 Feb 2008 15:24:08 -0800
+Message-ID: <200802122324.m1CNO8nJ028263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752585AbYBLXWh (ORCPT
+	by vger.kernel.org with ESMTP id S1752355AbYBLXYN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:22:37 -0500
+	Tue, 12 Feb 2008 18:24:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, alan@redhat.com
+Cc: rdreier@cisco.com, rolandd@cisco.com
 
 
 The patch titled
-     docbook: drop z85230 library from kernel-api
+     SUNPRC: fix printk format warning
 has been added to the -mm tree.  Its filename is
-     docbook-drop-z85230-library-from-kernel-api.patch
+     sunprc-fix-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: drop z85230 library from kernel-api
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: SUNPRC: fix printk format warning
+From: Roland Dreier <rdreier@cisco.com>
 
-Drop z85230 support library info from kernel-api since it's duplicated in
-the Z85230 book.
+net/sunrpc/xprtrdma/svc_rdma_sendto.c:160: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    5 -----
- 1 file changed, 5 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-drop-z85230-library-from-kernel-api Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbook-drop-z85230-library-from-kernel-api
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -449,11 +449,6 @@ X!Isound/sound_firmware.c
- !Edrivers/serial/8250.c
-   </chapter>
+diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning net/sunrpc/xprtrdma/svc_rdma_sendto.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning
++++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -159,7 +159,7 @@ static int send_write(struct svcxprt_rdm
+ 	BUG_ON(sge_count >= 32);
+ 	dprintk("svcrdma: RDMA_WRITE rmr=%x, to=%llx, xdr_off=%d, "
+ 		"write_len=%d, xdr_sge=%p, sge_count=%d\n",
+-		rmr, to, xdr_off, write_len, xdr_sge, sge_count);
++		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
  
--  <chapter id="z85230">
--     <title>Z85230 Support Library</title>
--!Edrivers/net/wan/z85230.c
--  </chapter>
--
-   <chapter id="fbdev">
-      <title>Frame Buffer Library</title>
- 
+ 	ctxt = svc_rdma_get_context(xprt);
+ 	ctxt->count = 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
 origin.patch
-kernel-doc-fix-fs-pipec-notation.patch
-docbook-move-pipe-and-splice-to-filesystems-docbook.patch
-docbook-sunrpc-filenames-and-notation-fixes.patch
-docbook-make-a-networking-book-and-fix-a-few-errors.patch
-docbook-drop-z85230-library-from-kernel-api.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
-profile-likely-unlikely-macros.patch
+input-i8042-fix-warning-on-non-x86-builds.patch
+sunprc-fix-printk-format-warning.patch
