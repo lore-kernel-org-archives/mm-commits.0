@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-dev-kmem-a-config-option-fix.patch added to -mm tree
-Date: Mon, 11 Feb 2008 20:59:27 -0800
-Message-ID: <200802120500.m1C50Xse018738@imap1.linux-foundation.org>
+Subject: + epoll-avoid-kmemcheck-warning.patch added to -mm tree
+Date: Mon, 11 Feb 2008 22:22:15 -0800
+Message-ID: <200802120623.m1C6NMQi021688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750814AbYBLFAg (ORCPT
+	by vger.kernel.org with ESMTP id S1759890AbYBLGX4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 00:00:36 -0500
+	Tue, 12 Feb 2008 01:23:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com
+Cc: davidel@xmailserver.org, vegard.nossum@gmail.com
 
 
 The patch titled
-     make-dev-kmem-a-config-option-fix
+     epoll: avoid kmemcheck warning
 has been added to the -mm tree.  Its filename is
-     make-dev-kmem-a-config-option-fix.patch
+     epoll-avoid-kmemcheck-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make-dev-kmem-a-config-option-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: epoll: avoid kmemcheck warning
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+Epoll calls rb_set_parent(n, n) to initialize the rb-tree node, but
+rb_set_parent() accesses node's pointer in its code.  This creates a
+warning in kmemcheck (reported by Vegard Nossum) about an uninitialized
+memory access.  The warning is harmless since the following rb-tree node
+insert is going to overwrite the node data.  In any case I think it's
+better to not have that happening at all, and fix it by simplifying the
+code to get rid of a few lines that became superfluous after the previous
+epoll changes.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/eventpoll.c |   27 +++------------------------
+ 1 file changed, 3 insertions(+), 24 deletions(-)
 
-diff -puN drivers/char/Kconfig~make-dev-kmem-a-config-option-fix drivers/char/Kconfig
---- a/drivers/char/Kconfig~make-dev-kmem-a-config-option-fix
-+++ a/drivers/char/Kconfig
-@@ -82,6 +82,7 @@ config VT_HW_CONSOLE_BINDING
+diff -puN fs/eventpoll.c~epoll-avoid-kmemcheck-warning fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-avoid-kmemcheck-warning
++++ a/fs/eventpoll.c
+@@ -257,25 +257,6 @@ static inline int ep_cmp_ffd(struct epol
+ 	        (p1->file < p2->file ? -1 : p1->fd - p2->fd));
+ }
  
- config DEVKMEM
- 	bool "/dev/kmem virtual device support"
-+	default y
- 	help
- 	  Say Y here if you want to support the /dev/kmem device. The
- 	  /dev/kmem device is rarely used, but can be used for certain
+-/* Special initialization for the RB tree node to detect linkage */
+-static inline void ep_rb_initnode(struct rb_node *n)
+-{
+-	rb_set_parent(n, n);
+-}
+-
+-/* Removes a node from the RB tree and marks it for a fast is-linked check */
+-static inline void ep_rb_erase(struct rb_node *n, struct rb_root *r)
+-{
+-	rb_erase(n, r);
+-	rb_set_parent(n, n);
+-}
+-
+-/* Fast check to verify that the item is linked to the main RB tree */
+-static inline int ep_rb_linked(struct rb_node *n)
+-{
+-	return rb_parent(n) != n;
+-}
+-
+ /* Tells us if the item is currently linked */
+ static inline int ep_is_linked(struct list_head *p)
+ {
+@@ -283,13 +264,13 @@ static inline int ep_is_linked(struct li
+ }
+ 
+ /* Get the "struct epitem" from a wait queue pointer */
+-static inline struct epitem * ep_item_from_wait(wait_queue_t *p)
++static inline struct epitem *ep_item_from_wait(wait_queue_t *p)
+ {
+ 	return container_of(p, struct eppoll_entry, wait)->base;
+ }
+ 
+ /* Get the "struct epitem" from an epoll queue wrapper */
+-static inline struct epitem * ep_item_from_epqueue(poll_table *p)
++static inline struct epitem *ep_item_from_epqueue(poll_table *p)
+ {
+ 	return container_of(p, struct ep_pqueue, pt)->epi;
+ }
+@@ -411,8 +392,7 @@ static int ep_remove(struct eventpoll *e
+ 		list_del_init(&epi->fllink);
+ 	spin_unlock(&file->f_ep_lock);
+ 
+-	if (ep_rb_linked(&epi->rbn))
+-		ep_rb_erase(&epi->rbn, &ep->rbr);
++	rb_erase(&epi->rbn, &ep->rbr);
+ 
+ 	spin_lock_irqsave(&ep->lock, flags);
+ 	if (ep_is_linked(&epi->rdllink))
+@@ -728,7 +708,6 @@ static int ep_insert(struct eventpoll *e
+ 		goto error_return;
+ 
+ 	/* Item initialization follow here ... */
+-	ep_rb_initnode(&epi->rbn);
+ 	INIT_LIST_HEAD(&epi->rdllink);
+ 	INIT_LIST_HEAD(&epi->fllink);
+ 	INIT_LIST_HEAD(&epi->pwqlist);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-revert-proc-fix-the-threaded-proc-self.patch
-memstick-initial-commit-for-sony-memorystick-support.patch
-include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
-git-mmc.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
-git-x86.patch
-git-x86-fix-git-conflicts.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-fix-git-conflicts.patch
-git-xtensa.patch
-mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+epoll-avoid-kmemcheck-warning.patch
