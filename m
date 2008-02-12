@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + keyboard-notifier-documentation.patch added to -mm tree
-Date: Tue, 12 Feb 2008 15:18:59 -0800
-Message-ID: <200802122318.m1CNIxrf028032@imap1.linux-foundation.org>
+Subject: + efs-move-headers-out-of-include-linux.patch added to -mm tree
+Date: Tue, 12 Feb 2008 15:20:31 -0800
+Message-ID: <200802122320.m1CNKVll028151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751432AbYBLXTW (ORCPT
+	by vger.kernel.org with ESMTP id S1751536AbYBLXUn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 18:19:22 -0500
+	Tue, 12 Feb 2008 18:20:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@ens-lyon.org, dtor@mail.ru, rdunlap@xenotime.net, rob@landley.net
+Cc: hch@lst.de
 
 
 The patch titled
-     keyboard notifier documentation
+     efs: move headers out of include/linux/
 has been added to the -mm tree.  Its filename is
-     keyboard-notifier-documentation.patch
+     efs-move-headers-out-of-include-linux.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,484 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keyboard notifier documentation
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: efs: move headers out of include/linux/
+From: Christoph Hellwig <hch@lst.de>
 
-Document the keyboard notifier.
+Merge include/linux/efs_fs{_i,_dir}.h into fs/efs/efs.h.  efs_vh.h remains
+there because this is the IRIX volume header and shouldn't really be
+handled by efs but by the partitioning code.  efs_sb.h remains there for
+now because it's exported to userspace.  Of course this wrong and aboot
+should have a copy of it's own, but I'll leave that to a separate patch to
+avoid any contention.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Rob Landley <rob@landley.net>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/input/notifier.txt |   52 +++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ fs/efs/dir.c             |    2 
+ fs/efs/efs.h             |  140 +++++++++++++++++++++++++++++++++++++
+ fs/efs/file.c            |    2 
+ fs/efs/inode.c           |    4 -
+ fs/efs/namei.c           |    2 
+ fs/efs/super.c           |    7 +
+ fs/efs/symlink.c         |    2 
+ include/linux/efs_dir.h  |   42 -----------
+ include/linux/efs_fs.h   |   56 --------------
+ include/linux/efs_fs_i.h |   68 -----------------
+ 10 files changed, 150 insertions(+), 175 deletions(-)
 
-diff -puN /dev/null Documentation/input/notifier.txt
+diff -puN fs/efs/dir.c~efs-move-headers-out-of-include-linux fs/efs/dir.c
+--- a/fs/efs/dir.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/dir.c
+@@ -5,8 +5,8 @@
+  */
+ 
+ #include <linux/buffer_head.h>
+-#include <linux/efs_fs.h>
+ #include <linux/smp_lock.h>
++#include "efs.h"
+ 
+ static int efs_readdir(struct file *, void *, filldir_t);
+ 
+diff -puN /dev/null fs/efs/efs.h
 --- /dev/null
-+++ a/Documentation/input/notifier.txt
-@@ -0,0 +1,52 @@
-+Keyboard notifier
++++ a/fs/efs/efs.h
+@@ -0,0 +1,140 @@
++/*
++ * Copyright (c) 1999 Al Smith
++ *
++ * Portions derived from work (c) 1995,1996 Christian Vogelgsang.
++ * Portions derived from IRIX header files (c) 1988 Silicon Graphics
++ */
++#ifndef _EFS_EFS_H_
++#define _EFS_EFS_H_
 +
-+One can use register_keyboard_notifier to get called back on keyboard
-+events (see kbd_keycode() function for details).  The passed structure is
-+keyboard_notifier_param:
++#include <linux/fs.h>
++#include <asm/uaccess.h>
 +
-+- 'vc' always provide the VC for which the keyboard event applies;
-+- 'down' is 1 for a key press event, 0 for a key release;
-+- 'shift' is the current modifier state, mask bit indexes are KG_*;
-+- 'value' depends on the type of event.
++#define EFS_VERSION "1.0a"
 +
-+- KBD_KEYCODE events are always sent before other events, value is the keycode.
-+- KBD_UNBOUND_KEYCODE events are sent if the keycode is not bound to a keysym.
-+  value is the keycode.
-+- KBD_UNICODE events are sent if the keycode -> keysym translation produced a
-+  unicode character. value is the unicode value.
-+- KBD_KEYSYM events are sent if the keycode -> keysym translation produced a
-+  non-unicode character. value is the keysym.
-+- KBD_POST_KEYSYM events are sent after the treatment of non-unicode keysyms.
-+  That permits one to inspect the resulting LEDs for instance.
++static const char cprt[] = "EFS: "EFS_VERSION" - (c) 1999 Al Smith <Al.Smith@aeschi.ch.eu.org>";
 +
-+For each kind of event but the last, the callback may return NOTIFY_STOP in
-+order to "eat" the event: the notify loop is stopped and the keyboard event is
-+dropped.
 +
-+In a rough C snippet, we have:
++/* 1 block is 512 bytes */
++#define	EFS_BLOCKSIZE_BITS	9
++#define	EFS_BLOCKSIZE		(1 << EFS_BLOCKSIZE_BITS)
 +
-+kbd_keycode(keycode) {
-+	...
-+	params.value = keycode;
-+	if (notifier_call_chain(KBD_KEYCODE,&params) == NOTIFY_STOP)
-+	    || !bound) {
-+		notifier_call_chain(KBD_UNBOUND_KEYCODE,&params);
-+		return;
-+	}
++typedef	int32_t		efs_block_t;
++typedef uint32_t	efs_ino_t;
 +
-+	if (unicode) {
-+		param.value = unicode;
-+		if (notifier_call_chain(KBD_UNICODE,&params) == NOTIFY_STOP)
-+			return;
-+		emit unicode;
-+		return;
-+	}
++#define	EFS_DIRECTEXTENTS	12
 +
-+	params.value = keysym;
-+	if (notifier_call_chain(KBD_KEYSYM,&params) == NOTIFY_STOP)
-+		return;
-+	apply keysym;
-+	notifier_call_chain(KBD_POST_KEYSYM,&params);
++/*
++ * layout of an extent, in memory and on disk. 8 bytes exactly.
++ */
++typedef union extent_u {
++	unsigned char raw[8];
++	struct extent_s {
++		unsigned int	ex_magic:8;	/* magic # (zero) */
++		unsigned int	ex_bn:24;	/* basic block */
++		unsigned int	ex_length:8;	/* numblocks in this extent */
++		unsigned int	ex_offset:24;	/* logical offset into file */
++	} cooked;
++} efs_extent;
++
++typedef struct edevs {
++	__be16		odev;
++	__be32		ndev;
++} efs_devs;
++
++/*
++ * extent based filesystem inode as it appears on disk.  The efs inode
++ * is exactly 128 bytes long.
++ */
++struct	efs_dinode {
++	__be16		di_mode;	/* mode and type of file */
++	__be16		di_nlink;	/* number of links to file */
++	__be16		di_uid;		/* owner's user id */
++	__be16		di_gid;		/* owner's group id */
++	__be32		di_size;	/* number of bytes in file */
++	__be32		di_atime;	/* time last accessed */
++	__be32		di_mtime;	/* time last modified */
++	__be32		di_ctime;	/* time created */
++	__be32		di_gen;		/* generation number */
++	__be16		di_numextents;	/* # of extents */
++	u_char		di_version;	/* version of inode */
++	u_char		di_spare;	/* spare - used by AFS */
++	union di_addr {
++		efs_extent	di_extents[EFS_DIRECTEXTENTS];
++		efs_devs	di_dev;	/* device for IFCHR/IFBLK */
++	} di_u;
++};
++
++/* efs inode storage in memory */
++struct efs_inode_info {
++	int		numextents;
++	int		lastextent;
++
++	efs_extent	extents[EFS_DIRECTEXTENTS];
++	struct inode	vfs_inode;
++};
++
++#include <linux/efs_fs_sb.h>
++
++#define EFS_DIRBSIZE_BITS	EFS_BLOCKSIZE_BITS
++#define EFS_DIRBSIZE		(1 << EFS_DIRBSIZE_BITS)
++
++struct efs_dentry {
++	__be32		inode;
++	unsigned char	namelen;
++	char		name[3];
++};
++
++#define EFS_DENTSIZE	(sizeof(struct efs_dentry) - 3 + 1)
++#define EFS_MAXNAMELEN  ((1 << (sizeof(char) * 8)) - 1)
++
++#define EFS_DIRBLK_HEADERSIZE	4
++#define EFS_DIRBLK_MAGIC	0xbeef	/* moo */
++
++struct efs_dir {
++	__be16	magic;
++	unsigned char	firstused;
++	unsigned char	slots;
++
++	unsigned char	space[EFS_DIRBSIZE - EFS_DIRBLK_HEADERSIZE];
++};
++
++#define EFS_MAXENTS \
++	((EFS_DIRBSIZE - EFS_DIRBLK_HEADERSIZE) / \
++	 (EFS_DENTSIZE + sizeof(char)))
++
++#define EFS_SLOTAT(dir, slot) EFS_REALOFF((dir)->space[slot])
++
++#define EFS_REALOFF(offset) ((offset << 1))
++
++
++static inline struct efs_inode_info *INODE_INFO(struct inode *inode)
++{
++	return container_of(inode, struct efs_inode_info, vfs_inode);
 +}
 +
-+NOTE: This notifier is usually called from interrupt context.
++static inline struct efs_sb_info *SUPER_INFO(struct super_block *sb)
++{
++	return sb->s_fs_info;
++}
++
++struct statfs;
++struct fid;
++
++extern const struct inode_operations efs_dir_inode_operations;
++extern const struct file_operations efs_dir_operations;
++extern const struct address_space_operations efs_symlink_aops;
++
++extern struct inode *efs_iget(struct super_block *, unsigned long);
++extern efs_block_t efs_map_block(struct inode *, efs_block_t);
++extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
++
++extern struct dentry *efs_lookup(struct inode *, struct dentry *, struct nameidata *);
++extern struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
++extern struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
++extern struct dentry *efs_get_parent(struct dentry *);
++extern int efs_bmap(struct inode *, int);
++
++#endif /* _EFS_EFS_H_ */
+diff -puN fs/efs/file.c~efs-move-headers-out-of-include-linux fs/efs/file.c
+--- a/fs/efs/file.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/file.c
+@@ -7,7 +7,7 @@
+  */
+ 
+ #include <linux/buffer_head.h>
+-#include <linux/efs_fs.h>
++#include "efs.h"
+ 
+ int efs_get_block(struct inode *inode, sector_t iblock,
+ 		  struct buffer_head *bh_result, int create)
+diff -puN fs/efs/inode.c~efs-move-headers-out-of-include-linux fs/efs/inode.c
+--- a/fs/efs/inode.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/inode.c
+@@ -7,11 +7,11 @@
+  *              and from work (c) 1998 Mike Shaver.
+  */
+ 
+-#include <linux/efs_fs.h>
+-#include <linux/efs_fs_sb.h>
+ #include <linux/buffer_head.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
++#include "efs.h"
++#include <linux/efs_fs_sb.h>
+ 
+ static int efs_readpage(struct file *file, struct page *page)
+ {
+diff -puN fs/efs/namei.c~efs-move-headers-out-of-include-linux fs/efs/namei.c
+--- a/fs/efs/namei.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/namei.c
+@@ -8,9 +8,9 @@
+ 
+ #include <linux/buffer_head.h>
+ #include <linux/string.h>
+-#include <linux/efs_fs.h>
+ #include <linux/smp_lock.h>
+ #include <linux/exportfs.h>
++#include "efs.h"
+ 
+ 
+ static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
+diff -puN fs/efs/super.c~efs-move-headers-out-of-include-linux fs/efs/super.c
+--- a/fs/efs/super.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/super.c
+@@ -8,14 +8,15 @@
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/efs_fs.h>
+-#include <linux/efs_vh.h>
+-#include <linux/efs_fs_sb.h>
+ #include <linux/exportfs.h>
+ #include <linux/slab.h>
+ #include <linux/buffer_head.h>
+ #include <linux/vfs.h>
+ 
++#include "efs.h"
++#include <linux/efs_vh.h>
++#include <linux/efs_fs_sb.h>
++
+ static int efs_statfs(struct dentry *dentry, struct kstatfs *buf);
+ static int efs_fill_super(struct super_block *s, void *d, int silent);
+ 
+diff -puN fs/efs/symlink.c~efs-move-headers-out-of-include-linux fs/efs/symlink.c
+--- a/fs/efs/symlink.c~efs-move-headers-out-of-include-linux
++++ a/fs/efs/symlink.c
+@@ -7,10 +7,10 @@
+  */
+ 
+ #include <linux/string.h>
+-#include <linux/efs_fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/buffer_head.h>
+ #include <linux/smp_lock.h>
++#include "efs.h"
+ 
+ static int efs_symlink_readpage(struct file *file, struct page *page)
+ {
+diff -puN include/linux/efs_dir.h~efs-move-headers-out-of-include-linux /dev/null
+--- a/include/linux/efs_dir.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/*
+- * efs_dir.h
+- *
+- * Copyright (c) 1999 Al Smith
+- */
+-
+-#ifndef __EFS_DIR_H__
+-#define __EFS_DIR_H__
+-
+-#define EFS_DIRBSIZE_BITS	EFS_BLOCKSIZE_BITS
+-#define EFS_DIRBSIZE		(1 << EFS_DIRBSIZE_BITS)
+-
+-struct efs_dentry {
+-	__be32		inode;
+-	unsigned char	namelen;
+-	char		name[3];
+-};
+-
+-#define EFS_DENTSIZE	(sizeof(struct efs_dentry) - 3 + 1)
+-#define EFS_MAXNAMELEN  ((1 << (sizeof(char) * 8)) - 1)
+-
+-#define EFS_DIRBLK_HEADERSIZE	4
+-#define EFS_DIRBLK_MAGIC	0xbeef	/* moo */
+-
+-struct efs_dir {
+-	__be16	magic;
+-	unsigned char	firstused;
+-	unsigned char	slots;
+-
+-	unsigned char	space[EFS_DIRBSIZE - EFS_DIRBLK_HEADERSIZE];
+-};
+-
+-#define EFS_MAXENTS \
+-	((EFS_DIRBSIZE - EFS_DIRBLK_HEADERSIZE) / \
+-	 (EFS_DENTSIZE + sizeof(char)))
+-
+-#define EFS_SLOTAT(dir, slot) EFS_REALOFF((dir)->space[slot])
+-
+-#define EFS_REALOFF(offset) ((offset << 1))
+-
+-#endif /* __EFS_DIR_H__ */
+-
+diff -puN include/linux/efs_fs.h~efs-move-headers-out-of-include-linux /dev/null
+--- a/include/linux/efs_fs.h
++++ /dev/null
+@@ -1,56 +0,0 @@
+-/*
+- * efs_fs.h
+- *
+- * Copyright (c) 1999 Al Smith
+- *
+- * Portions derived from work (c) 1995,1996 Christian Vogelgsang.
+- */
+-
+-#ifndef __EFS_FS_H__
+-#define __EFS_FS_H__
+-
+-#define EFS_VERSION "1.0a"
+-
+-static const char cprt[] = "EFS: "EFS_VERSION" - (c) 1999 Al Smith <Al.Smith@aeschi.ch.eu.org>";
+-
+-#include <asm/uaccess.h>
+-
+-/* 1 block is 512 bytes */
+-#define	EFS_BLOCKSIZE_BITS	9
+-#define	EFS_BLOCKSIZE		(1 << EFS_BLOCKSIZE_BITS)
+-
+-#include <linux/fs.h>
+-#include <linux/efs_fs_i.h>
+-#include <linux/efs_fs_sb.h>
+-#include <linux/efs_dir.h>
+-
+-static inline struct efs_inode_info *INODE_INFO(struct inode *inode)
+-{
+-	return container_of(inode, struct efs_inode_info, vfs_inode);
+-}
+-
+-static inline struct efs_sb_info *SUPER_INFO(struct super_block *sb)
+-{
+-	return sb->s_fs_info;
+-}
+-
+-struct statfs;
+-struct fid;
+-
+-extern const struct inode_operations efs_dir_inode_operations;
+-extern const struct file_operations efs_dir_operations;
+-extern const struct address_space_operations efs_symlink_aops;
+-
+-extern struct inode *efs_iget(struct super_block *, unsigned long);
+-extern efs_block_t efs_map_block(struct inode *, efs_block_t);
+-extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+-
+-extern struct dentry *efs_lookup(struct inode *, struct dentry *, struct nameidata *);
+-extern struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
+-		int fh_len, int fh_type);
+-extern struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
+-		int fh_len, int fh_type);
+-extern struct dentry *efs_get_parent(struct dentry *);
+-extern int efs_bmap(struct inode *, int);
+-
+-#endif /* __EFS_FS_H__ */
+diff -puN include/linux/efs_fs_i.h~efs-move-headers-out-of-include-linux /dev/null
+--- a/include/linux/efs_fs_i.h
++++ /dev/null
+@@ -1,68 +0,0 @@
+-/*
+- * efs_fs_i.h
+- *
+- * Copyright (c) 1999 Al Smith
+- *
+- * Portions derived from IRIX header files (c) 1988 Silicon Graphics
+- */
+-
+-#ifndef	__EFS_FS_I_H__
+-#define	__EFS_FS_I_H__
+-
+-typedef	int32_t		efs_block_t;
+-typedef uint32_t	efs_ino_t;
+-
+-#define	EFS_DIRECTEXTENTS	12
+-
+-/*
+- * layout of an extent, in memory and on disk. 8 bytes exactly.
+- */
+-typedef union extent_u {
+-	unsigned char raw[8];
+-	struct extent_s {
+-		unsigned int	ex_magic:8;	/* magic # (zero) */
+-		unsigned int	ex_bn:24;	/* basic block */
+-		unsigned int	ex_length:8;	/* numblocks in this extent */
+-		unsigned int	ex_offset:24;	/* logical offset into file */
+-	} cooked;
+-} efs_extent;
+-
+-typedef struct edevs {
+-	__be16		odev;
+-	__be32		ndev;
+-} efs_devs;
+-
+-/*
+- * extent based filesystem inode as it appears on disk.  The efs inode
+- * is exactly 128 bytes long.
+- */
+-struct	efs_dinode {
+-	__be16		di_mode;	/* mode and type of file */
+-	__be16		di_nlink;	/* number of links to file */
+-	__be16		di_uid;		/* owner's user id */
+-	__be16		di_gid;		/* owner's group id */
+-	__be32		di_size;	/* number of bytes in file */
+-	__be32		di_atime;	/* time last accessed */
+-	__be32		di_mtime;	/* time last modified */
+-	__be32		di_ctime;	/* time created */
+-	__be32		di_gen;		/* generation number */
+-	__be16		di_numextents;	/* # of extents */
+-	u_char		di_version;	/* version of inode */
+-	u_char		di_spare;	/* spare - used by AFS */
+-	union di_addr {
+-		efs_extent	di_extents[EFS_DIRECTEXTENTS];
+-		efs_devs	di_dev;	/* device for IFCHR/IFBLK */
+-	} di_u;
+-};
+-
+-/* efs inode storage in memory */
+-struct efs_inode_info {
+-	int		numextents;
+-	int		lastextent;
+-
+-	efs_extent	extents[EFS_DIRECTEXTENTS];
+-	struct inode	vfs_inode;
+-};
+-
+-#endif	/* __EFS_FS_I_H__ */
+-
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-keyboard-notifier-documentation.patch
+origin.patch
+fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch
+git-unionfs.patch
+git-xfs.patch
+efs-move-headers-out-of-include-linux.patch
+uml-update-defconfig.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+mxser-convert-large-macros-to-functions.patch
+vfs-create-proc-pid-mountinfo.patch
+reiserfs-use-open_bdev_excl.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
