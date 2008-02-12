@@ -1,67 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch removed from -mm tree
-Date: Tue, 12 Feb 2008 14:30:49 -0800
-Message-ID: <200802122230.m1CMUnu0025753@imap1.linux-foundation.org>
+Subject: - mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 12 Feb 2008 14:34:21 -0800
+Message-ID: <200802122234.m1CMYLBw025885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44624 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59488 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752284AbYBLWbm (ORCPT
+	by vger.kernel.org with ESMTP id S1753075AbYBLWe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 17:31:42 -0500
+	Tue, 12 Feb 2008 17:34:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dgc@sgi.com, linux-ext4@vger.kernel.org, marcin.slusarz@gmail.com, mark.fasheh@oracle.com, tes@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
+     mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
+     mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+This patch was dropped because it was folded into mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
+Subject: mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Timothy Shimmin <tes@sgi.com>
+ERROR: use tabs not spaces
+#156: FILE: mm/mempolicy.c:163:
++ ^Ireturn 0;$
+
+total: 1 errors, 0 warnings, 116 lines checked
+
+./patches/mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_log.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix fs/xfs/xfs_log.c
---- a/fs/xfs/xfs_log.c~xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix
-+++ a/fs/xfs/xfs_log.c
-@@ -1490,9 +1490,9 @@ xlog_sync(xlog_t		*log,
- 		 * case, though.
- 		 */
- 		for (i = 0; i < split; i += BBSIZE) {
--			be32_add((__be32 *)dptr, 1);
-+			be32_add_cpu((__be32 *)dptr, 1);
- 			if (be32_to_cpu(*(__be32 *)dptr) == XLOG_HEADER_MAGIC_NUM)
--				be32_add((__be32 *)dptr, 1);
-+				be32_add_cpu((__be32 *)dptr, 1);
- 			dptr += BBSIZE;
- 		}
+diff -puN mm/mempolicy.c~mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes
++++ a/mm/mempolicy.c
+@@ -160,7 +160,7 @@ static int mpol_check_policy(int mode, n
+ 			return -EINVAL;
+ 		break;
+ 	}
+- 	return 0;
++	return 0;
+ }
  
-@@ -1581,7 +1581,7 @@ xlog_state_finish_copy(xlog_t		*log,
- {
- 	spin_lock(&log->l_icloglock);
- 
--	be32_add(&iclog->ic_header.h_num_logops, record_cnt);
-+	be32_add_cpu(&iclog->ic_header.h_num_logops, record_cnt);
- 	iclog->ic_offset += copy_bytes;
- 
- 	spin_unlock(&log->l_icloglock);
+ /* Generate a custom zonelist for the BIND policy. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +108,7 @@ pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 git-xfs-fix-git-conflicts.patch
 git-xtensa.patch
+mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
 mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
@@ -138,8 +135,6 @@ d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 d_path-make-d_path-use-a-struct-path-fix.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api-fix.patch
 procfs-task-exe-symlink-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
