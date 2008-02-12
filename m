@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shared-memory-introduce-shmctl_down.patch added to -mm tree
-Date: Tue, 12 Feb 2008 13:27:53 -0800
-Message-ID: <200802122127.m1CLRrxo023060@imap1.linux-foundation.org>
+Subject: + ipc-introduce-ipc_update_perm.patch added to -mm tree
+Date: Tue, 12 Feb 2008 13:28:38 -0800
+Message-ID: <200802122128.m1CLScIK023100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39431 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750894AbYBLVec (ORCPT
+	by vger.kernel.org with ESMTP id S1750941AbYBLVen (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 16:34:32 -0500
+	Tue, 12 Feb 2008 16:34:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com
 
 
 The patch titled
-     IPC/shared memory: introduce shmctl_down
+     IPC: introduce ipc_update_perm()
 has been added to the -mm tree.  Its filename is
-     ipc-shared-memory-introduce-shmctl_down.patch
+     ipc-introduce-ipc_update_perm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC/shared memory: introduce shmctl_down
+Subject: IPC: introduce ipc_update_perm()
 From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Currently, the way the different commands are handled in sys_shmctl introduces
-some duplicated code.
-
-This patch introduces the shmctl_down function to handle all the commands
-requiring the rwmutex to be taken in write mode (ie IPC_SET and IPC_RMID for
-now).  It is the equivalent function of semctl_down for shared memory.
-
-This removes some duplicated code for handling these both commands and
-harmonizes the way they are handled among all IPCs.
+The IPC_SET command performs the same permission setting for all IPCs.  This
+patch introduces a common ipc_update_perm() function to update these
+permissions and makes use of it for all IPCs.
 
 Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -53,193 +47,92 @@ Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |  160 +++++++++++++++++++++++-----------------------------
- 1 file changed, 72 insertions(+), 88 deletions(-)
+ ipc/msg.c  |    5 +----
+ ipc/sem.c  |    5 +----
+ ipc/shm.c  |    5 +----
+ ipc/util.c |   13 +++++++++++++
+ ipc/util.h |    1 +
+ 5 files changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN ipc/shm.c~ipc-shared-memory-introduce-shmctl_down ipc/shm.c
---- a/ipc/shm.c~ipc-shared-memory-introduce-shmctl_down
+diff -puN ipc/msg.c~ipc-introduce-ipc_update_perm ipc/msg.c
+--- a/ipc/msg.c~ipc-introduce-ipc_update_perm
++++ a/ipc/msg.c
+@@ -484,10 +484,7 @@ static int msgctl_down(struct ipc_namesp
+ 
+ 		msq->q_qbytes = msqid64.msg_qbytes;
+ 
+-		ipcp->uid = msqid64.msg_perm.uid;
+-		ipcp->gid = msqid64.msg_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO) |
+-			     (S_IRWXUGO & msqid64.msg_perm.mode);
++		ipc_update_perm(&msqid64.msg_perm, ipcp);
+ 		msq->q_ctime = get_seconds();
+ 		/* sleeping receivers might be excluded by
+ 		 * stricter permissions.
+diff -puN ipc/sem.c~ipc-introduce-ipc_update_perm ipc/sem.c
+--- a/ipc/sem.c~ipc-introduce-ipc_update_perm
++++ a/ipc/sem.c
+@@ -913,10 +913,7 @@ static int semctl_down(struct ipc_namesp
+ 		freeary(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = semid64.sem_perm.uid;
+-		ipcp->gid = semid64.sem_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-				| (semid64.sem_perm.mode & S_IRWXUGO);
++		ipc_update_perm(&semid64.sem_perm, ipcp);
+ 		sma->sem_ctime = get_seconds();
+ 		break;
+ 	default:
+diff -puN ipc/shm.c~ipc-introduce-ipc_update_perm ipc/shm.c
+--- a/ipc/shm.c~ipc-introduce-ipc_update_perm
 +++ a/ipc/shm.c
-@@ -617,10 +617,78 @@ static void shm_get_stat(struct ipc_name
- 	}
+@@ -657,10 +657,7 @@ static int shmctl_down(struct ipc_namesp
+ 		do_shm_rmid(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = shmid64.shm_perm.uid;
+-		ipcp->gid = shmid64.shm_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-			| (shmid64.shm_perm.mode & S_IRWXUGO);
++		ipc_update_perm(&shmid64.shm_perm, ipcp);
+ 		shp->shm_ctim = get_seconds();
+ 		break;
+ 	default:
+diff -puN ipc/util.c~ipc-introduce-ipc_update_perm ipc/util.c
+--- a/ipc/util.c~ipc-introduce-ipc_update_perm
++++ a/ipc/util.c
+@@ -811,6 +811,19 @@ int ipcget(struct ipc_namespace *ns, str
+ 		return ipcget_public(ns, ids, ops, params);
  }
  
--asmlinkage long sys_shmctl (int shmid, int cmd, struct shmid_ds __user *buf)
-+/*
-+ * This function handles some shmctl commands which require the rw_mutex
-+ * to be held in write mode.
-+ * NOTE: no locks must be held, the rw_mutex is taken inside this function.
++/**
++ * ipc_update_perm - update the permissions of an IPC.
++ * @in:  the permission given as input.
++ * @out: the permission of the ipc to set.
 + */
-+static int shmctl_down(struct ipc_namespace *ns, int shmid, int cmd,
-+		       struct shmid_ds __user *buf, int version)
- {
-+	struct kern_ipc_perm *ipcp;
- 	struct shm_setbuf setbuf;
- 	struct shmid_kernel *shp;
-+	int err;
-+
-+	if (cmd == IPC_SET) {
-+		if (copy_shmid_from_user(&setbuf, buf, version))
-+			return -EFAULT;
-+	}
-+
-+	down_write(&shm_ids(ns).rw_mutex);
-+	shp = shm_lock_check_down(ns, shmid);
-+	if (IS_ERR(shp)) {
-+		err = PTR_ERR(shp);
-+		goto out_up;
-+	}
-+
-+	ipcp = &shp->shm_perm;
-+
-+	err = audit_ipc_obj(ipcp);
-+	if (err)
-+		goto out_unlock;
-+
-+	if (cmd == IPC_SET) {
-+		err = audit_ipc_set_perm(0, setbuf.uid,
-+					 setbuf.gid, setbuf.mode);
-+		if (err)
-+			goto out_unlock;
-+	}
-+
-+	if (current->euid != ipcp->uid &&
-+	    current->euid != ipcp->cuid &&
-+	    !capable(CAP_SYS_ADMIN)) {
-+		err = -EPERM;
-+		goto out_unlock;
-+	}
-+
-+	err = security_shm_shmctl(shp, cmd);
-+	if (err)
-+		goto out_unlock;
-+	switch (cmd) {
-+	case IPC_RMID:
-+		do_shm_rmid(ns, ipcp);
-+		goto out_up;
-+	case IPC_SET:
-+		ipcp->uid = setbuf.uid;
-+		ipcp->gid = setbuf.gid;
-+		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
-+			| (setbuf.mode & S_IRWXUGO);
-+		shp->shm_ctim = get_seconds();
-+		break;
-+	default:
-+		err = -EINVAL;
-+	}
-+out_unlock:
-+	shm_unlock(shp);
-+out_up:
-+	up_write(&shm_ids(ns).rw_mutex);
-+	return err;
++void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out)
++{
++	out->uid = in->uid;
++	out->gid = in->gid;
++	out->mode = (out->mode & ~S_IRWXUGO)
++		| (in->mode & S_IRWXUGO);
 +}
 +
-+asmlinkage long sys_shmctl(int shmid, int cmd, struct shmid_ds __user *buf)
-+{
-+	struct shmid_kernel *shp;
- 	int err, version;
- 	struct ipc_namespace *ns;
+ #ifdef __ARCH_WANT_IPC_PARSE_VERSION
  
-@@ -776,97 +844,13 @@ asmlinkage long sys_shmctl (int shmid, i
- 		goto out;
- 	}
- 	case IPC_RMID:
--	{
--		/*
--		 *	We cannot simply remove the file. The SVID states
--		 *	that the block remains until the last person
--		 *	detaches from it, then is deleted. A shmat() on
--		 *	an RMID segment is legal in older Linux and if 
--		 *	we change it apps break...
--		 *
--		 *	Instead we set a destroyed flag, and then blow
--		 *	the name away when the usage hits zero.
--		 */
--		down_write(&shm_ids(ns).rw_mutex);
--		shp = shm_lock_check_down(ns, shmid);
--		if (IS_ERR(shp)) {
--			err = PTR_ERR(shp);
--			goto out_up;
--		}
--
--		err = audit_ipc_obj(&(shp->shm_perm));
--		if (err)
--			goto out_unlock_up;
--
--		if (current->euid != shp->shm_perm.uid &&
--		    current->euid != shp->shm_perm.cuid && 
--		    !capable(CAP_SYS_ADMIN)) {
--			err=-EPERM;
--			goto out_unlock_up;
--		}
--
--		err = security_shm_shmctl(shp, cmd);
--		if (err)
--			goto out_unlock_up;
--
--		do_shm_rmid(ns, &shp->shm_perm);
--		up_write(&shm_ids(ns).rw_mutex);
--		goto out;
--	}
--
- 	case IPC_SET:
--	{
--		if (!buf) {
--			err = -EFAULT;
--			goto out;
--		}
--
--		if (copy_shmid_from_user (&setbuf, buf, version)) {
--			err = -EFAULT;
--			goto out;
--		}
--		down_write(&shm_ids(ns).rw_mutex);
--		shp = shm_lock_check_down(ns, shmid);
--		if (IS_ERR(shp)) {
--			err = PTR_ERR(shp);
--			goto out_up;
--		}
--		err = audit_ipc_obj(&(shp->shm_perm));
--		if (err)
--			goto out_unlock_up;
--		err = audit_ipc_set_perm(0, setbuf.uid, setbuf.gid, setbuf.mode);
--		if (err)
--			goto out_unlock_up;
--		err=-EPERM;
--		if (current->euid != shp->shm_perm.uid &&
--		    current->euid != shp->shm_perm.cuid && 
--		    !capable(CAP_SYS_ADMIN)) {
--			goto out_unlock_up;
--		}
--
--		err = security_shm_shmctl(shp, cmd);
--		if (err)
--			goto out_unlock_up;
--		
--		shp->shm_perm.uid = setbuf.uid;
--		shp->shm_perm.gid = setbuf.gid;
--		shp->shm_perm.mode = (shp->shm_perm.mode & ~S_IRWXUGO)
--			| (setbuf.mode & S_IRWXUGO);
--		shp->shm_ctim = get_seconds();
--		break;
--	}
--
-+		err = shmctl_down(ns, shmid, cmd, buf, version);
-+		return err;
- 	default:
--		err = -EINVAL;
--		goto out;
-+		return -EINVAL;
- 	}
  
--	err = 0;
--out_unlock_up:
--	shm_unlock(shp);
--out_up:
--	up_write(&shm_ids(ns).rw_mutex);
--	goto out;
- out_unlock:
- 	shm_unlock(shp);
- out:
+diff -puN ipc/util.h~ipc-introduce-ipc_update_perm ipc/util.h
+--- a/ipc/util.h~ipc-introduce-ipc_update_perm
++++ a/ipc/util.h
+@@ -112,6 +112,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ 
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
++void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
+ 
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
 _
 
 Patches currently in -mm which might be from pierre.peiffer@bull.net are
