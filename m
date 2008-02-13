@@ -1,95 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - pppol2tp-fix-printk-warnings.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:15:50 -0800
-Message-ID: <200802132015.m1DKFoDM011407@imap1.linux-foundation.org>
+Subject: - sunprc-fix-printk-format-warning-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:16:09 -0800
+Message-ID: <200802132016.m1DKG90L011433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754816AbYBMUTN (ORCPT
+	by vger.kernel.org with ESMTP id S1755163AbYBMUTi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:19:13 -0500
+	Wed, 13 Feb 2008 15:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pppol2tp: fix printk warnings
+     sunprc-fix-printk-format-warning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pppol2tp-fix-printk-warnings.patch
+     sunprc-fix-printk-format-warning-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pppol2tp: fix printk warnings
+Subject: sunprc-fix-printk-format-warning-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/pppol2tp.c: In function `pppol2tp_seq_tunnel_show':
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 4)
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 5)
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 6)
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 7)
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 8)
-drivers/net/pppol2tp.c:2295: warning: long long unsigned int format, __u64 arg (arg 9)
-drivers/net/pppol2tp.c: In function `pppol2tp_seq_session_show':
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 5)
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 6)
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 7)
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 8)
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 9)
-drivers/net/pppol2tp.c:2328: warning: long long unsigned int format, __u64 arg (arg 10)
+WARNING: line over 80 characters
+#20: FILE: net/sunrpc/xprtrdma/svc_rdma_sendto.c:162:
++		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
 
-Not all platforms implement u64 with unsigned long long.  eg: powerpc.
+total: 0 errors, 1 warnings, 8 lines checked
 
-Cc: Jeff Garzik <jeff@garzik.org>
+./patches/sunprc-fix-printk-format-warning.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pppol2tp.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/pppol2tp.c~pppol2tp-fix-printk-warnings drivers/net/pppol2tp.c
---- a/drivers/net/pppol2tp.c~pppol2tp-fix-printk-warnings
-+++ a/drivers/net/pppol2tp.c
-@@ -2289,10 +2289,12 @@ static void pppol2tp_seq_tunnel_show(str
- 		   atomic_read(&tunnel->ref_count) - 1);
- 	seq_printf(m, " %08x %llu/%llu/%llu %llu/%llu/%llu\n",
- 		   tunnel->debug,
--		   tunnel->stats.tx_packets, tunnel->stats.tx_bytes,
--		   tunnel->stats.tx_errors,
--		   tunnel->stats.rx_packets, tunnel->stats.rx_bytes,
--		   tunnel->stats.rx_errors);
-+		   (unsigned long long)tunnel->stats.tx_packets,
-+		   (unsigned long long)tunnel->stats.tx_bytes,
-+		   (unsigned long long)tunnel->stats.tx_errors,
-+		   (unsigned long long)tunnel->stats.rx_packets,
-+		   (unsigned long long)tunnel->stats.rx_bytes,
-+		   (unsigned long long)tunnel->stats.rx_errors);
- }
+diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes net/sunrpc/xprtrdma/svc_rdma_sendto.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes
++++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -159,7 +159,8 @@ static int send_write(struct svcxprt_rdm
+ 	BUG_ON(sge_count >= 32);
+ 	dprintk("svcrdma: RDMA_WRITE rmr=%x, to=%llx, xdr_off=%d, "
+ 		"write_len=%d, xdr_sge=%p, sge_count=%d\n",
+-		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
++		rmr, (unsigned long long) to, xdr_off, write_len,
++		xdr_sge, sge_count);
  
- static void pppol2tp_seq_session_show(struct seq_file *m, void *v)
-@@ -2320,12 +2322,12 @@ static void pppol2tp_seq_session_show(st
- 		   jiffies_to_msecs(session->reorder_timeout));
- 	seq_printf(m, "   %hu/%hu %llu/%llu/%llu %llu/%llu/%llu\n",
- 		   session->nr, session->ns,
--		   session->stats.tx_packets,
--		   session->stats.tx_bytes,
--		   session->stats.tx_errors,
--		   session->stats.rx_packets,
--		   session->stats.rx_bytes,
--		   session->stats.rx_errors);
-+		   (unsigned long long)session->stats.tx_packets,
-+		   (unsigned long long)session->stats.tx_bytes,
-+		   (unsigned long long)session->stats.tx_errors,
-+		   (unsigned long long)session->stats.rx_packets,
-+		   (unsigned long long)session->stats.rx_bytes,
-+		   (unsigned long long)session->stats.rx_errors);
- }
- 
- static int pppol2tp_seq_show(struct seq_file *m, void *v)
+ 	ctxt = svc_rdma_get_context(xprt);
+ 	ctxt->count = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
