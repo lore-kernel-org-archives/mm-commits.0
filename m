@@ -1,142 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-vs-git-kvm.patch added to -mm tree
-Date: Wed, 13 Feb 2008 13:02:22 -0800
-Message-ID: <200802132102.m1DL2Muk013216@imap1.linux-foundation.org>
+Subject: - deprecate-find_task_by_pid-kgdb.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 13:03:44 -0800
+Message-ID: <200802132103.m1DL3iLL013253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36512 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751531AbYBMVCw (ORCPT
+	by vger.kernel.org with ESMTP id S1752015AbYBMVEL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 16:02:52 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1DL2MkE005620
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2008 13:02:23 -0800
+	Wed, 13 Feb 2008 16:04:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: xemul@openvz.org, ebiederm@xmission.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-vs-git-kvm
-has been added to the -mm tree.  Its filename is
-     git-x86-vs-git-kvm.patch
+     Deprecate find_task_by_pid(): kgdb
+has been removed from the -mm tree.  Its filename was
+     deprecate-find_task_by_pid-kgdb.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-vs-git-kvm
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Deprecate find_task_by_pid(): kgdb
+From: Pavel Emelyanov <xemul@openvz.org>
 
+There are some places that are known to operate on tasks'
+global pids only:
+
+* the rest_init() call (called on boot)
+* the kgdb's getthread
+* the create_kthread() (since the kthread is run in init ns)
+
+So use the find_task_by_pid_ns(..., &init_pid_ns) there
+and schedule the find_task_by_pid for removal.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kgdb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-x86-vs-git-kvm arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-x86-vs-git-kvm
-+++ a/arch/x86/Kconfig
-@@ -23,6 +23,7 @@ config X86
- 	select HAVE_KPROBES
- 	select HAVE_KVM
- 	select HAVE_FTRACE
-+	select HAVE_ARCH_KGDB
+diff -puN kernel/kgdb.c~deprecate-find_task_by_pid-kgdb kernel/kgdb.c
+--- a/kernel/kgdb.c~deprecate-find_task_by_pid-kgdb
++++ a/kernel/kgdb.c
+@@ -720,11 +720,11 @@ static struct task_struct *getthread(str
+ 		return NULL;
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ 	/*
+-	 * find_task_by_pid() does not take the tasklist lock anymore
++	 * find_task_by_pid_ns() does not take the tasklist lock anymore
+ 	 * but is nicely RCU locked - hence is a pretty resilient
+ 	 * thing to use:
+ 	 */
+-	return find_task_by_pid(tid);
++	return find_task_by_pid_ns(tid, &init_pid_ns);
+ }
+ #ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int kgdb_softlock_reset[NR_CPUS];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-softlockup-workaround.patch
-include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
-smack-check-for-struct-socket-with-null-sk-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+mips-use-find_task_by_vpid-in-system-calls.patch
 git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-conflicts.patch
-git-sparc64.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-conflicts.patch
-git-x86.patch
-git-x86-vs-git-kvm.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
+usbatm-switch-to-kthread-api-stop-using-kill_proc.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+deprecate-find_task_by_pid-kgdb.patch
