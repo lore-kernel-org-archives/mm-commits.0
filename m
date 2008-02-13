@@ -1,135 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - smack-check-for-struct-socket-with-null-sk-fix.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 14:26:19 -0800
-Message-ID: <200802132235.m1DMZJ4j017275@imap1.linux-foundation.org>
+Subject: + remove-sparse-warning-for-mmzoneh.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:10:21 -0800
+Message-ID: <200802132310.m1DNAMVA018812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50089 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764097AbYBMWfW (ORCPT
+	by vger.kernel.org with ESMTP id S1750722AbYBMXK4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 17:35:22 -0500
+	Wed, 13 Feb 2008 18:10:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casey@schuafler-ca.com, darwish.07@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     smack-check-for-struct-socket-with-null-sk-fix
-has been removed from the -mm tree.  Its filename was
-     smack-check-for-struct-socket-with-null-sk-fix.patch
+     remove sparse warning for mmzone.h
+has been added to the -mm tree.  Its filename is
+     remove-sparse-warning-for-mmzoneh.patch
 
-This patch was dropped because it was folded into smack-check-for-struct-socket-with-null-sk.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack-check-for-struct-socket-with-null-sk-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove sparse warning for mmzone.h
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Casey Schaufler <casey@schuafler-ca.com>
+include/linux/mmzone.h:640:22: warning: potentially expensive pointer subtraction
+
+Calculate the offset into the node_zones array rather than the index
+using casts to (char *) and comparing against the index * sizeof(struct zone).
+
+On X86_32 this saves a sar, but code size increases by one byte per
+is_highmem() use due to 32-bit cmps rather than 16 bit cmps.
+
+Before:
+ 207:   2b 80 8c 07 00 00       sub    0x78c(%eax),%eax
+ 20d:   c1 f8 0b                sar    $0xb,%eax
+ 210:   83 f8 02                cmp    $0x2,%eax
+ 213:   74 16                   je     22b <kmap_atomic_prot+0x144>
+ 215:   83 f8 03                cmp    $0x3,%eax
+ 218:   0f 85 8f 00 00 00       jne    2ad <kmap_atomic_prot+0x1c6>
+ 21e:   83 3d 00 00 00 00 02    cmpl   $0x2,0x0
+ 225:   0f 85 82 00 00 00       jne    2ad <kmap_atomic_prot+0x1c6>
+ 22b:   64 a1 00 00 00 00       mov    %fs:0x0,%eax
+
+After:
+ 207:   2b 80 8c 07 00 00       sub    0x78c(%eax),%eax
+ 20d:   3d 00 10 00 00          cmp    $0x1000,%eax
+ 212:   74 18                   je     22c <kmap_atomic_prot+0x145>
+ 214:   3d 00 18 00 00          cmp    $0x1800,%eax
+ 219:   0f 85 8f 00 00 00       jne    2ae <kmap_atomic_prot+0x1c7>
+ 21f:   83 3d 00 00 00 00 02    cmpl   $0x2,0x0
+ 226:   0f 85 82 00 00 00       jne    2ae <kmap_atomic_prot+0x1c7>
+ 22c:   64 a1 00 00 00 00       mov    %fs:0x0,%eax
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mmzone.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk-fix
-+++ a/security/smack/smack_lsm.c
-@@ -1284,7 +1284,6 @@ static int smack_netlabel(struct sock *s
- 	struct netlbl_lsm_secattr secattr;
- 	int rc = 0;
- 
--	BUG_ON(sk == NULL);
- 	ssp = sk->sk_security;
- 	netlbl_secattr_init(&secattr);
- 	smack_to_secattr(ssp->smk_out, &secattr);
+diff -puN include/linux/mmzone.h~remove-sparse-warning-for-mmzoneh include/linux/mmzone.h
+--- a/include/linux/mmzone.h~remove-sparse-warning-for-mmzoneh
++++ a/include/linux/mmzone.h
+@@ -637,9 +637,10 @@ static inline int is_normal_idx(enum zon
+ static inline int is_highmem(struct zone *zone)
+ {
+ #ifdef CONFIG_HIGHMEM
+-	int zone_idx = zone - zone->zone_pgdat->node_zones;
+-	return zone_idx == ZONE_HIGHMEM ||
+-		(zone_idx == ZONE_MOVABLE && zone_movable_is_highmem());
++	int zone_off = (char *)zone - (char *)zone->zone_pgdat->node_zones;
++	return zone_off == ZONE_HIGHMEM * sizeof(*zone) ||
++	       (zone_off == ZONE_MOVABLE * sizeof(*zone) &&
++	        zone_movable_is_highmem());
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-softlockup-workaround.patch
+origin.patch
 include-linux-remove-all-users-of-fastcall-macro.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
-smack-check-for-struct-socket-with-null-sk.patch
-smack-check-for-struct-socket-with-null-sk-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-conflicts.patch
-git-sparc64.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-conflicts.patch
+rcupdate-fix-comment.patch
+remove-final-fastcall-users.patch
+final-removal-of-fastcall-fastcall.patch
 git-x86.patch
-git-x86-vs-git-kvm.patch
-git-x86-cpa-build-fix.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+remove-sparse-warning-for-mmzoneh.patch
