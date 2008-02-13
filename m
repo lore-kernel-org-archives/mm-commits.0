@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + avoid-divides-in-bits_to_longs.patch added to -mm tree
-Date: Tue, 12 Feb 2008 16:06:46 -0800
-Message-ID: <200802130006.m1D06kEE030126@imap1.linux-foundation.org>
+Subject: + acpi-suspend-execute-_wak-with-the-right-argument.patch added to -mm tree
+Date: Tue, 12 Feb 2008 16:08:45 -0800
+Message-ID: <200802130008.m1D08jdn030197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41154 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54005 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751879AbYBMAIa (ORCPT
+	by vger.kernel.org with ESMTP id S1752156AbYBMAJk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Feb 2008 19:08:30 -0500
+	Tue, 12 Feb 2008 19:09:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com
+Cc: rjw@sisk.pl, lenb@kernel.org, mt-ml@gmx.de, pavel@ucw.cz
 
 
 The patch titled
-     Avoid divides in BITS_TO_LONGS
+     ACPI suspend: execute _WAK with the right argument
 has been added to the -mm tree.  Its filename is
-     avoid-divides-in-bits_to_longs.patch
+     acpi-suspend-execute-_wak-with-the-right-argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Avoid divides in BITS_TO_LONGS
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: ACPI suspend: execute _WAK with the right argument
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-BITS_PER_LONG is a signed value (32 or 64)
+The _WAK global ACPI control method has to be called with the
+argument representing the sleep state being exited.  Make it happen.
 
-DIV_ROUND_UP(nr, BITS_PER_LONG) performs signed arithmetic if "nr" is signed too.
+Special thanks to Mirco Tischler for reporting the problem and debugging.
 
-
-Converting BITS_TO_LONGS(nr) to DIV_ROUND_UP(nr, BITS_PER_BYTE *
-sizeof(long)) makes sure compiler can perform a right shift, even if "nr"
-is a signed value, instead of an expensive integer divide.
-
-Applying this patch saves 141 bytes on x86 when CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-and speedup bitmap operations.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Reported-by: Mirco Tischler <mt-ml@gmx.de>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mirco Tischler <mt-ml@gmx.de>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/hardware/hwsleep.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/bitops.h~avoid-divides-in-bits_to_longs include/linux/bitops.h
---- a/include/linux/bitops.h~avoid-divides-in-bits_to_longs
-+++ a/include/linux/bitops.h
-@@ -6,8 +6,8 @@
- #define BIT(nr)			(1UL << (nr))
- #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
- #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
--#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_LONG)
- #define BITS_PER_BYTE		8
-+#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
- #endif
+diff -puN drivers/acpi/hardware/hwsleep.c~acpi-suspend-execute-_wak-with-the-right-argument drivers/acpi/hardware/hwsleep.c
+--- a/drivers/acpi/hardware/hwsleep.c~acpi-suspend-execute-_wak-with-the-right-argument
++++ a/drivers/acpi/hardware/hwsleep.c
+@@ -616,6 +616,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 		return_ACPI_STATUS(status);
+ 	}
  
- /*
++	arg.integer.value = sleep_state;
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-avoid-divides-in-bits_to_longs.patch
+revert-proc-fix-the-threaded-proc-self.patch
+git-x86.patch
+git-xfs.patch
+acpi-suspend-execute-_wak-with-the-right-argument.patch
+shrink_slab-handle-bad-shrinkers.patch
