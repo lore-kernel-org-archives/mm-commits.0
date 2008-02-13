@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-cpa-build-fix.patch added to -mm tree
-Date: Wed, 13 Feb 2008 13:26:58 -0800
-Message-ID: <200802132135.m1DLZwZw014535@imap1.linux-foundation.org>
+Subject: + xtime_lock-vs-update_process_times.patch added to -mm tree
+Date: Wed, 13 Feb 2008 13:40:19 -0800
+Message-ID: <200802132140.m1DLeJuZ014791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56448 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45035 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765731AbYBMVgc (ORCPT
+	by vger.kernel.org with ESMTP id S933275AbYBMVnA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 16:36:32 -0500
+	Wed, 13 Feb 2008 16:43:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: a.p.zijlstra@chello.nl, bryan.wu@analog.com, dhowells@redhat.com, gerg@uclinux.org, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mingo@elte.hu, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
 
 
 The patch titled
-     git-x86: cpa build fix
+     xtime_lock vs update_process_times
 has been added to the -mm tree.  Its filename is
-     git-x86-cpa-build-fix.patch
+     xtime_lock-vs-update_process_times.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,220 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: cpa build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: xtime_lock vs update_process_times
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-arch/x86/mm/pageattr.c: In function 'kernel_map_pages':
-arch/x86/mm/pageattr.c:923: error: too few arguments to function 'cpa_fill_pool'
+Commit: d3d74453c34f8fd87674a8cf5b8a327c68f22e99
+Subject: hrtimer: fixup the HRTIMER_CB_IRQSAFE_NO_SOFTIRQ fallback
 
+Broke several archs.  I have confirmation that the Alpha bit results in a
+booting kernel.  That leaves: blackfin, frv, sh and sparc untested.
+
+The deadlock in question was found by Russell:
+
+  IRQ handle
+    -> timer_tick() - xtime seqlock held for write
+      -> update_process_times()
+        -> run_local_timers()
+          -> hrtimer_run_queues()
+            -> hrtimer_get_softirq_time() - tries to get a read lock
+
+Now, Thomas assures me the fix is trivial, only do_timer() needs to be
+done under the xtime_lock, and update_process_times() can savely be removed
+from under it.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Tested-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/kernel/time.c     |   15 ++++++++-------
+ arch/blackfin/kernel/time.c  |    8 +++++---
+ arch/frv/kernel/time.c       |    6 ++++--
+ arch/m68knommu/kernel/time.c |   12 +++++++-----
+ arch/sparc/kernel/pcic.c     |    2 +-
+ arch/sparc/kernel/time.c     |    7 +++----
+ 6 files changed, 28 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86/mm/pageattr.c~git-x86-cpa-build-fix arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~git-x86-cpa-build-fix
-+++ a/arch/x86/mm/pageattr.c
-@@ -920,7 +920,7 @@ void kernel_map_pages(struct page *page,
- 	 * Try to refill the page pool here. We can do this only after
- 	 * the tlb flush.
- 	 */
--	cpa_fill_pool();
-+	cpa_fill_pool(NULL);
+diff -puN arch/alpha/kernel/time.c~xtime_lock-vs-update_process_times arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~xtime_lock-vs-update_process_times
++++ a/arch/alpha/kernel/time.c
+@@ -119,13 +119,8 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	state.partial_tick = delta & ((1UL << FIX_SHIFT) - 1); 
+ 	nticks = delta >> FIX_SHIFT;
+ 
+-	while (nticks > 0) {
+-		do_timer(1);
+-#ifndef CONFIG_SMP
+-		update_process_times(user_mode(get_irq_regs()));
+-#endif
+-		nticks--;
+-	}
++	if (nticks)
++		do_timer(nticks);
+ 
+ 	/*
+ 	 * If we have an externally synchronized Linux clock, then update
+@@ -141,6 +136,12 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	}
+ 
+ 	write_sequnlock(&xtime_lock);
++
++#ifndef CONFIG_SMP
++	while (nticks--)
++		update_process_times(user_mode(get_irq_regs()));
++#endif
++
+ 	return IRQ_HANDLED;
  }
  
- #ifdef CONFIG_DEBUG_FS
+diff -puN arch/blackfin/kernel/time.c~xtime_lock-vs-update_process_times arch/blackfin/kernel/time.c
+--- a/arch/blackfin/kernel/time.c~xtime_lock-vs-update_process_times
++++ a/arch/blackfin/kernel/time.c
+@@ -137,9 +137,6 @@ irqreturn_t timer_interrupt(int irq, voi
+ 
+ 	do_timer(1);
+ 
+-#ifndef CONFIG_SMP
+-	update_process_times(user_mode(get_irq_regs()));
+-#endif
+ 	profile_tick(CPU_PROFILING);
+ 
+ 	/*
+@@ -161,6 +158,11 @@ irqreturn_t timer_interrupt(int irq, voi
+ 			last_rtc_update = xtime.tv_sec - 600;
+ 	}
+ 	write_sequnlock(&xtime_lock);
++
++#ifndef CONFIG_SMP
++	update_process_times(user_mode(get_irq_regs()));
++#endif
++
+ 	return IRQ_HANDLED;
+ }
+ 
+diff -puN arch/frv/kernel/time.c~xtime_lock-vs-update_process_times arch/frv/kernel/time.c
+--- a/arch/frv/kernel/time.c~xtime_lock-vs-update_process_times
++++ a/arch/frv/kernel/time.c
+@@ -63,6 +63,7 @@ static irqreturn_t timer_interrupt(int i
+ 	/* last time the cmos clock got updated */
+ 	static long last_rtc_update = 0;
+ 
++	profile_tick(CPU_PROFILING);
+ 	/*
+ 	 * Here we are in the timer irq handler. We just have irqs locally
+ 	 * disabled but we don't know if the timer_bh is running on the other
+@@ -73,8 +74,6 @@ static irqreturn_t timer_interrupt(int i
+ 	write_seqlock(&xtime_lock);
+ 
+ 	do_timer(1);
+-	update_process_times(user_mode(get_irq_regs()));
+-	profile_tick(CPU_PROFILING);
+ 
+ 	/*
+ 	 * If we have an externally synchronized Linux clock, then update
+@@ -99,6 +98,9 @@ static irqreturn_t timer_interrupt(int i
+ #endif /* CONFIG_HEARTBEAT */
+ 
+ 	write_sequnlock(&xtime_lock);
++
++	update_process_times(user_mode(get_irq_regs()));
++
+ 	return IRQ_HANDLED;
+ }
+ 
+diff -puN arch/m68knommu/kernel/time.c~xtime_lock-vs-update_process_times arch/m68knommu/kernel/time.c
+--- a/arch/m68knommu/kernel/time.c~xtime_lock-vs-update_process_times
++++ a/arch/m68knommu/kernel/time.c
+@@ -42,14 +42,12 @@ irqreturn_t arch_timer_interrupt(int irq
+ 	/* last time the cmos clock got updated */
+ 	static long last_rtc_update=0;
+ 
++	if (current->pid)
++		profile_tick(CPU_PROFILING);
++
+ 	write_seqlock(&xtime_lock);
+ 
+ 	do_timer(1);
+-#ifndef CONFIG_SMP
+-	update_process_times(user_mode(get_irq_regs()));
+-#endif
+-	if (current->pid)
+-		profile_tick(CPU_PROFILING);
+ 
+ 	/*
+ 	 * If we have an externally synchronized Linux clock, then update
+@@ -67,6 +65,10 @@ irqreturn_t arch_timer_interrupt(int irq
+ 	}
+ 
+ 	write_sequnlock(&xtime_lock);
++
++#ifndef CONFIG_SMP
++	update_process_times(user_mode(get_irq_regs()));
++#endif
+ 	return(IRQ_HANDLED);
+ }
+ 
+diff -puN arch/sparc/kernel/pcic.c~xtime_lock-vs-update_process_times arch/sparc/kernel/pcic.c
+--- a/arch/sparc/kernel/pcic.c~xtime_lock-vs-update_process_times
++++ a/arch/sparc/kernel/pcic.c
+@@ -713,10 +713,10 @@ static irqreturn_t pcic_timer_handler (i
+ 	write_seqlock(&xtime_lock);	/* Dummy, to show that we remember */
+ 	pcic_clear_clock_irq();
+ 	do_timer(1);
++	write_sequnlock(&xtime_lock);
+ #ifndef CONFIG_SMP
+ 	update_process_times(user_mode(get_irq_regs()));
+ #endif
+-	write_sequnlock(&xtime_lock);
+ 	return IRQ_HANDLED;
+ }
+ 
+diff -puN arch/sparc/kernel/time.c~xtime_lock-vs-update_process_times arch/sparc/kernel/time.c
+--- a/arch/sparc/kernel/time.c~xtime_lock-vs-update_process_times
++++ a/arch/sparc/kernel/time.c
+@@ -128,10 +128,6 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	clear_clock_irq();
+ 
+ 	do_timer(1);
+-#ifndef CONFIG_SMP
+-	update_process_times(user_mode(get_irq_regs()));
+-#endif
+-
+ 
+ 	/* Determine when to update the Mostek clock. */
+ 	if (ntp_synced() &&
+@@ -145,6 +141,9 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	}
+ 	write_sequnlock(&xtime_lock);
+ 
++#ifndef CONFIG_SMP
++	update_process_times(user_mode(get_irq_regs()));
++#endif
+ 	return IRQ_HANDLED;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
+origin.patch
 softlockup-workaround.patch
-include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
-smack-check-for-struct-socket-with-null-sk-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
-git-sched-fixup.patch
 git-sh.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-conflicts.patch
-git-sparc64.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-conflicts.patch
 git-x86.patch
-git-x86-vs-git-kvm.patch
-git-x86-cpa-build-fix.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
-git-xtensa.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+proc-add-rlimit_rttime-to-proc-pid-limits.patch
+xtime_lock-vs-update_process_times.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
