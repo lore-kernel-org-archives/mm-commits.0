@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + taint-kernel-after-warn_oncondition.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:32:23 -0800
-Message-ID: <200802132332.m1DNWOYu019740@imap1.linux-foundation.org>
+Subject: + ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:30:05 -0800
+Message-ID: <200802132330.m1DNU6xG019617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756248AbYBMXdk (ORCPT
+	by vger.kernel.org with ESMTP id S1755415AbYBMXfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:33:40 -0500
+	Wed, 13 Feb 2008 18:35:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nurhussein@gmail.com, a.p.zijlstra@chello.nl, arjan@infradead.org, hskinnemoen@atmel.com, kyle@mcmartin.ca, lethal@linux-sh.org, mingo@elte.hu, rdunlap@xenotime.net, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, cminyard@mvista.com, kbaidarov@ru.mvista.com
 
 
 The patch titled
-     Taint kernel after WARN_ON(condition)
+     ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     taint-kernel-after-warn_oncondition.patch
+     ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,162 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Taint kernel after WARN_ON(condition)
-From: Nur Hussein <nurhussein@gmail.com>
+Subject: ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The kernel is sent to tainted within the warn_on_slowpath() function, and
-whenever a warning occurs the new taint flag 'W' is set.  This is useful to
-know if a warning occurred before a BUG by preserving the warning as a flag
-in the taint state.
+ERROR: open brace '{' following struct go on the same line
+#29: FILE: drivers/char/ipmi/ipmi_msghandler.c:189:
++struct ipmi_stats
++{
 
-This does not work on architectures where WARN_ON has its own definition.
-These archs are:
-	1. s390
-	2. superh
-	3. avr32
-	4. parisc
+ERROR: use tabs not spaces
+#47: FILE: drivers/char/ipmi/ipmi_msghandler.c:207:
++           incremented. */$
 
-The maintainers of these architectures have been added in the Cc: list
-in this email to alert them to the situation.
+ERROR: use tabs not spaces
+#51: FILE: drivers/char/ipmi/ipmi_msghandler.c:211:
++           *not* included in the above count (they are expected to$
 
-The documentation in oops-tracing.txt has been updated to include the
-new flag.
+ERROR: use tabs not spaces
+#52: FILE: drivers/char/ipmi/ipmi_msghandler.c:212:
++           time out). */$
 
-Signed-off-by: Nur Hussein <nurhussein@gmail.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+ERROR: use tabs not spaces
+#72: FILE: drivers/char/ipmi/ipmi_msghandler.c:232:
++           incremented. */$
+
+total: 5 errors, 0 warnings, 723 lines checked
+
+./patches/ipmi-convert-locked-counters-to-atomics.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Corey Minyard <cminyard@mvista.com>
+Cc: Konstantin Baydarov <kbaidarov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt |    4 ++++
- include/linux/kernel.h         |    1 +
- kernel/panic.c                 |    8 ++++++--
- 3 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/oops-tracing.txt~taint-kernel-after-warn_oncondition Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~taint-kernel-after-warn_oncondition
-+++ a/Documentation/oops-tracing.txt
-@@ -253,6 +253,10 @@ characters, each representing a particul
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-checkpatch-fixes drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -204,12 +204,12 @@ struct ipmi_stats
+ 	/* Each retransmit increments this count. */
+ 	atomic_t retransmitted_ipmb_commands;
+ 	/* When a message times out (runs out of retransmits) this is
+-           incremented. */
++	   incremented. */
+ 	atomic_t timed_out_ipmb_commands;
  
-   8: 'D' if the kernel has died recently, i.e. there was an OOPS or BUG.
+ 	/* This is like above, but for broadcasts.  Broadcasts are
+-           *not* included in the above count (they are expected to
+-           time out). */
++	   *not* included in the above count (they are expected to
++	   time out). */
+ 	atomic_t timed_out_ipmb_broadcasts;
  
-+  9: 'A' if the ACPI table has been overridden.
-+
-+ 10: 'W' if a warning has previously been issued by the kernel.
-+
- The primary reason for the 'Tainted: ' string is to tell kernel
- debuggers if this is a clean kernel or if anything unusual has
- occurred.  Tainting is permanent: even if an offending module is
-diff -puN include/linux/kernel.h~taint-kernel-after-warn_oncondition include/linux/kernel.h
---- a/include/linux/kernel.h~taint-kernel-after-warn_oncondition
-+++ a/include/linux/kernel.h
-@@ -255,6 +255,7 @@ extern enum system_states {
- #define TAINT_USER			(1<<6)
- #define TAINT_DIE			(1<<7)
- #define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
-+#define TAINT_WARN			(1<<9)
+ 	/* Responses I have sent to the IPMB bus. */
+@@ -229,7 +229,7 @@ struct ipmi_stats
+ 	/* Each retransmit increments this count. */
+ 	atomic_t retransmitted_lan_commands;
+ 	/* When a message times out (runs out of retransmits) this is
+-           incremented. */
++	   incremented. */
+ 	atomic_t timed_out_lan_commands;
  
- extern void dump_stack(void) __cold;
- 
-diff -puN kernel/panic.c~taint-kernel-after-warn_oncondition kernel/panic.c
---- a/kernel/panic.c~taint-kernel-after-warn_oncondition
-+++ a/kernel/panic.c
-@@ -153,6 +153,8 @@ EXPORT_SYMBOL(panic);
-  *  'M' - System experienced a machine check exception.
-  *  'B' - System has hit bad_page.
-  *  'U' - Userspace-defined naughtiness.
-+ *  'A' - ACPI table overridden.
-+ *  'W' - Taint on warning.
-  *
-  *	The string is overwritten by the next call to print_taint().
-  */
-@@ -161,7 +163,7 @@ const char *print_tainted(void)
- {
- 	static char buf[20];
- 	if (tainted) {
--		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c",
-+		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c%c",
- 			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
- 			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
- 			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
-@@ -170,7 +172,8 @@ const char *print_tainted(void)
- 			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
- 			tainted & TAINT_USER ? 'U' : ' ',
- 			tainted & TAINT_DIE ? 'D' : ' ',
--			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ');
-+			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ',
-+			tainted & TAINT_WARN ? 'W' : ' ');
- 	}
- 	else
- 		snprintf(buf, sizeof(buf), "Not tainted");
-@@ -312,6 +315,7 @@ void warn_on_slowpath(const char *file, 
- 	print_modules();
- 	dump_stack();
- 	print_oops_end_marker();
-+	add_taint(TAINT_WARN);
- }
- EXPORT_SYMBOL(warn_on_slowpath);
- #endif
+ 	/* Responses I have sent to the IPMB bus. */
 _
 
-Patches currently in -mm which might be from nurhussein@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-taint-kernel-after-warn_oncondition.patch
+softlockup-workaround.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
