@@ -1,58 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - via-velocity-section-fix.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:15:46 -0800
-Message-ID: <200802132015.m1DKFk0P011400@imap1.linux-foundation.org>
+Subject: - bnx2x-section-fix.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:15:42 -0800
+Message-ID: <200802132015.m1DKFgZg011393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48907 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57182 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755550AbYBMUUM (ORCPT
+	by vger.kernel.org with ESMTP id S1756097AbYBMUUp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:20:12 -0500
+	Wed, 13 Feb 2008 15:20:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via-velocity section fix
+     bnx2x section fix
 has been removed from the -mm tree.  Its filename was
-     via-velocity-section-fix.patch
+     bnx2x-section-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: via-velocity section fix
+Subject: bnx2x section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 gcc-3.4.4 on powerpc:
 
-drivers/net/via-velocity.c:443: error: chip_info_table causes a section type conflict
-
-on this one I had to remove the __devinitdata too.  Don't know why.
+drivers/net/bnx2x.c:73: error: version causes a section type conflict
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/via-velocity.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/bnx2x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/via-velocity.c~via-velocity-section-fix drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~via-velocity-section-fix
-+++ a/drivers/net/via-velocity.c
-@@ -440,7 +440,7 @@ static void velocity_unregister_notifier
-  *	Internal board variants. At the moment we have only one
-  */
+diff -puN drivers/net/bnx2x.c~bnx2x-section-fix drivers/net/bnx2x.c
+--- a/drivers/net/bnx2x.c~bnx2x-section-fix
++++ a/drivers/net/bnx2x.c
+@@ -70,7 +70,7 @@
+ /* Time in jiffies before concluding the transmitter is hung. */
+ #define TX_TIMEOUT      	(5*HZ)
  
--static const struct velocity_info_tbl chip_info_table[] __devinitdata = {
-+static struct velocity_info_tbl chip_info_table[] = {
- 	{CHIP_TYPE_VT6110, "VIA Networking Velocity Family Gigabit Ethernet Adapter", 1, 0x00FFFFFFUL},
- 	{ }
+-static const char version[] __devinitdata =
++static char version[] __devinitdata =
+ 	"Broadcom NetXtreme II 577xx 10Gigabit Ethernet Driver "
+ 	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ 
+@@ -107,7 +107,7 @@ enum bnx2x_board_type {
  };
+ 
+ /* indexed by board_t, above */
+-static const struct {
++static struct {
+ 	char *name;
+ } board_info[] __devinitdata = {
+ 	{ "Broadcom NetXtreme II BCM57710 XGb" }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
