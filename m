@@ -1,111 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - dca-convert-struct-class_device-to-struct-device.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:14:57 -0800
-Message-ID: <200802132014.m1DKEvY8011260@imap1.linux-foundation.org>
+Subject: - fix-xtensa-timerfd-breakage.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:14:48 -0800
+Message-ID: <200802132014.m1DKEmFD011251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750897AbYBMUPA (ORCPT
+	by vger.kernel.org with ESMTP id S1753164AbYBMUPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:15:00 -0500
+	Wed, 13 Feb 2008 15:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, dan.j.williams@intel.com, greg@kroah.com, shannon.nelson@intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DCA: convert struct class_device to struct device.
+     fix xtensa timerfd breakage
 has been removed from the -mm tree.  Its filename was
-     dca-convert-struct-class_device-to-struct-device.patch
+     fix-xtensa-timerfd-breakage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DCA: convert struct class_device to struct device.
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: fix xtensa timerfd breakage
+From: Adrian Bunk <bunk@kernel.org>
 
-Thanks to Kay for keeping us honest.
+In file included from /home/bunk/linux/kernel-2.6/git/linux-2.6/arch/xtensa/kernel/syscall.c:39:
+include2/asm/unistd.h:681: error: 'sys_timerfd' undeclared here (not in a function)
 
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Acked-by: Greg KH <greg@kroah.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dca/dca-sysfs.c |   15 +++++++--------
- include/linux/dca.h     |    2 +-
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ include/asm-xtensa/unistd.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device drivers/dca/dca-sysfs.c
---- a/drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device
-+++ a/drivers/dca/dca-sysfs.c
-@@ -12,10 +12,10 @@ static spinlock_t dca_idr_lock;
+diff -puN include/asm-xtensa/unistd.h~fix-xtensa-timerfd-breakage include/asm-xtensa/unistd.h
+--- a/include/asm-xtensa/unistd.h~fix-xtensa-timerfd-breakage
++++ a/include/asm-xtensa/unistd.h
+@@ -677,8 +677,8 @@ __SYSCALL(303, sys_ni_syscall, 0)
  
- int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot)
- {
--	struct class_device *cd;
-+	struct device *cd;
- 
--	cd = class_device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
--				 dev, "requester%d", slot);
-+	cd = device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
-+			   "requester%d", slot);
- 	if (IS_ERR(cd))
- 		return PTR_ERR(cd);
- 	return 0;
-@@ -23,12 +23,12 @@ int dca_sysfs_add_req(struct dca_provide
- 
- void dca_sysfs_remove_req(struct dca_provider *dca, int slot)
- {
--	class_device_destroy(dca_class, MKDEV(0, slot + 1));
-+	device_destroy(dca_class, MKDEV(0, slot + 1));
- }
- 
- int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
- {
--	struct class_device *cd;
-+	struct device *cd;
- 	int err = 0;
- 
- idr_try_again:
-@@ -46,8 +46,7 @@ idr_try_again:
- 		return err;
- 	}
- 
--	cd = class_device_create(dca_class, NULL, MKDEV(0, 0),
--				 dev, "dca%d", dca->id);
-+	cd = device_create(dca_class, dev, MKDEV(0, 0), "dca%d", dca->id);
- 	if (IS_ERR(cd)) {
- 		spin_lock(&dca_idr_lock);
- 		idr_remove(&dca_idr, dca->id);
-@@ -60,7 +59,7 @@ idr_try_again:
- 
- void dca_sysfs_remove_provider(struct dca_provider *dca)
- {
--	class_device_unregister(dca->cd);
-+	device_unregister(dca->cd);
- 	dca->cd = NULL;
- 	spin_lock(&dca_idr_lock);
- 	idr_remove(&dca_idr, dca->id);
-diff -puN include/linux/dca.h~dca-convert-struct-class_device-to-struct-device include/linux/dca.h
---- a/include/linux/dca.h~dca-convert-struct-class_device-to-struct-device
-+++ a/include/linux/dca.h
-@@ -11,7 +11,7 @@ void dca_unregister_notify(struct notifi
- 
- struct dca_provider {
- 	struct dca_ops		*ops;
--	struct class_device 	*cd;
-+	struct device 		*cd;
- 	int			 id;
- };
+ #define __NR_signalfd				304
+ __SYSCALL(304, sys_signalfd, 3)
+-#define __NR_timerfd				305
+-__SYSCALL(305, sys_timerfd, 4)
++/*  305 was __NR_timerfd  */
++__SYSCALL(305, sys_ni_syscall, 0)
+ #define __NR_eventfd				306
+ __SYSCALL(306, sys_eventfd, 1)
  
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
+origin.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-net.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+sparc-fix-build.patch
+reiser4.patch
