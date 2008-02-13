@@ -1,87 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - fix-compile-error-on-nommu-for-is_swap_pte.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:15:00 -0800
-Message-ID: <200802132015.m1DKF0ZR011263@imap1.linux-foundation.org>
+Subject: - fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:15:11 -0800
+Message-ID: <200802132015.m1DKFBNu011283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35325 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756746AbYBMUPc (ORCPT
+	by vger.kernel.org with ESMTP id S1756953AbYBMUPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 13 Feb 2008 15:15:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, bunk@stusta.de, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: hch@lst.de, ezk@cs.sunysb.edu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix compile error on nommu for is_swap_pte
+     fix up kerneldoc in fs/ioctl.c a little bit
 has been removed from the -mm tree.  Its filename was
-     fix-compile-error-on-nommu-for-is_swap_pte.patch
+     fix-up-kerneldoc-in-fs-ioctlc-a-little-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix compile error on nommu for is_swap_pte
-From: Matt Mackall <mpm@selenic.com>
+Subject: fix up kerneldoc in fs/ioctl.c a little bit
+From: Christoph Hellwig <hch@lst.de>
 
-  CC      mm/vmscan.o
-In file included from 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/vmscan.c:44:
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h: In function 'is_swap_pte':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_none'
-/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/swapops.h:48: error: implicit declaration of function 'pte_present'
+ - remove non-standard in/out markers
+ - use tabs for formatting
 
-Does it ever make sense to ask "is this pte a swap entry?" on a machine
-with no MMU?  Presumably this also means it has no ptes too, right?  In
-which case, it's better to comment the whole function out.  Then when
-someone tries to ask the above meaningless question, they get a compile
-error rather than a meaningless answer.
-
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Reported-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ioctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte include/linux/swapops.h
---- a/include/linux/swapops.h~fix-compile-error-on-nommu-for-is_swap_pte
-+++ a/include/linux/swapops.h
-@@ -42,11 +42,13 @@ static inline pgoff_t swp_offset(swp_ent
- 	return entry.val & SWP_OFFSET_MASK(entry);
- }
+diff -puN fs/ioctl.c~fix-up-kerneldoc-in-fs-ioctlc-a-little-bit fs/ioctl.c
+--- a/fs/ioctl.c~fix-up-kerneldoc-in-fs-ioctlc-a-little-bit
++++ a/fs/ioctl.c
+@@ -18,12 +18,12 @@
  
-+#ifdef CONFIG_MMU
- /* check whether a pte points to a swap entry */
- static inline int is_swap_pte(pte_t pte)
- {
- 	return !pte_none(pte) && !pte_present(pte) && !pte_file(pte);
- }
-+#endif
- 
- /*
-  * Convert the arch-dependent pte representation of a swp_entry_t into an
+ /**
+  * vfs_ioctl - call filesystem specific ioctl methods
+- * @filp: [in]     open file to invoke ioctl method on
+- * @cmd:  [in]     ioctl command to execute
+- * @arg:  [in/out] command-specific argument for ioctl
++ * @filp:	open file to invoke ioctl method on
++ * @cmd:	ioctl command to execute
++ * @arg:	command-specific argument for ioctl
+  *
+  * Invokes filesystem specific ->unlocked_ioctl, if one exists; otherwise
+- * invokes * filesystem specific ->ioctl method.  If neither method exists,
++ * invokes filesystem specific ->ioctl method.  If neither method exists,
+  * returns -ENOTTY.
+  *
+  * Returns 0 on success, -errno on error.
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-x86-configurable-dmi-scanning-code.patch
-random-clean-up-checkpatch-complaints.patch
-random-clean-up-checkpatch-complaints-fix.patch
-random-consolidate-wakeup-logic.patch
-random-use-unlocked_ioctl.patch
-random-reuse-rand_initialize.patch
-random-improve-variable-naming-clear-extract-buffer.patch
-random-make-backtracking-attacks-harder.patch
-random-remove-cacheline-alignment-for-locks.patch
-random-eliminate-redundant-new_rotate-variable.patch
-random-remove-some-prefetch-logic.patch
-random-simplify-add_ptr-logic.patch
-random-make-mixing-interface-byte-oriented.patch
-random-simplify-and-rename-credit_entropy_store.patch
-random-add-async-notification-support-to-dev-random.patch
+git-unionfs.patch
+git-xfs.patch
+efs-move-headers-out-of-include-linux.patch
+uml-update-defconfig.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+mxser-convert-large-macros-to-functions.patch
+vfs-create-proc-pid-mountinfo.patch
+reiserfs-use-open_bdev_excl.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
