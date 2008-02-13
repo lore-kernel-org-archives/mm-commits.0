@@ -1,92 +1,381 @@
 From: akpm@linux-foundation.org
-Subject: - hci_ldisc-fix-null-pointer-deref.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:15:53 -0800
-Message-ID: <200802132015.m1DKFrPp011412@imap1.linux-foundation.org>
+Subject: - check-for-acpi-resource-conflicts-in-hwmon-drivers.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:16:12 -0800
+Message-ID: <200802132016.m1DKGDZm011440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52495 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756081AbYBMUYf (ORCPT
+	by vger.kernel.org with ESMTP id S1756388AbYBMUZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:24:35 -0500
+	Wed, 13 Feb 2008 15:25:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@davidnewall.com, alan@lxorguk.ukuu.org.uk, arjan@linux.intel.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hci_ldisc: fix null pointer deref
+     Check for ACPI resource conflicts in hwmon drivers
 has been removed from the -mm tree.  Its filename was
-     hci_ldisc-fix-null-pointer-deref.patch
+     check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hci_ldisc: fix null pointer deref
-From: David Newall <david@davidnewall.com>
+Subject: Check for ACPI resource conflicts in hwmon drivers
+From: Jean Delvare <jdelvare@suse.de>
 
-Arjan:
+Check for ACPI resource conflicts in hwmon drivers. I've included
+all Super-I/O and PCI drivers.
 
-  With the help of kerneloops.org I've spotted a nice little interaction
-  between the TTY layer and the bluetooth code, however the tty layer is not
-  something I'm all too familiar with so I rather ask than brute-force fix the
-  code incorrectly.
+I've voluntarily left out:
+* Laptop specific and vendor-specific drivers: if they conflicted
+  on any system, this would pretty much mean that they conflict on all
+  systems, and we would know by now.
+* Legacy ISA drivers (lm78 and w83781d): they only support chips found
+  on old designs were ACPI either wasn't supported or didn't deal with
+  thermal management.
+* Drivers accessing the I/O resources indirectly (e.g. through SMBus):
+  the check will be added where it belongs, i.e. in the bus drivers.
 
-  The raw details are at:
-  http://www.kerneloops.org/search.php?search=uart_flush_buffer
-
-  What happens is that, on closing the bluetooth tty, the tty layer goes
-  into the release_dev() function, which first does a bunch of stuff, then
-  sets the file->private_data to NULL, does some more stuff and then calls the
-  ldisc close function.  Which in this case, is hci_uart_tty_close().
-
-  Now, hci_uart_tty_close() calls hci_uart_close() which clears some
-  internal bit, and then calls hci_uart_flush()...  which calls back to the
-  tty layers' uart_flush_buffer() function.  (in drivers/bluetooth/hci_tty.c
-  around line 194) Which then WARN_ON()'s because that's not allowed/supposed
-  to be called this late in the shutdown of the port....
-
-  Should the bluetooth driver even call this flush function at all??
-
-David:
-
-  This seems to be what happens: Hci_uart_close() flushes using
-  hci_uart_flush().  Subsequently, in hci_dev_do_close(), (one step in
-  hci_unregister_dev()), hci_uart_flush() is called again.  The comment in
-  uart_flush_buffer(), relating to the WARN_ON(), indicates you can't flush
-  after the port is closed; which sounds reasonable.  I think hci_uart_close()
-  should set hdev->flush to NULL before returning.  Hci_dev_do_close() does
-  check for this.  The code path is rather involved and I'm not entirely clear
-  of all steps, but I think that's what should be done.
-
-akpm:
-
-  No idea.  trollmerge.
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_ldisc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/hwmon/dme1737.c    |    5 +++++
+ drivers/hwmon/f71805f.c    |    5 +++++
+ drivers/hwmon/f71882fg.c   |    5 +++++
+ drivers/hwmon/it87.c       |    5 +++++
+ drivers/hwmon/pc87360.c    |    6 ++++++
+ drivers/hwmon/pc87427.c    |    5 +++++
+ drivers/hwmon/sis5595.c    |    5 +++++
+ drivers/hwmon/smsc47b397.c |    5 +++++
+ drivers/hwmon/smsc47m1.c   |    5 +++++
+ drivers/hwmon/via686a.c    |    5 +++++
+ drivers/hwmon/vt1211.c     |    5 +++++
+ drivers/hwmon/vt8231.c     |    5 +++++
+ drivers/hwmon/w83627ehf.c  |    6 ++++++
+ drivers/hwmon/w83627hf.c   |    5 +++++
+ 14 files changed, 72 insertions(+)
 
-diff -puN drivers/bluetooth/hci_ldisc.c~hci_ldisc-fix-null-pointer-deref drivers/bluetooth/hci_ldisc.c
---- a/drivers/bluetooth/hci_ldisc.c~hci_ldisc-fix-null-pointer-deref
-+++ a/drivers/bluetooth/hci_ldisc.c
-@@ -208,6 +208,7 @@ static int hci_uart_close(struct hci_dev
- 		return 0;
+diff -puN drivers/hwmon/dme1737.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/dme1737.c
+--- a/drivers/hwmon/dme1737.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/dme1737.c
+@@ -34,6 +34,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
  
- 	hci_uart_flush(hdev);
-+	hdev->flush = NULL;
- 	return 0;
- }
+ /* ISA device, if found */
+@@ -2238,6 +2239,10 @@ static int __init dme1737_isa_device_add
+ 	};
+ 	int err;
  
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	if (!(pdev = platform_device_alloc("dme1737", addr))) {
+ 		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/f71805f.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/f71805f.c
+--- a/drivers/hwmon/f71805f.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/f71805f.c
+@@ -39,6 +39,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static unsigned short force_id;
+@@ -1455,6 +1456,10 @@ static int __init f71805f_device_add(uns
+ 	}
+ 
+ 	res.name = pdev->name;
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit_device_put;
++
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+diff -puN drivers/hwmon/f71882fg.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/f71882fg.c
+--- a/drivers/hwmon/f71882fg.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/f71882fg.c
+@@ -27,6 +27,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ #define DRVNAME "f71882fg"
+@@ -898,6 +899,10 @@ static int __init f71882fg_device_add(un
+ 		return -ENOMEM;
+ 
+ 	res.name = f71882fg_pdev->name;
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		return err;
++
+ 	err = platform_device_add_resources(f71882fg_pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
+diff -puN drivers/hwmon/it87.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/it87.c
+--- a/drivers/hwmon/it87.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/it87.c
+@@ -46,6 +46,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ #define DRVNAME "it87"
+@@ -1487,6 +1488,10 @@ static int __init it87_device_add(unsign
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/pc87360.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/pc87360.c
+--- a/drivers/hwmon/pc87360.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/pc87360.c
+@@ -43,6 +43,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static u8 devid;
+@@ -1425,6 +1426,11 @@ static int __init pc87360_device_add(uns
+ 			continue;
+ 		res.start = extra_isa[i];
+ 		res.end = extra_isa[i] + PC87360_EXTENT - 1;
++
++		err = acpi_check_resource_conflict(&res);
++		if (err)
++			goto exit_device_put;
++
+ 		err = platform_device_add_resources(pdev, &res, 1);
+ 		if (err) {
+ 			printk(KERN_ERR "pc87360: Device resource[%d] "
+diff -puN drivers/hwmon/pc87427.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/pc87427.c
+--- a/drivers/hwmon/pc87427.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/pc87427.c
+@@ -32,6 +32,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static unsigned short force_id;
+@@ -524,6 +525,10 @@ static int __init pc87427_device_add(uns
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/sis5595.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/sis5595.c
+--- a/drivers/hwmon/sis5595.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/sis5595.c
+@@ -62,6 +62,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -727,6 +728,10 @@ static int __devinit sis5595_device_add(
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc("sis5595", address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/smsc47b397.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/smsc47b397.c
+--- a/drivers/hwmon/smsc47b397.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/smsc47b397.c
+@@ -36,6 +36,7 @@
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static unsigned short force_id;
+@@ -303,6 +304,10 @@ static int __init smsc47b397_device_add(
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/smsc47m1.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/smsc47m1.c
+--- a/drivers/hwmon/smsc47m1.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/smsc47m1.c
+@@ -37,6 +37,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static unsigned short force_id;
+@@ -686,6 +687,10 @@ static int __init smsc47m1_device_add(un
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/via686a.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/via686a.c
+--- a/drivers/hwmon/via686a.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/via686a.c
+@@ -41,6 +41,7 @@
+ #include <linux/init.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -755,6 +756,10 @@ static int __devinit via686a_device_add(
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc("via686a", address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/vt1211.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/vt1211.c
+--- a/drivers/hwmon/vt1211.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/vt1211.c
+@@ -32,6 +32,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static int uch_config = -1;
+@@ -1259,6 +1260,10 @@ static int __init vt1211_device_add(unsi
+ 	}
+ 
+ 	res.name = pdev->name;
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto EXIT;
++
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+diff -puN drivers/hwmon/vt8231.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/vt8231.c
+--- a/drivers/hwmon/vt8231.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/vt8231.c
+@@ -35,6 +35,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static int force_addr;
+@@ -858,6 +859,10 @@ static int __devinit vt8231_device_add(u
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc("vt8231", address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+diff -puN drivers/hwmon/w83627ehf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/w83627ehf.c
+--- a/drivers/hwmon/w83627ehf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/w83627ehf.c
+@@ -48,6 +48,7 @@
+ #include <linux/hwmon-vid.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ #include "lm75.h"
+ 
+@@ -1544,6 +1545,11 @@ static int __init sensors_w83627ehf_init
+ 	res.start = address + IOREGION_OFFSET;
+ 	res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
+ 	res.flags = IORESOURCE_IO;
++
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+diff -puN drivers/hwmon/w83627hf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/w83627hf.c
+--- a/drivers/hwmon/w83627hf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
++++ a/drivers/hwmon/w83627hf.c
+@@ -50,6 +50,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/ioport.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ #include "lm75.h"
+ 
+@@ -1746,6 +1747,10 @@ static int __init w83627hf_device_add(un
+ 	};
+ 	int err;
+ 
++	err = acpi_check_resource_conflict(&res);
++	if (err)
++		goto exit;
++
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
 _
 
-Patches currently in -mm which might be from david@davidnewall.com are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-git-net.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+git-hwmon.patch
