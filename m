@@ -1,115 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - revert-git-hrt.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:02:04 -0800
-Message-ID: <200802132002.m1DK25m4010824@imap1.linux-foundation.org>
+Subject: - drivers-net-dm9000c-vague-probably-wrong-build-fix.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:04:31 -0800
+Message-ID: <200802132004.m1DK4WX3010880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760562AbYBMUDB (ORCPT
+	by vger.kernel.org with ESMTP id S1757215AbYBMUFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:03:01 -0500
+	Wed, 13 Feb 2008 15:05:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel@caiaq.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert git-hrt
+     drivers/net/dm9000.c: vague, probably-wrong build fix
 has been removed from the -mm tree.  Its filename was
-     revert-git-hrt.patch
+     drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert git-hrt
+Subject: drivers/net/dm9000.c: vague, probably-wrong build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-go away and dont come back
+mips:
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+drivers/net/dm9000.c: In function `dm9000_open':
+drivers/net/dm9000.c:627: error: `IRQT_RISING' undeclared (first use in this function)
+drivers/net/dm9000.c:627: error: (Each undeclared identifier is reported only once
+drivers/net/dm9000.c:627: error: for each function it appears in.)
+
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |   47 +++++++++--------------------------------------
- 1 file changed, 9 insertions(+), 38 deletions(-)
+ drivers/net/dm9000.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/timer.c~revert-git-hrt kernel/timer.c
---- a/kernel/timer.c~revert-git-hrt
-+++ a/kernel/timer.c
-@@ -1366,43 +1366,18 @@ void __init init_timers(void)
- 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
- }
+diff -puN drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix drivers/net/dm9000.c
+--- a/drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix
++++ a/drivers/net/dm9000.c
+@@ -113,8 +113,10 @@
+ #define writesw	outsw
+ #define writesl	outsl
+ #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQF_TRIGGER_HIGH)
+-#else
++#elif defined(ARM)
+ #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQT_RISING)
++#else
++#define DM9000_IRQ_FLAGS	(IRQF_SHARED)
+ #endif
  
--
--
--
--static void do_msleep(unsigned int msecs, struct hrtimer_sleeper *sleeper,
--	int sigs)
--{
--	enum hrtimer_mode mode = HRTIMER_MODE_REL;
--	int state = sigs ? TASK_INTERRUPTIBLE : TASK_UNINTERRUPTIBLE;
--
--	/*
--	 * This is really just a reworked and simplified version
--	 * of do_nanosleep().
--	 */
--	hrtimer_init(&sleeper->timer, CLOCK_MONOTONIC, mode);
--	sleeper->timer.expires = ktime_set(0, msecs*NSEC_PER_MSEC);
--	hrtimer_init_sleeper(sleeper, current);
--
--	do {
--		set_current_state(state);
--		hrtimer_start(&sleeper->timer, sleeper->timer.expires, mode);
--		if (sleeper->task)
--			schedule();
--		hrtimer_cancel(&sleeper->timer);
--		mode = HRTIMER_MODE_ABS;
--	} while (sleeper->task && !(sigs && signal_pending(current)));
--}
--
- /**
-  * msleep - sleep safely even with waitqueue interruptions
-  * @msecs: Time in milliseconds to sleep for
-  */
- void msleep(unsigned int msecs)
- {
--	struct hrtimer_sleeper sleeper;
-+	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
- 
--	do_msleep(msecs, &sleeper, 0);
-+	while (timeout)
-+		timeout = schedule_timeout_uninterruptible(timeout);
- }
-+
- EXPORT_SYMBOL(msleep);
- 
- /**
-@@ -1411,15 +1386,11 @@ EXPORT_SYMBOL(msleep);
-  */
- unsigned long msleep_interruptible(unsigned int msecs)
- {
--	struct hrtimer_sleeper sleeper;
--	ktime_t left;
-+	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
- 
--	do_msleep(msecs, &sleeper, 1);
--
--	if (!sleeper.task)
--		return 0;
--	left = ktime_sub(sleeper.timer.expires,
--			 sleeper.timer.base->get_time());
--	return max(((long) ktime_to_ns(left))/NSEC_PER_MSEC, 1L);
-+	while (timeout && !signal_pending(current))
-+		timeout = schedule_timeout_interruptible(timeout);
-+	return jiffies_to_msecs(timeout);
- }
-+
- EXPORT_SYMBOL(msleep_interruptible);
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,17 +73,9 @@ git-drm.patch
 git-dvb.patch
 git-hwmon.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 git-net.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
 drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
