@@ -1,63 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-compile-error.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:15:17 -0800
-Message-ID: <200802132015.m1DKFHCW011355@imap1.linux-foundation.org>
+Subject: - x25_asy-fix-ref-count-rule-violation.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:14:54 -0800
+Message-ID: <200802132014.m1DKEsYU011257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33699 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43153 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757042AbYBMUPc (ORCPT
+	by vger.kernel.org with ESMTP id S1761682AbYBMUPr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:15:32 -0500
+	Wed, 13 Feb 2008 15:15:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwidefsky@de.ibm.com, bunk@stusta.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, davem@davemloft.net, jeff@garzik.org, khc@pm.waw.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68knommu: add pgtable_t
+     x25_asy: Fix ref count rule violation
 has been removed from the -mm tree.  Its filename was
-     m68knommu-compile-error.patch
+     x25_asy-fix-ref-count-rule-violation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: add pgtable_t
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: x25_asy: Fix ref count rule violation
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-  CC      init/main.o
-In file included from include2/asm/uaccess.h:8,
-                 from include/linux/poll.h:13,
-                 from include/linux/rtc.h:113,
-                 from include/linux/efi.h:19,
-                 from linux-2.6/init/main.c:43:
-include/linux/mm.h:1151:
-error: expected declaration specifiers or '...' before 'pgtable_t'
+x25_asy does not take an ldisc reference before calling the flush method.
+Fix it to use the helper function we provide.
 
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Reported-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68knommu/page.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/wan/x25_asy.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-m68knommu/page.h~m68knommu-compile-error include/asm-m68knommu/page.h
---- a/include/asm-m68knommu/page.h~m68knommu-compile-error
-+++ a/include/asm-m68knommu/page.h
-@@ -31,6 +31,7 @@ typedef struct { unsigned long pte; } pt
- typedef struct { unsigned long pmd[16]; } pmd_t;
- typedef struct { unsigned long pgd; } pgd_t;
- typedef struct { unsigned long pgprot; } pgprot_t;
-+typedef struct page *pgtable_t;
+diff -puN drivers/net/wan/x25_asy.c~x25_asy-fix-ref-count-rule-violation drivers/net/wan/x25_asy.c
+--- a/drivers/net/wan/x25_asy.c~x25_asy-fix-ref-count-rule-violation
++++ a/drivers/net/wan/x25_asy.c
+@@ -554,6 +554,7 @@ static void x25_asy_receive_buf(struct t
+ static int x25_asy_open_tty(struct tty_struct *tty)
+ {
+ 	struct x25_asy *sl = (struct x25_asy *) tty->disc_data;
++	struct tty_ldisc *ld;
+ 	int err;
  
- #define pte_val(x)	((x).pte)
- #define pmd_val(x)	((&x)->pmd[0])
+ 	/* First make sure we're not already connected. */
+@@ -572,9 +573,7 @@ static int x25_asy_open_tty(struct tty_s
+ 	if (tty->driver->flush_buffer)  {
+ 		tty->driver->flush_buffer(tty);
+ 	}
+-	if (tty->ldisc.flush_buffer)  {
+-		tty->ldisc.flush_buffer(tty);
+-	}
++	tty_ldisc_flush(tty);
+ 
+ 	/* Restore default settings */
+ 	sl->dev->type = ARPHRD_X25;
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-s390.patch
-percpu-fix-debug_preempt-per_cpu-checking.patch
+origin.patch
+libata-isolate-and-rework-cable-logic.patch
+git-net.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+git-sh.patch
+megaraid-outb_p-extermination.patch
+git-watchdog.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
