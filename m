@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch added to -mm tree
-Date: Wed, 13 Feb 2008 13:33:49 -0800
-Message-ID: <200802132142.m1DLgmwM014904@imap1.linux-foundation.org>
+Subject: + git-dvb-someone-broke-the-gpio-includes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 13:54:56 -0800
+Message-ID: <200802132203.m1DM3tqn015881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934371AbYBMVnU (ORCPT
+	by vger.kernel.org with ESMTP id S1764865AbYBMWEr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 16:43:20 -0500
+	Wed, 13 Feb 2008 17:04:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     fix ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls
+     git-dvb: someone broke the gpio includes
 has been added to the -mm tree.  Its filename is
-     fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+     git-dvb-someone-broke-the-gpio-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls
+Subject: git-dvb: someone broke the gpio includes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/ide.c: In function 'cleanup_module':
-drivers/ide/ide.c:1485: error: too many arguments to function 'ide_unregister'
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ide/ide.c~fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls drivers/ide/ide.c
---- a/drivers/ide/ide.c~fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls
-+++ a/drivers/ide/ide.c
-@@ -1482,7 +1482,7 @@ void __exit cleanup_module (void)
- 	int index;
- 
- 	for (index = 0; index < MAX_HWIFS; ++index)
--		ide_unregister(index, 0, 0);
-+		ide_unregister(index);
- 
- 	proc_ide_destroy();
- 
+diff -puN drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes
++++ a/drivers/media/video/Kconfig
+@@ -848,6 +848,7 @@ config SOC_CAMERA
+ config SOC_CAMERA_MT9M001
+ 	tristate "mt9m001 support"
+ 	depends on SOC_CAMERA
++	depends on BROKEN
+ 	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9M001 cameras from Micron, monochrome
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +69,7 @@ git-cifs.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
 git-hwmon.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
