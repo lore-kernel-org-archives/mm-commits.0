@@ -1,57 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:01:51 -0800
-Message-ID: <200802132001.m1DK1ppO010811@imap1.linux-foundation.org>
+Subject: - revert-git-hrt.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:02:04 -0800
+Message-ID: <200802132002.m1DK25m4010824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760625AbYBMUCf (ORCPT
+	by vger.kernel.org with ESMTP id S1760562AbYBMUDB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:02:35 -0500
+	Wed, 13 Feb 2008 15:03:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, corbet@lwn.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
+     revert git-hrt
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
+     revert-git-hrt.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/em28xx/em28xx-core.c: fix use of potentially uninitialized variable
+Subject: revert git-hrt
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/em28xx/em28xx-core.c: In function 'em28xx_set_audio_source':
-drivers/media/video/em28xx/em28xx-core.c:276: warning: 'no_ac97' may be used uninitialized in this function
+go away and dont come back
 
-This looks like a genuine bug to me.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/em28xx-core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/timer.c |   47 +++++++++--------------------------------------
+ 1 file changed, 9 insertions(+), 38 deletions(-)
 
-diff -puN drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable drivers/media/video/em28xx/em28xx-core.c
---- a/drivers/media/video/em28xx/em28xx-core.c~drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable
-+++ a/drivers/media/video/em28xx/em28xx-core.c
-@@ -273,7 +273,8 @@ int em28xx_set_audio_source(struct em28x
- 	static char *enable  = "\x08\x08";
- 	static char *disable = "\x08\x88";
- 	char *video = enable, *line = disable;
--	int ret, no_ac97;
-+	int ret;
-+	int no_ac97 = 0;
- 	u8 input;
+diff -puN kernel/timer.c~revert-git-hrt kernel/timer.c
+--- a/kernel/timer.c~revert-git-hrt
++++ a/kernel/timer.c
+@@ -1366,43 +1366,18 @@ void __init init_timers(void)
+ 	open_softirq(TIMER_SOFTIRQ, run_timer_softirq, NULL);
+ }
  
- 	if (dev->is_em2800) {
+-
+-
+-
+-static void do_msleep(unsigned int msecs, struct hrtimer_sleeper *sleeper,
+-	int sigs)
+-{
+-	enum hrtimer_mode mode = HRTIMER_MODE_REL;
+-	int state = sigs ? TASK_INTERRUPTIBLE : TASK_UNINTERRUPTIBLE;
+-
+-	/*
+-	 * This is really just a reworked and simplified version
+-	 * of do_nanosleep().
+-	 */
+-	hrtimer_init(&sleeper->timer, CLOCK_MONOTONIC, mode);
+-	sleeper->timer.expires = ktime_set(0, msecs*NSEC_PER_MSEC);
+-	hrtimer_init_sleeper(sleeper, current);
+-
+-	do {
+-		set_current_state(state);
+-		hrtimer_start(&sleeper->timer, sleeper->timer.expires, mode);
+-		if (sleeper->task)
+-			schedule();
+-		hrtimer_cancel(&sleeper->timer);
+-		mode = HRTIMER_MODE_ABS;
+-	} while (sleeper->task && !(sigs && signal_pending(current)));
+-}
+-
+ /**
+  * msleep - sleep safely even with waitqueue interruptions
+  * @msecs: Time in milliseconds to sleep for
+  */
+ void msleep(unsigned int msecs)
+ {
+-	struct hrtimer_sleeper sleeper;
++	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
+ 
+-	do_msleep(msecs, &sleeper, 0);
++	while (timeout)
++		timeout = schedule_timeout_uninterruptible(timeout);
+ }
++
+ EXPORT_SYMBOL(msleep);
+ 
+ /**
+@@ -1411,15 +1386,11 @@ EXPORT_SYMBOL(msleep);
+  */
+ unsigned long msleep_interruptible(unsigned int msecs)
+ {
+-	struct hrtimer_sleeper sleeper;
+-	ktime_t left;
++	unsigned long timeout = msecs_to_jiffies(msecs) + 1;
+ 
+-	do_msleep(msecs, &sleeper, 1);
+-
+-	if (!sleeper.task)
+-		return 0;
+-	left = ktime_sub(sleeper.timer.expires,
+-			 sleeper.timer.base->get_time());
+-	return max(((long) ktime_to_ns(left))/NSEC_PER_MSEC, 1L);
++	while (timeout && !signal_pending(current))
++		timeout = schedule_timeout_interruptible(timeout);
++	return jiffies_to_msecs(timeout);
+ }
++
+ EXPORT_SYMBOL(msleep_interruptible);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +124,6 @@ git-cifs.patch
 drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
 git-drm.patch
 git-dvb.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
 git-hwmon.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 revert-git-hrt.patch
