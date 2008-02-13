@@ -1,174 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + git-xfs-git-conflicts.patch added to -mm tree
-Date: Wed, 13 Feb 2008 12:21:08 -0800
-Message-ID: <200802132021.m1DKL8hR011638@imap1.linux-foundation.org>
+Subject: - natsemi-section-fix.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:15:39 -0800
+Message-ID: <200802132015.m1DKFdiN011388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756695AbYBMUVp (ORCPT
+	by vger.kernel.org with ESMTP id S1756717AbYBMUWN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:21:45 -0500
+	Wed, 13 Feb 2008 15:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com
+To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-xfs-git-conflicts
-has been added to the -mm tree.  Its filename is
-     git-xfs-git-conflicts.patch
+     natsemi section fix
+has been removed from the -mm tree.  Its filename was
+     natsemi-section-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-xfs-git-conflicts
+Subject: natsemi section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
+gcc-3.4.4 on powerpc:
+
+drivers/net/natsemi.c:245: error: natsemi_pci_info causes a section type conflict
+
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/Makefile-linux-2.6 |  120 ------------------------------------
- 1 file changed, 120 deletions(-)
+ drivers/net/natsemi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/Makefile-linux-2.6~git-xfs-git-conflicts /dev/null
---- a/fs/xfs/Makefile-linux-2.6
-+++ /dev/null
-@@ -1,120 +0,0 @@
--<<<<<<< HEAD/fs/xfs/Makefile-linux-2.6
--#
--# Copyright (c) 2000-2005 Silicon Graphics, Inc.
--# All Rights Reserved.
--#
--# This program is free software; you can redistribute it and/or
--# modify it under the terms of the GNU General Public License as
--# published by the Free Software Foundation.
--#
--# This program is distributed in the hope that it would be useful,
--# but WITHOUT ANY WARRANTY; without even the implied warranty of
--# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--# GNU General Public License for more details.
--#
--# You should have received a copy of the GNU General Public License
--# along with this program; if not, write the Free Software Foundation,
--# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
--#
--
--EXTRA_CFLAGS +=	 -Ifs/xfs -Ifs/xfs/linux-2.6 -funsigned-char
--
--XFS_LINUX := linux-2.6
--
--ifeq ($(CONFIG_XFS_DEBUG),y)
--	EXTRA_CFLAGS += -g
--endif
--
--obj-$(CONFIG_XFS_FS)		+= xfs.o
--
--xfs-$(CONFIG_XFS_QUOTA)		+= $(addprefix quota/, \
--				   xfs_dquot.o \
--				   xfs_dquot_item.o \
--				   xfs_trans_dquot.o \
--				   xfs_qm_syscalls.o \
--				   xfs_qm_bhv.o \
--				   xfs_qm.o)
--
--ifeq ($(CONFIG_XFS_QUOTA),y)
--xfs-$(CONFIG_PROC_FS)		+= quota/xfs_qm_stats.o
--endif
--
--xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
--xfs-$(CONFIG_XFS_POSIX_ACL)	+= xfs_acl.o
--xfs-$(CONFIG_PROC_FS)		+= $(XFS_LINUX)/xfs_stats.o
--xfs-$(CONFIG_SYSCTL)		+= $(XFS_LINUX)/xfs_sysctl.o
--xfs-$(CONFIG_COMPAT)		+= $(XFS_LINUX)/xfs_ioctl32.o
--
--
--xfs-y				+= xfs_alloc.o \
--				   xfs_alloc_btree.o \
--				   xfs_attr.o \
--				   xfs_attr_leaf.o \
--				   xfs_bit.o \
--				   xfs_bmap.o \
--				   xfs_bmap_btree.o \
--				   xfs_btree.o \
--				   xfs_buf_item.o \
--				   xfs_da_btree.o \
--				   xfs_dir2.o \
--				   xfs_dir2_block.o \
--				   xfs_dir2_data.o \
--				   xfs_dir2_leaf.o \
--				   xfs_dir2_node.o \
--				   xfs_dir2_sf.o \
--				   xfs_error.o \
--				   xfs_extfree_item.o \
--				   xfs_filestream.o \
--				   xfs_fsops.o \
--				   xfs_ialloc.o \
--				   xfs_ialloc_btree.o \
--				   xfs_iget.o \
--				   xfs_inode.o \
--				   xfs_inode_item.o \
--				   xfs_iomap.o \
--				   xfs_itable.o \
--				   xfs_dfrag.o \
--				   xfs_log.o \
--				   xfs_log_recover.o \
--				   xfs_mount.o \
--				   xfs_mru_cache.o \
--				   xfs_rename.o \
--				   xfs_trans.o \
--				   xfs_trans_ail.o \
--				   xfs_trans_buf.o \
--				   xfs_trans_extfree.o \
--				   xfs_trans_inode.o \
--				   xfs_trans_item.o \
--				   xfs_utils.o \
--				   xfs_vfsops.o \
--				   xfs_vnodeops.o \
--				   xfs_rw.o \
--				   xfs_dmops.o \
--				   xfs_qmops.o
--
--xfs-$(CONFIG_XFS_TRACE)		+= xfs_dir2_trace.o
--
--# Objects in linux/
--xfs-y				+= $(addprefix $(XFS_LINUX)/, \
--				   kmem.o \
--				   xfs_aops.o \
--				   xfs_buf.o \
--				   xfs_export.o \
--				   xfs_file.o \
--				   xfs_fs_subr.o \
--				   xfs_globals.o \
--				   xfs_ioctl.o \
--				   xfs_iops.o \
--				   xfs_lrw.o \
--				   xfs_super.o \
--				   xfs_vnode.o)
--
--# Objects in support/
--xfs-y				+= $(addprefix support/, \
--				   debug.o \
--				   uuid.o)
--
--xfs-$(CONFIG_XFS_TRACE)		+= support/ktrace.o
--
--=======
-->>>>>>> /fs/xfs/Makefile-linux-2.6
+diff -puN drivers/net/natsemi.c~natsemi-section-fix drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-section-fix
++++ a/drivers/net/natsemi.c
+@@ -127,7 +127,7 @@ static int full_duplex[MAX_UNITS];
+ #define NATSEMI_RX_LIMIT	2046	/* maximum supported by hardware */
+ 
+ /* These identify the driver base version and may not be removed. */
+-static const char version[] __devinitdata =
++static char version[] __devinitdata =
+   KERN_INFO DRV_NAME " dp8381x driver, version "
+       DRV_VERSION ", " DRV_RELDATE "\n"
+   KERN_INFO "  originally by Donald Becker <becker@scyld.com>\n"
+@@ -238,7 +238,7 @@ enum {
+ };
+ 
+ /* array of board data directly indexed by pci_tbl[x].driver_data */
+-static const struct {
++static struct {
+ 	const char *name;
+ 	unsigned long flags;
+ 	unsigned int eeprom_size;
+@@ -247,7 +247,7 @@ static const struct {
+ 	{ "NatSemi DP8381[56]", 0, 24 },
+ };
+ 
+-static const struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
++static struct pci_device_id natsemi_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_NS, 0x0020, 0x12d9,     0x000c,     0, 0, 0 },
+ 	{ PCI_VENDOR_ID_NS, 0x0020, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
+ 	{ }	/* terminate list */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -205,7 +105,6 @@ drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
 git-xtensa.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
