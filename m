@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-x1205-new-style-conversion-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:15:11 -0800
-Message-ID: <200802132315.m1DNFC5J019007@imap1.linux-foundation.org>
+Subject: + rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:16:19 -0800
+Message-ID: <200802132316.m1DNGKRF019029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44256 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752349AbYBMXPa (ORCPT
+	by vger.kernel.org with ESMTP id S1753394AbYBMXQi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:15:30 -0500
+	Wed, 13 Feb 2008 18:16:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc-x1205-new-style-conversion-checkpatch-fixes
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-x1205-new-style-conversion-checkpatch-fixes
+Subject: rtc-pcf8563-new-style-conversion-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#94: FILE: drivers/rtc/rtc-x1205.c:503:
+#100: FILE: drivers/rtc/rtc-pcf8563.c:255:
 +	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
 
-WARNING: braces {} are not necessary for single statement blocks
-#99: FILE: drivers/rtc/rtc-x1205.c:505:
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-+		return -ENODEV;
- 	}
+ERROR: do not use assignment in if condition
+#120: FILE: drivers/rtc/rtc-pcf8563.c:260:
++	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL)))
 
-WARNING: braces {} are not necessary for single statement blocks
-#106: FILE: drivers/rtc/rtc-x1205.c:509:
-+	if (x1205_validate_client(client) < 0) {
-+		return -ENODEV;
- 	}
+WARNING: line over 80 characters
+#141: FILE: drivers/rtc/rtc-pcf8563.c:271:
++	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
 
-total: 0 errors, 3 warnings, 185 lines checked
+total: 1 errors, 2 warnings, 180 lines checked
 
-./patches/rtc-x1205-new-style-conversion.patch has style problems, please review.  If any of these errors
+./patches/rtc-pcf8563-new-style-conversion.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -66,31 +62,39 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion-checkpatch-fixes drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion-checkpatch-fixes
-+++ a/drivers/rtc/rtc-x1205.c
-@@ -500,15 +500,13 @@ static int x1205_probe(struct i2c_client
- 	unsigned char sr;
- 	struct rtc_device *rtc;
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -252,12 +252,13 @@ static int pcf8563_probe(struct i2c_clie
+ 
+ 	int err = 0;
  
 -	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
 +	dev_dbg(&client->dev, "%s\n", __func__);
  
--	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
  		return -ENODEV;
--	}
  
--	if (x1205_validate_client(client) < 0) {
-+	if (x1205_validate_client(client) < 0)
- 		return -ENODEV;
--	}
+-	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL)))
++	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL));
++	if (!pcf8563)
+ 		return -ENOMEM;
+ 
+ 	/* Verify the chip is really an PCF8563 */
+@@ -268,8 +269,8 @@ static int pcf8563_probe(struct i2c_clie
  
  	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
  
+-	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
+-				&pcf8563_rtc_ops, THIS_MODULE);
++	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
++				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(pcf8563->rtc)) {
+ 		err = PTR_ERR(pcf8563->rtc);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,6 +146,7 @@ vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 make-dev-kmem-a-config-option-fix.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 kill-filp_open.patch
 rename-open_namei-to-open_pathname.patch
