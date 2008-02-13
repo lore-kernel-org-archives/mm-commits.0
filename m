@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-rcu_assign_index-if-ever-needed.patch added to -mm tree
-Date: Wed, 13 Feb 2008 14:12:05 -0800
-Message-ID: <200802132212.m1DMC6WH016271@imap1.linux-foundation.org>
+Subject: + git-dvb-someone-broke-the-gpio-includes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 14:04:30 -0800
+Message-ID: <200802132213.m1DMDTvg016336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762427AbYBMWMT (ORCPT
+	by vger.kernel.org with ESMTP id S1751268AbYBMWNm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 17:12:19 -0500
+	Wed, 13 Feb 2008 17:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     add rcu_assign_index() if ever needed
+     git-dvb: someone broke the gpio includes
 has been added to the -mm tree.  Its filename is
-     add-rcu_assign_index-if-ever-needed.patch
+     git-dvb-someone-broke-the-gpio-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add rcu_assign_index() if ever needed
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: git-dvb: someone broke the gpio includes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is a speculative patch that as far as I can tell is not yet required. 
-If anyone applies RCU to a data structure allocated out of an array, using
-array indexes in place of pointers to link the array elements together,
-then the rcu_assign_index() function in this patch will be needed to assign
-a given element's array index to the RCU-traversed index.  The
-implementation is exactly that of the old rcu_assign_pointer(), so is
-extremely well tested.
-
-The existing rcu_assign_pointer() will emit a compiler warning in cases
-where rcu_assign_index() is required.
-
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rcupdate.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/media/video/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed
-+++ a/include/linux/rcupdate.h
-@@ -188,6 +188,24 @@ struct rcu_head {
- 	})
- 
- /**
-+ * rcu_assign_index - assign (publicize) a index of a newly
-+ * initialized array elementg that will be dereferenced by RCU
-+ * read-side critical sections.  Returns the value assigned.
-+ *
-+ * Inserts memory barriers on architectures that require them
-+ * (pretty much all of them other than x86), and also prevents
-+ * the compiler from reordering the code that initializes the
-+ * structure after the index assignment.  More importantly, this
-+ * call documents which indexes will be dereferenced by RCU read-side
-+ * code.
-+ */
-+
-+#define rcu_assign_index(p, v)	({ \
-+					smp_wmb(); \
-+					(p) = (v); \
-+				})
-+
-+/**
-  * synchronize_sched - block until all CPUs have exited any non-preemptive
-  * kernel code sequences.
-  *
+diff -puN drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes
++++ a/drivers/media/video/Kconfig
+@@ -848,6 +848,7 @@ config SOC_CAMERA
+ config SOC_CAMERA_MT9M001
+ 	tristate "mt9m001 support"
+ 	depends on SOC_CAMERA
++	depends on BROKEN
+ 	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9M001 cameras from Micron, monochrome
+@@ -863,6 +864,7 @@ config MT9M001_PCA9536_SWITCH
+ config SOC_CAMERA_MT9V022
+ 	tristate "mt9v022 support"
+ 	depends on SOC_CAMERA
++	depends on BROKEN
+ 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9V022 cameras from Micron
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rcupdate-fix-comment.patch
-remove-rcu_assign_pointernull-penalty-with-type-macro-safety.patch
-add-rcu_assign_index-if-ever-needed.patch
+softlockup-workaround.patch
+include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
