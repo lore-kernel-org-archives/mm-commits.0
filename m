@@ -1,64 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - sunprc-fix-printk-format-warning-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:16:09 -0800
-Message-ID: <200802132016.m1DKG90L011433@imap1.linux-foundation.org>
+Subject: - starfire-secton-fix.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:15:48 -0800
+Message-ID: <200802132015.m1DKFmBL011403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755163AbYBMUTi (ORCPT
+	by vger.kernel.org with ESMTP id S1754977AbYBMUTi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 13 Feb 2008 15:19:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sunprc-fix-printk-format-warning-checkpatch-fixes
+     starfire secton fix
 has been removed from the -mm tree.  Its filename was
-     sunprc-fix-printk-format-warning-checkpatch-fixes.patch
+     starfire-secton-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunprc-fix-printk-format-warning-checkpatch-fixes
+Subject: starfire secton fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#20: FILE: net/sunrpc/xprtrdma/svc_rdma_sendto.c:162:
-+		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
+gcc-3.4.4 on powerpc:
 
-total: 0 errors, 1 warnings, 8 lines checked
+drivers/net/starfire.c:219: error: version causes a section type conflict
 
-./patches/sunprc-fix-printk-format-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/starfire.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes net/sunrpc/xprtrdma/svc_rdma_sendto.c
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~sunprc-fix-printk-format-warning-checkpatch-fixes
-+++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -159,7 +159,8 @@ static int send_write(struct svcxprt_rdm
- 	BUG_ON(sge_count >= 32);
- 	dprintk("svcrdma: RDMA_WRITE rmr=%x, to=%llx, xdr_off=%d, "
- 		"write_len=%d, xdr_sge=%p, sge_count=%d\n",
--		rmr, (unsigned long long) to, xdr_off, write_len, xdr_sge, sge_count);
-+		rmr, (unsigned long long) to, xdr_off, write_len,
-+		xdr_sge, sge_count);
+diff -puN drivers/net/starfire.c~starfire-secton-fix drivers/net/starfire.c
+--- a/drivers/net/starfire.c~starfire-secton-fix
++++ a/drivers/net/starfire.c
+@@ -216,7 +216,7 @@ do { \
  
- 	ctxt = svc_rdma_get_context(xprt);
- 	ctxt->count = 0;
+ 
+ /* These identify the driver base version and may not be removed. */
+-static const char version[] __devinitdata =
++static char version[] =
+ KERN_INFO "starfire.c:v1.03 7/26/2000  Written by Donald Becker <becker@scyld.com>\n"
+ KERN_INFO " (unofficial 2.2/2.4 kernel port, version " DRV_VERSION ", " DRV_RELDATE ")\n";
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
