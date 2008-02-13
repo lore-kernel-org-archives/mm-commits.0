@@ -1,62 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fix-git-conflicts.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:09:22 -0800
-Message-ID: <200802132009.m1DK9Mdo011049@imap1.linux-foundation.org>
+Subject: - git-xfs-fix-git-conflicts.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:10:27 -0800
+Message-ID: <200802132010.m1DKARfc011149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36494 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbYBMUKD (ORCPT
+	by vger.kernel.org with ESMTP id S1756567AbYBMUKb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:10:03 -0500
+	Wed, 13 Feb 2008 15:10:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-fix-git-conflicts
+     git-xfs-fix-git-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-x86-fix-git-conflicts.patch
+     git-xfs-fix-git-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fix-git-conflicts
+Subject: git-xfs-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+I think this is right, we'll see...
+
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/xfs/Makefile-linux-2.6 |  120 ------------------------------------
+ 1 file changed, 120 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~git-x86-fix-git-conflicts drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~git-x86-fix-git-conflicts
-+++ a/drivers/serial/serial_core.c
-@@ -59,18 +59,15 @@ static struct lock_class_key port_lock_k
- #define uart_console(port)	(0)
- #endif
- 
--<<<<<<< HEAD:drivers/serial/serial_core.c
- static void uart_change_speed(struct uart_state *state,
- 					struct ktermios *old_termios);
+diff -puN fs/xfs/Makefile-linux-2.6~git-xfs-fix-git-conflicts /dev/null
+--- a/fs/xfs/Makefile-linux-2.6
++++ /dev/null
+@@ -1,120 +0,0 @@
+-<<<<<<< HEAD:fs/xfs/Makefile-linux-2.6
+-#
+-# Copyright (c) 2000-2005 Silicon Graphics, Inc.
+-# All Rights Reserved.
+-#
+-# This program is free software; you can redistribute it and/or
+-# modify it under the terms of the GNU General Public License as
+-# published by the Free Software Foundation.
+-#
+-# This program is distributed in the hope that it would be useful,
+-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-# GNU General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program; if not, write the Free Software Foundation,
+-# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+-#
+-
+-EXTRA_CFLAGS +=	 -Ifs/xfs -Ifs/xfs/linux-2.6 -funsigned-char
+-
+-XFS_LINUX := linux-2.6
+-
+-ifeq ($(CONFIG_XFS_DEBUG),y)
+-	EXTRA_CFLAGS += -g
+-endif
+-
+-obj-$(CONFIG_XFS_FS)		+= xfs.o
+-
+-xfs-$(CONFIG_XFS_QUOTA)		+= $(addprefix quota/, \
+-				   xfs_dquot.o \
+-				   xfs_dquot_item.o \
+-				   xfs_trans_dquot.o \
+-				   xfs_qm_syscalls.o \
+-				   xfs_qm_bhv.o \
+-				   xfs_qm.o)
+-
+-ifeq ($(CONFIG_XFS_QUOTA),y)
+-xfs-$(CONFIG_PROC_FS)		+= quota/xfs_qm_stats.o
+-endif
+-
+-xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
+-xfs-$(CONFIG_XFS_POSIX_ACL)	+= xfs_acl.o
+-xfs-$(CONFIG_PROC_FS)		+= $(XFS_LINUX)/xfs_stats.o
+-xfs-$(CONFIG_SYSCTL)		+= $(XFS_LINUX)/xfs_sysctl.o
+-xfs-$(CONFIG_COMPAT)		+= $(XFS_LINUX)/xfs_ioctl32.o
+-
+-
+-xfs-y				+= xfs_alloc.o \
+-				   xfs_alloc_btree.o \
+-				   xfs_attr.o \
+-				   xfs_attr_leaf.o \
+-				   xfs_bit.o \
+-				   xfs_bmap.o \
+-				   xfs_bmap_btree.o \
+-				   xfs_btree.o \
+-				   xfs_buf_item.o \
+-				   xfs_da_btree.o \
+-				   xfs_dir2.o \
+-				   xfs_dir2_block.o \
+-				   xfs_dir2_data.o \
+-				   xfs_dir2_leaf.o \
+-				   xfs_dir2_node.o \
+-				   xfs_dir2_sf.o \
+-				   xfs_error.o \
+-				   xfs_extfree_item.o \
+-				   xfs_filestream.o \
+-				   xfs_fsops.o \
+-				   xfs_ialloc.o \
+-				   xfs_ialloc_btree.o \
+-				   xfs_iget.o \
+-				   xfs_inode.o \
+-				   xfs_inode_item.o \
+-				   xfs_iomap.o \
+-				   xfs_itable.o \
+-				   xfs_dfrag.o \
+-				   xfs_log.o \
+-				   xfs_log_recover.o \
+-				   xfs_mount.o \
+-				   xfs_mru_cache.o \
+-				   xfs_rename.o \
+-				   xfs_trans.o \
+-				   xfs_trans_ail.o \
+-				   xfs_trans_buf.o \
+-				   xfs_trans_extfree.o \
+-				   xfs_trans_inode.o \
+-				   xfs_trans_item.o \
+-				   xfs_utils.o \
+-				   xfs_vfsops.o \
+-				   xfs_vnodeops.o \
+-				   xfs_rw.o \
+-				   xfs_dmops.o \
+-				   xfs_qmops.o
+-
+-xfs-$(CONFIG_XFS_TRACE)		+= xfs_dir2_trace.o
+-
+-# Objects in linux/
+-xfs-y				+= $(addprefix $(XFS_LINUX)/, \
+-				   kmem.o \
+-				   xfs_aops.o \
+-				   xfs_buf.o \
+-				   xfs_export.o \
+-				   xfs_file.o \
+-				   xfs_fs_subr.o \
+-				   xfs_globals.o \
+-				   xfs_ioctl.o \
+-				   xfs_iops.o \
+-				   xfs_lrw.o \
+-				   xfs_super.o \
+-				   xfs_vnode.o)
+-
+-# Objects in support/
+-xfs-y				+= $(addprefix support/, \
+-				   debug.o \
+-				   uuid.o)
+-
+-xfs-$(CONFIG_XFS_TRACE)		+= support/ktrace.o
+-
 -=======
-+
- #ifdef CONFIG_KGDB_CONSOLE
- #define uart_kgdb(port) (port->cons && !strcmp(port->cons->name, "kgdb"))
- #else
- #define uart_kgdb(port) (0)
- #endif
- 
--static void uart_change_speed(struct uart_state *state, struct ktermios *old_termios);
-->>>>>>> FETCH_HEAD:drivers/serial/serial_core.c
- static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
- static void uart_change_pm(struct uart_state *state, int pm_state);
- 
+->>>>>>> FETCH_HEAD:fs/xfs/Makefile-linux-2.6
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,7 +195,6 @@ drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
-git-x86-fix-git-conflicts.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 git-xfs-fix-git-conflicts.patch
