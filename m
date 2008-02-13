@@ -1,53 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - git-sched-fix-git-conflicts.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:06:08 -0800
-Message-ID: <200802132006.m1DK68hQ010976@imap1.linux-foundation.org>
+Subject: - git-watchdog-fixup.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:07:13 -0800
+Message-ID: <200802132007.m1DK7E27010986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60930 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35933 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756474AbYBMUGz (ORCPT
+	by vger.kernel.org with ESMTP id S1756736AbYBMUHr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:06:55 -0500
+	Wed, 13 Feb 2008 15:07:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-fix-git-conflicts
+     git-watchdog-fixup
 has been removed from the -mm tree.  Its filename was
-     git-sched-fix-git-conflicts.patch
+     git-watchdog-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-fix-git-conflicts
+Subject: git-watchdog-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Fix git conflicts
+
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/futex.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/watchdog/Kconfig  |    3 ---
+ drivers/watchdog/Makefile |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN include/asm-x86/futex.h~git-sched-fix-git-conflicts include/asm-x86/futex.h
---- a/include/asm-x86/futex.h~git-sched-fix-git-conflicts
-+++ a/include/asm-x86/futex.h
-@@ -106,10 +106,6 @@ futex_atomic_cmpxchg_inatomic(int __user
- 		return -EFAULT;
+diff -puN drivers/watchdog/Kconfig~git-watchdog-fixup drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~git-watchdog-fixup
++++ a/drivers/watchdog/Kconfig
+@@ -405,8 +405,6 @@ config IT8712F_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called it8712f_wdt.
  
- 	__asm__ __volatile__(
--<<<<<<< HEAD:include/asm-x86/futex.h
+-<<<<<<< HEAD:drivers/watchdog/Kconfig
 -=======
--
-->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
- 		"1:	lock; cmpxchgl %3, %1			\n"
- 		"2:	.section .fixup, \"ax\"			\n"
- 		"3:	mov     %2, %0				\n"
+ config HP_WATCHDOG
+ 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
+ 	depends on X86
+@@ -419,7 +417,6 @@ config HP_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hpwdt.
+ 
+->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
+ config SC1200_WDT
+ 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~git-watchdog-fixup drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~git-watchdog-fixup
++++ a/drivers/watchdog/Makefile
+@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
+ obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
+ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
+ obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+-<<<<<<< HEAD:drivers/watchdog/Makefile
+-=======
+ CFLAGS_hpwdt.o += -O
+ obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
+->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
+ obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
+ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +96,6 @@ cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
 git-sched-fixup.patch
-git-sched-fix-git-conflicts.patch
 git-sh.patch
 git-scsi-rc-fixes.patch
 scsi-aic94xx-cleanups.patch
