@@ -1,64 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-fixup.patch added to -mm tree
-Date: Wed, 13 Feb 2008 12:06:00 -0800
-Message-ID: <200802132006.m1DK60wX010967@imap1.linux-foundation.org>
+Subject: - git-sched-fix-git-conflicts.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:06:08 -0800
+Message-ID: <200802132006.m1DK68hQ010976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754642AbYBMUGb (ORCPT
+	by vger.kernel.org with ESMTP id S1756474AbYBMUGz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:06:31 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1DK60FF002811
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2008 12:06:02 -0800
+	Wed, 13 Feb 2008 15:06:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-fixup
-has been added to the -mm tree.  Its filename is
-     git-sched-fixup.patch
+     git-sched-fix-git-conflicts
+has been removed from the -mm tree.  Its filename was
+     git-sched-fix-git-conflicts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-fixup
+Subject: git-sched-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-x86/futex.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-sched-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-sched-fixup
-+++ a/arch/x86/Kconfig
-@@ -22,7 +22,7 @@ config X86
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
- 	select HAVE_KVM
--
-+	select HAVE_FTRACE
+diff -puN include/asm-x86/futex.h~git-sched-fix-git-conflicts include/asm-x86/futex.h
+--- a/include/asm-x86/futex.h~git-sched-fix-git-conflicts
++++ a/include/asm-x86/futex.h
+@@ -106,10 +106,6 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 		return -EFAULT;
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ 	__asm__ __volatile__(
+-<<<<<<< HEAD:include/asm-x86/futex.h
+-=======
+-
+->>>>>>> FETCH_HEAD:include/asm-x86/futex.h
+ 		"1:	lock; cmpxchgl %3, %1			\n"
+ 		"2:	.section .fixup, \"ax\"			\n"
+ 		"3:	mov     %2, %0				\n"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
