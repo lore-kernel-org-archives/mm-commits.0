@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-update-driver-version.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:29:14 -0800
-Message-ID: <200802132329.m1DNTEoL019596@imap1.linux-foundation.org>
+Subject: + ipmi-change-device-node-ordering-to-reflect-probe-order.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:28:20 -0800
+Message-ID: <200802132328.m1DNSLhi019553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759080AbYBMX3i (ORCPT
+	by vger.kernel.org with ESMTP id S1758422AbYBMX3j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:29:38 -0500
+	Wed, 13 Feb 2008 18:29:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cminyard@mvista.com
+Cc: cah@us.ibm.com, cminyard@mvista.com
 
 
 The patch titled
-     ipmi: update driver version
+     ipmi: change device node ordering to reflect probe order
 has been added to the -mm tree.  Its filename is
-     ipmi-update-driver-version.patch
+     ipmi-change-device-node-ordering-to-reflect-probe-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: update driver version
-From: Corey Minyard <cminyard@mvista.com>
+Subject: ipmi: change device node ordering to reflect probe order
+From: Carol Hebert <cah@us.ibm.com>
 
-Enough bug fixes and changes that we need a new driver version.
+Currently, on systems with multiple BMC interfaces, the ipmi device names are
+being created in reverse order relative to how they are discovered on the
+system (e.g.  on an IBM x3950 multinode server with N nodes, the device name
+for the BMC in the first node is /dev/ipmiN-1 and the device name for the BMC
+in the last node is /dev/ipmi0, etc.).  The problem is caused by the list
+handling routines chosen in dmi_scan.c.  Using list_add() causes the multiple
+ipmi devices to be added to the device list using a stack-paradigm and so the
+ipmi driver subsequently pulls them off during initialization in LIFO order. 
+This patch changes the dmi_save_ipmi_device() list handling paradigm to a
+queue, thereby allowing the ipmi driver to build the ipmi device names in the
+order in which they are found on the system.
 
+Signed-off-by: Carol Hebert <cah@us.ibm.com>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |    2 +-
+ drivers/firmware/dmi_scan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-update-driver-version drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-update-driver-version
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -47,7 +47,7 @@
+diff -puN drivers/firmware/dmi_scan.c~ipmi-change-device-node-ordering-to-reflect-probe-order drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~ipmi-change-device-node-ordering-to-reflect-probe-order
++++ a/drivers/firmware/dmi_scan.c
+@@ -272,7 +272,7 @@ static void __init dmi_save_ipmi_device(
+ 	dev->name = "IPMI controller";
+ 	dev->device_data = data;
  
- #define PFX "IPMI message handler: "
+-	list_add(&dev->list, &dmi_devices);
++	list_add_tail(&dev->list, &dmi_devices);
+ }
  
--#define IPMI_DRIVER_VERSION "39.1"
-+#define IPMI_DRIVER_VERSION "39.2"
- 
- static struct ipmi_recv_msg *ipmi_alloc_recv_msg(void);
- static int ipmi_init_msghandler(void);
+ static void __init dmi_save_extended_devices(const struct dmi_header *dm)
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from cah@us.ibm.com are
 
-git-watchdog.patch
-ipmi-hold-attn-until-upper-layer-ready.patch
 ipmi-change-device-node-ordering-to-reflect-probe-order.patch
-ipmi-run-to-completion-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-dont-grab-locks-in-run-to-completion-mode.patch
-ipmi-dont-print-event-queue-full-on-every-event.patch
-ipmi-update-driver-version.patch
-ipmi-convert-locked-counters-to-atomics.patch
-ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
