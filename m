@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-fixup.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:07:13 -0800
-Message-ID: <200802132007.m1DK7E27010986@imap1.linux-foundation.org>
+Subject: - git-x86-fix-git-conflicts.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:09:22 -0800
+Message-ID: <200802132009.m1DK9Mdo011049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36494 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756736AbYBMUHr (ORCPT
+	by vger.kernel.org with ESMTP id S1754318AbYBMUKD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:07:47 -0500
+	Wed, 13 Feb 2008 15:10:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog-fixup
+     git-x86-fix-git-conflicts
 has been removed from the -mm tree.  Its filename was
-     git-watchdog-fixup.patch
+     git-x86-fix-git-conflicts.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-x86-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts
-
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig  |    3 ---
- drivers/watchdog/Makefile |    3 ---
- 2 files changed, 6 deletions(-)
+ drivers/serial/serial_core.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~git-watchdog-fixup drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~git-watchdog-fixup
-+++ a/drivers/watchdog/Kconfig
-@@ -405,8 +405,6 @@ config IT8712F_WDT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called it8712f_wdt.
+diff -puN drivers/serial/serial_core.c~git-x86-fix-git-conflicts drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~git-x86-fix-git-conflicts
++++ a/drivers/serial/serial_core.c
+@@ -59,18 +59,15 @@ static struct lock_class_key port_lock_k
+ #define uart_console(port)	(0)
+ #endif
  
--<<<<<<< HEAD:drivers/watchdog/Kconfig
+-<<<<<<< HEAD:drivers/serial/serial_core.c
+ static void uart_change_speed(struct uart_state *state,
+ 					struct ktermios *old_termios);
 -=======
- config HP_WATCHDOG
- 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
- 	depends on X86
-@@ -419,7 +417,6 @@ config HP_WATCHDOG
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hpwdt.
++
+ #ifdef CONFIG_KGDB_CONSOLE
+ #define uart_kgdb(port) (port->cons && !strcmp(port->cons->name, "kgdb"))
+ #else
+ #define uart_kgdb(port) (0)
+ #endif
  
-->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
- config SC1200_WDT
- 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
- 	depends on X86
-diff -puN drivers/watchdog/Makefile~git-watchdog-fixup drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~git-watchdog-fixup
-+++ a/drivers/watchdog/Makefile
-@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
- obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
- obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
--<<<<<<< HEAD:drivers/watchdog/Makefile
--=======
- CFLAGS_hpwdt.o += -O
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
-->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
- obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
- obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
- obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
+-static void uart_change_speed(struct uart_state *state, struct ktermios *old_termios);
+->>>>>>> FETCH_HEAD:drivers/serial/serial_core.c
+ static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
+ static void uart_change_pm(struct uart_state *state, int pm_state);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,8 +91,6 @@ drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
-git-watchdog-fixup.patch
-git-x86.patch
 git-x86-fix-git-conflicts.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
