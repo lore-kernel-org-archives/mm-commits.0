@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - lib-scatterlisto-needed-by-a-module-only-link-it-in-unconditionally.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:14:51 -0800
-Message-ID: <200802132014.m1DKEpuk011254@imap1.linux-foundation.org>
+Subject: - add-pgtable_t-to-nommu-architectures.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:15:20 -0800
+Message-ID: <200802132015.m1DKFKjk011358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754257AbYBMUPW (ORCPT
+	by vger.kernel.org with ESMTP id S1755825AbYBMUP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:15:22 -0500
+	Wed, 13 Feb 2008 15:15:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@pengutronix.de, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib/scatterlist.o needed by a module only - link it in unconditionally
+     Add pgtable_t to remaining nommu architectures
 has been removed from the -mm tree.  Its filename was
-     lib-scatterlisto-needed-by-a-module-only-link-it-in-unconditionally.patch
+     add-pgtable_t-to-nommu-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/scatterlist.o needed by a module only - link it in unconditionally
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Subject: Add pgtable_t to remaining nommu architectures
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-lib/scatterlist.c is needed by drivers/media/video/videobuf-dma-sg.c, and
-we would like to be able to use the latter without PCI too, for example, on
-PXA270 ARM CPU.  It is then possible to create a configuration with
-CONFIG_BLOCK=n, where only module code will need scatterlist.c.  Therefore
-it must be in obj-y.
+The pte_fn_t in include/linux/mm.h make it necessary for all architectures
+to define a pgtable_t type, even those that do not have an mmu.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-blackfin/page.h |    1 +
+ include/asm-h8300/page.h    |    1 +
+ include/asm-v850/page.h     |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN lib/Makefile~lib-scatterlisto-needed-by-a-module-only-link-it-in-unconditionally lib/Makefile
---- a/lib/Makefile~lib-scatterlisto-needed-by-a-module-only-link-it-in-unconditionally
-+++ a/lib/Makefile
-@@ -6,7 +6,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 rbtree.o radix-tree.o dump_stack.o \
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
--	 proportions.o prio_heap.o scatterlist.o
-+	 proportions.o prio_heap.o
+diff -puN include/asm-blackfin/page.h~add-pgtable_t-to-nommu-architectures include/asm-blackfin/page.h
+--- a/include/asm-blackfin/page.h~add-pgtable_t-to-nommu-architectures
++++ a/include/asm-blackfin/page.h
+@@ -39,6 +39,7 @@ typedef struct {
+ typedef struct {
+ 	unsigned long pgprot;
+ } pgprot_t;
++typedef struct page *pgtable_t;
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -14,7 +14,7 @@ lib-$(CONFIG_SMP) += cpumask.o
- lib-y	+= kobject.o kref.o klist.o
+ #define pte_val(x)	((x).pte)
+ #define pmd_val(x)	((&x)->pmd[0])
+diff -puN include/asm-h8300/page.h~add-pgtable_t-to-nommu-architectures include/asm-h8300/page.h
+--- a/include/asm-h8300/page.h~add-pgtable_t-to-nommu-architectures
++++ a/include/asm-h8300/page.h
+@@ -31,6 +31,7 @@ typedef struct { unsigned long pte; } pt
+ typedef struct { unsigned long pmd[16]; } pmd_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
++typedef struct page *pgtable_t;
  
- obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
--	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o
-+	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o
+ #define pte_val(x)	((x).pte)
+ #define pmd_val(x)	((&x)->pmd[0])
+diff -puN include/asm-v850/page.h~add-pgtable_t-to-nommu-architectures include/asm-v850/page.h
+--- a/include/asm-v850/page.h~add-pgtable_t-to-nommu-architectures
++++ a/include/asm-v850/page.h
+@@ -57,6 +57,7 @@ typedef struct { unsigned long pte; } pt
+ typedef struct { unsigned long pmd; } pmd_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
++typedef struct page *pgtable_t;
  
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o += -DDEBUG
+ #define pte_val(x)      ((x).pte)
+ #define pmd_val(x)      ((x).pmd)
 _
 
-Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
+Patches currently in -mm which might be from schwidefsky@de.ibm.com are
 
-git-dvb.patch
-gpiolib-better-rmmod-infrastructure.patch
-gpiolib-i2c-spi-drivers-handle-rmmod-better.patch
-gpio-define-gpio_is_valid.patch
+git-s390.patch
+percpu-fix-debug_preempt-per_cpu-checking.patch
