@@ -1,83 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - deprecate-find_task_by_pid-kgdb.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:09:58 -0800
-Message-ID: <200802132009.m1DK9wf9011067@imap1.linux-foundation.org>
+Subject: - dca-convert-struct-class_device-to-struct-device.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 12:14:57 -0800
+Message-ID: <200802132014.m1DKEvY8011260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39440 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35767 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754318AbYBMUKb (ORCPT
+	by vger.kernel.org with ESMTP id S1750897AbYBMUPA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:10:31 -0500
+	Wed, 13 Feb 2008 15:15:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dan.j.williams@intel.com, greg@kroah.com, shannon.nelson@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Deprecate find_task_by_pid(): kgdb
+     DCA: convert struct class_device to struct device.
 has been removed from the -mm tree.  Its filename was
-     deprecate-find_task_by_pid-kgdb.patch
+     dca-convert-struct-class_device-to-struct-device.patch
 
-This patch was dropped because I dropped git-x86
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Deprecate find_task_by_pid(): kgdb
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: DCA: convert struct class_device to struct device.
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-There are some places that are known to operate on tasks'
-global pids only:
+Thanks to Kay for keeping us honest.
 
-* the rest_init() call (called on boot)
-* the kgdb's getthread
-* the create_kthread() (since the kthread is run in init ns)
-
-So use the find_task_by_pid_ns(..., &init_pid_ns) there
-and schedule the find_task_by_pid for removal.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Acked-by: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kgdb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dca/dca-sysfs.c |   15 +++++++--------
+ include/linux/dca.h     |    2 +-
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN kernel/kgdb.c~deprecate-find_task_by_pid-kgdb kernel/kgdb.c
---- a/kernel/kgdb.c~deprecate-find_task_by_pid-kgdb
-+++ a/kernel/kgdb.c
-@@ -720,11 +720,11 @@ static struct task_struct *getthread(str
- 		return NULL;
+diff -puN drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device drivers/dca/dca-sysfs.c
+--- a/drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device
++++ a/drivers/dca/dca-sysfs.c
+@@ -12,10 +12,10 @@ static spinlock_t dca_idr_lock;
  
- 	/*
--	 * find_task_by_pid() does not take the tasklist lock anymore
-+	 * find_task_by_pid_ns() does not take the tasklist lock anymore
- 	 * but is nicely RCU locked - hence is a pretty resilient
- 	 * thing to use:
- 	 */
--	return find_task_by_pid(tid);
-+	return find_task_by_pid_ns(tid, &init_pid_ns);
+ int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot)
+ {
+-	struct class_device *cd;
++	struct device *cd;
+ 
+-	cd = class_device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
+-				 dev, "requester%d", slot);
++	cd = device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
++			   "requester%d", slot);
+ 	if (IS_ERR(cd))
+ 		return PTR_ERR(cd);
+ 	return 0;
+@@ -23,12 +23,12 @@ int dca_sysfs_add_req(struct dca_provide
+ 
+ void dca_sysfs_remove_req(struct dca_provider *dca, int slot)
+ {
+-	class_device_destroy(dca_class, MKDEV(0, slot + 1));
++	device_destroy(dca_class, MKDEV(0, slot + 1));
  }
- #ifdef CONFIG_DETECT_SOFTLOCKUP
- static int kgdb_softlock_reset[NR_CPUS];
+ 
+ int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
+ {
+-	struct class_device *cd;
++	struct device *cd;
+ 	int err = 0;
+ 
+ idr_try_again:
+@@ -46,8 +46,7 @@ idr_try_again:
+ 		return err;
+ 	}
+ 
+-	cd = class_device_create(dca_class, NULL, MKDEV(0, 0),
+-				 dev, "dca%d", dca->id);
++	cd = device_create(dca_class, dev, MKDEV(0, 0), "dca%d", dca->id);
+ 	if (IS_ERR(cd)) {
+ 		spin_lock(&dca_idr_lock);
+ 		idr_remove(&dca_idr, dca->id);
+@@ -60,7 +59,7 @@ idr_try_again:
+ 
+ void dca_sysfs_remove_provider(struct dca_provider *dca)
+ {
+-	class_device_unregister(dca->cd);
++	device_unregister(dca->cd);
+ 	dca->cd = NULL;
+ 	spin_lock(&dca_idr_lock);
+ 	idr_remove(&dca_idr, dca->id);
+diff -puN include/linux/dca.h~dca-convert-struct-class_device-to-struct-device include/linux/dca.h
+--- a/include/linux/dca.h~dca-convert-struct-class_device-to-struct-device
++++ a/include/linux/dca.h
+@@ -11,7 +11,7 @@ void dca_unregister_notify(struct notifi
+ 
+ struct dca_provider {
+ 	struct dca_ops		*ops;
+-	struct class_device 	*cd;
++	struct device 		*cd;
+ 	int			 id;
+ };
+ 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-mips-use-find_task_by_vpid-in-system-calls.patch
-git-net.patch
-usbatm-switch-to-kthread-api-stop-using-kill_proc.patch
-deprecate-find_task_by_pid-kgdb.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
+register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
