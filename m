@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-run-to-completion-fixes-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:29:07 -0800
-Message-ID: <200802132329.m1DNT7kv019587@imap1.linux-foundation.org>
+Subject: + ipmi-run-to-completion-fixes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:28:23 -0800
+Message-ID: <200802132328.m1DNSNNK019556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57672 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758109AbYBMX3a (ORCPT
+	by vger.kernel.org with ESMTP id S1758387AbYBMX3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:29:30 -0500
+	Wed, 13 Feb 2008 18:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cminyard@mvista.com
+Cc: cminyard@mvista.com
 
 
 The patch titled
-     ipmi-run-to-completion-fixes-checkpatch-fixes
+     ipmi: run to completion fixes
 has been added to the -mm tree.  Its filename is
-     ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+     ipmi-run-to-completion-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,132 +34,235 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi-run-to-completion-fixes-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipmi: run to completion fixes
+From: Corey Minyard <cminyard@mvista.com>
 
-WARNING: braces {} are not necessary for any arm of this statement
-#148: FILE: drivers/char/ipmi/ipmi_si_intf.c:837:
-+	if (priority > 0) {
+The "run_to_completion" mode was somewhat broken.  Locks need to be avoided in
+run_to_completion mode, and it shouldn't be used by normal users, just
+internally for panic situations.
 
-total: 0 errors, 1 warnings, 177 lines checked
+This patch removes locks in run_to_completion mode and removes the user call
+for setting the mode.  The only user was the poweroff code, but it was easily
+converted to use the polling interface.
 
-./patches/ipmi-run-to-completion-fixes.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |    8 ----
+ drivers/char/ipmi/ipmi_poweroff.c   |   20 +++++++++---
+ drivers/char/ipmi/ipmi_si_intf.c    |   42 +++++++++++---------------
+ include/linux/ipmi.h                |   11 +-----
+ 4 files changed, 37 insertions(+), 44 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes-checkpatch-fixes drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes-checkpatch-fixes
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-run-to-completion-fixes drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-run-to-completion-fixes
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -1197,13 +1197,6 @@ int ipmi_unregister_for_cmd(ipmi_user_t 
+ 	return rv;
+ }
+ 
+-void ipmi_user_set_run_to_completion(ipmi_user_t user, int val)
+-{
+-	ipmi_smi_t intf = user->intf;
+-	if (intf->handlers)
+-		intf->handlers->set_run_to_completion(intf->send_info, val);
+-}
+-
+ static unsigned char
+ ipmb_checksum(unsigned char *data, int size)
+ {
+@@ -4190,5 +4183,4 @@ EXPORT_SYMBOL(ipmi_get_my_address);
+ EXPORT_SYMBOL(ipmi_set_my_LUN);
+ EXPORT_SYMBOL(ipmi_get_my_LUN);
+ EXPORT_SYMBOL(ipmi_smi_add_proc_entry);
+-EXPORT_SYMBOL(ipmi_user_set_run_to_completion);
+ EXPORT_SYMBOL(ipmi_free_recv_msg);
+diff -puN drivers/char/ipmi/ipmi_poweroff.c~ipmi-run-to-completion-fixes drivers/char/ipmi/ipmi_poweroff.c
+--- a/drivers/char/ipmi/ipmi_poweroff.c~ipmi-run-to-completion-fixes
++++ a/drivers/char/ipmi/ipmi_poweroff.c
+@@ -99,11 +99,14 @@ static unsigned char ipmi_version;
+    allocate them, since we may be in a panic situation.  The whole
+    thing is single-threaded, anyway, so multiple messages are not
+    required. */
++static atomic_t dummy_count = ATOMIC_INIT(0);
+ static void dummy_smi_free(struct ipmi_smi_msg *msg)
+ {
++	atomic_dec(&dummy_count);
+ }
+ static void dummy_recv_free(struct ipmi_recv_msg *msg)
+ {
++	atomic_dec(&dummy_count);
+ }
+ static struct ipmi_smi_msg halt_smi_msg =
+ {
+@@ -152,17 +155,28 @@ static int ipmi_request_wait_for_respons
+ 	return halt_recv_msg.msg.data[0];
+ }
+ 
+-/* We are in run-to-completion mode, no completion is desired. */
++/* Wait for message to complete, spinning. */
+ static int ipmi_request_in_rc_mode(ipmi_user_t            user,
+ 				   struct ipmi_addr       *addr,
+ 				   struct kernel_ipmi_msg *send_msg)
+ {
+ 	int rv;
+ 
++	atomic_set(&dummy_count, 2);
+ 	rv = ipmi_request_supply_msgs(user, addr, 0, send_msg, NULL,
+ 				      &halt_smi_msg, &halt_recv_msg, 0);
+-	if (rv)
++	if (rv) {
++		atomic_set(&dummy_count, 0);
+ 		return rv;
++	}
++
++	/*
++	 * Spin until our message is done.
++	 */
++	while (atomic_read(&dummy_count) > 0) {
++		ipmi_poll_interface(user);
++		barrier();
++	}
+ 
+ 	return halt_recv_msg.msg.data[0];
+ }
+@@ -531,9 +545,7 @@ static void ipmi_poweroff_function (void
+ 		return;
+ 
+ 	/* Use run-to-completion mode, since interrupts may be off. */
+-	ipmi_user_set_run_to_completion(ipmi_user, 1);
+ 	specific_poweroff_func(ipmi_user);
+-	ipmi_user_set_run_to_completion(ipmi_user, 0);
+ }
+ 
+ /* Wait for an IPMI interface to be installed, the first one installed
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes
 +++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -834,11 +834,10 @@ static void sender(void                *
+@@ -806,56 +806,54 @@ static void sender(void                *
+ 		return;
  	}
  
- 	spin_lock_irqsave(&smi_info->msg_lock, flags);
--	if (priority > 0) {
-+	if (priority > 0)
- 		list_add_tail(&msg->link, &smi_info->hp_xmit_msgs);
--	} else {
-+	else
- 		list_add_tail(&msg->link, &smi_info->xmit_msgs);
--	}
- 	spin_unlock_irqrestore(&smi_info->msg_lock, flags);
+-	spin_lock_irqsave(&(smi_info->msg_lock), flags);
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+ 	printk("**Enqueue: %d.%9.9d\n", t.tv_sec, t.tv_usec);
+ #endif
  
- 	spin_lock_irqsave(&smi_info->si_lock, flags);
+ 	if (smi_info->run_to_completion) {
+-		/* If we are running to completion, then throw it in
+-		   the list and run transactions until everything is
+-		   clear.  Priority doesn't matter here. */
++		/*
++		 * If we are running to completion, then throw it in
++		 * the list and run transactions until everything is
++		 * clear.  Priority doesn't matter here.
++		 */
++
++		/*
++		 * Run to completion means we are single-threaded, no
++		 * need for locks.
++		 */
+ 		list_add_tail(&(msg->link), &(smi_info->xmit_msgs));
+ 
+-		/* We have to release the msg lock and claim the smi
+-		   lock in this case, because of race conditions. */
+-		spin_unlock_irqrestore(&(smi_info->msg_lock), flags);
+-
+-		spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 		result = smi_event_handler(smi_info, 0);
+ 		while (result != SI_SM_IDLE) {
+ 			udelay(SI_SHORT_TIMEOUT_USEC);
+ 			result = smi_event_handler(smi_info,
+ 						   SI_SHORT_TIMEOUT_USEC);
+ 		}
+-		spin_unlock_irqrestore(&(smi_info->si_lock), flags);
+ 		return;
++	}
++
++	spin_lock_irqsave(&smi_info->msg_lock, flags);
++	if (priority > 0) {
++		list_add_tail(&msg->link, &smi_info->hp_xmit_msgs);
+ 	} else {
+-		if (priority > 0) {
+-			list_add_tail(&(msg->link), &(smi_info->hp_xmit_msgs));
+-		} else {
+-			list_add_tail(&(msg->link), &(smi_info->xmit_msgs));
+-		}
++		list_add_tail(&msg->link, &smi_info->xmit_msgs);
+ 	}
+-	spin_unlock_irqrestore(&(smi_info->msg_lock), flags);
++	spin_unlock_irqrestore(&smi_info->msg_lock, flags);
+ 
+-	spin_lock_irqsave(&(smi_info->si_lock), flags);
++	spin_lock_irqsave(&smi_info->si_lock, flags);
+ 	if ((smi_info->si_state == SI_NORMAL)
+ 	    && (smi_info->curr_msg == NULL))
+ 	{
+ 		start_next_msg(smi_info);
+ 	}
+-	spin_unlock_irqrestore(&(smi_info->si_lock), flags);
++	spin_unlock_irqrestore(&smi_info->si_lock, flags);
+ }
+ 
+ static void set_run_to_completion(void *send_info, int i_run_to_completion)
+ {
+ 	struct smi_info   *smi_info = send_info;
+ 	enum si_sm_result result;
+-	unsigned long     flags;
+-
+-	spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 
+ 	smi_info->run_to_completion = i_run_to_completion;
+ 	if (i_run_to_completion) {
+@@ -866,8 +864,6 @@ static void set_run_to_completion(void *
+ 						   SI_SHORT_TIMEOUT_USEC);
+ 		}
+ 	}
+-
+-	spin_unlock_irqrestore(&(smi_info->si_lock), flags);
+ }
+ 
+ static int ipmi_thread(void *data)
+diff -puN include/linux/ipmi.h~ipmi-run-to-completion-fixes include/linux/ipmi.h
+--- a/include/linux/ipmi.h~ipmi-run-to-completion-fixes
++++ a/include/linux/ipmi.h
+@@ -368,9 +368,8 @@ int ipmi_request_supply_msgs(ipmi_user_t
+  * Poll the IPMI interface for the user.  This causes the IPMI code to
+  * do an immediate check for information from the driver and handle
+  * anything that is immediately pending.  This will not block in any
+- * way.  This is useful if you need to implement polling from the user
+- * for things like modifying the watchdog timeout when a panic occurs
+- * or disabling the watchdog timer on a reboot.
++ * way.  This is useful if you need to spin waiting for something to
++ * happen in the IPMI driver.
+  */
+ void ipmi_poll_interface(ipmi_user_t user);
+ 
+@@ -422,12 +421,6 @@ int ipmi_get_maintenance_mode(ipmi_user_
+ int ipmi_set_maintenance_mode(ipmi_user_t user, int mode);
+ 
+ /*
+- * Allow run-to-completion mode to be set for the interface of
+- * a specific user.
+- */
+-void ipmi_user_set_run_to_completion(ipmi_user_t user, int val);
+-
+-/*
+  * When the user is created, it will not receive IPMI events by
+  * default.  The user must set this to TRUE to get incoming events.
+  * The first user that sets this to TRUE will receive all events that
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-softlockup-workaround.patch
-include-linux-remove-all-users-of-fastcall-macro.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
-smack-check-for-struct-socket-with-null-sk.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-conflicts.patch
-git-sparc64.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
-git-watchdog-git-conflicts.patch
-git-x86.patch
-git-x86-vs-git-kvm.patch
-git-x86-cpa-build-fix.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
-git-xtensa.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ipmi-hold-attn-until-upper-layer-ready.patch
+ipmi-change-device-node-ordering-to-reflect-probe-order.patch
+ipmi-run-to-completion-fixes.patch
+ipmi-dont-grab-locks-in-run-to-completion-mode.patch
+ipmi-dont-print-event-queue-full-on-every-event.patch
+ipmi-update-driver-version.patch
+ipmi-convert-locked-counters-to-atomics.patch
+ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
