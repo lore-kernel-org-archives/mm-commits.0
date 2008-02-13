@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-x1205-new-style-conversion.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:13:11 -0800
-Message-ID: <200802132313.m1DNDB1H018903@imap1.linux-foundation.org>
+Subject: + rtc-x1205-new-style-conversion-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:15:11 -0800
+Message-ID: <200802132315.m1DNFC5J019007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44256 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756507AbYBMXNa (ORCPT
+	by vger.kernel.org with ESMTP id S1752349AbYBMXPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:13:30 -0500
+	Wed, 13 Feb 2008 18:15:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     rtc-x1205: new style conversion
+     rtc-x1205-new-style-conversion-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-x1205-new-style-conversion.patch
+     rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,217 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-x1205: new style conversion
-From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: rtc-x1205-new-style-conversion-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+WARNING: __func__ should be used instead of gcc specific __FUNCTION__
+#94: FILE: drivers/rtc/rtc-x1205.c:503:
++	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
+
+WARNING: braces {} are not necessary for single statement blocks
+#99: FILE: drivers/rtc/rtc-x1205.c:505:
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
++		return -ENODEV;
+ 	}
+
+WARNING: braces {} are not necessary for single statement blocks
+#106: FILE: drivers/rtc/rtc-x1205.c:509:
++	if (x1205_validate_client(client) < 0) {
++		return -ENODEV;
+ 	}
+
+total: 0 errors, 3 warnings, 185 lines checked
+
+./patches/rtc-x1205-new-style-conversion.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-x1205.c |  128 ++++++++++++--------------------------
- 1 file changed, 43 insertions(+), 85 deletions(-)
+ drivers/rtc/rtc-x1205.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion drivers/rtc/rtc-x1205.c
---- a/drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion
+diff -puN drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion-checkpatch-fixes drivers/rtc/rtc-x1205.c
+--- a/drivers/rtc/rtc-x1205.c~rtc-x1205-new-style-conversion-checkpatch-fixes
 +++ a/drivers/rtc/rtc-x1205.c
-@@ -22,20 +22,7 @@
- #include <linux/rtc.h>
- #include <linux/delay.h>
- 
--#define DRV_VERSION "1.0.7"
--
--/* Addresses to scan: none. This chip is located at
-- * 0x6f and uses a two bytes register addressing.
-- * Two bytes need to be written to read a single register,
-- * while most other chips just require one and take the second
-- * one as the data to be written. To prevent corrupting
-- * unknown chips, the user must explicitly set the probe parameter.
-- */
--
--static const unsigned short normal_i2c[] = { I2C_CLIENT_END };
--
--/* Insmod parameters */
--I2C_CLIENT_INSMOD;
-+#define DRV_VERSION "1.0.8"
- 
- /* offsets into CCR area */
- 
-@@ -91,19 +78,7 @@ I2C_CLIENT_INSMOD;
- 
- #define X1205_HR_MIL		0x80	/* Set in ccr.hour for 24 hr mode */
- 
--/* Prototypes */
--static int x1205_attach(struct i2c_adapter *adapter);
--static int x1205_detach(struct i2c_client *client);
--static int x1205_probe(struct i2c_adapter *adapter, int address, int kind);
--
--static struct i2c_driver x1205_driver = {
--	.driver		= {
--		.name	= "x1205",
--	},
--	.id		= I2C_DRIVERID_X1205,
--	.attach_adapter = &x1205_attach,
--	.detach_client	= &x1205_detach,
--};
-+static struct i2c_driver x1205_driver;
- 
- /*
-  * In the routines that deal directly with the x1205 hardware, we use
-@@ -497,58 +472,51 @@ static ssize_t x1205_sysfs_show_dtrim(st
- }
- static DEVICE_ATTR(dtrim, S_IRUGO, x1205_sysfs_show_dtrim, NULL);
- 
--static int x1205_attach(struct i2c_adapter *adapter)
-+static int x1205_sysfs_register(struct device *dev)
-+{
-+	int err;
-+
-+	err = device_create_file(dev, &dev_attr_atrim);
-+	if (err)
-+		return err;
-+
-+	err = device_create_file(dev, &dev_attr_dtrim);
-+	if (err)
-+		device_remove_file(dev, &dev_attr_atrim);
-+
-+	return err;
-+}
-+
-+static void x1205_sysfs_unregister(struct device *dev)
- {
--	return i2c_probe(adapter, &addr_data, x1205_probe);
-+	device_remove_file(dev, &dev_attr_atrim);
-+	device_remove_file(dev, &dev_attr_dtrim);
- }
- 
--static int x1205_probe(struct i2c_adapter *adapter, int address, int kind)
-+
-+static int x1205_probe(struct i2c_client *client)
- {
- 	int err = 0;
+@@ -500,15 +500,13 @@ static int x1205_probe(struct i2c_client
  	unsigned char sr;
--	struct i2c_client *client;
  	struct rtc_device *rtc;
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
+-	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
++	dev_dbg(&client->dev, "%s\n", __func__);
  
--	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
--		err = -ENODEV;
--		goto exit;
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-+		return -ENODEV;
- 	}
- 
--	if (!(client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
--		err = -ENOMEM;
--		goto exit;
-+	if (x1205_validate_client(client) < 0) {
-+		return -ENODEV;
- 	}
- 
--	/* I2C client */
--	client->addr = address;
--	client->driver = &x1205_driver;
--	client->adapter	= adapter;
--
--	strlcpy(client->name, x1205_driver.driver.name, I2C_NAME_SIZE);
--
--	/* Verify the chip is really an X1205 */
--	if (kind < 0) {
--		if (x1205_validate_client(client) < 0) {
--			err = -ENODEV;
--			goto exit_kfree;
--		}
+-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
 -	}
--
--	/* Inform the i2c layer */
--	if ((err = i2c_attach_client(client)))
--		goto exit_kfree;
--
+ 
+-	if (x1205_validate_client(client) < 0) {
++	if (x1205_validate_client(client) < 0)
+ 		return -ENODEV;
+-	}
+ 
  	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
  
- 	rtc = rtc_device_register(x1205_driver.driver.name, &client->dev,
- 				&x1205_rtc_ops, THIS_MODULE);
- 
--	if (IS_ERR(rtc)) {
--		err = PTR_ERR(rtc);
--		goto exit_detach;
--	}
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
- 
- 	i2c_set_clientdata(client, rtc);
- 
-@@ -565,45 +533,35 @@ static int x1205_probe(struct i2c_adapte
- 	else
- 		dev_err(&client->dev, "couldn't read status\n");
- 
--	err = device_create_file(&client->dev, &dev_attr_atrim);
--	if (err) goto exit_devreg;
--	err = device_create_file(&client->dev, &dev_attr_dtrim);
--	if (err) goto exit_atrim;
-+	err = x1205_sysfs_register(&client->dev);
-+	if (err)
-+		goto exit_devreg;
- 
- 	return 0;
- 
--exit_atrim:
--	device_remove_file(&client->dev, &dev_attr_atrim);
--
- exit_devreg:
- 	rtc_device_unregister(rtc);
- 
--exit_detach:
--	i2c_detach_client(client);
--
--exit_kfree:
--	kfree(client);
--
--exit:
- 	return err;
- }
- 
--static int x1205_detach(struct i2c_client *client)
-+static int x1205_remove(struct i2c_client *client)
- {
--	int err;
- 	struct rtc_device *rtc = i2c_get_clientdata(client);
- 
-- 	if (rtc)
--		rtc_device_unregister(rtc);
--
--	if ((err = i2c_detach_client(client)))
--		return err;
--
--	kfree(client);
--
-+	rtc_device_unregister(rtc);
-+	x1205_sysfs_unregister(&client->dev);
- 	return 0;
- }
- 
-+static struct i2c_driver x1205_driver = {
-+	.driver		= {
-+		.name	= "rtc-x1205",
-+	},
-+	.probe		= x1205_probe,
-+	.remove		= x1205_remove,
-+};
-+
- static int __init x1205_init(void)
- {
- 	return i2c_add_driver(&x1205_driver);
 _
 
-Patches currently in -mm which might be from a.zummo@towertech.it are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-cmos-display-hpet-emulation-mode.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
+softlockup-workaround.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
