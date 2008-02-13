@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf8563-new-style-conversion.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:13:09 -0800
-Message-ID: <200802132313.m1DND9xe018900@imap1.linux-foundation.org>
+Subject: + rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:13:07 -0800
+Message-ID: <200802132313.m1DND7CR018897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48066 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752581AbYBMXNa (ORCPT
+	by vger.kernel.org with ESMTP id S1756660AbYBMXNk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:13:30 -0500
+	Wed, 13 Feb 2008 18:13:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.zummo@towertech.it, david-b@pacbell.net
+Cc: a.zummo@towertech.it, david-b@pacbell.net, hvr@gnu.org
 
 
 The patch titled
-     rtc-pcf8563: new style conversion
+     rtc-isl1208: new style conversion and minor bug fixes
 has been added to the -mm tree.  Its filename is
-     rtc-pcf8563-new-style-conversion.patch
+     rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,205 +34,667 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-pcf8563: new style conversion
+Subject: rtc-isl1208: new style conversion and minor bug fixes
 From: Alessandro Zummo <a.zummo@towertech.it>
 
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Herbert Valerio Riedel <hvr@gnu.org>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |  109 ++++++++++--------------------------
- 1 file changed, 32 insertions(+), 77 deletions(-)
+ drivers/rtc/rtc-isl1208.c |  357 +++++++++++++++++-------------------
+ 1 file changed, 170 insertions(+), 187 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -18,17 +18,7 @@
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-new-style-conversion-and-minor-bug-fixes drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-new-style-conversion-and-minor-bug-fixes
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -15,16 +15,15 @@
  #include <linux/bcd.h>
  #include <linux/rtc.h>
  
--#define DRV_VERSION "0.4.2"
+-#define DRV_NAME "isl1208"
+-#define DRV_VERSION "0.2"
++#define DRV_VERSION "0.3"
+ 
+ /* Register map */
+ /* rtc section */
+ #define ISL1208_REG_SC  0x00
+ #define ISL1208_REG_MN  0x01
+ #define ISL1208_REG_HR  0x02
+-#define ISL1208_REG_HR_MIL     (1<<7) /* 24h/12h mode */
+-#define ISL1208_REG_HR_PM      (1<<5) /* PM/AM bit in 12h mode */
++#define ISL1208_REG_HR_MIL     (1<<7)	/* 24h/12h mode */
++#define ISL1208_REG_HR_PM      (1<<5)	/* PM/AM bit in 12h mode */
+ #define ISL1208_REG_DT  0x03
+ #define ISL1208_REG_MO  0x04
+ #define ISL1208_REG_YR  0x05
+@@ -33,14 +32,14 @@
+ 
+ /* control/status section */
+ #define ISL1208_REG_SR  0x07
+-#define ISL1208_REG_SR_ARST    (1<<7) /* auto reset */
+-#define ISL1208_REG_SR_XTOSCB  (1<<6) /* crystal oscillator */
+-#define ISL1208_REG_SR_WRTC    (1<<4) /* write rtc */
+-#define ISL1208_REG_SR_ALM     (1<<2) /* alarm */
+-#define ISL1208_REG_SR_BAT     (1<<1) /* battery */
+-#define ISL1208_REG_SR_RTCF    (1<<0) /* rtc fail */
++#define ISL1208_REG_SR_ARST    (1<<7)	/* auto reset */
++#define ISL1208_REG_SR_XTOSCB  (1<<6)	/* crystal oscillator */
++#define ISL1208_REG_SR_WRTC    (1<<4)	/* write rtc */
++#define ISL1208_REG_SR_ALM     (1<<2)	/* alarm */
++#define ISL1208_REG_SR_BAT     (1<<1)	/* battery */
++#define ISL1208_REG_SR_RTCF    (1<<0)	/* rtc fail */
+ #define ISL1208_REG_INT 0x08
+-#define ISL1208_REG_09  0x09 /* reserved */
++#define ISL1208_REG_09  0x09	/* reserved */
+ #define ISL1208_REG_ATR 0x0a
+ #define ISL1208_REG_DTR 0x0b
+ 
+@@ -58,39 +57,21 @@
+ #define ISL1208_REG_USR2 0x13
+ #define ISL1208_USR_SECTION_LEN 2
+ 
+-/* i2c configuration */
+-#define ISL1208_I2C_ADDR 0xde
 -
--/* Addresses to scan: none
-- * This chip cannot be reliably autodetected. An empty eeprom
-- * located at 0x51 will pass the validation routine due to
-- * the way the registers are implemented.
-- */
--static const unsigned short normal_i2c[] = { I2C_CLIENT_END };
--
--/* Module parameters */
--I2C_CLIENT_INSMOD;
-+#define DRV_VERSION "0.4.3"
- 
- #define PCF8563_REG_ST1		0x00 /* status */
- #define PCF8563_REG_ST2		0x01
-@@ -53,8 +43,10 @@ I2C_CLIENT_INSMOD;
- #define PCF8563_SC_LV		0x80 /* low voltage */
- #define PCF8563_MO_C		0x80 /* century */
- 
-+static struct i2c_driver pcf8563_driver;
-+
- struct pcf8563 {
--	struct i2c_client client;
-+	struct rtc_device *rtc;
- 	/*
- 	 * The meaning of MO_C bit varies by the chip type.
- 	 * From PCF8563 datasheet: this bit is toggled when the years
-@@ -72,16 +64,13 @@ struct pcf8563 {
- 	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
- };
- 
--static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind);
--static int pcf8563_detach(struct i2c_client *client);
--
- /*
-  * In the routines that deal directly with the pcf8563 hardware, we use
-  * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
-  */
- static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
--	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
- 	unsigned char buf[13] = { PCF8563_REG_ST1 };
- 
- 	struct i2c_msg msgs[] = {
-@@ -138,7 +127,7 @@ static int pcf8563_get_datetime(struct i
- 
- static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
--	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
- 	int i, err;
- 	unsigned char buf[9];
- 
-@@ -257,100 +246,66 @@ static const struct rtc_class_ops pcf856
- 	.set_time	= pcf8563_rtc_set_time,
- };
- 
--static int pcf8563_attach(struct i2c_adapter *adapter)
--{
--	return i2c_probe(adapter, &addr_data, pcf8563_probe);
--}
--
--static struct i2c_driver pcf8563_driver = {
--	.driver		= {
--		.name	= "pcf8563",
--	},
--	.id		= I2C_DRIVERID_PCF8563,
--	.attach_adapter = &pcf8563_attach,
--	.detach_client	= &pcf8563_detach,
+-static const unsigned short normal_i2c[] = {
+-	ISL1208_I2C_ADDR>>1, I2C_CLIENT_END
 -};
+-I2C_CLIENT_INSMOD; /* defines addr_data */
 -
--static int pcf8563_probe(struct i2c_adapter *adapter, int address, int kind)
-+static int pcf8563_probe(struct i2c_client *client)
+-static int isl1208_attach_adapter(struct i2c_adapter *adapter);
+-static int isl1208_detach_client(struct i2c_client *client);
+-
+-static struct i2c_driver isl1208_driver = {
+-	.driver		= {
+-		.name	= DRV_NAME,
+-	},
+-	.id		= I2C_DRIVERID_ISL1208,
+-	.attach_adapter = &isl1208_attach_adapter,
+-	.detach_client	= &isl1208_detach_client,
+-};
++static struct i2c_driver isl1208_driver;
+ 
+ /* block read */
+ static int
+ isl1208_i2c_read_regs(struct i2c_client *client, u8 reg, u8 buf[],
+-		       unsigned len)
++		      unsigned len)
  {
- 	struct pcf8563 *pcf8563;
--	struct i2c_client *client;
--	struct rtc_device *rtc;
+ 	u8 reg_addr[1] = { reg };
+ 	struct i2c_msg msgs[2] = {
+-		{ client->addr, client->flags, sizeof(reg_addr), reg_addr },
+-		{ client->addr, client->flags | I2C_M_RD, len, buf }
++		{client->addr, 0, sizeof(reg_addr), reg_addr}
++		,
++		{client->addr, I2C_M_RD, len, buf}
+ 	};
+ 	int ret;
  
- 	int err = 0;
+-	BUG_ON(len == 0);
+ 	BUG_ON(reg > ISL1208_REG_USR2);
+ 	BUG_ON(reg + len > ISL1208_REG_USR2 + 1);
  
--	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
-+	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
+@@ -103,15 +84,14 @@ isl1208_i2c_read_regs(struct i2c_client 
+ /* block write */
+ static int
+ isl1208_i2c_set_regs(struct i2c_client *client, u8 reg, u8 const buf[],
+-		       unsigned len)
++		     unsigned len)
+ {
+ 	u8 i2c_buf[ISL1208_REG_USR2 + 2];
+ 	struct i2c_msg msgs[1] = {
+-		{ client->addr, client->flags, len + 1, i2c_buf }
++		{client->addr, 0, len + 1, i2c_buf}
+ 	};
+ 	int ret;
+ 
+-	BUG_ON(len == 0);
+ 	BUG_ON(reg > ISL1208_REG_USR2);
+ 	BUG_ON(reg + len > ISL1208_REG_USR2 + 1);
+ 
+@@ -125,7 +105,8 @@ isl1208_i2c_set_regs(struct i2c_client *
+ }
+ 
+ /* simple check to see wether we have a isl1208 */
+-static int isl1208_i2c_validate_client(struct i2c_client *client)
++static int
++isl1208_i2c_validate_client(struct i2c_client *client)
+ {
+ 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
+ 	u8 zero_mask[ISL1208_RTC_SECTION_LEN] = {
+@@ -139,24 +120,29 @@ static int isl1208_i2c_validate_client(s
+ 		return ret;
+ 
+ 	for (i = 0; i < ISL1208_RTC_SECTION_LEN; ++i) {
+-		if (regs[i] & zero_mask[i]) /* check if bits are cleared */
++		if (regs[i] & zero_mask[i])	/* check if bits are cleared */
+ 			return -ENODEV;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static int isl1208_i2c_get_sr(struct i2c_client *client)
++static int
++isl1208_i2c_get_sr(struct i2c_client *client)
+ {
+-	return i2c_smbus_read_byte_data(client, ISL1208_REG_SR) == -1 ? -EIO:0;
++	int sr = i2c_smbus_read_byte_data(client, ISL1208_REG_SR);
++	if (sr < 0)
++		return -EIO;
++
++	return sr;
+ }
+ 
+-static int isl1208_i2c_get_atr(struct i2c_client *client)
++static int
++isl1208_i2c_get_atr(struct i2c_client *client)
+ {
+ 	int atr = i2c_smbus_read_byte_data(client, ISL1208_REG_ATR);
+-
+ 	if (atr < 0)
+-		return -EIO;
++		return atr;
+ 
+ 	/* The 6bit value in the ATR register controls the load
+ 	 * capacitance C_load * in steps of 0.25pF
+@@ -169,51 +155,54 @@ static int isl1208_i2c_get_atr(struct i2
+ 	 *
+ 	 */
+ 
+-	atr &= 0x3f; /* mask out lsb */
+-	atr ^= 1<<5; /* invert 6th bit */
+-	atr += 2*9; /* add offset of 4.5pF; unit[atr] = 0.25pF */
++	atr &= 0x3f;		/* mask out lsb */
++	atr ^= 1 << 5;		/* invert 6th bit */
++	atr += 2 * 9;		/* add offset of 4.5pF; unit[atr] = 0.25pF */
+ 
+ 	return atr;
+ }
+ 
+-static int isl1208_i2c_get_dtr(struct i2c_client *client)
++static int
++isl1208_i2c_get_dtr(struct i2c_client *client)
+ {
+ 	int dtr = i2c_smbus_read_byte_data(client, ISL1208_REG_DTR);
+-
+ 	if (dtr < 0)
+ 		return -EIO;
+ 
+ 	/* dtr encodes adjustments of {-60,-40,-20,0,20,40,60} ppm */
+-	dtr = ((dtr & 0x3) * 20) * (dtr & (1<<2) ? -1 : 1);
++	dtr = ((dtr & 0x3) * 20) * (dtr & (1 << 2) ? -1 : 1);
+ 
+ 	return dtr;
+ }
+ 
+-static int isl1208_i2c_get_usr(struct i2c_client *client)
++static int
++isl1208_i2c_get_usr(struct i2c_client *client)
+ {
+ 	u8 buf[ISL1208_USR_SECTION_LEN] = { 0, };
+ 	int ret;
+ 
+-	ret = isl1208_i2c_read_regs (client, ISL1208_REG_USR1, buf,
+-				   ISL1208_USR_SECTION_LEN);
++	ret = isl1208_i2c_read_regs(client, ISL1208_REG_USR1, buf,
++				    ISL1208_USR_SECTION_LEN);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	return (buf[1] << 8) | buf[0];
+ }
+ 
+-static int isl1208_i2c_set_usr(struct i2c_client *client, u16 usr)
++static int
++isl1208_i2c_set_usr(struct i2c_client *client, u16 usr)
+ {
+ 	u8 buf[ISL1208_USR_SECTION_LEN];
+ 
+ 	buf[0] = usr & 0xff;
+ 	buf[1] = (usr >> 8) & 0xff;
+ 
+-	return isl1208_i2c_set_regs (client, ISL1208_REG_USR1, buf,
+-				     ISL1208_USR_SECTION_LEN);
++	return isl1208_i2c_set_regs(client, ISL1208_REG_USR1, buf,
++				    ISL1208_USR_SECTION_LEN);
+ }
+ 
+-static int isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
++static int
++isl1208_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+ 	struct i2c_client *const client = to_i2c_client(dev);
+ 	int sr, dtr, atr, usr;
+@@ -230,20 +219,19 @@ static int isl1208_rtc_proc(struct devic
+ 		   (sr & ISL1208_REG_SR_ALM) ? " ALM" : "",
+ 		   (sr & ISL1208_REG_SR_WRTC) ? " WRTC" : "",
+ 		   (sr & ISL1208_REG_SR_XTOSCB) ? " XTOSCB" : "",
+-		   (sr & ISL1208_REG_SR_ARST) ? " ARST" : "",
+-		   sr);
++		   (sr & ISL1208_REG_SR_ARST) ? " ARST" : "", sr);
+ 
+ 	seq_printf(seq, "batt_status\t: %s\n",
+ 		   (sr & ISL1208_REG_SR_RTCF) ? "bad" : "okay");
+ 
+ 	dtr = isl1208_i2c_get_dtr(client);
+-	if (dtr >= 0 -1)
++	if (dtr >= 0 - 1)
+ 		seq_printf(seq, "digital_trim\t: %d ppm\n", dtr);
+ 
+ 	atr = isl1208_i2c_get_atr(client);
+ 	if (atr >= 0)
+ 		seq_printf(seq, "analog_trim\t: %d.%.2d pF\n",
+-			   atr>>2, (atr&0x3)*25);
++			   atr >> 2, (atr & 0x3) * 25);
+ 
+ 	usr = isl1208_i2c_get_usr(client);
+ 	if (usr >= 0)
+@@ -252,9 +240,8 @@ static int isl1208_rtc_proc(struct devic
+ 	return 0;
+ }
+ 
+-
+-static int isl1208_i2c_read_time(struct i2c_client *client,
+-				 struct rtc_time *tm)
++static int
++isl1208_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
+ {
+ 	int sr;
+ 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
+@@ -274,27 +261,30 @@ static int isl1208_i2c_read_time(struct 
+ 
+ 	tm->tm_sec = BCD2BIN(regs[ISL1208_REG_SC]);
+ 	tm->tm_min = BCD2BIN(regs[ISL1208_REG_MN]);
+-	{ /* HR field has a more complex interpretation */
++
++	/* HR field has a more complex interpretation */
++	{
+ 		const u8 _hr = regs[ISL1208_REG_HR];
+-		if (_hr & ISL1208_REG_HR_MIL) /* 24h format */
++		if (_hr & ISL1208_REG_HR_MIL)	/* 24h format */
+ 			tm->tm_hour = BCD2BIN(_hr & 0x3f);
+-		else { // 12h format
++		else {
++			/* 12h format */
+ 			tm->tm_hour = BCD2BIN(_hr & 0x1f);
+-			if (_hr & ISL1208_REG_HR_PM) /* PM flag set */
++			if (_hr & ISL1208_REG_HR_PM)	/* PM flag set */
+ 				tm->tm_hour += 12;
+ 		}
+ 	}
+ 
+ 	tm->tm_mday = BCD2BIN(regs[ISL1208_REG_DT]);
+-	tm->tm_mon = BCD2BIN(regs[ISL1208_REG_MO]) - 1; /* rtc starts at 1 */
++	tm->tm_mon = BCD2BIN(regs[ISL1208_REG_MO]) - 1;	/* rtc starts at 1 */
+ 	tm->tm_year = BCD2BIN(regs[ISL1208_REG_YR]) + 100;
+ 	tm->tm_wday = BCD2BIN(regs[ISL1208_REG_DW]);
+ 
+ 	return 0;
+ }
+ 
+-static int isl1208_i2c_read_alarm(struct i2c_client *client,
+-				  struct rtc_wkalrm *alarm)
++static int
++isl1208_i2c_read_alarm(struct i2c_client *client, struct rtc_wkalrm *alarm)
+ {
+ 	struct rtc_time *const tm = &alarm->time;
+ 	u8 regs[ISL1208_ALARM_SECTION_LEN] = { 0, };
+@@ -307,7 +297,7 @@ static int isl1208_i2c_read_alarm(struct
+ 	}
+ 
+ 	sr = isl1208_i2c_read_regs(client, ISL1208_REG_SCA, regs,
+-				  ISL1208_ALARM_SECTION_LEN);
++				   ISL1208_ALARM_SECTION_LEN);
+ 	if (sr < 0) {
+ 		dev_err(&client->dev, "%s: reading alarm section failed\n",
+ 			__func__);
+@@ -315,23 +305,25 @@ static int isl1208_i2c_read_alarm(struct
+ 	}
+ 
+ 	/* MSB of each alarm register is an enable bit */
+-	tm->tm_sec  = BCD2BIN(regs[ISL1208_REG_SCA-ISL1208_REG_SCA] & 0x7f);
+-	tm->tm_min  = BCD2BIN(regs[ISL1208_REG_MNA-ISL1208_REG_SCA] & 0x7f);
+-	tm->tm_hour = BCD2BIN(regs[ISL1208_REG_HRA-ISL1208_REG_SCA] & 0x3f);
+-	tm->tm_mday = BCD2BIN(regs[ISL1208_REG_DTA-ISL1208_REG_SCA] & 0x3f);
+-	tm->tm_mon  = BCD2BIN(regs[ISL1208_REG_MOA-ISL1208_REG_SCA] & 0x1f)-1;
+-	tm->tm_wday = BCD2BIN(regs[ISL1208_REG_DWA-ISL1208_REG_SCA] & 0x03);
++	tm->tm_sec = BCD2BIN(regs[ISL1208_REG_SCA - ISL1208_REG_SCA] & 0x7f);
++	tm->tm_min = BCD2BIN(regs[ISL1208_REG_MNA - ISL1208_REG_SCA] & 0x7f);
++	tm->tm_hour = BCD2BIN(regs[ISL1208_REG_HRA - ISL1208_REG_SCA] & 0x3f);
++	tm->tm_mday = BCD2BIN(regs[ISL1208_REG_DTA - ISL1208_REG_SCA] & 0x3f);
++	tm->tm_mon =
++		BCD2BIN(regs[ISL1208_REG_MOA - ISL1208_REG_SCA] & 0x1f) - 1;
++	tm->tm_wday = BCD2BIN(regs[ISL1208_REG_DWA - ISL1208_REG_SCA] & 0x03);
+ 
+ 	return 0;
+ }
+ 
+-static int isl1208_rtc_read_time(struct device *dev, struct rtc_time *tm)
++static int
++isl1208_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	return isl1208_i2c_read_time(to_i2c_client(dev), tm);
+ }
+ 
+-static int isl1208_i2c_set_time(struct i2c_client *client,
+-				struct rtc_time const *tm)
++static int
++isl1208_i2c_set_time(struct i2c_client *client, struct rtc_time const *tm)
+ {
+ 	int sr;
+ 	u8 regs[ISL1208_RTC_SECTION_LEN] = { 0, };
+@@ -353,7 +345,7 @@ static int isl1208_i2c_set_time(struct i
+ 	}
+ 
+ 	/* set WRTC */
+-	sr = i2c_smbus_write_byte_data (client, ISL1208_REG_SR,
++	sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR,
+ 				       sr | ISL1208_REG_SR_WRTC);
+ 	if (sr < 0) {
+ 		dev_err(&client->dev, "%s: writing SR failed\n", __func__);
+@@ -369,7 +361,7 @@ static int isl1208_i2c_set_time(struct i
+ 	}
+ 
+ 	/* clear WRTC again */
+-	sr = i2c_smbus_write_byte_data (client, ISL1208_REG_SR,
++	sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR,
+ 				       sr & ~ISL1208_REG_SR_WRTC);
+ 	if (sr < 0) {
+ 		dev_err(&client->dev, "%s: writing SR failed\n", __func__);
+@@ -380,70 +372,69 @@ static int isl1208_i2c_set_time(struct i
+ }
+ 
+ 
+-static int isl1208_rtc_set_time(struct device *dev, struct rtc_time *tm)
++static int
++isl1208_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	return isl1208_i2c_set_time(to_i2c_client(dev), tm);
+ }
+ 
+-static int isl1208_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++static int
++isl1208_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+ {
+ 	return isl1208_i2c_read_alarm(to_i2c_client(dev), alarm);
+ }
+ 
+ static const struct rtc_class_ops isl1208_rtc_ops = {
+-	.proc		= isl1208_rtc_proc,
+-	.read_time	= isl1208_rtc_read_time,
+-	.set_time	= isl1208_rtc_set_time,
+-	.read_alarm	= isl1208_rtc_read_alarm,
+-	//.set_alarm	= isl1208_rtc_set_alarm,
++	.proc = isl1208_rtc_proc,
++	.read_time = isl1208_rtc_read_time,
++	.set_time = isl1208_rtc_set_time,
++	.read_alarm = isl1208_rtc_read_alarm,
++	/*.set_alarm    = isl1208_rtc_set_alarm, */
+ };
+ 
+ /* sysfs interface */
+ 
+-static ssize_t isl1208_sysfs_show_atrim(struct device *dev,
+-					struct device_attribute *attr,
+-					char *buf)
++static ssize_t
++isl1208_sysfs_show_atrim(struct device *dev,
++			 struct device_attribute *attr, char *buf)
+ {
+-	int atr;
+-
+-	atr = isl1208_i2c_get_atr(to_i2c_client(dev));
++	int atr = isl1208_i2c_get_atr(to_i2c_client(dev));
+ 	if (atr < 0)
+ 		return atr;
+ 
+-	return sprintf(buf, "%d.%.2d pF\n", atr>>2, (atr&0x3)*25);
++	return sprintf(buf, "%d.%.2d pF\n", atr >> 2, (atr & 0x3) * 25);
+ }
++
+ static DEVICE_ATTR(atrim, S_IRUGO, isl1208_sysfs_show_atrim, NULL);
+ 
+-static ssize_t isl1208_sysfs_show_dtrim(struct device *dev,
+-					struct device_attribute *attr,
+-					char *buf)
++static ssize_t
++isl1208_sysfs_show_dtrim(struct device *dev,
++			 struct device_attribute *attr, char *buf)
+ {
+-	int dtr;
+-
+-	dtr = isl1208_i2c_get_dtr(to_i2c_client(dev));
++	int dtr = isl1208_i2c_get_dtr(to_i2c_client(dev));
+ 	if (dtr < 0)
+ 		return dtr;
+ 
+ 	return sprintf(buf, "%d ppm\n", dtr);
+ }
++
+ static DEVICE_ATTR(dtrim, S_IRUGO, isl1208_sysfs_show_dtrim, NULL);
+ 
+-static ssize_t isl1208_sysfs_show_usr(struct device *dev,
+-				       struct device_attribute *attr,
+-				       char *buf)
++static ssize_t
++isl1208_sysfs_show_usr(struct device *dev,
++		       struct device_attribute *attr, char *buf)
+ {
+-	int usr;
+-
+-	usr = isl1208_i2c_get_usr(to_i2c_client(dev));
++	int usr = isl1208_i2c_get_usr(to_i2c_client(dev));
+ 	if (usr < 0)
+ 		return usr;
+ 
+ 	return sprintf(buf, "0x%.4x\n", usr);
+ }
+ 
+-static ssize_t isl1208_sysfs_store_usr(struct device *dev,
+-				       struct device_attribute *attr,
+-				       const char *buf, size_t count)
++static ssize_t
++isl1208_sysfs_store_usr(struct device *dev,
++			struct device_attribute *attr,
++			const char *buf, size_t count)
+ {
+ 	int usr = -1;
+ 
+@@ -460,124 +451,116 @@ static ssize_t isl1208_sysfs_store_usr(s
+ 
+ 	return isl1208_i2c_set_usr(to_i2c_client(dev), usr) ? -EIO : count;
+ }
++
+ static DEVICE_ATTR(usr, S_IRUGO | S_IWUSR, isl1208_sysfs_show_usr,
+ 		   isl1208_sysfs_store_usr);
+ 
+ static int
+-isl1208_probe(struct i2c_adapter *adapter, int addr, int kind)
++isl1208_sysfs_register(struct device *dev)
+ {
+-	int rc = 0;
+-	struct i2c_client *new_client = NULL;
+-	struct rtc_device *rtc = NULL;
++	int err;
++
++	err = device_create_file(dev, &dev_attr_atrim);
++	if (err)
++		return err;
  
 -	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
--		err = -ENODEV;
--		goto exit;
+-		rc = -ENODEV;
+-		goto failout;
++	err = device_create_file(dev, &dev_attr_dtrim);
++	if (err) {
++		device_remove_file(dev, &dev_attr_atrim);
++		return err;
+ 	}
+ 
+-	new_client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+-	if (new_client == NULL) {
+-		rc = -ENOMEM;
+-		goto failout;
++	err = device_create_file(dev, &dev_attr_usr);
++	if (err) {
++		device_remove_file(dev, &dev_attr_atrim);
++		device_remove_file(dev, &dev_attr_dtrim);
+ 	}
+ 
+-	new_client->addr = addr;
+-	new_client->adapter = adapter;
+-	new_client->driver = &isl1208_driver;
+-	new_client->flags = 0;
+-	strcpy(new_client->name, DRV_NAME);
++	return 0;
++}
+ 
+-	if (kind < 0) {
+-		rc = isl1208_i2c_validate_client(new_client);
+-		if (rc < 0)
+-			goto failout;
 -	}
++static int
++isl1208_sysfs_unregister(struct device *dev)
++{
++	device_remove_file(dev, &dev_attr_atrim);
++	device_remove_file(dev, &dev_attr_atrim);
++	device_remove_file(dev, &dev_attr_usr);
++
++	return 0;
++}
++
++static int
++isl1208_probe(struct i2c_client *client)
++{
++	int rc = 0;
++	struct rtc_device *rtc;
+ 
+-	rc = i2c_attach_client(new_client);
+-	if (rc < 0)
+-		goto failout;
 +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 +		return -ENODEV;
  
--	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL))) {
--		err = -ENOMEM;
--		goto exit;
--	}
+-	dev_info(&new_client->dev,
++	if (isl1208_i2c_validate_client(client) < 0)
++		return -ENODEV;
++
++	dev_info(&client->dev,
+ 		 "chip found, driver version " DRV_VERSION "\n");
+ 
+ 	rtc = rtc_device_register(isl1208_driver.driver.name,
+-				  &new_client->dev,
+-				  &isl1208_rtc_ops, THIS_MODULE);
 -
--	client = &pcf8563->client;
--	client->addr = address;
--	client->driver = &pcf8563_driver;
--	client->adapter	= adapter;
--
--	strlcpy(client->name, pcf8563_driver.driver.name, I2C_NAME_SIZE);
-+	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL)))
-+		return -ENOMEM;
- 
- 	/* Verify the chip is really an PCF8563 */
--	if (kind < 0) {
--		if (pcf8563_validate_client(client) < 0) {
--			err = -ENODEV;
--			goto exit_kfree;
--		}
--	}
--
--	/* Inform the i2c layer */
--	if ((err = i2c_attach_client(client)))
-+	if (pcf8563_validate_client(client) < 0) {
-+		err = -ENODEV;
- 		goto exit_kfree;
-+	}
- 
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
- 
--	rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
-+	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
- 				&pcf8563_rtc_ops, THIS_MODULE);
- 
 -	if (IS_ERR(rtc)) {
--		err = PTR_ERR(rtc);
--		goto exit_detach;
-+	if (IS_ERR(pcf8563->rtc)) {
-+		err = PTR_ERR(pcf8563->rtc);
-+		goto exit_kfree;
+-		rc = PTR_ERR(rtc);
+-		goto failout_detach;
+-	}
++				  &client->dev, &isl1208_rtc_ops,
++				  THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 
+-	i2c_set_clientdata(new_client, rtc);
++	i2c_set_clientdata(client, rtc);
+ 
+-	rc = isl1208_i2c_get_sr(new_client);
++	rc = isl1208_i2c_get_sr(client);
+ 	if (rc < 0) {
+-		dev_err(&new_client->dev, "reading status failed\n");
+-		goto failout_unregister;
++		dev_err(&client->dev, "reading status failed\n");
++		goto exit_unregister;
  	}
  
--	i2c_set_clientdata(client, rtc);
-+	i2c_set_clientdata(client, pcf8563);
+ 	if (rc & ISL1208_REG_SR_RTCF)
+-		dev_warn(&new_client->dev, "rtc power failure detected, "
++		dev_warn(&client->dev, "rtc power failure detected, "
+ 			 "please set clock.\n");
+ 
+-	rc = device_create_file(&new_client->dev, &dev_attr_atrim);
+-	if (rc < 0)
+-		goto failout_unregister;
+-	rc = device_create_file(&new_client->dev, &dev_attr_dtrim);
+-	if (rc < 0)
+-		goto failout_atrim;
+-	rc = device_create_file(&new_client->dev, &dev_attr_usr);
+-	if (rc < 0)
+-		goto failout_dtrim;
++	rc = isl1208_sysfs_register(&client->dev);
++	if (rc)
++		goto exit_unregister;
  
  	return 0;
  
--exit_detach:
--	i2c_detach_client(client);
--
- exit_kfree:
- 	kfree(pcf8563);
+- failout_dtrim:
+-	device_remove_file(&new_client->dev, &dev_attr_dtrim);
+- failout_atrim:
+-	device_remove_file(&new_client->dev, &dev_attr_atrim);
+- failout_unregister:
++      exit_unregister:
+ 	rtc_device_unregister(rtc);
+- failout_detach:
+-	i2c_detach_client(new_client);
+- failout:
+-	kfree(new_client);
+-	return rc;
+-}
  
--exit:
- 	return err;
+-static int
+-isl1208_attach_adapter (struct i2c_adapter *adapter)
+-{
+-	return i2c_probe(adapter, &addr_data, isl1208_probe);
++	return rc;
  }
  
--static int pcf8563_detach(struct i2c_client *client)
-+static int pcf8563_remove(struct i2c_client *client)
+ static int
+-isl1208_detach_client(struct i2c_client *client)
++isl1208_remove(struct i2c_client *client)
  {
--	struct pcf8563 *pcf8563 = container_of(client, struct pcf8563, client);
--	int err;
--	struct rtc_device *rtc = i2c_get_clientdata(client);
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
- 
+-	int rc;
+-	struct rtc_device *const rtc = i2c_get_clientdata(client);
+-
 -	if (rtc)
--		rtc_device_unregister(rtc);
+-		rtc_device_unregister(rtc); /* do we need to kfree? */
 -
--	if ((err = i2c_detach_client(client)))
--		return err;
-+	if (pcf8563->rtc)
-+		rtc_device_unregister(pcf8563->rtc);
+-	rc = i2c_detach_client(client);
+-	if (rc)
+-		return rc;
++	struct rtc_device *rtc = i2c_get_clientdata(client);
  
- 	kfree(pcf8563);
+-	kfree(client);
++	isl1208_sysfs_unregister(&client->dev);
++	rtc_device_unregister(rtc);
  
  	return 0;
  }
  
-+static struct i2c_driver pcf8563_driver = {
-+	.driver		= {
-+		.name	= "rtc-pcf8563",
-+	},
-+	.probe		= pcf8563_probe,
-+	.remove		= pcf8563_remove,
+-/* module management */
++static struct i2c_driver isl1208_driver = {
++	.driver = {
++		   .name = "rtc-isl1208",
++		   },
++	.probe = isl1208_probe,
++	.remove = isl1208_remove,
 +};
-+
- static int __init pcf8563_init(void)
+ 
+-static int __init isl1208_init(void)
++static int __init
++isl1208_init(void)
  {
- 	return i2c_add_driver(&pcf8563_driver);
+ 	return i2c_add_driver(&isl1208_driver);
+ }
+ 
+-static void __exit isl1208_exit(void)
++static void __exit
++isl1208_exit(void)
+ {
+ 	i2c_del_driver(&isl1208_driver);
+ }
 _
 
 Patches currently in -mm which might be from a.zummo@towertech.it are
