@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 13 Feb 2008 15:30:28 -0800
-Message-ID: <200802132330.m1DNUSlF019697@imap1.linux-foundation.org>
+Subject: + ipmi-dont-grab-locks-in-run-to-completion-mode.patch added to -mm tree
+Date: Wed, 13 Feb 2008 15:29:09 -0800
+Message-ID: <200802132329.m1DNT9hF019590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33946 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55498 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758428AbYBMXbZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754948AbYBMXc2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 18:31:25 -0500
+	Wed, 13 Feb 2008 18:32:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cminyard@mvista.com
+Cc: kbaidarov@ru.mvista.com, cminyard@mvista.com
 
 
 The patch titled
-     ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
+     ipmi: don't grab locks in run-to-completion mode
 has been added to the -mm tree.  Its filename is
-     ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
+     ipmi-dont-grab-locks-in-run-to-completion-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipmi: don't grab locks in run-to-completion mode
+From: Konstantin Baydarov <kbaidarov@ru.mvista.com>
 
-ERROR: open brace '{' following struct go on the same line
-#20: FILE: drivers/char/ipmi/ipmi_si_intf.c:124:
-+struct smi_stats
-+{
+This patch prevents deadlocks in IPMI panic handler caused by msg_lock
+in smi_info structure and waiting_msgs_lock in ipmi_smi structure.
 
-total: 1 errors, 0 warnings, 229 lines checked
-
-./patches/ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Konstantin Baydarov <kbaidarov@ru.mvista.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |   32 +++++++++++++++++++++-----
+ drivers/char/ipmi/ipmi_si_intf.c    |    6 +++-
+ 2 files changed, 30 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -120,8 +120,7 @@ static struct device_driver ipmi_driver 
- 	.bus = &platform_bus_type
- };
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-dont-grab-locks-in-run-to-completion-mode drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-dont-grab-locks-in-run-to-completion-mode
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -351,8 +351,16 @@ struct ipmi_smi
  
--struct smi_stats
--{
-+struct smi_stats {
- 	atomic_t short_timeouts;
- 	atomic_t long_timeouts;
- 	atomic_t timeout_restarts;
+ 	/* Invalid data in an event. */
+ 	unsigned int invalid_events;
++
+ 	/* Events that were received with the proper format. */
+ 	unsigned int events;
++
++	/*
++	 * run_to_completion duplicate of smb_info, smi_info
++	 * and ipmi_serial_info structures. Used to decrease numbers of
++	 * parameters passed by "low" level IPMI code.
++	 */
++	int run_to_completion;
+ };
+ #define to_si_intf_from_dev(device) container_of(device, struct ipmi_smi, dev)
+ 
+@@ -3451,8 +3459,9 @@ static int handle_new_recv_msg(ipmi_smi_
+ void ipmi_smi_msg_received(ipmi_smi_t          intf,
+ 			   struct ipmi_smi_msg *msg)
+ {
+-	unsigned long flags;
++	unsigned long flags = 0; /* keep us warning-free. */
+ 	int           rv;
++	int           run_to_completion;
+ 
+ 
+ 	if ((msg->data_size >= 2)
+@@ -3501,21 +3510,30 @@ void ipmi_smi_msg_received(ipmi_smi_t   
+ 
+ 	/* To preserve message order, if the list is not empty, we
+            tack this message onto the end of the list. */
+-	spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
++	run_to_completion = intf->run_to_completion;
++	barrier();
++	if (!run_to_completion)
++		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
+ 	if (!list_empty(&intf->waiting_msgs)) {
+ 		list_add_tail(&msg->link, &intf->waiting_msgs);
+-		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++		if (!run_to_completion)
++			spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+ 		goto out;
+ 	}
+-	spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++	if (!run_to_completion)
++		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+ 		
+ 	rv = handle_new_recv_msg(intf, msg);
+ 	if (rv > 0) {
+ 		/* Could not handle the message now, just add it to a
+                    list to handle later. */
+-		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
++		run_to_completion = intf->run_to_completion;
++		barrier();
++		if (!run_to_completion)
++			spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
+ 		list_add_tail(&msg->link, &intf->waiting_msgs);
+-		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++		if (!run_to_completion)
++			spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+ 	} else if (rv == 0) {
+ 		ipmi_free_smi_msg(msg);
+ 	}
+@@ -3884,6 +3902,7 @@ static void send_panic_events(char *str)
+ 			/* Interface is not ready. */
+ 			continue;
+ 
++		intf->run_to_completion = 1;
+ 		/* Send the event announcing the panic. */
+ 		intf->handlers->set_run_to_completion(intf->send_info, 1);
+ 		i_ipmi_request(NULL,
+@@ -4059,6 +4078,7 @@ static int panic_event(struct notifier_b
+ 			/* Interface is not ready. */
+ 			continue;
+ 
++		intf->run_to_completion = 1;
+ 		intf->handlers->set_run_to_completion(intf->send_info, 1);
+ 	}
+ 
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-dont-grab-locks-in-run-to-completion-mode drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-dont-grab-locks-in-run-to-completion-mode
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -289,7 +289,8 @@ static enum si_sm_result start_next_msg(
+ 
+ 	/* No need to save flags, we aleady have interrupts off and we
+ 	   already hold the SMI lock. */
+-	spin_lock(&(smi_info->msg_lock));
++	if (!smi_info->run_to_completion)
++		spin_lock(&(smi_info->msg_lock));
+ 
+ 	/* Pick the high priority queue first. */
+ 	if (!list_empty(&(smi_info->hp_xmit_msgs))) {
+@@ -329,7 +330,8 @@ static enum si_sm_result start_next_msg(
+ 		rv = SI_SM_CALL_WITHOUT_DELAY;
+ 	}
+ 	out:
+-	spin_unlock(&(smi_info->msg_lock));
++	if (!smi_info->run_to_completion)
++		spin_unlock(&(smi_info->msg_lock));
+ 
+ 	return rv;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kbaidarov@ru.mvista.com are
 
-softlockup-workaround.patch
-include-linux-remove-all-users-of-fastcall-macro.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
-smack-check-for-struct-socket-with-null-sk.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-conflicts.patch
-git-sparc64.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-conflicts.patch
-git-x86.patch
-git-x86-vs-git-kvm.patch
-git-x86-cpa-build-fix.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
-git-xtensa.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch
-ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+ipmi-dont-grab-locks-in-run-to-completion-mode.patch
+ipmi-convert-locked-counters-to-atomics.patch
