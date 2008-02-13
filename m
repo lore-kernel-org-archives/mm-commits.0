@@ -1,74 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - elf-loader-crash-while-zero-filling-bss.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 10:54:17 -0800
-Message-ID: <200802131854.m1DIsH2i007992@imap1.linux-foundation.org>
+Subject: + frv-fix-up-parse-error-in-linker-script.patch added to -mm tree
+Date: Wed, 13 Feb 2008 11:28:18 -0800
+Message-ID: <200802131928.m1DJSLfj009468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752094AbYBMS40 (ORCPT
+	by vger.kernel.org with ESMTP id S1755590AbYBMT3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 13:56:26 -0500
+	Wed, 13 Feb 2008 14:29:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abelbg@m2grp.com, dan@debian.org, hpa@zytor.com, jkosina@suse.cz, roland@redhat.com, schwab@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, sam@ravnborg.org
 
 
 The patch titled
-     Elf loader crash while zero-filling .bss
-has been removed from the -mm tree.  Its filename was
-     elf-loader-crash-while-zero-filling-bss.patch
+     FRV: fix up parse error in linker script
+has been added to the -mm tree.  Its filename is
+     frv-fix-up-parse-error-in-linker-script.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Elf loader crash while zero-filling .bss
-From: "Abel Bernabeu" <abelbg@m2grp.com>
+Subject: FRV: fix up parse error in linker script
+From: David Howells <dhowells@redhat.com>
 
-I've finally found a solution for the crash in load_binary_elf I
-reported last week:
+Fix up parse error in FRV linker script, presumably introduced through
+changes to the INIT_TEXT and EXIT_TEXT macros.
 
-http://lkml.org/lkml/2008/1/30/171
-
-The attached patch solves my problem.
-
-set_brk(start, end) allocs just page aligned regions (by "collapsing" both
-extremes to the start of the page in which they lay)...  That means than
-even if both pointers are not equal there are still some chances that
-set_brk has allocated no space at all because ELF_PAGEALIGN(elf_bss) ==	
-ELF_PAGEALIGN(elf_brk).
-
-So the condition was not correct.
-
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Daniel Jacobowitz <dan@debian.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andreas Schwab <schwab@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/frv/kernel/vmlinux.lds.S |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/binfmt_elf.c~elf-loader-crash-while-zero-filling-bss fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~elf-loader-crash-while-zero-filling-bss
-+++ a/fs/binfmt_elf.c
-@@ -893,7 +893,8 @@ static int load_elf_binary(struct linux_
- 		send_sig(SIGKILL, current, 0);
- 		goto out_free_dentry;
- 	}
--	if (likely(elf_bss != elf_brk) && unlikely(padzero(elf_bss))) {
-+	if (likely(ELF_PAGEALIGN(elf_bss) != ELF_PAGEALIGN(elf_brk)) &&
-+			unlikely(padzero(elf_bss))) {
- 		send_sig(SIGSEGV, current, 0);
- 		retval = -EFAULT; /* Nobody gets to see this, but.. */
- 		goto out_free_dentry;
+diff -puN arch/frv/kernel/vmlinux.lds.S~frv-fix-up-parse-error-in-linker-script arch/frv/kernel/vmlinux.lds.S
+--- a/arch/frv/kernel/vmlinux.lds.S~frv-fix-up-parse-error-in-linker-script
++++ a/arch/frv/kernel/vmlinux.lds.S
+@@ -105,11 +105,9 @@ SECTIONS
+ 	SCHED_TEXT
+ 	LOCK_TEXT
+ #ifdef CONFIG_DEBUG_INFO
+-	*(
+ 	INIT_TEXT
+ 	EXIT_TEXT
+-	.exitcall.exit
+-	)
++	*(.exitcall.exit)
+ #endif
+ 	*(.fixup)
+ 	*(.gnu.warning)
 _
 
-Patches currently in -mm which might be from abelbg@m2grp.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-elf-loader-crash-while-zero-filling-bss.patch
+origin.patch
+fix-frv-cmpxchg_local.patch
+final-removal-of-fastcall-fastcall.patch
+frv-fix-up-parse-error-in-linker-script.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+mutex-subsystem-synchro-test-module.patch
