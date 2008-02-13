@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-dm9000c-vague-probably-wrong-build-fix.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 12:04:31 -0800
-Message-ID: <200802132004.m1DK4WX3010880@imap1.linux-foundation.org>
+Subject: + git-sched-fixup.patch added to -mm tree
+Date: Wed, 13 Feb 2008 12:06:00 -0800
+Message-ID: <200802132006.m1DK60wX010967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757215AbYBMUFX (ORCPT
+	by vger.kernel.org with ESMTP id S1754642AbYBMUGb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:05:23 -0500
+	Wed, 13 Feb 2008 15:06:31 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1DK60FF002811
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2008 12:06:02 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel@caiaq.de, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers/net/dm9000.c: vague, probably-wrong build fix
-has been removed from the -mm tree.  Its filename was
-     drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
+     git-sched-fixup
+has been added to the -mm tree.  Its filename is
+     git-sched-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/dm9000.c: vague, probably-wrong build fix
+Subject: git-sched-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
-
-drivers/net/dm9000.c: In function `dm9000_open':
-drivers/net/dm9000.c:627: error: `IRQT_RISING' undeclared (first use in this function)
-drivers/net/dm9000.c:627: error: (Each undeclared identifier is reported only once
-drivers/net/dm9000.c:627: error: for each function it appears in.)
-
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/dm9000.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix drivers/net/dm9000.c
---- a/drivers/net/dm9000.c~drivers-net-dm9000c-vague-probably-wrong-build-fix
-+++ a/drivers/net/dm9000.c
-@@ -113,8 +113,10 @@
- #define writesw	outsw
- #define writesl	outsl
- #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQF_TRIGGER_HIGH)
--#else
-+#elif defined(ARM)
- #define DM9000_IRQ_FLAGS	(IRQF_SHARED | IRQT_RISING)
-+#else
-+#define DM9000_IRQ_FLAGS	(IRQF_SHARED)
- #endif
+diff -puN arch/x86/Kconfig~git-sched-fixup arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-sched-fixup
++++ a/arch/x86/Kconfig
+@@ -22,7 +22,7 @@ config X86
+ 	select HAVE_OPROFILE
+ 	select HAVE_KPROBES
+ 	select HAVE_KVM
+-
++	select HAVE_FTRACE
  
- /*
+ config GENERIC_LOCKBREAK
+ 	def_bool n
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,11 +78,11 @@ adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
 git-net.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
+git-sched-fixup.patch
 git-sched-fix-git-conflicts.patch
 git-sh.patch
 git-scsi-rc-fixes.patch
