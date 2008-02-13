@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-git-conflicts.patch added to -mm tree
-Date: Wed, 13 Feb 2008 12:25:02 -0800
-Message-ID: <200802132025.m1DKP26n011725@imap1.linux-foundation.org>
+Subject: + git-x86-vs-git-kvm.patch added to -mm tree
+Date: Wed, 13 Feb 2008 13:02:22 -0800
+Message-ID: <200802132102.m1DL2Muk013216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58135 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41511 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757240AbYBMU0b (ORCPT
+	by vger.kernel.org with ESMTP id S1751531AbYBMVCw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 15:26:31 -0500
+	Wed, 13 Feb 2008 16:02:52 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1DL2MkE005620
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 13 Feb 2008 13:02:23 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-block-git-conflicts
+     git-x86-vs-git-kvm
 has been added to the -mm tree.  Its filename is
-     git-block-git-conflicts.patch
+     git-x86-vs-git-kvm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,152 +38,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-git-conflicts
+Subject: git-x86-vs-git-kvm
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |  126 --------------------------------------------------
- 1 file changed, 126 deletions(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/splice.c~git-block-git-conflicts fs/splice.c
---- a/fs/splice.c~git-block-git-conflicts
-+++ a/fs/splice.c
-@@ -1517,132 +1517,6 @@ static int get_iovec_page_array(const st
- 	return error;
- }
+diff -puN arch/x86/Kconfig~git-x86-vs-git-kvm arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-x86-vs-git-kvm
++++ a/arch/x86/Kconfig
+@@ -23,6 +23,7 @@ config X86
+ 	select HAVE_KPROBES
+ 	select HAVE_KVM
+ 	select HAVE_FTRACE
++	select HAVE_ARCH_KGDB
  
--<<<<<<< HEAD/fs/splice.c
--static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
--			struct splice_desc *sd)
--{
--	char *src;
--	int ret;
--
--	ret = buf->ops->confirm(pipe, buf);
--	if (unlikely(ret))
--		return ret;
--
--	/*
--	 * See if we can use the atomic maps, by prefaulting in the
--	 * pages and doing an atomic copy
--	 */
--	if (!fault_in_pages_writeable(sd->u.userptr, sd->len)) {
--		src = buf->ops->map(pipe, buf, 1);
--		ret = __copy_to_user_inatomic(sd->u.userptr, src + buf->offset,
--							sd->len);
--		buf->ops->unmap(pipe, buf, src);
--		if (!ret) {
--			ret = sd->len;
--			goto out;
--		}
--	}
--
--	/*
--	 * No dice, use slow non-atomic map and copy
-- 	 */
--	src = buf->ops->map(pipe, buf, 0);
--
--	ret = sd->len;
--	if (copy_to_user(sd->u.userptr, src + buf->offset, sd->len))
--		ret = -EFAULT;
--
--	buf->ops->unmap(pipe, buf, src);
--out:
--	if (ret > 0)
--		sd->u.userptr += ret;
--	return ret;
--}
--
--/*
-- * For lack of a better implementation, implement vmsplice() to userspace
-- * as a simple copy of the pipes pages to the user iov.
-- */
--static long vmsplice_to_user(struct file *file, const struct iovec __user *iov,
--			     unsigned long nr_segs, unsigned int flags)
--{
--	struct pipe_inode_info *pipe;
--	struct splice_desc sd;
--	ssize_t size;
--	int error;
--	long ret;
--
--	pipe = pipe_info(file->f_path.dentry->d_inode);
--	if (!pipe)
--		return -EBADF;
--
--	if (pipe->inode)
--		mutex_lock(&pipe->inode->i_mutex);
--
--	error = ret = 0;
--	while (nr_segs) {
--		void __user *base;
--		size_t len;
--
--		/*
--		 * Get user address base and length for this iovec.
--		 */
--		error = get_user(base, &iov->iov_base);
--		if (unlikely(error))
--			break;
--		error = get_user(len, &iov->iov_len);
--		if (unlikely(error))
--			break;
--
--		/*
--		 * Sanity check this iovec. 0 read succeeds.
--		 */
--		if (unlikely(!len))
--			break;
--		if (unlikely(!base)) {
--			error = -EFAULT;
--			break;
--		}
--
--		if (unlikely(!access_ok(VERIFY_WRITE, base, len))) {
--			error = -EFAULT;
--			break;
--		}
--
--		sd.len = 0;
--		sd.total_len = len;
--		sd.flags = flags;
--		sd.u.userptr = base;
--		sd.pos = 0;
--
--		size = __splice_from_pipe(pipe, &sd, pipe_to_user);
--		if (size < 0) {
--			if (!ret)
--				ret = size;
--
--			break;
--		}
--
--		ret += size;
--
--		if (size < len)
--			break;
--
--		nr_segs--;
--		iov++;
--	}
--
--	if (pipe->inode)
--		mutex_unlock(&pipe->inode->i_mutex);
--
--	if (!ret)
--		ret = error;
--
--	return ret;
--}
--
--=======
-->>>>>>> /fs/splice.c
- /*
-  * vmsplice splices a user address range into a pipe. It can be thought of
-  * as splice-from-memory, where the regular splice is splice-from-file (or
+ config GENERIC_LOCKBREAK
+ 	def_bool n
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -216,6 +94,8 @@ usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 git-xfs-git-conflicts.patch
