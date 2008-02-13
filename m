@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smack-check-for-struct-socket-with-null-sk-fix.patch added to -mm tree
-Date: Wed, 13 Feb 2008 00:10:04 -0800
-Message-ID: <200802130811.m1D8BQMN015578@imap1.linux-foundation.org>
+Subject: + smack-check-for-struct-socket-with-null-sk.patch added to -mm tree
+Date: Wed, 13 Feb 2008 00:10:02 -0800
+Message-ID: <200802130811.m1D8BOx9015575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756569AbYBMIL2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755725AbYBMIL1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 03:11:28 -0500
+	Wed, 13 Feb 2008 03:11:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, casey@schuafler-ca.com, darwish.07@gmail.com
+Cc: darwish.07@gmail.com, casey@schuafler-ca.com
 
 
 The patch titled
-     smack-check-for-struct-socket-with-null-sk-fix
+     Smack: check for 'struct socket' with NULL sk
 has been added to the -mm tree.  Its filename is
-     smack-check-for-struct-socket-with-null-sk-fix.patch
+     smack-check-for-struct-socket-with-null-sk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack-check-for-struct-socket-with-null-sk-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Smack: check for 'struct socket' with NULL sk
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Casey Schaufler <casey@schuafler-ca.com>
+There's a small problem with smack and NFS. A similar report was also
+sent here: http://lkml.org/lkml/2007/10/27/85
+
+I've also added similar checks in inode_{get/set}security().  Cheating from
+SELinux post_create_socket(), it does the same.
+
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Casey Schaufler <casey@schuafler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    1 -
- 1 file changed, 1 deletion(-)
+ security/smack/smack_lsm.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk-fix
+diff -puN security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-check-for-struct-socket-with-null-sk
 +++ a/security/smack/smack_lsm.c
-@@ -1284,7 +1284,6 @@ static int smack_netlabel(struct sock *s
+@@ -701,7 +701,7 @@ static int smack_inode_getsecurity(const
+ 		return -EOPNOTSUPP;
+ 
+ 	sock = SOCKET_I(ip);
+-	if (sock == NULL)
++	if (sock == NULL || sock->sk == NULL)
+ 		return -EOPNOTSUPP;
+ 
+ 	ssp = sock->sk->sk_security;
+@@ -1280,10 +1280,12 @@ static void smack_to_secattr(char *smack
+  */
+ static int smack_netlabel(struct sock *sk)
+ {
+-	struct socket_smack *ssp = sk->sk_security;
++	struct socket_smack *ssp;
  	struct netlbl_lsm_secattr secattr;
  	int rc = 0;
  
--	BUG_ON(sk == NULL);
- 	ssp = sk->sk_security;
++	BUG_ON(sk == NULL);
++	ssp = sk->sk_security;
  	netlbl_secattr_init(&secattr);
  	smack_to_secattr(ssp->smk_out, &secattr);
+ 	if (secattr.flags != NETLBL_SECATTR_NONE)
+@@ -1331,7 +1333,7 @@ static int smack_inode_setsecurity(struc
+ 		return -EOPNOTSUPP;
+ 
+ 	sock = SOCKET_I(inode);
+-	if (sock == NULL)
++	if (sock == NULL || sock->sk == NULL)
+ 		return -EOPNOTSUPP;
+ 
+ 	ssp = sock->sk->sk_security;
+@@ -1362,7 +1364,7 @@ static int smack_inode_setsecurity(struc
+ static int smack_socket_post_create(struct socket *sock, int family,
+ 				    int type, int protocol, int kern)
+ {
+-	if (family != PF_INET)
++	if (family != PF_INET || sock->sk == NULL)
+ 		return 0;
+ 	/*
+ 	 * Set the outbound netlbl.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-softlockup-workaround.patch
-revert-proc-fix-the-threaded-proc-self.patch
-memstick-initial-commit-for-sony-memorystick-support.patch
-include-linux-remove-all-users-of-fastcall-macro-checkpatch-fixes.patch
-fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
 smack-check-for-struct-socket-with-null-sk-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-agk-dm-dm-loop.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-drivers-media-video-em28xx-em28xx-corec-fix-use-of-potentially-uninitialized-variable.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-revert-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
-git-mmc.patch
-typhoon-section-fix.patch
-natsemi-section-fix.patch
-bnx2x-section-fix.patch
-bnx2c-section-fix.patch
-via-velocity-section-fix.patch
-starfire-secton-fix.patch
-pppol2tp-fix-printk-warnings.patch
-drivers-net-dm9000c-vague-probably-wrong-build-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fix-git-conflicts.patch
-git-sh.patch
-git-scsi-misc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-fixup.patch
 git-x86.patch
-git-x86-fix-git-conflicts.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-fix-git-conflicts.patch
-git-xtensa.patch
-mempolicy-silently-restrict-nodemask-to-allowed-nodes-v3.patch
-sunprc-fix-printk-format-warning-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-kill-filp_open.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-vs-git-acpi.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
-introduce-path_put-cifs-fix.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
