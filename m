@@ -1,63 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + git-unionfs-fixup.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:01:48 -0500
-Message-ID: <200802150205.m1F256MJ014448@imap1.linux-foundation.org>
+Subject: - git-watchdog-git-conflicts.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:02:17 -0500
+Message-ID: <200802150205.m1F25aXq014458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755267AbYBOCFi (ORCPT
+	by vger.kernel.org with ESMTP id S1755405AbYBOCGT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:05:38 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F257Xw003089
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 18:05:08 -0800
+	Thu, 14 Feb 2008 21:06:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-unionfs-fixup
-has been added to the -mm tree.  Its filename is
-     git-unionfs-fixup.patch
+     git-watchdog-git-conflicts
+has been removed from the -mm tree.  Its filename was
+     git-watchdog-git-conflicts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
+Subject: git-watchdog-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/namei.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/Kconfig  |   13 -------------
+ drivers/watchdog/Makefile |    4 ----
+ 2 files changed, 17 deletions(-)
 
-diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-fixup
-+++ a/include/linux/namei.h
-@@ -4,6 +4,7 @@
- #include <linux/dcache.h>
- #include <linux/linkage.h>
- #include <linux/path.h>
-+#include <linux/mount.h>
+diff -puN drivers/watchdog/Kconfig~git-watchdog-git-conflicts drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~git-watchdog-git-conflicts
++++ a/drivers/watchdog/Kconfig
+@@ -395,18 +395,6 @@ config ITCO_VENDOR_SUPPORT
+ 	  devices. At this moment we only have additional support for some
+ 	  SuperMicro Inc. motherboards.
  
- struct vfsmount;
+-<<<<<<< HEAD/drivers/watchdog/Kconfig
+-config IT8712F_WDT
+-	tristate "IT8712F (Smart Guardian) Watchdog Timer"
+-	depends on X86
+-	---help---
+-	  This is the driver for the built-in watchdog timer on the IT8712F
+-	  Super I/0 chipset used on many motherboards.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called it8712f_wdt.
+-
+-=======
+ config IT8712F_WDT
+ 	tristate "IT8712F (Smart Guardian) Watchdog Timer"
+ 	depends on X86
+@@ -429,7 +417,6 @@ config HP_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hpwdt.
  
+->>>>>>> /drivers/watchdog/Kconfig
+ config SC1200_WDT
+ 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~git-watchdog-git-conflicts drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~git-watchdog-git-conflicts
++++ a/drivers/watchdog/Makefile
+@@ -68,13 +68,9 @@ obj-$(CONFIG_IBMASR) += ibmasr.o
+ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.o
+ obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
+ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
+-<<<<<<< HEAD/drivers/watchdog/Makefile
+-obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+-=======
+ obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+ CFLAGS_hpwdt.o += -O
+ obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
+->>>>>>> /drivers/watchdog/Makefile
+ obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
+ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
