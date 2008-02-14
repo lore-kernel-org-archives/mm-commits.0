@@ -1,259 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-git-rejects.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:12:35 -0500
-Message-ID: <200802150215.m1F2FsCX014815@imap1.linux-foundation.org>
+Subject: - remove-final-fastcall-users.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:15:38 -0500
+Message-ID: <200802150218.m1F2Iv6q014965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59108 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42891 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756257AbYBOCQd (ORCPT
+	by vger.kernel.org with ESMTP id S1757148AbYBOCTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:16:33 -0500
+	Thu, 14 Feb 2008 21:19:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-block-git-rejects.patch
+     remove final fastcall users
+has been removed from the -mm tree.  Its filename was
+     remove-final-fastcall-users.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove final fastcall users
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+fastcall always expands to empty, remove it.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |  126 --------------------------------------------------
- 1 file changed, 126 deletions(-)
+ Documentation/RCU/NMI-RCU.txt |    2 +-
+ Documentation/kprobes.txt     |   11 +++++------
+ kernel/signal.c               |    2 +-
+ mm/filemap.c                  |    2 +-
+ net/bluetooth/rfcomm/core.c   |    4 ++--
+ net/core/dev.c                |    2 +-
+ net/core/sock.c               |    4 ++--
+ 7 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN fs/splice.c~git-block-git-rejects fs/splice.c
---- a/fs/splice.c~git-block-git-rejects
-+++ a/fs/splice.c
-@@ -1517,132 +1517,6 @@ static int get_iovec_page_array(const st
- 	return error;
+diff -puN Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users Documentation/RCU/NMI-RCU.txt
+--- a/Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users
++++ a/Documentation/RCU/NMI-RCU.txt
+@@ -25,7 +25,7 @@ the NMI handler to take the default mach
+ This nmi_callback variable is a global function pointer to the current
+ NMI handler.
+ 
+-	fastcall void do_nmi(struct pt_regs * regs, long error_code)
++	void do_nmi(struct pt_regs * regs, long error_code)
+ 	{
+ 		int cpu;
+ 
+diff -puN Documentation/kprobes.txt~remove-final-fastcall-users Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~remove-final-fastcall-users
++++ a/Documentation/kprobes.txt
+@@ -92,9 +92,8 @@ handler has run.  Up to MAX_STACK_SIZE b
+ 64 bytes on i386.
+ 
+ Note that the probed function's args may be passed on the stack
+-or in registers (e.g., for x86_64 or for an i386 fastcall function).
+-The jprobe will work in either case, so long as the handler's
+-prototype matches that of the probed function.
++or in registers.  The jprobe will work in either case, so long as the
++handler's prototype matches that of the probed function.
+ 
+ 1.3 Return Probes
+ 
+@@ -270,9 +269,9 @@ Kprobes runs the handler whose address i
+ The handler should have the same arg list and return type as the probed
+ function; and just before it returns, it must call jprobe_return().
+ (The handler never actually returns, since jprobe_return() returns
+-control to Kprobes.)  If the probed function is declared asmlinkage,
+-fastcall, or anything else that affects how args are passed, the
+-handler's declaration must match.
++control to Kprobes.)  If the probed function is declared asmlinkage
++or anything else that affects how args are passed, the handler's
++declaration must match.
+ 
+ register_jprobe() returns 0 on success, or a negative errno otherwise.
+ 
+diff -puN kernel/signal.c~remove-final-fastcall-users kernel/signal.c
+--- a/kernel/signal.c~remove-final-fastcall-users
++++ a/kernel/signal.c
+@@ -972,7 +972,7 @@ void zap_other_threads(struct task_struc
+ 	}
  }
  
--<<<<<<< HEAD:fs/splice.c
--static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
--			struct splice_desc *sd)
--{
--	char *src;
--	int ret;
--
--	ret = buf->ops->confirm(pipe, buf);
--	if (unlikely(ret))
--		return ret;
--
--	/*
--	 * See if we can use the atomic maps, by prefaulting in the
--	 * pages and doing an atomic copy
--	 */
--	if (!fault_in_pages_writeable(sd->u.userptr, sd->len)) {
--		src = buf->ops->map(pipe, buf, 1);
--		ret = __copy_to_user_inatomic(sd->u.userptr, src + buf->offset,
--							sd->len);
--		buf->ops->unmap(pipe, buf, src);
--		if (!ret) {
--			ret = sd->len;
--			goto out;
--		}
--	}
--
--	/*
--	 * No dice, use slow non-atomic map and copy
-- 	 */
--	src = buf->ops->map(pipe, buf, 0);
--
--	ret = sd->len;
--	if (copy_to_user(sd->u.userptr, src + buf->offset, sd->len))
--		ret = -EFAULT;
--
--	buf->ops->unmap(pipe, buf, src);
--out:
--	if (ret > 0)
--		sd->u.userptr += ret;
--	return ret;
--}
--
--/*
-- * For lack of a better implementation, implement vmsplice() to userspace
-- * as a simple copy of the pipes pages to the user iov.
-- */
--static long vmsplice_to_user(struct file *file, const struct iovec __user *iov,
--			     unsigned long nr_segs, unsigned int flags)
--{
--	struct pipe_inode_info *pipe;
--	struct splice_desc sd;
--	ssize_t size;
--	int error;
--	long ret;
--
--	pipe = pipe_info(file->f_path.dentry->d_inode);
--	if (!pipe)
--		return -EBADF;
--
--	if (pipe->inode)
--		mutex_lock(&pipe->inode->i_mutex);
--
--	error = ret = 0;
--	while (nr_segs) {
--		void __user *base;
--		size_t len;
--
--		/*
--		 * Get user address base and length for this iovec.
--		 */
--		error = get_user(base, &iov->iov_base);
--		if (unlikely(error))
--			break;
--		error = get_user(len, &iov->iov_len);
--		if (unlikely(error))
--			break;
--
--		/*
--		 * Sanity check this iovec. 0 read succeeds.
--		 */
--		if (unlikely(!len))
--			break;
--		if (unlikely(!base)) {
--			error = -EFAULT;
--			break;
--		}
--
--		if (unlikely(!access_ok(VERIFY_WRITE, base, len))) {
--			error = -EFAULT;
--			break;
--		}
--
--		sd.len = 0;
--		sd.total_len = len;
--		sd.flags = flags;
--		sd.u.userptr = base;
--		sd.pos = 0;
--
--		size = __splice_from_pipe(pipe, &sd, pipe_to_user);
--		if (size < 0) {
--			if (!ret)
--				ret = size;
--
--			break;
--		}
--
--		ret += size;
--
--		if (size < len)
--			break;
--
--		nr_segs--;
--		iov++;
--	}
--
--	if (pipe->inode)
--		mutex_unlock(&pipe->inode->i_mutex);
--
--	if (!ret)
--		ret = error;
--
--	return ret;
--}
--
--=======
-->>>>>>> FETCH_HEAD:fs/splice.c
- /*
-  * vmsplice splices a user address range into a pipe. It can be thought of
-  * as splice-from-memory, where the regular splice is splice-from-file (or
+-int fastcall __fatal_signal_pending(struct task_struct *tsk)
++int __fatal_signal_pending(struct task_struct *tsk)
+ {
+ 	return sigismember(&tsk->pending.signal, SIGKILL);
+ }
+diff -puN mm/filemap.c~remove-final-fastcall-users mm/filemap.c
+--- a/mm/filemap.c~remove-final-fastcall-users
++++ a/mm/filemap.c
+@@ -604,7 +604,7 @@ void __lock_page(struct page *page)
+ }
+ EXPORT_SYMBOL(__lock_page);
+ 
+-int fastcall __lock_page_killable(struct page *page)
++int __lock_page_killable(struct page *page)
+ {
+ 	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
+ 
+diff -puN net/bluetooth/rfcomm/core.c~remove-final-fastcall-users net/bluetooth/rfcomm/core.c
+--- a/net/bluetooth/rfcomm/core.c~remove-final-fastcall-users
++++ a/net/bluetooth/rfcomm/core.c
+@@ -465,7 +465,7 @@ int rfcomm_dlc_send(struct rfcomm_dlc *d
+ 	return len;
+ }
+ 
+-void fastcall __rfcomm_dlc_throttle(struct rfcomm_dlc *d)
++void __rfcomm_dlc_throttle(struct rfcomm_dlc *d)
+ {
+ 	BT_DBG("dlc %p state %ld", d, d->state);
+ 
+@@ -476,7 +476,7 @@ void fastcall __rfcomm_dlc_throttle(stru
+ 	rfcomm_schedule(RFCOMM_SCHED_TX);
+ }
+ 
+-void fastcall __rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
++void __rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
+ {
+ 	BT_DBG("dlc %p state %ld", d, d->state);
+ 
+diff -puN net/core/dev.c~remove-final-fastcall-users net/core/dev.c
+--- a/net/core/dev.c~remove-final-fastcall-users
++++ a/net/core/dev.c
+@@ -2143,7 +2143,7 @@ static int process_backlog(struct napi_s
+  *
+  * The entry's receive function will be scheduled to run
+  */
+-void fastcall __napi_schedule(struct napi_struct *n)
++void __napi_schedule(struct napi_struct *n)
+ {
+ 	unsigned long flags;
+ 
+diff -puN net/core/sock.c~remove-final-fastcall-users net/core/sock.c
+--- a/net/core/sock.c~remove-final-fastcall-users
++++ a/net/core/sock.c
+@@ -1731,7 +1731,7 @@ void sock_init_data(struct socket *sock,
+ 	atomic_set(&sk->sk_drops, 0);
+ }
+ 
+-void fastcall lock_sock_nested(struct sock *sk, int subclass)
++void lock_sock_nested(struct sock *sk, int subclass)
+ {
+ 	might_sleep();
+ 	spin_lock_bh(&sk->sk_lock.slock);
+@@ -1748,7 +1748,7 @@ void fastcall lock_sock_nested(struct so
+ 
+ EXPORT_SYMBOL(lock_sock_nested);
+ 
+-void fastcall release_sock(struct sock *sk)
++void release_sock(struct sock *sk)
+ {
+ 	/*
+ 	 * The sk_lock has mutex_unlock() semantics:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-introduce-path_put.patch
-one-less-parameter-to-__d_path.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-d_path-make-d_path-use-a-struct-path.patch
-softlockup-workaround.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-x86-vs-git-kvm.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xfs-git-rejects.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
+inotify-make-variables-static-in-inotify_userc.patch
+kernel-doc-remove-fastcall.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ubi-fix-sparse-errors-in-ubih.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
