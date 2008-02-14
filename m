@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-work-around-bogus-sparse-warning.patch added to -mm tree
-Date: Wed, 13 Feb 2008 19:40:15 -0800
-Message-ID: <200802140340.m1E3eFtq029201@imap1.linux-foundation.org>
+Subject: + add-rcu_assign_index-if-ever-needed-fix.patch added to -mm tree
+Date: Wed, 13 Feb 2008 19:41:12 -0800
+Message-ID: <200802140341.m1E3fCbg029225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50901 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761220AbYBNDkV (ORCPT
+	by vger.kernel.org with ESMTP id S1755363AbYBNDld (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 22:40:21 -0500
+	Wed, 13 Feb 2008 22:41:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, ego@in.ibm.com, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     adfs: work around bogus sparse warning
+     add-rcu_assign_index-if-ever-needed-fix
 has been added to the -mm tree.  Its filename is
-     adfs-work-around-bogus-sparse-warning.patch
+     add-rcu_assign_index-if-ever-needed-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adfs: work around bogus sparse warning
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: add-rcu_assign_index-if-ever-needed-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/adfs/dir_f.c:126:4: warning: do-while statement is not a compound statement
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_f.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/rcupdate.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/adfs/dir_f.c~adfs-work-around-bogus-sparse-warning fs/adfs/dir_f.c
---- a/fs/adfs/dir_f.c~adfs-work-around-bogus-sparse-warning
-+++ a/fs/adfs/dir_f.c
-@@ -122,9 +122,9 @@ adfs_dir_checkbyte(const struct adfs_dir
- 		ptr.ptr8 = bufoff(bh, i);
- 		end.ptr8 = ptr.ptr8 + last - i;
+diff -puN include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed-fix include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed-fix
++++ a/include/linux/rcupdate.h
+@@ -189,7 +189,7 @@ struct rcu_head {
  
--		do
-+		do {
- 			dircheck = *ptr.ptr8++ ^ ror13(dircheck);
--		while (ptr.ptr8 < end.ptr8);
-+		} while (ptr.ptr8 < end.ptr8);
- 	}
- 
- 	/*
+ /**
+  * rcu_assign_index - assign (publicize) a index of a newly
+- * initialized array elementg that will be dereferenced by RCU
++ * initialized array element that will be dereferenced by RCU
+  * read-side critical sections.  Returns the value assigned.
+  *
+  * Inserts memory barriers on architectures that require them
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+softlockup-workaround.patch
 include-linux-remove-all-users-of-fastcall-macro.patch
-rcupdate-fix-comment.patch
-remove-final-fastcall-users.patch
-final-removal-of-fastcall-fastcall.patch
-inotify-make-variables-static-in-inotify_userc.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
 git-x86.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
