@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-compile-of-swim3-as-module.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:04:23 -0800
-Message-ID: <200802140004.m1E04N5v021097@imap1.linux-foundation.org>
+Subject: + gdth-convert-to-pci-hotplug-api.patch added to -mm tree
+Date: Wed, 13 Feb 2008 16:06:57 -0800
+Message-ID: <200802140006.m1E06vmY021203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50769 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754441AbYBNAFa (ORCPT
+	by vger.kernel.org with ESMTP id S1759153AbYBNAIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:05:30 -0500
+	Wed, 13 Feb 2008 19:08:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, benh@kernel.crashing.org, bzolnier@gmail.com, jwboyer@linux.vnet.ibm.com, paulus@samba.org
+Cc: jeff@garzik.org, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, greg@kroah.com, jgarzik@redhat.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     Fix compile of swim3 as module
+     gdth: convert to PCI hotplug API
 has been added to the -mm tree.  Its filename is
-     fix-compile-of-swim3-as-module.patch
+     gdth-convert-to-pci-hotplug-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,240 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix compile of swim3 as module
-From: Tony Breeds <tony@bakeyournoodle.com>
+Subject: gdth: convert to PCI hotplug API
+From: Jeff Garzik <jeff@garzik.org>
 
-The current pmac32_defconfig fails to build with the following error:
-
-  Building modules, stage 2.
-ERROR: "check_media_bay" [drivers/block/swim3.ko] undefined!
-WARNING: modpost: Found 23 section mismatch(es).
-To see full details build your kernel with:
-'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-make[2]: *** [__modpost] Error 1
-
-This patch fixes that.
-
-Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/swim3.c        |    4 ----
- drivers/macintosh/mediabay.c |    2 --
- 2 files changed, 6 deletions(-)
+ drivers/scsi/gdth.c |  150 ++++++++++++++++++++++++------------------
+ 1 file changed, 89 insertions(+), 61 deletions(-)
 
-diff -puN drivers/block/swim3.c~fix-compile-of-swim3-as-module drivers/block/swim3.c
---- a/drivers/block/swim3.c~fix-compile-of-swim3-as-module
-+++ a/drivers/block/swim3.c
-@@ -251,10 +251,6 @@ static int floppy_release(struct inode *
- static int floppy_check_change(struct gendisk *disk);
- static int floppy_revalidate(struct gendisk *disk);
+diff -puN drivers/scsi/gdth.c~gdth-convert-to-pci-hotplug-api drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~gdth-convert-to-pci-hotplug-api
++++ a/drivers/scsi/gdth.c
+@@ -595,85 +595,107 @@ static int __init gdth_search_isa(ulong3
+ #endif /* CONFIG_ISA */
  
--#ifndef CONFIG_PMAC_MEDIABAY
--#define check_media_bay(which, what)	1
--#endif
+ #ifdef CONFIG_PCI
+-static void gdth_search_dev(gdth_pci_str *pcistr, ushort *cnt,
+-                            ushort vendor, ushort dev);
 -
- static void swim3_select(struct floppy_state *fs, int sel)
+-static int __init gdth_search_pci(gdth_pci_str *pcistr)
+-{
+-    ushort device, cnt;
+-    
+-    TRACE(("gdth_search_pci()\n"));
+-
+-    cnt = 0;
+-    for (device = 0; device <= PCI_DEVICE_ID_VORTEX_GDT6555; ++device)
+-        gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_VORTEX, device);
+-    for (device = PCI_DEVICE_ID_VORTEX_GDT6x17RP; 
+-         device <= PCI_DEVICE_ID_VORTEX_GDTMAXRP; ++device)
+-        gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_VORTEX, device);
+-    gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_VORTEX, 
+-                    PCI_DEVICE_ID_VORTEX_GDTNEWRX);
+-    gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_VORTEX, 
+-                    PCI_DEVICE_ID_VORTEX_GDTNEWRX2);
+-    gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_INTEL,
+-                    PCI_DEVICE_ID_INTEL_SRC);
+-    gdth_search_dev(pcistr, &cnt, PCI_VENDOR_ID_INTEL,
+-                    PCI_DEVICE_ID_INTEL_SRC_XSCALE);
+-    return cnt;
+-}
++static gdth_pci_str gdth_pcistr[MAXHA];
++static int gdth_pci_cnt;
++static bool gdth_pci_registered;
++
++static bool __init gdth_search_vortex(ushort device)
++{
++	if (device <= PCI_DEVICE_ID_VORTEX_GDT6555)
++		return true;
++	if (device >= PCI_DEVICE_ID_VORTEX_GDT6x17RP &&
++	    device <= PCI_DEVICE_ID_VORTEX_GDTMAXRP)
++		return true;
++	if (device == PCI_DEVICE_ID_VORTEX_GDTNEWRX ||
++	    device == PCI_DEVICE_ID_VORTEX_GDTNEWRX2)
++		return true;
++	return false;
++}
++
++static int gdth_pci_init_one(struct pci_dev *pdev,
++			     const struct pci_device_id *ent);
++static void gdth_pci_remove_one(struct pci_dev *pdev);
++static void gdth_remove_one(gdth_ha_str *ha);
+ 
+ /* Vortex only makes RAID controllers.
+  * We do not really want to specify all 550 ids here, so wildcard match.
+  */
+-static struct pci_device_id gdthtable[] __maybe_unused = {
+-    {PCI_VENDOR_ID_VORTEX,PCI_ANY_ID,PCI_ANY_ID, PCI_ANY_ID},
+-    {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC,PCI_ANY_ID,PCI_ANY_ID}, 
+-    {PCI_VENDOR_ID_INTEL,PCI_DEVICE_ID_INTEL_SRC_XSCALE,PCI_ANY_ID,PCI_ANY_ID}, 
+-    {0}
++static struct pci_device_id gdthtable[] __devinitdata = {
++	{ PCI_VDEVICE(VORTEX, PCI_ANY_ID) },
++	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SRC) },
++	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SRC_XSCALE) },
++	{ }	/* terminate list */
++};
++MODULE_DEVICE_TABLE(pci, gdthtable);
++
++static struct pci_driver gdth_pci_driver = {
++	.name		= "gdth",
++	.id_table	= gdthtable,
++	.probe		= gdth_pci_init_one,
++	.remove		= gdth_pci_remove_one,
+ };
+-MODULE_DEVICE_TABLE(pci,gdthtable);
+ 
+-static void __init gdth_search_dev(gdth_pci_str *pcistr, ushort *cnt,
+-                                   ushort vendor, ushort device)
++static void gdth_pci_remove_one(struct pci_dev *pdev)
  {
- 	struct swim3 __iomem *sw = fs->swim3;
-diff -puN drivers/macintosh/mediabay.c~fix-compile-of-swim3-as-module drivers/macintosh/mediabay.c
---- a/drivers/macintosh/mediabay.c~fix-compile-of-swim3-as-module
-+++ a/drivers/macintosh/mediabay.c
-@@ -417,7 +417,6 @@ static void poll_media_bay(struct media_
+-    ulong base0, base1, base2;
+-    struct pci_dev *pdev;
++	gdth_ha_str *ha = pci_get_drvdata(pdev);
++
++	pci_set_drvdata(pdev, NULL);
++
++	list_del(&ha->list);
++	gdth_remove_one(ha);
++
++	pci_disable_device(pdev);
++}
++
++static int __devinit gdth_pci_init_one(struct pci_dev *pdev,
++				       const struct pci_device_id *ent)
++{
++	ushort vendor = pdev->vendor;
++	ushort device = pdev->device;
++	ulong base0, base1, base2;
++	int rc;
+     
+-    TRACE(("gdth_search_dev() cnt %d vendor %x device %x\n",
+-          *cnt, vendor, device));
++	TRACE(("gdth_search_dev() cnt %d vendor %x device %x\n",
++	       gdth_pci_cnt, vendor, device));
++
++	if (vendor == PCI_VENDOR_ID_VORTEX && !gdth_search_vortex(device))
++		return -ENODEV;
++
++	rc = pci_enable_device(pdev);
++	if (rc)
++		return rc;
++
++	if (gdth_pci_cnt >= MAXHA)
++		return -EBUSY;
+ 
+-    pdev = NULL;
+-    while ((pdev = pci_find_device(vendor, device, pdev)) 
+-           != NULL) {
+-        if (pci_enable_device(pdev))
+-            continue;
+-        if (*cnt >= MAXHA)
+-            return;
+         /* GDT PCI controller found, resources are already in pdev */
+-        pcistr[*cnt].pdev = pdev;
+-        pcistr[*cnt].irq = pdev->irq;
++	gdth_pcistr[gdth_pci_cnt].pdev = pdev;
++	gdth_pcistr[gdth_pci_cnt].irq = pdev->irq;
+         base0 = pci_resource_flags(pdev, 0);
+         base1 = pci_resource_flags(pdev, 1);
+         base2 = pci_resource_flags(pdev, 2);
+         if (device <= PCI_DEVICE_ID_VORTEX_GDT6000B ||   /* GDT6000/B */
+             device >= PCI_DEVICE_ID_VORTEX_GDT6x17RP) {  /* MPR */
+             if (!(base0 & IORESOURCE_MEM)) 
+-                continue;
+-            pcistr[*cnt].dpmem = pci_resource_start(pdev, 0);
++		return -ENODEV;
++	    gdth_pcistr[gdth_pci_cnt].dpmem = pci_resource_start(pdev, 0);
+         } else {                                  /* GDT6110, GDT6120, .. */
+             if (!(base0 & IORESOURCE_MEM) ||
+                 !(base2 & IORESOURCE_MEM) ||
+                 !(base1 & IORESOURCE_IO)) 
+-                continue;
+-            pcistr[*cnt].dpmem = pci_resource_start(pdev, 2);
+-            pcistr[*cnt].io_mm = pci_resource_start(pdev, 0);
+-            pcistr[*cnt].io    = pci_resource_start(pdev, 1);
++		return -ENODEV;
++	    gdth_pcistr[gdth_pci_cnt].dpmem = pci_resource_start(pdev, 2);
++	    gdth_pcistr[gdth_pci_cnt].io_mm = pci_resource_start(pdev, 0);
++	    gdth_pcistr[gdth_pci_cnt].io    = pci_resource_start(pdev, 1);
+         }
+         TRACE2(("Controller found at %d/%d, irq %d, dpmem 0x%lx\n",
+-                pcistr[*cnt].pdev->bus->number,
+-		PCI_SLOT(pcistr[*cnt].pdev->devfn),
+-                pcistr[*cnt].irq, pcistr[*cnt].dpmem));
+-        (*cnt)++;
+-    }       
++		gdth_pcistr[gdth_pci_cnt].pdev->bus->number,
++		PCI_SLOT(gdth_pcistr[gdth_pci_cnt].pdev->devfn),
++		gdth_pcistr[gdth_pci_cnt].irq,
++		gdth_pcistr[gdth_pci_cnt].dpmem));
++	gdth_pci_cnt++;
++
++	return 0;
+ }   
+ 
+ static void __init gdth_sort_pci(gdth_pci_str *pcistr, int cnt)
+@@ -4836,7 +4858,7 @@ static int __init gdth_isa_probe_one(ulo
+ 	if (error)
+ 		goto out_free_coal_stat;
+ 	list_add_tail(&ha->list, &gdth_instances);
+-
++	pci_set_drvdata(ha->pdev, ha);
+ 	scsi_scan_host(shp);
+ 
+ 	return 0;
+@@ -5207,15 +5229,16 @@ static int __init gdth_init(void)
+ 
+ #ifdef CONFIG_PCI
+ 	/* scanning for PCI controllers */
+-	{
+-		gdth_pci_str pcistr[MAXHA];
++	if (pci_register_driver(&gdth_pci_driver) == 0) {
+ 		int cnt,ctr;
++		gdth_pci_str *pcistr = gdth_pcistr;
+ 
+-		cnt = gdth_search_pci(pcistr);
++		cnt = gdth_pci_cnt;
+ 		printk("GDT-HA: Found %d PCI Storage RAID Controllers\n", cnt);
+ 		gdth_sort_pci(pcistr,cnt);
+ 		for (ctr = 0; ctr < cnt; ++ctr)
+ 			gdth_pci_probe_one(pcistr, ctr);
++		gdth_pci_registered = true;
  	}
- }
+ #endif /* CONFIG_PCI */
  
--#ifdef CONFIG_MAC_FLOPPY
- int check_media_bay(struct device_node *which_bay, int what)
+@@ -5243,6 +5266,11 @@ static void __exit gdth_exit(void)
  {
- 	int	i;
-@@ -432,7 +431,6 @@ int check_media_bay(struct device_node *
- 	return -ENODEV;
- }
- EXPORT_SYMBOL(check_media_bay);
--#endif /* CONFIG_MAC_FLOPPY */
+ 	gdth_ha_str *ha;
  
- #ifdef CONFIG_BLK_DEV_IDE_PMAC
- int check_media_bay_by_base(unsigned long base, int what)
++#ifdef CONFIG_PCI
++	if (gdth_pci_registered)
++		pci_unregister_driver(&gdth_pci_driver);
++#endif
++
+ 	list_for_each_entry(ha, &gdth_instances, list)
+ 		gdth_remove_one(ha);
+ 
 _
 
-Patches currently in -mm which might be from tony@bakeyournoodle.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-xc5000-fix-build-error-when-built-as-module.patch
-fix-compile-of-swim3-as-module.patch
+origin.patch
+git-libata-all.patch
+git-net.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+gdth-convert-to-pci-hotplug-api.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
