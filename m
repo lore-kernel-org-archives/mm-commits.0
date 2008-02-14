@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + __initdata-is-not-an-identifier.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:36:50 -0800
-Message-ID: <200802142136.m1ELaob0004086@imap1.linux-foundation.org>
+Subject: + maintainers-update-decnet-and-dlm-entries.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:38:26 -0800
+Message-ID: <200802142138.m1ELcQ0h004212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752136AbYBNVhR (ORCPT
+	by vger.kernel.org with ESMTP id S1760085AbYBNVia (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:37:17 -0500
+	Thu, 14 Feb 2008 16:38:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, bjorn.helgaas@hp.com, lenb@kernel.org
+Cc: christine.caulfield@googlemail.com
 
 
 The patch titled
-     drivers/pnp/pnpacpi/core.c: __initdata is not an identifier
+     MAINTAINERS: update decnet and DLM entries
 has been added to the -mm tree.  Its filename is
-     __initdata-is-not-an-identifier.patch
+     maintainers-update-decnet-and-dlm-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pnp/pnpacpi/core.c: __initdata is not an identifier
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: MAINTAINERS: update decnet and DLM entries
+From: Christine Caulfield <christine.caulfield@googlemail.com>
 
-sparse complains at drivers/pnp/pnpacpi/core.c:39 with the error: Trying to
-use reserved word '__attribute__' as identifier Expected ) in function
-declarator, got ".init.data"
+Change my name & email in MAINTAINERS
 
-and at drivers/pnp/pnpacpi/core.c:49:38 with the error:
-undefined identifier 'excluded_id_list'
-
-With the patch below these sparse complaints do not occur
-
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Christine Caulfield <christine.caulfield@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~__initdata-is-not-an-identifier drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~__initdata-is-not-an-identifier
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -36,7 +36,7 @@ static int num = 0;
-  * have irqs (PIC, Timer) because we call acpi_register_gsi.
-  * Finally, only devices that have a CRS method need to be in this list.
-  */
--static struct __initdata acpi_device_id excluded_id_list[] = {
-+static struct acpi_device_id excluded_id_list[] __initdata = {
- 	{"PNP0C09", 0},		/* EC */
- 	{"PNP0C0F", 0},		/* Link device */
- 	{"PNP0000", 0},		/* PIC */
+diff -puN MAINTAINERS~maintainers-update-decnet-and-dlm-entries MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-decnet-and-dlm-entries
++++ a/MAINTAINERS
+@@ -1255,8 +1255,8 @@ W:	http://linux-net.osdl.org/index.php/D
+ S:	Maintained
+ 
+ DECnet NETWORK LAYER
+-P:	Patrick Caulfield
+-M:	patrick@tykepenguin.com
++P:	Christine Caulfield
++M:	christine.caulfield@googlemail.com
+ W:	http://linux-decnet.sourceforge.net
+ L:	linux-decnet-user@lists.sourceforge.net
+ S:	Maintained
+@@ -1318,8 +1318,8 @@ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ 
+ DISTRIBUTED LOCK MANAGER
+-P:	Patrick Caulfield
+-M:	pcaulfie@redhat.com
++P:	Christine Caulfield
++M:	ccaulfie@redhat.com
+ P:	David Teigland
+ M:	teigland@redhat.com
+ L:	cluster-devel@redhat.com
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from christine.caulfield@googlemail.com are
 
-__initdata-is-not-an-identifier.patch
-git-alsa.patch
-git-cifs.patch
-git-dvb.patch
-ufs-e_add_cpu-conversion-in-return.patch
+maintainers-update-decnet-and-dlm-entries.patch
