@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-clearcopy_user_page-declarations-in-pageh.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:30:59 -0800
-Message-ID: <200802142130.m1ELUxjg003888@imap1.linux-foundation.org>
+Subject: + tg3-debugging.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:33:15 -0800
+Message-ID: <200802142133.m1ELXFxJ004035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40589 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46056 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763881AbYBNVcb (ORCPT
+	by vger.kernel.org with ESMTP id S1765628AbYBNVeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:32:31 -0500
+	Thu, 14 Feb 2008 16:34:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chuck.lever@oracle.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, tglx@linutronix.de
+Cc: mchan@broadcom.com, andy@greyhouse.net, mcarlson@broadcom.com, ralf.hildebrandt@charite.de
 
 
 The patch titled
-     x86: fix {clear,copy}_user_page() declarations in page.h
+     tg3 debugging
 has been added to the -mm tree.  Its filename is
-     x86-fix-clearcopy_user_page-declarations-in-pageh.patch
+     tg3-debugging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix {clear,copy}_user_page() declarations in page.h
-From: Chuck Lever <chuck.lever@oracle.com>
+Subject: tg3 debugging
+From: "Michael Chan" <mchan@broadcom.com>
 
-Clean up: eliminate some compiler noise on x86 when building with strict
-warnings enabled, introduced by commit 345b904c.
+http://bugzilla.kernel.org/show_bug.cgi?id=9990
 
-In file included from include2/asm/thread_info_64.h:12,
-                 from include2/asm/thread_info.h:4,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/thread_info.h:35,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/preempt.h:9,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/spinlock.h:49,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/mmzone.h:7,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/gfp.h:4,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/slab.h:14,
-                 from /home/cel/src/linux/nfs-2.6/fs/nfsd/nfs4acl.c:40:
-include2/asm/page.h:55: warning: `inline' is not at beginning of
-declaration
-include2/asm/page.h:61: warning: `inline' is not at beginning of
-declaration
+This patch stores the nr_frags when transmitting an SKB.  During tx
+completion, it will compare the stored nr_frags with the one in the SKB and
+will print out something in dmesg if they don't match.
 
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Andy Gospodarek" <andy@greyhouse.net>
+Cc: "Matt Carlson" <mcarlson@broadcom.com>
+Cc: <ralf.hildebrandt@charite.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/page.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/tg3.c |   13 ++++++++++++-
+ drivers/net/tg3.h |    1 +
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-x86/page.h~x86-fix-clearcopy_user_page-declarations-in-pageh include/asm-x86/page.h
---- a/include/asm-x86/page.h~x86-fix-clearcopy_user_page-declarations-in-pageh
-+++ a/include/asm-x86/page.h
-@@ -53,13 +53,13 @@ extern int devmem_is_allowed(unsigned lo
+diff -puN drivers/net/tg3.c~tg3-debugging drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-debugging
++++ a/drivers/net/tg3.c
+@@ -3324,12 +3324,20 @@ static void tg3_tx(struct tg3 *tp)
+ 		struct tx_ring_info *ri = &tp->tx_buffers[sw_idx];
+ 		struct sk_buff *skb = ri->skb;
+ 		int i, tx_bug = 0;
++		unsigned short nr_frags = ri->nr_frags;
  
- struct page;
+ 		if (unlikely(skb == NULL)) {
+ 			tg3_tx_recover(tp);
+ 			return;
+ 		}
  
--static void inline clear_user_page(void *page, unsigned long vaddr,
-+static inline void clear_user_page(void *page, unsigned long vaddr,
- 				struct page *pg)
- {
- 	clear_page(page);
- }
++		if (nr_frags != skb_shinfo(skb)->nr_frags) {
++			printk(KERN_ALERT "tg3: %s: Tx skb->nr_frags corrupted "
++				"before skb is freed. Expected nr_frags %d, "
++				"corrupted nr_frags %d\n", tp->dev->name,
++				nr_frags, skb_shinfo(skb)->nr_frags);
++		}
++
+ 		pci_unmap_single(tp->pdev,
+ 				 pci_unmap_addr(ri, mapping),
+ 				 skb_headlen(skb),
+@@ -3339,7 +3347,7 @@ static void tg3_tx(struct tg3 *tp)
  
--static void inline copy_user_page(void *to, void *from, unsigned long vaddr,
-+static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
- 				struct page *topage)
- {
- 	copy_page(to, from);
+ 		sw_idx = NEXT_TX(sw_idx);
+ 
+-		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
++		for (i = 0; i < nr_frags; i++) {
+ 			ri = &tp->tx_buffers[sw_idx];
+ 			if (unlikely(ri->skb != NULL || sw_idx == hw_idx))
+ 				tx_bug = 1;
+@@ -4105,6 +4113,7 @@ static int tigon3_dma_hwbug_workaround(s
+ 				 len, PCI_DMA_TODEVICE);
+ 		if (i == 0) {
+ 			tp->tx_buffers[entry].skb = new_skb;
++			tp->tx_buffers[entry].nr_frags = 0;
+ 			pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, new_addr);
+ 		} else {
+ 			tp->tx_buffers[entry].skb = NULL;
+@@ -4211,6 +4220,7 @@ static int tg3_start_xmit(struct sk_buff
+ 	mapping = pci_map_single(tp->pdev, skb->data, len, PCI_DMA_TODEVICE);
+ 
+ 	tp->tx_buffers[entry].skb = skb;
++	tp->tx_buffers[entry].nr_frags = skb_shinfo(skb)->nr_frags;
+ 	pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, mapping);
+ 
+ 	tg3_set_txd(tp, entry, mapping, len, base_flags,
+@@ -4388,6 +4398,7 @@ static int tg3_start_xmit_dma_bug(struct
+ 	mapping = pci_map_single(tp->pdev, skb->data, len, PCI_DMA_TODEVICE);
+ 
+ 	tp->tx_buffers[entry].skb = skb;
++	tp->tx_buffers[entry].nr_frags = skb_shinfo(skb)->nr_frags;
+ 	pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, mapping);
+ 
+ 	would_hit_hwbug = 0;
+diff -puN drivers/net/tg3.h~tg3-debugging drivers/net/tg3.h
+--- a/drivers/net/tg3.h~tg3-debugging
++++ a/drivers/net/tg3.h
+@@ -2098,6 +2098,7 @@ struct tx_ring_info {
+ 	struct sk_buff			*skb;
+ 	DECLARE_PCI_UNMAP_ADDR(mapping)
+ 	u32				prev_vlan_tag;
++	unsigned short			nr_frags;
+ };
+ 
+ struct tg3_config_info {
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from mchan@broadcom.com are
 
-x86-fix-clearcopy_user_page-declarations-in-pageh.patch
+tg3-debugging.patch
