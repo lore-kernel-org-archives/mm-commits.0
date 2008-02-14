@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-move-zte-mf330-from-sierra-to-option.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:13:09 -0800
-Message-ID: <200802142113.m1ELD99a003197@imap1.linux-foundation.org>
+Subject: + flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:15:31 -0800
+Message-ID: <200802142115.m1ELFVI6003256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934487AbYBNVNt (ORCPT
+	by vger.kernel.org with ESMTP id S1753680AbYBNVQi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:13:49 -0500
+	Thu, 14 Feb 2008 16:16:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@sierrawireless.com, greg@kroah.com, klloyd@sierrawireless.com
+Cc: vapier.adi@gmail.com, bernds_cb1@t-online.de, gerg@snapgear.com, jie.zhang@analog.com, vapier@gentoo.org
 
 
 The patch titled
-     usb: serial: move zte MF330 from sierra to option
+     FLAT binaries: drop BINFMT_FLAT bad header magic warning
 has been added to the -mm tree.  Its filename is
-     usb-serial-move-zte-mf330-from-sierra-to-option.patch
+     flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: serial: move zte MF330 from sierra to option
-From: Kevin Lloyd <linux@sierrawireless.com>
+Subject: FLAT binaries: drop BINFMT_FLAT bad header magic warning
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Move the Onda H600/ZTE MF33 device from the sierra driver to the option
-driver.
+The warning issued by fs/binfmt_flat.c when the format handler is given a
+non-FLAT and non-script executable is annoying to say the least when working
+with FDPIC ELF objects.  If you build a kernel that supports both FLAT and
+FDPIC ELFs on no-mmu, every time you execute an FDPIC ELF, the kernel spits
+out this message.  While I understand a lot of newcomers to the no-mmu world
+screw up generation of FLAT binaries, this warning is not usable for systems
+that support more than just FLAT.
 
-Signed-off-by: Kevin Lloyd <klloyd@sierrawireless.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jie Zhang <jie.zhang@analog.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Bernd Schmidt <bernds_cb1@t-online.de>
+Acked-by: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |    3 +++
- drivers/usb/serial/sierra.c |    1 -
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/binfmt_flat.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-serial-move-zte-mf330-from-sierra-to-option drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-serial-move-zte-mf330-from-sierra-to-option
-+++ a/drivers/usb/serial/option.c
-@@ -121,6 +121,8 @@ static int  option_send_setup(struct usb
- #define BANDRICH_PRODUCT_C100_1			0x1002
- #define BANDRICH_PRODUCT_C100_2			0x1003
+diff -puN fs/binfmt_flat.c~flat-binaries-drop-binfmt_flat-bad-header-magic-warning fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~flat-binaries-drop-binfmt_flat-bad-header-magic-warning
++++ a/fs/binfmt_flat.c
+@@ -443,12 +443,12 @@ static int load_flat_file(struct linux_b
  
-+#define QUALCOMM_VENDOR_ID			0x05C6
-+
- static struct usb_device_id option_ids[] = {
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
- 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
-@@ -187,6 +189,7 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(ANYDATA_VENDOR_ID, ANYDATA_PRODUCT_ADU_500A) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_1) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_2) },
-+	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6613)}, /* Onda H600/ZTE MF330 */
- 	{ } /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, option_ids);
-diff -puN drivers/usb/serial/sierra.c~usb-serial-move-zte-mf330-from-sierra-to-option drivers/usb/serial/sierra.c
---- a/drivers/usb/serial/sierra.c~usb-serial-move-zte-mf330-from-sierra-to-option
-+++ a/drivers/usb/serial/sierra.c
-@@ -178,7 +178,6 @@ static struct usb_device_id id_table [] 
- 
- 	{ USB_DEVICE(0x1199, 0x0112), .driver_info = DEVICE_1_PORT }, /* Sierra Wireless AirCard 580 */
- 	{ USB_DEVICE(0x0F3D, 0x0112), .driver_info = DEVICE_1_PORT }, /* Airprime/Sierra PC 5220 */
--	{ USB_DEVICE(0x05C6, 0x6613), .driver_info = DEVICE_1_PORT }, /* Onda H600/ZTE MF330 */
- 
- 	{ USB_DEVICE(0x1199, 0x0FFF), .driver_info = DEVICE_INSTALLER},
- 	{ }
+ 	if (strncmp(hdr->magic, "bFLT", 4)) {
+ 		/*
++		 * Previously, here was a printk to tell people
++		 *   "BINFMT_FLAT: bad header magic".
++		 * But for the kernel which also use ELF FD-PIC format, this
++		 * error message is confusing.
+ 		 * because a lot of people do not manage to produce good
+-		 * flat binaries,  we leave this printk to help them realise
+-		 * the problem.  We only print the error if its not a script file
+ 		 */
+-		if (strncmp(hdr->magic, "#!", 2))
+-			printk("BINFMT_FLAT: bad header magic\n");
+ 		ret = -ENOEXEC;
+ 		goto err;
+ 	}
 _
 
-Patches currently in -mm which might be from linux@sierrawireless.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-usb-serial-move-zte-mf330-from-sierra-to-option.patch
+flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch
+git-watchdog.patch
