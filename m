@@ -1,259 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: + futex-runtime-enable-pi-and-robust-functionality.patch added to -mm tree
-Date: Thu, 14 Feb 2008 17:49:08 -0800
-Message-ID: <200802150149.m1F1n8Gx013909@imap1.linux-foundation.org>
+Subject: - git-block-git-conflicts.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:01:01 -0500
+Message-ID: <200802150204.m1F24Kwl014436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52608 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762350AbYBOBtv (ORCPT
+	by vger.kernel.org with ESMTP id S1755187AbYBOCFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 20:49:51 -0500
+	Thu, 14 Feb 2008 21:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, buytenh@wantstofly.org, mingo@elte.hu, riku.voipio@movial.fi, stable@kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: runtime enable pi and robust functionality
-has been added to the -mm tree.  Its filename is
-     futex-runtime-enable-pi-and-robust-functionality.patch
+     git-block-git-conflicts
+has been removed from the -mm tree.  Its filename was
+     git-block-git-conflicts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: runtime enable pi and robust functionality
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: git-block-git-conflicts
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Not all architectures implement futex_atomic_cmpxchg_inatomic().  The default
-implementation returns -ENOSYS, which is currently not handled inside of the
-futex guts.
-
-Futex PI calls and robust list exits with a held futex result in an endless
-loop in the futex code on architectures which have no support.
-
-Fixing up every place where futex_atomic_cmpxchg_inatomic() is called would
-add a fair amount of extra if/else constructs to the already complex code.  It
-is also not possible to disable the robust feature before user space tries to
-register robust lists.
-
-Compile time disabling is not a good idea either, as there are already
-architectures with runtime detection of futex_atomic_cmpxchg_inatomic support.
-
-Detect the functionality at runtime instead by calling
-cmpxchg_futex_value_locked() with a NULL pointer from the futex initialization
-code.  This is guaranteed to fail, but the call of
-futex_atomic_cmpxchg_inatomic() happens with pagefaults disabled.
-
-On architectures, which use the asm-generic implementation or have a runtime
-CPU feature detection, a -ENOSYS return value disables the PI/robust features.
-
-On architectures with a working implementation the call returns -EFAULT and
-the PI/robust features are enabled.
-
-The relevant syscalls return -ENOSYS and the robust list exit code is blocked,
-when the detection fails.
-
-Fixes http://lkml.org/lkml/2008/2/11/149
-Originally reported by: Lennart Buytenhek
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: Riku Voipio <riku.voipio@movial.fi>
-Cc: <stable@kernel.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |    1 +
- kernel/futex.c        |   38 ++++++++++++++++++++++++++++++++++----
- kernel/futex_compat.c |    9 +++++++++
- 3 files changed, 44 insertions(+), 4 deletions(-)
+ fs/splice.c |  126 --------------------------------------------------
+ 1 file changed, 126 deletions(-)
 
-diff -puN include/linux/futex.h~futex-runtime-enable-pi-and-robust-functionality include/linux/futex.h
---- a/include/linux/futex.h~futex-runtime-enable-pi-and-robust-functionality
-+++ a/include/linux/futex.h
-@@ -167,6 +167,7 @@ union futex_key {
- #ifdef CONFIG_FUTEX
- extern void exit_robust_list(struct task_struct *curr);
- extern void exit_pi_state_list(struct task_struct *curr);
-+extern int futex_cmpxchg_enabled;
- #else
- static inline void exit_robust_list(struct task_struct *curr)
- {
-diff -puN kernel/futex.c~futex-runtime-enable-pi-and-robust-functionality kernel/futex.c
---- a/kernel/futex.c~futex-runtime-enable-pi-and-robust-functionality
-+++ a/kernel/futex.c
-@@ -60,6 +60,8 @@
+diff -puN fs/splice.c~git-block-git-conflicts fs/splice.c
+--- a/fs/splice.c~git-block-git-conflicts
++++ a/fs/splice.c
+@@ -1517,132 +1517,6 @@ static int get_iovec_page_array(const st
+ 	return error;
+ }
  
- #include "rtmutex_common.h"
- 
-+int __read_mostly futex_cmpxchg_enabled;
-+
- #define FUTEX_HASHBITS (CONFIG_BASE_SMALL ? 4 : 8)
- 
- /*
-@@ -469,6 +471,8 @@ void exit_pi_state_list(struct task_stru
- 	struct futex_hash_bucket *hb;
- 	union futex_key key;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return;
- 	/*
- 	 * We are a ZOMBIE and nobody can enqueue itself on
- 	 * pi_state_list anymore, but we have to be careful
-@@ -1870,6 +1874,8 @@ asmlinkage long
- sys_set_robust_list(struct robust_list_head __user *head,
- 		    size_t len)
- {
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
- 	/*
- 	 * The kernel knows only one size for now:
- 	 */
-@@ -1894,6 +1900,9 @@ sys_get_robust_list(int pid, struct robu
- 	struct robust_list_head __user *head;
- 	unsigned long ret;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (!pid)
- 		head = current->robust_list;
- 	else {
-@@ -1997,6 +2006,9 @@ void exit_robust_list(struct task_struct
- 	unsigned long futex_offset;
- 	int rc;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return;
-+
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
- 	 * sys_set_robust_list()):
-@@ -2051,7 +2063,7 @@ void exit_robust_list(struct task_struct
- long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
- 		u32 __user *uaddr2, u32 val2, u32 val3)
- {
+-<<<<<<< HEAD/fs/splice.c
+-static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
+-			struct splice_desc *sd)
+-{
+-	char *src;
 -	int ret;
-+	int ret = -ENOSYS;
- 	int cmd = op & FUTEX_CMD_MASK;
- 	struct rw_semaphore *fshared = NULL;
- 
-@@ -2083,13 +2095,16 @@ long do_futex(u32 __user *uaddr, int op,
- 		ret = futex_wake_op(uaddr, fshared, uaddr2, val, val2, val3);
- 		break;
- 	case FUTEX_LOCK_PI:
--		ret = futex_lock_pi(uaddr, fshared, val, timeout, 0);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_lock_pi(uaddr, fshared, val, timeout, 0);
- 		break;
- 	case FUTEX_UNLOCK_PI:
--		ret = futex_unlock_pi(uaddr, fshared);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_unlock_pi(uaddr, fshared);
- 		break;
- 	case FUTEX_TRYLOCK_PI:
--		ret = futex_lock_pi(uaddr, fshared, 0, timeout, 1);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_lock_pi(uaddr, fshared, 0, timeout, 1);
- 		break;
- 	default:
- 		ret = -ENOSYS;
-@@ -2145,8 +2160,23 @@ static struct file_system_type futex_fs_
- 
- static int __init init(void)
- {
-+	u32 curval;
- 	int i;
- 
-+	/*
-+	 * This will fail and we want it. Some arch implementations do
-+	 * runtime detection of the futex_atomic_cmpxchg_inatomic()
-+	 * functionality. We want to know that before we call in any
-+	 * of the complex code paths. Also we want to prevent
-+	 * registration of robust lists in that case. NULL is
-+	 * guaranteed to fault and we get -EFAULT on functional
-+	 * implementation, the non functional ones will return
-+	 * -ENOSYS.
-+	 */
-+	curval = cmpxchg_futex_value_locked(NULL, 0, 0);
-+	if (curval == -EFAULT)
-+		futex_cmpxchg_enabled = 1;
-+
- 	for (i = 0; i < ARRAY_SIZE(futex_queues); i++) {
- 		plist_head_init(&futex_queues[i].chain, &futex_queues[i].lock);
- 		spin_lock_init(&futex_queues[i].lock);
-diff -puN kernel/futex_compat.c~futex-runtime-enable-pi-and-robust-functionality kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex-runtime-enable-pi-and-robust-functionality
-+++ a/kernel/futex_compat.c
-@@ -54,6 +54,9 @@ void compat_exit_robust_list(struct task
- 	compat_long_t futex_offset;
- 	int rc;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return;
-+
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
- 	 * sys_set_robust_list()):
-@@ -115,6 +118,9 @@ asmlinkage long
- compat_sys_set_robust_list(struct compat_robust_list_head __user *head,
- 			   compat_size_t len)
- {
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (unlikely(len != sizeof(*head)))
- 		return -EINVAL;
- 
-@@ -130,6 +136,9 @@ compat_sys_get_robust_list(int pid, comp
- 	struct compat_robust_list_head __user *head;
- 	unsigned long ret;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (!pid)
- 		head = current->compat_robust_list;
- 	else {
+-
+-	ret = buf->ops->confirm(pipe, buf);
+-	if (unlikely(ret))
+-		return ret;
+-
+-	/*
+-	 * See if we can use the atomic maps, by prefaulting in the
+-	 * pages and doing an atomic copy
+-	 */
+-	if (!fault_in_pages_writeable(sd->u.userptr, sd->len)) {
+-		src = buf->ops->map(pipe, buf, 1);
+-		ret = __copy_to_user_inatomic(sd->u.userptr, src + buf->offset,
+-							sd->len);
+-		buf->ops->unmap(pipe, buf, src);
+-		if (!ret) {
+-			ret = sd->len;
+-			goto out;
+-		}
+-	}
+-
+-	/*
+-	 * No dice, use slow non-atomic map and copy
+- 	 */
+-	src = buf->ops->map(pipe, buf, 0);
+-
+-	ret = sd->len;
+-	if (copy_to_user(sd->u.userptr, src + buf->offset, sd->len))
+-		ret = -EFAULT;
+-
+-	buf->ops->unmap(pipe, buf, src);
+-out:
+-	if (ret > 0)
+-		sd->u.userptr += ret;
+-	return ret;
+-}
+-
+-/*
+- * For lack of a better implementation, implement vmsplice() to userspace
+- * as a simple copy of the pipes pages to the user iov.
+- */
+-static long vmsplice_to_user(struct file *file, const struct iovec __user *iov,
+-			     unsigned long nr_segs, unsigned int flags)
+-{
+-	struct pipe_inode_info *pipe;
+-	struct splice_desc sd;
+-	ssize_t size;
+-	int error;
+-	long ret;
+-
+-	pipe = pipe_info(file->f_path.dentry->d_inode);
+-	if (!pipe)
+-		return -EBADF;
+-
+-	if (pipe->inode)
+-		mutex_lock(&pipe->inode->i_mutex);
+-
+-	error = ret = 0;
+-	while (nr_segs) {
+-		void __user *base;
+-		size_t len;
+-
+-		/*
+-		 * Get user address base and length for this iovec.
+-		 */
+-		error = get_user(base, &iov->iov_base);
+-		if (unlikely(error))
+-			break;
+-		error = get_user(len, &iov->iov_len);
+-		if (unlikely(error))
+-			break;
+-
+-		/*
+-		 * Sanity check this iovec. 0 read succeeds.
+-		 */
+-		if (unlikely(!len))
+-			break;
+-		if (unlikely(!base)) {
+-			error = -EFAULT;
+-			break;
+-		}
+-
+-		if (unlikely(!access_ok(VERIFY_WRITE, base, len))) {
+-			error = -EFAULT;
+-			break;
+-		}
+-
+-		sd.len = 0;
+-		sd.total_len = len;
+-		sd.flags = flags;
+-		sd.u.userptr = base;
+-		sd.pos = 0;
+-
+-		size = __splice_from_pipe(pipe, &sd, pipe_to_user);
+-		if (size < 0) {
+-			if (!ret)
+-				ret = size;
+-
+-			break;
+-		}
+-
+-		ret += size;
+-
+-		if (size < len)
+-			break;
+-
+-		nr_segs--;
+-		iov++;
+-	}
+-
+-	if (pipe->inode)
+-		mutex_unlock(&pipe->inode->i_mutex);
+-
+-	if (!ret)
+-		ret = error;
+-
+-	return ret;
+-}
+-
+-=======
+->>>>>>> /fs/splice.c
+ /*
+  * vmsplice splices a user address range into a pipe. It can be thought of
+  * as splice-from-memory, where the regular splice is splice-from-file (or
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hrtimer-fix-abs-clock-realtimepatch.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+introduce-path_put.patch
+one-less-parameter-to-__d_path.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+d_path-make-d_path-use-a-struct-path.patch
+softlockup-workaround.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
+git-md-accel.patch
+git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-pci-disable-decoding-during-sizing-of-bars.patch
-execute-tasklets-in-the-same-order-they-were-queued.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
 git-x86.patch
+git-x86-vs-git-kvm.patch
 git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-x86-visws-fix-printk-format-warnings.patch
-x86-minor-cleanup-of-comments-in-processorh.patch
-documentation-i386-io-apictxt-fix-description.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
-rtc-cmos-display-hpet-emulation-mode.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-xtime_lock-vs-update_process_times.patch
-dmi-prevent-linked-list-corruption-resent.patch
-x86-fix-clearcopy_user_page-declarations-in-pageh.patch
-futex-fix-init-order.patch
-futex-runtime-enable-pi-and-robust-functionality.patch
-futex-disable-pi-robust-on-archs-w-o-valid-implementation.patch
-x86-configurable-dmi-scanning-code.patch
-asm-futexh-should-include-linux-uaccessh.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
