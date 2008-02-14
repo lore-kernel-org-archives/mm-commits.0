@@ -1,354 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-data-corruption-caused-by-ses.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:32:16 -0800
-Message-ID: <200802140032.m1E0WG7p022394@imap1.linux-foundation.org>
+Subject: - ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 16:29:08 -0800
+Message-ID: <200802140029.m1E0T8Zj022238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935327AbYBNAc1 (ORCPT
+	by vger.kernel.org with ESMTP id S934909AbYBNAdv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:32:27 -0500
+	Wed, 13 Feb 2008 19:33:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, James.Bottomley@HansenPartnership.com, yinghai.lu@Sun.COM
+To: cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SCSI: fix data corruption caused by ses
-has been added to the -mm tree.  Its filename is
-     scsi-fix-data-corruption-caused-by-ses.patch
+     ipmi: convert locked counters to atomics in the system interface
+has been removed from the -mm tree.  Its filename was
+     ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SCSI: fix data corruption caused by ses
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: ipmi: convert locked counters to atomics in the system interface
+From: Corey Minyard <cminyard@mvista.com>
 
-one system: initrd get courrupted:
+Atomics are faster and neater than locked counters.
 
-RAMDISK: Compressed image found at block 0
-RAMDISK: incomplete write (-28 != 2048) 134217728
-crc error
-VFS: Mounted root (ext2 filesystem).
-Freeing unused kernel memory: 388k freed
-init_special_inode: bogus i_mode (177777)
-Warning: unable to open an initial console.
-init_special_inode: bogus i_mode (177777)
-init_special_inode: bogus i_mode (177777)
-Kernel panic - not syncing: No init found.  Try passing init= option to kernel.
-
-bisected to
-commit 9927c68864e9c39cc317b4f559309ba29e642168
-Author: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date:   Sun Feb 3 15:48:56 2008 -0600
-
-    [SCSI] ses: add new Enclosure ULD
-
-changes:
-1. change char to unsigned char to avoid type change later.
-2. preserve len for page1
-3. need to move desc_ptr even the entry is not enclosure_component_device/raid.
-   so keep desc_ptr on right position
-4. record page7 len, and double check if desc_ptr out of boundary before touch.
-5. fix typo in subenclosure checking: should use hdr_buf instead.
-
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ses.c |  113 +++++++++++++++++++++++--------------------
- 1 file changed, 61 insertions(+), 52 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |  131 ++++++++++++-----------------
+ 1 file changed, 57 insertions(+), 74 deletions(-)
 
-diff -puN drivers/scsi/ses.c~scsi-fix-data-corruption-caused-by-ses drivers/scsi/ses.c
---- a/drivers/scsi/ses.c~scsi-fix-data-corruption-caused-by-ses
-+++ a/drivers/scsi/ses.c
-@@ -33,9 +33,9 @@
- #include <scsi/scsi_host.h>
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -120,6 +120,22 @@ static struct device_driver ipmi_driver 
+ 	.bus = &platform_bus_type
+ };
  
- struct ses_device {
--	char *page1;
--	char *page2;
--	char *page10;
-+	unsigned char *page1;
-+	unsigned char *page2;
-+	unsigned char *page10;
- 	short page1_len;
- 	short page2_len;
- 	short page10_len;
-@@ -67,7 +67,7 @@ static int ses_probe(struct device *dev)
- static int ses_recv_diag(struct scsi_device *sdev, int page_code,
- 			 void *buf, int bufflen)
++struct smi_stats
++{
++	atomic_t short_timeouts;
++	atomic_t long_timeouts;
++	atomic_t timeout_restarts;
++	atomic_t idles;
++	atomic_t interrupts;
++	atomic_t attentions;
++	atomic_t flag_fetches;
++	atomic_t hosed_count;
++	atomic_t complete_transactions;
++	atomic_t events;
++	atomic_t watchdog_pretimeouts;
++	atomic_t incoming_messages;
++};
++
+ struct smi_info
  {
--	char cmd[] = {
-+	unsigned char cmd[] = {
- 		RECEIVE_DIAGNOSTIC,
- 		1,		/* Set PCV bit */
- 		page_code,
-@@ -85,7 +85,7 @@ static int ses_send_diag(struct scsi_dev
- {
- 	u32 result;
+ 	int                    intf_num;
+@@ -216,25 +232,17 @@ struct smi_info
+ 	unsigned char slave_addr;
  
--	char cmd[] = {
-+	unsigned char cmd[] = {
- 		SEND_DIAGNOSTIC,
- 		0x10,		/* Set PF bit */
- 		0,
-@@ -104,13 +104,13 @@ static int ses_send_diag(struct scsi_dev
+ 	/* Counters and things for the proc filesystem. */
+-	spinlock_t count_lock;
+-	unsigned long short_timeouts;
+-	unsigned long long_timeouts;
+-	unsigned long timeout_restarts;
+-	unsigned long idles;
+-	unsigned long interrupts;
+-	unsigned long attentions;
+-	unsigned long flag_fetches;
+-	unsigned long hosed_count;
+-	unsigned long complete_transactions;
+-	unsigned long events;
+-	unsigned long watchdog_pretimeouts;
+-	unsigned long incoming_messages;
++	struct smi_stats stats;
  
- static int ses_set_page2_descriptor(struct enclosure_device *edev,
- 				      struct enclosure_component *ecomp,
--				      char *desc)
-+				      unsigned char *desc)
- {
- 	int i, j, count = 0, descriptor = ecomp->number;
- 	struct scsi_device *sdev = to_scsi_device(edev->cdev.dev);
- 	struct ses_device *ses_dev = edev->scratch;
--	char *type_ptr = ses_dev->page1 + 12 + ses_dev->page1[11];
--	char *desc_ptr = ses_dev->page2 + 8;
-+	unsigned char *type_ptr = ses_dev->page1 + 12 + ses_dev->page1[11];
-+	unsigned char *desc_ptr = ses_dev->page2 + 8;
+         struct task_struct *thread;
  
- 	/* Clear everything */
- 	memset(desc_ptr, 0, ses_dev->page2_len - 8);
-@@ -133,14 +133,14 @@ static int ses_set_page2_descriptor(stru
- 	return ses_send_diag(sdev, 2, ses_dev->page2, ses_dev->page2_len);
- }
+ 	struct list_head link;
+ };
  
--static char *ses_get_page2_descriptor(struct enclosure_device *edev,
-+static unsigned char *ses_get_page2_descriptor(struct enclosure_device *edev,
- 				      struct enclosure_component *ecomp)
- {
- 	int i, j, count = 0, descriptor = ecomp->number;
- 	struct scsi_device *sdev = to_scsi_device(edev->cdev.dev);
- 	struct ses_device *ses_dev = edev->scratch;
--	char *type_ptr = ses_dev->page1 + 12 + ses_dev->page1[11];
--	char *desc_ptr = ses_dev->page2 + 8;
-+	unsigned char *type_ptr = ses_dev->page1 + 12 + ses_dev->page1[11];
-+	unsigned char *desc_ptr = ses_dev->page2 + 8;
++#define smi_inc_stat(smi, stat) atomic_inc(&(smi)->stats.stat)
++#define smi_get_stat(smi, stat) \
++	((unsigned int) atomic_read(&smi->stats.stat))
++
+ #define SI_MAX_PARMS 4
  
- 	ses_recv_diag(sdev, 2, ses_dev->page2, ses_dev->page2_len);
+ static int force_kipmid[SI_MAX_PARMS];
+@@ -398,9 +406,7 @@ static void handle_flags(struct smi_info
+  retry:
+ 	if (smi_info->msg_flags & WDT_PRE_TIMEOUT_INT) {
+ 		/* Watchdog pre-timeout */
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->watchdog_pretimeouts++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, watchdog_pretimeouts);
  
-@@ -160,17 +160,18 @@ static char *ses_get_page2_descriptor(st
- static void ses_get_fault(struct enclosure_device *edev,
- 			  struct enclosure_component *ecomp)
- {
--	char *desc;
-+	unsigned char *desc;
+ 		start_clear_flags(smi_info);
+ 		smi_info->msg_flags &= ~WDT_PRE_TIMEOUT_INT;
+@@ -545,9 +551,7 @@ static void handle_transaction_done(stru
+ 			smi_info->msg_flags &= ~EVENT_MSG_BUFFER_FULL;
+ 			handle_flags(smi_info);
+ 		} else {
+-			spin_lock(&smi_info->count_lock);
+-			smi_info->events++;
+-			spin_unlock(&smi_info->count_lock);
++			smi_inc_stat(smi_info, events);
  
- 	desc = ses_get_page2_descriptor(edev, ecomp);
--	ecomp->fault = (desc[3] & 0x60) >> 4;
-+	if (desc)
-+		ecomp->fault = (desc[3] & 0x60) >> 4;
- }
+ 			/* Do this before we deliver the message
+ 			   because delivering the message releases the
+@@ -581,9 +585,7 @@ static void handle_transaction_done(stru
+ 			smi_info->msg_flags &= ~RECEIVE_MSG_AVAIL;
+ 			handle_flags(smi_info);
+ 		} else {
+-			spin_lock(&smi_info->count_lock);
+-			smi_info->incoming_messages++;
+-			spin_unlock(&smi_info->count_lock);
++			smi_inc_stat(smi_info, incoming_messages);
  
- static int ses_set_fault(struct enclosure_device *edev,
- 			  struct enclosure_component *ecomp,
- 			 enum enclosure_component_setting val)
- {
--	char desc[4] = {0 };
-+	unsigned char desc[4] = {0 };
+ 			/* Do this before we deliver the message
+ 			   because delivering the message releases the
+@@ -700,18 +702,14 @@ static enum si_sm_result smi_event_handl
  
- 	switch (val) {
- 	case ENCLOSURE_SETTING_DISABLED:
-@@ -190,26 +191,28 @@ static int ses_set_fault(struct enclosur
- static void ses_get_status(struct enclosure_device *edev,
- 			   struct enclosure_component *ecomp)
- {
--	char *desc;
-+	unsigned char *desc;
+ 	if (si_sm_result == SI_SM_TRANSACTION_COMPLETE)
+ 	{
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->complete_transactions++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, complete_transactions);
  
- 	desc = ses_get_page2_descriptor(edev, ecomp);
--	ecomp->status = (desc[0] & 0x0f);
-+	if (desc)
-+		ecomp->status = (desc[0] & 0x0f);
- }
+ 		handle_transaction_done(smi_info);
+ 		si_sm_result = smi_info->handlers->event(smi_info->si_sm, 0);
+ 	}
+ 	else if (si_sm_result == SI_SM_HOSED)
+ 	{
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->hosed_count++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, hosed_count);
  
- static void ses_get_locate(struct enclosure_device *edev,
- 			   struct enclosure_component *ecomp)
- {
--	char *desc;
-+	unsigned char *desc;
+ 		/* Do the before return_hosed_msg, because that
+ 		   releases the lock. */
+@@ -733,9 +731,7 @@ static enum si_sm_result smi_event_handl
+ 	{
+ 		unsigned char msg[2];
  
- 	desc = ses_get_page2_descriptor(edev, ecomp);
--	ecomp->locate = (desc[2] & 0x02) ? 1 : 0;
-+	if (desc)
-+		ecomp->locate = (desc[2] & 0x02) ? 1 : 0;
- }
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->attentions++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, attentions);
  
- static int ses_set_locate(struct enclosure_device *edev,
- 			  struct enclosure_component *ecomp,
- 			  enum enclosure_component_setting val)
- {
--	char desc[4] = {0 };
-+	unsigned char desc[4] = {0 };
+ 		/* Got a attn, send down a get message flags to see
+                    what's causing it.  It would be better to handle
+@@ -753,9 +749,7 @@ static enum si_sm_result smi_event_handl
  
- 	switch (val) {
- 	case ENCLOSURE_SETTING_DISABLED:
-@@ -229,7 +232,7 @@ static int ses_set_active(struct enclosu
- 			  struct enclosure_component *ecomp,
- 			  enum enclosure_component_setting val)
- {
--	char desc[4] = {0 };
-+	unsigned char desc[4] = {0 };
+ 	/* If we are currently idle, try to start the next message. */
+ 	if (si_sm_result == SI_SM_IDLE) {
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->idles++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, idles);
  
- 	switch (val) {
- 	case ENCLOSURE_SETTING_DISABLED:
-@@ -409,11 +412,11 @@ static int ses_intf_add(struct class_dev
- {
- 	struct scsi_device *sdev = to_scsi_device(cdev->dev);
- 	struct scsi_device *tmp_sdev;
--	unsigned char *buf = NULL, *hdr_buf, *type_ptr, *desc_ptr,
--		*addl_desc_ptr;
-+	unsigned char *buf = NULL, *hdr_buf, *type_ptr, *desc_ptr = NULL,
-+		*addl_desc_ptr = NULL;
- 	struct ses_device *ses_dev;
- 	u32 result;
--	int i, j, types, len, components = 0;
-+	int i, j, types, len, page7_len = 0, components = 0;
- 	int err = -ENOMEM;
- 	struct enclosure_device *edev;
- 	struct ses_component *scomp = NULL;
-@@ -447,7 +450,7 @@ static int ses_intf_add(struct class_dev
- 		 * traversal routines more complex */
- 		sdev_printk(KERN_ERR, sdev,
- 			"FIXME driver has no support for subenclosures (%d)\n",
--			buf[1]);
-+			hdr_buf[1]);
- 		goto err_free;
+ 		si_sm_result = start_next_msg(smi_info);
+ 		if (si_sm_result != SI_SM_IDLE)
+@@ -945,23 +939,17 @@ static void smi_timeout(unsigned long da
+ 	if ((smi_info->irq) && (!smi_info->interrupt_disabled)) {
+ 		/* Running with interrupts, only do long timeouts. */
+ 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->long_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, long_timeouts);
+ 		goto do_add_timer;
  	}
  
-@@ -461,9 +464,8 @@ static int ses_intf_add(struct class_dev
- 		goto recv_failed;
- 
- 	types = buf[10];
--	len = buf[11];
- 
--	type_ptr = buf + 12 + len;
-+	type_ptr = buf + 12 + buf[11];
- 
- 	for (i = 0; i < types; i++, type_ptr += 4) {
- 		if (type_ptr[0] == ENCLOSURE_COMPONENT_DEVICE ||
-@@ -494,22 +496,21 @@ static int ses_intf_add(struct class_dev
- 	/* The additional information page --- allows us
- 	 * to match up the devices */
- 	result = ses_recv_diag(sdev, 10, hdr_buf, INIT_ALLOC_SIZE);
--	if (result)
--		goto no_page10;
--
--	len = (hdr_buf[2] << 8) + hdr_buf[3] + 4;
--	buf = kzalloc(len, GFP_KERNEL);
--	if (!buf)
--		goto err_free;
-+	if (!result) {
- 
--	result = ses_recv_diag(sdev, 10, buf, len);
--	if (result)
--		goto recv_failed;
--	ses_dev->page10 = buf;
--	ses_dev->page10_len = len;
--	buf = NULL;
-+		len = (hdr_buf[2] << 8) + hdr_buf[3] + 4;
-+		buf = kzalloc(len, GFP_KERNEL);
-+		if (!buf)
-+			goto err_free;
-+
-+		result = ses_recv_diag(sdev, 10, buf, len);
-+		if (result)
-+			goto recv_failed;
-+		ses_dev->page10 = buf;
-+		ses_dev->page10_len = len;
-+		buf = NULL;
-+	}
- 
-- no_page10:
- 	scomp = kzalloc(sizeof(struct ses_component) * components, GFP_KERNEL);
- 	if (!scomp)
- 		goto err_free;
-@@ -530,7 +531,7 @@ static int ses_intf_add(struct class_dev
- 	if (result)
- 		goto simple_populate;
- 
--	len = (hdr_buf[2] << 8) + hdr_buf[3] + 4;
-+	page7_len = len = (hdr_buf[2] << 8) + hdr_buf[3] + 4;
- 	/* add 1 for trailing '\0' we'll use */
- 	buf = kzalloc(len + 1, GFP_KERNEL);
- 	if (!buf)
-@@ -547,7 +548,8 @@ static int ses_intf_add(struct class_dev
- 		len = (desc_ptr[2] << 8) + desc_ptr[3];
- 		/* skip past overall descriptor */
- 		desc_ptr += len + 4;
--		addl_desc_ptr = ses_dev->page10 + 8;
-+		if (ses_dev->page10)
-+			addl_desc_ptr = ses_dev->page10 + 8;
+ 	/* If the state machine asks for a short delay, then shorten
+            the timer timeout. */
+ 	if (smi_result == SI_SM_CALL_WITH_DELAY) {
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->short_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, short_timeouts);
+ 		smi_info->si_timer.expires = jiffies + 1;
+ 	} else {
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->long_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, long_timeouts);
+ 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
  	}
- 	type_ptr = ses_dev->page1 + 12 + ses_dev->page1[11];
- 	components = 0;
-@@ -557,6 +559,10 @@ static int ses_intf_add(struct class_dev
- 			struct enclosure_component *ecomp;
  
- 			if (desc_ptr) {
-+				if (desc_ptr >= buf + page7_len) {
-+					desc_ptr = NULL;
-+					goto noname;
-+				}
- 				len = (desc_ptr[2] << 8) + desc_ptr[3];
- 				desc_ptr += 4;
- 				/* Add trailing zero - pushes into
-@@ -564,22 +570,25 @@ static int ses_intf_add(struct class_dev
- 				desc_ptr[len] = '\0';
- 				name = desc_ptr;
- 			}
--			if (type_ptr[0] != ENCLOSURE_COMPONENT_DEVICE &&
--			    type_ptr[0] != ENCLOSURE_COMPONENT_ARRAY_DEVICE)
--				continue;
--			ecomp =	enclosure_component_register(edev,
-+		noname:
-+			if (type_ptr[0] == ENCLOSURE_COMPONENT_DEVICE ||
-+			    type_ptr[0] == ENCLOSURE_COMPONENT_ARRAY_DEVICE) {
-+
-+				ecomp =	enclosure_component_register(edev,
- 							     components++,
- 							     type_ptr[0],
- 							     name);
--			if (desc_ptr) {
--				desc_ptr += len;
--				if (!IS_ERR(ecomp))
-+
-+				if (!IS_ERR(ecomp) && addl_desc_ptr)
- 					ses_process_descriptor(ecomp,
- 							       addl_desc_ptr);
--
--				if (addl_desc_ptr)
--					addl_desc_ptr += addl_desc_ptr[1] + 2;
- 			}
-+			if (desc_ptr)
-+				desc_ptr += len;
-+
-+			if (addl_desc_ptr)
-+				addl_desc_ptr += addl_desc_ptr[1] + 2;
-+
- 		}
- 	}
- 	kfree(buf);
+@@ -979,9 +967,7 @@ static irqreturn_t si_irq_handler(int ir
+ 
+ 	spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 
+-	spin_lock(&smi_info->count_lock);
+-	smi_info->interrupts++;
+-	spin_unlock(&smi_info->count_lock);
++	smi_inc_stat(smi_info, interrupts);
+ 
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+@@ -1765,9 +1751,7 @@ static u32 ipmi_acpi_gpe(void *context)
+ 
+ 	spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 
+-	spin_lock(&smi_info->count_lock);
+-	smi_info->interrupts++;
+-	spin_unlock(&smi_info->count_lock);
++	smi_inc_stat(smi_info, interrupts);
+ 
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+@@ -2405,30 +2389,30 @@ static int stat_file_read_proc(char *pag
+ 
+ 	out += sprintf(out, "interrupts_enabled:    %d\n",
+ 		       smi->irq && !smi->interrupt_disabled);
+-	out += sprintf(out, "short_timeouts:        %ld\n",
+-		       smi->short_timeouts);
+-	out += sprintf(out, "long_timeouts:         %ld\n",
+-		       smi->long_timeouts);
+-	out += sprintf(out, "timeout_restarts:      %ld\n",
+-		       smi->timeout_restarts);
+-	out += sprintf(out, "idles:                 %ld\n",
+-		       smi->idles);
+-	out += sprintf(out, "interrupts:            %ld\n",
+-		       smi->interrupts);
+-	out += sprintf(out, "attentions:            %ld\n",
+-		       smi->attentions);
+-	out += sprintf(out, "flag_fetches:          %ld\n",
+-		       smi->flag_fetches);
+-	out += sprintf(out, "hosed_count:           %ld\n",
+-		       smi->hosed_count);
+-	out += sprintf(out, "complete_transactions: %ld\n",
+-		       smi->complete_transactions);
+-	out += sprintf(out, "events:                %ld\n",
+-		       smi->events);
+-	out += sprintf(out, "watchdog_pretimeouts:  %ld\n",
+-		       smi->watchdog_pretimeouts);
+-	out += sprintf(out, "incoming_messages:     %ld\n",
+-		       smi->incoming_messages);
++	out += sprintf(out, "short_timeouts:        %u\n",
++		       smi_get_stat(smi, short_timeouts));
++	out += sprintf(out, "long_timeouts:         %u\n",
++		       smi_get_stat(smi, long_timeouts));
++	out += sprintf(out, "timeout_restarts:      %u\n",
++		       smi_get_stat(smi, timeout_restarts));
++	out += sprintf(out, "idles:                 %u\n",
++		       smi_get_stat(smi, idles));
++	out += sprintf(out, "interrupts:            %u\n",
++		       smi_get_stat(smi, interrupts));
++	out += sprintf(out, "attentions:            %u\n",
++		       smi_get_stat(smi, attentions));
++	out += sprintf(out, "flag_fetches:          %u\n",
++		       smi_get_stat(smi, flag_fetches));
++	out += sprintf(out, "hosed_count:           %u\n",
++		       smi_get_stat(smi, hosed_count));
++	out += sprintf(out, "complete_transactions: %u\n",
++		       smi_get_stat(smi, complete_transactions));
++	out += sprintf(out, "events:                %u\n",
++		       smi_get_stat(smi, events));
++	out += sprintf(out, "watchdog_pretimeouts:  %u\n",
++		       smi_get_stat(smi, watchdog_pretimeouts));
++	out += sprintf(out, "incoming_messages:     %u\n",
++		       smi_get_stat(smi, incoming_messages));
+ 
+ 	return out - page;
+ }
+@@ -2738,7 +2722,6 @@ static int try_smi_init(struct smi_info 
+ 
+ 	spin_lock_init(&(new_smi->si_lock));
+ 	spin_lock_init(&(new_smi->msg_lock));
+-	spin_lock_init(&(new_smi->count_lock));
+ 
+ 	/* Do low-level detection first. */
+ 	if (new_smi->handlers->detect(new_smi->si_sm)) {
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-origin.patch
-scsi-fix-data-corruption-caused-by-ses.patch
-git-x86.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+git-watchdog.patch
+ipmi-hold-attn-until-upper-layer-ready.patch
+ipmi-change-device-node-ordering-to-reflect-probe-order.patch
+ipmi-run-to-completion-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-dont-grab-locks-in-run-to-completion-mode.patch
+ipmi-dont-print-event-queue-full-on-every-event.patch
+ipmi-update-driver-version.patch
+ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
+ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
