@@ -1,37 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - one-less-parameter-to-__d_path-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 15:24:32 -0800
-Message-ID: <200802142324.m1ENOWGB008490@imap1.linux-foundation.org>
+Subject: - d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 15:25:03 -0800
+Message-ID: <200802142325.m1ENP3PH008502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54174 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757722AbYBNXZH (ORCPT
+	by vger.kernel.org with ESMTP id S1756955AbYBNXZf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 18:25:07 -0500
+	Thu, 14 Feb 2008 18:25:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jblunck@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     one-less-parameter-to-__d_path-checkpatch-fixes
+     d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     one-less-parameter-to-__d_path-checkpatch-fixes.patch
+     d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into one-less-parameter-to-__d_path.patch
+This patch was dropped because it was folded into d_path-use-struct-path-in-struct-avc_audit_data.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: one-less-parameter-to-__d_path-checkpatch-fixes
+Subject: d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#28: FILE: fs/dcache.c:1782:
-+static char * __d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
+ERROR: need space after that ',' (ctx:VxV)
+#43: FILE: include/linux/audit.h:547:
++#define audit_log_d_path(b,p,d) do { ; } while (0)
+                           ^
 
-total: 1 errors, 0 warnings, 36 lines checked
+ERROR: need space after that ',' (ctx:VxV)
+#43: FILE: include/linux/audit.h:547:
++#define audit_log_d_path(b,p,d) do { ; } while (0)
+                             ^
+
+WARNING: line over 80 characters
+#182: FILE: security/selinux/avc.c:630:
++						struct path path = { .dentry = u->dentry,
+
+WARNING: line over 80 characters
+#183: FILE: security/selinux/avc.c:631:
++								     .mnt = u->mnt };
+
+total: 2 errors, 2 warnings, 258 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
@@ -42,21 +56,38 @@ Cc: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/audit.h  |    2 +-
+ security/selinux/avc.c |    6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/dcache.c~one-less-parameter-to-__d_path-checkpatch-fixes fs/dcache.c
---- a/fs/dcache.c~one-less-parameter-to-__d_path-checkpatch-fixes
-+++ a/fs/dcache.c
-@@ -1776,7 +1776,7 @@ shouldnt_be_hashed:
-  *
-  * "buflen" should be positive. Caller holds the dcache_lock.
-  */
--static char * __d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
-+static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
- 		       struct path *root, char *buffer, int buflen)
- {
- 	char * end = buffer+buflen;
+diff -puN include/linux/audit.h~d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes include/linux/audit.h
+--- a/include/linux/audit.h~d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes
++++ a/include/linux/audit.h
+@@ -551,7 +551,7 @@ extern int audit_enabled;
+ #define audit_log_hex(a,b,l) do { ; } while (0)
+ #define audit_log_untrustedstring(a,s) do { ; } while (0)
+ #define audit_log_n_untrustedstring(a,n,s) do { ; } while (0)
+-#define audit_log_d_path(b,p,d) do { ; } while (0)
++#define audit_log_d_path(b, p, d) do { ; } while (0)
+ #define audit_enabled 0
+ #endif
+ #endif
+diff -puN security/selinux/avc.c~d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes security/selinux/avc.c
+--- a/security/selinux/avc.c~d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes
++++ a/security/selinux/avc.c
+@@ -627,8 +627,10 @@ void avc_audit(u32 ssid, u32 tsid,
+ 				case AF_UNIX:
+ 					u = unix_sk(sk);
+ 					if (u->dentry) {
+-						struct path path = { .dentry = u->dentry,
+-								     .mnt = u->mnt };
++						struct path path = {
++							.dentry = u->dentry,
++							.mnt = u->mnt
++						};
+ 						audit_log_d_path(ab, "path=",
+ 								 &path);
+ 						break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,7 +148,7 @@ rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 introduce-path_put.patch
 one-less-parameter-to-__d_path.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
