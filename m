@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:15:31 -0800
-Message-ID: <200802142115.m1ELFVI6003256@imap1.linux-foundation.org>
+Subject: + dmi-prevent-linked-list-corruption-resent.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:17:14 -0800
+Message-ID: <200802142117.m1ELHESf003283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52104 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753680AbYBNVQi (ORCPT
+	by vger.kernel.org with ESMTP id S1759556AbYBNVSn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:16:38 -0500
+	Thu, 14 Feb 2008 16:18:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier.adi@gmail.com, bernds_cb1@t-online.de, gerg@snapgear.com, jie.zhang@analog.com, vapier@gentoo.org
+Cc: khali@linux-fr.org, Matt_Domsch@dell.com, mingo@elte.hu, parag.warudkar@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     FLAT binaries: drop BINFMT_FLAT bad header magic warning
+     dmi: prevent linked list corruption
 has been added to the -mm tree.  Its filename is
-     flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch
+     dmi-prevent-linked-list-corruption-resent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FLAT binaries: drop BINFMT_FLAT bad header magic warning
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: dmi: prevent linked list corruption
+From: Jean Delvare <khali@linux-fr.org>
 
-The warning issued by fs/binfmt_flat.c when the format handler is given a
-non-FLAT and non-script executable is annoying to say the least when working
-with FDPIC ELF objects.  If you build a kernel that supports both FLAT and
-FDPIC ELFs on no-mmu, every time you execute an FDPIC ELF, the kernel spits
-out this message.  While I understand a lot of newcomers to the no-mmu world
-screw up generation of FLAT binaries, this warning is not usable for systems
-that support more than just FLAT.
+Adding the same item to a given linked list more than once is guaranteed to
+break and corrupt the list.  This is however what we do in dmi_scan since
+commit 79da4721117fcf188b4b007b775738a530f574da.
 
-Signed-off-by: Jie Zhang <jie.zhang@analog.com>
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Bernd Schmidt <bernds_cb1@t-online.de>
-Acked-by: Greg Ungerer <gerg@snapgear.com>
+Given that there is absolutely no interest in saving empty OEM strings
+anyway, I propose the simple and efficient fix below: we discard the empty
+OEM strings altogether.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/firmware/dmi_scan.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/binfmt_flat.c~flat-binaries-drop-binfmt_flat-bad-header-magic-warning fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~flat-binaries-drop-binfmt_flat-bad-header-magic-warning
-+++ a/fs/binfmt_flat.c
-@@ -443,12 +443,12 @@ static int load_flat_file(struct linux_b
- 
- 	if (strncmp(hdr->magic, "bFLT", 4)) {
- 		/*
-+		 * Previously, here was a printk to tell people
-+		 *   "BINFMT_FLAT: bad header magic".
-+		 * But for the kernel which also use ELF FD-PIC format, this
-+		 * error message is confusing.
- 		 * because a lot of people do not manage to produce good
--		 * flat binaries,  we leave this printk to help them realise
--		 * the problem.  We only print the error if its not a script file
- 		 */
--		if (strncmp(hdr->magic, "#!", 2))
--			printk("BINFMT_FLAT: bad header magic\n");
- 		ret = -ENOEXEC;
- 		goto err;
+diff -puN drivers/firmware/dmi_scan.c~dmi-prevent-linked-list-corruption-resent drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi-prevent-linked-list-corruption-resent
++++ a/drivers/firmware/dmi_scan.c
+@@ -217,10 +217,6 @@ static void __init dmi_save_devices(cons
  	}
+ }
+ 
+-static struct dmi_device empty_oem_string_dev = {
+-	.name = dmi_empty_string,
+-};
+-
+ static void __init dmi_save_oem_strings_devices(const struct dmi_header *dm)
+ {
+ 	int i, count = *(u8 *)(dm + 1);
+@@ -229,10 +225,8 @@ static void __init dmi_save_oem_strings_
+ 	for (i = 1; i <= count; i++) {
+ 		char *devname = dmi_string(dm, i);
+ 
+-		if (!strcmp(devname, dmi_empty_string)) {
+-			list_add(&empty_oem_string_dev.list, &dmi_devices);
++		if (devname == dmi_empty_string)
+ 			continue;
+-		}
+ 
+ 		dev = dmi_alloc(sizeof(*dev));
+ 		if (!dev) {
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch
-git-watchdog.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+oz99x-i2c-button-and-led-support-driver.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+apanel-fix-kconfig-dependencies.patch
+dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+dmi-prevent-linked-list-corruption-resent.patch
+dmi-clean-up-dmi-helper-declarations.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
