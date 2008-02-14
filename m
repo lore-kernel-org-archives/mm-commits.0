@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + debugfs-fix-sparse-warnings.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:03:27 -0800
-Message-ID: <200802142103.m1EL3RHp002730@imap1.linux-foundation.org>
+Subject: + dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:04:13 -0800
+Message-ID: <200802142104.m1EL4DqQ002762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762096AbYBNVDd (ORCPT
+	by vger.kernel.org with ESMTP id S1754608AbYBNVEn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:03:33 -0500
+	Thu, 14 Feb 2008 16:04:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, greg@kroah.com
+Cc: harvey.harrison@gmail.com, pcaulfie@redhat.com, swhiteho@redhat.com, teigland@redhat.com
 
 
 The patch titled
-     debugfs: fix sparse warnings
+     dlm: match signedness between dlm_config_info and cluster_set
 has been added to the -mm tree.  Its filename is
-     debugfs-fix-sparse-warnings.patch
+     dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugfs: fix sparse warnings
+Subject: dlm: match signedness between dlm_config_info and cluster_set
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-extern does not belong in C files, move declaration to linux/debugfs.h
-fs/debugfs/file.c:42:30: warning: symbol 'debugfs_file_operations' was not declared. Should it be static?
-fs/debugfs/file.c:54:31: warning: symbol 'debugfs_link_operations' was not declared. Should it be static?
+cluster_set is only called from the macro CLUSTER_ATTR which defines read/write
+access functions.  Make the signedness match to avoid sparse warnings every time
+CLUSTER_ATTR is used (lines 149-159) all of the form:
+
+fs/dlm/config.c:149:1: warning: incorrect type in argument 3 (different signedness)
+fs/dlm/config.c:149:1:    expected unsigned int *info_field
+fs/dlm/config.c:149:1:    got int extern [toplevel] *<noident>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Patrick Caulfield <pcaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/debugfs/inode.c      |    4 ----
- include/linux/debugfs.h |    5 +++++
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ fs/dlm/config.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/debugfs/inode.c~debugfs-fix-sparse-warnings fs/debugfs/inode.c
---- a/fs/debugfs/inode.c~debugfs-fix-sparse-warnings
-+++ a/fs/debugfs/inode.c
-@@ -29,10 +29,6 @@
- 
- #define DEBUGFS_MAGIC	0x64626720
- 
--/* declared over in file.c */
--extern struct file_operations debugfs_file_operations;
--extern struct inode_operations debugfs_link_operations;
--
- static struct vfsmount *debugfs_mount;
- static int debugfs_mount_count;
- 
-diff -puN include/linux/debugfs.h~debugfs-fix-sparse-warnings include/linux/debugfs.h
---- a/include/linux/debugfs.h~debugfs-fix-sparse-warnings
-+++ a/include/linux/debugfs.h
-@@ -27,6 +27,11 @@ struct debugfs_blob_wrapper {
+diff -puN fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set fs/dlm/config.c
+--- a/fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set
++++ a/fs/dlm/config.c
+@@ -114,7 +114,7 @@ struct cluster_attribute {
  };
  
- #if defined(CONFIG_DEBUG_FS)
-+
-+/* declared over in file.c */
-+extern const struct file_operations debugfs_file_operations;
-+extern const struct inode_operations debugfs_link_operations;
-+
- struct dentry *debugfs_create_file(const char *name, mode_t mode,
- 				   struct dentry *parent, void *data,
- 				   const struct file_operations *fops);
+ static ssize_t cluster_set(struct cluster *cl, unsigned int *cl_field,
+-			   unsigned int *info_field, int check_zero,
++			   int *info_field, int check_zero,
+ 			   const char *buf, size_t len)
+ {
+ 	unsigned int x;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -90,6 +78,7 @@ remove-final-fastcall-users.patch
 final-removal-of-fastcall-fastcall.patch
 inotify-make-variables-static-in-inotify_userc.patch
 kernel-doc-remove-fastcall.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
 git-x86.patch
 x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
 remove-sparse-warning-for-mmzoneh.patch
