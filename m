@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-remove-fastcall.patch added to -mm tree
-Date: Thu, 14 Feb 2008 11:45:59 -0800
-Message-ID: <200802141946.m1EJk1UH032050@imap1.linux-foundation.org>
+Subject: + maintainers-add-linux-fsdevel-to-vfs-entry.patch added to -mm tree
+Date: Thu, 14 Feb 2008 12:16:25 -0800
+Message-ID: <200802142016.m1EKGPvJ000783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60226 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762335AbYBNTqc (ORCPT
+	by vger.kernel.org with ESMTP id S1754781AbYBNUQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 14:46:32 -0500
+	Thu, 14 Feb 2008 15:16:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, randy.dunlap@oracle.com
+Cc: menage@google.com
 
 
 The patch titled
-     kernel-doc: remove fastcall
+     MAINTAINERS: add linux-fsdevel to VFS entry
 has been added to the -mm tree.  Its filename is
-     kernel-doc-remove-fastcall.patch
+     maintainers-add-linux-fsdevel-to-vfs-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: remove fastcall
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: MAINTAINERS: add linux-fsdevel to VFS entry
+From: Paul Menage <menage@google.com>
 
-fastcall is gone from the tree, no need to adjust the function prototypes
-anymore for this.
+Add linux-fsdevel to the VFS entry in MAINTAINERS
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/kernel-doc~kernel-doc-remove-fastcall scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-remove-fastcall
-+++ a/scripts/kernel-doc
-@@ -1624,7 +1624,6 @@ sub dump_function($$) {
+diff -puN MAINTAINERS~maintainers-add-linux-fsdevel-to-vfs-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-linux-fsdevel-to-vfs-entry
++++ a/MAINTAINERS
+@@ -1616,6 +1616,7 @@ S:	Maintained
+ FILESYSTEMS (VFS and infrastructure)
+ P:	Alexander Viro
+ M:	viro@zeniv.linux.org.uk
++L:	linux-fsdevel@vger.kernel.org
+ S:	Maintained
  
-     $prototype =~ s/^static +//;
-     $prototype =~ s/^extern +//;
--    $prototype =~ s/^fastcall +//;
-     $prototype =~ s/^asmlinkage +//;
-     $prototype =~ s/^inline +//;
-     $prototype =~ s/^__inline__ +//;
+ FIREWIRE SUBSYSTEM (drivers/firewire, <linux/firewire*.h>)
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from menage@google.com are
 
-origin.patch
-include-linux-remove-all-users-of-fastcall-macro.patch
-rcupdate-fix-comment.patch
-remove-final-fastcall-users.patch
-final-removal-of-fastcall-fastcall.patch
-inotify-make-variables-static-in-inotify_userc.patch
-kernel-doc-remove-fastcall.patch
-git-x86.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+maintainers-add-linux-fsdevel-to-vfs-entry.patch
+add-a-refcount-check-in-dput.patch
