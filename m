@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-change-option-mode-to-mode_option.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:56:55 -0800
-Message-ID: <200802142156.m1ELuten004927@imap1.linux-foundation.org>
+Subject: + pm3fb-change-option-mode-to-mode_option.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:59:44 -0800
+Message-ID: <200802142159.m1ELxiqE005075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752827AbYBNV5c (ORCPT
+	by vger.kernel.org with ESMTP id S1754792AbYBNV7r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:57:32 -0500
+	Thu, 14 Feb 2008 16:59:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net, miki@dds.nl
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net
 
 
 The patch titled
-     tridentfb: change option mode to mode_option
+     pm3fb: change option mode to mode_option
 has been added to the -mm tree.  Its filename is
-     tridentfb-change-option-mode-to-mode_option.patch
+     pm3fb-change-option-mode-to-mode_option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: change option mode to mode_option
+Subject: pm3fb: change option mode to mode_option
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Change the option "mode_option" into "mode".  It also adds __init attribute to
-tridentfb_setup function.
+Add the option "mode_option".
 
 This is one step toward changing all fb drivers to have common "mode_option"
 parameter.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Alain Kalker <miki@dds.nl>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/video/pm3fb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-change-option-mode-to-mode_option drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-change-option-mode-to-mode_option
-+++ a/drivers/video/tridentfb.c
-@@ -58,7 +58,7 @@ static int displaytype;
- /* defaults which are normally overriden by user values */
+diff -puN drivers/video/pm3fb.c~pm3fb-change-option-mode-to-mode_option drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-change-option-mode-to-mode_option
++++ a/drivers/video/pm3fb.c
+@@ -1571,6 +1571,8 @@ module_exit(pm3fb_exit);
+ #endif
+ module_init(pm3fb_init);
  
- /* video mode */
--static char *mode = "640x480";
-+static char *mode_option __devinitdata = "640x480";
- static int bpp = 8;
- 
- static int noaccel;
-@@ -73,7 +73,8 @@ static int memsize;
- static int memdiff;
- static int nativex;
- 
--module_param(mode, charp, 0);
 +module_param(mode_option, charp, 0);
 +MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
- module_param(bpp, int, 0);
- module_param(center, int, 0);
- module_param(stretch, int, 0);
-@@ -1286,7 +1287,8 @@ static int __devinit trident_pci_probe(s
- #endif
- 	fb_info.pseudo_palette = pseudo_pal;
- 
--	if (!fb_find_mode(&default_var, &fb_info, mode, NULL, 0, NULL, bpp)) {
-+	if (!fb_find_mode(&default_var, &fb_info,
-+			  mode_option, NULL, 0, NULL, bpp)) {
- 		err = -EINVAL;
- 		goto out_unmap;
- 	}
-@@ -1366,7 +1368,7 @@ static struct pci_driver tridentfb_pci_d
-  *	video=trident:800x600,bpp=16,noaccel
-  */
- #ifndef MODULE
--static int tridentfb_setup(char *options)
-+static int __init tridentfb_setup(char *options)
- {
- 	char *opt;
- 	if (!options || !*options)
-@@ -1393,7 +1395,7 @@ static int tridentfb_setup(char *options
- 		else if (!strncmp(opt, "nativex=", 8))
- 			nativex = simple_strtoul(opt + 8, NULL, 0);
- 		else
--			mode = opt;
-+			mode_option = opt;
- 	}
- 	return 0;
- }
+ module_param(noaccel, bool, 0);
+ MODULE_PARM_DESC(noaccel, "Disable acceleration");
+ module_param(hwcursor, int, 0644);
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 pm2fb-change-option-mode-to-mode_option.patch
 tridentfb-change-option-mode-to-mode_option.patch
+pm3fb-change-option-mode-to-mode_option.patch
+update-modedbtxt-documentation-about-mode_option-parameter-change.patch
+vt8623fb-change-option-mode-to-mode_option.patch
