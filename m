@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-viodasdc-use-field_sizeof.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:09:57 -0800
-Message-ID: <200802142209.m1EM9vdT005498@imap1.linux-foundation.org>
+Subject: + fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:11:04 -0800
+Message-ID: <200802142211.m1EMB4YY005528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53789 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38068 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753093AbYBNWKd (ORCPT
+	by vger.kernel.org with ESMTP id S1755401AbYBNWLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 17:10:33 -0500
+	Thu, 14 Feb 2008 17:11:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, benh@kernel.crashing.org, jens.axboe@oracle.com, paulus@samba.org, sfr@canb.auug.org.au
+Cc: spock@gentoo.org, adaplas@pol.net, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     drivers/block/viodasd.c: Use FIELD_SIZEOF
+     fbdev: make the best-fit section of fb_find_mode return the closest matching mode
 has been added to the -mm tree.  Its filename is
-     drivers-block-viodasdc-use-field_sizeof.patch
+     fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block/viodasd.c: Use FIELD_SIZEOF
-From: Julia Lawall <julia@diku.dk>
+Subject: fbdev: make the best-fit section of fb_find_mode return the closest matching mode
+From: Michal Januszewski <spock@gentoo.org>
 
-Robert P.J. Day proposed to use the macro FIELD_SIZEOF in replace of code
-that matches its definition.
+Currently, if a perfect match in terms of resolution is not found,
+fb_find_mode() only looks for a best-fit mode among modes with a higher
+resolution than the one requested.  Thus, if the user requests a resolution
+higher than the largest supported one, they are dropped to the default mode
+(usually a low resolution one).
 
-The modification was made using the following semantic patch
-(http://www.emn.fr/x-info/coccinelle/)
+Change this behaviour so that all valid video modes are considered when
+looking for a best-fit mode, while still preferring modes with a higher
+resolution.
 
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-type t;
-identifier f;
-@@
-
-- (sizeof(((t*)0)->f))
-+ FIELD_SIZEOF(t, f)
-
-@depends on haskernel@
-type t;
-identifier f;
-@@
-
-- sizeof(((t*)0)->f)
-+ FIELD_SIZEOF(t, f)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/viodasd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/modedb.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/viodasd.c~drivers-block-viodasdc-use-field_sizeof drivers/block/viodasd.c
---- a/drivers/block/viodasd.c~drivers-block-viodasdc-use-field_sizeof
-+++ a/drivers/block/viodasd.c
-@@ -69,7 +69,7 @@ MODULE_LICENSE("GPL");
- enum {
- 	PARTITION_SHIFT = 3,
- 	MAX_DISKNO = HVMAXARCHITECTEDVIRTUALDISKS,
--	MAX_DISK_NAME = sizeof(((struct gendisk *)0)->disk_name)
-+	MAX_DISK_NAME = FIELD_SIZEOF(struct gendisk, disk_name)
- };
+diff -puN drivers/video/modedb.c~fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode
++++ a/drivers/video/modedb.c
+@@ -522,7 +522,7 @@ int fb_find_mode(struct fb_var_screeninf
+ 	int res_specified = 0, bpp_specified = 0, refresh_specified = 0;
+ 	unsigned int xres = 0, yres = 0, bpp = default_bpp, refresh = 0;
+ 	int yres_specified = 0, cvt = 0, rb = 0, interlace = 0, margins = 0;
+-	u32 best, diff;
++	u32 best, diff, tdiff;
  
- static DEFINE_SPINLOCK(viodasd_spinlock);
+ 	for (i = namelen-1; i >= 0; i--) {
+ 	    switch (name[i]) {
+@@ -651,19 +651,27 @@ done:
+ 		return (refresh_specified) ? 2 : 1;
+ 	}
+ 
+-	diff = xres + yres;
++	diff = 2 * (xres + yres);
+ 	best = -1;
+ 	DPRINTK("Trying best-fit modes\n");
+ 	for (i = 0; i < dbsize; i++) {
+-	    if (xres <= db[i].xres && yres <= db[i].yres) {
+ 		DPRINTK("Trying %ix%i\n", db[i].xres, db[i].yres);
+ 		if (!fb_try_mode(var, info, &db[i], bpp)) {
+-		    if (diff > (db[i].xres - xres) + (db[i].yres - yres)) {
+-			diff = (db[i].xres - xres) + (db[i].yres - yres);
+-			best = i;
+-		    }
++			tdiff = abs(db[i].xres - xres) +
++				abs(db[i].yres - yres);
++
++			/*
++			 * Penalize modes with resolutions smaller
++			 * than requested.
++			 */
++			if (xres > db[i].xres || yres > db[i].yres)
++				tdiff += xres + yres;
++
++			if (diff > tdiff) {
++				diff = tdiff;
++				best = i;
++			}
+ 		}
+-	    }
+ 	}
+ 	if (best != -1) {
+ 	    fb_try_mode(var, info, &db[best], bpp);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-drivers-cpufreq-add-calls-to-cpufreq_cpu_put.patch
-drivers-net-igb-use-field_sizeof.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-drivers-net-ixgb-ixgb_ethtoolc-use-field_sizeof.patch
-drivers-net-e1000-use-field_sizeof.patch
-drivers-block-viodasdc-use-field_sizeof.patch
+drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll.patch
+fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
