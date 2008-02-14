@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cypress_m8-added-ups-powercom-0d9f0002.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:39:46 -0800
-Message-ID: <200802142239.m1EMdkFS006704@imap1.linux-foundation.org>
+Subject: + mtd-maps-document-mtd_physmap-module-name-in-kconfig.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:49:28 -0800
+Message-ID: <200802142249.m1EMnSwr007113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51877 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754259AbYBNWkV (ORCPT
+	by vger.kernel.org with ESMTP id S933685AbYBNWuW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 17:40:21 -0500
+	Thu, 14 Feb 2008 17:50:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shapin@googlemail.com, greg@kroah.com, shapin@gmail.com
+Cc: vapier@gentoo.org, dwmw2@infradead.org
 
 
 The patch titled
-     cypress_m8: add UPS Powercom (0d9f:0002)
+     mtd maps: document MTD_PHYSMAP module name in kconfig
 has been added to the -mm tree.  Its filename is
-     cypress_m8-added-ups-powercom-0d9f0002.patch
+     mtd-maps-document-mtd_physmap-module-name-in-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cypress_m8: add UPS Powercom (0d9f:0002)
-From: Dmitry Shapin <shapin@googlemail.com>
+Subject: mtd maps: document MTD_PHYSMAP module name in kconfig
+From: Mike Frysinger <vapier@gentoo.org>
 
-Add support for UPS Powercom USB interface (0d9f:0002) in chip CY7C63723. 
-In my case, this Powercom BNT800AP.
+Help out users by telling them the module name in the Kconfig help when
+using the MTD_PHYSMAP option.
 
-Signed-off-by: Dmitry Shapin <shapin@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/cypress_m8.c |    2 ++
- drivers/usb/serial/cypress_m8.h |    4 ++++
- 2 files changed, 6 insertions(+)
+ drivers/mtd/maps/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/usb/serial/cypress_m8.c~cypress_m8-added-ups-powercom-0d9f0002 drivers/usb/serial/cypress_m8.c
---- a/drivers/usb/serial/cypress_m8.c~cypress_m8-added-ups-powercom-0d9f0002
-+++ a/drivers/usb/serial/cypress_m8.c
-@@ -94,6 +94,7 @@ static struct usb_device_id id_table_ear
+diff -puN drivers/mtd/maps/Kconfig~mtd-maps-document-mtd_physmap-module-name-in-kconfig drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mtd-maps-document-mtd_physmap-module-name-in-kconfig
++++ a/drivers/mtd/maps/Kconfig
+@@ -21,6 +21,9 @@ config MTD_PHYSMAP
+ 	  particular board as well as the bus width, either statically
+ 	  with config options or at run-time.
  
- static struct usb_device_id id_table_cyphidcomrs232 [] = {
- 	{ USB_DEVICE(VENDOR_ID_CYPRESS, PRODUCT_ID_CYPHIDCOM) },
-+	{ USB_DEVICE(VENDOR_ID_POWERCOM, PRODUCT_ID_UPS) },
- 	{ }						/* Terminating entry */
- };
- 
-@@ -106,6 +107,7 @@ static struct usb_device_id id_table_com
- 	{ USB_DEVICE(VENDOR_ID_DELORME, PRODUCT_ID_EARTHMATEUSB) },
- 	{ USB_DEVICE(VENDOR_ID_DELORME, PRODUCT_ID_EARTHMATEUSB_LT20) },
- 	{ USB_DEVICE(VENDOR_ID_CYPRESS, PRODUCT_ID_CYPHIDCOM) },
-+	{ USB_DEVICE(VENDOR_ID_POWERCOM, PRODUCT_ID_UPS) },
- 	{ USB_DEVICE(VENDOR_ID_DAZZLE, PRODUCT_ID_CA42) },
- 	{ }						/* Terminating entry */
- };
-diff -puN drivers/usb/serial/cypress_m8.h~cypress_m8-added-ups-powercom-0d9f0002 drivers/usb/serial/cypress_m8.h
---- a/drivers/usb/serial/cypress_m8.h~cypress_m8-added-ups-powercom-0d9f0002
-+++ a/drivers/usb/serial/cypress_m8.h
-@@ -19,6 +19,10 @@
- #define VENDOR_ID_CYPRESS		 0x04b4
- #define PRODUCT_ID_CYPHIDCOM		 0x5500
- 
-+/* Powercom UPS, chip CY7C63723 */
-+#define VENDOR_ID_POWERCOM		 0x0d9f
-+#define PRODUCT_ID_UPS			 0x0002
++	  To compile this driver as a module, choose M here: the
++	  module will be called physmap.
 +
- /* Nokia CA-42 USB to serial cable */
- #define VENDOR_ID_DAZZLE		0x07d0
- #define PRODUCT_ID_CA42			0x4101
+ config MTD_PHYSMAP_START
+ 	hex "Physical start address of flash mapping"
+ 	depends on MTD_PHYSMAP
 _
 
-Patches currently in -mm which might be from shapin@googlemail.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-cypress_m8-added-ups-powercom-0d9f0002.patch
+origin.patch
+flat-binaries-drop-binfmt_flat-bad-header-magic-warning.patch
+mtd-maps-document-mtd_physmap-module-name-in-kconfig.patch
