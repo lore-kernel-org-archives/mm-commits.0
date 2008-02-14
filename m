@@ -1,128 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-cpa-build-fix.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:23:36 -0500
-Message-ID: <200802150226.m1F2QtuA015267@imap1.linux-foundation.org>
+Subject: - jfs-le_add_cpu-conversion.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:23:32 -0500
+Message-ID: <200802150226.m1F2QplK015261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56616 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759635AbYBOC2X (ORCPT
+	by vger.kernel.org with ESMTP id S1760277AbYBOC2b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:28:23 -0500
+	Thu, 14 Feb 2008 21:28:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: cpa build fix
+     jfs: le*_add_cpu conversion
 has been removed from the -mm tree.  Its filename was
-     git-x86-cpa-build-fix.patch
+     jfs-le_add_cpu-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: cpa build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: jfs: le*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-arch/x86/mm/pageattr.c: In function 'kernel_map_pages':
-arch/x86/mm/pageattr.c:923: error: too few arguments to function 'cpa_fill_pool'
+replace all:
+little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jfs/jfs_dmap.c  |   11 +++++------
+ fs/jfs/jfs_imap.c  |   15 ++++++---------
+ fs/jfs/jfs_xtree.c |   26 ++++++++------------------
+ 3 files changed, 19 insertions(+), 33 deletions(-)
 
-diff -puN arch/x86/mm/pageattr.c~git-x86-cpa-build-fix arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~git-x86-cpa-build-fix
-+++ a/arch/x86/mm/pageattr.c
-@@ -920,7 +920,7 @@ void kernel_map_pages(struct page *page,
- 	 * Try to refill the page pool here. We can do this only after
- 	 * the tlb flush.
- 	 */
--	cpa_fill_pool();
-+	cpa_fill_pool(NULL);
- }
+diff -puN fs/jfs/jfs_dmap.c~jfs-le_add_cpu-conversion fs/jfs/jfs_dmap.c
+--- a/fs/jfs/jfs_dmap.c~jfs-le_add_cpu-conversion
++++ a/fs/jfs/jfs_dmap.c
+@@ -2172,7 +2172,7 @@ static void dbAllocBits(struct bmap * bm
+ 	}
  
- #ifdef CONFIG_DEBUG_FS
+ 	/* update the free count for this dmap */
+-	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) - nblocks);
++	le32_add_cpu(&dp->nfree, -nblocks);
+ 
+ 	BMAP_LOCK(bmp);
+ 
+@@ -2316,7 +2316,7 @@ static int dbFreeBits(struct bmap * bmp,
+ 
+ 	/* update the free count for this dmap.
+ 	 */
+-	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) + nblocks);
++	le32_add_cpu(&dp->nfree, nblocks);
+ 
+ 	BMAP_LOCK(bmp);
+ 
+@@ -3226,7 +3226,7 @@ static int dbAllocDmapBU(struct bmap * b
+ 	}
+ 
+ 	/* update the free count for this dmap */
+-	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) - nblocks);
++	le32_add_cpu(&dp->nfree, -nblocks);
+ 
+ 	/* reconstruct summary tree */
+ 	dbInitDmapTree(dp);
+@@ -3660,9 +3660,8 @@ static int dbInitDmap(struct dmap * dp, 
+ 			goto initTree;
+ 		}
+ 	} else {
+-		dp->nblocks =
+-		    cpu_to_le32(le32_to_cpu(dp->nblocks) + nblocks);
+-		dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) + nblocks);
++		le32_add_cpu(&dp->nblocks, nblocks);
++		le32_add_cpu(&dp->nfree, nblocks);
+ 	}
+ 
+ 	/* word number containing start block number */
+diff -puN fs/jfs/jfs_imap.c~jfs-le_add_cpu-conversion fs/jfs/jfs_imap.c
+--- a/fs/jfs/jfs_imap.c~jfs-le_add_cpu-conversion
++++ a/fs/jfs/jfs_imap.c
+@@ -1019,8 +1019,7 @@ int diFree(struct inode *ip)
+ 		/* update the free inode counts at the iag, ag and
+ 		 * map level.
+ 		 */
+-		iagp->nfreeinos =
+-		    cpu_to_le32(le32_to_cpu(iagp->nfreeinos) + 1);
++		le32_add_cpu(&iagp->nfreeinos, 1);
+ 		imap->im_agctl[agno].numfree += 1;
+ 		atomic_inc(&imap->im_numfree);
+ 
+@@ -1219,9 +1218,8 @@ int diFree(struct inode *ip)
+ 	/* update the number of free inodes and number of free extents
+ 	 * for the iag.
+ 	 */
+-	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) -
+-				      (INOSPEREXT - 1));
+-	iagp->nfreeexts = cpu_to_le32(le32_to_cpu(iagp->nfreeexts) + 1);
++	le32_add_cpu(&iagp->nfreeinos, -(INOSPEREXT - 1));
++	le32_add_cpu(&iagp->nfreeexts, 1);
+ 
+ 	/* update the number of free inodes and backed inodes
+ 	 * at the ag and inode map level.
+@@ -2124,7 +2122,7 @@ static int diAllocBit(struct inomap * im
+ 	/* update the free inode count at the iag, ag, inode
+ 	 * map levels.
+ 	 */
+-	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) - 1);
++	le32_add_cpu(&iagp->nfreeinos, -1);
+ 	imap->im_agctl[agno].numfree -= 1;
+ 	atomic_dec(&imap->im_numfree);
+ 
+@@ -2378,9 +2376,8 @@ static int diNewExt(struct inomap * imap
+ 	/* update the free inode and free extent counts for the
+ 	 * iag.
+ 	 */
+-	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) +
+-				      (INOSPEREXT - 1));
+-	iagp->nfreeexts = cpu_to_le32(le32_to_cpu(iagp->nfreeexts) - 1);
++	le32_add_cpu(&iagp->nfreeinos, (INOSPEREXT - 1));
++	le32_add_cpu(&iagp->nfreeexts, -1);
+ 
+ 	/* update the free and backed inode counts for the ag.
+ 	 */
+diff -puN fs/jfs/jfs_xtree.c~jfs-le_add_cpu-conversion fs/jfs/jfs_xtree.c
+--- a/fs/jfs/jfs_xtree.c~jfs-le_add_cpu-conversion
++++ a/fs/jfs/jfs_xtree.c
+@@ -905,8 +905,7 @@ int xtInsert(tid_t tid,		/* transaction 
+ 	XT_PUTENTRY(xad, xflag, xoff, xlen, xaddr);
+ 
+ 	/* advance next available entry index */
+-	p->header.nextindex =
+-	    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
++	le16_add_cpu(&p->header.nextindex, 1);
+ 
+ 	/* Don't log it if there are no links to the file */
+ 	if (!test_cflag(COMMIT_Nolink, ip)) {
+@@ -997,8 +996,7 @@ xtSplitUp(tid_t tid,
+ 			    split->addr);
+ 
+ 		/* advance next available entry index */
+-		sp->header.nextindex =
+-		    cpu_to_le16(le16_to_cpu(sp->header.nextindex) + 1);
++		le16_add_cpu(&sp->header.nextindex, 1);
+ 
+ 		/* Don't log it if there are no links to the file */
+ 		if (!test_cflag(COMMIT_Nolink, ip)) {
+@@ -1167,9 +1165,7 @@ xtSplitUp(tid_t tid,
+ 				    JFS_SBI(ip->i_sb)->nbperpage, rcbn);
+ 
+ 			/* advance next available entry index. */
+-			sp->header.nextindex =
+-			    cpu_to_le16(le16_to_cpu(sp->header.nextindex) +
+-					1);
++			le16_add_cpu(&sp->header.nextindex, 1);
+ 
+ 			/* Don't log it if there are no links to the file */
+ 			if (!test_cflag(COMMIT_Nolink, ip)) {
+@@ -1738,8 +1734,7 @@ int xtExtend(tid_t tid,		/* transaction 
+ 		XT_PUTENTRY(xad, XAD_NEW, xoff, len, xaddr);
+ 
+ 		/* advance next available entry index */
+-		p->header.nextindex =
+-		    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
++		le16_add_cpu(&p->header.nextindex, 1);
+ 	}
+ 
+ 	/* get back old entry */
+@@ -1905,8 +1900,7 @@ printf("xtTailgate: xoff:0x%lx xlen:0x%x
+ 		XT_PUTENTRY(xad, XAD_NEW, xoff, xlen, xaddr);
+ 
+ 		/* advance next available entry index */
+-		p->header.nextindex =
+-		    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
++		le16_add_cpu(&p->header.nextindex, 1);
+ 	}
+ 
+ 	/* get back old XAD */
+@@ -2567,8 +2561,7 @@ int xtAppend(tid_t tid,		/* transaction 
+ 	XT_PUTENTRY(xad, xflag, xoff, xlen, xaddr);
+ 
+ 	/* advance next available entry index */
+-	p->header.nextindex =
+-	    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
++	le16_add_cpu(&p->header.nextindex, 1);
+ 
+ 	xtlck->lwm.offset =
+ 	    (xtlck->lwm.offset) ? min(index,(int) xtlck->lwm.offset) : index;
+@@ -2631,8 +2624,7 @@ int xtDelete(tid_t tid, struct inode *ip
+ 	 * delete the entry from the leaf page
+ 	 */
+ 	nextindex = le16_to_cpu(p->header.nextindex);
+-	p->header.nextindex =
+-	    cpu_to_le16(le16_to_cpu(p->header.nextindex) - 1);
++	le16_add_cpu(&p->header.nextindex, -1);
+ 
+ 	/*
+ 	 * if the leaf page bocome empty, free the page
+@@ -2795,9 +2787,7 @@ xtDeleteUp(tid_t tid, struct inode *ip,
+ 					(nextindex - index -
+ 					 1) << L2XTSLOTSIZE);
+ 
+-			p->header.nextindex =
+-			    cpu_to_le16(le16_to_cpu(p->header.nextindex) -
+-					1);
++			le16_add_cpu(&p->header.nextindex, -1);
+ 			jfs_info("xtDeleteUp(entry): 0x%lx[%d]",
+ 				 (ulong) parent->bn, index);
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-introduce-path_put.patch
-one-less-parameter-to-__d_path.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-d_path-make-d_path-use-a-struct-path.patch
-softlockup-workaround.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-x86-vs-git-kvm.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-gfs2-nmw.patch
+git-jfs.patch
+qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch
+ntfs-le_add_cpu-conversion.patch
+ocfs2-le_add_cpu-conversion.patch
+scsi-le_add_cpu-conversion.patch
+ipw2200-le_add_cpu-conversion.patch
+git-slub.patch
+ext2-le_add_cpu-conversion.patch
+ext2-convert-byte-order-of-constant-instead-of-variable.patch
+ext3-convert-byte-order-of-constant-instead-of-variable.patch
+ufs-e_add_cpu-conversion.patch
+ufs-e_add_cpu-conversion-in-return.patch
+reiserfs-le_add_cpu-conversion.patch
+ext4-le_add_cpu-conversion.patch
+ext4-convert-byte-order-of-constant-instead-of-variable.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
