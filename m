@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-igb-use-field_sizeof.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:09:32 -0800
-Message-ID: <200802142209.m1EM9WQH005477@imap1.linux-foundation.org>
+Subject: + drivers-net-e1000-use-field_sizeof.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:09:38 -0800
+Message-ID: <200802142209.m1EM9cIW005486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43519 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760652AbYBNWJm (ORCPT
+	by vger.kernel.org with ESMTP id S1764032AbYBNWJm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 14 Feb 2008 17:09:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk, auke-jan.h.kok@intel.com
 
 
 The patch titled
-     drivers/net/igb: Use FIELD_SIZEOF
+     drivers/net/e1000: Use FIELD_SIZEOF
 has been added to the -mm tree.  Its filename is
-     drivers-net-igb-use-field_sizeof.patch
+     drivers-net-e1000-use-field_sizeof.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/igb: Use FIELD_SIZEOF
+Subject: drivers/net/e1000: Use FIELD_SIZEOF
 From: Julia Lawall <julia@diku.dk>
 
 Robert P.J. Day proposed to use the macro FIELD_SIZEOF in replace of code
@@ -67,25 +67,25 @@ identifier f;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Kok, Auke" <auke-jan.h.kok@intel.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/igb/igb_ethtool.c |    2 +-
+ drivers/net/e1000/e1000_ethtool.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/igb/igb_ethtool.c~drivers-net-igb-use-field_sizeof drivers/net/igb/igb_ethtool.c
---- a/drivers/net/igb/igb_ethtool.c~drivers-net-igb-use-field_sizeof
-+++ a/drivers/net/igb/igb_ethtool.c
-@@ -43,7 +43,7 @@ struct igb_stats {
+diff -puN drivers/net/e1000/e1000_ethtool.c~drivers-net-e1000-use-field_sizeof drivers/net/e1000/e1000_ethtool.c
+--- a/drivers/net/e1000/e1000_ethtool.c~drivers-net-e1000-use-field_sizeof
++++ a/drivers/net/e1000/e1000_ethtool.c
+@@ -50,7 +50,7 @@ struct e1000_stats {
  	int stat_offset;
  };
  
--#define IGB_STAT(m) sizeof(((struct igb_adapter *)0)->m), \
-+#define IGB_STAT(m) FIELD_SIZEOF(struct igb_adapter, m), \
- 		      offsetof(struct igb_adapter, m)
- static const struct igb_stats igb_gstrings_stats[] = {
- 	{ "rx_packets", IGB_STAT(stats.gprc) },
+-#define E1000_STAT(m) sizeof(((struct e1000_adapter *)0)->m), \
++#define E1000_STAT(m) FIELD_SIZEOF(struct e1000_adapter, m), \
+ 		      offsetof(struct e1000_adapter, m)
+ static const struct e1000_stats e1000_gstrings_stats[] = {
+ 	{ "rx_packets", E1000_STAT(stats.gprc) },
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
