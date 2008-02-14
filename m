@@ -1,164 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - git-xfs-git-conflicts.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:07:14 -0500
-Message-ID: <200802150210.m1F2AX91014624@imap1.linux-foundation.org>
+Subject: + git-watchdog-git-rejects.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:11:35 -0500
+Message-ID: <200802150214.m1F2Esxh014772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36229 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48761 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754851AbYBOCLJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756276AbYBOCP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:11:09 -0500
+	Thu, 14 Feb 2008 21:15:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, wim@iguana.be
 
 
 The patch titled
-     git-xfs-git-conflicts
-has been removed from the -mm tree.  Its filename was
-     git-xfs-git-conflicts.patch
+     git-watchdog-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-watchdog-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-xfs-git-conflicts
+Subject: git-watchdog-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/Makefile-linux-2.6 |  120 ------------------------------------
- 1 file changed, 120 deletions(-)
+ drivers/watchdog/Kconfig  |    3 ---
+ drivers/watchdog/Makefile |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/xfs/Makefile-linux-2.6~git-xfs-git-conflicts /dev/null
---- a/fs/xfs/Makefile-linux-2.6
-+++ /dev/null
-@@ -1,120 +0,0 @@
--<<<<<<< HEAD/fs/xfs/Makefile-linux-2.6
--#
--# Copyright (c) 2000-2005 Silicon Graphics, Inc.
--# All Rights Reserved.
--#
--# This program is free software; you can redistribute it and/or
--# modify it under the terms of the GNU General Public License as
--# published by the Free Software Foundation.
--#
--# This program is distributed in the hope that it would be useful,
--# but WITHOUT ANY WARRANTY; without even the implied warranty of
--# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--# GNU General Public License for more details.
--#
--# You should have received a copy of the GNU General Public License
--# along with this program; if not, write the Free Software Foundation,
--# Inc.,  51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
--#
--
--EXTRA_CFLAGS +=	 -Ifs/xfs -Ifs/xfs/linux-2.6 -funsigned-char
--
--XFS_LINUX := linux-2.6
--
--ifeq ($(CONFIG_XFS_DEBUG),y)
--	EXTRA_CFLAGS += -g
--endif
--
--obj-$(CONFIG_XFS_FS)		+= xfs.o
--
--xfs-$(CONFIG_XFS_QUOTA)		+= $(addprefix quota/, \
--				   xfs_dquot.o \
--				   xfs_dquot_item.o \
--				   xfs_trans_dquot.o \
--				   xfs_qm_syscalls.o \
--				   xfs_qm_bhv.o \
--				   xfs_qm.o)
--
--ifeq ($(CONFIG_XFS_QUOTA),y)
--xfs-$(CONFIG_PROC_FS)		+= quota/xfs_qm_stats.o
--endif
--
--xfs-$(CONFIG_XFS_RT)		+= xfs_rtalloc.o
--xfs-$(CONFIG_XFS_POSIX_ACL)	+= xfs_acl.o
--xfs-$(CONFIG_PROC_FS)		+= $(XFS_LINUX)/xfs_stats.o
--xfs-$(CONFIG_SYSCTL)		+= $(XFS_LINUX)/xfs_sysctl.o
--xfs-$(CONFIG_COMPAT)		+= $(XFS_LINUX)/xfs_ioctl32.o
--
--
--xfs-y				+= xfs_alloc.o \
--				   xfs_alloc_btree.o \
--				   xfs_attr.o \
--				   xfs_attr_leaf.o \
--				   xfs_bit.o \
--				   xfs_bmap.o \
--				   xfs_bmap_btree.o \
--				   xfs_btree.o \
--				   xfs_buf_item.o \
--				   xfs_da_btree.o \
--				   xfs_dir2.o \
--				   xfs_dir2_block.o \
--				   xfs_dir2_data.o \
--				   xfs_dir2_leaf.o \
--				   xfs_dir2_node.o \
--				   xfs_dir2_sf.o \
--				   xfs_error.o \
--				   xfs_extfree_item.o \
--				   xfs_filestream.o \
--				   xfs_fsops.o \
--				   xfs_ialloc.o \
--				   xfs_ialloc_btree.o \
--				   xfs_iget.o \
--				   xfs_inode.o \
--				   xfs_inode_item.o \
--				   xfs_iomap.o \
--				   xfs_itable.o \
--				   xfs_dfrag.o \
--				   xfs_log.o \
--				   xfs_log_recover.o \
--				   xfs_mount.o \
--				   xfs_mru_cache.o \
--				   xfs_rename.o \
--				   xfs_trans.o \
--				   xfs_trans_ail.o \
--				   xfs_trans_buf.o \
--				   xfs_trans_extfree.o \
--				   xfs_trans_inode.o \
--				   xfs_trans_item.o \
--				   xfs_utils.o \
--				   xfs_vfsops.o \
--				   xfs_vnodeops.o \
--				   xfs_rw.o \
--				   xfs_dmops.o \
--				   xfs_qmops.o
--
--xfs-$(CONFIG_XFS_TRACE)		+= xfs_dir2_trace.o
--
--# Objects in linux/
--xfs-y				+= $(addprefix $(XFS_LINUX)/, \
--				   kmem.o \
--				   xfs_aops.o \
--				   xfs_buf.o \
--				   xfs_export.o \
--				   xfs_file.o \
--				   xfs_fs_subr.o \
--				   xfs_globals.o \
--				   xfs_ioctl.o \
--				   xfs_iops.o \
--				   xfs_lrw.o \
--				   xfs_super.o \
--				   xfs_vnode.o)
--
--# Objects in support/
--xfs-y				+= $(addprefix support/, \
--				   debug.o \
--				   uuid.o)
--
--xfs-$(CONFIG_XFS_TRACE)		+= support/ktrace.o
--
+diff -puN drivers/watchdog/Kconfig~git-watchdog-git-rejects drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~git-watchdog-git-rejects
++++ a/drivers/watchdog/Kconfig
+@@ -405,8 +405,6 @@ config IT8712F_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called it8712f_wdt.
+ 
+-<<<<<<< HEAD:drivers/watchdog/Kconfig
 -=======
-->>>>>>> /fs/xfs/Makefile-linux-2.6
+ config HP_WATCHDOG
+ 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
+ 	depends on X86
+@@ -419,7 +417,6 @@ config HP_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hpwdt.
+ 
+->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
+ config SC1200_WDT
+ 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~git-watchdog-git-rejects drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~git-watchdog-git-rejects
++++ a/drivers/watchdog/Makefile
+@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
+ obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
+ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
+ obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+-<<<<<<< HEAD:drivers/watchdog/Makefile
+-=======
+ CFLAGS_hpwdt.o += -O
+ obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
+->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
+ obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
+ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -203,10 +124,11 @@ drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
+git-watchdog-git-rejects.patch
 git-x86-vs-git-kvm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
-git-xfs-git-conflicts.patch
+git-xfs-git-rejects.patch
 git-xtensa.patch
 add-rcu_assign_index-if-ever-needed-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
