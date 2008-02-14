@@ -1,109 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-fix-overcommit-locking.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:22:18 -0500
-Message-ID: <200802150225.m1F2Pb1W015180@imap1.linux-foundation.org>
+Subject: - docbook-sunrpc-filenames-and-notation-fixes.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:22:38 -0500
+Message-ID: <200802150225.m1F2PvPn015195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50109 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53424 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763492AbYBOC03 (ORCPT
+	by vger.kernel.org with ESMTP id S1764913AbYBOC0h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:26:29 -0500
+	Thu, 14 Feb 2008 21:26:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nacc@us.ibm.com, agl@us.ibm.com, david@gibson.dropbear.id.au, miles.lane@gmail.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix overcommit locking
+     docbook: sunrpc filenames and notation fixes
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-overcommit-locking.patch
+     docbook-sunrpc-filenames-and-notation-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: fix overcommit locking
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: docbook: sunrpc filenames and notation fixes
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-proc_doulongvec_minmax() calls copy_to_user()/copy_from_user(), so we can't
-hold hugetlb_lock over the call.  Use a dummy variable to store the sysctl
-result, like in hugetlb_sysctl_handler(), then grab the lock to update
-nr_overcommit_huge_pages.
+Use updated file list for docbook files and
+fix kernel-doc warnings in sunrpc:
+Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:689): No description found for parameter 'rpc_client'
+Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:765): No description found for parameter 'flags'
+Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:584): No description found for parameter 'tk_ops'
+Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:618): No description found for parameter 'bufsize'
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Reported-by: Miles Lane <miles.lane@gmail.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- kernel/sysctl.c         |    4 ++--
- mm/hugetlb.c            |    6 ++++--
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    8 +++++++-
+ net/sunrpc/clnt.c                     |   10 +++++-----
+ net/sunrpc/rpc_pipe.c                 |    3 ++-
+ net/sunrpc/xprt.c                     |    2 +-
+ 4 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-fix-overcommit-locking include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-fix-overcommit-locking
-+++ a/include/linux/hugetlb.h
-@@ -33,8 +33,8 @@ int hugetlb_reserve_pages(struct inode *
- void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed);
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -231,8 +231,14 @@ X!Ilib/string.c
+ !Dnet/sunrpc/sunrpc_syms.c
+ -->
+ !Enet/sunrpc/xdr.c
+-!Enet/sunrpc/svcsock.c
++!Enet/sunrpc/svc_xprt.c
++!Enet/sunrpc/xprt.c
+ !Enet/sunrpc/sched.c
++!Enet/sunrpc/socklib.c
++!Enet/sunrpc/stats.c
++!Enet/sunrpc/rpc_pipe.c
++!Enet/sunrpc/rpcb_clnt.c
++!Enet/sunrpc/clnt.c
+      </sect1>
+   </chapter>
  
- extern unsigned long max_huge_pages;
-+extern unsigned long sysctl_overcommit_huge_pages;
- extern unsigned long hugepages_treat_as_movable;
--extern unsigned long nr_overcommit_huge_pages;
- extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
+diff -puN net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/clnt.c
+--- a/net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/clnt.c
+@@ -464,9 +464,9 @@ rpc_release_client(struct rpc_clnt *clnt
  
-diff -puN kernel/sysctl.c~hugetlb-fix-overcommit-locking kernel/sysctl.c
---- a/kernel/sysctl.c~hugetlb-fix-overcommit-locking
-+++ a/kernel/sysctl.c
-@@ -978,8 +978,8 @@ static struct ctl_table vm_table[] = {
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "nr_overcommit_hugepages",
--		.data		= &nr_overcommit_huge_pages,
--		.maxlen		= sizeof(nr_overcommit_huge_pages),
-+		.data		= &sysctl_overcommit_huge_pages,
-+		.maxlen		= sizeof(sysctl_overcommit_huge_pages),
- 		.mode		= 0644,
- 		.proc_handler	= &hugetlb_overcommit_handler,
- 	},
-diff -puN mm/hugetlb.c~hugetlb-fix-overcommit-locking mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-overcommit-locking
-+++ a/mm/hugetlb.c
-@@ -24,14 +24,15 @@
- const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
- static unsigned long nr_huge_pages, free_huge_pages, resv_huge_pages;
- static unsigned long surplus_huge_pages;
-+static unsigned long nr_overcommit_huge_pages;
- unsigned long max_huge_pages;
-+unsigned long sysctl_overcommit_huge_pages;
- static struct list_head hugepage_freelists[MAX_NUMNODES];
- static unsigned int nr_huge_pages_node[MAX_NUMNODES];
- static unsigned int free_huge_pages_node[MAX_NUMNODES];
- static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
- static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
--unsigned long nr_overcommit_huge_pages;
- static int hugetlb_next_nid;
+ /**
+  * rpc_bind_new_program - bind a new RPC program to an existing client
+- * @old - old rpc_client
+- * @program - rpc program to set
+- * @vers - rpc program version
++ * @old: old rpc_client
++ * @program: rpc program to set
++ * @vers: rpc program version
+  *
+  * Clones the rpc client and sets up a new RPC program. This is mainly
+  * of use for enabling different RPC programs to share the same transport.
+@@ -575,7 +575,7 @@ EXPORT_SYMBOL_GPL(rpc_call_sync);
+  * @clnt: pointer to RPC client
+  * @msg: RPC call parameters
+  * @flags: RPC call flags
+- * @ops: RPC call ops
++ * @tk_ops: RPC call ops
+  * @data: user call data
+  */
+ int
+@@ -610,7 +610,7 @@ EXPORT_SYMBOL_GPL(rpc_call_start);
+  * rpc_peeraddr - extract remote peer address from clnt's xprt
+  * @clnt: RPC client structure
+  * @buf: target buffer
+- * @size: length of target buffer
++ * @bufsize: length of target buffer
+  *
+  * Returns the number of bytes that are actually in the stored address.
+  */
+diff -puN net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/rpc_pipe.c
+@@ -677,7 +677,7 @@ rpc_lookup_negative(char *path, struct n
+ /**
+  * rpc_mkdir - Create a new directory in rpc_pipefs
+  * @path: path from the rpc_pipefs root to the new directory
+- * @rpc_clnt: rpc client to associate with this directory
++ * @rpc_client: rpc client to associate with this directory
+  *
+  * This creates a directory at the given @path associated with
+  * @rpc_clnt, which will contain a file named "info" with some basic
+@@ -748,6 +748,7 @@ rpc_rmdir(struct dentry *dentry)
+  * @private: private data to associate with the pipe, for the caller's use
+  * @ops: operations defining the behavior of the pipe: upcall, downcall,
+  *	release_pipe, and destroy_msg.
++ * @flags: rpc_inode flags
+  *
+  * Data is made available for userspace to read by calls to
+  * rpc_queue_upcall().  The actual reads will result in calls to
+diff -puN net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/xprt.c
+--- a/net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes
++++ a/net/sunrpc/xprt.c
+@@ -124,7 +124,7 @@ EXPORT_SYMBOL_GPL(xprt_register_transpor
  
- /*
-@@ -609,8 +610,9 @@ int hugetlb_overcommit_handler(struct ct
- 			struct file *file, void __user *buffer,
- 			size_t *length, loff_t *ppos)
- {
--	spin_lock(&hugetlb_lock);
- 	proc_doulongvec_minmax(table, write, file, buffer, length, ppos);
-+	spin_lock(&hugetlb_lock);
-+	nr_overcommit_huge_pages = sysctl_overcommit_huge_pages;
- 	spin_unlock(&hugetlb_lock);
- 	return 0;
- }
+ /**
+  * xprt_unregister_transport - unregister a transport implementation
+- * transport: transport to unregister
++ * @transport: transport to unregister
+  *
+  * Returns:
+  * 0:		transport successfully unregistered
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+kernel-doc-remove-fastcall.patch
+git-acpi.patch
+apanel-fix-kconfig-dependencies.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-visws-fix-printk-format-warnings.patch
+profile-likely-unlikely-macros.patch
