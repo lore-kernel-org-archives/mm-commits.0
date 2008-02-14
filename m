@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-i386-io-apictxt-fix-description.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:09:15 -0800
-Message-ID: <200802142109.m1EL9FEa002986@imap1.linux-foundation.org>
+Subject: + block-genhdc-check-class_register-return-value.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:10:59 -0800
+Message-ID: <200802142111.m1ELAxIN003040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48011 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753095AbYBNVKL (ORCPT
+	by vger.kernel.org with ESMTP id S934274AbYBNVLW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:10:11 -0500
+	Thu, 14 Feb 2008 16:11:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nick@nick-andrew.net, mingo@elte.hu, tglx@linutronix.de
+Cc: lpotenza@inwind.it, jens.axboe@oracle.com
 
 
 The patch titled
-     Documentation/i386/IO-APIC.txt: fix description
+     block/genhd.c: check class_register return value
 has been added to the -mm tree.  Its filename is
-     documentation-i386-io-apictxt-fix-description.patch
+     block-genhdc-check-class_register-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/i386/IO-APIC.txt: fix description
-From: Nick Andrew <nick@nick-andrew.net>
+Subject: block/genhd.c: check class_register return value
+From: Leonardo Potenza <lpotenza@inwind.it>
 
-The description of the interrupt routing doesn't match the (nice) diagram.
+Add a check for the class_register() return value.
 
-Signed-off-by: Nick Andrew <nick@nick-andrew.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Leonardo Potenza <lpotenza@inwind.it>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/i386/IO-APIC.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/genhd.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/i386/IO-APIC.txt~documentation-i386-io-apictxt-fix-description Documentation/i386/IO-APIC.txt
---- a/Documentation/i386/IO-APIC.txt~documentation-i386-io-apictxt-fix-description
-+++ a/Documentation/i386/IO-APIC.txt
-@@ -68,7 +68,7 @@ every PCI card emits a PCI IRQ, which ca
+diff -puN block/genhd.c~block-genhdc-check-class_register-return-value block/genhd.c
+--- a/block/genhd.c~block-genhdc-check-class_register-return-value
++++ a/block/genhd.c
+@@ -358,7 +358,12 @@ static struct kobject *base_probe(dev_t 
  
- These INTA-D PCI IRQs are always 'local to the card', their real meaning
- depends on which slot they are in. If you look at the daisy chaining diagram,
--a card in slot4, issuing INTA IRQ, it will end up as a signal on PIRQ2 of
-+a card in slot4, issuing INTA IRQ, it will end up as a signal on PIRQ4 of
- the PCI chipset. Most cards issue INTA, this creates optimal distribution
- between the PIRQ lines. (distributing IRQ sources properly is not a
- necessity, PCI IRQs can be shared at will, but it's a good for performance
+ static int __init genhd_device_init(void)
+ {
+-	class_register(&block_class);
++	int ret;
++
++	ret = class_register(&block_class);
++	if (ret != 0)
++		return ret;
++
+ 	bdev_map = kobj_map_init(base_probe, &block_class_lock);
+ 	blk_dev_init();
+ 
 _
 
-Patches currently in -mm which might be from nick@nick-andrew.net are
+Patches currently in -mm which might be from lpotenza@inwind.it are
 
-documentation-i386-io-apictxt-fix-description.patch
+block-genhdc-check-class_register-return-value.patch
