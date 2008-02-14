@@ -1,178 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - remove-final-fastcall-users.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:15:38 -0500
-Message-ID: <200802150218.m1F2Iv6q014965@imap1.linux-foundation.org>
+Subject: - futex-disable-pi-robust-on-archs-w-o-valid-implementation.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:15:03 -0500
+Message-ID: <200802150218.m1F2IMvS014951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42891 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47664 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757148AbYBOCTB (ORCPT
+	by vger.kernel.org with ESMTP id S1757335AbYBOCTI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:19:01 -0500
+	Thu, 14 Feb 2008 21:19:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, buytenh@wantstofly.org, mingo@elte.hu, riku.voipio@movial.fi, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove final fastcall users
+     futex: disable PI/robust on archs w/o valid implementation
 has been removed from the -mm tree.  Its filename was
-     remove-final-fastcall-users.patch
+     futex-disable-pi-robust-on-archs-w-o-valid-implementation.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove final fastcall users
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: futex: disable PI/robust on archs w/o valid implementation
+From: Thomas Gleixner <tglx@linutronix.de>
 
-fastcall always expands to empty, remove it.
+We have to disable the complete PI/robust functionality for those archs, which
+do not implement futex_atomic_cmpxchg_inatomic().  The code in question relies
+on a valid implementation and does not expect -ENOSYS, which is returned by
+the stub implementation in asm-generic/futex.h
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Pointed out by: Mikael Pettersson, Riku Voipio and Adrian Bunk
+
+This patch is intended for easy backporting and needs to be cleaned up further
+for current mainline.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Lennert Buytenhek <buytenh@wantstofly.org>
+Tested-by: Riku Voipio <riku.voipio@movial.fi>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/RCU/NMI-RCU.txt |    2 +-
- Documentation/kprobes.txt     |   11 +++++------
- kernel/signal.c               |    2 +-
- mm/filemap.c                  |    2 +-
- net/bluetooth/rfcomm/core.c   |    4 ++--
- net/core/dev.c                |    2 +-
- net/core/sock.c               |    4 ++--
- 7 files changed, 13 insertions(+), 14 deletions(-)
+ include/asm-generic/futex.h |    2 ++
+ kernel/futex.c              |   13 +++++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users Documentation/RCU/NMI-RCU.txt
---- a/Documentation/RCU/NMI-RCU.txt~remove-final-fastcall-users
-+++ a/Documentation/RCU/NMI-RCU.txt
-@@ -25,7 +25,7 @@ the NMI handler to take the default mach
- This nmi_callback variable is a global function pointer to the current
- NMI handler.
- 
--	fastcall void do_nmi(struct pt_regs * regs, long error_code)
-+	void do_nmi(struct pt_regs * regs, long error_code)
- 	{
- 		int cpu;
- 
-diff -puN Documentation/kprobes.txt~remove-final-fastcall-users Documentation/kprobes.txt
---- a/Documentation/kprobes.txt~remove-final-fastcall-users
-+++ a/Documentation/kprobes.txt
-@@ -92,9 +92,8 @@ handler has run.  Up to MAX_STACK_SIZE b
- 64 bytes on i386.
- 
- Note that the probed function's args may be passed on the stack
--or in registers (e.g., for x86_64 or for an i386 fastcall function).
--The jprobe will work in either case, so long as the handler's
--prototype matches that of the probed function.
-+or in registers.  The jprobe will work in either case, so long as the
-+handler's prototype matches that of the probed function.
- 
- 1.3 Return Probes
- 
-@@ -270,9 +269,9 @@ Kprobes runs the handler whose address i
- The handler should have the same arg list and return type as the probed
- function; and just before it returns, it must call jprobe_return().
- (The handler never actually returns, since jprobe_return() returns
--control to Kprobes.)  If the probed function is declared asmlinkage,
--fastcall, or anything else that affects how args are passed, the
--handler's declaration must match.
-+control to Kprobes.)  If the probed function is declared asmlinkage
-+or anything else that affects how args are passed, the handler's
-+declaration must match.
- 
- register_jprobe() returns 0 on success, or a negative errno otherwise.
- 
-diff -puN kernel/signal.c~remove-final-fastcall-users kernel/signal.c
---- a/kernel/signal.c~remove-final-fastcall-users
-+++ a/kernel/signal.c
-@@ -972,7 +972,7 @@ void zap_other_threads(struct task_struc
- 	}
+diff -puN include/asm-generic/futex.h~futex-disable-pi-robust-on-archs-w-o-valid-implementation include/asm-generic/futex.h
+--- a/include/asm-generic/futex.h~futex-disable-pi-robust-on-archs-w-o-valid-implementation
++++ a/include/asm-generic/futex.h
+@@ -55,5 +55,7 @@ futex_atomic_cmpxchg_inatomic(int __user
+ 	return -ENOSYS;
  }
  
--int fastcall __fatal_signal_pending(struct task_struct *tsk)
-+int __fatal_signal_pending(struct task_struct *tsk)
++#define FUTEX_ATOMIC_CMPXCHG_NOT_IMPLEMENTED
++
+ #endif
+ #endif
+diff -puN kernel/futex.c~futex-disable-pi-robust-on-archs-w-o-valid-implementation kernel/futex.c
+--- a/kernel/futex.c~futex-disable-pi-robust-on-archs-w-o-valid-implementation
++++ a/kernel/futex.c
+@@ -1870,6 +1870,9 @@ asmlinkage long
+ sys_set_robust_list(struct robust_list_head __user *head,
+ 		    size_t len)
  {
- 	return sigismember(&tsk->pending.signal, SIGKILL);
- }
-diff -puN mm/filemap.c~remove-final-fastcall-users mm/filemap.c
---- a/mm/filemap.c~remove-final-fastcall-users
-+++ a/mm/filemap.c
-@@ -604,7 +604,7 @@ void __lock_page(struct page *page)
- }
- EXPORT_SYMBOL(__lock_page);
- 
--int fastcall __lock_page_killable(struct page *page)
-+int __lock_page_killable(struct page *page)
- {
- 	DEFINE_WAIT_BIT(wait, &page->flags, PG_locked);
- 
-diff -puN net/bluetooth/rfcomm/core.c~remove-final-fastcall-users net/bluetooth/rfcomm/core.c
---- a/net/bluetooth/rfcomm/core.c~remove-final-fastcall-users
-+++ a/net/bluetooth/rfcomm/core.c
-@@ -465,7 +465,7 @@ int rfcomm_dlc_send(struct rfcomm_dlc *d
- 	return len;
- }
- 
--void fastcall __rfcomm_dlc_throttle(struct rfcomm_dlc *d)
-+void __rfcomm_dlc_throttle(struct rfcomm_dlc *d)
- {
- 	BT_DBG("dlc %p state %ld", d, d->state);
- 
-@@ -476,7 +476,7 @@ void fastcall __rfcomm_dlc_throttle(stru
- 	rfcomm_schedule(RFCOMM_SCHED_TX);
- }
- 
--void fastcall __rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
-+void __rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
- {
- 	BT_DBG("dlc %p state %ld", d, d->state);
- 
-diff -puN net/core/dev.c~remove-final-fastcall-users net/core/dev.c
---- a/net/core/dev.c~remove-final-fastcall-users
-+++ a/net/core/dev.c
-@@ -2143,7 +2143,7 @@ static int process_backlog(struct napi_s
-  *
-  * The entry's receive function will be scheduled to run
-  */
--void fastcall __napi_schedule(struct napi_struct *n)
-+void __napi_schedule(struct napi_struct *n)
- {
- 	unsigned long flags;
- 
-diff -puN net/core/sock.c~remove-final-fastcall-users net/core/sock.c
---- a/net/core/sock.c~remove-final-fastcall-users
-+++ a/net/core/sock.c
-@@ -1731,7 +1731,7 @@ void sock_init_data(struct socket *sock,
- 	atomic_set(&sk->sk_drops, 0);
- }
- 
--void fastcall lock_sock_nested(struct sock *sk, int subclass)
-+void lock_sock_nested(struct sock *sk, int subclass)
- {
- 	might_sleep();
- 	spin_lock_bh(&sk->sk_lock.slock);
-@@ -1748,7 +1748,7 @@ void fastcall lock_sock_nested(struct so
- 
- EXPORT_SYMBOL(lock_sock_nested);
- 
--void fastcall release_sock(struct sock *sk)
-+void release_sock(struct sock *sk)
- {
++#ifdef FUTEX_ATOMIC_CMPXCHG_NOT_IMPLEMENTED
++	return -ENOSYS;
++#else
  	/*
- 	 * The sk_lock has mutex_unlock() semantics:
+ 	 * The kernel knows only one size for now:
+ 	 */
+@@ -1879,6 +1882,7 @@ sys_set_robust_list(struct robust_list_h
+ 	current->robust_list = head;
+ 
+ 	return 0;
++#endif
+ }
+ 
+ /**
+@@ -1891,6 +1895,9 @@ asmlinkage long
+ sys_get_robust_list(int pid, struct robust_list_head __user * __user *head_ptr,
+ 		    size_t __user *len_ptr)
+ {
++#ifdef FUTEX_ATOMIC_CMPXCHG_NOT_IMPLEMENTED
++	return -ENOSYS;
++#else
+ 	struct robust_list_head __user *head;
+ 	unsigned long ret;
+ 
+@@ -1920,6 +1927,7 @@ err_unlock:
+ 	rcu_read_unlock();
+ 
+ 	return ret;
++#endif
+ }
+ 
+ /*
+@@ -2082,6 +2090,9 @@ long do_futex(u32 __user *uaddr, int op,
+ 	case FUTEX_WAKE_OP:
+ 		ret = futex_wake_op(uaddr, fshared, uaddr2, val, val2, val3);
+ 		break;
++
++#ifndef FUTEX_ATOMIC_CMPXCHG_NOT_IMPLEMENTED
++
+ 	case FUTEX_LOCK_PI:
+ 		ret = futex_lock_pi(uaddr, fshared, val, timeout, 0);
+ 		break;
+@@ -2091,6 +2102,8 @@ long do_futex(u32 __user *uaddr, int op,
+ 	case FUTEX_TRYLOCK_PI:
+ 		ret = futex_lock_pi(uaddr, fshared, 0, timeout, 1);
+ 		break;
++#endif
++
+ 	default:
+ 		ret = -ENOSYS;
+ 	}
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-inotify-make-variables-static-in-inotify_userc.patch
-kernel-doc-remove-fastcall.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ubi-fix-sparse-errors-in-ubih.patch
+git-hrt.patch
+git-kvm.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+pci-disable-decoding-during-sizing-of-bars.patch
+execute-tasklets-in-the-same-order-they-were-queued.patch
+x86-amd-thermal-interrupt-support.patch
 x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+x86-visws-fix-printk-format-warnings.patch
+x86-minor-cleanup-of-comments-in-processorh.patch
+documentation-i386-io-apictxt-fix-description.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+rtc-cmos-display-hpet-emulation-mode.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+dmi-prevent-linked-list-corruption-resent.patch
+x86-fix-clearcopy_user_page-declarations-in-pageh.patch
+futex-fix-init-order.patch
+futex-runtime-enable-pi-and-robust-functionality.patch
+x86-configurable-dmi-scanning-code.patch
+asm-futexh-should-include-linux-uaccessh.patch
