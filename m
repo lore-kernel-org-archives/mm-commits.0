@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-git-rejects.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:11:35 -0500
-Message-ID: <200802150214.m1F2Esxh014772@imap1.linux-foundation.org>
+Subject: + git-block-git-rejects.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:12:35 -0500
+Message-ID: <200802150215.m1F2FsCX014815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48761 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59108 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756276AbYBOCP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756257AbYBOCQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:15:26 -0500
+	Thu, 14 Feb 2008 21:16:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, wim@iguana.be
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-watchdog-git-rejects
+     git-block-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-watchdog-git-rejects.patch
+     git-block-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog-git-rejects
+Subject: git-block-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig  |    3 ---
- drivers/watchdog/Makefile |    3 ---
- 2 files changed, 6 deletions(-)
+ fs/splice.c |  126 --------------------------------------------------
+ 1 file changed, 126 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~git-watchdog-git-rejects drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~git-watchdog-git-rejects
-+++ a/drivers/watchdog/Kconfig
-@@ -405,8 +405,6 @@ config IT8712F_WDT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called it8712f_wdt.
+diff -puN fs/splice.c~git-block-git-rejects fs/splice.c
+--- a/fs/splice.c~git-block-git-rejects
++++ a/fs/splice.c
+@@ -1517,132 +1517,6 @@ static int get_iovec_page_array(const st
+ 	return error;
+ }
  
--<<<<<<< HEAD:drivers/watchdog/Kconfig
+-<<<<<<< HEAD:fs/splice.c
+-static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
+-			struct splice_desc *sd)
+-{
+-	char *src;
+-	int ret;
+-
+-	ret = buf->ops->confirm(pipe, buf);
+-	if (unlikely(ret))
+-		return ret;
+-
+-	/*
+-	 * See if we can use the atomic maps, by prefaulting in the
+-	 * pages and doing an atomic copy
+-	 */
+-	if (!fault_in_pages_writeable(sd->u.userptr, sd->len)) {
+-		src = buf->ops->map(pipe, buf, 1);
+-		ret = __copy_to_user_inatomic(sd->u.userptr, src + buf->offset,
+-							sd->len);
+-		buf->ops->unmap(pipe, buf, src);
+-		if (!ret) {
+-			ret = sd->len;
+-			goto out;
+-		}
+-	}
+-
+-	/*
+-	 * No dice, use slow non-atomic map and copy
+- 	 */
+-	src = buf->ops->map(pipe, buf, 0);
+-
+-	ret = sd->len;
+-	if (copy_to_user(sd->u.userptr, src + buf->offset, sd->len))
+-		ret = -EFAULT;
+-
+-	buf->ops->unmap(pipe, buf, src);
+-out:
+-	if (ret > 0)
+-		sd->u.userptr += ret;
+-	return ret;
+-}
+-
+-/*
+- * For lack of a better implementation, implement vmsplice() to userspace
+- * as a simple copy of the pipes pages to the user iov.
+- */
+-static long vmsplice_to_user(struct file *file, const struct iovec __user *iov,
+-			     unsigned long nr_segs, unsigned int flags)
+-{
+-	struct pipe_inode_info *pipe;
+-	struct splice_desc sd;
+-	ssize_t size;
+-	int error;
+-	long ret;
+-
+-	pipe = pipe_info(file->f_path.dentry->d_inode);
+-	if (!pipe)
+-		return -EBADF;
+-
+-	if (pipe->inode)
+-		mutex_lock(&pipe->inode->i_mutex);
+-
+-	error = ret = 0;
+-	while (nr_segs) {
+-		void __user *base;
+-		size_t len;
+-
+-		/*
+-		 * Get user address base and length for this iovec.
+-		 */
+-		error = get_user(base, &iov->iov_base);
+-		if (unlikely(error))
+-			break;
+-		error = get_user(len, &iov->iov_len);
+-		if (unlikely(error))
+-			break;
+-
+-		/*
+-		 * Sanity check this iovec. 0 read succeeds.
+-		 */
+-		if (unlikely(!len))
+-			break;
+-		if (unlikely(!base)) {
+-			error = -EFAULT;
+-			break;
+-		}
+-
+-		if (unlikely(!access_ok(VERIFY_WRITE, base, len))) {
+-			error = -EFAULT;
+-			break;
+-		}
+-
+-		sd.len = 0;
+-		sd.total_len = len;
+-		sd.flags = flags;
+-		sd.u.userptr = base;
+-		sd.pos = 0;
+-
+-		size = __splice_from_pipe(pipe, &sd, pipe_to_user);
+-		if (size < 0) {
+-			if (!ret)
+-				ret = size;
+-
+-			break;
+-		}
+-
+-		ret += size;
+-
+-		if (size < len)
+-			break;
+-
+-		nr_segs--;
+-		iov++;
+-	}
+-
+-	if (pipe->inode)
+-		mutex_unlock(&pipe->inode->i_mutex);
+-
+-	if (!ret)
+-		ret = error;
+-
+-	return ret;
+-}
+-
 -=======
- config HP_WATCHDOG
- 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
- 	depends on X86
-@@ -419,7 +417,6 @@ config HP_WATCHDOG
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hpwdt.
- 
-->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
- config SC1200_WDT
- 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
- 	depends on X86
-diff -puN drivers/watchdog/Makefile~git-watchdog-git-rejects drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~git-watchdog-git-rejects
-+++ a/drivers/watchdog/Makefile
-@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
- obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
- obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
--<<<<<<< HEAD:drivers/watchdog/Makefile
--=======
- CFLAGS_hpwdt.o += -O
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
-->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
- obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
- obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
- obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
+->>>>>>> FETCH_HEAD:fs/splice.c
+ /*
+  * vmsplice splices a user address range into a pipe. It can be thought of
+  * as splice-from-memory, where the regular splice is splice-from-file (or
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +216,7 @@ git-sh.patch
 scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
 scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
 git-sparc64.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
