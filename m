@@ -1,58 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 15:22:36 -0800
-Message-ID: <200802142322.m1ENMagh008357@imap1.linux-foundation.org>
+Subject: - introduce-path_put-cifs-fix.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 15:23:49 -0800
+Message-ID: <200802142323.m1ENNoeM008468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758002AbYBNXYR (ORCPT
+	by vger.kernel.org with ESMTP id S1757876AbYBNXYb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 18:24:17 -0500
+	Thu, 14 Feb 2008 18:24:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, darwish.07@gmail.com, jmorris@namei.org, method@manicmethod.com, morgan@kernel.org, paul.moore@hp.com, sds@tych
+To: akpm@linux-foundation.org, jblunck@suse.de, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
+     introduce-path_put-cifs-fix
 has been removed from the -mm tree.  Its filename was
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+     introduce-path_put-cifs-fix.patch
 
-This patch was dropped because it was folded into embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+This patch was dropped because it was folded into introduce-path_put.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
+Subject: introduce-path_put-cifs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Joshua Brindle <method@manicmethod.com>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    2 +-
+ fs/cifs/cifs_dfs_ref.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix
-+++ a/security/smack/smack_lsm.c
-@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
- static int smack_sb_mount(char *dev_name, struct nameidata *nd,
- 			  char *type, unsigned long flags, void *data)
- {
--	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
-+	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
- 
- 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
+diff -puN fs/cifs/cifs_dfs_ref.c~introduce-path_put-cifs-fix fs/cifs/cifs_dfs_ref.c
+--- a/fs/cifs/cifs_dfs_ref.c~introduce-path_put-cifs-fix
++++ a/fs/cifs/cifs_dfs_ref.c
+@@ -368,7 +368,7 @@ out:
+ 	cFYI(1, ("leaving %s" , __FUNCTION__));
+ 	return ERR_PTR(rc);
+ out_err:
+-	path_release(nd);
++	path_put(&nd->path);
+ 	goto out;
  }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +105,7 @@ rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put.patch
 introduce-path_put-cifs-fix.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
