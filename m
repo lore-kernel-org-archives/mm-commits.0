@@ -1,297 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch removed from -mm tree
-Date: Wed, 13 Feb 2008 16:29:08 -0800
-Message-ID: <200802140029.m1E0T8Zj022238@imap1.linux-foundation.org>
+Subject: - ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 16:29:10 -0800
+Message-ID: <200802140029.m1E0TAI9022241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52951 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46727 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934909AbYBNAdv (ORCPT
+	by vger.kernel.org with ESMTP id S935036AbYBNAd4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:33:51 -0500
+	Wed, 13 Feb 2008 19:33:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipmi: convert locked counters to atomics in the system interface
+     ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
+     ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: convert locked counters to atomics in the system interface
-From: Corey Minyard <cminyard@mvista.com>
+Subject: ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Atomics are faster and neater than locked counters.
+ERROR: open brace '{' following struct go on the same line
+#20: FILE: drivers/char/ipmi/ipmi_si_intf.c:124:
++struct smi_stats
++{
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+total: 1 errors, 0 warnings, 229 lines checked
+
+./patches/ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |  131 ++++++++++++-----------------
- 1 file changed, 57 insertions(+), 74 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes
 +++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -120,6 +120,22 @@ static struct device_driver ipmi_driver 
+@@ -120,8 +120,7 @@ static struct device_driver ipmi_driver 
  	.bus = &platform_bus_type
  };
  
-+struct smi_stats
-+{
-+	atomic_t short_timeouts;
-+	atomic_t long_timeouts;
-+	atomic_t timeout_restarts;
-+	atomic_t idles;
-+	atomic_t interrupts;
-+	atomic_t attentions;
-+	atomic_t flag_fetches;
-+	atomic_t hosed_count;
-+	atomic_t complete_transactions;
-+	atomic_t events;
-+	atomic_t watchdog_pretimeouts;
-+	atomic_t incoming_messages;
-+};
-+
- struct smi_info
- {
- 	int                    intf_num;
-@@ -216,25 +232,17 @@ struct smi_info
- 	unsigned char slave_addr;
- 
- 	/* Counters and things for the proc filesystem. */
--	spinlock_t count_lock;
--	unsigned long short_timeouts;
--	unsigned long long_timeouts;
--	unsigned long timeout_restarts;
--	unsigned long idles;
--	unsigned long interrupts;
--	unsigned long attentions;
--	unsigned long flag_fetches;
--	unsigned long hosed_count;
--	unsigned long complete_transactions;
--	unsigned long events;
--	unsigned long watchdog_pretimeouts;
--	unsigned long incoming_messages;
-+	struct smi_stats stats;
- 
-         struct task_struct *thread;
- 
- 	struct list_head link;
- };
- 
-+#define smi_inc_stat(smi, stat) atomic_inc(&(smi)->stats.stat)
-+#define smi_get_stat(smi, stat) \
-+	((unsigned int) atomic_read(&smi->stats.stat))
-+
- #define SI_MAX_PARMS 4
- 
- static int force_kipmid[SI_MAX_PARMS];
-@@ -398,9 +406,7 @@ static void handle_flags(struct smi_info
-  retry:
- 	if (smi_info->msg_flags & WDT_PRE_TIMEOUT_INT) {
- 		/* Watchdog pre-timeout */
--		spin_lock(&smi_info->count_lock);
--		smi_info->watchdog_pretimeouts++;
--		spin_unlock(&smi_info->count_lock);
-+		smi_inc_stat(smi_info, watchdog_pretimeouts);
- 
- 		start_clear_flags(smi_info);
- 		smi_info->msg_flags &= ~WDT_PRE_TIMEOUT_INT;
-@@ -545,9 +551,7 @@ static void handle_transaction_done(stru
- 			smi_info->msg_flags &= ~EVENT_MSG_BUFFER_FULL;
- 			handle_flags(smi_info);
- 		} else {
--			spin_lock(&smi_info->count_lock);
--			smi_info->events++;
--			spin_unlock(&smi_info->count_lock);
-+			smi_inc_stat(smi_info, events);
- 
- 			/* Do this before we deliver the message
- 			   because delivering the message releases the
-@@ -581,9 +585,7 @@ static void handle_transaction_done(stru
- 			smi_info->msg_flags &= ~RECEIVE_MSG_AVAIL;
- 			handle_flags(smi_info);
- 		} else {
--			spin_lock(&smi_info->count_lock);
--			smi_info->incoming_messages++;
--			spin_unlock(&smi_info->count_lock);
-+			smi_inc_stat(smi_info, incoming_messages);
- 
- 			/* Do this before we deliver the message
- 			   because delivering the message releases the
-@@ -700,18 +702,14 @@ static enum si_sm_result smi_event_handl
- 
- 	if (si_sm_result == SI_SM_TRANSACTION_COMPLETE)
- 	{
--		spin_lock(&smi_info->count_lock);
--		smi_info->complete_transactions++;
--		spin_unlock(&smi_info->count_lock);
-+		smi_inc_stat(smi_info, complete_transactions);
- 
- 		handle_transaction_done(smi_info);
- 		si_sm_result = smi_info->handlers->event(smi_info->si_sm, 0);
- 	}
- 	else if (si_sm_result == SI_SM_HOSED)
- 	{
--		spin_lock(&smi_info->count_lock);
--		smi_info->hosed_count++;
--		spin_unlock(&smi_info->count_lock);
-+		smi_inc_stat(smi_info, hosed_count);
- 
- 		/* Do the before return_hosed_msg, because that
- 		   releases the lock. */
-@@ -733,9 +731,7 @@ static enum si_sm_result smi_event_handl
- 	{
- 		unsigned char msg[2];
- 
--		spin_lock(&smi_info->count_lock);
--		smi_info->attentions++;
--		spin_unlock(&smi_info->count_lock);
-+		smi_inc_stat(smi_info, attentions);
- 
- 		/* Got a attn, send down a get message flags to see
-                    what's causing it.  It would be better to handle
-@@ -753,9 +749,7 @@ static enum si_sm_result smi_event_handl
- 
- 	/* If we are currently idle, try to start the next message. */
- 	if (si_sm_result == SI_SM_IDLE) {
--		spin_lock(&smi_info->count_lock);
--		smi_info->idles++;
--		spin_unlock(&smi_info->count_lock);
-+		smi_inc_stat(smi_info, idles);
- 
- 		si_sm_result = start_next_msg(smi_info);
- 		if (si_sm_result != SI_SM_IDLE)
-@@ -945,23 +939,17 @@ static void smi_timeout(unsigned long da
- 	if ((smi_info->irq) && (!smi_info->interrupt_disabled)) {
- 		/* Running with interrupts, only do long timeouts. */
- 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
--		spin_lock_irqsave(&smi_info->count_lock, flags);
--		smi_info->long_timeouts++;
--		spin_unlock_irqrestore(&smi_info->count_lock, flags);
-+		smi_inc_stat(smi_info, long_timeouts);
- 		goto do_add_timer;
- 	}
- 
- 	/* If the state machine asks for a short delay, then shorten
-            the timer timeout. */
- 	if (smi_result == SI_SM_CALL_WITH_DELAY) {
--		spin_lock_irqsave(&smi_info->count_lock, flags);
--		smi_info->short_timeouts++;
--		spin_unlock_irqrestore(&smi_info->count_lock, flags);
-+		smi_inc_stat(smi_info, short_timeouts);
- 		smi_info->si_timer.expires = jiffies + 1;
- 	} else {
--		spin_lock_irqsave(&smi_info->count_lock, flags);
--		smi_info->long_timeouts++;
--		spin_unlock_irqrestore(&smi_info->count_lock, flags);
-+		smi_inc_stat(smi_info, long_timeouts);
- 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
- 	}
- 
-@@ -979,9 +967,7 @@ static irqreturn_t si_irq_handler(int ir
- 
- 	spin_lock_irqsave(&(smi_info->si_lock), flags);
- 
--	spin_lock(&smi_info->count_lock);
--	smi_info->interrupts++;
--	spin_unlock(&smi_info->count_lock);
-+	smi_inc_stat(smi_info, interrupts);
- 
- #ifdef DEBUG_TIMING
- 	do_gettimeofday(&t);
-@@ -1765,9 +1751,7 @@ static u32 ipmi_acpi_gpe(void *context)
- 
- 	spin_lock_irqsave(&(smi_info->si_lock), flags);
- 
--	spin_lock(&smi_info->count_lock);
--	smi_info->interrupts++;
--	spin_unlock(&smi_info->count_lock);
-+	smi_inc_stat(smi_info, interrupts);
- 
- #ifdef DEBUG_TIMING
- 	do_gettimeofday(&t);
-@@ -2405,30 +2389,30 @@ static int stat_file_read_proc(char *pag
- 
- 	out += sprintf(out, "interrupts_enabled:    %d\n",
- 		       smi->irq && !smi->interrupt_disabled);
--	out += sprintf(out, "short_timeouts:        %ld\n",
--		       smi->short_timeouts);
--	out += sprintf(out, "long_timeouts:         %ld\n",
--		       smi->long_timeouts);
--	out += sprintf(out, "timeout_restarts:      %ld\n",
--		       smi->timeout_restarts);
--	out += sprintf(out, "idles:                 %ld\n",
--		       smi->idles);
--	out += sprintf(out, "interrupts:            %ld\n",
--		       smi->interrupts);
--	out += sprintf(out, "attentions:            %ld\n",
--		       smi->attentions);
--	out += sprintf(out, "flag_fetches:          %ld\n",
--		       smi->flag_fetches);
--	out += sprintf(out, "hosed_count:           %ld\n",
--		       smi->hosed_count);
--	out += sprintf(out, "complete_transactions: %ld\n",
--		       smi->complete_transactions);
--	out += sprintf(out, "events:                %ld\n",
--		       smi->events);
--	out += sprintf(out, "watchdog_pretimeouts:  %ld\n",
--		       smi->watchdog_pretimeouts);
--	out += sprintf(out, "incoming_messages:     %ld\n",
--		       smi->incoming_messages);
-+	out += sprintf(out, "short_timeouts:        %u\n",
-+		       smi_get_stat(smi, short_timeouts));
-+	out += sprintf(out, "long_timeouts:         %u\n",
-+		       smi_get_stat(smi, long_timeouts));
-+	out += sprintf(out, "timeout_restarts:      %u\n",
-+		       smi_get_stat(smi, timeout_restarts));
-+	out += sprintf(out, "idles:                 %u\n",
-+		       smi_get_stat(smi, idles));
-+	out += sprintf(out, "interrupts:            %u\n",
-+		       smi_get_stat(smi, interrupts));
-+	out += sprintf(out, "attentions:            %u\n",
-+		       smi_get_stat(smi, attentions));
-+	out += sprintf(out, "flag_fetches:          %u\n",
-+		       smi_get_stat(smi, flag_fetches));
-+	out += sprintf(out, "hosed_count:           %u\n",
-+		       smi_get_stat(smi, hosed_count));
-+	out += sprintf(out, "complete_transactions: %u\n",
-+		       smi_get_stat(smi, complete_transactions));
-+	out += sprintf(out, "events:                %u\n",
-+		       smi_get_stat(smi, events));
-+	out += sprintf(out, "watchdog_pretimeouts:  %u\n",
-+		       smi_get_stat(smi, watchdog_pretimeouts));
-+	out += sprintf(out, "incoming_messages:     %u\n",
-+		       smi_get_stat(smi, incoming_messages));
- 
- 	return out - page;
- }
-@@ -2738,7 +2722,6 @@ static int try_smi_init(struct smi_info 
- 
- 	spin_lock_init(&(new_smi->si_lock));
- 	spin_lock_init(&(new_smi->msg_lock));
--	spin_lock_init(&(new_smi->count_lock));
- 
- 	/* Do low-level detection first. */
- 	if (new_smi->handlers->detect(new_smi->si_sm)) {
+-struct smi_stats
+-{
++struct smi_stats {
+ 	atomic_t short_timeouts;
+ 	atomic_t long_timeouts;
+ 	atomic_t timeout_restarts;
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+softlockup-workaround.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
-ipmi-hold-attn-until-upper-layer-ready.patch
-ipmi-change-device-node-ordering-to-reflect-probe-order.patch
-ipmi-run-to-completion-fixes.patch
+git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-dont-grab-locks-in-run-to-completion-mode.patch
-ipmi-dont-print-event-queue-full-on-every-event.patch
-ipmi-update-driver-version.patch
-ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
 ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
