@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch added to -mm tree
-Date: Thu, 14 Feb 2008 14:11:04 -0800
-Message-ID: <200802142211.m1EMB4YY005528@imap1.linux-foundation.org>
+Subject: + leds-add-mail-led-support-for-clevo-d400p.patch added to -mm tree
+Date: Thu, 14 Feb 2008 14:15:41 -0800
+Message-ID: <200802142215.m1EMFfY5005705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38068 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755401AbYBNWLK (ORCPT
+	by vger.kernel.org with ESMTP id S1755751AbYBNWQo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 17:11:10 -0500
+	Thu, 14 Feb 2008 17:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, adaplas@pol.net, krzysztof.h1@poczta.fm
+Cc: nm127@freemail.hu, akamenov@users.sourceforge.net, rpurdie@rpsys.net
 
 
 The patch titled
-     fbdev: make the best-fit section of fb_find_mode return the closest matching mode
+     leds: add mail LED support for "Clevo D400P"
 has been added to the -mm tree.  Its filename is
-     fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
+     leds-add-mail-led-support-for-clevo-d400p.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,86 +29,80 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fbdev: make the best-fit section of fb_find_mode return the closest matching mode
-From: Michal Januszewski <spock@gentoo.org>
+Subject: leds: add mail LED support for "Clevo D400P"
+=46rom: M=E1rton N=E9meth <nm127@freemail.hu>
 
-Currently, if a perfect match in terms of resolution is not found,
-fb_find_mode() only looks for a best-fit mode among modes with a higher
-resolution than the one requested.  Thus, if the user requests a resolution
-higher than the largest supported one, they are dropped to the default mode
-(usually a low resolution one).
+The leds-clevo-mail module also works with model "Clevo D400P",
+add this model to the white list.
 
-Change this behaviour so that all valid video modes are considered when
-looking for a best-fit mode, while still preferring modes with a higher
-resolution.
-
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: M=E1rton N=E9meth <nm127@freemail.hu>
+Cc: Andrey Kamenov <akamenov@users.sourceforge.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ drivers/leds/Kconfig           |    4 ++++
+ drivers/leds/leds-clevo-mail.c |   10 ++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN drivers/video/modedb.c~fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode
-+++ a/drivers/video/modedb.c
-@@ -522,7 +522,7 @@ int fb_find_mode(struct fb_var_screeninf
- 	int res_specified = 0, bpp_specified = 0, refresh_specified = 0;
- 	unsigned int xres = 0, yres = 0, bpp = default_bpp, refresh = 0;
- 	int yres_specified = 0, cvt = 0, rb = 0, interlace = 0, margins = 0;
--	u32 best, diff;
-+	u32 best, diff, tdiff;
- 
- 	for (i = namelen-1; i >= 0; i--) {
- 	    switch (name[i]) {
-@@ -651,19 +651,27 @@ done:
- 		return (refresh_specified) ? 2 : 1;
- 	}
- 
--	diff = xres + yres;
-+	diff = 2 * (xres + yres);
- 	best = -1;
- 	DPRINTK("Trying best-fit modes\n");
- 	for (i = 0; i < dbsize; i++) {
--	    if (xres <= db[i].xres && yres <= db[i].yres) {
- 		DPRINTK("Trying %ix%i\n", db[i].xres, db[i].yres);
- 		if (!fb_try_mode(var, info, &db[i], bpp)) {
--		    if (diff > (db[i].xres - xres) + (db[i].yres - yres)) {
--			diff = (db[i].xres - xres) + (db[i].yres - yres);
--			best = i;
--		    }
-+			tdiff = abs(db[i].xres - xres) +
-+				abs(db[i].yres - yres);
+diff -puN drivers/leds/Kconfig~leds-add-mail-led-support-for-clevo-d400=
+p drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-mail-led-support-for-clevo-d400p
++++ a/drivers/leds/Kconfig
+@@ -135,6 +135,7 @@ config LEDS_CLEVO_MAIL
+=20
+ 	  This module can drive the mail LED for the following notebooks:
+=20
++	  	Clevo D400P
+ 	  	Clevo D410J
+ 	  	Clevo D410V
+ 	  	Clevo D400V/D470V (not tested, but might work)
+@@ -142,6 +143,9 @@ config LEDS_CLEVO_MAIL
+ 	  	Clevo M5x0N (not tested, but might work)
+ 	  	Positivo Mobile (Clevo M5x0V)
+=20
++	  If your model is not listed here you can try the "nodetect"
++	  module paramter.
 +
-+			/*
-+			 * Penalize modes with resolutions smaller
-+			 * than requested.
-+			 */
-+			if (xres > db[i].xres || yres > db[i].yres)
-+				tdiff += xres + yres;
-+
-+			if (diff > tdiff) {
-+				diff = tdiff;
-+				best = i;
-+			}
- 		}
--	    }
- 	}
- 	if (best != -1) {
- 	    fb_try_mode(var, info, &db[best], bpp);
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called leds-clevo-mail.
+=20
+diff -puN drivers/leds/leds-clevo-mail.c~leds-add-mail-led-support-for-=
+clevo-d400p drivers/leds/leds-clevo-mail.c
+--- a/drivers/leds/leds-clevo-mail.c~leds-add-mail-led-support-for-clev=
+o-d400p
++++ a/drivers/leds/leds-clevo-mail.c
+@@ -69,6 +69,16 @@ static struct dmi_system_id __initdata m
+ 	},
+ 	{
+ 		.callback =3D clevo_mail_led_dmi_callback,
++		.ident =3D "Clevo D400P",
++		.matches =3D {
++			DMI_MATCH(DMI_BOARD_VENDOR, "Clevo"),
++			DMI_MATCH(DMI_BOARD_NAME, "D400P"),
++			DMI_MATCH(DMI_BOARD_VERSION, "Rev.A"),
++			DMI_MATCH(DMI_PRODUCT_VERSION, "0106")
++		}
++	},
++	{
++		.callback =3D clevo_mail_led_dmi_callback,
+ 		.ident =3D "Clevo D410V",
+ 		.matches =3D {
+ 			DMI_MATCH(DMI_BOARD_VENDOR, "Clevo, Co."),
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from nm127@freemail.hu are
 
-drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll.patch
-fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
+git-drm.patch
+leds-add-mail-led-support-for-clevo-d400p.patch
