@@ -1,82 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-fix-fs-pipec-notation.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:22:32 -0500
-Message-ID: <200802150225.m1F2PpZr015189@imap1.linux-foundation.org>
+Subject: - docbook-move-pipe-and-splice-to-filesystems-docbook.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:22:35 -0500
+Message-ID: <200802150225.m1F2PswM015192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56892 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757661AbYBOC0K (ORCPT
+	by vger.kernel.org with ESMTP id S1758100AbYBOC0M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:26:10 -0500
+	Thu, 14 Feb 2008 21:26:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: fix fs/pipe.c notation
+     docbook: move pipe and splice to filesystems docbook
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-fix-fs-pipec-notation.patch
+     docbook-move-pipe-and-splice-to-filesystems-docbook.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: fix fs/pipe.c notation
+Subject: docbook: move pipe and splice to filesystems docbook
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix several kernel-doc notation errors in fs/pipe.c.
+Move pipes and splice docbook to filesystems book.
+kernel-api book is huge (10x most other books) & slow to process.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/DocBook/filesystems.tmpl |   20 ++++++++++++++++++++
+ Documentation/DocBook/kernel-api.tmpl  |   20 --------------------
+ 2 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/pipe.c~kernel-doc-fix-fs-pipec-notation fs/pipe.c
---- a/fs/pipe.c~kernel-doc-fix-fs-pipec-notation
-+++ a/fs/pipe.c
-@@ -171,7 +171,7 @@ static void anon_pipe_buf_release(struct
-  *
-  * Description:
-  *	This function returns a kernel virtual address mapping for the
-- *	passed in @pipe_buffer. If @atomic is set, an atomic map is provided
-+ *	pipe_buffer passed in @buf. If @atomic is set, an atomic map is provided
-  *	and the caller has to be careful not to fault before calling
-  *	the unmap function.
-  *
-@@ -208,15 +208,15 @@ void generic_pipe_buf_unmap(struct pipe_
- }
+diff -puN Documentation/DocBook/filesystems.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook Documentation/DocBook/filesystems.tmpl
+--- a/Documentation/DocBook/filesystems.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook
++++ a/Documentation/DocBook/filesystems.tmpl
+@@ -398,4 +398,24 @@ an example.
  
- /**
-- * generic_pipe_buf_steal - attempt to take ownership of a @pipe_buffer
-+ * generic_pipe_buf_steal - attempt to take ownership of a &pipe_buffer
-  * @pipe:	the pipe that the buffer belongs to
-  * @buf:	the buffer to attempt to steal
-  *
-  * Description:
-- *	This function attempts to steal the @struct page attached to
-+ *	This function attempts to steal the &struct page attached to
-  *	@buf. If successful, this function returns 0 and returns with
-  *	the page locked. The caller may then reuse the page for whatever
-- *	he wishes, the typical use is insertion into a different file
-+ *	he wishes; the typical use is insertion into a different file
-  *	page cache.
-  */
- int generic_pipe_buf_steal(struct pipe_inode_info *pipe,
-@@ -238,7 +238,7 @@ int generic_pipe_buf_steal(struct pipe_i
- }
+   </chapter>
  
- /**
-- * generic_pipe_buf_get - get a reference to a @struct pipe_buffer
-+ * generic_pipe_buf_get - get a reference to a &struct pipe_buffer
-  * @pipe:	the pipe that the buffer belongs to
-  * @buf:	the buffer to get a reference to
-  *
++  <chapter id="splice">
++      <title>splice API</title>
++  <para>
++	splice is a method for moving blocks of data around inside the
++	kernel, without continually transferring them between the kernel
++	and user space.
++  </para>
++!Ffs/splice.c
++  </chapter>
++
++  <chapter id="pipes">
++      <title>pipes API</title>
++  <para>
++	Pipe interfaces are all for in-kernel (builtin image) use.
++	They are not exported for use by modules.
++  </para>
++!Iinclude/linux/pipe_fs_i.h
++!Ffs/pipe.c
++  </chapter>
++
+ </book>
+diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~docbook-move-pipe-and-splice-to-filesystems-docbook
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -712,24 +712,4 @@ X!Idrivers/video/console/fonts.c
+ !Edrivers/i2c/i2c-core.c
+   </chapter>
+ 
+-  <chapter id="splice">
+-      <title>splice API</title>
+-  <para>
+-	splice is a method for moving blocks of data around inside the
+-	kernel, without continually transferring them between the kernel
+-	and user space.
+-  </para>
+-!Ffs/splice.c
+-  </chapter>
+-
+-  <chapter id="pipes">
+-      <title>pipes API</title>
+-  <para>
+-	Pipe interfaces are all for in-kernel (builtin image) use.
+-	They are not exported for use by modules.
+-  </para>
+-!Iinclude/linux/pipe_fs_i.h
+-!Ffs/pipe.c
+-  </chapter>
+-
+ </book>
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
