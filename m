@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-use-tabs-not-spaces-in-cacheflushh.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:08:00 -0800
-Message-ID: <200802142108.m1EL80uj002890@imap1.linux-foundation.org>
+Subject: + m68knommu-use-asflags-instead-of-extra_aflags.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:07:56 -0800
+Message-ID: <200802142107.m1EL7uBj002884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56172 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933764AbYBNVIg (ORCPT
+	by vger.kernel.org with ESMTP id S1756783AbYBNVJQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:08:36 -0500
+	Thu, 14 Feb 2008 16:09:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerg@snapgear.com, gerg@uclinux.org
+Cc: gerg@snapgear.com, gerg@uclinux.org, sam@ravnborg.org
 
 
 The patch titled
-     m68knommu: use tabs not spaces in cacheflush.h
+     m68knommu: use asflags instead of EXTRA_AFLAGS
 has been added to the -mm tree.  Its filename is
-     m68knommu-use-tabs-not-spaces-in-cacheflushh.patch
+     m68knommu-use-asflags-instead-of-extra_aflags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,197 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: use tabs not spaces in cacheflush.h
+Subject: m68knommu: use asflags instead of EXTRA_AFLAGS
 From: Greg Ungerer <gerg@snapgear.com>
 
-Use tabs instead of spaces.
+Modify the extra asm flags for debugger capabilities, use asflags instead for
+EXTRA_AFLAGS.  Suggestion from Sam Ravnborg.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68knommu/cacheflush.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/m68knommu/platform/5206/Makefile     |    4 +---
+ arch/m68knommu/platform/5206e/Makefile    |    4 +---
+ arch/m68knommu/platform/520x/Makefile     |    4 +---
+ arch/m68knommu/platform/523x/Makefile     |    4 +---
+ arch/m68knommu/platform/5249/Makefile     |    4 +---
+ arch/m68knommu/platform/5272/Makefile     |    4 +---
+ arch/m68knommu/platform/527x/Makefile     |    4 +---
+ arch/m68knommu/platform/528x/Makefile     |    4 +---
+ arch/m68knommu/platform/5307/Makefile     |    4 +---
+ arch/m68knommu/platform/532x/Makefile     |    4 +---
+ arch/m68knommu/platform/5407/Makefile     |    4 +---
+ arch/m68knommu/platform/coldfire/Makefile |    4 +---
+ 12 files changed, 12 insertions(+), 36 deletions(-)
 
-diff -puN include/asm-m68knommu/cacheflush.h~m68knommu-use-tabs-not-spaces-in-cacheflushh include/asm-m68knommu/cacheflush.h
---- a/include/asm-m68knommu/cacheflush.h~m68knommu-use-tabs-not-spaces-in-cacheflushh
-+++ a/include/asm-m68knommu/cacheflush.h
-@@ -54,28 +54,28 @@ static inline void __flush_cache_all(voi
- #if defined(CONFIG_M527x) || defined(CONFIG_M528x)
- 	__asm__ __volatile__ (
- 		"movel	#0x81000200, %%d0\n\t"
--        	"movec	%%d0, %%CACR\n\t"
-+		"movec	%%d0, %%CACR\n\t"
- 		"nop\n\t"
- 		: : : "d0" );
- #endif /* CONFIG_M527x || CONFIG_M528x */
- #if defined(CONFIG_M5206) || defined(CONFIG_M5206e) || defined(CONFIG_M5272)
- 	__asm__ __volatile__ (
--        	"movel	#0x81000100, %%d0\n\t"
--        	"movec	%%d0, %%CACR\n\t"
-+		"movel	#0x81000100, %%d0\n\t"
-+		"movec	%%d0, %%CACR\n\t"
- 		"nop\n\t"
- 		: : : "d0" );
- #endif /* CONFIG_M5206 || CONFIG_M5206e || CONFIG_M5272 */
- #ifdef CONFIG_M5249
- 	__asm__ __volatile__ (
--        	"movel	#0xa1000200, %%d0\n\t"
--        	"movec	%%d0, %%CACR\n\t"
-+		"movel	#0xa1000200, %%d0\n\t"
-+		"movec	%%d0, %%CACR\n\t"
- 		"nop\n\t"
- 		: : : "d0" );
- #endif /* CONFIG_M5249 */
- #ifdef CONFIG_M532x
- 	__asm__ __volatile__ (
--        	"movel	#0x81000200, %%d0\n\t"
--        	"movec	%%d0, %%CACR\n\t"
-+		"movel	#0x81000200, %%d0\n\t"
-+		"movec	%%d0, %%CACR\n\t"
- 		"nop\n\t"
- 		: : : "d0" );
- #endif /* CONFIG_M532x */
+diff -puN arch/m68knommu/platform/5206/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5206/Makefile
+--- a/arch/m68knommu/platform/5206/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5206/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/5206e/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5206e/Makefile
+--- a/arch/m68knommu/platform/5206e/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5206e/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/520x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/520x/Makefile
+--- a/arch/m68knommu/platform/520x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/520x/Makefile
+@@ -12,8 +12,6 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+diff -puN arch/m68knommu/platform/523x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/523x/Makefile
+--- a/arch/m68knommu/platform/523x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/523x/Makefile
+@@ -12,8 +12,6 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+diff -puN arch/m68knommu/platform/5249/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5249/Makefile
+--- a/arch/m68knommu/platform/5249/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5249/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/5272/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5272/Makefile
+--- a/arch/m68knommu/platform/5272/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5272/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/527x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/527x/Makefile
+--- a/arch/m68knommu/platform/527x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/527x/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/528x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/528x/Makefile
+--- a/arch/m68knommu/platform/528x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/528x/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/5307/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5307/Makefile
+--- a/arch/m68knommu/platform/5307/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5307/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y	+= config.o
+ 
+diff -puN arch/m68knommu/platform/532x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/532x/Makefile
+--- a/arch/m68knommu/platform/532x/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/532x/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ #obj-y := config.o usb-mcf532x.o spi-mcf532x.o
+ obj-y := config.o
+diff -puN arch/m68knommu/platform/5407/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/5407/Makefile
+--- a/arch/m68knommu/platform/5407/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/5407/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-EXTRA_AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-y := config.o
+ 
+diff -puN arch/m68knommu/platform/coldfire/Makefile~m68knommu-use-asflags-instead-of-extra_aflags arch/m68knommu/platform/coldfire/Makefile
+--- a/arch/m68knommu/platform/coldfire/Makefile~m68knommu-use-asflags-instead-of-extra_aflags
++++ a/arch/m68knommu/platform/coldfire/Makefile
+@@ -12,9 +12,7 @@
+ # EXTRA_AFLAGS += -DTRAP_DBG_INTERRUPT
+ #
+ 
+-ifdef CONFIG_FULLDEBUG
+-AFLAGS += -DDEBUGGER_COMPATIBLE_CACHE=1
+-endif
++asflags-$(CONFIG_FULLDEBUG) := -DDEBUGGER_COMPATIBLE_CACHE=1
+ 
+ obj-$(CONFIG_COLDFIRE)	+= dma.o entry.o vectors.o
+ obj-$(CONFIG_M5206)	+= timers.o
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
