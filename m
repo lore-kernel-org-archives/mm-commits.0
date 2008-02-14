@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch added to -mm tree
-Date: Thu, 14 Feb 2008 13:04:13 -0800
-Message-ID: <200802142104.m1EL4DqQ002762@imap1.linux-foundation.org>
+Subject: + m68knommu-fix-coldfire-interrupt-exit-path.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:07:52 -0800
+Message-ID: <200802142107.m1EL7qX1002878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754608AbYBNVEn (ORCPT
+	by vger.kernel.org with ESMTP id S1765221AbYBNVI0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:04:43 -0500
+	Thu, 14 Feb 2008 16:08:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, pcaulfie@redhat.com, swhiteho@redhat.com, teigland@redhat.com
+Cc: walter.t.gruczka@boeing.com, gerg@uclinux.org
 
 
 The patch titled
-     dlm: match signedness between dlm_config_info and cluster_set
+     m68knommu: fix coldfire interrupt exit path
 has been added to the -mm tree.  Its filename is
-     dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+     m68knommu-fix-coldfire-interrupt-exit-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dlm: match signedness between dlm_config_info and cluster_set
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: m68knommu: fix coldfire interrupt exit path
+From: Walter T Gruczka <walter.t.gruczka@boeing.com>
 
-cluster_set is only called from the macro CLUSTER_ATTR which defines read/write
-access functions.  Make the signedness match to avoid sparse warnings every time
-CLUSTER_ATTR is used (lines 149-159) all of the form:
+Remove bogus conditional jump in return from interrupt path.  Reorder the code
+path now that is not there.
 
-fs/dlm/config.c:149:1: warning: incorrect type in argument 3 (different signedness)
-fs/dlm/config.c:149:1:    expected unsigned int *info_field
-fs/dlm/config.c:149:1:    got int extern [toplevel] *<noident>
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Patrick Caulfield <pcaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/config.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68knommu/platform/coldfire/entry.S |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set fs/dlm/config.c
---- a/fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set
-+++ a/fs/dlm/config.c
-@@ -114,7 +114,7 @@ struct cluster_attribute {
- };
+diff -puN arch/m68knommu/platform/coldfire/entry.S~m68knommu-fix-coldfire-interrupt-exit-path arch/m68knommu/platform/coldfire/entry.S
+--- a/arch/m68knommu/platform/coldfire/entry.S~m68knommu-fix-coldfire-interrupt-exit-path
++++ a/arch/m68knommu/platform/coldfire/entry.S
+@@ -197,14 +197,13 @@ ENTRY(fasthandler)
+ 	RESTORE_LOCAL
  
- static ssize_t cluster_set(struct cluster *cl, unsigned int *cl_field,
--			   unsigned int *info_field, int check_zero,
-+			   int *info_field, int check_zero,
- 			   const char *buf, size_t len)
- {
- 	unsigned int x;
+ ENTRY(ret_from_interrupt)
+-	jeq	2f
+-1:
+-	RESTORE_ALL
+-2:
+ 	moveb	%sp@(PT_SR),%d0
+ 	andl	#0x7,%d0
+-	jhi	1b
++	jeq	1f
+ 
++	RESTORE_ALL
++
++1:
+ 	/* check if we need to do software interrupts */
+ 	movel	irq_stat+CPUSTAT_SOFTIRQ_PENDING,%d0
+ 	jeq	ret_from_exception
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from walter.t.gruczka@boeing.com are
 
-origin.patch
-include-linux-remove-all-users-of-fastcall-macro.patch
-rcupdate-fix-comment.patch
-remove-final-fastcall-users.patch
-final-removal-of-fastcall-fastcall.patch
-inotify-make-variables-static-in-inotify_userc.patch
-kernel-doc-remove-fastcall.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-git-x86.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+m68knommu-fix-coldfire-interrupt-exit-path.patch
