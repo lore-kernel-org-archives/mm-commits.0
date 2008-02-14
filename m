@@ -1,89 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 13:00:31 -0800
-Message-ID: <200802142100.m1EL0VCY002588@imap1.linux-foundation.org>
+Subject: + net-xfrm-statistics-depend-on-inet.patch added to -mm tree
+Date: Thu, 14 Feb 2008 13:02:40 -0800
+Message-ID: <200802142102.m1EL2eFg002627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757750AbYBNVBA (ORCPT
+	by vger.kernel.org with ESMTP id S932723AbYBNVCo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 16:01:00 -0500
+	Thu, 14 Feb 2008 16:02:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edgar.iglesias@axis.com, edgar@axis.com, ralf@linux-mips.org, starvik@axis.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lethal@linux-sh.org
 
 
 The patch titled
-     elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
-has been removed from the -mm tree.  Its filename was
-     elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+     net: xfrm statistics depend on INET
+has been added to the -mm tree.  Its filename is
+     net-xfrm-statistics-depend-on-inet.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
-From: "Edgar E. Iglesias" <edgar.iglesias@axis.com>
+Subject: net: xfrm statistics depend on INET
+From: Paul Mundt <lethal@linux-sh.org>
 
-ELF_CORE_EFLAGS is already used by the binfmt_elf coredumper to set correct
-arch specific ELF header flags on coredumps.  Use it for kcore as well. 
-This corrects kcore files for the CRIS arch and I believe it corrects
-ordinary coredumps for the H8/300.
+net/built-in.o: In function `xfrm_policy_init':
+/home/pmundt/devel/git/sh-2.6.25/net/xfrm/xfrm_policy.c:2338: undefined reference to `snmp_mib_init'
 
-Signed-off-by: Edgar E. Iglesias <edgar@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+snmp_mib_init() is only built in if CONFIG_INET is set.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   10 +++++-----
- include/asm-h8300/elf.h |    2 ++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ net/xfrm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags fs/proc/kcore.c
---- a/fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags
-+++ a/fs/proc/kcore.c
-@@ -23,6 +23,10 @@
+diff -puN net/xfrm/Kconfig~net-xfrm-statistics-depend-on-inet net/xfrm/Kconfig
+--- a/net/xfrm/Kconfig~net-xfrm-statistics-depend-on-inet
++++ a/net/xfrm/Kconfig
+@@ -38,7 +38,7 @@ config XFRM_MIGRATE
  
- #define CORE_STR "CORE"
- 
-+#ifndef ELF_CORE_EFLAGS
-+#define ELF_CORE_EFLAGS	0
-+#endif
-+
- static int open_kcore(struct inode * inode, struct file * filp)
- {
- 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
-@@ -164,11 +168,7 @@ static void elf_kcore_store_hdr(char *bu
- 	elf->e_entry	= 0;
- 	elf->e_phoff	= sizeof(struct elfhdr);
- 	elf->e_shoff	= 0;
--#if defined(CONFIG_H8300)
--	elf->e_flags	= ELF_FLAGS;
--#else
--	elf->e_flags	= 0;
--#endif
-+	elf->e_flags	= ELF_CORE_EFLAGS;
- 	elf->e_ehsize	= sizeof(struct elfhdr);
- 	elf->e_phentsize= sizeof(struct elf_phdr);
- 	elf->e_phnum	= nphdr;
-diff -puN include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags include/asm-h8300/elf.h
---- a/include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags
-+++ a/include/asm-h8300/elf.h
-@@ -32,6 +32,8 @@ typedef unsigned long elf_fpregset_t;
- #define ELF_FLAGS       0x820000
- #endif
- 
-+#define ELF_CORE_EFLAGS ELF_FLAGS
-+
- #define ELF_PLAT_INIT(_r)	_r->er1 = 0
- 
- #define USE_ELF_CORE_DUMP
+ config XFRM_STATISTICS
+ 	bool "Transformation statistics (EXPERIMENTAL)"
+-	depends on XFRM && PROC_FS && EXPERIMENTAL
++	depends on INET && XFRM && PROC_FS && EXPERIMENTAL
+ 	---help---
+ 	  This statistics is not a SNMP/MIB specification but shows
+ 	  statistics about transformation error (or almost error) factor
 _
 
-Patches currently in -mm which might be from edgar.iglesias@axis.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+pcmcia-ipwireless-depends-on-netdevices.patch
+fix-module_update_markers-compile-error.patch
+media-tuner-xc2028-depends-on-fw_loader.patch
+git-sh.patch
+xtime_lock-vs-update_process_times.patch
+net-xfrm-statistics-depend-on-inet.patch
+taint-kernel-after-warn_oncondition.patch
+sm501-add-uart-support.patch
+asm-futexh-should-include-linux-uaccessh.patch
