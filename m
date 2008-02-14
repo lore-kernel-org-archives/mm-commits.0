@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + samples-build-fix.patch added to -mm tree
-Date: Wed, 13 Feb 2008 19:52:38 -0800
-Message-ID: <200802140352.m1E3qcwZ029677@imap1.linux-foundation.org>
+Subject: + media-tuner-xc2028-depends-on-fw_loader.patch added to -mm tree
+Date: Wed, 13 Feb 2008 23:27:54 -0800
+Message-ID: <200802140727.m1E7RsVu004803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759277AbYBNDxL (ORCPT
+	by vger.kernel.org with ESMTP id S1751119AbYBNH2A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 22:53:11 -0500
+	Thu, 14 Feb 2008 02:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, sam@ravnborg.org
+Cc: lethal@linux-sh.org
 
 
 The patch titled
-     samples: build fix
+     media: tuner-xc2028 depends on FW_LOADER
 has been added to the -mm tree.  Its filename is
-     samples-build-fix.patch
+     media-tuner-xc2028-depends-on-fw_loader.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: samples: build fix
-From: Roland McGrath <roland@redhat.com>
+Subject: media: tuner-xc2028 depends on FW_LOADER
+From: Paul Mundt <lethal@linux-sh.org>
 
-The samples/ subdirectory contains only modules.  But the only make run
-done there is in commands for vmlinux.  I can't see why this was ever done
-in this nonstandard fashion.  As things stand, the modules don't get built
-by 'make modules'.
+ERROR: "release_firmware" [drivers/media/video/tuner-xc2028.ko] undefined!
+ERROR: "request_firmware" [drivers/media/video/tuner-xc2028.ko] undefined!
 
-I didn't make the addition of the directory use core-$(CONFIG_SAMPLES)
-because there is no other conditional like that in the top-level Makefile
-and samples/Makefile already uses obj-$(CONFIG_SAMPLES) as if it expects
-always to be included.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Makefile~samples-build-fix Makefile
---- a/Makefile~samples-build-fix
-+++ a/Makefile
-@@ -602,7 +602,7 @@ export mod_strip_cmd
+diff -puN drivers/media/Kconfig~media-tuner-xc2028-depends-on-fw_loader drivers/media/Kconfig
+--- a/drivers/media/Kconfig~media-tuner-xc2028-depends-on-fw_loader
++++ a/drivers/media/Kconfig
+@@ -102,7 +102,7 @@ if VIDEO_TUNER_CUSTOMIZE
  
- 
- ifeq ($(KBUILD_EXTMOD),)
--core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
-+core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ samples/
- 
- vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
- 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
-@@ -802,9 +802,6 @@ vmlinux: $(vmlinux-lds) $(vmlinux-init) 
- ifdef CONFIG_HEADERS_CHECK
- 	$(Q)$(MAKE) -f $(srctree)/Makefile headers_check
- endif
--ifdef CONFIG_SAMPLES
--	$(Q)$(MAKE) $(build)=samples
--endif
- 	$(call vmlinux-modpost)
- 	$(call if_changed_rule,vmlinux__)
- 	$(Q)rm -f .old_version
+ config TUNER_XC2028
+ 	tristate "XCeive xc2028/xc3028 tuners"
+-	depends on I2C
++	depends on I2C && FW_LOADER
+ 	default m if VIDEO_TUNER_CUSTOMIZE
+ 	help
+ 	  Say Y here to include support for the xc2028/xc3028 tuners.
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-origin.patch
-linux-kernel-markers-create-modpost-file.patch
-samples-build-fix.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
+pcmcia-ipwireless-depends-on-netdevices.patch
+media-tuner-xc2028-depends-on-fw_loader.patch
+git-sh.patch
+xtime_lock-vs-update_process_times.patch
+taint-kernel-after-warn_oncondition.patch
+sm501-add-uart-support.patch
+asm-futexh-should-include-linux-uaccessh.patch
