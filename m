@@ -1,122 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - final-removal-of-fastcall-fastcall.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:15:40 -0500
-Message-ID: <200802150218.m1F2IxEx014968@imap1.linux-foundation.org>
+Subject: - documentation-prune-redundant-submitchecklist-items.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:22:25 -0500
+Message-ID: <200802150225.m1F2PinL015183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41482 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758500AbYBOCTb (ORCPT
+	by vger.kernel.org with ESMTP id S1753577AbYBOCZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:19:31 -0500
+	Thu, 14 Feb 2008 21:25:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: bfields@citi.umich.edu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Final removal of FASTCALL()/fastcall
+     Documentation: prune redundant SubmitChecklist items
 has been removed from the -mm tree.  Its filename was
-     final-removal-of-fastcall-fastcall.patch
+     documentation-prune-redundant-submitchecklist-items.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Final removal of FASTCALL()/fastcall
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Documentation: prune redundant SubmitChecklist items
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-All users are gone, remove definitions and comments referring
-to them.
+Kernel style is mentioned twice, and the git apply trick is a bit redundant
+given the checkpatch.pl recommendation (which also checks for bad
+whitespace).
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/i830_dma.c   |    2 +-
- include/asm-mn10300/highmem.h |    4 ++--
- include/asm-mn10300/linkage.h |    2 --
- include/linux/irq.h           |    1 -
- include/linux/linkage.h       |    5 -----
- 5 files changed, 3 insertions(+), 11 deletions(-)
+ Documentation/SubmitChecklist |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/drm/i830_dma.c~final-removal-of-fastcall-fastcall drivers/char/drm/i830_dma.c
---- a/drivers/char/drm/i830_dma.c~final-removal-of-fastcall-fastcall
-+++ a/drivers/char/drm/i830_dma.c
-@@ -36,7 +36,7 @@
- #include "i830_drm.h"
- #include "i830_drv.h"
- #include <linux/interrupt.h>	/* For task queue support */
--#include <linux/pagemap.h>	/* For FASTCALL on unlock_page() */
-+#include <linux/pagemap.h>
- #include <linux/delay.h>
- #include <asm/uaccess.h>
+diff -puN Documentation/SubmitChecklist~documentation-prune-redundant-submitchecklist-items Documentation/SubmitChecklist
+--- a/Documentation/SubmitChecklist~documentation-prune-redundant-submitchecklist-items
++++ a/Documentation/SubmitChecklist
+@@ -20,7 +20,11 @@ kernel patches.
+ 4: ppc64 is a good architecture for cross-compilation checking because it
+    tends to use `unsigned long' for 64-bit quantities.
  
-diff -puN include/asm-mn10300/highmem.h~final-removal-of-fastcall-fastcall include/asm-mn10300/highmem.h
---- a/include/asm-mn10300/highmem.h~final-removal-of-fastcall-fastcall
-+++ a/include/asm-mn10300/highmem.h
-@@ -42,8 +42,8 @@ extern void __init kmap_init(void);
- #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+-5: Matches kernel coding style(!)
++5: Check your patch for general style as detailed in
++   Documentation/CodingStyle.  Check for trivial violations with the
++   patch style checker prior to submission (scripts/checkpatch.pl).
++   You should be able to justify all violations that remain in
++   your patch.
  
--extern unsigned long __fastcall kmap_high(struct page *page);
--extern void __fastcall kunmap_high(struct page *page);
-+extern unsigned long kmap_high(struct page *page);
-+extern void kunmap_high(struct page *page);
+ 6: Any new or modified CONFIG options don't muck up the config menu.
  
- static inline unsigned long kmap(struct page *page)
- {
-diff -puN include/asm-mn10300/linkage.h~final-removal-of-fastcall-fastcall include/asm-mn10300/linkage.h
---- a/include/asm-mn10300/linkage.h~final-removal-of-fastcall-fastcall
-+++ a/include/asm-mn10300/linkage.h
-@@ -13,8 +13,6 @@
- 
- /* don't override anything */
- #define asmlinkage
--#define FASTCALL(x) x
--#define fastcall
- 
- #define __ALIGN		.align 4,0xcb
- #define __ALIGN_STR	".align 4,0xcb"
-diff -puN include/linux/irq.h~final-removal-of-fastcall-fastcall include/linux/irq.h
---- a/include/linux/irq.h~final-removal-of-fastcall-fastcall
-+++ a/include/linux/irq.h
-@@ -285,7 +285,6 @@ extern void handle_bad_irq(unsigned int 
- 
- /*
-  * Monolithic do_IRQ implementation.
-- * (is an explicit fastcall, because i386 4KSTACKS calls it from assembly)
-  */
- #ifndef CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ
- extern unsigned int __do_IRQ(unsigned int irq);
-diff -puN include/linux/linkage.h~final-removal-of-fastcall-fastcall include/linux/linkage.h
---- a/include/linux/linkage.h~final-removal-of-fastcall-fastcall
-+++ a/include/linux/linkage.h
-@@ -73,9 +73,4 @@
- #define ATTRIB_NORET  __attribute__((noreturn))
- #define NORET_AND     noreturn,
- 
--#ifndef FASTCALL
--#define FASTCALL(x)	x
--#define fastcall
--#endif
+@@ -79,13 +83,3 @@ kernel patches.
+ 23: Tested after it has been merged into the -mm patchset to make sure
+     that it still works with all of the other queued patches and various
+     changes in the VM, VFS, and other subsystems.
 -
- #endif
+-24: Avoid whitespace damage such as indenting with spaces or whitespace
+-    at the end of lines.  You can test this by feeding the patch to
+-    "git apply --check --whitespace=error-all"
+-
+-25: Check your patch for general style as detailed in
+-    Documentation/CodingStyle.  Check for trivial violations with the
+-    patch style checker prior to submission (scripts/checkpatch.pl).
+-    You should be able to justify all violations that remain in
+-    your patch.
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
 origin.patch
-inotify-make-variables-static-in-inotify_userc.patch
-kernel-doc-remove-fastcall.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ubi-fix-sparse-errors-in-ubih.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+use-struct-path-in-struct-svc_export.patch
+git-nfsd.patch
+reiser4.patch
