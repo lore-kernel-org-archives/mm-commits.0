@@ -1,58 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - d_path-make-d_path-use-a-struct-path-fix.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 15:26:09 -0800
-Message-ID: <200802142326.m1ENQ91F008529@imap1.linux-foundation.org>
+Subject: - use-struct-path-in-struct-svc_export-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 15:27:06 -0800
+Message-ID: <200802142327.m1ENR6DQ008551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbYBNX1W (ORCPT
+	by vger.kernel.org with ESMTP id S1757933AbYBNX1q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 18:27:22 -0500
+	Thu, 14 Feb 2008 18:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, bryan.wu@analog.com, hch@infradead.org, jblunck@suse.de, mhalcrow@us.ibm.com, mingo@elte.hu, neilb@suse.de, viro@zeniv.linux.org.ukm
+To: akpm@linux-foundation.org, bfields@citi.umich.edu, jblunck@suse.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     d_path-make-d_path-use-a-struct-path-fix
+     use-struct-path-in-struct-svc_export-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     d_path-make-d_path-use-a-struct-path-fix.patch
+     use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into d_path-make-d_path-use-a-struct-path.patch
+This patch was dropped because it was folded into use-struct-path-in-struct-svc_export.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: d_path-make-d_path-use-a-struct-path-fix
+Subject: use-struct-path-in-struct-svc_export-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+ERROR: use tabs not spaces
+#81: FILE: fs/nfsd/export.c:630:
++ ^Ikfree(exp.ex_pathname);$
+
+WARNING: kfree(NULL) is safe this check is probabally not required
+#214: FILE: fs/nfsd/export.c:1092:
++	if (new.ex_pathname)
++		kfree(new.ex_pathname);
+
+ERROR: no space after that '!' (ctx:WxW)
+#326: FILE: fs/nfsd/nfsfh.c:49:
++	while (tdentry != exp->ex_path.dentry && ! IS_ROOT(tdentry)) {
+ 	                                         ^
+
+WARNING: line over 80 characters
+#370: FILE: fs/nfsd/nfsfh.c:338:
++	int root_export = (exp->ex_path.dentry == exp->ex_path.dentry->d_sb->s_root);
+
+WARNING: line over 80 characters
+#384: FILE: fs/nfsd/nfsfh.c:384:
++			if (!(exp->ex_path.dentry->d_inode->i_sb->s_type->fs_flags
+
+WARNING: line over 80 characters
+#411: FILE: fs/nfsd/nfsfh.c:564:
++		if (fhp->fh_export->ex_path.dentry->d_inode->i_sb->s_type->fs_flags
+
+WARNING: braces {} are not necessary for single statement blocks
+#474: FILE: fs/nfsd/vfs.c:159:
++		else if (dparent != exp->ex_path.dentry) {
+ 			dentry = dget_parent(dparent);
+ 		} else  if (!EX_NOHIDE(exp))
+
+WARNING: line over 80 characters
+#492: FILE: fs/nfsd/vfs.c:724:
++	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt), flags);
+
+WARNING: line over 80 characters
+#545: FILE: fs/nfsd/vfs.c:1880:
++			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_path.mnt))
+
+ERROR: "foo * bar" should be "foo *bar"
+#560: FILE: include/linux/nfsd/export.h:88:
++	char *			ex_pathname;
+
+total: 3 errors, 7 warnings, 459 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: J. Bruce Fields <bfields@citi.umich.edu>
 Cc: Jan Blunck <jblunck@suse.de>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfsd/export.c            |    5 ++---
+ fs/nfsd/nfsfh.c             |    2 +-
+ fs/nfsd/vfs.c               |    7 ++++---
+ include/linux/nfsd/export.h |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~d_path-make-d_path-use-a-struct-path-fix mm/memory.c
---- a/mm/memory.c~d_path-make-d_path-use-a-struct-path-fix
-+++ a/mm/memory.c
-@@ -2719,7 +2719,7 @@ void print_vma_addr(char *prefix, unsign
- 		if (buf) {
- 			char *p, *s;
+diff -puN fs/nfsd/export.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/export.c
+--- a/fs/nfsd/export.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
++++ a/fs/nfsd/export.c
+@@ -627,7 +627,7 @@ static int svc_export_parse(struct cache
+  out:
+ 	nfsd4_fslocs_free(&exp.ex_fslocs);
+ 	kfree(exp.ex_uuid);
+- 	kfree(exp.ex_pathname);
++	kfree(exp.ex_pathname);
+ 	if (nd.path.dentry)
+ 		path_put(&nd.path);
+  out_no_path:
+@@ -1088,8 +1088,7 @@ exp_export(struct nfsctl_export *nxp)
+ 	} else
+ 		err = 0;
+ finish:
+-	if (new.ex_pathname)
+-		kfree(new.ex_pathname);
++	kfree(new.ex_pathname);
+ 	if (exp)
+ 		exp_put(exp);
+ 	if (fsid_key && !IS_ERR(fsid_key))
+diff -puN fs/nfsd/nfsfh.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/nfsfh.c
+--- a/fs/nfsd/nfsfh.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
++++ a/fs/nfsd/nfsfh.c
+@@ -47,7 +47,7 @@ static int nfsd_acceptable(void *expv, s
+ 		return 1;
  
--			p = d_path(f->f_dentry, f->f_vfsmnt, buf, PAGE_SIZE);
-+			p = d_path(&f->f_path, buf, PAGE_SIZE);
- 			if (IS_ERR(p))
- 				p = "?";
- 			s = strrchr(p, '/');
+ 	tdentry = dget(dentry);
+-	while (tdentry != exp->ex_path.dentry && ! IS_ROOT(tdentry)) {
++	while (tdentry != exp->ex_path.dentry && !IS_ROOT(tdentry)) {
+ 		/* make sure parents give x permission to user */
+ 		int err;
+ 		parent = dget_parent(tdentry);
+diff -puN fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
++++ a/fs/nfsd/vfs.c
+@@ -156,9 +156,9 @@ nfsd_lookup_dentry(struct svc_rqst *rqst
+ 	if (isdotent(name, len)) {
+ 		if (len==1)
+ 			dentry = dget(dparent);
+-		else if (dparent != exp->ex_path.dentry) {
++		else if (dparent != exp->ex_path.dentry)
+ 			dentry = dget_parent(dparent);
+-		} else  if (!EX_NOHIDE(exp))
++		else if (!EX_NOHIDE(exp))
+ 			dentry = dget(dparent); /* .. == . just like at / */
+ 		else {
+ 			/* checking mountpoint crossing is very different when stepping up */
+@@ -721,7 +721,8 @@ nfsd_open(struct svc_rqst *rqstp, struct
+ 
+ 		DQUOT_INIT(inode);
+ 	}
+-	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt), flags);
++	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt),
++				flags);
+ 	if (IS_ERR(*filp))
+ 		host_err = PTR_ERR(*filp);
+ out_nfserr:
+diff -puN include/linux/nfsd/export.h~use-struct-path-in-struct-svc_export-checkpatch-fixes include/linux/nfsd/export.h
+--- a/include/linux/nfsd/export.h~use-struct-path-in-struct-svc_export-checkpatch-fixes
++++ a/include/linux/nfsd/export.h
+@@ -85,7 +85,7 @@ struct svc_export {
+ 	struct auth_domain *	ex_client;
+ 	int			ex_flags;
+ 	struct path		ex_path;
+-	char *			ex_pathname;
++	char			*ex_pathname;
+ 	uid_t			ex_anon_uid;
+ 	gid_t			ex_anon_gid;
+ 	int			ex_fsid;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,9 +223,9 @@ introduce-path_put.patch
 one-less-parameter-to-__d_path.patch
 d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 d_path-make-d_path-use-a-struct-path.patch
-d_path-make-d_path-use-a-struct-path-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
