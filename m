@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + affs-be_add_cpu-conversion.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:24:31 -0800
-Message-ID: <200802140024.m1E0OVRj021963@imap1.linux-foundation.org>
+Subject: + scsi-le_add_cpu-conversion.patch added to -mm tree
+Date: Wed, 13 Feb 2008 16:24:37 -0800
+Message-ID: <200802140024.m1E0Ob2s021974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38121 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47374 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934592AbYBNAZK (ORCPT
+	by vger.kernel.org with ESMTP id S934588AbYBNAZK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 13 Feb 2008 19:25:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, zippel@linux-m68k.org
+Cc: marcin.slusarz@gmail.com
 
 
 The patch titled
-     affs: be*_add_cpu conversion
+     scsi: le*_add_cpu conversion
 has been added to the -mm tree.  Its filename is
-     affs-be_add_cpu-conversion.patch
+     scsi-le_add_cpu-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: affs: be*_add_cpu conversion
+Subject: scsi: le*_add_cpu conversion
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
 replace all:
-big_endian_variable = cpu_to_beX(beX_to_cpu(big_endian_variable) +
+little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
 					expression_in_cpu_byteorder);
 with:
-	beX_add_cpu(&big_endian_variable, expression_in_cpu_byteorder);
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
 generated with semantic patch
 
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: James.Bottomley@HansenPartnership.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/aacraid/commsup.c |    2 +-
+ drivers/scsi/ips.c             |    8 ++------
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN fs/affs/file.c~affs-be_add_cpu-conversion fs/affs/file.c
---- a/fs/affs/file.c~affs-be_add_cpu-conversion
-+++ a/fs/affs/file.c
-@@ -543,7 +543,7 @@ affs_extent_file_ofs(struct inode *inode
- 		if (boff + tmp > bsize || tmp > bsize)
- 			BUG();
- 		memset(AFFS_DATA(bh) + boff, 0, tmp);
--		AFFS_DATA_HEAD(bh)->size = cpu_to_be32(be32_to_cpu(AFFS_DATA_HEAD(bh)->size) + tmp);
-+		be32_add_cpu(&AFFS_DATA_HEAD(bh)->size, tmp);
- 		affs_fix_checksum(sb, bh);
- 		mark_buffer_dirty_inode(bh, inode);
- 		size += tmp;
-@@ -686,7 +686,7 @@ static int affs_write_end_ofs(struct fil
- 		if (boff + tmp > bsize || tmp > bsize)
- 			BUG();
- 		memcpy(AFFS_DATA(bh) + boff, data + from, tmp);
--		AFFS_DATA_HEAD(bh)->size = cpu_to_be32(be32_to_cpu(AFFS_DATA_HEAD(bh)->size) + tmp);
-+		be32_add_cpu(&AFFS_DATA_HEAD(bh)->size, tmp);
- 		affs_fix_checksum(sb, bh);
- 		mark_buffer_dirty_inode(bh, inode);
- 		written += tmp;
+diff -puN drivers/scsi/aacraid/commsup.c~scsi-le_add_cpu-conversion drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~scsi-le_add_cpu-conversion
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -594,7 +594,7 @@ void aac_consumer_free(struct aac_dev * 
+ 	if (le32_to_cpu(*q->headers.consumer) >= q->entries)
+ 		*q->headers.consumer = cpu_to_le32(1);
+ 	else
+-		*q->headers.consumer = cpu_to_le32(le32_to_cpu(*q->headers.consumer)+1);
++		le32_add_cpu(q->headers.consumer, 1);
+ 
+ 	if (wasfull) {
+ 		switch (qid) {
+diff -puN drivers/scsi/ips.c~scsi-le_add_cpu-conversion drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~scsi-le_add_cpu-conversion
++++ a/drivers/scsi/ips.c
+@@ -3696,9 +3696,7 @@ ips_send_cmd(ips_ha_t * ha, ips_scb_t * 
+ 			scb->cmd.basic_io.sg_count = scb->sg_len;
+ 
+ 			if (scb->cmd.basic_io.lba)
+-				scb->cmd.basic_io.lba =
+-				    cpu_to_le32(le32_to_cpu
+-						(scb->cmd.basic_io.lba) +
++				le32_add_cpu(&scb->cmd.basic_io.lba,
+ 						le16_to_cpu(scb->cmd.basic_io.
+ 							    sector_count));
+ 			else
+@@ -3744,9 +3742,7 @@ ips_send_cmd(ips_ha_t * ha, ips_scb_t * 
+ 			scb->cmd.basic_io.sg_count = scb->sg_len;
+ 
+ 			if (scb->cmd.basic_io.lba)
+-				scb->cmd.basic_io.lba =
+-				    cpu_to_le32(le32_to_cpu
+-						(scb->cmd.basic_io.lba) +
++				le32_add_cpu(&scb->cmd.basic_io.lba,
+ 						le16_to_cpu(scb->cmd.basic_io.
+ 							    sector_count));
+ 			else
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
