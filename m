@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-sparse-warnings-in-revokec-journalc.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:48:03 -0800
-Message-ID: <200802140048.m1E0m3eQ023045__24109.8251696259$1202950135$gmane$org@imap1.linux-foundation.org>
+Subject: + ufs-e_add_cpu-conversion.patch added to -mm tree
+Date: Wed, 13 Feb 2008 16:42:40 -0800
+Message-ID: <200802140042.m1E0geEW022845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43181 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44994 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757880AbYBNAsH (ORCPT
+	by vger.kernel.org with ESMTP id S1758781AbYBNAsQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:48:07 -0500
+	Wed, 13 Feb 2008 19:48:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linux-ext4@vger.kernel.org
+Cc: marcin.slusarz@gmail.com, dushistov@mail.ru
 
 
 The patch titled
-     jbd: sparse warnings in revoke.c, journal.c
+     ufs: [bl]e*_add_cpu conversion
 has been added to the -mm tree.  Its filename is
-     jbd-sparse-warnings-in-revokec-journalc.patch
+     ufs-e_add_cpu-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: sparse warnings in revoke.c, journal.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: ufs: [bl]e*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fs/jbd/revoke.c:176:29: warning: Using plain integer as NULL pointer
-fs/jbd/revoke.c:182:28: warning: Using plain integer as NULL pointer
-fs/jbd/journal.c:1622:2: warning: Using plain integer as NULL pointer
-fs/jbd/journal.c:1629:28: warning: Using plain integer as NULL pointer
+replace all:
+big/little_endian_variable = cpu_to_[bl]eX([bl]eX_to_cpu(big/little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	[bl]eX_add_cpu(&big/little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c |    4 ++--
- fs/jbd/revoke.c  |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ufs/swab.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/jbd/journal.c~jbd-sparse-warnings-in-revokec-journalc fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-sparse-warnings-in-revokec-journalc
-+++ a/fs/jbd/journal.c
-@@ -1619,14 +1619,14 @@ static int journal_init_journal_head_cac
+diff -puN fs/ufs/swab.h~ufs-e_add_cpu-conversion fs/ufs/swab.h
+--- a/fs/ufs/swab.h~ufs-e_add_cpu-conversion
++++ a/fs/ufs/swab.h
+@@ -80,18 +80,18 @@ static inline void
+ fs32_add(struct super_block *sbp, __fs32 *n, int d)
  {
- 	int retval;
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le32 *)n = cpu_to_le32(le32_to_cpu(*(__le32 *)n)+d);
++		le32_add_cpu((__le32 *)n, d);
+ 	else
+-		*(__be32 *)n = cpu_to_be32(be32_to_cpu(*(__be32 *)n)+d);
++		be32_add_cpu((__be32 *)n, d);
+ }
  
--	J_ASSERT(journal_head_cache == 0);
-+	J_ASSERT(!journal_head_cache);
- 	journal_head_cache = kmem_cache_create("journal_head",
- 				sizeof(struct journal_head),
- 				0,		/* offset */
- 				SLAB_TEMPORARY,	/* flags */
- 				NULL);		/* ctor */
- 	retval = 0;
--	if (journal_head_cache == 0) {
-+	if (!journal_head_cache) {
- 		retval = -ENOMEM;
- 		printk(KERN_EMERG "JBD: no memory for journal_head cache\n");
- 	}
-diff -puN fs/jbd/revoke.c~jbd-sparse-warnings-in-revokec-journalc fs/jbd/revoke.c
---- a/fs/jbd/revoke.c~jbd-sparse-warnings-in-revokec-journalc
-+++ a/fs/jbd/revoke.c
-@@ -173,13 +173,13 @@ int __init journal_init_revoke_caches(vo
- 					   0,
- 					   SLAB_HWCACHE_ALIGN|SLAB_TEMPORARY,
- 					   NULL);
--	if (revoke_record_cache == 0)
-+	if (!revoke_record_cache)
- 		return -ENOMEM;
+ static inline void
+ fs32_sub(struct super_block *sbp, __fs32 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le32 *)n = cpu_to_le32(le32_to_cpu(*(__le32 *)n)-d);
++		le32_add_cpu((__le32 *)n, -d);
+ 	else
+-		*(__be32 *)n = cpu_to_be32(be32_to_cpu(*(__be32 *)n)-d);
++		be32_add_cpu((__be32 *)n, -d);
+ }
  
- 	revoke_table_cache = kmem_cache_create("revoke_table",
- 					   sizeof(struct jbd_revoke_table_s),
- 					   0, SLAB_TEMPORARY, NULL);
--	if (revoke_table_cache == 0) {
-+	if (!revoke_table_cache) {
- 		kmem_cache_destroy(revoke_record_cache);
- 		revoke_record_cache = NULL;
- 		return -ENOMEM;
+ static inline u16
+@@ -116,18 +116,18 @@ static inline void
+ fs16_add(struct super_block *sbp, __fs16 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le16 *)n = cpu_to_le16(le16_to_cpu(*(__le16 *)n)+d);
++		le16_add_cpu((__le16 *)n, d);
+ 	else
+-		*(__be16 *)n = cpu_to_be16(be16_to_cpu(*(__be16 *)n)+d);
++		be16_add_cpu((__be16 *)n, d);
+ }
+ 
+ static inline void
+ fs16_sub(struct super_block *sbp, __fs16 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le16 *)n = cpu_to_le16(le16_to_cpu(*(__le16 *)n)-d);
++		le16_add_cpu((__le16 *)n, -d);
+ 	else
+-		*(__be16 *)n = cpu_to_be16(be16_to_cpu(*(__be16 *)n)-d);
++		be16_add_cpu((__be16 *)n, -d);
+ }
+ 
+ #endif /* _UFS_SWAB_H */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-origin.patch
-include-linux-remove-all-users-of-fastcall-macro.patch
-rcupdate-fix-comment.patch
-remove-final-fastcall-users.patch
-final-removal-of-fastcall-fastcall.patch
-git-x86.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
+udf-fix-directory-offset-handling.patch
+udf-fix-udf_add_free_space.patch
+git-gfs2-nmw.patch
+jfs-le_add_cpu-conversion.patch
+ntfs-le_add_cpu-conversion.patch
+ocfs2-le_add_cpu-conversion.patch
+scsi-le_add_cpu-conversion.patch
+ipw2200-le_add_cpu-conversion.patch
+ext2-le_add_cpu-conversion.patch
+ufs-e_add_cpu-conversion.patch
+ufs-e_add_cpu-conversion-in-return.patch
+reiserfs-le_add_cpu-conversion.patch
+ext4-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
