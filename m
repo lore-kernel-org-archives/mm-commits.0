@@ -1,65 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-linux-fsdevel-to-vfs-entry.patch added to -mm tree
-Date: Thu, 14 Feb 2008 12:16:25 -0800
-Message-ID: <200802142016.m1EKGPvJ000783@imap1.linux-foundation.org>
+Subject: - elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 13:00:31 -0800
+Message-ID: <200802142100.m1EL0VCY002588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbYBNUQd (ORCPT
+	by vger.kernel.org with ESMTP id S1757750AbYBNVBA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 15:16:33 -0500
+	Thu, 14 Feb 2008 16:01:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: menage@google.com
+To: edgar.iglesias@axis.com, edgar@axis.com, ralf@linux-mips.org, starvik@axis.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: add linux-fsdevel to VFS entry
-has been added to the -mm tree.  Its filename is
-     maintainers-add-linux-fsdevel-to-vfs-entry.patch
+     elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
+has been removed from the -mm tree.  Its filename was
+     elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add linux-fsdevel to VFS entry
-From: Paul Menage <menage@google.com>
+Subject: elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
+From: "Edgar E. Iglesias" <edgar.iglesias@axis.com>
 
-Add linux-fsdevel to the VFS entry in MAINTAINERS
+ELF_CORE_EFLAGS is already used by the binfmt_elf coredumper to set correct
+arch specific ELF header flags on coredumps.  Use it for kcore as well. 
+This corrects kcore files for the CRIS arch and I believe it corrects
+ordinary coredumps for the H8/300.
 
-Signed-off-by: Paul Menage <menage@google.com>
+Signed-off-by: Edgar E. Iglesias <edgar@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/kcore.c         |   10 +++++-----
+ include/asm-h8300/elf.h |    2 ++
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-linux-fsdevel-to-vfs-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-linux-fsdevel-to-vfs-entry
-+++ a/MAINTAINERS
-@@ -1616,6 +1616,7 @@ S:	Maintained
- FILESYSTEMS (VFS and infrastructure)
- P:	Alexander Viro
- M:	viro@zeniv.linux.org.uk
-+L:	linux-fsdevel@vger.kernel.org
- S:	Maintained
+diff -puN fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags fs/proc/kcore.c
+--- a/fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags
++++ a/fs/proc/kcore.c
+@@ -23,6 +23,10 @@
  
- FIREWIRE SUBSYSTEM (drivers/firewire, <linux/firewire*.h>)
+ #define CORE_STR "CORE"
+ 
++#ifndef ELF_CORE_EFLAGS
++#define ELF_CORE_EFLAGS	0
++#endif
++
+ static int open_kcore(struct inode * inode, struct file * filp)
+ {
+ 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+@@ -164,11 +168,7 @@ static void elf_kcore_store_hdr(char *bu
+ 	elf->e_entry	= 0;
+ 	elf->e_phoff	= sizeof(struct elfhdr);
+ 	elf->e_shoff	= 0;
+-#if defined(CONFIG_H8300)
+-	elf->e_flags	= ELF_FLAGS;
+-#else
+-	elf->e_flags	= 0;
+-#endif
++	elf->e_flags	= ELF_CORE_EFLAGS;
+ 	elf->e_ehsize	= sizeof(struct elfhdr);
+ 	elf->e_phentsize= sizeof(struct elf_phdr);
+ 	elf->e_phnum	= nphdr;
+diff -puN include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags include/asm-h8300/elf.h
+--- a/include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags
++++ a/include/asm-h8300/elf.h
+@@ -32,6 +32,8 @@ typedef unsigned long elf_fpregset_t;
+ #define ELF_FLAGS       0x820000
+ #endif
+ 
++#define ELF_CORE_EFLAGS ELF_FLAGS
++
+ #define ELF_PLAT_INIT(_r)	_r->er1 = 0
+ 
+ #define USE_ELF_CORE_DUMP
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from edgar.iglesias@axis.com are
 
-maintainers-add-linux-fsdevel-to-vfs-entry.patch
-add-a-refcount-check-in-dput.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
