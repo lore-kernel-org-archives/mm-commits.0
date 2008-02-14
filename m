@@ -1,148 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-sunrpc-filenames-and-notation-fixes.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 14:22:38 -0500
-Message-ID: <200802150225.m1F2PvPn015195@imap1.linux-foundation.org>
+Subject: - udf-fix-udf_add_free_space.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 14:23:09 -0500
+Message-ID: <200802150226.m1F2QSfY015225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40298 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764913AbYBOC0h (ORCPT
+	by vger.kernel.org with ESMTP id S1765003AbYBOC0f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 21:26:37 -0500
+	Thu, 14 Feb 2008 21:26:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, gorcunov@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: sunrpc filenames and notation fixes
+     udf: fix udf_add_free_space
 has been removed from the -mm tree.  Its filename was
-     docbook-sunrpc-filenames-and-notation-fixes.patch
+     udf-fix-udf_add_free_space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: sunrpc filenames and notation fixes
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: udf: fix udf_add_free_space
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Use updated file list for docbook files and
-fix kernel-doc warnings in sunrpc:
-Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:689): No description found for parameter 'rpc_client'
-Warning(linux-2.6.24-git12//net/sunrpc/rpc_pipe.c:765): No description found for parameter 'flags'
-Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:584): No description found for parameter 'tk_ops'
-Warning(linux-2.6.24-git12//net/sunrpc/clnt.c:618): No description found for parameter 'bufsize'
+In commit 742ba02a51c8d0bf5446b154531179760c1ed0a2 (udf: create common
+function for changing free space counter) by accident I reversed safety
+condition which lead to null pointer dereference in case of media error and
+wrong counting of free space in normal situation
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Acked-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    8 +++++++-
- net/sunrpc/clnt.c                     |   10 +++++-----
- net/sunrpc/rpc_pipe.c                 |    3 ++-
- net/sunrpc/xprt.c                     |    2 +-
- 4 files changed, 15 insertions(+), 8 deletions(-)
+ fs/udf/balloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~docbook-sunrpc-filenames-and-notation-fixes
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -231,8 +231,14 @@ X!Ilib/string.c
- !Dnet/sunrpc/sunrpc_syms.c
- -->
- !Enet/sunrpc/xdr.c
--!Enet/sunrpc/svcsock.c
-+!Enet/sunrpc/svc_xprt.c
-+!Enet/sunrpc/xprt.c
- !Enet/sunrpc/sched.c
-+!Enet/sunrpc/socklib.c
-+!Enet/sunrpc/stats.c
-+!Enet/sunrpc/rpc_pipe.c
-+!Enet/sunrpc/rpcb_clnt.c
-+!Enet/sunrpc/clnt.c
-      </sect1>
-   </chapter>
+diff -puN fs/udf/balloc.c~udf-fix-udf_add_free_space fs/udf/balloc.c
+--- a/fs/udf/balloc.c~udf-fix-udf_add_free_space
++++ a/fs/udf/balloc.c
+@@ -145,7 +145,7 @@ static bool udf_add_free_space(struct ud
+ {
+ 	struct logicalVolIntegrityDesc *lvid;
  
-diff -puN net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/clnt.c
---- a/net/sunrpc/clnt.c~docbook-sunrpc-filenames-and-notation-fixes
-+++ a/net/sunrpc/clnt.c
-@@ -464,9 +464,9 @@ rpc_release_client(struct rpc_clnt *clnt
+-	if (sbi->s_lvid_bh)
++	if (sbi->s_lvid_bh == NULL)
+ 		return false;
  
- /**
-  * rpc_bind_new_program - bind a new RPC program to an existing client
-- * @old - old rpc_client
-- * @program - rpc program to set
-- * @vers - rpc program version
-+ * @old: old rpc_client
-+ * @program: rpc program to set
-+ * @vers: rpc program version
-  *
-  * Clones the rpc client and sets up a new RPC program. This is mainly
-  * of use for enabling different RPC programs to share the same transport.
-@@ -575,7 +575,7 @@ EXPORT_SYMBOL_GPL(rpc_call_sync);
-  * @clnt: pointer to RPC client
-  * @msg: RPC call parameters
-  * @flags: RPC call flags
-- * @ops: RPC call ops
-+ * @tk_ops: RPC call ops
-  * @data: user call data
-  */
- int
-@@ -610,7 +610,7 @@ EXPORT_SYMBOL_GPL(rpc_call_start);
-  * rpc_peeraddr - extract remote peer address from clnt's xprt
-  * @clnt: RPC client structure
-  * @buf: target buffer
-- * @size: length of target buffer
-+ * @bufsize: length of target buffer
-  *
-  * Returns the number of bytes that are actually in the stored address.
-  */
-diff -puN net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/rpc_pipe.c
---- a/net/sunrpc/rpc_pipe.c~docbook-sunrpc-filenames-and-notation-fixes
-+++ a/net/sunrpc/rpc_pipe.c
-@@ -677,7 +677,7 @@ rpc_lookup_negative(char *path, struct n
- /**
-  * rpc_mkdir - Create a new directory in rpc_pipefs
-  * @path: path from the rpc_pipefs root to the new directory
-- * @rpc_clnt: rpc client to associate with this directory
-+ * @rpc_client: rpc client to associate with this directory
-  *
-  * This creates a directory at the given @path associated with
-  * @rpc_clnt, which will contain a file named "info" with some basic
-@@ -748,6 +748,7 @@ rpc_rmdir(struct dentry *dentry)
-  * @private: private data to associate with the pipe, for the caller's use
-  * @ops: operations defining the behavior of the pipe: upcall, downcall,
-  *	release_pipe, and destroy_msg.
-+ * @flags: rpc_inode flags
-  *
-  * Data is made available for userspace to read by calls to
-  * rpc_queue_upcall().  The actual reads will result in calls to
-diff -puN net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes net/sunrpc/xprt.c
---- a/net/sunrpc/xprt.c~docbook-sunrpc-filenames-and-notation-fixes
-+++ a/net/sunrpc/xprt.c
-@@ -124,7 +124,7 @@ EXPORT_SYMBOL_GPL(xprt_register_transpor
- 
- /**
-  * xprt_unregister_transport - unregister a transport implementation
-- * transport: transport to unregister
-+ * @transport: transport to unregister
-  *
-  * Returns:
-  * 0:		transport successfully unregistered
+ 	lvid = (struct logicalVolIntegrityDesc *)sbi->s_lvid_bh->b_data;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-kernel-doc-remove-fastcall.patch
-git-acpi.patch
-apanel-fix-kconfig-dependencies.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
-profile-likely-unlikely-macros.patch
+git-gfs2-nmw.patch
+git-jfs.patch
+qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch
+ntfs-le_add_cpu-conversion.patch
+ocfs2-le_add_cpu-conversion.patch
+scsi-le_add_cpu-conversion.patch
+ipw2200-le_add_cpu-conversion.patch
+git-slub.patch
+ext2-le_add_cpu-conversion.patch
+ext2-convert-byte-order-of-constant-instead-of-variable.patch
+ext3-convert-byte-order-of-constant-instead-of-variable.patch
+ufs-e_add_cpu-conversion.patch
+ufs-e_add_cpu-conversion-in-return.patch
+reiserfs-le_add_cpu-conversion.patch
+ext4-le_add_cpu-conversion.patch
+ext4-convert-byte-order-of-constant-instead-of-variable.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
