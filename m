@@ -1,251 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: + jfs-le_add_cpu-conversion.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:24:43 -0800
-Message-ID: <200802140024.m1E0OhNe021983@imap1.linux-foundation.org>
+Subject: - ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 13 Feb 2008 16:29:05 -0800
+Message-ID: <200802140029.m1E0T5bO022235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935030AbYBNAa3 (ORCPT
+	by vger.kernel.org with ESMTP id S935197AbYBNAb1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:30:29 -0500
+	Wed, 13 Feb 2008 19:31:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, shaggy@austin.ibm.com
+To: akpm@linux-foundation.org, cminyard@mvista.com, kbaidarov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: le*_add_cpu conversion
-has been added to the -mm tree.  Its filename is
-     jfs-le_add_cpu-conversion.patch
+     ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jfs: le*_add_cpu conversion
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-replace all:
-little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
-					expression_in_cpu_byteorder);
-with:
-	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
-generated with semantic patch
+ERROR: open brace '{' following struct go on the same line
+#29: FILE: drivers/char/ipmi/ipmi_msghandler.c:189:
++struct ipmi_stats
++{
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+ERROR: use tabs not spaces
+#47: FILE: drivers/char/ipmi/ipmi_msghandler.c:207:
++           incremented. */$
+
+ERROR: use tabs not spaces
+#51: FILE: drivers/char/ipmi/ipmi_msghandler.c:211:
++           *not* included in the above count (they are expected to$
+
+ERROR: use tabs not spaces
+#52: FILE: drivers/char/ipmi/ipmi_msghandler.c:212:
++           time out). */$
+
+ERROR: use tabs not spaces
+#72: FILE: drivers/char/ipmi/ipmi_msghandler.c:232:
++           incremented. */$
+
+total: 5 errors, 0 warnings, 723 lines checked
+
+./patches/ipmi-convert-locked-counters-to-atomics.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Corey Minyard <cminyard@mvista.com>
+Cc: Konstantin Baydarov <kbaidarov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_dmap.c  |   11 +++++------
- fs/jfs/jfs_imap.c  |   15 ++++++---------
- fs/jfs/jfs_xtree.c |   26 ++++++++------------------
- 3 files changed, 19 insertions(+), 33 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/jfs/jfs_dmap.c~jfs-le_add_cpu-conversion fs/jfs/jfs_dmap.c
---- a/fs/jfs/jfs_dmap.c~jfs-le_add_cpu-conversion
-+++ a/fs/jfs/jfs_dmap.c
-@@ -2172,7 +2172,7 @@ static void dbAllocBits(struct bmap * bm
- 	}
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-checkpatch-fixes drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-checkpatch-fixes
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -204,12 +204,12 @@ struct ipmi_stats
+ 	/* Each retransmit increments this count. */
+ 	atomic_t retransmitted_ipmb_commands;
+ 	/* When a message times out (runs out of retransmits) this is
+-           incremented. */
++	   incremented. */
+ 	atomic_t timed_out_ipmb_commands;
  
- 	/* update the free count for this dmap */
--	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) - nblocks);
-+	le32_add_cpu(&dp->nfree, -nblocks);
+ 	/* This is like above, but for broadcasts.  Broadcasts are
+-           *not* included in the above count (they are expected to
+-           time out). */
++	   *not* included in the above count (they are expected to
++	   time out). */
+ 	atomic_t timed_out_ipmb_broadcasts;
  
- 	BMAP_LOCK(bmp);
+ 	/* Responses I have sent to the IPMB bus. */
+@@ -229,7 +229,7 @@ struct ipmi_stats
+ 	/* Each retransmit increments this count. */
+ 	atomic_t retransmitted_lan_commands;
+ 	/* When a message times out (runs out of retransmits) this is
+-           incremented. */
++	   incremented. */
+ 	atomic_t timed_out_lan_commands;
  
-@@ -2316,7 +2316,7 @@ static int dbFreeBits(struct bmap * bmp,
- 
- 	/* update the free count for this dmap.
- 	 */
--	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) + nblocks);
-+	le32_add_cpu(&dp->nfree, nblocks);
- 
- 	BMAP_LOCK(bmp);
- 
-@@ -3226,7 +3226,7 @@ static int dbAllocDmapBU(struct bmap * b
- 	}
- 
- 	/* update the free count for this dmap */
--	dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) - nblocks);
-+	le32_add_cpu(&dp->nfree, -nblocks);
- 
- 	/* reconstruct summary tree */
- 	dbInitDmapTree(dp);
-@@ -3660,9 +3660,8 @@ static int dbInitDmap(struct dmap * dp, 
- 			goto initTree;
- 		}
- 	} else {
--		dp->nblocks =
--		    cpu_to_le32(le32_to_cpu(dp->nblocks) + nblocks);
--		dp->nfree = cpu_to_le32(le32_to_cpu(dp->nfree) + nblocks);
-+		le32_add_cpu(&dp->nblocks, nblocks);
-+		le32_add_cpu(&dp->nfree, nblocks);
- 	}
- 
- 	/* word number containing start block number */
-diff -puN fs/jfs/jfs_imap.c~jfs-le_add_cpu-conversion fs/jfs/jfs_imap.c
---- a/fs/jfs/jfs_imap.c~jfs-le_add_cpu-conversion
-+++ a/fs/jfs/jfs_imap.c
-@@ -1019,8 +1019,7 @@ int diFree(struct inode *ip)
- 		/* update the free inode counts at the iag, ag and
- 		 * map level.
- 		 */
--		iagp->nfreeinos =
--		    cpu_to_le32(le32_to_cpu(iagp->nfreeinos) + 1);
-+		le32_add_cpu(&iagp->nfreeinos, 1);
- 		imap->im_agctl[agno].numfree += 1;
- 		atomic_inc(&imap->im_numfree);
- 
-@@ -1219,9 +1218,8 @@ int diFree(struct inode *ip)
- 	/* update the number of free inodes and number of free extents
- 	 * for the iag.
- 	 */
--	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) -
--				      (INOSPEREXT - 1));
--	iagp->nfreeexts = cpu_to_le32(le32_to_cpu(iagp->nfreeexts) + 1);
-+	le32_add_cpu(&iagp->nfreeinos, -(INOSPEREXT - 1));
-+	le32_add_cpu(&iagp->nfreeexts, 1);
- 
- 	/* update the number of free inodes and backed inodes
- 	 * at the ag and inode map level.
-@@ -2124,7 +2122,7 @@ static int diAllocBit(struct inomap * im
- 	/* update the free inode count at the iag, ag, inode
- 	 * map levels.
- 	 */
--	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) - 1);
-+	le32_add_cpu(&iagp->nfreeinos, -1);
- 	imap->im_agctl[agno].numfree -= 1;
- 	atomic_dec(&imap->im_numfree);
- 
-@@ -2378,9 +2376,8 @@ static int diNewExt(struct inomap * imap
- 	/* update the free inode and free extent counts for the
- 	 * iag.
- 	 */
--	iagp->nfreeinos = cpu_to_le32(le32_to_cpu(iagp->nfreeinos) +
--				      (INOSPEREXT - 1));
--	iagp->nfreeexts = cpu_to_le32(le32_to_cpu(iagp->nfreeexts) - 1);
-+	le32_add_cpu(&iagp->nfreeinos, (INOSPEREXT - 1));
-+	le32_add_cpu(&iagp->nfreeexts, -1);
- 
- 	/* update the free and backed inode counts for the ag.
- 	 */
-diff -puN fs/jfs/jfs_xtree.c~jfs-le_add_cpu-conversion fs/jfs/jfs_xtree.c
---- a/fs/jfs/jfs_xtree.c~jfs-le_add_cpu-conversion
-+++ a/fs/jfs/jfs_xtree.c
-@@ -905,8 +905,7 @@ int xtInsert(tid_t tid,		/* transaction 
- 	XT_PUTENTRY(xad, xflag, xoff, xlen, xaddr);
- 
- 	/* advance next available entry index */
--	p->header.nextindex =
--	    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
-+	le16_add_cpu(&p->header.nextindex, 1);
- 
- 	/* Don't log it if there are no links to the file */
- 	if (!test_cflag(COMMIT_Nolink, ip)) {
-@@ -997,8 +996,7 @@ xtSplitUp(tid_t tid,
- 			    split->addr);
- 
- 		/* advance next available entry index */
--		sp->header.nextindex =
--		    cpu_to_le16(le16_to_cpu(sp->header.nextindex) + 1);
-+		le16_add_cpu(&sp->header.nextindex, 1);
- 
- 		/* Don't log it if there are no links to the file */
- 		if (!test_cflag(COMMIT_Nolink, ip)) {
-@@ -1167,9 +1165,7 @@ xtSplitUp(tid_t tid,
- 				    JFS_SBI(ip->i_sb)->nbperpage, rcbn);
- 
- 			/* advance next available entry index. */
--			sp->header.nextindex =
--			    cpu_to_le16(le16_to_cpu(sp->header.nextindex) +
--					1);
-+			le16_add_cpu(&sp->header.nextindex, 1);
- 
- 			/* Don't log it if there are no links to the file */
- 			if (!test_cflag(COMMIT_Nolink, ip)) {
-@@ -1738,8 +1734,7 @@ int xtExtend(tid_t tid,		/* transaction 
- 		XT_PUTENTRY(xad, XAD_NEW, xoff, len, xaddr);
- 
- 		/* advance next available entry index */
--		p->header.nextindex =
--		    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
-+		le16_add_cpu(&p->header.nextindex, 1);
- 	}
- 
- 	/* get back old entry */
-@@ -1905,8 +1900,7 @@ printf("xtTailgate: xoff:0x%lx xlen:0x%x
- 		XT_PUTENTRY(xad, XAD_NEW, xoff, xlen, xaddr);
- 
- 		/* advance next available entry index */
--		p->header.nextindex =
--		    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
-+		le16_add_cpu(&p->header.nextindex, 1);
- 	}
- 
- 	/* get back old XAD */
-@@ -2567,8 +2561,7 @@ int xtAppend(tid_t tid,		/* transaction 
- 	XT_PUTENTRY(xad, xflag, xoff, xlen, xaddr);
- 
- 	/* advance next available entry index */
--	p->header.nextindex =
--	    cpu_to_le16(le16_to_cpu(p->header.nextindex) + 1);
-+	le16_add_cpu(&p->header.nextindex, 1);
- 
- 	xtlck->lwm.offset =
- 	    (xtlck->lwm.offset) ? min(index,(int) xtlck->lwm.offset) : index;
-@@ -2631,8 +2624,7 @@ int xtDelete(tid_t tid, struct inode *ip
- 	 * delete the entry from the leaf page
- 	 */
- 	nextindex = le16_to_cpu(p->header.nextindex);
--	p->header.nextindex =
--	    cpu_to_le16(le16_to_cpu(p->header.nextindex) - 1);
-+	le16_add_cpu(&p->header.nextindex, -1);
- 
- 	/*
- 	 * if the leaf page bocome empty, free the page
-@@ -2795,9 +2787,7 @@ xtDeleteUp(tid_t tid, struct inode *ip,
- 					(nextindex - index -
- 					 1) << L2XTSLOTSIZE);
- 
--			p->header.nextindex =
--			    cpu_to_le16(le16_to_cpu(p->header.nextindex) -
--					1);
-+			le16_add_cpu(&p->header.nextindex, -1);
- 			jfs_info("xtDeleteUp(entry): 0x%lx[%d]",
- 				 (ulong) parent->bn, index);
- 		}
+ 	/* Responses I have sent to the IPMB bus. */
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-xfs-convert-bex_add-to-bex_add_cpu-new-common-api.patch
-udf-fix-directory-offset-handling.patch
-udf-fix-udf_add_free_space.patch
-git-gfs2-nmw.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-ipw2200-le_add_cpu-conversion.patch
-scsi-le_add_cpu-conversion.patch
-ext2-le_add_cpu-conversion.patch
-ext4-le_add_cpu-conversion.patch
-jfs-le_add_cpu-conversion.patch
-ntfs-le_add_cpu-conversion.patch
-ocfs2-le_add_cpu-conversion.patch
-quota-le_add_cpu-conversion.patch
-reiserfs-le_add_cpu-conversion.patch
-sysv-e_add_cpu-conversion.patch
-ufs-e_add_cpu-conversion.patch
-ufs-e_add_cpu-conversion-in-return.patch
+softlockup-workaround.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+fs-smbfs-inodec-fix-warning-message-deprecating-smbfs.patch
+smack-check-for-struct-socket-with-null-sk.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-remove-broken-dangerous-ide-unregister-scan-hwif-ioctls.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-conflicts.patch
+git-sparc64.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-conflicts.patch
+git-x86.patch
+git-x86-vs-git-kvm.patch
+git-x86-cpa-build-fix.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xfs-git-conflicts.patch
+git-xtensa.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-cifs-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-smack-fix.patch
+introduce-path_put-cifs-fix.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-convert-locked-counters-to-atomics-checkpatch-fixes.patch
+ipmi-convert-locked-counters-to-atomics-in-the-system-interface-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
