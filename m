@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asm-futexh-should-include-linux-uaccessh.patch added to -mm tree
-Date: Wed, 13 Feb 2008 17:11:56 -0800
-Message-ID: <200802140111.m1E1BunR024091@imap1.linux-foundation.org>
+Subject: + fix-module_update_markers-compile-error.patch added to -mm tree
+Date: Wed, 13 Feb 2008 19:35:50 -0800
+Message-ID: <200802140335.m1E3ZpIC029024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50169 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935394AbYBNBMx (ORCPT
+	by vger.kernel.org with ESMTP id S1754663AbYBNDgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 20:12:53 -0500
+	Wed, 13 Feb 2008 22:36:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, benh@kernel.crashing.org, davem@davemloft.net, jdike@linux.intel.com, kyle@mcmartin.ca, lethal@linux-sh.org, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, tglx@linutronix.de, tony.luck@intel.com
+Cc: bunk@kernel.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     asm-*/futex.h should include linux/uaccess.h
+     fix module_update_markers() compile error
 has been added to the -mm tree.  Its filename is
-     asm-futexh-should-include-linux-uaccessh.patch
+     fix-module_update_markers-compile-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,157 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-*/futex.h should include linux/uaccess.h
-From: Jeff Dike <jdike@addtoit.com>
+Subject: fix module_update_markers() compile error
+From: Adrian Bunk <bunk@kernel.org>
 
-Lots of asm-*/futex.h call pagefault_enable and pagefault_disable, which
-are declared in linux/uaccess.h, without including linux/uaccess.h.
+This patch fixes the following compile error with CONFIG_MODULES=n
+caused by commit fb40bd78b0f91b274879cf5db8facd1e04b6052e:
 
-They all include asm/uaccess.h, so this patch replaces asm/uaccess.h
-with linux/uaccess.h.
+/home/bunk/linux/kernel-2.6/git/linux-2.6/kernel/marker.c: In function `marker_update_probes':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/kernel/marker.c:627: error: too few arguments to function `module_update_markers'
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/futex.h |    2 +-
- include/asm-ia64/futex.h    |    2 +-
- include/asm-mips/futex.h    |    2 +-
- include/asm-parisc/futex.h  |    2 +-
- include/asm-powerpc/futex.h |    2 +-
- include/asm-sh/futex.h      |    2 +-
- include/asm-sparc64/futex.h |    2 +-
- include/asm-x86/futex.h     |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/module.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/asm-generic/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-generic/futex.h
---- a/include/asm-generic/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-generic/futex.h
-@@ -4,8 +4,8 @@
- #ifdef __KERNEL__
+diff -puN include/linux/module.h~fix-module_update_markers-compile-error include/linux/module.h
+--- a/include/linux/module.h~fix-module_update_markers-compile-error
++++ a/include/linux/module.h
+@@ -567,8 +567,7 @@ static inline void print_modules(void)
+ {
+ }
  
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
--#include <asm/uaccess.h>
+-static inline void module_update_markers(struct module *probe_module,
+-		int *refcount)
++static inline void module_update_markers(void)
+ {
+ }
  
- static inline int
- futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
-diff -puN include/asm-ia64/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-ia64/futex.h
---- a/include/asm-ia64/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-ia64/futex.h
-@@ -2,9 +2,9 @@
- #define _ASM_FUTEX_H
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #define __futex_atomic_op1(insn, ret, oldval, uaddr, oparg) \
- do {									\
-diff -puN include/asm-mips/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-mips/futex.h
---- a/include/asm-mips/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-mips/futex.h
-@@ -11,9 +11,9 @@
- #ifdef __KERNEL__
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/barrier.h>
- #include <asm/errno.h>
--#include <asm/uaccess.h>
- #include <asm/war.h>
- 
- #define __futex_atomic_op(insn, ret, oldval, uaddr, oparg)		\
-diff -puN include/asm-parisc/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-parisc/futex.h
---- a/include/asm-parisc/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-parisc/futex.h
-@@ -4,8 +4,8 @@
- #ifdef __KERNEL__
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
--#include <asm/uaccess.h>
- 
- static inline int
- futex_atomic_op_inuser (int encoded_op, int __user *uaddr)
-diff -puN include/asm-powerpc/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-powerpc/futex.h
---- a/include/asm-powerpc/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-powerpc/futex.h
-@@ -4,9 +4,9 @@
- #ifdef __KERNEL__
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
- #include <asm/synch.h>
--#include <asm/uaccess.h>
- #include <asm/asm-compat.h>
- 
- #define __futex_atomic_op(insn, ret, oldval, uaddr, oparg) \
-diff -puN include/asm-sh/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-sh/futex.h
---- a/include/asm-sh/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-sh/futex.h
-@@ -4,8 +4,8 @@
- #ifdef __KERNEL__
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
--#include <asm/uaccess.h>
- 
- /* XXX: UP variants, fix for SH-4A and SMP.. */
- #include <asm/futex-irq.h>
-diff -puN include/asm-sparc64/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-sparc64/futex.h
---- a/include/asm-sparc64/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-sparc64/futex.h
-@@ -2,9 +2,9 @@
- #define _SPARC64_FUTEX_H
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- #include <asm/errno.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #define __futex_cas_op(insn, ret, oldval, uaddr, oparg)	\
- 	__asm__ __volatile__(				\
-diff -puN include/asm-x86/futex.h~asm-futexh-should-include-linux-uaccessh include/asm-x86/futex.h
---- a/include/asm-x86/futex.h~asm-futexh-should-include-linux-uaccessh
-+++ a/include/asm-x86/futex.h
-@@ -4,12 +4,12 @@
- #ifdef __KERNEL__
- 
- #include <linux/futex.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/asm.h>
- #include <asm/errno.h>
- #include <asm/processor.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #define __futex_atomic_op1(insn, ret, oldval, uaddr, oparg)	\
-   __asm__ __volatile(						\
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-kvm.patch
-uml-remove-unused-sigcontext-accessors.patch
-uml-fix-fp-register-corruption.patch
-uml-update-defconfig.patch
-random-add-async-notification-support-to-dev-random.patch
-asm-futexh-should-include-linux-uaccessh.patch
+origin.patch
+fix-module_update_markers-compile-error.patch
+powerpc-vdso_do_func_patch3264-must-be-__init.patch
+powerpc-free_property-mustnt-be-__init.patch
+hvc_rtas_init-must-be-__init.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-net.patch
+git-ocfs2.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+git-xtensa.patch
+sparc-fix-build.patch
+reiser4.patch
