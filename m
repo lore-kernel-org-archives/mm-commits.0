@@ -1,79 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 15:25:48 -0800
-Message-ID: <200802142325.m1ENPmc0008515@imap1.linux-foundation.org>
+Subject: - d_path-make-d_path-use-a-struct-path-fix.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 15:26:09 -0800
+Message-ID: <200802142326.m1ENQ91F008529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757254AbYBNXZy (ORCPT
+	by vger.kernel.org with ESMTP id S1751838AbYBNX1W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Feb 2008 18:25:54 -0500
+	Thu, 14 Feb 2008 18:27:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jblunck@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, bryan.wu@analog.com, hch@infradead.org, jblunck@suse.de, mhalcrow@us.ibm.com, mingo@elte.hu, neilb@suse.de, viro@zeniv.linux.org.ukm
 
 
 The patch titled
-     d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
+     d_path-make-d_path-use-a-struct-path-fix
 has been removed from the -mm tree.  Its filename was
-     d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+     d_path-make-d_path-use-a-struct-path-fix.patch
 
-This patch was dropped because it was folded into d_path-make-get_dcookie-use-a-struct-path-argument.patch
+This patch was dropped because it was folded into d_path-make-d_path-use-a-struct-path.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
+Subject: d_path-make-d_path-use-a-struct-path-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#152: FILE: fs/dcookies.c:92:
-+static struct dcookie_struct * alloc_dcookie(struct path *path)
-
-ERROR: "foo * bar" should be "foo *bar"
-#176: FILE: fs/dcookies.c:109:
-+int get_dcookie(struct path *path, unsigned long * cookie)
-
-total: 2 errors, 0 warnings, 205 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Jan Blunck <jblunck@suse.de>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcookies.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes fs/dcookies.c
---- a/fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
-+++ a/fs/dcookies.c
-@@ -89,9 +89,10 @@ static void hash_dcookie(struct dcookie_
- }
+diff -puN mm/memory.c~d_path-make-d_path-use-a-struct-path-fix mm/memory.c
+--- a/mm/memory.c~d_path-make-d_path-use-a-struct-path-fix
++++ a/mm/memory.c
+@@ -2719,7 +2719,7 @@ void print_vma_addr(char *prefix, unsign
+ 		if (buf) {
+ 			char *p, *s;
  
- 
--static struct dcookie_struct * alloc_dcookie(struct path *path)
-+static struct dcookie_struct *alloc_dcookie(struct path *path)
- {
--	struct dcookie_struct * dcs = kmem_cache_alloc(dcookie_cache, GFP_KERNEL);
-+	struct dcookie_struct *dcs = kmem_cache_alloc(dcookie_cache,
-+							GFP_KERNEL);
- 	if (!dcs)
- 		return NULL;
- 
-@@ -106,7 +107,7 @@ static struct dcookie_struct * alloc_dco
- /* This is the main kernel-side routine that retrieves the cookie
-  * value for a dentry/vfsmnt pair.
-  */
--int get_dcookie(struct path *path, unsigned long * cookie)
-+int get_dcookie(struct path *path, unsigned long *cookie)
- {
- 	int err = 0;
- 	struct dcookie_struct * dcs;
+-			p = d_path(f->f_dentry, f->f_vfsmnt, buf, PAGE_SIZE);
++			p = d_path(&f->f_path, buf, PAGE_SIZE);
+ 			if (IS_ERR(p))
+ 				p = "?";
+ 			s = strrchr(p, '/');
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,8 +115,8 @@ introduce-path_put.patch
 one-less-parameter-to-__d_path.patch
 d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-make-get_dcookie-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+d_path-make-d_path-use-a-struct-path.patch
 d_path-make-d_path-use-a-struct-path-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
