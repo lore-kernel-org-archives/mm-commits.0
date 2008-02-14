@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:41:06 -0800
-Message-ID: <200802140041.m1E0f6Sg022771@imap1.linux-foundation.org>
+Subject: + jbd-sparse-warnings-in-revokec-journalc.patch added to -mm tree
+Date: Wed, 13 Feb 2008 16:48:03 -0800
+Message-ID: <200802140048.m1E0m3eQ023045__24109.8251696259$1202950135$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763681AbYBNAmA (ORCPT
+	by vger.kernel.org with ESMTP id S1757880AbYBNAsH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:42:00 -0500
+	Wed, 13 Feb 2008 19:48:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: edgar.iglesias@axis.com, edgar@axis.com, ralf@linux-mips.org, starvik@axis.com, ysato@users.sourceforge.jp
+Cc: harvey.harrison@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
+     jbd: sparse warnings in revoke.c, journal.c
 has been added to the -mm tree.  Its filename is
-     elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+     jbd-sparse-warnings-in-revokec-journalc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: elf: use ELF_CORE_EFLAGS for kcore ELF header flags.
-From: "Edgar E. Iglesias" <edgar.iglesias@axis.com>
+Subject: jbd: sparse warnings in revoke.c, journal.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ELF_CORE_EFLAGS is already used by the binfmt_elf coredumper to set correct
-arch specific ELF header flags on coredumps.  Use it for kcore as well. 
-This corrects kcore files for the CRIS arch and I believe it corrects
-ordinary coredumps for the H8/300.
+fs/jbd/revoke.c:176:29: warning: Using plain integer as NULL pointer
+fs/jbd/revoke.c:182:28: warning: Using plain integer as NULL pointer
+fs/jbd/journal.c:1622:2: warning: Using plain integer as NULL pointer
+fs/jbd/journal.c:1629:28: warning: Using plain integer as NULL pointer
 
-Signed-off-by: Edgar E. Iglesias <edgar@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c         |   10 +++++-----
- include/asm-h8300/elf.h |    2 ++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/jbd/journal.c |    4 ++--
+ fs/jbd/revoke.c  |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags fs/proc/kcore.c
---- a/fs/proc/kcore.c~elf-use-elf_core_eflags-for-kcore-elf-header-flags
-+++ a/fs/proc/kcore.c
-@@ -23,6 +23,10 @@
- 
- #define CORE_STR "CORE"
- 
-+#ifndef ELF_CORE_EFLAGS
-+#define ELF_CORE_EFLAGS	0
-+#endif
-+
- static int open_kcore(struct inode * inode, struct file * filp)
+diff -puN fs/jbd/journal.c~jbd-sparse-warnings-in-revokec-journalc fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-sparse-warnings-in-revokec-journalc
++++ a/fs/jbd/journal.c
+@@ -1619,14 +1619,14 @@ static int journal_init_journal_head_cac
  {
- 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
-@@ -164,11 +168,7 @@ static void elf_kcore_store_hdr(char *bu
- 	elf->e_entry	= 0;
- 	elf->e_phoff	= sizeof(struct elfhdr);
- 	elf->e_shoff	= 0;
--#if defined(CONFIG_H8300)
--	elf->e_flags	= ELF_FLAGS;
--#else
--	elf->e_flags	= 0;
--#endif
-+	elf->e_flags	= ELF_CORE_EFLAGS;
- 	elf->e_ehsize	= sizeof(struct elfhdr);
- 	elf->e_phentsize= sizeof(struct elf_phdr);
- 	elf->e_phnum	= nphdr;
-diff -puN include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags include/asm-h8300/elf.h
---- a/include/asm-h8300/elf.h~elf-use-elf_core_eflags-for-kcore-elf-header-flags
-+++ a/include/asm-h8300/elf.h
-@@ -32,6 +32,8 @@ typedef unsigned long elf_fpregset_t;
- #define ELF_FLAGS       0x820000
- #endif
+ 	int retval;
  
-+#define ELF_CORE_EFLAGS ELF_FLAGS
-+
- #define ELF_PLAT_INIT(_r)	_r->er1 = 0
+-	J_ASSERT(journal_head_cache == 0);
++	J_ASSERT(!journal_head_cache);
+ 	journal_head_cache = kmem_cache_create("journal_head",
+ 				sizeof(struct journal_head),
+ 				0,		/* offset */
+ 				SLAB_TEMPORARY,	/* flags */
+ 				NULL);		/* ctor */
+ 	retval = 0;
+-	if (journal_head_cache == 0) {
++	if (!journal_head_cache) {
+ 		retval = -ENOMEM;
+ 		printk(KERN_EMERG "JBD: no memory for journal_head cache\n");
+ 	}
+diff -puN fs/jbd/revoke.c~jbd-sparse-warnings-in-revokec-journalc fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~jbd-sparse-warnings-in-revokec-journalc
++++ a/fs/jbd/revoke.c
+@@ -173,13 +173,13 @@ int __init journal_init_revoke_caches(vo
+ 					   0,
+ 					   SLAB_HWCACHE_ALIGN|SLAB_TEMPORARY,
+ 					   NULL);
+-	if (revoke_record_cache == 0)
++	if (!revoke_record_cache)
+ 		return -ENOMEM;
  
- #define USE_ELF_CORE_DUMP
+ 	revoke_table_cache = kmem_cache_create("revoke_table",
+ 					   sizeof(struct jbd_revoke_table_s),
+ 					   0, SLAB_TEMPORARY, NULL);
+-	if (revoke_table_cache == 0) {
++	if (!revoke_table_cache) {
+ 		kmem_cache_destroy(revoke_record_cache);
+ 		revoke_record_cache = NULL;
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from edgar.iglesias@axis.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+origin.patch
+include-linux-remove-all-users-of-fastcall-macro.patch
+rcupdate-fix-comment.patch
+remove-final-fastcall-users.patch
+final-removal-of-fastcall-fastcall.patch
+git-x86.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
