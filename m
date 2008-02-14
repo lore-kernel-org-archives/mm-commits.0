@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-le_add_cpu-conversion.patch added to -mm tree
-Date: Wed, 13 Feb 2008 16:24:51 -0800
-Message-ID: <200802140024.m1E0OpWb021999@imap1.linux-foundation.org>
+Subject: + sysv-e_add_cpu-conversion.patch added to -mm tree
+Date: Wed, 13 Feb 2008 16:24:53 -0800
+Message-ID: <200802140024.m1E0Orjt022003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934998AbYBNA3p (ORCPT
+	by vger.kernel.org with ESMTP id S934818AbYBNA3S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Feb 2008 19:29:45 -0500
+	Wed, 13 Feb 2008 19:29:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, chris.mason@oracle.com, jeffm@suse.com
+Cc: marcin.slusarz@gmail.com, hch@infradead.org
 
 
 The patch titled
-     reiserfs: le*_add_cpu conversion
+     sysv: [bl]e*_add_cpu conversion
 has been added to the -mm tree.  Its filename is
-     reiserfs-le_add_cpu-conversion.patch
+     sysv-e_add_cpu-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: le*_add_cpu conversion
+Subject: sysv: [bl]e*_add_cpu conversion
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
 replace all:
-little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+big/little_endian_variable = cpu_to_[bl]eX([bl]eX_to_cpu(big/little_endian_variable) +
 					expression_in_cpu_byteorder);
 with:
-	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+	[bl]eX_add_cpu(&big/little_endian_variable, expression_in_cpu_byteorder);
 generated with semantic patch
 
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/objectid.c |    5 ++---
- fs/reiserfs/stree.c    |    3 +--
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ fs/sysv/sysv.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/objectid.c~reiserfs-le_add_cpu-conversion fs/reiserfs/objectid.c
---- a/fs/reiserfs/objectid.c~reiserfs-le_add_cpu-conversion
-+++ a/fs/reiserfs/objectid.c
-@@ -114,7 +114,7 @@ void reiserfs_release_objectid(struct re
- 		if (objectid_to_release == le32_to_cpu(map[i])) {
- 			/* This incrementation unallocates the objectid. */
- 			//map[i]++;
--			map[i] = cpu_to_le32(le32_to_cpu(map[i]) + 1);
-+			le32_add_cpu(&map[i], 1);
+diff -puN fs/sysv/sysv.h~sysv-e_add_cpu-conversion fs/sysv/sysv.h
+--- a/fs/sysv/sysv.h~sysv-e_add_cpu-conversion
++++ a/fs/sysv/sysv.h
+@@ -217,9 +217,9 @@ static inline __fs32 fs32_add(struct sys
+ 	if (sbi->s_bytesex == BYTESEX_PDP)
+ 		*(__u32*)n = PDP_swab(PDP_swab(*(__u32*)n)+d);
+ 	else if (sbi->s_bytesex == BYTESEX_LE)
+-		*(__le32*)n = cpu_to_le32(le32_to_cpu(*(__le32*)n)+d);
++		le32_add_cpu((__le32 *)n, d);
+ 	else
+-		*(__be32*)n = cpu_to_be32(be32_to_cpu(*(__be32*)n)+d);
++		be32_add_cpu((__be32 *)n, d);
+ 	return *n;
+ }
  
- 			/* Did we unallocate the last member of an odd sequence, and can shrink oids? */
- 			if (map[i] == map[i + 1]) {
-@@ -138,8 +138,7 @@ void reiserfs_release_objectid(struct re
- 			/* size of objectid map is not changed */
- 			if (objectid_to_release + 1 == le32_to_cpu(map[i + 1])) {
- 				//objectid_map[i+1]--;
--				map[i + 1] =
--				    cpu_to_le32(le32_to_cpu(map[i + 1]) - 1);
-+				le32_add_cpu(&map[i + 1], -1);
- 				return;
- 			}
+@@ -242,9 +242,9 @@ static inline __fs16 cpu_to_fs16(struct 
+ static inline __fs16 fs16_add(struct sysv_sb_info *sbi, __fs16 *n, int d)
+ {
+ 	if (sbi->s_bytesex != BYTESEX_BE)
+-		*(__le16*)n = cpu_to_le16(le16_to_cpu(*(__le16 *)n)+d);
++		le16_add_cpu((__le16 *)n, d);
+ 	else
+-		*(__be16*)n = cpu_to_be16(be16_to_cpu(*(__be16 *)n)+d);
++		be16_add_cpu((__be16 *)n, d);
+ 	return *n;
+ }
  
-diff -puN fs/reiserfs/stree.c~reiserfs-le_add_cpu-conversion fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~reiserfs-le_add_cpu-conversion
-+++ a/fs/reiserfs/stree.c
-@@ -1419,8 +1419,7 @@ int reiserfs_delete_object(struct reiser
- 
- 		inode_generation =
- 		    &REISERFS_SB(th->t_super)->s_rs->s_inode_generation;
--		*inode_generation =
--		    cpu_to_le32(le32_to_cpu(*inode_generation) + 1);
-+		le32_add_cpu(inode_generation, 1);
- 	}
- /* USE_INODE_GENERATION_COUNTER */
- #endif
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
