@@ -1,132 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:13 -0800
-Message-ID: <200802150531.m1F5VDAm021751@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:31:10 -0800
+Message-ID: <200802150531.m1F5VAvr021745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39821 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534AbYBOFbl (ORCPT
+	by vger.kernel.org with ESMTP id S1753461AbYBOFbn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:31:41 -0500
+	Fri, 15 Feb 2008 00:31:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate mount count for extended attributes
+     r-o-bind-mounts:  elevate mnt writers for callers of vfs_mkdir()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate mount count for extended attributes
+Subject: r-o-bind-mounts:  elevate mnt writers for callers of vfs_mkdir()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This basically audits the callers of xattr_permission(), which calls
-permission() and can perform writes to the filesystem.
+Pretty self-explanatory.  Fits in with the rest of the series.
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4proc.c |    7 ++++++-
- fs/xattr.c         |   16 ++++++++++++++--
- 2 files changed, 20 insertions(+), 3 deletions(-)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
-+++ a/fs/nfsd/nfs4proc.c
-@@ -658,14 +658,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
- 			return status;
- 		}
- 	}
-+	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
-+	if (status)
-+		return status;
- 	status = nfs_ok;
- 	if (setattr->sa_acl != NULL)
- 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
- 					    setattr->sa_acl);
- 	if (status)
--		return status;
-+		goto out;
- 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
- 				0, (time_t)0);
-+out:
-+	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
- 	return status;
- }
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/namei.c
+@@ -2070,7 +2070,12 @@ asmlinkage long sys_mkdirat(int dfd, con
  
-diff -puN fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/xattr.c
---- a/fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
-+++ a/fs/xattr.c
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -41,6 +41,7 @@
+ #include <linux/nfsd/xdr4.h>
+ #include <linux/param.h>
  #include <linux/file.h>
- #include <linux/xattr.h>
 +#include <linux/mount.h>
  #include <linux/namei.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
-@@ -32,8 +33,6 @@ xattr_permission(struct inode *inode, co
- 	 * filesystem  or on an immutable / append-only inode.
- 	 */
- 	if (mask & MAY_WRITE) {
--		if (IS_RDONLY(inode))
--			return -EROFS;
- 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 			return -EPERM;
+ #include <asm/uaccess.h>
+ #include <linux/scatterlist.h>
+@@ -154,7 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
  	}
-@@ -262,7 +261,11 @@ sys_setxattr(char __user *path, char __u
- 	error = user_path_walk(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.dentry, name, value, size, flags);
-+	mnt_drop_write(nd.mnt);
- 	path_release(&nd);
- 	return error;
- }
-@@ -277,7 +280,11 @@ sys_lsetxattr(char __user *path, char __
- 	error = user_path_walk_link(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.dentry, name, value, size, flags);
-+	mnt_drop_write(nd.mnt);
- 	path_release(&nd);
- 	return error;
- }
-@@ -293,9 +300,14 @@ sys_fsetxattr(int fd, char __user *name,
- 	f = fget(fd);
- 	if (!f)
- 		return error;
-+	error = mnt_want_write(f->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = f->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = setxattr(dentry, name, value, size, flags);
-+	mnt_drop_write(f->f_vfsmnt);
-+out_fput:
- 	fput(f);
- 	return error;
- }
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
 r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
