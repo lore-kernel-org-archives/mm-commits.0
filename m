@@ -1,151 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - dentries-extract-common-code-to-remove-dentry-from-lru.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:17:17 -0500
-Message-ID: <200802150720.m1F7Kd8i025841@imap1.linux-foundation.org>
+Subject: - powerpc-fix-debug_preempt-warning-when-warning.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:17:25 -0500
+Message-ID: <200802150720.m1F7Kl3X025854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41754 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760927AbYBOH3T (ORCPT
+	by vger.kernel.org with ESMTP id S1763276AbYBOH31 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:29:19 -0500
+	Fri, 15 Feb 2008 02:29:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dentries: Extract common code to remove dentry from lru
+     powerpc: fix DEBUG_PREEMPT warning when warning
 has been removed from the -mm tree.  Its filename was
-     dentries-extract-common-code-to-remove-dentry-from-lru.patch
+     powerpc-fix-debug_preempt-warning-when-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dentries: Extract common code to remove dentry from lru
-From: Christoph Lameter <clameter@sgi.com>
+Subject: powerpc: fix DEBUG_PREEMPT warning when warning
+From: Hugh Dickins <hugh@veritas.com>
 
-Extract the common code to remove a dentry from the lru into a new function
-dentry_lru_remove().
+The powerpc show_regs prints CPU using smp_processor_id: change that to
+raw_smp_processor_id, so that when it's showing a WARN_ON backtrace without
+preemption disabled, DEBUG_PREEMPT doesn't mess up that warning with its
+own.
 
-Two call sites used list_del() instead of list_del_init().  AFAIK the
-performance of both is the same.  dentry_lru_remove() does a list_del_init().
-
-As a result dentry->d_lru is now always empty when a dentry is freed.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   42 ++++++++++++++----------------------------
- 1 file changed, 14 insertions(+), 28 deletions(-)
+ arch/powerpc/kernel/process.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru fs/dcache.c
---- a/fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru
-+++ a/fs/dcache.c
-@@ -95,6 +95,14 @@ static void d_free(struct dentry *dentry
- 		call_rcu(&dentry->d_u.d_rcu, d_callback);
- }
+diff -puN arch/powerpc/kernel/process.c~powerpc-fix-debug_preempt-warning-when-warning arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~powerpc-fix-debug_preempt-warning-when-warning
++++ a/arch/powerpc/kernel/process.c
+@@ -462,7 +462,7 @@ void show_regs(struct pt_regs * regs)
+ 	       current, task_pid_nr(current), current->comm, task_thread_info(current));
  
-+static void dentry_lru_remove(struct dentry *dentry)
-+{
-+	if (!list_empty(&dentry->d_lru)) {
-+		list_del_init(&dentry->d_lru);
-+		dentry_stat.nr_unused--;
-+	}
-+}
-+
- /*
-  * Release the dentry's inode, using the filesystem
-  * d_iput() operation if defined.
-@@ -211,13 +219,7 @@ repeat:
- unhash_it:
- 	__d_drop(dentry);
- kill_it:
--	/* If dentry was on d_lru list
--	 * delete it from there
--	 */
--	if (!list_empty(&dentry->d_lru)) {
--		list_del(&dentry->d_lru);
--		dentry_stat.nr_unused--;
--	}
-+	dentry_lru_remove(dentry);
- 	dentry = d_kill(dentry);
- 	if (dentry)
- 		goto repeat;
-@@ -285,10 +287,7 @@ int d_invalidate(struct dentry * dentry)
- static inline struct dentry * __dget_locked(struct dentry *dentry)
- {
- 	atomic_inc(&dentry->d_count);
--	if (!list_empty(&dentry->d_lru)) {
--		dentry_stat.nr_unused--;
--		list_del_init(&dentry->d_lru);
--	}
-+	dentry_lru_remove(dentry);
- 	return dentry;
- }
+ #ifdef CONFIG_SMP
+-	printk(" CPU: %d", smp_processor_id());
++	printk(" CPU: %d", raw_smp_processor_id());
+ #endif /* CONFIG_SMP */
  
-@@ -404,10 +403,7 @@ static void prune_one_dentry(struct dent
- 
- 		if (dentry->d_op && dentry->d_op->d_delete)
- 			dentry->d_op->d_delete(dentry);
--		if (!list_empty(&dentry->d_lru)) {
--			list_del(&dentry->d_lru);
--			dentry_stat.nr_unused--;
--		}
-+		dentry_lru_remove(dentry);
- 		__d_drop(dentry);
- 		dentry = d_kill(dentry);
- 		spin_lock(&dcache_lock);
-@@ -596,10 +592,7 @@ static void shrink_dcache_for_umount_sub
- 
- 	/* detach this root from the system */
- 	spin_lock(&dcache_lock);
--	if (!list_empty(&dentry->d_lru)) {
--		dentry_stat.nr_unused--;
--		list_del_init(&dentry->d_lru);
--	}
-+	dentry_lru_remove(dentry);
- 	__d_drop(dentry);
- 	spin_unlock(&dcache_lock);
- 
-@@ -613,11 +606,7 @@ static void shrink_dcache_for_umount_sub
- 			spin_lock(&dcache_lock);
- 			list_for_each_entry(loop, &dentry->d_subdirs,
- 					    d_u.d_child) {
--				if (!list_empty(&loop->d_lru)) {
--					dentry_stat.nr_unused--;
--					list_del_init(&loop->d_lru);
--				}
--
-+				dentry_lru_remove(loop);
- 				__d_drop(loop);
- 				cond_resched_lock(&dcache_lock);
- 			}
-@@ -799,10 +788,7 @@ resume:
- 		struct dentry *dentry = list_entry(tmp, struct dentry, d_u.d_child);
- 		next = tmp->next;
- 
--		if (!list_empty(&dentry->d_lru)) {
--			dentry_stat.nr_unused--;
--			list_del_init(&dentry->d_lru);
--		}
-+		dentry_lru_remove(dentry);
- 		/* 
- 		 * move only zero ref count dentries to the end 
- 		 * of the unused list for prune_dcache
+ 	for (i = 0;  i < 32;  i++) {
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
 git-unionfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+percpu-fix-debug_preempt-per_cpu-checking.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+prio_tree-debugging-patch.patch
