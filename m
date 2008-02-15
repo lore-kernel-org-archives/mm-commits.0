@@ -1,74 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:20 -0800
-Message-ID: <200802150531.m1F5VKpp021768@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:31:13 -0800
+Message-ID: <200802150531.m1F5VDAm021751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39821 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753801AbYBOFbn (ORCPT
+	by vger.kernel.org with ESMTP id S1753534AbYBOFbl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:31:43 -0500
+	Fri, 15 Feb 2008 00:31:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count for link and symlink calls
+     r-o-bind-mounts: elevate mount count for extended attributes
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+     r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count for link and symlink calls
+Subject: r-o-bind-mounts: elevate mount count for extended attributes
 From: Dave Hansen <haveblue@us.ibm.com>
+
+This basically audits the callers of xattr_permission(), which calls
+permission() and can perform writes to the filesystem.
 
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/nfsd/nfs4proc.c |    7 ++++++-
+ fs/xattr.c         |   16 ++++++++++++++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
-+++ a/fs/namei.c
-@@ -2353,7 +2353,12 @@ asmlinkage long sys_symlinkat(const char
- 	if (IS_ERR(dentry))
- 		goto out_unlock;
+diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/nfsd/nfs4proc.c
+@@ -658,14 +658,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
+ 			return status;
+ 		}
+ 	}
++	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
++	if (status)
++		return status;
+ 	status = nfs_ok;
+ 	if (setattr->sa_acl != NULL)
+ 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
+ 					    setattr->sa_acl);
+ 	if (status)
+-		return status;
++		goto out;
+ 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
+ 				0, (time_t)0);
++out:
++	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
+ 	return status;
+ }
  
+diff -puN fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/xattr.c
+--- a/fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/xattr.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/xattr.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+@@ -32,8 +33,6 @@ xattr_permission(struct inode *inode, co
+ 	 * filesystem  or on an immutable / append-only inode.
+ 	 */
+ 	if (mask & MAY_WRITE) {
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+ 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 			return -EPERM;
+ 	}
+@@ -262,7 +261,11 @@ sys_setxattr(char __user *path, char __u
+ 	error = user_path_walk(path, &nd);
+ 	if (error)
+ 		return error;
 +	error = mnt_want_write(nd.mnt);
 +	if (error)
-+		goto out_dput;
- 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
 +	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
-@@ -2448,7 +2453,12 @@ asmlinkage long sys_linkat(int olddfd, c
- 	error = PTR_ERR(new_dentry);
- 	if (IS_ERR(new_dentry))
- 		goto out_unlock;
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -277,7 +280,11 @@ sys_lsetxattr(char __user *path, char __
+ 	error = user_path_walk_link(path, &nd);
+ 	if (error)
+ 		return error;
 +	error = mnt_want_write(nd.mnt);
 +	if (error)
-+		goto out_dput;
- 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
 +	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(new_dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -293,9 +300,14 @@ sys_fsetxattr(int fd, char __user *name,
+ 	f = fget(fd);
+ 	if (!f)
+ 		return error;
++	error = mnt_want_write(f->f_vfsmnt);
++	if (error)
++		goto out_fput;
+ 	dentry = f->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+ 	error = setxattr(dentry, name, value, size, flags);
++	mnt_drop_write(f->f_vfsmnt);
++out_fput:
+ 	fput(f);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
