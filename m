@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + convert-stats_sem-in-a-mutex.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:24:30 -0800
-Message-ID: <200802152124.m1FLOUoh024703@imap1.linux-foundation.org>
+Subject: + convert-acl-sem-in-a-mutex.patch added to -mm tree
+Date: Fri, 15 Feb 2008 13:24:27 -0800
+Message-ID: <200802152124.m1FLORAY024696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760808AbYBOV03 (ORCPT
+	by vger.kernel.org with ESMTP id S1756015AbYBOV0X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:26:29 -0500
+	Fri, 15 Feb 2008 16:26:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: matthias@kaehlcke.net, flamingice@sourmilk.net, linville@tuxdriver.com
 
 
 The patch titled
-     prism54: convert stats_sem in a mutex
+     prism54: convert acl->sem in a mutex
 has been added to the -mm tree.  Its filename is
-     convert-stats_sem-in-a-mutex.patch
+     convert-acl-sem-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prism54: convert stats_sem in a mutex
+Subject: prism54: convert acl->sem in a mutex
 From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-The semaphore stats_sem is used as mutex, convert it to the mutex API
+The semaphore acl->sem is used as mutex, convert it to the mutex API
 
 Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
 Cc: Michael Wu <flamingice@sourmilk.net>
@@ -45,71 +45,135 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/prism54/isl_ioctl.c  |    8 ++++----
- drivers/net/wireless/prism54/islpci_dev.c |    2 +-
- drivers/net/wireless/prism54/islpci_dev.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/net/wireless/prism54/isl_ioctl.c  |   28 ++++++++++----------
+ drivers/net/wireless/prism54/islpci_dev.h |    2 -
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
---- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-acl-sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-acl-sem-in-a-mutex
 +++ a/drivers/net/wireless/prism54/isl_ioctl.c
-@@ -165,7 +165,7 @@ prism54_update_stats(struct work_struct 
- 	struct obj_bss bss, *bss2;
- 	union oid_res_t r;
+@@ -1780,7 +1780,7 @@ prism54_set_raw(struct net_device *ndev,
+ void
+ prism54_acl_init(struct islpci_acl *acl)
+ {
+-	sema_init(&acl->sem, 1);
++	mutex_init(&acl->lock);
+ 	INIT_LIST_HEAD(&acl->mac_list);
+ 	acl->size = 0;
+ 	acl->policy = MAC_POLICY_OPEN;
+@@ -1792,10 +1792,10 @@ prism54_clear_mac(struct islpci_acl *acl
+ 	struct list_head *ptr, *next;
+ 	struct mac_entry *entry;
  
--	down(&priv->stats_sem);
-+	mutex_lock(&priv->stats_lock);
+-	down(&acl->sem);
++	mutex_lock(&acl->lock);
  
- /* Noise floor.
-  * I'm not sure if the unit is dBm.
-@@ -207,7 +207,7 @@ prism54_update_stats(struct work_struct 
- 	mgt_get_request(priv, DOT11_OID_MPDUTXFAILED, 0, NULL, &r);
- 	priv->local_iwstatistics.discard.retries = r.u;
+ 	if (acl->size == 0) {
+-		up(&acl->sem);
++		mutex_unlock(&acl->lock);
+ 		return;
+ 	}
  
--	up(&priv->stats_sem);
-+	mutex_unlock(&priv->stats_lock);
- 
- 	return;
+@@ -1806,7 +1806,7 @@ prism54_clear_mac(struct islpci_acl *acl
+ 		kfree(entry);
+ 	}
+ 	acl->size = 0;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
  }
-@@ -218,12 +218,12 @@ prism54_get_wireless_stats(struct net_de
- 	islpci_private *priv = netdev_priv(ndev);
  
- 	/* If the stats are being updated return old data */
--	if (down_trylock(&priv->stats_sem) == 0) {
-+	if (mutex_trylock(&priv->stats_lock) == 0) {
- 		memcpy(&priv->iwstatistics, &priv->local_iwstatistics,
- 		       sizeof (struct iw_statistics));
- 		/* They won't be marked updated for the next time */
- 		priv->local_iwstatistics.qual.updated = 0;
--		up(&priv->stats_sem);
-+		mutex_unlock(&priv->stats_lock);
- 	} else
- 		priv->iwstatistics.qual.updated = 0;
+ void
+@@ -1833,13 +1833,13 @@ prism54_add_mac(struct net_device *ndev,
  
-diff -puN drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.c
---- a/drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex
-+++ a/drivers/net/wireless/prism54/islpci_dev.c
-@@ -864,7 +864,7 @@ islpci_setup(struct pci_dev *pdev)
- 	mutex_init(&priv->mgmt_lock);
- 	priv->mgmt_received = NULL;
- 	init_waitqueue_head(&priv->mgmt_wqueue);
--	sema_init(&priv->stats_sem, 1);
-+	mutex_init(&priv->stats_lock);
- 	spin_lock_init(&priv->slock);
+ 	memcpy(entry->addr, addr->sa_data, ETH_ALEN);
  
- 	/* init state machine with off#1 state */
-diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
---- a/drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex
+-	if (down_interruptible(&acl->sem)) {
++	if (mutex_lock_interruptible(&acl->lock)) {
+ 		kfree(entry);
+ 		return -ERESTARTSYS;
+ 	}
+ 	list_add_tail(&entry->_list, &acl->mac_list);
+ 	acl->size++;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 
+ 	return 0;
+ }
+@@ -1856,18 +1856,18 @@ prism54_del_mac(struct net_device *ndev,
+ 	if (addr->sa_family != ARPHRD_ETHER)
+ 		return -EOPNOTSUPP;
+ 
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
+ 	list_for_each_entry(entry, &acl->mac_list, _list) {
+ 		if (memcmp(entry->addr, addr->sa_data, ETH_ALEN) == 0) {
+ 			list_del(&entry->_list);
+ 			acl->size--;
+ 			kfree(entry);
+-			up(&acl->sem);
++			mutex_unlock(&acl->lock);
+ 			return 0;
+ 		}
+ 	}
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 	return -EINVAL;
+ }
+ 
+@@ -1882,7 +1882,7 @@ prism54_get_mac(struct net_device *ndev,
+ 
+ 	dwrq->length = 0;
+ 
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	list_for_each_entry(entry, &acl->mac_list, _list) {
+@@ -1891,7 +1891,7 @@ prism54_get_mac(struct net_device *ndev,
+ 		dwrq->length++;
+ 		dst++;
+ 	}
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 	return 0;
+ }
+ 
+@@ -1955,11 +1955,11 @@ prism54_mac_accept(struct islpci_acl *ac
+ 	struct mac_entry *entry;
+ 	int res = 0;
+ 
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	if (acl->policy == MAC_POLICY_OPEN) {
+-		up(&acl->sem);
++		mutex_unlock(&acl->lock);
+ 		return 1;
+ 	}
+ 
+@@ -1970,7 +1970,7 @@ prism54_mac_accept(struct islpci_acl *ac
+ 		}
+ 	}
+ 	res = (acl->policy == MAC_POLICY_ACCEPT) ? !res : res;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 
+ 	return res;
+ }
+diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-acl-sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
+--- a/drivers/net/wireless/prism54/islpci_dev.h~convert-acl-sem-in-a-mutex
 +++ a/drivers/net/wireless/prism54/islpci_dev.h
-@@ -88,7 +88,7 @@ typedef struct {
+@@ -55,7 +55,7 @@ struct islpci_acl {
+    enum { MAC_POLICY_OPEN=0, MAC_POLICY_ACCEPT=1, MAC_POLICY_REJECT=2 } policy;
+    struct list_head mac_list;  /* a list of mac_entry */
+    int size;   /* size of queue */
+-   struct semaphore sem;   /* accessed in ioctls and trap_work */
++   struct mutex lock;   /* accessed in ioctls and trap_work */
+ };
  
- 	/* Take care of the wireless stats */
- 	struct work_struct stats_work;
--	struct semaphore stats_sem;
-+	struct mutex stats_lock;
- 	/* remember when we last updated the stats */
- 	unsigned long stats_timestamp;
- 	/* The first is accessed under semaphore locking.
+ struct islpci_membuf {
 _
 
 Patches currently in -mm which might be from matthias@kaehlcke.net are
