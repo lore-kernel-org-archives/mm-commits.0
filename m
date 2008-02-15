@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:48:32 -0800
-Message-ID: <200802152248.m1FMmXNn028111@imap1.linux-foundation.org>
+Subject: + do-namei_flags-calculation-inside-open_namei.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:48:41 -0800
+Message-ID: <200802152248.m1FMmghX028124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765984AbYBOWsz (ORCPT
+	by vger.kernel.org with ESMTP id S934156AbYBOWtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:48:55 -0500
+	Fri, 15 Feb 2008 17:49:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     reiserfs: eliminate private use of struct file in xattr
+     do namei_flags calculation inside open_namei()
 has been added to the -mm tree.  Its filename is
-     reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+     do-namei_flags-calculation-inside-open_namei.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,325 +34,145 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: eliminate private use of struct file in xattr
+Subject: do namei_flags calculation inside open_namei()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-After several posts and bug reports regarding interaction with the NULL
-nameidata, here's a patch to clean up the mess with struct file in the
-reiserfs xattr code.
+My end goal here is to make sure all users of may_open() return filps.  This
+will ensure that we properly release mount write counts which were taken for
+the filp in may_open().
 
-As observed in several of the posts, there's really no need for struct file to
-exist in the xattr code.  It was really only passed around due to the
-f_op->readdir() and a_ops->{prepare,commit}_write prototypes requiring it.
+This patch moves the sys_open flags to namei flags calculation into
+fs/namei.c.  We'll shortly be moving the nameidata_to_filp() calls into
+namei.c, and this gets the sys_open flags to a place where we can get at them
+when we need them.
 
-reiserfs_prepare_write() and reiserfs_commit_write() don't actually use the
-struct file passed to it, and the xattr code uses a private version of
-reiserfs_readdir() to enumerate the xattr directories.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |  110 +++++++++++-------------------------------
- 1 file changed, 30 insertions(+), 80 deletions(-)
+ fs/namei.c |   43 ++++++++++++++++++++++++++++++++++---------
+ fs/open.c  |   22 ++--------------------
+ 2 files changed, 36 insertions(+), 29 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~reiserfs-eliminate-private-use-of-struct-file-in-xattr fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-eliminate-private-use-of-struct-file-in-xattr
-+++ a/fs/reiserfs/xattr.c
-@@ -191,28 +191,11 @@ static struct dentry *get_xa_file_dentry
- 	dput(xadir);
- 	if (err)
- 		xafile = ERR_PTR(err);
--	return xafile;
--}
--
--/* Opens a file pointer to the attribute associated with inode */
--static struct file *open_xa_file(const struct inode *inode, const char *name,
--				 int flags)
--{
--	struct dentry *xafile;
--	struct file *fp;
--
--	xafile = get_xa_file_dentry(inode, name, flags);
--	if (IS_ERR(xafile))
--		return ERR_PTR(PTR_ERR(xafile));
- 	else if (!xafile->d_inode) {
- 		dput(xafile);
--		return ERR_PTR(-ENODATA);
-+		xafile = ERR_PTR(-ENODATA);
- 	}
--
--	fp = dentry_open(xafile, NULL, O_RDWR);
--	/* dentry_open dputs the dentry if it fails */
--
--	return fp;
-+	return xafile;
+diff -puN fs/namei.c~do-namei_flags-calculation-inside-open_namei fs/namei.c
+--- a/fs/namei.c~do-namei_flags-calculation-inside-open_namei
++++ a/fs/namei.c
+@@ -1677,7 +1677,12 @@ int may_open(struct nameidata *nd, int a
+ 	return 0;
+ }
+ 
+-static int open_namei_create(struct nameidata *nd, struct path *path,
++/*
++ * Be careful about ever adding any more callers of this
++ * function.  Its flags must be in the namei format, not
++ * what get passed to sys_open().
++ */
++static int __open_namei_create(struct nameidata *nd, struct path *path,
+ 				int flag, int mode)
+ {
+ 	int error;
+@@ -1696,26 +1701,46 @@ static int open_namei_create(struct name
  }
  
  /*
-@@ -228,9 +211,8 @@ static struct file *open_xa_file(const s
-  * we're called with i_mutex held, so there are no worries about the directory
-  * changing underneath us.
-  */
--static int __xattr_readdir(struct file *filp, void *dirent, filldir_t filldir)
-+static int __xattr_readdir(struct inode *inode, void *dirent, filldir_t filldir)
- {
--	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct cpu_key pos_key;	/* key of current position in the directory (key of directory entry) */
- 	INITIALIZE_PATH(path_to_entry);
- 	struct buffer_head *bh;
-@@ -374,23 +356,16 @@ static int __xattr_readdir(struct file *
++ * Note that while the flag value (low two bits) for sys_open means:
++ *	00 - read-only
++ *	01 - write-only
++ *	10 - read-write
++ *	11 - special
++ * it is changed into
++ *	00 - no permissions needed
++ *	01 - read-permission
++ *	10 - write-permission
++ *	11 - read-write
++ * for the internal routines (ie open_namei()/follow_link() etc)
++ * This is more logical, and also allows the 00 "no perm needed"
++ * to be used for symlinks (where the permissions are checked
++ * later).
++ *
++*/
++static inline int open_to_namei_flags(int flag)
++{
++	if ((flag+1) & O_ACCMODE)
++		flag++;
++	return flag;
++}
++
++/*
+  *	open_namei()
   *
+  * namei for open - this is in fact almost the whole open-routine.
+  *
+  * Note that the low bits of "flag" aren't the same as in the open
+- * system call - they are 00 - no permissions needed
+- *			  01 - read permission needed
+- *			  10 - write permission needed
+- *			  11 - read/write permissions needed
+- * which is a lot more logical, and also allows the "no perm" needed
+- * for symlinks (where the permissions are checked later).
++ * system call.  See open_to_namei_flags().
+  * SMP-safe
   */
- static
--int xattr_readdir(struct file *file, filldir_t filler, void *buf)
-+int xattr_readdir(struct inode *inode, filldir_t filler, void *buf)
+-int open_namei(int dfd, const char *pathname, int flag,
++int open_namei(int dfd, const char *pathname, int open_flag,
+ 		int mode, struct nameidata *nd)
  {
--	struct inode *inode = file->f_path.dentry->d_inode;
--	int res = -ENOTDIR;
--	if (!file->f_op || !file->f_op->readdir)
--		goto out;
-+	int res = -ENOENT;
- 	mutex_lock_nested(&inode->i_mutex, I_MUTEX_XATTR);
--//        down(&inode->i_zombie);
--	res = -ENOENT;
- 	if (!IS_DEADDIR(inode)) {
- 		lock_kernel();
--		res = __xattr_readdir(file, buf, filler);
-+		res = __xattr_readdir(inode, buf, filler);
- 		unlock_kernel();
- 	}
--//        up(&inode->i_zombie);
- 	mutex_unlock(&inode->i_mutex);
--      out:
- 	return res;
+ 	int acc_mode, error;
+ 	struct path path;
+ 	struct dentry *dir;
+ 	int count = 0;
++	int flag = open_to_namei_flags(open_flag);
+ 
+ 	acc_mode = ACC_MODE(flag);
+ 
+@@ -1776,7 +1801,7 @@ do_last:
+ 
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
+-		error = open_namei_create(nd, &path, flag, mode);
++		error = __open_namei_create(nd, &path, flag, mode);
+ 		if (error)
+ 			goto exit;
+ 		return 0;
+diff -puN fs/open.c~do-namei_flags-calculation-inside-open_namei fs/open.c
+--- a/fs/open.c~do-namei_flags-calculation-inside-open_namei
++++ a/fs/open.c
+@@ -796,31 +796,13 @@ cleanup_file:
+ 	return ERR_PTR(error);
  }
  
-@@ -442,7 +417,7 @@ reiserfs_xattr_set(struct inode *inode, 
- 		   size_t buffer_size, int flags)
+-/*
+- * Note that while the flag value (low two bits) for sys_open means:
+- *	00 - read-only
+- *	01 - write-only
+- *	10 - read-write
+- *	11 - special
+- * it is changed into
+- *	00 - no permissions needed
+- *	01 - read-permission
+- *	10 - write-permission
+- *	11 - read-write
+- * for the internal routines (ie open_namei()/follow_link() etc). 00 is
+- * used by symlinks.
+- */
+ static struct file *do_filp_open(int dfd, const char *filename, int flags,
+ 				 int mode)
  {
- 	int err = 0;
--	struct file *fp;
-+	struct dentry *dentry;
- 	struct page *page;
- 	char *data;
- 	struct address_space *mapping;
-@@ -460,18 +435,18 @@ reiserfs_xattr_set(struct inode *inode, 
- 		xahash = xattr_hash(buffer, buffer_size);
+-	int namei_flags, error;
++	int error;
+ 	struct nameidata nd;
  
-       open_file:
--	fp = open_xa_file(inode, name, flags);
--	if (IS_ERR(fp)) {
--		err = PTR_ERR(fp);
-+	dentry = get_xa_file_dentry(inode, name, flags);
-+	if (IS_ERR(dentry)) {
-+		err = PTR_ERR(dentry);
- 		goto out;
- 	}
- 
--	xinode = fp->f_path.dentry->d_inode;
-+	xinode = dentry->d_inode;
- 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
- 
- 	/* we need to copy it off.. */
- 	if (xinode->i_nlink > 1) {
--		fput(fp);
-+		dput(dentry);
- 		err = reiserfs_xattr_del(inode, name);
- 		if (err < 0)
- 			goto out;
-@@ -485,7 +460,7 @@ reiserfs_xattr_set(struct inode *inode, 
- 	newattrs.ia_size = buffer_size;
- 	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
- 	mutex_lock_nested(&xinode->i_mutex, I_MUTEX_XATTR);
--	err = notify_change(fp->f_path.dentry, &newattrs);
-+	err = notify_change(dentry, &newattrs);
- 	if (err)
- 		goto out_filp;
- 
-@@ -518,15 +493,14 @@ reiserfs_xattr_set(struct inode *inode, 
- 			rxh->h_hash = cpu_to_le32(xahash);
- 		}
- 
--		err = reiserfs_prepare_write(fp, page, page_offset,
-+		err = reiserfs_prepare_write(NULL, page, page_offset,
- 					    page_offset + chunk + skip);
- 		if (!err) {
- 			if (buffer)
- 				memcpy(data + skip, buffer + buffer_pos, chunk);
--			err =
--			    reiserfs_commit_write(fp, page, page_offset,
--						  page_offset + chunk +
--						  skip);
-+			err = reiserfs_commit_write(NULL, page, page_offset,
-+						    page_offset + chunk +
-+						    skip);
- 		}
- 		unlock_page(page);
- 		reiserfs_put_page(page);
-@@ -548,7 +522,7 @@ reiserfs_xattr_set(struct inode *inode, 
- 
-       out_filp:
- 	mutex_unlock(&xinode->i_mutex);
--	fput(fp);
-+	dput(dentry);
- 
-       out:
- 	return err;
-@@ -562,7 +536,7 @@ reiserfs_xattr_get(const struct inode *i
- 		   size_t buffer_size)
- {
- 	ssize_t err = 0;
--	struct file *fp;
-+	struct dentry *dentry;
- 	size_t isize;
- 	size_t file_pos = 0;
- 	size_t buffer_pos = 0;
-@@ -578,13 +552,13 @@ reiserfs_xattr_get(const struct inode *i
- 	if (get_inode_sd_version(inode) == STAT_DATA_V1)
- 		return -EOPNOTSUPP;
- 
--	fp = open_xa_file(inode, name, FL_READONLY);
--	if (IS_ERR(fp)) {
--		err = PTR_ERR(fp);
-+	dentry = get_xa_file_dentry(inode, name, FL_READONLY);
-+	if (IS_ERR(dentry)) {
-+		err = PTR_ERR(dentry);
- 		goto out;
- 	}
- 
--	xinode = fp->f_path.dentry->d_inode;
-+	xinode = dentry->d_inode;
- 	isize = xinode->i_size;
- 	REISERFS_I(inode)->i_flags |= i_has_xattr_dir;
- 
-@@ -652,7 +626,7 @@ reiserfs_xattr_get(const struct inode *i
- 	}
- 
-       out_dput:
--	fput(fp);
-+	dput(dentry);
- 
-       out:
- 	return err;
-@@ -742,7 +716,6 @@ reiserfs_delete_xattrs_filler(void *buf,
- /* This is called w/ inode->i_mutex downed */
- int reiserfs_delete_xattrs(struct inode *inode)
- {
--	struct file *fp;
- 	struct dentry *dir, *root;
- 	int err = 0;
- 
-@@ -763,15 +736,8 @@ int reiserfs_delete_xattrs(struct inode 
- 		return 0;
- 	}
- 
--	fp = dentry_open(dir, NULL, O_RDWR);
--	if (IS_ERR(fp)) {
--		err = PTR_ERR(fp);
--		/* dentry_open dputs the dentry if it fails */
--		goto out;
--	}
+-	namei_flags = flags;
+-	if ((namei_flags+1) & O_ACCMODE)
+-		namei_flags++;
 -
- 	lock_kernel();
--	err = xattr_readdir(fp, reiserfs_delete_xattrs_filler, dir);
-+	err = xattr_readdir(dir->d_inode, reiserfs_delete_xattrs_filler, dir);
- 	if (err) {
- 		unlock_kernel();
- 		goto out_dir;
-@@ -791,7 +757,7 @@ int reiserfs_delete_xattrs(struct inode 
- 	unlock_kernel();
+-	error = open_namei(dfd, filename, namei_flags, mode, &nd);
++	error = open_namei(dfd, filename, flags, mode, &nd);
+ 	if (!error)
+ 		return nameidata_to_filp(&nd, flags);
  
-       out_dir:
--	fput(fp);
-+	dput(dir);
- 
-       out:
- 	if (!err)
-@@ -833,7 +799,6 @@ reiserfs_chown_xattrs_filler(void *buf, 
- 
- int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs)
- {
--	struct file *fp;
- 	struct dentry *dir;
- 	int err = 0;
- 	struct reiserfs_chown_buf buf;
-@@ -857,13 +822,6 @@ int reiserfs_chown_xattrs(struct inode *
- 		goto out;
- 	}
- 
--	fp = dentry_open(dir, NULL, O_RDWR);
--	if (IS_ERR(fp)) {
--		err = PTR_ERR(fp);
--		/* dentry_open dputs the dentry if it fails */
--		goto out;
--	}
--
- 	lock_kernel();
- 
- 	attrs->ia_valid &= (ATTR_UID | ATTR_GID | ATTR_CTIME);
-@@ -871,7 +829,7 @@ int reiserfs_chown_xattrs(struct inode *
- 	buf.attrs = attrs;
- 	buf.inode = inode;
- 
--	err = xattr_readdir(fp, reiserfs_chown_xattrs_filler, &buf);
-+	err = xattr_readdir(dir->d_inode, reiserfs_chown_xattrs_filler, &buf);
- 	if (err) {
- 		unlock_kernel();
- 		goto out_dir;
-@@ -881,7 +839,7 @@ int reiserfs_chown_xattrs(struct inode *
- 	unlock_kernel();
- 
-       out_dir:
--	fput(fp);
-+	dput(dir);
- 
-       out:
- 	attrs->ia_valid = ia_valid;
-@@ -1029,7 +987,6 @@ reiserfs_listxattr_filler(void *buf, con
-  */
- ssize_t reiserfs_listxattr(struct dentry * dentry, char *buffer, size_t size)
- {
--	struct file *fp;
- 	struct dentry *dir;
- 	int err = 0;
- 	struct reiserfs_listxattr_buf buf;
-@@ -1052,13 +1009,6 @@ ssize_t reiserfs_listxattr(struct dentry
- 		goto out;
- 	}
- 
--	fp = dentry_open(dir, NULL, O_RDWR);
--	if (IS_ERR(fp)) {
--		err = PTR_ERR(fp);
--		/* dentry_open dputs the dentry if it fails */
--		goto out;
--	}
--
- 	buf.r_buf = buffer;
- 	buf.r_size = buffer ? size : 0;
- 	buf.r_pos = 0;
-@@ -1066,7 +1016,7 @@ ssize_t reiserfs_listxattr(struct dentry
- 
- 	REISERFS_I(dentry->d_inode)->i_flags |= i_has_xattr_dir;
- 
--	err = xattr_readdir(fp, reiserfs_listxattr_filler, &buf);
-+	err = xattr_readdir(dir->d_inode, reiserfs_listxattr_filler, &buf);
- 	if (err)
- 		goto out_dir;
- 
-@@ -1076,7 +1026,7 @@ ssize_t reiserfs_listxattr(struct dentry
- 		err = buf.r_pos;
- 
-       out_dir:
--	fput(fp);
-+	dput(dir);
- 
-       out:
- 	reiserfs_read_unlock_xattr_i(dentry->d_inode);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
