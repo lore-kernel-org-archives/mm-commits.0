@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-unionfs-git-rejects.patch added to -mm tree
-Date: Thu, 14 Feb 2008 19:12:24 -0500
-Message-ID: <200802150715.m1F7FkfF025561@imap1.linux-foundation.org>
+Subject: + git-x86-git-rejects.patch added to -mm tree
+Date: Thu, 14 Feb 2008 19:13:52 -0500
+Message-ID: <200802150717.m1F7HEQR025578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41065 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760359AbYBOHQU (ORCPT
+	by vger.kernel.org with ESMTP id S1761507AbYBOHR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:16:20 -0500
+	Fri, 15 Feb 2008 02:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-unionfs-git-rejects
+     git-x86-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-unionfs-git-rejects.patch
+     git-x86-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-unionfs-git-rejects
+Subject: git-x86-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/namei.h |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/hrtimer.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN include/linux/namei.h~git-unionfs-git-rejects include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-git-rejects
-+++ a/include/linux/namei.h
-@@ -3,11 +3,8 @@
+diff -puN kernel/hrtimer.c~git-x86-git-rejects kernel/hrtimer.c
+--- a/kernel/hrtimer.c~git-x86-git-rejects
++++ a/kernel/hrtimer.c
+@@ -326,29 +326,14 @@ u64 ktime_divns(const ktime_t kt, s64 di
+ #endif /* BITS_PER_LONG >= 64 */
  
- #include <linux/dcache.h>
- #include <linux/linkage.h>
--<<<<<<< HEAD:include/linux/namei.h
- #include <linux/path.h>
+ /*
+-<<<<<<< HEAD:kernel/hrtimer.c
+- * Add two ktime values and do a safety check for overflow:
 -=======
- #include <linux/mount.h>
-->>>>>>> FETCH_HEAD:include/linux/namei.h
+  * Add two ktime values and do a safety check on overflow:
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
+  */
+ ktime_t ktime_add_safe(const ktime_t lhs, const ktime_t rhs)
+ {
+ 	ktime_t res = ktime_add(lhs, rhs);
  
- struct vfsmount;
+-<<<<<<< HEAD:kernel/hrtimer.c
+-	/*
+-	 * We use KTIME_SEC_MAX here, the maximum timeout which we can
+-	 * return to user space in a timespec:
+-	 */
+-=======
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
+ 	if (res.tv64 < 0 || res.tv64 < lhs.tv64 || res.tv64 < rhs.tv64)
+-<<<<<<< HEAD:kernel/hrtimer.c
+-		res = ktime_set(KTIME_SEC_MAX, 0);
+-=======
+ 		return (ktime_t) {.tv64 = KTIME_MAX} ;
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
  
+ 	return res;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +116,7 @@ drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 git-x86.patch
+git-x86-git-rejects.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 git-xtensa.patch
