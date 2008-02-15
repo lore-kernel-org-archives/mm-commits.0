@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmap_region-cleanup-the-final-vma_merge-related-code.patch added to -mm tree
-Date: Fri, 15 Feb 2008 12:54:39 -0800
-Message-ID: <200802152054.m1FKsdWP023354@imap1.linux-foundation.org>
+Subject: + kill-double_spin_lock.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:56:54 -0800
+Message-ID: <200802152056.m1FKusdK023430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753118AbYBOUzF (ORCPT
+	by vger.kernel.org with ESMTP id S1763968AbYBOU5c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 15:55:05 -0500
+	Fri, 15 Feb 2008 15:57:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, hugh@veritas.com, miklos@szeredi.hu
+Cc: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, arjan@linux.intel.com, heiko.carstens@de.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     mmap_region: cleanup the final vma_merge() related code
+     kill double_spin_lock()
 has been added to the -mm tree.  Its filename is
-     mmap_region-cleanup-the-final-vma_merge-related-code.patch
+     kill-double_spin_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap_region: cleanup the final vma_merge() related code
+Subject: kill double_spin_lock()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-It is not easy to actually understand the "if (!file || !vma_merge())"
-code, turn it into "if (file && vma_merge())".  This makes immediately
-obvious that the subsequent "if (file)" is superfluous.
-
-As Hugh Dickins pointed out, we can also factor out the ->i_writecount
-corrections, and add a small comment about that.
+double_spin_lock() has no callers, and it can't be used without additional
+lockdep annotations, remove it.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ include/linux/spinlock.h |   37 -------------------------------------
+ 1 file changed, 37 deletions(-)
 
-diff -puN mm/mmap.c~mmap_region-cleanup-the-final-vma_merge-related-code mm/mmap.c
---- a/mm/mmap.c~mmap_region-cleanup-the-final-vma_merge-related-code
-+++ a/mm/mmap.c
-@@ -1068,7 +1068,6 @@ int vma_wants_writenotify(struct vm_area
- 		mapping_cap_account_dirty(vma->vm_file->f_mapping);
- }
+diff -puN include/linux/spinlock.h~kill-double_spin_lock include/linux/spinlock.h
+--- a/include/linux/spinlock.h~kill-double_spin_lock
++++ a/include/linux/spinlock.h
+@@ -296,43 +296,6 @@ do {						\
+ })
  
--
- unsigned long mmap_region(struct file *file, unsigned long addr,
- 			  unsigned long len, unsigned long flags,
- 			  unsigned int vm_flags, unsigned long pgoff,
-@@ -1181,22 +1180,20 @@ munmap_back:
- 	if (vma_wants_writenotify(vma))
- 		vma->vm_page_prot = vm_get_page_prot(vm_flags & ~VM_SHARED);
- 
--	if (!file || !vma_merge(mm, prev, addr, vma->vm_end,
-+	if (file && vma_merge(mm, prev, addr, vma->vm_end,
- 			vma->vm_flags, NULL, file, pgoff, vma_policy(vma))) {
--		file = vma->vm_file;
--		vma_link(mm, vma, prev, rb_link, rb_parent);
--		if (correct_wcount)
--			atomic_inc(&inode->i_writecount);
+ /*
+- * Locks two spinlocks l1 and l2.
+- * l1_first indicates if spinlock l1 should be taken first.
+- */
+-static inline void double_spin_lock(spinlock_t *l1, spinlock_t *l2,
+-				    bool l1_first)
+-	__acquires(l1)
+-	__acquires(l2)
+-{
+-	if (l1_first) {
+-		spin_lock(l1);
+-		spin_lock(l2);
 -	} else {
--		if (file) {
--			if (correct_wcount)
--				atomic_inc(&inode->i_writecount);
--			fput(file);
--		}
- 		mpol_free(vma_policy(vma));
- 		kmem_cache_free(vm_area_cachep, vma);
-+		fput(file);
-+	} else {
-+		vma_link(mm, vma, prev, rb_link, rb_parent);
-+		file = vma->vm_file;
- 	}
--out:	
-+
-+	/* Once vma denies write, undo our temporary denial count */
-+	if (correct_wcount)
-+		atomic_inc(&inode->i_writecount);
-+out:
- 	mm->total_vm += len >> PAGE_SHIFT;
- 	vm_stat_account(mm, vm_flags, file, len >> PAGE_SHIFT);
- 	if (vm_flags & VM_LOCKED) {
+-		spin_lock(l2);
+-		spin_lock(l1);
+-	}
+-}
+-
+-/*
+- * Unlocks two spinlocks l1 and l2.
+- * l1_taken_first indicates if spinlock l1 was taken first and therefore
+- * should be released after spinlock l2.
+- */
+-static inline void double_spin_unlock(spinlock_t *l1, spinlock_t *l2,
+-				      bool l1_taken_first)
+-	__releases(l1)
+-	__releases(l2)
+-{
+-	if (l1_taken_first) {
+-		spin_unlock(l2);
+-		spin_unlock(l1);
+-	} else {
+-		spin_unlock(l1);
+-		spin_unlock(l2);
+-	}
+-}
+-
+-/*
+  * Pull the atomic_t declaration:
+  * (asm-mips/atomic.h needs above definitions)
+  */
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -107,5 +109,8 @@ turn-legacy_queue-macro-into-static-inline-function.patch
 consolidate-checking-for-ignored-legacy-signals.patch
 consolidate-checking-for-ignored-legacy-signals-simplify.patch
 signals-do_signal_stop-use-signal_group_exit.patch
+timers-simplify-lockdep-stuff.patch
+hrtimers-simplify-lockdep-stuff.patch
+kill-double_spin_lock.patch
 procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
