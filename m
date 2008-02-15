@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-fix-sparse-warnings-in-ioctlc.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:25:44 -0800
-Message-ID: <200802152125.m1FLPic8024744@imap1.linux-foundation.org>
+Subject: + ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch added to -mm tree
+Date: Fri, 15 Feb 2008 13:25:46 -0800
+Message-ID: <200802152125.m1FLPkKh024763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760808AbYBOV0Y (ORCPT
+	by vger.kernel.org with ESMTP id S1756840AbYBOV0X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:26:24 -0500
+	Fri, 15 Feb 2008 16:26:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, VANDROVE@vc.cvut.cz
 
 
 The patch titled
-     ncpfs: fix sparse warnings in ioctl.c
+     ncpfs: fix sparse warning in ncpsign_kernel.c
 has been added to the -mm tree.  Its filename is
-     ncpfs-fix-sparse-warnings-in-ioctlc.patch
+     ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: fix sparse warnings in ioctl.c
+Subject: ncpfs: fix sparse warning in ncpsign_kernel.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-In both cases, these inode variables arebeing used to test the
-server's root inode against NULL.  Change them to s_inode.
-fs/ncpfs/ioctl.c:391:18: warning: symbol 'inode' shadows an earlier one
-fs/ncpfs/ioctl.c:264:28: originally declared here
-fs/ncpfs/ioctl.c:441:17: warning: symbol 'inode' shadows an earlier one
-fs/ncpfs/ioctl.c:264:28: originally declared here
+We're casting anyway, might as well cast to the correct sign.
+Specific to i386 (ifdef __i386__)
 
-In this case, we are about to return anyway, just reuse result.
-fs/ncpfs/ioctl.c:521:8: warning: symbol 'result' shadows an earlier one
-fs/ncpfs/ioctl.c:268:6: originally declared here
+fs/ncpfs/ncpsign_kernel.c:58:23: warning: incorrect type in initializer (different signedness)
+fs/ncpfs/ncpsign_kernel.c:58:23:    expected unsigned int *data2
+fs/ncpfs/ncpsign_kernel.c:58:23:    got int *<noident>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ fs/ncpfs/ncpsign_kernel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/ioctl.c~ncpfs-fix-sparse-warnings-in-ioctlc fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~ncpfs-fix-sparse-warnings-in-ioctlc
-+++ a/fs/ncpfs/ioctl.c
-@@ -388,11 +388,11 @@ int ncp_ioctl(struct inode *inode, struc
- 				struct dentry* dentry = inode->i_sb->s_root;
- 
- 				if (dentry) {
--					struct inode* inode = dentry->d_inode;
-+					struct inode* s_inode = dentry->d_inode;
- 				
--					if (inode) {
--						sr.volNumber = NCP_FINFO(inode)->volNumber;
--						sr.dirEntNum = NCP_FINFO(inode)->dirEntNum;
-+					if (s_inode) {
-+						sr.volNumber = NCP_FINFO(s_inode)->volNumber;
-+						sr.dirEntNum = NCP_FINFO(s_inode)->dirEntNum;
- 						sr.namespace = server->name_space[sr.volNumber];
- 					} else
- 						DPRINTK("ncpfs: s_root->d_inode==NULL\n");
-@@ -438,12 +438,12 @@ int ncp_ioctl(struct inode *inode, struc
- 			dentry = inode->i_sb->s_root;
- 			server->root_setuped = 1;
- 			if (dentry) {
--				struct inode* inode = dentry->d_inode;
-+				struct inode* s_inode = dentry->d_inode;
- 				
- 				if (inode) {
--					NCP_FINFO(inode)->volNumber = vnum;
--					NCP_FINFO(inode)->dirEntNum = de;
--					NCP_FINFO(inode)->DosDirNum = dosde;
-+					NCP_FINFO(s_inode)->volNumber = vnum;
-+					NCP_FINFO(s_inode)->dirEntNum = de;
-+					NCP_FINFO(s_inode)->DosDirNum = dosde;
- 				} else
- 					DPRINTK("ncpfs: s_root->d_inode==NULL\n");
- 			} else
-@@ -518,7 +518,6 @@ int ncp_ioctl(struct inode *inode, struc
- 		}
- 		{
- 			struct ncp_lock_ioctl	 rqdata;
--			int result;
- 
- 			if (copy_from_user(&rqdata, argp, sizeof(rqdata)))
- 				return -EFAULT;
+diff -puN fs/ncpfs/ncpsign_kernel.c~ncpfs-fix-sparse-warning-in-ncpsign_kernelc fs/ncpfs/ncpsign_kernel.c
+--- a/fs/ncpfs/ncpsign_kernel.c~ncpfs-fix-sparse-warning-in-ncpsign_kernelc
++++ a/fs/ncpfs/ncpsign_kernel.c
+@@ -55,7 +55,7 @@ static void nwsign(char *r_data1, char *
+  unsigned int w0,w1,w2,w3;
+  static int rbit[4]={0, 2, 1, 3};
+ #ifdef __i386__
+- unsigned int *data2=(int *)r_data2;
++ unsigned int *data2=(unsigned int *)r_data2;
+ #else
+  unsigned int data2[16];
+  for (i=0;i<16;i++)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
