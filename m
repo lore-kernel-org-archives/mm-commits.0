@@ -1,53 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-vs-git-kvm.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:10:53 -0500
-Message-ID: <200802150714.m1F7EGYZ025534@imap1.linux-foundation.org>
+Subject: + git-unionfs-git-rejects.patch added to -mm tree
+Date: Thu, 14 Feb 2008 19:12:24 -0500
+Message-ID: <200802150715.m1F7FkfF025561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759690AbYBOHOg (ORCPT
+	by vger.kernel.org with ESMTP id S1760359AbYBOHQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:14:36 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F7EGw3011332
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 23:14:17 -0800
+	Fri, 15 Feb 2008 02:16:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
 
 
 The patch titled
-     git-x86-vs-git-kvm
-has been removed from the -mm tree.  Its filename was
-     git-x86-vs-git-kvm.patch
+     git-unionfs-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-unionfs-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-vs-git-kvm
+Subject: git-unionfs-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/namei.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-x86-vs-git-kvm arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-x86-vs-git-kvm
-+++ a/arch/x86/Kconfig
-@@ -23,6 +23,7 @@ config X86
- 	select HAVE_KPROBES
- 	select HAVE_KVM
- 	select HAVE_FTRACE
-+	select HAVE_ARCH_KGDB
+diff -puN include/linux/namei.h~git-unionfs-git-rejects include/linux/namei.h
+--- a/include/linux/namei.h~git-unionfs-git-rejects
++++ a/include/linux/namei.h
+@@ -3,11 +3,8 @@
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ #include <linux/dcache.h>
+ #include <linux/linkage.h>
+-<<<<<<< HEAD:include/linux/namei.h
+ #include <linux/path.h>
+-=======
+ #include <linux/mount.h>
+->>>>>>> FETCH_HEAD:include/linux/namei.h
+ 
+ struct vfsmount;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +89,7 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-block-git-rejects.patch
 git-sparc64.patch
 git-unionfs.patch
+git-unionfs-git-rejects.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
@@ -85,7 +97,6 @@ drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 git-x86.patch
-git-x86-vs-git-kvm.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
 git-xtensa.patch
