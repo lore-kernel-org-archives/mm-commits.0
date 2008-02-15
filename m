@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-hisax-gazel-convert-to-modern-isa-pci-probing.patch added to -mm tree
-Date: Thu, 14 Feb 2008 23:07:33 -0800
-Message-ID: <200802150707.m1F77XGi025227@imap1.linux-foundation.org>
+Subject: + isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch added to -mm tree
+Date: Thu, 14 Feb 2008 23:07:31 -0800
+Message-ID: <200802150707.m1F77V2P025219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33983 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45825 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759702AbYBOHIx (ORCPT
+	by vger.kernel.org with ESMTP id S1762387AbYBOHJX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:08:53 -0500
+	Fri, 15 Feb 2008 02:09:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeff@garzik.org, greg@kroah.com, jgarzik@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     isdn: HiSax gazel: convert to modern ISA/PCI probing
+     isdn: HiSax avm_pci: convert to modern PCI/ISA/PNP probing
 has been added to the -mm tree.  Its filename is
-     isdn-hisax-gazel-convert-to-modern-isa-pci-probing.patch
+     isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: HiSax gazel: convert to modern ISA/PCI probing
+Subject: isdn: HiSax avm_pci: convert to modern PCI/ISA/PNP probing
 From: Jeff Garzik <jeff@garzik.org>
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
@@ -43,344 +43,316 @@ Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig  |    3 
- drivers/isdn/hisax/Makefile |    2 
- drivers/isdn/hisax/config.c |   25 ---
- drivers/isdn/hisax/gazel.c  |  248 +++++++++++++++++++++++++---------
- 4 files changed, 194 insertions(+), 84 deletions(-)
+ drivers/isdn/hisax/Kconfig   |    4 
+ drivers/isdn/hisax/Makefile  |    2 
+ drivers/isdn/hisax/avm_pci.c |  324 +++++++++++++++++++++++----------
+ drivers/isdn/hisax/config.c  |   22 --
+ 4 files changed, 236 insertions(+), 116 deletions(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-gazel-convert-to-modern-isa-pci-probing drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~isdn-hisax-gazel-convert-to-modern-isa-pci-probing
+diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
 +++ a/drivers/isdn/hisax/Kconfig
-@@ -306,7 +306,8 @@ config HISAX_SCT_QUADRO
- 	  settings.
+@@ -132,8 +132,8 @@ config HISAX_AVM_A1
+ 	  non-standard IRQ/port settings.
  
- config HISAX_GAZEL
--	bool "Gazel cards"
-+	tristate "Gazel cards"
-+	depends on (ISA || PCI)
+ config HISAX_FRITZPCI
+-	bool "AVM PnP/PCI (Fritz!PnP/PCI)"
+-	depends on BROKEN || !PPC64
++	tristate "AVM PnP/PCI (Fritz!PnP/PCI)"
++	depends on (ISA || PNP || PCI) && (BROKEN || !PPC64)
  	help
- 	  This enables HiSax support for the Gazel cards.
- 
-diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-gazel-convert-to-modern-isa-pci-probing drivers/isdn/hisax/Makefile
---- a/drivers/isdn/hisax/Makefile~isdn-hisax-gazel-convert-to-modern-isa-pci-probing
+ 	  This enables HiSax support for the AVM "Fritz!PnP" and "Fritz!PCI".
+ 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
+diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
 +++ a/drivers/isdn/hisax/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_HISAX_NETJET)		+= netjet_s.
+@@ -22,6 +22,7 @@ obj-$(CONFIG_HISAX_W6692)		+= w6692.o li
+ obj-$(CONFIG_HISAX_NETJET)		+= netjet_s.o libhisax.o
  obj-$(CONFIG_HISAX_NETJET_U)		+= netjet_u.o libhisax.o
  obj-$(CONFIG_HISAX_TELESPCI)		+= telespci.o libhisax.o
- obj-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o libhisax.o
-+obj-$(CONFIG_HISAX_GAZEL)		+= gazel.o libhisax.o
++obj-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o libhisax.o
  
  bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
  enternow-objs				:= enternow_pci.o amd7930_fn.o
-@@ -64,5 +65,4 @@ hisax-$(CONFIG_HISAX_NICCY)		+= niccy.o
- hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isar.o
- hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o
- hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o
--hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o
- 
-diff -puN drivers/isdn/hisax/config.c~isdn-hisax-gazel-convert-to-modern-isa-pci-probing drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~isdn-hisax-gazel-convert-to-modern-isa-pci-probing
-+++ a/drivers/isdn/hisax/config.c
-@@ -229,13 +229,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {1,0x0,0,0}
- #endif
- 
--#ifdef CONFIG_HISAX_GAZEL
--#undef DEFAULT_CARD
--#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_GAZEL
--#define DEFAULT_CFG {15,0x180,0,0}
--#endif
--
- #ifndef DEFAULT_CARD
- #define DEFAULT_CARD 0
- #define DEFAULT_CFG {0,0,0,0}
-@@ -470,10 +463,6 @@ extern int setup_saphir(struct IsdnCard 
- extern int setup_sct_quadro(struct IsdnCard *card);
- #endif
- 
--#if CARD_GAZEL
--extern int setup_gazel(struct IsdnCard *card);
--#endif
--
- /*
-  * Find card with given driverId
-  */
-@@ -858,11 +847,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_sct_quadro(card);
- 		break;
- #endif
--#if CARD_GAZEL
--	case ISDN_CTYPE_GAZEL:
--		ret = setup_gazel(card);
--		break;
--#endif
- 	case ISDN_CTYPE_DYNAMIC:
- 		ret = 2;
- 		break;
-@@ -875,6 +859,7 @@ static int __devinit hisax_cs_setup_card
- 	case ISDN_CTYPE_NETJET_U:
- 	case ISDN_CTYPE_TELESPCI:
- 	case ISDN_CTYPE_FRITZPCI:
-+	case ISDN_CTYPE_GAZEL:
- 		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
- 		       "to separate PCI driver module\n",
- 		       CardType[card->typ]);
-@@ -1322,7 +1307,6 @@ static int __init HiSax_init(void)
- 		case ISDN_CTYPE_ACERP10:
- 		case ISDN_CTYPE_S0BOX:
- 		case ISDN_CTYPE_HSTSAPHIR:
--		case ISDN_CTYPE_GAZEL:
- 		case ISDN_CTYPE_HFC_SX:
- 		case ISDN_CTYPE_HFC_SP_PCMCIA:
- 			cards[j].para[0] = irq[i];
-@@ -1345,6 +1329,7 @@ static int __init HiSax_init(void)
- 		case ISDN_CTYPE_NETJET_U:
- 		case ISDN_CTYPE_TELESPCI:
- 		case ISDN_CTYPE_FRITZPCI:
-+		case ISDN_CTYPE_GAZEL:
- 			break;
- 
- 		case ISDN_CTYPE_SCT_QUADRO:
-@@ -1830,12 +1815,6 @@ static struct pci_device_id hisax_pci_tb
- 	{PCI_VENDOR_ID_ELSA,     PCI_DEVICE_ID_ELSA_MICROLINK,   PCI_ANY_ID, PCI_ANY_ID},
- 	{PCI_VENDOR_ID_ELSA,     PCI_DEVICE_ID_ELSA_QS3000,      PCI_ANY_ID, PCI_ANY_ID},
- #endif
--#ifdef CONFIG_HISAX_GAZEL
--	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_R685,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_R753,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_DJINN_ITOO,   PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_OLITEC,       PCI_ANY_ID, PCI_ANY_ID},
--#endif
- #ifdef CONFIG_HISAX_SCT_QUADRO
- 	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_9050,         PCI_ANY_ID, PCI_ANY_ID},
- #endif
-diff -puN drivers/isdn/hisax/gazel.c~isdn-hisax-gazel-convert-to-modern-isa-pci-probing drivers/isdn/hisax/gazel.c
---- a/drivers/isdn/hisax/gazel.c~isdn-hisax-gazel-convert-to-modern-isa-pci-probing
-+++ a/drivers/isdn/hisax/gazel.c
-@@ -13,12 +13,21 @@
+@@ -49,7 +50,6 @@ hisax-$(CONFIG_HISAX_16_3)		+= teles3.o
+ hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o
+ hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o
+ hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o
+-hisax-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o
+ hisax-$(CONFIG_HISAX_ELSA)		+= elsa.o
+ hisax-$(CONFIG_HISAX_IX1MICROR2)	+= ix1_micro.o
+ hisax-$(CONFIG_HISAX_DIEHLDIVA)		+= diva.o ipacx.o
+diff -puN drivers/isdn/hisax/avm_pci.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/avm_pci.c
+--- a/drivers/isdn/hisax/avm_pci.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
++++ a/drivers/isdn/hisax/avm_pci.c
+@@ -14,13 +14,20 @@
  
  #include <linux/init.h>
  #include "hisax.h"
 +#include "hisax_proto.h"
  #include "isac.h"
- #include "hscx.h"
  #include "isdnl1.h"
- #include "ipac.h"
-+#include <linux/isa.h>
  #include <linux/pci.h>
++#include <linux/isa.h>
+ #include <linux/isapnp.h>
+ #include <linux/interrupt.h>
  
-+static int gazel_protocol;		/* 0 == use DEFAULT_PROTO */
+-static const char *avm_pci_rev = "$Revision: 1.29.2.4 $";
++static int avm_protocol;		/* 0 == use DEFAULT_PROTO */
 +
 +#ifdef CONFIG_ISA
-+static int gazel_irq;			/* 0 == no ISA probing */
-+static int gazel_io_base;		/* 0 == no ISA probing */
-+#endif /* CONFIG_ISA */
-+
- static const char *gazel_revision = "$Revision: 2.19.2.4 $";
++static int avm_irq;			/* 0 == disable ISA probing */
++static int avm_io_base;			/* 0 == disable ISA probing */
++#endif
  
- #define R647      1
-@@ -483,7 +492,8 @@ reserve_regions(struct IsdnCard *card, s
- 	return 1;
- }
- 
--static int __devinit
-+#ifdef CONFIG_ISA
-+static void __devinit
- setup_gazelisa(struct IsdnCard *card, struct IsdnCardState *cs)
- {
- 	printk(KERN_INFO "Gazel: ISA PnP card automatic recognition\n");
-@@ -527,58 +537,35 @@ setup_gazelisa(struct IsdnCard *card, st
- 			       cs->irq, cs->hw.gazel.ipac);
- 			break;
- 	}
--
--	return (0);
- }
-+#endif /* CONFIG_ISA */
- 
--#ifdef CONFIG_PCI_LEGACY
--static struct pci_dev *dev_tel __devinitdata = NULL;
--
-+#ifdef CONFIG_PCI
- static int __devinit
--setup_gazelpci(struct IsdnCardState *cs)
-+setup_gazelpci(struct IsdnCard *card)
- {
- 	u_int pci_ioaddr0 = 0, pci_ioaddr1 = 0;
- 	u_char pci_irq = 0, found;
--	u_int nbseek, seekcard;
-+	u_int seekcard;
-+	struct IsdnCardState *cs = card->cs;
-+	struct pci_dev *dev_tel = (void *) card->para[0];
- 
- 	printk(KERN_WARNING "Gazel: PCI card automatic recognition\n");
- 
- 	found = 0;
--	seekcard = PCI_DEVICE_ID_PLX_R685;
--	for (nbseek = 0; nbseek < 4; nbseek++) {
--		if ((dev_tel = pci_find_device(PCI_VENDOR_ID_PLX,
--					seekcard, dev_tel))) {
--			if (pci_enable_device(dev_tel))
--				return 1;
--			pci_irq = dev_tel->irq;
--			pci_ioaddr0 = pci_resource_start(dev_tel, 1);
--			pci_ioaddr1 = pci_resource_start(dev_tel, 2);
--			found = 1;
--		}
--		if (found)
--			break;
--		else {
--			switch (seekcard) {
--				case PCI_DEVICE_ID_PLX_R685:
--					seekcard = PCI_DEVICE_ID_PLX_R753;
--					break;
--				case PCI_DEVICE_ID_PLX_R753:
--					seekcard = PCI_DEVICE_ID_PLX_DJINN_ITOO;
--					break;
--				case PCI_DEVICE_ID_PLX_DJINN_ITOO:
--					seekcard = PCI_DEVICE_ID_PLX_OLITEC;
--					break;
--			}
--		}
--	}
--	if (!found) {
--		printk(KERN_WARNING "Gazel: No PCI card found\n");
--		return (1);
--	}
-+	seekcard = dev_tel->device;
-+
-+	if (pci_enable_device(dev_tel))
-+		return 1;
-+	pci_irq = dev_tel->irq;
-+	pci_ioaddr0 = pci_resource_start(dev_tel, 1);
-+	pci_ioaddr1 = pci_resource_start(dev_tel, 2);
-+
- 	if (!pci_irq) {
- 		printk(KERN_WARNING "Gazel: No IRQ for PCI card found\n");
- 		return 1;
- 	}
-+
- 	cs->hw.gazel.pciaddr[0] = pci_ioaddr0;
- 	cs->hw.gazel.pciaddr[1] = pci_ioaddr1;
- 	setup_isac(cs);
-@@ -620,10 +607,10 @@ setup_gazelpci(struct IsdnCardState *cs)
- 
- 	return (0);
- }
--#endif /* CONFIG_PCI_LEGACY */
-+#endif /* CONFIG_PCI */
- 
--int __devinit
--setup_gazel(struct IsdnCard *card)
-+static int __devinit
-+setup_gazel_rest(struct IsdnCard *card)
- {
- 	struct IsdnCardState *cs = card->cs;
- 	char tmp[64];
-@@ -632,23 +619,6 @@ setup_gazel(struct IsdnCard *card)
- 	strcpy(tmp, gazel_revision);
- 	printk(KERN_INFO "Gazel: Driver Revision %s\n", HiSax_getrev(tmp));
- 
--	if (cs->typ != ISDN_CTYPE_GAZEL)
--		return (0);
--
--	if (card->para[0]) {
--		if (setup_gazelisa(card, cs))
--			return (0);
--	} else {
--
--#ifdef CONFIG_PCI_LEGACY
--		if (setup_gazelpci(cs))
--			return (0);
--#else
--		printk(KERN_WARNING "Gazel: Card PCI requested and NO_PCI_BIOS, unable to config\n");
--		return (0);
--#endif				/* CONFIG_PCI */
--	}
--
- 	if (reserve_regions(card, cs)) {
- 		return (0);
- 	}
-@@ -688,3 +658,163 @@ setup_gazel(struct IsdnCard *card)
- 
+ #define  AVM_FRITZ_PCI		1
+ #define  AVM_FRITZ_PNP		2
+@@ -767,136 +774,267 @@ static int __devinit avm_setup_rest(stru
  	return (1);
  }
-+
+ 
+-#ifndef __ISAPNP__
 +#ifdef CONFIG_ISA
-+
-+static int __devinit gazel_isa_setup(struct IsdnCard *card)
-+{
+ 
+-static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
++static int __devinit avm_isa_setup(struct IsdnCard *card)
+ {
+-	return(1);	/* no-op: success */
 +	struct IsdnCardState *cs = card->cs;
 +
-+	setup_gazelisa(card, cs);
++	/* old manual method */
++	cs->hw.avm.cfg_reg = avm_io_base;
++	cs->irq = avm_irq;
++	cs->subtyp = AVM_FRITZ_PNP;
 +
-+	return setup_gazel_rest(card);
-+}
-+
-+static int __devinit gazel_isa_init_one(struct device *dev, unsigned int id)
++	return avm_setup_rest(cs);
+ }
+ 
+-#else
++static int __devinit avm_isa_init_one(struct device *dev, unsigned int id)
 +{
-+	struct IsdnCard icard = { ISDN_CTYPE_GAZEL, };
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
 +	int cardnr;
 +
-+	icard.para[0] = gazel_irq;
-+	icard.para[1] = gazel_io_base;
-+	if (!gazel_protocol)
++	icard.para[0] = (unsigned long) dev;
++	if (!avm_protocol)
 +		icard.protocol = DEFAULT_PROTO;
 +	else
-+		icard.protocol = gazel_protocol;
-+
-+	cardnr = hisax_init_hotplug(&icard, gazel_isa_setup);
++		icard.protocol = avm_protocol;
+ 
+-static struct pnp_card *pnp_avm_c __devinitdata = NULL;
++	cardnr = hisax_init_hotplug(&icard, avm_isa_setup);
 +	if (cardnr < 0)
 +		return -ENODEV;
 +
 +	dev_set_drvdata(dev, (void *)(unsigned long) cardnr);
 +	return 0;
 +}
-+
-+static int __devexit gazel_isa_remove_one(struct device *dev, unsigned int id)
-+{
+ 
+-static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
++static int __devexit avm_isa_remove_one(struct device *dev, unsigned int id)
+ {
+-	struct pnp_dev *pnp_avm_d = NULL;
 +	int cardnr = (unsigned long) dev_get_drvdata(dev);
-+
+ 
+-	if (!isapnp_present())
+-		return(1);	/* no-op: success */
 +	HiSax_closecard(cardnr);
 +	return 0;
 +}
-+
-+static struct isa_driver gazel_isa_driver = {
-+	.probe		= gazel_isa_init_one,
-+	.remove		= __devexit_p(gazel_isa_remove_one),
+ 
+-	if ((pnp_avm_c = pnp_find_card(
+-		ISAPNP_VENDOR('A', 'V', 'M'),
+-		ISAPNP_FUNCTION(0x0900), pnp_avm_c))) {
+-		if ((pnp_avm_d = pnp_find_dev(pnp_avm_c,
+-			ISAPNP_VENDOR('A', 'V', 'M'),
+-			ISAPNP_FUNCTION(0x0900), pnp_avm_d))) {
+-			int err;
+-
+-			pnp_disable_dev(pnp_avm_d);
+-			err = pnp_activate_dev(pnp_avm_d);
+-			if (err<0) {
+-				printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
+-					__FUNCTION__, err);
+-				return(0);
+-			}
+-			cs->hw.avm.cfg_reg =
+-				pnp_port_start(pnp_avm_d, 0);
+-			cs->irq = pnp_irq(pnp_avm_d, 0);
+-			if (!cs->irq) {
+-				printk(KERN_ERR "FritzPnP:No IRQ\n");
+-				return(0);
+-			}
+-			if (!cs->hw.avm.cfg_reg) {
+-				printk(KERN_ERR "FritzPnP:No IO address\n");
+-				return(0);
+-			}
+-			cs->subtyp = AVM_FRITZ_PNP;
++static struct isa_driver avm_isa_driver = {
++	.probe		= avm_isa_init_one,
++	.remove		= __devexit_p(avm_isa_remove_one),
 +	.driver = {
 +		.owner	= THIS_MODULE,
-+		.name	= "gazel_pci",
++		.name	= "avm_pci",
 +	},
 +};
-+
-+#endif /* CONFIG_ISA */
-+
-+#ifdef CONFIG_PCI
-+
-+static int __devinit gazel_pci_setup(struct IsdnCard *card)
+ 
+-			return (2);	/* goto 'ready' label */
+-		}
++#ifdef CONFIG_PNP
++static int __devinit avm_pnp_setup(struct IsdnCard *card)
 +{
-+	if (setup_gazelpci(card))
-+		return 1;	/* error */
++	struct IsdnCardState *cs = card->cs;
++	struct pnp_dev *pnp_avm_d = (void *) card->para[0];
++	int err;
 +
-+	return setup_gazel_rest(card);
-+}
++	pnp_disable_dev(pnp_avm_d);
 +
-+static int __devinit gazel_pci_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
++	err = pnp_activate_dev(pnp_avm_d);
++	if (err<0) {
++		printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
++			__FUNCTION__, err);
++		return(0);
+ 	}
+ 
+-	return (1);
++	cs->irq = pnp_irq(pnp_avm_d, 0);
++	if (!cs->irq) {
++		printk(KERN_ERR "FritzPnP:No IRQ\n");
++		return(0);
++	}
++
++	cs->hw.avm.cfg_reg = pnp_port_start(pnp_avm_d, 0);
++	if (!cs->hw.avm.cfg_reg) {
++		printk(KERN_ERR "FritzPnP:No IO address\n");
++		return(0);
++	}
++	cs->subtyp = AVM_FRITZ_PNP;
++
++	return avm_setup_rest(cs);
+ }
+ 
+-#endif /* __ISAPNP__ */
++static int __devinit avm_pnp_init_one(struct pnp_dev *pdev,
++				       const struct pnp_device_id *dev_id)
 +{
-+	struct IsdnCard icard = { ISDN_CTYPE_GAZEL, };
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
 +	int cardnr;
 +
 +	icard.para[0] = (unsigned long) pdev;
-+	if (!gazel_protocol)
++	if (!avm_protocol)
 +		icard.protocol = DEFAULT_PROTO;
 +	else
-+		icard.protocol = gazel_protocol;
++		icard.protocol = avm_protocol;
 +
-+	cardnr = hisax_init_hotplug(&icard, gazel_pci_setup);
++	cardnr = hisax_init_hotplug(&icard, avm_pnp_setup);
++	if (cardnr < 0)
++		return -ENODEV;
+ 
+-#ifndef CONFIG_PCI_LEGACY
++	pnp_set_drvdata(pdev, (void *)(unsigned long) cardnr);
++	return 0;
++}
+ 
+-static int __devinit avm_pci_setup(struct IsdnCardState *cs)
++static void __devexit avm_pnp_remove_one(struct pnp_dev *pdev)
+ {
+-	return(1);	/* no-op: success */
++	int cardnr = (unsigned long) pnp_get_drvdata(pdev);
++
++	HiSax_closecard(cardnr);
+ }
+ 
+-#else
++static struct pnp_device_id avm_pnp_table[] = {
++	{ .id = "AVM0900", },
+ 
+-static struct pci_dev *dev_avm __devinitdata = NULL;
++	{ .id = "" }		/* terminate list */
++};
+ 
+-static int __devinit avm_pci_setup(struct IsdnCardState *cs)
+-{
+-	if ((dev_avm = pci_find_device(PCI_VENDOR_ID_AVM,
+-		PCI_DEVICE_ID_AVM_A1, dev_avm))) {
++static struct pnp_driver avm_pnp_driver = {
++	.name		= "avm_pci",
++	.id_table	= avm_pnp_table,
++	.probe		= avm_pnp_init_one,
++	.remove		= __devexit_p(avm_pnp_remove_one),
++};
++#endif /* CONFIG_PNP */
++#endif /* CONFIG_ISA */
+ 
+-		if (pci_enable_device(dev_avm))
+-			return(0);
++#ifdef CONFIG_PCI
+ 
+-		cs->irq = dev_avm->irq;
+-		if (!cs->irq) {
+-			printk(KERN_ERR "FritzPCI: No IRQ for PCI card found\n");
+-			return(0);
+-		}
++static int __devinit avm_pci_setup(struct IsdnCard *card)
++{
++	struct IsdnCardState *cs = card->cs;
++	struct pci_dev *dev_avm = (void *) card->para[0];
+ 
+-		cs->hw.avm.cfg_reg = pci_resource_start(dev_avm, 1);
+-		if (!cs->hw.avm.cfg_reg) {
+-			printk(KERN_ERR "FritzPCI: No IO-Adr for PCI card found\n");
+-			return(0);
+-		}
++	if (pci_enable_device(dev_avm))
++		return(0);
+ 
+-		cs->subtyp = AVM_FRITZ_PCI;
+-	} else {
+-		printk(KERN_WARNING "FritzPCI: No PCI card found\n");
++	cs->irq = dev_avm->irq;
++	if (!cs->irq) {
++		printk(KERN_ERR "FritzPCI: No IRQ for PCI card found\n");
+ 		return(0);
+ 	}
+ 
++	cs->hw.avm.cfg_reg = pci_resource_start(dev_avm, 1);
++	if (!cs->hw.avm.cfg_reg) {
++		printk(KERN_ERR "FritzPCI: No IO-Adr for PCI card found\n");
++		return(0);
++	}
++
++	cs->subtyp = AVM_FRITZ_PCI;
++
+ 	cs->irq_flags |= IRQF_SHARED;
+ 
+-	return (1);
++	return avm_setup_rest(cs);
+ }
+ 
+-#endif /* CONFIG_PCI_LEGACY */
+-
+-int __devinit
+-setup_avm_pcipnp(struct IsdnCard *card)
++static int __devinit avm_pci_init_one(struct pci_dev *pdev,
++				      const struct pci_device_id *ent)
+ {
+-	struct IsdnCardState *cs = card->cs;
+-	char tmp[64];
+-	int rc;
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
++	int cardnr;
+ 
+-	strcpy(tmp, avm_pci_rev);
+-	printk(KERN_INFO "HiSax: AVM PCI driver Rev. %s\n", HiSax_getrev(tmp));
++	icard.para[0] = (unsigned long) pdev;
++	if (!avm_protocol)
++		icard.protocol = DEFAULT_PROTO;
++	else
++		icard.protocol = avm_protocol;
+ 
+-	if (cs->typ != ISDN_CTYPE_FRITZPCI)
+-		return (0);
++	cardnr = hisax_init_hotplug(&icard, avm_pci_setup);
 +	if (cardnr < 0)
 +		return -ENODEV;
 +
@@ -388,85 +360,187 @@ diff -puN drivers/isdn/hisax/gazel.c~isdn-hisax-gazel-convert-to-modern-isa-pci-
 +	return 0;
 +}
 +
-+static struct pci_device_id gazel_pci_table[] = {
-+	{ PCI_VDEVICE(PLX, PCI_DEVICE_ID_PLX_R685) },
-+	{ PCI_VDEVICE(PLX, PCI_DEVICE_ID_PLX_R753) },
-+	{ PCI_VDEVICE(PLX, PCI_DEVICE_ID_PLX_DJINN_ITOO) },
-+	{ PCI_VDEVICE(PLX, PCI_DEVICE_ID_PLX_OLITEC) },
++static struct pci_device_id avm_pci_table[] = {
++	{ PCI_VDEVICE(AVM, PCI_DEVICE_ID_AVM_A1) },
 +
 +	{ }		/* terminate list */
 +};
 +
-+static struct pci_driver gazel_pci_driver = {
-+	.name		= "gazel_pci",
-+	.id_table	= gazel_pci_table,
-+	.probe		= gazel_pci_init_one,
++static struct pci_driver avm_pci_driver = {
++	.name		= "avm_pci",
++	.id_table	= avm_pci_table,
++	.probe		= avm_pci_init_one,
 +	.remove		= hisax_pci_remove_one,
 +};
-+
+ 
+-	if (card->para[1]) {
+-		/* old manual method */
+-		cs->hw.avm.cfg_reg = card->para[1];
+-		cs->irq = card->para[0];
+-		cs->subtyp = AVM_FRITZ_PNP;
+-		goto ready;
 +#endif /* CONFIG_PCI */
 +
-+static int __init gazel_mod_init(void)
++static int __init avm_mod_init(void)
 +{
 +	int rc = 0;
 +
 +#ifdef CONFIG_ISA
-+	if (gazel_irq && gazel_io_base) {
-+		rc = isa_register_driver(&gazel_isa_driver, 1);
++	if (avm_irq && avm_io_base) {
++		rc = isa_register_driver(&avm_isa_driver, 1);
++		if (rc)
++			return rc;
+ 	}
++#ifdef CONFIG_PNP
++	else {
++		rc = pnp_register_driver(&avm_pnp_driver);
 +		if (rc)
 +			return rc;
 +	}
++#endif
 +#endif /* CONFIG_ISA */
-+
+ 
+-	rc = avm_pnp_setup(cs);
+-	if (rc < 1)
+-		return (0);
+-	if (rc == 2)
+-		goto ready;
 +#ifdef CONFIG_PCI
-+	rc = pci_register_driver(&gazel_pci_driver);
++	rc = pci_register_driver(&avm_pci_driver);
 +	if (rc)
 +		goto err_out_isa;
 +#endif /* CONFIG_PCI */
-+
+ 
+-	rc = avm_pci_setup(cs);
+-	if (rc < 1)
+-		return (0);
 +	return 0;
-+
+ 
+-ready:
+-	return avm_setup_rest(cs);
 +#ifdef CONFIG_PCI
 +err_out_isa:
 +
 +#ifdef CONFIG_ISA
-+	if (gazel_irq && gazel_io_base)
-+		isa_unregister_driver(&gazel_isa_driver);
++	if (avm_irq && avm_io_base)
++		isa_unregister_driver(&avm_isa_driver);
++#ifdef CONFIG_PNP
++	else
++		pnp_unregister_driver(&avm_pnp_driver);
++#endif /* CONFIG_PNP */
 +#endif /* CONFIG_ISA */
 +
 +	return rc;
 +#endif /* CONFIG_PCI */
-+}
+ }
 +
-+static void __exit gazel_mod_exit(void)
++static void __exit avm_mod_exit(void)
 +{
 +#ifdef CONFIG_PCI
-+	pci_unregister_driver(&gazel_pci_driver);
++	pci_unregister_driver(&avm_pci_driver);
 +#endif /* CONFIG_PCI */
 +
 +#ifdef CONFIG_ISA
-+	if (gazel_irq && gazel_io_base)
-+		isa_unregister_driver(&gazel_isa_driver);
++	if (avm_irq && avm_io_base)
++		isa_unregister_driver(&avm_isa_driver);
++#ifdef CONFIG_PNP
++	else
++		pnp_unregister_driver(&avm_pnp_driver);
++#endif /* CONFIG_PNP */
 +#endif /* CONFIG_ISA */
 +}
 +
-+module_init(gazel_mod_init);
-+module_exit(gazel_mod_exit);
++module_init(avm_mod_init);
++module_exit(avm_mod_exit);
 +
 +#ifdef CONFIG_ISA
-+module_param_named(irq, gazel_irq, int, 0444);
++module_param_named(irq, avm_irq, int, 0444);
 +MODULE_PARM_DESC(irq, "ISA IRQ.  Zero disables ISA support (default).");
 +
-+module_param_named(io, gazel_io_base, int, 0444);
++module_param_named(io, avm_io_base, int, 0444);
 +MODULE_PARM_DESC(io, "ISA I/O base.  Zero disables ISA support (default).");
 +#endif /* CONFIG_ISA */
 +
-+module_param_named(protocol, gazel_protocol, int, 0444);
++module_param_named(protocol, avm_protocol, int, 0444);
 +MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
 +
-+MODULE_DEVICE_TABLE(pci, gazel_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax Gazel PCI/ISA driver");
++MODULE_DEVICE_TABLE(pci, avm_pci_table);
++MODULE_DESCRIPTION("ISDN HiSax Fritz!PCI/PNP driver");
 +MODULE_LICENSE("GPL");
+diff -puN drivers/isdn/hisax/config.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
++++ a/drivers/isdn/hisax/config.c
+@@ -117,13 +117,6 @@ const char *CardType[] = {
+ #define DEFAULT_CFG {11,0x170,0,0}
+ #endif
+ 
+-#ifdef CONFIG_HISAX_FRITZPCI
+-#undef DEFAULT_CARD
+-#undef DEFAULT_CFG
+-#define DEFAULT_CARD ISDN_CTYPE_FRITZPCI
+-#define DEFAULT_CFG {0,0,0,0}
+-#endif
+-
+ #ifdef CONFIG_HISAX_16_3
+ #undef DEFAULT_CARD
+ #undef DEFAULT_CFG
+@@ -421,10 +414,6 @@ extern int setup_avm_a1(struct IsdnCard 
+ extern int setup_avm_a1_pcmcia(struct IsdnCard *card);
+ #endif
+ 
+-#if CARD_FRITZPCI
+-extern int setup_avm_pcipnp(struct IsdnCard *card);
+-#endif
+-
+ #if CARD_ELSA
+ extern int setup_elsa(struct IsdnCard *card);
+ #endif
+@@ -793,11 +782,6 @@ static int __devinit hisax_cs_setup_card
+ 		ret = setup_avm_a1_pcmcia(card);
+ 		break;
+ #endif
+-#if CARD_FRITZPCI
+-	case ISDN_CTYPE_FRITZPCI:
+-		ret = setup_avm_pcipnp(card);
+-		break;
+-#endif
+ #if CARD_ELSA
+ 	case ISDN_CTYPE_ELSA:
+ 	case ISDN_CTYPE_ELSA_PNP:
+@@ -890,6 +874,7 @@ static int __devinit hisax_cs_setup_card
+ 	case ISDN_CTYPE_NETJET_S:
+ 	case ISDN_CTYPE_NETJET_U:
+ 	case ISDN_CTYPE_TELESPCI:
++	case ISDN_CTYPE_FRITZPCI:
+ 		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
+ 		       "to separate PCI driver module\n",
+ 		       CardType[card->typ]);
+@@ -1336,7 +1321,6 @@ static int __init HiSax_init(void)
+ 		case ISDN_CTYPE_TELES3C:
+ 		case ISDN_CTYPE_ACERP10:
+ 		case ISDN_CTYPE_S0BOX:
+-		case ISDN_CTYPE_FRITZPCI:
+ 		case ISDN_CTYPE_HSTSAPHIR:
+ 		case ISDN_CTYPE_GAZEL:
+ 		case ISDN_CTYPE_HFC_SX:
+@@ -1360,6 +1344,7 @@ static int __init HiSax_init(void)
+ 		case ISDN_CTYPE_NETJET_S:
+ 		case ISDN_CTYPE_NETJET_U:
+ 		case ISDN_CTYPE_TELESPCI:
++		case ISDN_CTYPE_FRITZPCI:
+ 			break;
+ 
+ 		case ISDN_CTYPE_SCT_QUADRO:
+@@ -1833,9 +1818,6 @@ static void EChannel_proc_rcv(struct his
+ #include <linux/pci.h>
+ 
+ static struct pci_device_id hisax_pci_tbl[] __devinitdata = {
+-#ifdef CONFIG_HISAX_FRITZPCI
+-	{PCI_VENDOR_ID_AVM,      PCI_DEVICE_ID_AVM_A1,           PCI_ANY_ID, PCI_ANY_ID},
+-#endif
+ #ifdef CONFIG_HISAX_DIEHLDIVA
+ 	{PCI_VENDOR_ID_EICON,    PCI_DEVICE_ID_EICON_DIVA20,     PCI_ANY_ID, PCI_ANY_ID},
+ 	{PCI_VENDOR_ID_EICON,    PCI_DEVICE_ID_EICON_DIVA20_U,   PCI_ANY_ID, PCI_ANY_ID},
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
