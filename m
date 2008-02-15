@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-use-acpi_debug_print-instead-of-printk.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:28:22 -0800
-Message-ID: <200802152128.m1FLSMGi024897@imap1.linux-foundation.org>
+Subject: + ata-fix-sparse-warning-in-libatah.patch added to -mm tree
+Date: Fri, 15 Feb 2008 13:57:19 -0800
+Message-ID: <200802152157.m1FLvJcl025943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44408 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36204 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751350AbYBOV3v (ORCPT
+	by vger.kernel.org with ESMTP id S1755338AbYBOV5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:29:51 -0500
+	Fri, 15 Feb 2008 16:57:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gcosta@redhat.com, lenb@kernel.org
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     acpi: use ACPI_DEBUG_PRINT instead of printk
+     ata: fix sparse warning in libata.h
 has been added to the -mm tree.  Its filename is
-     acpi-use-acpi_debug_print-instead-of-printk.patch
+     ata-fix-sparse-warning-in-libatah.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: use ACPI_DEBUG_PRINT instead of printk
-From: Glauber Costa <gcosta@redhat.com>
+Subject: ata: fix sparse warning in libata.h
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-For consistency, use ACPI_DEBUG_PRINT instead of printk in
-acpi_processor_hotplug_notify() for BUS_CHECK and DEVICE_CHECK events
+Avoids lots of these, also is more readable.
+include/linux/libata.h:1210:13: warning: potentially expensive pointer subtraction
 
-Signed-off-by: Glauber Costa <gcosta@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
+Change the subtraction to addition on the other side of the comparison.
+
+Thanks to Christer Weinigel for the suggestion.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/libata.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-use-acpi_debug_print-instead-of-printk
-+++ a/drivers/acpi/processor_core.c
-@@ -890,9 +890,10 @@ acpi_processor_hotplug_notify(acpi_handl
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk("Processor driver received %s event\n",
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+		"Processor driver received %s event\n",
- 		       (event == ACPI_NOTIFY_BUS_CHECK) ?
--		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
-+		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK"));
+diff -puN include/linux/libata.h~ata-fix-sparse-warning-in-libatah include/linux/libata.h
+--- a/include/linux/libata.h~ata-fix-sparse-warning-in-libatah
++++ a/include/linux/libata.h
+@@ -1207,7 +1207,7 @@ static inline struct ata_link *ata_port_
+ 		return ap->pmp_link;
+ 	}
  
- 		if (!is_processor_present(handle))
- 			break;
+-	if (++link - ap->pmp_link < ap->nr_pmp_links)
++	if (++link < ap->nr_pmp_links + ap->pmp_link)
+ 		return link;
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-remove-is_processor_present-prototype.patch
-acpi-use-acpi_debug_print-instead-of-printk.patch
-git-kvm.patch
+origin.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
+ubi-fix-sparse-errors-in-ubih.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
