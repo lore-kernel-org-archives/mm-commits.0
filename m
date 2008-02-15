@@ -1,118 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-is-borked-on-powerpc.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:17:51 -0800
-Message-ID: <200802160617.m1G6HpJ5011846@imap1.linux-foundation.org>
+Subject: - smack-update-for-vfs-changes.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 18:22:52 -0500
+Message-ID: <200802160626.m1G6QJxU012195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbYBPGSI (ORCPT
+	by vger.kernel.org with ESMTP id S1753285AbYBPG0X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:18:08 -0500
+	Sat, 16 Feb 2008 01:26:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org
+To: akpm@linux-foundation.org, casey@schaufler-ca.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracing-is-borked-on-powerpc
-has been added to the -mm tree.  Its filename is
-     tracing-is-borked-on-powerpc.patch
+     smack: update for vfs changes
+has been removed from the -mm tree.  Its filename was
+     smack-update-for-vfs-changes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracing-is-borked-on-powerpc
+Subject: smack: update for vfs changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/trace/trace.c: In function `tracing_generic_entry_update':
-kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
+security/smack/smack_lsm.c: In function 'smack_sb_mount':
+security/smack/smack_lsm.c:328: error: 'struct nameidata' has no member named 'mnt'
 
-Can't make the damn thing go away.  select sucks.
+Somehow this got missed.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-CC: Steven Rostedt <rostedt@goodmis.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/Kconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+ security/smack/smack_lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
---- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
-+++ a/kernel/trace/Kconfig
-@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
+diff -puN security/smack/smack_lsm.c~smack-update-for-vfs-changes security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-update-for-vfs-changes
++++ a/security/smack/smack_lsm.c
+@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
+ static int smack_sb_mount(char *dev_name, struct nameidata *nd,
+ 			  char *type, unsigned long flags, void *data)
+ {
+-	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
++	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
  
- config TRACING
- 	bool
-+	depends on X86
- 	select DEBUG_FS
- 
- config FTRACE
-@@ -17,6 +18,7 @@ config FTRACE
- 	select FRAME_POINTER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
-+	depends on X86
- 	help
- 	  Enable the kernel to trace every kernel function. This is done
- 	  by using a compiler feature to insert a small, 5-byte No-Operation
-@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
- 	select TRACE_IRQFLAGS
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in irqs-off critical
- 	  sections, with microsecond accuracy.
-@@ -55,6 +58,7 @@ config PREEMPT_TRACER
- 	depends on PREEMPT
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in preemption off critical
- 	  sections, with microsecond accuracy.
-@@ -75,6 +79,7 @@ config SCHED_TRACER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This tracer tracks the latency of the highest priority task
- 	  to be scheduled in, starting from the point it has woken up.
-@@ -84,6 +89,7 @@ config CONTEXT_SWITCH_TRACER
- 	depends on DEBUG_KERNEL
- 	select TRACING
- 	select MARKERS
-+	depends on X86
- 	help
- 	  This tracer gets called from the context switch and records
- 	  all switching of tasks.
-@@ -91,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
- config DYNAMIC_FTRACE
- 	bool "enable/disable ftrace tracepoints dynamically"
- 	depends on FTRACE
-+	depends on X86
- 	default y
- 	help
-          This option will modify all the calls to ftrace dynamically
+ 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+smack-update-for-vfs-changes.patch
 revert-send-a-single-notification-on-device-state-changes.patch
 softlockup-workaround.patch
 git-acpi-powerpc-kconfig-fix.patch
