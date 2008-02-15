@@ -1,304 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-opened-files.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:24 -0800
-Message-ID: <200802150531.m1F5VOVn021775@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-do_utimes.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:31:16 -0800
+Message-ID: <200802150531.m1F5VGCf021762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40992 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753080AbYBOFcF (ORCPT
+	by vger.kernel.org with ESMTP id S1751829AbYBOFcZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:32:05 -0500
+	Fri, 15 Feb 2008 00:32:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, Valdis.Kletnieks@vt.edu, akpm@linux-foundation.org, balbir@in.ibm.com, hch@infradead.org, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count opened files
+     r-o-bind-mounts: elevate write count for do_utimes
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-opened-files.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count opened files
+Subject: r-o-bind-mounts: elevate write count for do_utimes
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This is the first really tricky patch in the series.  It elevates the writer
-count on a mount each time a non-special file is opened for write.
+Now includes fix for oops seen by akpm.
 
-We used to do this in may_open(), but Miklos pointed out that __dentry_open()
-is used as well to create filps.  This will cover even those cases, while a
-call in may_open() would not have.
+"never let a libc developer write your kernel code" - hch
 
-There is also an elevated count around the vfs_create() call in open_namei(). 
-See the comments for more details, but we need this to fix a 'create, remount,
-fail r/w open()' race.
+"nor, apparently, a kernel developer" - akpm
 
-Some filesystems forego the use of normal vfs calls to create
-struct files.   Make sure that these users elevate the mnt
-writer count because they will get __fput(), and we need
-to make sure they're balanced.
-
-[akpm@linux-foundation.org: fix oops]
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |   16 +++++++++
- fs/namei.c      |   75 +++++++++++++++++++++++++++++++++++++++-------
- fs/open.c       |   36 ++++++++++++++++++++--
- ipc/mqueue.c    |    3 +
- 4 files changed, 117 insertions(+), 13 deletions(-)
+ fs/utimes.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opened-files fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opened-files
-+++ a/fs/file_table.c
-@@ -193,6 +193,17 @@ int init_file(struct file *file, struct 
- 	file->f_mapping = dentry->d_inode->i_mapping;
- 	file->f_mode = mode;
- 	file->f_op = fop;
-+
-+	/*
-+	 * These mounts don't really matter in practice
-+	 * for r/o bind mounts.  They aren't userspace-
-+	 * visible.  We do this for consistency, and so
-+	 * that we can do debugging checks at __fput()e
-+	 */
-+	if ((mode & FMODE_WRITE) && !special_file(dentry->d_inode->i_mode)) {
-+		error = mnt_want_write(mnt);
-+		WARN_ON(error);
-+	}
- 	return error;
- }
- EXPORT_SYMBOL(init_file);
-@@ -230,8 +241,11 @@ void __fput(struct file *file)
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
- 		cdev_put(inode->i_cdev);
- 	fops_put(file->f_op);
--	if (file->f_mode & FMODE_WRITE)
-+	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
-+		if (!special_file(inode->i_mode))
-+			mnt_drop_write(mnt);
-+	}
- 	put_pid(file->f_owner.pid);
- 	file_kill(file);
- 	file->f_path.dentry = NULL;
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opened-files
-+++ a/fs/namei.c
-@@ -1621,8 +1621,7 @@ int may_open(struct nameidata *nd, int a
- 			return -EACCES;
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
++++ a/fs/utimes.c
+@@ -2,6 +2,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/sched.h>
+ #include <linux/stat.h>
+@@ -59,6 +60,7 @@ long do_utimes(int dfd, char __user *fil
+ 	struct inode *inode;
+ 	struct iattr newattrs;
+ 	struct file *f = NULL;
++	struct vfsmount *mnt;
  
- 		flag &= ~O_TRUNC;
--	} else if (IS_RDONLY(inode) && (acc_mode & MAY_WRITE))
--		return -EROFS;
-+	}
- 
- 	error = vfs_permission(nd, acc_mode);
- 	if (error)
-@@ -1722,23 +1721,37 @@ static inline int sys_open_flags_to_name
- 	return flag;
- }
- 
-+static int open_will_write_to_fs(int flag, struct inode *inode)
-+{
-+	/*
-+	 * We'll never write to the fs underlying
-+	 * a device file.
-+	 */
-+	if (special_file(inode->i_mode))
-+		return 0;
-+	return (flag & O_TRUNC);
-+}
-+
- /*
-  *	open_pathname()
-  *
-  * namei for open - this is in fact almost the whole open-routine.
-  *
-- * Note that the low bits of "flag" aren't the same as in the open
-- * system call.  See sys_open_flags_to_namei_flags().
-+ * Note that the low bits of the passed in "sys_open_flag"
-+ * are not the same as in the local variable "flag". See
-+ * sys_open_flags_to_namei_flags() for more details.
-  * SMP-safe
-  */
- struct file *open_pathname(int dfd, const char *pathname,
- 			   int sys_open_flag, int mode)
- {
-+	struct file *filp;
- 	struct nameidata nd;
- 	int acc_mode, error;
- 	struct path path;
- 	struct dentry *dir;
- 	int count = 0;
-+	int will_write;
- 	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
- 
- 	acc_mode = ACC_MODE(flag);
-@@ -1794,17 +1807,30 @@ do_last:
- 	}
- 
- 	if (IS_ERR(nd.intent.open.file)) {
--		mutex_unlock(&dir->d_inode->i_mutex);
- 		error = PTR_ERR(nd.intent.open.file);
--		goto exit_dput;
-+		goto exit_mutex_unlock;
- 	}
- 
- 	/* Negative dentry, just create the file */
- 	if (!path.dentry->d_inode) {
--		error = __open_namei_create(&nd, &path, flag, mode);
-+		/*
-+		 * This write is needed to ensure that a
-+		 * ro->rw transition does not occur between
-+		 * the time when the file is created and when
-+		 * a permanent write count is taken through
-+		 * the 'struct file' in nameidata_to_filp().
-+		 */
-+		error = mnt_want_write(nd.mnt);
+ 	error = -EINVAL;
+ 	if (times && (!nsec_valid(times[0].tv_nsec) ||
+@@ -79,18 +81,20 @@ long do_utimes(int dfd, char __user *fil
+ 		if (!f)
+ 			goto out;
+ 		dentry = f->f_path.dentry;
++		mnt = f->f_path.mnt;
+ 	} else {
+ 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
  		if (error)
-+			goto exit_mutex_unlock;
-+		error = __open_namei_create(&nd, &path, flag, mode);
-+		if (error) {
-+			mnt_drop_write(nd.mnt);
- 			goto exit;
--		return nameidata_to_filp(&nd, sys_open_flag);
-+		}
-+		filp = nameidata_to_filp(&nd, sys_open_flag);
-+		mnt_drop_write(nd.mnt);
-+		return filp;
+ 			goto out;
+ 
+ 		dentry = nd.dentry;
++		mnt = nd.mnt;
  	}
  
- 	/*
-@@ -1834,11 +1860,40 @@ do_last:
- 	if (path.dentry->d_inode && S_ISDIR(path.dentry->d_inode->i_mode))
- 		goto exit;
- ok:
-+	/*
-+	 * Consider:
-+	 * 1. may_open() truncates a file
-+	 * 2. a rw->ro mount transition occurs
-+	 * 3. nameidata_to_filp() fails due to
-+	 *    the ro mount.
-+	 * That would be inconsistent, and should
-+	 * be avoided. Taking this mnt write here
-+	 * ensures that (2) can not occur.
-+	 */
-+	will_write = open_will_write_to_fs(flag, nd.dentry->d_inode);
-+	if (will_write) {
-+		error = mnt_want_write(nd.mnt);
-+		if (error)
-+			goto exit;
-+	}
- 	error = may_open(&nd, acc_mode, flag);
--	if (error)
-+	if (error) {
-+		if (will_write)
-+			mnt_drop_write(nd.mnt);
- 		goto exit;
--	return nameidata_to_filp(&nd, sys_open_flag);
-+	}
-+	filp = nameidata_to_filp(&nd, sys_open_flag);
-+	/*
-+	 * It is now safe to drop the mnt write
-+	 * because the filp has had a write taken
-+	 * on its behalf.
-+	 */
-+	if (will_write)
-+		mnt_drop_write(nd.mnt);
-+	return filp;
- 
-+exit_mutex_unlock:
-+	mutex_unlock(&dir->d_inode->i_mutex);
- exit_dput:
- 	dput_path(&path, &nd);
- exit:
-diff -puN fs/open.c~r-o-bind-mounts-elevate-write-count-opened-files fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-write-count-opened-files
-+++ a/fs/open.c
-@@ -734,6 +734,35 @@ out:
- 	return error;
- }
- 
-+/*
-+ * You have to be very careful that these write
-+ * counts get cleaned up in error cases and
-+ * upon __fput().  This should probably never
-+ * be called outside of __dentry_open().
-+ */
-+static inline int __get_file_write_access(struct inode *inode,
-+					  struct vfsmount *mnt)
-+{
-+	int error;
-+	error = get_write_access(inode);
-+	if (error)
-+		return error;
-+	/*
-+	 * Do not take mount writer counts on
-+	 * special files since no writes to
-+	 * the mount itself will occur.
-+	 */
-+	if (!special_file(inode->i_mode)) {
-+		/*
-+		 * Balanced in __fput()
-+		 */
-+		error = mnt_want_write(mnt);
-+		if (error)
-+			put_write_access(inode);
-+	}
-+	return error;
-+}
-+
- static struct file *__dentry_open(struct dentry *dentry, struct vfsmount *mnt,
- 					int flags, struct file *f,
- 					int (*open)(struct inode *, struct file *))
-@@ -746,7 +775,7 @@ static struct file *__dentry_open(struct
- 				FMODE_PREAD | FMODE_PWRITE;
  	inode = dentry->d_inode;
- 	if (f->f_mode & FMODE_WRITE) {
--		error = get_write_access(inode);
-+		error = __get_file_write_access(inode, mnt);
- 		if (error)
- 			goto cleanup_file;
- 	}
-@@ -788,8 +817,11 @@ static struct file *__dentry_open(struct
  
- cleanup_all:
- 	fops_put(f->f_op);
--	if (f->f_mode & FMODE_WRITE)
-+	if (f->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
-+		if (!special_file(inode->i_mode))
-+			mnt_drop_write(mnt);
-+	}
- 	file_kill(f);
- 	f->f_path.dentry = NULL;
- 	f->f_path.mnt = NULL;
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opened-files ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opened-files
-+++ a/ipc/mqueue.c
-@@ -681,6 +681,9 @@ asmlinkage long sys_mq_open(const char _
- 				goto out;
- 			filp = do_open(dentry, oflag);
- 		} else {
-+			error = mnt_want_write(mqueue_mnt);
-+			if (error)
-+				goto out;
- 			filp = do_create(mqueue_mnt->mnt_root, dentry,
- 						oflag, mode, u_attr);
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(mnt);
++	if (error)
+ 		goto dput_and_out;
+ 
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+@@ -98,7 +102,7 @@ long do_utimes(int dfd, char __user *fil
+ 	if (times) {
+ 		error = -EPERM;
+                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (times[0].tv_nsec == UTIME_OMIT)
+ 			newattrs.ia_valid &= ~ATTR_ATIME;
+@@ -118,22 +122,24 @@ long do_utimes(int dfd, char __user *fil
+ 	} else {
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (!is_owner_or_cap(inode)) {
+ 			if (f) {
+ 				if (!(f->f_mode & FMODE_WRITE))
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			} else {
+ 				error = vfs_permission(&nd, MAY_WRITE);
+ 				if (error)
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			}
  		}
+ 	}
+ 	mutex_lock(&inode->i_mutex);
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
++mnt_drop_write_and_out:
++	mnt_drop_write(mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
 r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
 r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
