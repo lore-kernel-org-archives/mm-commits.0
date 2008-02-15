@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arch-um-kernel-initrdc-fix-a-missed-conversion-specifier.patch added to -mm tree
-Date: Thu, 14 Feb 2008 22:37:13 -0800
-Message-ID: <200802150637.m1F6bDnR024022@imap1.linux-foundation.org>
+Subject: - arch-um-kernel-initrdc-fix-a-missed-conversion-specifier.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 22:39:57 -0800
+Message-ID: <200802150639.m1F6dvBM024147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53998 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755571AbYBOGh1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751916AbYBOGkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:37:27 -0500
+	Fri, 15 Feb 2008 01:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@karaya.com
+To: xiyou.wangcong@gmail.com, jdike@karaya.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      arch/um/kernel/initrd.c: fix a missed conversion specifier
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      arch-um-kernel-initrdc-fix-a-missed-conversion-specifier.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I already had it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -63,5 +53,6 @@ _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-arch-um-kernel-initrdc-fix-a-missed-conversion-specifier.patch
 uml-fix-initrd-printk.patch
+arch-um-kernel-initrdc-fix-a-missed-conversion-specifier.patch
+arch-um-kernel-memc-fix-a-shadowed-variable.patch
