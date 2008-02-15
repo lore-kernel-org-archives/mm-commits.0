@@ -1,101 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:27 -0800
-Message-ID: <200802150531.m1F5VR2L021781@imap1.linux-foundation.org>
+Subject: - keep-track-of-mnt_writer-state-of-struct-file.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:31:37 -0800
+Message-ID: <200802150531.m1F5VbV7021810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753360AbYBOFia (ORCPT
+	by vger.kernel.org with ESMTP id S1753850AbYBOFie (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:38:30 -0500
+	Fri, 15 Feb 2008 00:38:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count over calls to vfs_rename()
+     keep track of mnt_writer state of struct file
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+     keep-track-of-mnt_writer-state-of-struct-file.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count over calls to vfs_rename()
+Subject: keep track of mnt_writer state of struct file
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This also uses the little helper in the NFS code to make an if() a little bit
-less ugly.  We introduced the helper at the beginning of the series.
+There have been a few oopses caused by 'struct file's with NULL f_vfsmnts. 
+There was also a set of potentially missed mnt_want_write()s from
+dentry_open() calls.
 
+This patch provides a very simple debugging framework to catch these kinds of
+bugs.  It will WARN_ON() them, but should stop us from having any oopses or
+mnt_writer count imbalances.
+
+I'm quite convinced that this is a good thing because it found bugs in the
+stuff I was working on as soon as I wrote it.
+
+[akpm@linux-foundation.org: fix build]
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c    |    4 ++++
- fs/nfsd/vfs.c |   15 +++++++++++----
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ fs/file_table.c    |   21 +++++++++++++++++++--
+ fs/open.c          |   14 +++++++++++++-
+ fs/super.c         |   22 ++++++++++++++++++++--
+ include/linux/fs.h |    4 ++++
+ 4 files changed, 56 insertions(+), 5 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/namei.c
-@@ -2739,8 +2739,12 @@ static int do_rename(int olddfd, const c
- 	if (new_dentry == trap)
- 		goto exit5;
+diff -puN fs/file_table.c~keep-track-of-mnt_writer-state-of-struct-file fs/file_table.c
+--- a/fs/file_table.c~keep-track-of-mnt_writer-state-of-struct-file
++++ a/fs/file_table.c
+@@ -42,6 +42,12 @@ static inline void file_free_rcu(struct 
+ static inline void file_free(struct file *f)
+ {
+ 	percpu_counter_dec(&nr_files);
++	/*
++	 * At this point, either both or neither of these bits
++	 * should be set.
++	 */
++	WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_TAKEN);
++	WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_RELEASED);
+ 	call_rcu(&f->f_u.fu_rcuhead, file_free_rcu);
+ }
  
-+	error = mnt_want_write(oldnd.mnt);
-+	if (error)
-+		goto exit5;
- 	error = vfs_rename(old_dir->d_inode, old_dentry,
- 				   new_dir->d_inode, new_dentry);
-+	mnt_drop_write(oldnd.mnt);
- exit5:
- 	dput(new_dentry);
- exit4:
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/nfsd/vfs.c
-@@ -1677,13 +1677,20 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 	if (ndentry == trap)
- 		goto out_dput_new;
+@@ -201,6 +207,7 @@ int init_file(struct file *file, struct 
+ 	 * that we can do debugging checks at __fput()e
+ 	 */
+ 	if ((mode & FMODE_WRITE) && !special_file(dentry->d_inode->i_mode)) {
++		file->f_mnt_write_state = FILE_MNT_WRITE_TAKEN;
+ 		error = mnt_want_write(mnt);
+ 		WARN_ON(error);
+ 	}
+@@ -243,8 +250,18 @@ void __fput(struct file *file)
+ 	fops_put(file->f_op);
+ 	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
+-		if (!special_file(inode->i_mode))
+-			mnt_drop_write(mnt);
++		if (!special_file(inode->i_mode)) {
++			if (file->f_mnt_write_state == FILE_MNT_WRITE_TAKEN) {
++				mnt_drop_write(mnt);
++				file->f_mnt_write_state |=
++					FILE_MNT_WRITE_RELEASED;
++			} else {
++				printk(KERN_WARNING "__fput() of writeable "
++						"file with no "
++						"mnt_want_write()\n");
++				WARN_ON(1);
++			}
++		}
+ 	}
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+diff -puN fs/open.c~keep-track-of-mnt_writer-state-of-struct-file fs/open.c
+--- a/fs/open.c~keep-track-of-mnt_writer-state-of-struct-file
++++ a/fs/open.c
+@@ -810,6 +810,10 @@ static struct file *__dentry_open(struct
+ 		error = __get_file_write_access(inode, mnt);
+ 		if (error)
+ 			goto cleanup_file;
++		if (!special_file(inode->i_mode)) {
++			WARN_ON(f->f_mnt_write_state != 0);
++			f->f_mnt_write_state = FILE_MNT_WRITE_TAKEN;
++		}
+ 	}
  
--#ifdef MSNFS
--	if ((ffhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
-+	if (svc_msnfs(ffhp) &&
- 		((atomic_read(&odentry->d_count) > 1)
- 		 || (atomic_read(&ndentry->d_count) > 1))) {
- 			host_err = -EPERM;
--	} else
--#endif
-+			goto out_dput_new;
-+	}
+ 	f->f_mapping = inode->i_mapping;
+@@ -851,8 +855,16 @@ cleanup_all:
+ 	fops_put(f->f_op);
+ 	if (f->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
+-		if (!special_file(inode->i_mode))
++		if (!special_file(inode->i_mode)) {
++			/*
++			 * We don't consider this a real
++			 * mnt_want/drop_write() pair
++			 * because it all happenend right
++			 * here, so just reset the state.
++			 */
++			f->f_mnt_write_state = 0;
+ 			mnt_drop_write(mnt);
++		}
+ 	}
+ 	file_kill(f);
+ 	f->f_path.dentry = NULL;
+diff -puN fs/super.c~keep-track-of-mnt_writer-state-of-struct-file fs/super.c
+--- a/fs/super.c~keep-track-of-mnt_writer-state-of-struct-file
++++ a/fs/super.c
+@@ -37,6 +37,7 @@
+ #include <linux/idr.h>
+ #include <linux/kobject.h>
+ #include <linux/mutex.h>
++#include <linux/file.h>
+ #include <asm/uaccess.h>
+ 
+ 
+@@ -567,10 +568,27 @@ static void mark_files_ro(struct super_b
+ {
+ 	struct file *f;
+ 
++retry:
+ 	file_list_lock();
+ 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
+-		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
+-			f->f_mode &= ~FMODE_WRITE;
++		struct vfsmount *mnt;
 +
-+	host_err = -EXDEV;
-+	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
-+		goto out_dput_new;
-+	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
-+	if (host_err)
-+		goto out_dput_new;
++		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
++		       continue;
++		if (!file_count(f))
++			continue;
++		if (!(f->f_mode & FMODE_WRITE))
++			continue;
++		f->f_mode &= ~FMODE_WRITE;
++		f->f_mnt_write_state |= FILE_MNT_WRITE_RELEASED;
++		mnt = f->f_path.mnt;
++		file_list_unlock();
++		/*
++		 * This can sleep, so we can't hold
++		 * the file_list_lock() spinlock.
++		 */
++		mnt_drop_write(mnt);
++		goto retry;
+ 	}
+ 	file_list_unlock();
+ }
+diff -puN include/linux/fs.h~keep-track-of-mnt_writer-state-of-struct-file include/linux/fs.h
+--- a/include/linux/fs.h~keep-track-of-mnt_writer-state-of-struct-file
++++ a/include/linux/fs.h
+@@ -776,6 +776,9 @@ static inline int ra_has_index(struct fi
+ 		index <  ra->start + ra->size);
+ }
+ 
++#define FILE_MNT_WRITE_TAKEN	1
++#define FILE_MNT_WRITE_RELEASED	2
 +
- 	host_err = vfs_rename(fdir, odentry, tdir, ndentry);
- 	if (!host_err && EX_ISSYNC(tfhp->fh_export)) {
- 		host_err = nfsd_sync_dir(tdentry);
+ struct file {
+ 	/*
+ 	 * fu_list becomes invalid after file_free is called and queued via
+@@ -810,6 +813,7 @@ struct file {
+ 	spinlock_t		f_ep_lock;
+ #endif /* #ifdef CONFIG_EPOLL */
+ 	struct address_space	*f_mapping;
++	unsigned long f_mnt_write_state;
+ };
+ extern spinlock_t files_lock;
+ #define file_list_lock() spin_lock(&files_lock);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
 keep-track-of-mnt_writer-state-of-struct-file.patch
 create-file_drop_write_access-helper.patch
 fix-up-new-filp-allocators.patch
