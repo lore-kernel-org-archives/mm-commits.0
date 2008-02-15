@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unionfs-is-broken.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:04:38 -0800
-Message-ID: <200802160604.m1G64cOU011415@imap1.linux-foundation.org>
+Subject: + smack-update-for-vfs-changes.patch added to -mm tree
+Date: Fri, 15 Feb 2008 18:11:15 -0500
+Message-ID: <200802160614.m1G6Eg9F011766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58374 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751734AbYBPGEr (ORCPT
+	by vger.kernel.org with ESMTP id S1762965AbYBPGOr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:04:47 -0500
+	Sat, 16 Feb 2008 01:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, casey@schaufler-ca.com
 
 
 The patch titled
-     unionfs is broken
+     smack: update for vfs changes
 has been added to the -mm tree.  Its filename is
-     unionfs-is-broken.patch
+     smack-update-for-vfs-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unionfs is broken
+Subject: smack: update for vfs changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needs updating for vfs changes
+security/smack/smack_lsm.c: In function 'smack_sb_mount':
+security/smack/smack_lsm.c:328: error: 'struct nameidata' has no member named 'mnt'
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Somehow this got missed.
+
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ security/smack/smack_lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~unionfs-is-broken fs/Kconfig
---- a/fs/Kconfig~unionfs-is-broken
-+++ a/fs/Kconfig
-@@ -1022,6 +1022,7 @@ config ECRYPT_FS
- config UNION_FS
- 	tristate "Union file system (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	help
- 	  Unionfs is a stackable unification file system, which appears to
- 	  merge the contents of several directories (branches), while keeping
+diff -puN security/smack/smack_lsm.c~smack-update-for-vfs-changes security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-update-for-vfs-changes
++++ a/security/smack/smack_lsm.c
+@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
+ static int smack_sb_mount(char *dev_name, struct nameidata *nd,
+ 			  char *type, unsigned long flags, void *data)
+ {
+-	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
++	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
+ 
+ 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+smack-update-for-vfs-changes.patch
 revert-send-a-single-notification-on-device-state-changes.patch
 softlockup-workaround.patch
 git-acpi-powerpc-kconfig-fix.patch
@@ -141,4 +146,3 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-unionfs-is-broken.patch
