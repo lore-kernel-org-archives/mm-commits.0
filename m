@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-hisax-telespci-convert-to-pci-hotplug-api.patch added to -mm tree
-Date: Thu, 14 Feb 2008 23:07:29 -0800
-Message-ID: <200802150707.m1F77T03025216@imap1.linux-foundation.org>
+Subject: + isdn-hisax-eliminate-many-unnecessary-references-to-cardtype.patch added to -mm tree
+Date: Thu, 14 Feb 2008 23:07:17 -0800
+Message-ID: <200802150707.m1F77Hte025198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55917 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760687AbYBOHIa (ORCPT
+	by vger.kernel.org with ESMTP id S1761411AbYBOHIh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:08:30 -0500
+	Fri, 15 Feb 2008 02:08:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, greg@kroah.com, kkeil@suse.de
+Cc: jeff@garzik.org, greg@kroah.com, jgarzik@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     isdn: HiSax telespci: convert to PCI hotplug API
+     isdn: Hisax: eliminate many unnecessary references to CardType[]
 has been added to the -mm tree.  Its filename is
-     isdn-hisax-telespci-convert-to-pci-hotplug-api.patch
+     isdn-hisax-eliminate-many-unnecessary-references-to-cardtype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,261 +34,705 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: HiSax telespci: convert to PCI hotplug API
+Subject: isdn: Hisax: eliminate many unnecessary references to CardType[]
 From: Jeff Garzik <jeff@garzik.org>
 
-Signed-off-by: Jeff Garzik <jeff@garzik.org>
+For the vast majority of CardType[card->typ] uses (but not all!), the string
+is constant for each driver.  Therefore, we may replace CardType[card->typ]
+with the actual string describing the driver, making each printk() a bit more
+simple.
+
+This also has the nice, intended side effect of greatly reducing external
+references to hisax global CardType[].  This will be of value once the ISDN
+drivers are converted to the ISA/PCI/PNP hotplug APIs.
+
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig    |    4 -
- drivers/isdn/hisax/Makefile   |    2 
- drivers/isdn/hisax/config.c   |   21 +------
- drivers/isdn/hisax/telespci.c |   95 +++++++++++++++++++++++++-------
- 4 files changed, 81 insertions(+), 41 deletions(-)
+ drivers/isdn/hisax/asuscom.c   |    5 +----
+ drivers/isdn/hisax/avm_a1.c    |   27 +++++++++------------------
+ drivers/isdn/hisax/bkm_a4t.c   |   19 ++++++++++---------
+ drivers/isdn/hisax/bkm_a8.c    |   31 +++++++++++++------------------
+ drivers/isdn/hisax/gazel.c     |    5 ++---
+ drivers/isdn/hisax/hfc_pci.c   |    2 --
+ drivers/isdn/hisax/hfc_sx.c    |    2 --
+ drivers/isdn/hisax/isurf.c     |   13 ++++---------
+ drivers/isdn/hisax/ix1_micro.c |    9 ++++-----
+ drivers/isdn/hisax/mic.c       |    5 +----
+ drivers/isdn/hisax/netjet.h    |    2 --
+ drivers/isdn/hisax/niccy.c     |   19 ++++++++-----------
+ drivers/isdn/hisax/nj_s.c      |    3 +--
+ drivers/isdn/hisax/nj_u.c      |    4 ++--
+ drivers/isdn/hisax/s0box.c     |   13 ++++---------
+ drivers/isdn/hisax/saphir.c    |    8 +++-----
+ drivers/isdn/hisax/sportster.c |   11 +++++------
+ drivers/isdn/hisax/teleint.c   |    5 +----
+ drivers/isdn/hisax/telespci.c  |    5 ++---
+ drivers/isdn/hisax/w6692.c     |    2 --
+ 20 files changed, 70 insertions(+), 120 deletions(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/Kconfig
-@@ -108,8 +108,8 @@ config HISAX_16_3
- 	  non-standard IRQ/port settings.
- 
- config HISAX_TELESPCI
--	bool "Teles PCI"
--	depends on PCI && PCI_LEGACY && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
-+	tristate "Teles PCI"
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the Teles PCI.
- 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
-diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/Makefile
---- a/drivers/isdn/hisax/Makefile~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_HISAX_HFC_PCI)		+= hfc_pci.
- obj-$(CONFIG_HISAX_W6692)		+= w6692.o libhisax.o
- obj-$(CONFIG_HISAX_NETJET)		+= netjet_s.o libhisax.o
- obj-$(CONFIG_HISAX_NETJET_U)		+= netjet_u.o libhisax.o
-+obj-$(CONFIG_HISAX_TELESPCI)		+= telespci.o libhisax.o
- 
- bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
- enternow-objs				:= enternow_pci.o amd7930_fn.o
-@@ -45,7 +46,6 @@ hisax-$(CONFIG_HISAX_1TR6)		+= l3_1tr6.o
- 
- hisax-$(CONFIG_HISAX_16_0)		+= teles0.o
- hisax-$(CONFIG_HISAX_16_3)		+= teles3.o
--hisax-$(CONFIG_HISAX_TELESPCI)		+= telespci.o
- hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o
- hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o
- hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o
-diff -puN drivers/isdn/hisax/config.c~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/config.c
-@@ -145,13 +145,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {15,0xd0000,0xd80,0}
- #endif
- 
--#ifdef CONFIG_HISAX_TELESPCI
--#undef DEFAULT_CARD
--#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_TELESPCI
--#define DEFAULT_CFG {0,0,0,0}
--#endif
--
- #ifdef CONFIG_HISAX_IX1MICROR2
- #undef DEFAULT_CARD
- #undef DEFAULT_CFG
-@@ -420,10 +413,6 @@ extern int setup_teles3(struct IsdnCard 
- extern int setup_s0box(struct IsdnCard *card);
- #endif
- 
--#if CARD_TELESPCI
--extern int setup_telespci(struct IsdnCard *card);
--#endif
--
- #if CARD_AVM_A1
- extern int setup_avm_a1(struct IsdnCard *card);
- #endif
-@@ -794,11 +783,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_s0box(card);
- 		break;
- #endif
--#if CARD_TELESPCI
--	case ISDN_CTYPE_TELESPCI:
--		ret = setup_telespci(card);
--		break;
--#endif
- #if CARD_AVM_A1
- 	case ISDN_CTYPE_A1:
- 		ret = setup_avm_a1(card);
-@@ -905,6 +889,7 @@ static int __devinit hisax_cs_setup_card
- 	case ISDN_CTYPE_W6692:
- 	case ISDN_CTYPE_NETJET_S:
- 	case ISDN_CTYPE_NETJET_U:
-+	case ISDN_CTYPE_TELESPCI:
- 		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
- 		       "to separate PCI driver module\n",
- 		       CardType[card->typ]);
-@@ -1365,7 +1350,6 @@ static int __init HiSax_init(void)
- 			cards[j].para[2] = mem[i];
- 			break;
- 		case ISDN_CTYPE_ELSA_PCI:
--		case ISDN_CTYPE_TELESPCI:
- 			break;
- 
- 		/* the following block are excluded from std HiSax init */
-@@ -1375,6 +1359,7 @@ static int __init HiSax_init(void)
- 		case ISDN_CTYPE_W6692:
- 		case ISDN_CTYPE_NETJET_S:
- 		case ISDN_CTYPE_NETJET_U:
-+		case ISDN_CTYPE_TELESPCI:
- 			break;
- 
- 		case ISDN_CTYPE_SCT_QUADRO:
-@@ -1878,7 +1863,7 @@ static struct pci_device_id hisax_pci_tb
- #ifdef CONFIG_HISAX_SEDLBAUER
- 	{PCI_VENDOR_ID_TIGERJET, PCI_DEVICE_ID_TIGERJET_100,     PCI_ANY_ID,PCI_ANY_ID},
- #endif
--#if defined(CONFIG_HISAX_TELESPCI) || defined(CONFIG_HISAX_SCT_QUADRO)
-+#if defined(CONFIG_HISAX_SCT_QUADRO)
- 	{PCI_VENDOR_ID_ZORAN,    PCI_DEVICE_ID_ZORAN_36120,      PCI_ANY_ID,PCI_ANY_ID},
- #endif
- 	{ }				/* Terminating entry */
-diff -puN drivers/isdn/hisax/telespci.c~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/telespci.c
---- a/drivers/isdn/hisax/telespci.c~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/telespci.c
-@@ -14,11 +14,14 @@
- 
- #include <linux/init.h>
- #include "hisax.h"
-+#include "hisax_proto.h"
- #include "isac.h"
+diff -puN drivers/isdn/hisax/asuscom.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/asuscom.c
+--- a/drivers/isdn/hisax/asuscom.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/asuscom.c
+@@ -20,8 +20,6 @@
  #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+-
+ static const char *Asuscom_revision = "$Revision: 1.14.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -376,8 +374,7 @@ setup_asuscom(struct IsdnCard *card)
+ 	cs->irq = card->para[0];
+ 	if (!request_region(cs->hw.asus.cfg_reg, bytecnt, "asuscom isdn")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %x-%x already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: ISDNLink config port %x-%x already in use\n",
+ 		       cs->hw.asus.cfg_reg,
+ 		       cs->hw.asus.cfg_reg + bytecnt);
+ 		return (0);
+diff -puN drivers/isdn/hisax/avm_a1.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/avm_a1.c
+--- a/drivers/isdn/hisax/avm_a1.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/avm_a1.c
+@@ -16,7 +16,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+ static const char *avm_revision = "$Revision: 2.15.2.4 $";
+ 
+ #define	 AVM_A1_STAT_ISAC	0x01
+@@ -200,16 +199,14 @@ setup_avm_a1(struct IsdnCard *card)
+ 	cs->irq = card->para[0];
+ 	if (!request_region(cs->hw.avm.cfg_reg, 8, "avm cfg")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %x-%x already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: AVM A1 config port %x-%x already in use\n",
+ 		       cs->hw.avm.cfg_reg,
+ 		       cs->hw.avm.cfg_reg + 8);
+ 		return (0);
+ 	}
+ 	if (!request_region(cs->hw.avm.isac + 32, 32, "HiSax isac")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s isac ports %x-%x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 isac ports %x-%x already in use\n",
+ 		       cs->hw.avm.isac + 32,
+ 		       cs->hw.avm.isac + 64);
+ 		release_ioregs(cs, 0);
+@@ -217,16 +214,14 @@ setup_avm_a1(struct IsdnCard *card)
+ 	}
+ 	if (!request_region(cs->hw.avm.isacfifo, 1, "HiSax isac fifo")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s isac fifo port %x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 isac fifo port %x already in use\n",
+ 		       cs->hw.avm.isacfifo);
+ 		release_ioregs(cs, 1);
+ 		return (0);
+ 	}
+ 	if (!request_region(cs->hw.avm.hscx[0] + 32, 32, "HiSax hscx A")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s hscx A ports %x-%x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 hscx A ports %x-%x already in use\n",
+ 		       cs->hw.avm.hscx[0] + 32,
+ 		       cs->hw.avm.hscx[0] + 64);
+ 		release_ioregs(cs, 3);
+@@ -234,16 +229,14 @@ setup_avm_a1(struct IsdnCard *card)
+ 	}
+ 	if (!request_region(cs->hw.avm.hscxfifo[0], 1, "HiSax hscx A fifo")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s hscx A fifo port %x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 hscx A fifo port %x already in use\n",
+ 		       cs->hw.avm.hscxfifo[0]);
+ 		release_ioregs(cs, 7);
+ 		return (0);
+ 	}
+ 	if (!request_region(cs->hw.avm.hscx[1] + 32, 32, "HiSax hscx B")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s hscx B ports %x-%x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 hscx B ports %x-%x already in use\n",
+ 		       cs->hw.avm.hscx[1] + 32,
+ 		       cs->hw.avm.hscx[1] + 64);
+ 		release_ioregs(cs, 0xf);
+@@ -251,8 +244,7 @@ setup_avm_a1(struct IsdnCard *card)
+ 	}
+ 	if (!request_region(cs->hw.avm.hscxfifo[1], 1, "HiSax hscx B fifo")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s hscx B fifo port %x already in use\n",
+-		       CardType[cs->typ],
++		       "HiSax: AVM A1 hscx B fifo port %x already in use\n",
+ 		       cs->hw.avm.hscxfifo[1]);
+ 		release_ioregs(cs, 0x1f);
+ 		return (0);
+@@ -284,9 +276,8 @@ setup_avm_a1(struct IsdnCard *card)
+ 	printk(KERN_INFO "AVM A1: Byte at %x is %x\n",
+ 	       cs->hw.avm.cfg_reg, val);
+ 
+-	printk(KERN_INFO
+-	       "HiSax: %s config irq:%d cfg:0x%X\n",
+-	       CardType[cs->typ], cs->irq,
++	printk(KERN_INFO "HiSax: AVM A1 config irq:%d cfg:0x%X\n",
++	       cs->irq,
+ 	       cs->hw.avm.cfg_reg);
+ 	printk(KERN_INFO
+ 	       "HiSax: isac:0x%X/0x%X\n",
+diff -puN drivers/isdn/hisax/bkm_a4t.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/bkm_a4t.c
+--- a/drivers/isdn/hisax/bkm_a4t.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/bkm_a4t.c
+@@ -20,8 +20,6 @@
+ #include <linux/pci.h>
+ #include "bkm_ax.h"
+ 
+-extern const char *CardType[];
+-
+ static const char *bkm_a4t_revision = "$Revision: 1.22.2.4 $";
+ 
+ 
+@@ -284,15 +282,16 @@ static int __devinit a4t_cs_init(struct 
+ 	I20_REGISTER_FILE *pI20_Regs;
+ 
+ 	if (!cs->irq) {		/* IRQ range check ?? */
+-		printk(KERN_WARNING "HiSax: %s: No IRQ\n", CardType[card->typ]);
++		printk(KERN_WARNING "HiSax: Telekom A4T: No IRQ\n");
+ 		return (0);
+ 	}
+ 	cs->hw.ax.base = (long) ioremap(pci_memaddr, 4096);
+ 	/* Check suspecious address */
+ 	pI20_Regs = (I20_REGISTER_FILE *) (cs->hw.ax.base);
+ 	if ((pI20_Regs->i20IntStatus & 0x8EFFFFFF) != 0) {
+-		printk(KERN_WARNING "HiSax: %s address %lx-%lx suspecious\n",
+-		       CardType[card->typ], cs->hw.ax.base, cs->hw.ax.base + 4096);
++		printk(KERN_WARNING "HiSax: Telekom A4T address "
++		       "%lx-%lx suspicious\n",
++		       cs->hw.ax.base, cs->hw.ax.base + 4096);
+ 		iounmap((void *) cs->hw.ax.base);
+ 		cs->hw.ax.base = 0;
+ 		return (0);
+@@ -302,8 +301,9 @@ static int __devinit a4t_cs_init(struct 
+ 	cs->hw.ax.isac_ale = GCS_1;
+ 	cs->hw.ax.jade_ale = GCS_3;
+ 
+-	printk(KERN_INFO "HiSax: %s: Card configured at 0x%lX IRQ %d\n",
+-	       CardType[card->typ], cs->hw.ax.base, cs->irq);
++	printk(KERN_INFO "HiSax: Telekom A4T: Card configured at "
++	       "0x%lX IRQ %d\n",
++	       cs->hw.ax.base, cs->irq);
+ 
+ 	setup_isac(cs);
+ 	cs->readisac = &ReadISAC;
+@@ -349,11 +349,12 @@ setup_bkm_a4t(struct IsdnCard *card)
+ 			break;
+ 	}
+ 	if (!found) {
+-		printk(KERN_WARNING "HiSax: %s: Card not found\n", CardType[card->typ]);
++		printk(KERN_WARNING "HiSax: Telekom A4T: Card not found\n");
+ 		return (0);
+ 	}
+ 	if (!pci_memaddr) {
+-		printk(KERN_WARNING "HiSax: %s: No Memory base address\n", CardType[card->typ]);
++		printk(KERN_WARNING "HiSax: Telekom A4T: "
++		       "No Memory base address\n");
+ 		return (0);
+ 	}
+ 
+diff -puN drivers/isdn/hisax/bkm_a8.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/bkm_a8.c
+--- a/drivers/isdn/hisax/bkm_a8.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/bkm_a8.c
+@@ -22,8 +22,6 @@
+ 
+ #define	ATTEMPT_PCI_REMAPPING	/* Required for PLX rev 1 */
+ 
+-extern const char *CardType[];
+-
+ static const char sct_quadro_revision[] = "$Revision: 1.22.2.4 $";
+ 
+ static const char *sct_quadro_subtypes[] =
+@@ -181,8 +179,7 @@ bkm_interrupt_ipac(int intno, void *dev_
+ 		goto Start_IPAC;
+ 	}
+ 	if (!icnt)
+-		printk(KERN_WARNING "HiSax: %s (%s) IRQ LOOP\n",
+-		       CardType[cs->typ],
++		printk(KERN_WARNING "HiSax: Scitel Quadro (%s) IRQ LOOP\n",
+ 		       sct_quadro_subtypes[cs->subtyp]);
+ 	writereg(cs->hw.ax.base, cs->hw.ax.data_adr, IPAC_MASK, 0xFF);
+ 	writereg(cs->hw.ax.base, cs->hw.ax.data_adr, IPAC_MASK, 0xC0);
+@@ -296,8 +293,8 @@ setup_sct_quadro(struct IsdnCard *card)
+ 	if (card->para[0] >= SCT_1 && card->para[0] <= SCT_4)
+ 		cs->subtyp = card->para[0];
+ 	else {
+-		printk(KERN_WARNING "HiSax: %s: Invalid subcontroller in configuration, default to 1\n",
+-			CardType[card->typ]);
++		printk(KERN_WARNING "HiSax: Scitel Quadro: Invalid "
++		       "subcontroller in configuration, default to 1\n");
+ 		return (0);
+ 	}
+ 	if ((cs->subtyp != SCT_1) && ((sub_sys_id != PCI_DEVICE_ID_BERKOM_SCITEL_QUADRO) ||
+@@ -322,16 +319,16 @@ setup_sct_quadro(struct IsdnCard *card)
+ 			}
+ 		}
+ 		if (!found) {
+-			printk(KERN_WARNING "HiSax: %s (%s): Card not found\n",
+-				CardType[card->typ],
++			printk(KERN_WARNING "HiSax: Scitel Quadro (%s): "
++				"Card not found\n",
+ 				sct_quadro_subtypes[cs->subtyp]);
+ 			return (0);
+ 		}
+ #ifdef ATTEMPT_PCI_REMAPPING
+ /* HACK: PLX revision 1 bug: PLX address bit 7 must not be set */
+ 		if ((pci_ioaddr1 & 0x80) && (dev_a8->revision == 1)) {
+-			printk(KERN_WARNING "HiSax: %s (%s): PLX rev 1, remapping required!\n",
+-				CardType[card->typ],
++			printk(KERN_WARNING "HiSax: Scitel Quadro (%s): "
++				"PLX rev 1, remapping required!\n",
+ 				sct_quadro_subtypes[cs->subtyp]);
+ 			/* Restart PCI negotiation */
+ 			pci_write_config_dword(dev_a8, PCI_BASE_ADDRESS_1, (u_int) - 1);
+@@ -344,8 +341,7 @@ setup_sct_quadro(struct IsdnCard *card)
+ #endif /* End HACK */
+ 	}
+ 	if (!pci_irq) {		/* IRQ range check ?? */
+-		printk(KERN_WARNING "HiSax: %s (%s): No IRQ\n",
+-		       CardType[card->typ],
++		printk(KERN_WARNING "HiSax: Scitel Quadro (%s): No IRQ\n",
+ 		       sct_quadro_subtypes[cs->subtyp]);
+ 		return (0);
+ 	}
+@@ -355,8 +351,8 @@ setup_sct_quadro(struct IsdnCard *card)
+ 	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_4, &pci_ioaddr4);
+ 	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_5, &pci_ioaddr5);
+ 	if (!pci_ioaddr1 || !pci_ioaddr2 || !pci_ioaddr3 || !pci_ioaddr4 || !pci_ioaddr5) {
+-		printk(KERN_WARNING "HiSax: %s (%s): No IO base address(es)\n",
+-		       CardType[card->typ],
++		printk(KERN_WARNING "HiSax: Scitel Quadro (%s): "
++		       "No IO base address(es)\n",
+ 		       sct_quadro_subtypes[cs->subtyp]);
+ 		return (0);
+ 	}
+@@ -411,8 +407,8 @@ setup_sct_quadro(struct IsdnCard *card)
+ 	/* For isac and hscx data path */
+ 	cs->hw.ax.data_adr = cs->hw.ax.base + 4;
+ 
+-	printk(KERN_INFO "HiSax: %s (%s) configured at 0x%.4lX, 0x%.4lX, 0x%.4lX and IRQ %d\n",
+-	       CardType[card->typ],
++	printk(KERN_INFO "HiSax: Scitel Quadro (%s) configured at "
++	       "0x%.4lX, 0x%.4lX, 0x%.4lX and IRQ %d\n",
+ 	       sct_quadro_subtypes[cs->subtyp],
+ 	       cs->hw.ax.plx_adr,
+ 	       cs->hw.ax.base,
+@@ -432,8 +428,7 @@ setup_sct_quadro(struct IsdnCard *card)
+ 	cs->cardmsg = &BKM_card_msg;
+ 	cs->irq_func = &bkm_interrupt_ipac;
+ 
+-	printk(KERN_INFO "HiSax: %s (%s): IPAC Version %d\n",
+-		CardType[card->typ],
++	printk(KERN_INFO "HiSax: Scitel Quadro (%s): IPAC Version %d\n",
+ 		sct_quadro_subtypes[cs->subtyp],
+ 		readreg(cs->hw.ax.base, cs->hw.ax.data_adr, IPAC_ID));
+ 	return (1);
+diff -puN drivers/isdn/hisax/gazel.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/gazel.c
+--- a/drivers/isdn/hisax/gazel.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/gazel.c
+@@ -19,7 +19,6 @@
+ #include "ipac.h"
+ #include <linux/pci.h>
+ 
+-extern const char *CardType[];
+ static const char *gazel_revision = "$Revision: 2.19.2.4 $";
+ 
+ #define R647      1
+@@ -479,8 +478,8 @@ reserve_regions(struct IsdnCard *card, s
+ 	return 0;
+ 
+       error:
+-	printk(KERN_WARNING "Gazel: %s io ports 0x%x-0x%x already in use\n",
+-	       CardType[cs->typ], adr, adr + len);
++	printk(KERN_WARNING "Gazel: io ports 0x%x-0x%x already in use\n",
++	       adr, adr + len);
+ 	return 1;
+ }
+ 
+diff -puN drivers/isdn/hisax/hfc_pci.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/hfc_pci.c
+--- a/drivers/isdn/hisax/hfc_pci.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/hfc_pci.c
+@@ -22,8 +22,6 @@
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
+ 
+-extern const char *CardType[];
+-
+ static const char *hfcpci_revision = "$Revision: 1.48.2.4 $";
+ 
+ /* table entry in the PCI devices list */
+diff -puN drivers/isdn/hisax/hfc_sx.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/hfc_sx.c
+--- a/drivers/isdn/hisax/hfc_sx.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/hfc_sx.c
+@@ -18,8 +18,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/isapnp.h>
+ 
+-extern const char *CardType[];
+-
+ static const char *hfcsx_revision = "$Revision: 1.12.2.5 $";
+ 
+ /***************************************/
+diff -puN drivers/isdn/hisax/isurf.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/isurf.c
+--- a/drivers/isdn/hisax/isurf.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/isurf.c
+@@ -17,8 +17,6 @@
+ #include "isdnl1.h"
+ #include <linux/isapnp.h>
+ 
+-extern const char *CardType[];
+-
+ static const char *ISurf_revision = "$Revision: 1.12.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -251,22 +249,19 @@ setup_isurf(struct IsdnCard *card)
+ 			return(0);
+ 		}
+ #else
+-		printk(KERN_WARNING "HiSax: %s port/mem not set\n",
+-			CardType[card->typ]);
++		printk(KERN_WARNING "HiSax: Siemens I-Surf port/mem not set\n");
+ 		return (0);
+ #endif
+ 	}
+ 	if (!request_region(cs->hw.isurf.reset, 1, "isurf isdn")) {
+ 		printk(KERN_WARNING
+-			"HiSax: %s config port %x already in use\n",
+-			CardType[card->typ],
++			"HiSax: Siemens I-Surf config port %x already in use\n",
+ 			cs->hw.isurf.reset);
+ 			return (0);
+ 	}
+ 	if (!request_region(cs->hw.isurf.phymem, ISURF_IOMEM_SIZE, "isurf iomem")) {
+-		printk(KERN_WARNING
+-			"HiSax: %s memory region %lx-%lx already in use\n",
+-			CardType[card->typ],
++		printk(KERN_WARNING "HiSax: Siemens I-Surf memory region "
++			"%lx-%lx already in use\n",
+ 			cs->hw.isurf.phymem,
+ 			cs->hw.isurf.phymem + ISURF_IOMEM_SIZE);
+ 		release_region(cs->hw.isurf.reset, 1);
+diff -puN drivers/isdn/hisax/ix1_micro.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/ix1_micro.c
+--- a/drivers/isdn/hisax/ix1_micro.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/ix1_micro.c
+@@ -24,7 +24,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+ static const char *ix1_revision = "$Revision: 2.12.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -288,15 +287,15 @@ setup_ix1micro(struct IsdnCard *card)
+ 	if (cs->hw.ix1.cfg_reg) {
+ 		if (!request_region(cs->hw.ix1.cfg_reg, 4, "ix1micro cfg")) {
+ 			printk(KERN_WARNING
+-			  "HiSax: %s config port %x-%x already in use\n",
+-			       CardType[card->typ],
++			  "HiSax: ITK ix1-micro Rev.2 config port "
++			  "%x-%x already in use\n",
+ 			       cs->hw.ix1.cfg_reg,
+ 			       cs->hw.ix1.cfg_reg + 4);
+ 			return (0);
+ 		}
+ 	}
+-	printk(KERN_INFO "HiSax: %s config irq:%d io:0x%X\n",
+-		CardType[cs->typ], cs->irq, cs->hw.ix1.cfg_reg);
++	printk(KERN_INFO "HiSax: ITK ix1-micro Rev.2 config irq:%d io:0x%X\n",
++		cs->irq, cs->hw.ix1.cfg_reg);
+ 	setup_isac(cs);
+ 	cs->readisac = &ReadISAC;
+ 	cs->writeisac = &WriteISAC;
+diff -puN drivers/isdn/hisax/mic.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/mic.c
+--- a/drivers/isdn/hisax/mic.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/mic.c
+@@ -16,8 +16,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+-
+ static const char *mic_revision = "$Revision: 1.12.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -210,8 +208,7 @@ setup_mic(struct IsdnCard *card)
+ 
+ 	if (!request_region(cs->hw.mic.cfg_reg, bytecnt, "mic isdn")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %x-%x already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: ith mic config port %x-%x already in use\n",
+ 		       cs->hw.mic.cfg_reg,
+ 		       cs->hw.mic.cfg_reg + bytecnt);
+ 		return (0);
+diff -puN drivers/isdn/hisax/netjet.h~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/netjet.h
+--- a/drivers/isdn/hisax/netjet.h~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/netjet.h
+@@ -12,8 +12,6 @@
+  *
+  */
+ 
+-extern const char *CardType[];
+-
+ #define byteout(addr,val) outb(val,addr)
+ #define bytein(addr) inb(addr)
+ 
+diff -puN drivers/isdn/hisax/niccy.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/niccy.c
+--- a/drivers/isdn/hisax/niccy.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/niccy.c
+@@ -21,7 +21,6 @@
+ #include <linux/pci.h>
+ #include <linux/isapnp.h>
+ 
+-extern const char *CardType[];
+ static const char *niccy_revision = "$Revision: 1.21.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -284,14 +283,14 @@ int __devinit setup_niccy(struct IsdnCar
+ 		cs->subtyp = NICCY_PNP;
+ 		cs->irq = card->para[0];
+ 		if (!request_region(cs->hw.niccy.isac, 2, "niccy data")) {
+-			printk(KERN_WARNING "HiSax: %s data port %x-%x "
+-				"already in use\n", CardType[card->typ],
++			printk(KERN_WARNING "HiSax: NICCY data port %x-%x "
++				"already in use\n",
+ 				cs->hw.niccy.isac, cs->hw.niccy.isac + 1);
+ 			return 0;
+ 		}
+ 		if (!request_region(cs->hw.niccy.isac_ale, 2, "niccy addr")) {
+-			printk(KERN_WARNING "HiSax: %s address port %x-%x "
+-				"already in use\n", CardType[card->typ],
++			printk(KERN_WARNING "HiSax: NICCY address port %x-%x "
++				"already in use\n",
+ 				cs->hw.niccy.isac_ale,
+ 				cs->hw.niccy.isac_ale + 1);
+ 			release_region(cs->hw.niccy.isac, 2);
+@@ -339,15 +338,13 @@ int __devinit setup_niccy(struct IsdnCar
+ 		cs->hw.niccy.hscx_ale = pci_ioaddr + HSCX_PCI_ADDR;
+ 		if (!request_region(cs->hw.niccy.isac, 4, "niccy")) {
+ 			printk(KERN_WARNING
+-			       "HiSax: %s data port %x-%x already in use\n",
+-			       CardType[card->typ],
++			       "HiSax: NICCY data port %x-%x already in use\n",
+ 			       cs->hw.niccy.isac, cs->hw.niccy.isac + 4);
+ 			return 0;
+ 		}
+ 		if (!request_region(cs->hw.niccy.cfg_reg, 0x40, "niccy pci")) {
+ 			printk(KERN_WARNING
+-			       "HiSax: %s pci port %x-%x already in use\n",
+-			       CardType[card->typ],
++			       "HiSax: NICCY pci port %x-%x already in use\n",
+ 			       cs->hw.niccy.cfg_reg,
+ 			       cs->hw.niccy.cfg_reg + 0x40);
+ 			release_region(cs->hw.niccy.isac, 4);
+@@ -359,8 +356,8 @@ int __devinit setup_niccy(struct IsdnCar
+ 		return 0;
+ #endif				/* CONFIG_PCI_LEGACY */
+ 	}
+-	printk(KERN_INFO "HiSax: %s %s config irq:%d data:0x%X ale:0x%X\n",
+-		CardType[cs->typ], (cs->subtyp == 1) ? "PnP" : "PCI",
++	printk(KERN_INFO "HiSax: NICCY %s config irq:%d data:0x%X ale:0x%X\n",
++		(cs->subtyp == 1) ? "PnP" : "PCI",
+ 		cs->irq, cs->hw.niccy.isac, cs->hw.niccy.isac_ale);
+ 	setup_isac(cs);
+ 	cs->readisac = &ReadISAC;
+diff -puN drivers/isdn/hisax/nj_s.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/nj_s.c
+--- a/drivers/isdn/hisax/nj_s.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/nj_s.c
+@@ -235,8 +235,7 @@ static int __devinit njs_cs_init_rest(st
+ 		cs->subtyp ? "TJ320" : "TJ300", cs->hw.njet.base, cs->irq);
+ 	if (!request_region(cs->hw.njet.base, bytecnt, "netjet-s isdn")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %#lx-%#lx already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: NETjet-S config port %#lx-%#lx already in use\n",
+ 		       cs->hw.njet.base,
+ 		       cs->hw.njet.base + bytecnt);
+ 		return (0);
+diff -puN drivers/isdn/hisax/nj_u.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/nj_u.c
+--- a/drivers/isdn/hisax/nj_u.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/nj_u.c
+@@ -197,8 +197,8 @@ static int __devinit nju_cs_init_rest(st
+ 		cs->hw.njet.base, cs->irq);
+ 	if (!request_region(cs->hw.njet.base, bytecnt, "netspider-u isdn")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %#lx-%#lx already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: NETspider-U config port %#lx-%#lx "
++		       "already in use\n",
+ 		       cs->hw.njet.base,
+ 		       cs->hw.njet.base + bytecnt);
+ 		return (0);
+diff -puN drivers/isdn/hisax/s0box.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/s0box.c
+--- a/drivers/isdn/hisax/s0box.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/s0box.c
+@@ -16,7 +16,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+ static const char *s0box_revision = "$Revision: 2.6.2.4 $";
+ 
+ static inline void
+@@ -231,19 +230,15 @@ setup_s0box(struct IsdnCard *card)
+ 	cs->hw.teles3.hscxfifo[1] = cs->hw.teles3.hscx[1] + 0x3e;
+ 	cs->irq = card->para[0];
+ 	if (!request_region(cs->hw.teles3.cfg_reg,8, "S0Box parallel I/O")) {
+-		printk(KERN_WARNING
+-		       "HiSax: %s ports %x-%x already in use\n",
+-		       CardType[cs->typ],
++		printk(KERN_WARNING "HiSax: S0Box ports %x-%x already in use\n",
+                        cs->hw.teles3.cfg_reg,
+                        cs->hw.teles3.cfg_reg + 7);
+ 		return 0;
+ 	}
+-	printk(KERN_INFO
+-		"HiSax: %s config irq:%d isac:0x%x  cfg:0x%x\n",
+-		CardType[cs->typ], cs->irq,
++	printk(KERN_INFO "HiSax: S0Box config irq:%d isac:0x%x  cfg:0x%x\n",
++		cs->irq,
+ 		cs->hw.teles3.isac, cs->hw.teles3.cfg_reg);
+-	printk(KERN_INFO
+-		"HiSax: hscx A:0x%x  hscx B:0x%x\n",
++	printk(KERN_INFO "HiSax: hscx A:0x%x  hscx B:0x%x\n",
+ 		cs->hw.teles3.hscx[0], cs->hw.teles3.hscx[1]);
+ 	setup_isac(cs);
+ 	cs->readisac = &ReadISAC;
+diff -puN drivers/isdn/hisax/saphir.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/saphir.c
+--- a/drivers/isdn/hisax/saphir.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/saphir.c
+@@ -18,7 +18,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+ static char *saphir_rev = "$Revision: 1.10.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -260,15 +259,14 @@ setup_saphir(struct IsdnCard *card)
+ 	cs->irq = card->para[0];
+ 	if (!request_region(cs->hw.saphir.cfg_reg, 6, "saphir")) {
+ 		printk(KERN_WARNING
+-			"HiSax: %s config port %x-%x already in use\n",
+-			CardType[card->typ],
++			"HiSax: HST Saphir config port %x-%x already in use\n",
+ 			cs->hw.saphir.cfg_reg,
+ 			cs->hw.saphir.cfg_reg + 5);
+ 		return (0);
+ 	}
+ 
+-	printk(KERN_INFO "HiSax: %s config irq:%d io:0x%X\n",
+-		CardType[cs->typ], cs->irq, cs->hw.saphir.cfg_reg);
++	printk(KERN_INFO "HiSax: HST Saphir config irq:%d io:0x%X\n",
++	       cs->irq, cs->hw.saphir.cfg_reg);
+ 
+ 	setup_isac(cs);
+ 	cs->hw.saphir.timer.function = (void *) SaphirWatchDog;
+diff -puN drivers/isdn/hisax/sportster.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/sportster.c
+--- a/drivers/isdn/hisax/sportster.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/sportster.c
+@@ -18,7 +18,6 @@
+ #include "hscx.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+ static const char *sportster_revision = "$Revision: 1.16.2.4 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -192,9 +191,9 @@ get_io_range(struct IsdnCardState *cs)
+ 	for (i=0;i<64;i++) {
+ 		adr = cs->hw.spt.cfg_reg + i *1024;
+ 		if (!request_region(adr, 8, "sportster")) {
+-			printk(KERN_WARNING
+-				"HiSax: %s config port %x-%x already in use\n",
+-				CardType[cs->typ], adr, adr + 8);
++			printk(KERN_WARNING "HiSax: USR Sportster config port "
++				"%x-%x already in use\n",
++				adr, adr + 8);
+ 			break;
+ 		} 
+ 	}
+@@ -247,8 +246,8 @@ setup_sportster(struct IsdnCard *card)
+ 			printk(KERN_WARNING "Sportster: wrong IRQ\n");
+ 			return(0);
+ 	}
+-	printk(KERN_INFO "HiSax: %s config irq:%d cfg:0x%X\n",
+-		CardType[cs->typ], cs->irq, cs->hw.spt.cfg_reg);
++	printk(KERN_INFO "HiSax: USR Sportster config irq:%d cfg:0x%X\n",
++		cs->irq, cs->hw.spt.cfg_reg);
+ 	setup_isac(cs);
+ 	cs->readisac = &ReadISAC;
+ 	cs->writeisac = &WriteISAC;
+diff -puN drivers/isdn/hisax/teleint.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/teleint.c
+--- a/drivers/isdn/hisax/teleint.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/teleint.c
+@@ -16,8 +16,6 @@
+ #include "hfc_2bs0.h"
+ #include "isdnl1.h"
+ 
+-extern const char *CardType[];
+-
+ static const char *TeleInt_revision = "$Revision: 1.16.2.5 $";
+ 
+ #define byteout(addr,val) outb(val,addr)
+@@ -286,8 +284,7 @@ setup_TeleInt(struct IsdnCard *card)
+ 	init_timer(&cs->hw.hfc.timer);
+ 	if (!request_region(cs->hw.hfc.addr, 2, "TeleInt isdn")) {
+ 		printk(KERN_WARNING
+-		       "HiSax: %s config port %x-%x already in use\n",
+-		       CardType[card->typ],
++		       "HiSax: TeleInt config port %x-%x already in use\n",
+ 		       cs->hw.hfc.addr,
+ 		       cs->hw.hfc.addr + 2);
+ 		return (0);
+diff -puN drivers/isdn/hisax/telespci.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/telespci.c
+--- a/drivers/isdn/hisax/telespci.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/telespci.c
+@@ -19,7 +19,6 @@
  #include "isdnl1.h"
  #include <linux/pci.h>
  
-+static int teles_protocol;		/* 0 == use DEFAULT_PROTO */
-+
+-extern const char *CardType[];
  static const char *telespci_revision = "$Revision: 2.23.2.3 $";
  
  #define ZORAN_PO_RQ_PEN	0x02000000
-@@ -283,12 +286,11 @@ TelesPCI_card_msg(struct IsdnCardState *
- 	return(0);
- }
+@@ -329,8 +328,8 @@ setup_telespci(struct IsdnCard *card)
+ 	/* writel(0x00800000, cs->hw.teles0.membase + 0x200); */
  
--static struct pci_dev *dev_tel __devinitdata = NULL;
+ 	printk(KERN_INFO
+-	       "HiSax: %s config irq:%d mem:%p\n",
+-	       CardType[cs->typ], cs->irq,
++	       "HiSax: Teles PCI config irq:%d mem:%p\n",
++	       cs->irq,
+ 	       cs->hw.teles0.membase);
+ 
+ 	setup_isac(cs);
+diff -puN drivers/isdn/hisax/w6692.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype drivers/isdn/hisax/w6692.c
+--- a/drivers/isdn/hisax/w6692.c~isdn-hisax-eliminate-many-unnecessary-references-to-cardtype
++++ a/drivers/isdn/hisax/w6692.c
+@@ -38,8 +38,6 @@ static const PCI_ENTRY id_list[] =
+ #define W6692_DYNALINK 1
+ #define W6692_USR      2
+ 
+-extern const char *CardType[];
 -
--int __devinit
-+static int __devinit
- setup_telespci(struct IsdnCard *card)
- {
- 	struct IsdnCardState *cs = card->cs;
-+	struct pci_dev *dev_tel = (void *) card->para[0];
- 	char tmp[64];
+ static const char *w6692_revision = "$Revision: 1.18.2.4 $";
  
- #ifdef __BIG_ENDIAN
-@@ -297,26 +299,24 @@ setup_telespci(struct IsdnCard *card)
- 
- 	strcpy(tmp, telespci_revision);
- 	printk(KERN_INFO "HiSax: Teles/PCI driver Rev. %s\n", HiSax_getrev(tmp));
--	if (cs->typ != ISDN_CTYPE_TELESPCI)
--		return (0);
-+	WARN_ON(cs->typ != ISDN_CTYPE_TELESPCI);
- 
--	if ((dev_tel = pci_find_device (PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120, dev_tel))) {
--		if (pci_enable_device(dev_tel))
--			return(0);
--		cs->irq = dev_tel->irq;
--		if (!cs->irq) {
--			printk(KERN_WARNING "Teles: No IRQ for PCI card found\n");
--			return(0);
--		}
--		cs->hw.teles0.membase = ioremap(pci_resource_start(dev_tel, 0),
--			PAGE_SIZE);
--		printk(KERN_INFO "Found: Zoran, base-address: 0x%llx, irq: 0x%x\n",
--			(unsigned long long)pci_resource_start(dev_tel, 0),
--			dev_tel->irq);
--	} else {
--		printk(KERN_WARNING "TelesPCI: No PCI card found\n");
-+	if (pci_enable_device(dev_tel))
-+		return(0);
-+	cs->irq = dev_tel->irq;
-+	if (!cs->irq) {
-+		printk(KERN_WARNING "Teles: No IRQ for PCI card found\n");
- 		return(0);
- 	}
-+	cs->hw.teles0.membase = ioremap(pci_resource_start(dev_tel, 0),
-+		PAGE_SIZE);
-+	if (!cs->hw.teles0.membase) {
-+		printk(KERN_WARNING "Teles: ioremap failed\n");
-+		return(0);
-+	}
-+	printk(KERN_INFO "Found: Zoran, base-address: 0x%llx, irq: 0x%x\n",
-+		(unsigned long long)pci_resource_start(dev_tel, 0),
-+		dev_tel->irq);
- 
- 	/* Initialize Zoran PCI controller */
- 	writel(0x00000000, cs->hw.teles0.membase + 0x28);
-@@ -352,3 +352,58 @@ setup_telespci(struct IsdnCard *card)
- 	}
- 	return (1);
- }
-+
-+static int __devinit teles_pci_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
-+{
-+	struct IsdnCard icard = { ISDN_CTYPE_TELESPCI, };
-+	int cardnr;
-+
-+	icard.para[0] = (unsigned long) pdev;
-+	icard.para[1] = ent->driver_data;
-+	if (!teles_protocol)
-+		icard.protocol = DEFAULT_PROTO;
-+	else
-+		icard.protocol = teles_protocol;
-+
-+	cardnr = hisax_init_hotplug(&icard, setup_telespci);
-+	if (cardnr < 0)
-+		return -ENODEV;
-+
-+	pci_set_drvdata(pdev, (void *)(unsigned long) cardnr);
-+	return 0;
-+}
-+
-+static struct pci_device_id teles_pci_table[] = {
-+	{ PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120,
-+	  PCI_ANY_ID, PCI_ANY_ID, },
-+
-+	{ }		/* terminate list */
-+};
-+
-+static struct pci_driver teles_pci_driver = {
-+	.name		= "telespci",
-+	.id_table	= teles_pci_table,
-+	.probe		= teles_pci_init_one,
-+	.remove		= hisax_pci_remove_one,
-+};
-+
-+static int __init teles_mod_init(void)
-+{
-+	return pci_register_driver(&teles_pci_driver);
-+}
-+
-+static void __exit teles_mod_exit(void)
-+{
-+	pci_unregister_driver(&teles_pci_driver);
-+}
-+
-+module_init(teles_mod_init);
-+module_exit(teles_mod_exit);
-+
-+module_param_named(protocol, teles_protocol, int, 0444);
-+MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
-+
-+MODULE_DEVICE_TABLE(pci, teles_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax Teles PCI driver");
-+MODULE_LICENSE("GPL");
+ #define DBUSY_TIMER_VALUE 80
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
