@@ -1,88 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-vdso_do_func_patch3264-must-be-__init.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:17:19 -0500
-Message-ID: <200802150720.m1F7KfMD025844@imap1.linux-foundation.org>
+Subject: - dentries-extract-common-code-to-remove-dentry-from-lru.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:17:17 -0500
+Message-ID: <200802150720.m1F7Kd8i025841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752994AbYBOH3M (ORCPT
+	by vger.kernel.org with ESMTP id S1760927AbYBOH3T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:29:12 -0500
+	Fri, 15 Feb 2008 02:29:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: vdso_do_func_patch{32,64}() must be __init
+     dentries: Extract common code to remove dentry from lru
 has been removed from the -mm tree.  Its filename was
-     powerpc-vdso_do_func_patch3264-must-be-__init.patch
+     dentries-extract-common-code-to-remove-dentry-from-lru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: vdso_do_func_patch{32,64}() must be __init
-From: Adrian Bunk <bunk@kernel.org>
+Subject: dentries: Extract common code to remove dentry from lru
+From: Christoph Lameter <clameter@sgi.com>
 
-WARNING: vmlinux.o(.text+0xe49c): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
-WARNING: vmlinux.o(.text+0xe4d0): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
-WARNING: vmlinux.o(.text+0xe56c): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
-WARNING: vmlinux.o(.text+0xe5a0): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
+Extract the common code to remove a dentry from the lru into a new function
+dentry_lru_remove().
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Two call sites used list_del() instead of list_del_init().  AFAIK the
+performance of both is the same.  dentry_lru_remove() does a list_del_init().
+
+As a result dentry->d_lru is now always empty when a dentry is freed.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vdso.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/dcache.c |   42 ++++++++++++++----------------------------
+ 1 file changed, 14 insertions(+), 28 deletions(-)
 
-diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init arch/powerpc/kernel/vdso.c
---- a/arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -336,9 +336,9 @@ static unsigned long __init find_functio
- 	return sym->st_value - VDSO32_LBASE;
+diff -puN fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru fs/dcache.c
+--- a/fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru
++++ a/fs/dcache.c
+@@ -95,6 +95,14 @@ static void d_free(struct dentry *dentry
+ 		call_rcu(&dentry->d_u.d_rcu, d_callback);
  }
  
--static int vdso_do_func_patch32(struct lib32_elfinfo *v32,
--				struct lib64_elfinfo *v64,
--				const char *orig, const char *fix)
-+static int __init vdso_do_func_patch32(struct lib32_elfinfo *v32,
-+				       struct lib64_elfinfo *v64,
-+				       const char *orig, const char *fix)
++static void dentry_lru_remove(struct dentry *dentry)
++{
++	if (!list_empty(&dentry->d_lru)) {
++		list_del_init(&dentry->d_lru);
++		dentry_stat.nr_unused--;
++	}
++}
++
+ /*
+  * Release the dentry's inode, using the filesystem
+  * d_iput() operation if defined.
+@@ -211,13 +219,7 @@ repeat:
+ unhash_it:
+ 	__d_drop(dentry);
+ kill_it:
+-	/* If dentry was on d_lru list
+-	 * delete it from there
+-	 */
+-	if (!list_empty(&dentry->d_lru)) {
+-		list_del(&dentry->d_lru);
+-		dentry_stat.nr_unused--;
+-	}
++	dentry_lru_remove(dentry);
+ 	dentry = d_kill(dentry);
+ 	if (dentry)
+ 		goto repeat;
+@@ -285,10 +287,7 @@ int d_invalidate(struct dentry * dentry)
+ static inline struct dentry * __dget_locked(struct dentry *dentry)
  {
- 	Elf32_Sym *sym32_gen, *sym32_fix;
- 
-@@ -433,9 +433,9 @@ static unsigned long __init find_functio
- #endif
+ 	atomic_inc(&dentry->d_count);
+-	if (!list_empty(&dentry->d_lru)) {
+-		dentry_stat.nr_unused--;
+-		list_del_init(&dentry->d_lru);
+-	}
++	dentry_lru_remove(dentry);
+ 	return dentry;
  }
  
--static int vdso_do_func_patch64(struct lib32_elfinfo *v32,
--				struct lib64_elfinfo *v64,
--				const char *orig, const char *fix)
-+static int __init vdso_do_func_patch64(struct lib32_elfinfo *v32,
-+				       struct lib64_elfinfo *v64,
-+				       const char *orig, const char *fix)
- {
- 	Elf64_Sym *sym64_gen, *sym64_fix;
+@@ -404,10 +403,7 @@ static void prune_one_dentry(struct dent
  
+ 		if (dentry->d_op && dentry->d_op->d_delete)
+ 			dentry->d_op->d_delete(dentry);
+-		if (!list_empty(&dentry->d_lru)) {
+-			list_del(&dentry->d_lru);
+-			dentry_stat.nr_unused--;
+-		}
++		dentry_lru_remove(dentry);
+ 		__d_drop(dentry);
+ 		dentry = d_kill(dentry);
+ 		spin_lock(&dcache_lock);
+@@ -596,10 +592,7 @@ static void shrink_dcache_for_umount_sub
+ 
+ 	/* detach this root from the system */
+ 	spin_lock(&dcache_lock);
+-	if (!list_empty(&dentry->d_lru)) {
+-		dentry_stat.nr_unused--;
+-		list_del_init(&dentry->d_lru);
+-	}
++	dentry_lru_remove(dentry);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dcache_lock);
+ 
+@@ -613,11 +606,7 @@ static void shrink_dcache_for_umount_sub
+ 			spin_lock(&dcache_lock);
+ 			list_for_each_entry(loop, &dentry->d_subdirs,
+ 					    d_u.d_child) {
+-				if (!list_empty(&loop->d_lru)) {
+-					dentry_stat.nr_unused--;
+-					list_del_init(&loop->d_lru);
+-				}
+-
++				dentry_lru_remove(loop);
+ 				__d_drop(loop);
+ 				cond_resched_lock(&dcache_lock);
+ 			}
+@@ -799,10 +788,7 @@ resume:
+ 		struct dentry *dentry = list_entry(tmp, struct dentry, d_u.d_child);
+ 		next = tmp->next;
+ 
+-		if (!list_empty(&dentry->d_lru)) {
+-			dentry_stat.nr_unused--;
+-			list_del_init(&dentry->d_lru);
+-		}
++		dentry_lru_remove(dentry);
+ 		/* 
+ 		 * move only zero ref count dentries to the end 
+ 		 * of the unused list for prune_dcache
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-net.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-sparc-fix-build.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+git-unionfs.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
 reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
