@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-debugging-for-missed-calls.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:49:34 -0800
-Message-ID: <200802152249.m1FMnZXL028215@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:49:19 -0800
+Message-ID: <200802152249.m1FMnJ1p028192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34914 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933246AbYBOW61 (ORCPT
+	by vger.kernel.org with ESMTP id S935095AbYBOW6a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:58:27 -0500
+	Fri, 15 Feb 2008 17:58:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r/o bind mounts: debugging for missed calls
+     r/o bind mounts: elevate count for xfs timestamp updates
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-debugging-for-missed-calls.patch
+     r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: debugging for missed calls
+Subject: r/o bind mounts: elevate count for xfs timestamp updates
 From: Dave Hansen <haveblue@us.ibm.com>
 
-There have been a few oopses caused by 'struct file's with NULL f_vfsmnts. 
-There was also a set of potentially missed mnt_want_write()s from
-dentry_open() calls.
+Elevate the write count during the xfs m/ctime updates.
 
-This patch provides a very simple debugging framework to catch these kinds of
-bugs.  It will WARN_ON() them, but should stop us from having any oopses or
-mnt_writer count imbalances.
+XFS has to do it's own timestamp updates due to an unfortunate VFS design
+limitation, so it will have to track writers by itself aswell.
 
-I'm quite convinced that this is a good thing because it found bugs in the
-stuff I was working on as soon as I wrote it.
+[hch: split out from the touch_atime patch as it's not related to it at all]
 
-[hch: made it conditional on a debug option.
-      But it's still a little bit too ugly]
-
-[hch: merged forced remount r/o fix from Dave and akpm's fix for the fix]
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c    |   11 +++++++--
- fs/open.c          |   12 +++++++++-
- fs/super.c         |    3 ++
- include/linux/fs.h |   49 +++++++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug  |   10 ++++++++
- 5 files changed, 82 insertions(+), 3 deletions(-)
+ fs/xfs/linux-2.6/xfs_iops.c |    7 -------
+ fs/xfs/linux-2.6/xfs_lrw.c  |    9 ++++++++-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-debugging-for-missed-calls fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-debugging-for-missed-calls
-+++ a/fs/file_table.c
-@@ -42,6 +42,7 @@ static inline void file_free_rcu(struct 
- static inline void file_free(struct file *f)
- {
- 	percpu_counter_dec(&nr_files);
-+	file_check_state(f);
- 	call_rcu(&f->f_u.fu_rcuhead, file_free_rcu);
- }
- 
-@@ -207,6 +208,7 @@ int init_file(struct file *file, struct 
- 	 * that we can do debugging checks at __fput()
+diff -puN fs/xfs/linux-2.6/xfs_iops.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates fs/xfs/linux-2.6/xfs_iops.c
+--- a/fs/xfs/linux-2.6/xfs_iops.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates
++++ a/fs/xfs/linux-2.6/xfs_iops.c
+@@ -157,13 +157,6 @@ xfs_ichgtime_fast(
  	 */
- 	if ((mode & FMODE_WRITE) && !special_file(dentry->d_inode->i_mode)) {
-+		file_take_write(file);
- 		error = mnt_want_write(mnt);
- 		WARN_ON(error);
- 	}
-@@ -237,8 +239,13 @@ void drop_file_write_access(struct file 
- 	struct inode *inode = dentry->d_inode;
+ 	ASSERT((flags & XFS_ICHGTIME_ACC) == 0);
  
- 	put_write_access(inode);
--	if (!special_file(inode->i_mode))
--		mnt_drop_write(mnt);
-+
-+	if (special_file(inode->i_mode))
-+		return;
-+	if (file_check_writeable(file) != 0)
-+		return;
-+	mnt_drop_write(mnt);
-+	file_release_write(file);
- }
- EXPORT_SYMBOL_GPL(drop_file_write_access);
+-	/*
+-	 * We're not supposed to change timestamps in readonly-mounted
+-	 * filesystems.  Throw it away if anyone asks us.
+-	 */
+-	if (unlikely(IS_RDONLY(inode)))
+-		return;
+-
+ 	if (flags & XFS_ICHGTIME_MOD) {
+ 		tvp = &inode->i_mtime;
+ 		ip->i_d.di_mtime.t_sec = (__int32_t)tvp->tv_sec;
+diff -puN fs/xfs/linux-2.6/xfs_lrw.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates fs/xfs/linux-2.6/xfs_lrw.c
+--- a/fs/xfs/linux-2.6/xfs_lrw.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates
++++ a/fs/xfs/linux-2.6/xfs_lrw.c
+@@ -51,6 +51,7 @@
+ #include "xfs_vnodeops.h"
  
-diff -puN fs/open.c~r-o-bind-mounts-debugging-for-missed-calls fs/open.c
---- a/fs/open.c~r-o-bind-mounts-debugging-for-missed-calls
-+++ a/fs/open.c
-@@ -806,6 +806,8 @@ static struct file *__dentry_open(struct
- 		error = __get_file_write_access(inode, mnt);
- 		if (error)
- 			goto cleanup_file;
-+		if (!special_file(inode->i_mode))
-+			file_take_write(f);
- 	}
+ #include <linux/capability.h>
++#include <linux/mount.h>
+ #include <linux/writeback.h>
  
- 	f->f_mapping = inode->i_mapping;
-@@ -847,8 +849,16 @@ cleanup_all:
- 	fops_put(f->f_op);
- 	if (f->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
--		if (!special_file(inode->i_mode))
-+		if (!special_file(inode->i_mode)) {
-+			/*
-+			 * We don't consider this a real
-+			 * mnt_want/drop_write() pair
-+			 * because it all happenend right
-+			 * here, so just reset the state.
-+			 */
-+			file_reset_write(f);
- 			mnt_drop_write(mnt);
-+		}
- 	}
- 	file_kill(f);
- 	f->f_path.dentry = NULL;
-diff -puN fs/super.c~r-o-bind-mounts-debugging-for-missed-calls fs/super.c
---- a/fs/super.c~r-o-bind-mounts-debugging-for-missed-calls
-+++ a/fs/super.c
-@@ -579,6 +579,9 @@ retry:
- 		if (!(f->f_mode & FMODE_WRITE))
- 			continue;
- 		f->f_mode &= ~FMODE_WRITE;
-+		if (file_check_writeable(f) != 0)
-+			continue;
-+		file_release_write(f);
- 		mnt = f->f_path.mnt;
- 		file_list_unlock();
- 		/*
-diff -puN include/linux/fs.h~r-o-bind-mounts-debugging-for-missed-calls include/linux/fs.h
---- a/include/linux/fs.h~r-o-bind-mounts-debugging-for-missed-calls
-+++ a/include/linux/fs.h
-@@ -776,6 +776,9 @@ static inline int ra_has_index(struct fi
- 		index <  ra->start + ra->size);
- }
  
-+#define FILE_MNT_WRITE_TAKEN	1
-+#define FILE_MNT_WRITE_RELEASED	2
-+
- struct file {
- 	/*
- 	 * fu_list becomes invalid after file_free is called and queued via
-@@ -810,6 +813,9 @@ struct file {
- 	spinlock_t		f_ep_lock;
- #endif /* #ifdef CONFIG_EPOLL */
- 	struct address_space	*f_mapping;
-+#ifdef CONFIG_DEBUG_WRITECOUNT
-+	unsigned long f_mnt_write_state;
-+#endif
- };
- extern spinlock_t files_lock;
- #define file_list_lock() spin_lock(&files_lock);
-@@ -818,6 +824,49 @@ extern spinlock_t files_lock;
- #define get_file(x)	atomic_inc(&(x)->f_count)
- #define file_count(x)	atomic_read(&(x)->f_count)
+@@ -679,10 +680,16 @@ start:
+ 	if (new_size > xip->i_size)
+ 		xip->i_new_size = new_size;
  
-+#ifdef CONFIG_DEBUG_WRITECOUNT
-+static inline void file_take_write(struct file *f)
-+{
-+	WARN_ON(f->f_mnt_write_state != 0);
-+	f->f_mnt_write_state = FILE_MNT_WRITE_TAKEN;
-+}
-+static inline void file_release_write(struct file *f)
-+{
-+	f->f_mnt_write_state |= FILE_MNT_WRITE_RELEASED;
-+}
-+static inline void file_reset_write(struct file *f)
-+{
-+	f->f_mnt_write_state = 0;
-+}
-+static inline void file_check_state(struct file *f)
-+{
+-	if (likely(!(ioflags & IO_INVIS))) {
 +	/*
-+	 * At this point, either both or neither of these bits
-+	 * should be set.
++	 * We're not supposed to change timestamps in readonly-mounted
++	 * filesystems.  Throw it away if anyone asks us.
 +	 */
-+	WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_TAKEN);
-+	WARN_ON(f->f_mnt_write_state == FILE_MNT_WRITE_RELEASED);
-+}
-+static inline int file_check_writeable(struct file *f)
-+{
-+	if (f->f_mnt_write_state == FILE_MNT_WRITE_TAKEN)
-+		return 0;
-+	printk(KERN_WARNING "writeable file with no "
-+			    "mnt_want_write()\n");
-+	WARN_ON(1);
-+	return -EINVAL;
-+}
-+#else /* !CONFIG_DEBUG_WRITECOUNT */
-+static inline void file_take_write(struct file *filp) {}
-+static inline void file_release_write(struct file *filp) {}
-+static inline void file_reset_write(struct file *filp) {}
-+static inline void file_check_state(struct file *filp) {}
-+static inline int file_check_writeable(struct file *filp)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_DEBUG_WRITECOUNT */
-+
- #define	MAX_NON_LFS	((1UL<<31) - 1)
++	if (likely(!(ioflags & IO_INVIS) &&
++		   !mnt_want_write(file->f_vfsmnt))) {
+ 		file_update_time(file);
+ 		xfs_ichgtime_fast(xip, inode,
+ 				  XFS_ICHGTIME_MOD | XFS_ICHGTIME_CHG);
++		mnt_drop_write(file->f_vfsmnt);
+ 	}
  
- /* Page cache limit. The filesystems should put that into their s_maxbytes 
-diff -puN lib/Kconfig.debug~r-o-bind-mounts-debugging-for-missed-calls lib/Kconfig.debug
---- a/lib/Kconfig.debug~r-o-bind-mounts-debugging-for-missed-calls
-+++ a/lib/Kconfig.debug
-@@ -434,6 +434,16 @@ config DEBUG_VM
- 
- 	  If unsure, say N.
- 
-+config DEBUG_WRITECOUNT
-+	bool "Debug filesystem writers count"
-+	depends on DEBUG_KERNEL
-+	help
-+	  Enable this to catch wrong use of the writers count in struct
-+	  vfsmount.  This will increase the size of each file struct by
-+	  32 bits.
-+
-+	  If unsure, say N.
-+
- config DEBUG_LIST
- 	bool "Debug linked list manipulation"
- 	depends on DEBUG_KERNEL
+ 	/*
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
