@@ -1,186 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - fix-up-new-filp-allocators.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:42 -0800
-Message-ID: <200802150531.m1F5VgAX021816@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:31:36 -0800
+Message-ID: <200802150531.m1F5Va6t021807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57196 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754066AbYBOFi7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752039AbYBOFnr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:38:59 -0500
+	Fri, 15 Feb 2008 00:43:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, bfields@fieldses.org, ezk@cs.sunysb.edu, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, herbert@13thfloor.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix up new filp allocators
+     r-o-bind-mounts: honor r/w changes at do_remount() time
 has been removed from the -mm tree.  Its filename was
-     fix-up-new-filp-allocators.patch
+     r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix up new filp allocators
+Subject: r-o-bind-mounts: honor r/w changes at do_remount() time
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Some new uses of get_empty_filp() have crept in, and are
-not properly taking mnt_want_write()s.  This fixes them
-up.
+Originally from: Herbert Poetzl <herbert@13thfloor.at>
 
-We really need to kill get_empty_filp().
+This is the core of the read-only bind mount patch set.
+
+Note that this does _not_ add a "ro" option directly to the bind mount
+operation.  If you require such a mount, you must first do the bind, then
+follow it up with a 'mount -o remount,ro' operation.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J Bruce Fields" <bfields@fieldses.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c    |   16 ++++++----------
- fs/file_table.c     |    6 ++++++
- fs/nfsd/nfs4state.c |    3 ++-
- fs/pipe.c           |   17 +++++++----------
- 4 files changed, 21 insertions(+), 21 deletions(-)
+ fs/namespace.c        |   46 +++++++++++++++++++++++++++++++++-------
+ include/linux/mount.h |    1 
+ 2 files changed, 40 insertions(+), 7 deletions(-)
 
-diff -puN fs/anon_inodes.c~fix-up-new-filp-allocators fs/anon_inodes.c
---- a/fs/anon_inodes.c~fix-up-new-filp-allocators
-+++ a/fs/anon_inodes.c
-@@ -81,13 +81,10 @@ int anon_inode_getfd(int *pfd, struct in
- 
- 	if (IS_ERR(anon_inode_inode))
- 		return -ENODEV;
--	file = get_empty_filp();
--	if (!file)
--		return -ENFILE;
- 
- 	error = get_unused_fd();
- 	if (error < 0)
--		goto err_put_filp;
-+		return error;
- 	fd = error;
- 
- 	/*
-@@ -114,14 +111,15 @@ int anon_inode_getfd(int *pfd, struct in
- 	dentry->d_flags &= ~DCACHE_UNHASHED;
- 	d_instantiate(dentry, anon_inode_inode);
- 
--	file->f_path.mnt = mntget(anon_inode_mnt);
--	file->f_path.dentry = dentry;
-+	error = -ENFILE;
-+	file = alloc_file(anon_inode_mnt, dentry,
-+			  FMODE_READ | FMODE_WRITE, fops);
-+	if (!file)
-+		goto err_put_unused_fd;
- 	file->f_mapping = anon_inode_inode->i_mapping;
- 
- 	file->f_pos = 0;
- 	file->f_flags = O_RDWR;
--	file->f_op = fops;
--	file->f_mode = FMODE_READ | FMODE_WRITE;
- 	file->f_version = 0;
- 	file->private_data = priv;
- 
-@@ -134,8 +132,6 @@ int anon_inode_getfd(int *pfd, struct in
- 
- err_put_unused_fd:
- 	put_unused_fd(fd);
--err_put_filp:
--	put_filp(file);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(anon_inode_getfd);
-diff -puN fs/file_table.c~fix-up-new-filp-allocators fs/file_table.c
---- a/fs/file_table.c~fix-up-new-filp-allocators
-+++ a/fs/file_table.c
-@@ -89,6 +89,12 @@ int proc_nr_files(ctl_table *table, int 
- /* Find an unused file structure and return a pointer to it.
-  * Returns NULL, if there are no more free file structures or
-  * we run out of memory.
-+ *
-+ * Be very careful using this.  You are responsible for
-+ * getting write access to any mount that you might assign
-+ * to this filp, if it is opened for write.  If this is not
-+ * done, you will imbalance int the mount's writer count
-+ * and a warning at __fput() time.
+diff -puN fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
++++ a/fs/namespace.c
+@@ -105,7 +105,11 @@ struct vfsmount *alloc_vfsmnt(const char
   */
- struct file *get_empty_filp(void)
+ int __mnt_is_readonly(struct vfsmount *mnt)
  {
-diff -puN fs/nfsd/nfs4state.c~fix-up-new-filp-allocators fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~fix-up-new-filp-allocators
-+++ a/fs/nfsd/nfs4state.c
-@@ -41,6 +41,7 @@
- #include <linux/sunrpc/svc.h>
- #include <linux/nfsd/nfsd.h>
- #include <linux/nfsd/cache.h>
-+#include <linux/file.h>
- #include <linux/mount.h>
- #include <linux/workqueue.h>
- #include <linux/smp_lock.h>
-@@ -1239,7 +1240,7 @@ static inline void
- nfs4_file_downgrade(struct file *filp, unsigned int share_access)
+-	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++	if (mnt->mnt_flags & MNT_READONLY)
++		return 1;
++	if (mnt->mnt_sb->s_flags & MS_RDONLY)
++		return 1;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__mnt_is_readonly);
+ 
+@@ -294,7 +298,7 @@ void mnt_drop_write(struct vfsmount *mnt
+ }
+ EXPORT_SYMBOL_GPL(mnt_drop_write);
+ 
+-int mnt_make_readonly(struct vfsmount *mnt)
++static int mnt_make_readonly(struct vfsmount *mnt)
  {
- 	if (share_access & NFS4_SHARE_ACCESS_WRITE) {
--		put_write_access(filp->f_path.dentry->d_inode);
-+		drop_file_write_access(filp);
- 		filp->f_mode = (filp->f_mode | FMODE_READ) & ~FMODE_WRITE;
+ 	int ret = 0;
+ 
+@@ -307,15 +311,21 @@ int mnt_make_readonly(struct vfsmount *m
+ 		goto out;
  	}
- }
-diff -puN fs/pipe.c~fix-up-new-filp-allocators fs/pipe.c
---- a/fs/pipe.c~fix-up-new-filp-allocators
-+++ a/fs/pipe.c
-@@ -957,13 +957,10 @@ struct file *create_write_pipe(void)
- 	struct dentry *dentry;
- 	struct qstr name = { .name = "" };
- 
--	f = get_empty_filp();
--	if (!f)
--		return ERR_PTR(-ENFILE);
- 	err = -ENFILE;
- 	inode = get_pipe_inode();
- 	if (!inode)
--		goto err_file;
-+		goto err;
- 
- 	err = -ENOMEM;
- 	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &name);
-@@ -978,13 +975,14 @@ struct file *create_write_pipe(void)
+ 	/*
+-	 * actually set mount's r/o flag here to make
+-	 * __mnt_is_readonly() true, which keeps anyone
+-	 * from doing a successful mnt_want_write().
++	 * nobody can do a successful mnt_want_write() with all
++	 * of the counts in MNT_DENIED_WRITE and the locks held.
  	 */
- 	dentry->d_flags &= ~DCACHE_UNHASHED;
- 	d_instantiate(dentry, inode);
--	f->f_path.mnt = mntget(pipe_mnt);
--	f->f_path.dentry = dentry;
-+
-+	f = alloc_file(pipe_mnt, dentry, FMODE_WRITE, &write_pipe_fops);
-+	err = -ENFILE;
-+	if (!f)
-+		goto err_inode;
- 	f->f_mapping = inode->i_mapping;
- 
- 	f->f_flags = O_WRONLY;
--	f->f_op = &write_pipe_fops;
--	f->f_mode = FMODE_WRITE;
- 	f->f_version = 0;
- 
- 	return f;
-@@ -992,8 +990,7 @@ struct file *create_write_pipe(void)
-  err_inode:
- 	free_pipe_info(inode);
- 	iput(inode);
-- err_file:
--	put_filp(f);
-+ err:
- 	return ERR_PTR(err);
++	if (!ret)
++		mnt->mnt_flags |= MNT_READONLY;
+ out:
+ 	mnt_unlock_cpus();
+ 	return ret;
  }
  
++static void __mnt_unmake_readonly(struct vfsmount *mnt)
++{
++	mnt->mnt_flags &= ~MNT_READONLY;
++}
++
+ int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ {
+ 	mnt->mnt_sb = sb;
+@@ -663,7 +673,7 @@ static int show_vfsmnt(struct seq_file *
+ 		seq_putc(m, '.');
+ 		mangle(m, mnt->mnt_sb->s_subtype);
+ 	}
+-	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
++	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
+ 	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
+ 		if (mnt->mnt_sb->s_flags & fs_infop->flag)
+ 			seq_puts(m, fs_infop->str);
+@@ -1254,6 +1264,23 @@ out:
+ 	return err;
+ }
+ 
++static int change_mount_flags(struct vfsmount *mnt, int ms_flags)
++{
++	int error = 0;
++	int readonly_request = 0;
++
++	if (ms_flags & MS_RDONLY)
++		readonly_request = 1;
++	if (readonly_request == __mnt_is_readonly(mnt))
++		return 0;
++
++	if (readonly_request)
++		error = mnt_make_readonly(mnt);
++	else
++		__mnt_unmake_readonly(mnt);
++	return error;
++}
++
+ /*
+  * change filesystem flags. dir should be a physical root of filesystem.
+  * If you've mounted a non-root directory somewhere and want to do remount
+@@ -1276,7 +1303,10 @@ static noinline int do_remount(struct na
+ 		return -EINVAL;
+ 
+ 	down_write(&sb->s_umount);
+-	err = do_remount_sb(sb, flags, data, 0);
++	if (flags & MS_BIND)
++		err = change_mount_flags(nd->mnt, flags);
++	else
++		err = do_remount_sb(sb, flags, data, 0);
+ 	if (!err)
+ 		nd->mnt->mnt_flags = mnt_flags;
+ 	up_write(&sb->s_umount);
+@@ -1724,6 +1754,8 @@ long do_mount(char *dev_name, char *dir_
+ 		mnt_flags |= MNT_NODIRATIME;
+ 	if (flags & MS_RELATIME)
+ 		mnt_flags |= MNT_RELATIME;
++	if (flags & MS_RDONLY)
++		mnt_flags |= MNT_READONLY;
+ 
+ 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
+ 		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT);
+diff -puN include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time include/linux/mount.h
+--- a/include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
++++ a/include/linux/mount.h
+@@ -29,6 +29,7 @@ struct mnt_namespace;
+ #define MNT_NOATIME	0x08
+ #define MNT_NODIRATIME	0x10
+ #define MNT_RELATIME	0x20
++#define MNT_READONLY	0x40	/* does the user want this to be r/o? */
+ 
+ #define MNT_SHRINKABLE	0x100
+ #define MNT_IMBALANCED_WRITE_COUNT	0x200 /* just for debugging */
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+create-file_drop_write_access-helper.patch
 fix-up-new-filp-allocators.patch
 reiser4.patch
 page-owner-tracking-leak-detector.patch
