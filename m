@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-unionfs-fixup.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:09:22 -0500
-Message-ID: <200802150712.m1F7Cjvd025432@imap1.linux-foundation.org>
+Subject: - git-x86-vs-git-kvm.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:10:53 -0500
+Message-ID: <200802150714.m1F7EGYZ025534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757578AbYBOHNP (ORCPT
+	by vger.kernel.org with ESMTP id S1759690AbYBOHOg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:13:15 -0500
+	Fri, 15 Feb 2008 02:14:36 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F7Cjvj011294
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F7EGw3011332
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 23:12:46 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 23:14:17 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-unionfs-fixup
+     git-x86-vs-git-kvm
 has been removed from the -mm tree.  Its filename was
-     git-unionfs-fixup.patch
+     git-x86-vs-git-kvm.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
+Subject: git-x86-vs-git-kvm
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/namei.h |    1 +
+ arch/x86/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-fixup
-+++ a/include/linux/namei.h
-@@ -4,6 +4,7 @@
- #include <linux/dcache.h>
- #include <linux/linkage.h>
- #include <linux/path.h>
-+#include <linux/mount.h>
+diff -puN arch/x86/Kconfig~git-x86-vs-git-kvm arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-x86-vs-git-kvm
++++ a/arch/x86/Kconfig
+@@ -23,6 +23,7 @@ config X86
+ 	select HAVE_KPROBES
+ 	select HAVE_KVM
+ 	select HAVE_FTRACE
++	select HAVE_ARCH_KGDB
  
- struct vfsmount;
- 
+ config GENERIC_LOCKBREAK
+ 	def_bool n
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +78,6 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-block-git-rejects.patch
 git-sparc64.patch
 git-unionfs.patch
-git-unionfs-fixup.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-ohci-sm501-driver-v2-fix.patch
