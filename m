@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-sched-fixup.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:09:12 -0500
-Message-ID: <200802150712.m1F7CZmp025409@imap1.linux-foundation.org>
+Subject: - git-unionfs-fixup.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:09:22 -0500
+Message-ID: <200802150712.m1F7Cjvd025432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46314 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755363AbYBOHM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757578AbYBOHNP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:12:58 -0500
+	Fri, 15 Feb 2008 02:13:15 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F7CbnM011290
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1F7Cjvj011294
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 23:12:39 -0800
+	for <mm-commits@vger.kernel.org>; Thu, 14 Feb 2008 23:12:46 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-fixup
+     git-unionfs-fixup
 has been removed from the -mm tree.  Its filename was
-     git-sched-fixup.patch
+     git-unionfs-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-fixup
+Subject: git-unionfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/namei.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/Kconfig~git-sched-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-sched-fixup
-+++ a/arch/x86/Kconfig
-@@ -22,7 +22,7 @@ config X86
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
- 	select HAVE_KVM
--
-+	select HAVE_FTRACE
+diff -puN include/linux/namei.h~git-unionfs-fixup include/linux/namei.h
+--- a/include/linux/namei.h~git-unionfs-fixup
++++ a/include/linux/namei.h
+@@ -4,6 +4,7 @@
+ #include <linux/dcache.h>
+ #include <linux/linkage.h>
+ #include <linux/path.h>
++#include <linux/mount.h>
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ struct vfsmount;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +72,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
-git-sched-fixup.patch
 scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
 scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
