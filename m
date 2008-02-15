@@ -1,80 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - smack-unlabeled-outgoing-ambient-packets.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 11:18:33 -0800
-Message-ID: <200802151918.m1FJIX5g019663@imap1.linux-foundation.org>
+Subject: + use-directly-kmalloc-and-kfree-in-init-initramfsc.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:06:20 -0800
+Message-ID: <200802152006.m1FK6KJ5021406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761381AbYBOTTM (ORCPT
+	by vger.kernel.org with ESMTP id S1754180AbYBOUGu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 14:19:12 -0500
+	Fri, 15 Feb 2008 15:06:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: casey@schaufler-ca.com, davem@davemloft.net, jmorris@namei.org, mingo@elte.hu, paul.moore@hp.com, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: thomas.petazzoni@free-electrons.com, jengelh@computergmbh.de, mpm@selenic.com
 
 
 The patch titled
-     Smack: unlabeled outgoing ambient packets
-has been removed from the -mm tree.  Its filename was
-     smack-unlabeled-outgoing-ambient-packets.patch
+     directly use kmalloc() and kfree() in init/initramfs.c
+has been added to the -mm tree.  Its filename is
+     use-directly-kmalloc-and-kfree-in-init-initramfsc.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Smack: unlabeled outgoing ambient packets
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: directly use kmalloc() and kfree() in init/initramfs.c
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-Smack uses CIPSO labeling, but allows for unlabeled packets by specifying
-an "ambient" label that is applied to incoming unlabeled packets.  Because
-the other end of the connection may dislike IP options, and ssh is one know
-application that behaves thus, it is prudent to respond in kind.  This
-patch changes the network labeling behavior such that an outgoing packet
-that would be given a CIPSO label that matches the ambient label is left
-unlabeled.
+Instead of using the malloc() and free() wrappers needed by the
+lib/inflate.c code for allocations, simply use kmalloc() and kfree() in the
+initramfs code.  This is needed for a further lib/inflate.c-related cleanup
+patch that will remove the malloc() and free() functions.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Paul Moore <paul.moore@hp.com>
+Take that opportunity to remove the useless kmalloc() return value
+cast.
+
+Based on work done by Matt Mackall.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ init/initramfs.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-unlabeled-outgoing-ambient-packets security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-unlabeled-outgoing-ambient-packets
-+++ a/security/smack/smack_lsm.c
-@@ -1276,6 +1276,12 @@ static void smack_to_secattr(char *smack
-  * Convert the outbound smack value (smk_out) to a
-  * secattr and attach it to the socket.
-  *
-+ * If the label is the ambient label do not set the secattr.
-+ * Thus, all ambient packets are unlabeled and all unlabeled
-+ * packets are ambient. This permits unlabeled responces to
-+ * unlabeled requests without knowing on a per-packet basis
-+ * if the packet was labeled ambient or was unlabeled.
-+ *
-  * Returns 0 on success or an error code
-  */
- static int smack_netlabel(struct sock *sk)
-@@ -1285,6 +1291,8 @@ static int smack_netlabel(struct sock *s
- 	int rc = 0;
+diff -puN init/initramfs.c~use-directly-kmalloc-and-kfree-in-init-initramfsc init/initramfs.c
+--- a/init/initramfs.c~use-directly-kmalloc-and-kfree-in-init-initramfsc
++++ a/init/initramfs.c
+@@ -57,7 +57,7 @@ static char __init *find_link(int major,
+ 			continue;
+ 		return (*p)->name;
+ 	}
+-	q = (struct hash *)malloc(sizeof(struct hash));
++	q = kmalloc(sizeof(struct hash), GFP_KERNEL);
+ 	if (!q)
+ 		panic("can't allocate link hash entry");
+ 	q->major = major;
+@@ -77,7 +77,7 @@ static void __init free_hash(void)
+ 		while (*p) {
+ 			q = *p;
+ 			*p = q->next;
+-			free(q);
++			kfree(q);
+ 		}
+ 	}
+ }
+@@ -445,10 +445,10 @@ static char * __init unpack_to_rootfs(ch
+ {
+ 	int written;
+ 	dry_run = check_only;
+-	header_buf = malloc(110);
+-	symlink_buf = malloc(PATH_MAX + N_ALIGN(PATH_MAX) + 1);
+-	name_buf = malloc(N_ALIGN(PATH_MAX));
+-	window = malloc(WSIZE);
++	header_buf = kmalloc(110, GFP_KERNEL);
++	symlink_buf = kmalloc(PATH_MAX + N_ALIGN(PATH_MAX) + 1, GFP_KERNEL);
++	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
++	window = kmalloc(WSIZE, GFP_KERNEL);
+ 	if (!window || !header_buf || !symlink_buf || !name_buf)
+ 		panic("can't allocate buffers");
+ 	state = Start;
+@@ -484,10 +484,10 @@ static char * __init unpack_to_rootfs(ch
+ 		buf += inptr;
+ 		len -= inptr;
+ 	}
+-	free(window);
+-	free(name_buf);
+-	free(symlink_buf);
+-	free(header_buf);
++	kfree(window);
++	kfree(name_buf);
++	kfree(symlink_buf);
++	kfree(header_buf);
+ 	return message;
+ }
  
- 	ssp = sk->sk_security;
-+	if (strncmp(ssp->smk_out, smack_net_ambient, SMK_MAXLEN) == 0)
-+		return 0;
- 	netlbl_secattr_init(&secattr);
- 	smack_to_secattr(ssp->smk_out, &secattr);
- 	if (secattr.flags != NETLBL_SECATTR_NONE)
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
 
-origin.patch
-smack-unlabeled-outgoing-ambient-packets.patch
+use-directly-kmalloc-and-kfree-in-init-initramfsc.patch
+x86-configurable-dmi-scanning-code.patch
