@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Fri, 15 Feb 2008 12:32:47 -0800
-Message-ID: <200802152032.m1FKWlJf022436@imap1.linux-foundation.org>
+Subject: + elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:35:26 -0800
+Message-ID: <200802152035.m1FKZQhj022565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754894AbYBOUdF (ORCPT
+	by vger.kernel.org with ESMTP id S1755536AbYBOUfb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 15:33:05 -0500
+	Fri, 15 Feb 2008 15:35:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: xiyou.wangcong@gmail.com
 
 
 The patch titled
-     git-x86-fixup
+     elf: fix shadowed variables in fs/binfmt_elf.c
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: elf: fix shadowed variables in fs/binfmt_elf.c
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Fix these sparse warings:
+fs/binfmt_elf.c:1749:29: warning: symbol 'tmp' shadows an earlier one
+fs/binfmt_elf.c:1734:28: originally declared here
+fs/binfmt_elf.c:2009:26: warning: symbol 'vma' shadows an earlier one
+fs/binfmt_elf.c:1892:24: originally declared here
+
+[akpm@linux-foundation.org: chose better variable name]
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-x86-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-x86-fixup
-+++ a/arch/x86/Kconfig
-@@ -23,6 +23,7 @@ config X86
- 	select HAVE_KPROBES
- 	select HAVE_KVM
- 	select HAVE_FTRACE
-+	select HAVE_ARCH_KGDB
+diff -puN fs/binfmt_elf.c~elf-fix-shadowed-variables-in-fs-binfmt_elfc fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~elf-fix-shadowed-variables-in-fs-binfmt_elfc
++++ a/fs/binfmt_elf.c
+@@ -1728,26 +1728,25 @@ static int fill_note_info(struct elfhdr 
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ 	info->thread_status_size = 0;
+ 	if (signr) {
+-		struct elf_thread_status *tmp;
++		struct elf_thread_status *ets;
+ 		rcu_read_lock();
+ 		do_each_thread(g, p)
+ 			if (current->mm == p->mm && current != p) {
+-				tmp = kzalloc(sizeof(*tmp), GFP_ATOMIC);
+-				if (!tmp) {
++				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
++				if (!ets) {
+ 					rcu_read_unlock();
+ 					return 0;
+ 				}
+-				tmp->thread = p;
+-				list_add(&tmp->list, &info->thread_list);
++				ets->thread = p;
++				list_add(&ets->list, &info->thread_list);
+ 			}
+ 		while_each_thread(g, p);
+ 		rcu_read_unlock();
+ 		list_for_each(t, &info->thread_list) {
+-			struct elf_thread_status *tmp;
+ 			int sz;
+ 
+-			tmp = list_entry(t, struct elf_thread_status, list);
+-			sz = elf_dump_thread_status(signr, tmp);
++			ets = list_entry(t, struct elf_thread_status, list);
++			sz = elf_dump_thread_status(signr, ets);
+ 			info->thread_status_size += sz;
+ 		}
+ 	}
+@@ -2003,10 +2002,10 @@ static int elf_core_dump(long signr, str
+ 
+ 		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
+ 			struct page *page;
+-			struct vm_area_struct *vma;
++			struct vm_area_struct *tmp_vma;
+ 
+ 			if (get_user_pages(current, current->mm, addr, 1, 0, 1,
+-						&page, &vma) <= 0) {
++						&page, &tmp_vma) <= 0) {
+ 				DUMP_SEEK(PAGE_SIZE);
+ 			} else {
+ 				if (page == ZERO_PAGE(0)) {
+@@ -2016,7 +2015,7 @@ static int elf_core_dump(long signr, str
+ 					}
+ 				} else {
+ 					void *kaddr;
+-					flush_cache_page(vma, addr,
++					flush_cache_page(tmp_vma, addr,
+ 							 page_to_pfn(page));
+ 					kaddr = kmap(page);
+ 					if ((size += PAGE_SIZE) > limit ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-origin.patch
-softlockup-workaround.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-git-rejects.patch
-scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-git-rejects.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-git-rejects.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+uml-fix-initrd-printk.patch
+arch-um-kernel-memc-fix-a-shadowed-variable.patch
+fix-shadowed-variables-in-kernel-posix-cpu-timersc.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
