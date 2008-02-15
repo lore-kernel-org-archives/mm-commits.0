@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:48:53 -0800
-Message-ID: <200802152248.m1FMmrfp028144@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-create-helper-to-drop-file-write-access.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:48:47 -0800
+Message-ID: <200802152248.m1FMmlVU028135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45790 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762556AbYBOWtV (ORCPT
+	by vger.kernel.org with ESMTP id S932814AbYBOWt0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:49:21 -0500
+	Fri, 15 Feb 2008 17:49:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, bfields@fieldses.org, ezk@cs.sunysb.edu, hch@lst.de, trond.myklebust@fys.uio.no, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r/o bind mounts: elevate write count for callers of vfs_mkdir()
+     r/o bind mounts: create helper to drop file write access
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch
+     r-o-bind-mounts-create-helper-to-drop-file-write-access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for callers of vfs_mkdir()
+Subject: r/o bind mounts: create helper to drop file write access
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Pretty self-explanatory.  Fits in with the rest of the series.
+If someone decides to demote a file from r/w to just r/o, they can use this
+same code as __fput().
 
-Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+NFS does just that, and will use this in the next patch.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J Bruce Fields" <bfields@fieldses.org>
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    5 +++++
- fs/nfsd/nfs4recover.c |    5 +++++
- 2 files changed, 10 insertions(+)
+ fs/file_table.c      |   19 ++++++++++++++++++-
+ fs/nfsd/nfs4state.c  |    3 ++-
+ include/linux/file.h |    1 +
+ 3 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir
-+++ a/fs/namei.c
-@@ -2083,7 +2083,12 @@ asmlinkage long sys_mkdirat(int dfd, con
+diff -puN fs/file_table.c~r-o-bind-mounts-create-helper-to-drop-file-write-access fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/fs/file_table.c
+@@ -211,6 +211,23 @@ void fput(struct file *file)
  
- 	if (!IS_POSIXACL(nd.path.dentry->d_inode))
- 		mode &= ~current->fs->umask;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_dput;
- 	error = vfs_mkdir(nd.path.dentry->d_inode, dentry, mode);
-+	mnt_drop_write(nd.path.mnt);
-+out_dput:
- 	dput(dentry);
- out_unlock:
- 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
-diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
---- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir
-+++ a/fs/nfsd/nfs4recover.c
+ EXPORT_SYMBOL(fput);
+ 
++/**
++ * drop_file_write_access - give up ability to write to a file
++ * @file: the file to which we will stop writing
++ *
++ * This is a central place which will give up the ability
++ * to write to @file, along with access to write through
++ * its vfsmount.
++ */
++void drop_file_write_access(struct file *file)
++{
++	struct dentry *dentry = file->f_path.dentry;
++	struct inode *inode = dentry->d_inode;
++
++	put_write_access(inode);
++}
++EXPORT_SYMBOL_GPL(drop_file_write_access);
++
+ /* __fput is called from task context when aio completion releases the last
+  * last use of a struct file *.  Do not use otherwise.
+  */
+@@ -237,7 +254,7 @@ void __fput(struct file *file)
+ 		cdev_put(inode->i_cdev);
+ 	fops_put(file->f_op);
+ 	if (file->f_mode & FMODE_WRITE)
+-		put_write_access(inode);
++		drop_file_write_access(file);
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+diff -puN fs/nfsd/nfs4state.c~r-o-bind-mounts-create-helper-to-drop-file-write-access fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/fs/nfsd/nfs4state.c
 @@ -41,6 +41,7 @@
- #include <linux/nfsd/xdr4.h>
- #include <linux/param.h>
- #include <linux/file.h>
-+#include <linux/mount.h>
- #include <linux/namei.h>
- #include <asm/uaccess.h>
- #include <linux/scatterlist.h>
-@@ -154,7 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
- 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
- 		goto out_put;
+ #include <linux/sunrpc/svc.h>
+ #include <linux/nfsd/nfsd.h>
+ #include <linux/nfsd/cache.h>
++#include <linux/file.h>
+ #include <linux/mount.h>
+ #include <linux/workqueue.h>
+ #include <linux/smp_lock.h>
+@@ -1239,7 +1240,7 @@ static inline void
+ nfs4_file_downgrade(struct file *filp, unsigned int share_access)
+ {
+ 	if (share_access & NFS4_SHARE_ACCESS_WRITE) {
+-		put_write_access(filp->f_path.dentry->d_inode);
++		drop_file_write_access(filp);
+ 		filp->f_mode = (filp->f_mode | FMODE_READ) & ~FMODE_WRITE;
  	}
-+	status = mnt_want_write(rec_dir.mnt);
-+	if (status)
-+		goto out_put;
- 	status = vfs_mkdir(rec_dir.path.dentry->d_inode, dentry, S_IRWXU);
-+	mnt_drop_write(rec_dir.mnt);
- out_put:
- 	dput(dentry);
- out_unlock:
+ }
+diff -puN include/linux/file.h~r-o-bind-mounts-create-helper-to-drop-file-write-access include/linux/file.h
+--- a/include/linux/file.h~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/include/linux/file.h
+@@ -61,6 +61,7 @@ extern struct kmem_cache *filp_cachep;
+ 
+ extern void __fput(struct file *);
+ extern void fput(struct file *);
++extern void drop_file_write_access(struct file *file);
+ 
+ struct file_operations;
+ struct vfsmount;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
