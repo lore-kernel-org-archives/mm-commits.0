@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-git-rejects.patch added to -mm tree
-Date: Fri, 15 Feb 2008 12:31:49 -0800
-Message-ID: <200802152031.m1FKVnaO022407@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:32:47 -0800
+Message-ID: <200802152032.m1FKWlJf022436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754680AbYBOUcK (ORCPT
+	by vger.kernel.org with ESMTP id S1754894AbYBOUdF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 15:32:10 -0500
+	Fri, 15 Feb 2008 15:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-sched-git-rejects
+     git-x86-fixup
 has been added to the -mm tree.  Its filename is
-     git-sched-git-rejects.patch
+     git-x86-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-git-rejects
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/Kconfig~git-sched-git-rejects arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-sched-git-rejects
+diff -puN arch/x86/Kconfig~git-x86-fixup arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-x86-fixup
 +++ a/arch/x86/Kconfig
-@@ -21,12 +21,8 @@ config X86
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
+@@ -23,6 +23,7 @@ config X86
  	select HAVE_KPROBES
--<<<<<<< HEAD:arch/x86/Kconfig
  	select HAVE_KVM
--
--=======
  	select HAVE_FTRACE
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
++	select HAVE_ARCH_KGDB
  
  config GENERIC_LOCKBREAK
  	def_bool n
@@ -99,6 +94,7 @@ drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 git-x86.patch
+git-x86-fixup.patch
 git-x86-git-rejects.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
