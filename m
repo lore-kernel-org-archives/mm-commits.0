@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb-add-support-for-foreign-endianness-force-it-on.patch added to -mm tree
-Date: Thu, 14 Feb 2008 22:53:10 -0800
-Message-ID: <200802150653.m1F6rAiw024634@imap1.linux-foundation.org>
+Subject: + add-rusage_thread.patch added to -mm tree
+Date: Thu, 14 Feb 2008 22:58:41 -0800
+Message-ID: <200802150658.m1F6wfDf024867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43750 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60643 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934689AbYBOGxw (ORCPT
+	by vger.kernel.org with ESMTP id S1754726AbYBOHAQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:53:52 -0500
+	Fri, 15 Feb 2008 02:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, avorontsov@ru.mvista.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: sripathik@in.ibm.com, drepper@redhat.com, mingo@elte.hu, mtk-manpages@gmx.net, roland@redhat.com
 
 
 The patch titled
-     fb-add-support-for-foreign-endianness-force-it-on
+     add RUSAGE_THREAD
 has been added to the -mm tree.  Its filename is
-     fb-add-support-for-foreign-endianness-force-it-on.patch
+     add-rusage_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb-add-support-for-foreign-endianness-force-it-on
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add RUSAGE_THREAD
+From: Sripathi Kodi <sripathik@in.ibm.com>
 
-for testing.
+Add the RUSAGE_THREAD option for the getrusage system call.  This is
+essentially Roland's patch from http://lkml.org/lkml/2008/1/18/589, but the
+line about RUSAGE_LWP line has been removed, as suggested by Ulrich and
+Christoph.
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/resource.h |    1 +
+ kernel/sys.c             |   31 ++++++++++++++++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on
-+++ a/drivers/video/Kconfig
-@@ -142,6 +142,7 @@ config FB_SYS_IMAGEBLIT
- config FB_FOREIGN_ENDIAN
- 	bool "Enable support for foreign endianness"
- 	depends on FB
-+	default y
- 	---help---
- 	  This option enables support for the framebuffers with non-native
- 	  endianness (e.g. Little-Endian framebuffer on a Big-Endian machine).
+diff -puN include/linux/resource.h~add-rusage_thread include/linux/resource.h
+--- a/include/linux/resource.h~add-rusage_thread
++++ a/include/linux/resource.h
+@@ -19,6 +19,7 @@ struct task_struct;
+ #define	RUSAGE_SELF	0
+ #define	RUSAGE_CHILDREN	(-1)
+ #define RUSAGE_BOTH	(-2)		/* sys_wait4() uses this */
++#define	RUSAGE_THREAD	1		/* only the calling thread */
+ 
+ struct	rusage {
+ 	struct timeval ru_utime;	/* user time used */
+diff -puN kernel/sys.c~add-rusage_thread kernel/sys.c
+--- a/kernel/sys.c~add-rusage_thread
++++ a/kernel/sys.c
+@@ -1539,6 +1539,19 @@ out:
+  *
+  */
+ 
++static void accumulate_thread_rusage(struct task_struct *t, struct rusage *r,
++				     cputime_t *utimep, cputime_t *stimep)
++{
++	*utimep = cputime_add(*utimep, t->utime);
++	*stimep = cputime_add(*stimep, t->stime);
++	r->ru_nvcsw += t->nvcsw;
++	r->ru_nivcsw += t->nivcsw;
++	r->ru_minflt += t->min_flt;
++	r->ru_majflt += t->maj_flt;
++	r->ru_inblock += task_io_get_inblock(t);
++	r->ru_oublock += task_io_get_oublock(t);
++}
++
+ static void k_getrusage(struct task_struct *p, int who, struct rusage *r)
+ {
+ 	struct task_struct *t;
+@@ -1548,6 +1561,11 @@ static void k_getrusage(struct task_stru
+ 	memset((char *) r, 0, sizeof *r);
+ 	utime = stime = cputime_zero;
+ 
++	if (who == RUSAGE_THREAD) {
++		accumulate_thread_rusage(p, r, &utime, &stime);
++		goto out;
++	}
++
+ 	rcu_read_lock();
+ 	if (!lock_task_sighand(p, &flags)) {
+ 		rcu_read_unlock();
+@@ -1580,14 +1598,7 @@ static void k_getrusage(struct task_stru
+ 			r->ru_oublock += p->signal->oublock;
+ 			t = p;
+ 			do {
+-				utime = cputime_add(utime, t->utime);
+-				stime = cputime_add(stime, t->stime);
+-				r->ru_nvcsw += t->nvcsw;
+-				r->ru_nivcsw += t->nivcsw;
+-				r->ru_minflt += t->min_flt;
+-				r->ru_majflt += t->maj_flt;
+-				r->ru_inblock += task_io_get_inblock(t);
+-				r->ru_oublock += task_io_get_oublock(t);
++				accumulate_thread_rusage(t, r, &utime, &stime);
+ 				t = next_thread(t);
+ 			} while (t != p);
+ 			break;
+@@ -1599,6 +1610,7 @@ static void k_getrusage(struct task_stru
+ 	unlock_task_sighand(p, &flags);
+ 	rcu_read_unlock();
+ 
++out:
+ 	cputime_to_timeval(utime, &r->ru_utime);
+ 	cputime_to_timeval(stime, &r->ru_stime);
+ }
+@@ -1612,7 +1624,8 @@ int getrusage(struct task_struct *p, int
+ 
+ asmlinkage long sys_getrusage(int who, struct rusage __user *ru)
+ {
+-	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
++	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN &&
++	    who != RUSAGE_THREAD)
+ 		return -EINVAL;
+ 	return getrusage(current, who, ru);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sripathik@in.ibm.com are
 
-origin.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-introduce-path_put.patch
-one-less-parameter-to-__d_path.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-d_path-make-d_path-use-a-struct-path.patch
-softlockup-workaround.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-fixup.patch
-git-sh.patch
-scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-x86-vs-git-kvm.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+add-rusage_thread.patch
