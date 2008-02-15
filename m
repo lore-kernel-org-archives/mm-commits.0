@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-offb-add-support-for-foreign-endianness.patch added to -mm tree
-Date: Thu, 14 Feb 2008 22:47:02 -0800
-Message-ID: <200802150647.m1F6l2QZ024369@imap1.linux-foundation.org>
+Subject: + fb-add-support-for-foreign-endianness-force-it-on.patch added to -mm tree
+Date: Thu, 14 Feb 2008 22:53:10 -0800
+Message-ID: <200802150653.m1F6rAiw024634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38206 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754159AbYBOGr7 (ORCPT
+	by vger.kernel.org with ESMTP id S934689AbYBOGxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 01:47:59 -0500
+	Fri, 15 Feb 2008 01:53:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, adaplas@pol.net, benh@kernel.crashing.org, paulus@samba.org
+Cc: akpm@linux-foundation.org, adaplas@pol.net, avorontsov@ru.mvista.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     powerpc: offb: add support for foreign endianness
+     fb-add-support-for-foreign-endianness-force-it-on
 has been added to the -mm tree.  Its filename is
-     powerpc-offb-add-support-for-foreign-endianness.patch
+     fb-add-support-for-foreign-endianness-force-it-on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: offb: add support for foreign endianness
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fb-add-support-for-foreign-endianness-force-it-on
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+for testing.
+
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/offb.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/offb.c~powerpc-offb-add-support-for-foreign-endianness drivers/video/offb.c
---- a/drivers/video/offb.c~powerpc-offb-add-support-for-foreign-endianness
-+++ a/drivers/video/offb.c
-@@ -248,7 +248,7 @@ static void __iomem *offb_map_reg(struct
- static void __init offb_init_fb(const char *name, const char *full_name,
- 				int width, int height, int depth,
- 				int pitch, unsigned long address,
--				struct device_node *dp)
-+				int foreign_endian, struct device_node *dp)
- {
- 	unsigned long res_size = pitch * height * (depth + 7) / 8;
- 	struct offb_par *par = &default_par;
-@@ -397,7 +397,7 @@ static void __init offb_init_fb(const ch
- 	info->screen_base = ioremap(address, fix->smem_len);
- 	info->par = par;
- 	info->pseudo_palette = (void *) (info + 1);
--	info->flags = FBINFO_DEFAULT;
-+	info->flags = FBINFO_DEFAULT | foreign_endian;
- 
- 	fb_alloc_cmap(&info->cmap, 256, 0);
- 
-@@ -424,6 +424,15 @@ static void __init offb_init_nodriver(st
- 	u64 rstart, address = OF_BAD_ADDR;
- 	const u32 *pp, *addrp, *up;
- 	u64 asize;
-+	int foreign_endian = 0;
-+
-+#ifdef __BIG_ENDIAN
-+	if (of_get_property(dp, "little-endian", NULL))
-+		foreign_endian = FBINFO_FOREIGN_ENDIAN;
-+#else
-+	if (of_get_property(dp, "big-endian", NULL))
-+		foreign_endian = FBINFO_FOREIGN_ENDIAN;
-+#endif
- 
- 	pp = of_get_property(dp, "linux,bootx-depth", &len);
- 	if (pp == NULL)
-@@ -509,7 +518,7 @@ static void __init offb_init_nodriver(st
- 		offb_init_fb(no_real_node ? "bootx" : dp->name,
- 			     no_real_node ? "display" : dp->full_name,
- 			     width, height, depth, pitch, address,
--			     no_real_node ? NULL : dp);
-+			     foreign_endian, no_real_node ? NULL : dp);
- 	}
- }
- 
+diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on
++++ a/drivers/video/Kconfig
+@@ -142,6 +142,7 @@ config FB_SYS_IMAGEBLIT
+ config FB_FOREIGN_ENDIAN
+ 	bool "Enable support for foreign endianness"
+ 	depends on FB
++	default y
+ 	---help---
+ 	  This option enables support for the framebuffers with non-native
+ 	  endianness (e.g. Little-Endian framebuffer on a Big-Endian machine).
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fb-add-support-for-foreign-endianness.patch
-powerpc-offb-add-support-for-foreign-endianness.patch
+origin.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+introduce-path_put.patch
+one-less-parameter-to-__d_path.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+use-struct-path-in-struct-svc_export.patch
+d_path-make-d_path-use-a-struct-path.patch
+softlockup-workaround.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-fixup.patch
+git-sh.patch
+scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-x86-vs-git-kvm.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
