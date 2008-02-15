@@ -1,134 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-do_utimes.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 21:31:16 -0800
-Message-ID: <200802150531.m1F5VGCf021762@imap1.linux-foundation.org>
+Subject: - kill-do_filp_open.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 21:30:59 -0800
+Message-ID: <200802150530.m1F5UxbZ021713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40992 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751829AbYBOFcZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750777AbYBOFgF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 00:32:25 -0500
+	Fri, 15 Feb 2008 00:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, Valdis.Kletnieks@vt.edu, akpm@linux-foundation.org, balbir@in.ibm.com, hch@infradead.org, hch@lst.de, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count for do_utimes
+     kill do_filp_open()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+     kill-do_filp_open.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count for do_utimes
+Subject: kill do_filp_open()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Now includes fix for oops seen by akpm.
+This kills off the almost empty do_filp_open().  The indenting change in
+do_sys_open() is because we would have gone over our 80 characters otherwise.
 
-"never let a libc developer write your kernel code" - hch
-
-"nor, apparently, a kernel developer" - akpm
-
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ fs/open.c |   39 ++++++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 21 deletions(-)
 
-diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
---- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
-+++ a/fs/utimes.c
-@@ -2,6 +2,7 @@
- #include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/linkage.h>
-+#include <linux/mount.h>
- #include <linux/namei.h>
- #include <linux/sched.h>
- #include <linux/stat.h>
-@@ -59,6 +60,7 @@ long do_utimes(int dfd, char __user *fil
- 	struct inode *inode;
- 	struct iattr newattrs;
- 	struct file *f = NULL;
-+	struct vfsmount *mnt;
+diff -puN fs/open.c~kill-do_filp_open fs/open.c
+--- a/fs/open.c~kill-do_filp_open
++++ a/fs/open.c
+@@ -800,17 +800,10 @@ cleanup_file:
+ 	return ERR_PTR(error);
+ }
  
- 	error = -EINVAL;
- 	if (times && (!nsec_valid(times[0].tv_nsec) ||
-@@ -79,18 +81,20 @@ long do_utimes(int dfd, char __user *fil
- 		if (!f)
- 			goto out;
- 		dentry = f->f_path.dentry;
-+		mnt = f->f_path.mnt;
- 	} else {
- 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
- 		if (error)
- 			goto out;
+-static struct file *do_filp_open(int dfd, const char *filename, int flags,
+-				 int mode)
+-{
+-	struct nameidata nd;
+-
+-	return open_namei(dfd, filename, flags, mode, &nd);
+-}
+-
+ struct file *filp_open(const char *filename, int flags, int mode)
+ {
+-	return do_filp_open(AT_FDCWD, filename, flags, mode);
++	struct nameidata nd;
++	return open_namei(AT_FDCWD, filename, flags, mode, &nd);
+ }
+ EXPORT_SYMBOL(filp_open);
  
- 		dentry = nd.dentry;
-+		mnt = nd.mnt;
- 	}
+@@ -1009,20 +1002,24 @@ long do_sys_open(int dfd, const char __u
+ 	char *tmp = getname(filename);
+ 	int fd = PTR_ERR(tmp);
  
- 	inode = dentry->d_inode;
- 
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(mnt);
-+	if (error)
- 		goto dput_and_out;
- 
- 	/* Don't worry, the checks are done in inode_change_ok() */
-@@ -98,7 +102,7 @@ long do_utimes(int dfd, char __user *fil
- 	if (times) {
- 		error = -EPERM;
-                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--                        goto dput_and_out;
-+			goto mnt_drop_write_and_out;
- 
- 		if (times[0].tv_nsec == UTIME_OMIT)
- 			newattrs.ia_valid &= ~ATTR_ATIME;
-@@ -118,22 +122,24 @@ long do_utimes(int dfd, char __user *fil
- 	} else {
- 		error = -EACCES;
-                 if (IS_IMMUTABLE(inode))
--                        goto dput_and_out;
-+			goto mnt_drop_write_and_out;
- 
- 		if (!is_owner_or_cap(inode)) {
- 			if (f) {
- 				if (!(f->f_mode & FMODE_WRITE))
--					goto dput_and_out;
-+					goto mnt_drop_write_and_out;
- 			} else {
- 				error = vfs_permission(&nd, MAY_WRITE);
- 				if (error)
--					goto dput_and_out;
-+					goto mnt_drop_write_and_out;
- 			}
+-	if (!IS_ERR(tmp)) {
+-		fd = get_unused_fd_flags(flags);
+-		if (fd >= 0) {
+-			struct file *f = do_filp_open(dfd, tmp, flags, mode);
+-			if (IS_ERR(f)) {
+-				put_unused_fd(fd);
+-				fd = PTR_ERR(f);
+-			} else {
+-				fsnotify_open(f->f_path.dentry);
+-				fd_install(fd, f);
+-			}
++	if (IS_ERR(tmp))
++		goto out;
++
++	fd = get_unused_fd_flags(flags);
++	if (fd >= 0) {
++		struct nameidata nd;
++		struct file *f = open_namei(dfd, tmp, flags, mode, &nd);
++
++		if (IS_ERR(f)) {
++			put_unused_fd(fd);
++			fd = PTR_ERR(f);
++		} else {
++			fsnotify_open(f->f_path.dentry);
++			fd_install(fd, f);
  		}
+-		putname(tmp);
  	}
- 	mutex_lock(&inode->i_mutex);
- 	error = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
-+mnt_drop_write_and_out:
-+	mnt_drop_write(mnt);
- dput_and_out:
- 	if (f)
- 		fput(f);
++	putname(tmp);
++out:
+ 	return fd;
+ }
+ 
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 enable-hotplug-memory-remove-for-ppc64.patch
+kill-do_filp_open.patch
+kill-filp_open.patch
+rename-open_namei-to-open_pathname.patch
+rename-open_namei-to-open_pathname-vs-git-acpi.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
