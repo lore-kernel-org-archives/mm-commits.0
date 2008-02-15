@@ -1,52 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - hvc_rtas_init-must-be-__init.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:17:23 -0500
-Message-ID: <200802150720.m1F7Kj7l025851@imap1.linux-foundation.org>
+Subject: - powerpc-vdso_do_func_patch3264-must-be-__init.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:17:19 -0500
+Message-ID: <200802150720.m1F7KfMD025844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36363 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbYBOH2t (ORCPT
+	by vger.kernel.org with ESMTP id S1752994AbYBOH3M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:28:49 -0500
+	Fri, 15 Feb 2008 02:29:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hvc_rtas_init() must be __init
+     powerpc: vdso_do_func_patch{32,64}() must be __init
 has been removed from the -mm tree.  Its filename was
-     hvc_rtas_init-must-be-__init.patch
+     powerpc-vdso_do_func_patch3264-must-be-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hvc_rtas_init() must be __init
+Subject: powerpc: vdso_do_func_patch{32,64}() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x2fbca8): Section mismatch in reference from the function .hvc_rtas_init() to the function .devinit.text:.hvc_alloc()
+WARNING: vmlinux.o(.text+0xe49c): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
+WARNING: vmlinux.o(.text+0xe4d0): Section mismatch in reference from the function .vdso_do_func_patch64() to the function .init.text:.find_symbol64()
+WARNING: vmlinux.o(.text+0xe56c): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
+WARNING: vmlinux.o(.text+0xe5a0): Section mismatch in reference from the function .vdso_do_func_patch32() to the function .init.text:.find_symbol32()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hvc_rtas.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/kernel/vdso.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/hvc_rtas.c~hvc_rtas_init-must-be-__init drivers/char/hvc_rtas.c
---- a/drivers/char/hvc_rtas.c~hvc_rtas_init-must-be-__init
-+++ a/drivers/char/hvc_rtas.c
-@@ -76,7 +76,7 @@ static struct hv_ops hvc_rtas_get_put_op
- 	.put_chars = hvc_rtas_write_console,
- };
+diff -puN arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~powerpc-vdso_do_func_patch3264-must-be-__init
++++ a/arch/powerpc/kernel/vdso.c
+@@ -336,9 +336,9 @@ static unsigned long __init find_functio
+ 	return sym->st_value - VDSO32_LBASE;
+ }
  
--static int hvc_rtas_init(void)
-+static int __init hvc_rtas_init(void)
+-static int vdso_do_func_patch32(struct lib32_elfinfo *v32,
+-				struct lib64_elfinfo *v64,
+-				const char *orig, const char *fix)
++static int __init vdso_do_func_patch32(struct lib32_elfinfo *v32,
++				       struct lib64_elfinfo *v64,
++				       const char *orig, const char *fix)
  {
- 	struct hvc_struct *hp;
+ 	Elf32_Sym *sym32_gen, *sym32_fix;
+ 
+@@ -433,9 +433,9 @@ static unsigned long __init find_functio
+ #endif
+ }
+ 
+-static int vdso_do_func_patch64(struct lib32_elfinfo *v32,
+-				struct lib64_elfinfo *v64,
+-				const char *orig, const char *fix)
++static int __init vdso_do_func_patch64(struct lib32_elfinfo *v32,
++				       struct lib64_elfinfo *v64,
++				       const char *orig, const char *fix)
+ {
+ 	Elf64_Sym *sym64_gen, *sym64_fix;
  
 _
 
