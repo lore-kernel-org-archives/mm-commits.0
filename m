@@ -1,75 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fix-module_update_markers-compile-error.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:16:00 -0500
-Message-ID: <200802150719.m1F7JM4Q025702@imap1.linux-foundation.org>
+Subject: - fix-compile-of-swim3-as-module.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:15:57 -0500
+Message-ID: <200802150719.m1F7JKfV025633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762607AbYBOHUR (ORCPT
+	by vger.kernel.org with ESMTP id S1762853AbYBOHUS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:20:17 -0500
+	Fri, 15 Feb 2008 02:20:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, lethal@linux-sh.org, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: tony@bakeyournoodle.com, benh@kernel.crashing.org, bzolnier@gmail.com, jwboyer@linux.vnet.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix module_update_markers() compile error
+     Fix compile of swim3 as module
 has been removed from the -mm tree.  Its filename was
-     fix-module_update_markers-compile-error.patch
+     fix-compile-of-swim3-as-module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix module_update_markers() compile error
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Fix compile of swim3 as module
+From: Tony Breeds <tony@bakeyournoodle.com>
 
-This patch fixes the following compile error with CONFIG_MODULES=n
-caused by commit fb40bd78b0f91b274879cf5db8facd1e04b6052e:
+The current pmac32_defconfig fails to build with the following error:
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/kernel/marker.c: In function `marker_update_probes':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/kernel/marker.c:627: error: too few arguments to function `module_update_markers'
+  Building modules, stage 2.
+ERROR: "check_media_bay" [drivers/block/swim3.ko] undefined!
+WARNING: modpost: Found 23 section mismatch(es).
+To see full details build your kernel with:
+'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+make[2]: *** [__modpost] Error 1
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mundt <lethal@linux-sh.org>
+This patch fixes that.
+
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/block/swim3.c        |    4 ----
+ drivers/macintosh/mediabay.c |    2 --
+ 2 files changed, 6 deletions(-)
 
-diff -puN include/linux/module.h~fix-module_update_markers-compile-error include/linux/module.h
---- a/include/linux/module.h~fix-module_update_markers-compile-error
-+++ a/include/linux/module.h
-@@ -567,8 +567,7 @@ static inline void print_modules(void)
+diff -puN drivers/block/swim3.c~fix-compile-of-swim3-as-module drivers/block/swim3.c
+--- a/drivers/block/swim3.c~fix-compile-of-swim3-as-module
++++ a/drivers/block/swim3.c
+@@ -251,10 +251,6 @@ static int floppy_release(struct inode *
+ static int floppy_check_change(struct gendisk *disk);
+ static int floppy_revalidate(struct gendisk *disk);
+ 
+-#ifndef CONFIG_PMAC_MEDIABAY
+-#define check_media_bay(which, what)	1
+-#endif
+-
+ static void swim3_select(struct floppy_state *fs, int sel)
  {
+ 	struct swim3 __iomem *sw = fs->swim3;
+diff -puN drivers/macintosh/mediabay.c~fix-compile-of-swim3-as-module drivers/macintosh/mediabay.c
+--- a/drivers/macintosh/mediabay.c~fix-compile-of-swim3-as-module
++++ a/drivers/macintosh/mediabay.c
+@@ -416,7 +416,6 @@ static void poll_media_bay(struct media_
+ 	}
  }
  
--static inline void module_update_markers(struct module *probe_module,
--		int *refcount)
-+static inline void module_update_markers(void)
+-#ifdef CONFIG_MAC_FLOPPY
+ int check_media_bay(struct device_node *which_bay, int what)
  {
+ 	int	i;
+@@ -431,7 +430,6 @@ int check_media_bay(struct device_node *
+ 	return -ENODEV;
  }
+ EXPORT_SYMBOL(check_media_bay);
+-#endif /* CONFIG_MAC_FLOPPY */
  
+ #ifdef CONFIG_BLK_DEV_IDE_PMAC
+ int check_media_bay_by_base(unsigned long base, int what)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
 origin.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-net.patch
-git-ocfs2.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-git-xtensa.patch
-sparc-fix-build.patch
-reiser4.patch
