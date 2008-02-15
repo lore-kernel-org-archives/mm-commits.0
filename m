@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-up-new-filp-allocators.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:48:39 -0800
-Message-ID: <200802152248.m1FMmdL3028121@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-do_utimes.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:49:03 -0800
+Message-ID: <200802152249.m1FMn35f028168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761536AbYBOWte (ORCPT
+	by vger.kernel.org with ESMTP id S934167AbYBOWti (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:49:34 -0500
+	Fri, 15 Feb 2008 17:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, bfields@fieldses.org, ezk@cs.sunysb.edu, hch@lst.de, trond.myklebust@fys.uio.no, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, Valdis.Kletnieks@vt.edu, balbir@in.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     fix up new filp allocators
+     r/o bind mounts: elevate write count for do_utimes()
 has been added to the -mm tree.  Its filename is
-     fix-up-new-filp-allocators.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix up new filp allocators
+Subject: r/o bind mounts: elevate write count for do_utimes()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Some new uses of get_empty_filp() have crept in, and are not properly taking
-mnt_want_write()s.  This fixes them up.
+Now includes fix for oops seen by akpm.
 
-We really need to kill get_empty_filp().
+"never let a libc developer write your kernel code" - hch
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J Bruce Fields" <bfields@fieldses.org>
+"nor, apparently, a kernel developer" - akpm
+
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c |   16 ++++++----------
- fs/file_table.c  |    6 ++++++
- fs/pipe.c        |   19 +++++++++----------
- 3 files changed, 21 insertions(+), 20 deletions(-)
+ fs/utimes.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN fs/anon_inodes.c~fix-up-new-filp-allocators fs/anon_inodes.c
---- a/fs/anon_inodes.c~fix-up-new-filp-allocators
-+++ a/fs/anon_inodes.c
-@@ -81,13 +81,10 @@ int anon_inode_getfd(int *pfd, struct in
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
++++ a/fs/utimes.c
+@@ -2,6 +2,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/sched.h>
+ #include <linux/stat.h>
+@@ -59,6 +60,7 @@ long do_utimes(int dfd, char __user *fil
+ 	struct inode *inode;
+ 	struct iattr newattrs;
+ 	struct file *f = NULL;
++	struct vfsmount *mnt;
  
- 	if (IS_ERR(anon_inode_inode))
- 		return -ENODEV;
--	file = get_empty_filp();
--	if (!file)
--		return -ENFILE;
+ 	error = -EINVAL;
+ 	if (times && (!nsec_valid(times[0].tv_nsec) ||
+@@ -79,18 +81,20 @@ long do_utimes(int dfd, char __user *fil
+ 		if (!f)
+ 			goto out;
+ 		dentry = f->f_path.dentry;
++		mnt = f->f_path.mnt;
+ 	} else {
+ 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+ 		if (error)
+ 			goto out;
  
- 	error = get_unused_fd();
- 	if (error < 0)
--		goto err_put_filp;
-+		return error;
- 	fd = error;
+ 		dentry = nd.path.dentry;
++		mnt = nd.path.mnt;
+ 	}
  
- 	/*
-@@ -114,14 +111,15 @@ int anon_inode_getfd(int *pfd, struct in
- 	dentry->d_flags &= ~DCACHE_UNHASHED;
- 	d_instantiate(dentry, anon_inode_inode);
+ 	inode = dentry->d_inode;
  
--	file->f_path.mnt = mntget(anon_inode_mnt);
--	file->f_path.dentry = dentry;
-+	error = -ENFILE;
-+	file = alloc_file(anon_inode_mnt, dentry,
-+			  FMODE_READ | FMODE_WRITE, fops);
-+	if (!file)
-+		goto err_put_unused_fd;
- 	file->f_mapping = anon_inode_inode->i_mapping;
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(mnt);
++	if (error)
+ 		goto dput_and_out;
  
- 	file->f_pos = 0;
- 	file->f_flags = O_RDWR;
--	file->f_op = fops;
--	file->f_mode = FMODE_READ | FMODE_WRITE;
- 	file->f_version = 0;
- 	file->private_data = priv;
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+@@ -98,7 +102,7 @@ long do_utimes(int dfd, char __user *fil
+ 	if (times) {
+ 		error = -EPERM;
+                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
  
-@@ -134,8 +132,6 @@ int anon_inode_getfd(int *pfd, struct in
+ 		if (times[0].tv_nsec == UTIME_OMIT)
+ 			newattrs.ia_valid &= ~ATTR_ATIME;
+@@ -118,22 +122,24 @@ long do_utimes(int dfd, char __user *fil
+ 	} else {
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
  
- err_put_unused_fd:
- 	put_unused_fd(fd);
--err_put_filp:
--	put_filp(file);
- 	return error;
- }
- EXPORT_SYMBOL_GPL(anon_inode_getfd);
-diff -puN fs/file_table.c~fix-up-new-filp-allocators fs/file_table.c
---- a/fs/file_table.c~fix-up-new-filp-allocators
-+++ a/fs/file_table.c
-@@ -83,6 +83,12 @@ int proc_nr_files(ctl_table *table, int 
- /* Find an unused file structure and return a pointer to it.
-  * Returns NULL, if there are no more free file structures or
-  * we run out of memory.
-+ *
-+ * Be very careful using this.  You are responsible for
-+ * getting write access to any mount that you might assign
-+ * to this filp, if it is opened for write.  If this is not
-+ * done, you will imbalance int the mount's writer count
-+ * and a warning at __fput() time.
-  */
- struct file *get_empty_filp(void)
- {
-diff -puN fs/pipe.c~fix-up-new-filp-allocators fs/pipe.c
---- a/fs/pipe.c~fix-up-new-filp-allocators
-+++ a/fs/pipe.c
-@@ -957,13 +957,10 @@ struct file *create_write_pipe(void)
- 	struct dentry *dentry;
- 	struct qstr name = { .name = "" };
- 
--	f = get_empty_filp();
--	if (!f)
--		return ERR_PTR(-ENFILE);
- 	err = -ENFILE;
- 	inode = get_pipe_inode();
- 	if (!inode)
--		goto err_file;
-+		goto err;
- 
- 	err = -ENOMEM;
- 	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &name);
-@@ -978,22 +975,24 @@ struct file *create_write_pipe(void)
- 	 */
- 	dentry->d_flags &= ~DCACHE_UNHASHED;
- 	d_instantiate(dentry, inode);
--	f->f_path.mnt = mntget(pipe_mnt);
--	f->f_path.dentry = dentry;
-+
-+	err = -ENFILE;
-+	f = alloc_file(pipe_mnt, dentry, FMODE_WRITE, &write_pipe_fops);
-+	if (!f)
-+		goto err_dentry;
- 	f->f_mapping = inode->i_mapping;
- 
- 	f->f_flags = O_WRONLY;
--	f->f_op = &write_pipe_fops;
--	f->f_mode = FMODE_WRITE;
- 	f->f_version = 0;
- 
- 	return f;
- 
-+ err_dentry:
-+	dput(dentry);
-  err_inode:
- 	free_pipe_info(inode);
- 	iput(inode);
-- err_file:
--	put_filp(f);
-+ err:
- 	return ERR_PTR(err);
- }
- 
+ 		if (!is_owner_or_cap(inode)) {
+ 			if (f) {
+ 				if (!(f->f_mode & FMODE_WRITE))
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			} else {
+ 				error = vfs_permission(&nd, MAY_WRITE);
+ 				if (error)
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			}
+ 		}
+ 	}
+ 	mutex_lock(&inode->i_mutex);
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
++mnt_drop_write_and_out:
++	mnt_drop_write(mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
