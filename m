@@ -1,148 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - use-struct-path-in-struct-svc_expkey.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:17:09 -0500
-Message-ID: <200802150720.m1F7KVIb025829@imap1.linux-foundation.org>
+Subject: - d_path-make-seq_path-use-a-struct-path-argument.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:17:12 -0500
+Message-ID: <200802150720.m1F7KYEw025832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41918 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763528AbYBOH3m (ORCPT
+	by vger.kernel.org with ESMTP id S1763591AbYBOH3o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:29:42 -0500
+	Fri, 15 Feb 2008 02:29:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jblunck@suse.de, bfields@fieldses.org, hch@lst.de, neilb@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use struct path in struct svc_expkey
+     d_path: Make seq_path() use a struct path argument
 has been removed from the -mm tree.  Its filename was
-     use-struct-path-in-struct-svc_expkey.patch
+     d_path-make-seq_path-use-a-struct-path-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use struct path in struct svc_expkey
+Subject: d_path: Make seq_path() use a struct path argument
 From: Jan Blunck <jblunck@suse.de>
 
-I'm embedding struct path into struct svc_expkey.
+seq_path() is always called with a dentry and a vfsmount from a struct path. 
+Make seq_path() take it directly as an argument.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c            |   30 +++++++++++++-----------------
- include/linux/nfsd/export.h |    3 +--
- 2 files changed, 14 insertions(+), 19 deletions(-)
+ drivers/md/md.c          |    3 +--
+ fs/namespace.c           |    6 ++++--
+ fs/nfsd/export.c         |    4 ++--
+ fs/proc/nommu.c          |    2 +-
+ fs/proc/task_mmu.c       |    2 +-
+ fs/seq_file.c            |    7 +++----
+ include/linux/seq_file.h |    5 ++---
+ mm/mempolicy.c           |    2 +-
+ mm/swapfile.c            |    2 +-
+ 9 files changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN fs/nfsd/export.c~use-struct-path-in-struct-svc_expkey fs/nfsd/export.c
---- a/fs/nfsd/export.c~use-struct-path-in-struct-svc_expkey
+diff -puN drivers/md/md.c~d_path-make-seq_path-use-a-struct-path-argument drivers/md/md.c
+--- a/drivers/md/md.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/drivers/md/md.c
+@@ -5197,8 +5197,7 @@ static int md_seq_show(struct seq_file *
+ 				chunk_kb ? "KB" : "B");
+ 			if (bitmap->file) {
+ 				seq_printf(seq, ", file: ");
+-				seq_path(seq, bitmap->file->f_path.mnt,
+-					 bitmap->file->f_path.dentry," \t\n");
++				seq_path(seq, &bitmap->file->f_path, " \t\n");
+ 			}
+ 
+ 			seq_printf(seq, "\n");
+diff -puN fs/namespace.c~d_path-make-seq_path-use-a-struct-path-argument fs/namespace.c
+--- a/fs/namespace.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/fs/namespace.c
+@@ -408,10 +408,11 @@ static int show_vfsmnt(struct seq_file *
+ 		{ 0, NULL }
+ 	};
+ 	struct proc_fs_info *fs_infop;
++	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+ 
+ 	mangle(m, mnt->mnt_devname ? mnt->mnt_devname : "none");
+ 	seq_putc(m, ' ');
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	seq_path(m, &mnt_path, " \t\n\\");
+ 	seq_putc(m, ' ');
+ 	mangle(m, mnt->mnt_sb->s_type->name);
+ 	if (mnt->mnt_sb->s_subtype && mnt->mnt_sb->s_subtype[0]) {
+@@ -443,6 +444,7 @@ struct seq_operations mounts_op = {
+ static int show_vfsstat(struct seq_file *m, void *v)
+ {
+ 	struct vfsmount *mnt = list_entry(v, struct vfsmount, mnt_list);
++	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+ 	int err = 0;
+ 
+ 	/* device */
+@@ -454,7 +456,7 @@ static int show_vfsstat(struct seq_file 
+ 
+ 	/* mount point */
+ 	seq_puts(m, " mounted on ");
+-	seq_path(m, mnt, mnt->mnt_root, " \t\n\\");
++	seq_path(m, &mnt_path, " \t\n\\");
+ 	seq_putc(m, ' ');
+ 
+ 	/* file system type */
+diff -puN fs/nfsd/export.c~d_path-make-seq_path-use-a-struct-path-argument fs/nfsd/export.c
+--- a/fs/nfsd/export.c~d_path-make-seq_path-use-a-struct-path-argument
 +++ a/fs/nfsd/export.c
-@@ -63,10 +63,8 @@ static void expkey_put(struct kref *ref)
- 	struct svc_expkey *key = container_of(ref, struct svc_expkey, h.ref);
- 
- 	if (test_bit(CACHE_VALID, &key->h.flags) &&
--	    !test_bit(CACHE_NEGATIVE, &key->h.flags)) {
--		dput(key->ek_dentry);
--		mntput(key->ek_mnt);
--	}
-+	    !test_bit(CACHE_NEGATIVE, &key->h.flags))
-+		path_put(&key->ek_path);
- 	auth_domain_put(key->ek_client);
- 	kfree(key);
- }
-@@ -169,9 +167,8 @@ static int expkey_parse(struct cache_det
- 			goto out;
- 
- 		dprintk("Found the path %s\n", buf);
--		key.ek_mnt = nd.path.mnt;
--		key.ek_dentry = nd.path.dentry;
--		
-+		key.ek_path = nd.path;
-+
- 		ek = svc_expkey_update(&key, ek);
- 		if (ek)
- 			cache_put(&ek->h, &svc_expkey_cache);
-@@ -206,7 +203,7 @@ static int expkey_show(struct seq_file *
+@@ -203,7 +203,7 @@ static int expkey_show(struct seq_file *
  	if (test_bit(CACHE_VALID, &h->flags) && 
  	    !test_bit(CACHE_NEGATIVE, &h->flags)) {
  		seq_printf(m, " ");
--		seq_path(m, ek->ek_mnt, ek->ek_dentry, "\\ \t\n");
-+		seq_path(m, ek->ek_path.mnt, ek->ek_path.dentry, "\\ \t\n");
+-		seq_path(m, ek->ek_path.mnt, ek->ek_path.dentry, "\\ \t\n");
++		seq_path(m, &ek->ek_path, "\\ \t\n");
  	}
  	seq_printf(m, "\n");
  	return 0;
-@@ -243,8 +240,8 @@ static inline void expkey_update(struct 
- 	struct svc_expkey *new = container_of(cnew, struct svc_expkey, h);
- 	struct svc_expkey *item = container_of(citem, struct svc_expkey, h);
+@@ -649,7 +649,7 @@ static int svc_export_show(struct seq_fi
+ 		return 0;
+ 	}
+ 	exp = container_of(h, struct svc_export, h);
+-	seq_path(m, exp->ex_path.mnt, exp->ex_path.dentry, " \t\n\\");
++	seq_path(m, &exp->ex_path, " \t\n\\");
+ 	seq_putc(m, '\t');
+ 	seq_escape(m, exp->ex_client->name, " \t\n\\");
+ 	seq_putc(m, '(');
+diff -puN fs/proc/nommu.c~d_path-make-seq_path-use-a-struct-path-argument fs/proc/nommu.c
+--- a/fs/proc/nommu.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/fs/proc/nommu.c
+@@ -67,7 +67,7 @@ int nommu_vma_show(struct seq_file *m, s
+ 		if (len < 1)
+ 			len = 1;
+ 		seq_printf(m, "%*c", len, ' ');
+-		seq_path(m, file->f_path.mnt, file->f_path.dentry, "");
++		seq_path(m, &file->f_path, "");
+ 	}
  
--	new->ek_mnt = mntget(item->ek_mnt);
--	new->ek_dentry = dget(item->ek_dentry);
-+	new->ek_path = item->ek_path;
-+	path_get(&item->ek_path);
+ 	seq_putc(m, '\n');
+diff -puN fs/proc/task_mmu.c~d_path-make-seq_path-use-a-struct-path-argument fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/fs/proc/task_mmu.c
+@@ -271,7 +271,7 @@ static int show_map(struct seq_file *m, 
+ 	 */
+ 	if (file) {
+ 		pad_len_spaces(m, len);
+-		seq_path(m, file->f_path.mnt, file->f_path.dentry, "\n");
++		seq_path(m, &file->f_path, "\n");
+ 	} else {
+ 		const char *name = arch_vma_name(vma);
+ 		if (!name) {
+diff -puN fs/seq_file.c~d_path-make-seq_path-use-a-struct-path-argument fs/seq_file.c
+--- a/fs/seq_file.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/fs/seq_file.c
+@@ -342,13 +342,12 @@ int seq_printf(struct seq_file *m, const
  }
+ EXPORT_SYMBOL(seq_printf);
  
- static struct cache_head *expkey_alloc(void)
-@@ -814,8 +811,7 @@ static int exp_set_key(svc_client *clp, 
- 	key.ek_client = clp;
- 	key.ek_fsidtype = fsid_type;
- 	memcpy(key.ek_fsid, fsidv, key_len(fsid_type));
--	key.ek_mnt = exp->ex_path.mnt;
--	key.ek_dentry = exp->ex_path.dentry;
-+	key.ek_path = exp->ex_path;
- 	key.h.expiry_time = NEVER;
- 	key.h.flags = 0;
- 
-@@ -864,7 +860,7 @@ static svc_export *exp_get_by_name(svc_c
+-int seq_path(struct seq_file *m,
+-	     struct vfsmount *mnt, struct dentry *dentry,
+-	     char *esc)
++int seq_path(struct seq_file *m, struct path *path, char *esc)
  {
- 	struct svc_export *exp, key;
- 	int err;
--	
-+
- 	if (!clp)
- 		return ERR_PTR(-ENOENT);
+ 	if (m->count < m->size) {
+ 		char *s = m->buf + m->count;
+-		char *p = d_path(dentry, mnt, s, m->size - m->count);
++		char *p = d_path(path->dentry, path->mnt, s,
++				 m->size - m->count);
+ 		if (!IS_ERR(p)) {
+ 			while (s <= p) {
+ 				char c = *p++;
+diff -puN include/linux/seq_file.h~d_path-make-seq_path-use-a-struct-path-argument include/linux/seq_file.h
+--- a/include/linux/seq_file.h~d_path-make-seq_path-use-a-struct-path-argument
++++ a/include/linux/seq_file.h
+@@ -8,8 +8,7 @@
  
-@@ -1036,9 +1032,9 @@ exp_export(struct nfsctl_export *nxp)
- 	/* must make sure there won't be an ex_fsid clash */
- 	if ((nxp->ex_flags & NFSEXP_FSID) &&
- 	    (!IS_ERR(fsid_key = exp_get_fsid_key(clp, nxp->ex_dev))) &&
--	    fsid_key->ek_mnt &&
--	    (fsid_key->ek_mnt != nd.path.mnt ||
--	     fsid_key->ek_dentry != nd.path.dentry))
-+	    fsid_key->ek_path.mnt &&
-+	    (fsid_key->ek_path.mnt != nd.path.mnt ||
-+	     fsid_key->ek_path.dentry != nd.path.dentry))
- 		goto finish;
+ struct seq_operations;
+ struct file;
+-struct vfsmount;
+-struct dentry;
++struct path;
+ struct inode;
  
- 	if (!IS_ERR(exp)) {
-@@ -1218,7 +1214,7 @@ static struct svc_export *exp_find(struc
- 	if (IS_ERR(ek))
- 		return ERR_CAST(ek);
+ struct seq_file {
+@@ -42,7 +41,7 @@ int seq_puts(struct seq_file *m, const c
+ int seq_printf(struct seq_file *, const char *, ...)
+ 	__attribute__ ((format (printf,2,3)));
  
--	exp = exp_get_by_name(clp, ek->ek_mnt, ek->ek_dentry, reqp);
-+	exp = exp_get_by_name(clp, ek->ek_path.mnt, ek->ek_path.dentry, reqp);
- 	cache_put(&ek->h, &svc_expkey_cache);
+-int seq_path(struct seq_file *, struct vfsmount *, struct dentry *, char *);
++int seq_path(struct seq_file *, struct path *, char *);
  
- 	if (IS_ERR(exp))
-diff -puN include/linux/nfsd/export.h~use-struct-path-in-struct-svc_expkey include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~use-struct-path-in-struct-svc_expkey
-+++ a/include/linux/nfsd/export.h
-@@ -106,8 +106,7 @@ struct svc_expkey {
- 	int			ek_fsidtype;
- 	u32			ek_fsid[6];
+ int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
+ int single_release(struct inode *, struct file *);
+diff -puN mm/mempolicy.c~d_path-make-seq_path-use-a-struct-path-argument mm/mempolicy.c
+--- a/mm/mempolicy.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/mm/mempolicy.c
+@@ -1996,7 +1996,7 @@ int show_numa_map(struct seq_file *m, vo
  
--	struct vfsmount *	ek_mnt;
--	struct dentry *		ek_dentry;
-+	struct path		ek_path;
- };
+ 	if (file) {
+ 		seq_printf(m, " file=");
+-		seq_path(m, file->f_path.mnt, file->f_path.dentry, "\n\t= ");
++		seq_path(m, &file->f_path, "\n\t= ");
+ 	} else if (vma->vm_start <= mm->brk && vma->vm_end >= mm->start_brk) {
+ 		seq_printf(m, " heap");
+ 	} else if (vma->vm_start <= mm->start_stack &&
+diff -puN mm/swapfile.c~d_path-make-seq_path-use-a-struct-path-argument mm/swapfile.c
+--- a/mm/swapfile.c~d_path-make-seq_path-use-a-struct-path-argument
++++ a/mm/swapfile.c
+@@ -1394,7 +1394,7 @@ static int swap_show(struct seq_file *sw
+ 	}
  
- #define EX_SECURE(exp)		(!((exp)->ex_flags & NFSEXP_INSECURE_PORT))
+ 	file = ptr->swap_file;
+-	len = seq_path(swap, file->f_path.mnt, file->f_path.dentry, " \t\n\\");
++	len = seq_path(swap, &file->f_path, " \t\n\\");
+ 	seq_printf(swap, "%*s%s\t%u\t%u\t%d\n",
+ 		       len < 40 ? 40 - len : 1, " ",
+ 		       S_ISBLK(file->f_path.dentry->d_inode->i_mode) ?
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
