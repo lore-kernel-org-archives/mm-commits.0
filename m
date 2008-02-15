@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-ncp_ioctl.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:48:59 -0800
-Message-ID: <200802152248.m1FMmxRG028156@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-drop-write-during-emergency-remount.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:48:49 -0800
+Message-ID: <200802152248.m1FMmnQ9028138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48929 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934142AbYBOWtT (ORCPT
+	by vger.kernel.org with ESMTP id S1764179AbYBOWtU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:49:19 -0500
+	Fri, 15 Feb 2008 17:49:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r/o bind mounts: elevate write count for ncp_ioctl()
+     r/o bind mounts: drop write during emergency remount
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-ncp_ioctl.patch
+     r-o-bind-mounts-drop-write-during-emergency-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for ncp_ioctl()
+Subject: r/o bind mounts: drop write during emergency remount
 From: Dave Hansen <haveblue@us.ibm.com>
 
+The emergency remount code forcibly removes FMODE_WRITE from filps.  The r/o
+bind mount code notices that this was done without a proper mnt_drop_write()
+and properly gives a warning.
+
+This patch does a mnt_drop_write() to keep everything balanced.
+
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   54 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 53 insertions(+), 1 deletion(-)
+ fs/super.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
- }
- #endif /* CONFIG_NCPFS_NLS */
+diff -puN fs/super.c~r-o-bind-mounts-drop-write-during-emergency-remount fs/super.c
+--- a/fs/super.c~r-o-bind-mounts-drop-write-during-emergency-remount
++++ a/fs/super.c
+@@ -37,6 +37,7 @@
+ #include <linux/idr.h>
+ #include <linux/kobject.h>
+ #include <linux/mutex.h>
++#include <linux/file.h>
+ #include <asm/uaccess.h>
  
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
+ 
+@@ -567,10 +568,25 @@ static void mark_files_ro(struct super_b
  {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -822,6 +823,57 @@ outrel:			
- 	return -EINVAL;
- }
+ 	struct file *f;
  
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+		return 1;
-+	}
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
++retry:
+ 	file_list_lock();
+ 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
+-		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
+-			f->f_mode &= ~FMODE_WRITE;
++		struct vfsmount *mnt;
++		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
++		       continue;
++		if (!file_count(f))
++			continue;
++		if (!(f->f_mode & FMODE_WRITE))
++			continue;
++		f->f_mode &= ~FMODE_WRITE;
++		mnt = f->f_path.mnt;
++		file_list_unlock();
 +		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
++		 * This can sleep, so we can't hold
++		 * the file_list_lock() spinlock.
 +		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
++		mnt_drop_write(mnt);
++		goto retry;
+ 	}
+ 	file_list_unlock();
+ }
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
