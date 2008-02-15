@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-drop-write-during-emergency-remount.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:48:49 -0800
-Message-ID: <200802152248.m1FMmnQ9028138@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:48:53 -0800
+Message-ID: <200802152248.m1FMmrfp028144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48929 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764179AbYBOWtU (ORCPT
+	by vger.kernel.org with ESMTP id S1762556AbYBOWtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:49:20 -0500
+	Fri, 15 Feb 2008 17:49:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r/o bind mounts: drop write during emergency remount
+     r/o bind mounts: elevate write count for callers of vfs_mkdir()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-drop-write-during-emergency-remount.patch
+     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: drop write during emergency remount
+Subject: r/o bind mounts: elevate write count for callers of vfs_mkdir()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-The emergency remount code forcibly removes FMODE_WRITE from filps.  The r/o
-bind mount code notices that this was done without a proper mnt_drop_write()
-and properly gives a warning.
-
-This patch does a mnt_drop_write() to keep everything balanced.
+Pretty self-explanatory.  Fits in with the rest of the series.
 
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN fs/super.c~r-o-bind-mounts-drop-write-during-emergency-remount fs/super.c
---- a/fs/super.c~r-o-bind-mounts-drop-write-during-emergency-remount
-+++ a/fs/super.c
-@@ -37,6 +37,7 @@
- #include <linux/idr.h>
- #include <linux/kobject.h>
- #include <linux/mutex.h>
-+#include <linux/file.h>
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir
++++ a/fs/namei.c
+@@ -2083,7 +2083,12 @@ asmlinkage long sys_mkdirat(int dfd, con
+ 
+ 	if (!IS_POSIXACL(nd.path.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
++	error = mnt_want_write(nd.path.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_mkdir(nd.path.dentry->d_inode, dentry, mode);
++	mnt_drop_write(nd.path.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -41,6 +41,7 @@
+ #include <linux/nfsd/xdr4.h>
+ #include <linux/param.h>
+ #include <linux/file.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
  #include <asm/uaccess.h>
- 
- 
-@@ -567,10 +568,25 @@ static void mark_files_ro(struct super_b
- {
- 	struct file *f;
- 
-+retry:
- 	file_list_lock();
- 	list_for_each_entry(f, &sb->s_files, f_u.fu_list) {
--		if (S_ISREG(f->f_path.dentry->d_inode->i_mode) && file_count(f))
--			f->f_mode &= ~FMODE_WRITE;
-+		struct vfsmount *mnt;
-+		if (!S_ISREG(f->f_path.dentry->d_inode->i_mode))
-+		       continue;
-+		if (!file_count(f))
-+			continue;
-+		if (!(f->f_mode & FMODE_WRITE))
-+			continue;
-+		f->f_mode &= ~FMODE_WRITE;
-+		mnt = f->f_path.mnt;
-+		file_list_unlock();
-+		/*
-+		 * This can sleep, so we can't hold
-+		 * the file_list_lock() spinlock.
-+		 */
-+		mnt_drop_write(mnt);
-+		goto retry;
+ #include <linux/scatterlist.h>
+@@ -154,7 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
  	}
- 	file_list_unlock();
- }
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.path.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
