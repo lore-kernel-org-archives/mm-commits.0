@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-fix-sparse-warning-in-libatah.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:57:19 -0800
-Message-ID: <200802152157.m1FLvJcl025943@imap1.linux-foundation.org>
+Subject: + rcu_batches_completed-prototype-cleanup.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:06:53 -0800
+Message-ID: <200802152206.m1FM6rhZ026303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755338AbYBOV5X (ORCPT
+	by vger.kernel.org with ESMTP id S1759149AbYBOWIe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:57:23 -0500
+	Fri, 15 Feb 2008 17:08:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: rostedt@goodmis.org, paulmck@us.ibm.com, srostedt@redhat.com
 
 
 The patch titled
-     ata: fix sparse warning in libata.h
+     rcu_batches_completed() prototype cleanup
 has been added to the -mm tree.  Its filename is
-     ata-fix-sparse-warning-in-libatah.patch
+     rcu_batches_completed-prototype-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ata: fix sparse warning in libata.h
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: rcu_batches_completed() prototype cleanup
+From: Steven Rostedt <rostedt@goodmis.org>
 
-Avoids lots of these, also is more readable.
-include/linux/libata.h:1210:13: warning: potentially expensive pointer subtraction
+rcu_batches_completed and rcu_patches_completed_bh are both declared in
+rcuclassic.h and rcupreempt.h.  This patch removes the extra prototypes for
+them from rcupdate.h.
 
-Change the subtraction to addition on the other side of the comparison.
+rcu_batches_completed_bh is defined as a static inline in the rcupreempt.h
+header file.  Trying to export this as EXPORT_SYMBOL_GPL causes section
+problems with the powerpc compiler.  There's no need to export a static
+inlined function.
 
-Thanks to Christer Weinigel for the suggestion.
+Modules must be compiled with the same type of RCU implementation as the
+kernel they are for.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Acked-by: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/libata.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rcupdate.h |    2 --
+ kernel/rcupreempt.c      |    2 --
+ 2 files changed, 4 deletions(-)
 
-diff -puN include/linux/libata.h~ata-fix-sparse-warning-in-libatah include/linux/libata.h
---- a/include/linux/libata.h~ata-fix-sparse-warning-in-libatah
-+++ a/include/linux/libata.h
-@@ -1207,7 +1207,7 @@ static inline struct ata_link *ata_port_
- 		return ap->pmp_link;
- 	}
+diff -puN include/linux/rcupdate.h~rcu_batches_completed-prototype-cleanup include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~rcu_batches_completed-prototype-cleanup
++++ a/include/linux/rcupdate.h
+@@ -261,8 +261,6 @@ extern void call_rcu_bh(struct rcu_head 
+ /* Exported common interfaces */
+ extern void synchronize_rcu(void);
+ extern void rcu_barrier(void);
+-extern long rcu_batches_completed(void);
+-extern long rcu_batches_completed_bh(void);
  
--	if (++link - ap->pmp_link < ap->nr_pmp_links)
-+	if (++link < ap->nr_pmp_links + ap->pmp_link)
- 		return link;
- 	return NULL;
+ /* Internal to kernel */
+ extern void rcu_init(void);
+diff -puN kernel/rcupreempt.c~rcu_batches_completed-prototype-cleanup kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~rcu_batches_completed-prototype-cleanup
++++ a/kernel/rcupreempt.c
+@@ -217,8 +217,6 @@ long rcu_batches_completed(void)
  }
+ EXPORT_SYMBOL_GPL(rcu_batches_completed);
+ 
+-EXPORT_SYMBOL_GPL(rcu_batches_completed_bh);
+-
+ void __rcu_read_lock(void)
+ {
+ 	int idx;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-ubi-fix-sparse-errors-in-ubih.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+git-sched.patch
+git-x86.patch
+rcu_batches_completed-prototype-cleanup.patch
