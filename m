@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-directly-kmalloc-and-kfree-in-init-initramfsc.patch added to -mm tree
-Date: Fri, 15 Feb 2008 12:06:20 -0800
-Message-ID: <200802152006.m1FK6KJ5021406@imap1.linux-foundation.org>
+Subject: + inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:11:34 -0800
+Message-ID: <200802152011.m1FKBYtN021562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180AbYBOUGu (ORCPT
+	by vger.kernel.org with ESMTP id S1753696AbYBOUMH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 15:06:50 -0500
+	Fri, 15 Feb 2008 15:12:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas.petazzoni@free-electrons.com, jengelh@computergmbh.de, mpm@selenic.com
+Cc: akpm@linux-foundation.org, thomas.petazzoni@free-electrons.com
 
 
 The patch titled
-     directly use kmalloc() and kfree() in init/initramfs.c
+     inflate-refactor-inflate-malloc-code-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     use-directly-kmalloc-and-kfree-in-init-initramfsc.patch
+     inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: directly use kmalloc() and kfree() in init/initramfs.c
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: inflate-refactor-inflate-malloc-code-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Instead of using the malloc() and free() wrappers needed by the
-lib/inflate.c code for allocations, simply use kmalloc() and kfree() in the
-initramfs code.  This is needed for a further lib/inflate.c-related cleanup
-patch that will remove the malloc() and free() functions.
+ERROR: need spaces around that '<' (ctx:WxV)
+#775: FILE: lib/inflate.c:245:
++       if (size <0)
+                 ^
 
-Take that opportunity to remove the useless kmalloc() return value
-cast.
+ERROR: use tabs not spaces
+#776: FILE: lib/inflate.c:246:
++               error("Malloc error");$
 
-Based on work done by Matt Mackall.
+ERROR: use tabs not spaces
+#778: FILE: lib/inflate.c:248:
++               malloc_ptr = free_mem_ptr;$
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
+ERROR: use tabs not spaces
+#786: FILE: lib/inflate.c:256:
++               error("Out of memory");$
+
+ERROR: use tabs not spaces
+#796: FILE: lib/inflate.c:266:
++               malloc_ptr = free_mem_ptr;$
+
+total: 5 errors, 0 warnings, 705 lines checked
+
+./patches/inflate-refactor-inflate-malloc-code.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ lib/inflate.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN init/initramfs.c~use-directly-kmalloc-and-kfree-in-init-initramfsc init/initramfs.c
---- a/init/initramfs.c~use-directly-kmalloc-and-kfree-in-init-initramfsc
-+++ a/init/initramfs.c
-@@ -57,7 +57,7 @@ static char __init *find_link(int major,
- 			continue;
- 		return (*p)->name;
- 	}
--	q = (struct hash *)malloc(sizeof(struct hash));
-+	q = kmalloc(sizeof(struct hash), GFP_KERNEL);
- 	if (!q)
- 		panic("can't allocate link hash entry");
- 	q->major = major;
-@@ -77,7 +77,7 @@ static void __init free_hash(void)
- 		while (*p) {
- 			q = *p;
- 			*p = q->next;
--			free(q);
-+			kfree(q);
- 		}
- 	}
- }
-@@ -445,10 +445,10 @@ static char * __init unpack_to_rootfs(ch
+diff -puN lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes lib/inflate.c
+--- a/lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
++++ a/lib/inflate.c
+@@ -242,10 +242,10 @@ static void *malloc(int size)
  {
- 	int written;
- 	dry_run = check_only;
--	header_buf = malloc(110);
--	symlink_buf = malloc(PATH_MAX + N_ALIGN(PATH_MAX) + 1);
--	name_buf = malloc(N_ALIGN(PATH_MAX));
--	window = malloc(WSIZE);
-+	header_buf = kmalloc(110, GFP_KERNEL);
-+	symlink_buf = kmalloc(PATH_MAX + N_ALIGN(PATH_MAX) + 1, GFP_KERNEL);
-+	name_buf = kmalloc(N_ALIGN(PATH_MAX), GFP_KERNEL);
-+	window = kmalloc(WSIZE, GFP_KERNEL);
- 	if (!window || !header_buf || !symlink_buf || !name_buf)
- 		panic("can't allocate buffers");
- 	state = Start;
-@@ -484,10 +484,10 @@ static char * __init unpack_to_rootfs(ch
- 		buf += inptr;
- 		len -= inptr;
- 	}
--	free(window);
--	free(name_buf);
--	free(symlink_buf);
--	free(header_buf);
-+	kfree(window);
-+	kfree(name_buf);
-+	kfree(symlink_buf);
-+	kfree(header_buf);
- 	return message;
- }
+        void *p;
  
+-       if (size <0)
+-               error("Malloc error");
++       if (size < 0)
++		error("Malloc error");
+        if (!malloc_ptr)
+-               malloc_ptr = free_mem_ptr;
++		malloc_ptr = free_mem_ptr;
+ 
+        malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
+ 
+@@ -253,7 +253,7 @@ static void *malloc(int size)
+        malloc_ptr += size;
+ 
+        if (malloc_ptr >= free_mem_end_ptr)
+-               error("Out of memory");
++		error("Out of memory");
+ 
+        malloc_count++;
+        return p;
+@@ -263,7 +263,7 @@ static void free(void *where)
+ {
+        malloc_count--;
+        if (!malloc_count)
+-               malloc_ptr = free_mem_ptr;
++		malloc_ptr = free_mem_ptr;
+ }
+ #else
+ #define malloc(a) kmalloc(a, GFP_KERNEL)
 _
 
-Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-use-directly-kmalloc-and-kfree-in-init-initramfsc.patch
-x86-configurable-dmi-scanning-code.patch
+origin.patch
+softlockup-workaround.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-git-rejects.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-x86.patch
+git-x86-git-rejects.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
