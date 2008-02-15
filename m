@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:25:46 -0800
-Message-ID: <200802152125.m1FLPkKh024763@imap1.linux-foundation.org>
+Subject: + convert-wpa_sem-in-a-mutex.patch added to -mm tree
+Date: Fri, 15 Feb 2008 13:24:32 -0800
+Message-ID: <200802152124.m1FLOWVs024708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49601 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756840AbYBOV0X (ORCPT
+	by vger.kernel.org with ESMTP id S1760556AbYBOV0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:26:23 -0500
+	Fri, 15 Feb 2008 16:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, VANDROVE@vc.cvut.cz
+Cc: matthias@kaehlcke.net, flamingice@sourmilk.net, linville@tuxdriver.com
 
 
 The patch titled
-     ncpfs: fix sparse warning in ncpsign_kernel.c
+     prism54: convert wpa_sem in a mutex
 has been added to the -mm tree.  Its filename is
-     ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+     convert-wpa_sem-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: fix sparse warning in ncpsign_kernel.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: prism54: convert wpa_sem in a mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-We're casting anyway, might as well cast to the correct sign.
-Specific to i386 (ifdef __i386__)
+The semaphore wpa_sem is used as mutex, convert it to the mutex API
 
-fs/ncpfs/ncpsign_kernel.c:58:23: warning: incorrect type in initializer (different signedness)
-fs/ncpfs/ncpsign_kernel.c:58:23:    expected unsigned int *data2
-fs/ncpfs/ncpsign_kernel.c:58:23:    got int *<noident>
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ncpsign_kernel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/prism54/isl_ioctl.c  |   10 +++++-----
+ drivers/net/wireless/prism54/islpci_dev.h |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ncpfs/ncpsign_kernel.c~ncpfs-fix-sparse-warning-in-ncpsign_kernelc fs/ncpfs/ncpsign_kernel.c
---- a/fs/ncpfs/ncpsign_kernel.c~ncpfs-fix-sparse-warning-in-ncpsign_kernelc
-+++ a/fs/ncpfs/ncpsign_kernel.c
-@@ -55,7 +55,7 @@ static void nwsign(char *r_data1, char *
-  unsigned int w0,w1,w2,w3;
-  static int rbit[4]={0, 2, 1, 3};
- #ifdef __i386__
-- unsigned int *data2=(int *)r_data2;
-+ unsigned int *data2=(unsigned int *)r_data2;
- #else
-  unsigned int data2[16];
-  for (i=0;i<16;i++)
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-wpa_sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-wpa_sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/isl_ioctl.c
+@@ -2114,7 +2114,7 @@ prism54_wpa_bss_ie_add(islpci_private *p
+ 	if (wpa_ie_len > MAX_WPA_IE_LEN)
+ 		wpa_ie_len = MAX_WPA_IE_LEN;
+ 
+-	down(&priv->wpa_sem);
++	mutex_lock(&priv->wpa_lock);
+ 
+ 	/* try to use existing entry */
+ 	list_for_each(ptr, &priv->bss_wpa_list) {
+@@ -2165,7 +2165,7 @@ prism54_wpa_bss_ie_add(islpci_private *p
+ 		kfree(bss);
+ 	}
+ 
+-	up(&priv->wpa_sem);
++	mutex_unlock(&priv->wpa_lock);
+ }
+ 
+ static size_t
+@@ -2175,7 +2175,7 @@ prism54_wpa_bss_ie_get(islpci_private *p
+ 	struct islpci_bss_wpa_ie *bss = NULL;
+ 	size_t len = 0;
+ 
+-	down(&priv->wpa_sem);
++	mutex_lock(&priv->wpa_lock);
+ 
+ 	list_for_each(ptr, &priv->bss_wpa_list) {
+ 		bss = list_entry(ptr, struct islpci_bss_wpa_ie, list);
+@@ -2187,7 +2187,7 @@ prism54_wpa_bss_ie_get(islpci_private *p
+ 		len = bss->wpa_ie_len;
+ 		memcpy(wpa_ie, bss->wpa_ie, len);
+ 	}
+-	up(&priv->wpa_sem);
++	mutex_unlock(&priv->wpa_lock);
+ 
+ 	return len;
+ }
+@@ -2196,7 +2196,7 @@ void
+ prism54_wpa_bss_ie_init(islpci_private *priv)
+ {
+ 	INIT_LIST_HEAD(&priv->bss_wpa_list);
+-	sema_init(&priv->wpa_sem, 1);
++	mutex_init(&priv->wpa_lock);
+ }
+ 
+ void
+diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-wpa_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
+--- a/drivers/net/wireless/prism54/islpci_dev.h~convert-wpa_sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/islpci_dev.h
+@@ -178,7 +178,7 @@ typedef struct {
+ 	int wpa; /* WPA mode enabled */
+ 	struct list_head bss_wpa_list;
+ 	int num_bss_wpa;
+-	struct semaphore wpa_sem;
++	struct mutex wpa_lock;
+ 	u8 wpa_ie[MAX_WPA_IE_LEN];
+ 	size_t wpa_ie_len;
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-origin.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ubi-fix-sparse-errors-in-ubih.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+convert-acl-sem-in-a-mutex.patch
+convert-stats_sem-in-a-mutex.patch
+convert-wpa_sem-in-a-mutex.patch
