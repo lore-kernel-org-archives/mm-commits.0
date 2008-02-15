@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-add-prototypes-to-ncp_fsh.patch added to -mm tree
-Date: Fri, 15 Feb 2008 13:25:42 -0800
-Message-ID: <200802152125.m1FLPgGA024737@imap1.linux-foundation.org>
+Subject: + convert-stats_sem-in-a-mutex.patch added to -mm tree
+Date: Fri, 15 Feb 2008 13:24:30 -0800
+Message-ID: <200802152124.m1FLOUoh024703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760523AbYBOV0X (ORCPT
+	by vger.kernel.org with ESMTP id S1760808AbYBOV03 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 16:26:23 -0500
+	Fri, 15 Feb 2008 16:26:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, VANDROVE@vc.cvut.cz
+Cc: matthias@kaehlcke.net, flamingice@sourmilk.net, linville@tuxdriver.com
 
 
 The patch titled
-     ncpfs: add prototypes to ncp_fs.h
+     prism54: convert stats_sem in a mutex
 has been added to the -mm tree.  Its filename is
-     ncpfs-add-prototypes-to-ncp_fsh.patch
+     convert-stats_sem-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: add prototypes to ncp_fs.h
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: prism54: convert stats_sem in a mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-Removes some externs from C files, noticed from the sparse warnings:
-fs/ncpfs/dir.c:90:26: warning: symbol 'ncp_root_dentry_operations' was not declared. Should it be static?
-fs/ncpfs/symlink.c:107:5: warning: symbol 'ncp_symlink' was not declared. Should it be static?
-fs/ncpfs/symlink.c:101:39: warning: symbol 'ncp_symlink_aops' was not declared. Should it be static?
+The semaphore stats_sem is used as mutex, convert it to the mutex API
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c       |    6 ------
- include/linux/ncp_fs.h |    7 +++++++
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/net/wireless/prism54/isl_ioctl.c  |    8 ++++----
+ drivers/net/wireless/prism54/islpci_dev.c |    2 +-
+ drivers/net/wireless/prism54/islpci_dev.h |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~ncpfs-add-prototypes-to-ncp_fsh fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~ncpfs-add-prototypes-to-ncp_fsh
-+++ a/fs/ncpfs/inode.c
-@@ -107,12 +107,6 @@ static const struct super_operations ncp
- 	.show_options	= ncp_show_options,
- };
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/isl_ioctl.c
+@@ -165,7 +165,7 @@ prism54_update_stats(struct work_struct 
+ 	struct obj_bss bss, *bss2;
+ 	union oid_res_t r;
  
--extern struct dentry_operations ncp_root_dentry_operations;
--#if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
--extern const struct address_space_operations ncp_symlink_aops;
--extern int ncp_symlink(struct inode*, struct dentry*, const char*);
--#endif
--
- /*
-  * Fill in the ncpfs-specific information in the inode.
-  */
-diff -puN include/linux/ncp_fs.h~ncpfs-add-prototypes-to-ncp_fsh include/linux/ncp_fs.h
---- a/include/linux/ncp_fs.h~ncpfs-add-prototypes-to-ncp_fsh
-+++ a/include/linux/ncp_fs.h
-@@ -204,6 +204,7 @@ void ncp_update_inode2(struct inode *, s
- /* linux/fs/ncpfs/dir.c */
- extern const struct inode_operations ncp_dir_inode_operations;
- extern const struct file_operations ncp_dir_operations;
-+extern struct dentry_operations ncp_root_dentry_operations;
- int ncp_conn_logged_in(struct super_block *);
- int ncp_date_dos2unix(__le16 time, __le16 date);
- void ncp_date_unix2dos(int unix_date, __le16 * time, __le16 * date);
-@@ -223,6 +224,12 @@ int ncp_disconnect(struct ncp_server *se
- void ncp_lock_server(struct ncp_server *server);
- void ncp_unlock_server(struct ncp_server *server);
+-	down(&priv->stats_sem);
++	mutex_lock(&priv->stats_lock);
  
-+/* linux/fs/ncpfs/symlink.c */
-+#if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
-+extern const struct address_space_operations ncp_symlink_aops;
-+int ncp_symlink(struct inode*, struct dentry*, const char*);
-+#endif
-+
- /* linux/fs/ncpfs/file.c */
- extern const struct inode_operations ncp_file_inode_operations;
- extern const struct file_operations ncp_file_operations;
+ /* Noise floor.
+  * I'm not sure if the unit is dBm.
+@@ -207,7 +207,7 @@ prism54_update_stats(struct work_struct 
+ 	mgt_get_request(priv, DOT11_OID_MPDUTXFAILED, 0, NULL, &r);
+ 	priv->local_iwstatistics.discard.retries = r.u;
+ 
+-	up(&priv->stats_sem);
++	mutex_unlock(&priv->stats_lock);
+ 
+ 	return;
+ }
+@@ -218,12 +218,12 @@ prism54_get_wireless_stats(struct net_de
+ 	islpci_private *priv = netdev_priv(ndev);
+ 
+ 	/* If the stats are being updated return old data */
+-	if (down_trylock(&priv->stats_sem) == 0) {
++	if (mutex_trylock(&priv->stats_lock) == 0) {
+ 		memcpy(&priv->iwstatistics, &priv->local_iwstatistics,
+ 		       sizeof (struct iw_statistics));
+ 		/* They won't be marked updated for the next time */
+ 		priv->local_iwstatistics.qual.updated = 0;
+-		up(&priv->stats_sem);
++		mutex_unlock(&priv->stats_lock);
+ 	} else
+ 		priv->iwstatistics.qual.updated = 0;
+ 
+diff -puN drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.c
+--- a/drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/islpci_dev.c
+@@ -864,7 +864,7 @@ islpci_setup(struct pci_dev *pdev)
+ 	mutex_init(&priv->mgmt_lock);
+ 	priv->mgmt_received = NULL;
+ 	init_waitqueue_head(&priv->mgmt_wqueue);
+-	sema_init(&priv->stats_sem, 1);
++	mutex_init(&priv->stats_lock);
+ 	spin_lock_init(&priv->slock);
+ 
+ 	/* init state machine with off#1 state */
+diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
+--- a/drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/islpci_dev.h
+@@ -88,7 +88,7 @@ typedef struct {
+ 
+ 	/* Take care of the wireless stats */
+ 	struct work_struct stats_work;
+-	struct semaphore stats_sem;
++	struct mutex stats_lock;
+ 	/* remember when we last updated the stats */
+ 	unsigned long stats_timestamp;
+ 	/* The first is accessed under semaphore locking.
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-origin.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ubi-fix-sparse-errors-in-ubih.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+convert-acl-sem-in-a-mutex.patch
+convert-stats_sem-in-a-mutex.patch
+convert-wpa_sem-in-a-mutex.patch
