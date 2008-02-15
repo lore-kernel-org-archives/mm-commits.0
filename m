@@ -1,286 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - d_path-make-get_dcookie-use-a-struct-path-argument.patch removed from -mm tree
-Date: Thu, 14 Feb 2008 19:17:03 -0500
-Message-ID: <200802150720.m1F7KPOS025818@imap1.linux-foundation.org>
+Subject: - d_path-make-proc_get_link-use-a-struct-path-argument.patch removed from -mm tree
+Date: Thu, 14 Feb 2008 19:17:00 -0500
+Message-ID: <200802150720.m1F7KMUt025815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51393 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763779AbYBOH3q (ORCPT
+	by vger.kernel.org with ESMTP id S1763970AbYBOH3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 02:29:46 -0500
+	Fri, 15 Feb 2008 02:29:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, bfields@fieldses.org, hch@infradead.org, neilb@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jblunck@suse.de, bfields@fieldses.org, ebiederm@xmission.com, hch@infradead.org, neilb@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     d_path: Make get_dcookie() use a struct path argument
+     d_path: Make proc_get_link() use a struct path argument
 has been removed from the -mm tree.  Its filename was
-     d_path-make-get_dcookie-use-a-struct-path-argument.patch
+     d_path-make-proc_get_link-use-a-struct-path-argument.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: d_path: Make get_dcookie() use a struct path argument
+Subject: d_path: Make proc_get_link() use a struct path argument
 From: Jan Blunck <jblunck@suse.de>
 
-get_dcookie() is always called with a dentry and a vfsmount from a struct
-path.  Make get_dcookie() take it directly as an argument.
+proc_get_link() is always called with a dentry and a vfsmount from a struct
+path.  Make proc_get_link() take it directly as an argument.
 
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Neil Brown <neilb@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/oprofile/cell/spu_task_sync.c |   15 +++-----
- drivers/oprofile/buffer_sync.c             |   21 +++++------
- fs/dcookies.c                              |   34 ++++++++-----------
- include/linux/dcookies.h                   |   15 +++-----
- 4 files changed, 37 insertions(+), 48 deletions(-)
+ fs/proc/base.c          |   60 ++++++++++++++++----------------------
+ fs/proc/internal.h      |    2 -
+ fs/proc/task_mmu.c      |    6 +--
+ fs/proc/task_nommu.c    |    6 +--
+ include/linux/proc_fs.h |    2 -
+ 5 files changed, 34 insertions(+), 42 deletions(-)
 
-diff -puN arch/powerpc/oprofile/cell/spu_task_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument arch/powerpc/oprofile/cell/spu_task_sync.c
---- a/arch/powerpc/oprofile/cell/spu_task_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/arch/powerpc/oprofile/cell/spu_task_sync.c
-@@ -198,14 +198,13 @@ out:
-  * dcookie user still being registered (namely, the reader
-  * of the event buffer).
-  */
--static inline unsigned long fast_get_dcookie(struct dentry *dentry,
--					     struct vfsmount *vfsmnt)
-+static inline unsigned long fast_get_dcookie(struct path *path)
+diff -puN fs/proc/base.c~d_path-make-proc_get_link-use-a-struct-path-argument fs/proc/base.c
+--- a/fs/proc/base.c~d_path-make-proc_get_link-use-a-struct-path-argument
++++ a/fs/proc/base.c
+@@ -153,7 +153,7 @@ static int get_nr_threads(struct task_st
+ 	return count;
+ }
+ 
+-static int proc_cwd_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
++static int proc_cwd_link(struct inode *inode, struct path *path)
  {
- 	unsigned long cookie;
- 
--	if (dentry->d_cookie)
--		return (unsigned long)dentry;
--	get_dcookie(dentry, vfsmnt, &cookie);
-+	if (path->dentry->d_cookie)
-+		return (unsigned long)path->dentry;
-+	get_dcookie(path, &cookie);
- 	return cookie;
- }
- 
-@@ -240,8 +239,7 @@ get_exec_dcookie_and_offset(struct spu *
- 			continue;
- 		if (!(vma->vm_flags & VM_EXECUTABLE))
- 			continue;
--		app_cookie = fast_get_dcookie(vma->vm_file->f_dentry,
--					  vma->vm_file->f_vfsmnt);
-+		app_cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 		pr_debug("got dcookie for %s\n",
- 			 vma->vm_file->f_dentry->d_name.name);
- 		app = vma->vm_file;
-@@ -262,8 +260,7 @@ get_exec_dcookie_and_offset(struct spu *
- 		break;
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct fs_struct *fs = NULL;
+@@ -165,8 +165,8 @@ static int proc_cwd_link(struct inode *i
  	}
- 
--	*spu_bin_dcookie = fast_get_dcookie(vma->vm_file->f_dentry,
--						 vma->vm_file->f_vfsmnt);
-+	*spu_bin_dcookie = fast_get_dcookie(&vma->vm_file->f_path);
- 	pr_debug("got dcookie for %s\n", vma->vm_file->f_dentry->d_name.name);
- 
- 	up_read(&mm->mmap_sem);
-diff -puN drivers/oprofile/buffer_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/drivers/oprofile/buffer_sync.c
-@@ -187,23 +187,22 @@ void sync_stop(void)
- 	end_sync();
+ 	if (fs) {
+ 		read_lock(&fs->lock);
+-		*mnt = mntget(fs->pwd.mnt);
+-		*dentry = dget(fs->pwd.dentry);
++		*path = fs->pwd;
++		path_get(&fs->pwd);
+ 		read_unlock(&fs->lock);
+ 		result = 0;
+ 		put_fs_struct(fs);
+@@ -174,7 +174,7 @@ static int proc_cwd_link(struct inode *i
+ 	return result;
  }
  
-- 
-+
- /* Optimisation. We can manage without taking the dcookie sem
-  * because we cannot reach this code without at least one
-  * dcookie user still being registered (namely, the reader
-  * of the event buffer). */
--static inline unsigned long fast_get_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt)
-+static inline unsigned long fast_get_dcookie(struct path *path)
+-static int proc_root_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
++static int proc_root_link(struct inode *inode, struct path *path)
  {
- 	unsigned long cookie;
-- 
--	if (dentry->d_cookie)
--		return (unsigned long)dentry;
--	get_dcookie(dentry, vfsmnt, &cookie);
-+
-+	if (path->dentry->d_cookie)
-+		return (unsigned long)path->dentry;
-+	get_dcookie(path, &cookie);
- 	return cookie;
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct fs_struct *fs = NULL;
+@@ -186,8 +186,8 @@ static int proc_root_link(struct inode *
+ 	}
+ 	if (fs) {
+ 		read_lock(&fs->lock);
+-		*mnt = mntget(fs->root.mnt);
+-		*dentry = dget(fs->root.dentry);
++		*path = fs->root;
++		path_get(&fs->root);
+ 		read_unlock(&fs->lock);
+ 		result = 0;
+ 		put_fs_struct(fs);
+@@ -1170,34 +1170,30 @@ static void *proc_pid_follow_link(struct
+ 	if (!proc_fd_access_allowed(inode))
+ 		goto out;
+ 
+-	error = PROC_I(inode)->op.proc_get_link(inode, &nd->path.dentry,
+-						&nd->path.mnt);
++	error = PROC_I(inode)->op.proc_get_link(inode, &nd->path);
+ 	nd->last_type = LAST_BIND;
+ out:
+ 	return ERR_PTR(error);
  }
  
-- 
-+
- /* Look up the dcookie for the task's first VM_EXECUTABLE mapping,
-  * which corresponds loosely to "application name". This is
-  * not strictly necessary but allows oprofile to associate
-@@ -222,8 +221,7 @@ static unsigned long get_exec_dcookie(st
- 			continue;
- 		if (!(vma->vm_flags & VM_EXECUTABLE))
- 			continue;
--		cookie = fast_get_dcookie(vma->vm_file->f_path.dentry,
--			vma->vm_file->f_path.mnt);
-+		cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 		break;
- 	}
+-static int do_proc_readlink(struct dentry *dentry, struct vfsmount *mnt,
+-			    char __user *buffer, int buflen)
++static int do_proc_readlink(struct path *path, char __user *buffer, int buflen)
+ {
+-	struct inode * inode;
+ 	char *tmp = (char*)__get_free_page(GFP_TEMPORARY);
+-	char *path;
++	char *pathname;
+ 	int len;
  
-@@ -248,8 +246,7 @@ static unsigned long lookup_dcookie(stru
- 			continue;
+ 	if (!tmp)
+ 		return -ENOMEM;
  
- 		if (vma->vm_file) {
--			cookie = fast_get_dcookie(vma->vm_file->f_path.dentry,
--				vma->vm_file->f_path.mnt);
-+			cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 			*offset = (vma->vm_pgoff << PAGE_SHIFT) + addr -
- 				vma->vm_start;
- 		} else {
-diff -puN fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument fs/dcookies.c
---- a/fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/fs/dcookies.c
-@@ -24,6 +24,7 @@
- #include <linux/errno.h>
- #include <linux/dcookies.h>
- #include <linux/mutex.h>
-+#include <linux/path.h>
- #include <asm/uaccess.h>
+-	inode = dentry->d_inode;
+-	path = d_path(dentry, mnt, tmp, PAGE_SIZE);
+-	len = PTR_ERR(path);
+-	if (IS_ERR(path))
++	pathname = d_path(path->dentry, path->mnt, tmp, PAGE_SIZE);
++	len = PTR_ERR(pathname);
++	if (IS_ERR(pathname))
+ 		goto out;
+-	len = tmp + PAGE_SIZE - 1 - path;
++	len = tmp + PAGE_SIZE - 1 - pathname;
  
- /* The dcookies are allocated from a kmem_cache and
-@@ -31,8 +32,7 @@
-  * code here is particularly performance critical
-  */
- struct dcookie_struct {
--	struct dentry * dentry;
--	struct vfsmount * vfsmnt;
+ 	if (len > buflen)
+ 		len = buflen;
+-	if (copy_to_user(buffer, path, len))
++	if (copy_to_user(buffer, pathname, len))
+ 		len = -EFAULT;
+  out:
+ 	free_page((unsigned long)tmp);
+@@ -1208,20 +1204,18 @@ static int proc_pid_readlink(struct dent
+ {
+ 	int error = -EACCES;
+ 	struct inode *inode = dentry->d_inode;
+-	struct dentry *de;
+-	struct vfsmount *mnt = NULL;
 +	struct path path;
- 	struct list_head hash_list;
- };
  
-@@ -51,7 +51,7 @@ static inline int is_live(void)
- /* The dentry is locked, its address will do for the cookie */
- static inline unsigned long dcookie_value(struct dcookie_struct * dcs)
- {
--	return (unsigned long)dcs->dentry;
-+	return (unsigned long)dcs->path.dentry;
- }
- 
- 
-@@ -89,19 +89,17 @@ static void hash_dcookie(struct dcookie_
- }
- 
- 
--static struct dcookie_struct * alloc_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt)
-+static struct dcookie_struct *alloc_dcookie(struct path *path)
- {
--	struct dcookie_struct * dcs = kmem_cache_alloc(dcookie_cache, GFP_KERNEL);
-+	struct dcookie_struct *dcs = kmem_cache_alloc(dcookie_cache,
-+							GFP_KERNEL);
- 	if (!dcs)
- 		return NULL;
- 
--	dentry->d_cookie = dcs;
--
--	dcs->dentry = dget(dentry);
--	dcs->vfsmnt = mntget(vfsmnt);
-+	path->dentry->d_cookie = dcs;
-+	dcs->path = *path;
-+	path_get(path);
- 	hash_dcookie(dcs);
--
- 	return dcs;
- }
- 
-@@ -109,8 +107,7 @@ static struct dcookie_struct * alloc_dco
- /* This is the main kernel-side routine that retrieves the cookie
-  * value for a dentry/vfsmnt pair.
-  */
--int get_dcookie(struct dentry * dentry, struct vfsmount * vfsmnt,
--	unsigned long * cookie)
-+int get_dcookie(struct path *path, unsigned long *cookie)
- {
- 	int err = 0;
- 	struct dcookie_struct * dcs;
-@@ -122,10 +119,10 @@ int get_dcookie(struct dentry * dentry, 
+ 	/* Are we allowed to snoop on the tasks file descriptors? */
+ 	if (!proc_fd_access_allowed(inode))
  		goto out;
+ 
+-	error = PROC_I(inode)->op.proc_get_link(inode, &de, &mnt);
++	error = PROC_I(inode)->op.proc_get_link(inode, &path);
+ 	if (error)
+ 		goto out;
+ 
+-	error = do_proc_readlink(de, mnt, buffer, buflen);
+-	dput(de);
+-	mntput(mnt);
++	error = do_proc_readlink(&path, buffer, buflen);
++	path_put(&path);
+ out:
+ 	return error;
+ }
+@@ -1448,8 +1442,7 @@ out:
+ 
+ #define PROC_FDINFO_MAX 64
+ 
+-static int proc_fd_info(struct inode *inode, struct dentry **dentry,
+-			struct vfsmount **mnt, char *info)
++static int proc_fd_info(struct inode *inode, struct path *path, char *info)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct files_struct *files = NULL;
+@@ -1468,10 +1461,10 @@ static int proc_fd_info(struct inode *in
+ 		spin_lock(&files->file_lock);
+ 		file = fcheck_files(files, fd);
+ 		if (file) {
+-			if (mnt)
+-				*mnt = mntget(file->f_path.mnt);
+-			if (dentry)
+-				*dentry = dget(file->f_path.dentry);
++			if (path) {
++				*path = file->f_path;
++				path_get(&file->f_path);
++			}
+ 			if (info)
+ 				snprintf(info, PROC_FDINFO_MAX,
+ 					 "pos:\t%lli\n"
+@@ -1488,10 +1481,9 @@ static int proc_fd_info(struct inode *in
+ 	return -ENOENT;
+ }
+ 
+-static int proc_fd_link(struct inode *inode, struct dentry **dentry,
+-			struct vfsmount **mnt)
++static int proc_fd_link(struct inode *inode, struct path *path)
+ {
+-	return proc_fd_info(inode, dentry, mnt, NULL);
++	return proc_fd_info(inode, path, NULL);
+ }
+ 
+ static int tid_fd_revalidate(struct dentry *dentry, struct nameidata *nd)
+@@ -1685,7 +1677,7 @@ static ssize_t proc_fdinfo_read(struct f
+ 				      size_t len, loff_t *ppos)
+ {
+ 	char tmp[PROC_FDINFO_MAX];
+-	int err = proc_fd_info(file->f_path.dentry->d_inode, NULL, NULL, tmp);
++	int err = proc_fd_info(file->f_path.dentry->d_inode, NULL, tmp);
+ 	if (!err)
+ 		err = simple_read_from_buffer(buf, len, ppos, tmp, strlen(tmp));
+ 	return err;
+diff -puN fs/proc/internal.h~d_path-make-proc_get_link-use-a-struct-path-argument fs/proc/internal.h
+--- a/fs/proc/internal.h~d_path-make-proc_get_link-use-a-struct-path-argument
++++ a/fs/proc/internal.h
+@@ -48,7 +48,7 @@ extern int maps_protect;
+ 
+ extern void create_seq_entry(char *name, mode_t mode,
+ 				const struct file_operations *f);
+-extern int proc_exe_link(struct inode *, struct dentry **, struct vfsmount **);
++extern int proc_exe_link(struct inode *, struct path *);
+ extern int proc_tid_stat(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *task);
+ extern int proc_tgid_stat(struct seq_file *m, struct pid_namespace *ns,
+diff -puN fs/proc/task_mmu.c~d_path-make-proc_get_link-use-a-struct-path-argument fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~d_path-make-proc_get_link-use-a-struct-path-argument
++++ a/fs/proc/task_mmu.c
+@@ -75,7 +75,7 @@ int task_statm(struct mm_struct *mm, int
+ 	return mm->total_vm;
+ }
+ 
+-int proc_exe_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
++int proc_exe_link(struct inode *inode, struct path *path)
+ {
+ 	struct vm_area_struct * vma;
+ 	int result = -ENOENT;
+@@ -98,8 +98,8 @@ int proc_exe_link(struct inode *inode, s
  	}
  
--	dcs = dentry->d_cookie;
-+	dcs = path->dentry->d_cookie;
+ 	if (vma) {
+-		*mnt = mntget(vma->vm_file->f_path.mnt);
+-		*dentry = dget(vma->vm_file->f_path.dentry);
++		*path = vma->vm_file->f_path;
++		path_get(&vma->vm_file->f_path);
+ 		result = 0;
+ 	}
  
- 	if (!dcs)
--		dcs = alloc_dcookie(dentry, vfsmnt);
-+		dcs = alloc_dcookie(path);
- 
- 	if (!dcs) {
- 		err = -ENOMEM;
-@@ -174,7 +171,7 @@ asmlinkage long sys_lookup_dcookie(u64 c
- 		goto out;
- 
- 	/* FIXME: (deleted) ? */
--	path = d_path(dcs->dentry, dcs->vfsmnt, kbuf, PAGE_SIZE);
-+	path = d_path(dcs->path.dentry, dcs->path.mnt, kbuf, PAGE_SIZE);
- 
- 	if (IS_ERR(path)) {
- 		err = PTR_ERR(path);
-@@ -254,9 +251,8 @@ out_kmem:
- 
- static void free_dcookie(struct dcookie_struct * dcs)
- {
--	dcs->dentry->d_cookie = NULL;
--	dput(dcs->dentry);
--	mntput(dcs->vfsmnt);
-+	dcs->path.dentry->d_cookie = NULL;
-+	path_put(&dcs->path);
- 	kmem_cache_free(dcookie_cache, dcs);
+diff -puN fs/proc/task_nommu.c~d_path-make-proc_get_link-use-a-struct-path-argument fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~d_path-make-proc_get_link-use-a-struct-path-argument
++++ a/fs/proc/task_nommu.c
+@@ -103,7 +103,7 @@ int task_statm(struct mm_struct *mm, int
+ 	return size;
  }
  
-diff -puN include/linux/dcookies.h~d_path-make-get_dcookie-use-a-struct-path-argument include/linux/dcookies.h
---- a/include/linux/dcookies.h~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/include/linux/dcookies.h
-@@ -13,6 +13,7 @@
- #ifdef CONFIG_PROFILING
-  
- #include <linux/dcache.h>
-+#include <linux/path.h>
- #include <linux/types.h>
-  
- struct dcookie_user;
-@@ -43,8 +44,7 @@ void dcookie_unregister(struct dcookie_u
-  *
-  * Returns 0 on success, with *cookie filled in
-  */
--int get_dcookie(struct dentry * dentry, struct vfsmount * vfsmnt,
--	unsigned long * cookie);
-+int get_dcookie(struct path *path, unsigned long *cookie);
- 
- #else
- 
-@@ -57,13 +57,12 @@ static inline void dcookie_unregister(st
+-int proc_exe_link(struct inode *inode, struct dentry **dentry, struct vfsmount **mnt)
++int proc_exe_link(struct inode *inode, struct path *path)
  {
- 	return;
- }
-- 
--static inline int get_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt, unsigned long * cookie)
-+
-+static inline int get_dcookie(struct path *path, unsigned long *cookie)
- {
- 	return -ENOSYS;
--} 
-- 
-+}
-+
- #endif /* CONFIG_PROFILING */
-- 
-+
- #endif /* DCOOKIES_H */
+ 	struct vm_list_struct *vml;
+ 	struct vm_area_struct *vma;
+@@ -126,8 +126,8 @@ int proc_exe_link(struct inode *inode, s
+ 	}
+ 
+ 	if (vma) {
+-		*mnt = mntget(vma->vm_file->f_path.mnt);
+-		*dentry = dget(vma->vm_file->f_path.dentry);
++		*path = vma->vm_file->f_path;
++		path_get(&vma->vm_file->f_path);
+ 		result = 0;
+ 	}
+ 
+diff -puN include/linux/proc_fs.h~d_path-make-proc_get_link-use-a-struct-path-argument include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~d_path-make-proc_get_link-use-a-struct-path-argument
++++ a/include/linux/proc_fs.h
+@@ -269,7 +269,7 @@ extern void kclist_add(struct kcore_list
+ #endif
+ 
+ union proc_op {
+-	int (*proc_get_link)(struct inode *, struct dentry **, struct vfsmount **);
++	int (*proc_get_link)(struct inode *, struct path *);
+ 	int (*proc_read)(struct task_struct *task, char *page);
+ 	int (*proc_show)(struct seq_file *m,
+ 		struct pid_namespace *ns, struct pid *pid,
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
