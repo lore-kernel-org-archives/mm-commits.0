@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:49:15 -0800
-Message-ID: <200802152249.m1FMnFQN028186@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-make-access-use-new-r-o-helper.patch added to -mm tree
+Date: Fri, 15 Feb 2008 14:49:21 -0800
+Message-ID: <200802152249.m1FMnLp4028195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55380 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935089AbYBOW6Q (ORCPT
+	by vger.kernel.org with ESMTP id S935090AbYBOW6R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 17:58:16 -0500
+	Fri, 15 Feb 2008 17:58:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@lst.de, viro@ZenIV.linux.org.uk
+Cc: haveblue@us.ibm.com, akpm@linux-foundation.org, hch@infradead.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r/o bind mounts: elevate write count for chmod/chown callers
+     r/o bind mounts: make access() use new r/o helper
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch
+     r-o-bind-mounts-make-access-use-new-r-o-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for chmod/chown callers
+Subject: r/o bind mounts: make access() use new r/o helper
 From: Dave Hansen <haveblue@us.ibm.com>
 
-chown/chmod,etc...  don't call permission in the same way that the normal
-"open for write" calls do.  They still write to the filesystem, so bump the
-write count during these operations.
+It is OK to let access() go without using a mnt_want/drop_write() pair because
+it doesn't actually do writes to the filesystem, and it is inherently racy
+anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
+directly.
 
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ fs/open.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers
+diff -puN fs/open.c~r-o-bind-mounts-make-access-use-new-r-o-helper fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-make-access-use-new-r-o-helper
 +++ a/fs/open.c
-@@ -567,12 +567,12 @@ asmlinkage long sys_fchmod(unsigned int 
+@@ -459,8 +459,17 @@ asmlinkage long sys_faccessat(int dfd, c
+ 	if(res || !(mode & S_IWOTH) ||
+ 	   special_file(nd.path.dentry->d_inode->i_mode))
+ 		goto out_path_release;
+-
+-	if(IS_RDONLY(nd.path.dentry->d_inode))
++	/*
++	 * This is a rare case where using __mnt_is_readonly()
++	 * is OK without a mnt_want/drop_write() pair.  Since
++	 * no actual write to the fs is performed here, we do
++	 * not need to telegraph to that to anyone.
++	 *
++	 * By doing this, we accept that this access is
++	 * inherently racy and know that the fs may change
++	 * state before we even see this result.
++	 */
++	if (__mnt_is_readonly(nd.path.mnt))
+ 		res = -EROFS;
  
- 	audit_inode(NULL, dentry);
- 
--	err = -EROFS;
--	if (IS_RDONLY(inode))
-+	err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
- 		goto out_putf;
- 	err = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto out_putf;
-+		goto out_drop_write;
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
- 		mode = inode->i_mode;
-@@ -581,6 +581,8 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(file->f_vfsmnt);
- out_putf:
- 	fput(file);
- out:
-@@ -600,13 +602,13 @@ asmlinkage long sys_fchmodat(int dfd, co
- 		goto out;
- 	inode = nd.path.dentry->d_inode;
- 
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
- 		goto dput_and_out;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
-@@ -616,6 +618,8 @@ asmlinkage long sys_fchmodat(int dfd, co
- 	error = notify_change(nd.path.dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(nd.path.mnt);
- dput_and_out:
- 	path_put(&nd.path);
- out:
-@@ -638,9 +642,6 @@ static int chown_common(struct dentry * 
- 		printk(KERN_ERR "chown_common: NULL inode\n");
- 		goto out;
- 	}
--	error = -EROFS;
--	if (IS_RDONLY(inode))
--		goto out;
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto out;
-@@ -671,7 +672,12 @@ asmlinkage long sys_chown(const char __u
- 	error = user_path_walk(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -691,7 +697,12 @@ asmlinkage long sys_fchownat(int dfd, co
- 	error = __user_walk_fd(dfd, filename, follow, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -705,7 +716,12 @@ asmlinkage long sys_lchown(const char __
- 	error = user_path_walk_link(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -722,9 +738,14 @@ asmlinkage long sys_fchown(unsigned int 
- 	if (!file)
- 		goto out;
- 
-+	error = mnt_want_write(file->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = file->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = chown_common(dentry, user, group);
-+	mnt_drop_write(file->f_vfsmnt);
-+out_fput:
- 	fput(file);
- out:
- 	return error;
+ out_path_release:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
