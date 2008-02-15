@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-um-kernel-um_archc-some-small-improvements.patch added to -mm tree
-Date: Fri, 15 Feb 2008 12:36:57 -0800
-Message-ID: <200802152036.m1FKavPH022616@imap1.linux-foundation.org>
+Subject: + fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch added to -mm tree
+Date: Fri, 15 Feb 2008 12:41:07 -0800
+Message-ID: <200802152041.m1FKf7Ih022795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35540 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756809AbYBOUhD (ORCPT
+	by vger.kernel.org with ESMTP id S1751530AbYBOUl1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 15:37:03 -0500
+	Fri, 15 Feb 2008 15:41:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com
+Cc: avorontsov@ru.mvista.com, adaplas@pol.net, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     arch/um/kernel/um_arch.c: some small improvements
+     fb: add support for choice foreign endianness
 has been added to the -mm tree.  Its filename is
-     arch-um-kernel-um_archc-some-small-improvements.patch
+     fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,164 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/um/kernel/um_arch.c: some small improvements
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: fb: add support for choice foreign endianness
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Make some small improvements for arch/um/kernel/um_arch.c.
+With this patch FB_FOREIGN_ENDIAN converted to menuconfig with the choice
+inside: which type of foreign endianness we want to compile-in.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Jeff Dike <jdike@addtoit.com>
+As a bonus, now fb subsystem will refuse to register framebuffer with
+unsupported endianness, and will suggest a way to solve the problem.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/um_arch.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/video/Kconfig |   27 +++++++++++++++++++++------
+ drivers/video/fbmem.c |   38 ++++++++++++++++++++++++++++++--------
+ include/linux/fb.h    |   14 +++++++++++---
+ 3 files changed, 62 insertions(+), 17 deletions(-)
 
-diff -puN arch/um/kernel/um_arch.c~arch-um-kernel-um_archc-some-small-improvements arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~arch-um-kernel-um_archc-some-small-improvements
-+++ a/arch/um/kernel/um_arch.c
-@@ -115,7 +115,7 @@ static int have_root __initdata = 0;
- /* Set in uml_mem_setup and modified in linux_main */
- long long physmem_size = 32 * 1024 * 1024;
+diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
++++ a/drivers/video/Kconfig
+@@ -139,14 +139,29 @@ config FB_SYS_IMAGEBLIT
+ 	  blitting. This is used by drivers that don't provide their own
+ 	  (accelerated) version and the framebuffer is in system RAM.
  
--static char *usage_string =
-+static const char *usage_string =
- "User Mode Linux v%s\n"
- "	available at http://user-mode-linux.sourceforge.net/\n\n";
+-config FB_FOREIGN_ENDIAN
+-	bool "Enable support for foreign endianness"
++menuconfig FB_FOREIGN_ENDIAN
++	bool "Framebuffer foreign endianness support"
+ 	depends on FB
+ 	---help---
+-	  This option enables support for the framebuffers with non-native
+-	  endianness (e.g. Little-Endian framebuffer on a Big-Endian machine).
+-	  You probably don't have such hardware, so in most cases it's safe to
+-	  say "n" here.
++	  This menu will let you enable support for the framebuffers with
++	  non-native endianness (e.g. Little-Endian framebuffer on a
++	  Big-Endian machine). Most probably you don't have such hardware,
++	  so it's safe to say "n" here.
++
++choice
++	prompt "Choice endianness support"
++	depends on FB_FOREIGN_ENDIAN
++
++config FB_BOTH_ENDIAN
++	bool "Support for Big- and Little-Endian framebuffers"
++
++config FB_BIG_ENDIAN
++	bool "Support for Big-Endian framebuffers only"
++
++config FB_LITTLE_ENDIAN
++	bool "Support for Little-Endian framebuffers only"
++
++endchoice
  
-@@ -202,7 +202,7 @@ static void __init uml_checksetup(char *
+ config FB_SYS_FOPS
+        tristate
+diff -puN drivers/video/fbmem.c~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
++++ a/drivers/video/fbmem.c
+@@ -1352,6 +1352,32 @@ static const struct file_operations fb_f
  
- 	p = &__uml_setup_start;
- 	while (p < &__uml_setup_end) {
--		int n;
-+		size_t n;
+ struct class *fb_class;
+ EXPORT_SYMBOL(fb_class);
++
++static int fb_check_foreignness(struct fb_info *fi)
++{
++	const bool foreign_endian = fi->flags & FBINFO_FOREIGN_ENDIAN;
++
++	fi->flags &= ~FBINFO_FOREIGN_ENDIAN;
++
++#ifdef __BIG_ENDIAN
++	fi->flags |= foreign_endian ? 0 : FBINFO_BE_MATH;
++#else
++	fi->flags |= foreign_endian ? FBINFO_BE_MATH : 0;
++#endif /* __BIG_ENDIAN */
++
++	if (fi->flags & FBINFO_BE_MATH && !fb_be_math(fi)) {
++		pr_err("%s: enable CONFIG_FB_BIG_ENDIAN to "
++		       "support this framebuffer\n", fi->fix.id);
++		return -ENOSYS;
++	} else if (!(fi->flags & FBINFO_BE_MATH) && fb_be_math(fi)) {
++		pr_err("%s: enable CONFIG_FB_LITTLE_ENDIAN to "
++		       "support this framebuffer\n", fi->fix.id);
++		return -ENOSYS;
++	}
++
++	return 0;
++}
++
+ /**
+  *	register_framebuffer - registers a frame buffer device
+  *	@fb_info: frame buffer info structure
+@@ -1368,10 +1394,13 @@ register_framebuffer(struct fb_info *fb_
+ 	int i;
+ 	struct fb_event event;
+ 	struct fb_videomode mode;
+-	const bool foreign_endian = fb_info->flags & FBINFO_FOREIGN_ENDIAN;
  
- 		n = strlen(p->str);
- 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
-@@ -258,7 +258,8 @@ int __init linux_main(int argc, char **a
+ 	if (num_registered_fb == FB_MAX)
+ 		return -ENXIO;
++
++	if (fb_check_foreignness(fb_info))
++		return -ENOSYS;
++
+ 	num_registered_fb++;
+ 	for (i = 0 ; i < FB_MAX; i++)
+ 		if (!registered_fb[i])
+@@ -1405,13 +1434,6 @@ register_framebuffer(struct fb_info *fb_
+ 	if (!fb_info->pixmap.blit_y)
+ 		fb_info->pixmap.blit_y = ~(u32)0;
+ 
+-	fb_info->flags &= ~FBINFO_FOREIGN_ENDIAN;
+-#ifdef __BIG_ENDIAN
+-	fb_info->flags |= foreign_endian ? 0 : FBINFO_BE_MATH;
+-#else
+-	fb_info->flags |= foreign_endian ? FBINFO_BE_MATH : 0;
+-#endif
+-
+ 	if (!fb_info->modelist.prev || !fb_info->modelist.next)
+ 		INIT_LIST_HEAD(&fb_info->modelist);
+ 
+diff -puN include/linux/fb.h~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness include/linux/fb.h
+--- a/include/linux/fb.h~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
++++ a/include/linux/fb.h
+@@ -979,13 +979,21 @@ extern int fb_deferred_io_fsync(struct f
+ 
+ static inline bool fb_be_math(struct fb_info *info)
  {
- 	unsigned long avail, diff;
- 	unsigned long virtmem_size, max_physmem;
--	unsigned int i, add;
-+	unsigned int i;
-+	int add;
- 	char * mode;
+-#if defined(CONFIG_FB_FOREIGN_ENDIAN)
++#ifdef CONFIG_FB_FOREIGN_ENDIAN
++#if defined(CONFIG_FB_BOTH_ENDIAN)
+ 	return info->flags & FBINFO_BE_MATH;
+-#elif defined(__BIG_ENDIAN)
++#elif defined(CONFIG_FB_BIG_ENDIAN)
++	return true;
++#elif defined(CONFIG_FB_LITTLE_ENDIAN)
++	return false;
++#endif /* CONFIG_FB_BOTH_ENDIAN */
++#else
++#ifdef __BIG_ENDIAN
+ 	return true;
+ #else
+ 	return false;
+-#endif
++#endif /* __BIG_ENDIAN */
++#endif /* CONFIG_FB_FOREIGN_ENDIAN */
+ }
  
- 	for (i = 1; i < argc; i++) {
+ /* drivers/video/fbsysfs.c */
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-uml-fix-initrd-printk.patch
-arch-um-kernel-memc-fix-a-shadowed-variable.patch
-arch-um-kernel-um_archc-some-small-improvements.patch
-fix-shadowed-variables-in-kernel-posix-cpu-timersc.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+fb-add-support-for-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+powerpc-offb-add-support-for-foreign-endianness.patch
