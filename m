@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-hisax-telespci-convert-to-pci-hotplug-api.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 17:00:32 -0800
-Message-ID: <200802160109.m1G19YBI001652@imap1.linux-foundation.org>
+Subject: - isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 17:00:24 -0800
+Message-ID: <200802160109.m1G19QAj001636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42276 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41070 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757483AbYBPBJt (ORCPT
+	by vger.kernel.org with ESMTP id S1763574AbYBPBJf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 20:09:49 -0500
+	Fri, 15 Feb 2008 20:09:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeff@garzik.org, greg@kroah.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: HiSax telespci: convert to PCI hotplug API
+     isdn: HiSax bkm_a4t: convert to PCI hotplug API
 has been removed from the -mm tree.  Its filename was
-     isdn-hisax-telespci-convert-to-pci-hotplug-api.patch
+     isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: HiSax telespci: convert to PCI hotplug API
+Subject: isdn: HiSax bkm_a4t: convert to PCI hotplug API
 From: Jeff Garzik <jeff@garzik.org>
 
 Signed-off-by: Jeff Garzik <jeff@garzik.org>
@@ -33,212 +33,166 @@ Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig    |    4 -
- drivers/isdn/hisax/Makefile   |    2 
- drivers/isdn/hisax/config.c   |   21 +------
- drivers/isdn/hisax/telespci.c |   95 +++++++++++++++++++++++++-------
- 4 files changed, 81 insertions(+), 41 deletions(-)
+ drivers/isdn/hisax/Kconfig   |    4 -
+ drivers/isdn/hisax/Makefile  |    3 
+ drivers/isdn/hisax/bkm_a4t.c |  113 ++++++++++++++++++++++-----------
+ drivers/isdn/hisax/config.c  |   27 +++----
+ 4 files changed, 91 insertions(+), 56 deletions(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~isdn-hisax-telespci-convert-to-pci-hotplug-api
+diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api
 +++ a/drivers/isdn/hisax/Kconfig
-@@ -108,8 +108,8 @@ config HISAX_16_3
- 	  non-standard IRQ/port settings.
+@@ -286,8 +286,8 @@ config HISAX_HSTSAPHIR
+ 	  settings.
  
- config HISAX_TELESPCI
--	bool "Teles PCI"
--	depends on PCI && PCI_LEGACY && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
-+	tristate "Teles PCI"
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
+ config HISAX_BKM_A4T
+-	bool "Telekom A4T card"
+-	depends on PCI && PCI_LEGACY
++	tristate "Telekom A4T card"
++	depends on PCI
  	help
- 	  This enables HiSax support for the Teles PCI.
- 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
-diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/Makefile
---- a/drivers/isdn/hisax/Makefile~isdn-hisax-telespci-convert-to-pci-hotplug-api
+ 	  This enables HiSax support for the Telekom A4T card.
+ 
+diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api
 +++ a/drivers/isdn/hisax/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_HISAX_HFC_PCI)		+= hfc_pci.
- obj-$(CONFIG_HISAX_W6692)		+= w6692.o libhisax.o
- obj-$(CONFIG_HISAX_NETJET)		+= netjet_s.o libhisax.o
- obj-$(CONFIG_HISAX_NETJET_U)		+= netjet_u.o libhisax.o
-+obj-$(CONFIG_HISAX_TELESPCI)		+= telespci.o libhisax.o
+@@ -15,7 +15,9 @@ obj-$(CONFIG_HISAX_ST5481)		+= hisax_st5
+ obj-$(CONFIG_HISAX_HFCUSB)		+= hfc_usb.o
+ obj-$(CONFIG_HISAX_HFC4S8S)		+= hfc4s8s_l1.o
+ obj-$(CONFIG_HISAX_FRITZ_PCIPNP)        += hisax_isac.o hisax_fcpcipnp.o
++obj-$(CONFIG_HISAX_BKM_A4T)		+= bkm_a4t_pci.o libhisax.o
  
- bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
- enternow-objs				:= enternow_pci.o amd7930_fn.o
-@@ -45,7 +46,6 @@ hisax-$(CONFIG_HISAX_1TR6)		+= l3_1tr6.o
++bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
+ libhisax-objs				:= netjet.o isac.o arcofi.o hscx.o
  
- hisax-$(CONFIG_HISAX_16_0)		+= teles0.o
- hisax-$(CONFIG_HISAX_16_3)		+= teles3.o
--hisax-$(CONFIG_HISAX_TELESPCI)		+= telespci.o
- hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o
- hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o
- hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o
-diff -puN drivers/isdn/hisax/config.c~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/config.c
-@@ -145,13 +145,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {15,0xd0000,0xd80,0}
- #endif
- 
--#ifdef CONFIG_HISAX_TELESPCI
--#undef DEFAULT_CARD
--#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_TELESPCI
--#define DEFAULT_CFG {0,0,0,0}
--#endif
--
- #ifdef CONFIG_HISAX_IX1MICROR2
- #undef DEFAULT_CARD
- #undef DEFAULT_CFG
-@@ -420,10 +413,6 @@ extern int setup_teles3(struct IsdnCard 
- extern int setup_s0box(struct IsdnCard *card);
- #endif
- 
--#if CARD_TELESPCI
--extern int setup_telespci(struct IsdnCard *card);
--#endif
--
- #if CARD_AVM_A1
- extern int setup_avm_a1(struct IsdnCard *card);
- #endif
-@@ -794,11 +783,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_s0box(card);
- 		break;
- #endif
--#if CARD_TELESPCI
--	case ISDN_CTYPE_TELESPCI:
--		ret = setup_telespci(card);
--		break;
--#endif
- #if CARD_AVM_A1
- 	case ISDN_CTYPE_A1:
- 		ret = setup_avm_a1(card);
-@@ -905,6 +889,7 @@ static int __devinit hisax_cs_setup_card
- 	case ISDN_CTYPE_W6692:
- 	case ISDN_CTYPE_NETJET_S:
- 	case ISDN_CTYPE_NETJET_U:
-+	case ISDN_CTYPE_TELESPCI:
- 		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
- 		       "to separate PCI driver module\n",
- 		       CardType[card->typ]);
-@@ -1365,7 +1350,6 @@ static int __init HiSax_init(void)
- 			cards[j].para[2] = mem[i];
- 			break;
- 		case ISDN_CTYPE_ELSA_PCI:
--		case ISDN_CTYPE_TELESPCI:
- 			break;
- 
- 		/* the following block are excluded from std HiSax init */
-@@ -1375,6 +1359,7 @@ static int __init HiSax_init(void)
- 		case ISDN_CTYPE_W6692:
- 		case ISDN_CTYPE_NETJET_S:
- 		case ISDN_CTYPE_NETJET_U:
-+		case ISDN_CTYPE_TELESPCI:
- 			break;
- 
- 		case ISDN_CTYPE_SCT_QUADRO:
-@@ -1878,7 +1863,7 @@ static struct pci_device_id hisax_pci_tb
- #ifdef CONFIG_HISAX_SEDLBAUER
- 	{PCI_VENDOR_ID_TIGERJET, PCI_DEVICE_ID_TIGERJET_100,     PCI_ANY_ID,PCI_ANY_ID},
- #endif
--#if defined(CONFIG_HISAX_TELESPCI) || defined(CONFIG_HISAX_SCT_QUADRO)
-+#if defined(CONFIG_HISAX_SCT_QUADRO)
- 	{PCI_VENDOR_ID_ZORAN,    PCI_DEVICE_ID_ZORAN_36120,      PCI_ANY_ID,PCI_ANY_ID},
- #endif
- 	{ }				/* Terminating entry */
-diff -puN drivers/isdn/hisax/telespci.c~isdn-hisax-telespci-convert-to-pci-hotplug-api drivers/isdn/hisax/telespci.c
---- a/drivers/isdn/hisax/telespci.c~isdn-hisax-telespci-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/telespci.c
-@@ -14,11 +14,14 @@
+ ifdef CONFIG_HISAX_HDLC
+@@ -56,7 +58,6 @@ hisax-$(CONFIG_HISAX_HFC_SX)		+= hfc_sx.
+ hisax-$(CONFIG_HISAX_NICCY)		+= niccy.o
+ hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isar.o
+ hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o
+-hisax-$(CONFIG_HISAX_BKM_A4T)		+= bkm_a4t.o jade.o
+ hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o
+ hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o
+ hisax-$(CONFIG_HISAX_W6692)		+= w6692.o
+diff -puN drivers/isdn/hisax/bkm_a4t.c~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api drivers/isdn/hisax/bkm_a4t.c
+--- a/drivers/isdn/hisax/bkm_a4t.c~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api
++++ a/drivers/isdn/hisax/bkm_a4t.c
+@@ -13,6 +13,7 @@
  
  #include <linux/init.h>
  #include "hisax.h"
 +#include "hisax_proto.h"
  #include "isac.h"
  #include "hscx.h"
- #include "isdnl1.h"
+ #include "jade.h"
+@@ -20,6 +21,8 @@
  #include <linux/pci.h>
+ #include "bkm_ax.h"
  
-+static int teles_protocol;		/* 0 == use DEFAULT_PROTO */
++static int a4t_protocol;		/* 0 == use DEFAULT_PROTO */
 +
- static const char *telespci_revision = "$Revision: 2.23.2.3 $";
+ static const char *bkm_a4t_revision = "$Revision: 1.22.2.4 $";
  
- #define ZORAN_PO_RQ_PEN	0x02000000
-@@ -283,12 +286,11 @@ TelesPCI_card_msg(struct IsdnCardState *
- 	return(0);
+ 
+@@ -255,24 +258,21 @@ BKM_card_msg(struct IsdnCardState *cs, i
+ 
+ static int __devinit a4t_pci_probe(struct pci_dev *dev_a4t,
+ 				   struct IsdnCardState *cs,
+-				   u_int *found,
+ 				   u_int *pci_memaddr)
+ {
+-	u16 sub_sys;
+-	u16 sub_vendor;
++	if (pci_enable_device(dev_a4t))
++		return (0);	/* error */
+ 
+-	sub_vendor = dev_a4t->subsystem_vendor;
+-	sub_sys = dev_a4t->subsystem_device;
+-	if ((sub_sys == PCI_DEVICE_ID_BERKOM_A4T) && (sub_vendor == PCI_VENDOR_ID_BERKOM)) {
+-		if (pci_enable_device(dev_a4t))
+-			return (0);	/* end loop & function */
+-		*found = 1;
+-		*pci_memaddr = pci_resource_start(dev_a4t, 0);
+-		cs->irq = dev_a4t->irq;
+-		return (1);		/* end loop */
++	*pci_memaddr = pci_resource_start(dev_a4t, 0);
++	if (!(*pci_memaddr)) {
++		printk(KERN_WARNING "HiSax bkm_a4t: No Memory base address\n");
++		return (0);
+ 	}
+ 
+-	return (-1);			/* continue looping */
++	cs->irq = dev_a4t->irq;
++
++	cs->hw.ax.dev = dev_a4t;
++	return (1);		/* success */
  }
  
--static struct pci_dev *dev_tel __devinitdata = NULL;
+ static int __devinit a4t_cs_init(struct IsdnCard *card,
+@@ -323,40 +323,79 @@ static int __devinit a4t_cs_init(struct 
+ 	return (1);
+ }
+ 
+-static struct pci_dev *dev_a4t __devinitdata = NULL;
 -
 -int __devinit
 +static int __devinit
- setup_telespci(struct IsdnCard *card)
+ setup_bkm_a4t(struct IsdnCard *card)
  {
  	struct IsdnCardState *cs = card->cs;
-+	struct pci_dev *dev_tel = (void *) card->para[0];
  	char tmp[64];
+-	u_int pci_memaddr = 0, found = 0;
++	u_int pci_memaddr = 0;
+ 	int ret;
++	struct pci_dev *dev_a4t = (void *) card->para[0];
  
- #ifdef __BIG_ENDIAN
-@@ -297,26 +299,24 @@ setup_telespci(struct IsdnCard *card)
- 
- 	strcpy(tmp, telespci_revision);
- 	printk(KERN_INFO "HiSax: Teles/PCI driver Rev. %s\n", HiSax_getrev(tmp));
--	if (cs->typ != ISDN_CTYPE_TELESPCI)
+ 	strcpy(tmp, bkm_a4t_revision);
+ 	printk(KERN_INFO "HiSax: T-Berkom driver Rev. %s\n", HiSax_getrev(tmp));
+-	if (cs->typ == ISDN_CTYPE_BKM_A4T) {
+-		cs->subtyp = BKM_A4T;
+-	} else
 -		return (0);
-+	WARN_ON(cs->typ != ISDN_CTYPE_TELESPCI);
  
--	if ((dev_tel = pci_find_device (PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120, dev_tel))) {
--		if (pci_enable_device(dev_tel))
--			return(0);
--		cs->irq = dev_tel->irq;
--		if (!cs->irq) {
--			printk(KERN_WARNING "Teles: No IRQ for PCI card found\n");
--			return(0);
--		}
--		cs->hw.teles0.membase = ioremap(pci_resource_start(dev_tel, 0),
--			PAGE_SIZE);
--		printk(KERN_INFO "Found: Zoran, base-address: 0x%llx, irq: 0x%x\n",
--			(unsigned long long)pci_resource_start(dev_tel, 0),
--			dev_tel->irq);
--	} else {
--		printk(KERN_WARNING "TelesPCI: No PCI card found\n");
-+	if (pci_enable_device(dev_tel))
-+		return(0);
-+	cs->irq = dev_tel->irq;
-+	if (!cs->irq) {
-+		printk(KERN_WARNING "Teles: No IRQ for PCI card found\n");
- 		return(0);
- 	}
-+	cs->hw.teles0.membase = ioremap(pci_resource_start(dev_tel, 0),
-+		PAGE_SIZE);
-+	if (!cs->hw.teles0.membase) {
-+		printk(KERN_WARNING "Teles: ioremap failed\n");
-+		return(0);
-+	}
-+	printk(KERN_INFO "Found: Zoran, base-address: 0x%llx, irq: 0x%x\n",
-+		(unsigned long long)pci_resource_start(dev_tel, 0),
-+		dev_tel->irq);
+-	while ((dev_a4t = pci_find_device(PCI_VENDOR_ID_ZORAN,
+-		PCI_DEVICE_ID_ZORAN_36120, dev_a4t))) {
+-		ret = a4t_pci_probe(dev_a4t, cs, &found, &pci_memaddr);
+-		if (!ret)
+-			return (0);
+-		if (ret > 0)
+-			break;
+-	}
+-	if (!found) {
+-		printk(KERN_WARNING "HiSax: Telekom A4T: Card not found\n");
+-		return (0);
+-	}
+-	if (!pci_memaddr) {
+-		printk(KERN_WARNING "HiSax: Telekom A4T: "
+-		       "No Memory base address\n");
++	WARN_ON(cs->typ != ISDN_CTYPE_BKM_A4T);
++
++	cs->subtyp = BKM_A4T;
++
++	ret = a4t_pci_probe(dev_a4t, cs, &pci_memaddr);
++	if (!ret)
+ 		return (0);
+-	}
  
- 	/* Initialize Zoran PCI controller */
- 	writel(0x00000000, cs->hw.teles0.membase + 0x28);
-@@ -352,3 +352,58 @@ setup_telespci(struct IsdnCard *card)
- 	}
- 	return (1);
+ 	return a4t_cs_init(card, cs, pci_memaddr);
  }
 +
-+static int __devinit teles_pci_init_one(struct pci_dev *pdev,
++static int __devinit a4t_pci_init_one(struct pci_dev *pdev,
 +				      const struct pci_device_id *ent)
 +{
-+	struct IsdnCard icard = { ISDN_CTYPE_TELESPCI, };
++	struct IsdnCard icard = { ISDN_CTYPE_BKM_A4T, };
 +	int cardnr;
 +
 +	icard.para[0] = (unsigned long) pdev;
-+	icard.para[1] = ent->driver_data;
-+	if (!teles_protocol)
++	if (!a4t_protocol)
 +		icard.protocol = DEFAULT_PROTO;
 +	else
-+		icard.protocol = teles_protocol;
++		icard.protocol = a4t_protocol;
 +
-+	cardnr = hisax_init_hotplug(&icard, setup_telespci);
++	cardnr = hisax_init_hotplug(&icard, setup_bkm_a4t);
 +	if (cardnr < 0)
 +		return -ENODEV;
 +
@@ -246,39 +200,106 @@ diff -puN drivers/isdn/hisax/telespci.c~isdn-hisax-telespci-convert-to-pci-hotpl
 +	return 0;
 +}
 +
-+static struct pci_device_id teles_pci_table[] = {
++static struct pci_device_id a4t_pci_table[] = {
 +	{ PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120,
-+	  PCI_ANY_ID, PCI_ANY_ID, },
++	  PCI_VENDOR_ID_BERKOM, PCI_DEVICE_ID_BERKOM_A4T, },
 +
 +	{ }		/* terminate list */
 +};
 +
-+static struct pci_driver teles_pci_driver = {
-+	.name		= "telespci",
-+	.id_table	= teles_pci_table,
-+	.probe		= teles_pci_init_one,
++static struct pci_driver a4t_pci_driver = {
++	.name		= "bkm_a4t",
++	.id_table	= a4t_pci_table,
++	.probe		= a4t_pci_init_one,
 +	.remove		= hisax_pci_remove_one,
 +};
 +
-+static int __init teles_mod_init(void)
++static int __init a4t_mod_init(void)
 +{
-+	return pci_register_driver(&teles_pci_driver);
++	return pci_register_driver(&a4t_pci_driver);
 +}
 +
-+static void __exit teles_mod_exit(void)
++static void __exit a4t_mod_exit(void)
 +{
-+	pci_unregister_driver(&teles_pci_driver);
++	pci_unregister_driver(&a4t_pci_driver);
 +}
 +
-+module_init(teles_mod_init);
-+module_exit(teles_mod_exit);
++module_init(a4t_mod_init);
++module_exit(a4t_mod_exit);
 +
-+module_param_named(protocol, teles_protocol, int, 0444);
++module_param_named(protocol, a4t_protocol, int, 0444);
 +MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
 +
-+MODULE_DEVICE_TABLE(pci, teles_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax Teles PCI driver");
++MODULE_DEVICE_TABLE(pci, a4t_pci_table);
++MODULE_DESCRIPTION("ISDN HiSax BKM A4T PCI driver");
 +MODULE_LICENSE("GPL");
+diff -puN drivers/isdn/hisax/config.c~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api
++++ a/drivers/isdn/hisax/config.c
+@@ -250,13 +250,6 @@ const char *CardType[] = {
+ #define DEFAULT_CFG {5,0x250,0,0}
+ #endif
+ 
+-#ifdef CONFIG_HISAX_BKM_A4T
+-#undef DEFAULT_CARD
+-#undef DEFAULT_CFG
+-#define DEFAULT_CARD ISDN_CTYPE_BKM_A4T
+-#define DEFAULT_CFG {0,0x0,0,0}
+-#endif
+-
+ #ifdef CONFIG_HISAX_SCT_QUADRO
+ #undef DEFAULT_CARD
+ #undef DEFAULT_CFG
+@@ -531,10 +524,6 @@ extern int setup_isurf(struct IsdnCard *
+ extern int setup_saphir(struct IsdnCard *card);
+ #endif
+ 
+-#if CARD_BKM_A4T
+-extern int setup_bkm_a4t(struct IsdnCard *card);
+-#endif
+-
+ #if CARD_SCT_QUADRO
+ extern int setup_sct_quadro(struct IsdnCard *card);
+ #endif
+@@ -954,11 +943,6 @@ static int __devinit hisax_cs_setup_card
+ 		ret = setup_saphir(card);
+ 		break;
+ #endif
+-#if	CARD_BKM_A4T
+-	case ISDN_CTYPE_BKM_A4T:
+-		ret = setup_bkm_a4t(card);
+-		break;
+-#endif
+ #if	CARD_SCT_QUADRO
+ 	case ISDN_CTYPE_SCT_QUADRO:
+ 		ret = setup_sct_quadro(card);
+@@ -987,6 +971,14 @@ static int __devinit hisax_cs_setup_card
+ 	case ISDN_CTYPE_DYNAMIC:
+ 		ret = 2;
+ 		break;
++
++	case ISDN_CTYPE_BKM_A4T:
++		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
++		       "to separate PCI driver module\n",
++		       CardType[card->typ]);
++		ret = 0;
++		break;
++
+ 	default:
+ 		printk(KERN_WARNING
+ 		       "HiSax: Support for %s Card not selected\n",
+@@ -1447,8 +1439,11 @@ static int __init HiSax_init(void)
+ 		case ISDN_CTYPE_W6692:
+ 		case ISDN_CTYPE_NETJET_U:
+ 			break;
++
++		/* the following block are excluded from std HiSax init */
+ 		case ISDN_CTYPE_BKM_A4T:
+ 			break;
++
+ 		case ISDN_CTYPE_SCT_QUADRO:
+ 			if (irq[i]) {
+ 				cards[j].para[0] = irq[i];
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -293,6 +314,10 @@ forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
+isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api.patch
+isdn-hisax-enternow-convert-to-pci-hotplug-api.patch
+isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api.patch
+isdn-hisax-nj_s-nj_u-convert-to-pci-hotplug-api.patch
 isdn-hisax-telespci-convert-to-pci-hotplug-api.patch
 isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch
 isdn-hisax-gazel-convert-to-modern-isa-pci-probing.patch
