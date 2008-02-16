@@ -1,31 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 17:00:28 -0800
-Message-ID: <200802160109.m1G19Ufw001646@imap1.linux-foundation.org>
+Subject: - isdn-ready-hisax-driver-for-modularization.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 17:00:21 -0800
+Message-ID: <200802160109.m1G19NCB001633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763733AbYBPBJp (ORCPT
+	by vger.kernel.org with ESMTP id S1758163AbYBPBJz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 20:09:45 -0500
+	Fri, 15 Feb 2008 20:09:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeff@garzik.org, greg@kroah.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: HiSax hfc_pci, w6692: convert to PCI hotplug API
+     isdn: Ready HiSax driver for modularization
 has been removed from the -mm tree.  Its filename was
-     isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api.patch
+     isdn-ready-hisax-driver-for-modularization.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: HiSax hfc_pci, w6692: convert to PCI hotplug API
+Subject: isdn: Ready HiSax driver for modularization
 From: Jeff Garzik <jeff@garzik.org>
+
+* move netjet, isac, arcofi, hscx common sub-modules to new libhisax.ko
+* export several symbols that are used by external drivers
+* move DEFAULT_PROTO* deterination to shareable header file
+* add hotplug and PCI-remove APIs
 
 Signed-off-by: Jeff Garzik <jeff@garzik.org>
 Cc: Greg KH <greg@kroah.com>
@@ -33,546 +38,299 @@ Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig   |    8 -
- drivers/isdn/hisax/Makefile  |    4 
- drivers/isdn/hisax/config.c  |   66 ---------------
- drivers/isdn/hisax/hfc_pci.c |  142 +++++++++++++++++++++++++--------
- drivers/isdn/hisax/w6692.c   |  111 +++++++++++++++++--------
- 5 files changed, 194 insertions(+), 137 deletions(-)
+ drivers/isdn/hisax/Makefile    |   51 ++++++++++++++-------------
+ drivers/isdn/hisax/arcofi.c    |    4 ++
+ drivers/isdn/hisax/config.c    |   57 ++++++++++++++++++++-----------
+ drivers/isdn/hisax/hisax_cfg.h |    2 +
+ drivers/isdn/hisax/hscx.c      |    8 ++++
+ drivers/isdn/hisax/isac.c      |    6 +++
+ drivers/isdn/hisax/isdnl1.c    |   12 +++++-
+ drivers/isdn/hisax/lmgr.c      |    2 +
+ drivers/isdn/hisax/netjet.c    |    9 ++++
+ drivers/isdn/hisax/q931.c      |    4 ++
+ 10 files changed, 109 insertions(+), 46 deletions(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/Kconfig
-@@ -315,8 +315,8 @@ config HISAX_GAZEL
- 	  settings.
- 
- config HISAX_HFC_PCI
--	bool "HFC PCI-Bus cards"
--	depends on PCI && PCI_LEGACY && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
-+	tristate "HFC PCI-Bus cards"
-+	depends on PCI && (BROKEN || !(SPARC || PPC || PARISC || M68K || (MIPS && !CPU_LITTLE_ENDIAN) || FRV))
- 	help
- 	  This enables HiSax support for the HFC-S PCI 2BDS0 based cards.
- 
-@@ -324,8 +324,8 @@ config HISAX_HFC_PCI
- 	  <file:Documentation/isdn/README.hfc-pci>.
- 
- config HISAX_W6692
--	bool "Winbond W6692 based cards"
--	depends on PCI && PCI_LEGACY
-+	tristate "Winbond W6692 based cards"
-+	depends on PCI
- 	help
- 	  This enables HiSax support for Winbond W6692 based PCI ISDN cards.
- 
-diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api drivers/isdn/hisax/Makefile
---- a/drivers/isdn/hisax/Makefile~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api
+diff -puN drivers/isdn/hisax/Makefile~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-ready-hisax-driver-for-modularization
 +++ a/drivers/isdn/hisax/Makefile
-@@ -17,6 +17,8 @@ obj-$(CONFIG_HISAX_HFC4S8S)		+= hfc4s8s_
+@@ -6,7 +6,7 @@
+ 
+ EXTRA_CFLAGS      += -DHISAX_MAX_CARDS=$(CONFIG_HISAX_MAX_CARDS)
+ 
+-obj-$(CONFIG_ISDN_DRV_HISAX)		+= hisax.o
++obj-$(CONFIG_ISDN_DRV_HISAX)		+= hisax.o libhisax.o
+ obj-$(CONFIG_HISAX_SEDLBAUER_CS)	+= sedlbauer_cs.o
+ obj-$(CONFIG_HISAX_ELSA_CS)		+= elsa_cs.o
+ obj-$(CONFIG_HISAX_AVM_A1_CS)		+= avma1_cs.o
+@@ -16,6 +16,8 @@ obj-$(CONFIG_HISAX_HFCUSB)		+= hfc_usb.o
+ obj-$(CONFIG_HISAX_HFC4S8S)		+= hfc4s8s_l1.o
  obj-$(CONFIG_HISAX_FRITZ_PCIPNP)        += hisax_isac.o hisax_fcpcipnp.o
- obj-$(CONFIG_HISAX_BKM_A4T)		+= bkm_a4t_pci.o libhisax.o
- obj-$(CONFIG_HISAX_ENTERNOW_PCI)	+= enternow.o libhisax.o
-+obj-$(CONFIG_HISAX_HFC_PCI)		+= hfc_pci.o libhisax.o
-+obj-$(CONFIG_HISAX_W6692)		+= w6692.o libhisax.o
  
- bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
- enternow-objs				:= enternow_pci.o amd7930_fn.o
-@@ -55,12 +57,10 @@ hisax-$(CONFIG_HISAX_MIC)		+= mic.o
- hisax-$(CONFIG_HISAX_NETJET)		+= nj_s.o
- hisax-$(CONFIG_HISAX_NETJET_U)		+= nj_u.o icc.o
++libhisax-objs				:= netjet.o isac.o arcofi.o hscx.o
++
+ ifdef CONFIG_HISAX_HDLC
+ obj-$(CONFIG_ISDN_DRV_HISAX)		+= isdnhdlc.o
+ endif
+@@ -31,33 +33,32 @@ hisax-$(CONFIG_HISAX_EURO)		+= l3dss1.o
+ hisax-$(CONFIG_HISAX_NI1)		+= l3ni1.o
+ hisax-$(CONFIG_HISAX_1TR6)		+= l3_1tr6.o
+ 
+-hisax-$(CONFIG_HISAX_16_0)		+= teles0.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_16_3)		+= teles3.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_TELESPCI)		+= telespci.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o isac.o arcofi.o
+-hisax-$(CONFIG_HISAX_ELSA)		+= elsa.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_IX1MICROR2)	+= ix1_micro.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_DIEHLDIVA)		+= diva.o isac.o arcofi.o hscx.o ipacx.o 
+-hisax-$(CONFIG_HISAX_ASUSCOM)		+= asuscom.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_TELEINT)		+= teleint.o isac.o arcofi.o hfc_2bs0.o
+-hisax-$(CONFIG_HISAX_SEDLBAUER)		+= sedlbauer.o isac.o arcofi.o hscx.o \
+-					   isar.o
+-hisax-$(CONFIG_HISAX_SPORTSTER)		+= sportster.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_MIC)		+= mic.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_NETJET)		+= nj_s.o netjet.o isac.o arcofi.o
+-hisax-$(CONFIG_HISAX_NETJET_U)		+= nj_u.o netjet.o icc.o
++hisax-$(CONFIG_HISAX_16_0)		+= teles0.o
++hisax-$(CONFIG_HISAX_16_3)		+= teles3.o
++hisax-$(CONFIG_HISAX_TELESPCI)		+= telespci.o
++hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o
++hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o
++hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o
++hisax-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o
++hisax-$(CONFIG_HISAX_ELSA)		+= elsa.o
++hisax-$(CONFIG_HISAX_IX1MICROR2)	+= ix1_micro.o
++hisax-$(CONFIG_HISAX_DIEHLDIVA)		+= diva.o ipacx.o
++hisax-$(CONFIG_HISAX_ASUSCOM)		+= asuscom.o
++hisax-$(CONFIG_HISAX_TELEINT)		+= teleint.o hfc_2bs0.o
++hisax-$(CONFIG_HISAX_SEDLBAUER)		+= sedlbauer.o isar.o
++hisax-$(CONFIG_HISAX_SPORTSTER)		+= sportster.o
++hisax-$(CONFIG_HISAX_MIC)		+= mic.o
++hisax-$(CONFIG_HISAX_NETJET)		+= nj_s.o
++hisax-$(CONFIG_HISAX_NETJET_U)		+= nj_u.o icc.o
  hisax-$(CONFIG_HISAX_HFCS)		+= hfcscard.o hfc_2bds0.o
--hisax-$(CONFIG_HISAX_HFC_PCI)		+= hfc_pci.o
+ hisax-$(CONFIG_HISAX_HFC_PCI)		+= hfc_pci.o
  hisax-$(CONFIG_HISAX_HFC_SX)		+= hfc_sx.o
- hisax-$(CONFIG_HISAX_NICCY)		+= niccy.o
- hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isar.o
- hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o
- hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o
- hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o
--hisax-$(CONFIG_HISAX_W6692)		+= w6692.o
+-hisax-$(CONFIG_HISAX_NICCY)		+= niccy.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isac.o arcofi.o isar.o
+-hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_BKM_A4T)		+= bkm_a4t.o isac.o arcofi.o jade.o
+-hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o isac.o arcofi.o hscx.o
+-hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o isac.o arcofi.o hscx.o
++hisax-$(CONFIG_HISAX_NICCY)		+= niccy.o
++hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isar.o
++hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o
++hisax-$(CONFIG_HISAX_BKM_A4T)		+= bkm_a4t.o jade.o
++hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o
++hisax-$(CONFIG_HISAX_GAZEL)		+= gazel.o
+ hisax-$(CONFIG_HISAX_W6692)		+= w6692.o
+ hisax-$(CONFIG_HISAX_ENTERNOW_PCI)	+= enternow_pci.o amd7930_fn.o
  
-diff -puN drivers/isdn/hisax/config.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api
+diff -puN drivers/isdn/hisax/arcofi.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/arcofi.c
+--- a/drivers/isdn/hisax/arcofi.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/arcofi.c
+@@ -132,3 +132,7 @@ init_arcofi(struct IsdnCardState *cs) {
+ 	init_waitqueue_head(&cs->dc.isac.arcofi_wait);
+ 	test_and_set_bit(HW_ARCOFI, &cs->HW_Flags);
+ }
++
++EXPORT_SYMBOL(init_arcofi);
++EXPORT_SYMBOL(clear_arcofi);
++EXPORT_SYMBOL(arcofi_fsm);
+diff -puN drivers/isdn/hisax/config.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-ready-hisax-driver-for-modularization
 +++ a/drivers/isdn/hisax/config.c
-@@ -215,13 +215,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {5,0x500,0,0}
- #endif
- 
--#ifdef CONFIG_HISAX_HFC_PCI
--#undef DEFAULT_CARD
--#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_HFC_PCI
--#define DEFAULT_CFG {0,0,0,0}
--#endif
--
- #ifdef CONFIG_HISAX_HFC_SX
- #undef DEFAULT_CARD
- #undef DEFAULT_CFG
-@@ -264,13 +257,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {15,0x180,0,0}
- #endif
- 
--#ifdef CONFIG_HISAX_W6692
--#undef DEFAULT_CARD
--#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_W6692
--#define DEFAULT_CFG {0,0,0,0}
--#endif
--
- #ifdef CONFIG_HISAX_NETJET_U
- #undef DEFAULT_CARD
- #undef DEFAULT_CFG
-@@ -504,10 +490,6 @@ extern int setup_netjet_s(struct IsdnCar
- extern int setup_hfcs(struct IsdnCard *card);
- #endif
- 
--#if CARD_HFC_PCI
--extern int setup_hfcpci(struct IsdnCard *card);
--#endif
--
- #if CARD_HFC_SX
- extern int setup_hfcsx(struct IsdnCard *card);
- #endif
-@@ -532,10 +514,6 @@ extern int setup_sct_quadro(struct IsdnC
- extern int setup_gazel(struct IsdnCard *card);
- #endif
- 
--#if CARD_W6692
--extern int setup_w6692(struct IsdnCard *card);
--#endif
--
- #if CARD_NETJET_U
- extern int setup_netjet_u(struct IsdnCard *card);
- #endif
-@@ -914,11 +892,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_hfcs(card);
- 		break;
- #endif
--#if CARD_HFC_PCI
--	case ISDN_CTYPE_HFC_PCI:
--		ret = setup_hfcpci(card);
--		break;
--#endif
- #if CARD_HFC_SX
- 	case ISDN_CTYPE_HFC_SX:
- 		ret = setup_hfcsx(card);
-@@ -949,11 +922,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_gazel(card);
- 		break;
- #endif
--#if CARD_W6692
--	case ISDN_CTYPE_W6692:
--		ret = setup_w6692(card);
--		break;
--#endif
- #if CARD_NETJET_U
- 	case ISDN_CTYPE_NETJET_U:
- 		ret = setup_netjet_u(card);
-@@ -965,6 +933,8 @@ static int __devinit hisax_cs_setup_card
- 
- 	case ISDN_CTYPE_BKM_A4T:
- 	case ISDN_CTYPE_ENTERNOW:
-+	case ISDN_CTYPE_HFC_PCI:
-+	case ISDN_CTYPE_W6692:
- 		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
- 		       "to separate PCI driver module\n",
- 		       CardType[card->typ]);
-@@ -1391,7 +1361,6 @@ static int __init HiSax_init(void)
- 			break;
- #endif
- 		case ISDN_CTYPE_ELSA:
--		case ISDN_CTYPE_HFC_PCI:
- 			cards[j].para[0] = io[i];
- 			break;
- 		case ISDN_CTYPE_16_3:
-@@ -1428,13 +1397,14 @@ static int __init HiSax_init(void)
- 		case ISDN_CTYPE_ELSA_PCI:
- 		case ISDN_CTYPE_NETJET_S:
- 		case ISDN_CTYPE_TELESPCI:
--		case ISDN_CTYPE_W6692:
- 		case ISDN_CTYPE_NETJET_U:
- 			break;
- 
- 		/* the following block are excluded from std HiSax init */
- 		case ISDN_CTYPE_BKM_A4T:
- 		case ISDN_CTYPE_ENTERNOW:
-+		case ISDN_CTYPE_HFC_PCI:
-+		case ISDN_CTYPE_W6692:
- 			break;
- 
- 		case ISDN_CTYPE_SCT_QUADRO:
-@@ -1944,34 +1914,6 @@ static struct pci_device_id hisax_pci_tb
- #if defined(CONFIG_HISAX_TELESPCI) || defined(CONFIG_HISAX_SCT_QUADRO)
- 	{PCI_VENDOR_ID_ZORAN,    PCI_DEVICE_ID_ZORAN_36120,      PCI_ANY_ID,PCI_ANY_ID},
- #endif
--#ifdef CONFIG_HISAX_W6692
--	{PCI_VENDOR_ID_DYNALINK, PCI_DEVICE_ID_DYNALINK_IS64PH,  PCI_ANY_ID,PCI_ANY_ID},
--	{PCI_VENDOR_ID_WINBOND2, PCI_DEVICE_ID_WINBOND2_6692,    PCI_ANY_ID,PCI_ANY_ID},
--#endif
--#ifdef CONFIG_HISAX_HFC_PCI
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_2BD0,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B000,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B006,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B007,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B008,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B009,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00A,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00B,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00C,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B100,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B700,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B701,         PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_ABOCOM,   PCI_DEVICE_ID_ABOCOM_2BD1,      PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_ASUSTEK,  PCI_DEVICE_ID_ASUSTEK_0675,     PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_BERKOM,   PCI_DEVICE_ID_BERKOM_T_CONCEPT, PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_BERKOM,   PCI_DEVICE_ID_BERKOM_A1T,       PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_ANIGMA,   PCI_DEVICE_ID_ANIGMA_MC145575,  PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_ZOLTRIX,  PCI_DEVICE_ID_ZOLTRIX_2BD0,     PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_IOM2_E, PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_E,      PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_IOM2_A, PCI_ANY_ID, PCI_ANY_ID},
--	{PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_A,      PCI_ANY_ID, PCI_ANY_ID},
--#endif
- 	{ }				/* Terminating entry */
- };
- 
-diff -puN drivers/isdn/hisax/hfc_pci.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api drivers/isdn/hisax/hfc_pci.c
---- a/drivers/isdn/hisax/hfc_pci.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/hfc_pci.c
-@@ -17,11 +17,14 @@
- 
+@@ -19,10 +19,12 @@
+ #include <linux/timer.h>
  #include <linux/init.h>
  #include "hisax.h"
 +#include "hisax_proto.h"
- #include "hfc_pci.h"
- #include "isdnl1.h"
- #include <linux/pci.h>
+ #include <linux/module.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/workqueue.h>
  #include <linux/interrupt.h>
++#include <linux/pci.h>
+ #define HISAX_STATUS_BUFSIZE 4096
  
-+static int hfc_protocol;		/* 0 == use DEFAULT_PROTO */
-+
- static const char *hfcpci_revision = "$Revision: 1.48.2.4 $";
+ /*
+@@ -283,26 +285,6 @@ const char *CardType[] = {
+ #define DEFAULT_CFG {0,0,0,0}
+ #endif
  
- /* table entry in the PCI devices list */
-@@ -1630,18 +1633,14 @@ hfcpci_card_msg(struct IsdnCardState *cs
- 	return (0);
+-#ifdef CONFIG_HISAX_1TR6
+-#define DEFAULT_PROTO ISDN_PTYPE_1TR6
+-#define DEFAULT_PROTO_NAME "1TR6"
+-#endif
+-#ifdef CONFIG_HISAX_NI1
+-#undef DEFAULT_PROTO
+-#define DEFAULT_PROTO ISDN_PTYPE_NI1
+-#undef DEFAULT_PROTO_NAME
+-#define DEFAULT_PROTO_NAME "NI1"
+-#endif
+-#ifdef CONFIG_HISAX_EURO
+-#undef DEFAULT_PROTO
+-#define DEFAULT_PROTO ISDN_PTYPE_EURO
+-#undef DEFAULT_PROTO_NAME
+-#define DEFAULT_PROTO_NAME "EURO"
+-#endif
+-#ifndef DEFAULT_PROTO
+-#define DEFAULT_PROTO ISDN_PTYPE_UNKNOWN
+-#define DEFAULT_PROTO_NAME "UNKNOWN"
+-#endif
+ #ifndef DEFAULT_CARD
+ #define DEFAULT_CARD 0
+ #define DEFAULT_CFG {0,0,0,0}
+@@ -1542,6 +1524,38 @@ static void __exit HiSax_exit(void)
+ 	printk(KERN_INFO "HiSax module removed\n");
  }
  
--
--/* this variable is used as card index when more than one cards are present */
--static struct pci_dev *dev_hfcpci __devinitdata = NULL;
--
--int __devinit
-+static int __devinit
- setup_hfcpci(struct IsdnCard *card)
++#ifdef CONFIG_PCI
++void hisax_pci_remove_one(struct pci_dev *pdev)
++{
++	int cardnr = (unsigned long) pci_get_drvdata(pdev);
++
++	HiSax_closecard(cardnr);
++	pci_disable_device(pdev);
++	pci_set_drvdata(pdev, NULL);
++}
++
++EXPORT_SYMBOL(hisax_pci_remove_one);
++#endif /* CONFIG_PCI */
++
++int hisax_init_hotplug(struct IsdnCard *card, hisax_setup_func_t card_setup)
++{
++	u_char ids[16];
++	int ret = -1;
++
++	cards[nrcards] = *card;
++	if (nrcards)
++		sprintf(ids, "HiSax%d", nrcards);
++	else
++		sprintf(ids, "HiSax");
++	if (!checkcard(nrcards, ids, NULL, THIS_MODULE, card_setup))
++		goto error;
++
++	ret = nrcards;
++	nrcards++;
++error:
++	return ret;
++}
++
+ int hisax_init_pcmcia(void *pcm_iob, int *busy_flag, struct IsdnCard *card)
  {
- 	u_long flags;
- 	struct IsdnCardState *cs = card->cs;
- 	char tmp[64];
--	int i;
--	struct pci_dev *tmp_hfcpci = NULL;
-+	struct pci_dev *dev_hfcpci = (void *) card->para[0];
-+	unsigned int idx = card->para[1];
+ 	u_char ids[16];
+@@ -1563,7 +1577,10 @@ error:
+ }
  
- #ifdef __BIG_ENDIAN
- #error "not running on big endian machines now"
-@@ -1653,33 +1652,12 @@ setup_hfcpci(struct IsdnCard *card)
- 	cs->hw.hfcpci.int_s1 = 0;
- 	cs->dc.hfcpci.ph_state = 0;
- 	cs->hw.hfcpci.fifo = 255;
--	if (cs->typ != ISDN_CTYPE_HFC_PCI)
--		return(0);
--
--	i = 0;
--	while (id_list[i].vendor_id) {
--		tmp_hfcpci = pci_find_device(id_list[i].vendor_id,
--					     id_list[i].device_id,
--					     dev_hfcpci);
--		i++;
--		if (tmp_hfcpci) {
--			if (pci_enable_device(tmp_hfcpci))
--				continue;
--			pci_set_master(tmp_hfcpci);
--			if ((card->para[0]) && (card->para[0] != (tmp_hfcpci->resource[ 0].start & PCI_BASE_ADDRESS_IO_MASK)))
--				continue;
--			else
--				break;
--		}
--	}
-+	WARN_ON(cs->typ != ISDN_CTYPE_HFC_PCI);
+ EXPORT_SYMBOL(hisax_init_pcmcia);
++EXPORT_SYMBOL(hisax_init_hotplug);
+ EXPORT_SYMBOL(HiSax_closecard);
++EXPORT_SYMBOL(HiSax_getrev);
++EXPORT_SYMBOL(HiSax_putstatus);
  
--	if (!tmp_hfcpci) {
--		printk(KERN_WARNING "HFC-PCI: No PCI card found\n");
-+	if (pci_enable_device(dev_hfcpci))
- 		return (0);
--	}
-+	pci_set_master(dev_hfcpci);
+ #include "hisax_if.h"
  
--	i--;
--	dev_hfcpci = tmp_hfcpci;	/* old device */
- 	cs->hw.hfcpci.dev = dev_hfcpci;
- 	cs->irq = dev_hfcpci->irq;
- 	if (!cs->irq) {
-@@ -1687,7 +1665,8 @@ setup_hfcpci(struct IsdnCard *card)
- 		return (0);
+diff -puN drivers/isdn/hisax/hisax_cfg.h~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/hisax_cfg.h
+--- a/drivers/isdn/hisax/hisax_cfg.h~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/hisax_cfg.h
+@@ -64,3 +64,5 @@ typedef int (*hisax_setup_func_t)(struct
+ 
+ extern void	HiSax_closecard(int);
+ extern int	hisax_init_pcmcia(void *, int *, IsdnCard_t *);
++extern int	hisax_init_hotplug(IsdnCard_t *, hisax_setup_func_t card_setup);
++extern void	hisax_pci_remove_one(struct pci_dev *pdev);
+diff -puN drivers/isdn/hisax/hscx.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/hscx.c
+--- a/drivers/isdn/hisax/hscx.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/hscx.c
+@@ -274,3 +274,11 @@ inithscxisac(struct IsdnCardState *cs, i
+ 		cs->writeisac(cs, ISAC_CMDR, 0x41);
  	}
- 	cs->hw.hfcpci.pci_io = (char *)(unsigned long)dev_hfcpci->resource[1].start;
--	printk(KERN_INFO "HiSax: HFC-PCI card manufacturer: %s card name: %s\n", id_list[i].vendor_name, id_list[i].card_name);
-+	printk(KERN_INFO "HiSax: HFC-PCI card manufacturer: %s card name: %s\n",
-+	       id_list[idx].vendor_name, id_list[idx].card_name);
- 
- 	if (!cs->hw.hfcpci.pci_io) {
- 		printk(KERN_WARNING "HFC-PCI: No IO-Mem for PCI card found\n");
-@@ -1742,3 +1721,102 @@ setup_hfcpci(struct IsdnCard *card)
- 
- 	return (1);
  }
 +
-+static int __devinit hfc_pci_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
-+{
-+	struct IsdnCard icard = { ISDN_CTYPE_HFC_PCI, };
-+	int cardnr;
-+
-+	icard.para[0] = (unsigned long) pdev;
-+	icard.para[1] = ent->driver_data;
-+	if (!hfc_protocol)
-+		icard.protocol = DEFAULT_PROTO;
-+	else
-+		icard.protocol = hfc_protocol;
-+
-+	cardnr = hisax_init_hotplug(&icard, setup_hfcpci);
-+	if (cardnr < 0)
-+		return -ENODEV;
-+
-+	pci_set_drvdata(pdev, (void *)(unsigned long) cardnr);
-+	return 0;
-+}
-+
-+static struct pci_device_id hfc_pci_table[] = {
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_2BD0,
-+	  PCI_ANY_ID, PCI_ANY_ID, 0 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B000,
-+	  PCI_ANY_ID, PCI_ANY_ID, 1 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B006,
-+	  PCI_ANY_ID, PCI_ANY_ID, 2 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B007,
-+	  PCI_ANY_ID, PCI_ANY_ID, 3 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B008,
-+	  PCI_ANY_ID, PCI_ANY_ID, 4 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B009,
-+	  PCI_ANY_ID, PCI_ANY_ID, 5 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00A,
-+	  PCI_ANY_ID, PCI_ANY_ID, 6 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00B,
-+	  PCI_ANY_ID, PCI_ANY_ID, 7 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B00C,
-+	  PCI_ANY_ID, PCI_ANY_ID, 8 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B100,
-+	  PCI_ANY_ID, PCI_ANY_ID, 9 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B700,
-+	  PCI_ANY_ID, PCI_ANY_ID, 10 },
-+	{ PCI_VENDOR_ID_CCD,      PCI_DEVICE_ID_CCD_B701,
-+	  PCI_ANY_ID, PCI_ANY_ID, 11 },
-+	{ PCI_VENDOR_ID_ABOCOM,   PCI_DEVICE_ID_ABOCOM_2BD1,
-+	  PCI_ANY_ID, PCI_ANY_ID, 12 },
-+	{ PCI_VENDOR_ID_ASUSTEK,  PCI_DEVICE_ID_ASUSTEK_0675,
-+	  PCI_ANY_ID, PCI_ANY_ID, 13 },
-+	{ PCI_VENDOR_ID_BERKOM,   PCI_DEVICE_ID_BERKOM_T_CONCEPT,
-+	  PCI_ANY_ID, PCI_ANY_ID, 14 },
-+	{ PCI_VENDOR_ID_BERKOM,   PCI_DEVICE_ID_BERKOM_A1T,
-+	  PCI_ANY_ID, PCI_ANY_ID, 15 },
-+	{ PCI_VENDOR_ID_ANIGMA,   PCI_DEVICE_ID_ANIGMA_MC145575,
-+	  PCI_ANY_ID, PCI_ANY_ID, 16 },
-+	{ PCI_VENDOR_ID_ZOLTRIX,  PCI_DEVICE_ID_ZOLTRIX_2BD0,
-+	  PCI_ANY_ID, PCI_ANY_ID, 17 },
-+	{ PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_IOM2_E,
-+	  PCI_ANY_ID, PCI_ANY_ID, 18 },
-+	{ PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_E,
-+	  PCI_ANY_ID, PCI_ANY_ID, 19 },
-+	{ PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_IOM2_A,
-+	  PCI_ANY_ID, PCI_ANY_ID, 20 },
-+	{ PCI_VENDOR_ID_DIGI,     PCI_DEVICE_ID_DIGI_DF_M_A,
-+	  PCI_ANY_ID, PCI_ANY_ID, 21 },
-+	{ PCI_VENDOR_ID_SITECOM, PCI_DEVICE_ID_SITECOM_DC105V2,
-+	  PCI_ANY_ID, PCI_ANY_ID, 22 },
-+
-+	{ }		/* terminate list */
-+};
-+
-+static struct pci_driver hfc_pci_driver = {
-+	.name		= "hfc_pci",
-+	.id_table	= hfc_pci_table,
-+	.probe		= hfc_pci_init_one,
-+	.remove		= hisax_pci_remove_one,
-+};
-+
-+static int __init hfc_mod_init(void)
-+{
-+	return pci_register_driver(&hfc_pci_driver);
-+}
-+
-+static void __exit hfc_mod_exit(void)
-+{
-+	pci_unregister_driver(&hfc_pci_driver);
-+}
-+
-+module_init(hfc_mod_init);
-+module_exit(hfc_mod_exit);
-+
-+module_param_named(protocol, hfc_protocol, int, 0444);
-+MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
-+
-+MODULE_DEVICE_TABLE(pci, hfc_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax HFC PCI driver");
-+MODULE_LICENSE("GPL");
-diff -puN drivers/isdn/hisax/w6692.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api drivers/isdn/hisax/w6692.c
---- a/drivers/isdn/hisax/w6692.c~isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/w6692.c
-@@ -12,11 +12,14 @@
- 
- #include <linux/init.h>
- #include "hisax.h"
-+#include "hisax_proto.h"
- #include "w6692.h"
- #include "isdnl1.h"
- #include <linux/interrupt.h>
- #include <linux/pci.h>
- 
-+static int w6692_protocol;		/* 0 == use DEFAULT_PROTO */
-+
- /* table entry in the PCI devices list */
- typedef struct {
- 	int vendor_id;
-@@ -990,54 +993,29 @@ w6692_card_msg(struct IsdnCardState *cs,
- 	return (0);
++EXPORT_SYMBOL(HscxVersion);
++EXPORT_SYMBOL(inithscxisac);
++EXPORT_SYMBOL(inithscx);
++EXPORT_SYMBOL(clear_pending_hscx_ints);
++EXPORT_SYMBOL(hscx_l2l1);
++EXPORT_SYMBOL(open_hscxstate);
++EXPORT_SYMBOL(modehscx);
+diff -puN drivers/isdn/hisax/isac.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/isac.c
+--- a/drivers/isdn/hisax/isac.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/isac.c
+@@ -678,3 +678,9 @@ setup_isac(struct IsdnCardState *cs)
+ 	cs->dbusytimer.data = (long) cs;
+ 	init_timer(&cs->dbusytimer);
  }
++
++EXPORT_SYMBOL(isac_interrupt);
++EXPORT_SYMBOL(initisac);
++EXPORT_SYMBOL(clear_pending_isac_ints);
++EXPORT_SYMBOL(ISACVersion);
++EXPORT_SYMBOL(setup_isac);
+diff -puN drivers/isdn/hisax/isdnl1.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/isdnl1.c
+--- a/drivers/isdn/hisax/isdnl1.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/isdnl1.c
+@@ -451,7 +451,7 @@ Logl2Frame(struct IsdnCardState *cs, str
+ 			(dir ? "<-" : "->"), buf, l2frames(ptr),
+ 			((ptr[0] & 2) >> 1) == dir ? 'C' : 'R', ptr[0] >> 2, ptr[1] >> 1);
+ }
+-#endif
++#endif /* L2FRAME_DEBUG */
  
--static int id_idx ;
--
--static struct pci_dev *dev_w6692 __devinitdata = NULL;
--
--int __devinit
-+static int __devinit
- setup_w6692(struct IsdnCard *card)
+ static void
+ l1_reset(struct FsmInst *fi, int event, void *arg)
+@@ -933,3 +933,13 @@ setstack_l1_B(struct PStack *st)
+ 	st->l1.Flags = 0;
+ 	FsmInitTimer(&st->l1.l1m, &st->l1.timer);
+ }
++
++EXPORT_SYMBOL(l1_msg);
++EXPORT_SYMBOL(l1_msg_b);
++EXPORT_SYMBOL(debugl1);
++EXPORT_SYMBOL(setstack_l1_B);
++EXPORT_SYMBOL(DChannel_proc_rcv);
++EXPORT_SYMBOL(DChannel_proc_xmt);
++#ifdef L2FRAME_DEBUG
++EXPORT_SYMBOL(Logl2Frame);
++#endif
+diff -puN drivers/isdn/hisax/lmgr.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/lmgr.c
+--- a/drivers/isdn/hisax/lmgr.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/lmgr.c
+@@ -48,3 +48,5 @@ setstack_manager(struct PStack *st)
  {
- 	struct IsdnCardState *cs = card->cs;
- 	char tmp[64];
--	u_char found = 0;
- 	u_char pci_irq = 0;
- 	u_int pci_ioaddr = 0;
-+	struct pci_dev *dev_w6692 = (void *) card->para[0];
- 
- 	strcpy(tmp, w6692_revision);
- 	printk(KERN_INFO "HiSax: W6692 driver Rev. %s\n", HiSax_getrev(tmp));
--	if (cs->typ != ISDN_CTYPE_W6692)
--		return (0);
-+	WARN_ON(cs->typ != ISDN_CTYPE_W6692);
- 
--	while (id_list[id_idx].vendor_id) {
--		dev_w6692 = pci_find_device(id_list[id_idx].vendor_id,
--					    id_list[id_idx].device_id,
--					    dev_w6692);
--		if (dev_w6692) {
--			if (pci_enable_device(dev_w6692))
--				continue;
--			cs->subtyp = id_idx;
--			break;
--		}
--		id_idx++;
--	}
--	if (dev_w6692) {
--		found = 1;
--		pci_irq = dev_w6692->irq;
--		/* I think address 0 is allways the configuration area */
--		/* and address 1 is the real IO space KKe 03.09.99 */
--		pci_ioaddr = pci_resource_start(dev_w6692, 1);
--		/* USR ISDN PCI card TA need some special handling */
--		if (cs->subtyp == W6692_WINBOND) {
--			if ((W6692_SV_USR == dev_w6692->subsystem_vendor) &&
--			    (W6692_SD_USR == dev_w6692->subsystem_device)) {
--				cs->subtyp = W6692_USR;
--			}
--		}
--	}
--	if (!found) {
--		printk(KERN_WARNING "W6692: No PCI card found\n");
-+	if (pci_enable_device(dev_w6692))
- 		return (0);
--	}
-+
-+	cs->subtyp = card->para[1];
-+
-+	pci_irq = dev_w6692->irq;
-+	/* I think address 0 is allways the configuration area */
-+	/* and address 1 is the real IO space KKe 03.09.99 */
-+	pci_ioaddr = pci_resource_start(dev_w6692, 1);
-+
- 	cs->irq = pci_irq;
- 	if (!cs->irq) {
- 		printk(KERN_WARNING "W6692: No IRQ for PCI card found\n");
-@@ -1084,3 +1062,62 @@ setup_w6692(struct IsdnCard *card)
- 	printk(KERN_INFO "W6692 D_RSTA=0x%X\n", ReadW6692(cs, W_D_RSTA));
- 	return (1);
+ 	st->ma.layer = hisax_manager;
  }
 +
-+static int __devinit w6692_pci_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
-+{
-+	struct IsdnCard icard = { ISDN_CTYPE_W6692, };
-+	int cardnr;
++EXPORT_SYMBOL(setstack_manager);
+diff -puN drivers/isdn/hisax/netjet.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/netjet.c
+--- a/drivers/isdn/hisax/netjet.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/netjet.c
+@@ -979,3 +979,12 @@ release_io_netjet(struct IsdnCardState *
+ 	release_region(cs->hw.njet.base, 256);
+ }
+ 
++EXPORT_SYMBOL(NETjet_WriteICfifo);
++EXPORT_SYMBOL(NETjet_ReadICfifo);
++EXPORT_SYMBOL(NETjet_WriteIC);
++EXPORT_SYMBOL(NETjet_ReadIC);
++EXPORT_SYMBOL(write_tiger);
++EXPORT_SYMBOL(read_tiger);
++EXPORT_SYMBOL(inittiger);
++EXPORT_SYMBOL(netjet_fill_dma);
++EXPORT_SYMBOL(release_io_netjet);
+diff -puN drivers/isdn/hisax/q931.c~isdn-ready-hisax-driver-for-modularization drivers/isdn/hisax/q931.c
+--- a/drivers/isdn/hisax/q931.c~isdn-ready-hisax-driver-for-modularization
++++ a/drivers/isdn/hisax/q931.c
+@@ -1520,3 +1520,7 @@ dlogframe(struct IsdnCardState *cs, stru
+ 	*dp = 0;
+ 	HiSax_putstatus(cs, NULL, cs->dlog);
+ }
 +
-+	icard.para[0] = (unsigned long) pdev;
-+	icard.para[1] = ent->driver_data;
-+	if (!w6692_protocol)
-+		icard.protocol = DEFAULT_PROTO;
-+	else
-+		icard.protocol = w6692_protocol;
-+
-+	cardnr = hisax_init_hotplug(&icard, setup_w6692);
-+	if (cardnr < 0)
-+		return -ENODEV;
-+
-+	pci_set_drvdata(pdev, (void *)(unsigned long) cardnr);
-+	return 0;
-+}
-+
-+static struct pci_device_id w6692_pci_table[] = {
-+	{ PCI_VENDOR_ID_DYNALINK, PCI_DEVICE_ID_DYNALINK_IS64PH,
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, W6692_DYNALINK },
-+	{ PCI_VENDOR_ID_WINBOND2, PCI_DEVICE_ID_WINBOND2_6692,
-+	  W6692_SV_USR, W6692_SD_USR, 0, 0, W6692_USR },
-+	{ PCI_VENDOR_ID_WINBOND2, PCI_DEVICE_ID_WINBOND2_6692,
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, W6692_WINBOND },
-+
-+	{ }		/* terminate list */
-+};
-+
-+static struct pci_driver w6692_pci_driver = {
-+	.name		= "w6692",
-+	.id_table	= w6692_pci_table,
-+	.probe		= w6692_pci_init_one,
-+	.remove		= hisax_pci_remove_one,
-+};
-+
-+static int __init w6692_mod_init(void)
-+{
-+	return pci_register_driver(&w6692_pci_driver);
-+}
-+
-+static void __exit w6692_mod_exit(void)
-+{
-+	pci_unregister_driver(&w6692_pci_driver);
-+}
-+
-+module_init(w6692_mod_init);
-+module_exit(w6692_mod_exit);
-+
-+module_param_named(protocol, w6692_protocol, int, 0444);
-+MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
-+
-+MODULE_DEVICE_TABLE(pci, w6692_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax W6692 PCI driver");
-+MODULE_LICENSE("GPL");
++EXPORT_SYMBOL(dlogframe);
++EXPORT_SYMBOL(LogFrame);
++EXPORT_SYMBOL(QuickHex);
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -587,6 +345,9 @@ forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
+isdn-ready-hisax-driver-for-modularization.patch
+isdn-hisax-bkm_a4t-convert-to-pci-hotplug-api.patch
+isdn-hisax-enternow-convert-to-pci-hotplug-api.patch
 isdn-hisax-hfc_pci-w6692-convert-to-pci-hotplug-api.patch
 isdn-hisax-nj_s-nj_u-convert-to-pci-hotplug-api.patch
 isdn-hisax-telespci-convert-to-pci-hotplug-api.patch
