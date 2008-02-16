@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 16:43:45 -0800
-Message-ID: <200802160052.m1G0qlgN000806@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 16:44:53 -0800
+Message-ID: <200802160053.m1G0rtD9000912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42090 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760749AbYBPAxF (ORCPT
+	by vger.kernel.org with ESMTP id S1756034AbYBPAyP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:53:05 -0500
+	Fri, 15 Feb 2008 19:54:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
+     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
+Subject: r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    4 ++--
+ fs/nfsd/nfs4recover.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
-+++ a/fs/nfsd/vfs.c
-@@ -1264,11 +1264,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
- 	case S_IFBLK:
- 	case S_IFIFO:
- 	case S_IFSOCK:
--		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
-+		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
- 		if (host_err)
- 			break;
- 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
--		mnt_drop_write(fhp->fh_export->ex_mnt);
-+		mnt_drop_write(fhp->fh_export->ex_path.mnt);
- 		break;
- 	default:
- 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
++++ a/fs/nfsd/nfs4recover.c
+@@ -155,11 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
+ 	}
+-	status = mnt_want_write(rec_dir.mnt);
++	status = mnt_want_write(rec_dir.path.mnt);
+ 	if (status)
+ 		goto out_put;
+ 	status = vfs_mkdir(rec_dir.path.dentry->d_inode, dentry, S_IRWXU);
+-	mnt_drop_write(rec_dir.mnt);
++	mnt_drop_write(rec_dir.path.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +109,7 @@ fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
 r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
 r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
