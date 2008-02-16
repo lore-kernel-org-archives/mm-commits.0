@@ -1,50 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fixup.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 16:05:33 -0800
-Message-ID: <200802160005.m1G05YD0031249@imap1.linux-foundation.org>
+Subject: - git-x86-git-rejects.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 16:05:39 -0800
+Message-ID: <200802160005.m1G05d0A031252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49627 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755096AbYBPAFr (ORCPT
+	by vger.kernel.org with ESMTP id S1755096AbYBPAF4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:05:47 -0500
+	Fri, 15 Feb 2008 19:05:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-fixup
+     git-x86-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-x86-fixup.patch
+     git-x86-git-rejects.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-x86-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/hrtimer.c |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-x86-fixup arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-x86-fixup
-+++ a/arch/x86/Kconfig
-@@ -23,6 +23,7 @@ config X86
- 	select HAVE_KPROBES
- 	select HAVE_KVM
- 	select HAVE_FTRACE
-+	select HAVE_ARCH_KGDB
+diff -puN kernel/hrtimer.c~git-x86-git-rejects kernel/hrtimer.c
+--- a/kernel/hrtimer.c~git-x86-git-rejects
++++ a/kernel/hrtimer.c
+@@ -326,29 +326,14 @@ u64 ktime_divns(const ktime_t kt, s64 di
+ #endif /* BITS_PER_LONG >= 64 */
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ /*
+-<<<<<<< HEAD:kernel/hrtimer.c
+- * Add two ktime values and do a safety check for overflow:
+-=======
+  * Add two ktime values and do a safety check on overflow:
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
+  */
+ ktime_t ktime_add_safe(const ktime_t lhs, const ktime_t rhs)
+ {
+ 	ktime_t res = ktime_add(lhs, rhs);
+ 
+-<<<<<<< HEAD:kernel/hrtimer.c
+-	/*
+-	 * We use KTIME_SEC_MAX here, the maximum timeout which we can
+-	 * return to user space in a timespec:
+-	 */
+-=======
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
+ 	if (res.tv64 < 0 || res.tv64 < lhs.tv64 || res.tv64 < rhs.tv64)
+-<<<<<<< HEAD:kernel/hrtimer.c
+-		res = ktime_set(KTIME_SEC_MAX, 0);
+-=======
+ 		return (ktime_t) {.tv64 = KTIME_MAX} ;
+->>>>>>> FETCH_HEAD:kernel/hrtimer.c
+ 
+ 	return res;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +105,6 @@ usb-ohci-sm501-driver-v2-fix.patch
 drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
-git-x86-fixup.patch
 git-x86-git-rejects.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 x86-amd-thermal-interrupt-support.patch
