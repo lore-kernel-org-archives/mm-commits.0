@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 16:28:57 -0800
-Message-ID: <200802160037.m1G0bxbw032547@imap1.linux-foundation.org>
+Subject: + rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 16:32:52 -0800
+Message-ID: <200802160041.m1G0fsxK032719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36652 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbYBPAii (ORCPT
+	by vger.kernel.org with ESMTP id S1762701AbYBPAmN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:38:38 -0500
+	Fri, 15 Feb 2008 19:42:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
+Subject: rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
-+++ a/fs/nfsd/vfs.c
-@@ -1686,9 +1686,9 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 	}
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -257,7 +257,7 @@ static int pcf8563_probe(struct i2c_clie
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
  
- 	host_err = -EXDEV;
--	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
-+	if (ffhp->fh_export->ex_path.mnt != tfhp->fh_export->ex_path.mnt)
- 		goto out_dput_new;
--	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
-+	host_err = mnt_want_write(ffhp->fh_export->ex_path.mnt);
- 	if (host_err)
- 		goto out_dput_new;
+-	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL));
++	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL);
+ 	if (!pcf8563)
+ 		return -ENOMEM;
  
-@@ -1699,7 +1699,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 			host_err = nfsd_sync_dir(fdentry);
- 	}
- 
--	mnt_drop_write(ffhp->fh_export->ex_mnt);
-+	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
- 
-  out_dput_new:
- 	dput(ndentry);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +109,7 @@ oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
