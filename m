@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-powerpc-kconfig-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 21:29:29 -0700
-Message-ID: <200802160429.m1G4TVNt008389@imap1.linux-foundation.org>
+Subject: + fix-ide-mm-ide-rework-powermac-media-bay-support.patch added to -mm tree
+Date: Fri, 15 Feb 2008 21:33:30 -0700
+Message-ID: <200802160433.m1G4XVAi008529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38153 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751740AbYBPEaG (ORCPT
+	by vger.kernel.org with ESMTP id S1752811AbYBPEdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 23:30:06 -0500
+	Fri, 15 Feb 2008 23:33:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     git-acpi: powerpc kconfig "fix"
+     fix ide-mm-ide-rework-powermac-media-bay-support
 has been added to the -mm tree.  Its filename is
-     git-acpi-powerpc-kconfig-fix.patch
+     fix-ide-mm-ide-rework-powermac-media-bay-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,33 +28,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi: powerpc kconfig "fix"
+Subject: fix ide-mm-ide-rework-powermac-media-bay-support
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/power/Kconfig:119:error: found recursive dependency: HIBERNATION -> DEBUG_PAGEALLOC -> ARCH_HIBERNATION_POSSIBLE -> HIBERNATION
- -> PM_STD_PARTITIONmake[1]: *** [oldconfig] Error 1
-make: *** [oldconfig] Error 2
+In file included from arch/powerpc/platforms/powermac/setup.c:66:
+include/asm/mediabay.h:29: error: syntax error before "ide_hwif_t"
+include/asm/mediabay.h:29: warning: function declaration isn't a prototype
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    2 --
- 1 files changed, 2 deletions(-)
+ include/asm-powerpc/mediabay.h |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~git-acpi-powerpc-kconfig-fix arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~git-acpi-powerpc-kconfig-fix
-+++ a/arch/powerpc/Kconfig
-@@ -168,8 +168,6 @@ config HIBERNATE_64
- config ARCH_HIBERNATION_POSSIBLE
- 	bool
- 	depends on (PPC64 && HIBERNATE_64) || (PPC32 && HIBERNATE_32)
--# This is needed as long as kernel_page_present() is not implemented
--	depends on !DEBUG_PAGEALLOC
- 	default y
+diff -puN include/asm-powerpc/mediabay.h~fix-ide-mm-ide-rework-powermac-media-bay-support include/asm-powerpc/mediabay.h
+--- a/include/asm-powerpc/mediabay.h~fix-ide-mm-ide-rework-powermac-media-bay-support
++++ a/include/asm-powerpc/mediabay.h
+@@ -9,6 +9,8 @@
  
- config ARCH_SUSPEND_POSSIBLE
+ #ifdef __KERNEL__
+ 
++#include <linux/ide.h>
++
+ #define MB_FD		0	/* media bay contains floppy drive (automatic eject ?) */
+ #define MB_FD1		1	/* media bay contains floppy drive (manual eject ?) */
+ #define MB_SOUND	2	/* sound device ? */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +72,7 @@ git-hwmon.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
+fix-ide-mm-ide-rework-powermac-media-bay-support.patch
 git-md-accel.patch
 git-ubi.patch
 git-net.patch
