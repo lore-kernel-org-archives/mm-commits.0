@@ -1,86 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - ubi-fix-sparse-errors-in-ubih.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 16:10:19 -0800
-Message-ID: <200802160010.m1G0AKdg031455@imap1.linux-foundation.org>
+Subject: - net-xfrm-statistics-depend-on-inet.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 16:10:30 -0800
+Message-ID: <200802160010.m1G0AUs9031474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39634 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39119 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761911AbYBPAKe (ORCPT
+	by vger.kernel.org with ESMTP id S1761892AbYBPAKe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 15 Feb 2008 19:10:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dedekind@infradead.org, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ubi: fix sparse errors in ubi.h
+     net: xfrm statistics depend on INET
 has been removed from the -mm tree.  Its filename was
-     ubi-fix-sparse-errors-in-ubih.patch
+     net-xfrm-statistics-depend-on-inet.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ubi: fix sparse errors in ubi.h
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: net: xfrm statistics depend on INET
+From: Paul Mundt <lethal@linux-sh.org>
 
-In C, signed 1-bit bitfields can only take the values 0 and -1, only 0 and 1
-are ever assigned in current code.  Make them unsigned bitfields.
+net/built-in.o: In function `xfrm_policy_init':
+/home/pmundt/devel/git/sh-2.6.25/net/xfrm/xfrm_policy.c:2338: undefined reference to `snmp_mib_init'
 
-Fixes the (repeated) sparse errors:
-drivers/mtd/ubi/ubi.h:220:15: error: dubious one-bit signed bitfield
-drivers/mtd/ubi/ubi.h:221:17: error: dubious one-bit signed bitfield
-drivers/mtd/ubi/ubi.h:222:18: error: dubious one-bit signed bitfield
-drivers/mtd/ubi/ubi.h:223:16: error: dubious one-bit signed bitfield
-drivers/mtd/ubi/ubi.h:224:20: error: dubious one-bit signed bitfield
+snmp_mib_init() is only built in if CONFIG_INET is set.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/ubi.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/xfrm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/ubi.h~ubi-fix-sparse-errors-in-ubih drivers/mtd/ubi/ubi.h
---- a/drivers/mtd/ubi/ubi.h~ubi-fix-sparse-errors-in-ubih
-+++ a/drivers/mtd/ubi/ubi.h
-@@ -217,11 +217,11 @@ struct ubi_volume {
- 	void *upd_buf;
+diff -puN net/xfrm/Kconfig~net-xfrm-statistics-depend-on-inet net/xfrm/Kconfig
+--- a/net/xfrm/Kconfig~net-xfrm-statistics-depend-on-inet
++++ a/net/xfrm/Kconfig
+@@ -38,7 +38,7 @@ config XFRM_MIGRATE
  
- 	int *eba_tbl;
--	int checked:1;
--	int corrupted:1;
--	int upd_marker:1;
--	int updating:1;
--	int changing_leb:1;
-+	unsigned int checked:1;
-+	unsigned int corrupted:1;
-+	unsigned int upd_marker:1;
-+	unsigned int updating:1;
-+	unsigned int changing_leb:1;
- 
- #ifdef CONFIG_MTD_UBI_GLUEBI
- 	/*
+ config XFRM_STATISTICS
+ 	bool "Transformation statistics (EXPERIMENTAL)"
+-	depends on XFRM && PROC_FS && EXPERIMENTAL
++	depends on INET && XFRM && PROC_FS && EXPERIMENTAL
+ 	---help---
+ 	  This statistics is not a SNMP/MIB specification but shows
+ 	  statistics about transformation error (or almost error) factor
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-git-ubi.patch
-x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+git-dvb.patch
+git-sh.patch
+taint-kernel-after-warn_oncondition.patch
+inflate-refactor-inflate-malloc-code.patch
+sm501-add-uart-support.patch
+asm-futexh-should-include-linux-uaccessh.patch
