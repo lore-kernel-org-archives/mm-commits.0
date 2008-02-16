@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:43:25 -0800
-Message-ID: <200802160643.m1G6hPIN012821@imap1.linux-foundation.org>
+Subject: + h8300-signalc-typo-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 22:44:10 -0800
+Message-ID: <200802160644.m1G6iAk5012833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751988AbYBPGni (ORCPT
+	by vger.kernel.org with ESMTP id S1752039AbYBPGo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:43:38 -0500
+	Sat, 16 Feb 2008 01:44:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     git-nfsd-fix
+     h8300: signal.c typo fix
 has been added to the -mm tree.  Its filename is
-     git-nfsd-fix.patch
+     h8300-signalc-typo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,134 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-nfsd-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: h8300: signal.c typo fix
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:297:1: warning: "elf_check_arch" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/textsearch.h:9,
-                 from include/linux/skbuff.h:26,
-                 from include/linux/icmpv6.h:79,
-                 from include/linux/ipv6.h:197,
-                 from include/net/ipv6.h:18,
-                 from include/linux/sunrpc/svcauth.h:18,
-                 from include/linux/sunrpc/svc.h:18,
-                 from arch/ia64/ia32/sys_ia32.c:37:
-include/asm/elf.h:19:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
+typo fix.
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcauth.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/h8300/kernel/signal.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sunrpc/svcauth.h~git-nfsd-fix include/linux/sunrpc/svcauth.h
---- a/include/linux/sunrpc/svcauth.h~git-nfsd-fix
-+++ a/include/linux/sunrpc/svcauth.h
-@@ -15,7 +15,6 @@
- #include <linux/sunrpc/msg_prot.h>
- #include <linux/sunrpc/cache.h>
- #include <linux/hash.h>
--#include <net/ipv6.h>
- 
- #define SVC_CRED_NGROUPS	32
- struct svc_cred {
-@@ -25,6 +24,7 @@ struct svc_cred {
- };
- 
- struct svc_rqst;		/* forward decl */
-+struct in6_addr;
- 
- /* Authentication is done in the context of a domain.
-  *
+diff -puN arch/h8300/kernel/signal.c~h8300-signalc-typo-fix arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~h8300-signalc-typo-fix
++++ a/arch/h8300/kernel/signal.c
+@@ -352,7 +352,7 @@ static void setup_frame (int sig, struct
+ 		ret = (unsigned char *)(ka->sa.sa_restorer);
+ 	else {
+ 		/* sub.l er0,er0; mov.b #__NR_sigreturn,r0l; trapa #0 */
+-		err != __put_user(0x1a80f800 + (__NR_sigreturn & 0xff),
++		err |= __put_user(0x1a80f800 + (__NR_sigreturn & 0xff),
+ 				  (unsigned long *)(frame->retcode + 0));
+ 		err |= __put_user(0x5700, (unsigned short *)(frame->retcode + 4));
+ 	}
+@@ -428,7 +428,7 @@ static void setup_rt_frame (int sig, str
+ 		ret = (unsigned char *)(ka->sa.sa_restorer);
+ 	else {
+ 		/* sub.l er0,er0; mov.b #__NR_sigreturn,r0l; trapa #0 */
+-		err != __put_user(0x1a80f800 + (__NR_sigreturn & 0xff),
++		err |= __put_user(0x1a80f800 + (__NR_sigreturn & 0xff),
+ 				  (unsigned long *)(frame->retcode + 0));
+ 		err |= __put_user(0x5700, (unsigned short *)(frame->retcode + 4));
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-revert-send-a-single-notification-on-device-state-changes.patch
-softlockup-workaround.patch
-git-acpi-powerpc-kconfig-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-fix-ide-mm-ide-rework-powermac-media-bay-support.patch
-git-md-accel.patch
-git-ubi.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-nfsd-fix.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-git-rejects.patch
-tracing-is-borked-on-powerpc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-git-rejects.patch
-unionfs-is-broken.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+h8300-signalc-typo-fix.patch
+h8300-uaccessh-update.patch
+h8300-config_kallsyms-fix.patch
+h8300-irq-handling-update.patch
+h8300-defconfig-update.patch
+inflate-refactor-inflate-malloc-code.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
