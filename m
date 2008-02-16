@@ -1,132 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 16:10:28 -0800
-Message-ID: <200802160010.m1G0ASaM031470@imap1.linux-foundation.org>
+Subject: - ubi-fix-sparse-errors-in-ubih.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 16:10:19 -0800
+Message-ID: <200802160010.m1G0AKdg031455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39634 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761656AbYBPAKb (ORCPT
+	by vger.kernel.org with ESMTP id S1761911AbYBPAKe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:10:31 -0500
+	Fri, 15 Feb 2008 19:10:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dedekind@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes
+     ubi: fix sparse errors in ubi.h
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes.patch
+     ubi-fix-sparse-errors-in-ubih.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ubi: fix sparse errors in ubi.h
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-WARNING: labels should not be indented
-#281: FILE: drivers/scsi/ses.c:573:
-+		noname:
+In C, signed 1-bit bitfields can only take the values 0 and -1, only 0 and 1
+are ever assigned in current code.  Make them unsigned bitfields.
 
-total: 0 errors, 1 warnings, 252 lines checked
+Fixes the (repeated) sparse errors:
+drivers/mtd/ubi/ubi.h:220:15: error: dubious one-bit signed bitfield
+drivers/mtd/ubi/ubi.h:221:17: error: dubious one-bit signed bitfield
+drivers/mtd/ubi/ubi.h:222:18: error: dubious one-bit signed bitfield
+drivers/mtd/ubi/ubi.h:223:16: error: dubious one-bit signed bitfield
+drivers/mtd/ubi/ubi.h:224:20: error: dubious one-bit signed bitfield
 
-./patches/scsi-fix-data-corruption-caused-by-ses.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Artem Bityutskiy <dedekind@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ses.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/ubi/ubi.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ses.c~scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes drivers/scsi/ses.c
---- a/drivers/scsi/ses.c~scsi-fix-data-corruption-caused-by-ses-checkpatch-fixes
-+++ a/drivers/scsi/ses.c
-@@ -570,7 +570,7 @@ static int ses_intf_add(struct class_dev
- 				desc_ptr[len] = '\0';
- 				name = desc_ptr;
- 			}
--		noname:
-+noname:
- 			if (type_ptr[0] == ENCLOSURE_COMPONENT_DEVICE ||
- 			    type_ptr[0] == ENCLOSURE_COMPONENT_ARRAY_DEVICE) {
+diff -puN drivers/mtd/ubi/ubi.h~ubi-fix-sparse-errors-in-ubih drivers/mtd/ubi/ubi.h
+--- a/drivers/mtd/ubi/ubi.h~ubi-fix-sparse-errors-in-ubih
++++ a/drivers/mtd/ubi/ubi.h
+@@ -217,11 +217,11 @@ struct ubi_volume {
+ 	void *upd_buf;
  
+ 	int *eba_tbl;
+-	int checked:1;
+-	int corrupted:1;
+-	int upd_marker:1;
+-	int updating:1;
+-	int changing_leb:1;
++	unsigned int checked:1;
++	unsigned int corrupted:1;
++	unsigned int upd_marker:1;
++	unsigned int updating:1;
++	unsigned int changing_leb:1;
+ 
+ #ifdef CONFIG_MTD_UBI_GLUEBI
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-softlockup-workaround.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
 git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-git-rejects.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-git-rejects.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
+x86-remove-pt_regs-arg-from-smp_thermal_interrupt.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
