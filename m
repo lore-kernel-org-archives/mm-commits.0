@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch added to -mm tree
-Date: Fri, 15 Feb 2008 16:39:38 -0800
-Message-ID: <200802160048.m1G0medp000656@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 16:40:54 -0800
+Message-ID: <200802160049.m1G0nuq3000714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41678 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37185 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753085AbYBPAtE (ORCPT
+	by vger.kernel.org with ESMTP id S1762319AbYBPAuT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:49:04 -0500
+	Fri, 15 Feb 2008 19:50:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
+     r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+     r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
+Subject: r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfsd/nfs4proc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2 fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
-+++ a/fs/nfsd/vfs.c
-@@ -1886,7 +1886,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
- 	if (!(acc & MAY_LOCAL_ACCESS))
- 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
- 			if (exp_rdonly(rqstp, exp) ||
--			    __mnt_is_readonly(exp->ex_mnt))
-+			    __mnt_is_readonly(exp->ex_path.mnt))
- 				return nfserr_rofs;
- 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
- 				return nfserr_perm;
+diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix
++++ a/fs/nfsd/nfs4proc.c
+@@ -658,7 +658,7 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
+ 			return status;
+ 		}
+ 	}
+-	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
++	status = mnt_want_write(cstate->current_fh.fh_export->ex_path.mnt);
+ 	if (status)
+ 		return status;
+ 	status = nfs_ok;
+@@ -670,7 +670,7 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
+ 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
+ 				0, (time_t)0);
+ out:
+-	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
++	mnt_drop_write(cstate->current_fh.fh_export->ex_path.mnt);
+ 	return status;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +113,7 @@ fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
 r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
 r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
