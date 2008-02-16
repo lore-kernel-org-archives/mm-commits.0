@@ -1,77 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-fix-parenthesisation-in-ufs_set_fs_state.patch added to -mm tree
-Date: Sat, 16 Feb 2008 12:46:59 -0800
-Message-ID: <200802162046.m1GKkxAe009013@imap1.linux-foundation.org>
+Subject: - pci-disable-decoding-during-sizing-of-bars.patch removed from -mm tree
+Date: Sat, 16 Feb 2008 14:05:38 -0800
+Message-ID: <200802162205.m1GM5cMC011601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751772AbYBPUsE (ORCPT
+	by vger.kernel.org with ESMTP id S1750896AbYBPWNz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 15:48:04 -0500
+	Sat, 16 Feb 2008 17:13:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, stable@kernel.org
+To: willy@debian.org, ak@suse.de, andreas.eckstein@gmx.net, dsd@gentoo.org, greg@kroah.com, marco@pianoinflames.de, mingo@elte.hu, tglx@linutronix.de, torvalds@linux-foundation.org, mm-co
 
 
 The patch titled
-     ufs: fix parenthesisation in ufs_set_fs_state()
-has been added to the -mm tree.  Its filename is
-     ufs-fix-parenthesisation-in-ufs_set_fs_state.patch
+     pci: disable decoding during sizing of BARs
+has been removed from the -mm tree.  Its filename was
+     pci-disable-decoding-during-sizing-of-bars.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: fix parenthesisation in ufs_set_fs_state()
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: pci: disable decoding during sizing of BARs
 
-This bug snuck in with
+Cc: Matthew Wilcox <willy@debian.org>
 
-commit 252e211e90ce56bf005cb533ad5a297c18c19407
-Author: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date:   Tue Oct 16 23:26:31 2007 -0700
+Stolen from http://bugs.gentoo.org/show_bug.cgi?id=198810
 
-    Add in SunOS 4.1.x compatible mode for UFS
+Fixes Marco's boot problem, described thusly:
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Acked-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: <stable@kernel.org>
+  I first got acpi failure on boot, pci=nommconf worked first time, than I
+  patched with q35.pci.patch from
+  http://bugs.gentoo.org/show_bug.cgi?id=198810 and boot worked without
+  nommconf.
+
+  (See http://lkml.org/lkml/2007/12/4/336)
+
+Linus sayeth
+
+  It looks ok now that it doesn't do it for host controllers.  I guess we
+  could just apply it.
+
+Cc: Daniel Drake <dsd@gentoo.org>
+Cc: Marco Gatti <marco@pianoinflames.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andreas Eckstein <andreas.eckstein@gmx.net>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/util.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/probe.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN fs/ufs/util.h~ufs-fix-parenthesisation-in-ufs_set_fs_state fs/ufs/util.h
---- a/fs/ufs/util.h~ufs-fix-parenthesisation-in-ufs_set_fs_state
-+++ a/fs/ufs/util.h
-@@ -58,7 +58,7 @@ ufs_set_fs_state(struct super_block *sb,
+diff -puN drivers/pci/probe.c~pci-disable-decoding-during-sizing-of-bars drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-disable-decoding-during-sizing-of-bars
++++ a/drivers/pci/probe.c
+@@ -181,11 +181,26 @@ static inline int is_64bit_memory(u32 ma
+ 	return 0;
+ }
+ 
++/*
++ * Sizing PCI BARs requires us to disable decoding, otherwise we may run
++ * into conflicts with other devices while trying to size the BAR.  Normally
++ * this isn't a problem, but it happens on some machines normally, and can
++ * happen on others during PCI device hotplug.  Don't disable BARs for host
++ * bridges, though.  Some of them do silly things like disable accesses to
++ * RAM from the CPU
++ */
+ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
  {
- 	switch (UFS_SB(sb)->s_flags & UFS_ST_MASK) {
- 	case UFS_ST_SUNOS:
--		if (fs32_to_cpu(sb, usb3->fs_postblformat == UFS_42POSTBLFMT)) {
-+		if (fs32_to_cpu(sb, usb3->fs_postblformat) == UFS_42POSTBLFMT) {
- 			usb1->fs_u0.fs_sun.fs_state = cpu_to_fs32(sb, value);
- 			break;
+ 	unsigned int pos, reg, next;
+ 	u32 l, sz;
+ 	struct resource *res;
++	u16 orig_cmd;
++
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
++		pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
++		pci_write_config_word(dev, PCI_COMMAND,
++			orig_cmd & ~(PCI_COMMAND_MEMORY | PCI_COMMAND_IO));
++	}
+ 
+ 	for(pos=0; pos<howmany; pos = next) {
+ 		u64 l64;
+@@ -284,6 +299,9 @@ static void pci_read_bases(struct pci_de
+ 			}
  		}
+ 	}
++
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
++		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
+ }
+ 
+ void pci_read_bridge_bases(struct pci_bus *child)
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from willy@debian.org are
 
-ufs-fix-parenthesisation-in-ufs_set_fs_state.patch
-git-alsa.patch
-git-cifs.patch
-git-dvb.patch
+parisc-new-termios-definitions.patch
+pci-disable-decoding-during-sizing-of-bars.patch
