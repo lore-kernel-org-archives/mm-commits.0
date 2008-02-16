@@ -1,140 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch removed from -mm tree
-Date: Sat, 16 Feb 2008 01:54:52 -0800
-Message-ID: <200802160954.m1G9sq6o018927@imap1.linux-foundation.org>
+Subject: + mm-only-enforce-acpi-resource-conflict-checks.patch added to -mm tree
+Date: Sat, 16 Feb 2008 01:55:42 -0800
+Message-ID: <200802160955.m1G9tg3q018937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48065 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755167AbYBPJzA (ORCPT
+	by vger.kernel.org with ESMTP id S1752601AbYBPJ6C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 04:55:00 -0500
+	Sat, 16 Feb 2008 04:58:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, hidave.darkstar@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: khali@linux-fr.org, bjorn.helgaas@hp.com, lenb@kernel.org, mhoffman@lightlink.com
 
 
 The patch titled
-     bluetooth: fix warning in net/bluetooth/hci_sysfs.c
-has been removed from the -mm tree.  Its filename was
-     bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
+     Enforce ACPI resource conflict checks
+has been added to the -mm tree.  Its filename is
+     mm-only-enforce-acpi-resource-conflict-checks.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: fix warning in net/bluetooth/hci_sysfs.c
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Enforce ACPI resource conflict checks
+From: Jean Delvare <khali@linux-fr.org>
 
-net/bluetooth/hci_sysfs.c: In function 'del_conn':
-net/bluetooth/hci_sysfs.c:339: warning: suggest parentheses around assignment used as truth value
+In -mm, enforce ACPI resource conflict checks, so that users will report
+to us.
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: David S. Miller <davem@davemloft.net>
+This patch is NOT meant to go to Linus at this point.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_sysfs.c |    2 +-
+ drivers/acpi/osl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bluetooth/hci_sysfs.c~bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc net/bluetooth/hci_sysfs.c
---- a/net/bluetooth/hci_sysfs.c~bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc
-+++ a/net/bluetooth/hci_sysfs.c
-@@ -336,7 +336,7 @@ static void del_conn(struct work_struct 
- 	struct device *dev;
- 	struct hci_conn *conn = container_of(work, struct hci_conn, work);
+diff -puN drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks
++++ a/drivers/acpi/osl.c
+@@ -1183,7 +1183,7 @@ __setup("acpi_wake_gpes_always_on", acpi
+ #define ENFORCE_RESOURCES_LAX    1
+ #define ENFORCE_RESOURCES_NO     0
  
--	while (dev = device_find_child(&conn->dev, NULL, __match_tty)) {
-+	while ((dev = device_find_child(&conn->dev, NULL, __match_tty))) {
- 		device_move(dev, NULL);
- 		put_device(dev);
- 	}
+-static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
++static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ 
+ static int __init acpi_enforce_resources_setup(char *str)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-revert-send-a-single-notification-on-device-state-changes.patch
-softlockup-workaround.patch
-git-acpi-powerpc-kconfig-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-agpgart-make-ia64-compile.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+oz99x-i2c-button-and-led-support-driver.patch
+i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
 git-hwmon.patch
 adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-fix-ide-mm-ide-rework-powermac-media-bay-support.patch
-git-md-accel.patch
-git-ubi.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-nfsd-fix.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-git-rejects.patch
-tracing-is-borked-on-powerpc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-git-unionfs-git-rejects.patch
-unionfs-is-broken.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-x86-amd-thermal-interrupt-support.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+apanel-fix-kconfig-dependencies.patch
+dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
+dmi-prevent-linked-list-corruption-resent.patch
+dmi-clean-up-dmi-helper-declarations.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
