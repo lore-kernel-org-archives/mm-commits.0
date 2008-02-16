@@ -1,61 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - smack-update-for-vfs-changes.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 18:22:52 -0500
-Message-ID: <200802160626.m1G6QJxU012195@imap1.linux-foundation.org>
+Subject: + git-nfsd-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 22:43:25 -0800
+Message-ID: <200802160643.m1G6hPIN012821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49305 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753285AbYBPG0X (ORCPT
+	by vger.kernel.org with ESMTP id S1751988AbYBPGni (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:26:23 -0500
+	Sat, 16 Feb 2008 01:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casey@schaufler-ca.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     smack: update for vfs changes
-has been removed from the -mm tree.  Its filename was
-     smack-update-for-vfs-changes.patch
+     git-nfsd-fix
+has been added to the -mm tree.  Its filename is
+     git-nfsd-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack: update for vfs changes
+Subject: git-nfsd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/smack/smack_lsm.c: In function 'smack_sb_mount':
-security/smack/smack_lsm.c:328: error: 'struct nameidata' has no member named 'mnt'
+In file included from arch/ia64/ia32/sys_ia32.c:59:
+arch/ia64/ia32/ia32priv.h:297:1: warning: "elf_check_arch" redefined
+In file included from include/linux/elf.h:7,
+                 from include/linux/module.h:14,
+                 from include/linux/textsearch.h:9,
+                 from include/linux/skbuff.h:26,
+                 from include/linux/icmpv6.h:79,
+                 from include/linux/ipv6.h:197,
+                 from include/net/ipv6.h:18,
+                 from include/linux/sunrpc/svcauth.h:18,
+                 from include/linux/sunrpc/svc.h:18,
+                 from arch/ia64/ia32/sys_ia32.c:37:
+include/asm/elf.h:19:1: warning: this is the location of the previous definition
+In file included from arch/ia64/ia32/sys_ia32.c:59:
 
-Somehow this got missed.
-
-Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    2 +-
+ include/linux/sunrpc/svcauth.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/smack/smack_lsm.c~smack-update-for-vfs-changes security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-update-for-vfs-changes
-+++ a/security/smack/smack_lsm.c
-@@ -325,7 +325,7 @@ static int smack_sb_statfs(struct dentry
- static int smack_sb_mount(char *dev_name, struct nameidata *nd,
- 			  char *type, unsigned long flags, void *data)
- {
--	struct superblock_smack *sbp = nd->mnt->mnt_sb->s_security;
-+	struct superblock_smack *sbp = nd->path.mnt->mnt_sb->s_security;
+diff -puN include/linux/sunrpc/svcauth.h~git-nfsd-fix include/linux/sunrpc/svcauth.h
+--- a/include/linux/sunrpc/svcauth.h~git-nfsd-fix
++++ a/include/linux/sunrpc/svcauth.h
+@@ -15,7 +15,6 @@
+ #include <linux/sunrpc/msg_prot.h>
+ #include <linux/sunrpc/cache.h>
+ #include <linux/hash.h>
+-#include <net/ipv6.h>
  
- 	return smk_curacc(sbp->smk_floor, MAY_WRITE);
- }
+ #define SVC_CRED_NGROUPS	32
+ struct svc_cred {
+@@ -25,6 +24,7 @@ struct svc_cred {
+ };
+ 
+ struct svc_rqst;		/* forward decl */
++struct in6_addr;
+ 
+ /* Authentication is done in the context of a domain.
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-smack-update-for-vfs-changes.patch
 revert-send-a-single-notification-on-device-state-changes.patch
 softlockup-workaround.patch
 git-acpi-powerpc-kconfig-fix.patch
@@ -77,6 +104,7 @@ git-net.patch
 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
+git-nfsd-fix.patch
 cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
 git-sched.patch
