@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-config_kallsyms-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:44:12 -0800
-Message-ID: <200802160644.m1G6iC95012839@imap1.linux-foundation.org>
+Subject: + h8300-uaccessh-update.patch added to -mm tree
+Date: Fri, 15 Feb 2008 22:44:11 -0800
+Message-ID: <200802160644.m1G6iB87012836@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49951 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44056 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752650AbYBPGo2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752314AbYBPGo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:44:28 -0500
+	Sat, 16 Feb 2008 01:44:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp, sam@ravnborg.org
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     h8300: CONFIG_KALLSYMS fix
+     h8300: uaccess.h update
 has been added to the -mm tree.  Its filename is
-     h8300-config_kallsyms-fix.patch
+     h8300-uaccessh-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: CONFIG_KALLSYMS fix
+Subject: h8300: uaccess.h update
 From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Please comment "C_SYMBOL_PREFIX".
+get_user const *ptr access fix.
 
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile           |    3 ++-
- arch/h8300/Kconfig |    4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/asm-h8300/uaccess.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Makefile~h8300-config_kallsyms-fix Makefile
---- a/Makefile~h8300-config_kallsyms-fix
-+++ a/Makefile
-@@ -755,7 +755,8 @@ endef
- # Generate .S file with all kernel symbols
- quiet_cmd_kallsyms = KSYM    $@
-       cmd_kallsyms = $(NM) -n $< | $(KALLSYMS) \
--                     $(if $(CONFIG_KALLSYMS_ALL),--all-symbols) > $@
-+                     $(if $(CONFIG_KALLSYMS_ALL),--all-symbols) \
-+                     $(if $(CONFIG_C_SYMBOL_PREFIX),--symbol-prefix='_') > $@
- 
- .tmp_kallsyms1.o .tmp_kallsyms2.o .tmp_kallsyms3.o: %.o: %.S scripts FORCE
- 	$(call if_changed_dep,as_o_S)
-diff -puN arch/h8300/Kconfig~h8300-config_kallsyms-fix arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-config_kallsyms-fix
-+++ a/arch/h8300/Kconfig
-@@ -87,6 +87,10 @@ config HZ
- 	int
- 	default 100
- 
-+config C_SYMBOL_PREFIX
-+	bool
-+	default y
-+
- source "init/Kconfig"
- 
- source "arch/h8300/Kconfig.cpu"
+diff -puN include/asm-h8300/uaccess.h~h8300-uaccessh-update include/asm-h8300/uaccess.h
+--- a/include/asm-h8300/uaccess.h~h8300-uaccessh-update
++++ a/include/asm-h8300/uaccess.h
+@@ -91,7 +91,7 @@ extern int __put_user_bad(void);
+ #define get_user(x, ptr)					\
+ ({								\
+     int __gu_err = 0;						\
+-    typeof(*(ptr)) __gu_val = 0;				\
++    uint32_t __gu_val = 0;				\
+     switch (sizeof(*(ptr))) {					\
+     case 1:							\
+     case 2:							\
+@@ -106,7 +106,7 @@ extern int __put_user_bad(void);
+ 	__gu_err = __get_user_bad();				\
+ 	break;							\
+     }								\
+-    (x) = __gu_val;						\
++    (x) = (typeof(*(ptr)))__gu_val;				\
+     __gu_err;							\
+ })
+ #define __get_user(x, ptr) get_user(x, ptr)
 _
 
 Patches currently in -mm which might be from ysato@users.sourceforge.jp are
