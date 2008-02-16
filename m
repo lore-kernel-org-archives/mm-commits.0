@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch added to -mm tree
-Date: Fri, 15 Feb 2008 16:32:52 -0800
-Message-ID: <200802160041.m1G0fsxK032719@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch added to -mm tree
+Date: Fri, 15 Feb 2008 16:38:26 -0800
+Message-ID: <200802160047.m1G0lS97000541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762701AbYBPAmN (ORCPT
+	by vger.kernel.org with ESMTP id S1752936AbYBPAsF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 19:42:13 -0500
+	Fri, 15 Feb 2008 19:48:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
+     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
 has been added to the -mm tree.  Its filename is
-     rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
+Subject: r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |    2 +-
+ fs/nfs/dir.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -257,7 +257,7 @@ static int pcf8563_probe(struct i2c_clie
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
- 		return -ENODEV;
- 
--	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL));
-+	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL);
- 	if (!pcf8563)
- 		return -ENOMEM;
- 
+diff -puN fs/nfs/dir.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix fs/nfs/dir.c
+--- a/fs/nfs/dir.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
++++ a/fs/nfs/dir.c
+@@ -965,7 +965,7 @@ static int is_atomic_open(struct inode *
+ 	if (nd->flags & LOOKUP_DIRECTORY)
+ 		return 0;
+ 	/* Are we trying to write to a read only partition? */
+-	if (__mnt_is_readonly(nd->mnt) &&
++	if (__mnt_is_readonly(nd->path.mnt) &&
+ 	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
+ 		return 0;
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +105,7 @@ vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.pa
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 make-dev-kmem-a-config-option-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
