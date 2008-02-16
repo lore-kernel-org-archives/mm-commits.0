@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-defconfig-update.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:44:15 -0800
-Message-ID: <200802160644.m1G6iFZ2012845@imap1.linux-foundation.org>
+Subject: + git-agpgart-make-ia64-compile.patch added to -mm tree
+Date: Sat, 16 Feb 2008 02:13:51 -0500
+Message-ID: <200802160713.m1G7DqkV013767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48642 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59011 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752873AbYBPGoe (ORCPT
+	by vger.kernel.org with ESMTP id S1751057AbYBPHOY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:44:34 -0500
+	Sat, 16 Feb 2008 02:14:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+Cc: akpm@linux-foundation.org, airlied@linux.ie, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     h8300: defconfig update
+     git-agpgart: make ia64 compile
 has been added to the -mm tree.  Its filename is
-     h8300-defconfig-update.patch
+     git-agpgart-make-ia64-compile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,466 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: defconfig update
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: git-agpgart: make ia64 compile
+From: Andrew Morton <akpm@linux-foundation.org>
 
-defconfig update.
-
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/defconfig |  263 +++++++++++++++++++++--------------------
- 1 file changed, 140 insertions(+), 123 deletions(-)
+ drivers/char/agp/generic.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/h8300/defconfig~h8300-defconfig-update arch/h8300/defconfig
---- a/arch/h8300/defconfig~h8300-defconfig-update
-+++ a/arch/h8300/defconfig
-@@ -1,51 +1,98 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.11-rc1
--# Sun Jan 16 17:24:38 2005
-+# Linux kernel version: 2.6.25-rc1
-+# Fri Feb 15 17:13:14 2008
- #
- CONFIG_H8300=y
- # CONFIG_MMU is not set
- # CONFIG_SWAP is not set
-+CONFIG_ZONE_DMA=y
- # CONFIG_FPU is not set
--CONFIG_UID16=y
- CONFIG_RWSEM_GENERIC_SPINLOCK=y
- # CONFIG_RWSEM_XCHGADD_ALGORITHM is not set
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_GENERIC_FIND_NEXT_BIT=y
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_HARDIRQS=y
- CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_GENERIC_TIME=y
-+CONFIG_TIME_LOW_RES=y
-+CONFIG_ARCH_SUPPORTS_AOUT=y
-+CONFIG_NO_IOPORT=y
-+CONFIG_NO_DMA=y
- CONFIG_ISA=y
- # CONFIG_PCI is not set
-+CONFIG_HZ=100
-+CONFIG_C_SYMBOL_PREFIX=y
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+diff -puN drivers/char/agp/generic.c~git-agpgart-make-ia64-compile drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~git-agpgart-make-ia64-compile
++++ a/drivers/char/agp/generic.c
+@@ -925,7 +925,9 @@ int agp_generic_create_gatt_table(struct
+ 	agp_gatt_table = (void *)table;
  
- #
--# Code maturity level options
-+# General setup
- #
- CONFIG_EXPERIMENTAL=y
--CONFIG_CLEAN_COMPILE=y
- CONFIG_BROKEN_ON_SMP=y
+ 	bridge->driver->cache_flush();
++#ifdef CONFIG_X86
+ 	set_memory_uc((unsigned long)table, 1 << page_order);
++#endif
+ 	bridge->gatt_table = (void *)table;
+ 	bridge->driver->cache_flush();
+ 
+@@ -973,8 +975,9 @@ int agp_generic_free_gatt_table(struct a
+ 	/* Do not worry about freeing memory, because if this is
+ 	 * called, then all agp memory is deallocated and removed
+ 	 * from the table. */
 -
--#
--# General setup
--#
-+CONFIG_INIT_ENV_ARG_LIMIT=32
- CONFIG_LOCALVERSION=""
-+# CONFIG_LOCALVERSION_AUTO is not set
-+# CONFIG_SYSVIPC is not set
- # CONFIG_BSD_PROCESS_ACCT is not set
--# CONFIG_SYSCTL is not set
--# CONFIG_AUDIT is not set
--CONFIG_LOG_BUF_SHIFT=14
--# CONFIG_HOTPLUG is not set
- # CONFIG_IKCONFIG is not set
-+CONFIG_LOG_BUF_SHIFT=14
-+# CONFIG_CGROUPS is not set
-+# CONFIG_FAIR_GROUP_SCHED is not set
-+# CONFIG_SYSFS_DEPRECATED is not set
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+# CONFIG_BLK_DEV_INITRD is not set
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
- CONFIG_EMBEDDED=y
-+# CONFIG_UID16 is not set
-+# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
-+# CONFIG_HOTPLUG is not set
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+CONFIG_ELF_CORE=y
-+# CONFIG_COMPAT_BRK is not set
-+# CONFIG_BASE_FULL is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
--CONFIG_CC_OPTIMIZE_FOR_SIZE=y
--CONFIG_CC_ALIGN_FUNCTIONS=0
--CONFIG_CC_ALIGN_LABELS=0
--CONFIG_CC_ALIGN_LOOPS=0
--CONFIG_CC_ALIGN_JUMPS=0
-+# CONFIG_SIGNALFD is not set
-+# CONFIG_TIMERFD is not set
-+# CONFIG_EVENTFD is not set
-+# CONFIG_VM_EVENT_COUNTERS is not set
-+# CONFIG_SLAB is not set
-+# CONFIG_SLUB is not set
-+CONFIG_SLOB=y
-+# CONFIG_PROFILING is not set
-+# CONFIG_MARKERS is not set
-+# CONFIG_HAVE_OPROFILE is not set
-+# CONFIG_HAVE_KPROBES is not set
- CONFIG_TINY_SHMEM=y
-+CONFIG_BASE_SMALL=1
-+# CONFIG_MODULES is not set
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_LSF is not set
-+# CONFIG_BLK_DEV_BSG is not set
++#ifdef CONFIG_X86
+ 	set_memory_wb((unsigned long)bridge->gatt_table, 1 << page_order);
++#endif
+ 	free_gatt_pages(bridge->gatt_table_real, page_order);
  
- #
--# Loadable module support
-+# IO Schedulers
- #
--# CONFIG_MODULES is not set
-+CONFIG_IOSCHED_NOOP=y
-+# CONFIG_IOSCHED_AS is not set
-+# CONFIG_IOSCHED_DEADLINE is not set
-+# CONFIG_IOSCHED_CFQ is not set
-+# CONFIG_DEFAULT_AS is not set
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
-+CONFIG_DEFAULT_NOOP=y
-+CONFIG_DEFAULT_IOSCHED="noop"
-+CONFIG_CLASSIC_RCU=y
-+# CONFIG_PREEMPT_RCU is not set
- 
- #
- # Processor type and features
-@@ -62,14 +109,26 @@ CONFIG_H8300H_GENERIC=y
- # Detail Selection
- #
- # CONFIG_H83002 is not set
--# CONFIG_H83007 is not set
-+CONFIG_H83007=y
- # CONFIG_H83048 is not set
--CONFIG_H83068=y
-+# CONFIG_H83068 is not set
- CONFIG_CPU_CLOCK=20000
--# CONFIG_RAMKERNEL is not set
--CONFIG_ROMKERNEL=y
-+CONFIG_RAMKERNEL=y
-+# CONFIG_ROMKERNEL is not set
- CONFIG_CPU_H8300H=y
- # CONFIG_PREEMPT is not set
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+# CONFIG_SPARSEMEM_STATIC is not set
-+# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_RESOURCES_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=1
-+CONFIG_VIRT_TO_BUS=y
- 
- #
- # Executable file formats
-@@ -77,34 +136,42 @@ CONFIG_CPU_H8300H=y
- CONFIG_BINFMT_FLAT=y
- CONFIG_BINFMT_ZFLAT=y
- # CONFIG_BINFMT_SHARED_FLAT is not set
--# CONFIG_BINFMT_MISC is not set
-+CONFIG_BINFMT_MISC=y
- 
- #
--# Generic Driver Options
-+# Networking
- #
--# CONFIG_STANDALONE is not set
--# CONFIG_PREVENT_FIRMWARE_BUILD is not set
--# CONFIG_FW_LOADER is not set
--# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_NET is not set
- 
- #
--# Memory Technology Devices (MTD)
-+# Generic Driver Options
- #
-+CONFIG_STANDALONE=y
-+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
-+# CONFIG_SYS_HYPERVISOR is not set
- CONFIG_MTD=y
- # CONFIG_MTD_DEBUG is not set
-+# CONFIG_MTD_CONCAT is not set
- CONFIG_MTD_PARTITIONS=y
--CONFIG_MTD_CONCAT=y
--# CONFIG_MTD_REDBOOT_PARTS is not set
-+CONFIG_MTD_REDBOOT_PARTS=y
-+CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
-+# CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
-+# CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
- # CONFIG_MTD_CMDLINE_PARTS is not set
- 
- #
- # User Modules And Translation Layers
- #
- CONFIG_MTD_CHAR=y
--CONFIG_MTD_BLOCK=y
-+# CONFIG_MTD_BLKDEVS is not set
-+# CONFIG_MTD_BLOCK is not set
-+# CONFIG_MTD_BLOCK_RO is not set
- # CONFIG_FTL is not set
- # CONFIG_NFTL is not set
- # CONFIG_INFTL is not set
-+# CONFIG_RFD_FTL is not set
-+# CONFIG_SSFDC is not set
-+# CONFIG_MTD_OOPS is not set
- 
- #
- # RAM/ROM/Flash chip drivers
-@@ -129,7 +196,9 @@ CONFIG_MTD_ROM=y
- # Mapping drivers for chip access
- #
- # CONFIG_MTD_COMPLEX_MAPPINGS is not set
-+# CONFIG_MTD_PHYSMAP is not set
- CONFIG_MTD_UCLINUX=y
-+# CONFIG_MTD_PLATRAM is not set
- 
- #
- # Self-contained MTD device drivers
-@@ -137,7 +206,6 @@ CONFIG_MTD_UCLINUX=y
- # CONFIG_MTD_SLRAM is not set
- # CONFIG_MTD_PHRAM is not set
- # CONFIG_MTD_MTDRAM is not set
--# CONFIG_MTD_BLKMTD is not set
- # CONFIG_MTD_BLOCK2MTD is not set
- 
- #
-@@ -146,63 +214,27 @@ CONFIG_MTD_UCLINUX=y
- # CONFIG_MTD_DOC2000 is not set
- # CONFIG_MTD_DOC2001 is not set
- # CONFIG_MTD_DOC2001PLUS is not set
--
--#
--# NAND Flash Device Drivers
--#
- # CONFIG_MTD_NAND is not set
-+# CONFIG_MTD_ONENAND is not set
- 
- #
--# Block devices
--#
--# CONFIG_BLK_DEV_FD is not set
--# CONFIG_BLK_DEV_XD is not set
--# CONFIG_BLK_DEV_LOOP is not set
--# CONFIG_BLK_DEV_RAM is not set
--CONFIG_BLK_DEV_RAM_COUNT=16
--CONFIG_INITRAMFS_SOURCE=""
--# CONFIG_CDROM_PKTCDVD is not set
--
--#
--# IO Schedulers
--#
--CONFIG_IOSCHED_NOOP=y
--# CONFIG_IOSCHED_AS is not set
--# CONFIG_IOSCHED_DEADLINE is not set
--# CONFIG_IOSCHED_CFQ is not set
--
--#
--# ATA/ATAPI/MFM/RLL support
-+# UBI - Unsorted block images
- #
-+# CONFIG_MTD_UBI is not set
-+# CONFIG_BLK_DEV is not set
-+CONFIG_HAVE_IDE=y
- # CONFIG_IDE is not set
- 
- #
--# Networking support
--#
--# CONFIG_NET is not set
--# CONFIG_NETPOLL is not set
--# CONFIG_NET_POLL_CONTROLLER is not set
--
--#
- # Input device support
- #
- # CONFIG_INPUT is not set
- 
- #
--# Userland interfaces
--#
--
--#
--# Input I/O drivers
-+# Hardware I/O ports
- #
--# CONFIG_GAMEPORT is not set
--CONFIG_SOUND_GAMEPORT=y
- # CONFIG_SERIO is not set
--# CONFIG_SERIO_I8042 is not set
--
--#
--# Input Device Drivers
--#
-+# CONFIG_GAMEPORT is not set
- 
- #
- # Character devices
-@@ -223,45 +255,31 @@ CONFIG_SOUND_GAMEPORT=y
- # Non-8250 serial port support
- #
- CONFIG_SERIAL_SH_SCI=y
-+CONFIG_SERIAL_SH_SCI_NR_UARTS=2
- CONFIG_SERIAL_SH_SCI_CONSOLE=y
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
--
--#
--# I2C support
--#
- # CONFIG_I2C is not set
--
--#
--# USB support
--#
--# CONFIG_USB_ARCH_HAS_HCD is not set
--# CONFIG_USB_ARCH_HAS_OHCI is not set
--
--#
--# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support' may also be needed; see USB_STORAGE Help for more information
--#
--
--#
--# USB Gadget Support
--#
--# CONFIG_USB_GADGET is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_USB_SUPPORT is not set
- 
- #
- # File systems
- #
- # CONFIG_EXT2_FS is not set
- # CONFIG_EXT3_FS is not set
--# CONFIG_JBD is not set
-+# CONFIG_EXT4DEV_FS is not set
- # CONFIG_REISERFS_FS is not set
- # CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
- # CONFIG_XFS_FS is not set
--# CONFIG_MINIX_FS is not set
--CONFIG_ROMFS_FS=y
--# CONFIG_QUOTA is not set
-+# CONFIG_GFS2_FS is not set
- # CONFIG_DNOTIFY is not set
-+# CONFIG_INOTIFY is not set
-+# CONFIG_QUOTA is not set
- # CONFIG_AUTOFS_FS is not set
- # CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
- 
- #
- # CD-ROM/DVD Filesystems
-@@ -280,11 +298,11 @@ CONFIG_ROMFS_FS=y
- # Pseudo filesystems
- #
- CONFIG_PROC_FS=y
--# CONFIG_SYSFS is not set
--# CONFIG_DEVFS_FS is not set
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSFS=y
- # CONFIG_TMPFS is not set
- # CONFIG_HUGETLB_PAGE is not set
--CONFIG_RAMFS=y
-+# CONFIG_CONFIGFS_FS is not set
- 
- #
- # Miscellaneous filesystems
-@@ -296,12 +314,13 @@ CONFIG_RAMFS=y
- # CONFIG_BEFS_FS is not set
- # CONFIG_BFS_FS is not set
- # CONFIG_EFS_FS is not set
--# CONFIG_JFFS_FS is not set
- # CONFIG_JFFS2_FS is not set
- # CONFIG_CRAMFS is not set
- # CONFIG_VXFS_FS is not set
-+# CONFIG_MINIX_FS is not set
- # CONFIG_HPFS_FS is not set
- # CONFIG_QNX4FS_FS is not set
-+CONFIG_ROMFS_FS=y
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
- 
-@@ -310,22 +329,23 @@ CONFIG_RAMFS=y
- #
- # CONFIG_PARTITION_ADVANCED is not set
- CONFIG_MSDOS_PARTITION=y
--
--#
--# Native Language Support
--#
- # CONFIG_NLS is not set
- 
- #
- # Kernel hacking
- #
--CONFIG_DEBUG_KERNEL=y
--# CONFIG_SCHEDSTATS is not set
--# CONFIG_DEBUG_KOBJECT is not set
-+# CONFIG_PRINTK_TIME is not set
-+# CONFIG_ENABLE_WARN_DEPRECATED is not set
-+# CONFIG_ENABLE_MUST_CHECK is not set
-+# CONFIG_MAGIC_SYSRQ is not set
-+# CONFIG_UNUSED_SYMBOLS is not set
- # CONFIG_DEBUG_FS is not set
--CONFIG_FULLDEBUG=y
-+# CONFIG_HEADERS_CHECK is not set
-+# CONFIG_DEBUG_KERNEL is not set
-+# CONFIG_SAMPLES is not set
-+# CONFIG_FULLDEBUG is not set
- # CONFIG_HIGHPROFILE is not set
--CONFIG_NO_KERNEL_MSG=y
-+# CONFIG_NO_KERNEL_MSG is not set
- # CONFIG_SYSCALL_PRINT is not set
- # CONFIG_GDB_DEBUG is not set
- # CONFIG_SH_STANDARD_BIOS is not set
-@@ -337,20 +357,17 @@ CONFIG_NO_KERNEL_MSG=y
- #
- # CONFIG_KEYS is not set
- # CONFIG_SECURITY is not set
--
--#
--# Cryptographic options
--#
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
- # CONFIG_CRYPTO is not set
- 
- #
--# Hardware crypto devices
--#
--
--#
- # Library routines
- #
- # CONFIG_CRC_CCITT is not set
--CONFIG_CRC32=y
-+# CONFIG_CRC16 is not set
-+# CONFIG_CRC_ITU_T is not set
-+# CONFIG_CRC32 is not set
-+# CONFIG_CRC7 is not set
- # CONFIG_LIBCRC32C is not set
- CONFIG_ZLIB_INFLATE=y
-+CONFIG_HAS_IOMEM=y
+ 	agp_gatt_table = NULL;
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-h8300-signalc-typo-fix.patch
-h8300-uaccessh-update.patch
-h8300-config_kallsyms-fix.patch
-h8300-irq-handling-update.patch
-h8300-defconfig-update.patch
-inflate-refactor-inflate-malloc-code.patch
-elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+revert-send-a-single-notification-on-device-state-changes.patch
+softlockup-workaround.patch
+git-acpi-powerpc-kconfig-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-agpgart-make-ia64-compile.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+fix-ide-mm-ide-rework-powermac-media-bay-support.patch
+git-md-accel.patch
+git-ubi.patch
+git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-nfsd-fix.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-git-rejects.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-git-rejects.patch
+unionfs-is-broken.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
