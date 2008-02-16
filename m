@@ -1,125 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-write-counts-for-truncate.patch added to -mm tree
-Date: Fri, 15 Feb 2008 14:49:17 -0800
-Message-ID: <200802152249.m1FMnHgF028189@imap1.linux-foundation.org>
+Subject: - git-x86-fixup.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 16:05:33 -0800
+Message-ID: <200802160005.m1G05YD0031249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49627 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757606AbYBOXEG (ORCPT
+	by vger.kernel.org with ESMTP id S1755096AbYBPAFr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 18:04:06 -0500
+	Fri, 15 Feb 2008 19:05:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: write counts for truncate()
-has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-write-counts-for-truncate.patch
+     git-x86-fixup
+has been removed from the -mm tree.  Its filename was
+     git-x86-fixup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: write counts for truncate()
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: git-x86-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/open.c~r-o-bind-mounts-write-counts-for-truncate fs/open.c
---- a/fs/open.c~r-o-bind-mounts-write-counts-for-truncate
-+++ a/fs/open.c
-@@ -244,21 +244,21 @@ static long do_sys_truncate(const char _
- 	if (!S_ISREG(inode->i_mode))
- 		goto dput_and_out;
+diff -puN arch/x86/Kconfig~git-x86-fixup arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-x86-fixup
++++ a/arch/x86/Kconfig
+@@ -23,6 +23,7 @@ config X86
+ 	select HAVE_KPROBES
+ 	select HAVE_KVM
+ 	select HAVE_FTRACE
++	select HAVE_ARCH_KGDB
  
--	error = vfs_permission(&nd, MAY_WRITE);
-+	error = mnt_want_write(nd.path.mnt);
- 	if (error)
- 		goto dput_and_out;
- 
--	error = -EROFS;
--	if (IS_RDONLY(inode))
--		goto dput_and_out;
-+	error = vfs_permission(&nd, MAY_WRITE);
-+	if (error)
-+		goto mnt_drop_write_and_out;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto mnt_drop_write_and_out;
- 
- 	error = get_write_access(inode);
- 	if (error)
--		goto dput_and_out;
-+		goto mnt_drop_write_and_out;
- 
- 	/*
- 	 * Make sure that there are no leases.  get_write_access() protects
-@@ -276,6 +276,8 @@ static long do_sys_truncate(const char _
- 
- put_write_and_out:
- 	put_write_access(inode);
-+mnt_drop_write_and_out:
-+	mnt_drop_write(nd.path.mnt);
- dput_and_out:
- 	path_put(&nd.path);
- out:
+ config GENERIC_LOCKBREAK
+ 	def_bool n
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-enable-hotplug-memory-remove-for-ppc64.patch
-reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
-hppfs-pass-vfsmount-to-dentry_open.patch
-check-for-null-vfsmount-in-dentry_open.patch
-fix-up-new-filp-allocators.patch
-do-namei_flags-calculation-inside-open_namei.patch
-merge-open_namei-and-do_filp_open.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-create-helper-to-drop-file-write-access.patch
-r-o-bind-mounts-drop-write-during-emergency-remount.patch
-r-o-bind-mounts-elevate-write-count-for-vfs_rmdir.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt_writers-for-unlink-callers.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers.patch
-r-o-bind-mounts-elevate-write-count-for-ncp_ioctl.patch
-r-o-bind-mounts-write-counts-for-time-functions.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-write-count-for-file_update_time.patch
-r-o-bind-mounts-write-counts-for-link-symlink.patch
-r-o-bind-mounts-elevate-write-count-for-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-opens.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers.patch
-r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch
-r-o-bind-mounts-write-counts-for-truncate.patch
-r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch
-r-o-bind-mounts-make-access-use-new-r-o-helper.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch
-r-o-bind-mounts-track-numbers-of-writers-to-mounts.patch
-r-o-bind-mounts-honor-mount-writer-counts-at-remount.patch
-r-o-bind-mounts-debugging-for-missed-calls.patch
+softlockup-workaround.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-git-rejects.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-git-rejects.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-x86-fixup.patch
+git-x86-git-rejects.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+x86-amd-thermal-interrupt-support.patch
+git-xtensa.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+procfs-task-exe-symlink-fix.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
