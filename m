@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-irq-handling-update.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:44:13 -0800
-Message-ID: <200802160644.m1G6iDnV012842@imap1.linux-foundation.org>
+Subject: + h8300-defconfig-update.patch added to -mm tree
+Date: Fri, 15 Feb 2008 22:44:15 -0800
+Message-ID: <200802160644.m1G6iFZ2012845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752685AbYBPGob (ORCPT
+	by vger.kernel.org with ESMTP id S1752873AbYBPGoe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 01:44:31 -0500
+	Sat, 16 Feb 2008 01:44:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     h8300: IRQ handling update
+     h8300: defconfig update
 has been added to the -mm tree.  Its filename is
-     h8300-irq-handling-update.patch
+     h8300-defconfig-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,727 +34,458 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: IRQ handling update
+Subject: h8300: defconfig update
 From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-- add missing file and declare.
-- remove unused file and macros.
-- some cleanup.
+defconfig update.
 
 Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/irq.c             |    4 
- arch/h8300/platform/h8300h/Makefile |    2 
- arch/h8300/platform/h8300h/irq.c    |   82 +++++++
- arch/h8300/platform/h8s/ints.c      |  304 --------------------------
- arch/h8300/platform/h8s/ints_h8s.c  |  104 --------
- arch/h8300/platform/h8s/irq.c       |  104 ++++++++
- include/asm-h8300/hardirq.h         |    2 
- include/asm-h8300/irq.h             |   19 -
- 8 files changed, 194 insertions(+), 427 deletions(-)
+ arch/h8300/defconfig |  263 +++++++++++++++++++++--------------------
+ 1 file changed, 140 insertions(+), 123 deletions(-)
 
-diff -puN arch/h8300/kernel/irq.c~h8300-irq-handling-update arch/h8300/kernel/irq.c
---- a/arch/h8300/kernel/irq.c~h8300-irq-handling-update
-+++ a/arch/h8300/kernel/irq.c
-@@ -26,7 +26,7 @@
- 
- extern unsigned long *interrupt_redirect_table;
- extern const int h8300_saved_vectors[];
--extern const unsigned long h8300_trap_table[];
-+extern const h8300_vector h8300_trap_table[];
- int h8300_enable_irq_pin(unsigned int irq);
- void h8300_disable_irq_pin(unsigned int irq);
- 
-@@ -116,7 +116,7 @@ static void __init setup_vector(void)
- {
- 	int i;
- 	unsigned long *ramvec,*ramvec_p;
--	const unsigned long *trap_entry;
-+	const h8300_vector *trap_entry;
- 	const int *saved_vector;
- 
- 	ramvec = get_vector_address();
-diff -puN arch/h8300/platform/h8300h/Makefile~h8300-irq-handling-update arch/h8300/platform/h8300h/Makefile
---- a/arch/h8300/platform/h8300h/Makefile~h8300-irq-handling-update
-+++ a/arch/h8300/platform/h8300h/Makefile
-@@ -4,4 +4,4 @@
- # Reuse any files we can from the H8/300H
+diff -puN arch/h8300/defconfig~h8300-defconfig-update arch/h8300/defconfig
+--- a/arch/h8300/defconfig~h8300-defconfig-update
++++ a/arch/h8300/defconfig
+@@ -1,51 +1,98 @@
  #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.11-rc1
+-# Sun Jan 16 17:24:38 2005
++# Linux kernel version: 2.6.25-rc1
++# Fri Feb 15 17:13:14 2008
+ #
+ CONFIG_H8300=y
+ # CONFIG_MMU is not set
+ # CONFIG_SWAP is not set
++CONFIG_ZONE_DMA=y
+ # CONFIG_FPU is not set
+-CONFIG_UID16=y
+ CONFIG_RWSEM_GENERIC_SPINLOCK=y
+ # CONFIG_RWSEM_XCHGADD_ALGORITHM is not set
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_FIND_NEXT_BIT=y
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_HARDIRQS=y
+ CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_GENERIC_TIME=y
++CONFIG_TIME_LOW_RES=y
++CONFIG_ARCH_SUPPORTS_AOUT=y
++CONFIG_NO_IOPORT=y
++CONFIG_NO_DMA=y
+ CONFIG_ISA=y
+ # CONFIG_PCI is not set
++CONFIG_HZ=100
++CONFIG_C_SYMBOL_PREFIX=y
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
  
--obj-y := irq_pin.o ptrace_h8300h.o
-+obj-y := irq.o ptrace_h8300h.o
-diff -puN /dev/null arch/h8300/platform/h8300h/irq.c
---- /dev/null
-+++ a/arch/h8300/platform/h8300h/irq.c
-@@ -0,0 +1,82 @@
-+/*
-+ * Interrupt handling H8/300H depend.
-+ * Yoshinori Sato <ysato@users.sourceforge.jp>
-+ *
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+
-+#include <asm/ptrace.h>
-+#include <asm/traps.h>
-+#include <asm/irq.h>
-+#include <asm/io.h>
-+#include <asm/gpio.h>
-+#include <asm/regs306x.h>
-+
-+const int __initdata h8300_saved_vectors[] = {
-+#if defined(CONFIG_GDB_DEBUG)
-+	TRAP3_VEC,	/* TRAPA #3 is GDB breakpoint */
-+#endif
-+	-1,
-+};
-+
-+const h8300_vector __initdata h8300_trap_table[] = {
-+	0, 0, 0, 0, 0, 0, 0, 0,
-+	system_call,
-+	0,
-+	0,
-+	trace_break,
-+};
-+
-+int h8300_enable_irq_pin(unsigned int irq)
-+{
-+	int bitmask;
-+	if (irq < EXT_IRQ0 || irq > EXT_IRQ5)
-+		return 0;
-+
-+	/* initialize IRQ pin */
-+	bitmask = 1 << (irq - EXT_IRQ0);
-+	switch(irq) {
-+	case EXT_IRQ0:
-+	case EXT_IRQ1:
-+	case EXT_IRQ2:
-+	case EXT_IRQ3:
-+		if (H8300_GPIO_RESERVE(H8300_GPIO_P8, bitmask) == 0)
-+			return -EBUSY;
-+		H8300_GPIO_DDR(H8300_GPIO_P8, bitmask, H8300_GPIO_INPUT);
-+		break;
-+	case EXT_IRQ4:
-+	case EXT_IRQ5:
-+		if (H8300_GPIO_RESERVE(H8300_GPIO_P9, bitmask) == 0)
-+			return -EBUSY;
-+		H8300_GPIO_DDR(H8300_GPIO_P9, bitmask, H8300_GPIO_INPUT);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+void h8300_disable_irq_pin(unsigned int irq)
-+{
-+	int bitmask;
-+	if (irq < EXT_IRQ0 || irq > EXT_IRQ5)
-+		return;
-+
-+	/* disable interrupt & release IRQ pin */
-+	bitmask = 1 << (irq - EXT_IRQ0);
-+	switch(irq) {
-+	case EXT_IRQ0:
-+	case EXT_IRQ1:
-+	case EXT_IRQ2:
-+	case EXT_IRQ3:
-+		*(volatile unsigned char *)IER &= ~bitmask;
-+		H8300_GPIO_FREE(H8300_GPIO_P8, bitmask);
-+		break ;
-+	case EXT_IRQ4:
-+	case EXT_IRQ5:
-+		*(volatile unsigned char *)IER &= ~bitmask;
-+		H8300_GPIO_FREE(H8300_GPIO_P9, bitmask);
-+		break;
-+	}
-+}
-diff -puN arch/h8300/platform/h8s/ints.c~h8300-irq-handling-update /dev/null
---- a/arch/h8300/platform/h8s/ints.c
-+++ /dev/null
-@@ -1,304 +0,0 @@
--/*
-- * linux/arch/h8300/platform/h8s/ints.c
-- *
-- * Yoshinori Sato <ysato@users.sourceforge.jp>
-- *
-- * Based on linux/arch/$(ARCH)/platform/$(PLATFORM)/ints.c
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file COPYING in the main directory of this archive
-- * for more details.
-- *
-- * Copyright 1996 Roman Zippel
-- * Copyright 1999 D. Jeff Dionne <jeff@rt-control.com>
-- */
+ #
+-# Code maturity level options
++# General setup
+ #
+ CONFIG_EXPERIMENTAL=y
+-CONFIG_CLEAN_COMPILE=y
+ CONFIG_BROKEN_ON_SMP=y
 -
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/kernel.h>
--#include <linux/sched.h>
--#include <linux/kernel_stat.h>
--#include <linux/seq_file.h>
--#include <linux/init.h>
--#include <linux/interrupt.h>
--#include <linux/bootmem.h>
--#include <linux/random.h>
--#include <linux/hardirq.h>
--
--#include <asm/system.h>
--#include <asm/irq.h>
--#include <asm/traps.h>
--#include <asm/io.h>
--#include <asm/setup.h>
--#include <asm/gpio.h>
--#include <asm/regs267x.h>
--#include <asm/errno.h>
--
--/*
-- * This structure has only 4 elements for speed reasons
-- */
--typedef struct irq_handler {
--	irqreturn_t (*handler)(int, void *, struct pt_regs *);
--	int         flags;
--	int         count;
--	void	    *dev_id;
--	const char  *devname;
--} irq_handler_t;
--
--static irq_handler_t *irq_list[NR_IRQS];
--
--/* IRQ pin assignment */
--struct irq_pins {
--	unsigned char port_no;
--	unsigned char bit_no;
--};
--/* ISTR = 0 */
--static const struct irq_pins irq_assign_table0[16]={
--        {H8300_GPIO_P5,H8300_GPIO_B0},{H8300_GPIO_P5,H8300_GPIO_B1},
--	{H8300_GPIO_P5,H8300_GPIO_B2},{H8300_GPIO_P5,H8300_GPIO_B3},
--	{H8300_GPIO_P5,H8300_GPIO_B4},{H8300_GPIO_P5,H8300_GPIO_B5},
--	{H8300_GPIO_P5,H8300_GPIO_B6},{H8300_GPIO_P5,H8300_GPIO_B7},
--	{H8300_GPIO_P6,H8300_GPIO_B0},{H8300_GPIO_P6,H8300_GPIO_B1},
--	{H8300_GPIO_P6,H8300_GPIO_B2},{H8300_GPIO_P6,H8300_GPIO_B3},
--	{H8300_GPIO_P6,H8300_GPIO_B4},{H8300_GPIO_P6,H8300_GPIO_B5},
--	{H8300_GPIO_PF,H8300_GPIO_B1},{H8300_GPIO_PF,H8300_GPIO_B2},
--};
--/* ISTR = 1 */
--static const struct irq_pins irq_assign_table1[16]={
--	{H8300_GPIO_P8,H8300_GPIO_B0},{H8300_GPIO_P8,H8300_GPIO_B1},
--	{H8300_GPIO_P8,H8300_GPIO_B2},{H8300_GPIO_P8,H8300_GPIO_B3},
--	{H8300_GPIO_P8,H8300_GPIO_B4},{H8300_GPIO_P8,H8300_GPIO_B5},
--	{H8300_GPIO_PH,H8300_GPIO_B2},{H8300_GPIO_PH,H8300_GPIO_B3},
--	{H8300_GPIO_P2,H8300_GPIO_B0},{H8300_GPIO_P2,H8300_GPIO_B1},
--	{H8300_GPIO_P2,H8300_GPIO_B2},{H8300_GPIO_P2,H8300_GPIO_B3},
--	{H8300_GPIO_P2,H8300_GPIO_B4},{H8300_GPIO_P2,H8300_GPIO_B5},
--	{H8300_GPIO_P2,H8300_GPIO_B6},{H8300_GPIO_P2,H8300_GPIO_B7},
--};
--
--static short use_kmalloc = 0;
--
--extern unsigned long *interrupt_redirect_table;
--
--#define CPU_VECTOR ((unsigned long *)0x000000)
--#define ADDR_MASK (0xffffff)
--
--static inline unsigned long *get_vector_address(void)
--{
--	volatile unsigned long *rom_vector = CPU_VECTOR;
--	unsigned long base,tmp;
--	int vec_no;
--
--	base = rom_vector[EXT_IRQ0] & ADDR_MASK;
--	
--	/* check romvector format */
--	for (vec_no = EXT_IRQ1; vec_no <= EXT_IRQ15; vec_no++) {
--		if ((base+(vec_no - EXT_IRQ0)*4) != (rom_vector[vec_no] & ADDR_MASK))
--			return NULL;
--	}
--
--	/* ramvector base address */
--	base -= EXT_IRQ0*4;
--
--	/* writerble check */
--	tmp = ~(*(unsigned long *)base);
--	(*(unsigned long *)base) = tmp;
--	if ((*(unsigned long *)base) != tmp)
--		return NULL;
--	return (unsigned long *)base;
--}
--
--void __init init_IRQ(void)
--{
--#if defined(CONFIG_RAMKERNEL)
--	int i;
--	unsigned long *ramvec,*ramvec_p;
--	unsigned long break_vec;
--
--	ramvec = get_vector_address();
--	if (ramvec == NULL)
--		panic("interrupt vector serup failed.");
--	else
--		printk("virtual vector at 0x%08lx\n",(unsigned long)ramvec);
--
--#if defined(CONFIG_GDB_DEBUG)
--	/* save original break vector */
--	break_vec = ramvec[TRAP3_VEC];
--#else
--	break_vec = VECTOR(trace_break);
--#endif
--
--	/* create redirect table */
--	for (ramvec_p = ramvec, i = 0; i < NR_IRQS; i++)
--		*ramvec_p++ = REDIRECT(interrupt_entry);
--
--	/* set special vector */
--	ramvec[TRAP0_VEC] = VECTOR(system_call);
--	ramvec[TRAP3_VEC] = break_vec;
--	interrupt_redirect_table = ramvec;
--#ifdef DUMP_VECTOR
--	ramvec_p = ramvec;
--	for (i = 0; i < NR_IRQS; i++) {
--		if ((i % 8) == 0)
--			printk("\n%p: ",ramvec_p);
--		printk("%p ",*ramvec_p);
--		ramvec_p++;
--	}
--	printk("\n");
--#endif
--#endif
--}
--
--int request_irq(unsigned int irq,
--		irqreturn_t (*handler)(int, void *, struct pt_regs *),
--                unsigned long flags, const char *devname, void *dev_id)
--{
--	unsigned short ptn = 1 << (irq - EXT_IRQ0);
--	irq_handler_t *irq_handle;
--	if (irq < 0 || irq >= NR_IRQS) {
--		printk("Incorrect IRQ %d from %s\n", irq, devname);
--		return -EINVAL;
--	}
--	if (irq_list[irq])
--		return -EBUSY; /* already used */
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
--		/* initialize IRQ pin */
--		unsigned int port_no,bit_no;
--		if (*(volatile unsigned short *)ITSR & ptn) {
--			port_no = irq_assign_table1[irq - EXT_IRQ0].port_no;
--			bit_no = irq_assign_table1[irq - EXT_IRQ0].bit_no;
--		} else {
--			port_no = irq_assign_table0[irq - EXT_IRQ0].port_no;
--			bit_no = irq_assign_table0[irq - EXT_IRQ0].bit_no;
--		}
--		if (H8300_GPIO_RESERVE(port_no, bit_no) == 0)
--			return -EBUSY;                   /* pin already use */
--		H8300_GPIO_DDR(port_no, bit_no, H8300_GPIO_INPUT);
--		*(volatile unsigned short *)ISR &= ~ptn; /* ISR clear */
--	}		
--
--	if (use_kmalloc)
--		irq_handle = kmalloc(sizeof(irq_handler_t), GFP_ATOMIC);
--	else {
--		/* use bootmem allocator */
--		irq_handle = (irq_handler_t *)alloc_bootmem(sizeof(irq_handler_t));
--		irq_handle = (irq_handler_t *)((unsigned long)irq_handle | 0x80000000);
--	}
--
--	if (irq_handle == NULL)
--		return -ENOMEM;
--
--	irq_handle->handler = handler;
--	irq_handle->flags   = flags;
--	irq_handle->count   = 0;
--	irq_handle->dev_id  = dev_id;
--	irq_handle->devname = devname;
--	irq_list[irq] = irq_handle;
--	if (irq_handle->flags & IRQF_SAMPLE_RANDOM)
--		rand_initialize_irq(irq);
--	
--	/* enable interrupt */
--	/* compatible i386  */
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15)
--		*(volatile unsigned short *)IER |= ptn;
--	return 0;
--}
--
--EXPORT_SYMBOL(request_irq);
--
--void free_irq(unsigned int irq, void *dev_id)
--{
--	if (irq >= NR_IRQS)
--		return;
--	if (irq_list[irq]->dev_id != dev_id)
--		printk("%s: Removing probably wrong IRQ %d from %s\n",
--		       __FUNCTION__, irq, irq_list[irq]->devname);
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
--		/* disable interrupt & release IRQ pin */
--		unsigned short port_no,bit_no;
--		*(volatile unsigned short *)ISR &= ~(1 << (irq - EXT_IRQ0));
--		*(volatile unsigned short *)IER |= 1 << (irq - EXT_IRQ0);
--		if (*(volatile unsigned short *)ITSR & (1 << (irq - EXT_IRQ0))) {
--			port_no = irq_assign_table1[irq - EXT_IRQ0].port_no;
--			bit_no = irq_assign_table1[irq - EXT_IRQ0].bit_no;
--		} else {
--			port_no = irq_assign_table0[irq - EXT_IRQ0].port_no;
--			bit_no = irq_assign_table0[irq - EXT_IRQ0].bit_no;
--		}
--		H8300_GPIO_FREE(port_no, bit_no);
--	}
--	if (((unsigned long)irq_list[irq] & 0x80000000) == 0) {
--		kfree(irq_list[irq]);
--		irq_list[irq] = NULL;
--	}
--}
--
--EXPORT_SYMBOL(free_irq);
--
--unsigned long probe_irq_on (void)
--{
--	return 0;
--}
--
--EXPORT_SYMBOL(probe_irq_on);
--
--int probe_irq_off (unsigned long irqs)
--{
--	return 0;
--}
--
--EXPORT_SYMBOL(probe_irq_off);
--
--void enable_irq(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15)
--		*(volatile unsigned short *)IER |= 1 << (irq - EXT_IRQ0);
--}
--
--void disable_irq(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15)
--		*(volatile unsigned short *)IER &= ~(1 << (irq - EXT_IRQ0));
--}
--
--asmlinkage void process_int(unsigned long vec, struct pt_regs *fp)
--{
--	irq_enter();
--	/* ISR clear       */
--	/* compatible i386 */
--	if (vec >= EXT_IRQ0 && vec <= EXT_IRQ15)
--		*(volatile unsigned short *)ISR &= ~(1 << (vec - EXT_IRQ0));
--	if (vec < NR_IRQS) {
--		if (irq_list[vec]) {
--			irq_list[vec]->handler(vec, irq_list[vec]->dev_id, fp);
--			irq_list[vec]->count++;
--			if (irq_list[vec]->flags & IRQF_SAMPLE_RANDOM)
--				add_interrupt_randomness(vec);
--		}
--	} else {
--		BUG();
--	}
--	irq_exit();
--}
--
--int show_interrupts(struct seq_file *p, void *v)
--{
--	int i = *(loff_t *) v;
--
--	if ((i < NR_IRQS) && (irq_list[i] !=NULL)) {
--		seq_printf(p, "%3d: %10u ",i,irq_list[i]->count);
--		seq_printf(p, "%s\n", irq_list[i]->devname);
--	}
--
--	return 0;
--}
--
--void init_irq_proc(void)
--{
--}
--
--static int __init enable_kmalloc(void)
--{
--	use_kmalloc = 1;
--	return 0;
--}
--core_initcall(enable_kmalloc);
-diff -puN arch/h8300/platform/h8s/ints_h8s.c~h8300-irq-handling-update /dev/null
---- a/arch/h8300/platform/h8s/ints_h8s.c
-+++ /dev/null
-@@ -1,104 +0,0 @@
--/*
-- * linux/arch/h8300/platform/h8s/ints_h8s.c
-- * Interrupt handling CPU variants
-- *
-- * Yoshinori Sato <ysato@users.sourceforge.jp>
-- *
-- */
--
--#include <linux/init.h>
--#include <linux/errno.h>
--#include <linux/kernel.h>
--
--#include <asm/ptrace.h>
--#include <asm/traps.h>
--#include <asm/irq.h>
--#include <asm/io.h>
--#include <asm/gpio.h>
--#include <asm/regs267x.h>
--
--/* saved vector list */
--const int __initdata h8300_saved_vectors[]={
--#if defined(CONFIG_GDB_DEBUG)
--	TRACE_VEC,
--	TRAP3_VEC,
--#endif
--	-1
--};
--
--/* trap entry table */
--const unsigned long __initdata h8300_trap_table[NR_TRAPS]={
--	0,0,0,0,0,
--	(unsigned long)trace_break,  /* TRACE */
--	0,0,
--	(unsigned long)system_call,  /* TRAPA #0 */
--	0,0,0,0,0,0,0
--};
--
--/* IRQ pin assignment */
--struct irq_pins {
--	unsigned char port_no;
--	unsigned char bit_no;
--} __attribute__((aligned(1),packed));
--/* ISTR = 0 */
--static const struct irq_pins irq_assign_table0[16]={
--        {H8300_GPIO_P5,H8300_GPIO_B0},{H8300_GPIO_P5,H8300_GPIO_B1},
--	{H8300_GPIO_P5,H8300_GPIO_B2},{H8300_GPIO_P5,H8300_GPIO_B3},
--	{H8300_GPIO_P5,H8300_GPIO_B4},{H8300_GPIO_P5,H8300_GPIO_B5},
--	{H8300_GPIO_P5,H8300_GPIO_B6},{H8300_GPIO_P5,H8300_GPIO_B7},
--	{H8300_GPIO_P6,H8300_GPIO_B0},{H8300_GPIO_P6,H8300_GPIO_B1},
--	{H8300_GPIO_P6,H8300_GPIO_B2},{H8300_GPIO_P6,H8300_GPIO_B3},
--	{H8300_GPIO_P6,H8300_GPIO_B4},{H8300_GPIO_P6,H8300_GPIO_B5},
--	{H8300_GPIO_PF,H8300_GPIO_B1},{H8300_GPIO_PF,H8300_GPIO_B2},
--}; 
--/* ISTR = 1 */
--static const struct irq_pins irq_assign_table1[16]={
--	{H8300_GPIO_P8,H8300_GPIO_B0},{H8300_GPIO_P8,H8300_GPIO_B1},
--	{H8300_GPIO_P8,H8300_GPIO_B2},{H8300_GPIO_P8,H8300_GPIO_B3},
--	{H8300_GPIO_P8,H8300_GPIO_B4},{H8300_GPIO_P8,H8300_GPIO_B5},
--	{H8300_GPIO_PH,H8300_GPIO_B2},{H8300_GPIO_PH,H8300_GPIO_B3},
--	{H8300_GPIO_P2,H8300_GPIO_B0},{H8300_GPIO_P2,H8300_GPIO_B1},
--	{H8300_GPIO_P2,H8300_GPIO_B2},{H8300_GPIO_P2,H8300_GPIO_B3},
--	{H8300_GPIO_P2,H8300_GPIO_B4},{H8300_GPIO_P2,H8300_GPIO_B5},
--	{H8300_GPIO_P2,H8300_GPIO_B6},{H8300_GPIO_P2,H8300_GPIO_B7},
--};
--
--/* IRQ to GPIO pin translation */
--#define IRQ_GPIO_MAP(irqbit,irq,port,bit)			  \
--do {								  \
--	if (*(volatile unsigned short *)ITSR & irqbit) {	  \
--		port = irq_assign_table1[irq - EXT_IRQ0].port_no; \
--		bit  = irq_assign_table1[irq - EXT_IRQ0].bit_no;  \
--	} else {						  \
--		port = irq_assign_table0[irq - EXT_IRQ0].port_no; \
--		bit  = irq_assign_table0[irq - EXT_IRQ0].bit_no;  \
--	}							  \
--} while(0)
--
--int h8300_enable_irq_pin(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
--		unsigned short ptn = 1 << (irq - EXT_IRQ0);
--		unsigned int port_no,bit_no;
--		IRQ_GPIO_MAP(ptn, irq, port_no, bit_no);
--		if (H8300_GPIO_RESERVE(port_no, bit_no) == 0)
--			return -EBUSY;                   /* pin already use */
--		H8300_GPIO_DDR(port_no, bit_no, H8300_GPIO_INPUT);
--		*(volatile unsigned short *)ISR &= ~ptn; /* ISR clear */
--	}
--
--	return 0;
--}
--
--void h8300_disable_irq_pin(unsigned int irq)
--{
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
--		/* disable interrupt & release IRQ pin */
--		unsigned short ptn = 1 << (irq - EXT_IRQ0);
--		unsigned short port_no,bit_no;
--		*(volatile unsigned short *)ISR &= ~ptn;
--		*(volatile unsigned short *)IER &= ~ptn;
--		IRQ_GPIO_MAP(ptn, irq, port_no, bit_no);
--		H8300_GPIO_FREE(port_no, bit_no);
--	}
--}
-diff -puN /dev/null arch/h8300/platform/h8s/irq.c
---- /dev/null
-+++ a/arch/h8300/platform/h8s/irq.c
-@@ -0,0 +1,104 @@
-+/*
-+ * linux/arch/h8300/platform/h8s/ints_h8s.c
-+ * Interrupt handling CPU variants
-+ *
-+ * Yoshinori Sato <ysato@users.sourceforge.jp>
-+ *
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+
-+#include <asm/ptrace.h>
-+#include <asm/traps.h>
-+#include <asm/irq.h>
-+#include <asm/io.h>
-+#include <asm/gpio.h>
-+#include <asm/regs267x.h>
-+
-+/* saved vector list */
-+const int __initdata h8300_saved_vectors[]={
-+#if defined(CONFIG_GDB_DEBUG)
-+	TRACE_VEC,
-+	TRAP3_VEC,
-+#endif
-+	-1
-+};
-+
-+/* trap entry table */
-+const H8300_VECTOR __initdata h8300_trap_table[] = {
-+	0,0,0,0,0,
-+	trace_break,  /* TRACE */
-+	0,0,
-+	system_call,  /* TRAPA #0 */
-+	0,0,0,0,0,0,0
-+};
-+
-+/* IRQ pin assignment */
-+struct irq_pins {
-+	unsigned char port_no;
-+	unsigned char bit_no;
-+} __attribute__((aligned(1),packed));
-+/* ISTR = 0 */
-+static const struct irq_pins irq_assign_table0[16]={
-+        {H8300_GPIO_P5,H8300_GPIO_B0},{H8300_GPIO_P5,H8300_GPIO_B1},
-+	{H8300_GPIO_P5,H8300_GPIO_B2},{H8300_GPIO_P5,H8300_GPIO_B3},
-+	{H8300_GPIO_P5,H8300_GPIO_B4},{H8300_GPIO_P5,H8300_GPIO_B5},
-+	{H8300_GPIO_P5,H8300_GPIO_B6},{H8300_GPIO_P5,H8300_GPIO_B7},
-+	{H8300_GPIO_P6,H8300_GPIO_B0},{H8300_GPIO_P6,H8300_GPIO_B1},
-+	{H8300_GPIO_P6,H8300_GPIO_B2},{H8300_GPIO_P6,H8300_GPIO_B3},
-+	{H8300_GPIO_P6,H8300_GPIO_B4},{H8300_GPIO_P6,H8300_GPIO_B5},
-+	{H8300_GPIO_PF,H8300_GPIO_B1},{H8300_GPIO_PF,H8300_GPIO_B2},
-+};
-+/* ISTR = 1 */
-+static const struct irq_pins irq_assign_table1[16]={
-+	{H8300_GPIO_P8,H8300_GPIO_B0},{H8300_GPIO_P8,H8300_GPIO_B1},
-+	{H8300_GPIO_P8,H8300_GPIO_B2},{H8300_GPIO_P8,H8300_GPIO_B3},
-+	{H8300_GPIO_P8,H8300_GPIO_B4},{H8300_GPIO_P8,H8300_GPIO_B5},
-+	{H8300_GPIO_PH,H8300_GPIO_B2},{H8300_GPIO_PH,H8300_GPIO_B3},
-+	{H8300_GPIO_P2,H8300_GPIO_B0},{H8300_GPIO_P2,H8300_GPIO_B1},
-+	{H8300_GPIO_P2,H8300_GPIO_B2},{H8300_GPIO_P2,H8300_GPIO_B3},
-+	{H8300_GPIO_P2,H8300_GPIO_B4},{H8300_GPIO_P2,H8300_GPIO_B5},
-+	{H8300_GPIO_P2,H8300_GPIO_B6},{H8300_GPIO_P2,H8300_GPIO_B7},
-+};
-+
-+/* IRQ to GPIO pin translation */
-+#define IRQ_GPIO_MAP(irqbit,irq,port,bit)			  \
-+do {								  \
-+	if (*(volatile unsigned short *)ITSR & irqbit) {	  \
-+		port = irq_assign_table1[irq - EXT_IRQ0].port_no; \
-+		bit  = irq_assign_table1[irq - EXT_IRQ0].bit_no;  \
-+	} else {						  \
-+		port = irq_assign_table0[irq - EXT_IRQ0].port_no; \
-+		bit  = irq_assign_table0[irq - EXT_IRQ0].bit_no;  \
-+	}							  \
-+} while(0)
-+
-+int h8300_enable_irq_pin(unsigned int irq)
-+{
-+	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
-+		unsigned short ptn = 1 << (irq - EXT_IRQ0);
-+		unsigned int port_no,bit_no;
-+		IRQ_GPIO_MAP(ptn, irq, port_no, bit_no);
-+		if (H8300_GPIO_RESERVE(port_no, bit_no) == 0)
-+			return -EBUSY;                   /* pin already use */
-+		H8300_GPIO_DDR(port_no, bit_no, H8300_GPIO_INPUT);
-+		*(volatile unsigned short *)ISR &= ~ptn; /* ISR clear */
-+	}
-+
-+	return 0;
-+}
-+
-+void h8300_disable_irq_pin(unsigned int irq)
-+{
-+	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15) {
-+		/* disable interrupt & release IRQ pin */
-+		unsigned short ptn = 1 << (irq - EXT_IRQ0);
-+		unsigned short port_no,bit_no;
-+		*(volatile unsigned short *)ISR &= ~ptn;
-+		*(volatile unsigned short *)IER &= ~ptn;
-+		IRQ_GPIO_MAP(ptn, irq, port_no, bit_no);
-+		H8300_GPIO_FREE(port_no, bit_no);
-+	}
-+}
-diff -puN include/asm-h8300/hardirq.h~h8300-irq-handling-update include/asm-h8300/hardirq.h
---- a/include/asm-h8300/hardirq.h~h8300-irq-handling-update
-+++ a/include/asm-h8300/hardirq.h
-@@ -12,6 +12,8 @@ typedef struct {
+-#
+-# General setup
+-#
++CONFIG_INIT_ENV_ARG_LIMIT=32
+ CONFIG_LOCALVERSION=""
++# CONFIG_LOCALVERSION_AUTO is not set
++# CONFIG_SYSVIPC is not set
+ # CONFIG_BSD_PROCESS_ACCT is not set
+-# CONFIG_SYSCTL is not set
+-# CONFIG_AUDIT is not set
+-CONFIG_LOG_BUF_SHIFT=14
+-# CONFIG_HOTPLUG is not set
+ # CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_CGROUPS is not set
++# CONFIG_FAIR_GROUP_SCHED is not set
++# CONFIG_SYSFS_DEPRECATED is not set
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++# CONFIG_BLK_DEV_INITRD is not set
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
+ CONFIG_EMBEDDED=y
++# CONFIG_UID16 is not set
++# CONFIG_SYSCTL_SYSCALL is not set
+ # CONFIG_KALLSYMS is not set
++# CONFIG_HOTPLUG is not set
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++# CONFIG_COMPAT_BRK is not set
++# CONFIG_BASE_FULL is not set
+ # CONFIG_FUTEX is not set
+ # CONFIG_EPOLL is not set
+-CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_CC_ALIGN_FUNCTIONS=0
+-CONFIG_CC_ALIGN_LABELS=0
+-CONFIG_CC_ALIGN_LOOPS=0
+-CONFIG_CC_ALIGN_JUMPS=0
++# CONFIG_SIGNALFD is not set
++# CONFIG_TIMERFD is not set
++# CONFIG_EVENTFD is not set
++# CONFIG_VM_EVENT_COUNTERS is not set
++# CONFIG_SLAB is not set
++# CONFIG_SLUB is not set
++CONFIG_SLOB=y
++# CONFIG_PROFILING is not set
++# CONFIG_MARKERS is not set
++# CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_KPROBES is not set
+ CONFIG_TINY_SHMEM=y
++CONFIG_BASE_SMALL=1
++# CONFIG_MODULES is not set
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
  
- #include <linux/irq_cpustat.h>	/* Standard mappings for irq_cpustat_t above */
+ #
+-# Loadable module support
++# IO Schedulers
+ #
+-# CONFIG_MODULES is not set
++CONFIG_IOSCHED_NOOP=y
++# CONFIG_IOSCHED_AS is not set
++# CONFIG_IOSCHED_DEADLINE is not set
++# CONFIG_IOSCHED_CFQ is not set
++# CONFIG_DEFAULT_AS is not set
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++CONFIG_DEFAULT_NOOP=y
++CONFIG_DEFAULT_IOSCHED="noop"
++CONFIG_CLASSIC_RCU=y
++# CONFIG_PREEMPT_RCU is not set
  
-+extern void ack_bad_irq(unsigned int irq);
-+
- #define HARDIRQ_BITS	8
+ #
+ # Processor type and features
+@@ -62,14 +109,26 @@ CONFIG_H8300H_GENERIC=y
+ # Detail Selection
+ #
+ # CONFIG_H83002 is not set
+-# CONFIG_H83007 is not set
++CONFIG_H83007=y
+ # CONFIG_H83048 is not set
+-CONFIG_H83068=y
++# CONFIG_H83068 is not set
+ CONFIG_CPU_CLOCK=20000
+-# CONFIG_RAMKERNEL is not set
+-CONFIG_ROMKERNEL=y
++CONFIG_RAMKERNEL=y
++# CONFIG_ROMKERNEL is not set
+ CONFIG_CPU_H8300H=y
+ # CONFIG_PREEMPT is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++# CONFIG_SPARSEMEM_STATIC is not set
++# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=1
++CONFIG_VIRT_TO_BUS=y
  
- /*
-diff -puN include/asm-h8300/irq.h~h8300-irq-handling-update include/asm-h8300/irq.h
---- a/include/asm-h8300/irq.h~h8300-irq-handling-update
-+++ a/include/asm-h8300/irq.h
-@@ -3,7 +3,7 @@
+ #
+ # Executable file formats
+@@ -77,34 +136,42 @@ CONFIG_CPU_H8300H=y
+ CONFIG_BINFMT_FLAT=y
+ CONFIG_BINFMT_ZFLAT=y
+ # CONFIG_BINFMT_SHARED_FLAT is not set
+-# CONFIG_BINFMT_MISC is not set
++CONFIG_BINFMT_MISC=y
  
- #include <asm/ptrace.h>
+ #
+-# Generic Driver Options
++# Networking
+ #
+-# CONFIG_STANDALONE is not set
+-# CONFIG_PREVENT_FIRMWARE_BUILD is not set
+-# CONFIG_FW_LOADER is not set
+-# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_NET is not set
  
--#if defined(__H8300H__)
-+#if defined(CONFIG_CPU_H8300H)
- #define NR_IRQS 64
- #define EXT_IRQ0 12
- #define EXT_IRQ1 13
-@@ -14,14 +14,6 @@
- #define EXT_IRQ6 18
- #define EXT_IRQ7 19
- #define EXT_IRQS 5
+ #
+-# Memory Technology Devices (MTD)
++# Generic Driver Options
+ #
++CONFIG_STANDALONE=y
++# CONFIG_PREVENT_FIRMWARE_BUILD is not set
++# CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_MTD=y
+ # CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_CONCAT is not set
+ CONFIG_MTD_PARTITIONS=y
+-CONFIG_MTD_CONCAT=y
+-# CONFIG_MTD_REDBOOT_PARTS is not set
++CONFIG_MTD_REDBOOT_PARTS=y
++CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
++# CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
++# CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
+ # CONFIG_MTD_CMDLINE_PARTS is not set
+ 
+ #
+ # User Modules And Translation Layers
+ #
+ CONFIG_MTD_CHAR=y
+-CONFIG_MTD_BLOCK=y
++# CONFIG_MTD_BLKDEVS is not set
++# CONFIG_MTD_BLOCK is not set
++# CONFIG_MTD_BLOCK_RO is not set
+ # CONFIG_FTL is not set
+ # CONFIG_NFTL is not set
+ # CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
+ 
+ #
+ # RAM/ROM/Flash chip drivers
+@@ -129,7 +196,9 @@ CONFIG_MTD_ROM=y
+ # Mapping drivers for chip access
+ #
+ # CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PHYSMAP is not set
+ CONFIG_MTD_UCLINUX=y
++# CONFIG_MTD_PLATRAM is not set
+ 
+ #
+ # Self-contained MTD device drivers
+@@ -137,7 +206,6 @@ CONFIG_MTD_UCLINUX=y
+ # CONFIG_MTD_SLRAM is not set
+ # CONFIG_MTD_PHRAM is not set
+ # CONFIG_MTD_MTDRAM is not set
+-# CONFIG_MTD_BLKMTD is not set
+ # CONFIG_MTD_BLOCK2MTD is not set
+ 
+ #
+@@ -146,63 +214,27 @@ CONFIG_MTD_UCLINUX=y
+ # CONFIG_MTD_DOC2000 is not set
+ # CONFIG_MTD_DOC2001 is not set
+ # CONFIG_MTD_DOC2001PLUS is not set
 -
--#include <asm/regs306x.h>
--#define h8300_clear_isr(irq)                                                \
--do {                                                                        \
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ5)                             \
--		*(volatile unsigned char *)ISR &= ~(1 << (irq - EXT_IRQ0)); \
--} while(0)
+-#
+-# NAND Flash Device Drivers
+-#
+ # CONFIG_MTD_NAND is not set
++# CONFIG_MTD_ONENAND is not set
+ 
+ #
+-# Block devices
+-#
+-# CONFIG_BLK_DEV_FD is not set
+-# CONFIG_BLK_DEV_XD is not set
+-# CONFIG_BLK_DEV_LOOP is not set
+-# CONFIG_BLK_DEV_RAM is not set
+-CONFIG_BLK_DEV_RAM_COUNT=16
+-CONFIG_INITRAMFS_SOURCE=""
+-# CONFIG_CDROM_PKTCDVD is not set
 -
- #define IER_REGS *(volatile unsigned char *)IER
- #endif
- #if defined(CONFIG_CPU_H8S)
-@@ -44,13 +36,6 @@ do {                                    
- #define EXT_IRQ15 31
- #define EXT_IRQS 15
- 
--#include <asm/regs267x.h>
--#define h8300_clear_isr(irq)                                                 \
--do {                                                                         \
--	if (irq >= EXT_IRQ0 && irq <= EXT_IRQ15)                             \
--		*(volatile unsigned short *)ISR &= ~(1 << (irq - EXT_IRQ0)); \
--} while(0)
+-#
+-# IO Schedulers
+-#
+-CONFIG_IOSCHED_NOOP=y
+-# CONFIG_IOSCHED_AS is not set
+-# CONFIG_IOSCHED_DEADLINE is not set
+-# CONFIG_IOSCHED_CFQ is not set
 -
- #define IER_REGS *(volatile unsigned short *)IER
- #endif
+-#
+-# ATA/ATAPI/MFM/RLL support
++# UBI - Unsorted block images
+ #
++# CONFIG_MTD_UBI is not set
++# CONFIG_BLK_DEV is not set
++CONFIG_HAVE_IDE=y
+ # CONFIG_IDE is not set
  
-@@ -59,4 +44,6 @@ static __inline__ int irq_canonicalize(i
- 	return irq;
- }
+ #
+-# Networking support
+-#
+-# CONFIG_NET is not set
+-# CONFIG_NETPOLL is not set
+-# CONFIG_NET_POLL_CONTROLLER is not set
+-
+-#
+ # Input device support
+ #
+ # CONFIG_INPUT is not set
  
-+typedef void (*h8300_vector)(void);
-+
- #endif /* _H8300_IRQ_H_ */
+ #
+-# Userland interfaces
+-#
+-
+-#
+-# Input I/O drivers
++# Hardware I/O ports
+ #
+-# CONFIG_GAMEPORT is not set
+-CONFIG_SOUND_GAMEPORT=y
+ # CONFIG_SERIO is not set
+-# CONFIG_SERIO_I8042 is not set
+-
+-#
+-# Input Device Drivers
+-#
++# CONFIG_GAMEPORT is not set
+ 
+ #
+ # Character devices
+@@ -223,45 +255,31 @@ CONFIG_SOUND_GAMEPORT=y
+ # Non-8250 serial port support
+ #
+ CONFIG_SERIAL_SH_SCI=y
++CONFIG_SERIAL_SH_SCI_NR_UARTS=2
+ CONFIG_SERIAL_SH_SCI_CONSOLE=y
+ CONFIG_SERIAL_CORE=y
+ CONFIG_SERIAL_CORE_CONSOLE=y
+-
+-#
+-# I2C support
+-#
+ # CONFIG_I2C is not set
+-
+-#
+-# USB support
+-#
+-# CONFIG_USB_ARCH_HAS_HCD is not set
+-# CONFIG_USB_ARCH_HAS_OHCI is not set
+-
+-#
+-# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support' may also be needed; see USB_STORAGE Help for more information
+-#
+-
+-#
+-# USB Gadget Support
+-#
+-# CONFIG_USB_GADGET is not set
++# CONFIG_HWMON is not set
++# CONFIG_USB_SUPPORT is not set
+ 
+ #
+ # File systems
+ #
+ # CONFIG_EXT2_FS is not set
+ # CONFIG_EXT3_FS is not set
+-# CONFIG_JBD is not set
++# CONFIG_EXT4DEV_FS is not set
+ # CONFIG_REISERFS_FS is not set
+ # CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
+ # CONFIG_XFS_FS is not set
+-# CONFIG_MINIX_FS is not set
+-CONFIG_ROMFS_FS=y
+-# CONFIG_QUOTA is not set
++# CONFIG_GFS2_FS is not set
+ # CONFIG_DNOTIFY is not set
++# CONFIG_INOTIFY is not set
++# CONFIG_QUOTA is not set
+ # CONFIG_AUTOFS_FS is not set
+ # CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
+ 
+ #
+ # CD-ROM/DVD Filesystems
+@@ -280,11 +298,11 @@ CONFIG_ROMFS_FS=y
+ # Pseudo filesystems
+ #
+ CONFIG_PROC_FS=y
+-# CONFIG_SYSFS is not set
+-# CONFIG_DEVFS_FS is not set
++CONFIG_PROC_SYSCTL=y
++CONFIG_SYSFS=y
+ # CONFIG_TMPFS is not set
+ # CONFIG_HUGETLB_PAGE is not set
+-CONFIG_RAMFS=y
++# CONFIG_CONFIGFS_FS is not set
+ 
+ #
+ # Miscellaneous filesystems
+@@ -296,12 +314,13 @@ CONFIG_RAMFS=y
+ # CONFIG_BEFS_FS is not set
+ # CONFIG_BFS_FS is not set
+ # CONFIG_EFS_FS is not set
+-# CONFIG_JFFS_FS is not set
+ # CONFIG_JFFS2_FS is not set
+ # CONFIG_CRAMFS is not set
+ # CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
+ # CONFIG_HPFS_FS is not set
+ # CONFIG_QNX4FS_FS is not set
++CONFIG_ROMFS_FS=y
+ # CONFIG_SYSV_FS is not set
+ # CONFIG_UFS_FS is not set
+ 
+@@ -310,22 +329,23 @@ CONFIG_RAMFS=y
+ #
+ # CONFIG_PARTITION_ADVANCED is not set
+ CONFIG_MSDOS_PARTITION=y
+-
+-#
+-# Native Language Support
+-#
+ # CONFIG_NLS is not set
+ 
+ #
+ # Kernel hacking
+ #
+-CONFIG_DEBUG_KERNEL=y
+-# CONFIG_SCHEDSTATS is not set
+-# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_PRINTK_TIME is not set
++# CONFIG_ENABLE_WARN_DEPRECATED is not set
++# CONFIG_ENABLE_MUST_CHECK is not set
++# CONFIG_MAGIC_SYSRQ is not set
++# CONFIG_UNUSED_SYMBOLS is not set
+ # CONFIG_DEBUG_FS is not set
+-CONFIG_FULLDEBUG=y
++# CONFIG_HEADERS_CHECK is not set
++# CONFIG_DEBUG_KERNEL is not set
++# CONFIG_SAMPLES is not set
++# CONFIG_FULLDEBUG is not set
+ # CONFIG_HIGHPROFILE is not set
+-CONFIG_NO_KERNEL_MSG=y
++# CONFIG_NO_KERNEL_MSG is not set
+ # CONFIG_SYSCALL_PRINT is not set
+ # CONFIG_GDB_DEBUG is not set
+ # CONFIG_SH_STANDARD_BIOS is not set
+@@ -337,20 +357,17 @@ CONFIG_NO_KERNEL_MSG=y
+ #
+ # CONFIG_KEYS is not set
+ # CONFIG_SECURITY is not set
+-
+-#
+-# Cryptographic options
+-#
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
+ # CONFIG_CRYPTO is not set
+ 
+ #
+-# Hardware crypto devices
+-#
+-
+-#
+ # Library routines
+ #
+ # CONFIG_CRC_CCITT is not set
+-CONFIG_CRC32=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_ITU_T is not set
++# CONFIG_CRC32 is not set
++# CONFIG_CRC7 is not set
+ # CONFIG_LIBCRC32C is not set
+ CONFIG_ZLIB_INFLATE=y
++CONFIG_HAS_IOMEM=y
 _
 
 Patches currently in -mm which might be from ysato@users.sourceforge.jp are
