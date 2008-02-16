@@ -1,408 +1,536 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-hisax-bkm_a8-convert-to-pci-hotplug-api.patch removed from -mm tree
-Date: Fri, 15 Feb 2008 17:00:47 -0800
-Message-ID: <200802160109.m1G19nYZ001671@imap1.linux-foundation.org>
+Subject: - isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch removed from -mm tree
+Date: Fri, 15 Feb 2008 17:00:34 -0800
+Message-ID: <200802160109.m1G19aIX001655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40298 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758046AbYBPBK0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758359AbYBPBKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 20:10:26 -0500
+	Fri, 15 Feb 2008 20:10:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, greg@kroah.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: jeff@garzik.org, greg@kroah.com, jgarzik@redhat.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: HiSax bkm_a8: convert to PCI hotplug API
+     isdn: HiSax avm_pci: convert to modern PCI/ISA/PNP probing
 has been removed from the -mm tree.  Its filename was
-     isdn-hisax-bkm_a8-convert-to-pci-hotplug-api.patch
+     isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: HiSax bkm_a8: convert to PCI hotplug API
+Subject: isdn: HiSax avm_pci: convert to modern PCI/ISA/PNP probing
 From: Jeff Garzik <jeff@garzik.org>
 
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig  |    4 
- drivers/isdn/hisax/Makefile |    2 
- drivers/isdn/hisax/bkm_a8.c |  186 +++++++++++++++++++++++-----------
- drivers/isdn/hisax/config.c |   48 --------
- 4 files changed, 133 insertions(+), 107 deletions(-)
+ drivers/isdn/hisax/Kconfig   |    4 
+ drivers/isdn/hisax/Makefile  |    2 
+ drivers/isdn/hisax/avm_pci.c |  324 +++++++++++++++++++++++----------
+ drivers/isdn/hisax/config.c  |   22 --
+ 4 files changed, 236 insertions(+), 116 deletions(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api
+diff -puN drivers/isdn/hisax/Kconfig~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
 +++ a/drivers/isdn/hisax/Kconfig
-@@ -298,8 +298,8 @@ config HISAX_BKM_A4T
- 	  settings.
+@@ -132,8 +132,8 @@ config HISAX_AVM_A1
+ 	  non-standard IRQ/port settings.
  
- config HISAX_SCT_QUADRO
--	bool "Scitel Quadro card"
--	depends on PCI && PCI_LEGACY
-+	tristate "Scitel Quadro card"
-+	depends on PCI
+ config HISAX_FRITZPCI
+-	bool "AVM PnP/PCI (Fritz!PnP/PCI)"
+-	depends on BROKEN || !PPC64
++	tristate "AVM PnP/PCI (Fritz!PnP/PCI)"
++	depends on (ISA || PNP || PCI) && (BROKEN || !PPC64)
  	help
- 	  This enables HiSax support for the Scitel Quadro card.
- 
-diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api drivers/isdn/hisax/Makefile
---- a/drivers/isdn/hisax/Makefile~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api
+ 	  This enables HiSax support for the AVM "Fritz!PnP" and "Fritz!PCI".
+ 	  See <file:Documentation/isdn/README.HiSax> on how to configure it.
+diff -puN drivers/isdn/hisax/Makefile~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/Makefile
+--- a/drivers/isdn/hisax/Makefile~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
 +++ a/drivers/isdn/hisax/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci
- obj-$(CONFIG_HISAX_GAZEL)		+= gazel.o libhisax.o
- obj-$(CONFIG_HISAX_NICCY)		+= niccy.o libhisax.o
- obj-$(CONFIG_HISAX_DIEHLDIVA)		+= hisaxdiva.o libhisax.o
-+obj-$(CONFIG_HISAX_SCT_QUADRO)		+= bkm_a8.o libhisax.o
+@@ -22,6 +22,7 @@ obj-$(CONFIG_HISAX_W6692)		+= w6692.o li
+ obj-$(CONFIG_HISAX_NETJET)		+= netjet_s.o libhisax.o
+ obj-$(CONFIG_HISAX_NETJET_U)		+= netjet_u.o libhisax.o
+ obj-$(CONFIG_HISAX_TELESPCI)		+= telespci.o libhisax.o
++obj-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o libhisax.o
  
  bkm_a4t_pci-objs			:= bkm_a4t.o jade.o
  enternow-objs				:= enternow_pci.o amd7930_fn.o
-@@ -65,5 +66,4 @@ hisax-$(CONFIG_HISAX_HFCS)		+= hfcscard.
- hisax-$(CONFIG_HISAX_HFC_SX)		+= hfc_sx.o
- hisax-$(CONFIG_HISAX_ISURF)		+= isurf.o isar.o
- hisax-$(CONFIG_HISAX_HSTSAPHIR)		+= saphir.o
--hisax-$(CONFIG_HISAX_SCT_QUADRO)	+= bkm_a8.o
- 
-diff -puN drivers/isdn/hisax/bkm_a8.c~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api drivers/isdn/hisax/bkm_a8.c
---- a/drivers/isdn/hisax/bkm_a8.c~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api
-+++ a/drivers/isdn/hisax/bkm_a8.c
-@@ -13,6 +13,7 @@
+@@ -49,7 +50,6 @@ hisax-$(CONFIG_HISAX_16_3)		+= teles3.o
+ hisax-$(CONFIG_HISAX_S0BOX)		+= s0box.o
+ hisax-$(CONFIG_HISAX_AVM_A1)		+= avm_a1.o
+ hisax-$(CONFIG_HISAX_AVM_A1_PCMCIA)	+= avm_a1p.o
+-hisax-$(CONFIG_HISAX_FRITZPCI)		+= avm_pci.o
+ hisax-$(CONFIG_HISAX_ELSA)		+= elsa.o
+ hisax-$(CONFIG_HISAX_IX1MICROR2)	+= ix1_micro.o
+ hisax-$(CONFIG_HISAX_DIEHLDIVA)		+= diva.o ipacx.o
+diff -puN drivers/isdn/hisax/avm_pci.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/avm_pci.c
+--- a/drivers/isdn/hisax/avm_pci.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
++++ a/drivers/isdn/hisax/avm_pci.c
+@@ -14,13 +14,20 @@
  
  #include <linux/init.h>
  #include "hisax.h"
 +#include "hisax_proto.h"
  #include "isac.h"
- #include "ipac.h"
- #include "hscx.h"
-@@ -20,6 +21,8 @@
+ #include "isdnl1.h"
  #include <linux/pci.h>
- #include "bkm_ax.h"
++#include <linux/isa.h>
+ #include <linux/isapnp.h>
+ #include <linux/interrupt.h>
  
-+static int a8_protocol;		/* 0 == use DEFAULT_PROTO */
+-static const char *avm_pci_rev = "$Revision: 1.29.2.4 $";
++static int avm_protocol;		/* 0 == use DEFAULT_PROTO */
 +
- #define	ATTEMPT_PCI_REMAPPING	/* Required for PLX rev 1 */
++#ifdef CONFIG_ISA
++static int avm_irq;			/* 0 == disable ISA probing */
++static int avm_io_base;			/* 0 == disable ISA probing */
++#endif
  
- static const char sct_quadro_revision[] = "$Revision: 1.22.2.4 $";
-@@ -267,63 +270,23 @@ sct_alloc_io(u_int adr, u_int len)
- 	return(0);
- }
- 
--static struct pci_dev *dev_a8 __devinitdata = NULL;
--static u16  sub_vendor_id __devinitdata = 0;
--static u16  sub_sys_id __devinitdata = 0;
--static u_char pci_bus __devinitdata = 0;
--static u_char pci_device_fn __devinitdata = 0;
--static u_char pci_irq __devinitdata = 0;
--
--int __devinit
-+static int __devinit
- setup_sct_quadro(struct IsdnCard *card)
- {
- 	struct IsdnCardState *cs = card->cs;
-+	u_int pci_ioaddr2, pci_ioaddr3, pci_ioaddr4, pci_ioaddr5;
- 	char tmp[64];
--	u_int found = 0;
--	u_int pci_ioaddr1, pci_ioaddr2, pci_ioaddr3, pci_ioaddr4, pci_ioaddr5;
-+	struct pci_dev *dev_a8 = (void *) card->para[1];
-+	u_int pci_ioaddr1 = pci_resource_start(dev_a8, 1);
-+	u_char pci_irq = dev_a8->irq;
- 
- 	strcpy(tmp, sct_quadro_revision);
- 	printk(KERN_INFO "HiSax: T-Berkom driver Rev. %s\n", HiSax_getrev(tmp));
--	if (cs->typ == ISDN_CTYPE_SCT_QUADRO) {
--		cs->subtyp = SCT_1;	/* Preset */
--	} else
--		return (0);
- 
--	/* Identify subtype by para[0] */
--	if (card->para[0] >= SCT_1 && card->para[0] <= SCT_4)
--		cs->subtyp = card->para[0];
--	else {
--		printk(KERN_WARNING "HiSax: Scitel Quadro: Invalid "
--		       "subcontroller in configuration, default to 1\n");
--		return (0);
--	}
--	if ((cs->subtyp != SCT_1) && ((sub_sys_id != PCI_DEVICE_ID_BERKOM_SCITEL_QUADRO) ||
--		(sub_vendor_id != PCI_VENDOR_ID_BERKOM)))
--		return (0);
-+	cs->subtyp = card->para[0];
-+
- 	if (cs->subtyp == SCT_1) {
--		while ((dev_a8 = pci_find_device(PCI_VENDOR_ID_PLX,
--			PCI_DEVICE_ID_PLX_9050, dev_a8))) {
--			
--			sub_vendor_id = dev_a8->subsystem_vendor;
--			sub_sys_id = dev_a8->subsystem_device;
--			if ((sub_sys_id == PCI_DEVICE_ID_BERKOM_SCITEL_QUADRO) &&
--				(sub_vendor_id == PCI_VENDOR_ID_BERKOM)) {
--				if (pci_enable_device(dev_a8))
--					return(0);
--				pci_ioaddr1 = pci_resource_start(dev_a8, 1);
--				pci_irq = dev_a8->irq;
--				pci_bus = dev_a8->bus->number;
--				pci_device_fn = dev_a8->devfn;
--				found = 1;
--				break;
--			}
--		}
--		if (!found) {
--			printk(KERN_WARNING "HiSax: Scitel Quadro (%s): "
--				"Card not found\n",
--				sct_quadro_subtypes[cs->subtyp]);
--			return (0);
--		}
-+
- #ifdef ATTEMPT_PCI_REMAPPING
- /* HACK: PLX revision 1 bug: PLX address bit 7 must not be set */
- 		if ((pci_ioaddr1 & 0x80) && (dev_a8->revision == 1)) {
-@@ -345,22 +308,19 @@ setup_sct_quadro(struct IsdnCard *card)
- 		       sct_quadro_subtypes[cs->subtyp]);
- 		return (0);
- 	}
--	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_1, &pci_ioaddr1);
--	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_2, &pci_ioaddr2);
--	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_3, &pci_ioaddr3);
--	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_4, &pci_ioaddr4);
--	pci_read_config_dword(dev_a8, PCI_BASE_ADDRESS_5, &pci_ioaddr5);
-+
-+	pci_ioaddr2 = pci_resource_start(dev_a8, 2);
-+	pci_ioaddr3 = pci_resource_start(dev_a8, 3);
-+	pci_ioaddr4 = pci_resource_start(dev_a8, 4);
-+	pci_ioaddr5 = pci_resource_start(dev_a8, 5);
-+
- 	if (!pci_ioaddr1 || !pci_ioaddr2 || !pci_ioaddr3 || !pci_ioaddr4 || !pci_ioaddr5) {
- 		printk(KERN_WARNING "HiSax: Scitel Quadro (%s): "
- 		       "No IO base address(es)\n",
- 		       sct_quadro_subtypes[cs->subtyp]);
- 		return (0);
- 	}
--	pci_ioaddr1 &= PCI_BASE_ADDRESS_IO_MASK;
--	pci_ioaddr2 &= PCI_BASE_ADDRESS_IO_MASK;
--	pci_ioaddr3 &= PCI_BASE_ADDRESS_IO_MASK;
--	pci_ioaddr4 &= PCI_BASE_ADDRESS_IO_MASK;
--	pci_ioaddr5 &= PCI_BASE_ADDRESS_IO_MASK;
-+
- 	/* Take over */
- 	cs->irq = pci_irq;
- 	cs->irq_flags |= IRQF_SHARED;
-@@ -433,3 +393,113 @@ setup_sct_quadro(struct IsdnCard *card)
- 		readreg(cs->hw.ax.base, cs->hw.ax.data_adr, IPAC_ID));
+ #define  AVM_FRITZ_PCI		1
+ #define  AVM_FRITZ_PNP		2
+@@ -767,136 +774,267 @@ static int __devinit avm_setup_rest(stru
  	return (1);
  }
+ 
+-#ifndef __ISAPNP__
++#ifdef CONFIG_ISA
+ 
+-static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
++static int __devinit avm_isa_setup(struct IsdnCard *card)
+ {
+-	return(1);	/* no-op: success */
++	struct IsdnCardState *cs = card->cs;
 +
-+enum {
-+	a8_bri_count	= 4,
-+};
++	/* old manual method */
++	cs->hw.avm.cfg_reg = avm_io_base;
++	cs->irq = avm_irq;
++	cs->subtyp = AVM_FRITZ_PNP;
 +
-+struct a8_pci_bri {
-+	int		cardnr;
-+};
-+
-+struct a8_pci_info {
-+	struct a8_pci_bri	bri[a8_bri_count];
-+};
-+
-+static int __devinit a8_pci_init_one(struct pci_dev *pdev,
-+				      const struct pci_device_id *ent)
++	return avm_setup_rest(cs);
+ }
+ 
+-#else
++static int __devinit avm_isa_init_one(struct device *dev, unsigned int id)
 +{
-+	struct IsdnCard icard = { ISDN_CTYPE_SCT_QUADRO, };
-+	int rc, i, found = 0;
-+	struct a8_pci_info *api;
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
++	int cardnr;
 +
-+	rc = pci_enable_device(pdev);
-+	if (rc)
-+		return rc;
-+
-+	api = kzalloc(sizeof(*api), GFP_KERNEL);
-+	if (!api) {
-+		rc = -ENOMEM;
-+		goto err_out;
-+	}
-+
-+	icard.para[1] = (unsigned long) pdev;
-+	if (!a8_protocol)
++	icard.para[0] = (unsigned long) dev;
++	if (!avm_protocol)
 +		icard.protocol = DEFAULT_PROTO;
 +	else
-+		icard.protocol = a8_protocol;
++		icard.protocol = avm_protocol;
+ 
+-static struct pnp_card *pnp_avm_c __devinitdata = NULL;
++	cardnr = hisax_init_hotplug(&icard, avm_isa_setup);
++	if (cardnr < 0)
++		return -ENODEV;
 +
-+	for (i = 0; i < a8_bri_count; i++) {
-+		icard.para[0] = SCT_1 + i;
-+		api->bri[i].cardnr =
-+			hisax_init_hotplug(&icard, setup_sct_quadro);
-+		if (api->bri[i].cardnr >= 0)
-+			found = 1;
-+	}
-+
-+	if (!found) {
-+		rc = -ENODEV;
-+		goto err_out_api;
-+	}
-+
-+	pci_set_drvdata(pdev, api);
++	dev_set_drvdata(dev, (void *)(unsigned long) cardnr);
 +	return 0;
-+
-+err_out_api:
-+	kfree(api);
-+err_out:
-+	pci_disable_device(pdev);
-+	return rc;
 +}
-+
-+static void __devexit a8_pci_remove_one(struct pci_dev *pdev)
+ 
+-static int __devinit avm_pnp_setup(struct IsdnCardState *cs)
++static int __devexit avm_isa_remove_one(struct device *dev, unsigned int id)
+ {
+-	struct pnp_dev *pnp_avm_d = NULL;
++	int cardnr = (unsigned long) dev_get_drvdata(dev);
+ 
+-	if (!isapnp_present())
+-		return(1);	/* no-op: success */
++	HiSax_closecard(cardnr);
++	return 0;
++}
+ 
+-	if ((pnp_avm_c = pnp_find_card(
+-		ISAPNP_VENDOR('A', 'V', 'M'),
+-		ISAPNP_FUNCTION(0x0900), pnp_avm_c))) {
+-		if ((pnp_avm_d = pnp_find_dev(pnp_avm_c,
+-			ISAPNP_VENDOR('A', 'V', 'M'),
+-			ISAPNP_FUNCTION(0x0900), pnp_avm_d))) {
+-			int err;
+-
+-			pnp_disable_dev(pnp_avm_d);
+-			err = pnp_activate_dev(pnp_avm_d);
+-			if (err<0) {
+-				printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
+-					__FUNCTION__, err);
+-				return(0);
+-			}
+-			cs->hw.avm.cfg_reg =
+-				pnp_port_start(pnp_avm_d, 0);
+-			cs->irq = pnp_irq(pnp_avm_d, 0);
+-			if (!cs->irq) {
+-				printk(KERN_ERR "FritzPnP:No IRQ\n");
+-				return(0);
+-			}
+-			if (!cs->hw.avm.cfg_reg) {
+-				printk(KERN_ERR "FritzPnP:No IO address\n");
+-				return(0);
+-			}
+-			cs->subtyp = AVM_FRITZ_PNP;
++static struct isa_driver avm_isa_driver = {
++	.probe		= avm_isa_init_one,
++	.remove		= __devexit_p(avm_isa_remove_one),
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "avm_pci",
++	},
++};
+ 
+-			return (2);	/* goto 'ready' label */
+-		}
++#ifdef CONFIG_PNP
++static int __devinit avm_pnp_setup(struct IsdnCard *card)
 +{
-+	struct a8_pci_info *api = pci_get_drvdata(pdev);
-+	int i;
++	struct IsdnCardState *cs = card->cs;
++	struct pnp_dev *pnp_avm_d = (void *) card->para[0];
++	int err;
 +
-+	pci_set_drvdata(pdev, NULL);
++	pnp_disable_dev(pnp_avm_d);
 +
-+	for (i = 0; i < a8_bri_count; i++) {
-+		struct a8_pci_bri *bri = &api->bri[i];
-+
-+		if (bri->cardnr >= 0)
-+			HiSax_closecard(bri->cardnr);
++	err = pnp_activate_dev(pnp_avm_d);
++	if (err<0) {
++		printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
++			__FUNCTION__, err);
++		return(0);
+ 	}
+ 
+-	return (1);
++	cs->irq = pnp_irq(pnp_avm_d, 0);
++	if (!cs->irq) {
++		printk(KERN_ERR "FritzPnP:No IRQ\n");
++		return(0);
 +	}
 +
-+	kfree(api);
-+	pci_disable_device(pdev);
++	cs->hw.avm.cfg_reg = pnp_port_start(pnp_avm_d, 0);
++	if (!cs->hw.avm.cfg_reg) {
++		printk(KERN_ERR "FritzPnP:No IO address\n");
++		return(0);
++	}
++	cs->subtyp = AVM_FRITZ_PNP;
++
++	return avm_setup_rest(cs);
+ }
+ 
+-#endif /* __ISAPNP__ */
++static int __devinit avm_pnp_init_one(struct pnp_dev *pdev,
++				       const struct pnp_device_id *dev_id)
++{
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
++	int cardnr;
++
++	icard.para[0] = (unsigned long) pdev;
++	if (!avm_protocol)
++		icard.protocol = DEFAULT_PROTO;
++	else
++		icard.protocol = avm_protocol;
++
++	cardnr = hisax_init_hotplug(&icard, avm_pnp_setup);
++	if (cardnr < 0)
++		return -ENODEV;
+ 
+-#ifndef CONFIG_PCI_LEGACY
++	pnp_set_drvdata(pdev, (void *)(unsigned long) cardnr);
++	return 0;
++}
+ 
+-static int __devinit avm_pci_setup(struct IsdnCardState *cs)
++static void __devexit avm_pnp_remove_one(struct pnp_dev *pdev)
+ {
+-	return(1);	/* no-op: success */
++	int cardnr = (unsigned long) pnp_get_drvdata(pdev);
++
++	HiSax_closecard(cardnr);
+ }
+ 
+-#else
++static struct pnp_device_id avm_pnp_table[] = {
++	{ .id = "AVM0900", },
+ 
+-static struct pci_dev *dev_avm __devinitdata = NULL;
++	{ .id = "" }		/* terminate list */
++};
+ 
+-static int __devinit avm_pci_setup(struct IsdnCardState *cs)
+-{
+-	if ((dev_avm = pci_find_device(PCI_VENDOR_ID_AVM,
+-		PCI_DEVICE_ID_AVM_A1, dev_avm))) {
++static struct pnp_driver avm_pnp_driver = {
++	.name		= "avm_pci",
++	.id_table	= avm_pnp_table,
++	.probe		= avm_pnp_init_one,
++	.remove		= __devexit_p(avm_pnp_remove_one),
++};
++#endif /* CONFIG_PNP */
++#endif /* CONFIG_ISA */
+ 
+-		if (pci_enable_device(dev_avm))
+-			return(0);
++#ifdef CONFIG_PCI
+ 
+-		cs->irq = dev_avm->irq;
+-		if (!cs->irq) {
+-			printk(KERN_ERR "FritzPCI: No IRQ for PCI card found\n");
+-			return(0);
+-		}
++static int __devinit avm_pci_setup(struct IsdnCard *card)
++{
++	struct IsdnCardState *cs = card->cs;
++	struct pci_dev *dev_avm = (void *) card->para[0];
+ 
+-		cs->hw.avm.cfg_reg = pci_resource_start(dev_avm, 1);
+-		if (!cs->hw.avm.cfg_reg) {
+-			printk(KERN_ERR "FritzPCI: No IO-Adr for PCI card found\n");
+-			return(0);
+-		}
++	if (pci_enable_device(dev_avm))
++		return(0);
+ 
+-		cs->subtyp = AVM_FRITZ_PCI;
+-	} else {
+-		printk(KERN_WARNING "FritzPCI: No PCI card found\n");
++	cs->irq = dev_avm->irq;
++	if (!cs->irq) {
++		printk(KERN_ERR "FritzPCI: No IRQ for PCI card found\n");
+ 		return(0);
+ 	}
+ 
++	cs->hw.avm.cfg_reg = pci_resource_start(dev_avm, 1);
++	if (!cs->hw.avm.cfg_reg) {
++		printk(KERN_ERR "FritzPCI: No IO-Adr for PCI card found\n");
++		return(0);
++	}
++
++	cs->subtyp = AVM_FRITZ_PCI;
++
+ 	cs->irq_flags |= IRQF_SHARED;
+ 
+-	return (1);
++	return avm_setup_rest(cs);
+ }
+ 
+-#endif /* CONFIG_PCI_LEGACY */
+-
+-int __devinit
+-setup_avm_pcipnp(struct IsdnCard *card)
++static int __devinit avm_pci_init_one(struct pci_dev *pdev,
++				      const struct pci_device_id *ent)
+ {
+-	struct IsdnCardState *cs = card->cs;
+-	char tmp[64];
+-	int rc;
++	struct IsdnCard icard = { ISDN_CTYPE_FRITZPCI, };
++	int cardnr;
+ 
+-	strcpy(tmp, avm_pci_rev);
+-	printk(KERN_INFO "HiSax: AVM PCI driver Rev. %s\n", HiSax_getrev(tmp));
++	icard.para[0] = (unsigned long) pdev;
++	if (!avm_protocol)
++		icard.protocol = DEFAULT_PROTO;
++	else
++		icard.protocol = avm_protocol;
+ 
+-	if (cs->typ != ISDN_CTYPE_FRITZPCI)
+-		return (0);
++	cardnr = hisax_init_hotplug(&icard, avm_pci_setup);
++	if (cardnr < 0)
++		return -ENODEV;
++
++	pci_set_drvdata(pdev, (void *)(unsigned long) cardnr);
++	return 0;
 +}
 +
-+static struct pci_device_id a8_pci_table[] = {
-+	{ PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050,
-+	  PCI_VENDOR_ID_BERKOM, PCI_DEVICE_ID_BERKOM_SCITEL_QUADRO, },
++static struct pci_device_id avm_pci_table[] = {
++	{ PCI_VDEVICE(AVM, PCI_DEVICE_ID_AVM_A1) },
 +
 +	{ }		/* terminate list */
 +};
 +
-+static struct pci_driver a8_pci_driver = {
-+	.name		= "bkm_a8",
-+	.id_table	= a8_pci_table,
-+	.probe		= a8_pci_init_one,
-+	.remove		= __devexit_p(a8_pci_remove_one),
++static struct pci_driver avm_pci_driver = {
++	.name		= "avm_pci",
++	.id_table	= avm_pci_table,
++	.probe		= avm_pci_init_one,
++	.remove		= hisax_pci_remove_one,
 +};
+ 
+-	if (card->para[1]) {
+-		/* old manual method */
+-		cs->hw.avm.cfg_reg = card->para[1];
+-		cs->irq = card->para[0];
+-		cs->subtyp = AVM_FRITZ_PNP;
+-		goto ready;
++#endif /* CONFIG_PCI */
 +
-+static int __init a8_mod_init(void)
++static int __init avm_mod_init(void)
 +{
-+	return pci_register_driver(&a8_pci_driver);
++	int rc = 0;
++
++#ifdef CONFIG_ISA
++	if (avm_irq && avm_io_base) {
++		rc = isa_register_driver(&avm_isa_driver, 1);
++		if (rc)
++			return rc;
+ 	}
++#ifdef CONFIG_PNP
++	else {
++		rc = pnp_register_driver(&avm_pnp_driver);
++		if (rc)
++			return rc;
++	}
++#endif
++#endif /* CONFIG_ISA */
+ 
+-	rc = avm_pnp_setup(cs);
+-	if (rc < 1)
+-		return (0);
+-	if (rc == 2)
+-		goto ready;
++#ifdef CONFIG_PCI
++	rc = pci_register_driver(&avm_pci_driver);
++	if (rc)
++		goto err_out_isa;
++#endif /* CONFIG_PCI */
+ 
+-	rc = avm_pci_setup(cs);
+-	if (rc < 1)
+-		return (0);
++	return 0;
+ 
+-ready:
+-	return avm_setup_rest(cs);
++#ifdef CONFIG_PCI
++err_out_isa:
++
++#ifdef CONFIG_ISA
++	if (avm_irq && avm_io_base)
++		isa_unregister_driver(&avm_isa_driver);
++#ifdef CONFIG_PNP
++	else
++		pnp_unregister_driver(&avm_pnp_driver);
++#endif /* CONFIG_PNP */
++#endif /* CONFIG_ISA */
++
++	return rc;
++#endif /* CONFIG_PCI */
+ }
++
++static void __exit avm_mod_exit(void)
++{
++#ifdef CONFIG_PCI
++	pci_unregister_driver(&avm_pci_driver);
++#endif /* CONFIG_PCI */
++
++#ifdef CONFIG_ISA
++	if (avm_irq && avm_io_base)
++		isa_unregister_driver(&avm_isa_driver);
++#ifdef CONFIG_PNP
++	else
++		pnp_unregister_driver(&avm_pnp_driver);
++#endif /* CONFIG_PNP */
++#endif /* CONFIG_ISA */
 +}
 +
-+static void __exit a8_mod_exit(void)
-+{
-+	pci_unregister_driver(&a8_pci_driver);
-+}
++module_init(avm_mod_init);
++module_exit(avm_mod_exit);
 +
-+module_init(a8_mod_init);
-+module_exit(a8_mod_exit);
++#ifdef CONFIG_ISA
++module_param_named(irq, avm_irq, int, 0444);
++MODULE_PARM_DESC(irq, "ISA IRQ.  Zero disables ISA support (default).");
 +
-+module_param_named(protocol, a8_protocol, int, 0444);
++module_param_named(io, avm_io_base, int, 0444);
++MODULE_PARM_DESC(io, "ISA I/O base.  Zero disables ISA support (default).");
++#endif /* CONFIG_ISA */
++
++module_param_named(protocol, avm_protocol, int, 0444);
 +MODULE_PARM_DESC(protocol, "Values 0 (default) through 4. See ISDN_PTYPE_xxx in linux/isdnif.h");
 +
-+MODULE_DEVICE_TABLE(pci, a8_pci_table);
-+MODULE_DESCRIPTION("ISDN HiSax BKM SCT QUADRO (A8) PCI driver");
++MODULE_DEVICE_TABLE(pci, avm_pci_table);
++MODULE_DESCRIPTION("ISDN HiSax Fritz!PCI/PNP driver");
 +MODULE_LICENSE("GPL");
-diff -puN drivers/isdn/hisax/config.c~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api drivers/isdn/hisax/config.c
---- a/drivers/isdn/hisax/config.c~isdn-hisax-bkm_a8-convert-to-pci-hotplug-api
+diff -puN drivers/isdn/hisax/config.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing drivers/isdn/hisax/config.c
+--- a/drivers/isdn/hisax/config.c~isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing
 +++ a/drivers/isdn/hisax/config.c
-@@ -208,13 +208,6 @@ const char *CardType[] = {
- #define DEFAULT_CFG {5,0x250,0,0}
+@@ -117,13 +117,6 @@ const char *CardType[] = {
+ #define DEFAULT_CFG {11,0x170,0,0}
  #endif
  
--#ifdef CONFIG_HISAX_SCT_QUADRO
+-#ifdef CONFIG_HISAX_FRITZPCI
 -#undef DEFAULT_CARD
 -#undef DEFAULT_CFG
--#define DEFAULT_CARD ISDN_CTYPE_SCT_QUADRO
--#define DEFAULT_CFG {1,0x0,0,0}
+-#define DEFAULT_CARD ISDN_CTYPE_FRITZPCI
+-#define DEFAULT_CFG {0,0,0,0}
 -#endif
 -
- #ifndef DEFAULT_CARD
- #define DEFAULT_CARD 0
- #define DEFAULT_CFG {0,0,0,0}
-@@ -433,10 +426,6 @@ extern int setup_isurf(struct IsdnCard *
- extern int setup_saphir(struct IsdnCard *card);
+ #ifdef CONFIG_HISAX_16_3
+ #undef DEFAULT_CARD
+ #undef DEFAULT_CFG
+@@ -421,10 +414,6 @@ extern int setup_avm_a1(struct IsdnCard 
+ extern int setup_avm_a1_pcmcia(struct IsdnCard *card);
  #endif
  
--#if CARD_SCT_QUADRO
--extern int setup_sct_quadro(struct IsdnCard *card);
+-#if CARD_FRITZPCI
+-extern int setup_avm_pcipnp(struct IsdnCard *card);
 -#endif
 -
- /*
-  * Find card with given driverId
-  */
-@@ -806,11 +795,6 @@ static int __devinit hisax_cs_setup_card
- 		ret = setup_saphir(card);
+ #if CARD_ELSA
+ extern int setup_elsa(struct IsdnCard *card);
+ #endif
+@@ -793,11 +782,6 @@ static int __devinit hisax_cs_setup_card
+ 		ret = setup_avm_a1_pcmcia(card);
  		break;
  #endif
--#if	CARD_SCT_QUADRO
--	case ISDN_CTYPE_SCT_QUADRO:
--		ret = setup_sct_quadro(card);
+-#if CARD_FRITZPCI
+-	case ISDN_CTYPE_FRITZPCI:
+-		ret = setup_avm_pcipnp(card);
 -		break;
 -#endif
- 	case ISDN_CTYPE_DYNAMIC:
- 		ret = 2;
- 		break;
-@@ -826,6 +810,7 @@ static int __devinit hisax_cs_setup_card
- 	case ISDN_CTYPE_GAZEL:
- 	case ISDN_CTYPE_NICCY:
- 	case ISDN_CTYPE_DIEHLDIVA:
-+	case ISDN_CTYPE_SCT_QUADRO:
+ #if CARD_ELSA
+ 	case ISDN_CTYPE_ELSA:
+ 	case ISDN_CTYPE_ELSA_PNP:
+@@ -890,6 +874,7 @@ static int __devinit hisax_cs_setup_card
+ 	case ISDN_CTYPE_NETJET_S:
+ 	case ISDN_CTYPE_NETJET_U:
+ 	case ISDN_CTYPE_TELESPCI:
++	case ISDN_CTYPE_FRITZPCI:
  		printk(KERN_WARNING "HiSax: Support for %s Card has moved "
  		       "to separate PCI driver module\n",
  		       CardType[card->typ]);
-@@ -1296,32 +1281,9 @@ static int __init HiSax_init(void)
+@@ -1336,7 +1321,6 @@ static int __init HiSax_init(void)
+ 		case ISDN_CTYPE_TELES3C:
+ 		case ISDN_CTYPE_ACERP10:
+ 		case ISDN_CTYPE_S0BOX:
+-		case ISDN_CTYPE_FRITZPCI:
+ 		case ISDN_CTYPE_HSTSAPHIR:
  		case ISDN_CTYPE_GAZEL:
- 		case ISDN_CTYPE_NICCY:
- 		case ISDN_CTYPE_DIEHLDIVA:
--			break;
--
- 		case ISDN_CTYPE_SCT_QUADRO:
--			if (irq[i]) {
--				cards[j].para[0] = irq[i];
--			} else {
--				/* QUADRO is a 4 BRI card */
--				cards[j++].para[0] = 1;
--				/* we need to check if further cards can be added */
--				if (j < HISAX_MAX_CARDS) {
--					cards[j].typ = ISDN_CTYPE_SCT_QUADRO;
--					cards[j].protocol = protocol[i];
--					cards[j++].para[0] = 2;
--				}
--				if (j < HISAX_MAX_CARDS) {
--					cards[j].typ = ISDN_CTYPE_SCT_QUADRO;
--					cards[j].protocol = protocol[i];
--					cards[j++].para[0] = 3;
--				}
--				if (j < HISAX_MAX_CARDS) {
--					cards[j].typ = ISDN_CTYPE_SCT_QUADRO;
--					cards[j].protocol = protocol[i];
--					cards[j].para[0] = 4;
--				}
--			}
+ 		case ISDN_CTYPE_HFC_SX:
+@@ -1360,6 +1344,7 @@ static int __init HiSax_init(void)
+ 		case ISDN_CTYPE_NETJET_S:
+ 		case ISDN_CTYPE_NETJET_U:
+ 		case ISDN_CTYPE_TELESPCI:
++		case ISDN_CTYPE_FRITZPCI:
  			break;
-+
- 		}
- 		j++;
- 	}
-@@ -1773,15 +1735,9 @@ static struct pci_device_id hisax_pci_tb
- 	{PCI_VENDOR_ID_ELSA,     PCI_DEVICE_ID_ELSA_MICROLINK,   PCI_ANY_ID, PCI_ANY_ID},
- 	{PCI_VENDOR_ID_ELSA,     PCI_DEVICE_ID_ELSA_QS3000,      PCI_ANY_ID, PCI_ANY_ID},
- #endif
--#ifdef CONFIG_HISAX_SCT_QUADRO
--	{PCI_VENDOR_ID_PLX,      PCI_DEVICE_ID_PLX_9050,         PCI_ANY_ID, PCI_ANY_ID},
--#endif
- #ifdef CONFIG_HISAX_SEDLBAUER
- 	{PCI_VENDOR_ID_TIGERJET, PCI_DEVICE_ID_TIGERJET_100,     PCI_ANY_ID,PCI_ANY_ID},
- #endif
--#if defined(CONFIG_HISAX_SCT_QUADRO)
--	{PCI_VENDOR_ID_ZORAN,    PCI_DEVICE_ID_ZORAN_36120,      PCI_ANY_ID,PCI_ANY_ID},
--#endif
- 	{ }				/* Terminating entry */
- };
  
+ 		case ISDN_CTYPE_SCT_QUADRO:
+@@ -1833,9 +1818,6 @@ static void EChannel_proc_rcv(struct his
+ #include <linux/pci.h>
+ 
+ static struct pci_device_id hisax_pci_tbl[] __devinitdata = {
+-#ifdef CONFIG_HISAX_FRITZPCI
+-	{PCI_VENDOR_ID_AVM,      PCI_DEVICE_ID_AVM_A1,           PCI_ANY_ID, PCI_ANY_ID},
+-#endif
+ #ifdef CONFIG_HISAX_DIEHLDIVA
+ 	{PCI_VENDOR_ID_EICON,    PCI_DEVICE_ID_EICON_DIVA20,     PCI_ANY_ID, PCI_ANY_ID},
+ 	{PCI_VENDOR_ID_EICON,    PCI_DEVICE_ID_EICON_DIVA20_U,   PCI_ANY_ID, PCI_ANY_ID},
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -417,4 +545,8 @@ forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
+isdn-hisax-avm_pci-convert-to-modern-pci-isa-pnp-probing.patch
+isdn-hisax-gazel-convert-to-modern-isa-pci-probing.patch
+isdn-hisax-niccy-convert-to-modern-isa-pnp-pci-probing.patch
+isdn-hisax-diva-convert-to-modern-isa-pnp-pci-probing.patch
 isdn-hisax-bkm_a8-convert-to-pci-hotplug-api.patch
