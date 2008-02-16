@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + tracing-is-borked-on-powerpc.patch added to -mm tree
-Date: Fri, 15 Feb 2008 22:05:32 -0700
-Message-ID: <200802160505.m1G55X9Y009523@imap1.linux-foundation.org>
+Date: Fri, 15 Feb 2008 22:16:58 -0700
+Message-ID: <200802160516.m1G5GxID009849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45449 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750699AbYBPFFy (ORCPT
+	by vger.kernel.org with ESMTP id S1751244AbYBPFRP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 00:05:54 -0500
+	Sat, 16 Feb 2008 00:17:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -39,20 +39,28 @@ CC: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ kernel/trace/Kconfig |    2 ++
+ 1 files changed, 2 insertions(+)
 
 diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
 --- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
 +++ a/kernel/trace/Kconfig
-@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
- 
- config TRACING
- 	bool
+@@ -17,6 +17,7 @@ config FTRACE
+ 	select FRAME_POINTER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
 +	depends on X86
- 	select DEBUG_FS
- 
- config FTRACE
+ 	help
+ 	  Enable the kernel to trace every kernel function. This is done
+ 	  by using a compiler feature to insert a small, 5-byte No-Operation
+@@ -75,6 +76,7 @@ config SCHED_TRACER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This tracer tracks the latency of the highest priority task
+ 	  to be scheduled in, starting from the point it has woken up.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
