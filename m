@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-agpgart-make-ia64-compile.patch added to -mm tree
-Date: Sat, 16 Feb 2008 02:13:51 -0500
-Message-ID: <200802160713.m1G7DqkV013767@imap1.linux-foundation.org>
+Subject: + sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch added to -mm tree
+Date: Sat, 16 Feb 2008 02:14:46 -0500
+Message-ID: <200802160714.m1G7ElJC013780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59011 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751057AbYBPHOY (ORCPT
+	by vger.kernel.org with ESMTP id S1751126AbYBPHOv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 02:14:24 -0500
+	Sat, 16 Feb 2008 02:14:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, sivanich@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     git-agpgart: make ia64 compile
+     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
 has been added to the -mm tree.  Its filename is
-     git-agpgart-make-ia64-compile.patch
+     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart: make ia64 compile
+Subject: sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/mmtimer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/generic.c~git-agpgart-make-ia64-compile drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~git-agpgart-make-ia64-compile
-+++ a/drivers/char/agp/generic.c
-@@ -925,7 +925,9 @@ int agp_generic_create_gatt_table(struct
- 	agp_gatt_table = (void *)table;
+diff -puN drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2 drivers/char/mmtimer.c
+--- a/drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
++++ a/drivers/char/mmtimer.c
+@@ -604,7 +604,7 @@ static int sgi_timer_del(struct k_itimer
+ 	if (timr->it.mmtimer.clock != TIMER_OFF) {
+ 		unsigned long expires = timr->it.mmtimer.expires;
+ 		struct rb_node *n = timers[nodeid].timer_head.rb_node;
+-		struct mmtimer *t;
++		struct mmtimer *uninitialized_var(t);
+ 		int r = 0;
  
- 	bridge->driver->cache_flush();
-+#ifdef CONFIG_X86
- 	set_memory_uc((unsigned long)table, 1 << page_order);
-+#endif
- 	bridge->gatt_table = (void *)table;
- 	bridge->driver->cache_flush();
- 
-@@ -973,8 +975,9 @@ int agp_generic_free_gatt_table(struct a
- 	/* Do not worry about freeing memory, because if this is
- 	 * called, then all agp memory is deallocated and removed
- 	 * from the table. */
--
-+#ifdef CONFIG_X86
- 	set_memory_wb((unsigned long)bridge->gatt_table, 1 << page_order);
-+#endif
- 	free_gatt_pages(bridge->gatt_table_real, page_order);
- 
- 	agp_gatt_table = NULL;
+ 		timr->it.mmtimer.clock = TIMER_OFF;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
