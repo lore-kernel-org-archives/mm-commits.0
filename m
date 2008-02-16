@@ -1,24 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-mm-ide-rework-powermac-media-bay-support.patch added to -mm tree
-Date: Fri, 15 Feb 2008 21:33:30 -0700
-Message-ID: <200802160433.m1G4XVAi008529@imap1.linux-foundation.org>
+Subject: + bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch added to -mm tree
+Date: Fri, 15 Feb 2008 20:49:33 -0800
+Message-ID: <200802160449.m1G4nX5V009024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811AbYBPEdh (ORCPT
+	by vger.kernel.org with ESMTP id S1754104AbYBPEtp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 15 Feb 2008 23:33:37 -0500
+	Fri, 15 Feb 2008 23:49:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bzolnier@gmail.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, hidave.darkstar@gmail.com
 
 
 The patch titled
-     fix ide-mm-ide-rework-powermac-media-bay-support
+     bluetooth: fix warning in net/bluetooth/hci_sysfs.c
 has been added to the -mm tree.  Its filename is
-     fix-ide-mm-ide-rework-powermac-media-bay-support.patch
+     bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -28,32 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix ide-mm-ide-rework-powermac-media-bay-support
+Subject: bluetooth: fix warning in net/bluetooth/hci_sysfs.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/powerpc/platforms/powermac/setup.c:66:
-include/asm/mediabay.h:29: error: syntax error before "ide_hwif_t"
-include/asm/mediabay.h:29: warning: function declaration isn't a prototype
+net/bluetooth/hci_sysfs.c: In function 'del_conn':
+net/bluetooth/hci_sysfs.c:339: warning: suggest parentheses around assignment used as truth value
 
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/mediabay.h |    2 ++
- 1 files changed, 2 insertions(+)
+ net/bluetooth/hci_sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-powerpc/mediabay.h~fix-ide-mm-ide-rework-powermac-media-bay-support include/asm-powerpc/mediabay.h
---- a/include/asm-powerpc/mediabay.h~fix-ide-mm-ide-rework-powermac-media-bay-support
-+++ a/include/asm-powerpc/mediabay.h
-@@ -9,6 +9,8 @@
+diff -puN net/bluetooth/hci_sysfs.c~bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc net/bluetooth/hci_sysfs.c
+--- a/net/bluetooth/hci_sysfs.c~bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc
++++ a/net/bluetooth/hci_sysfs.c
+@@ -336,7 +336,7 @@ static void del_conn(struct work_struct 
+ 	struct device *dev;
+ 	struct hci_conn *conn = container_of(work, struct hci_conn, work);
  
- #ifdef __KERNEL__
- 
-+#include <linux/ide.h>
-+
- #define MB_FD		0	/* media bay contains floppy drive (automatic eject ?) */
- #define MB_FD1		1	/* media bay contains floppy drive (manual eject ?) */
- #define MB_SOUND	2	/* sound device ? */
+-	while (dev = device_find_child(&conn->dev, NULL, __match_tty)) {
++	while ((dev = device_find_child(&conn->dev, NULL, __match_tty))) {
+ 		device_move(dev, NULL);
+ 		put_device(dev);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,3 +142,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+bluetooth-fix-warning-in-net-bluetooth-hci_sysfsc.patch
