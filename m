@@ -1,82 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-enforce-acpi-resource-conflict-checks.patch added to -mm tree
-Date: Sat, 16 Feb 2008 01:55:42 -0800
-Message-ID: <200802160955.m1G9tg3q018937@imap1.linux-foundation.org>
+Subject: - h8300-config_kallsyms-fix.patch removed from -mm tree
+Date: Sat, 16 Feb 2008 02:58:28 -0800
+Message-ID: <200802161058.m1GAwSf6021035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48065 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50228 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752601AbYBPJ6C (ORCPT
+	by vger.kernel.org with ESMTP id S1751441AbYBPK7u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 04:58:02 -0500
+	Sat, 16 Feb 2008 05:59:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, bjorn.helgaas@hp.com, lenb@kernel.org, mhoffman@lightlink.com
+To: ysato@users.sourceforge.jp, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Enforce ACPI resource conflict checks
-has been added to the -mm tree.  Its filename is
-     mm-only-enforce-acpi-resource-conflict-checks.patch
+     h8300: CONFIG_KALLSYMS fix
+has been removed from the -mm tree.  Its filename was
+     h8300-config_kallsyms-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Enforce ACPI resource conflict checks
-From: Jean Delvare <khali@linux-fr.org>
+Subject: h8300: CONFIG_KALLSYMS fix
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-In -mm, enforce ACPI resource conflict checks, so that users will report
-to us.
+Please comment "C_SYMBOL_PREFIX".
 
-This patch is NOT meant to go to Linus at this point.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile           |    3 ++-
+ arch/h8300/Kconfig |    4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~mm-only-enforce-acpi-resource-conflict-checks
-+++ a/drivers/acpi/osl.c
-@@ -1183,7 +1183,7 @@ __setup("acpi_wake_gpes_always_on", acpi
- #define ENFORCE_RESOURCES_LAX    1
- #define ENFORCE_RESOURCES_NO     0
+diff -puN Makefile~h8300-config_kallsyms-fix Makefile
+--- a/Makefile~h8300-config_kallsyms-fix
++++ a/Makefile
+@@ -755,7 +755,8 @@ endef
+ # Generate .S file with all kernel symbols
+ quiet_cmd_kallsyms = KSYM    $@
+       cmd_kallsyms = $(NM) -n $< | $(KALLSYMS) \
+-                     $(if $(CONFIG_KALLSYMS_ALL),--all-symbols) > $@
++                     $(if $(CONFIG_KALLSYMS_ALL),--all-symbols) \
++                     $(if $(CONFIG_C_SYMBOL_PREFIX),--symbol-prefix='_') > $@
  
--static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_LAX;
-+static unsigned int acpi_enforce_resources = ENFORCE_RESOURCES_STRICT;
+ .tmp_kallsyms1.o .tmp_kallsyms2.o .tmp_kallsyms3.o: %.o: %.S scripts FORCE
+ 	$(call if_changed_dep,as_o_S)
+diff -puN arch/h8300/Kconfig~h8300-config_kallsyms-fix arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~h8300-config_kallsyms-fix
++++ a/arch/h8300/Kconfig
+@@ -87,6 +87,10 @@ config HZ
+ 	int
+ 	default 100
  
- static int __init acpi_enforce_resources_setup(char *str)
- {
++config C_SYMBOL_PREFIX
++	bool
++	default y
++
+ source "init/Kconfig"
+ 
+ source "arch/h8300/Kconfig.cpu"
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-oz99x-i2c-button-and-led-support-driver.patch
-i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-apanel-fix-kconfig-dependencies.patch
-dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
-dmi-prevent-linked-list-corruption-resent.patch
-dmi-clean-up-dmi-helper-declarations.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+h8300-signalc-typo-fix.patch
+h8300-uaccessh-update.patch
+h8300-config_kallsyms-fix.patch
+h8300-irq-handling-update.patch
+h8300-defconfig-update.patch
+inflate-refactor-inflate-malloc-code.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
