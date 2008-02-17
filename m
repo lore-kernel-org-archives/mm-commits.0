@@ -1,107 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - pci-disable-decoding-during-sizing-of-bars.patch removed from -mm tree
-Date: Sat, 16 Feb 2008 14:05:38 -0800
-Message-ID: <200802162205.m1GM5cMC011601@imap1.linux-foundation.org>
+Subject: + h8300-add-scih.patch added to -mm tree
+Date: Sat, 16 Feb 2008 20:56:25 -0800
+Message-ID: <200802170456.m1H4uP9I024729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39645 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbYBPWNz (ORCPT
+	by vger.kernel.org with ESMTP id S1754334AbYBQE4n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 17:13:55 -0500
+	Sat, 16 Feb 2008 23:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@debian.org, ak@suse.de, andreas.eckstein@gmx.net, dsd@gentoo.org, greg@kroah.com, marco@pianoinflames.de, mingo@elte.hu, tglx@linutronix.de, torvalds@linux-foundation.org, mm-co
+To: mm-commits@vger.kernel.org
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     pci: disable decoding during sizing of BARs
-has been removed from the -mm tree.  Its filename was
-     pci-disable-decoding-during-sizing-of-bars.patch
+     h8300: add sci.h
+has been added to the -mm tree.  Its filename is
+     h8300-add-scih.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: disable decoding during sizing of BARs
+Subject: h8300: add sci.h
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Cc: Matthew Wilcox <willy@debian.org>
+This file is required by sh-sci.
 
-Stolen from http://bugs.gentoo.org/show_bug.cgi?id=198810
-
-Fixes Marco's boot problem, described thusly:
-
-  I first got acpi failure on boot, pci=nommconf worked first time, than I
-  patched with q35.pci.patch from
-  http://bugs.gentoo.org/show_bug.cgi?id=198810 and boot worked without
-  nommconf.
-
-  (See http://lkml.org/lkml/2007/12/4/336)
-
-Linus sayeth
-
-  It looks ok now that it doesn't do it for host controllers.  I guess we
-  could just apply it.
-
-Cc: Daniel Drake <dsd@gentoo.org>
-Cc: Marco Gatti <marco@pianoinflames.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andreas Eckstein <andreas.eckstein@gmx.net>
-
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ include/asm-h8300/sci.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN drivers/pci/probe.c~pci-disable-decoding-during-sizing-of-bars drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-disable-decoding-during-sizing-of-bars
-+++ a/drivers/pci/probe.c
-@@ -181,11 +181,26 @@ static inline int is_64bit_memory(u32 ma
- 	return 0;
- }
- 
+diff -puN /dev/null include/asm-h8300/sci.h
+--- /dev/null
++++ a/include/asm-h8300/sci.h
+@@ -0,0 +1,34 @@
++#ifndef __ASM_SH_SCI_H
++#define __ASM_SH_SCI_H
++
++#include <linux/serial_core.h>
++
 +/*
-+ * Sizing PCI BARs requires us to disable decoding, otherwise we may run
-+ * into conflicts with other devices while trying to size the BAR.  Normally
-+ * this isn't a problem, but it happens on some machines normally, and can
-+ * happen on others during PCI device hotplug.  Don't disable BARs for host
-+ * bridges, though.  Some of them do silly things like disable accesses to
-+ * RAM from the CPU
++ * Generic header for SuperH SCI(F)
++ *
++ * Do not place SH-specific parts in here, sh64 and h8300 depend on this too.
 + */
- static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- {
- 	unsigned int pos, reg, next;
- 	u32 l, sz;
- 	struct resource *res;
-+	u16 orig_cmd;
 +
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
-+		pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
-+		pci_write_config_word(dev, PCI_COMMAND,
-+			orig_cmd & ~(PCI_COMMAND_MEMORY | PCI_COMMAND_IO));
-+	}
- 
- 	for(pos=0; pos<howmany; pos = next) {
- 		u64 l64;
-@@ -284,6 +299,9 @@ static void pci_read_bases(struct pci_de
- 			}
- 		}
- 	}
++/* Offsets into the sci_port->irqs array */
++enum {
++	SCIx_ERI_IRQ,
++	SCIx_RXI_IRQ,
++	SCIx_TXI_IRQ,
++	SCIx_TEI_IRQ,
++	SCIx_NR_IRQS,
++};
 +
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
-+		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
- }
- 
- void pci_read_bridge_bases(struct pci_bus *child)
++/*
++ * Platform device specific platform_data struct
++ */
++struct plat_sci_port {
++	void __iomem	*membase;		/* io cookie */
++	unsigned long	mapbase;		/* resource base */
++	unsigned int	irqs[SCIx_NR_IRQS];	/* ERI, RXI, TXI, BRI */
++	unsigned int	type;			/* SCI / SCIF / IRDA */
++	upf_t		flags;			/* UPF_* flags */
++};
++
++int early_sci_setup(struct uart_port *port);
++
++#endif /* __ASM_SH_SCI_H */
 _
 
-Patches currently in -mm which might be from willy@debian.org are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-parisc-new-termios-definitions.patch
-pci-disable-decoding-during-sizing-of-bars.patch
+h8300-signalc-typo-fix.patch
+h8300-uaccessh-update.patch
+h8300-irq-handling-update.patch
+h8300-defconfig-update.patch
+h8300-add-scih.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
