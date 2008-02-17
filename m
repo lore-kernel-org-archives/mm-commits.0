@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-add-scih.patch added to -mm tree
-Date: Sat, 16 Feb 2008 20:56:25 -0800
-Message-ID: <200802170456.m1H4uP9I024729@imap1.linux-foundation.org>
+Subject: - h8300-add-scih.patch removed from -mm tree
+Date: Sat, 16 Feb 2008 22:14:17 -0800
+Message-ID: <200802170614.m1H6EHsb027276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48604 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbYBQE4n (ORCPT
+	by vger.kernel.org with ESMTP id S1752479AbYBQGOc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 16 Feb 2008 23:56:43 -0500
+	Sun, 17 Feb 2008 01:14:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
      h8300: add sci.h
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      h8300-add-scih.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
