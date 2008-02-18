@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-timerfdc-should-include-linux-syscallsh.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:54 -0800
-Message-ID: <200802181012.m1IACqXV019597@imap1.linux-foundation.org>
+Subject: + make-struct-def_blk_aops-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:59 -0800
+Message-ID: <200802181012.m1IACvoV019600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755275AbYBRKNi (ORCPT
+	by vger.kernel.org with ESMTP id S1755877AbYBRKNm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:13:38 -0500
+	Mon, 18 Feb 2008 05:13:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, davidel@xmailserver.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     fs/timerfd.c should #include <linux/syscalls.h>
+     make struct def_blk_aops static
 has been added to the -mm tree.  Its filename is
-     fs-timerfdc-should-include-linux-syscallsh.patch
+     make-struct-def_blk_aops-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/timerfd.c should #include <linux/syscalls.h>
+Subject: make struct def_blk_aops static
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case for sys_timerfd_*()).
+Make the needlessly global struct def_blk_aops static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/timerfd.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/block_dev.c     |    4 +++-
+ include/linux/fs.h |    1 -
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/timerfd.c~fs-timerfdc-should-include-linux-syscallsh fs/timerfd.c
---- a/fs/timerfd.c~fs-timerfdc-should-include-linux-syscallsh
-+++ a/fs/timerfd.c
-@@ -20,6 +20,7 @@
- #include <linux/hrtimer.h>
- #include <linux/anon_inodes.h>
- #include <linux/timerfd.h>
-+#include <linux/syscalls.h>
+diff -puN fs/block_dev.c~make-struct-def_blk_aops-static fs/block_dev.c
+--- a/fs/block_dev.c~make-struct-def_blk_aops-static
++++ a/fs/block_dev.c
+@@ -31,6 +31,8 @@ struct bdev_inode {
+ 	struct inode vfs_inode;
+ };
  
- struct timerfd_ctx {
- 	struct hrtimer tmr;
++static const struct address_space_operations def_blk_aops;
++
+ static inline struct bdev_inode *BDEV_I(struct inode *inode)
+ {
+ 	return container_of(inode, struct bdev_inode, vfs_inode);
+@@ -1137,7 +1139,7 @@ static long block_ioctl(struct file *fil
+ 	return blkdev_ioctl(file->f_mapping->host, file, cmd, arg);
+ }
+ 
+-const struct address_space_operations def_blk_aops = {
++static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
+ 	.writepage	= blkdev_writepage,
+ 	.sync_page	= block_sync_page,
+diff -puN include/linux/fs.h~make-struct-def_blk_aops-static include/linux/fs.h
+--- a/include/linux/fs.h~make-struct-def_blk_aops-static
++++ a/include/linux/fs.h
+@@ -1589,7 +1589,6 @@ extern void bd_set_size(struct block_dev
+ extern void bd_forget(struct inode *inode);
+ extern void bdput(struct block_device *);
+ extern struct block_device *open_by_devnum(dev_t, unsigned);
+-extern const struct address_space_operations def_blk_aops;
+ #else
+ static inline void bd_forget(struct inode *inode) {}
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
