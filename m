@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-silence-section-mismatch-warnings-in-8250_pci.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:02:32 -0800
-Message-ID: <200802181003.m1IA3U0d019129@imap1.linux-foundation.org>
+Subject: + ocfs-make-dlm_do_assert_master-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:02:06 -0800
+Message-ID: <200802181003.m1IA34PW019087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54482 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752926AbYBRKE1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752703AbYBRKEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:04:27 -0500
+	Mon, 18 Feb 2008 05:04:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, rmk+kernel@arm.linux.org.uk
+Cc: bunk@kernel.org, swhiteho@redhat.com
 
 
 The patch titled
-     serial: silence section mismatch warnings in 8250_pci
+     ocfs: make dlm_do_assert_master() static
 has been added to the -mm tree.  Its filename is
-     serial-silence-section-mismatch-warnings-in-8250_pci.patch
+     ocfs-make-dlm_do_assert_master-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: silence section mismatch warnings in 8250_pci
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: ocfs: make dlm_do_assert_master() static
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix following warnings:
-WARNING: drivers/serial/built-in.o(.data+0x5b8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_ite887x_exit()
-WARNING: drivers/serial/built-in.o(.data+0x5e0): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
-WARNING: drivers/serial/built-in.o(.data+0x608): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
-WARNING: drivers/serial/built-in.o(.data+0x658): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
-WARNING: drivers/serial/built-in.o(.data+0x680): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
-WARNING: drivers/serial/built-in.o(.data+0x6a8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
-WARNING: drivers/serial/built-in.o(.data+0x6d0): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
-WARNING: drivers/serial/built-in.o(.data+0x6f8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
-WARNING: drivers/serial/built-in.o(.data+0x720): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
-WARNING: drivers/serial/built-in.o(.data+0x748): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
+Make the needlessly global dlm_do_assert_master() static.
 
-pci_serial_quirks contains a number of function pointers where the referenced
-function is annotated __devexit.  This is OK so we annotate pci_serial_quirks
-with __refdata to ignore the __devexit references
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-silence-section-mismatch-warnings-in-8250_pci drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-silence-section-mismatch-warnings-in-8250_pci
-+++ a/drivers/serial/8250_pci.c
-@@ -775,7 +775,7 @@ pci_default_setup(struct serial_private 
-  * This list is ordered alphabetically by vendor then device.
-  * Specific entries must come before more generic entries.
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -1695,9 +1695,9 @@ send_response:
+  * can periodically run all locks owned by this node
+  * and re-assert across the cluster...
   */
--static struct pci_serial_quirk pci_serial_quirks[] = {
-+static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
- 	/*
- 	* ADDI-DATA GmbH communication cards <info@addi-data.com>
- 	*/
+-int dlm_do_assert_master(struct dlm_ctxt *dlm,
+-			 struct dlm_lock_resource *res,
+-			 void *nodemap, u32 flags)
++static int dlm_do_assert_master(struct dlm_ctxt *dlm,
++				struct dlm_lock_resource *res,
++				void *nodemap, u32 flags)
+ {
+ 	struct dlm_assert_master assert;
+ 	int to, tmpret;
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-samples-build-fix.patch
 git-acpi.patch
-acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
-acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
-acer-wmi-fix-section-mismatch-warnings.patch
-alsa-caiaq-fix-section-mismatch-warning.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
 git-kbuild.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
