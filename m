@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-use-div_round_up.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:05:54 -0800
-Message-ID: <200802181006.m1IA6qYI019241@imap1.linux-foundation.org>
+Subject: + use-page_cache_xxx-in-fs-splicec.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:04:56 -0800
+Message-ID: <200802181005.m1IA5sU7019228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38954 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40928 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751512AbYBRKG7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752561AbYBRKHB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:06:59 -0500
+	Mon, 18 Feb 2008 05:07:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, greg@kroah.com
+Cc: clameter@sgi.com, dgc@sgi.com, jens.axboe@oracle.com
 
 
 The patch titled
-     usb: use DIV_ROUND_UP
+     Use page_cache_xxx in fs/splice.c
 has been added to the -mm tree.  Its filename is
-     usb-use-div_round_up.patch
+     use-page_cache_xxx-in-fs-splicec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: Use page_cache_xxx in fs/splice.c
+From: Christoph Lameter <clameter@sgi.com>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+Use page_cache_xxx in fs/splice.c
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Reviewed-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/r8a66597-hcd.c |    6 +++---
- drivers/usb/misc/usbtest.c      |    2 +-
- drivers/usb/serial/ftdi_sio.c   |    4 ++--
- drivers/usb/serial/io_ti.c      |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ fs/splice.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -959,9 +959,9 @@ static void prepare_packet_read(struct r
- 				r8a66597_write(r8a66597, TRCLR,
- 						td->pipe->pipetre);
- 				r8a66597_write(r8a66597,
--						(urb->transfer_buffer_length
--						+ td->maxpacket - 1)
--						/ td->maxpacket,
-+						DIV_ROUND_UP
-+						  (urb->transfer_buffer_length,
-+						   td->maxpacket),
- 						td->pipe->pipetrn);
- 				r8a66597_bset(r8a66597, TRENB,
- 						td->pipe->pipetre);
-diff -puN drivers/usb/misc/usbtest.c~usb-use-div_round_up drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~usb-use-div_round_up
-+++ a/drivers/usb/misc/usbtest.c
-@@ -1403,7 +1403,7 @@ static struct urb *iso_alloc_urb (
- 		return NULL;
- 	maxp = 0x7ff & le16_to_cpu(desc->wMaxPacketSize);
- 	maxp *= 1 + (0x3 & (le16_to_cpu(desc->wMaxPacketSize) >> 11));
--	packets = (bytes + maxp - 1) / maxp;
-+	packets = DIV_ROUND_UP(bytes, maxp);
+diff -puN fs/splice.c~use-page_cache_xxx-in-fs-splicec fs/splice.c
+--- a/fs/splice.c~use-page_cache_xxx-in-fs-splicec
++++ a/fs/splice.c
+@@ -286,9 +286,9 @@ __generic_file_splice_read(struct file *
+ 		.spd_release = spd_release_page,
+ 	};
  
- 	urb = usb_alloc_urb (packets, GFP_KERNEL);
- 	if (!urb)
-diff -puN drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -1380,7 +1380,7 @@ static void ftdi_write_bulk_callback (st
- 	data_offset = priv->write_offset;
- 	if (data_offset > 0) {
- 		/* Subtract the control bytes */
--		countback -= (data_offset * ((countback + (PKTSZ - 1)) / PKTSZ));
-+		countback -= (data_offset * DIV_ROUND_UP(countback, PKTSZ));
- 	}
- 	spin_lock_irqsave(&priv->tx_lock, flags);
- 	--priv->tx_outstanding_urbs;
-@@ -1480,7 +1480,7 @@ static void ftdi_read_bulk_callback (str
+-	index = *ppos >> PAGE_CACHE_SHIFT;
+-	loff = *ppos & ~PAGE_CACHE_MASK;
+-	req_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++	index = page_cache_index(mapping, *ppos);
++	loff = page_cache_offset(mapping, *ppos);
++	req_pages = page_cache_next(mapping, len + loff);
+ 	nr_pages = min(req_pages, (unsigned)PIPE_BUFFERS);
  
- 	/* count data bytes, but not status bytes */
- 	countread = urb->actual_length;
--	countread -= 2 * ((countread + (PKTSZ - 1)) / PKTSZ);
-+	countread -= 2 * DIV_ROUND_UP(countread, PKTSZ);
- 	spin_lock_irqsave(&priv->rx_lock, flags);
- 	priv->rx_bytes += countread;
- 	spin_unlock_irqrestore(&priv->rx_lock, flags);
-diff -puN drivers/usb/serial/io_ti.c~usb-use-div_round_up drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~usb-use-div_round_up
-+++ a/drivers/usb/serial/io_ti.c
-@@ -655,7 +655,7 @@ static void TIChasePort(struct edgeport_
- 	/* (TIIsTxActive doesn't seem to wait for the last byte) */
- 	if ((baud_rate=port->baud_rate) == 0)
- 		baud_rate = 50;
--	msleep(max(1,(10000+baud_rate-1)/baud_rate));
-+	msleep(max(1, DIV_ROUND_UP(10000, baud_rate)));
- }
+ 	/*
+@@ -343,7 +343,7 @@ __generic_file_splice_read(struct file *
+ 	 * Now loop over the map and see if we need to start IO on any
+ 	 * pages, fill in the partial map, etc.
+ 	 */
+-	index = *ppos >> PAGE_CACHE_SHIFT;
++	index = page_cache_index(mapping, *ppos);
+ 	nr_pages = spd.nr_pages;
+ 	spd.nr_pages = 0;
+ 	for (page_nr = 0; page_nr < nr_pages; page_nr++) {
+@@ -355,7 +355,8 @@ __generic_file_splice_read(struct file *
+ 		/*
+ 		 * this_len is the max we'll use from this page
+ 		 */
+-		this_len = min_t(unsigned long, len, PAGE_CACHE_SIZE - loff);
++		this_len = min_t(unsigned long, len,
++					page_cache_size(mapping) - loff);
+ 		page = pages[page_nr];
  
- static int TIChooseConfiguration (struct usb_device *dev)
+ 		if (PageReadahead(page))
+@@ -415,7 +416,7 @@ fill_it:
+ 		 * i_size must be checked after PageUptodate.
+ 		 */
+ 		isize = i_size_read(mapping->host);
+-		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
++		end_index = page_cache_index(mapping, isize - 1);
+ 		if (unlikely(!isize || index > end_index))
+ 			break;
+ 
+@@ -429,7 +430,7 @@ fill_it:
+ 			/*
+ 			 * max good bytes in this page
+ 			 */
+-			plen = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
++			plen = page_cache_offset(mapping, isize - 1) + 1;
+ 			if (plen <= loff)
+ 				break;
+ 
+@@ -454,7 +455,7 @@ fill_it:
+ 	 */
+ 	while (page_nr < nr_pages)
+ 		page_cache_release(pages[page_nr++]);
+-	in->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
++	in->f_ra.prev_pos = page_cache_pos(mapping, index, 0);
+ 
+ 	if (spd.nr_pages)
+ 		return splice_to_pipe(pipe, &spd);
+@@ -580,11 +581,11 @@ static int pipe_to_file(struct pipe_inod
+ 	if (unlikely(ret))
+ 		return ret;
+ 
+-	offset = sd->pos & ~PAGE_CACHE_MASK;
++	offset = page_cache_offset(mapping, sd->pos);
+ 
+ 	this_len = sd->len;
+-	if (this_len + offset > PAGE_CACHE_SIZE)
+-		this_len = PAGE_CACHE_SIZE - offset;
++	if (this_len + offset > page_cache_size(mapping))
++		this_len = page_cache_size(mapping) - offset;
+ 
+ 	ret = pagecache_write_begin(file, mapping, sd->pos, this_len,
+ 				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
+@@ -791,7 +792,7 @@ generic_file_splice_write_nolock(struct 
+ 		unsigned long nr_pages;
+ 
+ 		*ppos += ret;
+-		nr_pages = (ret + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++		nr_pages = page_cache_next(mapping, ret);
+ 
+ 		/*
+ 		 * If file or inode is SYNC and we actually wrote some data,
+@@ -853,7 +854,7 @@ generic_file_splice_write(struct pipe_in
+ 		unsigned long nr_pages;
+ 
+ 		*ppos += ret;
+-		nr_pages = (ret + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++		nr_pages = page_cache_next(mapping, ret);
+ 
+ 		/*
+ 		 * If file or inode is SYNC and we actually wrote some data,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-hid.patch
-git-net.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-s390-use-div_round_up.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-usb-use-div_round_up.patch
-fbdev-use-div_round_up-or-roundup.patch
+define-functions-for-page-cache-handling.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+use-page_cache_xxx-in-fs-splicec.patch
+git-unionfs.patch
+use-page_cache_xxx-for-fs-xfs.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+use-page_cache_xxx-functions-in-mm-filemapc.patch
+use-page_cache_xxx-in-mm-page-writebackc.patch
+use-page_cache_xxx-in-mm-truncatec.patch
+use-page_cache_xxx-in-mm-rmapc.patch
+use-page_cache_xxx-in-mm-filemap_xipc.patch
+use-page_cache_xxx-in-mm-migratec.patch
+use-page_cache_xxx-in-fs-libfsc.patch
+use-page_cache_xxx-in-fs-sync.patch
+use-page_cache_xxx-in-fs-bufferc.patch
+use-page_cache_xxx-in-mm-mpagec.patch
+use-page_cache_xxx-in-mm-fadvisec.patch
+use-page_cache_xxx-in-ext2.patch
+use-page_cache_xxx-in-fs-ext3.patch
+use-page_cache_xxx-in-fs-reiserfs.patch
+use-page_cache_xxx-in-fs-ext4.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
