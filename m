@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-lpfc_disable_node-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:04:26 -0800
-Message-ID: <200802181005.m1IA5O6o019193@imap1.linux-foundation.org>
+Subject: + scsi_transport_iscsic-make-2-functions-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:04:37 -0800
+Message-ID: <200802181005.m1IA5ZTa019199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752621AbYBRKFm (ORCPT
+	by vger.kernel.org with ESMTP id S1751788AbYBRKGK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:05:42 -0500
+	Mon, 18 Feb 2008 05:06:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@steeleye.com, James.Smart@Emulex.Com
+Cc: bunk@kernel.org, James.Bottomley@steeleye.com, michaelc@cs.wisc.edu
 
 
 The patch titled
-     make lpfc_disable_node() static
+     scsi_transport_iscsi.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     make-lpfc_disable_node-static.patch
+     scsi_transport_iscsic-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make lpfc_disable_node() static
+Subject: scsi_transport_iscsi.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global lpfc_disable_node() static.
+Make the following needlessly global functions static:
+
+- __iscsi_unblock_session()
+- iscsi_session_state_name()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: James Smart <James.Smart@Emulex.Com>
+Acked-by: Mike Christie <michaelc@cs.wisc.edu>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_crtn.h    |    1 -
- drivers/scsi/lpfc/lpfc_hbadisc.c |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/scsi_transport_iscsi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_crtn.h
---- a/drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static
-+++ a/drivers/scsi/lpfc/lpfc_crtn.h
-@@ -55,7 +55,6 @@ void lpfc_mbx_cmpl_ns_reg_login(struct l
- void lpfc_mbx_cmpl_fdmi_reg_login(struct lpfc_hba *, LPFC_MBOXQ_t *);
- void lpfc_enqueue_node(struct lpfc_vport *, struct lpfc_nodelist *);
- void lpfc_dequeue_node(struct lpfc_vport *, struct lpfc_nodelist *);
--void lpfc_disable_node(struct lpfc_vport *, struct lpfc_nodelist *);
- struct lpfc_nodelist *lpfc_enable_node(struct lpfc_vport *,
- 					struct lpfc_nodelist *, int);
- void lpfc_nlp_set_state(struct lpfc_vport *, struct lpfc_nodelist *, int);
-diff -puN drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_hbadisc.c
---- a/drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static
-+++ a/drivers/scsi/lpfc/lpfc_hbadisc.c
-@@ -1694,7 +1694,7 @@ lpfc_dequeue_node(struct lpfc_vport *vpo
- 				NLP_STE_UNUSED_NODE);
+diff -puN drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static drivers/scsi/scsi_transport_iscsi.c
+--- a/drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static
++++ a/drivers/scsi/scsi_transport_iscsi.c
+@@ -231,7 +231,7 @@ static struct {
+ 	{ ISCSI_SESSION_FREE,		"FREE" },
+ };
+ 
+-const char *iscsi_session_state_name(int state)
++static const char *iscsi_session_state_name(int state)
+ {
+ 	int i;
+ 	char *name = NULL;
+@@ -373,7 +373,7 @@ static void session_recovery_timedout(st
+ 	scsi_target_unblock(&session->dev);
  }
  
--void
-+static void
- lpfc_disable_node(struct lpfc_vport *vport, struct lpfc_nodelist *ndlp)
+-void __iscsi_unblock_session(struct iscsi_cls_session *session)
++static void __iscsi_unblock_session(struct iscsi_cls_session *session)
  {
- 	if ((ndlp->nlp_flag & NLP_DELAY_TMO) != 0)
+ 	if (!cancel_delayed_work(&session->recovery_work))
+ 		flush_workqueue(iscsi_eh_timer_workq);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
