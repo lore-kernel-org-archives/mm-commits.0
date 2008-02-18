@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-ext3_xattr_list-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:16:33 -0800
-Message-ID: <200802181017.m1IAHVXF019828@imap1.linux-foundation.org>
+Subject: + ext3-check-ext3_journal_get_write_access-errors.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:16:53 -0800
+Message-ID: <200802181017.m1IAHpiG019847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758305AbYBRKSQ (ORCPT
+	by vger.kernel.org with ESMTP id S1758933AbYBRKSY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:18:16 -0500
+	Mon, 18 Feb 2008 05:18:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     make ext3_xattr_list() static
+     ext3: check ext3_journal_get_write_access() errors
 has been added to the -mm tree.  Its filename is
-     make-ext3_xattr_list-static.patch
+     ext3-check-ext3_journal_get_write_access-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make ext3_xattr_list() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: ext3: check ext3_journal_get_write_access() errors
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Make the needlessly global ext3_xattr_list() static.
+Check ext3_journal_get_write_access() errors.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/xattr.c |    4 +++-
- fs/ext3/xattr.h |    7 -------
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ fs/ext3/namei.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/xattr.c~make-ext3_xattr_list-static fs/ext3/xattr.c
---- a/fs/ext3/xattr.c~make-ext3_xattr_list-static
-+++ a/fs/ext3/xattr.c
-@@ -99,6 +99,8 @@ static struct buffer_head *ext3_xattr_ca
- 						 struct mb_cache_entry **);
- static void ext3_xattr_rehash(struct ext3_xattr_header *,
- 			      struct ext3_xattr_entry *);
-+static int ext3_xattr_list(struct inode *inode, char *buffer,
-+			   size_t buffer_size);
+diff -puN fs/ext3/namei.c~ext3-check-ext3_journal_get_write_access-errors fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-check-ext3_journal_get_write_access-errors
++++ a/fs/ext3/namei.c
+@@ -57,10 +57,15 @@ static struct buffer_head *ext3_append(h
  
- static struct mb_cache *ext3_xattr_cache;
+ 	*block = inode->i_size >> inode->i_sb->s_blocksize_bits;
  
-@@ -427,7 +429,7 @@ cleanup:
-  * Returns a negative error number on failure, or the number of bytes
-  * used / required on success.
-  */
--int
-+static int
- ext3_xattr_list(struct inode *inode, char *buffer, size_t buffer_size)
- {
- 	int i_error, b_error;
-diff -puN fs/ext3/xattr.h~make-ext3_xattr_list-static fs/ext3/xattr.h
---- a/fs/ext3/xattr.h~make-ext3_xattr_list-static
-+++ a/fs/ext3/xattr.h
-@@ -67,7 +67,6 @@ extern struct xattr_handler ext3_xattr_s
- extern ssize_t ext3_listxattr(struct dentry *, char *, size_t);
- 
- extern int ext3_xattr_get(struct inode *, int, const char *, void *, size_t);
--extern int ext3_xattr_list(struct inode *, char *, size_t);
- extern int ext3_xattr_set(struct inode *, int, const char *, const void *, size_t, int);
- extern int ext3_xattr_set_handle(handle_t *, struct inode *, int, const char *, const void *, size_t, int);
- 
-@@ -89,12 +88,6 @@ ext3_xattr_get(struct inode *inode, int 
+-	if ((bh = ext3_bread(handle, inode, *block, 1, err))) {
++	bh = ext3_bread(handle, inode, *block, 1, err);
++	if (bh) {
+ 		inode->i_size += inode->i_sb->s_blocksize;
+ 		EXT3_I(inode)->i_disksize = inode->i_size;
+-		ext3_journal_get_write_access(handle,bh);
++		*err = ext3_journal_get_write_access(handle, bh);
++		if (*err) {
++			brelse(bh);
++			bh = NULL;
++		}
+ 	}
+ 	return bh;
  }
- 
- static inline int
--ext3_xattr_list(struct inode *inode, void *buffer, size_t size)
--{
--	return -EOPNOTSUPP;
--}
--
--static inline int
- ext3_xattr_set(struct inode *inode, int name_index, const char *name,
- 	       const void *value, size_t size, int flags)
- {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-acpi.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+ext2-improve-ext2_readdir-return-value.patch
+ext2-use-ext2_group_first_block_no.patch
+ext2-use-ext2_fsblk_t-type.patch
+ext3-use-ext3_group_first_block_no.patch
+ext3-add-missing-ext3_journal_stop.patch
+ext3-use-ext3_get_group_desc.patch
+ext3-check-ext3_journal_get_write_access-errors.patch
+ext4-use-ext4_group_first_block_no.patch
+ext4-add-missing-ext4_journal_stop.patch
+ext4-use-ext4_get_group_desc.patch
+ext4-check-ext4_journal_get_write_access-errors.patch
