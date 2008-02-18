@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-section-mismatch-in-acpi_pci_root_add.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:55:38 -0800
-Message-ID: <200802180956.m1I9uZxm018691@imap1.linux-foundation.org>
+Subject: + acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:55:44 -0800
+Message-ID: <200802180956.m1I9ufk0018694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755643AbYBRJ5Y (ORCPT
+	by vger.kernel.org with ESMTP id S1755643AbYBRJ52 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 04:57:24 -0500
+	Mon, 18 Feb 2008 04:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sam@ravnborg.org, lenb@kernel.org
 
 
 The patch titled
-     acpi: fix section mismatch in acpi_pci_root_add
+     acpi: fix section mismatch in processor_core.c:acpi_processor_hotplug_notify
 has been added to the -mm tree.  Its filename is
-     acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+     acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix section mismatch in acpi_pci_root_add
+Subject: acpi: fix section mismatch in processor_core.c:acpi_processor_hotplug_notify
 From: Sam Ravnborg <sam@ravnborg.org>
 
 Fix following warning:
-WARNING: vmlinux.o(.text+0x550e85): Section mismatch in reference from the function acpi_pci_root_add() to the function .devinit.text:pci_acpi_scan_root()
+WARNING: vmlinux.o(.text+0x55586c): Section mismatch in reference from the function acpi_processor_hotplug_notify() to the function .cpuinit.text:acpi_processor_start()
 
-acpi_pci_root_add uses a __devinit annotated function and
-it looks like annotating it __devinit too is the correct fix.
+acpi_processor_hotplug_notify() may safely reference __cpuinit stuff as it ids
+defined inside an ACPI_HOTPLUG_CPU block.  So annotate it __ref to silence the
+warning.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_root.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_root.c~acpi-fix-section-mismatch-in-acpi_pci_root_add drivers/acpi/pci_root.c
---- a/drivers/acpi/pci_root.c~acpi-fix-section-mismatch-in-acpi_pci_root_add
-+++ a/drivers/acpi/pci_root.c
-@@ -184,7 +184,7 @@ static void acpi_pci_bridge_scan(struct 
- 		}
+diff -puN drivers/acpi/processor_core.c~acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify
++++ a/drivers/acpi/processor_core.c
+@@ -886,8 +886,8 @@ int acpi_processor_device_add(acpi_handl
+ 	return 0;
  }
  
--static int acpi_pci_root_add(struct acpi_device *device)
-+static int __devinit acpi_pci_root_add(struct acpi_device *device)
+-static void
+-acpi_processor_hotplug_notify(acpi_handle handle, u32 event, void *data)
++static void __ref acpi_processor_hotplug_notify(acpi_handle handle,
++						u32 event, void *data)
  {
- 	int result = 0;
- 	struct acpi_pci_root *root = NULL;
+ 	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
