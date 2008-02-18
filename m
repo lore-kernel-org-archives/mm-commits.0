@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ramfs-extern-cleanup.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:10:50 -0800
-Message-ID: <200802181011.m1IABmmw019478@imap1.linux-foundation.org>
+Subject: + make-printk_recursion_bug_msg-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:10:55 -0800
+Message-ID: <200802181011.m1IABrBd019481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54584 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51702 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753213AbYBRKMe (ORCPT
+	by vger.kernel.org with ESMTP id S1753883AbYBRKMu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:34 -0500
+	Mon, 18 Feb 2008 05:12:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     fs/ramfs/ extern cleanup
+     make printk_recursion_bug_msg[] static
 has been added to the -mm tree.  Its filename is
-     fs-ramfs-extern-cleanup.patch
+     make-printk_recursion_bug_msg-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ramfs/ extern cleanup
+Subject: make printk_recursion_bug_msg[] static
 From: Adrian Bunk <bunk@kernel.org>
 
-- internal.h shouldn't duplicate the extern declaration for
-  ramfs_file_operations already in include/linux/ramfs.h
-- file-mmu.c needs two #include's for seeing the extern declarations
-  of it's global struct's
+printk_recursion_bug_msg[] can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-mmu.c |    3 +++
- fs/ramfs/internal.h |    1 -
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-mmu.c~fs-ramfs-extern-cleanup fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~fs-ramfs-extern-cleanup
-+++ a/fs/ramfs/file-mmu.c
-@@ -26,6 +26,9 @@
+diff -puN kernel/printk.c~make-printk_recursion_bug_msg-static kernel/printk.c
+--- a/kernel/printk.c~make-printk_recursion_bug_msg-static
++++ a/kernel/printk.c
+@@ -618,7 +618,7 @@ asmlinkage int printk(const char *fmt, .
+ /* cpu currently holding logbuf_lock */
+ static volatile unsigned int printk_cpu = UINT_MAX;
  
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/ramfs.h>
-+
-+#include "internal.h"
+-const char printk_recursion_bug_msg [] =
++static const char printk_recursion_bug_msg[] =
+ 			KERN_CRIT "BUG: recent printk recursion!\n";
+ static int printk_recursion_bug;
  
- const struct address_space_operations ramfs_aops = {
- 	.readpage	= simple_readpage,
-diff -puN fs/ramfs/internal.h~fs-ramfs-extern-cleanup fs/ramfs/internal.h
---- a/fs/ramfs/internal.h~fs-ramfs-extern-cleanup
-+++ a/fs/ramfs/internal.h
-@@ -11,5 +11,4 @@
- 
- 
- extern const struct address_space_operations ramfs_aops;
--extern const struct file_operations ramfs_file_operations;
- extern const struct inode_operations ramfs_file_inode_operations;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
