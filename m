@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpusetc-make-3-functions-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:17:23 -0800
-Message-ID: <200802181018.m1IAILk7019893@imap1.linux-foundation.org>
+Subject: + workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:17:46 -0800
+Message-ID: <200802181018.m1IAIimB019904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756930AbYBRKTI (ORCPT
+	by vger.kernel.org with ESMTP id S1757222AbYBRKTR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:19:08 -0500
+	Mon, 18 Feb 2008 05:19:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, pj@sgi.com
+Cc: akpm@linux-foundation.org, oleg@tv-sign.ru
 
 
 The patch titled
-     kernel/cpuset.c: make 3 functions static
+     workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
 has been added to the -mm tree.  Its filename is
-     kernel-cpusetc-make-3-functions-static.patch
+     workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/cpuset.c: make 3 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make the following needlessly global functions static:
-
-- cpuset_test_cpumask()
-- cpuset_change_cpumask()
-- cpuset_do_move_task()
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Paul Jackson <pj@sgi.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/workqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~kernel-cpusetc-make-3-functions-static kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-cpusetc-make-3-functions-static
-+++ a/kernel/cpuset.c
-@@ -710,7 +710,8 @@ static inline int started_after(void *p1
-  * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
-  * words, if its mask is not equal to its cpuset's mask).
+diff -puN kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies-fix kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
++++ a/kernel/workqueue.c
+@@ -158,7 +158,7 @@ static void __queue_work(struct cpu_work
+  *
+  * Returns 0 if @work was already on a queue, non-zero otherwise.
+  *
+- * We queue the work to the CPU it was submitted, but if CPU dies
++ * We queue the work to the CPU on which it was submitted, but if the CPU dies
+  * it can be processed by another CPU.
   */
--int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static int cpuset_test_cpumask(struct task_struct *tsk,
-+			       struct cgroup_scanner *scan)
- {
- 	return !cpus_equal(tsk->cpus_allowed,
- 			(cgroup_cs(scan->cg))->cpus_allowed);
-@@ -727,7 +728,8 @@ int cpuset_test_cpumask(struct task_stru
-  * We don't need to re-check for the cgroup/cpuset membership, since we're
-  * holding cgroup_lock() at this point.
-  */
--void cpuset_change_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static void cpuset_change_cpumask(struct task_struct *tsk,
-+				  struct cgroup_scanner *scan)
- {
- 	set_cpus_allowed(tsk, (cgroup_cs(scan->cg))->cpus_allowed);
- }
-@@ -1648,7 +1650,8 @@ int __init cpuset_init(void)
-  * Called by cgroup_scan_tasks() for each task in a cgroup.
-  * Return nonzero to stop the walk through the tasks.
-  */
--void cpuset_do_move_task(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static void cpuset_do_move_task(struct task_struct *tsk,
-+				struct cgroup_scanner *scan)
- {
- 	struct cpuset_hotplug_scanner *chsp;
- 
+ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-acpi.patch
+revert-send-a-single-notification-on-device-state-changes.patch
+softlockup-workaround.patch
+git-acpi-powerpc-kconfig-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-agpgart-make-ia64-compile.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
+git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-ubi.patch
+git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
+git-nfsd-fix.patch
+cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
+quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+git-sched.patch
+git-sched-git-rejects.patch
+tracing-is-borked-on-powerpc.patch
 scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+git-unionfs-git-rejects.patch
+unionfs-is-broken.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+procfs-task-exe-symlink-fix.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
