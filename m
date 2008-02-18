@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-in-mm-migratec.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:09:13 -0800
-Message-ID: <200802181010.m1IAABBg019412@imap1.linux-foundation.org>
+Subject: + use-page_cache_xxx-in-fs-libfsc.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:09:18 -0800
+Message-ID: <200802181010.m1IAAGJ1019415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755348AbYBRKKQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753566AbYBRKKt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:10:16 -0500
+	Mon, 18 Feb 2008 05:10:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, dgc@sgi.com
 
 
 The patch titled
-     Use page_cache_xxx in mm/migrate.c
+     Use page_cache_xxx in fs/libfs.c
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-in-mm-migratec.patch
+     use-page_cache_xxx-in-fs-libfsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in mm/migrate.c
+Subject: Use page_cache_xxx in fs/libfs.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use page_cache_xxx in mm/migrate.c
+Use page_cache_xxx in fs/libfs.c
 
 Reviewed-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/libfs.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/migrate.c~use-page_cache_xxx-in-mm-migratec mm/migrate.c
---- a/mm/migrate.c~use-page_cache_xxx-in-mm-migratec
-+++ a/mm/migrate.c
-@@ -197,11 +197,12 @@ static void remove_file_migration_ptes(s
- 	struct vm_area_struct *vma;
- 	struct address_space *mapping = page_mapping(new);
- 	struct prio_tree_iter iter;
--	pgoff_t pgoff = new->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
-+	pgoff_t pgoff;
+diff -puN fs/libfs.c~use-page_cache_xxx-in-fs-libfsc fs/libfs.c
+--- a/fs/libfs.c~use-page_cache_xxx-in-fs-libfsc
++++ a/fs/libfs.c
+@@ -17,7 +17,8 @@ int simple_getattr(struct vfsmount *mnt,
+ {
+ 	struct inode *inode = dentry->d_inode;
+ 	generic_fillattr(inode, stat);
+-	stat->blocks = inode->i_mapping->nrpages << (PAGE_CACHE_SHIFT - 9);
++	stat->blocks = inode->i_mapping->nrpages <<
++				(page_cache_shift(inode->i_mapping) - 9);
+ 	return 0;
+ }
  
- 	if (!mapping)
- 		return;
+@@ -341,10 +342,10 @@ int simple_prepare_write(struct file *fi
+ 			unsigned from, unsigned to)
+ {
+ 	if (!PageUptodate(page)) {
+-		if (to - from != PAGE_CACHE_SIZE)
++		if (to - from != page_cache_size(file->f_mapping))
+ 			zero_user_segments(page,
+ 				0, from,
+-				to, PAGE_CACHE_SIZE);
++				to, page_cache_size(file->f_mapping));
+ 	}
+ 	return 0;
+ }
+@@ -372,8 +373,9 @@ int simple_write_begin(struct file *file
+ static int simple_commit_write(struct file *file, struct page *page,
+ 			       unsigned from, unsigned to)
+ {
+-	struct inode *inode = page->mapping->host;
+-	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
++	struct address_space *mapping = page->mapping;
++	struct inode *inode = mapping->host;
++	loff_t pos = page_cache_pos(mapping, page->index, to);
  
-+	pgoff = new->index << mapping_order(mapping);
- 	spin_lock(&mapping->i_mmap_lock);
- 
- 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff)
+ 	if (!PageUptodate(page))
+ 		SetPageUptodate(page);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
