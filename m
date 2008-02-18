@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi_transport_iscsic-make-2-functions-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:04:37 -0800
-Message-ID: <200802181005.m1IA5ZTa019199@imap1.linux-foundation.org>
+Subject: + usb-use-div_round_up.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:05:54 -0800
+Message-ID: <200802181006.m1IA6qYI019241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751788AbYBRKGK (ORCPT
+	by vger.kernel.org with ESMTP id S1751512AbYBRKG7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:06:10 -0500
+	Mon, 18 Feb 2008 05:06:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@steeleye.com, michaelc@cs.wisc.edu
+Cc: julia@diku.dk, greg@kroah.com
 
 
 The patch titled
-     scsi_transport_iscsi.c: make 2 functions static
+     usb: use DIV_ROUND_UP
 has been added to the -mm tree.  Its filename is
-     scsi_transport_iscsic-make-2-functions-static.patch
+     usb-use-div_round_up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi_transport_iscsi.c: make 2 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: usb: use DIV_ROUND_UP
+From: Julia Lawall <julia@diku.dk>
 
-Make the following needlessly global functions static:
+The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
+(d)) but is perhaps more readable.
 
-- __iscsi_unblock_session()
-- iscsi_session_state_name()
+An extract of the semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Mike Christie <michaelc@cs.wisc.edu>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+// <smpl>
+@haskernel@
+@@
+
+#include <linux/kernel.h>
+
+@depends on haskernel@
+expression n,d;
+@@
+
+(
+- (n + d - 1) / d
++ DIV_ROUND_UP(n,d)
+|
+- (n + (d - 1)) / d
++ DIV_ROUND_UP(n,d)
+)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP((n),d)
++ DIV_ROUND_UP(n,d)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP(n,(d))
++ DIV_ROUND_UP(n,d)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_transport_iscsi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/host/r8a66597-hcd.c |    6 +++---
+ drivers/usb/misc/usbtest.c      |    2 +-
+ drivers/usb/serial/ftdi_sio.c   |    4 ++--
+ drivers/usb/serial/io_ti.c      |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static drivers/scsi/scsi_transport_iscsi.c
---- a/drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static
-+++ a/drivers/scsi/scsi_transport_iscsi.c
-@@ -231,7 +231,7 @@ static struct {
- 	{ ISCSI_SESSION_FREE,		"FREE" },
- };
+diff -puN drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up drivers/usb/host/r8a66597-hcd.c
+--- a/drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up
++++ a/drivers/usb/host/r8a66597-hcd.c
+@@ -959,9 +959,9 @@ static void prepare_packet_read(struct r
+ 				r8a66597_write(r8a66597, TRCLR,
+ 						td->pipe->pipetre);
+ 				r8a66597_write(r8a66597,
+-						(urb->transfer_buffer_length
+-						+ td->maxpacket - 1)
+-						/ td->maxpacket,
++						DIV_ROUND_UP
++						  (urb->transfer_buffer_length,
++						   td->maxpacket),
+ 						td->pipe->pipetrn);
+ 				r8a66597_bset(r8a66597, TRENB,
+ 						td->pipe->pipetre);
+diff -puN drivers/usb/misc/usbtest.c~usb-use-div_round_up drivers/usb/misc/usbtest.c
+--- a/drivers/usb/misc/usbtest.c~usb-use-div_round_up
++++ a/drivers/usb/misc/usbtest.c
+@@ -1403,7 +1403,7 @@ static struct urb *iso_alloc_urb (
+ 		return NULL;
+ 	maxp = 0x7ff & le16_to_cpu(desc->wMaxPacketSize);
+ 	maxp *= 1 + (0x3 & (le16_to_cpu(desc->wMaxPacketSize) >> 11));
+-	packets = (bytes + maxp - 1) / maxp;
++	packets = DIV_ROUND_UP(bytes, maxp);
  
--const char *iscsi_session_state_name(int state)
-+static const char *iscsi_session_state_name(int state)
- {
- 	int i;
- 	char *name = NULL;
-@@ -373,7 +373,7 @@ static void session_recovery_timedout(st
- 	scsi_target_unblock(&session->dev);
+ 	urb = usb_alloc_urb (packets, GFP_KERNEL);
+ 	if (!urb)
+diff -puN drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -1380,7 +1380,7 @@ static void ftdi_write_bulk_callback (st
+ 	data_offset = priv->write_offset;
+ 	if (data_offset > 0) {
+ 		/* Subtract the control bytes */
+-		countback -= (data_offset * ((countback + (PKTSZ - 1)) / PKTSZ));
++		countback -= (data_offset * DIV_ROUND_UP(countback, PKTSZ));
+ 	}
+ 	spin_lock_irqsave(&priv->tx_lock, flags);
+ 	--priv->tx_outstanding_urbs;
+@@ -1480,7 +1480,7 @@ static void ftdi_read_bulk_callback (str
+ 
+ 	/* count data bytes, but not status bytes */
+ 	countread = urb->actual_length;
+-	countread -= 2 * ((countread + (PKTSZ - 1)) / PKTSZ);
++	countread -= 2 * DIV_ROUND_UP(countread, PKTSZ);
+ 	spin_lock_irqsave(&priv->rx_lock, flags);
+ 	priv->rx_bytes += countread;
+ 	spin_unlock_irqrestore(&priv->rx_lock, flags);
+diff -puN drivers/usb/serial/io_ti.c~usb-use-div_round_up drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~usb-use-div_round_up
++++ a/drivers/usb/serial/io_ti.c
+@@ -655,7 +655,7 @@ static void TIChasePort(struct edgeport_
+ 	/* (TIIsTxActive doesn't seem to wait for the last byte) */
+ 	if ((baud_rate=port->baud_rate) == 0)
+ 		baud_rate = 50;
+-	msleep(max(1,(10000+baud_rate-1)/baud_rate));
++	msleep(max(1, DIV_ROUND_UP(10000, baud_rate)));
  }
  
--void __iscsi_unblock_session(struct iscsi_cls_session *session)
-+static void __iscsi_unblock_session(struct iscsi_cls_session *session)
- {
- 	if (!cancel_delayed_work(&session->recovery_work))
- 		flush_workqueue(iscsi_eh_timer_workq);
+ static int TIChooseConfiguration (struct usb_device *dev)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+git-hid.patch
+git-net.patch
+drivers-net-mv643xx_ethc-use-field_sizeof.patch
+s390-use-div_round_up.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+usb-use-div_round_up.patch
+fbdev-use-div_round_up-or-roundup.patch
