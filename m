@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-generic_commit_write.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:12:04 -0800
-Message-ID: <200802181013.m1IAD2sd019609@imap1.linux-foundation.org>
+Subject: + remove-ecryptfs_header_cache_0.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:14:15 -0800
+Message-ID: <200802181015.m1IAFCYV019667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42810 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757606AbYBRKUs (ORCPT
+	by vger.kernel.org with ESMTP id S1753803AbYBRKVT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:20:48 -0500
+	Mon, 18 Feb 2008 05:21:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, hch@infradead.org
+Cc: bunk@kernel.org, mhalcrow@us.ibm.com
 
 
 The patch titled
-     remove generic_commit_write()
+     remove ecryptfs_header_cache_0
 has been added to the -mm tree.  Its filename is
-     remove-generic_commit_write.patch
+     remove-ecryptfs_header_cache_0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove generic_commit_write()
+Subject: remove ecryptfs_header_cache_0
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the obsolete and no longer used generic_commit_write().
+Remove the no longer used ecryptfs_header_cache_0.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   18 ------------------
- include/linux/buffer_head.h |    1 -
- 2 files changed, 19 deletions(-)
+ fs/ecryptfs/crypto.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/buffer.c~remove-generic_commit_write fs/buffer.c
---- a/fs/buffer.c~remove-generic_commit_write
-+++ a/fs/buffer.c
-@@ -2321,23 +2321,6 @@ int block_commit_write(struct page *page
- 	return 0;
+diff -puN fs/ecryptfs/crypto.c~remove-ecryptfs_header_cache_0 fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~remove-ecryptfs_header_cache_0
++++ a/fs/ecryptfs/crypto.c
+@@ -1246,7 +1246,6 @@ ecryptfs_write_header_metadata(char *vir
+ 	(*written) = 6;
  }
  
--int generic_commit_write(struct file *file, struct page *page,
--		unsigned from, unsigned to)
--{
--	struct inode *inode = page->mapping->host;
--	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
--	__block_commit_write(inode,page,from,to);
--	/*
--	 * No need to use i_size_read() here, the i_size
--	 * cannot change under us because we hold i_mutex.
--	 */
--	if (pos > inode->i_size) {
--		i_size_write(inode, pos);
--		mark_inode_dirty(inode);
--	}
--	return 0;
--}
--
- /*
-  * block_page_mkwrite() is not allowed to change the file size as it gets
-  * called from a page fault handler when a page is first dirtied. Hence we must
-@@ -3314,7 +3297,6 @@ EXPORT_SYMBOL(end_buffer_write_sync);
- EXPORT_SYMBOL(file_fsync);
- EXPORT_SYMBOL(fsync_bdev);
- EXPORT_SYMBOL(generic_block_bmap);
--EXPORT_SYMBOL(generic_commit_write);
- EXPORT_SYMBOL(generic_cont_expand_simple);
- EXPORT_SYMBOL(init_buffer);
- EXPORT_SYMBOL(invalidate_bdev);
-diff -puN include/linux/buffer_head.h~remove-generic_commit_write include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~remove-generic_commit_write
-+++ a/include/linux/buffer_head.h
-@@ -225,7 +225,6 @@ int block_page_mkwrite(struct vm_area_st
- 				get_block_t get_block);
- void block_sync_page(struct page *);
- sector_t generic_block_bmap(struct address_space *, sector_t, get_block_t *);
--int generic_commit_write(struct file *, struct page *, unsigned, unsigned);
- int block_truncate_page(struct address_space *, loff_t, get_block_t *);
- int file_fsync(struct file *, struct dentry *, int);
- int nobh_write_begin(struct file *, struct address_space *,
+-struct kmem_cache *ecryptfs_header_cache_0;
+ struct kmem_cache *ecryptfs_header_cache_1;
+ struct kmem_cache *ecryptfs_header_cache_2;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
