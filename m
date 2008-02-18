@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-use-ext4_group_first_block_no.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:18:53 -0800
-Message-ID: <200802181019.m1IAJpeO019940@imap1.linux-foundation.org>
+Subject: + ext4-add-missing-ext4_journal_stop.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:18:59 -0800
+Message-ID: <200802181019.m1IAJudG019943__8717.56493947959$1203330082$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54607 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757043AbYBRKU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757049AbYBRKU1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 18 Feb 2008 05:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     ext4: use ext4_group_first_block_no()
+     ext4: add missing ext4_journal_stop()
 has been added to the -mm tree.  Its filename is
-     ext4-use-ext4_group_first_block_no.patch
+     ext4-add-missing-ext4_journal_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: use ext4_group_first_block_no()
+Subject: ext4: add missing ext4_journal_stop()
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Use ext4_group_first_block_no() and assign the return values to
-ext2_fsblk_t variables.
+Add missing ext4_journal_stop() in error handling.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    6 +++---
- fs/ext4/xattr.c  |    6 ++----
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ fs/ext4/resize.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ext4/balloc.c~ext4-use-ext4_group_first_block_no fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-use-ext4_group_first_block_no
-+++ a/fs/ext4/balloc.c
-@@ -48,7 +48,6 @@ void ext4_get_group_no_and_offset(struct
- unsigned ext4_init_block_bitmap(struct super_block *sb, struct buffer_head *bh,
- 		 ext4_group_t block_group, struct ext4_group_desc *gdp)
- {
--	unsigned long start;
- 	int bit, bit_max;
- 	unsigned free_blocks, group_blocks;
- 	struct ext4_sb_info *sbi = EXT4_SB(sb);
-@@ -106,11 +105,12 @@ unsigned ext4_init_block_bitmap(struct s
- 	free_blocks = group_blocks - bit_max;
- 
- 	if (bh) {
-+		ext4_fsblk_t start;
-+
- 		for (bit = 0; bit < bit_max; bit++)
- 			ext4_set_bit(bit, bh->b_data);
- 
--		start = block_group * EXT4_BLOCKS_PER_GROUP(sb) +
--			le32_to_cpu(sbi->s_es->s_first_data_block);
-+		start = ext4_group_first_block_no(sb, block_group);
- 
- 		/* Set bits for block and inode bitmaps, and inode table */
- 		ext4_set_bit(ext4_block_bitmap(sb, gdp) - start, bh->b_data);
-diff -puN fs/ext4/xattr.c~ext4-use-ext4_group_first_block_no fs/ext4/xattr.c
---- a/fs/ext4/xattr.c~ext4-use-ext4_group_first_block_no
-+++ a/fs/ext4/xattr.c
-@@ -808,10 +808,8 @@ inserted:
- 			get_bh(new_bh);
- 		} else {
- 			/* We need to allocate a new block */
--			ext4_fsblk_t goal = le32_to_cpu(
--					EXT4_SB(sb)->s_es->s_first_data_block) +
--				(ext4_fsblk_t)EXT4_I(inode)->i_block_group *
--				EXT4_BLOCKS_PER_GROUP(sb);
-+			ext4_fsblk_t goal = ext4_group_first_block_no(sb,
-+						EXT4_I(inode)->i_block_group);
- 			ext4_fsblk_t block = ext4_new_block(handle, inode,
- 							goal, &error);
- 			if (error)
+diff -puN fs/ext4/resize.c~ext4-add-missing-ext4_journal_stop fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-add-missing-ext4_journal_stop
++++ a/fs/ext4/resize.c
+@@ -1035,6 +1035,7 @@ int ext4_group_extend(struct super_block
+ 		ext4_warning(sb, __FUNCTION__,
+ 			     "multiple resizers run on filesystem!");
+ 		unlock_super(sb);
++		ext4_journal_stop(handle);
+ 		err = -EBUSY;
+ 		goto exit_put;
+ 	}
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
