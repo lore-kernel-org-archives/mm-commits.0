@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-use-div_round_up-or-roundup.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:15:45 -0800
-Message-ID: <200802181016.m1IAGhZE019721@imap1.linux-foundation.org>
+Subject: + ext2-improve-ext2_readdir-return-value.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:16:05 -0800
+Message-ID: <200802181017.m1IAH3bW019801__23873.7781918191$1203329898$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34991 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751980AbYBRKRh (ORCPT
+	by vger.kernel.org with ESMTP id S1753016AbYBRKRh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 18 Feb 2008 05:17:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, adaplas@pol.net, linux-fbdev-devel@lists.sourceforge.net
+Cc: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     fbdev: use DIV_ROUND_UP or roundup
+     ext2: improve ext2_readdir() return value
 has been added to the -mm tree.  Its filename is
-     fbdev-use-div_round_up-or-roundup.patch
+     ext2-improve-ext2_readdir-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: use DIV_ROUND_UP or roundup
-From: Julia Lawall <julia@diku.dk>
+Subject: ext2: improve ext2_readdir() return value
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+Improve ext2_readdir() return value for ext2_get_page() failure by using the
+actual result of ext2_get_page().
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: <linux-fbdev-devel@lists.sourceforge.net>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atafb.c         |    2 +-
- drivers/video/cirrusfb.c      |    2 +-
- drivers/video/console/fbcon.c |    3 +--
- drivers/video/gxt4500.c       |    2 +-
- 4 files changed, 4 insertions(+), 5 deletions(-)
+ fs/ext2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup drivers/video/atafb.c
---- a/drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup
-+++ a/drivers/video/atafb.c
-@@ -1270,7 +1270,7 @@ again:
- 
- 	gstart = (prescale / 2 + plen * left_margin) / prescale;
- 	/* gend1 is for hde (gend-gstart multiple of align), shifter's xres */
--	gend1 = gstart + ((xres + align - 1) / align) * align * plen / prescale;
-+	gend1 = gstart + roundup(xres, align) * plen / prescale;
- 	/* gend2 is for hbb, visible xres (rest to gend1 is cut off by hblank) */
- 	gend2 = gstart + xres * plen / prescale;
- 	par->HHT = plen * (left_margin + xres + right_margin) /
-diff -puN drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup
-+++ a/drivers/video/cirrusfb.c
-@@ -3117,7 +3117,7 @@ static void bestclock(long freq, long *b
- 				}
- 			}
+diff -puN fs/ext2/dir.c~ext2-improve-ext2_readdir-return-value fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-improve-ext2_readdir-return-value
++++ a/fs/ext2/dir.c
+@@ -299,7 +299,7 @@ ext2_readdir (struct file * filp, void *
+ 				   "bad page in #%lu",
+ 				   inode->i_ino);
+ 			filp->f_pos += PAGE_CACHE_SIZE - offset;
+-			return -EIO;
++			return PTR_ERR(page);
  		}
--		d = ((143181 * n) + f - 1) / f;
-+		d = DIV_ROUND_UP(143181 * n, f);
- 		if ((d >= 7) && (d <= 63)) {
- 			if (d > 31)
- 				d = (d / 2) * 2;
-diff -puN drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup
-+++ a/drivers/video/console/fbcon.c
-@@ -620,8 +620,7 @@ static void fbcon_prepare_logo(struct vc
- 	if (fb_get_color_depth(&info->var, &info->fix) == 1)
- 		erase &= ~0x400;
- 	logo_height = fb_prepare_logo(info, ops->rotate);
--	logo_lines = (logo_height + vc->vc_font.height - 1) /
--		vc->vc_font.height;
-+	logo_lines = DIV_ROUND_UP(logo_height, vc->vc_font.height);
- 	q = (unsigned short *) (vc->vc_origin +
- 				vc->vc_size_row * rows);
- 	step = logo_lines * cols;
-diff -puN drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup drivers/video/gxt4500.c
---- a/drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup
-+++ a/drivers/video/gxt4500.c
-@@ -238,7 +238,7 @@ static int calc_pll(int period_ps, struc
- 	for (pdiv1 = 1; pdiv1 <= 8; ++pdiv1) {
- 		for (pdiv2 = 1; pdiv2 <= pdiv1; ++pdiv2) {
- 			postdiv = pdiv1 * pdiv2;
--			pll_period = (period_ps + postdiv - 1) / postdiv;
-+			pll_period = DIV_ROUND_UP(period_ps, postdiv);
- 			/* keep pll in range 350..600 MHz */
- 			if (pll_period < 1666 || pll_period > 2857)
- 				continue;
+ 		kaddr = page_address(page);
+ 		if (unlikely(need_revalidate)) {
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-hid.patch
-git-net.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-s390-use-div_round_up.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-usb-use-div_round_up.patch
-fbdev-use-div_round_up-or-roundup.patch
+git-dvb.patch
+ext2-improve-ext2_readdir-return-value.patch
+ext2-use-ext2_group_first_block_no.patch
+ext2-use-ext2_fsblk_t-type.patch
+ext3-use-ext3_group_first_block_no.patch
+ext3-add-missing-ext3_journal_stop.patch
+ext3-use-ext3_get_group_desc.patch
+ext3-check-ext3_journal_get_write_access-errors.patch
+ext4-use-ext4_group_first_block_no.patch
+ext4-add-missing-ext4_journal_stop.patch
+ext4-use-ext4_get_group_desc.patch
+ext4-check-ext4_journal_get_write_access-errors.patch
