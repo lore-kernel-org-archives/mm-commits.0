@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockd-fix-sparse-warning-in-svcsharec.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:01:49 -0800
-Message-ID: <200802181002.m1IA2lXg019069@imap1.linux-foundation.org>
+Subject: + pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:02:13 -0800
+Message-ID: <200802181003.m1IA3BEd019092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36121 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47735 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758327AbYBRKD3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752875AbYBRKDt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:03:29 -0500
+	Mon, 18 Feb 2008 05:03:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, bfields@fieldses.org, neilb@suse.de
+Cc: sam@ravnborg.org, linux@dominikbrodowski.net
 
 
 The patch titled
-     lockd: fix sparse warning in svcshare.c
+     pcmcia: silence section mismatch warnings from class_interface variables
 has been added to the -mm tree.  Its filename is
-     lockd-fix-sparse-warning-in-svcsharec.patch
+     pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: fix sparse warning in svcshare.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: pcmcia: silence section mismatch warnings from class_interface variables
+From: Sam Ravnborg <sam@ravnborg.org>
 
-fs/lockd/svcshare.c:74:50: warning: Using plain integer as NULL pointer
+Silence the following warnings:
+WARNING: drivers/pcmcia/built-in.o(.data+0x348): Section mismatch in reference from the variable pccard_sysfs_interface to the function .devinit.text:pccard_sysfs_add_socket()
+WARNING: drivers/pcmcia/built-in.o(.data+0x350): Section mismatch in reference from the variable pccard_sysfs_interface to the function .devexit.text:pccard_sysfs_remove_socket()
+WARNING: drivers/pcmcia/built-in.o(.data+0x6e8): Section mismatch in reference from the variable pcmcia_bus_interface to the function .devinit.text:pcmcia_bus_add_socket()
+WARNING: drivers/pcmcia/built-in.o(.data+0xa88): Section mismatch in reference from the variable pccard_rsrc_interface to the function .devinit.text:pccard_sysfs_add_rsrc()
+WARNING: drivers/pcmcia/built-in.o(.data+0xa90): Section mismatch in reference from the variable pccard_rsrc_interface to the function .devexit.text:pccard_sysfs_remove_rsrc()
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+The variables of type class_interface contains references
+to __devinit and __devexit functions which is OK.
+Silence warnings by annotating the variables with __refdata.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svcshare.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/ds.c             |    2 +-
+ drivers/pcmcia/rsrc_nonstatic.c |    2 +-
+ drivers/pcmcia/socket_sysfs.c   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/lockd/svcshare.c~lockd-fix-sparse-warning-in-svcsharec fs/lockd/svcshare.c
---- a/fs/lockd/svcshare.c~lockd-fix-sparse-warning-in-svcsharec
-+++ a/fs/lockd/svcshare.c
-@@ -71,7 +71,7 @@ nlmsvc_unshare_file(struct nlm_host *hos
- 	struct nlm_share	*share, **shpp;
- 	struct xdr_netobj	*oh = &argp->lock.oh;
+diff -puN drivers/pcmcia/ds.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
++++ a/drivers/pcmcia/ds.c
+@@ -1520,7 +1520,7 @@ static void pcmcia_bus_remove_socket(str
  
--	for (shpp = &file->f_shares; (share = *shpp) != 0; shpp = &share->s_next) {
-+	for (shpp = &file->f_shares; (share = *shpp) != NULL; shpp = &share->s_next) {
- 		if (share->s_host == host && nlm_cmp_owner(share, oh)) {
- 			*shpp = share->s_next;
- 			kfree(share);
+ 
+ /* the pcmcia_bus_interface is used to handle pcmcia socket devices */
+-static struct class_interface pcmcia_bus_interface = {
++static struct class_interface pcmcia_bus_interface __refdata = {
+ 	.class = &pcmcia_socket_class,
+ 	.add_dev = &pcmcia_bus_add_socket,
+ 	.remove_dev = &pcmcia_bus_remove_socket,
+diff -puN drivers/pcmcia/rsrc_nonstatic.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/rsrc_nonstatic.c
+--- a/drivers/pcmcia/rsrc_nonstatic.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
++++ a/drivers/pcmcia/rsrc_nonstatic.c
+@@ -1045,7 +1045,7 @@ static void __devexit pccard_sysfs_remov
+ 		device_remove_file(dev, *attr);
+ }
+ 
+-static struct class_interface pccard_rsrc_interface = {
++static struct class_interface pccard_rsrc_interface __refdata = {
+ 	.class = &pcmcia_socket_class,
+ 	.add_dev = &pccard_sysfs_add_rsrc,
+ 	.remove_dev = __devexit_p(&pccard_sysfs_remove_rsrc),
+diff -puN drivers/pcmcia/socket_sysfs.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/socket_sysfs.c
+--- a/drivers/pcmcia/socket_sysfs.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
++++ a/drivers/pcmcia/socket_sysfs.c
+@@ -403,7 +403,7 @@ static void __devexit pccard_sysfs_remov
+ 		device_remove_file(dev, *attr);
+ }
+ 
+-struct class_interface pccard_sysfs_interface = {
++struct class_interface pccard_sysfs_interface __refdata = {
+ 	.class = &pcmcia_socket_class,
+ 	.add_dev = &pccard_sysfs_add_socket,
+ 	.remove_dev = __devexit_p(&pccard_sysfs_remove_socket),
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-origin.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-cifs-remove-global_extern-macro.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-replace-macro-with-static-inline-in-libatah.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+samples-build-fix.patch
+git-acpi.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-kbuild.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
