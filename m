@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_amd-replace-macro-with-static-inline-in-libatah.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:59:06 -0800
-Message-ID: <200802181000.m1IA032E018895@imap1.linux-foundation.org>
+Subject: + proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:57:56 -0800
+Message-ID: <200802180958.m1I9wrBF018831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60262 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753254AbYBRKAn (ORCPT
+	by vger.kernel.org with ESMTP id S1756521AbYBRKAX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:00:43 -0500
+	Mon, 18 Feb 2008 05:00:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: bunk@kernel.org, swhiteho@redhat.com
 
 
 The patch titled
-     pata_amd: replace macro with static inline in libata.h
+     proper extern for gfs2/locking/dlm/mount.c:gdlm_ops
 has been added to the -mm tree.  Its filename is
-     pata_amd-replace-macro-with-static-inline-in-libatah.patch
+     proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_amd: replace macro with static inline in libata.h
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: proper extern for gfs2/locking/dlm/mount.c:gdlm_ops
+From: Adrian Bunk <bunk@kernel.org>
 
-Current code is essentially choosing between dividing by 1 or
-dividing by two, make the conditions a little more obvious.
+Add a proper extern declaration for gdlm_ops in fs/gfs2/locking/dlm/lock_dlm.h
 
-As a bonus, removes a sparse error:
-drivers/ata/pata_amd.c:59:11: warning: symbol '__x' shadows an earlier one
-drivers/ata/pata_amd.c:59:11: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/gfs2/locking/dlm/lock_dlm.h |    5 +++++
+ fs/gfs2/locking/dlm/main.c     |    2 --
+ fs/gfs2/locking/dlm/sysfs.c    |    2 --
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/ata/pata_amd.c~pata_amd-replace-macro-with-static-inline-in-libatah drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~pata_amd-replace-macro-with-static-inline-in-libatah
-+++ a/drivers/ata/pata_amd.c
-@@ -56,7 +56,9 @@ static void timing_setup(struct ata_port
- 	u8 t;
+diff -puN fs/gfs2/locking/dlm/lock_dlm.h~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/lock_dlm.h
+--- a/fs/gfs2/locking/dlm/lock_dlm.h~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/lock_dlm.h
+@@ -183,5 +183,10 @@ int gdlm_plock_get(void *, struct lm_loc
+ 		struct file_lock *);
+ int gdlm_punlock(void *, struct lm_lockname *, struct file *,
+ 		struct file_lock *);
++
++/* mount.c */
++
++extern const struct lm_lockops gdlm_ops;
++
+ #endif
  
- 	T = 1000000000 / amd_clock;
--	UT = T / min_t(int, max_t(int, clock, 1), 2);
-+	UT = T;
-+	if (clock >= 2)
-+		UT = T / 2;
+diff -puN fs/gfs2/locking/dlm/main.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/main.c
+--- a/fs/gfs2/locking/dlm/main.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/main.c
+@@ -11,8 +11,6 @@
  
- 	if (ata_timing_compute(adev, speed, &at, T, UT) < 0) {
- 		dev_printk(KERN_ERR, &pdev->dev, "unknown mode %d.\n", speed);
+ #include "lock_dlm.h"
+ 
+-extern struct lm_lockops gdlm_ops;
+-
+ static int __init init_lock_dlm(void)
+ {
+ 	int error;
+diff -puN fs/gfs2/locking/dlm/sysfs.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/sysfs.c
+--- a/fs/gfs2/locking/dlm/sysfs.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/sysfs.c
+@@ -12,8 +12,6 @@
+ 
+ #include "lock_dlm.h"
+ 
+-extern struct lm_lockops gdlm_ops;
+-
+ static ssize_t proto_name_show(struct gdlm_ls *ls, char *buf)
+ {
+ 	return sprintf(buf, "%s\n", gdlm_ops.lm_proto_name);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-origin.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-cifs-remove-global_extern-macro.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-replace-macro-with-static-inline-in-libatah.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
+git-kbuild.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
