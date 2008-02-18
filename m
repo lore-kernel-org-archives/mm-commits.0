@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-cgroup_enable_task_cg_lists-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:17:18 -0800
-Message-ID: <200802181018.m1IAIGwh019876@imap1.linux-foundation.org>
+Subject: + kernel-cpusetc-make-3-functions-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:17:23 -0800
+Message-ID: <200802181018.m1IAILk7019893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41591 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757277AbYBRKTJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756930AbYBRKTI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:19:09 -0500
+	Mon, 18 Feb 2008 05:19:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, menage@google.com, rientjes@google.com
+Cc: bunk@kernel.org, pj@sgi.com
 
 
 The patch titled
-     make cgroup_enable_task_cg_lists() static
+     kernel/cpuset.c: make 3 functions static
 has been added to the -mm tree.  Its filename is
-     make-cgroup_enable_task_cg_lists-static.patch
+     kernel-cpusetc-make-3-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make cgroup_enable_task_cg_lists() static
+Subject: kernel/cpuset.c: make 3 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global cgroup_enable_task_cg_lists() static.
+Make the following needlessly global functions static:
+
+- cpuset_test_cpumask()
+- cpuset_change_cpumask()
+- cpuset_do_move_task()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Paul Menage <menage@google.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cpuset.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~make-cgroup_enable_task_cg_lists-static kernel/cgroup.c
---- a/kernel/cgroup.c~make-cgroup_enable_task_cg_lists-static
-+++ a/kernel/cgroup.c
-@@ -1704,7 +1704,7 @@ static void cgroup_advance_iter(struct c
-  * The tasklist_lock is not held here, as do_each_thread() and
-  * while_each_thread() are protected by RCU.
+diff -puN kernel/cpuset.c~kernel-cpusetc-make-3-functions-static kernel/cpuset.c
+--- a/kernel/cpuset.c~kernel-cpusetc-make-3-functions-static
++++ a/kernel/cpuset.c
+@@ -710,7 +710,8 @@ static inline int started_after(void *p1
+  * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
+  * words, if its mask is not equal to its cpuset's mask).
   */
--void cgroup_enable_task_cg_lists(void)
-+static void cgroup_enable_task_cg_lists(void)
+-int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
++static int cpuset_test_cpumask(struct task_struct *tsk,
++			       struct cgroup_scanner *scan)
  {
- 	struct task_struct *p, *g;
- 	write_lock(&css_set_lock);
+ 	return !cpus_equal(tsk->cpus_allowed,
+ 			(cgroup_cs(scan->cg))->cpus_allowed);
+@@ -727,7 +728,8 @@ int cpuset_test_cpumask(struct task_stru
+  * We don't need to re-check for the cgroup/cpuset membership, since we're
+  * holding cgroup_lock() at this point.
+  */
+-void cpuset_change_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
++static void cpuset_change_cpumask(struct task_struct *tsk,
++				  struct cgroup_scanner *scan)
+ {
+ 	set_cpus_allowed(tsk, (cgroup_cs(scan->cg))->cpus_allowed);
+ }
+@@ -1648,7 +1650,8 @@ int __init cpuset_init(void)
+  * Called by cgroup_scan_tasks() for each task in a cgroup.
+  * Return nonzero to stop the walk through the tasks.
+  */
+-void cpuset_do_move_task(struct task_struct *tsk, struct cgroup_scanner *scan)
++static void cpuset_do_move_task(struct task_struct *tsk,
++				struct cgroup_scanner *scan)
+ {
+ 	struct cpuset_hotplug_scanner *chsp;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
