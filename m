@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-vfs_ioctl-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:20 -0800
-Message-ID: <200802181012.m1IACIbm019573@imap1.linux-foundation.org>
+Subject: + fs-drop_cachesc-make-2-functions-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:31 -0800
+Message-ID: <200802181012.m1IACTS6019582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39783 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756429AbYBRKNJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756429AbYBRKNN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:13:09 -0500
+	Mon, 18 Feb 2008 05:13:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, hch@infradead.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     make vfs_ioctl() static
+     fs/drop_caches.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     make-vfs_ioctl-static.patch
+     fs-drop_cachesc-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make vfs_ioctl() static
+Subject: fs/drop_caches.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global vfs_ioctl() static.
+Make the following needlessly global functions static:
+
+- drop_pagecache()
+- drop_slab()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c         |    4 ++--
- include/linux/fs.h |    1 -
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ fs/drop_caches.c   |    4 ++--
+ include/linux/mm.h |    2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ioctl.c~make-vfs_ioctl-static fs/ioctl.c
---- a/fs/ioctl.c~make-vfs_ioctl-static
-+++ a/fs/ioctl.c
-@@ -28,8 +28,8 @@
-  *
-  * Returns 0 on success, -errno on error.
-  */
--long vfs_ioctl(struct file *filp, unsigned int cmd,
--	       unsigned long arg)
-+static long vfs_ioctl(struct file *filp, unsigned int cmd,
-+		      unsigned long arg)
+diff -puN fs/drop_caches.c~fs-drop_cachesc-make-2-functions-static fs/drop_caches.c
+--- a/fs/drop_caches.c~fs-drop_cachesc-make-2-functions-static
++++ a/fs/drop_caches.c
+@@ -25,7 +25,7 @@ static void drop_pagecache_sb(struct sup
+ 	spin_unlock(&inode_lock);
+ }
+ 
+-void drop_pagecache(void)
++static void drop_pagecache(void)
  {
- 	int error = -ENOTTY;
+ 	struct super_block *sb;
  
-diff -puN include/linux/fs.h~make-vfs_ioctl-static include/linux/fs.h
---- a/include/linux/fs.h~make-vfs_ioctl-static
-+++ a/include/linux/fs.h
-@@ -1919,7 +1919,6 @@ extern int vfs_stat_fd(int dfd, char __u
- extern int vfs_lstat_fd(int dfd, char __user *, struct kstat *);
- extern int vfs_fstat(unsigned int, struct kstat *);
+@@ -45,7 +45,7 @@ restart:
+ 	spin_unlock(&sb_lock);
+ }
  
--extern long vfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
- extern int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
- 		    unsigned long arg);
+-void drop_slab(void)
++static void drop_slab(void)
+ {
+ 	int nr_objects;
  
+diff -puN include/linux/mm.h~fs-drop_cachesc-make-2-functions-static include/linux/mm.h
+--- a/include/linux/mm.h~fs-drop_cachesc-make-2-functions-static
++++ a/include/linux/mm.h
+@@ -1190,8 +1190,6 @@ int drop_caches_sysctl_handler(struct ct
+ 					void __user *, size_t *, loff_t *);
+ unsigned long shrink_slab(unsigned long scanned, gfp_t gfp_mask,
+ 			unsigned long lru_pages);
+-void drop_pagecache(void);
+-void drop_slab(void);
+ 
+ #ifndef CONFIG_MMU
+ #define randomize_va_space 0
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
