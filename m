@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:10:22 -0800
-Message-ID: <200802181011.m1IABJs2019457@imap1.linux-foundation.org>
+Subject: + cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:10:27 -0800
+Message-ID: <200802181011.m1IABPwe019460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752498AbYBRKMA (ORCPT
+	by vger.kernel.org with ESMTP id S1752966AbYBRKMF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:00 -0500
+	Mon, 18 Feb 2008 05:12:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sam@ravnborg.org, ego@in.ibm.com
 
 
 The patch titled
-     cpu: fix section mismatch warnings in hotcpu_register
+     cpu: fix section mismatch warning in unregister_cpu_notifier
 has been added to the -mm tree.  Its filename is
-     cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+     cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: fix section mismatch warnings in hotcpu_register
+Subject: cpu: fix section mismatch warning in unregister_cpu_notifier
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warnings:
-WARNING: vmlinux.o(.data+0x5020): Section mismatch in reference from the variable cpu_vsyscall_notifier_nb.12876 to the function .cpuinit.text:cpu_vsyscall_notifier()
-WARNING: vmlinux.o(.data+0x9ce0): Section mismatch in reference from the variable profile_cpu_callback_nb.17654 to the function .devinit.text:profile_cpu_callback()
-WARNING: vmlinux.o(.data+0xd380): Section mismatch in reference from the variable workqueue_cpu_callback_nb.15004 to the function .devinit.text:workqueue_cpu_callback()
-WARNING: vmlinux.o(.data+0x11d00): Section mismatch in reference from the variable relay_hotcpu_callback_nb.19626 to the function .cpuinit.text:relay_hotcpu_callback()
-WARNING: vmlinux.o(.data+0x12970): Section mismatch in reference from the variable cpu_callback_nb.24694 to the function .devinit.text:cpu_callback()
-WARNING: vmlinux.o(.data+0x3fee0): Section mismatch in reference from the variable percpu_counter_hotcpu_callback_nb.10903 to the function .cpuinit.text:percpu_counter_hotcpu_callback()
-WARNING: vmlinux.o(.data+0x74ce0): Section mismatch in reference from the variable topology_cpu_callback_nb.12506 to the function .cpuinit.text:topology_cpu_callback()
+Fix following warning:
+WARNING: vmlinux.o(.text+0x75f4e): Section mismatch in reference from the function unregister_cpu_notifier() to the variable .cpuinit.data:cpu_chain
 
-Functions used as argument are by definition only used in HOTPLUG_CPU
-situations so thay are annotated __cpuinit.  Annotate the static variable used
-by hotcpu_register with __cpuinitdata to match this definition.
+We know that unregister_cpu_notifier is using HOTPLUG_CPU
+stuff - so ignore these references.
+Annotating unregister_cpu_notifier had been another option
+but this caused far more warnings since not all callers were
+annotated __cpuinit.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    2 +-
+ kernel/cpu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpu.h~cpu-fix-section-mismatch-warnings-in-hotcpu_register include/linux/cpu.h
---- a/include/linux/cpu.h~cpu-fix-section-mismatch-warnings-in-hotcpu_register
-+++ a/include/linux/cpu.h
-@@ -109,7 +109,7 @@ static inline void cpuhotplug_mutex_unlo
- extern void get_online_cpus(void);
- extern void put_online_cpus(void);
- #define hotcpu_notifier(fn, pri) {				\
--	static struct notifier_block fn##_nb =			\
-+	static struct notifier_block fn##_nb __cpuinitdata =	\
- 		{ .notifier_call = fn, .priority = pri };	\
- 	register_cpu_notifier(&fn##_nb);			\
- }
+diff -puN kernel/cpu.c~cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier kernel/cpu.c
+--- a/kernel/cpu.c~cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier
++++ a/kernel/cpu.c
+@@ -149,7 +149,7 @@ int __cpuinit register_cpu_notifier(stru
+ 
+ EXPORT_SYMBOL(register_cpu_notifier);
+ 
+-void unregister_cpu_notifier(struct notifier_block *nb)
++void __ref unregister_cpu_notifier(struct notifier_block *nb)
+ {
+ 	cpu_maps_update_begin();
+ 	raw_notifier_chain_unregister(&cpu_chain, nb);
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
