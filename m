@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:02:13 -0800
-Message-ID: <200802181003.m1IA3BEd019092@imap1.linux-foundation.org>
+Subject: + pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:02:18 -0800
+Message-ID: <200802181003.m1IA3G9C019102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47735 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45722 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752875AbYBRKDt (ORCPT
+	by vger.kernel.org with ESMTP id S1756826AbYBRKDw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:03:49 -0500
+	Mon, 18 Feb 2008 05:03:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sam@ravnborg.org, linux@dominikbrodowski.net
 
 
 The patch titled
-     pcmcia: silence section mismatch warnings from class_interface variables
+     pcmcia: silence section mismatch warnings from pci_driver variables
 has been added to the -mm tree.  Its filename is
-     pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+     pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: silence section mismatch warnings from class_interface variables
+Subject: pcmcia: silence section mismatch warnings from pci_driver variables
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Silence the following warnings:
-WARNING: drivers/pcmcia/built-in.o(.data+0x348): Section mismatch in reference from the variable pccard_sysfs_interface to the function .devinit.text:pccard_sysfs_add_socket()
-WARNING: drivers/pcmcia/built-in.o(.data+0x350): Section mismatch in reference from the variable pccard_sysfs_interface to the function .devexit.text:pccard_sysfs_remove_socket()
-WARNING: drivers/pcmcia/built-in.o(.data+0x6e8): Section mismatch in reference from the variable pcmcia_bus_interface to the function .devinit.text:pcmcia_bus_add_socket()
-WARNING: drivers/pcmcia/built-in.o(.data+0xa88): Section mismatch in reference from the variable pccard_rsrc_interface to the function .devinit.text:pccard_sysfs_add_rsrc()
-WARNING: drivers/pcmcia/built-in.o(.data+0xa90): Section mismatch in reference from the variable pccard_rsrc_interface to the function .devexit.text:pccard_sysfs_remove_rsrc()
+Silence following warnings:
+WARNING: drivers/pcmcia/built-in.o(.data+0x14e0): Section mismatch in reference from the variable pd6729_pci_drv to the function .devinit.text:pd6729_pci_probe()
+WARNING: drivers/pcmcia/built-in.o(.data+0x14e8): Section mismatch in reference from the variable pd6729_pci_drv to the function .devexit.text:pd6729_pci_remove()
+WARNING: drivers/pcmcia/built-in.o(.data+0x16c0): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devinit.text:i82092aa_pci_probe()
+WARNING: drivers/pcmcia/built-in.o(.data+0x16c8): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devexit.text:i82092aa_pci_remove()
 
-The variables of type class_interface contains references
-to __devinit and __devexit functions which is OK.
-Silence warnings by annotating the variables with __refdata.
+Rename the variables from *_drv to *_driver so modpost ignore the OK
+references to __devinit/__devexit functions.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/ds.c             |    2 +-
- drivers/pcmcia/rsrc_nonstatic.c |    2 +-
- drivers/pcmcia/socket_sysfs.c   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/pcmcia/i82092.c |    6 +++---
+ drivers/pcmcia/pd6729.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pcmcia/ds.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
-+++ a/drivers/pcmcia/ds.c
-@@ -1520,7 +1520,7 @@ static void pcmcia_bus_remove_socket(str
+diff -puN drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/i82092.c
+--- a/drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
++++ a/drivers/pcmcia/i82092.c
+@@ -53,7 +53,7 @@ static int i82092aa_socket_resume (struc
+ }
+ #endif
  
+-static struct pci_driver i82092aa_pci_drv = {
++static struct pci_driver i82092aa_pci_driver = {
+ 	.name           = "i82092aa",
+ 	.id_table       = i82092aa_pci_ids,
+ 	.probe          = i82092aa_pci_probe,
+@@ -714,13 +714,13 @@ static int i82092aa_set_mem_map(struct p
  
- /* the pcmcia_bus_interface is used to handle pcmcia socket devices */
--static struct class_interface pcmcia_bus_interface = {
-+static struct class_interface pcmcia_bus_interface __refdata = {
- 	.class = &pcmcia_socket_class,
- 	.add_dev = &pcmcia_bus_add_socket,
- 	.remove_dev = &pcmcia_bus_remove_socket,
-diff -puN drivers/pcmcia/rsrc_nonstatic.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/rsrc_nonstatic.c
---- a/drivers/pcmcia/rsrc_nonstatic.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
-+++ a/drivers/pcmcia/rsrc_nonstatic.c
-@@ -1045,7 +1045,7 @@ static void __devexit pccard_sysfs_remov
- 		device_remove_file(dev, *attr);
+ static int i82092aa_module_init(void)
+ {
+-	return pci_register_driver(&i82092aa_pci_drv);
++	return pci_register_driver(&i82092aa_pci_driver);
  }
  
--static struct class_interface pccard_rsrc_interface = {
-+static struct class_interface pccard_rsrc_interface __refdata = {
- 	.class = &pcmcia_socket_class,
- 	.add_dev = &pccard_sysfs_add_rsrc,
- 	.remove_dev = __devexit_p(&pccard_sysfs_remove_rsrc),
-diff -puN drivers/pcmcia/socket_sysfs.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables drivers/pcmcia/socket_sysfs.c
---- a/drivers/pcmcia/socket_sysfs.c~pcmcia-silence-section-mismatch-warnings-from-class_interface-variables
-+++ a/drivers/pcmcia/socket_sysfs.c
-@@ -403,7 +403,7 @@ static void __devexit pccard_sysfs_remov
- 		device_remove_file(dev, *attr);
+ static void i82092aa_module_exit(void)
+ {
+ 	enter("i82092aa_module_exit");
+-	pci_unregister_driver(&i82092aa_pci_drv);
++	pci_unregister_driver(&i82092aa_pci_driver);
+ 	if (sockets[0].io_base>0)
+ 			 release_region(sockets[0].io_base, 2);
+ 	leave("i82092aa_module_exit");
+diff -puN drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/pd6729.c
+--- a/drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
++++ a/drivers/pcmcia/pd6729.c
+@@ -778,7 +778,7 @@ static struct pci_device_id pd6729_pci_i
+ };
+ MODULE_DEVICE_TABLE(pci, pd6729_pci_ids);
+ 
+-static struct pci_driver pd6729_pci_drv = {
++static struct pci_driver pd6729_pci_driver = {
+ 	.name		= "pd6729",
+ 	.id_table	= pd6729_pci_ids,
+ 	.probe		= pd6729_pci_probe,
+@@ -791,12 +791,12 @@ static struct pci_driver pd6729_pci_drv 
+ 
+ static int pd6729_module_init(void)
+ {
+-	return pci_register_driver(&pd6729_pci_drv);
++	return pci_register_driver(&pd6729_pci_driver);
  }
  
--struct class_interface pccard_sysfs_interface = {
-+struct class_interface pccard_sysfs_interface __refdata = {
- 	.class = &pcmcia_socket_class,
- 	.add_dev = &pccard_sysfs_add_socket,
- 	.remove_dev = __devexit_p(&pccard_sysfs_remove_socket),
+ static void pd6729_module_exit(void)
+ {
+-	pci_unregister_driver(&pd6729_pci_drv);
++	pci_unregister_driver(&pd6729_pci_driver);
+ }
+ 
+ module_init(pd6729_module_init);
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
