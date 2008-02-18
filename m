@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + define-functions-for-page-cache-handling.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:55:09 -0800
-Message-ID: <200802180956.m1I9u6In018688@imap1.linux-foundation.org>
+Subject: + acer-wmi-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:55:49 -0800
+Message-ID: <200802180956.m1I9uluO018697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43583 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbYBRJ4k (ORCPT
+	by vger.kernel.org with ESMTP id S1752128AbYBRJ5f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 04:56:40 -0500
+	Mon, 18 Feb 2008 04:57:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dgc@sgi.com
+Cc: sam@ravnborg.org, carlos@strangeworlds.co.uk, len.brown@intel.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Define functions for page cache handling
+     acer-wmi: fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     define-functions-for-page-cache-handling.patch
+     acer-wmi-fix-section-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Define functions for page cache handling
-From: Christoph Lameter <clameter@sgi.com>
+Subject: acer-wmi: fix section mismatch warnings
+From: Sam Ravnborg <sam@ravnborg.org>
 
-We use the macros PAGE_CACHE_SIZE PAGE_CACHE_SHIFT PAGE_CACHE_MASK and
-PAGE_CACHE_ALIGN in various places in the kernel.  Many times common
-operations like calculating the offset or the index are coded using shifts and
-adds.  This patch provides inline functions to get the calculations
-accomplished without having to explicitly shift and add constants.
+Fix following warnings:
+WARNING: vmlinux.o(.text+0x672615): Section mismatch in reference from the function acer_platform_remove() to the function .exit.text:acer_backlight_exit()
+WARNING: vmlinux.o(.devinit.text+0x1e859): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_led_init()
+WARNING: vmlinux.o(.devinit.text+0x1e878): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_backlight_init()
 
-All functions take an address_space pointer. The address space pointer
-will be used in the future to eventually support a variable size
-page cache. Information reachable via the mapping may then determine
-page size.
+Remove __exit annotation from acer_backlight_exit(). We cannot reference
+a __exit annotated function from non __exit functions.
 
-New function                    Related base page constant
-====================================================================
-page_cache_shift(a)             PAGE_CACHE_SHIFT
-page_cache_size(a)              PAGE_CACHE_SIZE
-page_cache_mask(a)              PAGE_CACHE_MASK
-page_cache_index(a, pos)        Calculate page number from position
-page_cache_next(addr, pos)      Page number of next page
-page_cache_offset(a, pos)       Calculate offset into a page
-page_cache_pos(a, index, offset)
-                                Form position based on page number
-                                and an offset.
+acer_led_init() and acer_backlight_init() where both annotated __init but used
+from a __devinit function.  This would result in an oops should gcc drop their
+inlining and the module are hot plugged.
 
-This provides a basis that would allow the conversion of all page cache
-handling in the kernel and ultimately allow the removal of the PAGE_CACHE_*
-constants.
+Fix by annotating acer_led_init() and acer_backlight_init() __devinit.
 
-Reviewed-by: Dave Chinner <dgc@sgi.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   49 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ drivers/misc/acer-wmi.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pagemap.h~define-functions-for-page-cache-handling include/linux/pagemap.h
---- a/include/linux/pagemap.h~define-functions-for-page-cache-handling
-+++ a/include/linux/pagemap.h
-@@ -52,12 +52,61 @@ static inline void mapping_set_gfp_mask(
-  * space in smaller chunks for same flexibility).
-  *
-  * Or rather, it _will_ be done in larger chunks.
-+ *
-+ * The following constants can be used if a filesystem only supports a single
-+ * page size.
-  */
- #define PAGE_CACHE_SHIFT	PAGE_SHIFT
- #define PAGE_CACHE_SIZE		PAGE_SIZE
- #define PAGE_CACHE_MASK		PAGE_MASK
- #define PAGE_CACHE_ALIGN(addr)	(((addr)+PAGE_CACHE_SIZE-1)&PAGE_CACHE_MASK)
+diff -puN drivers/misc/acer-wmi.c~acer-wmi-fix-section-mismatch-warnings drivers/misc/acer-wmi.c
+--- a/drivers/misc/acer-wmi.c~acer-wmi-fix-section-mismatch-warnings
++++ a/drivers/misc/acer-wmi.c
+@@ -756,7 +756,7 @@ static struct led_classdev mail_led = {
+ 	.brightness_set = mail_led_set,
+ };
  
-+/*
-+ * Functions that are currently setup for a fixed PAGE_SIZE. The use of
-+ * these may allow larger page sizes in the future.
-+ */
-+static inline int mapping_order(struct address_space *mapping)
-+{
-+	return 0;
-+}
-+
-+static inline int page_cache_shift(struct address_space *mapping)
-+{
-+	return PAGE_SHIFT;
-+}
-+
-+static inline unsigned int page_cache_size(struct address_space *mapping)
-+{
-+	return PAGE_SIZE;
-+}
-+
-+static inline unsigned int page_cache_offset(struct address_space *mapping,
-+		loff_t pos)
-+{
-+	return pos & ~PAGE_MASK;
-+}
-+
-+static inline pgoff_t page_cache_index(struct address_space *mapping,
-+		loff_t pos)
-+{
-+	return pos >> page_cache_shift(mapping);
-+}
-+
-+/*
-+ * Index of the page starting on or after the given position.
-+ */
-+static inline pgoff_t page_cache_next(struct address_space *mapping,
-+		loff_t pos)
-+{
-+	return page_cache_index(mapping, pos + page_cache_size(mapping) - 1);
-+}
-+
-+static inline loff_t page_cache_pos(struct address_space *mapping,
-+		pgoff_t index, unsigned long offset)
-+{
-+	return ((loff_t)index << page_cache_shift(mapping)) + offset;
-+}
-+
- #define page_cache_get(page)		get_page(page)
- #define page_cache_release(page)	put_page(page)
- void release_pages(struct page **pages, int nr, int cold);
+-static int __init acer_led_init(struct device *dev)
++static int __devinit acer_led_init(struct device *dev)
+ {
+ 	return led_classdev_register(dev, &mail_led);
+ }
+@@ -789,7 +789,7 @@ static struct backlight_ops acer_bl_ops 
+ 	.update_status = update_bl_status,
+ };
+ 
+-static int __init acer_backlight_init(struct device *dev)
++static int __devinit acer_backlight_init(struct device *dev)
+ {
+ 	struct backlight_device *bd;
+ 
+@@ -808,7 +808,7 @@ static int __init acer_backlight_init(st
+ 	return 0;
+ }
+ 
+-static void __exit acer_backlight_exit(void)
++static void acer_backlight_exit(void)
+ {
+ 	backlight_device_unregister(acer_backlight_device);
+ }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-define-functions-for-page-cache-handling.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-use-page_cache_xxx-in-fs-splicec.patch
-git-unionfs.patch
-use-page_cache_xxx-for-fs-xfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-use-page_cache_xxx-functions-in-mm-filemapc.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
-use-page_cache_xxx-in-mm-rmapc.patch
-use-page_cache_xxx-in-mm-filemap_xipc.patch
-use-page_cache_xxx-in-mm-migratec.patch
-use-page_cache_xxx-in-fs-libfsc.patch
-use-page_cache_xxx-in-fs-sync.patch
-use-page_cache_xxx-in-fs-bufferc.patch
-use-page_cache_xxx-in-mm-mpagec.patch
-use-page_cache_xxx-in-mm-fadvisec.patch
-use-page_cache_xxx-in-ext2.patch
-use-page_cache_xxx-in-fs-ext3.patch
-use-page_cache_xxx-in-fs-reiserfs.patch
-use-page_cache_xxx-in-fs-ext4.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+samples-build-fix.patch
+git-acpi.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-kbuild.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
