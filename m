@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs-make-dlm_do_assert_master-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:02:06 -0800
-Message-ID: <200802181003.m1IA34PW019087@imap1.linux-foundation.org>
+Subject: + pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:03:14 -0800
+Message-ID: <200802181004.m1IA4CA4019156@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54482 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752703AbYBRKEO (ORCPT
+	by vger.kernel.org with ESMTP id S1752703AbYBRKET (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:04:14 -0500
+	Mon, 18 Feb 2008 05:04:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, swhiteho@redhat.com
+Cc: sam@ravnborg.org, greg@kroah.com
 
 
 The patch titled
-     ocfs: make dlm_do_assert_master() static
+     pci: fix section mismatch warning in pci_scan_child_bus
 has been added to the -mm tree.  Its filename is
-     ocfs-make-dlm_do_assert_master-static.patch
+     pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs: make dlm_do_assert_master() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: pci: fix section mismatch warning in pci_scan_child_bus
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Make the needlessly global dlm_do_assert_master() static.
+Fix following warning:
+WARNING: vmlinux.o(.text+0x47bdb1): Section mismatch in reference from the function pci_scan_child_bus() to the function .devinit.text:pcibios_fixup_bus()
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+We had plenty of functions that could be annotated __devinit but due to the
+former restriction that annotated symbols could not be annotated they were not
+so.
+
+So annotate these function and fix the references from the pci/hotplug/* code
+to silence the resuting warnings.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug-pci.c              |    2 +-
+ drivers/pci/hotplug/acpiphp_glue.c     |    2 +-
+ drivers/pci/hotplug/cpci_hotplug_pci.c |    2 +-
+ drivers/pci/hotplug/pciehp_pci.c       |    2 +-
+ drivers/pci/hotplug/shpchp_pci.c       |    2 +-
+ drivers/pci/probe.c                    |    8 ++++----
+ 6 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1695,9 +1695,9 @@ send_response:
-  * can periodically run all locks owned by this node
-  * and re-assert across the cluster...
-  */
--int dlm_do_assert_master(struct dlm_ctxt *dlm,
--			 struct dlm_lock_resource *res,
--			 void *nodemap, u32 flags)
-+static int dlm_do_assert_master(struct dlm_ctxt *dlm,
-+				struct dlm_lock_resource *res,
-+				void *nodemap, u32 flags)
+diff -puN drivers/pci/hotplug-pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug-pci.c
+--- a/drivers/pci/hotplug-pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/hotplug-pci.c
+@@ -4,7 +4,7 @@
+ #include "pci.h"
+ 
+ 
+-unsigned int pci_do_scan_bus(struct pci_bus *bus)
++unsigned int __devinit pci_do_scan_bus(struct pci_bus *bus)
  {
- 	struct dlm_assert_master assert;
- 	int to, tmpret;
+ 	unsigned int max;
+ 
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/acpiphp_glue.c
+--- a/drivers/pci/hotplug/acpiphp_glue.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1085,7 +1085,7 @@ static int acpiphp_bus_trim(acpi_handle 
+  * This function should be called per *physical slot*,
+  * not per each slot object in ACPI namespace.
+  */
+-static int enable_device(struct acpiphp_slot *slot)
++static int __ref enable_device(struct acpiphp_slot *slot)
+ {
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus = slot->bridge->pci_bus;
+diff -puN drivers/pci/hotplug/cpci_hotplug_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/cpci_hotplug_pci.c
+--- a/drivers/pci/hotplug/cpci_hotplug_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/hotplug/cpci_hotplug_pci.c
+@@ -250,7 +250,7 @@ int cpci_led_off(struct slot* slot)
+  * Device configuration functions
+  */
+ 
+-int cpci_configure_slot(struct slot* slot)
++int __ref cpci_configure_slot(struct slot* slot)
+ {
+ 	struct pci_bus *parent;
+ 	int fn;
+diff -puN drivers/pci/hotplug/pciehp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/pciehp_pci.c
+--- a/drivers/pci/hotplug/pciehp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/hotplug/pciehp_pci.c
+@@ -167,7 +167,7 @@ static void program_fw_provided_values(s
+ 	}
+ }
+ 
+-static int pciehp_add_bridge(struct pci_dev *dev)
++static int __ref pciehp_add_bridge(struct pci_dev *dev)
+ {
+ 	struct pci_bus *parent = dev->bus;
+ 	int pass, busnr, start = parent->secondary;
+diff -puN drivers/pci/hotplug/shpchp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/shpchp_pci.c
+--- a/drivers/pci/hotplug/shpchp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/hotplug/shpchp_pci.c
+@@ -96,7 +96,7 @@ static void program_fw_provided_values(s
+ 	}
+ }
+ 
+-int shpchp_configure_device(struct slot *p_slot)
++int __ref shpchp_configure_device(struct slot *p_slot)
+ {
+ 	struct pci_dev *dev;
+ 	struct pci_bus *parent = p_slot->ctrl->pci_dev->subordinate;
+diff -puN drivers/pci/probe.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
++++ a/drivers/pci/probe.c
+@@ -295,7 +295,7 @@ static void pci_read_bases(struct pci_de
+ 	}
+ }
+ 
+-void pci_read_bridge_bases(struct pci_bus *child)
++void __devinit pci_read_bridge_bases(struct pci_bus *child)
+ {
+ 	struct pci_dev *dev = child->self;
+ 	u8 io_base_lo, io_limit_lo;
+@@ -481,7 +481,7 @@ static void pci_fixup_parent_subordinate
+  * them, we proceed to assigning numbers to the remaining buses in
+  * order to avoid overlaps between old and new bus numbers.
+  */
+-int pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
++int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
+ {
+ 	struct pci_bus *child;
+ 	int is_cardbus = (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS);
+@@ -1015,7 +1015,7 @@ int pci_scan_slot(struct pci_bus *bus, i
+ 	return nr;
+ }
+ 
+-unsigned int pci_scan_child_bus(struct pci_bus *bus)
++unsigned int __devinit pci_scan_child_bus(struct pci_bus *bus)
+ {
+ 	unsigned int devfn, pass, max = bus->secondary;
+ 	struct pci_dev *dev;
+@@ -1123,7 +1123,7 @@ err_out:
+ 	return NULL;
+ }
+ 
+-struct pci_bus *pci_scan_bus_parented(struct device *parent,
++struct pci_bus * __devinit pci_scan_bus_parented(struct device *parent,
+ 		int bus, struct pci_ops *ops, void *sysdata)
+ {
+ 	struct pci_bus *b;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
+samples-build-fix.patch
 git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
 git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
