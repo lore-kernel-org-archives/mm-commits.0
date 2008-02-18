@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-for-fs-xfs.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:07:04 -0800
-Message-ID: <200802181008.m1IA81EN019342@imap1.linux-foundation.org>
+Subject: + ipwireless-remove-dead-code.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:06:39 -0800
+Message-ID: <200802181007.m1IA7bk5019332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54409 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756674AbYBRKII (ORCPT
+	by vger.kernel.org with ESMTP id S1752584AbYBRKIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:08:08 -0500
+	Mon, 18 Feb 2008 05:08:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dgc@sgi.com
+Cc: jkosina@suse.cz, bunk@kernel.org
 
 
 The patch titled
-     Use page_cache_xxx for fs/xfs
+     ipwireless: remove dead code
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-for-fs-xfs.patch
+     ipwireless-remove-dead-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,233 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx for fs/xfs
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ipwireless: remove dead code
+From: Jiri Kosina <jkosina@suse.cz>
 
-Use page_cache_xxx for fs/xfs
+Remove unused leftovers of debugging functions. 2.6.25 material.
 
-Reviewed-by: Dave Chinner <dgc@sgi.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_aops.c |   58 +++++++++++++++++-----------------
- fs/xfs/linux-2.6/xfs_lrw.c  |    4 +-
- 2 files changed, 32 insertions(+), 30 deletions(-)
+ drivers/char/pcmcia/ipwireless/hardware.c |   26 --------------------
+ drivers/char/pcmcia/ipwireless/hardware.h |    2 -
+ drivers/char/pcmcia/ipwireless/network.c  |   15 -----------
+ drivers/char/pcmcia/ipwireless/network.h  |    3 --
+ 4 files changed, 46 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_aops.c~use-page_cache_xxx-for-fs-xfs fs/xfs/linux-2.6/xfs_aops.c
---- a/fs/xfs/linux-2.6/xfs_aops.c~use-page_cache_xxx-for-fs-xfs
-+++ a/fs/xfs/linux-2.6/xfs_aops.c
-@@ -75,7 +75,7 @@ xfs_page_trace(
- 	xfs_inode_t	*ip;
- 	bhv_vnode_t	*vp = vn_from_inode(inode);
- 	loff_t		isize = i_size_read(inode);
--	loff_t		offset = page_offset(page);
-+	loff_t		offset = page_cache_pos(inode->i_mapping, page->index, 0);
- 	int		delalloc = -1, unmapped = -1, unwritten = -1;
+diff -puN drivers/char/pcmcia/ipwireless/hardware.c~ipwireless-remove-dead-code drivers/char/pcmcia/ipwireless/hardware.c
+--- a/drivers/char/pcmcia/ipwireless/hardware.c~ipwireless-remove-dead-code
++++ a/drivers/char/pcmcia/ipwireless/hardware.c
+@@ -354,32 +354,6 @@ struct ipw_rx_packet {
+ 	unsigned int channel_idx;
+ };
  
- 	if (page_has_buffers(page))
-@@ -599,11 +599,12 @@ xfs_probe_page(
- 	int			mapped)
+-#ifdef IPWIRELESS_STATE_DEBUG
+-int ipwireless_dump_hardware_state(char *p, size_t limit,
+-				   struct ipw_hardware *hw)
+-{
+-	return snprintf(p, limit,
+-			"debug: initializing=%d\n"
+-			"debug: tx_ready=%d\n"
+-			"debug: tx_queued=%d\n"
+-			"debug: rx_ready=%d\n"
+-			"debug: rx_bytes_queued=%d\n"
+-			"debug: blocking_rx=%d\n"
+-			"debug: removed=%d\n"
+-			"debug: hardware.shutting_down=%d\n"
+-			"debug: to_setup=%d\n",
+-			hw->initializing,
+-			hw->tx_ready,
+-			hw->tx_queued,
+-			hw->rx_ready,
+-			hw->rx_bytes_queued,
+-			hw->blocking_rx,
+-			hw->removed,
+-			hw->shutting_down,
+-			hw->to_setup);
+-}
+-#endif
+-
+ static char *data_type(const unsigned char *buf, unsigned length)
  {
- 	int			ret = 0;
-+	struct address_space	*mapping = page->mapping;
+ 	struct nl_packet_header *hdr = (struct nl_packet_header *) buf;
+diff -puN drivers/char/pcmcia/ipwireless/hardware.h~ipwireless-remove-dead-code drivers/char/pcmcia/ipwireless/hardware.h
+--- a/drivers/char/pcmcia/ipwireless/hardware.h~ipwireless-remove-dead-code
++++ a/drivers/char/pcmcia/ipwireless/hardware.h
+@@ -58,7 +58,5 @@ void ipwireless_init_hardware_v1(struct 
+ 				 void *reboot_cb_data);
+ void ipwireless_init_hardware_v2_v3(struct ipw_hardware *hw);
+ void ipwireless_sleep(unsigned int tenths);
+-int ipwireless_dump_hardware_state(char *p, size_t limit,
+-				   struct ipw_hardware *hw);
  
- 	if (PageWriteback(page))
- 		return 0;
+ #endif
+diff -puN drivers/char/pcmcia/ipwireless/network.c~ipwireless-remove-dead-code drivers/char/pcmcia/ipwireless/network.c
+--- a/drivers/char/pcmcia/ipwireless/network.c~ipwireless-remove-dead-code
++++ a/drivers/char/pcmcia/ipwireless/network.c
+@@ -63,21 +63,6 @@ struct ipw_network {
+ 	struct work_struct work_go_offline;
+ };
  
--	if (page->mapping && PageDirty(page)) {
-+	if (mapping && PageDirty(page)) {
- 		if (page_has_buffers(page)) {
- 			struct buffer_head	*bh, *head;
+-
+-#ifdef IPWIRELESS_STATE_DEBUG
+-int ipwireless_dump_network_state(char *p, size_t limit,
+-				  struct ipw_network *network)
+-{
+-	return snprintf(p, limit,
+-			"debug: ppp_blocked=%d\n"
+-			"debug: outgoing_packets_queued=%d\n"
+-			"debug: network.shutting_down=%d\n",
+-			network->ppp_blocked,
+-			network->outgoing_packets_queued,
+-			network->shutting_down);
+-}
+-#endif
+-
+ static void notify_packet_sent(void *callback_data, unsigned int packet_length)
+ {
+ 	struct ipw_network *network = callback_data;
+diff -puN drivers/char/pcmcia/ipwireless/network.h~ipwireless-remove-dead-code drivers/char/pcmcia/ipwireless/network.h
+--- a/drivers/char/pcmcia/ipwireless/network.h~ipwireless-remove-dead-code
++++ a/drivers/char/pcmcia/ipwireless/network.h
+@@ -49,7 +49,4 @@ void ipwireless_ppp_close(struct ipw_net
+ int ipwireless_ppp_channel_index(struct ipw_network *net);
+ int ipwireless_ppp_unit_number(struct ipw_network *net);
  
-@@ -618,7 +619,7 @@ xfs_probe_page(
- 					break;
- 			} while ((bh = bh->b_this_page) != head);
- 		} else
--			ret = mapped ? 0 : PAGE_CACHE_SIZE;
-+			ret = mapped ? 0 : page_cache_size(mapping);
- 	}
- 
- 	return ret;
-@@ -645,7 +646,7 @@ xfs_probe_cluster(
- 	} while ((bh = bh->b_this_page) != head);
- 
- 	/* if we reached the end of the page, sum forwards in following pages */
--	tlast = i_size_read(inode) >> PAGE_CACHE_SHIFT;
-+	tlast = page_cache_index(inode->i_mapping, i_size_read(inode));
- 	tindex = startpage->index + 1;
- 
- 	/* Prune this back to avoid pathological behavior */
-@@ -663,14 +664,14 @@ xfs_probe_cluster(
- 			size_t pg_offset, pg_len = 0;
- 
- 			if (tindex == tlast) {
--				pg_offset =
--				    i_size_read(inode) & (PAGE_CACHE_SIZE - 1);
-+				pg_offset = page_cache_offset(inode->i_mapping,
-+							i_size_read(inode));
- 				if (!pg_offset) {
- 					done = 1;
- 					break;
- 				}
- 			} else
--				pg_offset = PAGE_CACHE_SIZE;
-+				pg_offset = page_cache_size(inode->i_mapping);
- 
- 			if (page->index == tindex && !TestSetPageLocked(page)) {
- 				pg_len = xfs_probe_page(page, pg_offset, mapped);
-@@ -752,7 +753,8 @@ xfs_convert_page(
- 	int			bbits = inode->i_blkbits;
- 	int			len, page_dirty;
- 	int			count = 0, done = 0, uptodate = 1;
-- 	xfs_off_t		offset = page_offset(page);
-+	struct address_space	*map = inode->i_mapping;
-+	xfs_off_t		offset = page_cache_pos(map, page->index, 0);
- 
- 	if (page->index != tindex)
- 		goto fail;
-@@ -760,7 +762,7 @@ xfs_convert_page(
- 		goto fail;
- 	if (PageWriteback(page))
- 		goto fail_unlock_page;
--	if (page->mapping != inode->i_mapping)
-+	if (page->mapping != map)
- 		goto fail_unlock_page;
- 	if (!xfs_is_delayed_page(page, (*ioendp)->io_type))
- 		goto fail_unlock_page;
-@@ -772,20 +774,19 @@ xfs_convert_page(
- 	 * Derivation:
- 	 *
- 	 * End offset is the highest offset that this page should represent.
--	 * If we are on the last page, (end_offset & (PAGE_CACHE_SIZE - 1))
--	 * will evaluate non-zero and be less than PAGE_CACHE_SIZE and
-+	 * If we are on the last page, (end_offset & page_cache_mask())
-+	 * will evaluate non-zero and be less than page_cache_size() and
- 	 * hence give us the correct page_dirty count. On any other page,
- 	 * it will be zero and in that case we need page_dirty to be the
- 	 * count of buffers on the page.
- 	 */
- 	end_offset = min_t(unsigned long long,
--			(xfs_off_t)(page->index + 1) << PAGE_CACHE_SHIFT,
-+			(xfs_off_t)page_cache_pos(map, page->index + 1, 0),
- 			i_size_read(inode));
- 
- 	len = 1 << inode->i_blkbits;
--	p_offset = min_t(unsigned long, end_offset & (PAGE_CACHE_SIZE - 1),
--					PAGE_CACHE_SIZE);
--	p_offset = p_offset ? roundup(p_offset, len) : PAGE_CACHE_SIZE;
-+	p_offset = page_cache_offset(map, end_offset);
-+	p_offset = p_offset ? roundup(p_offset, len) : page_cache_size(map);
- 	page_dirty = p_offset / len;
- 
- 	bh = head = page_buffers(page);
-@@ -941,6 +942,7 @@ xfs_page_state_convert(
- 	int			page_dirty, count = 0;
- 	int			trylock = 0;
- 	int			all_bh = unmapped;
-+	struct address_space	*map = inode->i_mapping;
- 
- 	if (startio) {
- 		if (wbc->sync_mode == WB_SYNC_NONE && wbc->nonblocking)
-@@ -949,11 +951,11 @@ xfs_page_state_convert(
- 
- 	/* Is this page beyond the end of the file? */
- 	offset = i_size_read(inode);
--	end_index = offset >> PAGE_CACHE_SHIFT;
--	last_index = (offset - 1) >> PAGE_CACHE_SHIFT;
-+	end_index = page_cache_index(map, offset);
-+	last_index = page_cache_index(map, (offset - 1));
- 	if (page->index >= end_index) {
- 		if ((page->index >= end_index + 1) ||
--		    !(i_size_read(inode) & (PAGE_CACHE_SIZE - 1))) {
-+		    !(page_cache_offset(map, i_size_read(inode)))) {
- 			if (startio)
- 				unlock_page(page);
- 			return 0;
-@@ -967,22 +969,22 @@ xfs_page_state_convert(
- 	 * Derivation:
- 	 *
- 	 * End offset is the highest offset that this page should represent.
--	 * If we are on the last page, (end_offset & (PAGE_CACHE_SIZE - 1))
--	 * will evaluate non-zero and be less than PAGE_CACHE_SIZE and
--	 * hence give us the correct page_dirty count. On any other page,
-+	 * If we are on the last page, (page_cache_offset(mapping, end_offset))
-+	 * will evaluate non-zero and be less than page_cache_size(mapping)
-+	 * and hence give us the correct page_dirty count. On any other page,
- 	 * it will be zero and in that case we need page_dirty to be the
- 	 * count of buffers on the page.
-  	 */
- 	end_offset = min_t(unsigned long long,
--			(xfs_off_t)(page->index + 1) << PAGE_CACHE_SHIFT, offset);
-+			(xfs_off_t)page_cache_pos(map, page->index + 1, 0), offset);
- 	len = 1 << inode->i_blkbits;
--	p_offset = min_t(unsigned long, end_offset & (PAGE_CACHE_SIZE - 1),
--					PAGE_CACHE_SIZE);
--	p_offset = p_offset ? roundup(p_offset, len) : PAGE_CACHE_SIZE;
-+	p_offset = page_cache_offset(map, end_offset);
-+	p_offset = p_offset ? roundup(p_offset, len) : page_cache_size(map);
-+
- 	page_dirty = p_offset / len;
- 
- 	bh = head = page_buffers(page);
--	offset = page_offset(page);
-+	offset = page_cache_pos(map, page->index, 0);
- 	flags = BMAPI_READ;
- 	type = IOMAP_NEW;
- 
-@@ -1129,8 +1131,8 @@ xfs_page_state_convert(
- 		xfs_start_page_writeback(page, wbc, 1, count);
- 
- 	if (ioend && iomap_valid) {
--		offset = (iomap.iomap_offset + iomap.iomap_bsize - 1) >>
--					PAGE_CACHE_SHIFT;
-+		offset = page_cache_index(map,
-+			(iomap.iomap_offset + iomap.iomap_bsize - 1));
- 		tlast = min_t(pgoff_t, offset, last_index);
- 		xfs_cluster_write(inode, page->index + 1, &iomap, &ioend,
- 					wbc, startio, all_bh, tlast);
-diff -puN fs/xfs/linux-2.6/xfs_lrw.c~use-page_cache_xxx-for-fs-xfs fs/xfs/linux-2.6/xfs_lrw.c
---- a/fs/xfs/linux-2.6/xfs_lrw.c~use-page_cache_xxx-for-fs-xfs
-+++ a/fs/xfs/linux-2.6/xfs_lrw.c
-@@ -141,8 +141,8 @@ xfs_iozero(
- 		unsigned offset, bytes;
- 		void *fsdata;
- 
--		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
--		bytes = PAGE_CACHE_SIZE - offset;
-+		offset = page_cache_offset(mapping, pos);
-+		bytes = page_cache_size(mapping) - offset;
- 		if (bytes > count)
- 			bytes = count;
- 
+-int ipwireless_dump_network_state(char *p, size_t limit,
+-				  struct ipw_network *net);
+-
+ #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-define-functions-for-page-cache-handling.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-use-page_cache_xxx-in-fs-splicec.patch
-git-unionfs.patch
-use-page_cache_xxx-for-fs-xfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-use-page_cache_xxx-functions-in-mm-filemapc.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
-use-page_cache_xxx-in-mm-rmapc.patch
-use-page_cache_xxx-in-mm-filemap_xipc.patch
-use-page_cache_xxx-in-mm-migratec.patch
-use-page_cache_xxx-in-fs-libfsc.patch
-use-page_cache_xxx-in-fs-sync.patch
-use-page_cache_xxx-in-fs-bufferc.patch
-use-page_cache_xxx-in-mm-mpagec.patch
-use-page_cache_xxx-in-mm-fadvisec.patch
-use-page_cache_xxx-in-ext2.patch
-use-page_cache_xxx-in-fs-ext3.patch
-use-page_cache_xxx-in-fs-reiserfs.patch
-use-page_cache_xxx-in-fs-ext4.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-hid.patch
+elantech-touchpad-driver.patch
+ipwireless-remove-dead-code.patch
