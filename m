@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + jffs2-fix-sparse-warning-in-nodemgmtc.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:00:40 -0800
-Message-ID: <200802181001.m1IA1bAD018955@imap1.linux-foundation.org>
+Subject: + jffs2-include-function-prototype-for-jffs2_ioctl.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:00:35 -0800
+Message-ID: <200802181001.m1IA1WjE018952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44675 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759305AbYBRKCR (ORCPT
+	by vger.kernel.org with ESMTP id S1755921AbYBRKCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:02:17 -0500
+	Mon, 18 Feb 2008 05:02:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     jffs2: fix sparse warning in nodemgmt.c
+     jffs2: include function prototype for jffs2_ioctl
 has been added to the -mm tree.  Its filename is
-     jffs2-fix-sparse-warning-in-nodemgmtc.patch
+     jffs2-include-function-prototype-for-jffs2_ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: fix sparse warning in nodemgmt.c
+Subject: jffs2: include function prototype for jffs2_ioctl
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-fs/jffs2/nodemgmt.c:60:8: warning: symbol 'ret' shadows an earlier one
-fs/jffs2/nodemgmt.c:45:6: originally declared here
-
-Use a different var (gc) in the inner loop to test the condition.
+fs/jffs2/ioctl.c:14:5: warning: symbol 'jffs2_ioctl' was not declared.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/nodemgmt.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/jffs2/ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/jffs2/nodemgmt.c~jffs2-fix-sparse-warning-in-nodemgmtc fs/jffs2/nodemgmt.c
---- a/fs/jffs2/nodemgmt.c~jffs2-fix-sparse-warning-in-nodemgmtc
-+++ a/fs/jffs2/nodemgmt.c
-@@ -57,7 +57,7 @@ int jffs2_reserve_space(struct jffs2_sb_
- 	/* this needs a little more thought (true <tglx> :)) */
- 	while(ret == -EAGAIN) {
- 		while(c->nr_free_blocks + c->nr_erasing_blocks < blocksneeded) {
--			int ret;
-+			int gc;
- 			uint32_t dirty, avail;
+diff -puN fs/jffs2/ioctl.c~jffs2-include-function-prototype-for-jffs2_ioctl fs/jffs2/ioctl.c
+--- a/fs/jffs2/ioctl.c~jffs2-include-function-prototype-for-jffs2_ioctl
++++ a/fs/jffs2/ioctl.c
+@@ -10,6 +10,7 @@
+  */
  
- 			/* calculate real dirty size
-@@ -116,9 +116,9 @@ int jffs2_reserve_space(struct jffs2_sb_
- 				  c->free_size + c->dirty_size + c->wasted_size + c->used_size + c->erasing_size + c->bad_size, c->flash_size));
- 			spin_unlock(&c->erase_completion_lock);
+ #include <linux/fs.h>
++#include "nodelist.h"
  
--			ret = jffs2_garbage_collect_pass(c);
--			if (ret)
--				return ret;
-+			gc = jffs2_garbage_collect_pass(c);
-+			if (gc)
-+				return gc;
- 
- 			cond_resched();
- 
+ int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
+ 		unsigned long arg)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
