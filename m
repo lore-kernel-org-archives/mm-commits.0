@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pci_bus_size_cardbus-mustnt-be-__devinit.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:03:30 -0800
-Message-ID: <200802181004.m1IA4Scv019165@imap1.linux-foundation.org>
+Subject: + pci_alloc_child_bus-mustnt-be-__devinit.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:03:19 -0800
+Message-ID: <200802181004.m1IA4HqI019159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755340AbYBRKEo (ORCPT
+	by vger.kernel.org with ESMTP id S1754388AbYBRKEf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:04:44 -0500
+	Mon, 18 Feb 2008 05:04:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, greg@kroah.com
 
 
 The patch titled
-     pci_bus_size_cardbus() mustn't be __devinit
+     pci_alloc_child_bus() mustn't be __devinit
 has been added to the -mm tree.  Its filename is
-     pci_bus_size_cardbus-mustnt-be-__devinit.patch
+     pci_alloc_child_bus-mustnt-be-__devinit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci_bus_size_cardbus() mustn't be __devinit
+Subject: pci_alloc_child_bus() mustn't be __devinit
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: drivers/pci/built-in.o(.text+0x28e1f): Section mismatch in reference from the function pci_bus_size_bridges() to the function .devinit.text:pci_bus_size_cardbus()
+WARNING: drivers/pci/built-in.o(.text+0xc4c): Section mismatch in reference from the function pci_add_new_bus() to the function .devinit.text:pci_alloc_child_bus()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-bus.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pci/probe.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/setup-bus.c~pci_bus_size_cardbus-mustnt-be-__devinit drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci_bus_size_cardbus-mustnt-be-__devinit
-+++ a/drivers/pci/setup-bus.c
-@@ -404,8 +404,7 @@ static int pbus_size_mem(struct pci_bus 
- 	return 1;
+diff -puN drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit
++++ a/drivers/pci/probe.c
+@@ -397,8 +397,8 @@ static struct pci_bus * pci_alloc_bus(vo
+ 	return b;
  }
  
--static void __devinit
--pci_bus_size_cardbus(struct pci_bus *bus)
-+static void pci_bus_size_cardbus(struct pci_bus *bus)
+-static struct pci_bus * __devinit
+-pci_alloc_child_bus(struct pci_bus *parent, struct pci_dev *bridge, int busnr)
++static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
++					   struct pci_dev *bridge, int busnr)
  {
- 	struct pci_dev *bridge = bus->self;
- 	struct resource *b_res = &bridge->resource[PCI_BRIDGE_RESOURCES];
+ 	struct pci_bus *child;
+ 	int i;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
