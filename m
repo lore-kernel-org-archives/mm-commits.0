@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-udf_error-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:00 -0800
-Message-ID: <200802181011.m1IABwo5019484@imap1.linux-foundation.org>
+Subject: + fs-hfsplus-proper-externs.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:05 -0800
+Message-ID: <200802181012.m1IAC34D019559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53733 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753496AbYBRKMm (ORCPT
+	by vger.kernel.org with ESMTP id S1755667AbYBRKM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:42 -0500
+	Mon, 18 Feb 2008 05:12:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, zippel@linux-m68k.org
 
 
 The patch titled
-     make udf_error() static
+     fs/hfsplus/: proper externs
 has been added to the -mm tree.  Its filename is
-     make-udf_error-static.patch
+     fs-hfsplus-proper-externs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make udf_error() static
+Subject: fs/hfsplus/: proper externs
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global udf_error() static.
+Add proper extern declarations for two structs in fs/hfsplus/hfsplus_fs.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c   |    6 ++++--
- fs/udf/udfdecl.h |    1 -
+ fs/hfsplus/hfsplus_fs.h |    4 ++++
+ fs/hfsplus/inode.c      |    3 ---
  2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/udf/super.c~make-udf_error-static fs/udf/super.c
---- a/fs/udf/super.c~make-udf_error-static
-+++ a/fs/udf/super.c
-@@ -100,6 +100,8 @@ static void udf_close_lvid(struct super_
- static unsigned int udf_count_free(struct super_block *);
- static int udf_statfs(struct dentry *, struct kstatfs *);
- static int udf_show_options(struct seq_file *, struct vfsmount *);
-+static void udf_error(struct super_block *sb, const char *function,
-+		      const char *fmt, ...);
+diff -puN fs/hfsplus/hfsplus_fs.h~fs-hfsplus-proper-externs fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~fs-hfsplus-proper-externs
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -311,6 +311,10 @@ int hfsplus_delete_cat(u32, struct inode
+ int hfsplus_rename_cat(u32, struct inode *, struct qstr *,
+ 		       struct inode *, struct qstr *);
  
- struct logicalVolIntegrityDescImpUse *udf_sb_lvidiu(struct udf_sb_info *sbi)
- {
-@@ -1920,8 +1922,8 @@ error_out:
- 	return -EINVAL;
++/* dir.c */
++extern const struct inode_operations hfsplus_dir_inode_operations;
++extern const struct file_operations hfsplus_dir_operations;
++
+ /* extents.c */
+ int hfsplus_ext_cmp_key(const hfsplus_btree_key *, const hfsplus_btree_key *);
+ void hfsplus_ext_write_extent(struct inode *);
+diff -puN fs/hfsplus/inode.c~fs-hfsplus-proper-externs fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~fs-hfsplus-proper-externs
++++ a/fs/hfsplus/inode.c
+@@ -278,9 +278,6 @@ static int hfsplus_file_release(struct i
+ 	return 0;
  }
  
--void udf_error(struct super_block *sb, const char *function,
--	       const char *fmt, ...)
-+static void udf_error(struct super_block *sb, const char *function,
-+		      const char *fmt, ...)
- {
- 	va_list args;
- 
-diff -puN fs/udf/udfdecl.h~make-udf_error-static fs/udf/udfdecl.h
---- a/fs/udf/udfdecl.h~make-udf_error-static
-+++ a/fs/udf/udfdecl.h
-@@ -83,7 +83,6 @@ struct extent_position {
- };
- 
- /* super.c */
--extern void udf_error(struct super_block *, const char *, const char *, ...);
- extern void udf_warning(struct super_block *, const char *, const char *, ...);
- 
- /* namei.c */
+-extern const struct inode_operations hfsplus_dir_inode_operations;
+-extern struct file_operations hfsplus_dir_operations;
+-
+ static const struct inode_operations hfsplus_file_inode_operations = {
+ 	.lookup		= hfsplus_file_lookup,
+ 	.truncate	= hfsplus_file_truncate,
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
