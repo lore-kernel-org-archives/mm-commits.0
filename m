@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs-make-dlm_do_assert_master-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 04:20:11 -0800
-Message-ID: <200802181221.m1ICL9qt024278@imap1.linux-foundation.org>
+Subject: + pata_amd-fix-sparse-warning.patch added to -mm tree
+Date: Mon, 18 Feb 2008 04:21:24 -0800
+Message-ID: <200802181222.m1ICMM8Z024367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758185AbYBRMWU (ORCPT
+	by vger.kernel.org with ESMTP id S1758589AbYBRMWd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 07:22:20 -0500
+	Mon, 18 Feb 2008 07:22:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mark.fasheh@oracle.com
+Cc: harvey.harrison@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     ocfs: make dlm_do_assert_master() static
+     pata_amd: fix sparse warning
 has been added to the -mm tree.  Its filename is
-     ocfs-make-dlm_do_assert_master-static.patch
+     pata_amd-fix-sparse-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs: make dlm_do_assert_master() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: pata_amd: fix sparse warning
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Make the needlessly global dlm_do_assert_master() static.
+Current code is essentially choosing between dividing by 1 or
+dividing by two, make the conditions a little more obvious.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+As a bonus, removes a sparse error:
+drivers/ata/pata_amd.c:59:11: warning: symbol '__x' shadows an earlier one
+drivers/ata/pata_amd.c:59:11: originally declared here
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/pata_amd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1695,9 +1695,9 @@ send_response:
-  * can periodically run all locks owned by this node
-  * and re-assert across the cluster...
-  */
--int dlm_do_assert_master(struct dlm_ctxt *dlm,
--			 struct dlm_lock_resource *res,
--			 void *nodemap, u32 flags)
-+static int dlm_do_assert_master(struct dlm_ctxt *dlm,
-+				struct dlm_lock_resource *res,
-+				void *nodemap, u32 flags)
- {
- 	struct dlm_assert_master assert;
- 	int to, tmpret;
+diff -puN drivers/ata/pata_amd.c~pata_amd-fix-sparse-warning drivers/ata/pata_amd.c
+--- a/drivers/ata/pata_amd.c~pata_amd-fix-sparse-warning
++++ a/drivers/ata/pata_amd.c
+@@ -56,7 +56,9 @@ static void timing_setup(struct ata_port
+ 	u8 t;
+ 
+ 	T = 1000000000 / amd_clock;
+-	UT = T / min_t(int, max_t(int, clock, 1), 2);
++	UT = T;
++	if (clock >= 2)
++		UT = T / 2;
+ 
+ 	if (ata_timing_compute(adev, speed, &at, T, UT) < 0) {
+ 		dev_printk(KERN_ERR, &pdev->dev, "unknown mode %d.\n", speed);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-bcm43xx-removal.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+origin.patch
+acpi-sparse-fix-replace-macro-with-static-function.patch
+cifs-remove-global_extern-macro.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+lockd-fix-sparse-warning-in-svcsharec.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
