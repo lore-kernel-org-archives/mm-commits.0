@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-struct-def_blk_aops-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:59 -0800
-Message-ID: <200802181012.m1IACvoV019600@imap1.linux-foundation.org>
+Subject: + let-log_buf_shift-default-to-17.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:49 -0800
+Message-ID: <200802181012.m1IACl6M019594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44003 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755877AbYBRKNm (ORCPT
+	by vger.kernel.org with ESMTP id S1756542AbYBRKOc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:13:42 -0500
+	Mon, 18 Feb 2008 05:14:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     make struct def_blk_aops static
+     let LOG_BUF_SHIFT default to 17
 has been added to the -mm tree.  Its filename is
-     make-struct-def_blk_aops-static.patch
+     let-log_buf_shift-default-to-17.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make struct def_blk_aops static
+Subject: let LOG_BUF_SHIFT default to 17
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global struct def_blk_aops static.
+16 kB is often no longer enough for a normal boot of an UP system.
+
+And even less when people e.g. use suspend.
+
+17 seems to be a more reasonable default for current kernels on current
+hardware (it's just the default, anyone who is memory limited can still lower
+it).
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c     |    4 +++-
- include/linux/fs.h |    1 -
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ init/Kconfig |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN fs/block_dev.c~make-struct-def_blk_aops-static fs/block_dev.c
---- a/fs/block_dev.c~make-struct-def_blk_aops-static
-+++ a/fs/block_dev.c
-@@ -31,6 +31,8 @@ struct bdev_inode {
- 	struct inode vfs_inode;
- };
+diff -puN init/Kconfig~let-log_buf_shift-default-to-17 init/Kconfig
+--- a/init/Kconfig~let-log_buf_shift-default-to-17
++++ a/init/Kconfig
+@@ -259,17 +259,14 @@ config IKCONFIG_PROC
+ config LOG_BUF_SHIFT
+ 	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)"
+ 	range 12 21
+-	default 17 if S390 || LOCKDEP
+-	default 16 if X86_NUMAQ || IA64
+-	default 15 if SMP
+-	default 14
++	default 17
+ 	help
+ 	  Select kernel log buffer size as a power of 2.
+-	  Defaults and Examples:
+-	  	     17 => 128 KB for S/390
+-		     16 => 64 KB for x86 NUMAQ or IA-64
+-	             15 => 32 KB for SMP
+-	             14 => 16 KB for uniprocessor
++	  Examples:
++	  	     17 => 128 KB
++		     16 => 64 KB
++	             15 => 32 KB
++	             14 => 16 KB
+ 		     13 =>  8 KB
+ 		     12 =>  4 KB
  
-+static const struct address_space_operations def_blk_aops;
-+
- static inline struct bdev_inode *BDEV_I(struct inode *inode)
- {
- 	return container_of(inode, struct bdev_inode, vfs_inode);
-@@ -1137,7 +1139,7 @@ static long block_ioctl(struct file *fil
- 	return blkdev_ioctl(file->f_mapping->host, file, cmd, arg);
- }
- 
--const struct address_space_operations def_blk_aops = {
-+static const struct address_space_operations def_blk_aops = {
- 	.readpage	= blkdev_readpage,
- 	.writepage	= blkdev_writepage,
- 	.sync_page	= block_sync_page,
-diff -puN include/linux/fs.h~make-struct-def_blk_aops-static include/linux/fs.h
---- a/include/linux/fs.h~make-struct-def_blk_aops-static
-+++ a/include/linux/fs.h
-@@ -1589,7 +1589,6 @@ extern void bd_set_size(struct block_dev
- extern void bd_forget(struct inode *inode);
- extern void bdput(struct block_device *);
- extern struct block_device *open_by_devnum(dev_t, unsigned);
--extern const struct address_space_operations def_blk_aops;
- #else
- static inline void bd_forget(struct inode *inode) {}
- #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
