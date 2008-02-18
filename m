@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-in-fs-ext3.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:16:58 -0800
-Message-ID: <200802181017.m1IAHuOe019854@imap1.linux-foundation.org>
+Subject: + make-fs-bufferccont_expand_zero-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:12:09 -0800
+Message-ID: <200802181013.m1IAD7Ek019612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39372 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757046AbYBRKS3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756793AbYBRKSs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:18:29 -0500
+	Mon, 18 Feb 2008 05:18:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     Use page_cache_xxx in fs/ext3
+     make fs/buffer.c:cont_expand_zero() static
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-in-fs-ext3.patch
+     make-fs-bufferccont_expand_zero-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,193 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in fs/ext3
-From: Christoph Lameter <clameter@sgi.com>
+Subject: make fs/buffer.c:cont_expand_zero() static
+From: Adrian Bunk <bunk@kernel.org>
 
-Use page_cache_xxx in fs/ext3
+cont_expand_zero() can become static.
 
-Reviewed-by: Dave Chinner <dgc@sgi.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c   |    3 ++-
- fs/ext3/inode.c |   39 ++++++++++++++++++++-------------------
- 2 files changed, 22 insertions(+), 20 deletions(-)
+ fs/buffer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/dir.c~use-page_cache_xxx-in-fs-ext3 fs/ext3/dir.c
---- a/fs/ext3/dir.c~use-page_cache_xxx-in-fs-ext3
-+++ a/fs/ext3/dir.c
-@@ -133,7 +133,8 @@ static int ext3_readdir(struct file * fi
- 						&map_bh, 0, 0);
- 		if (err > 0) {
- 			pgoff_t index = map_bh.b_blocknr >>
--					(PAGE_CACHE_SHIFT - inode->i_blkbits);
-+				(page_cache_shift(inode->i_mapping)
-+					- inode->i_blkbits);
- 			if (!ra_has_index(&filp->f_ra, index))
- 				page_cache_sync_readahead(
- 					sb->s_bdev->bd_inode->i_mapping,
-diff -puN fs/ext3/inode.c~use-page_cache_xxx-in-fs-ext3 fs/ext3/inode.c
---- a/fs/ext3/inode.c~use-page_cache_xxx-in-fs-ext3
-+++ a/fs/ext3/inode.c
-@@ -1147,8 +1147,8 @@ static int ext3_write_begin(struct file 
- 	pgoff_t index;
- 	unsigned from, to;
+diff -puN fs/buffer.c~make-fs-bufferccont_expand_zero-static fs/buffer.c
+--- a/fs/buffer.c~make-fs-bufferccont_expand_zero-static
++++ a/fs/buffer.c
+@@ -2205,8 +2205,8 @@ out:
+ 	return err;
+ }
  
--	index = pos >> PAGE_CACHE_SHIFT;
--	from = pos & (PAGE_CACHE_SIZE - 1);
-+	index = page_cache_index(mapping, pos);
-+	from = page_cache_offset(mapping, pos);
- 	to = from + len;
- 
- retry:
-@@ -1244,7 +1244,7 @@ static int ext3_ordered_write_end(struct
- 	unsigned from, to;
- 	int ret = 0, ret2;
- 
--	from = pos & (PAGE_CACHE_SIZE - 1);
-+	from = page_cache_offset(mapping, pos);
- 	to = from + len;
- 
- 	ret = walk_page_buffers(handle, page_buffers(page),
-@@ -1314,7 +1314,7 @@ static int ext3_journalled_write_end(str
- 	int partial = 0;
- 	unsigned from, to;
- 
--	from = pos & (PAGE_CACHE_SIZE - 1);
-+	from = page_cache_offset(mapping, pos);
- 	to = from + len;
- 
- 	if (copied < len) {
-@@ -1477,6 +1477,7 @@ static int ext3_ordered_writepage(struct
- 	handle_t *handle = NULL;
- 	int ret = 0;
- 	int err;
-+	int pagesize = page_cache_size(inode->i_mapping);
- 
- 	J_ASSERT(PageLocked(page));
- 
-@@ -1499,8 +1500,7 @@ static int ext3_ordered_writepage(struct
- 				(1 << BH_Dirty)|(1 << BH_Uptodate));
- 	}
- 	page_bufs = page_buffers(page);
--	walk_page_buffers(handle, page_bufs, 0,
--			PAGE_CACHE_SIZE, NULL, bget_one);
-+	walk_page_buffers(handle, page_bufs, 0, pagesize, NULL, bget_one);
- 
- 	ret = block_write_full_page(page, ext3_get_block, wbc);
- 
-@@ -1517,13 +1517,12 @@ static int ext3_ordered_writepage(struct
- 	 * and generally junk.
- 	 */
- 	if (ret == 0) {
--		err = walk_page_buffers(handle, page_bufs, 0, PAGE_CACHE_SIZE,
--					NULL, journal_dirty_data_fn);
-+		err = walk_page_buffers(handle, page_bufs, 0, pagesize,
-+			NULL, journal_dirty_data_fn);
- 		if (!ret)
- 			ret = err;
- 	}
--	walk_page_buffers(handle, page_bufs, 0,
--			PAGE_CACHE_SIZE, NULL, bput_one);
-+	walk_page_buffers(handle, page_bufs, 0, pagesize, NULL, bput_one);
- 	err = ext3_journal_stop(handle);
- 	if (!ret)
- 		ret = err;
-@@ -1571,10 +1570,12 @@ out_fail:
- static int ext3_journalled_writepage(struct page *page,
- 				struct writeback_control *wbc)
+-int cont_expand_zero(struct file *file, struct address_space *mapping,
+-			loff_t pos, loff_t *bytes)
++static int cont_expand_zero(struct file *file, struct address_space *mapping,
++			    loff_t pos, loff_t *bytes)
  {
--	struct inode *inode = page->mapping->host;
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
- 	handle_t *handle = NULL;
- 	int ret = 0;
- 	int err;
-+	int pagesize = page_cache_size(inode->i_mapping);
- 
- 	if (ext3_journal_current_handle())
- 		goto no_write;
-@@ -1591,17 +1592,16 @@ static int ext3_journalled_writepage(str
- 		 * doesn't seem much point in redirtying the page here.
- 		 */
- 		ClearPageChecked(page);
--		ret = block_prepare_write(page, 0, PAGE_CACHE_SIZE,
--					ext3_get_block);
-+		ret = block_prepare_write(page, 0, pagesize, ext3_get_block);
- 		if (ret != 0) {
- 			ext3_journal_stop(handle);
- 			goto out_unlock;
- 		}
- 		ret = walk_page_buffers(handle, page_buffers(page), 0,
--			PAGE_CACHE_SIZE, NULL, do_journal_get_write_access);
-+			pagesize, NULL, do_journal_get_write_access);
- 
- 		err = walk_page_buffers(handle, page_buffers(page), 0,
--				PAGE_CACHE_SIZE, NULL, write_end_fn);
-+			pagesize, NULL, write_end_fn);
- 		if (ret == 0)
- 			ret = err;
- 		EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
-@@ -1824,8 +1824,8 @@ void ext3_set_aops(struct inode *inode)
- static int ext3_block_truncate_page(handle_t *handle, struct page *page,
- 		struct address_space *mapping, loff_t from)
- {
--	ext3_fsblk_t index = from >> PAGE_CACHE_SHIFT;
--	unsigned offset = from & (PAGE_CACHE_SIZE-1);
-+	ext3_fsblk_t index = page_cache_index(mapping, from);
-+	unsigned offset = page_cache_offset(mapping, from);
- 	unsigned blocksize, iblock, length, pos;
  	struct inode *inode = mapping->host;
- 	struct buffer_head *bh;
-@@ -1833,7 +1833,8 @@ static int ext3_block_truncate_page(hand
- 
- 	blocksize = inode->i_sb->s_blocksize;
- 	length = blocksize - (offset & (blocksize - 1));
--	iblock = index << (PAGE_CACHE_SHIFT - inode->i_sb->s_blocksize_bits);
-+	iblock = index <<
-+		(page_cache_shift(mapping) - inode->i_sb->s_blocksize_bits);
- 
- 	/*
- 	 * For "nobh" option,  we can only work if we don't need to
-@@ -2312,7 +2313,7 @@ void ext3_truncate(struct inode *inode)
- 		page = NULL;
- 	} else {
- 		page = grab_cache_page(mapping,
--				inode->i_size >> PAGE_CACHE_SHIFT);
-+				page_cache_index(mapping, inode->i_size));
- 		if (!page)
- 			return;
- 	}
+ 	unsigned blocksize = 1 << inode->i_blkbits;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-define-functions-for-page-cache-handling.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-use-page_cache_xxx-in-fs-splicec.patch
-git-unionfs.patch
-use-page_cache_xxx-for-fs-xfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-use-page_cache_xxx-functions-in-mm-filemapc.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
-use-page_cache_xxx-in-mm-rmapc.patch
-use-page_cache_xxx-in-mm-filemap_xipc.patch
-use-page_cache_xxx-in-mm-migratec.patch
-use-page_cache_xxx-in-fs-libfsc.patch
-use-page_cache_xxx-in-fs-sync.patch
-use-page_cache_xxx-in-fs-bufferc.patch
-use-page_cache_xxx-in-mm-mpagec.patch
-use-page_cache_xxx-in-mm-fadvisec.patch
-use-page_cache_xxx-in-ext2.patch
-use-page_cache_xxx-in-fs-ext3.patch
-use-page_cache_xxx-in-fs-reiserfs.patch
-use-page_cache_xxx-in-fs-ext4.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
+git-kbuild.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
