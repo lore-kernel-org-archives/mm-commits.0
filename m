@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-mtd-nand-cs553x_nandcpart_probes-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:00:29 -0800
-Message-ID: <200802181001.m1IA1Qic018949@imap1.linux-foundation.org>
+Subject: + 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:01:14 -0800
+Message-ID: <200802181002.m1IA2C4i019054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51039 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758450AbYBRKCa (ORCPT
+	by vger.kernel.org with ESMTP id S1757516AbYBRKDG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:02:30 -0500
+	Mon, 18 Feb 2008 05:03:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, dwmw2@infradead.org, mart.raudsepp@artecdesign.ee
+Cc: linux@rainbow-software.org, bjorn.helgaas@hp.com, jeff@garzik.org
 
 
 The patch titled
-     make mtd/nand/cs553x_nand.c:part_probes[] static
+     3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup update
 has been added to the -mm tree.  Its filename is
-     make-mtd-nand-cs553x_nandcpart_probes-static.patch
+     3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make mtd/nand/cs553x_nand.c:part_probes[] static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup update
+From: Ondrej Zary <linux@rainbow-software.org>
 
-Make the needlessly global part_probes[] static.
+this patch converts 3c509 driver to isa_driver and pnp_driver. The result is
+that autoloading using udev and hibernation works with ISA PnP cards. It also
+adds hibernation support for non-PnP ISA cards.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Mart Raudsepp <mart.raudsepp@artecdesign.ee> 
-Cc: David Woodhouse <dwmw2@infradead.org>
+xcvr module parameter was removed as its value was not used.
+
+Tested using 3 ISA cards in various combinations of PnP and non-PnP modes.
+EISA and MCA only compile-tested.
+
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/cs553x_nand.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/3c509.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/mtd/nand/cs553x_nand.c~make-mtd-nand-cs553x_nandcpart_probes-static drivers/mtd/nand/cs553x_nand.c
---- a/drivers/mtd/nand/cs553x_nand.c~make-mtd-nand-cs553x_nandcpart_probes-static
-+++ a/drivers/mtd/nand/cs553x_nand.c
-@@ -279,7 +279,7 @@ static int is_geode(void)
+diff -puN drivers/net/3c509.c~3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update drivers/net/3c509.c
+--- a/drivers/net/3c509.c~3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update
++++ a/drivers/net/3c509.c
+@@ -164,7 +164,7 @@ enum RxFilter {
+  */
+ #define SKB_QUEUE_SIZE	64
  
+-typedef enum { EL3_ISA, EL3_PNP, EL3_MCA, EL3_EISA } el3_cardtype;
++enum el3_cardtype { EL3_ISA, EL3_PNP, EL3_MCA, EL3_EISA };
  
- #ifdef CONFIG_MTD_PARTITIONS
--const char *part_probes[] = { "cmdlinepart", NULL };
-+static const char *part_probes[] = { "cmdlinepart", NULL };
+ struct el3_private {
+ 	struct net_device_stats stats;
+@@ -172,7 +172,7 @@ struct el3_private {
+ 	/* skb send-queue */
+ 	int head, size;
+ 	struct sk_buff *queue[SKB_QUEUE_SIZE];
+-	el3_cardtype type;
++	enum el3_cardtype type;
+ };
+ static int id_port;
+ static int current_tag;
+@@ -188,7 +188,7 @@ static int nopnp;
  #endif
  
+ static int __init el3_common_init(struct net_device *dev);
+-static void el3_common_remove (struct net_device *dev);
++static void el3_common_remove(struct net_device *dev);
+ static ushort id_read_eeprom(int index);
+ static ushort read_eeprom(int ioaddr, int index);
+ static int el3_open(struct net_device *dev);
+@@ -236,7 +236,7 @@ static int el3_isa_id_sequence(__be16 *p
+ 	/* For the first probe, clear all board's tag registers. */
+ 	if (current_tag == 0)
+ 		outb(0xd0, id_port);
+-	else				/* Otherwise kill off already-found boards. */
++	else			/* Otherwise kill off already-found boards. */
+ 		outb(0xd8, id_port);
+ 	if (id_read_eeprom(7) != 0x6d50)
+ 		return 1;
+@@ -251,7 +251,9 @@ static int el3_isa_id_sequence(__be16 *p
+ 		   This check is needed in order not to register them twice. */
+ 		for (i = 0; i < el3_cards; i++) {
+ 			struct el3_private *lp = netdev_priv(el3_devs[i]);
+-			if (lp->type == EL3_PNP && !memcmp(phys_addr, el3_devs[i]->dev_addr, ETH_ALEN)) {
++			if (lp->type == EL3_PNP
++			    && !memcmp(phys_addr, el3_devs[i]->dev_addr,
++				       ETH_ALEN)) {
+ 				if (el3_debug > 3)
+ 					printk(KERN_DEBUG "3c509 with address %02x %02x %02x %02x %02x %02x was found by ISAPnP\n",
+ 						phys_addr[0] & 0xff, phys_addr[0] >> 8,
+@@ -269,8 +271,8 @@ static int el3_isa_id_sequence(__be16 *p
+ }
  
+ static void __devinit el3_dev_fill(struct net_device *dev, __be16 *phys_addr,
+-			           int ioaddr, int irq, int if_port,
+-			           el3_cardtype type)
++				   int ioaddr, int irq, int if_port,
++				   enum el3_cardtype type)
+ {
+ 	struct el3_private *lp = netdev_priv(dev);
+ 
+@@ -302,7 +304,7 @@ static int __devinit el3_isa_match(struc
+ 	else
+ 		isa_irq = id_read_eeprom(9) >> 12;
+ 
+-	dev = alloc_etherdev(sizeof (struct el3_private));
++	dev = alloc_etherdev(sizeof(struct el3_private));
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -421,7 +423,7 @@ static int __devinit el3_pnp_probe(struc
+ 	for (i = 0; i < 3; i++)
+ 		phys_addr[i] = htons(read_eeprom(ioaddr, i));
+ 	if_port = read_eeprom(ioaddr, 8) >> 14;
+-	dev = alloc_etherdev(sizeof (struct el3_private));
++	dev = alloc_etherdev(sizeof(struct el3_private));
+ 	if (!dev) {
+ 		release_region(ioaddr, EL3_IO_EXTENT);
+ 		return -ENOMEM;
+@@ -430,11 +432,11 @@ static int __devinit el3_pnp_probe(struc
+ 	netdev_boot_setup_check(dev);
+ 
+ 	el3_dev_fill(dev, phys_addr, ioaddr, irq, if_port, EL3_PNP);
+-	pnp_set_drvdata (pdev, dev);
++	pnp_set_drvdata(pdev, dev);
+ 	err = el3_common_init(dev);
+ 
+ 	if (err) {
+-		pnp_set_drvdata (pdev, NULL);
++		pnp_set_drvdata(pdev, NULL);
+ 		free_netdev(dev);
+ 		return err;
+ 	}
+@@ -1576,7 +1578,7 @@ static void __exit el3_cleanup_module(vo
+ 		release_region(id_port, 1);
+ #ifdef CONFIG_EISA
+ 	if (eisa_registered)
+-		eisa_driver_unregister (&el3_eisa_driver);
++		eisa_driver_unregister(&el3_eisa_driver);
+ #endif
+ #ifdef CONFIG_MCA
+ 	if (mca_registered)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from linux@rainbow-software.org are
 
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
