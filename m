@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-caiaq-fix-section-mismatch-warning.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:56:05 -0800
-Message-ID: <200802180957.m1I9v2dq018775@imap1.linux-foundation.org>
+Subject: + cpufreq-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:56:50 -0800
+Message-ID: <200802180957.m1I9vmJR018793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52624 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752242AbYBRJ6B (ORCPT
+	by vger.kernel.org with ESMTP id S1752148AbYBRJ6b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 04:58:01 -0500
+	Mon, 18 Feb 2008 04:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, daniel@caiaq.de, perex@perex.cz, tiwai@suse.de
+Cc: sam@ravnborg.org, davej@codemonkey.org.uk
 
 
 The patch titled
-     alsa: caiaq: fix section mismatch warning
+     cpufreq: fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     alsa-caiaq-fix-section-mismatch-warning.patch
+     cpufreq-fix-section-mismatch-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: caiaq: fix section mismatch warning
+Subject: cpufreq: fix section mismatch warnings
 From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warning:
-WARNING: vmlinux.o(.text+0x11ec01a): Section mismatch in reference from the function setup_card() to the function .devinit.text:snd_usb_caiaq_control_init()
+Fix the following warnings:
+WARNING: vmlinux.o(.text+0xfe6711): Section mismatch in reference from the function cpufreq_unregister_driver() to the variable .cpuinit.data:cpufreq_cpu_notifier
+WARNING: vmlinux.o(.text+0xfe68af): Section mismatch in reference from the function cpufreq_register_driver() to the variable .cpuinit.data:cpufreq_cpu_notifier
+WARNING: vmlinux.o(.exit.text+0xc4fa): Section mismatch in reference from the function cpufreq_stats_exit() to the variable .cpuinit.data:cpufreq_stat_cpu_notifier
 
-setup_card() are only used by init_card().
-init_card() are only used by snd_probe()
-snd_probe() are used for the .probe parameter in usb_driver.probe
-
-Annotate them all __devinit to fix the warning.
+The warnings were casued by references to unregister_hotcpu_notifier() from
+normal functions or exit functions.  This is flagged by modpost as a potential
+error because it does not know that for the non HOTPLUG_CPU scenario the
+unregister_hotcpu_notifier() is a nop.  Silence the warning by replacing the
+__initdata annotation with a __refdata annotation.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/caiaq/caiaq-device.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/cpufreq/cpufreq.c       |    2 +-
+ drivers/cpufreq/cpufreq_stats.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/usb/caiaq/caiaq-device.c~alsa-caiaq-fix-section-mismatch-warning sound/usb/caiaq/caiaq-device.c
---- a/sound/usb/caiaq/caiaq-device.c~alsa-caiaq-fix-section-mismatch-warning
-+++ a/sound/usb/caiaq/caiaq-device.c
-@@ -245,7 +245,7 @@ int snd_usb_caiaq_set_auto_msg (struct s
- 					  tmp, sizeof(tmp));
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-section-mismatch-warnings drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-section-mismatch-warnings
++++ a/drivers/cpufreq/cpufreq.c
+@@ -1778,7 +1778,7 @@ static int __cpuinit cpufreq_cpu_callbac
+ 	return NOTIFY_OK;
  }
  
--static void setup_card(struct snd_usb_caiaqdev *dev)
-+static void __devinit setup_card(struct snd_usb_caiaqdev *dev)
+-static struct notifier_block __cpuinitdata cpufreq_cpu_notifier =
++static struct notifier_block __refdata cpufreq_cpu_notifier =
  {
- 	int ret;
- 	char val[4];
-@@ -359,7 +359,7 @@ static struct snd_card* create_card(stru
- 	return card;
+     .notifier_call = cpufreq_cpu_callback,
+ };
+diff -puN drivers/cpufreq/cpufreq_stats.c~cpufreq-fix-section-mismatch-warnings drivers/cpufreq/cpufreq_stats.c
+--- a/drivers/cpufreq/cpufreq_stats.c~cpufreq-fix-section-mismatch-warnings
++++ a/drivers/cpufreq/cpufreq_stats.c
+@@ -323,7 +323,7 @@ static int __cpuinit cpufreq_stat_cpu_ca
+ 	return NOTIFY_OK;
  }
  
--static int init_card(struct snd_usb_caiaqdev *dev)
-+static int __devinit init_card(struct snd_usb_caiaqdev *dev)
+-static struct notifier_block cpufreq_stat_cpu_notifier __cpuinitdata =
++static struct notifier_block cpufreq_stat_cpu_notifier __refdata =
  {
- 	char *c;
- 	struct usb_device *usb_dev = dev->chip.dev;
-@@ -428,7 +428,7 @@ static int init_card(struct snd_usb_caia
- 	return 0;
- }
- 
--static int snd_probe(struct usb_interface *intf, 
-+static int __devinit snd_probe(struct usb_interface *intf,
- 		     const struct usb_device_id *id)
- {
- 	int ret;
+ 	.notifier_call = cpufreq_stat_cpu_callback,
+ };
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
