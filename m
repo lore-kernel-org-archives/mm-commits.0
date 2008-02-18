@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-sysctlh-remove-empty-else.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:21:20 -0800
-Message-ID: <200802181022.m1IAMIbm020120@imap1.linux-foundation.org>
+Subject: + tpm-fix-section-mismatch-warning.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:10:44 -0800
+Message-ID: <200802181011.m1IABgnT019475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59508 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39080 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757598AbYBRKWd (ORCPT
+	by vger.kernel.org with ESMTP id S1756758AbYBRKWi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:22:33 -0500
+	Mon, 18 Feb 2008 05:22:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: sam@ravnborg.org, kjhall@us.ibm.com, tpm@selhorst.net
 
 
 The patch titled
-     include/linux/sysctl.h: remove empty #else
+     tpm: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     include-linux-sysctlh-remove-empty-else.patch
+     tpm-fix-section-mismatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/sysctl.h: remove empty #else
-From: Adrian Bunk <bunk@kernel.org>
+Subject: tpm: fix section mismatch warning
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Remove an empty #else.
+Fix following warning:
+WARNING: vmlinux.o(.init.text+0x32804): Section mismatch in reference from the function init_nsc() to the function .devexit.text:tpm_nsc_remove()
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+The function tpm_nsc_remove() are used outside __exit, so remove the __exit
+annotation to make sure the function is always avilable.
+
+Note: Trying to compare this module with other users of platform_device gve me
+the impression that this driver needs some work to match other users.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/char/tpm/tpm_nsc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else include/linux/sysctl.h
---- a/include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else
-+++ a/include/linux/sysctl.h
-@@ -1085,8 +1085,6 @@ struct ctl_table_header *register_sysctl
- void unregister_sysctl_table(struct ctl_table_header * table);
- int sysctl_check_table(struct nsproxy *namespaces, struct ctl_table *table);
+diff -puN drivers/char/tpm/tpm_nsc.c~tpm-fix-section-mismatch-warning drivers/char/tpm/tpm_nsc.c
+--- a/drivers/char/tpm/tpm_nsc.c~tpm-fix-section-mismatch-warning
++++ a/drivers/char/tpm/tpm_nsc.c
+@@ -264,7 +264,7 @@ static const struct tpm_vendor_specific 
  
--#else /* __KERNEL__ */
--
- #endif /* __KERNEL__ */
+ static struct platform_device *pdev = NULL;
  
- #endif /* _LINUX_SYSCTL_H */
+-static void __devexit tpm_nsc_remove(struct device *dev)
++static void tpm_nsc_remove(struct device *dev)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if ( chip ) {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
+samples-build-fix.patch
 git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
 git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
