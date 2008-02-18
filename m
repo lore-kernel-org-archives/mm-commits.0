@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-swap_pte_to_pagemap_entry-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:08:41 -0800
-Message-ID: <200802181009.m1IA9dtw019381@imap1.linux-foundation.org>
+Subject: + use-page_cache_xxx-in-mm-rmapc.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:09:03 -0800
+Message-ID: <200802181010.m1IAA1fF019397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51986 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59278 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbYBRKKH (ORCPT
+	by vger.kernel.org with ESMTP id S1755059AbYBRKKF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:10:07 -0500
+	Mon, 18 Feb 2008 05:10:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mpm@selenic.com
+Cc: clameter@sgi.com, dgc@sgi.com
 
 
 The patch titled
-     make swap_pte_to_pagemap_entry() static
+     Use page_cache_xxx in mm/rmap.c
 has been added to the -mm tree.  Its filename is
-     make-swap_pte_to_pagemap_entry-static.patch
+     use-page_cache_xxx-in-mm-rmapc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make swap_pte_to_pagemap_entry() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Use page_cache_xxx in mm/rmap.c
+From: Christoph Lameter <clameter@sgi.com>
 
-Make the needlessly global swap_pte_to_pagemap_entry() static.
+Use page_cache_xxx in mm/rmap.c
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Reviewed-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~make-swap_pte_to_pagemap_entry-static fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~make-swap_pte_to_pagemap_entry-static
-+++ a/fs/proc/task_mmu.c
-@@ -571,7 +571,7 @@ static int pagemap_pte_hole(unsigned lon
- 	return err;
- }
- 
--u64 swap_pte_to_pagemap_entry(pte_t pte)
-+static u64 swap_pte_to_pagemap_entry(pte_t pte)
+diff -puN mm/rmap.c~use-page_cache_xxx-in-mm-rmapc mm/rmap.c
+--- a/mm/rmap.c~use-page_cache_xxx-in-mm-rmapc
++++ a/mm/rmap.c
+@@ -190,9 +190,21 @@ static void page_unlock_anon_vma(struct 
+ static inline unsigned long
+ vma_address(struct page *page, struct vm_area_struct *vma)
  {
- 	swp_entry_t e = pte_to_swp_entry(pte);
- 	return PM_SWAP | swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff;
+ 	unsigned long address;
+ 
++	if (PageAnon(page))
++		pgoff = page->index;
++	else {
++		struct address_space *mapping = page->mapping;
++
++		if (!mapping)
++			/* Page was truncated */
++			return -EFAULT;
++
++		pgoff = page->index << mapping_order(mapping);
++	}
++
+ 	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
+ 		/* page should be within @vma mapping range */
+@@ -348,7 +360,7 @@ static int page_referenced_file(struct p
+ {
+ 	unsigned int mapcount;
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff;
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int referenced = 0;
+@@ -368,6 +380,9 @@ static int page_referenced_file(struct p
+ 	 */
+ 	BUG_ON(!PageLocked(page));
+ 
++	/* Safe to use mapping */
++	pgoff = page->index << mapping_order(mapping);
++
+ 	spin_lock(&mapping->i_mmap_lock);
+ 
+ 	/*
+@@ -468,7 +483,7 @@ out:
+ 
+ static int page_mkclean_file(struct address_space *mapping, struct page *page)
+ {
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff = page->index << mapping_order(mapping);
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int ret = 0;
+@@ -898,7 +913,7 @@ static int try_to_unmap_anon(struct page
+ static int try_to_unmap_file(struct page *page, int migration)
+ {
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff = page->index << mapping_order(mapping);
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int ret = SWAP_AGAIN;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
-git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
+define-functions-for-page-cache-handling.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+use-page_cache_xxx-in-fs-splicec.patch
+git-unionfs.patch
+use-page_cache_xxx-for-fs-xfs.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+use-page_cache_xxx-functions-in-mm-filemapc.patch
+use-page_cache_xxx-in-mm-page-writebackc.patch
+use-page_cache_xxx-in-mm-truncatec.patch
+use-page_cache_xxx-in-mm-rmapc.patch
+use-page_cache_xxx-in-mm-filemap_xipc.patch
+use-page_cache_xxx-in-mm-migratec.patch
+use-page_cache_xxx-in-fs-libfsc.patch
+use-page_cache_xxx-in-fs-sync.patch
+use-page_cache_xxx-in-fs-bufferc.patch
+use-page_cache_xxx-in-mm-mpagec.patch
+use-page_cache_xxx-in-mm-fadvisec.patch
+use-page_cache_xxx-in-ext2.patch
+use-page_cache_xxx-in-fs-ext3.patch
+use-page_cache_xxx-in-fs-reiserfs.patch
+use-page_cache_xxx-in-fs-ext4.patch
 reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
