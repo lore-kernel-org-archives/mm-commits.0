@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-remove-global_extern-macro.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:56:40 -0800
-Message-ID: <200802180957.m1I9vcWp018789@imap1.linux-foundation.org>
+Subject: + drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:57:11 -0800
+Message-ID: <200802180958.m1I9w82A018805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56709 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752331AbYBRJ6h (ORCPT
+	by vger.kernel.org with ESMTP id S1752395AbYBRJ6p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 04:58:37 -0500
+	Mon, 18 Feb 2008 04:58:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, sfrench@us.ibm.com
+Cc: sam@ravnborg.org, gregkh@suse.de
 
 
 The patch titled
-     cifs: remove GLOBAL_EXTERN macro
+     drivers/base/cpu: fix section mismatch in cpu.c:store_online
 has been added to the -mm tree.  Its filename is
-     cifs-remove-global_extern-macro.patch
+     drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,196 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: remove GLOBAL_EXTERN macro
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: drivers/base/cpu: fix section mismatch in cpu.c:store_online
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Just use extern, saves a lot of sparse warnings.
-fs/cifs/cifsglob.h:603:33: warning: symbol 'GlobalUidList' was not declared. Should it be static?
-fs/cifs/cifsglob.h:606:32: warning: symbol 'GlobalSMBSessionList' was not declared. Should it be static?
-fs/cifs/cifsglob.h:607:32: warning: symbol 'GlobalTreeConnectionList' was not declared. Should it be static?
-fs/cifs/cifsglob.h:608:24: warning: symbol 'GlobalSMBSeslock' was not declared. Should it be static?
-fs/cifs/cifsglob.h:610:32: warning: symbol 'GlobalOplock_Q' was not declared. Should it be static?
-fs/cifs/cifsglob.h:613:32: warning: symbol 'GlobalDnotifyReqList' was not declared. Should it be static?
-fs/cifs/cifsglob.h:615:32: warning: symbol 'GlobalDnotifyRsp_Q' was not declared. Should it be static?
-fs/cifs/cifsglob.h:620:28: warning: symbol 'GlobalCurrentXid' was not declared. Should it be static?
-fs/cifs/cifsglob.h:621:28: warning: symbol 'GlobalTotalActiveXid' was not declared. Should it be static?
-fs/cifs/cifsglob.h:622:28: warning: symbol 'GlobalMaxActiveXid' was not declared. Should it be static?
-fs/cifs/cifsglob.h:623:26: warning: symbol 'GlobalMid_Lock' was not declared. Should it be static?
-fs/cifs/cifsglob.h:625:20: warning: symbol 'Local_System_Name' was not declared. Should it be static?
-fs/cifs/cifsglob.h:630:24: warning: symbol 'sesInfoAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:631:24: warning: symbol 'tconInfoAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:632:24: warning: symbol 'tcpSesAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:633:24: warning: symbol 'tcpSesReconnectCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:634:24: warning: symbol 'tconInfoReconnectCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:637:24: warning: symbol 'bufAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:639:24: warning: symbol 'totBufAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:640:24: warning: symbol 'totSmBufAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:642:24: warning: symbol 'smBufAllocCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:643:24: warning: symbol 'midCount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:646:28: warning: symbol 'multiuser_mount' was not declared. Should it be static?
-fs/cifs/cifsglob.h:650:28: warning: symbol 'oplockEnabled' was not declared. Should it be static?
-fs/cifs/cifsglob.h:651:28: warning: symbol 'experimEnabled' was not declared. Should it be static?
-fs/cifs/cifsglob.h:652:28: warning: symbol 'lookupCacheEnabled' was not declared. Should it be static?
-fs/cifs/cifsglob.h:653:28: warning: symbol 'extended_security' was not declared. Should it be static?
-fs/cifs/cifsglob.h:655:28: warning: symbol 'sign_CIFS_PDUs' was not declared. Should it be static?
-fs/cifs/cifsglob.h:656:28: warning: symbol 'linuxExtEnabled' was not declared. Should it be static?
-fs/cifs/cifsglob.h:657:28: warning: symbol 'CIFSMaxBufSize' was not declared. Should it be static?
-fs/cifs/cifsglob.h:658:28: warning: symbol 'cifs_min_rcv' was not declared. Should it be static?
-fs/cifs/cifsglob.h:659:28: warning: symbol 'cifs_min_small' was not declared. Should it be static?
-fs/cifs/cifsglob.h:660:28: warning: symbol 'cifs_max_pending' was not declared. Should it be static?
+Fix following warning:
+WARNING: vmlinux.o(.text+0x64609c): Section mismatch in reference from the function store_online() to the function .cpuinit.text:cpu_up()
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Steven French <sfrench@us.ibm.com>
+store_online() is defined inside a HOTPLUG_CPU block so references are OK. 
+Ignore references by annotating store_online() with __ref.
+
+Note: This is needed because cpu_up() most likely should not have been
+__cpuinit but all the hotplug cpu code misuses the __cpuinit annotation.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsglob.h |   76 +++++++++++++++++++------------------------
- 1 file changed, 35 insertions(+), 41 deletions(-)
+ drivers/base/cpu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/cifs/cifsglob.h~cifs-remove-global_extern-macro fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~cifs-remove-global_extern-macro
-+++ a/fs/cifs/cifsglob.h
-@@ -583,79 +583,73 @@ require use of the stronger protocol */
-  *
-  ****************************************************************************/
+diff -puN drivers/base/cpu.c~drivers-base-cpu-fix-section-mismatch-in-cpucstore_online drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-cpu-fix-section-mismatch-in-cpucstore_online
++++ a/drivers/base/cpu.c
+@@ -28,7 +28,7 @@ static ssize_t show_online(struct sys_de
+ 	return sprintf(buf, "%u\n", !!cpu_online(cpu->sysdev.id));
+ }
  
--#ifdef DECLARE_GLOBALS_HERE
--#define GLOBAL_EXTERN
--#else
--#define GLOBAL_EXTERN extern
--#endif
--
- /*
-  * The list of servers that did not respond with NT LM 0.12.
-  * This list helps improve performance and eliminate the messages indicating
-  * that we had a communications error talking to the server in this list.
-  */
- /* Feature not supported */
--/* GLOBAL_EXTERN struct servers_not_supported *NotSuppList; */
-+/* extern struct servers_not_supported *NotSuppList; */
+-static ssize_t store_online(struct sys_device *dev, const char *buf,
++static ssize_t __ref store_online(struct sys_device *dev, const char *buf,
+ 			    size_t count)
+ {
+ 	struct cpu *cpu = container_of(dev, struct cpu, sysdev);
+@@ -55,7 +55,7 @@ static ssize_t store_online(struct sys_d
+ }
+ static SYSDEV_ATTR(online, 0644, show_online, store_online);
  
- /*
-  * The following is a hash table of all the users we know about.
-  */
--GLOBAL_EXTERN struct smbUidInfo *GlobalUidList[UID_HASH];
-+extern struct smbUidInfo *GlobalUidList[UID_HASH];
- 
--/* GLOBAL_EXTERN struct list_head GlobalServerList; BB not implemented yet */
--GLOBAL_EXTERN struct list_head GlobalSMBSessionList;
--GLOBAL_EXTERN struct list_head GlobalTreeConnectionList;
--GLOBAL_EXTERN rwlock_t GlobalSMBSeslock;  /* protects list inserts on 3 above */
-+/* extern struct list_head GlobalServerList; BB not implemented yet */
-+extern struct list_head GlobalSMBSessionList;
-+extern struct list_head GlobalTreeConnectionList;
-+extern rwlock_t GlobalSMBSeslock;  /* protects list inserts on 3 above */
- 
--GLOBAL_EXTERN struct list_head GlobalOplock_Q;
-+extern struct list_head GlobalOplock_Q;
- 
- /* Outstanding dir notify requests */
--GLOBAL_EXTERN struct list_head GlobalDnotifyReqList;
-+extern struct list_head GlobalDnotifyReqList;
- /* DirNotify response queue */
--GLOBAL_EXTERN struct list_head GlobalDnotifyRsp_Q;
-+extern struct list_head GlobalDnotifyRsp_Q;
- 
- /*
-  * Global transaction id (XID) information
-  */
--GLOBAL_EXTERN unsigned int GlobalCurrentXid;	/* protected by GlobalMid_Sem */
--GLOBAL_EXTERN unsigned int GlobalTotalActiveXid; /* prot by GlobalMid_Sem */
--GLOBAL_EXTERN unsigned int GlobalMaxActiveXid;	/* prot by GlobalMid_Sem */
--GLOBAL_EXTERN spinlock_t GlobalMid_Lock;  /* protects above & list operations */
-+extern unsigned int GlobalCurrentXid;	/* protected by GlobalMid_Sem */
-+extern unsigned int GlobalTotalActiveXid; /* prot by GlobalMid_Sem */
-+extern unsigned int GlobalMaxActiveXid;	/* prot by GlobalMid_Sem */
-+extern spinlock_t GlobalMid_Lock;  /* protects above & list operations */
- 					  /* on midQ entries */
--GLOBAL_EXTERN char Local_System_Name[15];
-+extern char Local_System_Name[15];
- 
- /*
-  *  Global counters, updated atomically
-  */
--GLOBAL_EXTERN atomic_t sesInfoAllocCount;
--GLOBAL_EXTERN atomic_t tconInfoAllocCount;
--GLOBAL_EXTERN atomic_t tcpSesAllocCount;
--GLOBAL_EXTERN atomic_t tcpSesReconnectCount;
--GLOBAL_EXTERN atomic_t tconInfoReconnectCount;
-+extern atomic_t sesInfoAllocCount;
-+extern atomic_t tconInfoAllocCount;
-+extern atomic_t tcpSesAllocCount;
-+extern atomic_t tcpSesReconnectCount;
-+extern atomic_t tconInfoReconnectCount;
- 
- /* Various Debug counters to remove someday (BB) */
--GLOBAL_EXTERN atomic_t bufAllocCount;    /* current number allocated  */
-+extern atomic_t bufAllocCount;    /* current number allocated  */
- #ifdef CONFIG_CIFS_STATS2
--GLOBAL_EXTERN atomic_t totBufAllocCount; /* total allocated over all time */
--GLOBAL_EXTERN atomic_t totSmBufAllocCount;
-+extern atomic_t totBufAllocCount; /* total allocated over all time */
-+extern atomic_t totSmBufAllocCount;
- #endif
--GLOBAL_EXTERN atomic_t smBufAllocCount;
--GLOBAL_EXTERN atomic_t midCount;
-+extern atomic_t smBufAllocCount;
-+extern atomic_t midCount;
- 
- /* Misc globals */
--GLOBAL_EXTERN unsigned int multiuser_mount; /* if enabled allows new sessions
-+extern unsigned int multiuser_mount; /* if enabled allows new sessions
- 				to be established on existing mount if we
- 				have the uid/password or Kerberos credential
- 				or equivalent for current user */
--GLOBAL_EXTERN unsigned int oplockEnabled;
--GLOBAL_EXTERN unsigned int experimEnabled;
--GLOBAL_EXTERN unsigned int lookupCacheEnabled;
--GLOBAL_EXTERN unsigned int extended_security;	/* if on, session setup sent
-+extern unsigned int oplockEnabled;
-+extern unsigned int experimEnabled;
-+extern unsigned int lookupCacheEnabled;
-+extern unsigned int extended_security;	/* if on, session setup sent
- 				with more secure ntlmssp2 challenge/resp */
--GLOBAL_EXTERN unsigned int sign_CIFS_PDUs;  /* enable smb packet signing */
--GLOBAL_EXTERN unsigned int linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
--GLOBAL_EXTERN unsigned int CIFSMaxBufSize;  /* max size not including hdr */
--GLOBAL_EXTERN unsigned int cifs_min_rcv;    /* min size of big ntwrk buf pool */
--GLOBAL_EXTERN unsigned int cifs_min_small;  /* min size of small buf pool */
--GLOBAL_EXTERN unsigned int cifs_max_pending; /* MAX requests at once to server*/
-+extern unsigned int sign_CIFS_PDUs;  /* enable smb packet signing */
-+extern unsigned int linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
-+extern unsigned int CIFSMaxBufSize;  /* max size not including hdr */
-+extern unsigned int cifs_min_rcv;    /* min size of big ntwrk buf pool */
-+extern unsigned int cifs_min_small;  /* min size of small buf pool */
-+extern unsigned int cifs_max_pending; /* MAX requests at once to server*/
- 
+-static void __devinit register_cpu_control(struct cpu *cpu)
++static void __cpuinit register_cpu_control(struct cpu *cpu)
+ {
+ 	sysdev_create_file(&cpu->sysdev, &attr_online);
+ }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-origin.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-cifs-remove-global_extern-macro.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-replace-macro-with-static-inline-in-libatah.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+samples-build-fix.patch
+git-acpi.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-kbuild.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
