@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-aoedev_isbusy.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:21:33 -0800
-Message-ID: <200802181022.m1IAMVRg020128@imap1.linux-foundation.org>
+Subject: + make-marker_debug-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:21:39 -0800
+Message-ID: <200802181022.m1IAMbnJ020132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60908 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49286 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757275AbYBRKWt (ORCPT
+	by vger.kernel.org with ESMTP id S1756641AbYBRKXF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:22:49 -0500
+	Mon, 18 Feb 2008 05:23:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ecashin@coraid.com
+Cc: bunk@kernel.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     remove aoedev_isbusy()
+     make marker_debug static
 has been added to the -mm tree.  Its filename is
-     remove-aoedev_isbusy.patch
+     make-marker_debug-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove aoedev_isbusy()
+Subject: make marker_debug static
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the no longer used aoedev_isbusy().
+With the needlessly global marker_debug being static gcc can optimize the
+unused code away.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Ed L. Cashin" <ecashin@coraid.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    1 -
- drivers/block/aoe/aoedev.c |   18 ------------------
- 2 files changed, 19 deletions(-)
+ kernel/marker.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoe.h~remove-aoedev_isbusy drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~remove-aoedev_isbusy
-+++ a/drivers/block/aoe/aoe.h
-@@ -195,7 +195,6 @@ void aoedev_exit(void);
- struct aoedev *aoedev_by_aoeaddr(int maj, int min);
- struct aoedev *aoedev_by_sysminor_m(ulong sysminor);
- void aoedev_downdev(struct aoedev *d);
--int aoedev_isbusy(struct aoedev *d);
- int aoedev_flush(const char __user *str, size_t size);
+diff -puN kernel/marker.c~make-marker_debug-static kernel/marker.c
+--- a/kernel/marker.c~make-marker_debug-static
++++ a/kernel/marker.c
+@@ -28,7 +28,7 @@ extern struct marker __start___markers[]
+ extern struct marker __stop___markers[];
  
- int aoenet_init(void);
-diff -puN drivers/block/aoe/aoedev.c~remove-aoedev_isbusy drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~remove-aoedev_isbusy
-+++ a/drivers/block/aoe/aoedev.c
-@@ -18,24 +18,6 @@ static void skbpoolfree(struct aoedev *d
- static struct aoedev *devlist;
- static DEFINE_SPINLOCK(devlist_lock);
+ /* Set to 1 to enable marker debug output */
+-const int marker_debug;
++static const int marker_debug;
  
--int
--aoedev_isbusy(struct aoedev *d)
--{
--	struct aoetgt **t, **te;
--	struct frame *f, *e;
--
--	t = d->targets;
--	te = t + NTARGETS;
--	for (; t < te && *t; t++) {
--		f = (*t)->frames;
--		e = f + (*t)->nframes;
--		for (; f < e; f++)
--			if (f->tag != FREETAG)
--				return 1;
--	}
--	return 0;
--}
--
- struct aoedev *
- aoedev_by_aoeaddr(int maj, int min)
- {
+ /*
+  * markers_mutex nests inside module_mutex. Markers mutex protects the builtin
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
