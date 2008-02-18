@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-in-fs-libfsc.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:09:18 -0800
-Message-ID: <200802181010.m1IAAGJ1019415@imap1.linux-foundation.org>
+Subject: + use-page_cache_xxx-in-fs-sync.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:09:23 -0800
+Message-ID: <200802181010.m1IAALpG019418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753566AbYBRKKt (ORCPT
+	by vger.kernel.org with ESMTP id S1755851AbYBRKK4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:10:49 -0500
+	Mon, 18 Feb 2008 05:10:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, dgc@sgi.com
 
 
 The patch titled
-     Use page_cache_xxx in fs/libfs.c
+     Use page_cache_xxx in fs/sync.c
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-in-fs-libfsc.patch
+     use-page_cache_xxx-in-fs-sync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in fs/libfs.c
+Subject: Use page_cache_xxx in fs/sync.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use page_cache_xxx in fs/libfs.c
+Use page_cache_xxx in fs/sync.
 
 Reviewed-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ fs/sync.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/libfs.c~use-page_cache_xxx-in-fs-libfsc fs/libfs.c
---- a/fs/libfs.c~use-page_cache_xxx-in-fs-libfsc
-+++ a/fs/libfs.c
-@@ -17,7 +17,8 @@ int simple_getattr(struct vfsmount *mnt,
- {
- 	struct inode *inode = dentry->d_inode;
- 	generic_fillattr(inode, stat);
--	stat->blocks = inode->i_mapping->nrpages << (PAGE_CACHE_SHIFT - 9);
-+	stat->blocks = inode->i_mapping->nrpages <<
-+				(page_cache_shift(inode->i_mapping) - 9);
- 	return 0;
- }
- 
-@@ -341,10 +342,10 @@ int simple_prepare_write(struct file *fi
- 			unsigned from, unsigned to)
- {
- 	if (!PageUptodate(page)) {
--		if (to - from != PAGE_CACHE_SIZE)
-+		if (to - from != page_cache_size(file->f_mapping))
- 			zero_user_segments(page,
- 				0, from,
--				to, PAGE_CACHE_SIZE);
-+				to, page_cache_size(file->f_mapping));
+diff -puN fs/sync.c~use-page_cache_xxx-in-fs-sync fs/sync.c
+--- a/fs/sync.c~use-page_cache_xxx-in-fs-sync
++++ a/fs/sync.c
+@@ -260,8 +260,8 @@ int do_sync_mapping_range(struct address
+ 	ret = 0;
+ 	if (flags & SYNC_FILE_RANGE_WAIT_BEFORE) {
+ 		ret = wait_on_page_writeback_range(mapping,
+-					offset >> PAGE_CACHE_SHIFT,
+-					endbyte >> PAGE_CACHE_SHIFT);
++					page_cache_index(mapping, offset),
++					page_cache_index(mapping, endbyte));
+ 		if (ret < 0)
+ 			goto out;
  	}
- 	return 0;
- }
-@@ -372,8 +373,9 @@ int simple_write_begin(struct file *file
- static int simple_commit_write(struct file *file, struct page *page,
- 			       unsigned from, unsigned to)
- {
--	struct inode *inode = page->mapping->host;
--	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+	loff_t pos = page_cache_pos(mapping, page->index, to);
+@@ -275,8 +275,8 @@ int do_sync_mapping_range(struct address
  
- 	if (!PageUptodate(page))
- 		SetPageUptodate(page);
+ 	if (flags & SYNC_FILE_RANGE_WAIT_AFTER) {
+ 		ret = wait_on_page_writeback_range(mapping,
+-					offset >> PAGE_CACHE_SHIFT,
+-					endbyte >> PAGE_CACHE_SHIFT);
++					page_cache_index(mapping, offset),
++					page_cache_index(mapping, endbyte));
+ 	}
+ out:
+ 	return ret;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
