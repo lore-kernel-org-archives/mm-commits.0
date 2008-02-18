@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + if-0-ses_match_host.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:04:32 -0800
-Message-ID: <200802181005.m1IA5UPq019196@imap1.linux-foundation.org>
+Subject: + make-lpfc_disable_node-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:04:26 -0800
+Message-ID: <200802181005.m1IA5O6o019193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49581 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752621AbYBRKFr (ORCPT
+	by vger.kernel.org with ESMTP id S1752621AbYBRKFm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:05:47 -0500
+	Mon, 18 Feb 2008 05:05:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@steeleye.com
+Cc: bunk@kernel.org, James.Bottomley@steeleye.com, James.Smart@Emulex.Com
 
 
 The patch titled
-     #if 0 ses_match_host()
+     make lpfc_disable_node() static
 has been added to the -mm tree.  Its filename is
-     if-0-ses_match_host.patch
+     make-lpfc_disable_node-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: #if 0 ses_match_host()
+Subject: make lpfc_disable_node() static
 From: Adrian Bunk <bunk@kernel.org>
 
-#if 0 the unused ses_match_host()
+Make the needlessly global lpfc_disable_node() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: James Smart <James.Smart@Emulex.Com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ses.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/scsi/lpfc/lpfc_crtn.h    |    1 -
+ drivers/scsi/lpfc/lpfc_hbadisc.c |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/scsi/ses.c~if-0-ses_match_host drivers/scsi/ses.c
---- a/drivers/scsi/ses.c~if-0-ses_match_host
-+++ a/drivers/scsi/ses.c
-@@ -264,6 +264,7 @@ struct ses_host_edev {
- 	struct enclosure_device *edev;
- };
- 
-+#if 0
- int ses_match_host(struct enclosure_device *edev, void *data)
- {
- 	struct ses_host_edev *sed = data;
-@@ -280,6 +281,7 @@ int ses_match_host(struct enclosure_devi
- 	sed->edev = edev;
- 	return 1;
+diff -puN drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_crtn.h
+--- a/drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static
++++ a/drivers/scsi/lpfc/lpfc_crtn.h
+@@ -55,7 +55,6 @@ void lpfc_mbx_cmpl_ns_reg_login(struct l
+ void lpfc_mbx_cmpl_fdmi_reg_login(struct lpfc_hba *, LPFC_MBOXQ_t *);
+ void lpfc_enqueue_node(struct lpfc_vport *, struct lpfc_nodelist *);
+ void lpfc_dequeue_node(struct lpfc_vport *, struct lpfc_nodelist *);
+-void lpfc_disable_node(struct lpfc_vport *, struct lpfc_nodelist *);
+ struct lpfc_nodelist *lpfc_enable_node(struct lpfc_vport *,
+ 					struct lpfc_nodelist *, int);
+ void lpfc_nlp_set_state(struct lpfc_vport *, struct lpfc_nodelist *, int);
+diff -puN drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_hbadisc.c
+--- a/drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static
++++ a/drivers/scsi/lpfc/lpfc_hbadisc.c
+@@ -1694,7 +1694,7 @@ lpfc_dequeue_node(struct lpfc_vport *vpo
+ 				NLP_STE_UNUSED_NODE);
  }
-+#endif  /*  0  */
  
- static void ses_process_descriptor(struct enclosure_component *ecomp,
- 				   unsigned char *desc)
+-void
++static void
+ lpfc_disable_node(struct lpfc_vport *vport, struct lpfc_nodelist *ndlp)
+ {
+ 	if ((ndlp->nlp_flag & NLP_DELAY_TMO) != 0)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
