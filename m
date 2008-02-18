@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-freevxfs-proper-externs.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:10 -0800
-Message-ID: <200802181012.m1IAC8vi019567@imap1.linux-foundation.org>
+Subject: + fs-fs-writeback-make-2-functions-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:25 -0800
+Message-ID: <200802181012.m1IACNC7019579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756186AbYBRKM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755087AbYBRKNH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:58 -0500
+	Mon, 18 Feb 2008 05:13:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, hch@infradead.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     fs/freevxfs/: proper externs
+     fs/fs-writeback.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     fs-freevxfs-proper-externs.patch
+     fs-fs-writeback-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/freevxfs/: proper externs
+Subject: fs/fs-writeback.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-Move the extern declarations of several structs to vxfs_extern.h
+Make the following needlessly global functions static:
+
+- writeback_acquire()
+- writeback_release()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/freevxfs/vxfs_extern.h |    5 +++++
- fs/freevxfs/vxfs_immed.c  |    1 +
- fs/freevxfs/vxfs_inode.c  |    5 -----
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ fs/fs-writeback.c           |   77 +++++++++++++++++-----------------
+ include/linux/backing-dev.h |    2 
+ 2 files changed, 39 insertions(+), 40 deletions(-)
 
-diff -puN fs/freevxfs/vxfs_extern.h~fs-freevxfs-proper-externs fs/freevxfs/vxfs_extern.h
---- a/fs/freevxfs/vxfs_extern.h~fs-freevxfs-proper-externs
-+++ a/fs/freevxfs/vxfs_extern.h
-@@ -50,7 +50,11 @@ extern daddr_t			vxfs_bmap1(struct inode
- /* vxfs_fshead.c */
- extern int			vxfs_read_fshead(struct super_block *);
+diff -puN fs/fs-writeback.c~fs-fs-writeback-make-2-functions-static fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-fs-writeback-make-2-functions-static
++++ a/fs/fs-writeback.c
+@@ -25,6 +25,45 @@
+ #include <linux/buffer_head.h>
+ #include "internal.h"
  
-+/* vxfs_immed.c */
-+extern const struct inode_operations vxfs_immed_symlink_iops;
 +
- /* vxfs_inode.c */
-+extern const struct address_space_operations vxfs_immed_aops;
- extern struct kmem_cache	*vxfs_inode_cachep;
- extern void			vxfs_dumpi(struct vxfs_inode_info *, ino_t);
- extern struct inode *		vxfs_get_fake_inode(struct super_block *,
-@@ -69,6 +73,7 @@ extern const struct file_operations	vxfs
- extern int			vxfs_read_olt(struct super_block *, u_long);
++/**
++ * writeback_acquire: attempt to get exclusive writeback access to a device
++ * @bdi: the device's backing_dev_info structure
++ *
++ * It is a waste of resources to have more than one pdflush thread blocked on
++ * a single request queue.  Exclusion at the request_queue level is obtained
++ * via a flag in the request_queue's backing_dev_info.state.
++ *
++ * Non-request_queue-backed address_spaces will share default_backing_dev_info,
++ * unless they implement their own.  Which is somewhat inefficient, as this
++ * may prevent concurrent writeback against multiple devices.
++ */
++static int writeback_acquire(struct backing_dev_info *bdi)
++{
++	return !test_and_set_bit(BDI_pdflush, &bdi->state);
++}
++
++/**
++ * writeback_in_progress: determine whether there is writeback in progress
++ * @bdi: the device's backing_dev_info structure.
++ *
++ * Determine whether there is writeback in progress against a backing device.
++ */
++int writeback_in_progress(struct backing_dev_info *bdi)
++{
++	return test_bit(BDI_pdflush, &bdi->state);
++}
++
++/**
++ * writeback_release: relinquish exclusive writeback access against a device.
++ * @bdi: the device's backing_dev_info structure
++ */
++static void writeback_release(struct backing_dev_info *bdi)
++{
++	BUG_ON(!writeback_in_progress(bdi));
++	clear_bit(BDI_pdflush, &bdi->state);
++}
++
+ /**
+  *	__mark_inode_dirty -	internal function
+  *	@inode: inode to mark
+@@ -749,41 +788,3 @@ int generic_osync_inode(struct inode *in
+ }
  
- /* vxfs_subr.c */
-+extern const struct address_space_operations vxfs_aops;
- extern struct page *		vxfs_get_page(struct address_space *, u_long);
- extern void			vxfs_put_page(struct page *);
- extern struct buffer_head *	vxfs_bread(struct inode *, int);
-diff -puN fs/freevxfs/vxfs_immed.c~fs-freevxfs-proper-externs fs/freevxfs/vxfs_immed.c
---- a/fs/freevxfs/vxfs_immed.c~fs-freevxfs-proper-externs
-+++ a/fs/freevxfs/vxfs_immed.c
-@@ -35,6 +35,7 @@
- #include <linux/namei.h>
- 
- #include "vxfs.h"
-+#include "vxfs_extern.h"
- #include "vxfs_inode.h"
- 
- 
-diff -puN fs/freevxfs/vxfs_inode.c~fs-freevxfs-proper-externs fs/freevxfs/vxfs_inode.c
---- a/fs/freevxfs/vxfs_inode.c~fs-freevxfs-proper-externs
-+++ a/fs/freevxfs/vxfs_inode.c
-@@ -41,11 +41,6 @@
- #include "vxfs_extern.h"
- 
- 
--extern const struct address_space_operations vxfs_aops;
--extern const struct address_space_operations vxfs_immed_aops;
+ EXPORT_SYMBOL(generic_osync_inode);
 -
--extern const struct inode_operations vxfs_immed_symlink_iops;
+-/**
+- * writeback_acquire: attempt to get exclusive writeback access to a device
+- * @bdi: the device's backing_dev_info structure
+- *
+- * It is a waste of resources to have more than one pdflush thread blocked on
+- * a single request queue.  Exclusion at the request_queue level is obtained
+- * via a flag in the request_queue's backing_dev_info.state.
+- *
+- * Non-request_queue-backed address_spaces will share default_backing_dev_info,
+- * unless they implement their own.  Which is somewhat inefficient, as this
+- * may prevent concurrent writeback against multiple devices.
+- */
+-int writeback_acquire(struct backing_dev_info *bdi)
+-{
+-	return !test_and_set_bit(BDI_pdflush, &bdi->state);
+-}
 -
- struct kmem_cache		*vxfs_inode_cachep;
+-/**
+- * writeback_in_progress: determine whether there is writeback in progress
+- * @bdi: the device's backing_dev_info structure.
+- *
+- * Determine whether there is writeback in progress against a backing device.
+- */
+-int writeback_in_progress(struct backing_dev_info *bdi)
+-{
+-	return test_bit(BDI_pdflush, &bdi->state);
+-}
+-
+-/**
+- * writeback_release: relinquish exclusive writeback access against a device.
+- * @bdi: the device's backing_dev_info structure
+- */
+-void writeback_release(struct backing_dev_info *bdi)
+-{
+-	BUG_ON(!writeback_in_progress(bdi));
+-	clear_bit(BDI_pdflush, &bdi->state);
+-}
+diff -puN include/linux/backing-dev.h~fs-fs-writeback-make-2-functions-static include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~fs-fs-writeback-make-2-functions-static
++++ a/include/linux/backing-dev.h
+@@ -156,9 +156,7 @@ static inline unsigned long bdi_stat_err
+ extern struct backing_dev_info default_backing_dev_info;
+ void default_unplug_io_fn(struct backing_dev_info *bdi, struct page *page);
  
+-int writeback_acquire(struct backing_dev_info *bdi);
+ int writeback_in_progress(struct backing_dev_info *bdi);
+-void writeback_release(struct backing_dev_info *bdi);
  
+ static inline int bdi_congested(struct backing_dev_info *bdi, int bdi_bits)
+ {
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
