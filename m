@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci_alloc_child_bus-mustnt-be-__devinit.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:03:19 -0800
-Message-ID: <200802181004.m1IA4HqI019159@imap1.linux-foundation.org>
+Subject: + scsi-fix-section-mismatch-in-aic94xx.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:04:20 -0800
+Message-ID: <200802181005.m1IA5IcJ019188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58977 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56766 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754388AbYBRKEf (ORCPT
+	by vger.kernel.org with ESMTP id S1752640AbYBRKFa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:04:35 -0500
+	Mon, 18 Feb 2008 05:05:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, greg@kroah.com
+Cc: sam@ravnborg.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com
 
 
 The patch titled
-     pci_alloc_child_bus() mustn't be __devinit
+     scsi: fix section mismatch in aic94xx
 has been added to the -mm tree.  Its filename is
-     pci_alloc_child_bus-mustnt-be-__devinit.patch
+     scsi-fix-section-mismatch-in-aic94xx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci_alloc_child_bus() mustn't be __devinit
-From: Adrian Bunk <bunk@kernel.org>
+Subject: scsi: fix section mismatch in aic94xx
+From: Sam Ravnborg <sam@ravnborg.org>
 
-WARNING: drivers/pci/built-in.o(.text+0xc4c): Section mismatch in reference from the function pci_add_new_bus() to the function .devinit.text:pci_alloc_child_bus()
+Fix following warnings:
+WARNING: vmlinux.o(.data+0x17aa88): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9410_setup()
+WARNING: vmlinux.o(.data+0x17aa98): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9410_setup()
+WARNING: vmlinux.o(.data+0x17aaa8): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9405_setup()
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+asd_pcidev_data is only used by __devinit asd_pci_probe.  So mark is const and
+annotate it __devinitconst to fix the warnings.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Gilbert Wu <gilbert_wu@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    4 ++--
+ drivers/scsi/aic94xx/aic94xx_init.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit
-+++ a/drivers/pci/probe.c
-@@ -397,8 +397,8 @@ static struct pci_bus * pci_alloc_bus(vo
- 	return b;
- }
- 
--static struct pci_bus * __devinit
--pci_alloc_child_bus(struct pci_bus *parent, struct pci_dev *bridge, int busnr)
-+static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
-+					   struct pci_dev *bridge, int busnr)
- {
- 	struct pci_bus *child;
- 	int i;
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -531,10 +531,10 @@ static void asd_remove_dev_attrs(struct 
+ /* The first entry, 0, is used for dynamic ids, the rest for devices
+  * we know about.
+  */
+-static struct asd_pcidev_struct {
++static const struct asd_pcidev_struct {
+ 	const char * name;
+ 	int (*setup)(struct asd_ha_struct *asd_ha);
+-} asd_pcidev_data[] = {
++} asd_pcidev_data[] __devinitconst = {
+ 	/* Id 0 is used for dynamic ids. */
+ 	{ .name  = "Adaptec AIC-94xx SAS/SATA Host Adapter",
+ 	  .setup = asd_aic9410_setup
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
+samples-build-fix.patch
 git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
 git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
