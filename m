@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:08:20 -0800
-Message-ID: <200802181009.m1IA9HhE019378@imap1.linux-foundation.org>
+Subject: + use-page_cache_xxx-functions-in-mm-filemapc.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:08:47 -0800
+Message-ID: <200802181009.m1IA9jML019384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49089 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39922 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754354AbYBRKJe (ORCPT
+	by vger.kernel.org with ESMTP id S1754354AbYBRKJu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:09:34 -0500
+	Mon, 18 Feb 2008 05:09:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adrian@newgolddream.dyndns.info, damm@igel.co.jp, lethal@linux-sh.org, magnus.damm@gmail.com, matsu@igel.co.jp
+Cc: clameter@sgi.com, dgc@sgi.com
 
 
 The patch titled
-     revert "sh: use ctrl_in/out for on chip pci access"
+     Use page_cache_xxx functions in mm/filemap.c
 has been added to the -mm tree.  Its filename is
-     revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch
+     use-page_cache_xxx-functions-in-mm-filemapc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,326 +34,294 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "sh: use ctrl_in/out for on chip pci access"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Use page_cache_xxx functions in mm/filemap.c
+From: Christoph Lameter <clameter@sgi.com>
 
-Revert
+Convert the uses of PAGE_CACHE_xxx.
 
-commit e036eaa681a17f71b64f6d9040fe605555623919
-Author: Magnus Damm <magnus.damm@gmail.com>
-Date:   Thu Feb 14 13:52:43 2008 +0900
-
-    sh: use ctrl_in/out for on chip pci access
-    
-    This patch makes sure ctrl_inN/outN are used instead of inN/outN for on chip
-    pci registers. Without this patch addresses may be adjusted using the value
-    in generic_io_base. This patch makes it possible to set generic_io_base and
-    have pci without reading and writing all over the place.
-
-Because it broke Adrian's machine.
-
-Cc: Adrian McMenamin <adrian@newgolddream.dyndns.info>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Katsuya MATSUBARA <matsu@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Reviewed-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/pci/fixups-lboxre2.c    |    4 +-
- arch/sh/drivers/pci/fixups-rts7751r2d.c |    4 +-
- arch/sh/drivers/pci/ops-dreamcast.c     |   44 +++++++++++-----------
- arch/sh/drivers/pci/pci-sh4.h           |    4 +-
- arch/sh/drivers/pci/pci-sh7751.c        |   16 ++++----
- arch/sh/drivers/pci/pci-sh7780.c        |    2 -
- 6 files changed, 37 insertions(+), 37 deletions(-)
+ mm/filemap.c |   91 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 45 deletions(-)
 
-diff -puN arch/sh/drivers/pci/fixups-lboxre2.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/fixups-lboxre2.c
---- a/arch/sh/drivers/pci/fixups-lboxre2.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/fixups-lboxre2.c
-@@ -18,7 +18,7 @@ int pci_fixup_pcic(void)
+diff -puN mm/filemap.c~use-page_cache_xxx-functions-in-mm-filemapc mm/filemap.c
+--- a/mm/filemap.c~use-page_cache_xxx-functions-in-mm-filemapc
++++ a/mm/filemap.c
+@@ -325,8 +325,8 @@ int wait_on_page_writeback_range(struct 
+ int sync_page_range(struct inode *inode, struct address_space *mapping,
+ 			loff_t pos, loff_t count)
  {
- 	unsigned long bcr1, mcr;
+-	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
+-	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
++	pgoff_t start = page_cache_index(mapping, pos);
++	pgoff_t end = page_cache_index(mapping, pos + count - 1);
+ 	int ret;
  
--	bcr1 = ctrl_inl(SH7751_BCR1);
-+	bcr1 = inl(SH7751_BCR1);
- 	bcr1 |= 0x40080000;	/* Enable Bit 19 BREQEN, set PCIC to slave */
- 	pci_write_reg(bcr1, SH4_PCIBCR1);
- 
-@@ -28,7 +28,7 @@ int pci_fixup_pcic(void)
- 	pci_write_reg(0xfb900047, SH7751_PCICONF1);
- 	pci_write_reg(0xab000001, SH7751_PCICONF4);
- 
--	mcr = ctrl_inl(SH7751_MCR);
-+	mcr = inl(SH7751_MCR);
- 	mcr = (mcr & PCIMCR_MRSET_OFF) & PCIMCR_RFSH_OFF;
- 	pci_write_reg(mcr, SH4_PCIMCR);
- 
-diff -puN arch/sh/drivers/pci/fixups-rts7751r2d.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/fixups-rts7751r2d.c
---- a/arch/sh/drivers/pci/fixups-rts7751r2d.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/fixups-rts7751r2d.c
-@@ -19,7 +19,7 @@ int pci_fixup_pcic(void)
+ 	if (!mapping_cap_writeback_dirty(mapping) || !count)
+@@ -357,8 +357,8 @@ EXPORT_SYMBOL(sync_page_range);
+ int sync_page_range_nolock(struct inode *inode, struct address_space *mapping,
+ 			   loff_t pos, loff_t count)
  {
- 	unsigned long bcr1, mcr;
+-	pgoff_t start = pos >> PAGE_CACHE_SHIFT;
+-	pgoff_t end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
++	pgoff_t start = page_cache_index(mapping, pos);
++	pgoff_t end = page_cache_index(mapping, pos + count - 1);
+ 	int ret;
  
--	bcr1 = ctrl_inl(SH7751_BCR1);
-+	bcr1 = inl(SH7751_BCR1);
- 	bcr1 |= 0x40080000;	/* Enable Bit 19 BREQEN, set PCIC to slave */
- 	pci_write_reg(bcr1, SH4_PCIBCR1);
- 
-@@ -30,7 +30,7 @@ int pci_fixup_pcic(void)
- 	pci_write_reg(0xfb900047, SH7751_PCICONF1);
- 	pci_write_reg(0xab000001, SH7751_PCICONF4);
- 
--	mcr = ctrl_inl(SH7751_MCR);
-+	mcr = inl(SH7751_MCR);
- 	mcr = (mcr & PCIMCR_MRSET_OFF) & PCIMCR_RFSH_OFF;
- 	pci_write_reg(mcr, SH4_PCIMCR);
- 
-diff -puN arch/sh/drivers/pci/ops-dreamcast.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/ops-dreamcast.c
---- a/arch/sh/drivers/pci/ops-dreamcast.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/ops-dreamcast.c
-@@ -83,9 +83,9 @@ static int gapspci_read(struct pci_bus *
- 		return PCIBIOS_DEVICE_NOT_FOUND;
- 
- 	switch (size) {
--		case 1: *val = ctrl_inb(GAPSPCI_BBA_CONFIG+where); break;
--		case 2: *val = ctrl_inw(GAPSPCI_BBA_CONFIG+where); break;
--		case 4: *val = ctrl_inl(GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: *val = inb(GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: *val = inw(GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: *val = inl(GAPSPCI_BBA_CONFIG+where); break;
- 	}	
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -97,9 +97,9 @@ static int gapspci_write(struct pci_bus 
- 		return PCIBIOS_DEVICE_NOT_FOUND;
- 
- 	switch (size) {
--		case 1: ctrl_outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 2: ctrl_outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 4: ctrl_outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
- 	}
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -127,36 +127,36 @@ int __init gapspci_init(void)
- 	 */
- 
- 	for (i=0; i<16; i++)
--		idbuf[i] = ctrl_inb(GAPSPCI_REGS+i);
-+		idbuf[i] = inb(GAPSPCI_REGS+i);
- 
- 	if (strncmp(idbuf, "GAPSPCI_BRIDGE_2", 16))
- 		return -ENODEV;
- 
--	ctrl_outl(0x5a14a501, GAPSPCI_REGS+0x18);
-+	outl(0x5a14a501, GAPSPCI_REGS+0x18);
- 
- 	for (i=0; i<1000000; i++)
- 		;
- 
--	if (ctrl_inl(GAPSPCI_REGS+0x18) != 1)
-+	if (inl(GAPSPCI_REGS+0x18) != 1)
- 		return -EINVAL;
- 
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x20);
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x24);
-+	outl(0x01000000, GAPSPCI_REGS+0x20);
-+	outl(0x01000000, GAPSPCI_REGS+0x24);
- 
--	ctrl_outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
--	ctrl_outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
-+	outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
-+	outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
- 
--	ctrl_outl(1, GAPSPCI_REGS+0x14);
--	ctrl_outl(1, GAPSPCI_REGS+0x34);
-+	outl(1, GAPSPCI_REGS+0x14);
-+	outl(1, GAPSPCI_REGS+0x34);
- 
- 	/* Setting Broadband Adapter */
--	ctrl_outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
--	ctrl_outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
--	ctrl_outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
--	ctrl_outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
--	ctrl_outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
--	ctrl_outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
--	ctrl_outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
-+	outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
-+	outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
-+	outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
-+	outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
-+	outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
-+	outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
-+	outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
- 
- 	return 0;
- }
-diff -puN arch/sh/drivers/pci/pci-sh4.h~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh4.h
---- a/arch/sh/drivers/pci/pci-sh4.h~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh4.h
-@@ -170,11 +170,11 @@ struct sh4_pci_address_map {
- 
- static inline void pci_write_reg(unsigned long val, unsigned long reg)
- {
--	ctrl_outl(val, PCI_REG(reg));
-+	outl(val, PCI_REG(reg));
- }
- 
- static inline unsigned long pci_read_reg(unsigned long reg)
- {
--	return ctrl_inl(PCI_REG(reg));
-+	return inl(PCI_REG(reg));
- }
- #endif /* __PCI_SH4_H */
-diff -puN arch/sh/drivers/pci/pci-sh7751.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh7751.c
---- a/arch/sh/drivers/pci/pci-sh7751.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh7751.c
-@@ -58,7 +58,7 @@ static int __init __area_sdram_check(uns
- {
- 	u32 word;
- 
--	word = ctrl_inl(SH7751_BCR1);
-+	word = inl(SH7751_BCR1);
- 	/* check BCR for SDRAM in area */
- 	if (((word >> area) & 1) == 0) {
- 		printk("PCI: Area %d is not configured for SDRAM. BCR1=0x%x\n",
-@@ -67,7 +67,7 @@ static int __init __area_sdram_check(uns
- 	}
- 	pci_write_reg(word, SH4_PCIBCR1);
- 
--	word = (u16)ctrl_inw(SH7751_BCR2);
-+	word = (u16)inw(SH7751_BCR2);
- 	/* check BCR2 for 32bit SDRAM interface*/
- 	if (((word >> (area << 1)) & 0x3) != 0x3) {
- 		printk("PCI: Area %d is not 32 bit SDRAM. BCR2=0x%x\n",
-@@ -85,9 +85,9 @@ int __init sh7751_pcic_init(struct sh4_p
- 	u32 word;
- 
- 	/* Set the BCR's to enable PCI access */
--	reg = ctrl_inl(SH7751_BCR1);
-+	reg = inl(SH7751_BCR1);
- 	reg |= 0x80000;
--	ctrl_outl(reg, SH7751_BCR1);
-+	outl(reg, SH7751_BCR1);
- 
- 	/* Turn the clocks back on (not done in reset)*/
- 	pci_write_reg(0, SH4_PCICLKR);
-@@ -179,13 +179,13 @@ int __init sh7751_pcic_init(struct sh4_p
+ 	if (!mapping_cap_writeback_dirty(mapping) || !count)
+@@ -387,7 +387,7 @@ int filemap_fdatawait(struct address_spa
  		return 0;
  
- 	/* configure the wait control registers */
--	word = ctrl_inl(SH7751_WCR1);
-+	word = inl(SH7751_WCR1);
- 	pci_write_reg(word, SH4_PCIWCR1);
--	word = ctrl_inl(SH7751_WCR2);
-+	word = inl(SH7751_WCR2);
- 	pci_write_reg(word, SH4_PCIWCR2);
--	word = ctrl_inl(SH7751_WCR3);
-+	word = inl(SH7751_WCR3);
- 	pci_write_reg(word, SH4_PCIWCR3);
--	word = ctrl_inl(SH7751_MCR);
-+	word = inl(SH7751_MCR);
- 	pci_write_reg(word, SH4_PCIMCR);
+ 	return wait_on_page_writeback_range(mapping, 0,
+-				(i_size - 1) >> PAGE_CACHE_SHIFT);
++				page_cache_index(mapping, i_size - 1));
+ }
+ EXPORT_SYMBOL(filemap_fdatawait);
  
- 	/* NOTE: I'm ignoring the PCI error IRQs for now..
-diff -puN arch/sh/drivers/pci/pci-sh7780.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh7780.c
---- a/arch/sh/drivers/pci/pci-sh7780.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh7780.c
-@@ -52,7 +52,7 @@ static int __init sh7780_pci_init(void)
+@@ -435,8 +435,8 @@ int filemap_write_and_wait_range(struct 
+ 		/* See comment of filemap_write_and_wait() */
+ 		if (err != -EIO) {
+ 			int err2 = wait_on_page_writeback_range(mapping,
+-						lstart >> PAGE_CACHE_SHIFT,
+-						lend >> PAGE_CACHE_SHIFT);
++					page_cache_index(mapping, lstart),
++					page_cache_index(mapping, lend));
+ 			if (!err)
+ 				err = err2;
+ 		}
+@@ -900,11 +900,11 @@ static void do_generic_file_read(struct 
+ 	unsigned int prev_offset;
+ 	int error;
  
- 	pr_debug("PCI: Starting intialization.\n");
+-	index = *ppos >> PAGE_CACHE_SHIFT;
+-	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
+-	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
+-	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
+-	offset = *ppos & ~PAGE_CACHE_MASK;
++	index = page_cache_index(mapping, *ppos);
++	prev_index = page_cache_index(mapping, ra->prev_pos);
++	prev_offset = page_cache_offset(mapping, ra->prev_pos);
++	last_index = page_cache_next(mapping, *ppos + desc->count);
++	offset = page_cache_offset(mapping, *ppos);
  
--	ctrl_outl(0x00000001, SH7780_PCI_VCR2); /* Enable PCIC */
-+	outl(0x00000001, SH7780_PCI_VCR2); /* Enable PCIC */
+ 	for (;;) {
+ 		struct page *page;
+@@ -941,16 +941,16 @@ page_ok:
+ 		 */
  
- 	/* check for SH7780/SH7780R hardware */
- 	id = pci_read_reg(SH7780_PCIVID);
+ 		isize = i_size_read(inode);
+-		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
++		end_index = page_cache_index(mapping, isize - 1);
+ 		if (unlikely(!isize || index > end_index)) {
+ 			page_cache_release(page);
+ 			goto out;
+ 		}
+ 
+ 		/* nr is the maximum number of bytes to copy from this page */
+-		nr = PAGE_CACHE_SIZE;
++		nr = page_cache_size(mapping);
+ 		if (index == end_index) {
+-			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
++			nr = page_cache_offset(mapping, isize - 1) + 1;
+ 			if (nr <= offset) {
+ 				page_cache_release(page);
+ 				goto out;
+@@ -985,8 +985,8 @@ page_ok:
+ 		 */
+ 		ret = actor(desc, page, offset, nr);
+ 		offset += ret;
+-		index += offset >> PAGE_CACHE_SHIFT;
+-		offset &= ~PAGE_CACHE_MASK;
++		index += page_cache_index(mapping, offset);
++		offset = page_cache_offset(mapping, offset);
+ 		prev_offset = offset;
+ 
+ 		page_cache_release(page);
+@@ -1076,11 +1076,8 @@ no_cached_page:
+ 	}
+ 
+ out:
+-	ra->prev_pos = prev_index;
+-	ra->prev_pos <<= PAGE_CACHE_SHIFT;
+-	ra->prev_pos |= prev_offset;
+-
+-	*ppos = ((loff_t)index << PAGE_CACHE_SHIFT) + offset;
++	ra->prev_pos = page_cache_pos(mapping, prev_index, prev_offset);
++	*ppos = page_cache_pos(mapping, index, offset);
+ 	if (filp)
+ 		file_accessed(filp);
+ }
+@@ -1259,8 +1256,8 @@ asmlinkage ssize_t sys_readahead(int fd,
+ 	if (file) {
+ 		if (file->f_mode & FMODE_READ) {
+ 			struct address_space *mapping = file->f_mapping;
+-			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
+-			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
++			pgoff_t start = page_cache_index(mapping, offset);
++			pgoff_t end = page_cache_index(mapping, offset + count - 1);
+ 			unsigned long len = end - start + 1;
+ 			ret = do_readahead(mapping, file, start, len);
+ 		}
+@@ -1328,7 +1325,7 @@ int filemap_fault(struct vm_area_struct 
+ 	int did_readaround = 0;
+ 	int ret = 0;
+ 
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++	size = page_cache_next(mapping, i_size_read(inode));
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 
+@@ -1403,7 +1400,7 @@ retry_find:
+ 		goto page_not_uptodate;
+ 
+ 	/* Must recheck i_size under page lock */
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++	size = page_cache_next(mapping, i_size_read(inode));
+ 	if (unlikely(vmf->pgoff >= size)) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+@@ -1414,7 +1411,7 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 */
+ 	mark_page_accessed(page);
+-	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
++	ra->prev_pos = page_cache_pos(mapping, page->index, 0);
+ 	vmf->page = page;
+ 	return ret | VM_FAULT_LOCKED;
+ 
+@@ -1902,8 +1899,8 @@ int pagecache_write_begin(struct file *f
+ 							pagep, fsdata);
+ 	} else {
+ 		int ret;
+-		pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+-		unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
++		pgoff_t index = page_cache_index(mapping, pos);
++		unsigned offset = page_cache_offset(mapping, pos);
+ 		struct inode *inode = mapping->host;
+ 		struct page *page;
+ again:
+@@ -1954,7 +1951,7 @@ int pagecache_write_end(struct file *fil
+ 		ret = aops->write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 	} else {
+-		unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
++		unsigned offset = page_cache_offset(mapping, pos);
+ 		struct inode *inode = mapping->host;
+ 
+ 		flush_dcache_page(page);
+@@ -2059,10 +2056,11 @@ static ssize_t generic_perform_write_2co
+ 		unsigned long bytes;	/* Bytes to write to page */
+ 		size_t copied;		/* Bytes copied from user */
+ 
+-		offset = (pos & (PAGE_CACHE_SIZE - 1));
+-		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+-						iov_iter_count(i));
++		offset = page_cache_offset(mapping, pos);
++		index = page_cache_index(mapping, pos);
++		bytes = min_t(unsigned long,
++				page_cache_size(mapping) - offset,
++				iov_iter_count(i));
+ 
+ 		/*
+ 		 * a non-NULL src_page indicates that we're doing the
+@@ -2233,10 +2231,11 @@ static ssize_t generic_perform_write(str
+ 		size_t copied;		/* Bytes copied from user */
+ 		void *fsdata;
+ 
+-		offset = (pos & (PAGE_CACHE_SIZE - 1));
+-		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+-						iov_iter_count(i));
++		offset = page_cache_offset(mapping, pos);
++		index = page_cache_index(mapping, pos);
++		bytes = min_t(unsigned long,
++				page_cache_size(mapping) - offset,
++				iov_iter_count(i));
+ 
+ again:
+ 
+@@ -2283,8 +2282,9 @@ again:
+ 			 * because not all segments in the iov can be copied at
+ 			 * once without a pagefault.
+ 			 */
+-			bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+-						iov_iter_single_seg_count(i));
++			bytes = min_t(unsigned long,
++					page_cache_size(mapping) - offset,
++					iov_iter_single_seg_count(i));
+ 			goto again;
+ 		}
+ 		pos += copied;
+@@ -2425,8 +2425,8 @@ __generic_file_aio_write_nolock(struct k
+ 		if (err == 0) {
+ 			written = written_buffered;
+ 			invalidate_mapping_pages(mapping,
+-						 pos >> PAGE_CACHE_SHIFT,
+-						 endbyte >> PAGE_CACHE_SHIFT);
++						 page_cache_index(mapping, pos),
++						 page_cache_index(mapping, endbyte));
+ 		} else {
+ 			/*
+ 			 * We don't know how much we wrote, so just return
+@@ -2513,7 +2513,7 @@ generic_file_direct_IO(int rw, struct ki
+ 	 */
+ 	if (rw == WRITE) {
+ 		write_len = iov_length(iov, nr_segs);
+-		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
++		end = page_cache_index(mapping, offset + write_len - 1);
+ 	       	if (mapping_mapped(mapping))
+ 			unmap_mapping_range(mapping, offset, write_len, 0);
+ 	}
+@@ -2530,7 +2530,7 @@ generic_file_direct_IO(int rw, struct ki
+ 	 */
+ 	if (rw == WRITE && mapping->nrpages) {
+ 		retval = invalidate_inode_pages2_range(mapping,
+-					offset >> PAGE_CACHE_SHIFT, end);
++					page_cache_index(mapping, offset), end);
+ 		if (retval)
+ 			goto out;
+ 	}
+@@ -2546,7 +2546,8 @@ generic_file_direct_IO(int rw, struct ki
+ 	 * fails, tough, the write still worked...
+ 	 */
+ 	if (rw == WRITE && mapping->nrpages) {
+-		invalidate_inode_pages2_range(mapping, offset >> PAGE_CACHE_SHIFT, end);
++		invalidate_inode_pages2_range(mapping,
++				page_cache_index(mapping, offset), end);
+ 	}
+ out:
+ 	return retval;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-revert-send-a-single-notification-on-device-state-changes.patch
-softlockup-workaround.patch
-git-acpi-powerpc-kconfig-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-agpgart-make-ia64-compile.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-adt7473-new-driver-for-analog-devices-adt7473-sensor-chip.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-ubi.patch
-git-net.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-nfsd-fix.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
-git-sched.patch
-git-sched-git-rejects.patch
-tracing-is-borked-on-powerpc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-sparc64.patch
+define-functions-for-page-cache-handling.patch
+gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+use-page_cache_xxx-in-fs-splicec.patch
 git-unionfs.patch
-git-unionfs-git-rejects.patch
-unionfs-is-broken.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
-git-xtensa.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-procfs-task-exe-symlink-fix.patch
+use-page_cache_xxx-for-fs-xfs.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+use-page_cache_xxx-functions-in-mm-filemapc.patch
+use-page_cache_xxx-in-mm-page-writebackc.patch
+use-page_cache_xxx-in-mm-truncatec.patch
+use-page_cache_xxx-in-mm-rmapc.patch
+use-page_cache_xxx-in-mm-filemap_xipc.patch
+use-page_cache_xxx-in-mm-migratec.patch
+use-page_cache_xxx-in-fs-libfsc.patch
+use-page_cache_xxx-in-fs-sync.patch
+use-page_cache_xxx-in-fs-bufferc.patch
+use-page_cache_xxx-in-mm-mpagec.patch
+use-page_cache_xxx-in-mm-fadvisec.patch
+use-page_cache_xxx-in-ext2.patch
+use-page_cache_xxx-in-fs-ext3.patch
+use-page_cache_xxx-in-fs-reiserfs.patch
+use-page_cache_xxx-in-fs-ext4.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
