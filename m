@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-silence-section-mismatch-warning-in-rtc-test.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:15:15 -0800
-Message-ID: <200802181016.m1IAGDUd019707@imap1.linux-foundation.org>
+Subject: + fbdev-use-div_round_up-or-roundup.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:15:45 -0800
+Message-ID: <200802181016.m1IAGhZE019721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41767 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752592AbYBRKRD (ORCPT
+	by vger.kernel.org with ESMTP id S1751980AbYBRKRh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:17:03 -0500
+	Mon, 18 Feb 2008 05:17:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: julia@diku.dk, adaplas@pol.net, linux-fbdev-devel@lists.sourceforge.net
 
 
 The patch titled
-     rtc: silence section mismatch warning in rtc-test
+     fbdev: use DIV_ROUND_UP or roundup
 has been added to the -mm tree.  Its filename is
-     rtc-silence-section-mismatch-warning-in-rtc-test.patch
+     fbdev-use-div_round_up-or-roundup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: silence section mismatch warning in rtc-test
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: fbdev: use DIV_ROUND_UP or roundup
+From: Julia Lawall <julia@diku.dk>
 
-Fix following warning:
-WARNING: vmlinux.o(.data+0x253e28): Section mismatch in reference from the variable test_drv to the function .devexit.text:test_remove()
+The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
+(d)) but is perhaps more readable.
 
-Fix by renaming the platfrom_driver variable from *_drv to *_driver
-so modpost ignore the reference to an __devexit section.
+An extract of the semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+// <smpl>
+@haskernel@
+@@
+
+#include <linux/kernel.h>
+
+@depends on haskernel@
+expression n,d;
+@@
+
+(
+- (n + d - 1) / d
++ DIV_ROUND_UP(n,d)
+|
+- (n + (d - 1)) / d
++ DIV_ROUND_UP(n,d)
+)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP((n),d)
++ DIV_ROUND_UP(n,d)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP(n,(d))
++ DIV_ROUND_UP(n,d)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: <linux-fbdev-devel@lists.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-test.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/atafb.c         |    2 +-
+ drivers/video/cirrusfb.c      |    2 +-
+ drivers/video/console/fbcon.c |    3 +--
+ drivers/video/gxt4500.c       |    2 +-
+ 4 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-test.c~rtc-silence-section-mismatch-warning-in-rtc-test drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-silence-section-mismatch-warning-in-rtc-test
-+++ a/drivers/rtc/rtc-test.c
-@@ -147,7 +147,7 @@ static int __devexit test_remove(struct 
- 	return 0;
- }
+diff -puN drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup drivers/video/atafb.c
+--- a/drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/atafb.c
+@@ -1270,7 +1270,7 @@ again:
  
--static struct platform_driver test_drv = {
-+static struct platform_driver test_driver = {
- 	.probe	= test_probe,
- 	.remove = __devexit_p(test_remove),
- 	.driver = {
-@@ -160,7 +160,7 @@ static int __init test_init(void)
- {
- 	int err;
- 
--	if ((err = platform_driver_register(&test_drv)))
-+	if ((err = platform_driver_register(&test_driver)))
- 		return err;
- 
- 	if ((test0 = platform_device_alloc("rtc-test", 0)) == NULL) {
-@@ -191,7 +191,7 @@ exit_free_test0:
- 	platform_device_put(test0);
- 
- exit_driver_unregister:
--	platform_driver_unregister(&test_drv);
-+	platform_driver_unregister(&test_driver);
- 	return err;
- }
- 
-@@ -199,7 +199,7 @@ static void __exit test_exit(void)
- {
- 	platform_device_unregister(test0);
- 	platform_device_unregister(test1);
--	platform_driver_unregister(&test_drv);
-+	platform_driver_unregister(&test_driver);
- }
- 
- MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
+ 	gstart = (prescale / 2 + plen * left_margin) / prescale;
+ 	/* gend1 is for hde (gend-gstart multiple of align), shifter's xres */
+-	gend1 = gstart + ((xres + align - 1) / align) * align * plen / prescale;
++	gend1 = gstart + roundup(xres, align) * plen / prescale;
+ 	/* gend2 is for hbb, visible xres (rest to gend1 is cut off by hblank) */
+ 	gend2 = gstart + xres * plen / prescale;
+ 	par->HHT = plen * (left_margin + xres + right_margin) /
+diff -puN drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/cirrusfb.c
+@@ -3117,7 +3117,7 @@ static void bestclock(long freq, long *b
+ 				}
+ 			}
+ 		}
+-		d = ((143181 * n) + f - 1) / f;
++		d = DIV_ROUND_UP(143181 * n, f);
+ 		if ((d >= 7) && (d <= 63)) {
+ 			if (d > 31)
+ 				d = (d / 2) * 2;
+diff -puN drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/console/fbcon.c
+@@ -620,8 +620,7 @@ static void fbcon_prepare_logo(struct vc
+ 	if (fb_get_color_depth(&info->var, &info->fix) == 1)
+ 		erase &= ~0x400;
+ 	logo_height = fb_prepare_logo(info, ops->rotate);
+-	logo_lines = (logo_height + vc->vc_font.height - 1) /
+-		vc->vc_font.height;
++	logo_lines = DIV_ROUND_UP(logo_height, vc->vc_font.height);
+ 	q = (unsigned short *) (vc->vc_origin +
+ 				vc->vc_size_row * rows);
+ 	step = logo_lines * cols;
+diff -puN drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup drivers/video/gxt4500.c
+--- a/drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/gxt4500.c
+@@ -238,7 +238,7 @@ static int calc_pll(int period_ps, struc
+ 	for (pdiv1 = 1; pdiv1 <= 8; ++pdiv1) {
+ 		for (pdiv2 = 1; pdiv2 <= pdiv1; ++pdiv2) {
+ 			postdiv = pdiv1 * pdiv2;
+-			pll_period = (period_ps + postdiv - 1) / postdiv;
++			pll_period = DIV_ROUND_UP(period_ps, postdiv);
+ 			/* keep pll in range 350..600 MHz */
+ 			if (pll_period < 1666 || pll_period > 2857)
+ 				continue;
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-samples-build-fix.patch
-git-acpi.patch
-acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
-acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
-acer-wmi-fix-section-mismatch-warnings.patch
-alsa-caiaq-fix-section-mismatch-warning.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
-git-kbuild.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+git-hid.patch
+git-net.patch
+drivers-net-mv643xx_ethc-use-field_sizeof.patch
+s390-use-div_round_up.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+usb-use-div_round_up.patch
+fbdev-use-div_round_up-or-roundup.patch
