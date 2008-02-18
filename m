@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-sparse-fix-replace-macro-with-static-function.patch added to -mm tree
-Date: Mon, 18 Feb 2008 01:55:56 -0800
-Message-ID: <200802180956.m1I9usFP018700@imap1.linux-foundation.org>
+Subject: + alsa-caiaq-fix-section-mismatch-warning.patch added to -mm tree
+Date: Mon, 18 Feb 2008 01:56:05 -0800
+Message-ID: <200802180957.m1I9v2dq018775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52624 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751808AbYBRJ5n (ORCPT
+	by vger.kernel.org with ESMTP id S1752242AbYBRJ6B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 04:57:43 -0500
+	Mon, 18 Feb 2008 04:58:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, lenb@kernel.org
+Cc: sam@ravnborg.org, daniel@caiaq.de, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     acpi: sparse fix, replace macro with static function
+     alsa: caiaq: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     acpi-sparse-fix-replace-macro-with-static-function.patch
+     alsa-caiaq-fix-section-mismatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: sparse fix, replace macro with static function
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: alsa: caiaq: fix section mismatch warning
+From: Sam Ravnborg <sam@ravnborg.org>
 
-replace acpi_util_eval_error macro with static function.
+Fix following warning:
+WARNING: vmlinux.o(.text+0x11ec01a): Section mismatch in reference from the function setup_card() to the function .devinit.text:snd_usb_caiaq_control_init()
 
-Avoid these sparse warnings due to using buffer within the macro.
-drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
+setup_card() are only used by init_card().
+init_card() are only used by snd_probe()
+snd_probe() are used for the .probe parameter in usb_driver.probe
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+Annotate them all __devinit to fix the warning.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/utils.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ sound/usb/caiaq/caiaq-device.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function drivers/acpi/utils.c
---- a/drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function
-+++ a/drivers/acpi/utils.c
-@@ -36,16 +36,20 @@ ACPI_MODULE_NAME("utils");
- /* --------------------------------------------------------------------------
-                             Object Evaluation Helpers
-    -------------------------------------------------------------------------- */
-+static void
-+acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
-+{
- #ifdef ACPI_DEBUG_OUTPUT
--#define acpi_util_eval_error(h,p,s) {\
--	char prefix[80] = {'\0'};\
--	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
--	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",\
--		(char *) prefix, p, acpi_format_exception(s))); }
-+	char prefix[80] = {'\0'};
-+	struct acpi_buffer buffer = {sizeof(prefix), prefix};
-+	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
-+		(char *) prefix, p, acpi_format_exception(s)));
- #else
--#define acpi_util_eval_error(h,p,s)
-+	return;
- #endif
-+}
-+
- acpi_status
- acpi_extract_package(union acpi_object *package,
- 		     struct acpi_buffer *format, struct acpi_buffer *buffer)
+diff -puN sound/usb/caiaq/caiaq-device.c~alsa-caiaq-fix-section-mismatch-warning sound/usb/caiaq/caiaq-device.c
+--- a/sound/usb/caiaq/caiaq-device.c~alsa-caiaq-fix-section-mismatch-warning
++++ a/sound/usb/caiaq/caiaq-device.c
+@@ -245,7 +245,7 @@ int snd_usb_caiaq_set_auto_msg (struct s
+ 					  tmp, sizeof(tmp));
+ }
+ 
+-static void setup_card(struct snd_usb_caiaqdev *dev)
++static void __devinit setup_card(struct snd_usb_caiaqdev *dev)
+ {
+ 	int ret;
+ 	char val[4];
+@@ -359,7 +359,7 @@ static struct snd_card* create_card(stru
+ 	return card;
+ }
+ 
+-static int init_card(struct snd_usb_caiaqdev *dev)
++static int __devinit init_card(struct snd_usb_caiaqdev *dev)
+ {
+ 	char *c;
+ 	struct usb_device *usb_dev = dev->chip.dev;
+@@ -428,7 +428,7 @@ static int init_card(struct snd_usb_caia
+ 	return 0;
+ }
+ 
+-static int snd_probe(struct usb_interface *intf, 
++static int __devinit snd_probe(struct usb_interface *intf,
+ 		     const struct usb_device_id *id)
+ {
+ 	int ret;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-origin.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-cifs-remove-global_extern-macro.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-replace-macro-with-static-inline-in-libatah.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+samples-build-fix.patch
+git-acpi.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-kbuild.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
