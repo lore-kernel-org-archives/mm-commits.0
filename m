@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-ecryptfs_header_cache_0.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:14:15 -0800
-Message-ID: <200802181015.m1IAFCYV019667@imap1.linux-foundation.org>
+Subject: + include-linux-sysctlh-remove-empty-else.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:21:20 -0800
+Message-ID: <200802181022.m1IAMIbm020120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57765 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753803AbYBRKVT (ORCPT
+	by vger.kernel.org with ESMTP id S1757598AbYBRKWd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:21:19 -0500
+	Mon, 18 Feb 2008 05:22:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mhalcrow@us.ibm.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     remove ecryptfs_header_cache_0
+     include/linux/sysctl.h: remove empty #else
 has been added to the -mm tree.  Its filename is
-     remove-ecryptfs_header_cache_0.patch
+     include-linux-sysctlh-remove-empty-else.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove ecryptfs_header_cache_0
+Subject: include/linux/sysctl.h: remove empty #else
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the no longer used ecryptfs_header_cache_0.
+Remove an empty #else.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/sysctl.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~remove-ecryptfs_header_cache_0 fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~remove-ecryptfs_header_cache_0
-+++ a/fs/ecryptfs/crypto.c
-@@ -1246,7 +1246,6 @@ ecryptfs_write_header_metadata(char *vir
- 	(*written) = 6;
- }
+diff -puN include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else include/linux/sysctl.h
+--- a/include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else
++++ a/include/linux/sysctl.h
+@@ -1085,8 +1085,6 @@ struct ctl_table_header *register_sysctl
+ void unregister_sysctl_table(struct ctl_table_header * table);
+ int sysctl_check_table(struct nsproxy *namespaces, struct ctl_table *table);
  
--struct kmem_cache *ecryptfs_header_cache_0;
- struct kmem_cache *ecryptfs_header_cache_1;
- struct kmem_cache *ecryptfs_header_cache_2;
+-#else /* __KERNEL__ */
+-
+ #endif /* __KERNEL__ */
  
+ #endif /* _LINUX_SYSCTL_H */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
