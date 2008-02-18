@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:10:38 -0800
-Message-ID: <200802181011.m1IABatE019470@imap1.linux-foundation.org>
+Subject: + fs-ramfs-extern-cleanup.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:10:50 -0800
+Message-ID: <200802181011.m1IABmmw019478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753162AbYBRKMS (ORCPT
+	by vger.kernel.org with ESMTP id S1753213AbYBRKMe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:18 -0500
+	Mon, 18 Feb 2008 05:12:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, ego@in.ibm.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     cpu: fix section mismatch warning in reference to register_cpu_notifier
+     fs/ramfs/ extern cleanup
 has been added to the -mm tree.  Its filename is
-     cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+     fs-ramfs-extern-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu: fix section mismatch warning in reference to register_cpu_notifier
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: fs/ramfs/ extern cleanup
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix following warnings:
-WARNING: vmlinux.o(.text+0xc60): Section mismatch in reference from the function kvm_init() to the function .cpuinit.text:register_cpu_notifier()
-WARNING: vmlinux.o(.text+0x33869a): Section mismatch in reference from the function xfs_icsb_init_counters() to the function .cpuinit.text:register_cpu_notifier()
-WARNING: vmlinux.o(.text+0x5556a1): Section mismatch in reference from the function acpi_processor_install_hotplug_notify() to the function .cpuinit.text:register_cpu_notifier()
-WARNING: vmlinux.o(.text+0xfe6b28): Section mismatch in reference from the function cpufreq_register_driver() to the function .cpuinit.text:register_cpu_notifier()
+- internal.h shouldn't duplicate the extern declaration for
+  ramfs_file_operations already in include/linux/ramfs.h
+- file-mmu.c needs two #include's for seeing the extern declarations
+  of it's global struct's
 
-register_cpu_notifier() are only really defined when HOTPLUG_CPU is enabled. 
-So references to the function are OK.
-
-Annotate it with __ref so we do not get warnings from callers and do not get
-warnings for the functions/data used by register_cpu_notifier().
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ramfs/file-mmu.c |    3 +++
+ fs/ramfs/internal.h |    1 -
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cpu.c~cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier kernel/cpu.c
---- a/kernel/cpu.c~cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier
-+++ a/kernel/cpu.c
-@@ -136,7 +136,7 @@ static void cpu_hotplug_done(void)
- 	mutex_unlock(&cpu_hotplug.lock);
- }
- /* Need to know about CPUs going up/down? */
--int __cpuinit register_cpu_notifier(struct notifier_block *nb)
-+int __ref register_cpu_notifier(struct notifier_block *nb)
- {
- 	int ret;
- 	cpu_maps_update_begin();
+diff -puN fs/ramfs/file-mmu.c~fs-ramfs-extern-cleanup fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~fs-ramfs-extern-cleanup
++++ a/fs/ramfs/file-mmu.c
+@@ -26,6 +26,9 @@
+ 
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/ramfs.h>
++
++#include "internal.h"
+ 
+ const struct address_space_operations ramfs_aops = {
+ 	.readpage	= simple_readpage,
+diff -puN fs/ramfs/internal.h~fs-ramfs-extern-cleanup fs/ramfs/internal.h
+--- a/fs/ramfs/internal.h~fs-ramfs-extern-cleanup
++++ a/fs/ramfs/internal.h
+@@ -11,5 +11,4 @@
+ 
+ 
+ extern const struct address_space_operations ramfs_aops;
+-extern const struct file_operations ramfs_file_operations;
+ extern const struct inode_operations ramfs_file_inode_operations;
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-samples-build-fix.patch
 git-acpi.patch
-acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
-acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
-acer-wmi-fix-section-mismatch-warnings.patch
-alsa-caiaq-fix-section-mismatch-warning.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
 git-kbuild.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
