@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-marker_debug-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:21:39 -0800
-Message-ID: <200802181022.m1IAMbnJ020132@imap1.linux-foundation.org>
+Subject: + ocfs-make-dlm_do_assert_master-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 04:20:11 -0800
+Message-ID: <200802181221.m1ICL9qt024278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57539 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756641AbYBRKXF (ORCPT
+	by vger.kernel.org with ESMTP id S1758185AbYBRMWU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:23:05 -0500
+	Mon, 18 Feb 2008 07:22:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mathieu.desnoyers@polymtl.ca
+Cc: bunk@kernel.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     make marker_debug static
+     ocfs: make dlm_do_assert_master() static
 has been added to the -mm tree.  Its filename is
-     make-marker_debug-static.patch
+     ocfs-make-dlm_do_assert_master-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make marker_debug static
+Subject: ocfs: make dlm_do_assert_master() static
 From: Adrian Bunk <bunk@kernel.org>
 
-With the needlessly global marker_debug being static gcc can optimize the
-unused code away.
+Make the needlessly global dlm_do_assert_master() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/marker.c~make-marker_debug-static kernel/marker.c
---- a/kernel/marker.c~make-marker_debug-static
-+++ a/kernel/marker.c
-@@ -28,7 +28,7 @@ extern struct marker __start___markers[]
- extern struct marker __stop___markers[];
- 
- /* Set to 1 to enable marker debug output */
--const int marker_debug;
-+static const int marker_debug;
- 
- /*
-  * markers_mutex nests inside module_mutex. Markers mutex protects the builtin
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -1695,9 +1695,9 @@ send_response:
+  * can periodically run all locks owned by this node
+  * and re-assert across the cluster...
+  */
+-int dlm_do_assert_master(struct dlm_ctxt *dlm,
+-			 struct dlm_lock_resource *res,
+-			 void *nodemap, u32 flags)
++static int dlm_do_assert_master(struct dlm_ctxt *dlm,
++				struct dlm_lock_resource *res,
++				void *nodemap, u32 flags)
+ {
+ 	struct dlm_assert_master assert;
+ 	int to, tmpret;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -90,6 +93,7 @@ scsi_transport_iscsic-make-2-functions-static.patch
 remove-ps2esdi.patch
 usb-make-usb_storage_onetouch-available-with-pm.patch
 make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
 the-scheduled-ieee80211-softmac-removal.patch
 the-scheduled-rc80211-simplec-removal.patch
 ipwireless-remove-dead-code.patch
