@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-__put_super-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:15 -0800
-Message-ID: <200802181012.m1IACDVN019570@imap1.linux-foundation.org>
+Subject: + fs-freevxfs-proper-externs.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:10 -0800
+Message-ID: <200802181012.m1IAC8vi019567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59265 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754306AbYBRKM5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756186AbYBRKM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:12:57 -0500
+	Mon, 18 Feb 2008 05:12:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, hch@infradead.org
 
 
 The patch titled
-     make __put_super() static
+     fs/freevxfs/: proper externs
 has been added to the -mm tree.  Its filename is
-     make-__put_super-static.patch
+     fs-freevxfs-proper-externs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make __put_super() static
+Subject: fs/freevxfs/: proper externs
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global __put_super() static.
+Move the extern declarations of several structs to vxfs_extern.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c         |    2 +-
- include/linux/fs.h |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ fs/freevxfs/vxfs_extern.h |    5 +++++
+ fs/freevxfs/vxfs_immed.c  |    1 +
+ fs/freevxfs/vxfs_inode.c  |    5 -----
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/super.c~make-__put_super-static fs/super.c
---- a/fs/super.c~make-__put_super-static
-+++ a/fs/super.c
-@@ -115,7 +115,7 @@ static inline void destroy_super(struct 
-  * Drop a superblock's refcount.  Returns non-zero if the superblock was
-  * destroyed.  The caller must hold sb_lock.
-  */
--int __put_super(struct super_block *sb)
-+static int __put_super(struct super_block *sb)
- {
- 	int ret = 0;
+diff -puN fs/freevxfs/vxfs_extern.h~fs-freevxfs-proper-externs fs/freevxfs/vxfs_extern.h
+--- a/fs/freevxfs/vxfs_extern.h~fs-freevxfs-proper-externs
++++ a/fs/freevxfs/vxfs_extern.h
+@@ -50,7 +50,11 @@ extern daddr_t			vxfs_bmap1(struct inode
+ /* vxfs_fshead.c */
+ extern int			vxfs_read_fshead(struct super_block *);
  
-diff -puN include/linux/fs.h~make-__put_super-static include/linux/fs.h
---- a/include/linux/fs.h~make-__put_super-static
-+++ a/include/linux/fs.h
-@@ -1471,7 +1471,6 @@ extern int get_sb_pseudo(struct file_sys
- 	const struct super_operations *ops, unsigned long,
- 	struct vfsmount *mnt);
- extern int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb);
--int __put_super(struct super_block *sb);
- int __put_super_and_need_restart(struct super_block *sb);
- void unnamed_dev_init(void);
++/* vxfs_immed.c */
++extern const struct inode_operations vxfs_immed_symlink_iops;
++
+ /* vxfs_inode.c */
++extern const struct address_space_operations vxfs_immed_aops;
+ extern struct kmem_cache	*vxfs_inode_cachep;
+ extern void			vxfs_dumpi(struct vxfs_inode_info *, ino_t);
+ extern struct inode *		vxfs_get_fake_inode(struct super_block *,
+@@ -69,6 +73,7 @@ extern const struct file_operations	vxfs
+ extern int			vxfs_read_olt(struct super_block *, u_long);
+ 
+ /* vxfs_subr.c */
++extern const struct address_space_operations vxfs_aops;
+ extern struct page *		vxfs_get_page(struct address_space *, u_long);
+ extern void			vxfs_put_page(struct page *);
+ extern struct buffer_head *	vxfs_bread(struct inode *, int);
+diff -puN fs/freevxfs/vxfs_immed.c~fs-freevxfs-proper-externs fs/freevxfs/vxfs_immed.c
+--- a/fs/freevxfs/vxfs_immed.c~fs-freevxfs-proper-externs
++++ a/fs/freevxfs/vxfs_immed.c
+@@ -35,6 +35,7 @@
+ #include <linux/namei.h>
+ 
+ #include "vxfs.h"
++#include "vxfs_extern.h"
+ #include "vxfs_inode.h"
+ 
+ 
+diff -puN fs/freevxfs/vxfs_inode.c~fs-freevxfs-proper-externs fs/freevxfs/vxfs_inode.c
+--- a/fs/freevxfs/vxfs_inode.c~fs-freevxfs-proper-externs
++++ a/fs/freevxfs/vxfs_inode.c
+@@ -41,11 +41,6 @@
+ #include "vxfs_extern.h"
+ 
+ 
+-extern const struct address_space_operations vxfs_aops;
+-extern const struct address_space_operations vxfs_immed_aops;
+-
+-extern const struct inode_operations vxfs_immed_symlink_iops;
+-
+ struct kmem_cache		*vxfs_inode_cachep;
+ 
  
 _
 
