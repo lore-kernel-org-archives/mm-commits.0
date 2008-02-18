@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-annotate-cb_alloc-with-__ref.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:02:23 -0800
-Message-ID: <200802181003.m1IA3KTe019116@imap1.linux-foundation.org>
+Subject: + serial-silence-section-mismatch-warnings-in-8250_pci.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:02:32 -0800
+Message-ID: <200802181003.m1IA3U0d019129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45883 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55947 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752629AbYBRKD5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752926AbYBRKE1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:03:57 -0500
+	Mon, 18 Feb 2008 05:04:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, linux@dominikbrodowski.net
+Cc: sam@ravnborg.org, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     pcmcia: annotate cb_alloc with __ref
+     serial: silence section mismatch warnings in 8250_pci
 has been added to the -mm tree.  Its filename is
-     pcmcia-annotate-cb_alloc-with-__ref.patch
+     serial-silence-section-mismatch-warnings-in-8250_pci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: annotate cb_alloc with __ref
+Subject: serial: silence section mismatch warnings in 8250_pci
 From: Sam Ravnborg <sam@ravnborg.org>
 
-cb_alloc() uses a function (pci_scan_slot) that will be annotated __devinit.
+Fix following warnings:
+WARNING: drivers/serial/built-in.o(.data+0x5b8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_ite887x_exit()
+WARNING: drivers/serial/built-in.o(.data+0x5e0): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
+WARNING: drivers/serial/built-in.o(.data+0x608): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
+WARNING: drivers/serial/built-in.o(.data+0x658): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
+WARNING: drivers/serial/built-in.o(.data+0x680): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
+WARNING: drivers/serial/built-in.o(.data+0x6a8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:pci_plx9050_exit()
+WARNING: drivers/serial/built-in.o(.data+0x6d0): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
+WARNING: drivers/serial/built-in.o(.data+0x6f8): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
+WARNING: drivers/serial/built-in.o(.data+0x720): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
+WARNING: drivers/serial/built-in.o(.data+0x748): Section mismatch in reference from the variable pci_serial_quirks to the function .devexit.text:sbs_exit()
 
-Annotate cb_alloc() with __ref to tell modpost to ignore this reference.
+pci_serial_quirks contains a number of function pointers where the referenced
+function is annotated __devexit.  This is OK so we annotate pci_serial_quirks
+with __refdata to ignore the __devexit references
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cardbus.c |    2 +-
+ drivers/serial/8250_pci.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/cardbus.c~pcmcia-annotate-cb_alloc-with-__ref drivers/pcmcia/cardbus.c
---- a/drivers/pcmcia/cardbus.c~pcmcia-annotate-cb_alloc-with-__ref
-+++ a/drivers/pcmcia/cardbus.c
-@@ -209,7 +209,7 @@ static void cardbus_assign_irqs(struct p
- 	}
- }
- 
--int cb_alloc(struct pcmcia_socket * s)
-+int __ref cb_alloc(struct pcmcia_socket * s)
- {
- 	struct pci_bus *bus = s->cb_dev->subordinate;
- 	struct pci_dev *dev;
+diff -puN drivers/serial/8250_pci.c~serial-silence-section-mismatch-warnings-in-8250_pci drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-silence-section-mismatch-warnings-in-8250_pci
++++ a/drivers/serial/8250_pci.c
+@@ -775,7 +775,7 @@ pci_default_setup(struct serial_private 
+  * This list is ordered alphabetically by vendor then device.
+  * Specific entries must come before more generic entries.
+  */
+-static struct pci_serial_quirk pci_serial_quirks[] = {
++static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
+ 	/*
+ 	* ADDI-DATA GmbH communication cards <info@addi-data.com>
+ 	*/
 _
 
 Patches currently in -mm which might be from sam@ravnborg.org are
