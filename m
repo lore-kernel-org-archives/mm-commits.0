@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-ds1511_rtc_readset_time-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:15:21 -0800
-Message-ID: <200802181016.m1IAGJxr019712@imap1.linux-foundation.org>
+Subject: + rtc-silence-section-mismatch-warning-in-rtc-test.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:15:15 -0800
+Message-ID: <200802181016.m1IAGDUd019707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40177 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754750AbYBRKRO (ORCPT
+	by vger.kernel.org with ESMTP id S1752592AbYBRKRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:17:14 -0500
+	Mon, 18 Feb 2008 05:17:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: sam@ravnborg.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     make ds1511_rtc_{read,set}_time() static
+     rtc: silence section mismatch warning in rtc-test
 has been added to the -mm tree.  Its filename is
-     make-ds1511_rtc_readset_time-static.patch
+     rtc-silence-section-mismatch-warning-in-rtc-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make ds1511_rtc_{read,set}_time() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: rtc: silence section mismatch warning in rtc-test
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Make the needlessly global ds1511_rtc_{read,set}_time() static.
+Fix following warning:
+WARNING: vmlinux.o(.data+0x253e28): Section mismatch in reference from the variable test_drv to the function .devexit.text:test_remove()
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
+Fix by renaming the platfrom_driver variable from *_drv to *_driver
+so modpost ignore the reference to an __devexit section.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1511.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-test.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1511.c~make-ds1511_rtc_readset_time-static drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~make-ds1511_rtc_readset_time-static
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -181,8 +181,7 @@ ds1511_wdog_disable(void)
-  * stupidly, some callers call with year unmolested;
-  * and some call with  year = year - 1900.  thanks.
-  */
-- int
--ds1511_rtc_set_time(struct device *dev, struct rtc_time *rtc_tm)
-+static int ds1511_rtc_set_time(struct device *dev, struct rtc_time *rtc_tm)
- {
- 	u8 mon, day, dow, hrs, min, sec, yrs, cen;
- 	unsigned int flags;
-@@ -245,8 +244,7 @@ ds1511_rtc_set_time(struct device *dev, 
+diff -puN drivers/rtc/rtc-test.c~rtc-silence-section-mismatch-warning-in-rtc-test drivers/rtc/rtc-test.c
+--- a/drivers/rtc/rtc-test.c~rtc-silence-section-mismatch-warning-in-rtc-test
++++ a/drivers/rtc/rtc-test.c
+@@ -147,7 +147,7 @@ static int __devexit test_remove(struct 
  	return 0;
  }
  
-- int
--ds1511_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
-+static int ds1511_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
+-static struct platform_driver test_drv = {
++static struct platform_driver test_driver = {
+ 	.probe	= test_probe,
+ 	.remove = __devexit_p(test_remove),
+ 	.driver = {
+@@ -160,7 +160,7 @@ static int __init test_init(void)
  {
- 	unsigned int century;
- 	unsigned int flags;
+ 	int err;
+ 
+-	if ((err = platform_driver_register(&test_drv)))
++	if ((err = platform_driver_register(&test_driver)))
+ 		return err;
+ 
+ 	if ((test0 = platform_device_alloc("rtc-test", 0)) == NULL) {
+@@ -191,7 +191,7 @@ exit_free_test0:
+ 	platform_device_put(test0);
+ 
+ exit_driver_unregister:
+-	platform_driver_unregister(&test_drv);
++	platform_driver_unregister(&test_driver);
+ 	return err;
+ }
+ 
+@@ -199,7 +199,7 @@ static void __exit test_exit(void)
+ {
+ 	platform_device_unregister(test0);
+ 	platform_device_unregister(test1);
+-	platform_driver_unregister(&test_drv);
++	platform_driver_unregister(&test_driver);
+ }
+ 
+ MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
+samples-build-fix.patch
 git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
-gfs2-ops_filec-should-include-ops_inodeh.patch
+acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
+acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
+acer-wmi-fix-section-mismatch-warnings.patch
+alsa-caiaq-fix-section-mismatch-warning.patch
+cpufreq-fix-section-mismatch-warnings.patch
+drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
 git-kbuild.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-make-ocfs2_downconvert_thread-static.patch
-ocfs-make-dlm_do_assert_master-static.patch
-if-0-pci_cleanup_aer_correct_error_status.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-scsi-qlogicptic-section-fixes.patch
-make-lpfc_disable_node-static.patch
-if-0-ses_match_host.patch
-scsi_transport_iscsic-make-2-functions-static.patch
-remove-ps2esdi.patch
-usb-make-usb_storage_onetouch-available-with-pm.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ipwireless-remove-dead-code.patch
-git-xtensa.patch
-sparc-fix-build.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-printk_recursion_bug_msg-static.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-block_devc-remove-if-0ed-code.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-make-struct-def_blk_aops-static.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+serial-silence-section-mismatch-warnings-in-8250_pci.patch
+pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+tpm-fix-section-mismatch-warning.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
