@@ -1,86 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-add-scih.patch removed from -mm tree
-Date: Sat, 16 Feb 2008 22:14:17 -0800
-Message-ID: <200802170614.m1H6EHsb027276@imap1.linux-foundation.org>
+Subject: - provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch removed from -mm tree
+Date: Mon, 18 Feb 2008 01:34:42 -0800
+Message-ID: <200802180935.m1I9ZeK9017955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58383 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbYBQGOc (ORCPT
+	by vger.kernel.org with ESMTP id S1751512AbYBRJgS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 Feb 2008 01:14:32 -0500
+	Mon, 18 Feb 2008 04:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: jlim@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300: add sci.h
+     Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
 has been removed from the -mm tree.  Its filename was
-     h8300-add-scih.patch
+     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: add sci.h
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
+From: Jonathan Lim <jlim@sgi.com>
 
-This file is required by sh-sci.
+It is possible that the values used in and returned from jiffies_to_usecs()
+are incorrect because of truncation when variables of type u64 are
+involved.  So a function specific to that type is used instead.
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Jonathan Lim <jlim@sgi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/sci.h |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ include/linux/jiffies.h |    5 +++--
+ kernel/time.c           |    6 ++++++
+ kernel/tsacct.c         |    4 ++--
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null include/asm-h8300/sci.h
---- /dev/null
-+++ a/include/asm-h8300/sci.h
-@@ -0,0 +1,34 @@
-+#ifndef __ASM_SH_SCI_H
-+#define __ASM_SH_SCI_H
+diff -puN include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc include/linux/jiffies.h
+--- a/include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/include/linux/jiffies.h
+@@ -42,7 +42,7 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
+ 
+-/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, then we can
++/* Suppose we want to divide two numbers NOM and DEN: NOM/DEN, then we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+  * This however means trouble for large NOM, because (NOM << LSH) may no
+@@ -204,7 +204,7 @@ extern unsigned long preset_lpj;
+  * operator if the result is a long long AND at least one of the
+  * operands is cast to long long (usually just prior to the "*" so as
+  * not to confuse it into thinking it really has a 64-bit operand,
+- * which, buy the way, it can do, but it takes more code and at least 2
++ * which, by the way, it can do, but it takes more code and at least 2
+  * mpys).
+ 
+  * We also need to be aware that one second in nanoseconds is only a
+@@ -269,6 +269,7 @@ extern unsigned long preset_lpj;
+  */
+ extern unsigned int jiffies_to_msecs(const unsigned long j);
+ extern unsigned int jiffies_to_usecs(const unsigned long j);
++extern u64 jiffies_64_to_usecs(const u64 j);
+ extern unsigned long msecs_to_jiffies(const unsigned int m);
+ extern unsigned long usecs_to_jiffies(const unsigned int u);
+ extern unsigned long timespec_to_jiffies(const struct timespec *value);
+diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/time.c
+--- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/time.c
+@@ -268,6 +268,12 @@ unsigned int inline jiffies_to_usecs(con
+ }
+ EXPORT_SYMBOL(jiffies_to_usecs);
+ 
++u64 jiffies_64_to_usecs(const u64 j)
++{
++	return (j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1) / HZ_TO_USEC_DEN;
++}
++EXPORT_SYMBOL(jiffies_64_to_usecs);
 +
-+#include <linux/serial_core.h>
-+
-+/*
-+ * Generic header for SuperH SCI(F)
-+ *
-+ * Do not place SH-specific parts in here, sh64 and h8300 depend on this too.
-+ */
-+
-+/* Offsets into the sci_port->irqs array */
-+enum {
-+	SCIx_ERI_IRQ,
-+	SCIx_RXI_IRQ,
-+	SCIx_TXI_IRQ,
-+	SCIx_TEI_IRQ,
-+	SCIx_NR_IRQS,
-+};
-+
-+/*
-+ * Platform device specific platform_data struct
-+ */
-+struct plat_sci_port {
-+	void __iomem	*membase;		/* io cookie */
-+	unsigned long	mapbase;		/* resource base */
-+	unsigned int	irqs[SCIx_NR_IRQS];	/* ERI, RXI, TXI, BRI */
-+	unsigned int	type;			/* SCI / SCIF / IRDA */
-+	upf_t		flags;			/* UPF_* flags */
-+};
-+
-+int early_sci_setup(struct uart_port *port);
-+
-+#endif /* __ASM_SH_SCI_H */
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+diff -puN kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/tsacct.c
+--- a/kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/tsacct.c
+@@ -85,8 +85,8 @@ void xacct_add_tsk(struct taskstats *sta
+ 	struct mm_struct *mm;
+ 
+ 	/* convert pages-jiffies to Mbyte-usec */
+-	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
+-	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
++	stats->coremem = jiffies_64_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
++	stats->virtmem = jiffies_64_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
+ 	mm = get_task_mm(p);
+ 	if (mm) {
+ 		/* adjust to KB unit */
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from jlim@sgi.com are
 
-h8300-signalc-typo-fix.patch
-h8300-uaccessh-update.patch
-h8300-irq-handling-update.patch
-h8300-defconfig-update.patch
-h8300-add-scih.patch
-elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+use-find_task_by_vpid-in-taskstats.patch
