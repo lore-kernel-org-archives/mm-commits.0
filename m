@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:02:18 -0800
-Message-ID: <200802181003.m1IA3G9C019102@imap1.linux-foundation.org>
+Subject: + make-ocfs2_downconvert_thread-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:02:01 -0800
+Message-ID: <200802181002.m1IA2xpG019077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756826AbYBRKDw (ORCPT
+	by vger.kernel.org with ESMTP id S1757271AbYBRKDx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:03:52 -0500
+	Mon, 18 Feb 2008 05:03:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, linux@dominikbrodowski.net
+Cc: bunk@kernel.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     pcmcia: silence section mismatch warnings from pci_driver variables
+     make ocfs2_downconvert_thread() static
 has been added to the -mm tree.  Its filename is
-     pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+     make-ocfs2_downconvert_thread-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: silence section mismatch warnings from pci_driver variables
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: make ocfs2_downconvert_thread() static
+From: Adrian Bunk <bunk@kernel.org>
 
-Silence following warnings:
-WARNING: drivers/pcmcia/built-in.o(.data+0x14e0): Section mismatch in reference from the variable pd6729_pci_drv to the function .devinit.text:pd6729_pci_probe()
-WARNING: drivers/pcmcia/built-in.o(.data+0x14e8): Section mismatch in reference from the variable pd6729_pci_drv to the function .devexit.text:pd6729_pci_remove()
-WARNING: drivers/pcmcia/built-in.o(.data+0x16c0): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devinit.text:i82092aa_pci_probe()
-WARNING: drivers/pcmcia/built-in.o(.data+0x16c8): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devexit.text:i82092aa_pci_remove()
+Make the needlessly global ocfs2_downconvert_thread() static.
 
-Rename the variables from *_drv to *_driver so modpost ignore the OK
-references to __devinit/__devexit functions.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/i82092.c |    6 +++---
- drivers/pcmcia/pd6729.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/ocfs2/dlmglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/i82092.c
---- a/drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
-+++ a/drivers/pcmcia/i82092.c
-@@ -53,7 +53,7 @@ static int i82092aa_socket_resume (struc
- }
- #endif
- 
--static struct pci_driver i82092aa_pci_drv = {
-+static struct pci_driver i82092aa_pci_driver = {
- 	.name           = "i82092aa",
- 	.id_table       = i82092aa_pci_ids,
- 	.probe          = i82092aa_pci_probe,
-@@ -714,13 +714,13 @@ static int i82092aa_set_mem_map(struct p
- 
- static int i82092aa_module_init(void)
- {
--	return pci_register_driver(&i82092aa_pci_drv);
-+	return pci_register_driver(&i82092aa_pci_driver);
+diff -puN fs/ocfs2/dlmglue.c~make-ocfs2_downconvert_thread-static fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~make-ocfs2_downconvert_thread-static
++++ a/fs/ocfs2/dlmglue.c
+@@ -3356,7 +3356,7 @@ static int ocfs2_downconvert_thread_shou
+ 	return should_wake;
  }
  
- static void i82092aa_module_exit(void)
+-int ocfs2_downconvert_thread(void *arg)
++static int ocfs2_downconvert_thread(void *arg)
  {
- 	enter("i82092aa_module_exit");
--	pci_unregister_driver(&i82092aa_pci_drv);
-+	pci_unregister_driver(&i82092aa_pci_driver);
- 	if (sockets[0].io_base>0)
- 			 release_region(sockets[0].io_base, 2);
- 	leave("i82092aa_module_exit");
-diff -puN drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/pd6729.c
---- a/drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
-+++ a/drivers/pcmcia/pd6729.c
-@@ -778,7 +778,7 @@ static struct pci_device_id pd6729_pci_i
- };
- MODULE_DEVICE_TABLE(pci, pd6729_pci_ids);
- 
--static struct pci_driver pd6729_pci_drv = {
-+static struct pci_driver pd6729_pci_driver = {
- 	.name		= "pd6729",
- 	.id_table	= pd6729_pci_ids,
- 	.probe		= pd6729_pci_probe,
-@@ -791,12 +791,12 @@ static struct pci_driver pd6729_pci_drv 
- 
- static int pd6729_module_init(void)
- {
--	return pci_register_driver(&pd6729_pci_drv);
-+	return pci_register_driver(&pd6729_pci_driver);
- }
- 
- static void pd6729_module_exit(void)
- {
--	pci_unregister_driver(&pd6729_pci_drv);
-+	pci_unregister_driver(&pd6729_pci_driver);
- }
- 
- module_init(pd6729_module_init);
+ 	int status = 0;
+ 	struct ocfs2_super *osb = arg;
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-samples-build-fix.patch
 git-acpi.patch
-acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
-acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
-acer-wmi-fix-section-mismatch-warnings.patch
-alsa-caiaq-fix-section-mismatch-warning.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
 git-kbuild.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
