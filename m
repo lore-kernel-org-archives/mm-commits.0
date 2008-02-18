@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-in-mm-truncatec.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:08:58 -0800
-Message-ID: <200802181009.m1IA9umG019394@imap1.linux-foundation.org>
+Subject: + make-swap_pte_to_pagemap_entry-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:08:41 -0800
+Message-ID: <200802181009.m1IA9dtw019381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51986 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754894AbYBRKKA (ORCPT
+	by vger.kernel.org with ESMTP id S1755244AbYBRKKH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:10:00 -0500
+	Mon, 18 Feb 2008 05:10:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dgc@sgi.com
+Cc: bunk@kernel.org, mpm@selenic.com
 
 
 The patch titled
-     Use page_cache_xxx in mm/truncate.c
+     make swap_pte_to_pagemap_entry() static
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-in-mm-truncatec.patch
+     make-swap_pte_to_pagemap_entry-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,149 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in mm/truncate.c
-From: Christoph Lameter <clameter@sgi.com>
+Subject: make swap_pte_to_pagemap_entry() static
+From: Adrian Bunk <bunk@kernel.org>
 
-Use page_cache_xxx in mm/truncate.c
+Make the needlessly global swap_pte_to_pagemap_entry() static.
 
-Reviewed-by: Dave Chinner <dgc@sgi.com>
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/truncate.c~use-page_cache_xxx-in-mm-truncatec mm/truncate.c
---- a/mm/truncate.c~use-page_cache_xxx-in-mm-truncatec
-+++ a/mm/truncate.c
-@@ -46,9 +46,10 @@ void do_invalidatepage(struct page *page
- 		(*invalidatepage)(page, offset);
+diff -puN fs/proc/task_mmu.c~make-swap_pte_to_pagemap_entry-static fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~make-swap_pte_to_pagemap_entry-static
++++ a/fs/proc/task_mmu.c
+@@ -571,7 +571,7 @@ static int pagemap_pte_hole(unsigned lon
+ 	return err;
  }
  
--static inline void truncate_partial_page(struct page *page, unsigned partial)
-+static inline void truncate_partial_page(struct address_space *mapping,
-+			struct page *page, unsigned partial)
+-u64 swap_pte_to_pagemap_entry(pte_t pte)
++static u64 swap_pte_to_pagemap_entry(pte_t pte)
  {
--	zero_user_segment(page, partial, PAGE_CACHE_SIZE);
-+	zero_user_segment(page, partial, page_cache_size(mapping));
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, partial);
- }
-@@ -101,7 +102,7 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		do_invalidatepage(page, 0);
- 
--	cancel_dirty_page(page, PAGE_CACHE_SIZE);
-+	cancel_dirty_page(page, page_cache_size(mapping));
- 
- 	remove_from_page_cache(page);
- 	ClearPageUptodate(page);
-@@ -160,9 +161,9 @@ invalidate_complete_page(struct address_
- void truncate_inode_pages_range(struct address_space *mapping,
- 				loff_t lstart, loff_t lend)
- {
--	const pgoff_t start = (lstart + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
-+	const pgoff_t start = page_cache_next(mapping, lstart);
- 	pgoff_t end;
--	const unsigned partial = lstart & (PAGE_CACHE_SIZE - 1);
-+	const unsigned partial = page_cache_offset(mapping, lstart);
- 	struct pagevec pvec;
- 	pgoff_t next;
- 	int i;
-@@ -170,8 +171,9 @@ void truncate_inode_pages_range(struct a
- 	if (mapping->nrpages == 0)
- 		return;
- 
--	BUG_ON((lend & (PAGE_CACHE_SIZE - 1)) != (PAGE_CACHE_SIZE - 1));
--	end = (lend >> PAGE_CACHE_SHIFT);
-+	BUG_ON(page_cache_offset(mapping, lend) !=
-+				page_cache_size(mapping) - 1);
-+	end = page_cache_index(mapping, lend);
- 
- 	pagevec_init(&pvec, 0);
- 	next = start;
-@@ -197,8 +199,8 @@ void truncate_inode_pages_range(struct a
- 			}
- 			if (page_mapped(page)) {
- 				unmap_mapping_range(mapping,
--				  (loff_t)page_index<<PAGE_CACHE_SHIFT,
--				  PAGE_CACHE_SIZE, 0);
-+				  page_cache_pos(mapping, page_index, 0),
-+				  page_cache_size(mapping), 0);
- 			}
- 			truncate_complete_page(mapping, page);
- 			unlock_page(page);
-@@ -211,7 +213,7 @@ void truncate_inode_pages_range(struct a
- 		struct page *page = find_lock_page(mapping, start - 1);
- 		if (page) {
- 			wait_on_page_writeback(page);
--			truncate_partial_page(page, partial);
-+			truncate_partial_page(mapping, page, partial);
- 			unlock_page(page);
- 			page_cache_release(page);
- 		}
-@@ -239,8 +241,8 @@ void truncate_inode_pages_range(struct a
- 			wait_on_page_writeback(page);
- 			if (page_mapped(page)) {
- 				unmap_mapping_range(mapping,
--				  (loff_t)page->index<<PAGE_CACHE_SHIFT,
--				  PAGE_CACHE_SIZE, 0);
-+				  page_cache_pos(mapping, page->index, 0),
-+				  page_cache_size(mapping), 0);
- 			}
- 			if (page->index > next)
- 				next = page->index;
-@@ -425,9 +427,8 @@ int invalidate_inode_pages2_range(struct
- 					 * Zap the rest of the file in one hit.
- 					 */
- 					unmap_mapping_range(mapping,
--					   (loff_t)page_index<<PAGE_CACHE_SHIFT,
--					   (loff_t)(end - page_index + 1)
--							<< PAGE_CACHE_SHIFT,
-+					   page_cache_pos(mapping, page_index, 0),
-+					   page_cache_pos(mapping, end - page_index + 1, 0),
- 					    0);
- 					did_range_unmap = 1;
- 				} else {
-@@ -435,8 +436,8 @@ int invalidate_inode_pages2_range(struct
- 					 * Just zap this page
- 					 */
- 					unmap_mapping_range(mapping,
--					  (loff_t)page_index<<PAGE_CACHE_SHIFT,
--					  PAGE_CACHE_SIZE, 0);
-+					  page_cache_pos(mapping, page_index, 0),
-+					  page_cache_size(mapping), 0);
- 				}
- 			}
- 			BUG_ON(page_mapped(page));
+ 	swp_entry_t e = pte_to_swp_entry(pte);
+ 	return PM_SWAP | swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-define-functions-for-page-cache-handling.patch
-gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
-use-page_cache_xxx-in-fs-splicec.patch
-git-unionfs.patch
-use-page_cache_xxx-for-fs-xfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-use-page_cache_xxx-functions-in-mm-filemapc.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
-use-page_cache_xxx-in-mm-rmapc.patch
-use-page_cache_xxx-in-mm-filemap_xipc.patch
-use-page_cache_xxx-in-mm-migratec.patch
-use-page_cache_xxx-in-fs-libfsc.patch
-use-page_cache_xxx-in-fs-sync.patch
-use-page_cache_xxx-in-fs-bufferc.patch
-use-page_cache_xxx-in-mm-mpagec.patch
-use-page_cache_xxx-in-mm-fadvisec.patch
-use-page_cache_xxx-in-ext2.patch
-use-page_cache_xxx-in-fs-ext3.patch
-use-page_cache_xxx-in-fs-reiserfs.patch
-use-page_cache_xxx-in-fs-ext4.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
+git-kbuild.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ipwireless-remove-dead-code.patch
+git-xtensa.patch
+sparc-fix-build.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
