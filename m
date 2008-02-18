@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:03:14 -0800
-Message-ID: <200802181004.m1IA4CA4019156@imap1.linux-foundation.org>
+Subject: + s390-use-div_round_up.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:03:42 -0800
+Message-ID: <200802181004.m1IA4ebk019171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45737 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752703AbYBRKET (ORCPT
+	by vger.kernel.org with ESMTP id S1756724AbYBRKFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:04:19 -0500
+	Mon, 18 Feb 2008 05:05:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, greg@kroah.com
+Cc: julia@diku.dk, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     pci: fix section mismatch warning in pci_scan_child_bus
+     s390: use DIV_ROUND_UP
 has been added to the -mm tree.  Its filename is
-     pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
+     s390-use-div_round_up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: fix section mismatch warning in pci_scan_child_bus
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: s390: use DIV_ROUND_UP
+From: Julia Lawall <julia@diku.dk>
 
-Fix following warning:
-WARNING: vmlinux.o(.text+0x47bdb1): Section mismatch in reference from the function pci_scan_child_bus() to the function .devinit.text:pcibios_fixup_bus()
+The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
+(d)) but is perhaps more readable.
 
-We had plenty of functions that could be annotated __devinit but due to the
-former restriction that annotated symbols could not be annotated they were not
-so.
+An extract of the semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-So annotate these function and fix the references from the pci/hotplug/* code
-to silence the resuting warnings.
+// <smpl>
+@haskernel@
+@@
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <greg@kroah.com>
+#include <linux/kernel.h>
+
+@depends on haskernel@
+expression n,d;
+@@
+
+(
+- (n + d - 1) / d
++ DIV_ROUND_UP(n,d)
+|
+- (n + (d - 1)) / d
++ DIV_ROUND_UP(n,d)
+)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP((n),d)
++ DIV_ROUND_UP(n,d)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP(n,(d))
++ DIV_ROUND_UP(n,d)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug-pci.c              |    2 +-
- drivers/pci/hotplug/acpiphp_glue.c     |    2 +-
- drivers/pci/hotplug/cpci_hotplug_pci.c |    2 +-
- drivers/pci/hotplug/pciehp_pci.c       |    2 +-
- drivers/pci/hotplug/shpchp_pci.c       |    2 +-
- drivers/pci/probe.c                    |    8 ++++----
- 6 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/s390/net/claw.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/pci/hotplug-pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug-pci.c
---- a/drivers/pci/hotplug-pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/hotplug-pci.c
-@@ -4,7 +4,7 @@
- #include "pci.h"
+diff -puN drivers/s390/net/claw.c~s390-use-div_round_up drivers/s390/net/claw.c
+--- a/drivers/s390/net/claw.c~s390-use-div_round_up
++++ a/drivers/s390/net/claw.c
+@@ -2114,8 +2114,7 @@ init_ccw_bk(struct net_device *dev)
+         */
+         ccw_blocks_perpage= PAGE_SIZE /  CCWBK_SIZE;
+         ccw_pages_required=
+-		(ccw_blocks_required+ccw_blocks_perpage -1) /
+-			 ccw_blocks_perpage;
++		DIV_ROUND_UP(ccw_blocks_required, ccw_blocks_perpage);
  
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() > ccw_blocks_perpage=%d\n",
+@@ -2133,12 +2132,12 @@ init_ccw_bk(struct net_device *dev)
+          */
+         if (privptr->p_env->read_size < PAGE_SIZE) {
+             claw_reads_perpage= PAGE_SIZE / privptr->p_env->read_size;
+-            claw_read_pages= (privptr->p_env->read_buffers +
+-	    	claw_reads_perpage -1) / claw_reads_perpage;
++	     claw_read_pages=
++		DIV_ROUND_UP(privptr->p_env->read_buffers, claw_reads_perpage);
+          }
+          else {       /* > or equal  */
+             privptr->p_buff_pages_perread=
+-	    	(privptr->p_env->read_size + PAGE_SIZE - 1) / PAGE_SIZE;
++		DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
+             claw_read_pages=
+ 	    	privptr->p_env->read_buffers * privptr->p_buff_pages_perread;
+          }
+@@ -2146,13 +2145,13 @@ init_ccw_bk(struct net_device *dev)
+             claw_writes_perpage=
+ 	    	PAGE_SIZE / privptr->p_env->write_size;
+             claw_write_pages=
+-	    	(privptr->p_env->write_buffers + claw_writes_perpage -1) /
+-			claw_writes_perpage;
++		DIV_ROUND_UP(privptr->p_env->write_buffers,
++			     claw_writes_perpage);
  
--unsigned int pci_do_scan_bus(struct pci_bus *bus)
-+unsigned int __devinit pci_do_scan_bus(struct pci_bus *bus)
- {
- 	unsigned int max;
- 
-diff -puN drivers/pci/hotplug/acpiphp_glue.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/acpiphp_glue.c
---- a/drivers/pci/hotplug/acpiphp_glue.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1085,7 +1085,7 @@ static int acpiphp_bus_trim(acpi_handle 
-  * This function should be called per *physical slot*,
-  * not per each slot object in ACPI namespace.
-  */
--static int enable_device(struct acpiphp_slot *slot)
-+static int __ref enable_device(struct acpiphp_slot *slot)
- {
- 	struct pci_dev *dev;
- 	struct pci_bus *bus = slot->bridge->pci_bus;
-diff -puN drivers/pci/hotplug/cpci_hotplug_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/cpci_hotplug_pci.c
---- a/drivers/pci/hotplug/cpci_hotplug_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/hotplug/cpci_hotplug_pci.c
-@@ -250,7 +250,7 @@ int cpci_led_off(struct slot* slot)
-  * Device configuration functions
-  */
- 
--int cpci_configure_slot(struct slot* slot)
-+int __ref cpci_configure_slot(struct slot* slot)
- {
- 	struct pci_bus *parent;
- 	int fn;
-diff -puN drivers/pci/hotplug/pciehp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/pciehp_pci.c
---- a/drivers/pci/hotplug/pciehp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/hotplug/pciehp_pci.c
-@@ -167,7 +167,7 @@ static void program_fw_provided_values(s
- 	}
- }
- 
--static int pciehp_add_bridge(struct pci_dev *dev)
-+static int __ref pciehp_add_bridge(struct pci_dev *dev)
- {
- 	struct pci_bus *parent = dev->bus;
- 	int pass, busnr, start = parent->secondary;
-diff -puN drivers/pci/hotplug/shpchp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/hotplug/shpchp_pci.c
---- a/drivers/pci/hotplug/shpchp_pci.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/hotplug/shpchp_pci.c
-@@ -96,7 +96,7 @@ static void program_fw_provided_values(s
- 	}
- }
- 
--int shpchp_configure_device(struct slot *p_slot)
-+int __ref shpchp_configure_device(struct slot *p_slot)
- {
- 	struct pci_dev *dev;
- 	struct pci_bus *parent = p_slot->ctrl->pci_dev->subordinate;
-diff -puN drivers/pci/probe.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-section-mismatch-warning-in-pci_scan_child_bus
-+++ a/drivers/pci/probe.c
-@@ -295,7 +295,7 @@ static void pci_read_bases(struct pci_de
- 	}
- }
- 
--void pci_read_bridge_bases(struct pci_bus *child)
-+void __devinit pci_read_bridge_bases(struct pci_bus *child)
- {
- 	struct pci_dev *dev = child->self;
- 	u8 io_base_lo, io_limit_lo;
-@@ -481,7 +481,7 @@ static void pci_fixup_parent_subordinate
-  * them, we proceed to assigning numbers to the remaining buses in
-  * order to avoid overlaps between old and new bus numbers.
-  */
--int pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
-+int __devinit pci_scan_bridge(struct pci_bus *bus, struct pci_dev * dev, int max, int pass)
- {
- 	struct pci_bus *child;
- 	int is_cardbus = (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS);
-@@ -1015,7 +1015,7 @@ int pci_scan_slot(struct pci_bus *bus, i
- 	return nr;
- }
- 
--unsigned int pci_scan_child_bus(struct pci_bus *bus)
-+unsigned int __devinit pci_scan_child_bus(struct pci_bus *bus)
- {
- 	unsigned int devfn, pass, max = bus->secondary;
- 	struct pci_dev *dev;
-@@ -1123,7 +1123,7 @@ err_out:
- 	return NULL;
- }
- 
--struct pci_bus *pci_scan_bus_parented(struct device *parent,
-+struct pci_bus * __devinit pci_scan_bus_parented(struct device *parent,
- 		int bus, struct pci_ops *ops, void *sysdata)
- {
- 	struct pci_bus *b;
+         }
+         else {      /* >  or equal  */
+             privptr->p_buff_pages_perwrite=
+-	    	 (privptr->p_env->read_size + PAGE_SIZE - 1) / PAGE_SIZE;
++		DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
+             claw_write_pages=
+ 	     	privptr->p_env->write_buffers * privptr->p_buff_pages_perwrite;
+         }
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-samples-build-fix.patch
-git-acpi.patch
-acpi-fix-section-mismatch-in-acpi_pci_root_add.patch
-acpi-fix-section-mismatch-in-processor_corecacpi_processor_hotplug_notify.patch
-acer-wmi-fix-section-mismatch-warnings.patch
-alsa-caiaq-fix-section-mismatch-warning.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
-git-kbuild.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+git-hid.patch
+git-net.patch
+drivers-net-mv643xx_ethc-use-field_sizeof.patch
+s390-use-div_round_up.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+usb-use-div_round_up.patch
+fbdev-use-div_round_up-or-roundup.patch
