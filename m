@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fs-writeback-make-2-functions-static.patch added to -mm tree
-Date: Mon, 18 Feb 2008 02:11:25 -0800
-Message-ID: <200802181012.m1IACNC7019579@imap1.linux-foundation.org>
+Subject: + make-vfs_ioctl-static.patch added to -mm tree
+Date: Mon, 18 Feb 2008 02:11:20 -0800
+Message-ID: <200802181012.m1IACIbm019573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755087AbYBRKNH (ORCPT
+	by vger.kernel.org with ESMTP id S1756429AbYBRKNJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Feb 2008 05:13:07 -0500
+	Mon, 18 Feb 2008 05:13:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, hch@infradead.org
 
 
 The patch titled
-     fs/fs-writeback.c: make 2 functions static
+     make vfs_ioctl() static
 has been added to the -mm tree.  Its filename is
-     fs-fs-writeback-make-2-functions-static.patch
+     make-vfs_ioctl-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/fs-writeback.c: make 2 functions static
+Subject: make vfs_ioctl() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the following needlessly global functions static:
-
-- writeback_acquire()
-- writeback_release()
+Make the needlessly global vfs_ioctl() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c           |   77 +++++++++++++++++-----------------
- include/linux/backing-dev.h |    2 
- 2 files changed, 39 insertions(+), 40 deletions(-)
+ fs/ioctl.c         |    4 ++--
+ include/linux/fs.h |    1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/fs-writeback.c~fs-fs-writeback-make-2-functions-static fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-fs-writeback-make-2-functions-static
-+++ a/fs/fs-writeback.c
-@@ -25,6 +25,45 @@
- #include <linux/buffer_head.h>
- #include "internal.h"
- 
-+
-+/**
-+ * writeback_acquire: attempt to get exclusive writeback access to a device
-+ * @bdi: the device's backing_dev_info structure
-+ *
-+ * It is a waste of resources to have more than one pdflush thread blocked on
-+ * a single request queue.  Exclusion at the request_queue level is obtained
-+ * via a flag in the request_queue's backing_dev_info.state.
-+ *
-+ * Non-request_queue-backed address_spaces will share default_backing_dev_info,
-+ * unless they implement their own.  Which is somewhat inefficient, as this
-+ * may prevent concurrent writeback against multiple devices.
-+ */
-+static int writeback_acquire(struct backing_dev_info *bdi)
-+{
-+	return !test_and_set_bit(BDI_pdflush, &bdi->state);
-+}
-+
-+/**
-+ * writeback_in_progress: determine whether there is writeback in progress
-+ * @bdi: the device's backing_dev_info structure.
-+ *
-+ * Determine whether there is writeback in progress against a backing device.
-+ */
-+int writeback_in_progress(struct backing_dev_info *bdi)
-+{
-+	return test_bit(BDI_pdflush, &bdi->state);
-+}
-+
-+/**
-+ * writeback_release: relinquish exclusive writeback access against a device.
-+ * @bdi: the device's backing_dev_info structure
-+ */
-+static void writeback_release(struct backing_dev_info *bdi)
-+{
-+	BUG_ON(!writeback_in_progress(bdi));
-+	clear_bit(BDI_pdflush, &bdi->state);
-+}
-+
- /**
-  *	__mark_inode_dirty -	internal function
-  *	@inode: inode to mark
-@@ -749,41 +788,3 @@ int generic_osync_inode(struct inode *in
- }
- 
- EXPORT_SYMBOL(generic_osync_inode);
--
--/**
-- * writeback_acquire: attempt to get exclusive writeback access to a device
-- * @bdi: the device's backing_dev_info structure
-- *
-- * It is a waste of resources to have more than one pdflush thread blocked on
-- * a single request queue.  Exclusion at the request_queue level is obtained
-- * via a flag in the request_queue's backing_dev_info.state.
-- *
-- * Non-request_queue-backed address_spaces will share default_backing_dev_info,
-- * unless they implement their own.  Which is somewhat inefficient, as this
-- * may prevent concurrent writeback against multiple devices.
-- */
--int writeback_acquire(struct backing_dev_info *bdi)
--{
--	return !test_and_set_bit(BDI_pdflush, &bdi->state);
--}
--
--/**
-- * writeback_in_progress: determine whether there is writeback in progress
-- * @bdi: the device's backing_dev_info structure.
-- *
-- * Determine whether there is writeback in progress against a backing device.
-- */
--int writeback_in_progress(struct backing_dev_info *bdi)
--{
--	return test_bit(BDI_pdflush, &bdi->state);
--}
--
--/**
-- * writeback_release: relinquish exclusive writeback access against a device.
-- * @bdi: the device's backing_dev_info structure
-- */
--void writeback_release(struct backing_dev_info *bdi)
--{
--	BUG_ON(!writeback_in_progress(bdi));
--	clear_bit(BDI_pdflush, &bdi->state);
--}
-diff -puN include/linux/backing-dev.h~fs-fs-writeback-make-2-functions-static include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~fs-fs-writeback-make-2-functions-static
-+++ a/include/linux/backing-dev.h
-@@ -156,9 +156,7 @@ static inline unsigned long bdi_stat_err
- extern struct backing_dev_info default_backing_dev_info;
- void default_unplug_io_fn(struct backing_dev_info *bdi, struct page *page);
- 
--int writeback_acquire(struct backing_dev_info *bdi);
- int writeback_in_progress(struct backing_dev_info *bdi);
--void writeback_release(struct backing_dev_info *bdi);
- 
- static inline int bdi_congested(struct backing_dev_info *bdi, int bdi_bits)
+diff -puN fs/ioctl.c~make-vfs_ioctl-static fs/ioctl.c
+--- a/fs/ioctl.c~make-vfs_ioctl-static
++++ a/fs/ioctl.c
+@@ -28,8 +28,8 @@
+  *
+  * Returns 0 on success, -errno on error.
+  */
+-long vfs_ioctl(struct file *filp, unsigned int cmd,
+-	       unsigned long arg)
++static long vfs_ioctl(struct file *filp, unsigned int cmd,
++		      unsigned long arg)
  {
+ 	int error = -ENOTTY;
+ 
+diff -puN include/linux/fs.h~make-vfs_ioctl-static include/linux/fs.h
+--- a/include/linux/fs.h~make-vfs_ioctl-static
++++ a/include/linux/fs.h
+@@ -1919,7 +1919,6 @@ extern int vfs_stat_fd(int dfd, char __u
+ extern int vfs_lstat_fd(int dfd, char __user *, struct kstat *);
+ extern int vfs_fstat(unsigned int, struct kstat *);
+ 
+-extern long vfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ extern int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
+ 		    unsigned long arg);
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
