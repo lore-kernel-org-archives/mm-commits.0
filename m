@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy.patch added to -mm tree
-Date: Tue, 19 Feb 2008 15:30:19 -0800
-Message-ID: <200802192331.m1JNVEfv005273@imap1.linux-foundation.org>
+Subject: + mpt-fusion-dont-oops-if-numphys==0.patch added to -mm tree
+Date: Tue, 19 Feb 2008 15:34:13 -0800
+Message-ID: <200802192335.m1JNZ7MV005426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59457 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44235 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751626AbYBSXbt (ORCPT
+	by vger.kernel.org with ESMTP id S1752483AbYBSXgH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Feb 2008 18:31:49 -0500
+	Tue, 19 Feb 2008 18:36:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, agl@us.ibm.com, stable@kernel.org
+Cc: olel@ans.pl, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp, ole@ans.pl, sathya.prakash@lsi.com
 
 
 The patch titled
-     hugetlb: ensure we do not reference a surplus page after handing it to buddy
+     mpt fusion: don't oops if NumPhys==0
 has been added to the -mm tree.  Its filename is
-     hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy.patch
+     mpt-fusion-dont-oops-if-numphys==0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: ensure we do not reference a surplus page after handing it to buddy
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: mpt fusion: don't oops if NumPhys==0
+From: Krzysztof Oledzki <olel@ans.pl>
 
-When we free a page via free_huge_page and we detect that we are in surplus
-the page will be returned to the buddy.  After this we no longer own the page.
- However at the end free_huge_page we clear out our mapping pointer from page
-private.  Even where the page is not a surplus we free the page to the
-hugepage pool, drop the pool locks and then clear page private.  In either
-case the page may have been reallocated.  BAD.
+Don't oops if NumPhys==0, instead return -ENODEV.
+This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=9909
 
-Make sure we clear out page private before we free the page.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Eric Moore <Eric.Moore@lsi.com>
+Cc: Sathya Prakash <sathya.prakash@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/message/fusion/mptsas.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy
-+++ a/mm/hugetlb.c
-@@ -120,6 +120,7 @@ static void free_huge_page(struct page *
- 	struct address_space *mapping;
+diff -puN drivers/message/fusion/mptsas.c~mpt-fusion-dont-oops-if-numphys==0 drivers/message/fusion/mptsas.c
+--- a/drivers/message/fusion/mptsas.c~mpt-fusion-dont-oops-if-numphys==0
++++ a/drivers/message/fusion/mptsas.c
+@@ -1701,6 +1701,11 @@ mptsas_sas_expander_pg0(MPT_ADAPTER *ioc
+ 	if (error)
+ 		goto out_free_consistent;
  
- 	mapping = (struct address_space *) page_private(page);
-+	set_page_private(page, 0);
- 	BUG_ON(page_count(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
-@@ -134,7 +135,6 @@ static void free_huge_page(struct page *
- 	spin_unlock(&hugetlb_lock);
- 	if (mapping)
- 		hugetlb_put_quota(mapping, 1);
--	set_page_private(page, 0);
- }
- 
- /*
++	if (!buffer->NumPhys) {
++		error = -ENODEV;
++		goto out_free_consistent;
++	}
++
+ 	/* save config data */
+ 	port_info->num_phys = buffer->NumPhys;
+ 	port_info->phy_info = kcalloc(port_info->num_phys,
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from olel@ans.pl are
 
-hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy.patch
-register_memory-unregister_memory-fix-use-after-free-and-refcounting.patch
-page-owner-tracking-leak-detector.patch
+mpt-fusion-dont-oops-if-numphys==0.patch
