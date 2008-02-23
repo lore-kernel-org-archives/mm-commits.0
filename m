@@ -1,332 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:50:10 -0800
-Message-ID: <200802232050.m1NKoBrJ014595@imap1.linux-foundation.org>
+Subject: + documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch added to -mm tree
+Date: Sat, 23 Feb 2008 13:13:42 -0800
+Message-ID: <200802232113.m1NLDg7W015381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41062 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753501AbYBWUud (ORCPT
+	by vger.kernel.org with ESMTP id S1754637AbYBWVOX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:50:33 -0500
+	Sat, 23 Feb 2008 16:14:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adrian@newgolddream.dyndns.info, damm@igel.co.jp, lethal@linux-sh.org, magnus.damm@gmail.com, matsu@igel.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, npiggin@suse.de
 
 
 The patch titled
-     revert "sh: use ctrl_in/out for on chip pci access"
-has been removed from the -mm tree.  Its filename was
-     revert-sh-use-ctrl_in-out-for-on-chip-pci-access.patch
+     documentation: atomic_add_unless() doesn't imply mb() on failure
+has been added to the -mm tree.  Its filename is
+     documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "sh: use ctrl_in/out for on chip pci access"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: documentation: atomic_add_unless() doesn't imply mb() on failure
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Revert
+A "typical" implementation of atomic_add_unless() can return 0 immediately
+after the first atomic_read() (before doing cmpxchg).  In that case it
+doesn't provide any barrier semantics.  See include/asm-ia64/atomic.h as an
+example.
 
-commit e036eaa681a17f71b64f6d9040fe605555623919
-Author: Magnus Damm <magnus.damm@gmail.com>
-Date:   Thu Feb 14 13:52:43 2008 +0900
+We should either change the implementation, or fix the docs.
 
-    sh: use ctrl_in/out for on chip pci access
-    
-    This patch makes sure ctrl_inN/outN are used instead of inN/outN for on chip
-    pci registers. Without this patch addresses may be adjusted using the value
-    in generic_io_base. This patch makes it possible to set generic_io_base and
-    have pci without reading and writing all over the place.
-
-Because it broke Adrian's machine.
-
-Cc: Adrian McMenamin <adrian@newgolddream.dyndns.info>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Katsuya MATSUBARA <matsu@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/pci/fixups-lboxre2.c    |    4 +-
- arch/sh/drivers/pci/fixups-rts7751r2d.c |    4 +-
- arch/sh/drivers/pci/ops-dreamcast.c     |   44 +++++++++++-----------
- arch/sh/drivers/pci/pci-sh4.h           |    4 +-
- arch/sh/drivers/pci/pci-sh7751.c        |   16 ++++----
- arch/sh/drivers/pci/pci-sh7780.c        |    2 -
- 6 files changed, 37 insertions(+), 37 deletions(-)
+ Documentation/atomic_ops.txt      |    3 ++-
+ Documentation/memory-barriers.txt |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/drivers/pci/fixups-lboxre2.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/fixups-lboxre2.c
---- a/arch/sh/drivers/pci/fixups-lboxre2.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/fixups-lboxre2.c
-@@ -18,7 +18,7 @@ int pci_fixup_pcic(void)
- {
- 	unsigned long bcr1, mcr;
+diff -puN Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/atomic_ops.txt
+--- a/Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/atomic_ops.txt
+@@ -186,7 +186,8 @@ If the atomic value v is not equal to u,
+ returns non zero. If v is equal to u then it returns zero. This is done as
+ an atomic operation.
  
--	bcr1 = ctrl_inl(SH7751_BCR1);
-+	bcr1 = inl(SH7751_BCR1);
- 	bcr1 |= 0x40080000;	/* Enable Bit 19 BREQEN, set PCIC to slave */
- 	pci_write_reg(bcr1, SH4_PCIBCR1);
+-atomic_add_unless requires explicit memory barriers around the operation.
++atomic_add_unless requires explicit memory barriers around the operation
++unless it fails (returns 0).
  
-@@ -28,7 +28,7 @@ int pci_fixup_pcic(void)
- 	pci_write_reg(0xfb900047, SH7751_PCICONF1);
- 	pci_write_reg(0xab000001, SH7751_PCICONF4);
+ atomic_inc_not_zero, equivalent to atomic_add_unless(v, 1, 0)
  
--	mcr = ctrl_inl(SH7751_MCR);
-+	mcr = inl(SH7751_MCR);
- 	mcr = (mcr & PCIMCR_MRSET_OFF) & PCIMCR_RFSH_OFF;
- 	pci_write_reg(mcr, SH4_PCIMCR);
- 
-diff -puN arch/sh/drivers/pci/fixups-rts7751r2d.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/fixups-rts7751r2d.c
---- a/arch/sh/drivers/pci/fixups-rts7751r2d.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/fixups-rts7751r2d.c
-@@ -19,7 +19,7 @@ int pci_fixup_pcic(void)
- {
- 	unsigned long bcr1, mcr;
- 
--	bcr1 = ctrl_inl(SH7751_BCR1);
-+	bcr1 = inl(SH7751_BCR1);
- 	bcr1 |= 0x40080000;	/* Enable Bit 19 BREQEN, set PCIC to slave */
- 	pci_write_reg(bcr1, SH4_PCIBCR1);
- 
-@@ -30,7 +30,7 @@ int pci_fixup_pcic(void)
- 	pci_write_reg(0xfb900047, SH7751_PCICONF1);
- 	pci_write_reg(0xab000001, SH7751_PCICONF4);
- 
--	mcr = ctrl_inl(SH7751_MCR);
-+	mcr = inl(SH7751_MCR);
- 	mcr = (mcr & PCIMCR_MRSET_OFF) & PCIMCR_RFSH_OFF;
- 	pci_write_reg(mcr, SH4_PCIMCR);
- 
-diff -puN arch/sh/drivers/pci/ops-dreamcast.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/ops-dreamcast.c
---- a/arch/sh/drivers/pci/ops-dreamcast.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/ops-dreamcast.c
-@@ -83,9 +83,9 @@ static int gapspci_read(struct pci_bus *
- 		return PCIBIOS_DEVICE_NOT_FOUND;
- 
- 	switch (size) {
--		case 1: *val = ctrl_inb(GAPSPCI_BBA_CONFIG+where); break;
--		case 2: *val = ctrl_inw(GAPSPCI_BBA_CONFIG+where); break;
--		case 4: *val = ctrl_inl(GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: *val = inb(GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: *val = inw(GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: *val = inl(GAPSPCI_BBA_CONFIG+where); break;
- 	}	
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -97,9 +97,9 @@ static int gapspci_write(struct pci_bus 
- 		return PCIBIOS_DEVICE_NOT_FOUND;
- 
- 	switch (size) {
--		case 1: ctrl_outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 2: ctrl_outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 4: ctrl_outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
- 	}
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -127,36 +127,36 @@ int __init gapspci_init(void)
- 	 */
- 
- 	for (i=0; i<16; i++)
--		idbuf[i] = ctrl_inb(GAPSPCI_REGS+i);
-+		idbuf[i] = inb(GAPSPCI_REGS+i);
- 
- 	if (strncmp(idbuf, "GAPSPCI_BRIDGE_2", 16))
- 		return -ENODEV;
- 
--	ctrl_outl(0x5a14a501, GAPSPCI_REGS+0x18);
-+	outl(0x5a14a501, GAPSPCI_REGS+0x18);
- 
- 	for (i=0; i<1000000; i++)
- 		;
- 
--	if (ctrl_inl(GAPSPCI_REGS+0x18) != 1)
-+	if (inl(GAPSPCI_REGS+0x18) != 1)
- 		return -EINVAL;
- 
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x20);
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x24);
-+	outl(0x01000000, GAPSPCI_REGS+0x20);
-+	outl(0x01000000, GAPSPCI_REGS+0x24);
- 
--	ctrl_outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
--	ctrl_outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
-+	outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
-+	outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
- 
--	ctrl_outl(1, GAPSPCI_REGS+0x14);
--	ctrl_outl(1, GAPSPCI_REGS+0x34);
-+	outl(1, GAPSPCI_REGS+0x14);
-+	outl(1, GAPSPCI_REGS+0x34);
- 
- 	/* Setting Broadband Adapter */
--	ctrl_outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
--	ctrl_outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
--	ctrl_outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
--	ctrl_outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
--	ctrl_outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
--	ctrl_outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
--	ctrl_outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
-+	outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
-+	outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
-+	outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
-+	outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
-+	outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
-+	outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
-+	outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
- 
- 	return 0;
- }
-diff -puN arch/sh/drivers/pci/pci-sh4.h~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh4.h
---- a/arch/sh/drivers/pci/pci-sh4.h~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh4.h
-@@ -170,11 +170,11 @@ struct sh4_pci_address_map {
- 
- static inline void pci_write_reg(unsigned long val, unsigned long reg)
- {
--	ctrl_outl(val, PCI_REG(reg));
-+	outl(val, PCI_REG(reg));
- }
- 
- static inline unsigned long pci_read_reg(unsigned long reg)
- {
--	return ctrl_inl(PCI_REG(reg));
-+	return inl(PCI_REG(reg));
- }
- #endif /* __PCI_SH4_H */
-diff -puN arch/sh/drivers/pci/pci-sh7751.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh7751.c
---- a/arch/sh/drivers/pci/pci-sh7751.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh7751.c
-@@ -58,7 +58,7 @@ static int __init __area_sdram_check(uns
- {
- 	u32 word;
- 
--	word = ctrl_inl(SH7751_BCR1);
-+	word = inl(SH7751_BCR1);
- 	/* check BCR for SDRAM in area */
- 	if (((word >> area) & 1) == 0) {
- 		printk("PCI: Area %d is not configured for SDRAM. BCR1=0x%x\n",
-@@ -67,7 +67,7 @@ static int __init __area_sdram_check(uns
- 	}
- 	pci_write_reg(word, SH4_PCIBCR1);
- 
--	word = (u16)ctrl_inw(SH7751_BCR2);
-+	word = (u16)inw(SH7751_BCR2);
- 	/* check BCR2 for 32bit SDRAM interface*/
- 	if (((word >> (area << 1)) & 0x3) != 0x3) {
- 		printk("PCI: Area %d is not 32 bit SDRAM. BCR2=0x%x\n",
-@@ -85,9 +85,9 @@ int __init sh7751_pcic_init(struct sh4_p
- 	u32 word;
- 
- 	/* Set the BCR's to enable PCI access */
--	reg = ctrl_inl(SH7751_BCR1);
-+	reg = inl(SH7751_BCR1);
- 	reg |= 0x80000;
--	ctrl_outl(reg, SH7751_BCR1);
-+	outl(reg, SH7751_BCR1);
- 
- 	/* Turn the clocks back on (not done in reset)*/
- 	pci_write_reg(0, SH4_PCICLKR);
-@@ -179,13 +179,13 @@ int __init sh7751_pcic_init(struct sh4_p
- 		return 0;
- 
- 	/* configure the wait control registers */
--	word = ctrl_inl(SH7751_WCR1);
-+	word = inl(SH7751_WCR1);
- 	pci_write_reg(word, SH4_PCIWCR1);
--	word = ctrl_inl(SH7751_WCR2);
-+	word = inl(SH7751_WCR2);
- 	pci_write_reg(word, SH4_PCIWCR2);
--	word = ctrl_inl(SH7751_WCR3);
-+	word = inl(SH7751_WCR3);
- 	pci_write_reg(word, SH4_PCIWCR3);
--	word = ctrl_inl(SH7751_MCR);
-+	word = inl(SH7751_MCR);
- 	pci_write_reg(word, SH4_PCIMCR);
- 
- 	/* NOTE: I'm ignoring the PCI error IRQs for now..
-diff -puN arch/sh/drivers/pci/pci-sh7780.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access arch/sh/drivers/pci/pci-sh7780.c
---- a/arch/sh/drivers/pci/pci-sh7780.c~revert-sh-use-ctrl_in-out-for-on-chip-pci-access
-+++ a/arch/sh/drivers/pci/pci-sh7780.c
-@@ -52,7 +52,7 @@ static int __init sh7780_pci_init(void)
- 
- 	pr_debug("PCI: Starting intialization.\n");
- 
--	ctrl_outl(0x00000001, SH7780_PCI_VCR2); /* Enable PCIC */
-+	outl(0x00000001, SH7780_PCI_VCR2); /* Enable PCIC */
- 
- 	/* check for SH7780/SH7780R hardware */
- 	id = pci_read_reg(SH7780_PCIVID);
+diff -puN Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/memory-barriers.txt
+--- a/Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/memory-barriers.txt
+@@ -1493,7 +1493,7 @@ explicit lock operations, described late
+ 	atomic_dec_and_test();
+ 	atomic_sub_and_test();
+ 	atomic_add_negative();
+-	atomic_add_unless();
++	atomic_add_unless();	/* when succeeds (returns 1) */
+ 	test_and_set_bit();
+ 	test_and_clear_bit();
+ 	test_and_change_bit();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
 git-sched.patch
-tracing-is-borked-on-powerpc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-x86.patch
-git-x86-fixup.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+timers-simplify-lockdep-stuff.patch
+hrtimers-simplify-lockdep-stuff.patch
+kill-double_spin_lock.patch
+redo-locking-of-tty-pgrp.patch
+procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
