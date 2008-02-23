@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alloc_percpu-fails-to-allocate-percpu-data.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:31:53 -0800
-Message-ID: <200802230732.m1N7WgdK018091@imap1.linux-foundation.org>
+Subject: + usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:57 -0800
+Message-ID: <200802230731.m1N7VkeN018028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54101 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755173AbYBWHzR (ORCPT
+	by vger.kernel.org with ESMTP id S1753550AbYBWHz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:55:17 -0500
+	Sat, 23 Feb 2008 02:55:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, a.p.zijlstra@chello.nl
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     alloc_percpu() fails to allocate percpu data
+     usb serial: Note mos7480 and option don't lock modem status
 has been added to the -mm tree.  Its filename is
-     alloc_percpu-fails-to-allocate-percpu-data.patch
+     usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alloc_percpu() fails to allocate percpu data
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: usb serial: Note mos7480 and option don't lock modem status
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Some oprofile results obtained while using tbench on a 2x2 cpu machine were
-very surprising.
-
-For example, loopback_xmit() function was using high number of cpu cycles
-to perform the statistic updates, supposed to be real cheap since they use
-percpu data
-
-        pcpu_lstats = netdev_priv(dev);
-        lb_stats = per_cpu_ptr(pcpu_lstats, smp_processor_id());
-        lb_stats->packets++;  /* HERE : serious contention */
-        lb_stats->bytes += skb->len;
-
-struct pcpu_lstats is a small structure containing two longs.  It appears
-that on my 32bits platform, alloc_percpu(8) allocates a single cache line,
-instead of giving to each cpu a separate cache line.
-
-Using the following patch gave me impressive boost in various benchmarks
-( 6 % in tbench)
-(all percpu_counters hit this bug too)
-
-Long term fix (ie >= 2.6.26) would be to let each CPU allocate their own
-block of memory, so that we dont need to roudup sizes to L1_CACHE_BYTES, or
-merging the SGI stuff of course...
-
-Note : SLUB vs SLAB is important here to *show* the improvement, since they
-dont have the same minimum allocation sizes (8 bytes vs 32 bytes).  This
-could very well explain regressions some guys reported when they switched
-to SLUB.
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/allocpercpu.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/usb/serial/mos7840.c |    1 +
+ drivers/usb/serial/option.c  |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN mm/allocpercpu.c~alloc_percpu-fails-to-allocate-percpu-data mm/allocpercpu.c
---- a/mm/allocpercpu.c~alloc_percpu-fails-to-allocate-percpu-data
-+++ a/mm/allocpercpu.c
-@@ -6,6 +6,10 @@
- #include <linux/mm.h>
- #include <linux/module.h>
+diff -puN drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/mos7840.c
+--- a/drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
++++ a/drivers/usb/serial/mos7840.c
+@@ -1709,6 +1709,7 @@ static int mos7840_tiocmset(struct usb_s
+ 	if (mos7840_port == NULL)
+ 		return -ENODEV;
  
-+#ifndef cache_line_size
-+#define cache_line_size()	L1_CACHE_BYTES
-+#endif
-+
- /**
-  * percpu_depopulate - depopulate per-cpu data for given cpu
-  * @__pdata: per-cpu data to depopulate
-@@ -52,6 +56,11 @@ void *percpu_populate(void *__pdata, siz
- 	struct percpu_data *pdata = __percpu_disguise(__pdata);
- 	int node = cpu_to_node(cpu);
++	/* FIXME: What locks the port registers ? */
+ 	mcr = mos7840_port->shadowMCR;
+ 	if (clear & TIOCM_RTS)
+ 		mcr &= ~MCR_RTS;
+diff -puN drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
++++ a/drivers/usb/serial/option.c
+@@ -347,6 +347,7 @@ static int option_tiocmset(struct usb_se
  
-+	/*
-+	 * We should make sure each CPU gets private memory.
-+	 */
-+	size = roundup(size, cache_line_size());
-+
- 	BUG_ON(pdata->ptrs[cpu]);
- 	if (node_online(node))
- 		pdata->ptrs[cpu] = kmalloc_node(size, gfp|__GFP_ZERO, node);
-@@ -98,7 +107,11 @@ EXPORT_SYMBOL_GPL(__percpu_populate_mask
-  */
- void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
- {
--	void *pdata = kzalloc(nr_cpu_ids * sizeof(void *), gfp);
-+	/*
-+	 * We allocate whole cache lines to avoid false sharing
-+	 */
-+	size_t sz = roundup(nr_cpu_ids * sizeof(void *), cache_line_size());
-+	void *pdata = kzalloc(sz, gfp);
- 	void *__pdata = __percpu_disguise(pdata);
+ 	portdata = usb_get_serial_port_data(port);
  
- 	if (unlikely(!pdata))
++	/* FIXME: what locks portdata fields ? */
+ 	if (set & TIOCM_RTS)
+ 		portdata->rts_state = 1;
+ 	if (set & TIOCM_DTR)
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-alloc_percpu-fails-to-allocate-percpu-data.patch
-avoid-divides-in-bits_to_longs.patch
+origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+megaraid-outb_p-extermination.patch
+usb-serial-prepare-for-bkl-push-down.patch
+ftdi_sio-note-missing-locking.patch
+usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
+io_ti-lock-mcr-and-msr-shadows-properly.patch
+iuu_phoenix-lock-priv-tiostatus-properly.patch
+kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
+git-watchdog.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
