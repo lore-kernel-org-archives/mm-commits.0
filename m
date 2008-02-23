@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bttv-struct-member-initialized-twice.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:29:16 -0800
-Message-ID: <200802230730.m1N7U5SB017931@imap1.linux-foundation.org>
+Subject: + nommu-is_vmalloc_addr-wont-compile-if-mmu.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:28:38 -0800
+Message-ID: <200802230729.m1N7TRkp017901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34027 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753434AbYBWHaS (ORCPT
+	by vger.kernel.org with ESMTP id S1753601AbYBWHaV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:30:18 -0500
+	Sat, 23 Feb 2008 02:30:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, mchehab@infradead.org
+Cc: dhowells@redhat.com, clameter@sgi.com, gerg@snapgear.com
 
 
 The patch titled
-     bttv: struct member initialized twice
+     NOMMU: is_vmalloc_addr() won't compile if !MMU
 has been added to the -mm tree.  Its filename is
-     bttv-struct-member-initialized-twice.patch
+     nommu-is_vmalloc_addr-wont-compile-if-mmu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bttv: struct member initialized twice
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: NOMMU: is_vmalloc_addr() won't compile if !MMU
+From: David Howells <dhowells@redhat.com>
 
-fixes sparse warning:
-drivers/media/video/bt8xx/bttv-driver.c:3391:3: warning: Initializer entry defined twice
-drivers/media/video/bt8xx/bttv-driver.c:3392:3:   also defined here
+Make is_vmalloc_addr() contingent on CONFIG_MMU=y, as it won't compile in !MMU
+mode (commit 9e2779fa281cfda13ac060753d674bbcaa23367e).
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttv-driver.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/mm.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/media/video/bt8xx/bttv-driver.c~bttv-struct-member-initialized-twice drivers/media/video/bt8xx/bttv-driver.c
---- a/drivers/media/video/bt8xx/bttv-driver.c~bttv-struct-member-initialized-twice
-+++ a/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3389,7 +3389,6 @@ static struct video_device bttv_video_te
- 	.vidiocgmbuf                    = vidiocgmbuf,
- #endif
- 	.vidioc_g_crop                  = bttv_g_crop,
--	.vidioc_g_crop                  = bttv_g_crop,
- 	.vidioc_s_crop                  = bttv_s_crop,
- 	.vidioc_g_fbuf                  = bttv_g_fbuf,
- 	.vidioc_s_fbuf                  = bttv_s_fbuf,
+diff -puN include/linux/mm.h~nommu-is_vmalloc_addr-wont-compile-if-mmu include/linux/mm.h
+--- a/include/linux/mm.h~nommu-is_vmalloc_addr-wont-compile-if-mmu
++++ a/include/linux/mm.h
+@@ -235,6 +235,7 @@ static inline int get_page_unless_zero(s
+ struct page *vmalloc_to_page(const void *addr);
+ unsigned long vmalloc_to_pfn(const void *addr);
+ 
++#ifdef CONFIG_MMU
+ /* Determine if an address is within the vmalloc range */
+ static inline int is_vmalloc_addr(const void *x)
+ {
+@@ -242,6 +243,7 @@ static inline int is_vmalloc_addr(const 
+ 
+ 	return addr >= VMALLOC_START && addr < VMALLOC_END;
+ }
++#endif
+ 
+ static inline struct page *compound_head(struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+mn10300-define-hz-as-a-config-option.patch
+mn10300-define-so_mark.patch
+nommu-is_vmalloc_addr-wont-compile-if-mmu.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
