@@ -1,123 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:49 -0800
-Message-ID: <200802232023.m1NKNnk5013577@imap1.linux-foundation.org>
+Subject: - ftdi_sio-note-missing-locking.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:18 -0800
+Message-ID: <200802232023.m1NKNI2w013504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38857 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763290AbYBWU3v (ORCPT
+	by vger.kernel.org with ESMTP id S1763295AbYBWU32 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:51 -0500
+	Sat, 23 Feb 2008 15:29:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, greg@kroah.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: set cfg_size for AMD Family 10h in case MMCONFIG is used
+     ftdi_sio: Note missing locking
 has been removed from the -mm tree.  Its filename was
-     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used.patch
+     ftdi_sio-note-missing-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: set cfg_size for AMD Family 10h in case MMCONFIG is used
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: ftdi_sio: Note missing locking
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Reuse pci_cfg_space_size but skip check pci express and pci-x CAP ID.
+The ftdi_sio driver has no internal locking on the dtr/rts state. Flag
+that up for someone to fix.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/fixup.c |   14 ++++++++++++++
- drivers/pci/probe.c  |   11 ++++++++++-
- include/linux/pci.h  |    1 +
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ drivers/usb/serial/ftdi_sio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used arch/x86/pci/fixup.c
---- a/arch/x86/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used
-+++ a/arch/x86/pci/fixup.c
-@@ -493,3 +493,17 @@ static void __devinit pci_siemens_interr
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
- 			  pci_siemens_interrupt_controller);
-+
-+/*
-+ * Regular PCI devices have 256 bytes, but AMD Family 10h Opteron ext config
-+ * have 4096 bytes.  Even if the device is capable, that doesn't mean we can
-+ * access it.  Maybe we don't have a way to generate extended config space
-+ * accesses.   So check it
-+ */
-+static void fam10h_pci_cfg_space_size(struct pci_dev *dev)
-+{
-+	dev->cfg_size = pci_cfg_space_size_ext(dev, 0);
-+}
-+
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_AMD, PCI_ANY_ID,
-+			 fam10h_pci_cfg_space_size);
-diff -puN drivers/pci/probe.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used drivers/pci/probe.c
---- a/drivers/pci/probe.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used
-+++ a/drivers/pci/probe.c
-@@ -827,11 +827,14 @@ static void set_pcie_port_type(struct pc
-  * reading the dword at 0x100 which must either be 0 or a valid extended
-  * capability header.
-  */
--int pci_cfg_space_size(struct pci_dev *dev)
-+int pci_cfg_space_size_ext(struct pci_dev *dev, unsigned check_exp_pcix)
- {
- 	int pos;
- 	u32 status;
- 
-+	if (!check_exp_pcix)
-+		goto skip;
-+
- 	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
- 	if (!pos) {
- 		pos = pci_find_capability(dev, PCI_CAP_ID_PCIX);
-@@ -843,6 +846,7 @@ int pci_cfg_space_size(struct pci_dev *d
- 			goto fail;
+diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -524,9 +524,8 @@ static int update_mctrl(struct usb_seria
  	}
  
-+ skip:
- 	if (pci_read_config_dword(dev, 256, &status) != PCIBIOS_SUCCESSFUL)
- 		goto fail;
- 	if (status == 0xffffffff)
-@@ -854,6 +858,11 @@ int pci_cfg_space_size(struct pci_dev *d
- 	return PCI_CFG_SPACE_SIZE;
- }
+ 	buf = kmalloc(1, GFP_NOIO);
+-	if (!buf) {
++	if (!buf)
+ 		return -ENOMEM;
+-	}
  
-+int pci_cfg_space_size(struct pci_dev *dev)
-+{
-+	return pci_cfg_space_size_ext(dev, 1);
-+}
-+
- static void pci_release_bus_bridge_dev(struct device *dev)
- {
- 	kfree(dev);
-diff -puN include/linux/pci.h~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used include/linux/pci.h
---- a/include/linux/pci.h~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-used
-+++ a/include/linux/pci.h
-@@ -654,6 +654,7 @@ int pci_scan_bridge(struct pci_bus *bus,
- 
- void pci_walk_bus(struct pci_bus *top, void (*cb)(struct pci_dev *, void *),
- 		  void *userdata);
-+int pci_cfg_space_size_ext(struct pci_dev *dev, unsigned check_exp_pcix);
- int pci_cfg_space_size(struct pci_dev *dev);
- unsigned char pci_bus_max_busnr(struct pci_bus *bus);
- 
+ 	clear &= ~set;	/* 'set' takes precedence over 'clear' */
+ 	urb_value = 0;
+@@ -559,6 +558,7 @@ static int update_mctrl(struct usb_seria
+ 				(clear & TIOCM_DTR) ? "LOW" : "unchanged",
+ 				(set & TIOCM_RTS) ? "HIGH" :
+ 				(clear & TIOCM_RTS) ? "LOW" : "unchanged");
++		/* FIXME: locking on last_dtr_rts */
+ 		priv->last_dtr_rts = (priv->last_dtr_rts & ~clear) | set;
+ 	}
+ 	return rv;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
 git-scsi-rc-fixes.patch
-git-x86.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
