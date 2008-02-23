@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-put-hci-dev-after-del-conn.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:29:59 -0800
-Message-ID: <200802230730.m1N7Umag017960@imap1.linux-foundation.org>
+Subject: + fbdev-add-removed-option-mode-to-keep-compatibility.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:34:56 -0800
+Message-ID: <200802230735.m1N7ZjrJ018375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58323 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686AbYBWHx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751986AbYBWHyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:53:57 -0500
+	Sat, 23 Feb 2008 02:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, marcel@holt
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net
 
 
 The patch titled
-     bluetooth: put hci dev after del conn
+     fbdev: add removed option "mode" to keep compatibility
 has been added to the -mm tree.  Its filename is
-     bluetooth-put-hci-dev-after-del-conn.patch
+     fbdev-add-removed-option-mode-to-keep-compatibility.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: put hci dev after del conn
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: fbdev: add removed option "mode" to keep compatibility
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Move hci_dev_put to del_conn to avoid hci dev going away before hci conn.
+Add removed option "mode" to keep compatibility with existing setups.  The
+option is back for pm2fb, tridentfb and vt8623fb drivers.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Marcel Holtmann <marcel@holt
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_conn.c  |    1 -
- net/bluetooth/hci_sysfs.c |    5 ++++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/pm2fb.c     |    2 ++
+ drivers/video/tridentfb.c |    2 ++
+ drivers/video/vt8623fb.c  |    2 ++
+ 3 files changed, 6 insertions(+)
 
-diff -puN net/bluetooth/hci_conn.c~bluetooth-put-hci-dev-after-del-conn net/bluetooth/hci_conn.c
---- a/net/bluetooth/hci_conn.c~bluetooth-put-hci-dev-after-del-conn
-+++ a/net/bluetooth/hci_conn.c
-@@ -260,7 +260,6 @@ int hci_conn_del(struct hci_conn *conn)
- 	tasklet_enable(&hdev->tx_task);
- 	skb_queue_purge(&conn->data_q);
- 	hci_conn_del_sysfs(conn);
--	hci_dev_put(hdev);
+diff -puN drivers/video/pm2fb.c~fbdev-add-removed-option-mode-to-keep-compatibility drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~fbdev-add-removed-option-mode-to-keep-compatibility
++++ a/drivers/video/pm2fb.c
+@@ -1837,6 +1837,8 @@ module_exit(pm2fb_exit);
  
- 	return 0;
- }
-diff -puN net/bluetooth/hci_sysfs.c~bluetooth-put-hci-dev-after-del-conn net/bluetooth/hci_sysfs.c
---- a/net/bluetooth/hci_sysfs.c~bluetooth-put-hci-dev-after-del-conn
-+++ a/net/bluetooth/hci_sysfs.c
-@@ -333,15 +333,18 @@ static int __match_tty(struct device *de
+ module_param(mode_option, charp, 0);
+ MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
++module_param_named(mode, mode_option, charp, 0);
++MODULE_PARM_DESC(mode, "Initial video mode e.g. '648x480-8@60' (deprecated)");
+ module_param(lowhsync, bool, 0);
+ MODULE_PARM_DESC(lowhsync, "Force horizontal sync low regardless of mode");
+ module_param(lowvsync, bool, 0);
+diff -puN drivers/video/tridentfb.c~fbdev-add-removed-option-mode-to-keep-compatibility drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~fbdev-add-removed-option-mode-to-keep-compatibility
++++ a/drivers/video/tridentfb.c
+@@ -75,6 +75,8 @@ static int nativex;
  
- static void del_conn(struct work_struct *work)
- {
--	struct device *dev;
- 	struct hci_conn *conn = container_of(work, struct hci_conn, work);
-+	struct hci_dev *hdev = conn->hdev;
-+	struct device *dev;
+ module_param(mode_option, charp, 0);
+ MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
++module_param_named(mode, mode_option, charp, 0);
++MODULE_PARM_DESC(mode, "Initial video mode e.g. '648x480-8@60' (deprecated)");
+ module_param(bpp, int, 0);
+ module_param(center, int, 0);
+ module_param(stretch, int, 0);
+diff -puN drivers/video/vt8623fb.c~fbdev-add-removed-option-mode-to-keep-compatibility drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~fbdev-add-removed-option-mode-to-keep-compatibility
++++ a/drivers/video/vt8623fb.c
+@@ -112,6 +112,8 @@ MODULE_DESCRIPTION("fbdev driver for int
  
- 	while (dev = device_find_child(&conn->dev, NULL, __match_tty)) {
- 		device_move(dev, NULL);
- 		put_device(dev);
- 	}
-+
- 	device_del(&conn->dev);
- 	put_device(&conn->dev);
-+	hci_dev_put(hdev);
- }
+ module_param(mode_option, charp, 0644);
+ MODULE_PARM_DESC(mode_option, "Default video mode ('640x480-8@60', etc)");
++module_param_named(mode, mode_option, charp, 0);
++MODULE_PARM_DESC(mode, "Default video mode e.g. '648x480-8@60' (deprecated)");
  
- void hci_conn_del_sysfs(struct hci_conn *conn)
+ #ifdef CONFIG_MTRR
+ module_param(mtrr, int, 0444);
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-bluetooth-put-hci-dev-after-del-conn.patch
-bluetooth-do-not-move-child-device-other-than-rfcomm.patch
-bluetooth-hci_core-defer-hci_unregister_sysfs.patch
-bluetooth-conwise-technology-based-adapters-with-buggy-sco-support-bugzilla-9027.patch
+pm2fb-correct-error-values-returned-from-probe-function.patch
+pm2fb-change-option-mode-to-mode_option.patch
+tridentfb-change-option-mode-to-mode_option.patch
+pm3fb-change-option-mode-to-mode_option.patch
+update-modedbtxt-documentation-about-mode_option-parameter-change.patch
+vt8623fb-change-option-mode-to-mode_option.patch
+arkfb-add-option-mode_option.patch
+s3fb-add-option-mode_option.patch
+fbdev-add-removed-option-mode-to-keep-compatibility.patch
