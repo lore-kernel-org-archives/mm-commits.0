@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kobil_sct-get-rid-of-unneeded-priv-line_state.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:31:03 -0800
-Message-ID: <200802230731.m1N7VpNb018037@imap1.linux-foundation.org>
+Subject: + usbaudio-handle-kcalloc-failure.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:31:07 -0800
+Message-ID: <200802230731.m1N7VuBV018043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38566 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754431AbYBWHyw (ORCPT
+	by vger.kernel.org with ESMTP id S1753270AbYBWHyw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Feb 2008 02:54:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: jim@meyering.net, greg@kroah.com, meyering@redhat.com
 
 
 The patch titled
-     kobil_sct: Get rid of unneeded priv->line_state
+     usbaudio: handle kcalloc failure
 has been added to the -mm tree.  Its filename is
-     kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+     usbaudio-handle-kcalloc-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kobil_sct: Get rid of unneeded priv->line_state
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: usbaudio: handle kcalloc failure
+From: Jim Meyering <jim@meyering.net>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+sound/usb/usbaudio.c (check_hw_params_convention): Handle kcalloc failure.
+
+Signed-off-by: Jim Meyering <meyering@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/kobil_sct.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ sound/usb/usbaudio.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/serial/kobil_sct.c~kobil_sct-get-rid-of-unneeded-priv-line_state drivers/usb/serial/kobil_sct.c
---- a/drivers/usb/serial/kobil_sct.c~kobil_sct-get-rid-of-unneeded-priv-line_state
-+++ a/drivers/usb/serial/kobil_sct.c
-@@ -139,7 +139,6 @@ struct kobil_private {
- 	int filled;  // index of the last char in buf
- 	int cur_pos; // index of the next char to send in buf
- 	__u16 device_type;
--	int line_state;
- };
+diff -puN sound/usb/usbaudio.c~usbaudio-handle-kcalloc-failure sound/usb/usbaudio.c
+--- a/sound/usb/usbaudio.c~usbaudio-handle-kcalloc-failure
++++ a/sound/usb/usbaudio.c
+@@ -1735,6 +1735,8 @@ static int check_hw_params_convention(st
  
+ 	channels = kcalloc(MAX_MASK, sizeof(u32), GFP_KERNEL);
+ 	rates = kcalloc(MAX_MASK, sizeof(u32), GFP_KERNEL);
++	if (!channels || !rates)
++		goto __out;
  
-@@ -161,7 +160,6 @@ static int kobil_startup (struct usb_ser
- 	priv->filled = 0;
- 	priv->cur_pos = 0;
- 	priv->device_type = le16_to_cpu(serial->dev->descriptor.idProduct);
--	priv->line_state = 0;
- 
- 	switch (priv->device_type){
- 	case KOBIL_ADAPTER_B_PRODUCT_ID:
-@@ -226,7 +224,6 @@ static int kobil_open (struct usb_serial
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 	priv = usb_get_serial_port_data(port);
--	priv->line_state = 0;
- 
- 	// someone sets the dev to 0 if the close method has been called
- 	port->interrupt_in_urb->dev = port->serial->dev;
-@@ -524,14 +521,11 @@ static int kobil_tiocmget(struct usb_ser
- 	dbg("%s - port %d Send get_status_line_state URB returns: %i. Statusline: %02x", 
- 	    __FUNCTION__, port->number, result, transfer_buffer[0]);
- 
--	if ((transfer_buffer[0] & SUSBCR_GSL_DSR) != 0) {
--		priv->line_state |= TIOCM_DSR;
--	} else {
--		priv->line_state &= ~TIOCM_DSR; 
--	}
--
-+	result = 0;
-+	if ((transfer_buffer[0] & SUSBCR_GSL_DSR) != 0)
-+		result = TIOCM_DSR;
- 	kfree(transfer_buffer);
--	return priv->line_state;
-+	return result;
- }
- 
- static int  kobil_tiocmset(struct usb_serial_port *port, struct file *file,
-@@ -544,6 +538,7 @@ static int  kobil_tiocmset(struct usb_se
- 	unsigned char *transfer_buffer;
- 	int transfer_buffer_length = 8;
- 
-+	/* FIXME: locking ? */
- 	priv = usb_get_serial_port_data(port);
- 	if ((priv->device_type == KOBIL_USBTWIN_PRODUCT_ID) || (priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)) {
- 		// This device doesn't support ioctl calls
+ 	list_for_each(p, &subs->fmt_list) {
+ 		struct audioformat *f;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jim@meyering.net are
 
-origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-megaraid-outb_p-extermination.patch
-usb-serial-prepare-for-bkl-push-down.patch
-ftdi_sio-note-missing-locking.patch
-usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
-io_ti-lock-mcr-and-msr-shadows-properly.patch
-iuu_phoenix-lock-priv-tiostatus-properly.patch
-kobil_sct-get-rid-of-unneeded-priv-line_state.patch
-ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
-git-watchdog.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+usbaudio-handle-kcalloc-failure.patch
+9p-handle-kstrdup-and-match_strdup-failure.patch
+alpha-handle-kcalloc-failure.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+lib-inflatec-handle-failed-malloc.patch
