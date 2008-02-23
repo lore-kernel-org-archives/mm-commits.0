@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iomap-fix-64-bits-resources-on-32-bits.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:42 -0800
-Message-ID: <200802230734.m1N7YVfu018295@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-sparse-warning-in-journalc.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:35:22 -0800
+Message-ID: <200802230736.m1N7aBTv018414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51168 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753270AbYBWHyJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754334AbYBWHy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:09 -0500
+	Sat, 23 Feb 2008 02:54:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, linux-arch@vger.kernel.org
+Cc: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com
 
 
 The patch titled
-     iomap: fix 64 bits resources on 32 bits
+     reiserfs: fix sparse warning in journal.c
 has been added to the -mm tree.  Its filename is
-     iomap-fix-64-bits-resources-on-32-bits.patch
+     reiserfs-fix-sparse-warning-in-journalc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,217 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iomap: fix 64 bits resources on 32 bits
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: reiserfs: fix sparse warning in journal.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Almost all implementations of pci_iomap() in the kernel, including the generic
-lib/iomap.c one, copies the content of a struct resource into unsigned long's
-which will break on 32 bits platforms with 64 bits resources.
+fs/reiserfs/journal.c:4319:2: warning: returning void-valued expression
 
-This fixes all definitions of pci_iomap() to use resource_size_t.  I also
-"fixed" the 64bits arch for consistency.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci.c               |    4 ++--
- arch/arm/mm/iomap.c                   |    4 ++--
- arch/frv/mb93090-mb00/pci-iomap.c     |    4 ++--
- arch/mips/lib/iomap-pci.c             |    4 ++--
- arch/mn10300/unit-asb2305/pci-iomap.c |    4 ++--
- arch/parisc/lib/iomap.c               |    4 ++--
- arch/ppc/kernel/pci.c                 |    4 ++--
- arch/sh/drivers/pci/pci.c             |    4 ++--
- arch/sparc/lib/iomap.c                |    4 ++--
- arch/sparc64/lib/iomap.c              |    4 ++--
- arch/v850/kernel/rte_mb_a_pci.c       |    4 ++--
- lib/iomap.c                           |    4 ++--
- 12 files changed, 24 insertions(+), 24 deletions(-)
+ fs/reiserfs/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/alpha/kernel/pci.c
-@@ -547,8 +547,8 @@ sys_pciconfig_iobase(long which, unsigne
+diff -puN fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc
++++ a/fs/reiserfs/journal.c
+@@ -4316,5 +4316,5 @@ static void __reiserfs_journal_abort_sof
  
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+ void reiserfs_journal_abort(struct super_block *sb, int errno)
  {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/arm/mm/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/arm/mm/iomap.c
---- a/arch/arm/mm/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/arm/mm/iomap.c
-@@ -26,8 +26,8 @@ EXPORT_SYMBOL(ioport_unmap);
- #ifdef CONFIG_PCI
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len   = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len   = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/frv/mb93090-mb00/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/frv/mb93090-mb00/pci-iomap.c
---- a/arch/frv/mb93090-mb00/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/frv/mb93090-mb00/pci-iomap.c
-@@ -13,8 +13,8 @@
- 
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/mips/lib/iomap-pci.c~iomap-fix-64-bits-resources-on-32-bits arch/mips/lib/iomap-pci.c
---- a/arch/mips/lib/iomap-pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/mips/lib/iomap-pci.c
-@@ -45,8 +45,8 @@ static void __iomem *ioport_map_pci(stru
-  */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/mn10300/unit-asb2305/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/mn10300/unit-asb2305/pci-iomap.c
---- a/arch/mn10300/unit-asb2305/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/mn10300/unit-asb2305/pci-iomap.c
-@@ -16,8 +16,8 @@
-  */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/parisc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/parisc/lib/iomap.c
---- a/arch/parisc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/parisc/lib/iomap.c
-@@ -438,8 +438,8 @@ void ioport_unmap(void __iomem *addr)
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/ppc/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/ppc/kernel/pci.c
---- a/arch/ppc/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/ppc/kernel/pci.c
-@@ -1176,8 +1176,8 @@ void __init pci_init_resource(struct res
- 
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len)
-diff -puN arch/sh/drivers/pci/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/sh/drivers/pci/pci.c
---- a/arch/sh/drivers/pci/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sh/drivers/pci/pci.c
-@@ -191,8 +191,8 @@ void __init pcibios_update_irq(struct pc
- 
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (unlikely(!len || !start))
-diff -puN arch/sparc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/sparc/lib/iomap.c
---- a/arch/sparc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sparc/lib/iomap.c
-@@ -21,8 +21,8 @@ EXPORT_SYMBOL(ioport_unmap);
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/sparc64/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/sparc64/lib/iomap.c
---- a/arch/sparc64/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sparc64/lib/iomap.c
-@@ -21,8 +21,8 @@ EXPORT_SYMBOL(ioport_unmap);
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/v850/kernel/rte_mb_a_pci.c~iomap-fix-64-bits-resources-on-32-bits arch/v850/kernel/rte_mb_a_pci.c
---- a/arch/v850/kernel/rte_mb_a_pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/v850/kernel/rte_mb_a_pci.c
-@@ -790,8 +790,8 @@ pci_free_consistent (struct pci_dev *pde
- 
- void __iomem *pci_iomap (struct pci_dev *dev, int bar, unsigned long max)
- {
--	unsigned long start = pci_resource_start (dev, bar);
--	unsigned long len = pci_resource_len (dev, bar);
-+	resource_size_t start = pci_resource_start (dev, bar);
-+	resource_size_t len = pci_resource_len (dev, bar);
- 
- 	if (!start || len == 0)
- 		return 0;
-diff -puN lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits lib/iomap.c
---- a/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/lib/iomap.c
-@@ -256,8 +256,8 @@ EXPORT_SYMBOL(ioport_unmap);
-  * */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
+-	return __reiserfs_journal_abort_soft(sb, errno);
++	__reiserfs_journal_abort_soft(sb, errno);
+ }
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-drivers-pcmcia-i82092c-fix-up-after-pci_bus_region-changes.patch
-git-md-accel.patch
-cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-percpu-fix-debug_preempt-per_cpu-checking.patch
-iomap-fix-64-bits-resources-on-32-bits.patch
+origin.patch
+markers-fix-sparse-warnings-in-markersc.patch
+acpi-sparse-fix-replace-macro-with-static-function.patch
+bttv-struct-member-initialized-twice.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+lockd-fix-sparse-warning-in-svcsharec.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
 kprobes-introduce-kprobe_handle_fault.patch
 kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-fb-add-support-for-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-powerpc-offb-add-support-for-foreign-endianness.patch
-asm-futexh-should-include-linux-uaccessh.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
