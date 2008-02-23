@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-sparse-warnings-in-do_balanc.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:16 -0800
-Message-ID: <200802230736.m1N7a5ft018402@imap1.linux-foundation.org>
+Subject: + serial_core-prepare-for-bkl-push-down.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:48 -0800
+Message-ID: <200802230737.m1N7bbeB018530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42121 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754098AbYBWIAH (ORCPT
+	by vger.kernel.org with ESMTP id S1754250AbYBWIAQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:00:07 -0500
+	Sat, 23 Feb 2008 03:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     reiserfs: fix sparse warnings in do_balan.c
+     serial_core: Prepare for BKL push down
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-sparse-warnings-in-do_balanc.patch
+     serial_core-prepare-for-bkl-push-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix sparse warnings in do_balan.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: serial_core: Prepare for BKL push down
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-fs/reiserfs/do_balan.c:286:34: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1731:21: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
+Instead of checking for the BKL in these methods, take it ourselves.  That
+avoids propogating it into the serial drivers and we can then fix them later
+on.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/serial/serial_core.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc fs/reiserfs/do_balan.c
---- a/fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc
-+++ a/fs/reiserfs/do_balan.c
-@@ -283,7 +283,7 @@ static int balance_leaf(struct tree_bala
- 		return balance_leaf_when_delete(tb, flag);
+diff -puN drivers/serial/serial_core.c~serial_core-prepare-for-bkl-push-down drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial_core-prepare-for-bkl-push-down
++++ a/drivers/serial/serial_core.c
+@@ -914,14 +914,14 @@ static void uart_break_ctl(struct tty_st
+ 	struct uart_state *state = tty->driver_data;
+ 	struct uart_port *port = state->port;
  
- 	zeros_num = 0;
--	if (flag == M_INSERT && body == 0)
-+	if (flag == M_INSERT && body == NULL)
- 		zeros_num = ih_item_len(ih);
+-	BUG_ON(!kernel_locked());
+-
++	lock_kernel();
+ 	mutex_lock(&state->mutex);
  
- 	pos_in_item = tb->tb_path->pos_in_item;
-@@ -1728,7 +1728,7 @@ struct buffer_head *get_FEB(struct tree_
- 	struct buffer_info bi;
+ 	if (port->type != PORT_UNKNOWN)
+ 		port->ops->break_ctl(port, break_state);
  
- 	for (i = 0; i < MAX_FEB_SIZE; i++)
--		if (tb->FEB[i] != 0)
-+		if (tb->FEB[i])
- 			break;
+ 	mutex_unlock(&state->mutex);
++	unlock_kernel();
+ }
  
- 	if (i == MAX_FEB_SIZE)
-@@ -1827,7 +1827,7 @@ int get_left_neighbor_position(struct tr
- {
- 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
+ static int uart_do_autoconfig(struct uart_state *state)
+@@ -1059,7 +1059,7 @@ static int uart_get_count(struct uart_st
+ }
  
--	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FL[h] == 0,
-+	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FL[h] == NULL,
- 	       "vs-12325: FL[%d](%p) or F[%d](%p) does not exist",
- 	       h, tb->FL[h], h, PATH_H_PPARENT(tb->tb_path, h));
+ /*
+- * Called via sys_ioctl under the BKL.  We can use spin_lock_irq() here.
++ * Called via sys_ioctl.  We can use spin_lock_irq() here.
+  */
+ static int
+ uart_ioctl(struct tty_struct *tty, struct file *filp, unsigned int cmd,
+@@ -1069,8 +1069,8 @@ uart_ioctl(struct tty_struct *tty, struc
+ 	void __user *uarg = (void __user *)arg;
+ 	int ret = -ENOIOCTLCMD;
  
-@@ -1841,7 +1841,7 @@ int get_right_neighbor_position(struct t
- {
- 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
+-	BUG_ON(!kernel_locked());
  
--	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FR[h] == 0,
-+	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FR[h] == NULL,
- 	       "vs-12330: F[%d](%p) or FR[%d](%p) does not exist",
- 	       h, PATH_H_PPARENT(tb->tb_path, h), h, tb->FR[h]);
++	lock_kernel();
+ 	/*
+ 	 * These ioctls don't rely on the hardware to be present.
+ 	 */
+@@ -1143,6 +1143,7 @@ uart_ioctl(struct tty_struct *tty, struc
+  out_up:
+ 	mutex_unlock(&state->mutex);
+  out:
++	unlock_kernel();
+ 	return ret;
+ }
  
+@@ -1153,7 +1154,6 @@ static void uart_set_termios(struct tty_
+ 	unsigned long flags;
+ 	unsigned int cflag = tty->termios->c_cflag;
+ 
+-	BUG_ON(!kernel_locked());
+ 
+ 	/*
+ 	 * These are the bits that are used to setup various
+@@ -1165,9 +1165,11 @@ static void uart_set_termios(struct tty_
+ 	if ((cflag ^ old_termios->c_cflag) == 0 &&
+ 	    tty->termios->c_ospeed == old_termios->c_ospeed &&
+ 	    tty->termios->c_ispeed == old_termios->c_ispeed &&
+-	    RELEVANT_IFLAG(tty->termios->c_iflag ^ old_termios->c_iflag) == 0)
++	    RELEVANT_IFLAG(tty->termios->c_iflag ^ old_termios->c_iflag) == 0) {
+ 		return;
++	}
+ 
++	lock_kernel();
+ 	uart_change_speed(state, old_termios);
+ 
+ 	/* Handle transition to B0 status */
+@@ -1200,7 +1202,7 @@ static void uart_set_termios(struct tty_
+ 		}
+ 		spin_unlock_irqrestore(&state->port->lock, flags);
+ 	}
+-
++	unlock_kernel();
+ #if 0
+ 	/*
+ 	 * No need to wake up processes in open wait, since they
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
+libata-isolate-and-rework-cable-logic.patch
 pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+megaraid-outb_p-extermination.patch
+usb-serial-prepare-for-bkl-push-down.patch
+ftdi_sio-note-missing-locking.patch
+usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
+io_ti-lock-mcr-and-msr-shadows-properly.patch
+iuu_phoenix-lock-priv-tiostatus-properly.patch
+kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
+git-watchdog.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
