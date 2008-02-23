@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:47 -0800
-Message-ID: <200802230734.m1N7YZxA018301@imap1.linux-foundation.org>
+Subject: + kthread-call-wake_up_process-without-the-lock-being-held.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:02 -0800
+Message-ID: <200802230733.m1N7Xp3P018256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35763 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763381AbYBWIFB (ORCPT
+	by vger.kernel.org with ESMTP id S1763754AbYBWIFe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:05:01 -0500
+	Sat, 23 Feb 2008 03:05:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: armbru@redhat.com, ericvh@gmail.com, lucho@ionkov.net, meyering@redhat.com, rdunlap@xenotime.net
+Cc: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     add match_strlcpy() us it to make v9fs make uname and remotename parsing more robust
+     kthread: call wake_up_process() without the lock being held
 has been added to the -mm tree.  Its filename is
-     add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch
+     kthread-call-wake_up_process-without-the-lock-being-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add match_strlcpy() us it to make v9fs make uname and remotename parsing more robust
-From: Markus Armbruster <armbru@redhat.com>
+Subject: kthread: call wake_up_process() without the lock being held
+From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
 
-match_strcpy() is a somewhat creepy function: the caller needs to make sure
-that the destination buffer is big enough, and when he screws up or
-forgets, match_strcpy() happily overruns the buffer.
+- from the POV of synchronization, there should be no need to call
+  wake_up_process() with the 'kthread_create_lock' being held;
 
-There's exactly one customer: v9fs_parse_options().  I believe it currently
-can't overflow its buffer, but that's not exactly obvious.
+- moreover, in order to support a lockless check for
+  list_empty(&kthread_create_list) in kthreadd() :
 
-The source string is a substing of the mount options.  The kernel silently
-truncates those to PAGE_SIZE bytes, including the terminating zero.  See
-compat_sys_mount() and do_mount().
+ 	set_current_state(TASK_INTERRUPTIBLE);
+    	if (list_empty(&kthread_create_list))
+    		schedule();
 
-The destination buffer is obtained from __getname(), which allocates from
-name_cachep, which is initialized by vfs_caches_init() for size PATH_MAX.
+we must ensure that a modification of the list (i.e.  list_add_tail()) has
+been completed by the moment a state of the task is checked in
+try_to_wake_up().  i.e.  they must not be re-ordered.
 
-We're safe as long as PATH_MAX <= PAGE_SIZE.  PATH_MAX is 4096.  As far as
-I know, the smallest PAGE_SIZE is also 4096.
+wake_up_process() (i.e.  try_to_wake_up() effectively) doesn't provide a full
+mb.  By moving wake_up_process() out of the locked section, we get an
+UNLOCK/LOCK pair (LOCK is in try_to_wake_up()) which is guaranteed to act as a
+full mb.
 
-Here's a patch that makes the code a bit more obviously correct.  It
-doesn't depend on PATH_MAX <= PAGE_SIZE.
-
-Signed-off-by: Markus Armbruster <armbru@redhat.com>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Jim Meyering <meyering@redhat.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/v9fs.c           |    4 ++--
- include/linux/parser.h |    2 +-
- lib/parser.c           |   32 ++++++++++++++++++++------------
- 3 files changed, 23 insertions(+), 15 deletions(-)
+ kernel/kthread.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/9p/v9fs.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust fs/9p/v9fs.c
---- a/fs/9p/v9fs.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
-+++ a/fs/9p/v9fs.c
-@@ -133,10 +133,10 @@ static int v9fs_parse_options(struct v9f
- 			v9ses->afid = option;
- 			break;
- 		case Opt_uname:
--			match_strcpy(v9ses->uname, &args[0]);
-+			match_strlcpy(v9ses->uname, &args[0], PATH_MAX);
- 			break;
- 		case Opt_remotename:
--			match_strcpy(v9ses->aname, &args[0]);
-+			match_strlcpy(v9ses->aname, &args[0], PATH_MAX);
- 			break;
- 		case Opt_nodevmap:
- 			v9ses->nodev = 1;
-diff -puN include/linux/parser.h~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust include/linux/parser.h
---- a/include/linux/parser.h~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
-+++ a/include/linux/parser.h
-@@ -29,5 +29,5 @@ int match_token(char *, match_table_t ta
- int match_int(substring_t *, int *result);
- int match_octal(substring_t *, int *result);
- int match_hex(substring_t *, int *result);
--void match_strcpy(char *, const substring_t *);
-+size_t match_strlcpy(char *, const substring_t *, size_t);
- char *match_strdup(const substring_t *);
-diff -puN lib/parser.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust lib/parser.c
---- a/lib/parser.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
-+++ a/lib/parser.c
-@@ -182,18 +182,25 @@ int match_hex(substring_t *s, int *resul
- }
+diff -puN kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held kernel/kthread.c
+--- a/kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held
++++ a/kernel/kthread.c
+@@ -158,9 +158,9 @@ struct task_struct *kthread_create(int (
  
- /**
-- * match_strcpy: - copies the characters from a substring_t to a string
-- * @to: string to copy characters to.
-- * @s: &substring_t to copy
-+ * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
-+ * @dest: where to copy to
-+ * @src: &substring_t to copy
-+ * @size: size of destination buffer
-  *
-- * Description: Copies the set of characters represented by the given
-- * &substring_t @s to the c-style string @to. Caller guarantees that @to is
-- * large enough to hold the characters of @s.
-+ * Description: Copy the characters in &substring_t @src to the
-+ * c-style string @dest.  Copy no more than @size - 1 characters, plus
-+ * the terminating NUL.  Return length of @src.
-  */
--void match_strcpy(char *to, const substring_t *s)
-+size_t match_strlcpy(char *dest, const substring_t *src, size_t size)
- {
--	memcpy(to, s->from, s->to - s->from);
--	to[s->to - s->from] = '\0';
-+	size_t ret = src->to - src->from;
-+
-+	if (size) {
-+		size_t len = ret >= size ? size - 1 : ret;
-+		memcpy(dest, src->from, len);
-+		dest[len] = '\0';
-+	}
-+	return ret;
- }
+ 	spin_lock(&kthread_create_lock);
+ 	list_add_tail(&create.list, &kthread_create_list);
+-	wake_up_process(kthreadd_task);
+ 	spin_unlock(&kthread_create_lock);
  
- /**
-@@ -206,9 +213,10 @@ void match_strcpy(char *to, const substr
-  */
- char *match_strdup(const substring_t *s)
- {
--	char *p = kmalloc(s->to - s->from + 1, GFP_KERNEL);
-+	size_t sz = s->to - s->from + 1;
-+	char *p = kmalloc(sz, GFP_KERNEL);
- 	if (p)
--		match_strcpy(p, s);
-+		match_strlcpy(p, s, sz);
- 	return p;
- }
++	wake_up_process(kthreadd_task);
+ 	wait_for_completion(&create.done);
  
-@@ -216,5 +224,5 @@ EXPORT_SYMBOL(match_token);
- EXPORT_SYMBOL(match_int);
- EXPORT_SYMBOL(match_octal);
- EXPORT_SYMBOL(match_hex);
--EXPORT_SYMBOL(match_strcpy);
-+EXPORT_SYMBOL(match_strlcpy);
- EXPORT_SYMBOL(match_strdup);
+ 	if (!IS_ERR(create.result)) {
 _
 
-Patches currently in -mm which might be from armbru@redhat.com are
+Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
 
-add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch
+kthread-synchronization-issues.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
