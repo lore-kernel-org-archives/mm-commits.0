@@ -1,129 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-sparse-fix-replace-macro-with-static-function.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:21:31 -0800
-Message-ID: <200802232021.m1NKLVRT013341@imap1.linux-foundation.org>
+Subject: - git-acpi-powerpc-kconfig-fix.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:21:20 -0800
+Message-ID: <200802232021.m1NKLKnU013324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49419 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760101AbYBWUVq (ORCPT
+	by vger.kernel.org with ESMTP id S1759603AbYBWUVp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:21:46 -0500
+	Sat, 23 Feb 2008 15:21:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: sparse fix, replace macro with static function
+     git-acpi: powerpc kconfig "fix"
 has been removed from the -mm tree.  Its filename was
-     acpi-sparse-fix-replace-macro-with-static-function.patch
+     git-acpi-powerpc-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: sparse fix, replace macro with static function
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: git-acpi: powerpc kconfig "fix"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-replace acpi_util_eval_error macro with static function.
+kernel/power/Kconfig:119:error: found recursive dependency: HIBERNATION -> DEBUG_PAGEALLOC -> ARCH_HIBERNATION_POSSIBLE -> HIBERNATION
+ -> PM_STD_PARTITIONmake[1]: *** [oldconfig] Error 1
+make: *** [oldconfig] Error 2
 
-Avoid these sparse warnings due to using buffer within the macro.
-drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:259:21: originally declared here
-drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an earlier one
-drivers/acpi/utils.c:348:21: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/utils.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ arch/powerpc/Kconfig |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function drivers/acpi/utils.c
---- a/drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function
-+++ a/drivers/acpi/utils.c
-@@ -36,16 +36,20 @@ ACPI_MODULE_NAME("utils");
- /* --------------------------------------------------------------------------
-                             Object Evaluation Helpers
-    -------------------------------------------------------------------------- */
-+static void
-+acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
-+{
- #ifdef ACPI_DEBUG_OUTPUT
--#define acpi_util_eval_error(h,p,s) {\
--	char prefix[80] = {'\0'};\
--	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
--	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",\
--		(char *) prefix, p, acpi_format_exception(s))); }
-+	char prefix[80] = {'\0'};
-+	struct acpi_buffer buffer = {sizeof(prefix), prefix};
-+	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
-+		(char *) prefix, p, acpi_format_exception(s)));
- #else
--#define acpi_util_eval_error(h,p,s)
-+	return;
- #endif
-+}
-+
- acpi_status
- acpi_extract_package(union acpi_object *package,
- 		     struct acpi_buffer *format, struct acpi_buffer *buffer)
+diff -puN arch/powerpc/Kconfig~git-acpi-powerpc-kconfig-fix arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~git-acpi-powerpc-kconfig-fix
++++ a/arch/powerpc/Kconfig
+@@ -168,8 +168,6 @@ config HIBERNATE_64
+ config ARCH_HIBERNATION_POSSIBLE
+ 	bool
+ 	depends on (PPC64 && HIBERNATE_64) || (PPC32 && HIBERNATE_32)
+-# This is needed as long as kernel_page_present() is not implemented
+-	depends on !DEBUG_PAGEALLOC
+ 	default y
+ 
+ config ARCH_SUSPEND_POSSIBLE
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
+git-md-accel.patch
 git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 git-sched.patch
-git-scsi-rc-fixes.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 git-x86.patch
-remove-sparse-warning-for-mmzoneh.patch
+git-x86-fixup.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
