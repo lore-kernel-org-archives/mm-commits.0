@@ -1,52 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - unionfs-is-broken.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 11:49:35 -0800
-Message-ID: <200802231949.m1NJnZ7f012143@imap1.linux-foundation.org>
+Subject: - git-watchdog-git-rejects.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 11:51:25 -0800
+Message-ID: <200802231951.m1NJpPiQ012244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42406 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33304 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758142AbYBWTuP (ORCPT
+	by vger.kernel.org with ESMTP id S1761417AbYBWTvd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:50:15 -0500
+	Sat, 23 Feb 2008 14:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unionfs is broken
+     git-watchdog-git-rejects
 has been removed from the -mm tree.  Its filename was
-     unionfs-is-broken.patch
+     git-watchdog-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unionfs is broken
+Subject: git-watchdog-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needs updating for vfs changes
-
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/Kconfig  |    3 ---
+ drivers/watchdog/Makefile |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/Kconfig~unionfs-is-broken fs/Kconfig
---- a/fs/Kconfig~unionfs-is-broken
-+++ a/fs/Kconfig
-@@ -1022,6 +1022,7 @@ config ECRYPT_FS
- config UNION_FS
- 	tristate "Union file system (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	help
- 	  Unionfs is a stackable unification file system, which appears to
- 	  merge the contents of several directories (branches), while keeping
+diff -puN drivers/watchdog/Kconfig~git-watchdog-git-rejects drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~git-watchdog-git-rejects
++++ a/drivers/watchdog/Kconfig
+@@ -405,8 +405,6 @@ config IT8712F_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called it8712f_wdt.
+ 
+-<<<<<<< HEAD:drivers/watchdog/Kconfig
+-=======
+ config HP_WATCHDOG
+ 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
+ 	depends on X86
+@@ -419,7 +417,6 @@ config HP_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called hpwdt.
+ 
+->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
+ config SC1200_WDT
+ 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
+ 	depends on X86
+diff -puN drivers/watchdog/Makefile~git-watchdog-git-rejects drivers/watchdog/Makefile
+--- a/drivers/watchdog/Makefile~git-watchdog-git-rejects
++++ a/drivers/watchdog/Makefile
+@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
+ obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
+ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
+ obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
+-<<<<<<< HEAD:drivers/watchdog/Makefile
+-=======
+ CFLAGS_hpwdt.o += -O
+ obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
+->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
+ obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
+ obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
+ obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,11 +95,7 @@ scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-block-git-rejects.patch
 git-unionfs.patch
-unionfs-is-broken.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-ohci-sm501-driver-v2-fix.patch
-drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
 git-watchdog-git-rejects.patch
 git-x86.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
