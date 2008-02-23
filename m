@@ -1,54 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - make-ocfs2_downconvert_thread-static.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:27 -0800
-Message-ID: <200802232022.m1NKMRWA013425@imap1.linux-foundation.org>
+Subject: - make-lpfc_disable_node-static.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:46 -0800
+Message-ID: <200802232022.m1NKMkO2013450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39317 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762234AbYBWU3A (ORCPT
+	by vger.kernel.org with ESMTP id S1762192AbYBWU3B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:00 -0500
+	Sat, 23 Feb 2008 15:29:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, James.Bottomley@steeleye.com, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make ocfs2_downconvert_thread() static
+     make lpfc_disable_node() static
 has been removed from the -mm tree.  Its filename was
-     make-ocfs2_downconvert_thread-static.patch
+     make-lpfc_disable_node-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make ocfs2_downconvert_thread() static
+Subject: make lpfc_disable_node() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global ocfs2_downconvert_thread() static.
+Make the needlessly global lpfc_disable_node() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Acked-by: James Smart <James.Smart@Emulex.Com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/lpfc/lpfc_crtn.h    |    1 -
+ drivers/scsi/lpfc/lpfc_hbadisc.c |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlmglue.c~make-ocfs2_downconvert_thread-static fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~make-ocfs2_downconvert_thread-static
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3356,7 +3356,7 @@ static int ocfs2_downconvert_thread_shou
- 	return should_wake;
+diff -puN drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_crtn.h
+--- a/drivers/scsi/lpfc/lpfc_crtn.h~make-lpfc_disable_node-static
++++ a/drivers/scsi/lpfc/lpfc_crtn.h
+@@ -55,7 +55,6 @@ void lpfc_mbx_cmpl_ns_reg_login(struct l
+ void lpfc_mbx_cmpl_fdmi_reg_login(struct lpfc_hba *, LPFC_MBOXQ_t *);
+ void lpfc_enqueue_node(struct lpfc_vport *, struct lpfc_nodelist *);
+ void lpfc_dequeue_node(struct lpfc_vport *, struct lpfc_nodelist *);
+-void lpfc_disable_node(struct lpfc_vport *, struct lpfc_nodelist *);
+ struct lpfc_nodelist *lpfc_enable_node(struct lpfc_vport *,
+ 					struct lpfc_nodelist *, int);
+ void lpfc_nlp_set_state(struct lpfc_vport *, struct lpfc_nodelist *, int);
+diff -puN drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static drivers/scsi/lpfc/lpfc_hbadisc.c
+--- a/drivers/scsi/lpfc/lpfc_hbadisc.c~make-lpfc_disable_node-static
++++ a/drivers/scsi/lpfc/lpfc_hbadisc.c
+@@ -1694,7 +1694,7 @@ lpfc_dequeue_node(struct lpfc_vport *vpo
+ 				NLP_STE_UNUSED_NODE);
  }
  
--int ocfs2_downconvert_thread(void *arg)
-+static int ocfs2_downconvert_thread(void *arg)
+-void
++static void
+ lpfc_disable_node(struct lpfc_vport *vport, struct lpfc_nodelist *ndlp)
  {
- 	int status = 0;
- 	struct ocfs2_super *osb = arg;
+ 	if ((ndlp->nlp_flag & NLP_DELAY_TMO) != 0)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
