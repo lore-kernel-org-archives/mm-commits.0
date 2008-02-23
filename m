@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + isicom-prepare-for-lock_kernel-push-down.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:17 -0800
-Message-ID: <200802230737.m1N7b6mH018483@imap1.linux-foundation.org>
+Subject: + specialix-prepare-for-bkl-pushdown.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:31 -0800
+Message-ID: <200802230737.m1N7bK4B018506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40197 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755288AbYBWHyw (ORCPT
+	by vger.kernel.org with ESMTP id S1756580AbYBWHyx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:52 -0500
+	Sat, 23 Feb 2008 02:54:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     isicom: prepare for lock_kernel push down
+     specialix: Prepare for BKL pushdown
 has been added to the -mm tree.  Its filename is
-     isicom-prepare-for-lock_kernel-push-down.patch
+     specialix-prepare-for-bkl-pushdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom: prepare for lock_kernel push down
+Subject: specialix: Prepare for BKL pushdown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Again lock the bits we can't trivially prove are safe without the BKL and
-remove the broken TIOCS/GSOFTCAR handler.
+Lock the ioctl handlers and remove bogus softcar handling.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ drivers/char/specialix.c |   46 ++++---------------------------------
+ 1 file changed, 6 insertions(+), 40 deletions(-)
 
-diff -puN drivers/char/isicom.c~isicom-prepare-for-lock_kernel-push-down drivers/char/isicom.c
---- a/drivers/char/isicom.c~isicom-prepare-for-lock_kernel-push-down
-+++ a/drivers/char/isicom.c
-@@ -1258,6 +1258,8 @@ static int isicom_set_serial_info(struct
- 	if (copy_from_user(&newinfo, info, sizeof(newinfo)))
- 		return -EFAULT;
+diff -puN drivers/char/specialix.c~specialix-prepare-for-bkl-pushdown drivers/char/specialix.c
+--- a/drivers/char/specialix.c~specialix-prepare-for-bkl-pushdown
++++ a/drivers/char/specialix.c
+@@ -1924,29 +1924,13 @@ static inline int sx_set_serial_info(str
+ 	int change_speed;
  
-+	lock_kernel();
+ 	func_enter();
+-	/*
+-	if (!access_ok(VERIFY_READ, (void *) newinfo, sizeof(tmp))) {
+-		func_exit();
+-		return -EFAULT;
+-	}
+-	*/
 +
- 	reconfig_port = ((port->flags & ASYNC_SPD_MASK) !=
- 		(newinfo.flags & ASYNC_SPD_MASK));
+ 	if (copy_from_user(&tmp, newinfo, sizeof(tmp))) {
+ 		func_enter();
+ 		return -EFAULT;
+ 	}
  
-@@ -1265,8 +1267,10 @@ static int isicom_set_serial_info(struct
- 		if ((newinfo.close_delay != port->close_delay) ||
- 				(newinfo.closing_wait != port->closing_wait) ||
- 				((newinfo.flags & ~ASYNC_USR_MASK) !=
--				(port->flags & ~ASYNC_USR_MASK)))
-+				(port->flags & ~ASYNC_USR_MASK))) {
+-#if 0
+-	if ((tmp.irq != bp->irq) ||
+-	    (tmp.port != bp->base) ||
+-	    (tmp.type != PORT_CIRRUS) ||
+-	    (tmp.baud_base != (SX_OSCFREQ + CD186x_TPC/2) / CD186x_TPC) ||
+-	    (tmp.custom_divisor != 0) ||
+-	    (tmp.xmit_fifo_size != CD186x_NFIFO) ||
+-	    (tmp.flags & ~SPECIALIX_LEGAL_FLAGS)) {
+-		func_exit();
+-		return -EINVAL;
+-	}
+-#endif
++	lock_kernel();
+ 
+ 	change_speed = ((port->flags & ASYNC_SPD_MASK) !=
+ 			(tmp.flags & ASYNC_SPD_MASK));
+@@ -1958,6 +1942,7 @@ static inline int sx_set_serial_info(str
+ 		    ((tmp.flags & ~ASYNC_USR_MASK) !=
+ 		     (port->flags & ~ASYNC_USR_MASK))) {
+ 			func_exit();
 +			unlock_kernel();
  			return -EPERM;
-+		}
- 		port->flags = ((port->flags & ~ ASYNC_USR_MASK) |
- 				(newinfo.flags & ASYNC_USR_MASK));
+ 		}
+ 		port->flags = ((port->flags & ~ASYNC_USR_MASK) |
+@@ -1974,6 +1959,7 @@ static inline int sx_set_serial_info(str
+ 		sx_change_speed(bp, port);
  	}
-@@ -1282,6 +1286,7 @@ static int isicom_set_serial_info(struct
- 		isicom_config_port(port);
- 		spin_unlock_irqrestore(&port->card->card_lock, flags);
- 	}
+ 	func_exit();
 +	unlock_kernel();
  	return 0;
  }
  
-@@ -1290,6 +1295,7 @@ static int isicom_get_serial_info(struct
- {
- 	struct serial_struct out_info;
+@@ -1986,12 +1972,8 @@ static inline int sx_get_serial_info(str
  
+ 	func_enter();
+ 
+-	/*
+-	if (!access_ok(VERIFY_WRITE, (void *) retinfo, sizeof(tmp)))
+-		return -EFAULT;
+-	*/
+-
+ 	memset(&tmp, 0, sizeof(tmp));
 +	lock_kernel();
- 	memset(&out_info, 0, sizeof(out_info));
- /*	out_info.type = ? */
- 	out_info.line = port - isi_ports;
-@@ -1299,6 +1305,7 @@ static int isicom_get_serial_info(struct
- /*	out_info.baud_base = ? */
- 	out_info.close_delay = port->close_delay;
- 	out_info.closing_wait = port->closing_wait;
+ 	tmp.type = PORT_CIRRUS;
+ 	tmp.line = port - sx_port;
+ 	tmp.port = bp->base;
+@@ -2002,6 +1984,7 @@ static inline int sx_get_serial_info(str
+ 	tmp.closing_wait = port->closing_wait * HZ/100;
+ 	tmp.custom_divisor =  port->custom_divisor;
+ 	tmp.xmit_fifo_size = CD186x_NFIFO;
 +	unlock_kernel();
- 	if (copy_to_user(info, &out_info, sizeof(out_info)))
+ 	if (copy_to_user(retinfo, &tmp, sizeof(tmp))) {
+ 		func_exit();
  		return -EFAULT;
- 	return 0;
-@@ -1331,19 +1338,6 @@ static int isicom_ioctl(struct tty_struc
- 		tty_wait_until_sent(tty, 0);
- 		isicom_send_break(port, arg ? arg * (HZ/10) : HZ/4);
+@@ -2047,23 +2030,6 @@ static int sx_ioctl(struct tty_struct * 
+ 		sx_send_break(port, arg ? arg*(HZ/10) : HZ/4);
+ 		func_exit();
  		return 0;
--
--	case TIOCGSOFTCAR:
--		return put_user(C_CLOCAL(tty) ? 1 : 0,
--				(unsigned long __user *)argp);
--
--	case TIOCSSOFTCAR:
--		if (get_user(arg, (unsigned long __user *) argp))
--			return -EFAULT;
+-	 case TIOCGSOFTCAR:
+-		 if (put_user(C_CLOCAL(tty)?1:0, (unsigned long __user *)argp)) {
+-			 func_exit();
+-			 return -EFAULT;
+-		 }
+-		 func_exit();
+-		return 0;
+-	 case TIOCSSOFTCAR:
+-		 if (get_user(arg, (unsigned long __user *) argp)) {
+-			 func_exit();
+-			 return -EFAULT;
+-		 }
 -		tty->termios->c_cflag =
 -			((tty->termios->c_cflag & ~CLOCAL) |
 -			(arg ? CLOCAL : 0));
+-		func_exit();
 -		return 0;
--
- 	case TIOCGSERIAL:
- 		return isicom_get_serial_info(port, argp);
- 
+ 	 case TIOCGSERIAL:
+ 		 func_exit();
+ 		return sx_get_serial_info(port, argp);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
