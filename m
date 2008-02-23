@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rocket-prepare-for-bkl-pushdown.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:27 -0800
-Message-ID: <200802230737.m1N7bG1L018500@imap1.linux-foundation.org>
+Subject: + stallion-prepare-for-bkl-push-down.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:33 -0800
+Message-ID: <200802230737.m1N7bMeW018509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59733 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755023AbYBWHyq (ORCPT
+	by vger.kernel.org with ESMTP id S1754899AbYBWHyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:46 -0500
+	Sat, 23 Feb 2008 02:54:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     rocket: Prepare for BKL pushdown
+     stallion: Prepare for BKL push down
 has been added to the -mm tree.  Its filename is
-     rocket-prepare-for-bkl-pushdown.patch
+     stallion-prepare-for-bkl-push-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rocket: Prepare for BKL pushdown
+Subject: stallion: Prepare for BKL push down
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Wrap the ioctl code in lock_kernel calls
+Remove broken softcar functions, wrap ioctl handler in BKL
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ drivers/char/stallion.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/rocket.c~rocket-prepare-for-bkl-pushdown drivers/char/rocket.c
---- a/drivers/char/rocket.c~rocket-prepare-for-bkl-pushdown
-+++ a/drivers/char/rocket.c
-@@ -1432,29 +1432,38 @@ static int rp_ioctl(struct tty_struct *t
- {
- 	struct r_port *info = (struct r_port *) tty->driver_data;
- 	void __user *argp = (void __user *)arg;
-+	int ret = 0;
+diff -puN drivers/char/stallion.c~stallion-prepare-for-bkl-push-down drivers/char/stallion.c
+--- a/drivers/char/stallion.c~stallion-prepare-for-bkl-push-down
++++ a/drivers/char/stallion.c
+@@ -1273,18 +1273,9 @@ static int stl_ioctl(struct tty_struct *
  
- 	if (cmd != RCKP_GET_PORTS && rocket_paranoia_check(info, "rp_ioctl"))
- 		return -ENXIO;
+ 	rc = 0;
  
 +	lock_kernel();
 +
  	switch (cmd) {
- 	case RCKP_GET_STRUCT:
- 		if (copy_to_user(argp, info, sizeof (struct r_port)))
+-	case TIOCGSOFTCAR:
+-		rc = put_user(((tty->termios->c_cflag & CLOCAL) ? 1 : 0),
+-			(unsigned __user *) argp);
+-		break;
+-	case TIOCSSOFTCAR:
+-		if (get_user(ival, (unsigned int __user *) arg))
 -			return -EFAULT;
--		return 0;
-+			ret = -EFAULT;
-+		break;
- 	case RCKP_GET_CONFIG:
--		return get_config(info, argp);
-+		ret = get_config(info, argp);
-+		break;
- 	case RCKP_SET_CONFIG:
--		return set_config(info, argp);
-+		ret = set_config(info, argp);
-+		break;
- 	case RCKP_GET_PORTS:
--		return get_ports(info, argp);
-+		ret = get_ports(info, argp);
-+		break;
- 	case RCKP_RESET_RM2:
--		return reset_rm2(info, argp);
-+		ret = reset_rm2(info, argp);
-+		break;
- 	case RCKP_GET_VERSION:
--		return get_version(info, argp);
-+		ret = get_version(info, argp);
-+		break;
- 	default:
--		return -ENOIOCTLCMD;
-+		ret = -ENOIOCTLCMD;
+-		tty->termios->c_cflag =
+-				(tty->termios->c_cflag & ~CLOCAL) |
+-				(ival ? CLOCAL : 0);
+-		break;
+ 	case TIOCGSERIAL:
+ 		rc = stl_getserial(portp, argp);
+ 		break;
+@@ -1308,7 +1299,7 @@ static int stl_ioctl(struct tty_struct *
+ 		rc = -ENOIOCTLCMD;
+ 		break;
  	}
--	return 0;
+-
 +	unlock_kernel();
-+	return ret;
+ 	return rc;
  }
  
- static void rp_send_xchar(struct tty_struct *tty, char ch)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
