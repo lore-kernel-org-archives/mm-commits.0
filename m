@@ -1,75 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-git-rejects.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 11:51:25 -0800
-Message-ID: <200802231951.m1NJpPiQ012244@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Sat, 23 Feb 2008 11:52:39 -0800
+Message-ID: <200802231952.m1NJqdjt012274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33304 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761417AbYBWTvd (ORCPT
+	by vger.kernel.org with ESMTP id S1757678AbYBWTwm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:51:33 -0500
+	Sat, 23 Feb 2008 14:52:42 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1NJqdYh003592
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 23 Feb 2008 11:52:41 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-watchdog-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-watchdog-git-rejects.patch
+     git-x86-fixup
+has been added to the -mm tree.  Its filename is
+     git-x86-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog-git-rejects
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig  |    3 ---
- drivers/watchdog/Makefile |    3 ---
- 2 files changed, 6 deletions(-)
+ arch/x86/pci/pci.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/Kconfig~git-watchdog-git-rejects drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~git-watchdog-git-rejects
-+++ a/drivers/watchdog/Kconfig
-@@ -405,8 +405,6 @@ config IT8712F_WDT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called it8712f_wdt.
+diff -puN arch/x86/pci/pci.h~git-x86-fixup arch/x86/pci/pci.h
+--- a/arch/x86/pci/pci.h~git-x86-fixup
++++ a/arch/x86/pci/pci.h
+@@ -98,11 +98,11 @@ extern struct pci_raw_ops pci_direct_con
+ extern int pci_direct_probe(void);
+ extern void pci_direct_init(int type);
+ extern void pci_pcbios_init(void);
+-extern void pci_mmcfg_init(int type);
  
--<<<<<<< HEAD:drivers/watchdog/Kconfig
--=======
- config HP_WATCHDOG
- 	tristate "HP Proliant iLO 2 Hardware Watchdog Timer"
- 	depends on X86
-@@ -419,7 +417,6 @@ config HP_WATCHDOG
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hpwdt.
+ /* pci-mmconfig.c */
  
-->>>>>>> FETCH_HEAD:drivers/watchdog/Kconfig
- config SC1200_WDT
- 	tristate "National Semiconductor PC87307/PC97307 (ala SC1200) Watchdog"
- 	depends on X86
-diff -puN drivers/watchdog/Makefile~git-watchdog-git-rejects drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~git-watchdog-git-rejects
-+++ a/drivers/watchdog/Makefile
-@@ -69,11 +69,8 @@ obj-$(CONFIG_WAFER_WDT) += wafer5823wdt.
- obj-$(CONFIG_I6300ESB_WDT) += i6300esb.o
- obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o iTCO_vendor_support.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
--<<<<<<< HEAD:drivers/watchdog/Makefile
--=======
- CFLAGS_hpwdt.o += -O
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
-->>>>>>> FETCH_HEAD:drivers/watchdog/Makefile
- obj-$(CONFIG_SC1200_WDT) += sc1200wdt.o
- obj-$(CONFIG_SCx200_WDT) += scx200_wdt.o
- obj-$(CONFIG_PC87413_WDT) += pc87413_wdt.o
+ extern int __init pci_mmcfg_arch_init(void);
++extern void __init pci_mmcfg_arch_free(void);
+ 
+ /*
+  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,8 +89,8 @@ libsas-convert-ata-bridge-to-use-new-eh.patch
 git-block-git-rejects.patch
 git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-watchdog-git-rejects.patch
 git-x86.patch
+git-x86-fixup.patch
 pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
