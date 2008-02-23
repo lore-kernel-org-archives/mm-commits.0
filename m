@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-correct-error-values-returned-from-probe-function.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:48 -0800
-Message-ID: <200802230735.m1N7ZbJI018366@imap1.linux-foundation.org>
+Subject: + simplify-initcall_debug-output.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:40 -0800
+Message-ID: <200802230734.m1N7YTD8018292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45822 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708AbYBWHx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751722AbYBWHx6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:53:57 -0500
+	Sat, 23 Feb 2008 02:53:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     pm2fb: correct error values returned from probe function
+     Simplify initcall_debug output
 has been added to the -mm tree.  Its filename is
-     pm2fb-correct-error-values-returned-from-probe-function.patch
+     simplify-initcall_debug-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm2fb: correct error values returned from probe function
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: Simplify initcall_debug output
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Fix error values returned in some code branches in the pm2fb_probe() function.
+print_fn_descriptor_symbol() prints the address if we don't have a symbol, so
+no need to print both.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Also, combine printing return value with elapsed time.  Changes this:
+
+  Calling initcall 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50()
+  initcall 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50() returned 1.
+  initcall 0xc05b7a70 ran for 0 msecs: pci_mmcfg_late_insert_resources+0x0/0x50()
+  initcall at 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50(): returned with error code 1
+
+to this:
+
+  calling  pci_mmcfg_late_insert_resources+0x0/0x50()
+  initcall pci_mmcfg_late_insert_resources+0x0/0x50() returned 1 after 0 msecs
+  initcall pci_mmcfg_late_insert_resources+0x0/0x50() returned with error code 1
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ init/main.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-correct-error-values-returned-from-probe-function drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-correct-error-values-returned-from-probe-function
-+++ a/drivers/video/pm2fb.c
-@@ -1687,10 +1687,12 @@ static int __devinit pm2fb_probe(struct 
- 	if (!err || err == 4)
- 		info->var = pm2fb_var;
+diff -puN init/main.c~simplify-initcall_debug-output init/main.c
+--- a/init/main.c~simplify-initcall_debug-output
++++ a/init/main.c
+@@ -680,10 +680,8 @@ static void __init do_initcalls(void)
+ 		int result;
  
--	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
-+	retval = fb_alloc_cmap(&info->cmap, 256, 0);
-+	if (retval < 0)
- 		goto err_exit_both;
+ 		if (initcall_debug) {
+-			printk("Calling initcall 0x%p", *call);
+-			print_fn_descriptor_symbol(": %s()",
++			print_fn_descriptor_symbol("calling  %s()\n",
+ 					(unsigned long) *call);
+-			printk("\n");
+ 			t0 = ktime_get();
+ 		}
  
--	if (register_framebuffer(info) < 0)
-+	retval = register_framebuffer(info);
-+	if (retval < 0)
- 		goto err_exit_all;
+@@ -693,15 +691,10 @@ static void __init do_initcalls(void)
+ 			t1 = ktime_get();
+ 			delta = ktime_sub(t1, t0);
  
- 	printk(KERN_INFO "fb%d: %s frame buffer device, memory = %dK.\n",
+-			printk("initcall 0x%p", *call);
+-			print_fn_descriptor_symbol(": %s()",
++			print_fn_descriptor_symbol("initcall %s()",
+ 					(unsigned long) *call);
+-			printk(" returned %d.\n", result);
+-
+-			printk("initcall 0x%p ran for %Ld msecs: ",
+-				*call, (unsigned long long)delta.tv64 >> 20);
+-			print_fn_descriptor_symbol("%s()\n",
+-				(unsigned long) *call);
++			printk(" returned %d after %Ld msecs\n", result,
++				(unsigned long long) delta.tv64 >> 20);
+ 		}
+ 
+ 		if (result && result != -ENODEV && initcall_debug) {
+@@ -717,10 +710,9 @@ static void __init do_initcalls(void)
+ 			local_irq_enable();
+ 		}
+ 		if (msg) {
+-			printk(KERN_WARNING "initcall at 0x%p", *call);
+-			print_fn_descriptor_symbol(": %s()",
++			print_fn_descriptor_symbol(KERN_WARNING "initcall %s()",
+ 					(unsigned long) *call);
+-			printk(": returned with %s\n", msg);
++			printk(" returned with %s\n", msg);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-pm2fb-correct-error-values-returned-from-probe-function.patch
-pm2fb-change-option-mode-to-mode_option.patch
-tridentfb-change-option-mode-to-mode_option.patch
-pm3fb-change-option-mode-to-mode_option.patch
-update-modedbtxt-documentation-about-mode_option-parameter-change.patch
-vt8623fb-change-option-mode-to-mode_option.patch
-arkfb-add-option-mode_option.patch
-s3fb-add-option-mode_option.patch
-fbdev-add-removed-option-mode-to-keep-compatibility.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+pci-simplify-quirk-debug-output.patch
+pci-remove-pci=routeirq-noise-from-dmesg.patch
+simplify-initcall_debug-output.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
