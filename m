@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:37:25 -0800
-Message-ID: <200802230738.m1N7cDD7018645@imap1.linux-foundation.org>
+Subject: + x86_64-fold-pda-into-per-cpu-area-v3.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:37:29 -0800
+Message-ID: <200802230738.m1N7cIxP018648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35275 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762442AbYBWIFM (ORCPT
+	by vger.kernel.org with ESMTP id S1752328AbYBWIFK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:05:12 -0500
+	Sat, 23 Feb 2008 03:05:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: travis@sgi.com, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jschopp@aust
 
 
 The patch titled
-     generic: Percpu infrastructure to rebase the per cpu area to zero
+     x86_64: Fold pda into per cpu area
 has been added to the -mm tree.  Its filename is
-     generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
+     x86_64-fold-pda-into-per-cpu-area-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic: Percpu infrastructure to rebase the per cpu area to zero
+Subject: x86_64: Fold pda into per cpu area
 From: Mike Travis <travis@sgi.com>
 
-    * Support an option
+  * Declare the pda as a per cpu variable. This will move the pda area
+    to an address accessible by the x86_64 per cpu macros.  Subtraction
+    of __per_cpu_start will make the offset based from the beginning
+    of the per cpu area.  Since %gs is pointing to the pda, it will
+    then also point to the per cpu variables and can be accessed thusly:
 
-	CONFIG_HAVE_ZERO_BASED_PER_CPU
+	%gs:[&per_cpu_xxxx - __per_cpu_start]
 
-      that makes offsets for per cpu variables to start at zero.
+  * The boot_pdas are only needed in head64.c so move the declaration
+    over there.  And since the boot_cpu_pda is only used during
+    bootup and then copied to the per_cpu areas during init, it is
+    then removable.  In addition, the initial cpu_pda pointer table
+    is reallocated to be the correct size for the number of cpus.
 
-      If a percpu area starts at zero then:
+  * Remove the code that allocates special pda data structures.
+    Since the percpu area is currently maintained for all possible
+    cpus then the pda regions will stay intact in case cpus are
+    hotplugged off and then back on.
 
-	-  We do not need RELOC_HIDE anymore
+  * Relocate the x86_64 percpu variables to begin at zero. Then
+    we can directly use the x86_32 percpu operations. x86_32
+    offsets %fs by __per_cpu_start. x86_64 has %gs pointing
+    directly to the pda and the per cpu area thereby allowing
+    access to the pda with the x86_64 pda operations and access
+    to the per cpu variables using x86_32 percpu operations.
 
-	-  Provides for the future capability of architectures providing
-	   a per cpu allocator that returns offsets instead of pointers.
-	   The offsets would be independent of the processor so that
-	   address calculations can be done in a processor independent way.
-	   Per cpu instructions can then add the processor specific offset
-	   at the last minute possibly in an atomic instruction.
-
-      The data the linker provides is different for zero based percpu segments:
-
-	__per_cpu_load	-> The address at which the percpu area was loaded
-	__per_cpu_size	-> The length of the per cpu area
-
-      For non-zero-based percpu segments, the above symbols are adjusted to
-      maintain compatibility with existing architectures.
-
-    * Removes the &__per_cpu_x in lockdep. The __per_cpu_x are already
-      pointers. There is no need to take the address.
-
-Based on git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+  * This also supports further integration of x86_32/64.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Mike Travis <travis@sgi.com>
@@ -78,157 +76,336 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/percpu.h      |    5 +++++
- include/asm-generic/sections.h    |   10 ++++++++++
- include/asm-generic/vmlinux.lds.h |   16 ++++++++++++++++
- include/linux/percpu.h            |    9 ++++++++-
- kernel/lockdep.c                  |    4 ++--
- kernel/module.c                   |    7 ++++---
- 6 files changed, 45 insertions(+), 6 deletions(-)
+ arch/x86/Kconfig                 |    3 +
+ arch/x86/kernel/head64.c         |   41 ++++++++++++++++++
+ arch/x86/kernel/setup64.c        |   66 ++++++++++++++++++-----------
+ arch/x86/kernel/smpboot_64.c     |   16 -------
+ arch/x86/kernel/vmlinux_64.lds.S |    1 
+ include/asm-x86/pda.h            |   13 +++--
+ include/asm-x86/percpu.h         |   33 ++++++++------
+ 7 files changed, 115 insertions(+), 58 deletions(-)
 
-diff -puN include/asm-generic/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/percpu.h
---- a/include/asm-generic/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/include/asm-generic/percpu.h
-@@ -45,7 +45,12 @@ extern unsigned long __per_cpu_offset[NR
-  * Only S390 provides its own means of moving the pointer.
-  */
- #ifndef SHIFT_PERCPU_PTR
-+#ifndef CONFIG_HAVE_ZERO_BASED_PER_CPU
- #define SHIFT_PERCPU_PTR(__p, __offset)	RELOC_HIDE((__p), (__offset))
-+#else
-+#define SHIFT_PERCPU_PTR(__p, __offset) \
-+	((__typeof(__p))(((void *)(__p)) + (__offset)))
-+#endif
- #endif
+diff -puN arch/x86/Kconfig~x86_64-fold-pda-into-per-cpu-area-v3 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/arch/x86/Kconfig
+@@ -118,6 +118,9 @@ config ARCH_HAS_CPU_RELAX
+ config HAVE_SETUP_PER_CPU_AREA
+ 	def_bool X86_64
  
- /*
-diff -puN include/asm-generic/sections.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/include/asm-generic/sections.h
-@@ -9,7 +9,17 @@ extern char __bss_start[], __bss_stop[];
- extern char __init_begin[], __init_end[];
- extern char _sinittext[], _einittext[];
- extern char _end[];
-+#ifdef CONFIG_HAVE_ZERO_BASED_PER_CPU
-+extern char __per_cpu_load[];
-+extern char ____per_cpu_size[];
-+#define __per_cpu_size ((unsigned long)&____per_cpu_size)
-+#define __per_cpu_start ((char *)0)
-+#define __per_cpu_end ((char *)__per_cpu_size)
-+#else
- extern char __per_cpu_start[], __per_cpu_end[];
-+#define __per_cpu_load __per_cpu_start
-+#define __per_cpu_size (__per_cpu_end - __per_cpu_start)
-+#endif
- extern char __kprobes_text_start[], __kprobes_text_end[];
- extern char __initdata_begin[], __initdata_end[];
- extern char __start_rodata[], __end_rodata[];
-diff -puN include/asm-generic/vmlinux.lds.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -341,11 +341,27 @@
-   	*(.initcall7.init)						\
-   	*(.initcall7s.init)
- 
-+#ifdef CONFIG_HAVE_ZERO_BASED_PER_CPU
-+#define PERCPU(align)							\
-+	. = ALIGN(align);						\
-+	percpu : { } :percpu						\
-+	__per_cpu_load = .;						\
-+	.data.percpu 0 : AT(__per_cpu_load - LOAD_OFFSET) {		\
-+		*(.data.percpu.first)					\
-+		*(.data.percpu)						\
-+		*(.data.percpu.shared_aligned)				\
-+		____per_cpu_size = .;					\
-+	}								\
-+	. = __per_cpu_load + ____per_cpu_size;				\
-+	data : { } :data
-+#else
- #define PERCPU(align)							\
- 	. = ALIGN(align);						\
- 	__per_cpu_start = .;						\
- 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
-+		*(.data.percpu.first)					\
- 		*(.data.percpu)						\
- 		*(.data.percpu.shared_aligned)				\
- 	}								\
- 	__per_cpu_end = .;
-+#endif
-diff -puN include/linux/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/linux/percpu.h
---- a/include/linux/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/include/linux/percpu.h
-@@ -18,11 +18,18 @@
- 	__attribute__((__section__(".data.percpu.shared_aligned")))	\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
- 	____cacheline_aligned_in_smp
++config HAVE_ZERO_BASED_PER_CPU
++	def_bool X86_64
 +
-+#define DEFINE_PER_CPU_FIRST(type, name)				\
-+	__attribute__((__section__(".data.percpu.first")))		\
-+	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
- #else
- #define DEFINE_PER_CPU(type, name)					\
- 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ config ARCH_HIBERNATION_POSSIBLE
+ 	def_bool y
+ 	depends on !SMP || !X86_VOYAGER
+diff -puN arch/x86/kernel/head64.c~x86_64-fold-pda-into-per-cpu-area-v3 arch/x86/kernel/head64.c
+--- a/arch/x86/kernel/head64.c~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/arch/x86/kernel/head64.c
+@@ -11,6 +11,7 @@
+ #include <linux/string.h>
+ #include <linux/percpu.h>
+ #include <linux/start_kernel.h>
++#include <linux/bootmem.h>
  
--#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
-+#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
-+	DEFINE_PER_CPU(type, name)
+ #include <asm/processor.h>
+ #include <asm/proto.h>
+@@ -23,6 +24,12 @@
+ #include <asm/kdebug.h>
+ #include <asm/e820.h>
+ 
++#ifdef CONFIG_SMP
++/* Only used before the per cpu areas are setup. */
++static struct x8664_pda boot_cpu_pda[NR_CPUS] __initdata;
++static struct x8664_pda *_cpu_pda_init[NR_CPUS] __initdata;
++#endif
 +
-+#define DEFINE_PER_CPU_FIRST(type, name)				\
- 	DEFINE_PER_CPU(type, name)
+ static void __init zap_identity_mappings(void)
+ {
+ 	pgd_t *pgd = pgd_offset_k(0UL);
+@@ -99,8 +106,14 @@ void __init x86_64_start_kernel(char * r
+ 
+ 	early_printk("Kernel alive\n");
+ 
++#ifdef CONFIG_SMP
++	_cpu_pda = (void *)_cpu_pda_init;
+  	for (i = 0; i < NR_CPUS; i++)
+  		cpu_pda(i) = &boot_cpu_pda[i];
++#endif
++
++	/* setup percpu segment offset for cpu 0 */
++	cpu_pda(0)->data_offset = (unsigned long)__per_cpu_load;
+ 
+ 	pda_init(0);
+ 	copy_bootdata(__va(real_mode_data));
+@@ -125,3 +138,31 @@ void __init x86_64_start_kernel(char * r
+ 
+ 	start_kernel();
+ }
++
++#ifdef	CONFIG_SMP
++/*
++ * Remove initial boot_cpu_pda array and cpu_pda pointer table.
++ *
++ * This depends on setup_per_cpu_areas relocating the pda to the beginning
++ * of the per_cpu area so that (_cpu_pda[i] != &boot_cpu_pda[i]).  If it
++ * is equal then the new pda has not been setup for this cpu, and the pda
++ * table will have a NULL address for this cpu.
++ */
++void __init x86_64_cleanup_pda(void)
++{
++	int i;
++
++	_cpu_pda = alloc_bootmem_low(nr_cpu_ids * sizeof(void *));
++
++	if (!_cpu_pda)
++		panic("Cannot allocate cpu pda table\n");
++
++	/* cpu_pda() now points to allocated cpu_pda_table */
++
++	for (i = 0; i < NR_CPUS; i++)
++		if (_cpu_pda_init[i] == &boot_cpu_pda[i])
++			cpu_pda(i) = NULL;
++		else
++			cpu_pda(i) = _cpu_pda_init[i];
++}
++#endif
+diff -puN arch/x86/kernel/setup64.c~x86_64-fold-pda-into-per-cpu-area-v3 arch/x86/kernel/setup64.c
+--- a/arch/x86/kernel/setup64.c~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/arch/x86/kernel/setup64.c
+@@ -32,9 +32,13 @@ struct boot_params boot_params;
+ 
+ cpumask_t cpu_initialized __cpuinitdata = CPU_MASK_NONE;
+ 
+-struct x8664_pda *_cpu_pda[NR_CPUS] __read_mostly;
++#ifdef CONFIG_SMP
++struct x8664_pda **_cpu_pda __read_mostly;
+ EXPORT_SYMBOL(_cpu_pda);
+-struct x8664_pda boot_cpu_pda[NR_CPUS] __cacheline_aligned;
++#endif
++
++DEFINE_PER_CPU_FIRST(struct x8664_pda, pda);
++EXPORT_PER_CPU_SYMBOL(pda);
+ 
+ struct desc_ptr idt_descr = { 256 * 16 - 1, (unsigned long) idt_table };
+ 
+@@ -95,22 +99,14 @@ static void __init setup_per_cpu_maps(vo
+ 	int cpu;
+ 
+ 	for_each_possible_cpu(cpu) {
+-#ifdef CONFIG_SMP
+-		if (per_cpu_offset(cpu)) {
+-#endif
+-			per_cpu(x86_cpu_to_apicid, cpu) =
+-						x86_cpu_to_apicid_init[cpu];
+-			per_cpu(x86_bios_cpu_apicid, cpu) =
+-						x86_bios_cpu_apicid_init[cpu];
++		per_cpu(x86_cpu_to_apicid, cpu) =
++					x86_cpu_to_apicid_init[cpu];
++
++		per_cpu(x86_bios_cpu_apicid, cpu) =
++					x86_bios_cpu_apicid_init[cpu];
+ #ifdef CONFIG_NUMA
+-			per_cpu(x86_cpu_to_node_map, cpu) =
+-						x86_cpu_to_node_map_init[cpu];
+-#endif
+-#ifdef CONFIG_SMP
+-		}
+-		else
+-			printk(KERN_NOTICE "per_cpu_offset zero for cpu %d\n",
+-									cpu);
++		per_cpu(x86_cpu_to_node_map, cpu) =
++					x86_cpu_to_node_map_init[cpu];
  #endif
- 
-diff -puN kernel/lockdep.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 kernel/lockdep.c
---- a/kernel/lockdep.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/kernel/lockdep.c
-@@ -610,8 +610,8 @@ static int static_obj(void *obj)
- 	 * percpu var?
- 	 */
- 	for_each_possible_cpu(i) {
--		start = (unsigned long) &__per_cpu_start + per_cpu_offset(i);
--		end   = (unsigned long) &__per_cpu_start + PERCPU_ENOUGH_ROOM
-+		start = (unsigned long) __per_cpu_start + per_cpu_offset(i);
-+		end   = (unsigned long) __per_cpu_start + PERCPU_ENOUGH_ROOM
- 					+ per_cpu_offset(i);
- 
- 		if ((addr >= start) && (addr < end))
-diff -puN kernel/module.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 kernel/module.c
---- a/kernel/module.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
-+++ a/kernel/module.c
-@@ -45,6 +45,7 @@
- #include <asm/uaccess.h>
- #include <asm/semaphore.h>
- #include <asm/cacheflush.h>
-+#include <asm/sections.h>
- #include <linux/license.h>
- #include <asm/sections.h>
- 
-@@ -357,7 +358,7 @@ static void *percpu_modalloc(unsigned lo
- 		align = PAGE_SIZE;
  	}
  
--	ptr = __per_cpu_start;
-+	ptr = __per_cpu_load;
- 	for (i = 0; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
- 		/* Extra for alignment requirement. */
- 		extra = ALIGN((unsigned long)ptr, align) - (unsigned long)ptr;
-@@ -392,7 +393,7 @@ static void *percpu_modalloc(unsigned lo
- static void percpu_modfree(void *freeme)
- {
- 	unsigned int i;
--	void *ptr = __per_cpu_start + block_size(pcpu_size[0]);
-+	void *ptr = __per_cpu_load + block_size(pcpu_size[0]);
+@@ -139,25 +135,45 @@ void __init setup_per_cpu_areas(void)
+ 	/* Copy section for each CPU (we discard the original) */
+ 	size = PERCPU_ENOUGH_ROOM;
  
- 	/* First entry is core kernel percpu data. */
- 	for (i = 1; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
-@@ -443,7 +444,7 @@ static int percpu_modinit(void)
- 	pcpu_size = kmalloc(sizeof(pcpu_size[0]) * pcpu_num_allocated,
- 			    GFP_KERNEL);
- 	/* Static in-kernel percpu data (used). */
--	pcpu_size[0] = -(__per_cpu_end-__per_cpu_start);
-+	pcpu_size[0] = -__per_cpu_size;
- 	/* Free room. */
- 	pcpu_size[1] = PERCPU_ENOUGH_ROOM + pcpu_size[0];
- 	if (pcpu_size[1] < 0) {
+-	printk(KERN_INFO "PERCPU: Allocating %lu bytes of per cpu data\n", size);
+-	for_each_cpu_mask (i, cpu_possible_map) {
++	printk(KERN_INFO
++		"PERCPU: Allocating %lu bytes of per cpu data\n", size);
++
++	for_each_possible_cpu(i) {
++
++#ifndef CONFIG_NEED_MULTIPLE_NODES
++		char *ptr = alloc_bootmem_pages(size);
++#else
+ 		char *ptr;
+ 
+-		if (!NODE_DATA(early_cpu_to_node(i))) {
+-			printk("cpu with no node %d, num_online_nodes %d\n",
+-			       i, num_online_nodes());
++		if (NODE_DATA(early_cpu_to_node(i)))
++			ptr = alloc_bootmem_pages_node
++				(NODE_DATA(early_cpu_to_node(i)), size);
++
++		else {
++			printk(KERN_INFO
++			       "cpu %d has no node or node-local memory\n", i);
+ 			ptr = alloc_bootmem_pages(size);
+-		} else { 
+-			ptr = alloc_bootmem_pages_node(NODE_DATA(early_cpu_to_node(i)), size);
+ 		}
++#endif
+ 		if (!ptr)
+ 			panic("Cannot allocate cpu data for CPU %d\n", i);
++
++		memcpy(ptr, __per_cpu_load, __per_cpu_size);
++
++		/* Relocate the pda */
++		memcpy(ptr, cpu_pda(i), sizeof(struct x8664_pda));
++		cpu_pda(i) = (struct x8664_pda *)ptr;
+ 		cpu_pda(i)->data_offset = ptr - __per_cpu_start;
+-		memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
+ 	}
+ 
+ 	/* setup percpu data maps early */
+ 	setup_per_cpu_maps();
++
++	/* clean up early cpu_pda pointer array */
++	x86_64_cleanup_pda();
++
++	/* Fix up pda for this processor .... */
++	pda_init(0);
+ } 
+ 
+ void pda_init(int cpu)
+diff -puN arch/x86/kernel/smpboot_64.c~x86_64-fold-pda-into-per-cpu-area-v3 arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/arch/x86/kernel/smpboot_64.c
+@@ -566,22 +566,6 @@ static int __cpuinit do_boot_cpu(int cpu
+ 		return -1;
+ 	}
+ 
+-	/* Allocate node local memory for AP pdas */
+-	if (cpu_pda(cpu) == &boot_cpu_pda[cpu]) {
+-		struct x8664_pda *newpda, *pda;
+-		int node = cpu_to_node(cpu);
+-		pda = cpu_pda(cpu);
+-		newpda = kmalloc_node(sizeof (struct x8664_pda), GFP_ATOMIC,
+-				      node);
+-		if (newpda) {
+-			memcpy(newpda, pda, sizeof (struct x8664_pda));
+-			cpu_pda(cpu) = newpda;
+-		} else
+-			printk(KERN_ERR
+-		"Could not allocate node local PDA for CPU %d on node %d\n",
+-				cpu, node);
+-	}
+-
+ 	alternatives_smp_switch(1);
+ 
+ 	c_idle.idle = get_idle_for_cpu(cpu);
+diff -puN arch/x86/kernel/vmlinux_64.lds.S~x86_64-fold-pda-into-per-cpu-area-v3 arch/x86/kernel/vmlinux_64.lds.S
+--- a/arch/x86/kernel/vmlinux_64.lds.S~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/arch/x86/kernel/vmlinux_64.lds.S
+@@ -16,6 +16,7 @@ jiffies_64 = jiffies;
+ _proxy_pda = 1;
+ PHDRS {
+ 	text PT_LOAD FLAGS(5);	/* R_E */
++	percpu PT_LOAD FLAGS(4);	/* R__ */
+ 	data PT_LOAD FLAGS(7);	/* RWE */
+ 	user PT_LOAD FLAGS(7);	/* RWE */
+ 	data.init PT_LOAD FLAGS(7);	/* RWE */
+diff -puN include/asm-x86/pda.h~x86_64-fold-pda-into-per-cpu-area-v3 include/asm-x86/pda.h
+--- a/include/asm-x86/pda.h~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/include/asm-x86/pda.h
+@@ -38,11 +38,16 @@ struct x8664_pda {
+ 	unsigned irq_spurious_count;
+ } ____cacheline_aligned_in_smp;
+ 
+-extern struct x8664_pda *_cpu_pda[];
+-extern struct x8664_pda boot_cpu_pda[];
+-extern void pda_init(int);
+-
++#ifdef CONFIG_SMP
+ #define cpu_pda(i) (_cpu_pda[i])
++extern struct x8664_pda **_cpu_pda;
++extern void x86_64_cleanup_pda(void);
++#else
++#define	cpu_pda(i)	(&per_cpu(pda, i))
++static inline void x86_64_cleanup_pda(void) { }
++#endif
++
++extern void pda_init(int);
+ 
+ /*
+  * There is no fast way to get the base address of the PDA, all the accesses
+diff -puN include/asm-x86/percpu.h~x86_64-fold-pda-into-per-cpu-area-v3 include/asm-x86/percpu.h
+--- a/include/asm-x86/percpu.h~x86_64-fold-pda-into-per-cpu-area-v3
++++ a/include/asm-x86/percpu.h
+@@ -13,13 +13,19 @@
+ #include <asm/pda.h>
+ 
+ #define __per_cpu_offset(cpu) (cpu_pda(cpu)->data_offset)
+-#define __my_cpu_offset read_pda(data_offset)
+-
+ #define per_cpu_offset(x) (__per_cpu_offset(x))
+ 
++#define __my_cpu_offset read_pda(data_offset)
++#define __percpu_seg "%%gs:"
++
++#else
++#define __percpu_seg ""
+ #endif
+ #include <asm-generic/percpu.h>
+ 
++/* Calculate the offset to use with the segment register */
++#define seg_offset(name)   per_cpu_var(name)
++
+ DECLARE_PER_CPU(struct x8664_pda, pda);
+ 
+ #else /* CONFIG_X86_64 */
+@@ -64,16 +70,11 @@ DECLARE_PER_CPU(struct x8664_pda, pda);
+  *    PER_CPU(cpu_gdt_descr, %ebx)
+  */
+ #ifdef CONFIG_SMP
+-
+ #define __my_cpu_offset x86_read_percpu(this_cpu_off)
+-
+ /* fs segment starts at (positive) offset == __per_cpu_offset[cpu] */
+ #define __percpu_seg "%%fs:"
+-
+ #else  /* !SMP */
+-
+ #define __percpu_seg ""
+-
+ #endif	/* SMP */
+ 
+ #include <asm-generic/percpu.h>
+@@ -81,6 +82,13 @@ DECLARE_PER_CPU(struct x8664_pda, pda);
+ /* We can use this directly for local CPU (faster). */
+ DECLARE_PER_CPU(unsigned long, this_cpu_off);
+ 
++#define seg_offset(name)	per_cpu_var(name)
++
++#endif /* __ASSEMBLY__ */
++#endif /* !CONFIG_X86_64 */
++
++#ifndef __ASSEMBLY__
++
+ /* For arch-specific code, we can use direct single-insn ops (they
+  * don't give an lvalue though). */
+ extern void __bad_percpu_size(void);
+@@ -132,11 +140,10 @@ extern void __bad_percpu_size(void);
+ 		}						\
+ 		ret__; })
+ 
+-#define x86_read_percpu(var) percpu_from_op("mov", per_cpu__##var)
+-#define x86_write_percpu(var,val) percpu_to_op("mov", per_cpu__##var, val)
+-#define x86_add_percpu(var,val) percpu_to_op("add", per_cpu__##var, val)
+-#define x86_sub_percpu(var,val) percpu_to_op("sub", per_cpu__##var, val)
+-#define x86_or_percpu(var,val) percpu_to_op("or", per_cpu__##var, val)
++#define x86_read_percpu(var) percpu_from_op("mov", seg_offset(var))
++#define x86_write_percpu(var, val) percpu_to_op("mov", seg_offset(var), val)
++#define x86_add_percpu(var, val) percpu_to_op("add", seg_offset(var), val)
++#define x86_sub_percpu(var, val) percpu_to_op("sub", seg_offset(var), val)
++#define x86_or_percpu(var, val) percpu_to_op("or", seg_offset(var), val)
+ #endif /* !__ASSEMBLY__ */
+-#endif /* !CONFIG_X86_64 */
+ #endif /* _ASM_X86_PERCPU_H_ */
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
