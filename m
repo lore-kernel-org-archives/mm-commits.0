@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-subsys-bitops.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:32:42 -0800
-Message-ID: <200802230733.m1N7XVJA018229@imap1.linux-foundation.org>
+Subject: + i8042-use-sgi_has_i8042-to-select-sgi-i8042-handlinig.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:28 -0800
+Message-ID: <200802230733.m1N7XHnj018205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60724 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752941AbYBWHyG (ORCPT
+	by vger.kernel.org with ESMTP id S1751712AbYBWHyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:06 -0500
+	Sat, 23 Feb 2008 02:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: tsbogend@alpha.franken.de, dtor@mail.ru
 
 
 The patch titled
-     cgroup: fix subsys bitops
+     I8042: Use SGI_HAS_I8042 to select SGI i8042 handlinig
 has been added to the -mm tree.  Its filename is
-     cgroup-fix-subsys-bitops.patch
+     i8042-use-sgi_has_i8042-to-select-sgi-i8042-handlinig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix subsys bitops
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: I8042: Use SGI_HAS_I8042 to select SGI i8042 handlinig
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Cgroup uses unsigned long for subsys bitops, not unsigned long long.
+Use SGI_HAS_I8042 to select SGI i8042 handling
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/serio/i8042.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-fix-subsys-bitops kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-subsys-bitops
-+++ a/kernel/cgroup.c
-@@ -319,7 +319,7 @@ static struct css_set *find_existing_css
- 	/* Built the set of subsystem state objects that we want to
- 	 * see in the new css_set */
- 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
--		if (root->subsys_bits & (1ull << i)) {
-+		if (root->subsys_bits & (1UL << i)) {
- 			/* Subsystem is in this hierarchy. So we want
- 			 * the subsystem state from the new
- 			 * cgroup */
-@@ -689,7 +689,7 @@ static int rebind_subsystems(struct cgro
- 	added_bits = final_bits & ~root->actual_subsys_bits;
- 	/* Check that any added subsystems are currently free */
- 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
--		unsigned long long bit = 1ull << i;
-+		unsigned long bit = 1UL << i;
- 		struct cgroup_subsys *ss = subsys[i];
- 		if (!(bit & added_bits))
- 			continue;
+diff -puN drivers/input/serio/i8042.h~i8042-use-sgi_has_i8042-to-select-sgi-i8042-handlinig drivers/input/serio/i8042.h
+--- a/drivers/input/serio/i8042.h~i8042-use-sgi_has_i8042-to-select-sgi-i8042-handlinig
++++ a/drivers/input/serio/i8042.h
+@@ -16,7 +16,7 @@
+ 
+ #if defined(CONFIG_MACH_JAZZ)
+ #include "i8042-jazzio.h"
+-#elif defined(CONFIG_SGI_IP22)
++#elif defined(CONFIG_SGI_HAS_I8042)
+ #include "i8042-ip22io.h"
+ #elif defined(CONFIG_PPC)
+ #include "i8042-ppcio.h"
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-cgroup-fix-and-update-documentation.patch
-cgroup-fix-comments.patch
-cgroup-clean-up-cgrouph.patch
-cgroup-fix-memory-leak-in-cgroup_get_sb.patch
-cgroup-fix-subsys-bitops.patch
-cgroup-remove-duplicate-code-in-find_css_set.patch
-cgroup-remove-dead-code-in-cgroup_get_rootdir.patch
-memcgroup-fix-and-update-documentation.patch
-memcgroup-remove-a-useless-vm_bug_on.patch
-memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
+mips-fix-sni_rm-eisa=n-compilation.patch
+git-watchdog.patch
+i8042-use-sgi_has_i8042-to-select-sgi-i8042-handlinig.patch
