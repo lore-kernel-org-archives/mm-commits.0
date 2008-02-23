@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viocons-bkl-locking.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:39 -0800
-Message-ID: <200802230737.m1N7bSTJ018518@imap1.linux-foundation.org>
+Subject: + kthread-add-a-missing-memory-barrier-to-kthread_stop.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:00 -0800
+Message-ID: <200802230733.m1N7XnMu018253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51180 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763243AbYBWIFW (ORCPT
+	by vger.kernel.org with ESMTP id S1763031AbYBWIFN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:05:22 -0500
+	Sat, 23 Feb 2008 03:05:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulus@samba.org, sfr@canb.auug.org.au
+Cc: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     viocons: BKL locking
+     kthread: add a missing memory barrier to kthread_stop()
 has been added to the -mm tree.  Its filename is
-     viocons-bkl-locking.patch
+     kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viocons: BKL locking
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: kthread: add a missing memory barrier to kthread_stop()
+From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
 
-For some weird reason I can't ascertain (translation "I think its
-broken") the viocons driver calls directly into the n_tty ldisc code even
-if another ldisc is in use. It'll probably break if you do that but I'm
-just fixing the locking and adding a comment that its horked.
+We must ensure that kthread_stop_info.k has been updated before kthread's
+wakeup.  This is required to properly support the use of kthread_should_stop()
+in the main loop of kthread.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+wake_up_process() doesn't imply a full memory barrier,
+so we add an explicit one.
+
+There is a requirement on how a main loop of kthread has to be orginized.
+
+Namely, the sequence of events that lead to kthread being blocked (schedule())
+has to be ordered as follows:
+
+- set_current_state(TASK_INTERRUPTIBLE);
+- if (kthread_should_stop()) break;
+- schedule() or similar.
+
+set_current_state() implies a full memory barrier, so this is
+a matching barrier on the side of kthread_should_stop().
+
+Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>index 45f8b83..86b69a0 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/viocons.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/kthread.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN drivers/char/viocons.c~viocons-bkl-locking drivers/char/viocons.c
---- a/drivers/char/viocons.c~viocons-bkl-locking
-+++ a/drivers/char/viocons.c
-@@ -704,8 +704,11 @@ static int viotty_ioctl(struct tty_struc
- 	case KDSKBLED:
- 		return 0;
- 	}
--
--	return n_tty_ioctl(tty, file, cmd, arg);
-+	/* FIXME: WTF is this being called for ??? */
-+	lock_kernel();
-+	ret =  n_tty_ioctl(tty, file, cmd, arg);
-+	unlock_kernel();
-+	return ret;
- }
+diff -puN kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop kernel/kthread.c
+--- a/kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop
++++ a/kernel/kthread.c
+@@ -53,6 +53,19 @@ static struct kthread_stop_info kthread_
+  * When someone calls kthread_stop() on your kthread, it will be woken
+  * and this will return true.  You should then return, and your return
+  * value will be passed through to kthread_stop().
++ *
++ * In order to safely use kthread_stop() for kthread, there is a requirement
++ * on how its main loop has to be orginized. Namely, the sequence of
++ * events that lead to kthread being blocked (schedule()) has to be
++ * ordered as follows:
++ *
++ * - set_current_state(TASK_INTERRUPTIBLE);
++ * - if (kthread_should_stop()) break;
++ * - schedule() or similar.
++ *
++ * set_current_state() implies a full memory barrier. kthread_stop()
++ * has a matching barrier right after an update of kthread_stop_info.k
++ * and before kthread's wakeup.
+  */
+ int kthread_should_stop(void)
+ {
+@@ -211,6 +224,15 @@ int kthread_stop(struct task_struct *k)
  
- /*
+ 	/* Now set kthread_should_stop() to true, and wake it up. */
+ 	kthread_stop_info.k = k;
++
++	/*
++	 * We must ensure that kthread_stop_info.k has been updated before
++	 * the following wakeup. This is required to properly support the use
++	 * of kthread_should_stop() in the main loop of kthread
++	 * (see description of kthread_should_stop() for more details).
++	 */
++	smp_mb();
++
+ 	wake_up_process(k);
+ 	put_task_struct(k);
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
 
-origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-megaraid-outb_p-extermination.patch
-usb-serial-prepare-for-bkl-push-down.patch
-ftdi_sio-note-missing-locking.patch
-usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
-io_ti-lock-mcr-and-msr-shadows-properly.patch
-iuu_phoenix-lock-priv-tiostatus-properly.patch
-kobil_sct-get-rid-of-unneeded-priv-line_state.patch
-ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
-git-watchdog.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+kthread-synchronization-issues.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
