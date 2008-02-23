@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-put-ledstate-in-the-keyboard-notifier.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:29:26 -0800
-Message-ID: <200802230730.m1N7UFZx017939@imap1.linux-foundation.org>
+Subject: + sysdev-detect-multiple-driver-registrations.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:29:11 -0800
+Message-ID: <200802230730.m1N7U0AB017922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37046 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753813AbYBWHak (ORCPT
+	by vger.kernel.org with ESMTP id S1750857AbYBWHam (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:30:40 -0500
+	Sat, 23 Feb 2008 02:30:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eklhad@comcast.net, dtor@mail.ru, jikos@jikos.cz
+Cc: ben@fluff.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     input: put ledstate in the keyboard notifier
+     sysdev: detect multiple driver registrations
 has been added to the -mm tree.  Its filename is
-     input-put-ledstate-in-the-keyboard-notifier.patch
+     sysdev-detect-multiple-driver-registrations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: put ledstate in the keyboard notifier
-From: Karl Dahlke <eklhad@comcast.net>
+Subject: sysdev: detect multiple driver registrations
+From: Ben Dooks <ben@fluff.org>
 
-I think there is general agreement, including myself, that led state should
-be part of the key event, like shiftstate, and not grabbed asynchronously
-after the fact.
+I've just found how easy it is to accidentally register a sysdev_driver for
+two different classes.  When this happens, bad things happen as the
+sysdev_driver structure keeps has the list entry for the driver
+registration.
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jikos@jikos.cz>
+The following patch makes a WARN_ON() if this happens, although I think
+BUG_ON or returning -EAGAIN could also be valid responses to this.
+
+Signed-off-by: Ben Dooks <ben@fluff.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c  |    1 +
- include/linux/keyboard.h |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/base/sys.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier
-+++ a/drivers/char/keyboard.c
-@@ -1238,6 +1238,7 @@ static void kbd_keycode(unsigned int key
- 	}
+diff -puN drivers/base/sys.c~sysdev-detect-multiple-driver-registrations drivers/base/sys.c
+--- a/drivers/base/sys.c~sysdev-detect-multiple-driver-registrations
++++ a/drivers/base/sys.c
+@@ -166,6 +166,11 @@ int sysdev_driver_register(struct sysdev
+ {
+ 	int err = 0;
  
- 	param.shift = shift_final = (shift_state | kbd->slockstate) ^ kbd->lockstate;
-+	param.ledstate = getledstate();
- 	key_map = key_maps[shift_final];
- 
- 	if (atomic_notifier_call_chain(&keyboard_notifier_list, KBD_KEYCODE, &param) == NOTIFY_STOP || !key_map) {
-diff -puN include/linux/keyboard.h~input-put-ledstate-in-the-keyboard-notifier include/linux/keyboard.h
---- a/include/linux/keyboard.h~input-put-ledstate-in-the-keyboard-notifier
-+++ a/include/linux/keyboard.h
-@@ -33,6 +33,7 @@ struct keyboard_notifier_param {
- 	struct vc_data *vc;	/* VC on which the keyboard press was done */
- 	int down;		/* Pressure of the key? */
- 	int shift;		/* Current shift mask */
-+	int ledstate;		/* Current led state */
- 	unsigned int value;	/* keycode, unicode value or keysym */
- };
- 
++	/* Check whether this driver has already been added to a class. */
++
++	WARN_ON(drv->entry.next != drv->entry.prev);
++	WARN_ON(drv->entry.next != NULL);
++
+ 	mutex_lock(&sysdev_drivers_lock);
+ 	if (cls && kset_get(&cls->kset)) {
+ 		list_add_tail(&drv->entry, &cls->drivers);
 _
 
-Patches currently in -mm which might be from eklhad@comcast.net are
+Patches currently in -mm which might be from ben@fluff.org are
 
-input-put-ledstate-in-the-keyboard-notifier.patch
-vt-notifier-extension-for-accessibility.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+sysdev-detect-multiple-driver-registrations.patch
