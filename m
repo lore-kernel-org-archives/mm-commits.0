@@ -1,117 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - driver-base-memory-semaphore-to-mutex.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:21:38 -0800
-Message-ID: <200802232021.m1NKLchm013356@imap1.linux-foundation.org>
+Subject: - applesmc-sensors-set-for-macbook2.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:21:55 -0800
+Message-ID: <200802232021.m1NKLtdE013377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42220 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760101AbYBWUWA (ORCPT
+	by vger.kernel.org with ESMTP id S1760288AbYBWUWD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:22:00 -0500
+	Sat, 23 Feb 2008 15:22:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: rkoktarianto@gmail.com, mhoffman@lightlink.com, nicolas@boichat.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver base: memory: semaphore to mutex
+     applesmc: sensors set for MacBook2
 has been removed from the -mm tree.  Its filename was
-     driver-base-memory-semaphore-to-mutex.patch
+     applesmc-sensors-set-for-macbook2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver base: memory: semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: applesmc: sensors set for MacBook2
+From: Riki Oktarianto <rkoktarianto@gmail.com>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Greg KH <greg@kroah.com>
+On my mid-2007 MacBook2, reading Ts0P sensor always failed with this message:
+applesmc: wait status failed: 5 != 50.
+
+So I assume that there's no such Ts0p sensor in this model (please confirm,
+anyone). If there's the case, then we need a new set of sensors defined for
+MacBook2.
+
+Signed-off-by: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |    7 ++++---
- include/linux/memory.h |    5 ++---
- mm/memory_hotplug.c    |    2 +-
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/hwmon/applesmc.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff -puN drivers/base/memory.c~driver-base-memory-semaphore-to-mutex drivers/base/memory.c
---- a/drivers/base/memory.c~driver-base-memory-semaphore-to-mutex
-+++ a/drivers/base/memory.c
-@@ -20,6 +20,7 @@
- #include <linux/kobject.h>
- #include <linux/memory_hotplug.h>
- #include <linux/mm.h>
-+#include <linux/mutex.h>
- #include <asm/atomic.h>
- #include <asm/uaccess.h>
+diff -puN drivers/hwmon/applesmc.c~applesmc-sensors-set-for-macbook2 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-sensors-set-for-macbook2
++++ a/drivers/hwmon/applesmc.c
+@@ -84,12 +84,15 @@ static const char* temperature_sensors_s
+ /* Set 0: Macbook Pro */
+ 	{ "TA0P", "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "Th0H",
+ 	  "Th1H", "Tm0P", "Ts0P", "Ts1P", NULL },
+-/* Set 1: Macbook set */
++/* Set 1: Macbook2 set */
++	{ "TB0T", "TC0D", "TC0P", "TM0P", "TN0P", "TN1P", "TTF0", "Th0H",
++	  "Th0S", "Th1H", NULL },
++/* Set 2: Macbook set */
+ 	{ "TB0T", "TC0D", "TC0P", "TM0P", "TN0P", "TN1P", "Th0H", "Th0S",
+ 	  "Th1H", "Ts0P", NULL },
+-/* Set 2: Macmini set */
++/* Set 3: Macmini set */
+ 	{ "TC0D", "TC0P", NULL },
+-/* Set 3: Mac Pro (2 x Quad-Core) */
++/* Set 4: Mac Pro (2 x Quad-Core) */
+ 	{ "TA0P", "TCAG", "TCAH", "TCBG", "TCBH", "TC0C", "TC0D", "TC0P",
+ 	  "TC1C", "TC1D", "TC2C", "TC2D", "TC3C", "TC3D", "THTG", "TH0P",
+ 	  "TH1P", "TH2P", "TH3P", "TMAP", "TMAS", "TMBS", "TM0P", "TM0S",
+@@ -1212,12 +1215,14 @@ static void applesmc_release_acceleromet
+ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+ /* MacBook Pro: accelerometer, backlight and temperature set 0 */
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 0 },
+-/* MacBook: accelerometer and temperature set 1 */
++/* MacBook2: accelerometer and temperature set 1 */
+ 	{ .accelerometer = 1, .light = 0, .temperature_set = 1 },
+-/* MacMini: temperature set 2 */
+-	{ .accelerometer = 0, .light = 0, .temperature_set = 2 },
+-/* MacPro: temperature set 3 */
++/* MacBook: accelerometer and temperature set 2 */
++	{ .accelerometer = 1, .light = 0, .temperature_set = 2 },
++/* MacMini: temperature set 3 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 3 },
++/* MacPro: temperature set 4 */
++	{ .accelerometer = 0, .light = 0, .temperature_set = 4 },
+ };
  
-@@ -205,7 +206,7 @@ static int memory_block_change_state(str
- 		unsigned long to_state, unsigned long from_state_req)
- {
- 	int ret = 0;
--	down(&mem->state_sem);
-+	mutex_lock(&mem->state_mutex);
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1229,16 +1234,20 @@ static __initdata struct dmi_system_id a
+ 		(void*)&applesmc_dmi_data[0]},
+ 	{ applesmc_dmi_match, "Apple MacBook", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
++	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook2") },
+ 		(void*)&applesmc_dmi_data[1]},
++	{ applesmc_dmi_match, "Apple MacBook", {
++	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
++		(void*)&applesmc_dmi_data[2]},
+ 	{ applesmc_dmi_match, "Apple Macmini", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini") },
+-		(void*)&applesmc_dmi_data[2]},
++		(void*)&applesmc_dmi_data[3]},
+ 	{ applesmc_dmi_match, "Apple MacPro2", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
+-		(void*)&applesmc_dmi_data[3]},
++		(void*)&applesmc_dmi_data[4]},
+ 	{ .ident = NULL }
+ };
  
- 	if (mem->state != from_state_req) {
- 		ret = -EINVAL;
-@@ -217,7 +218,7 @@ static int memory_block_change_state(str
- 		mem->state = to_state;
- 
- out:
--	up(&mem->state_sem);
-+	mutex_unlock(&mem->state_mutex);
- 	return ret;
- }
- 
-@@ -341,7 +342,7 @@ static int add_memory_block(unsigned lon
- 
- 	mem->phys_index = __section_nr(section);
- 	mem->state = state;
--	init_MUTEX(&mem->state_sem);
-+	mutex_init(&mem->state_mutex);
- 	mem->phys_device = phys_device;
- 
- 	ret = register_memory(mem, section, NULL);
-diff -puN include/linux/memory.h~driver-base-memory-semaphore-to-mutex include/linux/memory.h
---- a/include/linux/memory.h~driver-base-memory-semaphore-to-mutex
-+++ a/include/linux/memory.h
-@@ -18,8 +18,7 @@
- #include <linux/sysdev.h>
- #include <linux/node.h>
- #include <linux/compiler.h>
--
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
- 
- struct memory_block {
- 	unsigned long phys_index;
-@@ -30,7 +29,7 @@ struct memory_block {
- 	 * created long after the critical areas during
- 	 * initialization.
- 	 */
--	struct semaphore state_sem;
-+	struct mutex state_mutex;
- 	int phys_device;		/* to which fru does this belong? */
- 	void *hw;			/* optional pointer to fw/hw data */
- 	int (*phys_callback)(struct memory_block *);
-diff -puN mm/memory_hotplug.c~driver-base-memory-semaphore-to-mutex mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~driver-base-memory-semaphore-to-mutex
-+++ a/mm/memory_hotplug.c
-@@ -208,7 +208,7 @@ int online_pages(unsigned long pfn, unsi
- 	/*
- 	 * This doesn't need a lock to do pfn_to_page().
- 	 * The section can't be removed here because of the
--	 * memory_block->state_sem.
-+	 * memory_block->state_mutex.
- 	 */
- 	zone = page_zone(pfn_to_page(pfn));
- 	pgdat_resize_lock(zone->zone_pgdat, &flags);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from rkoktarianto@gmail.com are
 
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+origin.patch
