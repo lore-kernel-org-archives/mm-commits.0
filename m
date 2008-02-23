@@ -1,97 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - lockd-fix-sparse-warning-in-svcsharec.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:23 -0800
-Message-ID: <200802232022.m1NKMNLN013419@imap1.linux-foundation.org>
+Subject: - introduce-path_put-unionfs.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:52 -0800
+Message-ID: <200802232022.m1NKMqN0013461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35703 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761801AbYBWU2v (ORCPT
+	by vger.kernel.org with ESMTP id S1762157AbYBWU2y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:51 -0500
+	Sat, 23 Feb 2008 15:28:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, agruen@suse.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockd: fix sparse warning in svcshare.c
+     Introduce path_put() (unionfs)
 has been removed from the -mm tree.  Its filename was
-     lockd-fix-sparse-warning-in-svcsharec.patch
+     introduce-path_put-unionfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockd: fix sparse warning in svcshare.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Introduce path_put() (unionfs)
+From: Jan Blunck <jblunck@suse.de>
 
-fs/lockd/svcshare.c:74:50: warning: Using plain integer as NULL pointer
+* Add path_put() functions for releasing a reference to the dentry and
+  vfsmount of a struct path in the right order
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+* Switch from path_release(nd) to path_put(&nd->path)
+
+* Rename dput_path() to path_put_conditional()
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/svcshare.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/unionfs/main.c  |    2 +-
+ fs/unionfs/super.c |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/lockd/svcshare.c~lockd-fix-sparse-warning-in-svcsharec fs/lockd/svcshare.c
---- a/fs/lockd/svcshare.c~lockd-fix-sparse-warning-in-svcsharec
-+++ a/fs/lockd/svcshare.c
-@@ -71,7 +71,7 @@ nlmsvc_unshare_file(struct nlm_host *hos
- 	struct nlm_share	*share, **shpp;
- 	struct xdr_netobj	*oh = &argp->lock.oh;
+diff -puN fs/unionfs/main.c~introduce-path_put-unionfs fs/unionfs/main.c
+--- a/fs/unionfs/main.c~introduce-path_put-unionfs
++++ a/fs/unionfs/main.c
+@@ -372,7 +372,7 @@ static int parse_dirs_option(struct supe
+ 		if (err) {
+ 			printk(KERN_ERR "unionfs: lower directory "
+ 			       "'%s' is not a valid branch\n", name);
+-			path_release(&nd);
++			path_put(&nd.path);
+ 			goto out;
+ 		}
  
--	for (shpp = &file->f_shares; (share = *shpp) != 0; shpp = &share->s_next) {
-+	for (shpp = &file->f_shares; (share = *shpp) != NULL; shpp = &share->s_next) {
- 		if (share->s_host == host && nlm_cmp_owner(share, oh)) {
- 			*shpp = share->s_next;
- 			kfree(share);
+diff -puN fs/unionfs/super.c~introduce-path_put-unionfs fs/unionfs/super.c
+--- a/fs/unionfs/super.c~introduce-path_put-unionfs
++++ a/fs/unionfs/super.c
+@@ -216,7 +216,7 @@ static noinline int do_remount_mode_opti
+ 		if (nd.mnt == new_lower_paths[idx].mnt &&
+ 		    nd.dentry == new_lower_paths[idx].dentry)
+ 			break;
+-	path_release(&nd);	/* no longer needed */
++	path_put(&nd.path);	/* no longer needed */
+ 	if (idx == cur_branches) {
+ 		err = -ENOENT;	/* err may have been reset above */
+ 		printk(KERN_ERR "unionfs: branch \"%s\" "
+@@ -259,7 +259,7 @@ static noinline int do_remount_del_optio
+ 		if (nd.mnt == new_lower_paths[idx].mnt &&
+ 		    nd.dentry == new_lower_paths[idx].dentry)
+ 			break;
+-	path_release(&nd);	/* no longer needed */
++	path_put(&nd.path);	/* no longer needed */
+ 	if (idx == cur_branches) {
+ 		printk(KERN_ERR "unionfs: branch \"%s\" "
+ 		       "not found\n", optarg);
+@@ -278,7 +278,7 @@ static noinline int do_remount_del_optio
+ 	 * new_data and new_lower_paths one to the left.  Finally, adjust
+ 	 * cur_branches.
+ 	 */
+-	pathput(&new_lower_paths[idx]);
++	path_put(&new_lower_paths[idx]);
+ 
+ 	if (idx < cur_branches - 1) {
+ 		/* if idx==cur_branches-1, we delete last branch: easy */
+@@ -343,7 +343,7 @@ static noinline int do_remount_add_optio
+ 		if (nd.mnt == new_lower_paths[idx].mnt &&
+ 		    nd.dentry == new_lower_paths[idx].dentry)
+ 			break;
+-	path_release(&nd);	/* no longer needed */
++	path_put(&nd.path);	/* no longer needed */
+ 	if (idx == cur_branches) {
+ 		printk(KERN_ERR "unionfs: branch \"%s\" "
+ 		       "not found\n", optarg);
+@@ -390,7 +390,7 @@ found_insertion_point:
+ 	if (err) {
+ 		printk(KERN_ERR "unionfs: lower directory "
+ 		       "\"%s\" is not a valid branch\n", optarg);
+-		path_release(&nd);
++		path_put(&nd.path);
+ 		goto out;
+ 	}
+ 
+@@ -794,7 +794,7 @@ out_release:
+ 	/* no need to cleanup/release anything in tmp_data */
+ 	if (tmp_lower_paths)
+ 		for (i = 0; i < new_branches; i++)
+-			pathput(&tmp_lower_paths[i]);
++			path_put(&tmp_lower_paths[i]);
+ out_free:
+ 	kfree(tmp_lower_paths);
+ 	kfree(tmp_data);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-git-nfsd.patch
-git-sched.patch
-git-scsi-rc-fixes.patch
-git-x86.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+git-unionfs.patch
