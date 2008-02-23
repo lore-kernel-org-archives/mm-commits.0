@@ -1,54 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - make-printk_recursion_bug_msg-static.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:24:12 -0800
-Message-ID: <200802232024.m1NKOCAh013618@imap1.linux-foundation.org>
+Subject: - scsi_transport_iscsic-make-2-functions-static.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:48 -0800
+Message-ID: <200802232022.m1NKMmx3013455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36086 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762849AbYBWU3F (ORCPT
+	by vger.kernel.org with ESMTP id S1762940AbYBWU3L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:05 -0500
+	Sat, 23 Feb 2008 15:29:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, James.Bottomley@steeleye.com, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make printk_recursion_bug_msg[] static
+     scsi_transport_iscsi.c: make 2 functions static
 has been removed from the -mm tree.  Its filename was
-     make-printk_recursion_bug_msg-static.patch
+     scsi_transport_iscsic-make-2-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make printk_recursion_bug_msg[] static
+Subject: scsi_transport_iscsi.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-printk_recursion_bug_msg[] can become static.
+Make the following needlessly global functions static:
+
+- __iscsi_unblock_session()
+- iscsi_session_state_name()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Mike Christie <michaelc@cs.wisc.edu>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/scsi_transport_iscsi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk.c~make-printk_recursion_bug_msg-static kernel/printk.c
---- a/kernel/printk.c~make-printk_recursion_bug_msg-static
-+++ a/kernel/printk.c
-@@ -618,7 +618,7 @@ asmlinkage int printk(const char *fmt, .
- /* cpu currently holding logbuf_lock */
- static volatile unsigned int printk_cpu = UINT_MAX;
+diff -puN drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static drivers/scsi/scsi_transport_iscsi.c
+--- a/drivers/scsi/scsi_transport_iscsi.c~scsi_transport_iscsic-make-2-functions-static
++++ a/drivers/scsi/scsi_transport_iscsi.c
+@@ -231,7 +231,7 @@ static struct {
+ 	{ ISCSI_SESSION_FREE,		"FREE" },
+ };
  
--const char printk_recursion_bug_msg [] =
-+static const char printk_recursion_bug_msg[] =
- 			KERN_CRIT "BUG: recent printk recursion!\n";
- static int printk_recursion_bug;
+-const char *iscsi_session_state_name(int state)
++static const char *iscsi_session_state_name(int state)
+ {
+ 	int i;
+ 	char *name = NULL;
+@@ -373,7 +373,7 @@ static void session_recovery_timedout(st
+ 	scsi_target_unblock(&session->dev);
+ }
  
+-void __iscsi_unblock_session(struct iscsi_cls_session *session)
++static void __iscsi_unblock_session(struct iscsi_cls_session *session)
+ {
+ 	if (!cancel_delayed_work(&session->recovery_work))
+ 		flush_workqueue(iscsi_eh_timer_workq);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
