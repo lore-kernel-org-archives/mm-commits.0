@@ -1,90 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-make-hci_sock_cleanup-return-void.patch added to -mm tree
-Date: Sat, 23 Feb 2008 11:22:05 -0800
-Message-ID: <200802231922.m1NJM5SF011192@imap1.linux-foundation.org>
+Subject: - git-sched-git-rejects.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 11:49:04 -0800
+Message-ID: <200802231949.m1NJn45H012128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38289 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056AbYBWTWT (ORCPT
+	by vger.kernel.org with ESMTP id S1757771AbYBWTtp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:22:19 -0500
+	Sat, 23 Feb 2008 14:49:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tklauser@distanz.ch, hidave.darkstar@gmail.com, marcel@holtmann.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: Make hci_sock_cleanup() return void
-has been added to the -mm tree.  Its filename is
-     bluetooth-make-hci_sock_cleanup-return-void.patch
+     git-sched-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-sched-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: Make hci_sock_cleanup() return void
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: git-sched-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-hci_sock_cleanup() always returns 0 and its return value isn't used
-anywhere in the code.
-
-Compile-tested with 'make allyesconfig && make net/bluetooth/bluetooth.ko'
-
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/bluetooth/bluetooth.h |    2 +-
- net/bluetooth/hci_sock.c          |    4 +---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/x86/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/net/bluetooth/bluetooth.h~bluetooth-make-hci_sock_cleanup-return-void include/net/bluetooth/bluetooth.h
---- a/include/net/bluetooth/bluetooth.h~bluetooth-make-hci_sock_cleanup-return-void
-+++ a/include/net/bluetooth/bluetooth.h
-@@ -170,7 +170,7 @@ static inline int skb_frags_no(struct sk
- int bt_err(__u16 code);
- 
- extern int hci_sock_init(void);
--extern int hci_sock_cleanup(void);
-+extern void hci_sock_cleanup(void);
- 
- extern int bt_sysfs_init(void);
- extern void bt_sysfs_cleanup(void);
-diff -puN net/bluetooth/hci_sock.c~bluetooth-make-hci_sock_cleanup-return-void net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~bluetooth-make-hci_sock_cleanup-return-void
-+++ a/net/bluetooth/hci_sock.c
-@@ -734,7 +734,7 @@ error:
- 	return err;
- }
- 
--int __exit hci_sock_cleanup(void)
-+void __exit hci_sock_cleanup(void)
- {
- 	if (bt_sock_unregister(BTPROTO_HCI) < 0)
- 		BT_ERR("HCI socket unregistration failed");
-@@ -742,6 +742,4 @@ int __exit hci_sock_cleanup(void)
- 	hci_unregister_notifier(&hci_sock_nblock);
- 
- 	proto_unregister(&hci_sk_proto);
+diff -puN arch/x86/Kconfig~git-sched-git-rejects arch/x86/Kconfig
+--- a/arch/x86/Kconfig~git-sched-git-rejects
++++ a/arch/x86/Kconfig
+@@ -21,12 +21,8 @@ config X86
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_KPROBES
+-<<<<<<< HEAD:arch/x86/Kconfig
+ 	select HAVE_KVM
 -
--	return 0;
- }
+-=======
+ 	select HAVE_FTRACE
+->>>>>>> FETCH_HEAD:arch/x86/Kconfig
+ 
+ config GENERIC_LOCKBREAK
+ 	def_bool n
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-bluetooth-make-hci_sock_cleanup-return-void.patch
+origin.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-sched.patch
+git-sched-git-rejects.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-unionfs-git-rejects.patch
+unionfs-is-broken.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-ohci-sm501-driver-v2-fix.patch
+drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+git-watchdog-git-rejects.patch
+git-x86.patch
+pci-dont-load-acpi_php-when-acpi-is-disabled.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
