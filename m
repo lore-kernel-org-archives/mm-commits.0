@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-simplify-quirk-debug-output.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:31 -0800
-Message-ID: <200802230731.m1N7VJij017990@imap1.linux-foundation.org>
+Subject: + cgroup-remove-duplicate-code-in-find_css_set.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:44 -0800
+Message-ID: <200802230733.m1N7XXl2018232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33718 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751708AbYBWHyB (ORCPT
+	by vger.kernel.org with ESMTP id S1752468AbYBWHyC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:01 -0500
+	Sat, 23 Feb 2008 02:54:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, greg@kroah.com
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     PCI: simplify quirk debug output
+     cgroup: remove duplicate code in find_css_set()
 has been added to the -mm tree.  Its filename is
-     pci-simplify-quirk-debug-output.patch
+     cgroup-remove-duplicate-code-in-find_css_set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCI: simplify quirk debug output
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: cgroup: remove duplicate code in find_css_set()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-print_fn_descriptor_symbol() prints the address if we don't have a symbol,
-so no need to print both.
+The list head res->tasks gets initialized twice in find_css_set().
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/pci/quirks.c~pci-simplify-quirk-debug-output drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-simplify-quirk-debug-output
-+++ a/drivers/pci/quirks.c
-@@ -1498,8 +1498,8 @@ static void pci_do_fixups(struct pci_dev
- 		if ((f->vendor == dev->vendor || f->vendor == (u16) PCI_ANY_ID) &&
-  		    (f->device == dev->device || f->device == (u16) PCI_ANY_ID)) {
- #ifdef DEBUG
--			dev_dbg(&dev->dev, "calling quirk 0x%p", f->hook);
--			print_fn_descriptor_symbol(": %s()\n",
-+			dev_dbg(&dev->dev, "calling ");
-+			print_fn_descriptor_symbol("%s()\n",
- 				(unsigned long) f->hook);
- #endif
- 			f->hook(dev);
+diff -puN kernel/cgroup.c~cgroup-remove-duplicate-code-in-find_css_set kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-remove-duplicate-code-in-find_css_set
++++ a/kernel/cgroup.c
+@@ -470,7 +470,6 @@ static struct css_set *find_css_set(
+ 	/* Link this cgroup group into the list */
+ 	list_add(&res->list, &init_css_set.list);
+ 	css_set_count++;
+-	INIT_LIST_HEAD(&res->tasks);
+ 	write_unlock(&css_set_lock);
+ 
+ 	return res;
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-pci-simplify-quirk-debug-output.patch
-pci-remove-pci=routeirq-noise-from-dmesg.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
+cgroup-fix-and-update-documentation.patch
+cgroup-fix-comments.patch
+cgroup-clean-up-cgrouph.patch
+cgroup-fix-memory-leak-in-cgroup_get_sb.patch
+cgroup-fix-subsys-bitops.patch
+cgroup-remove-duplicate-code-in-find_css_set.patch
+cgroup-remove-dead-code-in-cgroup_get_rootdir.patch
+memcgroup-fix-and-update-documentation.patch
+memcgroup-remove-a-useless-vm_bug_on.patch
+memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
