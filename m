@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:37:20 -0800
-Message-ID: <200802230738.m1N7c9PS018640@imap1.linux-foundation.org>
+Subject: + add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:47 -0800
+Message-ID: <200802230734.m1N7YZxA018301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56474 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760233AbYBWIFI (ORCPT
+	by vger.kernel.org with ESMTP id S1763381AbYBWIFB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:05:08 -0500
+	Sat, 23 Feb 2008 03:05:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, ak@suse.de, apw@shadowen.org, jschopp@austin.ibm.com, mingo@elte.hu, rdunlap@xenotime.net, tglx@linutronix.de
+Cc: armbru@redhat.com, ericvh@gmail.com, lucho@ionkov.net, meyering@redhat.com, rdunlap@xenotime.net
 
 
 The patch titled
-     init: move setup of nr_cpu_ids to as early as possible
+     add match_strlcpy() us it to make v9fs make uname and remotename parsing more robust
 has been added to the -mm tree.  Its filename is
-     init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch
+     add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: move setup of nr_cpu_ids to as early as possible
-From: Mike Travis <travis@sgi.com>
+Subject: add match_strlcpy() us it to make v9fs make uname and remotename parsing more robust
+From: Markus Armbruster <armbru@redhat.com>
 
-Move the setting of nr_cpu_ids from sched_init() to init/main.c,
-so that it's available as early as possible.
+match_strcpy() is a somewhat creepy function: the caller needs to make sure
+that the destination buffer is big enough, and when he screws up or
+forgets, match_strcpy() happily overruns the buffer.
 
-Based on git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+There's exactly one customer: v9fs_parse_options().  I believe it currently
+can't overflow its buffer, but that's not exactly obvious.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Joel Schopp <jschopp@austin.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The source string is a substing of the mount options.  The kernel silently
+truncates those to PAGE_SIZE bytes, including the terminating zero.  See
+compat_sys_mount() and do_mount().
+
+The destination buffer is obtained from __getname(), which allocates from
+name_cachep, which is initialized by vfs_caches_init() for size PATH_MAX.
+
+We're safe as long as PATH_MAX <= PAGE_SIZE.  PATH_MAX is 4096.  As far as
+I know, the smallest PAGE_SIZE is also 4096.
+
+Here's a patch that makes the code a bit more obviously correct.  It
+doesn't depend on PATH_MAX <= PAGE_SIZE.
+
+Signed-off-by: Markus Armbruster <armbru@redhat.com>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Jim Meyering <meyering@redhat.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c    |   20 ++++++++++++++++++++
- kernel/sched.c |    7 -------
- 2 files changed, 20 insertions(+), 7 deletions(-)
+ fs/9p/v9fs.c           |    4 ++--
+ include/linux/parser.h |    2 +-
+ lib/parser.c           |   32 ++++++++++++++++++++------------
+ 3 files changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN init/main.c~init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3 init/main.c
---- a/init/main.c~init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3
-+++ a/init/main.c
-@@ -365,10 +365,29 @@ static void __init smp_init(void)
- #endif
+diff -puN fs/9p/v9fs.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
++++ a/fs/9p/v9fs.c
+@@ -133,10 +133,10 @@ static int v9fs_parse_options(struct v9f
+ 			v9ses->afid = option;
+ 			break;
+ 		case Opt_uname:
+-			match_strcpy(v9ses->uname, &args[0]);
++			match_strlcpy(v9ses->uname, &args[0], PATH_MAX);
+ 			break;
+ 		case Opt_remotename:
+-			match_strcpy(v9ses->aname, &args[0]);
++			match_strlcpy(v9ses->aname, &args[0], PATH_MAX);
+ 			break;
+ 		case Opt_nodevmap:
+ 			v9ses->nodev = 1;
+diff -puN include/linux/parser.h~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust include/linux/parser.h
+--- a/include/linux/parser.h~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
++++ a/include/linux/parser.h
+@@ -29,5 +29,5 @@ int match_token(char *, match_table_t ta
+ int match_int(substring_t *, int *result);
+ int match_octal(substring_t *, int *result);
+ int match_hex(substring_t *, int *result);
+-void match_strcpy(char *, const substring_t *);
++size_t match_strlcpy(char *, const substring_t *, size_t);
+ char *match_strdup(const substring_t *);
+diff -puN lib/parser.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust lib/parser.c
+--- a/lib/parser.c~add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust
++++ a/lib/parser.c
+@@ -182,18 +182,25 @@ int match_hex(substring_t *s, int *resul
+ }
  
- static inline void setup_per_cpu_areas(void) { }
-+static inline void setup_nr_cpu_ids(void) { }
- static inline void smp_prepare_cpus(unsigned int maxcpus) { }
- 
- #else
- 
-+/*
-+ * Setup number of possible processor ids.
-+ * This is different than setup_max_cpus as it accounts for zero
-+ * bits embedded between one bits in the cpu possible map.
-+ */
-+int nr_cpu_ids __read_mostly = NR_CPUS;
-+EXPORT_SYMBOL(nr_cpu_ids);
-+
-+static void __init setup_nr_cpu_ids(void)
-+{
-+	int cpu, highest_cpu = 0;
-+
-+	for_each_possible_cpu(cpu)
-+		highest_cpu = cpu;
-+
-+	nr_cpu_ids = highest_cpu + 1;
-+}
-+
- #ifndef CONFIG_HAVE_SETUP_PER_CPU_AREA
- unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
- 
-@@ -542,6 +561,7 @@ asmlinkage void __init start_kernel(void
- 	setup_arch(&command_line);
- 	setup_command_line(command_line);
- 	unwind_setup();
-+	setup_nr_cpu_ids();
- 	setup_per_cpu_areas();
- 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
- 
-diff -puN kernel/sched.c~init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3 kernel/sched.c
---- a/kernel/sched.c~init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3
-+++ a/kernel/sched.c
-@@ -6072,10 +6072,6 @@ void __init migration_init(void)
- 
- #ifdef CONFIG_SMP
- 
--/* Number of possible processor ids */
--int nr_cpu_ids __read_mostly = NR_CPUS;
--EXPORT_SYMBOL(nr_cpu_ids);
--
- #ifdef CONFIG_SCHED_DEBUG
- 
- static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level)
-@@ -7316,7 +7312,6 @@ static void init_tg_rt_entry(struct rq *
- 
- void __init sched_init(void)
+ /**
+- * match_strcpy: - copies the characters from a substring_t to a string
+- * @to: string to copy characters to.
+- * @s: &substring_t to copy
++ * match_strlcpy: - Copy the characters from a substring_t to a sized buffer
++ * @dest: where to copy to
++ * @src: &substring_t to copy
++ * @size: size of destination buffer
+  *
+- * Description: Copies the set of characters represented by the given
+- * &substring_t @s to the c-style string @to. Caller guarantees that @to is
+- * large enough to hold the characters of @s.
++ * Description: Copy the characters in &substring_t @src to the
++ * c-style string @dest.  Copy no more than @size - 1 characters, plus
++ * the terminating NUL.  Return length of @src.
+  */
+-void match_strcpy(char *to, const substring_t *s)
++size_t match_strlcpy(char *dest, const substring_t *src, size_t size)
  {
--	int highest_cpu = 0;
- 	int i, j;
+-	memcpy(to, s->from, s->to - s->from);
+-	to[s->to - s->from] = '\0';
++	size_t ret = src->to - src->from;
++
++	if (size) {
++		size_t len = ret >= size ? size - 1 : ret;
++		memcpy(dest, src->from, len);
++		dest[len] = '\0';
++	}
++	return ret;
+ }
  
- #ifdef CONFIG_SMP
-@@ -7379,7 +7374,6 @@ void __init sched_init(void)
- #endif
- 		init_rq_hrtick(rq);
- 		atomic_set(&rq->nr_iowait, 0);
--		highest_cpu = i;
- 	}
+ /**
+@@ -206,9 +213,10 @@ void match_strcpy(char *to, const substr
+  */
+ char *match_strdup(const substring_t *s)
+ {
+-	char *p = kmalloc(s->to - s->from + 1, GFP_KERNEL);
++	size_t sz = s->to - s->from + 1;
++	char *p = kmalloc(sz, GFP_KERNEL);
+ 	if (p)
+-		match_strcpy(p, s);
++		match_strlcpy(p, s, sz);
+ 	return p;
+ }
  
- 	set_load_weight(&init_task);
-@@ -7389,7 +7383,6 @@ void __init sched_init(void)
- #endif
- 
- #ifdef CONFIG_SMP
--	nr_cpu_ids = highest_cpu + 1;
- 	open_softirq(SCHED_SOFTIRQ, run_rebalance_domains, NULL);
- #endif
- 
+@@ -216,5 +224,5 @@ EXPORT_SYMBOL(match_token);
+ EXPORT_SYMBOL(match_int);
+ EXPORT_SYMBOL(match_octal);
+ EXPORT_SYMBOL(match_hex);
+-EXPORT_SYMBOL(match_strcpy);
++EXPORT_SYMBOL(match_strlcpy);
+ EXPORT_SYMBOL(match_strdup);
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from armbru@redhat.com are
 
-cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch
-x86-minor-cleanup-of-comments-in-processorh.patch
-percpu-fix-debug_preempt-per_cpu-checking.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch
-generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
-x86_64-fold-pda-into-per-cpu-area-v3.patch
-x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
+add-match_strlcpy-us-it-to-make-v9fs-make-uname-and-remotename-parsing-more-robust.patch
