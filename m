@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ext3-use-bug_on.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:08 -0800
-Message-ID: <200802230735.m1N7ZvcX018387@imap1.linux-foundation.org>
+Subject: + fs-ext4-use-bug_on.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:35:50 -0800
+Message-ID: <200802230736.m1N7adPn018458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51624 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751024AbYBWHvC (ORCPT
+	by vger.kernel.org with ESMTP id S1750921AbYBWHvf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:51:02 -0500
+	Sat, 23 Feb 2008 02:51:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk
 
 
 The patch titled
-     fs/ext3: use BUG_ON
+     fs/ext4: use BUG_ON
 has been added to the -mm tree.  Its filename is
-     fs-ext3-use-bug_on.patch
+     fs-ext4-use-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ext3: use BUG_ON
+Subject: fs/ext4: use BUG_ON
 From: Julia Lawall <julia@diku.dk>
 
 if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
@@ -67,13 +67,13 @@ Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |    3 +--
+ fs/ext4/balloc.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ext3/balloc.c~fs-ext3-use-bug_on fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~fs-ext3-use-bug_on
-+++ a/fs/ext3/balloc.c
-@@ -232,8 +232,7 @@ restart:
+diff -puN fs/ext4/balloc.c~fs-ext4-use-bug_on fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~fs-ext4-use-bug_on
++++ a/fs/ext4/balloc.c
+@@ -358,8 +358,7 @@ restart:
  		prev = rsv;
  	}
  	printk("Window map complete.\n");
