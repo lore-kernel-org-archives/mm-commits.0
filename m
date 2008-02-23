@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-simplify-quirk-debug-output.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:01 -0800
-Message-ID: <200802230735.m1N7Zoh5018381@imap1.linux-foundation.org>
+Subject: + fs-ext3-use-bug_on.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:35:08 -0800
+Message-ID: <200802230735.m1N7ZvcX018387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42178 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750785AbYBWHug (ORCPT
+	by vger.kernel.org with ESMTP id S1751024AbYBWHvC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:50:36 -0500
+	Sat, 23 Feb 2008 02:51:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com
+Cc: julia@diku.dk
 
 
 The patch titled
-     PNP: simplify quirk debug output
+     fs/ext3: use BUG_ON
 has been added to the -mm tree.  Its filename is
-     pnp-simplify-quirk-debug-output.patch
+     fs-ext3-use-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: simplify quirk debug output
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: fs/ext3: use BUG_ON
+From: Julia Lawall <julia@diku.dk>
 
-print_fn_descriptor_symbol() prints the address if we don't have a symbol,
-so no need to print both.
+if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
+side-effects to allow a definition of BUG_ON that drops the code completely.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@ disable unlikely @ expression E,f; @@
+
+(
+  if (<... f(...) ...>) { BUG(); }
+|
+- if (unlikely(E)) { BUG(); }
++ BUG_ON(E);
+)
+
+@@ expression E,f; @@
+
+(
+  if (<... f(...) ...>) { BUG(); }
+|
+- if (E) { BUG(); }
++ BUG_ON(E);
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext3/balloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output
-+++ a/drivers/pnp/quirks.c
-@@ -184,8 +184,8 @@ void pnp_fixup_device(struct pnp_dev *de
- 			quirk = pnp_fixups[i].quirk_function;
- 
- #ifdef DEBUG
--			dev_dbg(&dev->dev, "calling quirk 0x%p", quirk);
--			print_fn_descriptor_symbol(": %s()\n",
-+			dev_dbg(&dev->dev, "calling ");
-+			print_fn_descriptor_symbol("%s()\n",
- 				(unsigned long) *quirk);
- #endif
- 			(*quirk)(dev);
+diff -puN fs/ext3/balloc.c~fs-ext3-use-bug_on fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~fs-ext3-use-bug_on
++++ a/fs/ext3/balloc.c
+@@ -232,8 +232,7 @@ restart:
+ 		prev = rsv;
+ 	}
+ 	printk("Window map complete.\n");
+-	if (bad)
+-		BUG();
++	BUG_ON(bad);
+ }
+ #define rsv_window_dump(root, verbose) \
+ 	__rsv_window_dump((root), (verbose), __FUNCTION__)
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-pci-simplify-quirk-debug-output.patch
-pci-remove-pci=routeirq-noise-from-dmesg.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
+sound-use-bug_on.patch
+git-hid.patch
+git-net.patch
+drivers-net-mv643xx_ethc-use-field_sizeof.patch
+fs-ocfs2-use-bug_on.patch
+s390-use-div_round_up.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+usb-use-div_round_up.patch
+fs-affs-filec-use-bug_on.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
