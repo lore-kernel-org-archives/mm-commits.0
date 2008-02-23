@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wdev-ath5k-fix-lock-imbalance.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:31:26 -0800
-Message-ID: <200802230732.m1N7WFS5018067@imap1.linux-foundation.org>
+Subject: + ssb-pci-core-driver-use-new-sprom-data-structure.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:31:24 -0800
+Message-ID: <200802230732.m1N7WDgY018064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60889 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43814 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbYBWHyP (ORCPT
+	by vger.kernel.org with ESMTP id S1754372AbYBWHyY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:15 -0500
+	Sat, 23 Feb 2008 02:54:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com
+Cc: aurelien@aurel32.net, mb@bu3sch.de
 
 
 The patch titled
-     WDEV: ath5k, fix lock imbalance
+     ssb: PCI core driver: use new SPROM data structure
 has been added to the -mm tree.  Its filename is
-     wdev-ath5k-fix-lock-imbalance.patch
+     ssb-pci-core-driver-use-new-sprom-data-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WDEV: ath5k, fix lock imbalance
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: ssb: PCI core driver: use new SPROM data structure
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-Omitted lock causes sparse warning
-drivers/net/wireless/ath5k/base.c:1682:1: warning: context imbalance in 'ath5k_tasklet_rx' - different lock contexts for basic block
+Switch the SSB PCI core driver to the new SPROM data structure now that the
+old one has been removed.
 
-Add the lock to the guilty fail path.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Acked-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ssb/driver_pcicore.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~wdev-ath5k-fix-lock-imbalance drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wdev-ath5k-fix-lock-imbalance
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -1715,6 +1715,7 @@ ath5k_tasklet_rx(unsigned long data)
- 			break;
- 		else if (unlikely(ret)) {
- 			ATH5K_ERR(sc, "error in processing rx descriptor\n");
-+			spin_unlock(&sc->rxbuflock);
- 			return;
- 		}
+diff -puN drivers/ssb/driver_pcicore.c~ssb-pci-core-driver-use-new-sprom-data-structure drivers/ssb/driver_pcicore.c
+--- a/drivers/ssb/driver_pcicore.c~ssb-pci-core-driver-use-new-sprom-data-structure
++++ a/drivers/ssb/driver_pcicore.c
+@@ -362,7 +362,7 @@ static int pcicore_is_in_hostmode(struct
+ 	    chipid_top != 0x5300)
+ 		return 0;
  
+-	if (bus->sprom.r1.boardflags_lo & SSB_PCICORE_BFL_NOPCI)
++	if (bus->sprom.boardflags_lo & SSB_PCICORE_BFL_NOPCI)
+ 		return 0;
+ 
+ 	/* The 200-pin BCM4712 package does not bond out PCI. Even when
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-dvb.patch
-git-watchdog.patch
-wdev-ath5k-fix-lock-imbalance.patch
-wdev-ath5k-dont-return-int-from-bool-function.patch
-wdev-ath5k-typecheck-on-nondebug.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-kvm.patch
+bcm47xx-use-new-ssb-sprom-data-structure.patch
+ssb-pci-core-driver-use-new-sprom-data-structure.patch
