@@ -1,119 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - iuu_phoenix-lock-priv-tiostatus-properly.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:24 -0800
-Message-ID: <200802232023.m1NKNOBW013513@imap1.linux-foundation.org>
+Subject: - pci-dont-load-acpi_php-when-acpi-is-disabled.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:43 -0800
+Message-ID: <200802232023.m1NKNh19013566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46886 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762234AbYBWU3U (ORCPT
+	by vger.kernel.org with ESMTP id S1763211AbYBWU30 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:20 -0500
+	Sat, 23 Feb 2008 15:29:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, greg@kroah.com, kristen.c.accardi@intel.com, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iuu_phoenix: lock priv->tiostatus properly
+     pci: don't load acpi_php when acpi is disabled
 has been removed from the -mm tree.  Its filename was
-     iuu_phoenix-lock-priv-tiostatus-properly.patch
+     pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iuu_phoenix: lock priv->tiostatus properly
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: pci: don't load acpi_php when acpi is disabled
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+When acpi=off and pci=nomsi, don't load acpiphp.
+
+Fixes this:
+
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+ACPI Exception (utmutex-0263): AE_BAD_PARAMETER, Thread
+FFFF81103CC54000 could not acquire Mutex [1] [20070126]
+
+[akpm@linux-foundation.org: export acpi_pci_disabled for acpiphp.ko]
+[akpm@linux-foundation.org: fix return statement]
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/iuu_phoenix.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ arch/x86/kernel/acpi/boot.c        |    3 ++-
+ drivers/pci/hotplug/acpiphp_core.c |    6 ++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly drivers/usb/serial/iuu_phoenix.c
---- a/drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly
-+++ a/drivers/usb/serial/iuu_phoenix.c
-@@ -148,20 +148,21 @@ static int iuu_tiocmset(struct usb_seria
- 			unsigned int set, unsigned int clear)
+diff -puN drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled drivers/pci/hotplug/acpiphp_core.c
+--- a/drivers/pci/hotplug/acpiphp_core.c~pci-dont-load-acpi_php-when-acpi-is-disabled
++++ a/drivers/pci/hotplug/acpiphp_core.c
+@@ -392,6 +392,9 @@ static int __init acpiphp_init(void)
  {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	struct tty_struct *tty;
--	tty = port->tty;
-+	unsigned long flags;
+ 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
  
-+	/* FIXME: locking on tiomstatus */
- 	dbg("%s (%d) msg : SET = 0x%04x, CLEAR = 0x%04x ", __FUNCTION__,
- 	    port->number, set, clear);
++	if (acpi_pci_disabled)
++		return 0;
 +
-+	spin_lock_irqsave(&priv->lock, flags);
- 	if (set & TIOCM_RTS)
- 		priv->tiostatus = TIOCM_RTS;
+ 	acpiphp_debug = debug;
  
- 	if (!(set & TIOCM_RTS) && priv->tiostatus == TIOCM_RTS) {
- 		dbg("%s TIOCMSET RESET called !!!", __FUNCTION__);
- 		priv->reset = 1;
--		return 0;
- 	}
--
-+	spin_unlock_irqrestore(&priv->lock, flags);
- 	return 0;
- }
+ 	/* read all the ACPI info from the system */
+@@ -401,6 +404,9 @@ static int __init acpiphp_init(void)
  
-@@ -173,7 +174,14 @@ static int iuu_tiocmset(struct usb_seria
- static int iuu_tiocmget(struct usb_serial_port *port, struct file *file)
+ static void __exit acpiphp_exit(void)
  {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	return priv->tiostatus;
-+	unsigned long flags;
-+	int rc;
++	if (acpi_pci_disabled)
++		return;
 +
-+	spin_lock_irqsave(&priv->lock, flags);
-+	rc = priv->tiostatus;
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	return rc;
+ 	/* deallocate internal data structures etc. */
+ 	acpiphp_glue_exit();
  }
+diff -puN arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~pci-dont-load-acpi_php-when-acpi-is-disabled
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -72,7 +72,8 @@ static inline int acpi_madt_oem_check(ch
+ #define PREFIX			"ACPI: "
  
- static void iuu_rxcmd(struct urb *urb)
+ int acpi_noirq;				/* skip ACPI IRQ initialization */
+-int acpi_pci_disabled __initdata;	/* skip ACPI PCI scan and IRQ initialization */
++int acpi_pci_disabled;			/* skip ACPI PCI scan and IRQ initialization */
++EXPORT_SYMBOL(acpi_pci_disabled);
+ int acpi_ht __initdata = 1;	/* enable HT */
+ 
+ int acpi_lapic;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
 git-scsi-rc-fixes.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-x86.patch
