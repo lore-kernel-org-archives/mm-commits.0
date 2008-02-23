@@ -1,157 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - iget-stop-unionfs-from-using-iget-and-read_inode.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:53 -0800
-Message-ID: <200802232022.m1NKMrF9013464@imap1.linux-foundation.org>
+Subject: - mips-fix-sni_rm-eisa=n-compilation.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:09 -0800
+Message-ID: <200802232022.m1NKM9wV013401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41636 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763054AbYBWU3U (ORCPT
+	by vger.kernel.org with ESMTP id S1761447AbYBWU3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:20 -0500
+	Sat, 23 Feb 2008 15:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iget: stop unionfs from using iget() and read_inode()
+     mips: fix SNI_RM EISA=n compilation
 has been removed from the -mm tree.  Its filename was
-     iget-stop-unionfs-from-using-iget-and-read_inode.patch
+     mips-fix-sni_rm-eisa=n-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iget: stop unionfs from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: mips: fix SNI_RM EISA=n compilation
+From: Adrian Bunk <bunk@kernel.org>
 
-Stop the UnionFS filesystem from using iget() and read_inode().  Replace
-unionfs_read_inode() with unionfs_iget(), and call that instead of iget(). 
-unionfs_iget() then uses iget_locked() directly and returns a proper error
-code instead of an inode in the event of an error.
+Fix the following build error with CONFIG_EISA=n caused by commit
+231a35d37293ab88d325a9cb94e5474c156282c0:
 
-unionfs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
+  LD      .tmp_vmlinux1
+arch/mips/sni/built-in.o: In function `snirm_a20r_setup_devinit':
+a20r.c:(.init.text+0x42c): undefined reference to `sni_eisa_root_init'
+a20r.c:(.init.text+0x42c): relocation truncated to fit: R_MIPS_26 against `sni_eisa_root_init'
+arch/mips/sni/built-in.o: In function `snirm_setup_devinit':
+rm200.c:(.init.text+0x52c): undefined reference to `sni_eisa_root_init'
+rm200.c:(.init.text+0x52c): relocation truncated to fit: R_MIPS_26 against `sni_eisa_root_init'
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/main.c  |   11 +++++------
- fs/unionfs/super.c |   19 ++++++++++++++-----
- fs/unionfs/union.h |    1 +
- 3 files changed, 20 insertions(+), 11 deletions(-)
+ include/asm-mips/sni.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/unionfs/main.c~iget-stop-unionfs-from-using-iget-and-read_inode fs/unionfs/main.c
---- a/fs/unionfs/main.c~iget-stop-unionfs-from-using-iget-and-read_inode
-+++ a/fs/unionfs/main.c
-@@ -104,9 +104,8 @@ struct dentry *unionfs_interpose(struct 
- 	BUG_ON(is_negative_dentry);
+diff -puN include/asm-mips/sni.h~mips-fix-sni_rm-eisa=n-compilation include/asm-mips/sni.h
+--- a/include/asm-mips/sni.h~mips-fix-sni_rm-eisa=n-compilation
++++ a/include/asm-mips/sni.h
+@@ -228,7 +228,14 @@ extern void sni_pcimt_irq_init(void);
+ extern void sni_cpu_time_init(void);
  
- 	/*
--	 * We allocate our new inode below, by calling iget.
--	 * iget will call our read_inode which will initialize some
--	 * of the new inode's fields
-+	 * We allocate our new inode below by calling unionfs_iget,
-+	 * which will initialize some of the new inode's fields
- 	 */
+ /* eisa init for RM200/400 */
++#ifdef CONFIG_EISA
+ extern int sni_eisa_root_init(void);
++#else
++static inline int sni_eisa_root_init(void)
++{
++	return 0;
++}
++#endif
  
- 	/*
-@@ -128,9 +127,9 @@ struct dentry *unionfs_interpose(struct 
- 		}
- 	} else {
- 		/* get unique inode number for unionfs */
--		inode = iget(sb, iunique(sb, UNIONFS_ROOT_INO));
--		if (!inode) {
--			err = -EACCES;
-+		inode = unionfs_iget(sb, iunique(sb, UNIONFS_ROOT_INO));
-+		if (IS_ERR(inode)) {
-+			err = PTR_ERR(inode);
- 			goto out;
- 		}
- 		if (atomic_read(&inode->i_count) > 1)
-diff -puN fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode fs/unionfs/super.c
---- a/fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode
-+++ a/fs/unionfs/super.c
-@@ -24,11 +24,19 @@
-  */
- static struct kmem_cache *unionfs_inode_cachep;
- 
--static void unionfs_read_inode(struct inode *inode)
-+struct inode *unionfs_iget(struct super_block *sb, unsigned long ino)
- {
- 	int size;
--	struct unionfs_inode_info *info = UNIONFS_I(inode);
-+	struct unionfs_inode_info *info;
-+	struct inode *inode;
- 
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+ 	if (!(inode->i_state & I_NEW))
-+ 		return inode;
-+
-+	info = UNIONFS_I(inode);
- 	memset(info, 0, offsetof(struct unionfs_inode_info, vfs_inode));
- 	info->bstart = -1;
- 	info->bend = -1;
-@@ -44,7 +52,8 @@ static void unionfs_read_inode(struct in
- 	if (unlikely(!info->lower_inodes)) {
- 		printk(KERN_CRIT "unionfs: no kernel memory when allocating "
- 		       "lower-pointer array!\n");
--		BUG();
-+		iget_failed(inode);
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	inode->i_version++;
-@@ -60,7 +69,8 @@ static void unionfs_read_inode(struct in
- 	inode->i_atime.tv_sec = inode->i_atime.tv_nsec = 0;
- 	inode->i_mtime.tv_sec = inode->i_mtime.tv_nsec = 0;
- 	inode->i_ctime.tv_sec = inode->i_ctime.tv_nsec = 0;
--
-+	unlock_new_inode(inode);
-+	return inode;
- }
- 
- /*
-@@ -1011,7 +1021,6 @@ out:
- }
- 
- struct super_operations unionfs_sops = {
--	.read_inode	= unionfs_read_inode,
- 	.delete_inode	= unionfs_delete_inode,
- 	.put_super	= unionfs_put_super,
- 	.statfs		= unionfs_statfs,
-diff -puN fs/unionfs/union.h~iget-stop-unionfs-from-using-iget-and-read_inode fs/unionfs/union.h
---- a/fs/unionfs/union.h~iget-stop-unionfs-from-using-iget-and-read_inode
-+++ a/fs/unionfs/union.h
-@@ -361,6 +361,7 @@ extern int unionfs_fsync(struct file *fi
- extern int unionfs_fasync(int fd, struct file *file, int flag);
- 
- /* Inode operations */
-+extern struct inode *unionfs_iget(struct super_block *sb, unsigned long ino);
- extern int unionfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 			  struct inode *new_dir, struct dentry *new_dentry);
- extern int unionfs_unlink(struct inode *dir, struct dentry *dentry);
+ /* common irq stuff */
+ extern void (*sni_hwint)(void);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-mn10300-define-hz-as-a-config-option.patch
-mn10300-define-so_mark.patch
-nommu-is_vmalloc_addr-wont-compile-if-mmu.patch
-git-unionfs.patch
-ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-mutex-subsystem-synchro-test-module.patch
+sparc-fix-build.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+git-net.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+if-0-ses_match_host.patch
+remove-ps2esdi.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
