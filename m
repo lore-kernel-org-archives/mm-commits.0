@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:28 -0800
-Message-ID: <200802232023.m1NKNSOt013519@imap1.linux-foundation.org>
+Subject: - usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:20 -0800
+Message-ID: <200802232023.m1NKNKgq013507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42691 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51142 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763502AbYBWU3y (ORCPT
+	by vger.kernel.org with ESMTP id S1762589AbYBWU3i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:54 -0500
+	Sat, 23 Feb 2008 15:29:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ti_usb_3410_5052: Extend locking to msr and shadow mcr
+     usb serial: Note mos7480 and option don't lock modem status
 has been removed from the -mm tree.  Its filename was
-     ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
+     usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ti_usb_3410_5052: Extend locking to msr and shadow mcr
+Subject: usb serial: Note mos7480 and option don't lock modem status
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -32,71 +32,32 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ti_usb_3410_5052.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/usb/serial/mos7840.c |    1 +
+ drivers/usb/serial/option.c  |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr drivers/usb/serial/ti_usb_3410_5052.c
---- a/drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr
-+++ a/drivers/usb/serial/ti_usb_3410_5052.c
-@@ -1022,14 +1022,17 @@ static int ti_tiocmget(struct usb_serial
- 	unsigned int result;
- 	unsigned int msr;
- 	unsigned int mcr;
-+	unsigned long flags;
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
- 	if (tport == NULL)
+diff -puN drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/mos7840.c
+--- a/drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
++++ a/drivers/usb/serial/mos7840.c
+@@ -1709,6 +1709,7 @@ static int mos7840_tiocmset(struct usb_s
+ 	if (mos7840_port == NULL)
  		return -ENODEV;
  
-+	spin_lock_irqsave(&tport->tp_lock, flags);
- 	msr = tport->tp_msr;
- 	mcr = tport->tp_shadow_mcr;
-+	spin_unlock_irqrestore(&tport->tp_lock, flags);
++	/* FIXME: What locks the port registers ? */
+ 	mcr = mos7840_port->shadowMCR;
+ 	if (clear & TIOCM_RTS)
+ 		mcr &= ~MCR_RTS;
+diff -puN drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
++++ a/drivers/usb/serial/option.c
+@@ -347,6 +347,7 @@ static int option_tiocmset(struct usb_se
  
- 	result = ((mcr & TI_MCR_DTR) ? TIOCM_DTR : 0)
- 		| ((mcr & TI_MCR_RTS) ? TIOCM_RTS : 0)
-@@ -1050,12 +1053,14 @@ static int ti_tiocmset(struct usb_serial
- {
- 	struct ti_port *tport = usb_get_serial_port_data(port);
- 	unsigned int mcr;
-+	unsigned long flags;
+ 	portdata = usb_get_serial_port_data(port);
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
- 	if (tport == NULL)
- 		return -ENODEV;
- 
-+	spin_lock_irqsave(&tport->tp_lock, flags);
- 	mcr = tport->tp_shadow_mcr;
- 
++	/* FIXME: what locks portdata fields ? */
  	if (set & TIOCM_RTS)
-@@ -1071,6 +1076,7 @@ static int ti_tiocmset(struct usb_serial
- 		mcr &= ~TI_MCR_DTR;
- 	if (clear & TIOCM_LOOP)
- 		mcr &= ~TI_MCR_LOOP;
-+	spin_unlock_irqrestore(&tport->tp_lock, flags);
- 
- 	return ti_set_mcr(tport, mcr);
- }
-@@ -1358,14 +1364,17 @@ static void ti_send(struct ti_port *tpor
- 
- static int ti_set_mcr(struct ti_port *tport, unsigned int mcr)
- {
-+	unsigned long flags;
- 	int status;
- 
- 	status = ti_write_byte(tport->tp_tdev,
- 		tport->tp_uart_base_addr + TI_UART_OFFSET_MCR,
- 		TI_MCR_RTS | TI_MCR_DTR | TI_MCR_LOOP, mcr);
- 
-+	spin_lock_irqsave(&tport->tp_lock, flags);
- 	if (!status)
- 		tport->tp_shadow_mcr = mcr;
-+	spin_unlock_irqrestore(&tport->tp_lock, flags);
- 
- 	return status;
- }
+ 		portdata->rts_state = 1;
+ 	if (set & TIOCM_DTR)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
