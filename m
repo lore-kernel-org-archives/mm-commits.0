@@ -1,93 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - kobil_sct-get-rid-of-unneeded-priv-line_state.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:26 -0800
-Message-ID: <200802232023.m1NKNQ7Y013516@imap1.linux-foundation.org>
+Subject: - io_ti-lock-mcr-and-msr-shadows-properly.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:22 -0800
+Message-ID: <200802232023.m1NKNMQf013510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38348 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40070 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763271AbYBWU3V (ORCPT
+	by vger.kernel.org with ESMTP id S1763205AbYBWU3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:21 -0500
+	Sat, 23 Feb 2008 15:29:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kobil_sct: Get rid of unneeded priv->line_state
+     io_ti: lock mcr and msr shadows properly
 has been removed from the -mm tree.  Its filename was
-     kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+     io_ti-lock-mcr-and-msr-shadows-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kobil_sct: Get rid of unneeded priv->line_state
+Subject: io_ti: lock mcr and msr shadows properly
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/kobil_sct.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/usb/serial/io_ti.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/usb/serial/kobil_sct.c~kobil_sct-get-rid-of-unneeded-priv-line_state drivers/usb/serial/kobil_sct.c
---- a/drivers/usb/serial/kobil_sct.c~kobil_sct-get-rid-of-unneeded-priv-line_state
-+++ a/drivers/usb/serial/kobil_sct.c
-@@ -139,7 +139,6 @@ struct kobil_private {
- 	int filled;  // index of the last char in buf
- 	int cur_pos; // index of the next char to send in buf
- 	__u16 device_type;
--	int line_state;
- };
- 
- 
-@@ -161,7 +160,6 @@ static int kobil_startup (struct usb_ser
- 	priv->filled = 0;
- 	priv->cur_pos = 0;
- 	priv->device_type = le16_to_cpu(serial->dev->descriptor.idProduct);
--	priv->line_state = 0;
- 
- 	switch (priv->device_type){
- 	case KOBIL_ADAPTER_B_PRODUCT_ID:
-@@ -226,7 +224,6 @@ static int kobil_open (struct usb_serial
+diff -puN drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly
++++ a/drivers/usb/serial/io_ti.c
+@@ -2560,9 +2560,11 @@ static int edge_tiocmset (struct usb_ser
+ {
+ 	struct edgeport_port *edge_port = usb_get_serial_port_data(port);
+ 	unsigned int mcr;
++	unsigned long flags;
  
  	dbg("%s - port %d", __FUNCTION__, port->number);
- 	priv = usb_get_serial_port_data(port);
--	priv->line_state = 0;
  
- 	// someone sets the dev to 0 if the close method has been called
- 	port->interrupt_in_urb->dev = port->serial->dev;
-@@ -524,14 +521,11 @@ static int kobil_tiocmget(struct usb_ser
- 	dbg("%s - port %d Send get_status_line_state URB returns: %i. Statusline: %02x", 
- 	    __FUNCTION__, port->number, result, transfer_buffer[0]);
++	spin_lock_irqsave(&edge_port->ep_lock, flags);
+ 	mcr = edge_port->shadow_mcr;
+ 	if (set & TIOCM_RTS)
+ 		mcr |= MCR_RTS;
+@@ -2579,6 +2581,7 @@ static int edge_tiocmset (struct usb_ser
+ 		mcr &= ~MCR_LOOPBACK;
  
--	if ((transfer_buffer[0] & SUSBCR_GSL_DSR) != 0) {
--		priv->line_state |= TIOCM_DSR;
--	} else {
--		priv->line_state &= ~TIOCM_DSR; 
--	}
--
-+	result = 0;
-+	if ((transfer_buffer[0] & SUSBCR_GSL_DSR) != 0)
-+		result = TIOCM_DSR;
- 	kfree(transfer_buffer);
--	return priv->line_state;
-+	return result;
+ 	edge_port->shadow_mcr = mcr;
++	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 
+ 	TIRestoreMCR (edge_port, mcr);
+ 
+@@ -2591,9 +2594,12 @@ static int edge_tiocmget(struct usb_seri
+ 	unsigned int result = 0;
+ 	unsigned int msr;
+ 	unsigned int mcr;
++	unsigned long flags;
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
++	spin_lock_irqsave(&edge_port->ep_lock, flags);
++
+ 	msr = edge_port->shadow_msr;
+ 	mcr = edge_port->shadow_mcr;
+ 	result = ((mcr & MCR_DTR)	? TIOCM_DTR: 0)	  /* 0x002 */
+@@ -2605,6 +2611,7 @@ static int edge_tiocmget(struct usb_seri
+ 
+ 
+ 	dbg("%s -- %x", __FUNCTION__, result);
++	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 
+ 	return result;
  }
- 
- static int  kobil_tiocmset(struct usb_serial_port *port, struct file *file,
-@@ -544,6 +538,7 @@ static int  kobil_tiocmset(struct usb_se
- 	unsigned char *transfer_buffer;
- 	int transfer_buffer_length = 8;
- 
-+	/* FIXME: locking ? */
- 	priv = usb_get_serial_port_data(port);
- 	if ((priv->device_type == KOBIL_USBTWIN_PRODUCT_ID) || (priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)) {
- 		// This device doesn't support ioctl calls
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
