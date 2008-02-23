@@ -1,107 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - acer-wmi-fix-section-mismatch-warnings.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:21:28 -0800
-Message-ID: <200802232021.m1NKLSjk013338@imap1.linux-foundation.org>
+Subject: - proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:21:58 -0800
+Message-ID: <200802232021.m1NKLwu0013380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46823 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760829AbYBWUWt (ORCPT
+	by vger.kernel.org with ESMTP id S1760831AbYBWUWu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:22:49 -0500
+	Sat, 23 Feb 2008 15:22:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, carlos@strangeworlds.co.uk, len.brown@intel.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acer-wmi: fix section mismatch warnings
+     proper extern for gfs2/locking/dlm/mount.c:gdlm_ops
 has been removed from the -mm tree.  Its filename was
-     acer-wmi-fix-section-mismatch-warnings.patch
+     proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi: fix section mismatch warnings
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: proper extern for gfs2/locking/dlm/mount.c:gdlm_ops
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix following warnings:
-WARNING: vmlinux.o(.text+0x672615): Section mismatch in reference from the function acer_platform_remove() to the function .exit.text:acer_backlight_exit()
-WARNING: vmlinux.o(.devinit.text+0x1e859): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_led_init()
-WARNING: vmlinux.o(.devinit.text+0x1e878): Section mismatch in reference from the function acer_platform_probe() to the function .init.text:acer_backlight_init()
+Add a proper extern declaration for gdlm_ops in fs/gfs2/locking/dlm/lock_dlm.h
 
-Remove __exit annotation from acer_backlight_exit(). We cannot reference
-a __exit annotated function from non __exit functions.
-
-acer_led_init() and acer_backlight_init() where both annotated __init but used
-from a __devinit function.  This would result in an oops should gcc drop their
-inlining and the module are hot plugged.
-
-Fix by annotating acer_led_init() and acer_backlight_init() __devinit.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/acer-wmi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/gfs2/locking/dlm/lock_dlm.h |    5 +++++
+ fs/gfs2/locking/dlm/main.c     |    2 --
+ fs/gfs2/locking/dlm/sysfs.c    |    2 --
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/acer-wmi.c~acer-wmi-fix-section-mismatch-warnings drivers/misc/acer-wmi.c
---- a/drivers/misc/acer-wmi.c~acer-wmi-fix-section-mismatch-warnings
-+++ a/drivers/misc/acer-wmi.c
-@@ -756,7 +756,7 @@ static struct led_classdev mail_led = {
- 	.brightness_set = mail_led_set,
- };
+diff -puN fs/gfs2/locking/dlm/lock_dlm.h~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/lock_dlm.h
+--- a/fs/gfs2/locking/dlm/lock_dlm.h~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/lock_dlm.h
+@@ -183,5 +183,10 @@ int gdlm_plock_get(void *, struct lm_loc
+ 		struct file_lock *);
+ int gdlm_punlock(void *, struct lm_lockname *, struct file *,
+ 		struct file_lock *);
++
++/* mount.c */
++
++extern const struct lm_lockops gdlm_ops;
++
+ #endif
  
--static int __init acer_led_init(struct device *dev)
-+static int __devinit acer_led_init(struct device *dev)
+diff -puN fs/gfs2/locking/dlm/main.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/main.c
+--- a/fs/gfs2/locking/dlm/main.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/main.c
+@@ -11,8 +11,6 @@
+ 
+ #include "lock_dlm.h"
+ 
+-extern struct lm_lockops gdlm_ops;
+-
+ static int __init init_lock_dlm(void)
  {
- 	return led_classdev_register(dev, &mail_led);
- }
-@@ -789,7 +789,7 @@ static struct backlight_ops acer_bl_ops 
- 	.update_status = update_bl_status,
- };
+ 	int error;
+diff -puN fs/gfs2/locking/dlm/sysfs.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops fs/gfs2/locking/dlm/sysfs.c
+--- a/fs/gfs2/locking/dlm/sysfs.c~proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops
++++ a/fs/gfs2/locking/dlm/sysfs.c
+@@ -12,8 +12,6 @@
  
--static int __init acer_backlight_init(struct device *dev)
-+static int __devinit acer_backlight_init(struct device *dev)
+ #include "lock_dlm.h"
+ 
+-extern struct lm_lockops gdlm_ops;
+-
+ static ssize_t proto_name_show(struct gdlm_ls *ls, char *buf)
  {
- 	struct backlight_device *bd;
- 
-@@ -808,7 +808,7 @@ static int __init acer_backlight_init(st
- 	return 0;
- }
- 
--static void __exit acer_backlight_exit(void)
-+static void acer_backlight_exit(void)
- {
- 	backlight_device_unregister(acer_backlight_device);
- }
+ 	return sprintf(buf, "%s\n", gdlm_ops.lm_proto_name);
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-samples-build-fix.patch
+sparc-fix-build.patch
 git-acpi.patch
-git-alsa.patch
-cpufreq-fix-section-mismatch-warnings.patch
-drivers-base-cpu-fix-section-mismatch-in-cpucstore_online.patch
-m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch
-pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
-pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
-pcmcia-annotate-cb_alloc-with-__ref.patch
-pci-fix-section-mismatch-warning-in-pci_scan_child_bus.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-solve-section-mismatch-for-free_area_init_core.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-tpm-fix-section-mismatch-warning.patch
-serial-silence-section-mismatch-warnings-in-8250_pci.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+git-net.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+if-0-ses_match_host.patch
+remove-ps2esdi.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
