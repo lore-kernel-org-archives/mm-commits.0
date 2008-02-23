@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + specialix-prepare-for-bkl-pushdown.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:31 -0800
-Message-ID: <200802230737.m1N7bK4B018506@imap1.linux-foundation.org>
+Subject: + amiserial-prepare-for-locking-relaxation-in-caller.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:08 -0800
+Message-ID: <200802230736.m1N7avTn018464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38191 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756580AbYBWHyx (ORCPT
+	by vger.kernel.org with ESMTP id S1756280AbYBWHyx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Feb 2008 02:54:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     specialix: Prepare for BKL pushdown
+     amiserial: prepare for locking relaxation in caller
 has been added to the -mm tree.  Its filename is
-     specialix-prepare-for-bkl-pushdown.patch
+     amiserial-prepare-for-locking-relaxation-in-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,115 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: specialix: Prepare for BKL pushdown
+Subject: amiserial: prepare for locking relaxation in caller
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Lock the ioctl handlers and remove bogus softcar handling.
+Just wrap this one in a lock_kernel. As I understand it there is no M68K
+SMP anyway.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/specialix.c |   46 ++++---------------------------------
- 1 file changed, 6 insertions(+), 40 deletions(-)
+ drivers/char/amiserial.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/specialix.c~specialix-prepare-for-bkl-pushdown drivers/char/specialix.c
---- a/drivers/char/specialix.c~specialix-prepare-for-bkl-pushdown
-+++ a/drivers/char/specialix.c
-@@ -1924,29 +1924,13 @@ static inline int sx_set_serial_info(str
- 	int change_speed;
- 
- 	func_enter();
--	/*
--	if (!access_ok(VERIFY_READ, (void *) newinfo, sizeof(tmp))) {
--		func_exit();
--		return -EFAULT;
--	}
--	*/
-+
- 	if (copy_from_user(&tmp, newinfo, sizeof(tmp))) {
- 		func_enter();
+diff -puN drivers/char/amiserial.c~amiserial-prepare-for-locking-relaxation-in-caller drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-prepare-for-locking-relaxation-in-caller
++++ a/drivers/char/amiserial.c
+@@ -1074,6 +1074,7 @@ static int get_serial_info(struct async_
+ 	if (!retinfo)
  		return -EFAULT;
- 	}
- 
--#if 0
--	if ((tmp.irq != bp->irq) ||
--	    (tmp.port != bp->base) ||
--	    (tmp.type != PORT_CIRRUS) ||
--	    (tmp.baud_base != (SX_OSCFREQ + CD186x_TPC/2) / CD186x_TPC) ||
--	    (tmp.custom_divisor != 0) ||
--	    (tmp.xmit_fifo_size != CD186x_NFIFO) ||
--	    (tmp.flags & ~SPECIALIX_LEGAL_FLAGS)) {
--		func_exit();
--		return -EINVAL;
--	}
--#endif
-+	lock_kernel();
- 
- 	change_speed = ((port->flags & ASYNC_SPD_MASK) !=
- 			(tmp.flags & ASYNC_SPD_MASK));
-@@ -1958,6 +1942,7 @@ static inline int sx_set_serial_info(str
- 		    ((tmp.flags & ~ASYNC_USR_MASK) !=
- 		     (port->flags & ~ASYNC_USR_MASK))) {
- 			func_exit();
-+			unlock_kernel();
- 			return -EPERM;
- 		}
- 		port->flags = ((port->flags & ~ASYNC_USR_MASK) |
-@@ -1974,6 +1959,7 @@ static inline int sx_set_serial_info(str
- 		sx_change_speed(bp, port);
- 	}
- 	func_exit();
-+	unlock_kernel();
- 	return 0;
- }
- 
-@@ -1986,12 +1972,8 @@ static inline int sx_get_serial_info(str
- 
- 	func_enter();
- 
--	/*
--	if (!access_ok(VERIFY_WRITE, (void *) retinfo, sizeof(tmp)))
--		return -EFAULT;
--	*/
--
  	memset(&tmp, 0, sizeof(tmp));
 +	lock_kernel();
- 	tmp.type = PORT_CIRRUS;
- 	tmp.line = port - sx_port;
- 	tmp.port = bp->base;
-@@ -2002,6 +1984,7 @@ static inline int sx_get_serial_info(str
- 	tmp.closing_wait = port->closing_wait * HZ/100;
- 	tmp.custom_divisor =  port->custom_divisor;
- 	tmp.xmit_fifo_size = CD186x_NFIFO;
+ 	tmp.type = state->type;
+ 	tmp.line = state->line;
+ 	tmp.port = state->port;
+@@ -1084,6 +1085,7 @@ static int get_serial_info(struct async_
+ 	tmp.close_delay = state->close_delay;
+ 	tmp.closing_wait = state->closing_wait;
+ 	tmp.custom_divisor = state->custom_divisor;
 +	unlock_kernel();
- 	if (copy_to_user(retinfo, &tmp, sizeof(tmp))) {
- 		func_exit();
+ 	if (copy_to_user(retinfo,&tmp,sizeof(*retinfo)))
  		return -EFAULT;
-@@ -2047,23 +2030,6 @@ static int sx_ioctl(struct tty_struct * 
- 		sx_send_break(port, arg ? arg*(HZ/10) : HZ/4);
- 		func_exit();
- 		return 0;
--	 case TIOCGSOFTCAR:
--		 if (put_user(C_CLOCAL(tty)?1:0, (unsigned long __user *)argp)) {
--			 func_exit();
--			 return -EFAULT;
--		 }
--		 func_exit();
--		return 0;
--	 case TIOCSSOFTCAR:
--		 if (get_user(arg, (unsigned long __user *) argp)) {
--			 func_exit();
--			 return -EFAULT;
--		 }
--		tty->termios->c_cflag =
--			((tty->termios->c_cflag & ~CLOCAL) |
--			(arg ? CLOCAL : 0));
--		func_exit();
--		return 0;
- 	 case TIOCGSERIAL:
- 		 func_exit();
- 		return sx_get_serial_info(port, argp);
+ 	return 0;
+@@ -1099,13 +1101,17 @@ static int set_serial_info(struct async_
+ 
+ 	if (copy_from_user(&new_serial,new_info,sizeof(new_serial)))
+ 		return -EFAULT;
++
++	lock_kernel();
+ 	state = info->state;
+ 	old_state = *state;
+   
+ 	change_irq = new_serial.irq != state->irq;
+ 	change_port = (new_serial.port != state->port);
+-	if(change_irq || change_port || (new_serial.xmit_fifo_size != state->xmit_fifo_size))
++	if(change_irq || change_port || (new_serial.xmit_fifo_size != state->xmit_fifo_size)) {
++	  unlock_kernel();
+ 	  return -EINVAL;
++	}
+   
+ 	if (!serial_isroot()) {
+ 		if ((new_serial.baud_base != state->baud_base) ||
+@@ -1122,8 +1128,10 @@ static int set_serial_info(struct async_
+ 		goto check_and_exit;
+ 	}
+ 
+-	if (new_serial.baud_base < 9600)
++	if (new_serial.baud_base < 9600) {
++		unlock_kernel();
+ 		return -EINVAL;
++	}
+ 
+ 	/*
+ 	 * OK, past this point, all the error checking has been done.
+@@ -1157,6 +1165,7 @@ check_and_exit:
+ 		}
+ 	} else
+ 		retval = startup(info);
++	unlock_kernel();
+ 	return retval;
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
