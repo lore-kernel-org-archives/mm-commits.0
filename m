@@ -1,89 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:21:42 -0800
-Message-ID: <200802232021.m1NKLgG6013362@imap1.linux-foundation.org>
+Subject: - acpi-sparse-fix-replace-macro-with-static-function.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:21:31 -0800
+Message-ID: <200802232021.m1NKLVRT013341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59493 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760148AbYBWUVt (ORCPT
+	by vger.kernel.org with ESMTP id S1760101AbYBWUVq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:21:49 -0500
+	Sat, 23 Feb 2008 15:21:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab: slabinfo: fall back from /sys/kernel/slab to /sys/slab
+     acpi: sparse fix, replace macro with static function
 has been removed from the -mm tree.  Its filename was
-     gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab.patch
+     acpi-sparse-fix-replace-macro-with-static-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab: slabinfo: fall back from /sys/kernel/slab to /sys/slab
-From: Christoph Lameter <clameter@sgi.com>
+Subject: acpi: sparse fix, replace macro with static function
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-I keep running upstream and mm kernels and the location of the slab
-directory is different since upstream still uses /sys/slab.  This patch
-makes slabinfo check /sys/slab if /sys/kernel/slab is not there.  Makes
-slabinfo work on any kernel.
+replace acpi_util_eval_error macro with static function.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Greg KH <greg@kroah.com>
+Avoid these sparse warnings due to using buffer within the macro.
+drivers/acpi/utils.c:273:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:259:21: originally declared here
+drivers/acpi/utils.c:279:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:259:21: originally declared here
+drivers/acpi/utils.c:368:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:375:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:382:3: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+drivers/acpi/utils.c:402:4: warning: symbol 'buffer' shadows an earlier one
+drivers/acpi/utils.c:348:21: originally declared here
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slabinfo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/utils.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/vm/slabinfo.c~gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab Documentation/vm/slabinfo.c
---- a/Documentation/vm/slabinfo.c~gregkh-driver-kset-move-sys-slab-to-sys-kernel-slab-slabinfo-fallback-from-sys-kernel-slab-to-sys-slab
-+++ a/Documentation/vm/slabinfo.c
-@@ -1123,7 +1123,7 @@ void read_slab_dir(void)
- 	char *t;
- 	int count;
- 
--	if (chdir("/sys/kernel/slab"))
-+	if (chdir("/sys/kernel/slab") && chdir("/sys/slab"))
- 		fatal("SYSFS support for SLUB not active\n");
- 
- 	dir = opendir(".");
+diff -puN drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function drivers/acpi/utils.c
+--- a/drivers/acpi/utils.c~acpi-sparse-fix-replace-macro-with-static-function
++++ a/drivers/acpi/utils.c
+@@ -36,16 +36,20 @@ ACPI_MODULE_NAME("utils");
+ /* --------------------------------------------------------------------------
+                             Object Evaluation Helpers
+    -------------------------------------------------------------------------- */
++static void
++acpi_util_eval_error(acpi_handle h, acpi_string p, acpi_status s)
++{
+ #ifdef ACPI_DEBUG_OUTPUT
+-#define acpi_util_eval_error(h,p,s) {\
+-	char prefix[80] = {'\0'};\
+-	struct acpi_buffer buffer = {sizeof(prefix), prefix};\
+-	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);\
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",\
+-		(char *) prefix, p, acpi_format_exception(s))); }
++	char prefix[80] = {'\0'};
++	struct acpi_buffer buffer = {sizeof(prefix), prefix};
++	acpi_get_name(h, ACPI_FULL_PATHNAME, &buffer);
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluate [%s.%s]: %s\n",
++		(char *) prefix, p, acpi_format_exception(s)));
+ #else
+-#define acpi_util_eval_error(h,p,s)
++	return;
+ #endif
++}
++
+ acpi_status
+ acpi_extract_package(union acpi_object *package,
+ 		     struct acpi_buffer *format, struct acpi_buffer *buffer)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-define-functions-for-page-cache-handling.patch
-nommu-is_vmalloc_addr-wont-compile-if-mmu.patch
-cpuset-trivial-documentation-fix-s-n_memory-n_high_memory.patch
-use-page_cache_xxx-in-fs-splicec.patch
-git-unionfs.patch
-use-page_cache_xxx-for-fs-xfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-use-page_cache_xxx-functions-in-mm-filemapc.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
-use-page_cache_xxx-in-mm-rmapc.patch
-use-page_cache_xxx-in-mm-filemap_xipc.patch
-use-page_cache_xxx-in-mm-migratec.patch
-use-page_cache_xxx-in-fs-libfsc.patch
-use-page_cache_xxx-in-fs-sync.patch
-use-page_cache_xxx-in-fs-bufferc.patch
-use-page_cache_xxx-in-mm-mpagec.patch
-use-page_cache_xxx-in-mm-fadvisec.patch
-use-page_cache_xxx-in-ext2.patch
-use-page_cache_xxx-in-fs-ext3.patch
-use-page_cache_xxx-in-fs-reiserfs.patch
-use-page_cache_xxx-in-fs-ext4.patch
-generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
-x86_64-fold-pda-into-per-cpu-area-v3.patch
-x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+markers-fix-sparse-warnings-in-markersc.patch
+bttv-struct-member-initialized-twice.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+git-nfsd.patch
+git-sched.patch
+git-scsi-rc-fixes.patch
+git-x86.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
