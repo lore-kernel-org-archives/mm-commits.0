@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markers-fix-sparse-warnings-in-markersc.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:28:30 -0800
-Message-ID: <200802230729.m1N7TJBe017892@imap1.linux-foundation.org>
+Subject: + maintainers-ioatdma-dmaengine-and-async_tx-maintainers-change.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:28:44 -0800
+Message-ID: <200802230729.m1N7TXrP017907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55527 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752102AbYBWH3c (ORCPT
+	by vger.kernel.org with ESMTP id S1752136AbYBWH3g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:29:32 -0500
+	Sat, 23 Feb 2008 02:29:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, mathieu.desnoyers@polymtl.ca
+Cc: maciej.sosnowski@intel.com, dan.j.williams@intel.com, shannon.nelson@intel.com
 
 
 The patch titled
-     markers: fix sparse warnings in markers.c
+     MAINTAINERS: ioatdma, dmaengine and async_tx maintainers change
 has been added to the -mm tree.  Its filename is
-     markers-fix-sparse-warnings-in-markersc.patch
+     maintainers-ioatdma-dmaengine-and-async_tx-maintainers-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: fix sparse warnings in markers.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: MAINTAINERS: ioatdma, dmaengine and async_tx maintainers change
+From: Maciej Sosnowski <maciej.sosnowski@intel.com>
 
-char can be unsigned
-kernel/marker.c:64:20: error: dubious one-bit signed bitfield
-kernel/marker.c:65:14: error: dubious one-bit signed bitfield
+Shannon Nelson replaced by Maciej Sosnowski in maintanance of INTEL I/OAT
+DMA DRIVER, DMA GENERIC ENGINE SUBSYSTEM and ASYNCHRONOUS
+TRANSFERS/TRANSFORMS API.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Maciej Sosnowski <maciej.sosnowski@intel.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/marker.c~markers-fix-sparse-warnings-in-markersc kernel/marker.c
---- a/kernel/marker.c~markers-fix-sparse-warnings-in-markersc
-+++ a/kernel/marker.c
-@@ -61,8 +61,8 @@ struct marker_entry {
- 	int refcount;	/* Number of times armed. 0 if disarmed. */
- 	struct rcu_head rcu;
- 	void *oldptr;
--	char rcu_pending:1;
--	char ptype:1;
-+	unsigned char rcu_pending:1;
-+	unsigned char ptype:1;
- 	char name[0];	/* Contains name'\0'format'\0' */
- };
+diff -puN MAINTAINERS~maintainers-ioatdma-dmaengine-and-async_tx-maintainers-change MAINTAINERS
+--- a/MAINTAINERS~maintainers-ioatdma-dmaengine-and-async_tx-maintainers-change
++++ a/MAINTAINERS
+@@ -640,8 +640,8 @@ S:	Maintained
+ ASYNCHRONOUS TRANSFERS/TRANSFORMS API
+ P:	Dan Williams
+ M:	dan.j.williams@intel.com
+-P:	Shannon Nelson
+-M:	shannon.nelson@intel.com
++P:	Maciej Sosnowski
++M:	maciej.sosnowski@intel.com
+ L:	linux-kernel@vger.kernel.org
+ W:	http://sourceforge.net/projects/xscaleiop
+ S:	Supported
+@@ -1335,8 +1335,8 @@ L:	netdev@vger.kernel.org
+ S:	Maintained
+ 
+ DMA GENERIC OFFLOAD ENGINE SUBSYSTEM
+-P:	Shannon Nelson
+-M:	shannon.nelson@intel.com
++P:	Maciej Sosnowski
++M:	maciej.sosnowski@intel.com
+ P:	Dan Williams
+ M:	dan.j.williams@intel.com
+ L:	linux-kernel@vger.kernel.org
+@@ -2014,8 +2014,8 @@ M:	tigran@aivazian.fsnet.co.uk
+ S:	Maintained
+ 
+ INTEL I/OAT DMA DRIVER
+-P:	Shannon Nelson
+-M:	shannon.nelson@intel.com
++P:	Maciej Sosnowski
++M:	maciej.sosnowski@intel.com
+ L:	linux-kernel@vger.kernel.org
+ S:	Supported
  
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from maciej.sosnowski@intel.com are
 
-origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+maintainers-ioatdma-dmaengine-and-async_tx-maintainers-change.patch
