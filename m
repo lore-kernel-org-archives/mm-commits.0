@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-call-wake_up_process-without-the-lock-being-held.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:02 -0800
-Message-ID: <200802230733.m1N7Xp3P018256@imap1.linux-foundation.org>
+Subject: + ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:17 -0800
+Message-ID: <200802230733.m1N7X6je018190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54162 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763754AbYBWIFe (ORCPT
+	by vger.kernel.org with ESMTP id S1763717AbYBWIFf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:05:34 -0500
+	Sat, 23 Feb 2008 03:05:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au
+Cc: bunk@kernel.org, jarkao2@gmail.com, linville@tuxdriver.com, tomas.winkler@intel.com
 
 
 The patch titled
-     kthread: call wake_up_process() without the lock being held
+     ieee80211: fix broken error handling in ieee80211_sta_process_addba_request()
 has been added to the -mm tree.  Its filename is
-     kthread-call-wake_up_process-without-the-lock-being-held.patch
+     ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: call wake_up_process() without the lock being held
-From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Subject: ieee80211: fix broken error handling in ieee80211_sta_process_addba_request()
+From: Adrian Bunk <bunk@kernel.org>
 
-- from the POV of synchronization, there should be no need to call
-  wake_up_process() with the 'kthread_create_lock' being held;
+The Coverity checker spotted this buggy error handling added by
+commit 07db218396650933abff3c5c1ad1e2a6e0cfedeb.
 
-- moreover, in order to support a lockless check for
-  list_empty(&kthread_create_list) in kthreadd() :
-
- 	set_current_state(TASK_INTERRUPTIBLE);
-    	if (list_empty(&kthread_create_list))
-    		schedule();
-
-we must ensure that a modification of the list (i.e.  list_add_tail()) has
-been completed by the moment a state of the task is checked in
-try_to_wake_up().  i.e.  they must not be re-ordered.
-
-wake_up_process() (i.e.  try_to_wake_up() effectively) doesn't provide a full
-mb.  By moving wake_up_process() out of the locked section, we get an
-UNLOCK/LOCK pair (LOCK is in try_to_wake_up()) which is guaranteed to act as a
-full mb.
-
-Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: "Tomas Winkler" <tomas.winkler@intel.com>
+Cc: "Jarek Poplawski" <jarkao2@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/mac80211/ieee80211_sta.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held kernel/kthread.c
---- a/kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held
-+++ a/kernel/kthread.c
-@@ -158,9 +158,9 @@ struct task_struct *kthread_create(int (
- 
- 	spin_lock(&kthread_create_lock);
- 	list_add_tail(&create.list, &kthread_create_list);
--	wake_up_process(kthreadd_task);
- 	spin_unlock(&kthread_create_lock);
- 
-+	wake_up_process(kthreadd_task);
- 	wait_for_completion(&create.done);
- 
- 	if (!IS_ERR(create.result)) {
+diff -puN net/mac80211/ieee80211_sta.c~ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request net/mac80211/ieee80211_sta.c
+--- a/net/mac80211/ieee80211_sta.c~ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request
++++ a/net/mac80211/ieee80211_sta.c
+@@ -1116,9 +1116,10 @@ static void ieee80211_sta_process_addba_
+ 	/* prepare reordering buffer */
+ 	tid_agg_rx->reorder_buf =
+ 		kmalloc(buf_size * sizeof(struct sk_buf *), GFP_ATOMIC);
+-	if ((!tid_agg_rx->reorder_buf) && net_ratelimit()) {
+-		printk(KERN_ERR "can not allocate reordering buffer "
+-						"to tid %d\n", tid);
++	if (!tid_agg_rx->reorder_buf) {
++		if (net_ratelimit())
++			printk(KERN_ERR "cannot allocate reordering buffer "
++							"to tid %d\n", tid);
+ 		goto end;
+ 	}
+ 	memset(tid_agg_rx->reorder_buf, 0,
 _
 
-Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-kthread-synchronization-issues.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
+sparc-fix-build.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
+git-kbuild.patch
+mips-fix-sni_rm-eisa=n-compilation.patch
+mips-finish-the-qemu-platform-removal.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+git-xtensa.patch
+message-fusion-mptbasec-fix-use-after-frees.patch
+ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
+dm-raid1c-fix-null-dereferences.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
