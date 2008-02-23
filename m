@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + io_ti-lock-mcr-and-msr-shadows-properly.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:59 -0800
-Message-ID: <200802230731.m1N7VmQm018031@imap1.linux-foundation.org>
+Subject: + ftdi_sio-note-missing-locking.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:54 -0800
+Message-ID: <200802230731.m1N7VhUB018025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36564 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754935AbYBWHyq (ORCPT
+	by vger.kernel.org with ESMTP id S1754373AbYBWHyv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:46 -0500
+	Sat, 23 Feb 2008 02:54:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     io_ti: lock mcr and msr shadows properly
+     ftdi_sio: Note missing locking
 has been added to the -mm tree.  Its filename is
-     io_ti-lock-mcr-and-msr-shadows-properly.patch
+     ftdi_sio-note-missing-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: io_ti: lock mcr and msr shadows properly
+Subject: ftdi_sio: Note missing locking
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+The ftdi_sio driver has no internal locking on the dtr/rts state. Flag
+that up for someone to fix.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/usb/serial/ftdi_sio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly
-+++ a/drivers/usb/serial/io_ti.c
-@@ -2560,9 +2560,11 @@ static int edge_tiocmset (struct usb_ser
- {
- 	struct edgeport_port *edge_port = usb_get_serial_port_data(port);
- 	unsigned int mcr;
-+	unsigned long flags;
+diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking
++++ a/drivers/usb/serial/ftdi_sio.c
+@@ -524,9 +524,8 @@ static int update_mctrl(struct usb_seria
+ 	}
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 	buf = kmalloc(1, GFP_NOIO);
+-	if (!buf) {
++	if (!buf)
+ 		return -ENOMEM;
+-	}
  
-+	spin_lock_irqsave(&edge_port->ep_lock, flags);
- 	mcr = edge_port->shadow_mcr;
- 	if (set & TIOCM_RTS)
- 		mcr |= MCR_RTS;
-@@ -2579,6 +2581,7 @@ static int edge_tiocmset (struct usb_ser
- 		mcr &= ~MCR_LOOPBACK;
- 
- 	edge_port->shadow_mcr = mcr;
-+	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
- 
- 	TIRestoreMCR (edge_port, mcr);
- 
-@@ -2591,9 +2594,12 @@ static int edge_tiocmget(struct usb_seri
- 	unsigned int result = 0;
- 	unsigned int msr;
- 	unsigned int mcr;
-+	unsigned long flags;
- 
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
-+	spin_lock_irqsave(&edge_port->ep_lock, flags);
-+
- 	msr = edge_port->shadow_msr;
- 	mcr = edge_port->shadow_mcr;
- 	result = ((mcr & MCR_DTR)	? TIOCM_DTR: 0)	  /* 0x002 */
-@@ -2605,6 +2611,7 @@ static int edge_tiocmget(struct usb_seri
- 
- 
- 	dbg("%s -- %x", __FUNCTION__, result);
-+	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
- 
- 	return result;
- }
+ 	clear &= ~set;	/* 'set' takes precedence over 'clear' */
+ 	urb_value = 0;
+@@ -559,6 +558,7 @@ static int update_mctrl(struct usb_seria
+ 				(clear & TIOCM_DTR) ? "LOW" : "unchanged",
+ 				(set & TIOCM_RTS) ? "HIGH" :
+ 				(clear & TIOCM_RTS) ? "LOW" : "unchanged");
++		/* FIXME: locking on last_dtr_rts */
+ 		priv->last_dtr_rts = (priv->last_dtr_rts & ~clear) | set;
+ 	}
+ 	return rv;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
