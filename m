@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + simplify-initcall_debug-output.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:40 -0800
-Message-ID: <200802230734.m1N7YTD8018292@imap1.linux-foundation.org>
+Subject: + kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:03 -0800
+Message-ID: <200802230732.m1N7Wq7A018103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53364 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751722AbYBWHx6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752040AbYBWHyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:53:58 -0500
+	Sat, 23 Feb 2008 02:54:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com
+Cc: srinivasa@in.ibm.com, ananth@in.ibm.com
 
 
 The patch titled
-     Simplify initcall_debug output
+     kprobes: refuse kprobe insertion on add/sub_preempt_counter()
 has been added to the -mm tree.  Its filename is
-     simplify-initcall_debug-output.patch
+     kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Simplify initcall_debug output
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: kprobes: refuse kprobe insertion on add/sub_preempt_counter()
+From: Srinivasa Ds <srinivasa@in.ibm.com>
 
-print_fn_descriptor_symbol() prints the address if we don't have a symbol, so
-no need to print both.
+Kprobes makes use of preempt_disable(),preempt_enable_noresched() and these
+functions inturn call add/sub_preempt_count().  So we need to refuse user from
+inserting probe in to these functions.
 
-Also, combine printing return value with elapsed time.  Changes this:
+This patch disallows user from probing add/sub_preempt_count().
 
-  Calling initcall 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50()
-  initcall 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50() returned 1.
-  initcall 0xc05b7a70 ran for 0 msecs: pci_mmcfg_late_insert_resources+0x0/0x50()
-  initcall at 0xc05b7a70: pci_mmcfg_late_insert_resources+0x0/0x50(): returned with error code 1
-
-to this:
-
-  calling  pci_mmcfg_late_insert_resources+0x0/0x50()
-  initcall pci_mmcfg_late_insert_resources+0x0/0x50() returned 1 after 0 msecs
-  initcall pci_mmcfg_late_insert_resources+0x0/0x50() returned with error code 1
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ kernel/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~simplify-initcall_debug-output init/main.c
---- a/init/main.c~simplify-initcall_debug-output
-+++ a/init/main.c
-@@ -680,10 +680,8 @@ static void __init do_initcalls(void)
- 		int result;
+diff -puN kernel/sched.c~kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter kernel/sched.c
+--- a/kernel/sched.c~kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter
++++ a/kernel/sched.c
+@@ -3875,7 +3875,7 @@ static inline unsigned long get_parent_i
+ 	return addr;
+ }
  
- 		if (initcall_debug) {
--			printk("Calling initcall 0x%p", *call);
--			print_fn_descriptor_symbol(": %s()",
-+			print_fn_descriptor_symbol("calling  %s()\n",
- 					(unsigned long) *call);
--			printk("\n");
- 			t0 = ktime_get();
- 		}
+-void add_preempt_count(int val)
++void __kprobes add_preempt_count(int val)
+ {
+ #ifdef CONFIG_DEBUG_PREEMPT
+ 	/*
+@@ -3897,7 +3897,7 @@ void add_preempt_count(int val)
+ }
+ EXPORT_SYMBOL(add_preempt_count);
  
-@@ -693,15 +691,10 @@ static void __init do_initcalls(void)
- 			t1 = ktime_get();
- 			delta = ktime_sub(t1, t0);
- 
--			printk("initcall 0x%p", *call);
--			print_fn_descriptor_symbol(": %s()",
-+			print_fn_descriptor_symbol("initcall %s()",
- 					(unsigned long) *call);
--			printk(" returned %d.\n", result);
--
--			printk("initcall 0x%p ran for %Ld msecs: ",
--				*call, (unsigned long long)delta.tv64 >> 20);
--			print_fn_descriptor_symbol("%s()\n",
--				(unsigned long) *call);
-+			printk(" returned %d after %Ld msecs\n", result,
-+				(unsigned long long) delta.tv64 >> 20);
- 		}
- 
- 		if (result && result != -ENODEV && initcall_debug) {
-@@ -717,10 +710,9 @@ static void __init do_initcalls(void)
- 			local_irq_enable();
- 		}
- 		if (msg) {
--			printk(KERN_WARNING "initcall at 0x%p", *call);
--			print_fn_descriptor_symbol(": %s()",
-+			print_fn_descriptor_symbol(KERN_WARNING "initcall %s()",
- 					(unsigned long) *call);
--			printk(": returned with %s\n", msg);
-+			printk(" returned with %s\n", msg);
- 		}
- 	}
- 
+-void sub_preempt_count(int val)
++void __kprobes sub_preempt_count(int val)
+ {
+ #ifdef CONFIG_DEBUG_PREEMPT
+ 	/*
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from srinivasa@in.ibm.com are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-pci-simplify-quirk-debug-output.patch
-pci-remove-pci=routeirq-noise-from-dmesg.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
+kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter.patch
