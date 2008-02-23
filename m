@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:57 -0800
-Message-ID: <200802230731.m1N7VkeN018028@imap1.linux-foundation.org>
+Subject: + crisv10-prepare-for-bkl-push-down.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:15 -0800
+Message-ID: <200802230734.m1N7Y4Qf018271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37099 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753550AbYBWHz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751393AbYBWH43 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:55:58 -0500
+	Sat, 23 Feb 2008 02:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikael.starvik@axis.com
 
 
 The patch titled
-     usb serial: Note mos7480 and option don't lock modem status
+     crisv10: prepare for BKL push down
 has been added to the -mm tree.  Its filename is
-     usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
+     crisv10-prepare-for-bkl-push-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb serial: Note mos7480 and option don't lock modem status
+Subject: crisv10: prepare for BKL push down
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Just the modem bits this time
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mos7840.c |    1 +
- drivers/usb/serial/option.c  |    1 +
- 2 files changed, 2 insertions(+)
+ drivers/serial/crisv10.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/mos7840.c
---- a/drivers/usb/serial/mos7840.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
-+++ a/drivers/usb/serial/mos7840.c
-@@ -1709,6 +1709,7 @@ static int mos7840_tiocmset(struct usb_s
- 	if (mos7840_port == NULL)
- 		return -ENODEV;
+diff -puN drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down drivers/serial/crisv10.c
+--- a/drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down
++++ a/drivers/serial/crisv10.c
+@@ -3582,6 +3582,8 @@ rs_tiocmset(struct tty_struct *tty, stru
+ {
+ 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
  
-+	/* FIXME: What locks the port registers ? */
- 	mcr = mos7840_port->shadowMCR;
++	lock_kernel();
++
  	if (clear & TIOCM_RTS)
- 		mcr &= ~MCR_RTS;
-diff -puN drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-serial-note-mos7480-and-option-dont-lock-modem-status
-+++ a/drivers/usb/serial/option.c
-@@ -347,6 +347,7 @@ static int option_tiocmset(struct usb_se
+ 		e100_rts(info, 0);
+ 	if (clear & TIOCM_DTR)
+@@ -3601,6 +3603,8 @@ rs_tiocmset(struct tty_struct *tty, stru
+ 		e100_ri_out(info, 1);
+ 	if (set & TIOCM_CD)
+ 		e100_cd_out(info, 1);
++
++	unlock_kernel();
+ 	return 0;
+ }
  
- 	portdata = usb_get_serial_port_data(port);
+@@ -3610,6 +3614,7 @@ rs_tiocmget(struct tty_struct *tty, stru
+ 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
+ 	unsigned int result;
  
-+	/* FIXME: what locks portdata fields ? */
- 	if (set & TIOCM_RTS)
- 		portdata->rts_state = 1;
- 	if (set & TIOCM_DTR)
++	lock_kernel();
+ 	result =
+ 		(!E100_RTS_GET(info) ? TIOCM_RTS : 0)
+ 		| (!E100_DTR_GET(info) ? TIOCM_DTR : 0)
+@@ -3618,6 +3623,8 @@ rs_tiocmget(struct tty_struct *tty, stru
+ 		| (!E100_CD_GET(info) ? TIOCM_CAR : 0)
+ 		| (!E100_CTS_GET(info) ? TIOCM_CTS : 0);
+ 
++	unlock_kernel();
++
+ #ifdef SERIAL_DEBUG_IO
+ 	printk(KERN_DEBUG "ser%i: modem state: %i 0x%08X\n",
+ 		info->line, result, result);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
