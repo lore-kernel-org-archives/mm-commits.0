@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ext2-use-bug_on.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:04 -0800
-Message-ID: <200802230735.m1N7Zrml018384@imap1.linux-foundation.org>
+Subject: + fs-ocfs2-use-bug_on.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:22 -0800
+Message-ID: <200802230731.m1N7VBoa017987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43455 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751278AbYBWHwb (ORCPT
+	by vger.kernel.org with ESMTP id S1751301AbYBWHxH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:52:31 -0500
+	Sat, 23 Feb 2008 02:53:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: julia@diku.dk
 
 
 The patch titled
-     fs/ext2: use BUG_ON
+     fs/ocfs2: Use BUG_ON
 has been added to the -mm tree.  Its filename is
-     fs-ext2-use-bug_on.patch
+     fs-ocfs2-use-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ext2: use BUG_ON
+Subject: fs/ocfs2: Use BUG_ON
 From: Julia Lawall <julia@diku.dk>
 
 if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
@@ -67,36 +67,35 @@ Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |    3 +--
- fs/ext2/dir.c    |    4 ++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ fs/ocfs2/alloc.c   |    3 +--
+ fs/ocfs2/journal.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext2/balloc.c~fs-ext2-use-bug_on fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~fs-ext2-use-bug_on
-+++ a/fs/ext2/balloc.c
-@@ -245,8 +245,7 @@ restart:
- 		prev = rsv;
- 	}
- 	printk("Window map complete.\n");
--	if (bad)
+diff -puN fs/ocfs2/alloc.c~fs-ocfs2-use-bug_on fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~fs-ocfs2-use-bug_on
++++ a/fs/ocfs2/alloc.c
+@@ -1029,8 +1029,7 @@ static void ocfs2_rotate_leaf(struct ocf
+ 	BUG_ON(!next_free);
+ 
+ 	/* The tree code before us didn't allow enough room in the leaf. */
+-	if (el->l_next_free_rec == el->l_count && !has_empty)
 -		BUG();
-+	BUG_ON(bad);
- }
- #define rsv_window_dump(root, verbose) \
- 	__rsv_window_dump((root), (verbose), __FUNCTION__)
-diff -puN fs/ext2/dir.c~fs-ext2-use-bug_on fs/ext2/dir.c
---- a/fs/ext2/dir.c~fs-ext2-use-bug_on
-+++ a/fs/ext2/dir.c
-@@ -41,8 +41,8 @@ static inline __le16 ext2_rec_len_to_dis
- {
- 	if (len == (1 << 16))
- 		return cpu_to_le16(EXT2_MAX_REC_LEN);
--	else if (len > (1 << 16))
++	BUG_ON(el->l_next_free_rec == el->l_count && !has_empty);
+ 
+ 	/*
+ 	 * The easiest way to approach this is to just remove the
+diff -puN fs/ocfs2/journal.c~fs-ocfs2-use-bug_on fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~fs-ocfs2-use-bug_on
++++ a/fs/ocfs2/journal.c
+@@ -586,8 +586,7 @@ int ocfs2_journal_load(struct ocfs2_jour
+ 
+ 	mlog_entry_void();
+ 
+-	if (!journal)
 -		BUG();
-+	else
-+		BUG_ON(len > (1 << 16));
- 	return cpu_to_le16(len);
- }
++	BUG_ON(!journal);
+ 
+ 	osb = journal->j_osb;
  
 _
 
