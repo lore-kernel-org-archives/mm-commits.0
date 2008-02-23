@@ -1,120 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-path_put-unionfs.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:52 -0800
-Message-ID: <200802232022.m1NKMqN0013461@imap1.linux-foundation.org>
+Subject: - kill-warnings-in-mptbaseh-on-parisc64.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:37 -0800
+Message-ID: <200802232022.m1NKMbkD013440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33628 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762157AbYBWU2y (ORCPT
+	by vger.kernel.org with ESMTP id S1762074AbYBWU2t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:54 -0500
+	Sat, 23 Feb 2008 15:28:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, agruen@suse.de, hch@lst.de, mm-commits@vger.kernel.org
+To: kyle@mcmartin.ca, Eric.Moore@lsil.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce path_put() (unionfs)
+     kill warnings in mptbase.h on parisc64
 has been removed from the -mm tree.  Its filename was
-     introduce-path_put-unionfs.patch
+     kill-warnings-in-mptbaseh-on-parisc64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Introduce path_put() (unionfs)
-From: Jan Blunck <jblunck@suse.de>
+Subject: kill warnings in mptbase.h on parisc64
+From: Kyle McMartin <kyle@mcmartin.ca>
 
-* Add path_put() functions for releasing a reference to the dentry and
-  vfsmount of a struct path in the right order
+Verified all the arches necessary select the CONFIG_64BIT symbol.  This
+also kills the warning (since it was using the 32-bit case) on parisc64 and
+mips64.
 
-* Switch from path_release(nd) to path_put(&nd->path)
-
-* Rename dput_path() to path_put_conditional()
-
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Acked-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Kyle McMartin <kyle@mcmartin.ca>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/main.c  |    2 +-
- fs/unionfs/super.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/message/fusion/mptbase.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/unionfs/main.c~introduce-path_put-unionfs fs/unionfs/main.c
---- a/fs/unionfs/main.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/main.c
-@@ -372,7 +372,7 @@ static int parse_dirs_option(struct supe
- 		if (err) {
- 			printk(KERN_ERR "unionfs: lower directory "
- 			       "'%s' is not a valid branch\n", name);
--			path_release(&nd);
-+			path_put(&nd.path);
- 			goto out;
- 		}
+diff -puN drivers/message/fusion/mptbase.h~kill-warnings-in-mptbaseh-on-parisc64 drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~kill-warnings-in-mptbaseh-on-parisc64
++++ a/drivers/message/fusion/mptbase.h
+@@ -923,7 +923,7 @@ extern struct proc_dir_entry	*mpt_proc_r
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ #endif		/* } __KERNEL__ */
  
-diff -puN fs/unionfs/super.c~introduce-path_put-unionfs fs/unionfs/super.c
---- a/fs/unionfs/super.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/super.c
-@@ -216,7 +216,7 @@ static noinline int do_remount_mode_opti
- 		if (nd.mnt == new_lower_paths[idx].mnt &&
- 		    nd.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		err = -ENOENT;	/* err may have been reset above */
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
-@@ -259,7 +259,7 @@ static noinline int do_remount_del_optio
- 		if (nd.mnt == new_lower_paths[idx].mnt &&
- 		    nd.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -278,7 +278,7 @@ static noinline int do_remount_del_optio
- 	 * new_data and new_lower_paths one to the left.  Finally, adjust
- 	 * cur_branches.
- 	 */
--	pathput(&new_lower_paths[idx]);
-+	path_put(&new_lower_paths[idx]);
- 
- 	if (idx < cur_branches - 1) {
- 		/* if idx==cur_branches-1, we delete last branch: easy */
-@@ -343,7 +343,7 @@ static noinline int do_remount_add_optio
- 		if (nd.mnt == new_lower_paths[idx].mnt &&
- 		    nd.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -390,7 +390,7 @@ found_insertion_point:
- 	if (err) {
- 		printk(KERN_ERR "unionfs: lower directory "
- 		       "\"%s\" is not a valid branch\n", optarg);
--		path_release(&nd);
-+		path_put(&nd.path);
- 		goto out;
- 	}
- 
-@@ -794,7 +794,7 @@ out_release:
- 	/* no need to cleanup/release anything in tmp_data */
- 	if (tmp_lower_paths)
- 		for (i = 0; i < new_branches; i++)
--			pathput(&tmp_lower_paths[i]);
-+			path_put(&tmp_lower_paths[i]);
- out_free:
- 	kfree(tmp_lower_paths);
- 	kfree(tmp_data);
+-#if defined(__alpha__) || defined(__sparc_v9__) || defined(__ia64__) || defined(__x86_64__) || defined(__powerpc__)
++#ifdef CONFIG_64BIT
+ #define CAST_U32_TO_PTR(x)	((void *)(u64)x)
+ #define CAST_PTR_TO_U32(x)	((u32)(u64)x)
+ #else
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from kyle@mcmartin.ca are
 
-git-unionfs.patch
+git-drm.patch
+fix-uli526x-partially-recognizing-interface.patch
+update-tulip-maintainers.patch
+parisc-new-termios-definitions.patch
+git-scsi-rc-fixes.patch
+taint-kernel-after-warn_oncondition.patch
+asm-futexh-should-include-linux-uaccessh.patch
