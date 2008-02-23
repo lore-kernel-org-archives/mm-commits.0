@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-tty-speed-handling-on-8250.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:12 -0800
-Message-ID: <200802230735.m1N7Z1AT018325@imap1.linux-foundation.org>
+Subject: + serial167-prepare-to-push-bkl-down-into-drivers.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:29 -0800
+Message-ID: <200802230737.m1N7bIT9018503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52738 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754873AbYBWHyp (ORCPT
+	by vger.kernel.org with ESMTP id S1754372AbYBWHyq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:45 -0500
+	Sat, 23 Feb 2008 02:54:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     Fix tty speed handling on 8250
+     serial167: prepare to push BKL down into drivers
 has been added to the -mm tree.  Its filename is
-     fix-tty-speed-handling-on-8250.patch
+     serial167-prepare-to-push-bkl-down-into-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix tty speed handling on 8250
+Subject: serial167: prepare to push BKL down into drivers
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We try and write the correct speed back but the serial midlayer already
-mangles the speed on us and that means if we request B0 we report back B9600
-when we should not.  For now we'll hack around this in the drivers and serial
-code, pending a better long term solution.
+Kill the softcar handlers again, wrap the ioctl handler in the BKL
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/char/serial167.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN drivers/serial/8250.c~fix-tty-speed-handling-on-8250 drivers/serial/8250.c
---- a/drivers/serial/8250.c~fix-tty-speed-handling-on-8250
-+++ a/drivers/serial/8250.c
-@@ -2174,7 +2174,9 @@ serial8250_set_termios(struct uart_port 
- 	}
- 	serial8250_set_mctrl(&up->port, up->port.mctrl);
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	tty_termios_encode_baud_rate(termios, baud, baud);
-+	/* Don't rewrite B0 */
-+	if (tty_termios_baud_rate(termios))
-+		tty_termios_encode_baud_rate(termios, baud, baud);
- }
+diff -puN drivers/char/serial167.c~serial167-prepare-to-push-bkl-down-into-drivers drivers/char/serial167.c
+--- a/drivers/char/serial167.c~serial167-prepare-to-push-bkl-down-into-drivers
++++ a/drivers/char/serial167.c
+@@ -1539,6 +1539,8 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	printk("cy_ioctl %s, cmd = %x arg = %lx\n", tty->name, cmd, arg);	/* */
+ #endif
  
- static void
++	lock_kernel();
++
+ 	switch (cmd) {
+ 	case CYGETMON:
+ 		ret_val = get_mon_info(info, argp);
+@@ -1584,18 +1586,6 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 		break;
+ 
+ /* The following commands are incompletely implemented!!! */
+-	case TIOCGSOFTCAR:
+-		ret_val =
+-		    put_user(C_CLOCAL(tty) ? 1 : 0,
+-			     (unsigned long __user *)argp);
+-		break;
+-	case TIOCSSOFTCAR:
+-		ret_val = get_user(val, (unsigned long __user *)argp);
+-		if (ret_val)
+-			break;
+-		tty->termios->c_cflag =
+-		    ((tty->termios->c_cflag & ~CLOCAL) | (val ? CLOCAL : 0));
+-		break;
+ 	case TIOCGSERIAL:
+ 		ret_val = get_serial_info(info, argp);
+ 		break;
+@@ -1605,6 +1595,7 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	default:
+ 		ret_val = -ENOIOCTLCMD;
+ 	}
++	unlock_kernel();
+ 
+ #ifdef SERIAL_DEBUG_OTHER
+ 	printk("cy_ioctl done\n");
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
