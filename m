@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-handle-kcalloc-failure.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:13 -0800
-Message-ID: <200802230734.m1N7Y1m9018268@imap1.linux-foundation.org>
+Subject: + add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:31:33 -0800
+Message-ID: <200802230732.m1N7WMTa018076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58364 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756786AbYBWICx (ORCPT
+	by vger.kernel.org with ESMTP id S1757214AbYBWIDG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:02:53 -0500
+	Sat, 23 Feb 2008 03:03:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jim@meyering.net, ink@jurassic.park.msu.ru, meyering@redhat.com, rth@twiddle.net
+Cc: ckane@intellitree.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     alpha: handle kcalloc failure
+     Add the DFF (Desktop Form Factor) Dell Optiplex 745 to the reboot errata list
 has been added to the -mm tree.  Its filename is
-     alpha-handle-kcalloc-failure.patch
+     add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: handle kcalloc failure
-From: Jim Meyering <jim@meyering.net>
+Subject: Add the DFF (Desktop Form Factor) Dell Optiplex 745 to the reboot errata list
+From: Coleman Kane <ckane@intellitree.com>
 
-arch/alpha/kernel/module.c (module_frob_arch_sections): Handle kcalloc failure.
+We recently got some of the "Desktop Form Factor" Optiplex 745's in.  I
+noticed that there's an entry for the SFF one's, but the BIOS model number
+of the DFF differs from that of the SFF.  We have been reliably
+experiencing the same (as far as I can tell) reboot bug as the SFF boxes.
 
-Signed-off-by: Jim Meyering <meyering@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/module.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/x86/kernel/reboot.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN arch/alpha/kernel/module.c~alpha-handle-kcalloc-failure arch/alpha/kernel/module.c
---- a/arch/alpha/kernel/module.c~alpha-handle-kcalloc-failure
-+++ a/arch/alpha/kernel/module.c
-@@ -120,6 +120,12 @@ module_frob_arch_sections(Elf64_Ehdr *hd
- 
- 	nsyms = symtab->sh_size / sizeof(Elf64_Sym);
- 	chains = kcalloc(nsyms, sizeof(struct got_entry), GFP_KERNEL);
-+	if (!chains) {
-+		printk(KERN_ERR
-+		       "module %s: no memory for symbol chain buffer\n",
-+		       me->name);
-+		return -ENOMEM;
-+	}
- 
- 	got->sh_size = 0;
- 	got->sh_addralign = 8;
+diff -puN arch/x86/kernel/reboot.c~add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list arch/x86/kernel/reboot.c
+--- a/arch/x86/kernel/reboot.c~add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list
++++ a/arch/x86/kernel/reboot.c
+@@ -152,6 +152,15 @@ static struct dmi_system_id __initdata r
+ 			DMI_MATCH(DMI_BOARD_NAME, "0WF810"),
+ 		},
+ 	},
++	{       /* Handle problems with rebooting on Dell Optiplex 745's DFF*/
++		.callback = set_bios_reboot,
++		.ident = "Dell OptiPlex 745",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "OptiPlex 745"),
++			DMI_MATCH(DMI_BOARD_NAME, "0MM599"),
++		},
++	},
+ 	{	/* Handle problems with rebooting on Dell 2400's */
+ 		.callback = set_bios_reboot,
+ 		.ident = "Dell PowerEdge 2400",
 _
 
-Patches currently in -mm which might be from jim@meyering.net are
+Patches currently in -mm which might be from ckane@intellitree.com are
 
-usbaudio-handle-kcalloc-failure.patch
-9p-handle-kstrdup-and-match_strdup-failure.patch
-alpha-handle-kcalloc-failure.patch
-affs-handle-match_strdup-failure.patch
-hfs-handle-match_strdup-failure.patch
-hfsplus-handle-match_strdup-failure.patch
-lib-inflatec-handle-failed-malloc.patch
+add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
