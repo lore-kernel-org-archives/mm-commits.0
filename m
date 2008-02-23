@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:28:32 -0800
-Message-ID: <200802230729.m1N7TLXW017895@imap1.linux-foundation.org>
+Subject: + markers-fix-sparse-warnings-in-markersc.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:28:30 -0800
+Message-ID: <200802230729.m1N7TJBe017892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53431 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751891AbYBWH3Z (ORCPT
+	by vger.kernel.org with ESMTP id S1752102AbYBWH3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:29:25 -0500
+	Sat, 23 Feb 2008 02:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com, greg@kroah.com
+Cc: harvey.harrison@gmail.com, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     copyright owner and author clean up for intel iommu and related files
+     markers: fix sparse warnings in markers.c
 has been added to the -mm tree.  Its filename is
-     copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files.patch
+     markers-fix-sparse-warnings-in-markersc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: copyright owner and author clean up for intel iommu and related files
-From: mark gross <mgross@linux.intel.com>
+Subject: markers: fix sparse warnings in markers.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The following is a clean up and correction of the copyright holding
-entities for the files associated with the intel iommu code.
+char can be unsigned
+kernel/marker.c:64:20: error: dubious one-bit signed bitfield
+kernel/marker.c:65:14: error: dubious one-bit signed bitfield
 
-Signed-off-by: <mgross@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/dmar.c        |    9 +++++----
- drivers/pci/intel-iommu.c |    7 ++++---
- drivers/pci/intel-iommu.h |    5 +++--
- drivers/pci/iova.c        |    3 ++-
- drivers/pci/iova.h        |    3 ++-
- 5 files changed, 16 insertions(+), 11 deletions(-)
+ kernel/marker.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/dmar.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/dmar.c
---- a/drivers/pci/dmar.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
-+++ a/drivers/pci/dmar.c
-@@ -14,11 +14,12 @@
-  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-  * Place - Suite 330, Boston, MA 02111-1307 USA.
-  *
-- * 	Copyright (C) Ashok Raj <ashok.raj@intel.com>
-- *	Copyright (C) Shaohua Li <shaohua.li@intel.com>
-- *	Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-+ * Copyright (C) 2006-2008 Intel Corporation
-+ * Author: Ashok Raj <ashok.raj@intel.com>
-+ * Author: Shaohua Li <shaohua.li@intel.com>
-+ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  *
-- * 	This file implements early detection/parsing of DMA Remapping Devices
-+ * This file implements early detection/parsing of DMA Remapping Devices
-  * reported to OS through BIOS via DMA remapping reporting (DMAR) ACPI
-  * tables.
-  */
-diff -puN drivers/pci/intel-iommu.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
-+++ a/drivers/pci/intel-iommu.c
-@@ -14,9 +14,10 @@
-  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-  * Place - Suite 330, Boston, MA 02111-1307 USA.
-  *
-- * Copyright (C) Ashok Raj <ashok.raj@intel.com>
-- * Copyright (C) Shaohua Li <shaohua.li@intel.com>
-- * Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-+ * Copyright (C) 2006-2008 Intel Corporation
-+ * Author: Ashok Raj <ashok.raj@intel.com>
-+ * Author: Shaohua Li <shaohua.li@intel.com>
-+ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  */
- 
- #include <linux/init.h>
-diff -puN drivers/pci/intel-iommu.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/intel-iommu.h
---- a/drivers/pci/intel-iommu.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
-+++ a/drivers/pci/intel-iommu.h
-@@ -14,8 +14,9 @@
-  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-  * Place - Suite 330, Boston, MA 02111-1307 USA.
-  *
-- * Copyright (C) Ashok Raj <ashok.raj@intel.com>
-- * Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-+ * Copyright (C) 2006-2008 Intel Corporation
-+ * Author: Ashok Raj <ashok.raj@intel.com>
-+ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  */
- 
- #ifndef _INTEL_IOMMU_H_
-diff -puN drivers/pci/iova.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/iova.c
---- a/drivers/pci/iova.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
-+++ a/drivers/pci/iova.c
-@@ -3,7 +3,8 @@
-  *
-  * This file is released under the GPLv2.
-  *
-- * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-+ * Copyright (C) 2006-2008 Intel Corporation
-+ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  */
- 
- #include "iova.h"
-diff -puN drivers/pci/iova.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/iova.h
---- a/drivers/pci/iova.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
-+++ a/drivers/pci/iova.h
-@@ -3,7 +3,8 @@
-  *
-  * This file is released under the GPLv2.
-  *
-- * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-+ * Copyright (C) 2006-2008 Intel Corporation
-+ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-  *
-  */
+diff -puN kernel/marker.c~markers-fix-sparse-warnings-in-markersc kernel/marker.c
+--- a/kernel/marker.c~markers-fix-sparse-warnings-in-markersc
++++ a/kernel/marker.c
+@@ -61,8 +61,8 @@ struct marker_entry {
+ 	int refcount;	/* Number of times armed. 0 if disarmed. */
+ 	struct rcu_head rcu;
+ 	void *oldptr;
+-	char rcu_pending:1;
+-	char ptype:1;
++	unsigned char rcu_pending:1;
++	unsigned char ptype:1;
+ 	char name[0];	/* Contains name'\0'format'\0' */
+ };
  
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files.patch
-pci-iova-rb-tree-setup-tweak.patch
-iova-lockdep-false-alarm-fix.patch
+origin.patch
+markers-fix-sparse-warnings-in-markersc.patch
+acpi-sparse-fix-replace-macro-with-static-function.patch
+bttv-struct-member-initialized-twice.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+lockd-fix-sparse-warning-in-svcsharec.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
