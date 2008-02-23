@@ -1,148 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - simplify-cpu_hotplug_begin-put_online_cpus.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:24:18 -0800
-Message-ID: <200802232024.m1NKOITH013629@imap1.linux-foundation.org>
+Subject: - iuu_phoenix-lock-priv-tiostatus-properly.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:24 -0800
+Message-ID: <200802232023.m1NKNOBW013513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42019 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762897AbYBWU3O (ORCPT
+	by vger.kernel.org with ESMTP id S1762234AbYBWU3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:14 -0500
+	Sat, 23 Feb 2008 15:29:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, dipankar@in.ibm.com, ego@in.ibm.com, mingo@elte.hu, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     simplify cpu_hotplug_begin()/put_online_cpus()
+     iuu_phoenix: lock priv->tiostatus properly
 has been removed from the -mm tree.  Its filename was
-     simplify-cpu_hotplug_begin-put_online_cpus.patch
+     iuu_phoenix-lock-priv-tiostatus-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: simplify cpu_hotplug_begin()/put_online_cpus()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: iuu_phoenix: lock priv->tiostatus properly
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-cpu_hotplug_begin() must be always called under cpu_add_remove_lock, this
-means that only one process can be cpu_hotplug.active_writer.  So we don't
-need the cpu_hotplug.writer_queue, we can wake up the ->active_writer
-directly.
-
-Also, fix the comment.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |   30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ drivers/usb/serial/iuu_phoenix.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus kernel/cpu.c
---- a/kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus
-+++ a/kernel/cpu.c
-@@ -33,17 +33,13 @@ static struct {
- 	 * an ongoing cpu hotplug operation.
- 	 */
- 	int refcount;
--	wait_queue_head_t writer_queue;
- } cpu_hotplug;
- 
--#define writer_exists() (cpu_hotplug.active_writer != NULL)
--
- void __init cpu_hotplug_init(void)
+diff -puN drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly drivers/usb/serial/iuu_phoenix.c
+--- a/drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly
++++ a/drivers/usb/serial/iuu_phoenix.c
+@@ -148,20 +148,21 @@ static int iuu_tiocmset(struct usb_seria
+ 			unsigned int set, unsigned int clear)
  {
- 	cpu_hotplug.active_writer = NULL;
- 	mutex_init(&cpu_hotplug.lock);
- 	cpu_hotplug.refcount = 0;
--	init_waitqueue_head(&cpu_hotplug.writer_queue);
- }
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	struct tty_struct *tty;
+-	tty = port->tty;
++	unsigned long flags;
  
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -65,11 +61,8 @@ void put_online_cpus(void)
- 	if (cpu_hotplug.active_writer == current)
- 		return;
- 	mutex_lock(&cpu_hotplug.lock);
--	cpu_hotplug.refcount--;
--
--	if (unlikely(writer_exists()) && !cpu_hotplug.refcount)
--		wake_up(&cpu_hotplug.writer_queue);
--
-+	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
-+		wake_up_process(cpu_hotplug.active_writer);
- 	mutex_unlock(&cpu_hotplug.lock);
- 
- }
-@@ -98,8 +91,8 @@ void cpu_maps_update_done(void)
-  * Note that during a cpu-hotplug operation, the new readers, if any,
-  * will be blocked by the cpu_hotplug.lock
-  *
-- * Since cpu_maps_update_begin is always called after invoking
-- * cpu_maps_update_begin, we can be sure that only one writer is active.
-+ * Since cpu_hotplug_begin() is always called after invoking
-+ * cpu_maps_update_begin(), we can be sure that only one writer is active.
-  *
-  * Note that theoretically, there is a possibility of a livelock:
-  * - Refcount goes to zero, last reader wakes up the sleeping
-@@ -115,19 +108,16 @@ void cpu_maps_update_done(void)
-  */
- static void cpu_hotplug_begin(void)
- {
--	DECLARE_WAITQUEUE(wait, current);
--
--	mutex_lock(&cpu_hotplug.lock);
--
- 	cpu_hotplug.active_writer = current;
--	add_wait_queue_exclusive(&cpu_hotplug.writer_queue, &wait);
--	while (cpu_hotplug.refcount) {
--		set_current_state(TASK_UNINTERRUPTIBLE);
++	/* FIXME: locking on tiomstatus */
+ 	dbg("%s (%d) msg : SET = 0x%04x, CLEAR = 0x%04x ", __FUNCTION__,
+ 	    port->number, set, clear);
 +
-+	for (;;) {
-+		mutex_lock(&cpu_hotplug.lock);
-+		if (likely(!cpu_hotplug.refcount))
-+			break;
-+		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		mutex_unlock(&cpu_hotplug.lock);
- 		schedule();
--		mutex_lock(&cpu_hotplug.lock);
++	spin_lock_irqsave(&priv->lock, flags);
+ 	if (set & TIOCM_RTS)
+ 		priv->tiostatus = TIOCM_RTS;
+ 
+ 	if (!(set & TIOCM_RTS) && priv->tiostatus == TIOCM_RTS) {
+ 		dbg("%s TIOCMSET RESET called !!!", __FUNCTION__);
+ 		priv->reset = 1;
+-		return 0;
  	}
--	remove_wait_queue_locked(&cpu_hotplug.writer_queue, &wait);
+-
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 	return 0;
  }
  
- static void cpu_hotplug_done(void)
+@@ -173,7 +174,14 @@ static int iuu_tiocmset(struct usb_seria
+ static int iuu_tiocmget(struct usb_serial_port *port, struct file *file)
+ {
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	return priv->tiostatus;
++	unsigned long flags;
++	int rc;
++
++	spin_lock_irqsave(&priv->lock, flags);
++	rc = priv->tiostatus;
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	return rc;
+ }
+ 
+ static void iuu_rxcmd(struct urb *urb)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-sched.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
+origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+git-scsi-rc-fixes.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
 do_task_stat-dont-take-rcu_read_lock.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-timers-simplify-lockdep-stuff.patch
-hrtimers-simplify-lockdep-stuff.patch
-kill-double_spin_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
 redo-locking-of-tty-pgrp.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
