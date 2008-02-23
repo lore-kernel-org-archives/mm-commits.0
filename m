@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-skip-dev-protocol-null-checks.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:58 -0800
-Message-ID: <200802230735.m1N7ZlIn018378@imap1.linux-foundation.org>
+Subject: + alpha-handle-kcalloc-failure.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:33:13 -0800
+Message-ID: <200802230734.m1N7Y1m9018268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51519 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756773AbYBWICq (ORCPT
+	by vger.kernel.org with ESMTP id S1756786AbYBWICx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:02:46 -0500
+	Sat, 23 Feb 2008 03:02:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, bunk@kernel.org, rene.herman@keyaccess.nl
+Cc: jim@meyering.net, ink@jurassic.park.msu.ru, meyering@redhat.com, rth@twiddle.net
 
 
 The patch titled
-     PNP: skip dev->protocol NULL checks
+     alpha: handle kcalloc failure
 has been added to the -mm tree.  Its filename is
-     pnp-skip-dev-protocol-null-checks.patch
+     alpha-handle-kcalloc-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: skip dev->protocol NULL checks
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: alpha: handle kcalloc failure
+From: Jim Meyering <jim@meyering.net>
 
-Every PNP device should have a valid protocol pointer.  If it doesn't,
-something's wrong and we should oops so we can find and fix the problem.
+arch/alpha/kernel/module.c (module_frob_arch_sections): Handle kcalloc failure.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
+Signed-off-by: Jim Meyering <meyering@redhat.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/driver.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/module.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/pnp/driver.c~pnp-skip-dev-protocol-null-checks drivers/pnp/driver.c
---- a/drivers/pnp/driver.c~pnp-skip-dev-protocol-null-checks
-+++ a/drivers/pnp/driver.c
-@@ -167,7 +167,7 @@ static int pnp_bus_suspend(struct device
- 			return error;
- 	}
+diff -puN arch/alpha/kernel/module.c~alpha-handle-kcalloc-failure arch/alpha/kernel/module.c
+--- a/arch/alpha/kernel/module.c~alpha-handle-kcalloc-failure
++++ a/arch/alpha/kernel/module.c
+@@ -120,6 +120,12 @@ module_frob_arch_sections(Elf64_Ehdr *hd
  
--	if (pnp_dev->protocol && pnp_dev->protocol->suspend)
-+	if (pnp_dev->protocol->suspend)
- 		pnp_dev->protocol->suspend(pnp_dev, state);
- 	return 0;
- }
-@@ -181,7 +181,7 @@ static int pnp_bus_resume(struct device 
- 	if (!pnp_drv)
- 		return 0;
+ 	nsyms = symtab->sh_size / sizeof(Elf64_Sym);
+ 	chains = kcalloc(nsyms, sizeof(struct got_entry), GFP_KERNEL);
++	if (!chains) {
++		printk(KERN_ERR
++		       "module %s: no memory for symbol chain buffer\n",
++		       me->name);
++		return -ENOMEM;
++	}
  
--	if (pnp_dev->protocol && pnp_dev->protocol->resume)
-+	if (pnp_dev->protocol->resume)
- 		pnp_dev->protocol->resume(pnp_dev);
- 
- 	if (pnp_can_write(pnp_dev)) {
+ 	got->sh_size = 0;
+ 	got->sh_addralign = 8;
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from jim@meyering.net are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-pci-simplify-quirk-debug-output.patch
-pci-remove-pci=routeirq-noise-from-dmesg.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
+usbaudio-handle-kcalloc-failure.patch
+9p-handle-kstrdup-and-match_strdup-failure.patch
+alpha-handle-kcalloc-failure.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+lib-inflatec-handle-failed-malloc.patch
