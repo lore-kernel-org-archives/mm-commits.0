@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-unionfs-git-rejects.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 11:49:26 -0800
-Message-ID: <200802231949.m1NJnQBV012137@imap1.linux-foundation.org>
+Subject: - unionfs-is-broken.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 11:49:35 -0800
+Message-ID: <200802231949.m1NJnZ7f012143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35627 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758009AbYBWTuE (ORCPT
+	by vger.kernel.org with ESMTP id S1758142AbYBWTuP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:50:04 -0500
+	Sat, 23 Feb 2008 14:50:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-unionfs-git-rejects
+     unionfs is broken
 has been removed from the -mm tree.  Its filename was
-     git-unionfs-git-rejects.patch
+     unionfs-is-broken.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-unionfs-git-rejects
+Subject: unionfs is broken
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Needs updating for vfs changes
 
 Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/namei.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/namei.h~git-unionfs-git-rejects include/linux/namei.h
---- a/include/linux/namei.h~git-unionfs-git-rejects
-+++ a/include/linux/namei.h
-@@ -3,11 +3,8 @@
- 
- #include <linux/dcache.h>
- #include <linux/linkage.h>
--<<<<<<< HEAD:include/linux/namei.h
- #include <linux/path.h>
--=======
- #include <linux/mount.h>
-->>>>>>> FETCH_HEAD:include/linux/namei.h
- 
- struct vfsmount;
- 
+diff -puN fs/Kconfig~unionfs-is-broken fs/Kconfig
+--- a/fs/Kconfig~unionfs-is-broken
++++ a/fs/Kconfig
+@@ -1022,6 +1022,7 @@ config ECRYPT_FS
+ config UNION_FS
+ 	tristate "Union file system (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  Unionfs is a stackable unification file system, which appears to
+ 	  merge the contents of several directories (branches), while keeping
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +72,6 @@ scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
 git-block-git-rejects.patch
 git-unionfs.patch
-git-unionfs-git-rejects.patch
 unionfs-is-broken.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
