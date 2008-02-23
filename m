@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch added to -mm tree
-Date: Sat, 23 Feb 2008 13:13:42 -0800
-Message-ID: <200802232113.m1NLDg7W015381@imap1.linux-foundation.org>
+Subject: + documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch added to -mm tree
+Date: Sat, 23 Feb 2008 13:14:04 -0800
+Message-ID: <200802232114.m1NLE42T015390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41689 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754637AbYBWVOX (ORCPT
+	by vger.kernel.org with ESMTP id S1755967AbYBWVOr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 16:14:23 -0500
+	Sat, 23 Feb 2008 16:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, npiggin@suse.de
+Cc: akpm@linux-foundation.org, npiggin@suse.de, oleg@tv-sign.ru
 
 
 The patch titled
-     documentation: atomic_add_unless() doesn't imply mb() on failure
+     documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix
 has been added to the -mm tree.  Its filename is
-     documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch
+     documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: atomic_add_unless() doesn't imply mb() on failure
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A "typical" implementation of atomic_add_unless() can return 0 immediately
-after the first atomic_read() (before doing cmpxchg).  In that case it
-doesn't provide any barrier semantics.  See include/asm-ia64/atomic.h as an
-example.
-
-We should either change the implementation, or fix the docs.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/atomic_ops.txt      |    3 ++-
  Documentation/memory-barriers.txt |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/atomic_ops.txt
---- a/Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
-+++ a/Documentation/atomic_ops.txt
-@@ -186,7 +186,8 @@ If the atomic value v is not equal to u,
- returns non zero. If v is equal to u then it returns zero. This is done as
- an atomic operation.
- 
--atomic_add_unless requires explicit memory barriers around the operation.
-+atomic_add_unless requires explicit memory barriers around the operation
-+unless it fails (returns 0).
- 
- atomic_inc_not_zero, equivalent to atomic_add_unless(v, 1, 0)
- 
-diff -puN Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/memory-barriers.txt
---- a/Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
+diff -puN Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix Documentation/atomic_ops.txt
+diff -puN Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix Documentation/memory-barriers.txt
+--- a/Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix
 +++ a/Documentation/memory-barriers.txt
 @@ -1493,7 +1493,7 @@ explicit lock operations, described late
  	atomic_dec_and_test();
  	atomic_sub_and_test();
  	atomic_add_negative();
--	atomic_add_unless();
-+	atomic_add_unless();	/* when succeeds (returns 1) */
+-	atomic_add_unless();	/* when succeeds (returns 1) */
++	atomic_add_unless();	/* when it succeeds (returns 1) */
  	test_and_set_bit();
  	test_and_clear_bit();
  	test_and_change_bit();
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+git-hwmon.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
 git-sched.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+libsas-convert-ata-bridge-to-use-new-eh.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-x86.patch
+git-x86-fixup.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-timers-simplify-lockdep-stuff.patch
-hrtimers-simplify-lockdep-stuff.patch
-kill-double_spin_lock.patch
-redo-locking-of-tty-pgrp.patch
-procfs-task-exe-symlink.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
