@@ -1,58 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - ocfs-make-dlm_do_assert_master-static.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:29 -0800
-Message-ID: <200802232022.m1NKMTOs013428@imap1.linux-foundation.org>
+Subject: - make-printk_recursion_bug_msg-static.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:24:12 -0800
+Message-ID: <200802232024.m1NKOCAh013618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60022 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762006AbYBWU3B (ORCPT
+	by vger.kernel.org with ESMTP id S1762849AbYBWU3F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:01 -0500
+	Sat, 23 Feb 2008 15:29:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs: make dlm_do_assert_master() static
+     make printk_recursion_bug_msg[] static
 has been removed from the -mm tree.  Its filename was
-     ocfs-make-dlm_do_assert_master-static.patch
+     make-printk_recursion_bug_msg-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ocfs: make dlm_do_assert_master() static
+Subject: make printk_recursion_bug_msg[] static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global dlm_do_assert_master() static.
+printk_recursion_bug_msg[] can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs-make-dlm_do_assert_master-static
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1695,9 +1695,9 @@ send_response:
-  * can periodically run all locks owned by this node
-  * and re-assert across the cluster...
-  */
--int dlm_do_assert_master(struct dlm_ctxt *dlm,
--			 struct dlm_lock_resource *res,
--			 void *nodemap, u32 flags)
-+static int dlm_do_assert_master(struct dlm_ctxt *dlm,
-+				struct dlm_lock_resource *res,
-+				void *nodemap, u32 flags)
- {
- 	struct dlm_assert_master assert;
- 	int to, tmpret;
+diff -puN kernel/printk.c~make-printk_recursion_bug_msg-static kernel/printk.c
+--- a/kernel/printk.c~make-printk_recursion_bug_msg-static
++++ a/kernel/printk.c
+@@ -618,7 +618,7 @@ asmlinkage int printk(const char *fmt, .
+ /* cpu currently holding logbuf_lock */
+ static volatile unsigned int printk_cpu = UINT_MAX;
+ 
+-const char printk_recursion_bug_msg [] =
++static const char printk_recursion_bug_msg[] =
+ 			KERN_CRIT "BUG: recent printk recursion!\n";
+ static int printk_recursion_bug;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
