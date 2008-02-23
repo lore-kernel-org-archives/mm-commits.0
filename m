@@ -1,82 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:50 -0800
-Message-ID: <200802232022.m1NKMoSj013458@imap1.linux-foundation.org>
+Subject: - cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:33 -0800
+Message-ID: <200802232022.m1NKMXkf013434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41119 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760897AbYBWU2e (ORCPT
+	by vger.kernel.org with ESMTP id S1755858AbYBWU2b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:34 -0500
+	Sat, 23 Feb 2008 15:28:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
+     cleanup gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
 has been removed from the -mm tree.  Its filename was
-     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
+     cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
+Subject: cleanup gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Use upper_32_bits(): no code changes, one less ifdef.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/inode.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/pci/setup-bus.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs fs/unionfs/inode.c
---- a/fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
-+++ a/fs/unionfs/inode.c
-@@ -255,8 +255,8 @@ static struct dentry *unionfs_lookup(str
- 
- 	/* save the dentry & vfsmnt from namei */
- 	if (nd) {
--		path_save.dentry = nd->dentry;
--		path_save.mnt = nd->mnt;
-+		path_save.dentry = nd->path.dentry;
-+		path_save.mnt = nd->path.mnt;
- 	}
- 
- 	/*
-@@ -267,8 +267,8 @@ static struct dentry *unionfs_lookup(str
- 
- 	/* restore the dentry & vfsmnt in namei */
- 	if (nd) {
--		nd->dentry = path_save.dentry;
--		nd->mnt = path_save.mnt;
-+		nd->path.dentry = path_save.dentry;
-+		nd->path.mnt = path_save.mnt;
- 	}
- 	if (!IS_ERR(ret)) {
- 		if (ret)
-@@ -861,7 +861,7 @@ static int unionfs_permission(struct ino
- 	const int write_mask = (mask & MAY_WRITE) && !(mask & MAY_READ);
- 
- 	if (nd)
--		unionfs_lock_dentry(nd->dentry, UNIONFS_DMUTEX_CHILD);
-+		unionfs_lock_dentry(nd->path.dentry, UNIONFS_DMUTEX_CHILD);
- 
- 	if (!UNIONFS_I(inode)->lower_inodes) {
- 		if (is_file)	/* dirs can be unlinked but chdir'ed to */
-@@ -936,7 +936,7 @@ out:
- 	unionfs_check_inode(inode);
- 	unionfs_check_nd(nd);
- 	if (nd)
--		unionfs_unlock_dentry(nd->dentry);
-+		unionfs_unlock_dentry(nd->path.dentry);
- 	return err;
- }
- 
+diff -puN drivers/pci/setup-bus.c~cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~cleanup-gregkh-pci-pci-fix-bus-resource-assignment-on-32-bits-with-64b-resources
++++ a/drivers/pci/setup-bus.c
+@@ -206,10 +206,8 @@ pci_setup_bridge(struct pci_bus *bus)
+ 	if (bus->resource[2]->flags & IORESOURCE_PREFETCH) {
+ 		l = (region.start >> 16) & 0xfff0;
+ 		l |= region.end & 0xfff00000;
+-#ifdef CONFIG_RESOURCES_64BIT
+-		bu = region.start >> 32;
+-		lu = region.end >> 32;
+-#endif
++		bu = upper_32_bits(region.start);
++		lu = upper_32_bits(region.end);
+ 		DBG(KERN_INFO "  PREFETCH window: 0x%016llx-0x%016llx\n",
+ 		    (unsigned long long)region.start,
+ 		    (unsigned long long)region.end);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
