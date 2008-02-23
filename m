@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + eicon-fix-sparse-integer-as-null-pointer-warnings.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:40 -0800
-Message-ID: <200802230735.m1N7ZTkH018363@imap1.linux-foundation.org>
+Subject: + cyclades-prepare-for-relaxed-locking-in-callers.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:11 -0800
+Message-ID: <200802230737.m1N7b0fi018467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47476 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316AbYBWIAS (ORCPT
+	by vger.kernel.org with ESMTP id S1757859AbYBWIAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:00:18 -0500
+	Sat, 23 Feb 2008 03:00:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jeff@garzik.org, kkeil@suse.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, john@stoffel.org
 
 
 The patch titled
-     eicon: fix sparse integer as NULL pointer warnings
+     cyclades: Prepare for relaxed locking in callers
 has been added to the -mm tree.  Its filename is
-     eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+     cyclades-prepare-for-relaxed-locking-in-callers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eicon: fix sparse integer as NULL pointer warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: cyclades: Prepare for relaxed locking in callers
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-drivers/isdn/hardware/eicon/message.c:745:47: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:761:45: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9122:16: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9147:16: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9173:14: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/divasmain.c:396:23: warning: Using plain integer as NULL pointer
+Basically wrap it in lock_kernel where it is hard to prove the locking is
+ok.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: "John Stoffel" <john@stoffel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/divasmain.c |    2 +-
- drivers/isdn/hardware/eicon/message.c   |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/char/cyclades.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/divasmain.c~eicon-fix-sparse-integer-as-null-pointer-warnings drivers/isdn/hardware/eicon/divasmain.c
---- a/drivers/isdn/hardware/eicon/divasmain.c~eicon-fix-sparse-integer-as-null-pointer-warnings
-+++ a/drivers/isdn/hardware/eicon/divasmain.c
-@@ -393,7 +393,7 @@ void diva_free_dma_map(void *hdev, struc
- 	dma_addr_t dma_handle;
- 	void *addr_handle;
+diff -puN drivers/char/cyclades.c~cyclades-prepare-for-relaxed-locking-in-callers drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cyclades-prepare-for-relaxed-locking-in-callers
++++ a/drivers/char/cyclades.c
+@@ -3464,6 +3464,8 @@ static int cy_tiocmget(struct tty_struct
+ 	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
+ 		return -ENODEV;
  
--	for (i = 0; (pmap != 0); i++) {
-+	for (i = 0; (pmap != NULL); i++) {
- 		diva_get_dma_map_entry(pmap, i, &cpu_addr, &phys_addr);
- 		if (!cpu_addr) {
- 			break;
-diff -puN drivers/isdn/hardware/eicon/message.c~eicon-fix-sparse-integer-as-null-pointer-warnings drivers/isdn/hardware/eicon/message.c
---- a/drivers/isdn/hardware/eicon/message.c~eicon-fix-sparse-integer-as-null-pointer-warnings
-+++ a/drivers/isdn/hardware/eicon/message.c
-@@ -742,7 +742,7 @@ static void start_internal_command (dwor
-   else
-   {
-     i = 1;
--    while (plci->internal_command_queue[i] != 0)
-+    while (plci->internal_command_queue[i] != NULL)
-       i++;
-     plci->internal_command_queue[i] = command_function;
-   }
-@@ -758,7 +758,7 @@ static void next_internal_command (dword
++	lock_kernel();
++
+ 	card = info->card;
+ 	channel = info->line - card->first_line;
+ 	if (!IS_CYC_Z(*card)) {
+@@ -3506,10 +3508,12 @@ static int cy_tiocmget(struct tty_struct
+ 				((lstatus & C_RS_CTS) ? TIOCM_CTS : 0);
+ 		} else {
+ 			result = 0;
++			unlock_kernel();
+ 			return -ENODEV;
+ 		}
  
-   plci->internal_command = 0;
-   plci->internal_command_queue[0] = NULL;
--  while (plci->internal_command_queue[1] != 0)
-+  while (plci->internal_command_queue[1] != NULL)
-   {
-     for (i = 0; i < MAX_INTERNAL_COMMAND_LEVELS - 1; i++)
-       plci->internal_command_queue[i] = plci->internal_command_queue[i+1];
-@@ -9119,7 +9119,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-         dbug(1,dprintf("AdvSigPlci=0x%x",a->AdvSignalPLCI));
-         return 0x2001; /* codec in use by another application */
-       }
--      if(plci!=0)
-+      if(plci!=NULL)
-       {
-         a->AdvSignalPLCI = plci;
-         plci->tel=ADV_VOICE;
-@@ -9144,7 +9144,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-         }
-                                                /* indicate D-ch connect if  */
-       }                                        /* codec is connected OK     */
--      if(plci!=0)
-+      if(plci!=NULL)
-       {
-         a->AdvSignalPLCI = plci;
-         plci->tel=ADV_VOICE;
-@@ -9170,7 +9170,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-   {
-     if(hook_listen) return 0x300B;               /* Facility not supported */
-                                                  /* no hook with SCOM      */
--    if(plci!=0) plci->tel = CODEC;
-+    if(plci!=NULL) plci->tel = CODEC;
-     dbug(1,dprintf("S/SCOM codec"));
-     /* first time we use the scom-s codec we must shut down the internal   */
-     /* handset application of the card. This can be done by an assign with */
-@@ -14604,7 +14604,7 @@ static void channel_xmit_extended_xon (P
-   int max_ch = ARRAY_SIZE(a->ch_flow_control);
-   int i, one_requested = 0;
+ 	}
++	unlock_kernel();
+ 	return result;
+ }				/* cy_tiomget */
  
--  if ((!plci) || (!plci->Id) || ((a = plci->adapter) == 0)) {
-+  if ((!plci) || (!plci->Id) || ((a = plci->adapter) == NULL)) {
-     return;
-   }
+@@ -3880,6 +3884,7 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 	printk(KERN_DEBUG "cyc:cy_ioctl ttyC%d, cmd = %x arg = %lx\n",
+ 		info->line, cmd, arg);
+ #endif
++	lock_kernel();
+ 
+ 	switch (cmd) {
+ 	case CYGETMON:
+@@ -3988,47 +3993,47 @@ cy_ioctl(struct tty_struct *tty, struct 
+ 		p_cuser = argp;
+ 		ret_val = put_user(cnow.cts, &p_cuser->cts);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.dsr, &p_cuser->dsr);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.rng, &p_cuser->rng);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.dcd, &p_cuser->dcd);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.rx, &p_cuser->rx);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.tx, &p_cuser->tx);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.frame, &p_cuser->frame);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.overrun, &p_cuser->overrun);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.parity, &p_cuser->parity);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.brk, &p_cuser->brk);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = put_user(cnow.buf_overrun, &p_cuser->buf_overrun);
+ 		if (ret_val)
+-			return ret_val;
++			break;
+ 		ret_val = 0;
+ 		break;
+ 	default:
+ 		ret_val = -ENOIOCTLCMD;
+ 	}
++	unlock_kernel();
+ 
+ #ifdef CY_DEBUG_OTHER
+ 	printk(KERN_DEBUG "cyc:cy_ioctl done\n");
+ #endif
+-
+ 	return ret_val;
+ }				/* cy_ioctl */
  
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
+libata-isolate-and-rework-cable-logic.patch
 pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+megaraid-outb_p-extermination.patch
+usb-serial-prepare-for-bkl-push-down.patch
+ftdi_sio-note-missing-locking.patch
+usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
+io_ti-lock-mcr-and-msr-shadows-properly.patch
+iuu_phoenix-lock-priv-tiostatus-properly.patch
+kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
+git-watchdog.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
