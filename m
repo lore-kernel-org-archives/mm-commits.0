@@ -1,140 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfsd-fix.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:21 -0800
-Message-ID: <200802232022.m1NKMLwE013416@imap1.linux-foundation.org>
+Subject: - it8712f_wdt-support-for-16-bit-timeout-values-wdioc_getstatus.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:36 -0800
+Message-ID: <200802232023.m1NKNahg013537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33590 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761575AbYBWU2k (ORCPT
+	by vger.kernel.org with ESMTP id S1761801AbYBWU2o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:40 -0500
+	Sat, 23 Feb 2008 15:28:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: andrew@ishiboo.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfsd-fix
+     watchdog: it8712f_wdt support for 16-bit timeout values, WDIOC_GETSTATUS
 has been removed from the -mm tree.  Its filename was
-     git-nfsd-fix.patch
+     it8712f_wdt-support-for-16-bit-timeout-values-wdioc_getstatus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-nfsd-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog: it8712f_wdt support for 16-bit timeout values, WDIOC_GETSTATUS
+From: Andrew Paprocki <andrew@ishiboo.com>
 
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:297:1: warning: "elf_check_arch" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/textsearch.h:9,
-                 from include/linux/skbuff.h:26,
-                 from include/linux/icmpv6.h:79,
-                 from include/linux/ipv6.h:197,
-                 from include/net/ipv6.h:18,
-                 from include/linux/sunrpc/svcauth.h:18,
-                 from include/linux/sunrpc/svc.h:18,
-                 from arch/ia64/ia32/sys_ia32.c:37:
-include/asm/elf.h:19:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
+Add support for 16-bit watchdog timeout values which are available in chip
+revisions >= 0x08.  Values <= 65535 are seconds precision, otherwise minutes
+precision is used up to a maximum value of 3932100.  Added implementation for
+WDIOC_GETSTATUS which checks the WDT status bit in the WDT control register.
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Andrew Paprocki <andrew@ishiboo.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/svcauth.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/it8712f_wdt.c |   76 +++++++++++++++++++++++++------
+ 1 file changed, 63 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/sunrpc/svcauth.h~git-nfsd-fix include/linux/sunrpc/svcauth.h
---- a/include/linux/sunrpc/svcauth.h~git-nfsd-fix
-+++ a/include/linux/sunrpc/svcauth.h
-@@ -15,7 +15,6 @@
- #include <linux/sunrpc/msg_prot.h>
- #include <linux/sunrpc/cache.h>
- #include <linux/hash.h>
--#include <net/ipv6.h>
- 
- #define SVC_CRED_NGROUPS	32
- struct svc_cred {
-@@ -25,6 +24,7 @@ struct svc_cred {
- };
- 
- struct svc_rqst;		/* forward decl */
-+struct in6_addr;
- 
- /* Authentication is done in the context of a domain.
+diff -puN drivers/watchdog/it8712f_wdt.c~it8712f_wdt-support-for-16-bit-timeout-values-wdioc_getstatus drivers/watchdog/it8712f_wdt.c
+--- a/drivers/watchdog/it8712f_wdt.c~it8712f_wdt-support-for-16-bit-timeout-values-wdioc_getstatus
++++ a/drivers/watchdog/it8712f_wdt.c
+@@ -7,7 +7,8 @@
   *
+  *	drivers/char/watchdog/scx200_wdt.c
+  *	drivers/hwmon/it87.c
+- *	IT8712F EC-LPC I/O Preliminary Specification 0.9.2.pdf
++ *	IT8712F EC-LPC I/O Preliminary Specification 0.8.2
++ *	IT8712F EC-LPC I/O Preliminary Specification 0.9.3
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License as
+@@ -40,6 +41,7 @@ MODULE_DESCRIPTION("IT8712F Watchdog Dri
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+ 
++static int max_units = 255;
+ static int margin = 60;		/* in seconds */
+ module_param(margin, int, 0);
+ MODULE_PARM_DESC(margin, "Watchdog margin in seconds");
+@@ -51,6 +53,7 @@ MODULE_PARM_DESC(nowayout, "Disable watc
+ static struct semaphore it8712f_wdt_sem;
+ static unsigned expect_close;
+ static spinlock_t io_lock;
++static unsigned char revision;
+ 
+ /* Dog Food address - We use the game port address */
+ static unsigned short address;
+@@ -108,6 +111,15 @@ superio_inw(int reg)
+ 	return val;
+ }
+ 
++static void
++superio_outw(int val, int reg)
++{
++	outb(reg++, REG);
++	outb((val >> 8) & 0xff, VAL);
++	outb(reg, REG);
++	outb(val & 0xff, VAL);
++}
++
+ static inline void
+ superio_select(int ldn)
+ {
+@@ -143,15 +155,33 @@ static void
+ it8712f_wdt_update_margin(void)
+ {
+ 	int config = WDT_OUT_KRST | WDT_OUT_PWROK;
++	int units = margin;
+ 
+-	printk(KERN_INFO NAME ": timer margin %d seconds\n", margin);
+-
+-	/* The timeout register only has 8bits wide */
+-	if (margin < 256)
+-		config |= WDT_UNIT_SEC;	/* else UNIT are MINUTES */
++	/* Switch to minutes precision if the configured margin
++	 * value does not fit within the register width.
++	 */
++	if (units <= max_units) {
++		config |= WDT_UNIT_SEC; /* else UNIT is MINUTES */
++		printk(KERN_INFO NAME ": timer margin %d seconds\n", units);
++	} else {
++		units /= 60;
++		printk(KERN_INFO NAME ": timer margin %d minutes\n", units);
++	}
+ 	superio_outb(config, WDT_CONFIG);
+ 
+-	superio_outb((margin > 255) ? (margin / 60) : margin, WDT_TIMEOUT);
++	if (revision >= 0x08)
++		superio_outw(units, WDT_TIMEOUT);
++	else
++		superio_outb(units, WDT_TIMEOUT);
++}
++
++static int
++it8712f_wdt_get_status(void)
++{
++	if (superio_inb(WDT_CONTROL) & 0x01)
++		return WDIOF_CARDRESET;
++	else
++		return 0;
+ }
+ 
+ static void
+@@ -234,7 +264,7 @@ it8712f_wdt_ioctl(struct inode *inode, s
+ 		.firmware_version = 1,
+ 		.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
+ 	};
+-	int new_margin;
++	int value;
+ 
+ 	switch (cmd) {
+ 	default:
+@@ -244,17 +274,27 @@ it8712f_wdt_ioctl(struct inode *inode, s
+ 			return -EFAULT;
+ 		return 0;
+ 	case WDIOC_GETSTATUS:
++		superio_enter();
++		superio_select(LDN_GPIO);
++
++		value = it8712f_wdt_get_status();
++
++		superio_exit();
++
++		return put_user(value, p);
+ 	case WDIOC_GETBOOTSTATUS:
+ 		return put_user(0, p);
+ 	case WDIOC_KEEPALIVE:
+ 		it8712f_wdt_ping();
+ 		return 0;
+ 	case WDIOC_SETTIMEOUT:
+-		if (get_user(new_margin, p))
++		if (get_user(value, p))
+ 			return -EFAULT;
+-		if (new_margin < 1)
++		if (value < 1)
++			return -EINVAL;
++		if (value > (max_units * 60))
+ 			return -EINVAL;
+-		margin = new_margin;
++		margin = value;
+ 		superio_enter();
+ 		superio_select(LDN_GPIO);
+ 
+@@ -262,6 +302,7 @@ it8712f_wdt_ioctl(struct inode *inode, s
+ 
+ 		superio_exit();
+ 		it8712f_wdt_ping();
++		/* Fall through */
+ 	case WDIOC_GETTIMEOUT:
+ 		if (put_user(margin, p))
+ 			return -EFAULT;
+@@ -336,9 +377,18 @@ it8712f_wdt_find(unsigned short *address
+ 	}
+ 
+ 	err = 0;
+-	printk(KERN_DEBUG NAME ": Found IT%04xF chip revision %d - "
++	revision = superio_inb(DEVREV) & 0x0f;
++
++	/* Later revisions have 16-bit values per datasheet 0.9.1 */
++	if (revision >= 0x08)
++		max_units = 65535;
++
++	if (margin > (max_units * 60))
++		margin = (max_units * 60);
++
++	printk(KERN_INFO NAME ": Found IT%04xF chip revision %d - "
+ 		"using DogFood address 0x%x\n",
+-		chip_type, superio_inb(DEVREV) & 0x0f, *address);
++		chip_type, revision, *address);
+ 
+ exit:
+ 	superio_exit();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andrew@ishiboo.com are
 
-origin.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-dvb-someone-broke-the-gpio-includes.patch
-git-hwmon.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
-scsi-aic94xx-cleanups.patch
-libsas-convert-ata-bridge-to-use-new-eh.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-x86.patch
-git-x86-fixup.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-procfs-task-exe-symlink-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-alsa.patch
+git-watchdog.patch
