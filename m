@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:36 -0800
-Message-ID: <200802230731.m1N7VPwx017993@imap1.linux-foundation.org>
+Subject: + pnp-simplify-quirk-debug-output.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:35:01 -0800
+Message-ID: <200802230735.m1N7Zoh5018381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53774 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753028AbYBWHuE (ORCPT
+	by vger.kernel.org with ESMTP id S1750785AbYBWHug (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:50:04 -0500
+	Sat, 23 Feb 2008 02:50:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     arch/sh/drivers/heartbeat.c ioremap is expected to succeed
+     PNP: simplify quirk debug output
 has been added to the -mm tree.  Its filename is
-     arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed.patch
+     pnp-simplify-quirk-debug-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/sh/drivers/heartbeat.c ioremap is expected to succeed
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: PNP: simplify quirk debug output
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ioremap is expected to succeed
+print_fn_descriptor_symbol() prints the address if we don't have a symbol,
+so no need to print both.
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/heartbeat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/quirks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/drivers/heartbeat.c~arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed arch/sh/drivers/heartbeat.c
---- a/arch/sh/drivers/heartbeat.c~arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed
-+++ a/arch/sh/drivers/heartbeat.c
-@@ -93,7 +93,7 @@ static int heartbeat_drv_probe(struct pl
- 	}
+diff -puN drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output
++++ a/drivers/pnp/quirks.c
+@@ -184,8 +184,8 @@ void pnp_fixup_device(struct pnp_dev *de
+ 			quirk = pnp_fixups[i].quirk_function;
  
- 	hd->base = ioremap_nocache(res->start, res->end - res->start + 1);
--	if (!unlikely(hd->base)) {
-+	if (unlikely(!hd->base)) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
- 
- 		if (!pdev->dev.platform_data)
+ #ifdef DEBUG
+-			dev_dbg(&dev->dev, "calling quirk 0x%p", quirk);
+-			print_fn_descriptor_symbol(": %s()\n",
++			dev_dbg(&dev->dev, "calling ");
++			print_fn_descriptor_symbol("%s()\n",
+ 				(unsigned long) *quirk);
+ #endif
+ 			(*quirk)(dev);
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-ufs-fix-parenthesisation-in-ufs_set_fs_state.patch
-git-alsa.patch
-git-cifs.patch
-git-dvb.patch
-drivers-media-video-sn9c102-sn9c102_corec-fix-unlikelyx-==-y.patch
-arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+pci-simplify-quirk-debug-output.patch
+pci-remove-pci=routeirq-noise-from-dmesg.patch
+simplify-initcall_debug-output.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
