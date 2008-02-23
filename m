@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + stallion-prepare-for-bkl-push-down.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:33 -0800
-Message-ID: <200802230737.m1N7bMeW018509@imap1.linux-foundation.org>
+Subject: + fix-tty-speed-handling-on-8250.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:34:12 -0800
+Message-ID: <200802230735.m1N7Z1AT018325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49843 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52738 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754899AbYBWHyp (ORCPT
+	by vger.kernel.org with ESMTP id S1754873AbYBWHyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Feb 2008 02:54:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     stallion: Prepare for BKL push down
+     Fix tty speed handling on 8250
 has been added to the -mm tree.  Its filename is
-     stallion-prepare-for-bkl-push-down.patch
+     fix-tty-speed-handling-on-8250.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stallion: Prepare for BKL push down
+Subject: Fix tty speed handling on 8250
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Remove broken softcar functions, wrap ioctl handler in BKL
+We try and write the correct speed back but the serial midlayer already
+mangles the speed on us and that means if we request B0 we report back B9600
+when we should not.  For now we'll hack around this in the drivers and serial
+code, pending a better long term solution.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/stallion.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ drivers/serial/8250.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/stallion.c~stallion-prepare-for-bkl-push-down drivers/char/stallion.c
---- a/drivers/char/stallion.c~stallion-prepare-for-bkl-push-down
-+++ a/drivers/char/stallion.c
-@@ -1273,18 +1273,9 @@ static int stl_ioctl(struct tty_struct *
- 
- 	rc = 0;
- 
-+	lock_kernel();
-+
- 	switch (cmd) {
--	case TIOCGSOFTCAR:
--		rc = put_user(((tty->termios->c_cflag & CLOCAL) ? 1 : 0),
--			(unsigned __user *) argp);
--		break;
--	case TIOCSSOFTCAR:
--		if (get_user(ival, (unsigned int __user *) arg))
--			return -EFAULT;
--		tty->termios->c_cflag =
--				(tty->termios->c_cflag & ~CLOCAL) |
--				(ival ? CLOCAL : 0);
--		break;
- 	case TIOCGSERIAL:
- 		rc = stl_getserial(portp, argp);
- 		break;
-@@ -1308,7 +1299,7 @@ static int stl_ioctl(struct tty_struct *
- 		rc = -ENOIOCTLCMD;
- 		break;
+diff -puN drivers/serial/8250.c~fix-tty-speed-handling-on-8250 drivers/serial/8250.c
+--- a/drivers/serial/8250.c~fix-tty-speed-handling-on-8250
++++ a/drivers/serial/8250.c
+@@ -2174,7 +2174,9 @@ serial8250_set_termios(struct uart_port 
  	}
--
-+	unlock_kernel();
- 	return rc;
+ 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+-	tty_termios_encode_baud_rate(termios, baud, baud);
++	/* Don't rewrite B0 */
++	if (tty_termios_baud_rate(termios))
++		tty_termios_encode_baud_rate(termios, baud, baud);
  }
  
+ static void
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
