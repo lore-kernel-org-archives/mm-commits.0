@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + synclink-series-prepare-for-bkl-pushdown.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:37 -0800
-Message-ID: <200802230737.m1N7bQlG018515@imap1.linux-foundation.org>
+Subject: + mxser-prepare-for-bkl-pushdown.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:21 -0800
+Message-ID: <200802230737.m1N7bAg2018491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34059 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068AbYBWIBT (ORCPT
+	by vger.kernel.org with ESMTP id S1754520AbYBWIB0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:01:19 -0500
+	Sat, 23 Feb 2008 03:01:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulkf@microgate.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     synclink series: Prepare for BKL pushdown
+     mxser: prepare for BKL pushdown
 has been added to the -mm tree.  Its filename is
-     synclink-series-prepare-for-bkl-pushdown.patch
+     mxser-prepare-for-bkl-pushdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,174 +34,186 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink series: Prepare for BKL pushdown
+Subject: mxser: prepare for BKL pushdown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-As these are quite complex I've simply pushed the BKL down into the ioctl
-handler not tried to do anything neater.
+Push the BKL down into various internal routines in the driver ready to
+remove it from the break, ioctl and other call points.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c    |    6 +++
- drivers/char/synclink_gt.c |   58 +++++++++++++++++++++++------------
- drivers/char/synclinkmp.c  |   12 ++++++-
- 3 files changed, 55 insertions(+), 21 deletions(-)
+ drivers/char/mxser.c |   63 ++++++++++++++++++++++++-----------------
+ 1 file changed, 38 insertions(+), 25 deletions(-)
 
-diff -puN drivers/char/synclink.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclink.c
---- a/drivers/char/synclink.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclink.c
-@@ -2945,6 +2945,7 @@ static int mgsl_ioctl(struct tty_struct 
- 		    unsigned int cmd, unsigned long arg)
- {
- 	struct mgsl_struct * info = (struct mgsl_struct *)tty->driver_data;
-+	int ret;
- 	
- 	if (debug_level >= DEBUG_LEVEL_INFO)
- 		printk("%s(%d):mgsl_ioctl %s cmd=%08X\n", __FILE__,__LINE__,
-@@ -2959,7 +2960,10 @@ static int mgsl_ioctl(struct tty_struct 
- 		    return -EIO;
- 	}
+diff -puN drivers/char/mxser.c~mxser-prepare-for-bkl-pushdown drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-prepare-for-bkl-pushdown
++++ a/drivers/char/mxser.c
+@@ -1460,6 +1460,7 @@ static int mxser_ioctl_special(unsigned 
+ 	struct mxser_port *port;
+ 	int result, status;
+ 	unsigned int i, j;
++	int ret = 0;
  
--	return mgsl_ioctl_common(info, cmd, arg);
-+	lock_kernel();
-+	ret = mgsl_ioctl_common(info, cmd, arg);
-+	unlock_kernel();
-+	return ret;
- }
- 
- static int mgsl_ioctl_common(struct mgsl_struct *info, unsigned int cmd, unsigned long arg)
-diff -puN drivers/char/synclink_gt.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclink_gt.c
-@@ -1098,6 +1098,7 @@ static int ioctl(struct tty_struct *tty,
- 	struct serial_icounter_struct __user *p_cuser;	/* user space */
- 	unsigned long flags;
- 	void __user *argp = (void __user *)arg;
-+	int ret;
- 
- 	if (sanity_check(info, tty->name, "ioctl"))
- 		return -ENODEV;
-@@ -1109,37 +1110,54 @@ static int ioctl(struct tty_struct *tty,
- 		    return -EIO;
- 	}
- 
-+	lock_kernel();
-+
  	switch (cmd) {
- 	case MGSL_IOCGPARAMS:
--		return get_params(info, argp);
-+		ret = get_params(info, argp);
-+		break;
- 	case MGSL_IOCSPARAMS:
--		return set_params(info, argp);
-+		ret = set_params(info, argp);
-+		break;
- 	case MGSL_IOCGTXIDLE:
--		return get_txidle(info, argp);
-+		ret = get_txidle(info, argp);
-+		break;
- 	case MGSL_IOCSTXIDLE:
--		return set_txidle(info, (int)arg);
-+		ret = set_txidle(info, (int)arg);
-+		break;
- 	case MGSL_IOCTXENABLE:
--		return tx_enable(info, (int)arg);
-+		ret = tx_enable(info, (int)arg);
-+		break;
- 	case MGSL_IOCRXENABLE:
--		return rx_enable(info, (int)arg);
-+		ret = rx_enable(info, (int)arg);
-+		break;
- 	case MGSL_IOCTXABORT:
--		return tx_abort(info);
-+		ret = tx_abort(info);
-+		break;
- 	case MGSL_IOCGSTATS:
--		return get_stats(info, argp);
-+		ret = get_stats(info, argp);
-+		break;
- 	case MGSL_IOCWAITEVENT:
--		return wait_mgsl_event(info, argp);
-+		ret = wait_mgsl_event(info, argp);
-+		break;
- 	case TIOCMIWAIT:
--		return modem_input_wait(info,(int)arg);
-+		ret = modem_input_wait(info,(int)arg);
-+		break;
- 	case MGSL_IOCGIF:
--		return get_interface(info, argp);
-+		ret = get_interface(info, argp);
-+		break;
- 	case MGSL_IOCSIF:
--		return set_interface(info,(int)arg);
-+		ret = set_interface(info,(int)arg);
-+		break;
- 	case MGSL_IOCSGPIO:
--		return set_gpio(info, argp);
-+		ret = set_gpio(info, argp);
-+		break;
- 	case MGSL_IOCGGPIO:
--		return get_gpio(info, argp);
-+		ret = get_gpio(info, argp);
-+		break;
- 	case MGSL_IOCWAITGPIO:
--		return wait_gpio(info, argp);
-+		ret = wait_gpio(info, argp);
-+		break;
- 	case TIOCGICOUNT:
- 		spin_lock_irqsave(&info->lock,flags);
- 		cnow = info->icount;
-@@ -1156,12 +1174,14 @@ static int ioctl(struct tty_struct *tty,
- 		    put_user(cnow.parity, &p_cuser->parity) ||
- 		    put_user(cnow.brk, &p_cuser->brk) ||
- 		    put_user(cnow.buf_overrun, &p_cuser->buf_overrun))
+ 	case MOXA_GET_MAJOR:
+@@ -1467,18 +1468,21 @@ static int mxser_ioctl_special(unsigned 
+ 
+ 	case MOXA_CHKPORTENABLE:
+ 		result = 0;
+-
++		lock_kernel();
+ 		for (i = 0; i < MXSER_BOARDS; i++)
+ 			for (j = 0; j < MXSER_PORTS_PER_BOARD; j++)
+ 				if (mxser_boards[i].ports[j].ioaddr)
+ 					result |= (1 << i);
+-
++		unlock_kernel();
+ 		return put_user(result, (unsigned long __user *)argp);
+ 	case MOXA_GETDATACOUNT:
++		lock_kernel();
+ 		if (copy_to_user(argp, &mxvar_log, sizeof(mxvar_log)))
 -			return -EFAULT;
 -		return 0;
 +			ret = -EFAULT;
-+		ret = 0;
-+		break;
- 	default:
--		return -ENOIOCTLCMD;
-+		ret = -ENOIOCTLCMD;
++		unlock_kernel();
++		return ret;
+ 	case MOXA_GETMSTATUS:
++		lock_kernel();
+ 		for (i = 0; i < MXSER_BOARDS; i++)
+ 			for (j = 0; j < MXSER_PORTS_PER_BOARD; j++) {
+ 				port = &mxser_boards[i].ports[j];
+@@ -1515,6 +1519,7 @@ static int mxser_ioctl_special(unsigned 
+ 				else
+ 					GMStatus[i].cts = 0;
+ 			}
++		unlock_kernel();
+ 		if (copy_to_user(argp, GMStatus,
+ 				sizeof(struct mxser_mstatus) * MXSER_PORTS))
+ 			return -EFAULT;
+@@ -1524,7 +1529,8 @@ static int mxser_ioctl_special(unsigned 
+ 		unsigned long opmode;
+ 		unsigned cflag, iflag;
+ 
+-		for (i = 0; i < MXSER_BOARDS; i++)
++		lock_kernel();
++		for (i = 0; i < MXSER_BOARDS; i++) {
+ 			for (j = 0; j < MXSER_PORTS_PER_BOARD; j++) {
+ 				port = &mxser_boards[i].ports[j];
+ 				if (!port->ioaddr)
+@@ -1589,13 +1595,14 @@ static int mxser_ioctl_special(unsigned 
+ 				mon_data_ext.iftype[i] = opmode;
+ 
+ 			}
+-			if (copy_to_user(argp, &mon_data_ext,
+-						sizeof(mon_data_ext)))
+-				return -EFAULT;
+-
+-			return 0;
+-
+-	} default:
++		}
++		unlock_kernel();
++		if (copy_to_user(argp, &mon_data_ext,
++					sizeof(mon_data_ext)))
++			return -EFAULT;
++		return 0;
++	}
++	default:
+ 		return -ENOIOCTLCMD;
  	}
--	return 0;
-+	unlock_kernel();
-+	return ret;
- }
- 
- /*
-diff -puN drivers/char/synclinkmp.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclinkmp.c
-@@ -1303,7 +1303,7 @@ static void tx_release(struct tty_struct
-  *
-  * Return Value:	0 if success, otherwise error code
-  */
--static int ioctl(struct tty_struct *tty, struct file *file,
-+static int do_ioctl(struct tty_struct *tty, struct file *file,
- 		 unsigned int cmd, unsigned long arg)
- {
- 	SLMP_INFO *info = (SLMP_INFO *)tty->driver_data;
-@@ -1393,6 +1393,16 @@ static int ioctl(struct tty_struct *tty,
  	return 0;
- }
+@@ -1651,16 +1658,20 @@ static int mxser_ioctl(struct tty_struct
+ 					opmode != RS422_MODE &&
+ 					opmode != RS485_4WIRE_MODE)
+ 				return -EFAULT;
++			lock_kernel();
+ 			mask = ModeMask[p];
+ 			shiftbit = p * 2;
+ 			val = inb(info->opmode_ioaddr);
+ 			val &= mask;
+ 			val |= (opmode << shiftbit);
+ 			outb(val, info->opmode_ioaddr);
++			unlock_kernel();
+ 		} else {
++			lock_kernel();
+ 			shiftbit = p * 2;
+ 			opmode = inb(info->opmode_ioaddr) >> shiftbit;
+ 			opmode &= OP_MODE_MASK;
++			unlock_kernel();
+ 			if (put_user(opmode, (int __user *)argp))
+ 				return -EFAULT;
+ 		}
+@@ -1687,19 +1698,18 @@ static int mxser_ioctl(struct tty_struct
+ 		tty_wait_until_sent(tty, 0);
+ 		mxser_send_break(info, arg ? arg * (HZ / 10) : HZ / 4);
+ 		return 0;
+-	case TIOCGSOFTCAR:
+-		return put_user(!!C_CLOCAL(tty), (unsigned long __user *)argp);
+-	case TIOCSSOFTCAR:
+-		if (get_user(arg, (unsigned long __user *)argp))
+-			return -EFAULT;
+-		tty->termios->c_cflag = ((tty->termios->c_cflag & ~CLOCAL) | (arg ? CLOCAL : 0));
+-		return 0;
+ 	case TIOCGSERIAL:
+-		return mxser_get_serial_info(info, argp);
++		lock_kernel();
++		retval = mxser_get_serial_info(info, argp);
++		unlock_kernel();
++		return retval;
+ 	case TIOCSSERIAL:
+-		return mxser_set_serial_info(info, argp);
++		lock_kernel();
++		retval = mxser_set_serial_info(info, argp);
++		unlock_kernel();
++		return retval;
+ 	case TIOCSERGETLSR:	/* Get line status register */
+-		return mxser_get_lsr_info(info, argp);
++		return  mxser_get_lsr_info(info, argp);
+ 		/*
+ 		 * Wait for any of the 4 modem inputs (DCD,RI,DSR,CTS) to change
+ 		 * - mask passed in arg for lines of interest
+@@ -1746,24 +1756,27 @@ static int mxser_ioctl(struct tty_struct
+ 	case MOXA_HighSpeedOn:
+ 		return put_user(info->baud_base != 115200 ? 1 : 0, (int __user *)argp);
+ 	case MOXA_SDS_RSTICOUNTER:
++		lock_kernel();
+ 		info->mon_data.rxcnt = 0;
+ 		info->mon_data.txcnt = 0;
++		unlock_kernel();
+ 		return 0;
  
-+static int ioctl(struct tty_struct *tty, struct file *file,
-+		 unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+	lock_kernel();
-+	ret = do_ioctl(tty, file, cmd, arg);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- /*
-  * /proc fs routines....
-  */
+ 	case MOXA_ASPP_OQUEUE:{
+ 		int len, lsr;
+ 
++		lock_kernel();
+ 		len = mxser_chars_in_buffer(tty);
+-
+ 		lsr = inb(info->ioaddr + UART_LSR) & UART_LSR_TEMT;
+-
+ 		len += (lsr ? 0 : 1);
++		unlock_kernel();
+ 
+ 		return put_user(len, (int __user *)argp);
+ 	}
+ 	case MOXA_ASPP_MON: {
+ 		int mcr, status;
+ 
++		lock_kernel();
+ 		status = mxser_get_msr(info->ioaddr, 1, tty->index);
+ 		mxser_check_modem_status(info, status);
+ 
+@@ -1782,7 +1795,7 @@ static int mxser_ioctl(struct tty_struct
+ 			info->mon_data.hold_reason |= NPPI_NOTIFY_CTSHOLD;
+ 		else
+ 			info->mon_data.hold_reason &= ~NPPI_NOTIFY_CTSHOLD;
+-
++		unlock_kernel();
+ 		if (copy_to_user(argp, &info->mon_data,
+ 				sizeof(struct mxser_mon)))
+ 			return -EFAULT;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
