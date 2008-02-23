@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-remove-unused-fops-from-struct-char_device_struct.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:33:27 -0800
-Message-ID: <200802230734.m1N7YGeK018274@imap1.linux-foundation.org>
+Subject: + bluetooth-do-not-move-child-device-other-than-rfcomm.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:02 -0800
+Message-ID: <200802230730.m1N7UpKp017963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52911 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751471AbYBWHxw (ORCPT
+	by vger.kernel.org with ESMTP id S1751480AbYBWHx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:53:52 -0500
+	Sat, 23 Feb 2008 02:53:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olsajiri@gmail.com, greg@kroah.com
+Cc: hidave.darkstar@gmail.com, marcel@holt
 
 
 The patch titled
-     fs: remove unused fops from struct char_device_struct
+     bluetooth: do not move child device other than rfcomm
 has been added to the -mm tree.  Its filename is
-     fs-remove-unused-fops-from-struct-char_device_struct.patch
+     bluetooth-do-not-move-child-device-other-than-rfcomm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: remove unused fops from struct char_device_struct
-From: Jiri Olsa <olsajiri@gmail.com>
+Subject: bluetooth: do not move child device other than rfcomm
+From: Dave Young <hidave.darkstar@gmail.com>
 
-struct char_device_struct::fops is no longer used: remove it.
+hci conn child devices other than rfcomm tty should not be moved here.  This
+is my lost, thanks for Barnaby's reporting and testing.
 
-Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holt
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c |    1 -
- 1 file changed, 1 deletion(-)
+ net/bluetooth/hci_sysfs.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/char_dev.c~fs-remove-unused-fops-from-struct-char_device_struct fs/char_dev.c
---- a/fs/char_dev.c~fs-remove-unused-fops-from-struct-char_device_struct
-+++ a/fs/char_dev.c
-@@ -55,7 +55,6 @@ static struct char_device_struct {
- 	unsigned int baseminor;
- 	int minorct;
- 	char name[64];
--	struct file_operations *fops;
- 	struct cdev *cdev;		/* will die */
- } *chrdevs[CHRDEV_MAJOR_HASH_SIZE];
+diff -puN net/bluetooth/hci_sysfs.c~bluetooth-do-not-move-child-device-other-than-rfcomm net/bluetooth/hci_sysfs.c
+--- a/net/bluetooth/hci_sysfs.c~bluetooth-do-not-move-child-device-other-than-rfcomm
++++ a/net/bluetooth/hci_sysfs.c
+@@ -320,15 +320,14 @@ void hci_conn_add_sysfs(struct hci_conn 
+ 	queue_work(btaddconn, &conn->work);
+ }
  
++/*
++ * The rfcomm tty device will possibly retain even when conn
++ * is down, and sysfs doesn't support move zombie device,
++ * so we should move the device before conn device is destroyed.
++ */
+ static int __match_tty(struct device *dev, void *data)
+ {
+-	/* The rfcomm tty device will possibly retain even when conn
+-	 * is down, and sysfs doesn't support move zombie device,
+-	 * so we should move the device before conn device is destroyed.
+-	 * Due to the only child device of hci_conn dev is rfcomm
+-	 * tty_dev, here just return 1
+-	 */
+-	return 1;
++	return !strncmp(dev->bus_id, "rfcomm", 6);
+ }
+ 
+ static void del_conn(struct work_struct *work)
 _
 
-Patches currently in -mm which might be from olsajiri@gmail.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-uml-remove-unused-sigcontext-accessors.patch
-fs-remove-unused-fops-from-struct-char_device_struct.patch
+bluetooth-put-hci-dev-after-del-conn.patch
+bluetooth-do-not-move-child-device-other-than-rfcomm.patch
+bluetooth-hci_core-defer-hci_unregister_sysfs.patch
+bluetooth-conwise-technology-based-adapters-with-buggy-sco-support-bugzilla-9027.patch
