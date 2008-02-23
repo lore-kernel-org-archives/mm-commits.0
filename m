@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Sat, 23 Feb 2008 11:52:39 -0800
-Message-ID: <200802231952.m1NJqdjt012274@imap1.linux-foundation.org>
+Subject: + git-alsa-fix-git-conflicts.patch added to -mm tree
+Date: Sat, 23 Feb 2008 11:57:52 -0800
+Message-ID: <200802231957.m1NJvqfM012424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49533 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757678AbYBWTwm (ORCPT
+	by vger.kernel.org with ESMTP id S1753214AbYBWT6F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:52:42 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1NJqdYh003592
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 23 Feb 2008 11:52:41 -0800
+	Sat, 23 Feb 2008 14:58:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     git-x86-fixup
+     git-alsa-fix-git-conflicts
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     git-alsa-fix-git-conflicts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-alsa-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/pci.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/hda/hda_intel.c     |   12 -----------
+ sound/pci/hda/patch_realtek.c |   34 --------------------------------
+ 2 files changed, 46 deletions(-)
 
-diff -puN arch/x86/pci/pci.h~git-x86-fixup arch/x86/pci/pci.h
---- a/arch/x86/pci/pci.h~git-x86-fixup
-+++ a/arch/x86/pci/pci.h
-@@ -98,11 +98,11 @@ extern struct pci_raw_ops pci_direct_con
- extern int pci_direct_probe(void);
- extern void pci_direct_init(int type);
- extern void pci_pcbios_init(void);
--extern void pci_mmcfg_init(int type);
+diff -puN sound/pci/hda/hda_intel.c~git-alsa-fix-git-conflicts sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~git-alsa-fix-git-conflicts
++++ a/sound/pci/hda/hda_intel.c
+@@ -1836,17 +1836,6 @@ static int __devinit azx_create(struct s
+ 	gcap = azx_readw(chip, GCAP);
+ 	snd_printdd("chipset global capabilities = 0x%x\n", gcap);
  
- /* pci-mmconfig.c */
+-<<<<<<< HEAD:sound/pci/hda/hda_intel.c
+-	if (gcap) {
+-		/* read number of streams from GCAP register instead of using
+-		 * hardcoded value
+-		 */
+-		chip->playback_streams = (gcap & (0xF << 12)) >> 12;
+-		chip->capture_streams = (gcap & (0xF << 8)) >> 8;
+-		chip->playback_index_offset = chip->capture_streams;
+-		chip->capture_index_offset = 0;
+-	} else {
+-=======
+ 	/* allow 64bit DMA address if supported by H/W */
+ 	if ((gcap & 0x01) && !pci_set_dma_mask(pci, DMA_64BIT_MASK))
+ 		pci_set_consistent_dma_mask(pci, DMA_64BIT_MASK);
+@@ -1857,7 +1846,6 @@ static int __devinit azx_create(struct s
+ 	chip->capture_streams = (gcap >> 8) & 0x0f;
+ 	chip->playback_streams = (gcap >> 12) & 0x0f;
+ 	if (!chip->playback_streams && !chip->capture_streams) {
+->>>>>>> FETCH_HEAD:sound/pci/hda/hda_intel.c
+ 		/* gcap didn't give any info, switching to old method */
  
- extern int __init pci_mmcfg_arch_init(void);
-+extern void __init pci_mmcfg_arch_free(void);
+ 		switch (chip->driver_type) {
+diff -puN sound/pci/hda/patch_realtek.c~git-alsa-fix-git-conflicts sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~git-alsa-fix-git-conflicts
++++ a/sound/pci/hda/patch_realtek.c
+@@ -5253,13 +5253,9 @@ static int alc882_mux_enum_put(struct sn
+ 	struct alc_spec *spec = codec->spec;
+ 	const struct hda_input_mux *imux = spec->input_mux;
+ 	unsigned int adc_idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
+-<<<<<<< HEAD:sound/pci/hda/patch_realtek.c
+ 	static hda_nid_t capture_mixers[3] = { 0x24, 0x23, 0x22 };
+-	hda_nid_t nid;
+-=======
+ 	hda_nid_t nid = spec->capsrc_nids ?
+ 		spec->capsrc_nids[adc_idx] : spec->adc_nids[adc_idx];
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_realtek.c
+ 	unsigned int *cur_val = &spec->cur_mux[adc_idx];
+ 	unsigned int i, idx;
+ 
+@@ -6493,38 +6489,8 @@ static struct hda_input_mux alc883_lenov
+ 
+ #define alc883_mux_enum_info alc_mux_enum_info
+ #define alc883_mux_enum_get alc_mux_enum_get
+-<<<<<<< HEAD:sound/pci/hda/patch_realtek.c
+-
+-static int alc883_mux_enum_put(struct snd_kcontrol *kcontrol,
+-			       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+-	struct alc_spec *spec = codec->spec;
+-	const struct hda_input_mux *imux = spec->input_mux;
+-	unsigned int adc_idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
+-	static hda_nid_t capture_mixers[2] = { 0x23, 0x22 };
+-	hda_nid_t nid = capture_mixers[adc_idx];
+-	unsigned int *cur_val = &spec->cur_mux[adc_idx];
+-	unsigned int i, idx;
+-
+-	idx = ucontrol->value.enumerated.item[0];
+-	if (idx >= imux->num_items)
+-		idx = imux->num_items - 1;
+-	if (*cur_val == idx)
+-		return 0;
+-	for (i = 0; i < imux->num_items; i++) {
+-		unsigned int v = (i == idx) ? 0 : HDA_AMP_MUTE;
+-		snd_hda_codec_amp_stereo(codec, nid, HDA_INPUT,
+-					 imux->items[i].index,
+-					 HDA_AMP_MUTE, v);
+-	}
+-	*cur_val = idx;
+-	return 1;
+-}
+-=======
+ /* ALC883 has the ALC882-type input selection */
+ #define alc883_mux_enum_put alc882_mux_enum_put
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_realtek.c
  
  /*
-  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+  * 2ch mode
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
 git-audit-printk-warning-fix.patch
 git-cifs.patch
 git-drm.patch
@@ -91,7 +160,6 @@ git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 git-x86.patch
 git-x86-fixup.patch
-pci-dont-load-acpi_php-when-acpi-is-disabled.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
