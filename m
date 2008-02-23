@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-misc-auerswaldc-convert-stats_sem-into-a-mutex.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:31:11 -0800
-Message-ID: <200802230732.m1N7W02s018046@imap1.linux-foundation.org>
+Subject: + cgroup-fix-and-update-documentation.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:34 -0800
+Message-ID: <200802230733.m1N7XNAx018211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55759 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753238AbYBWHyI (ORCPT
+	by vger.kernel.org with ESMTP id S1753409AbYBWHyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:08 -0500
+	Sat, 23 Feb 2008 02:54:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias@kaehlcke.net, greg@kroah.com
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     drivers/usb/misc/auerswald.c: convert stats_sem into a mutex
+     cgroup: fix and update documentation
 has been added to the -mm tree.  Its filename is
-     drivers-usb-misc-auerswaldc-convert-stats_sem-into-a-mutex.patch
+     cgroup-fix-and-update-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,203 +34,214 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/misc/auerswald.c: convert stats_sem into a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: cgroup: fix and update documentation
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The semaphore cp->mutex is used as mutex, convert it to the mutex API
+Misc fixes and updates, make the doc consistent with current cgroup
+implementation.
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/auerswald.c |   45 +++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ Documentation/cgroups.txt |   70 ++++++++++++++++++------------------
+ 1 file changed, 35 insertions(+), 35 deletions(-)
 
-diff -puN drivers/usb/misc/auerswald.c~drivers-usb-misc-auerswaldc-convert-stats_sem-into-a-mutex drivers/usb/misc/auerswald.c
---- a/drivers/usb/misc/auerswald.c~drivers-usb-misc-auerswaldc-convert-stats_sem-into-a-mutex
-+++ a/drivers/usb/misc/auerswald.c
-@@ -31,6 +31,7 @@
- #include <linux/init.h>
- #include <linux/wait.h>
- #include <linux/usb.h>
-+#include <linux/mutex.h>
+diff -puN Documentation/cgroups.txt~cgroup-fix-and-update-documentation Documentation/cgroups.txt
+--- a/Documentation/cgroups.txt~cgroup-fix-and-update-documentation
++++ a/Documentation/cgroups.txt
+@@ -28,7 +28,7 @@ CONTENTS:
+ 4. Questions
  
- /*-------------------------------------------------------------------*/
- /* Debug support 						     */
-@@ -232,7 +233,7 @@ typedef struct auerscon
- /* USB device context */
- typedef struct
- {
--	struct semaphore 	mutex;         	    /* protection in user context */
-+	struct mutex 	mutex;         	    /* protection in user context */
- 	char 			name[20];	    /* name of the /dev/usb entry */
- 	unsigned int		dtindex;	    /* index in the device table */
- 	struct usb_device *	usbdev;      	    /* USB device handle */
-@@ -1376,7 +1377,7 @@ static int auerchar_open (struct inode *
- 	if (cp == NULL) {
- 		return -ENODEV;
- 	}
--	if (down_interruptible (&cp->mutex)) {
-+	if (mutex_lock_interruptible(&cp->mutex)) {
- 		return -ERESTARTSYS;
- 	}
+ 1. Control Groups
+-==========
++=================
  
-@@ -1405,7 +1406,7 @@ static int auerchar_open (struct inode *
- 	cp->open_count++;
- 	ccp->auerdev = cp;
- 	dbg("open %s as /dev/%s", cp->dev_desc, cp->name);
--	up (&cp->mutex);
-+	mutex_unlock(&cp->mutex);
+ 1.1 What are cgroups ?
+ ----------------------
+@@ -143,10 +143,10 @@ proliferation of such cgroups.
  
- 	/* file IO stuff */
- 	file->f_pos = 0;
-@@ -1413,7 +1414,7 @@ static int auerchar_open (struct inode *
- 	return nonseekable_open(inode, file);
+ Also lets say that the administrator would like to give enhanced network
+ access temporarily to a student's browser (since it is night and the user
+-wants to do online gaming :)  OR give one of the students simulation
++wants to do online gaming :))  OR give one of the students simulation
+ apps enhanced CPU power,
  
- 	/* Error exit */
--ofail:	up (&cp->mutex);
-+ofail:	mutex_unlock(&cp->mutex);
- 	auerchar_delete (ccp);
- 	return ret;
- }
-@@ -1440,14 +1441,14 @@ static int auerchar_ioctl (struct inode 
- 		up (&ccp->mutex);
-                 return -ENODEV;
- 	}
--	if (down_interruptible (&cp->mutex)) {
-+	if (mutex_lock_interruptible(&cp->mutex)) {
- 		up(&ccp->mutex);
- 		return -ERESTARTSYS;
- 	}
+-With ability to write pids directly to resource classes, its just a
++With ability to write pids directly to resource classes, it's just a
+ matter of :
  
- 	/* Check for removal */
- 	if (!cp->usbdev) {
--		up(&cp->mutex);
-+		mutex_unlock(&cp->mutex);
- 		up(&ccp->mutex);
-                 return -ENODEV;
- 	}
-@@ -1550,7 +1551,7 @@ static int auerchar_ioctl (struct inode 
- 		break;
-         }
- 	/* release the mutexes */
--	up(&cp->mutex);
-+	mutex_unlock(&cp->mutex);
- 	up(&ccp->mutex);
- 	return ret;
- }
-@@ -1721,12 +1722,12 @@ write_again:
- 		up (&ccp->mutex);
- 		return -ERESTARTSYS;
- 	}
--	if (down_interruptible (&cp->mutex)) {
-+	if (mutex_lock_interruptible(&cp->mutex)) {
- 		up (&ccp->mutex);
- 		return -ERESTARTSYS;
- 	}
- 	if (!cp->usbdev) {
--		up (&cp->mutex);
-+		mutex_unlock(&cp->mutex);
- 		up (&ccp->mutex);
- 		return -EIO;
- 	}
-@@ -1750,7 +1751,7 @@ write_again:
+        # echo pid > /mnt/network/<new_class>/tasks
+@@ -227,10 +227,13 @@ Each cgroup is represented by a director
+ containing the following files describing that cgroup:
  
- 	/* are there any buffers left? */
- 	if (!bp) {
--		up (&cp->mutex);
-+		mutex_unlock(&cp->mutex);
- 		up (&ccp->mutex);
+  - tasks: list of tasks (by pid) attached to that cgroup
+- - notify_on_release flag: run /sbin/cgroup_release_agent on exit?
++ - releasable flag: cgroup currently removeable?
++ - notify_on_release flag: run the release agent on exit?
++ - release_agent: the path to use for release notifications (this file
++   exists in the top cgroup only)
  
- 		/* NONBLOCK: don't wait */
-@@ -1783,7 +1784,7 @@ write_again:
- 		auerbuf_releasebuf (bp);
- 		/* Wake up all processes waiting for a buffer */
- 		wake_up (&cp->bufferwait);
--		up (&cp->mutex);
-+		mutex_unlock(&cp->mutex);
- 		up (&ccp->mutex);
- 		return -EFAULT;
- 	}
-@@ -1803,7 +1804,7 @@ write_again:
- 		    auerchar_ctrlwrite_complete, bp);
- 	/* up we go */
- 	ret = auerchain_submit_urb (&cp->controlchain, bp->urbp);
--	up (&cp->mutex);
-+	mutex_unlock(&cp->mutex);
- 	if (ret) {
- 		dbg ("auerchar_write: nonzero result of auerchain_submit_urb %d", ret);
- 		auerbuf_releasebuf (bp);
-@@ -1830,16 +1831,16 @@ static int auerchar_release (struct inod
- 	down(&ccp->mutex);
- 	cp = ccp->auerdev;
- 	if (cp) {
--		down(&cp->mutex);
-+		mutex_lock(&cp->mutex);
- 		/* remove an open service */
- 		auerswald_removeservice (cp, &ccp->scontext);
- 		/* detach from device */
- 		if ((--cp->open_count <= 0) && (cp->usbdev == NULL)) {
- 			/* usb device waits for removal */
--			up (&cp->mutex);
-+			mutex_unlock(&cp->mutex);
- 			auerswald_delete (cp);
- 		} else {
--			up (&cp->mutex);
-+			mutex_unlock(&cp->mutex);
- 		}
- 		cp = NULL;
- 		ccp->auerdev = NULL;
-@@ -1917,7 +1918,7 @@ static int auerswald_probe (struct usb_i
- 	}
+ Other subsystems such as cpusets may add additional files in each
+-cgroup dir
++cgroup dir.
  
- 	/* Initialize device descriptor */
--	init_MUTEX (&cp->mutex);
-+	mutex_init(&cp->mutex);
- 	cp->usbdev = usbdev;
- 	auerchain_init (&cp->controlchain);
-         auerbuf_init (&cp->bufctl);
-@@ -2042,7 +2043,7 @@ static void auerswald_disconnect (struct
- 	/* give back our USB minor number */
- 	usb_deregister_dev(intf, &auerswald_class);
+ New cgroups are created using the mkdir system call or shell
+ command.  The properties of a cgroup, such as its flags, are
+@@ -257,7 +260,7 @@ performance.
+ To allow access from a cgroup to the css_sets (and hence tasks)
+ that comprise it, a set of cg_cgroup_link objects form a lattice;
+ each cg_cgroup_link is linked into a list of cg_cgroup_links for
+-a single cgroup on its cont_link_list field, and a list of
++a single cgroup on its cgrp_link_list field, and a list of
+ cg_cgroup_links for a single css_set on its cg_link_list.
  
--	down (&cp->mutex);
-+	mutex_lock(&cp->mutex);
- 	info ("device /dev/%s now disconnecting", cp->name);
+ Thus the set of tasks in a cgroup can be listed by iterating over
+@@ -271,9 +274,6 @@ for cgroups, with a minimum of additiona
+ 1.4 What does notify_on_release do ?
+ ------------------------------------
  
- 	/* Stop the interrupt endpoint */
-@@ -2057,16 +2058,18 @@ static void auerswald_disconnect (struct
+-*** notify_on_release is disabled in the current patch set. It will be
+-*** reactivated in a future patch in a less-intrusive manner
+-
+ If the notify_on_release flag is enabled (1) in a cgroup, then
+ whenever the last task in the cgroup leaves (exits or attaches to
+ some other cgroup) and the last child cgroup of that cgroup
+@@ -360,8 +360,8 @@ Now you want to do something with this c
  
- 	if (cp->open_count == 0) {
- 		/* nobody is using this device. So we can clean up now */
--		up (&cp->mutex);/* up() is possible here because no other task
--				   can open the device (see above). I don't want
--				   to kfree() a locked mutex. */
-+		mutex_unlock(&cp->mutex);
-+		/* mutex_unlock() is possible here because no other task
-+		   can open the device (see above). I don't want
-+		   to kfree() a locked mutex. */
+ In this directory you can find several files:
+ # ls
+-notify_on_release release_agent tasks
+-(plus whatever files are added by the attached subsystems)
++notify_on_release releasable tasks
++(plus whatever files added by the attached subsystems)
+ 
+ Now attach your shell to this cgroup:
+ # /bin/echo $$ > tasks
+@@ -404,19 +404,13 @@ with a subsystem id which will be assign
+ Other fields in the cgroup_subsys object include:
+ 
+ - subsys_id: a unique array index for the subsystem, indicating which
+-  entry in cgroup->subsys[] this subsystem should be
+-  managing. Initialized by cgroup_register_subsys(); prior to this
+-  it should be initialized to -1
+-
+-- hierarchy: an index indicating which hierarchy, if any, this
+-  subsystem is currently attached to. If this is -1, then the
+-  subsystem is not attached to any hierarchy, and all tasks should be
+-  considered to be members of the subsystem's top_cgroup. It should
+-  be initialized to -1.
+-
+-- name: should be initialized to a unique subsystem name prior to
+-  calling cgroup_register_subsystem. Should be no longer than
+-  MAX_CGROUP_TYPE_NAMELEN
++  entry in cgroup->subsys[] this subsystem should be managing.
 +
- 		auerswald_delete (cp);
- 	} else {
- 		/* device is used. Remove the pointer to the
- 		   usb device (it's not valid any more). The last
- 		   release() will do the clean up */
- 		cp->usbdev = NULL;
--		up (&cp->mutex);
-+		mutex_unlock(&cp->mutex);
- 		/* Terminate waiting writers */
- 		wake_up (&cp->bufferwait);
- 		/* Inform all waiting readers */
++- name: should be initialized to a unique subsystem name. Should be
++  no longer than MAX_CGROUP_TYPE_NAMELEN.
++
++- early_init: indicate if the subsystem needs early initialization
++  at system boot.
+ 
+ Each cgroup object created by the system has an array of pointers,
+ indexed by subsystem id; this pointer is entirely managed by the
+@@ -434,8 +428,6 @@ situation.
+ See kernel/cgroup.c for more details.
+ 
+ Subsystems can take/release the cgroup_mutex via the functions
+-cgroup_lock()/cgroup_unlock(), and can
+-take/release the callback_mutex via the functions
+ cgroup_lock()/cgroup_unlock().
+ 
+ Accessing a task's cgroup pointer may be done in the following ways:
+@@ -444,7 +436,7 @@ Accessing a task's cgroup pointer may be
+ - inside an rcu_read_lock() section via rcu_dereference()
+ 
+ 3.3 Subsystem API
+---------------------------
++-----------------
+ 
+ Each subsystem should:
+ 
+@@ -455,7 +447,8 @@ Each subsystem may export the following 
+ methods are create/destroy. Any others that are null are presumed to
+ be successful no-ops.
+ 
+-struct cgroup_subsys_state *create(struct cgroup *cont)
++struct cgroup_subsys_state *create(struct cgroup_subsys *ss,
++				   struct cgroup *cgrp)
+ (cgroup_mutex held by caller)
+ 
+ Called to create a subsystem state object for a cgroup. The
+@@ -470,7 +463,7 @@ identified by the passed cgroup object h
+ it's the root of the hierarchy) and may be an appropriate place for
+ initialization code.
+ 
+-void destroy(struct cgroup *cont)
++void destroy(struct cgroup_subsys *ss, struct cgroup *cgrp)
+ (cgroup_mutex held by caller)
+ 
+ The cgroup system is about to destroy the passed cgroup; the subsystem
+@@ -481,7 +474,14 @@ cgroup->parent is still valid. (Note - c
+ newly-created cgroup if an error occurs after this subsystem's
+ create() method has been called for the new cgroup).
+ 
+-int can_attach(struct cgroup_subsys *ss, struct cgroup *cont,
++void pre_destroy(struct cgroup_subsys *ss, struct cgroup *cgrp);
++(cgroup_mutex held by caller)
++
++Called before checking the reference count on each subsystem. This may
++be useful for subsystems which have some extra references even if
++there are not tasks in the cgroup.
++
++int can_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
+ 	       struct task_struct *task)
+ (cgroup_mutex held by caller)
+ 
+@@ -492,8 +492,8 @@ unspecified task can be moved into the c
+ called on a fork. If this method returns 0 (success) then this should
+ remain valid while the caller holds cgroup_mutex.
+ 
+-void attach(struct cgroup_subsys *ss, struct cgroup *cont,
+-	    struct cgroup *old_cont, struct task_struct *task)
++void attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
++	    struct cgroup *old_cgrp, struct task_struct *task)
+ 
+ Called after the task has been attached to the cgroup, to allow any
+ post-attachment activity that requires memory allocations or blocking.
+@@ -505,9 +505,9 @@ registration for all existing tasks.
+ 
+ void exit(struct cgroup_subsys *ss, struct task_struct *task)
+ 
+-Called during task exit
++Called during task exit.
+ 
+-int populate(struct cgroup_subsys *ss, struct cgroup *cont)
++int populate(struct cgroup_subsys *ss, struct cgroup *cgrp)
+ 
+ Called after creation of a cgroup to allow a subsystem to populate
+ the cgroup directory with file entries.  The subsystem should make
+@@ -516,7 +516,7 @@ include/linux/cgroup.h for details).  No
+ method can return an error code, the error code is currently not
+ always handled well.
+ 
+-void post_clone(struct cgroup_subsys *ss, struct cgroup *cont)
++void post_clone(struct cgroup_subsys *ss, struct cgroup *cgrp)
+ 
+ Called at the end of cgroup_clone() to do any paramater
+ initialization which might be required before a task could attach.  For
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-cosa-srp-convert-channel_datarsem-to-mutex.patch
-drivers-usb-misc-auerswaldc-convert-stats_sem-into-a-mutex.patch
-drivers-usb-misc-auerswaldc-convert-ccp-readmutex-into-a-mutex.patch
-drivers-usb-misc-auerswaldc-convert-ccp-mutex-into-a-mutex.patch
-convert-acl-sem-in-a-mutex.patch
-convert-stats_sem-in-a-mutex.patch
-convert-wpa_sem-in-a-mutex.patch
+cgroup-fix-and-update-documentation.patch
+cgroup-fix-comments.patch
+cgroup-clean-up-cgrouph.patch
+cgroup-fix-memory-leak-in-cgroup_get_sb.patch
+cgroup-fix-subsys-bitops.patch
+cgroup-remove-duplicate-code-in-find_css_set.patch
+cgroup-remove-dead-code-in-cgroup_get_rootdir.patch
+memcgroup-fix-and-update-documentation.patch
+memcgroup-remove-a-useless-vm_bug_on.patch
+memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
