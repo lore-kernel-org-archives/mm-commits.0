@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-use-bug_on.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:22 -0800
-Message-ID: <200802230731.m1N7VBoa017987@imap1.linux-foundation.org>
+Subject: + serial-remove-double-initializer.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:34:05 -0800
+Message-ID: <200802230734.m1N7YsYm018313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34202 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301AbYBWHxH (ORCPT
+	by vger.kernel.org with ESMTP id S1750927AbYBWHx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:53:07 -0500
+	Sat, 23 Feb 2008 02:53:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     fs/ocfs2: Use BUG_ON
+     serial: remove double initializer
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-use-bug_on.patch
+     serial-remove-double-initializer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ocfs2: Use BUG_ON
-From: Julia Lawall <julia@diku.dk>
+Subject: serial: remove double initializer
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
-side-effects to allow a definition of BUG_ON that drops the code completely.
+Commit:
+02c9b5cf9acd8a85313b892dc5196ccf133d4884 serial: add ADDI-DATA GmbH Communication cardsin8250_pci.c and pci_ids.h
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+Added a second initializer, perhaps sopmething else was intended?
 
-// <smpl>
-@ disable unlikely @ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (unlikely(E)) { BUG(); }
-+ BUG_ON(E);
-)
-
-@@ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (E) { BUG(); }
-+ BUG_ON(E);
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c   |    3 +--
- fs/ocfs2/journal.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/serial/8250_pci.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~fs-ocfs2-use-bug_on fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~fs-ocfs2-use-bug_on
-+++ a/fs/ocfs2/alloc.c
-@@ -1029,8 +1029,7 @@ static void ocfs2_rotate_leaf(struct ocf
- 	BUG_ON(!next_free);
- 
- 	/* The tree code before us didn't allow enough room in the leaf. */
--	if (el->l_next_free_rec == el->l_count && !has_empty)
--		BUG();
-+	BUG_ON(el->l_next_free_rec == el->l_count && !has_empty);
- 
- 	/*
- 	 * The easiest way to approach this is to just remove the
-diff -puN fs/ocfs2/journal.c~fs-ocfs2-use-bug_on fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~fs-ocfs2-use-bug_on
-+++ a/fs/ocfs2/journal.c
-@@ -586,8 +586,7 @@ int ocfs2_journal_load(struct ocfs2_jour
- 
- 	mlog_entry_void();
- 
--	if (!journal)
--		BUG();
-+	BUG_ON(!journal);
- 
- 	osb = journal->j_osb;
- 
+diff -puN drivers/serial/8250_pci.c~serial-remove-double-initializer drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-remove-double-initializer
++++ a/drivers/serial/8250_pci.c
+@@ -1214,13 +1214,6 @@ static struct pciserial_board pci_boards
+ 		.base_baud	= 115200,
+ 		.uart_offset	= 8,
+ 	},
+-	[pbn_b0_8_115200] = {
+-		.flags		= FL_BASE0,
+-		.num_ports	= 8,
+-		.base_baud	= 115200,
+-		.uart_offset	= 8,
+-	},
+-
+ 	[pbn_b0_1_921600] = {
+ 		.flags		= FL_BASE0,
+ 		.num_ports	= 1,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-sound-use-bug_on.patch
-git-hid.patch
-git-net.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-fs-ocfs2-use-bug_on.patch
-s390-use-div_round_up.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-usb-use-div_round_up.patch
-fs-affs-filec-use-bug_on.patch
-fbdev-use-div_round_up-or-roundup.patch
-fs-ext2-use-bug_on.patch
-fs-ext3-use-bug_on.patch
-fs-ext4-use-bug_on.patch
+origin.patch
+markers-fix-sparse-warnings-in-markersc.patch
+acpi-sparse-fix-replace-macro-with-static-function.patch
+bttv-struct-member-initialized-twice.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+ata-fix-sparse-warning-in-libatah.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+lockd-fix-sparse-warning-in-svcsharec.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+debugfs-fix-sparse-warnings.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
