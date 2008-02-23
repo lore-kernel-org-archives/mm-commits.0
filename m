@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sis190-read-the-mac-address-from-the-eeprom-first.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:08 -0800
-Message-ID: <200802230730.m1N7Uvht017972@imap1.linux-foundation.org>
+Subject: + cgroup-fix-subsys-bitops.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:42 -0800
+Message-ID: <200802230733.m1N7XVJA018229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34719 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480AbYBWHyC (ORCPT
+	by vger.kernel.org with ESMTP id S1752941AbYBWHyG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:02 -0500
+	Sat, 23 Feb 2008 02:54:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: romieu@fr.zoreil.com, dsd@gentoo.org
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     sis190: read the mac address from the eeprom first
+     cgroup: fix subsys bitops
 has been added to the -mm tree.  Its filename is
-     sis190-read-the-mac-address-from-the-eeprom-first.patch
+     cgroup-fix-subsys-bitops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sis190: read the mac address from the eeprom first
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: cgroup: fix subsys bitops
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Reading a series of zero from the cmos sram area do not work well with
-is_valid_ether_addr().  Let's read the mac address from the eeprom first as
-it seems more reliable.
+Cgroup uses unsigned long for subsys bitops, not unsigned long long.
 
-Fix for http://bugzilla.kernel.org/show_bug.cgi?id=9831
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Daniel Drake <dsd@gentoo.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sis190.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ kernel/cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/sis190.c~sis190-read-the-mac-address-from-the-eeprom-first drivers/net/sis190.c
---- a/drivers/net/sis190.c~sis190-read-the-mac-address-from-the-eeprom-first
-+++ a/drivers/net/sis190.c
-@@ -1633,13 +1633,18 @@ static inline void sis190_init_rxfilter(
- static int __devinit sis190_get_mac_addr(struct pci_dev *pdev, 
- 					 struct net_device *dev)
- {
--	u8 from;
-+	int rc;
-+
-+	rc = sis190_get_mac_addr_from_eeprom(pdev, dev);
-+	if (rc < 0) {
-+		u8 reg;
- 
--	pci_read_config_byte(pdev, 0x73, &from);
-+		pci_read_config_byte(pdev, 0x73, &reg);
- 
--	return (from & 0x00000001) ?
--		sis190_get_mac_addr_from_apc(pdev, dev) :
--		sis190_get_mac_addr_from_eeprom(pdev, dev);
-+		if (reg & 0x00000001)
-+			rc = sis190_get_mac_addr_from_apc(pdev, dev);
-+	}
-+	return rc;
- }
- 
- static void sis190_set_speed_auto(struct net_device *dev)
+diff -puN kernel/cgroup.c~cgroup-fix-subsys-bitops kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-subsys-bitops
++++ a/kernel/cgroup.c
+@@ -319,7 +319,7 @@ static struct css_set *find_existing_css
+ 	/* Built the set of subsystem state objects that we want to
+ 	 * see in the new css_set */
+ 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+-		if (root->subsys_bits & (1ull << i)) {
++		if (root->subsys_bits & (1UL << i)) {
+ 			/* Subsystem is in this hierarchy. So we want
+ 			 * the subsystem state from the new
+ 			 * cgroup */
+@@ -689,7 +689,7 @@ static int rebind_subsystems(struct cgro
+ 	added_bits = final_bits & ~root->actual_subsys_bits;
+ 	/* Check that any added subsystems are currently free */
+ 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+-		unsigned long long bit = 1ull << i;
++		unsigned long bit = 1UL << i;
+ 		struct cgroup_subsys *ss = subsys[i];
+ 		if (!(bit & added_bits))
+ 			continue;
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-sis190-read-the-mac-address-from-the-eeprom-first.patch
+cgroup-fix-and-update-documentation.patch
+cgroup-fix-comments.patch
+cgroup-clean-up-cgrouph.patch
+cgroup-fix-memory-leak-in-cgroup_get_sb.patch
+cgroup-fix-subsys-bitops.patch
+cgroup-remove-duplicate-code-in-find_css_set.patch
+cgroup-remove-dead-code-in-cgroup_get_rootdir.patch
+memcgroup-fix-and-update-documentation.patch
+memcgroup-remove-a-useless-vm_bug_on.patch
+memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
