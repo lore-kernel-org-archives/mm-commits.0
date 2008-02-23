@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + isicom-istallion-prepare-for-lock_kernel-pushdown.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:19 -0800
-Message-ID: <200802230737.m1N7b8F8018486@imap1.linux-foundation.org>
+Subject: + io_ti-lock-mcr-and-msr-shadows-properly.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:59 -0800
+Message-ID: <200802230731.m1N7VmQm018031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44295 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36564 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754919AbYBWHyq (ORCPT
+	by vger.kernel.org with ESMTP id S1754935AbYBWHyq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Feb 2008 02:54:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     isicom: istallion prepare for lock_kernel pushdown
+     io_ti: lock mcr and msr shadows properly
 has been added to the -mm tree.  Its filename is
-     isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+     io_ti-lock-mcr-and-msr-shadows-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom: istallion prepare for lock_kernel pushdown
+Subject: io_ti: lock mcr and msr shadows properly
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-This is an ancient driver so just wrap it in lock_kernel internally and
-be done.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/istallion.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/usb/serial/io_ti.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/istallion.c~isicom-istallion-prepare-for-lock_kernel-pushdown drivers/char/istallion.c
---- a/drivers/char/istallion.c~isicom-istallion-prepare-for-lock_kernel-pushdown
-+++ a/drivers/char/istallion.c
-@@ -4433,6 +4433,8 @@ static int stli_memioctl(struct inode *i
- 	done = 0;
- 	rc = 0;
+diff -puN drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly drivers/usb/serial/io_ti.c
+--- a/drivers/usb/serial/io_ti.c~io_ti-lock-mcr-and-msr-shadows-properly
++++ a/drivers/usb/serial/io_ti.c
+@@ -2560,9 +2560,11 @@ static int edge_tiocmset (struct usb_ser
+ {
+ 	struct edgeport_port *edge_port = usb_get_serial_port_data(port);
+ 	unsigned int mcr;
++	unsigned long flags;
  
-+	lock_kernel();
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
++	spin_lock_irqsave(&edge_port->ep_lock, flags);
+ 	mcr = edge_port->shadow_mcr;
+ 	if (set & TIOCM_RTS)
+ 		mcr |= MCR_RTS;
+@@ -2579,6 +2581,7 @@ static int edge_tiocmset (struct usb_ser
+ 		mcr &= ~MCR_LOOPBACK;
+ 
+ 	edge_port->shadow_mcr = mcr;
++	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 
+ 	TIRestoreMCR (edge_port, mcr);
+ 
+@@ -2591,9 +2594,12 @@ static int edge_tiocmget(struct usb_seri
+ 	unsigned int result = 0;
+ 	unsigned int msr;
+ 	unsigned int mcr;
++	unsigned long flags;
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
++	spin_lock_irqsave(&edge_port->ep_lock, flags);
 +
- 	switch (cmd) {
- 	case COM_GETPORTSTATS:
- 		rc = stli_getportstats(NULL, argp);
-@@ -4455,6 +4457,7 @@ static int stli_memioctl(struct inode *i
- 		done++;
- 		break;
- 	}
-+	unlock_kernel();
+ 	msr = edge_port->shadow_msr;
+ 	mcr = edge_port->shadow_mcr;
+ 	result = ((mcr & MCR_DTR)	? TIOCM_DTR: 0)	  /* 0x002 */
+@@ -2605,6 +2611,7 @@ static int edge_tiocmget(struct usb_seri
  
- 	if (done)
- 		return rc;
-@@ -4472,6 +4475,8 @@ static int stli_memioctl(struct inode *i
- 	if (brdp->state == 0)
- 		return -ENODEV;
  
-+	lock_kernel();
-+
- 	switch (cmd) {
- 	case STL_BINTR:
- 		EBRDINTR(brdp);
-@@ -4494,6 +4499,7 @@ static int stli_memioctl(struct inode *i
- 		rc = -ENOIOCTLCMD;
- 		break;
- 	}
-+	unlock_kernel();
- 	return rc;
+ 	dbg("%s -- %x", __FUNCTION__, result);
++	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 
+ 	return result;
  }
- 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
