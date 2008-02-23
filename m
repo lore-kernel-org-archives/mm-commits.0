@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bcm47xx-use-new-ssb-sprom-data-structure.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:29:43 -0800
-Message-ID: <200802230730.m1N7UW9L017945@imap1.linux-foundation.org>
+Subject: + mips-fix-sni_rm-eisa=n-compilation.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:29:45 -0800
+Message-ID: <200802230730.m1N7UYQ5017948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34181 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40952 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753864AbYBWHbA (ORCPT
+	by vger.kernel.org with ESMTP id S1754079AbYBWHbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:31:00 -0500
+	Sat, 23 Feb 2008 02:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aurelien@aurel32.net
+Cc: bunk@kernel.org, tsbogend@alpha.franken.de
 
 
 The patch titled
-     BCM47XX: use new SSB SPROM data structure
+     mips: fix SNI_RM EISA=n compilation
 has been added to the -mm tree.  Its filename is
-     bcm47xx-use-new-ssb-sprom-data-structure.patch
+     mips-fix-sni_rm-eisa=n-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: BCM47XX: use new SSB SPROM data structure
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: mips: fix SNI_RM EISA=n compilation
+From: Adrian Bunk <bunk@kernel.org>
 
-Switch the BCM47XX code to the new SPROM data structure now that the old one
-has been removed.
+Fix the following build error with CONFIG_EISA=n caused by commit
+231a35d37293ab88d325a9cb94e5474c156282c0:
 
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+  LD      .tmp_vmlinux1
+arch/mips/sni/built-in.o: In function `snirm_a20r_setup_devinit':
+a20r.c:(.init.text+0x42c): undefined reference to `sni_eisa_root_init'
+a20r.c:(.init.text+0x42c): relocation truncated to fit: R_MIPS_26 against `sni_eisa_root_init'
+arch/mips/sni/built-in.o: In function `snirm_setup_devinit':
+rm200.c:(.init.text+0x52c): undefined reference to `sni_eisa_root_init'
+rm200.c:(.init.text+0x52c): relocation truncated to fit: R_MIPS_26 against `sni_eisa_root_init'
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/bcm47xx/setup.c   |   12 ++++++------
- arch/mips/bcm47xx/wgt634u.c |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/asm-mips/sni.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/mips/bcm47xx/setup.c~bcm47xx-use-new-ssb-sprom-data-structure arch/mips/bcm47xx/setup.c
---- a/arch/mips/bcm47xx/setup.c~bcm47xx-use-new-ssb-sprom-data-structure
-+++ a/arch/mips/bcm47xx/setup.c
-@@ -92,17 +92,17 @@ static int bcm47xx_get_invariants(struct
- 	iv->sprom.revision = 3;
+diff -puN include/asm-mips/sni.h~mips-fix-sni_rm-eisa=n-compilation include/asm-mips/sni.h
+--- a/include/asm-mips/sni.h~mips-fix-sni_rm-eisa=n-compilation
++++ a/include/asm-mips/sni.h
+@@ -228,7 +228,14 @@ extern void sni_pcimt_irq_init(void);
+ extern void sni_cpu_time_init(void);
  
- 	if (cfe_getenv("et0macaddr", buf, sizeof(buf)) >= 0)
--		str2eaddr(buf, iv->sprom.r1.et0mac);
-+		str2eaddr(buf, iv->sprom.et0mac);
- 	if (cfe_getenv("et1macaddr", buf, sizeof(buf)) >= 0)
--		str2eaddr(buf, iv->sprom.r1.et1mac);
-+		str2eaddr(buf, iv->sprom.et1mac);
- 	if (cfe_getenv("et0phyaddr", buf, sizeof(buf)) >= 0)
--		iv->sprom.r1.et0phyaddr = simple_strtoul(buf, NULL, 10);
-+		iv->sprom.et0phyaddr = simple_strtoul(buf, NULL, 10);
- 	if (cfe_getenv("et1phyaddr", buf, sizeof(buf)) >= 0)
--		iv->sprom.r1.et1phyaddr = simple_strtoul(buf, NULL, 10);
-+		iv->sprom.et1phyaddr = simple_strtoul(buf, NULL, 10);
- 	if (cfe_getenv("et0mdcport", buf, sizeof(buf)) >= 0)
--		iv->sprom.r1.et0mdcport = simple_strtoul(buf, NULL, 10);
-+		iv->sprom.et0mdcport = simple_strtoul(buf, NULL, 10);
- 	if (cfe_getenv("et1mdcport", buf, sizeof(buf)) >= 0)
--		iv->sprom.r1.et1mdcport = simple_strtoul(buf, NULL, 10);
-+		iv->sprom.et1mdcport = simple_strtoul(buf, NULL, 10);
+ /* eisa init for RM200/400 */
++#ifdef CONFIG_EISA
+ extern int sni_eisa_root_init(void);
++#else
++static inline int sni_eisa_root_init(void)
++{
++	return 0;
++}
++#endif
  
- 	return 0;
- }
-diff -puN arch/mips/bcm47xx/wgt634u.c~bcm47xx-use-new-ssb-sprom-data-structure arch/mips/bcm47xx/wgt634u.c
---- a/arch/mips/bcm47xx/wgt634u.c~bcm47xx-use-new-ssb-sprom-data-structure
-+++ a/arch/mips/bcm47xx/wgt634u.c
-@@ -50,7 +50,7 @@ static int __init wgt634u_init(void)
- 	 * been allocated ranges 00:09:5b:xx:xx:xx and 00:0f:b5:xx:xx:xx.
- 	 */
- 
--	u8 *et0mac = ssb_bcm47xx.sprom.r1.et0mac;
-+	u8 *et0mac = ssb_bcm47xx.sprom.et0mac;
- 
- 	if (et0mac[0] == 0x00 &&
- 	    ((et0mac[1] == 0x09 && et0mac[2] == 0x5b) ||
+ /* common irq stuff */
+ extern void (*sni_hwint)(void);
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-kvm.patch
-bcm47xx-use-new-ssb-sprom-data-structure.patch
-ssb-pci-core-driver-use-new-sprom-data-structure.patch
+sparc-fix-build.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+proper-extern-for-gfs2-locking-dlm-mountcgdlm_ops.patch
+gfs2-ops_filec-should-include-ops_inodeh.patch
+git-kbuild.patch
+mips-fix-sni_rm-eisa=n-compilation.patch
+mips-finish-the-qemu-platform-removal.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+make-ocfs2_downconvert_thread-static.patch
+ocfs-make-dlm_do_assert_master-static.patch
+if-0-pci_cleanup_aer_correct_error_status.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+scsi-qlogicptic-section-fixes.patch
+make-lpfc_disable_node-static.patch
+if-0-ses_match_host.patch
+scsi_transport_iscsic-make-2-functions-static.patch
+remove-ps2esdi.patch
+usb-make-usb_storage_onetouch-available-with-pm.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+git-xtensa.patch
+message-fusion-mptbasec-fix-use-after-frees.patch
+ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
+dm-raid1c-fix-null-dereferences.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-printk_recursion_bug_msg-static.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-block_devc-remove-if-0ed-code.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+make-struct-def_blk_aops-static.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
