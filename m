@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cyclades-prepare-for-relaxed-locking-in-callers.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:36:11 -0800
-Message-ID: <200802230737.m1N7b0fi018467@imap1.linux-foundation.org>
+Subject: + isdn_tty-prepare-for-bkl-push-down.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:36:44 -0800
+Message-ID: <200802230737.m1N7bXRd018524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38762 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757859AbYBWIAY (ORCPT
+	by vger.kernel.org with ESMTP id S1754403AbYBWIAq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:00:24 -0500
+	Sat, 23 Feb 2008 03:00:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, john@stoffel.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     cyclades: Prepare for relaxed locking in callers
+     isdn_tty: Prepare for BKL push down
 has been added to the -mm tree.  Its filename is
-     cyclades-prepare-for-relaxed-locking-in-callers.patch
+     isdn_tty-prepare-for-bkl-push-down.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cyclades: Prepare for relaxed locking in callers
+Subject: isdn_tty: Prepare for BKL push down
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Basically wrap it in lock_kernel where it is hard to prove the locking is
-ok.
+Three things here
+- Remove softcar handler
+- Correct termios change detection logic
+- Wrap break/ioctl in lock_kernel ready to drop it in the caller
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: "John Stoffel" <john@stoffel.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ drivers/isdn/i4l/isdn_tty.c |   26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/cyclades.c~cyclades-prepare-for-relaxed-locking-in-callers drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~cyclades-prepare-for-relaxed-locking-in-callers
-+++ a/drivers/char/cyclades.c
-@@ -3464,6 +3464,8 @@ static int cy_tiocmget(struct tty_struct
- 	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
- 		return -ENODEV;
+diff -puN drivers/isdn/i4l/isdn_tty.c~isdn_tty-prepare-for-bkl-push-down drivers/isdn/i4l/isdn_tty.c
+--- a/drivers/isdn/i4l/isdn_tty.c~isdn_tty-prepare-for-bkl-push-down
++++ a/drivers/isdn/i4l/isdn_tty.c
+@@ -1352,12 +1352,14 @@ isdn_tty_tiocmget(struct tty_struct *tty
+ 	if (tty->flags & (1 << TTY_IO_ERROR))
+ 		return -EIO;
  
 +	lock_kernel();
-+
- 	card = info->card;
- 	channel = info->line - card->first_line;
- 	if (!IS_CYC_Z(*card)) {
-@@ -3506,10 +3508,12 @@ static int cy_tiocmget(struct tty_struct
- 				((lstatus & C_RS_CTS) ? TIOCM_CTS : 0);
- 		} else {
- 			result = 0;
-+			unlock_kernel();
- 			return -ENODEV;
+ #ifdef ISDN_DEBUG_MODEM_IOCTL
+ 	printk(KERN_DEBUG "ttyI%d ioctl TIOCMGET\n", info->line);
+ #endif
+ 
+ 	control = info->mcr;
+ 	status = info->msr;
++	unlock_kernel();
+ 	return ((control & UART_MCR_RTS) ? TIOCM_RTS : 0)
+ 	    | ((control & UART_MCR_DTR) ? TIOCM_DTR : 0)
+ 	    | ((status & UART_MSR_DCD) ? TIOCM_CAR : 0)
+@@ -1381,6 +1383,7 @@ isdn_tty_tiocmset(struct tty_struct *tty
+ 	printk(KERN_DEBUG "ttyI%d ioctl TIOCMxxx: %x %x\n", info->line, set, clear);
+ #endif
+ 
++	lock_kernel();
+ 	if (set & TIOCM_RTS)
+ 		info->mcr |= UART_MCR_RTS;
+ 	if (set & TIOCM_DTR) {
+@@ -1402,6 +1405,7 @@ isdn_tty_tiocmset(struct tty_struct *tty
+ 			isdn_tty_modem_hup(info, 1);
  		}
- 
  	}
 +	unlock_kernel();
- 	return result;
- }				/* cy_tiomget */
+ 	return 0;
+ }
  
-@@ -3880,6 +3884,7 @@ cy_ioctl(struct tty_struct *tty, struct 
- 	printk(KERN_DEBUG "cyc:cy_ioctl ttyC%d, cmd = %x arg = %lx\n",
- 		info->line, cmd, arg);
- #endif
-+	lock_kernel();
- 
- 	switch (cmd) {
- 	case CYGETMON:
-@@ -3988,47 +3993,47 @@ cy_ioctl(struct tty_struct *tty, struct 
- 		p_cuser = argp;
- 		ret_val = put_user(cnow.cts, &p_cuser->cts);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.dsr, &p_cuser->dsr);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.rng, &p_cuser->rng);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.dcd, &p_cuser->dcd);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.rx, &p_cuser->rx);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.tx, &p_cuser->tx);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.frame, &p_cuser->frame);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.overrun, &p_cuser->overrun);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.parity, &p_cuser->parity);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.brk, &p_cuser->brk);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = put_user(cnow.buf_overrun, &p_cuser->buf_overrun);
- 		if (ret_val)
--			return ret_val;
-+			break;
- 		ret_val = 0;
- 		break;
- 	default:
- 		ret_val = -ENOIOCTLCMD;
+@@ -1435,21 +1439,6 @@ isdn_tty_ioctl(struct tty_struct *tty, s
+ 				return retval;
+ 			tty_wait_until_sent(tty, 0);
+ 			return 0;
+-		case TIOCGSOFTCAR:
+-#ifdef ISDN_DEBUG_MODEM_IOCTL
+-			printk(KERN_DEBUG "ttyI%d ioctl TIOCGSOFTCAR\n", info->line);
+-#endif
+-			return put_user(C_CLOCAL(tty) ? 1 : 0, (ulong __user *) arg);
+-		case TIOCSSOFTCAR:
+-#ifdef ISDN_DEBUG_MODEM_IOCTL
+-			printk(KERN_DEBUG "ttyI%d ioctl TIOCSSOFTCAR\n", info->line);
+-#endif
+-			if (get_user(arg, (ulong __user *) arg))
+-				return -EFAULT;
+-			tty->termios->c_cflag =
+-			    ((tty->termios->c_cflag & ~CLOCAL) |
+-			     (arg ? CLOCAL : 0));
+-			return 0;
+ 		case TIOCSERGETLSR:	/* Get line status register */
+ #ifdef ISDN_DEBUG_MODEM_IOCTL
+ 			printk(KERN_DEBUG "ttyI%d ioctl TIOCSERGETLSR\n", info->line);
+@@ -1472,13 +1461,14 @@ isdn_tty_set_termios(struct tty_struct *
+ 	if (!old_termios)
+ 		isdn_tty_change_speed(info);
+ 	else {
+-		if (tty->termios->c_cflag == old_termios->c_cflag)
++		if (tty->termios->c_cflag == old_termios->c_cflag &&
++		    tty->termios->c_ispeed == old_termios->c_ispeed &&
++		    tty->termios->c_ospeed == old_termios->c_ospeed)
+ 			return;
+ 		isdn_tty_change_speed(info);
+ 		if ((old_termios->c_cflag & CRTSCTS) &&
+-		    !(tty->termios->c_cflag & CRTSCTS)) {
++		    !(tty->termios->c_cflag & CRTSCTS))
+ 			tty->hw_stopped = 0;
+-		}
  	}
-+	unlock_kernel();
- 
- #ifdef CY_DEBUG_OTHER
- 	printk(KERN_DEBUG "cyc:cy_ioctl done\n");
- #endif
--
- 	return ret_val;
- }				/* cy_ioctl */
+ }
  
 _
 
