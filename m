@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ftdi_sio-note-missing-locking.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:30:54 -0800
-Message-ID: <200802230731.m1N7VhUB018025@imap1.linux-foundation.org>
+Subject: + iuu_phoenix-lock-priv-tiostatus-properly.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:31:01 -0800
+Message-ID: <200802230731.m1N7Vo3h018034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36031 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754373AbYBWHyv (ORCPT
+	by vger.kernel.org with ESMTP id S1755205AbYBWHyw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:51 -0500
+	Sat, 23 Feb 2008 02:54:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ftdi_sio: Note missing locking
+     iuu_phoenix: lock priv->tiostatus properly
 has been added to the -mm tree.  Its filename is
-     ftdi_sio-note-missing-locking.patch
+     iuu_phoenix-lock-priv-tiostatus-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftdi_sio: Note missing locking
+Subject: iuu_phoenix: lock priv->tiostatus properly
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ftdi_sio driver has no internal locking on the dtr/rts state. Flag
-that up for someone to fix.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/serial/iuu_phoenix.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -524,9 +524,8 @@ static int update_mctrl(struct usb_seria
- 	}
+diff -puN drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly drivers/usb/serial/iuu_phoenix.c
+--- a/drivers/usb/serial/iuu_phoenix.c~iuu_phoenix-lock-priv-tiostatus-properly
++++ a/drivers/usb/serial/iuu_phoenix.c
+@@ -148,20 +148,21 @@ static int iuu_tiocmset(struct usb_seria
+ 			unsigned int set, unsigned int clear)
+ {
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	struct tty_struct *tty;
+-	tty = port->tty;
++	unsigned long flags;
  
- 	buf = kmalloc(1, GFP_NOIO);
--	if (!buf) {
-+	if (!buf)
- 		return -ENOMEM;
--	}
++	/* FIXME: locking on tiomstatus */
+ 	dbg("%s (%d) msg : SET = 0x%04x, CLEAR = 0x%04x ", __FUNCTION__,
+ 	    port->number, set, clear);
++
++	spin_lock_irqsave(&priv->lock, flags);
+ 	if (set & TIOCM_RTS)
+ 		priv->tiostatus = TIOCM_RTS;
  
- 	clear &= ~set;	/* 'set' takes precedence over 'clear' */
- 	urb_value = 0;
-@@ -559,6 +558,7 @@ static int update_mctrl(struct usb_seria
- 				(clear & TIOCM_DTR) ? "LOW" : "unchanged",
- 				(set & TIOCM_RTS) ? "HIGH" :
- 				(clear & TIOCM_RTS) ? "LOW" : "unchanged");
-+		/* FIXME: locking on last_dtr_rts */
- 		priv->last_dtr_rts = (priv->last_dtr_rts & ~clear) | set;
+ 	if (!(set & TIOCM_RTS) && priv->tiostatus == TIOCM_RTS) {
+ 		dbg("%s TIOCMSET RESET called !!!", __FUNCTION__);
+ 		priv->reset = 1;
+-		return 0;
  	}
- 	return rv;
+-
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 	return 0;
+ }
+ 
+@@ -173,7 +174,14 @@ static int iuu_tiocmset(struct usb_seria
+ static int iuu_tiocmget(struct usb_serial_port *port, struct file *file)
+ {
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	return priv->tiostatus;
++	unsigned long flags;
++	int rc;
++
++	spin_lock_irqsave(&priv->lock, flags);
++	rc = priv->tiostatus;
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++	return rc;
+ }
+ 
+ static void iuu_rxcmd(struct urb *urb)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
