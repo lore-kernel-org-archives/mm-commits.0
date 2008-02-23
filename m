@@ -1,68 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - usb-microtek-remove-unused-semaphore.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:55 -0800
-Message-ID: <200802232022.m1NKMt1a013467@imap1.linux-foundation.org>
+Subject: - wdev-ath5k-dont-return-int-from-bool-function.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:41 -0800
+Message-ID: <200802232023.m1NKNfTd013563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38707 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761715AbYBWU2q (ORCPT
+	by vger.kernel.org with ESMTP id S1761949AbYBWU2r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:46 -0500
+	Sat, 23 Feb 2008 15:28:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb microtek: remove unused semaphore
+     WDEV, ath5k, don't return int from bool function
 has been removed from the -mm tree.  Its filename was
-     usb-microtek-remove-unused-semaphore.patch
+     wdev-ath5k-dont-return-int-from-bool-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb microtek: remove unused semaphore
-From: Daniel Walker <dwalker@mvista.com>
+Subject: WDEV, ath5k, don't return int from bool function
+From: Jiri Slaby <jirislaby@gmail.com>
 
-No current references, so removing it.
+sparse sees int -> bool cast as an error:
+hw.c:3754:10: warning: cast truncates bits from constant value (ffffffea becomes 0)
+Fix it by converting the rettype to int and check appropriately.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Nick Kossifidis <mickflemm@gmail.com>
+Cc: Luis R. Rodriguez <mcgrof@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/image/microtek.c |    1 -
- drivers/usb/image/microtek.h |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/net/wireless/ath5k/ath5k.h |    2 +-
+ drivers/net/wireless/ath5k/base.c  |    5 ++++-
+ drivers/net/wireless/ath5k/hw.c    |    8 ++++----
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.c
---- a/drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore
-+++ a/drivers/usb/image/microtek.c
-@@ -794,7 +794,6 @@ static int mts_usb_probe(struct usb_inte
+diff -puN drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/ath5k.h
+--- a/drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function
++++ a/drivers/net/wireless/ath5k/ath5k.h
+@@ -1035,7 +1035,7 @@ struct ath5k_hw {
+ 		unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
+ 		unsigned int, unsigned int, unsigned int, unsigned int,
+ 		unsigned int, unsigned int, unsigned int);
+-	bool (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
++	int (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
+ 		unsigned int, unsigned int, unsigned int, unsigned int,
+ 		unsigned int, unsigned int);
+ 	int (*ah_proc_tx_desc)(struct ath5k_hw *, struct ath5k_desc *);
+diff -puN drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function
++++ a/drivers/net/wireless/ath5k/base.c
+@@ -668,7 +668,10 @@ ath5k_attach(struct pci_dev *pdev, struc
+ 	 * return false w/o doing anything.  MAC's that do
+ 	 * support it will return true w/o doing anything.
+ 	 */
+-	if (ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0))
++	ret = ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0);
++	if (ret < 0)
++		goto err;
++	if (ret > 0)
+ 		__set_bit(ATH_STAT_MRRETRY, sc->status);
  
- 	new_desc->usb_dev = dev;
- 	new_desc->usb_intf = intf;
--	init_MUTEX(&new_desc->lock);
+ 	/*
+diff -puN drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/hw.c
+--- a/drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function
++++ a/drivers/net/wireless/ath5k/hw.c
+@@ -45,7 +45,7 @@ static int ath5k_hw_setup_4word_tx_desc(
+ 	unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
+ 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
+ 	unsigned int, unsigned int);
+-static bool ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
++static int ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
+ 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
+ 	unsigned int);
+ static int ath5k_hw_proc_4word_tx_status(struct ath5k_hw *, struct ath5k_desc *);
+@@ -3743,7 +3743,7 @@ static int ath5k_hw_setup_4word_tx_desc(
+ /*
+  * Initialize a 4-word multirate tx descriptor on 5212
+  */
+-static bool
++static int
+ ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *ah, struct ath5k_desc *desc,
+ 	unsigned int tx_rate1, u_int tx_tries1, u_int tx_rate2, u_int tx_tries2,
+ 	unsigned int tx_rate3, u_int tx_tries3)
+@@ -3783,10 +3783,10 @@ ath5k_hw_setup_xr_tx_desc(struct ath5k_h
  
- 	/* endpoints */
- 	new_desc->ep_out = ep_out;
-diff -puN drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.h
---- a/drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore
-+++ a/drivers/usb/image/microtek.h
-@@ -39,7 +39,6 @@ struct mts_desc {
- 	u8 ep_image;
+ #undef _XTX_TRIES
  
- 	struct Scsi_Host * host;
--	struct semaphore lock;
+-		return true;
++		return 1;
+ 	}
  
- 	struct urb *urb;
- 	struct mts_transfer_context context;
+-	return false;
++	return 0;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+origin.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+git-net.patch
+wdev-ath5k-typecheck-on-nondebug.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
