@@ -1,100 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - ftdi_sio-note-missing-locking.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:18 -0800
-Message-ID: <200802232023.m1NKNI2w013504@imap1.linux-foundation.org>
+Subject: - usb-libusual-locking-cleanup.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:57 -0800
+Message-ID: <200802232022.m1NKMv4Q013470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45778 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763295AbYBWU32 (ORCPT
+	by vger.kernel.org with ESMTP id S1763290AbYBWU3p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:28 -0500
+	Sat, 23 Feb 2008 15:29:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftdi_sio: Note missing locking
+     usb: libusual: locking cleanup
 has been removed from the -mm tree.  Its filename was
-     ftdi_sio-note-missing-locking.patch
+     usb-libusual-locking-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftdi_sio: Note missing locking
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: usb: libusual: locking cleanup
+From: Daniel Walker <dwalker@mvista.com>
 
-The ftdi_sio driver has no internal locking on the dtr/rts state. Flag
-that up for someone to fix.
+I converted the usu_init_notify semaphore to normal mutex usage, and it
+should still prevent the request_module before the init routine is
+complete.  Before it acted more like a complete, now the mutex protects two
+distinct section from running at the same time.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/storage/libusual.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-note-missing-locking
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -524,9 +524,8 @@ static int update_mctrl(struct usb_seria
- 	}
+diff -puN drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup drivers/usb/storage/libusual.c
+--- a/drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup
++++ a/drivers/usb/storage/libusual.c
+@@ -9,6 +9,7 @@
+ #include <linux/usb_usual.h>
+ #include <linux/vmalloc.h>
+ #include <linux/kthread.h>
++#include <linux/mutex.h>
  
- 	buf = kmalloc(1, GFP_NOIO);
--	if (!buf) {
-+	if (!buf)
- 		return -ENOMEM;
--	}
+ /*
+  */
+@@ -30,7 +31,7 @@ static atomic_t usu_bias = ATOMIC_INIT(U
+ #define BIAS_NAME_SIZE  (sizeof("usb-storage"))
+ static const char *bias_names[3] = { "none", "usb-storage", "ub" };
  
- 	clear &= ~set;	/* 'set' takes precedence over 'clear' */
- 	urb_value = 0;
-@@ -559,6 +558,7 @@ static int update_mctrl(struct usb_seria
- 				(clear & TIOCM_DTR) ? "LOW" : "unchanged",
- 				(set & TIOCM_RTS) ? "HIGH" :
- 				(clear & TIOCM_RTS) ? "LOW" : "unchanged");
-+		/* FIXME: locking on last_dtr_rts */
- 		priv->last_dtr_rts = (priv->last_dtr_rts & ~clear) | set;
+-static struct semaphore usu_init_notify;
++static DEFINE_MUTEX(usu_probe_mutex);
+ static DECLARE_COMPLETION(usu_end_notify);
+ static atomic_t total_threads = ATOMIC_INIT(0);
+ 
+@@ -178,10 +179,7 @@ static int usu_probe_thread(void *arg)
+ 	int rc;
+ 	unsigned long flags;
+ 
+-	/* A completion does not work here because it's counted. */
+-	down(&usu_init_notify);
+-	up(&usu_init_notify);
+-
++	mutex_lock(&usu_probe_mutex);
+ 	rc = request_module(bias_names[type]);
+ 	spin_lock_irqsave(&usu_lock, flags);
+ 	if (rc == 0 && (st->fls & USU_MOD_FL_PRESENT) == 0) {
+@@ -194,6 +192,7 @@ static int usu_probe_thread(void *arg)
  	}
- 	return rv;
+ 	st->fls &= ~USU_MOD_FL_THREAD;
+ 	spin_unlock_irqrestore(&usu_lock, flags);
++	mutex_unlock(&usu_probe_mutex);
+ 
+ 	complete_and_exit(&usu_end_notify, 0);
+ }
+@@ -204,10 +203,9 @@ static int __init usb_usual_init(void)
+ {
+ 	int rc;
+ 
+-	sema_init(&usu_init_notify, 0);
+-
++	mutex_lock(&usu_probe_mutex);
+ 	rc = usb_register(&usu_driver);
+-	up(&usu_init_notify);
++	mutex_unlock(&usu_probe_mutex);
+ 	return rc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-git-scsi-rc-fixes.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
