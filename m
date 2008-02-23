@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysdev-detect-multiple-driver-registrations.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:29:11 -0800
-Message-ID: <200802230730.m1N7U0AB017922@imap1.linux-foundation.org>
+Subject: + m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:29:39 -0800
+Message-ID: <200802230730.m1N7US1V017942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33190 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750857AbYBWHam (ORCPT
+	by vger.kernel.org with ESMTP id S1750857AbYBWHau (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:30:42 -0500
+	Sat, 23 Feb 2008 02:30:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben@fluff.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: gorcunov@gmail.com, sam@ravnborg.org, takata@linux-m32r.org
 
 
 The patch titled
-     sysdev: detect multiple driver registrations
+     m32r: cleanup: drop .data.idt section in vmlinux.lds script
 has been added to the -mm tree.  Its filename is
-     sysdev-detect-multiple-driver-registrations.patch
+     m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysdev: detect multiple driver registrations
-From: Ben Dooks <ben@fluff.org>
+Subject: m32r: cleanup: drop .data.idt section in vmlinux.lds script
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-I've just found how easy it is to accidentally register a sysdev_driver for
-two different classes.  When this happens, bad things happen as the
-sysdev_driver structure keeps has the list entry for the driver
-registration.
+The section .data.idt is not used at all - so drop it.
 
-The following patch makes a WARN_ON() if this happens, although I think
-BUG_ON or returning -EAGAIN could also be valid responses to this.
-
-Signed-off-by: Ben Dooks <ben@fluff.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/sys.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/m32r/kernel/vmlinux.lds.S |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/base/sys.c~sysdev-detect-multiple-driver-registrations drivers/base/sys.c
---- a/drivers/base/sys.c~sysdev-detect-multiple-driver-registrations
-+++ a/drivers/base/sys.c
-@@ -166,6 +166,11 @@ int sysdev_driver_register(struct sysdev
- {
- 	int err = 0;
+diff -puN arch/m32r/kernel/vmlinux.lds.S~m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script arch/m32r/kernel/vmlinux.lds.S
+--- a/arch/m32r/kernel/vmlinux.lds.S~m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script
++++ a/arch/m32r/kernel/vmlinux.lds.S
+@@ -60,9 +60,6 @@ SECTIONS
+   . = ALIGN(4096);
+   __nosave_end = .;
  
-+	/* Check whether this driver has already been added to a class. */
-+
-+	WARN_ON(drv->entry.next != drv->entry.prev);
-+	WARN_ON(drv->entry.next != NULL);
-+
- 	mutex_lock(&sysdev_drivers_lock);
- 	if (cls && kset_get(&cls->kset)) {
- 		list_add_tail(&drv->entry, &cls->drivers);
+-  . = ALIGN(4096);
+-  .data.page_aligned : { *(.data.idt) }
+-
+   . = ALIGN(32);
+   .data.cacheline_aligned : { *(.data.cacheline_aligned) }
+ 
 _
 
-Patches currently in -mm which might be from ben@fluff.org are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-sysdev-detect-multiple-driver-registrations.patch
+git-avr32.patch
+git-dvb.patch
+m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch
+elf-use-ei_nident-instead-of-numeric-value.patch
+binfmt-fill_elf_header-cleanup-use-straight-memset-first.patch
