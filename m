@@ -1,359 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - fs-block_devc-remove-if-0ed-code.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:24:14 -0800
-Message-ID: <200802232024.m1NKOEbF013623@imap1.linux-foundation.org>
+Subject: - simplify-cpu_hotplug_begin-put_online_cpus.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:24:18 -0800
+Message-ID: <200802232024.m1NKOITH013629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50878 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762906AbYBWU3I (ORCPT
+	by vger.kernel.org with ESMTP id S1762897AbYBWU3O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:08 -0500
+	Sat, 23 Feb 2008 15:29:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, dipankar@in.ibm.com, ego@in.ibm.com, mingo@elte.hu, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/block_dev.c: remove #if 0'ed code
+     simplify cpu_hotplug_begin()/put_online_cpus()
 has been removed from the -mm tree.  Its filename was
-     fs-block_devc-remove-if-0ed-code.patch
+     simplify-cpu_hotplug_begin-put_online_cpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/block_dev.c: remove #if 0'ed code
-From: Adrian Bunk <bunk@kernel.org>
+Subject: simplify cpu_hotplug_begin()/put_online_cpus()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Commit b2e895dbd80c420bfc0937c3729b4afe073b3848 #if 0'ed this code stating:
+cpu_hotplug_begin() must be always called under cpu_add_remove_lock, this
+means that only one process can be cpu_hotplug.active_writer.  So we don't
+need the cpu_hotplug.writer_queue, we can wake up the ->active_writer
+directly.
 
-<--  snip  -->
+Also, fix the comment.
 
-    [PATCH] revert blockdev direct io back to 2.6.19 version
-
-    Andrew Vasquez is reporting as-iosched oopses and a 65% throughput
-    slowdown due to the recent special-casing of direct-io against
-    blockdevs.  We don't know why either of these things are occurring.
-
-    The patch minimally reverts us back to the 2.6.19 code for a 2.6.20
-    release.
-
-<--  snip  -->
-
-It has since been dead code, and unless someone wants to revive it now it's
-time to remove it.
-
-This patch also makes bio_release_pages() static again and removes the
-ki_bio_count member from struct kiocb, reverting changes that had been done
-for this dead code.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c            |    2 
- fs/block_dev.c      |  197 ------------------------------------------
- include/linux/aio.h |    1 
- include/linux/bio.h |    1 
- 4 files changed, 1 insertion(+), 200 deletions(-)
+ kernel/cpu.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN fs/bio.c~fs-block_devc-remove-if-0ed-code fs/bio.c
---- a/fs/bio.c~fs-block_devc-remove-if-0ed-code
-+++ a/fs/bio.c
-@@ -903,7 +903,7 @@ void bio_set_pages_dirty(struct bio *bio
+diff -puN kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus
++++ a/kernel/cpu.c
+@@ -33,17 +33,13 @@ static struct {
+ 	 * an ongoing cpu hotplug operation.
+ 	 */
+ 	int refcount;
+-	wait_queue_head_t writer_queue;
+ } cpu_hotplug;
+ 
+-#define writer_exists() (cpu_hotplug.active_writer != NULL)
+-
+ void __init cpu_hotplug_init(void)
+ {
+ 	cpu_hotplug.active_writer = NULL;
+ 	mutex_init(&cpu_hotplug.lock);
+ 	cpu_hotplug.refcount = 0;
+-	init_waitqueue_head(&cpu_hotplug.writer_queue);
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -65,11 +61,8 @@ void put_online_cpus(void)
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+ 	mutex_lock(&cpu_hotplug.lock);
+-	cpu_hotplug.refcount--;
+-
+-	if (unlikely(writer_exists()) && !cpu_hotplug.refcount)
+-		wake_up(&cpu_hotplug.writer_queue);
+-
++	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
++		wake_up_process(cpu_hotplug.active_writer);
+ 	mutex_unlock(&cpu_hotplug.lock);
+ 
+ }
+@@ -98,8 +91,8 @@ void cpu_maps_update_done(void)
+  * Note that during a cpu-hotplug operation, the new readers, if any,
+  * will be blocked by the cpu_hotplug.lock
+  *
+- * Since cpu_maps_update_begin is always called after invoking
+- * cpu_maps_update_begin, we can be sure that only one writer is active.
++ * Since cpu_hotplug_begin() is always called after invoking
++ * cpu_maps_update_begin(), we can be sure that only one writer is active.
+  *
+  * Note that theoretically, there is a possibility of a livelock:
+  * - Refcount goes to zero, last reader wakes up the sleeping
+@@ -115,19 +108,16 @@ void cpu_maps_update_done(void)
+  */
+ static void cpu_hotplug_begin(void)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	mutex_lock(&cpu_hotplug.lock);
+-
+ 	cpu_hotplug.active_writer = current;
+-	add_wait_queue_exclusive(&cpu_hotplug.writer_queue, &wait);
+-	while (cpu_hotplug.refcount) {
+-		set_current_state(TASK_UNINTERRUPTIBLE);
++
++	for (;;) {
++		mutex_lock(&cpu_hotplug.lock);
++		if (likely(!cpu_hotplug.refcount))
++			break;
++		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		mutex_unlock(&cpu_hotplug.lock);
+ 		schedule();
+-		mutex_lock(&cpu_hotplug.lock);
  	}
+-	remove_wait_queue_locked(&cpu_hotplug.writer_queue, &wait);
  }
  
--void bio_release_pages(struct bio *bio)
-+static void bio_release_pages(struct bio *bio)
- {
- 	struct bio_vec *bvec = bio->bi_io_vec;
- 	int i;
-diff -puN fs/block_dev.c~fs-block_devc-remove-if-0ed-code fs/block_dev.c
---- a/fs/block_dev.c~fs-block_devc-remove-if-0ed-code
-+++ a/fs/block_dev.c
-@@ -171,203 +171,6 @@ blkdev_direct_IO(int rw, struct kiocb *i
- 				iov, offset, nr_segs, blkdev_get_blocks, NULL);
- }
- 
--#if 0
--static void blk_end_aio(struct bio *bio, int error)
--{
--	struct kiocb *iocb = bio->bi_private;
--	atomic_t *bio_count = &iocb->ki_bio_count;
--
--	if (bio_data_dir(bio) == READ)
--		bio_check_pages_dirty(bio);
--	else {
--		bio_release_pages(bio);
--		bio_put(bio);
--	}
--
--	/* iocb->ki_nbytes stores error code from LLDD */
--	if (error)
--		iocb->ki_nbytes = -EIO;
--
--	if (atomic_dec_and_test(bio_count)) {
--		if ((long)iocb->ki_nbytes < 0)
--			aio_complete(iocb, iocb->ki_nbytes, 0);
--		else
--			aio_complete(iocb, iocb->ki_left, 0);
--	}
--
--	return 0;
--}
--
--#define VEC_SIZE	16
--struct pvec {
--	unsigned short nr;
--	unsigned short idx;
--	struct page *page[VEC_SIZE];
--};
--
--#define PAGES_SPANNED(addr, len)	\
--	(DIV_ROUND_UP((addr) + (len), PAGE_SIZE) - (addr) / PAGE_SIZE);
--
--/*
-- * get page pointer for user addr, we internally cache struct page array for
-- * (addr, count) range in pvec to avoid frequent call to get_user_pages.  If
-- * internal page list is exhausted, a batch count of up to VEC_SIZE is used
-- * to get next set of page struct.
-- */
--static struct page *blk_get_page(unsigned long addr, size_t count, int rw,
--				 struct pvec *pvec)
--{
--	int ret, nr_pages;
--	if (pvec->idx == pvec->nr) {
--		nr_pages = PAGES_SPANNED(addr, count);
--		nr_pages = min(nr_pages, VEC_SIZE);
--		down_read(&current->mm->mmap_sem);
--		ret = get_user_pages(current, current->mm, addr, nr_pages,
--				     rw == READ, 0, pvec->page, NULL);
--		up_read(&current->mm->mmap_sem);
--		if (ret < 0)
--			return ERR_PTR(ret);
--		pvec->nr = ret;
--		pvec->idx = 0;
--	}
--	return pvec->page[pvec->idx++];
--}
--
--/* return a page back to pvec array */
--static void blk_unget_page(struct page *page, struct pvec *pvec)
--{
--	pvec->page[--pvec->idx] = page;
--}
--
--static ssize_t
--blkdev_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--		 loff_t pos, unsigned long nr_segs)
--{
--	struct inode *inode = iocb->ki_filp->f_mapping->host;
--	unsigned blkbits = blksize_bits(bdev_hardsect_size(I_BDEV(inode)));
--	unsigned blocksize_mask = (1 << blkbits) - 1;
--	unsigned long seg = 0;	/* iov segment iterator */
--	unsigned long nvec;	/* number of bio vec needed */
--	unsigned long cur_off;	/* offset into current page */
--	unsigned long cur_len;	/* I/O len of current page, up to PAGE_SIZE */
--
--	unsigned long addr;	/* user iovec address */
--	size_t count;		/* user iovec len */
--	size_t nbytes = iocb->ki_nbytes = iocb->ki_left; /* total xfer size */
--	loff_t size;		/* size of block device */
--	struct bio *bio;
--	atomic_t *bio_count = &iocb->ki_bio_count;
--	struct page *page;
--	struct pvec pvec;
--
--	pvec.nr = 0;
--	pvec.idx = 0;
--
--	if (pos & blocksize_mask)
--		return -EINVAL;
--
--	size = i_size_read(inode);
--	if (pos + nbytes > size) {
--		nbytes = size - pos;
--		iocb->ki_left = nbytes;
--	}
--
--	/*
--	 * check first non-zero iov alignment, the remaining
--	 * iov alignment is checked inside bio loop below.
--	 */
--	do {
--		addr = (unsigned long) iov[seg].iov_base;
--		count = min(iov[seg].iov_len, nbytes);
--		if (addr & blocksize_mask || count & blocksize_mask)
--			return -EINVAL;
--	} while (!count && ++seg < nr_segs);
--	atomic_set(bio_count, 1);
--
--	while (nbytes) {
--		/* roughly estimate number of bio vec needed */
--		nvec = (nbytes + PAGE_SIZE - 1) / PAGE_SIZE;
--		nvec = max(nvec, nr_segs - seg);
--		nvec = min(nvec, (unsigned long) BIO_MAX_PAGES);
--
--		/* bio_alloc should not fail with GFP_KERNEL flag */
--		bio = bio_alloc(GFP_KERNEL, nvec);
--		bio->bi_bdev = I_BDEV(inode);
--		bio->bi_end_io = blk_end_aio;
--		bio->bi_private = iocb;
--		bio->bi_sector = pos >> blkbits;
--same_bio:
--		cur_off = addr & ~PAGE_MASK;
--		cur_len = PAGE_SIZE - cur_off;
--		if (count < cur_len)
--			cur_len = count;
--
--		page = blk_get_page(addr, count, rw, &pvec);
--		if (unlikely(IS_ERR(page)))
--			goto backout;
--
--		if (bio_add_page(bio, page, cur_len, cur_off)) {
--			pos += cur_len;
--			addr += cur_len;
--			count -= cur_len;
--			nbytes -= cur_len;
--
--			if (count)
--				goto same_bio;
--			while (++seg < nr_segs) {
--				addr = (unsigned long) iov[seg].iov_base;
--				count = iov[seg].iov_len;
--				if (!count)
--					continue;
--				if (unlikely(addr & blocksize_mask ||
--					     count & blocksize_mask)) {
--					page = ERR_PTR(-EINVAL);
--					goto backout;
--				}
--				count = min(count, nbytes);
--				goto same_bio;
--			}
--		} else {
--			blk_unget_page(page, &pvec);
--		}
--
--		/* bio is ready, submit it */
--		if (rw == READ)
--			bio_set_pages_dirty(bio);
--		atomic_inc(bio_count);
--		submit_bio(rw, bio);
--	}
--
--completion:
--	iocb->ki_left -= nbytes;
--	nbytes = iocb->ki_left;
--	iocb->ki_pos += nbytes;
--
--	blk_run_address_space(inode->i_mapping);
--	if (atomic_dec_and_test(bio_count))
--		aio_complete(iocb, nbytes, 0);
--
--	return -EIOCBQUEUED;
--
--backout:
--	/*
--	 * back out nbytes count constructed so far for this bio,
--	 * we will throw away current bio.
--	 */
--	nbytes += bio->bi_size;
--	bio_release_pages(bio);
--	bio_put(bio);
--
--	/*
--	 * if no bio was submmitted, return the error code.
--	 * otherwise, proceed with pending I/O completion.
--	 */
--	if (atomic_read(bio_count) == 1)
--		return PTR_ERR(page);
--	goto completion;
--}
--#endif
--
- static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
- {
- 	return block_write_full_page(page, blkdev_get_block, wbc);
-diff -puN include/linux/aio.h~fs-block_devc-remove-if-0ed-code include/linux/aio.h
---- a/include/linux/aio.h~fs-block_devc-remove-if-0ed-code
-+++ a/include/linux/aio.h
-@@ -105,7 +105,6 @@ struct kiocb {
- 	wait_queue_t		ki_wait;
- 	loff_t			ki_pos;
- 
--	atomic_t		ki_bio_count;	/* num bio used for this iocb */
- 	void			*private;
- 	/* State that we remember to be able to restart/retry  */
- 	unsigned short		ki_opcode;
-diff -puN include/linux/bio.h~fs-block_devc-remove-if-0ed-code include/linux/bio.h
---- a/include/linux/bio.h~fs-block_devc-remove-if-0ed-code
-+++ a/include/linux/bio.h
-@@ -326,7 +326,6 @@ extern struct bio *bio_map_kern(struct r
- 				gfp_t);
- extern void bio_set_pages_dirty(struct bio *bio);
- extern void bio_check_pages_dirty(struct bio *bio);
--extern void bio_release_pages(struct bio *bio);
- extern struct bio *bio_copy_user(struct request_queue *, unsigned long, unsigned int, int);
- extern int bio_uncopy_user(struct bio *);
- void zero_fill_bio(struct bio *bio);
+ static void cpu_hotplug_done(void)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
-sparc-fix-build.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-git-net.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-if-0-ses_match_host.patch
-remove-ps2esdi.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-bcm43xx-removal.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-ipwireless-remove-dead-code.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-pnp-skip-dev-protocol-null-checks.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+git-sched.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+timers-simplify-lockdep-stuff.patch
+hrtimers-simplify-lockdep-stuff.patch
+kill-double_spin_lock.patch
+redo-locking-of-tty-pgrp.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
