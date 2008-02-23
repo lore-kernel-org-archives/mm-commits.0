@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + capi-fix-sparse-warnings-using-integer-as-null-pointer.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:35 -0800
-Message-ID: <200802230735.m1N7ZOAU018357@imap1.linux-foundation.org>
+Subject: + basic-braille-screen-reader-support.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:37:15 -0800
+Message-ID: <200802230738.m1N7c4xj018632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45548 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754316AbYBWIBf (ORCPT
+	by vger.kernel.org with ESMTP id S1755334AbYBWIBy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:01:35 -0500
+	Sat, 23 Feb 2008 03:01:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jeff@garzik.org, kkeil@suse.de
+Cc: samuel.thibault@ens-lyon.org, dtor@mail.ru, jikos@jikos.cz
 
 
 The patch titled
-     capi: fix sparse warnings using integer as NULL pointer
+     Basic braille screen reader support
 has been added to the -mm tree.  Its filename is
-     capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+     basic-braille-screen-reader-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,427 +34,694 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capi: fix sparse warnings using integer as NULL pointer
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Basic braille screen reader support
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-drivers/isdn/capi/kcapi.c:829:30: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/kcapi.c:838:27: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/kcapi.c:954:17: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/kcapi.c:1007:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/kcapi.c:1009:33: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capiutil.c:453:24: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capilib.c:47:30: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:353:29: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:369:15: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:486:48: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:515:46: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:541:47: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:692:47: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:699:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:704:14: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:943:53: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:948:32: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:969:42: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:989:48: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:1026:69: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:1028:19: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:1061:20: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:1529:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capi.c:1531:33: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:338:15: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:758:32: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:880:40: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:407:15: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:407:15: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:444:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:429:49: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:1664:61: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:1969:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:2294:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:2297:33: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:2338:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capidrv.c:2341:33: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capifs.c:192:37: warning: Using plain integer as NULL pointer
-drivers/isdn/capi/capifs.c:194:33: warning: Using plain integer as NULL pointer
+This adds a minimalistic braille screen reader support.  This is meant to
+be used by blind people e.g.  on boot failures or when / cannot be mounted
+etc and thus the userland screen readers can not work.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c     |   34 ++++++++++++++++-----------------
- drivers/isdn/capi/capidrv.c  |   24 +++++++++++------------
- drivers/isdn/capi/capifs.c   |    4 +--
- drivers/isdn/capi/capilib.c  |    2 -
- drivers/isdn/capi/capiutil.c |    2 -
- drivers/isdn/capi/kcapi.c    |   10 ++++-----
- 6 files changed, 38 insertions(+), 38 deletions(-)
+ drivers/Kconfig                                 |    2 
+ drivers/Makefile                                |    1 
+ drivers/accessibility/Kconfig                   |   22 
+ drivers/accessibility/Makefile                  |    1 
+ drivers/accessibility/braille/braille_console.c |  397 ++++++++++++++
+ drivers/char/consolemap.c                       |    1 
+ drivers/char/keyboard.c                         |    2 
+ drivers/char/vt.c                               |    1 
+ include/linux/console.h                         |    4 
+ kernel/printk.c                                 |   87 ++-
+ 10 files changed, 494 insertions(+), 24 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/capi.c
-@@ -350,7 +350,7 @@ static void capincci_free(struct capidev
- 		if (ncci == 0xffffffff || np->ncci == ncci) {
- 			*pp = (*pp)->next;
- #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
--			if ((mp = np->minorp) != 0) {
-+			if ((mp = np->minorp) != NULL) {
- #if defined(CONFIG_ISDN_CAPI_CAPIFS) || defined(CONFIG_ISDN_CAPI_CAPIFS_MODULE)
- 				capifs_free_ncci(mp->minor);
- #endif
-@@ -366,7 +366,7 @@ static void capincci_free(struct capidev
- 			}
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
- 			kfree(np);
--			if (*pp == 0) return;
-+			if (*pp == NULL) return;
- 		} else {
- 			pp = &(*pp)->next;
- 		}
-@@ -483,7 +483,7 @@ static int handle_recv_skb(struct capimi
- #endif
- 		goto bad;
+diff -puN drivers/Kconfig~basic-braille-screen-reader-support drivers/Kconfig
+--- a/drivers/Kconfig~basic-braille-screen-reader-support
++++ a/drivers/Kconfig
+@@ -84,6 +84,8 @@ source "drivers/memstick/Kconfig"
+ 
+ source "drivers/leds/Kconfig"
+ 
++source "drivers/accessibility/Kconfig"
++
+ source "drivers/infiniband/Kconfig"
+ 
+ source "drivers/edac/Kconfig"
+diff -puN drivers/Makefile~basic-braille-screen-reader-support drivers/Makefile
+--- a/drivers/Makefile~basic-braille-screen-reader-support
++++ a/drivers/Makefile
+@@ -70,6 +70,7 @@ obj-$(CONFIG_WATCHDOG)		+= watchdog/
+ obj-$(CONFIG_PHONE)		+= telephony/
+ obj-$(CONFIG_MD)		+= md/
+ obj-$(CONFIG_BT)		+= bluetooth/
++obj-$(CONFIG_ACCESSIBILITY)	+= accessibility/
+ obj-$(CONFIG_ISDN)		+= isdn/
+ obj-$(CONFIG_EDAC)		+= edac/
+ obj-$(CONFIG_MCA)		+= mca/
+diff -puN /dev/null drivers/accessibility/Kconfig
+--- /dev/null
++++ a/drivers/accessibility/Kconfig
+@@ -0,0 +1,22 @@
++menuconfig ACCESSIBILITY
++	bool "Accessibility support"
++	---help---
++	  Enable a submenu where accessibility items may be enabled.
++
++	  If unsure, say N.
++
++if ACCESSIBILITY
++config A11Y_BRAILLE_CONSOLE
++	bool "Console on braille device"
++	depends on SERIAL_CORE_CONSOLE
++	---help---
++	  Enables console output on a braille device connected to a 8250
++	  serial port. For now only the VisioBraille device is supported.
++
++	  To actually enable it, you need to pass option
++	  console=brl,ttyS0
++	  to the kernel. Options are the same as for serial console.
++
++	  If unsure, say N.
++
++endif # ACCESSIBILITY
+diff -puN /dev/null drivers/accessibility/Makefile
+--- /dev/null
++++ a/drivers/accessibility/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)		+= braille/braille_console.o
+diff -puN /dev/null drivers/accessibility/braille/braille_console.c
+--- /dev/null
++++ a/drivers/accessibility/braille/braille_console.c
+@@ -0,0 +1,397 @@
++/*
++ * Minimalistic braille device kernel support.
++ *
++ * By default, shows console messages on the braille device.
++ * Pressing Insert switches to VC browsing.
++ *
++ *  Copyright (C) Samuel Thibault <samuel.thibault@ens-lyon.org>
++ *
++ * This program is free software ; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation ; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY ; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with the program ; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/autoconf.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/console.h>
++#include <linux/notifier.h>
++
++#include <linux/selection.h>
++#include <linux/vt_kern.h>
++#include <linux/consolemap.h>
++
++#include <linux/keyboard.h>
++#include <linux/kbd_kern.h>
++#include <linux/input.h>
++
++MODULE_AUTHOR("samuel.thibault@ens-lyon.org");
++MODULE_DESCRIPTION("braille device");
++MODULE_LICENSE("GPL");
++
++/*
++ * Braille device support part.
++ */
++
++/* Emit various sounds */
++static int sound;
++module_param(sound, bool, 0);
++MODULE_PARM_DESC(sound, "emit sounds");
++
++static void beep(unsigned int freq)
++{
++	if (sound)
++		kd_mksound(freq, HZ/10);
++}
++
++/* mini console */
++#define WIDTH 40
++#define BRAILLE_KEY KEY_INSERT
++static u16 console_buf[WIDTH];
++static int console_cursor;
++
++/* mini view of VC */
++static int vc_x, vc_y, lastvc_x, lastvc_y;
++
++/* show console ? (or show VC) */
++static int console_show = 1;
++/* pending newline ? */
++static int console_newline = 1;
++static int lastVC = -1;
++
++static struct console *braille_co;
++
++/* Very VisioBraille-specific */
++static void braille_write(u16 *buf)
++{
++	static u16 lastwrite[WIDTH];
++	unsigned char data[1 + 1 + 2*WIDTH + 2 + 1], csum = 0, *c;
++	u16 out;
++	int i;
++
++	if (!braille_co)
++		return;
++
++	if (!memcmp(lastwrite, buf, WIDTH * sizeof(*buf)))
++		return;
++	memcpy(lastwrite, buf, WIDTH * sizeof(*buf));
++
++#define SOH 1
++#define STX 2
++#define ETX 2
++#define EOT 4
++#define ENQ 5
++	data[0] = STX;
++	data[1] = '>';
++	csum ^= '>';
++	c = &data[2];
++	for (i = 0; i < WIDTH; i++) {
++		out = buf[i];
++		if (out >= 0x100)
++			out = '?';
++		else if (out == 0x00)
++			out = ' ';
++		csum ^= out;
++		if (out <= 0x05) {
++			*c++ = SOH;
++			out |= 0x40;
++		}
++		*c++ = out;
++	}
++
++	if (csum <= 0x05) {
++		*c++ = SOH;
++		csum |= 0x40;
++	}
++	*c++ = csum;
++	*c++ = ETX;
++
++	braille_co->write(braille_co, data, c - data);
++}
++
++/* Follow the VC cursor*/
++static void vc_follow_cursor(struct vc_data *vc)
++{
++	vc_x = vc->vc_x - (vc->vc_x % WIDTH);
++	vc_y = vc->vc_y;
++	lastvc_x = vc->vc_x;
++	lastvc_y = vc->vc_y;
++}
++
++/* Maybe the VC cursor moved, if so follow it */
++static void vc_maybe_cursor_moved(struct vc_data *vc)
++{
++	if (vc->vc_x != lastvc_x || vc->vc_y != lastvc_y)
++		vc_follow_cursor(vc);
++}
++
++/* Show portion of VC at vc_x, vc_y */
++static void vc_refresh(struct vc_data *vc)
++{
++	u16 buf[WIDTH];
++	int i;
++
++	for (i = 0; i < WIDTH; i++) {
++		u16 glyph = screen_glyph(vc,
++				2 * (vc_x + i) + vc_y * vc->vc_size_row);
++		buf[i] = inverse_translate(vc, glyph, 1);
++	}
++	braille_write(buf);
++}
++
++/*
++ * Link to keyboard
++ */
++
++static int keyboard_notifier_call(struct notifier_block *blk,
++				  unsigned long code, void *_param)
++{
++	struct keyboard_notifier_param *param = _param;
++	struct vc_data *vc = param->vc;
++	int ret = NOTIFY_OK;
++
++	if (!param->down)
++		return ret;
++
++	switch (code) {
++	case KBD_KEYCODE:
++		if (console_show) {
++			if (param->value == BRAILLE_KEY) {
++				console_show = 0;
++				beep(880);
++				vc_maybe_cursor_moved(vc);
++				vc_refresh(vc);
++				ret = NOTIFY_STOP;
++			}
++		} else {
++			ret = NOTIFY_STOP;
++			switch (param->value) {
++			case KEY_INSERT:
++				beep(440);
++				console_show = 1;
++				lastVC = -1;
++				braille_write(console_buf);
++				break;
++			case KEY_LEFT:
++				if (vc_x > 0) {
++					vc_x -= WIDTH;
++					if (vc_x < 0)
++						vc_x = 0;
++				} else if (vc_y >= 1) {
++					beep(880);
++					vc_y--;
++					vc_x = vc->vc_cols-WIDTH;
++				} else
++					beep(220);
++				break;
++			case KEY_RIGHT:
++				if (vc_x + WIDTH < vc->vc_cols) {
++					vc_x += WIDTH;
++				} else if (vc_y + 1 < vc->vc_rows) {
++					beep(880);
++					vc_y++;
++					vc_x = 0;
++				} else
++					beep(220);
++				break;
++			case KEY_DOWN:
++				if (vc_y + 1 < vc->vc_rows)
++					vc_y++;
++				else
++					beep(220);
++				break;
++			case KEY_UP:
++				if (vc_y >= 1)
++					vc_y--;
++				else
++					beep(220);
++				break;
++			case KEY_HOME:
++				vc_follow_cursor(vc);
++				break;
++			case KEY_PAGEUP:
++				vc_x = 0;
++				vc_y = 0;
++				break;
++			case KEY_PAGEDOWN:
++				vc_x = 0;
++				vc_y = vc->vc_rows-1;
++				break;
++			default:
++				ret = NOTIFY_OK;
++				break;
++			}
++			if (ret == NOTIFY_STOP)
++				vc_refresh(vc);
++		}
++		break;
++	case KBD_POST_KEYSYM:
++	{
++		unsigned char type = KTYP(param->value) - 0xf0;
++		if (type == KT_SPEC) {
++			unsigned char val = KVAL(param->value);
++			int on_off = -1;
++
++			switch (val) {
++			case KVAL(K_CAPS):
++				on_off = vc_kbd_led(kbd_table + fg_console,
++						VC_CAPSLOCK);
++				break;
++			case KVAL(K_NUM):
++				on_off = vc_kbd_led(kbd_table + fg_console,
++						VC_NUMLOCK);
++				break;
++			case KVAL(K_HOLD):
++				on_off = vc_kbd_led(kbd_table + fg_console,
++						VC_SCROLLOCK);
++				break;
++			}
++			if (on_off == 1)
++				beep(880);
++			else if (on_off == 0)
++				beep(440);
++		}
++	}
++	case KBD_UNBOUND_KEYCODE:
++	case KBD_UNICODE:
++	case KBD_KEYSYM:
++		/* Unused */
++		break;
++	}
++	return ret;
++}
++
++static struct notifier_block keyboard_notifier_block = {
++	.notifier_call = keyboard_notifier_call,
++};
++
++static int vt_notifier_call(struct notifier_block *blk,
++			    unsigned long code, void *_param)
++{
++	struct vt_notifier_param *param = _param;
++	struct vc_data *vc = param->vc;
++	switch (code) {
++	case VT_ALLOCATE:
++		break;
++	case VT_DEALLOCATE:
++		break;
++	case VT_WRITE:
++	{
++		unsigned char c = param->c;
++		if (vc->vc_num != fg_console)
++			break;
++		switch (c) {
++		case '\b':
++		case 127:
++			if (console_cursor > 0) {
++				console_cursor--;
++				console_buf[console_cursor] = ' ';
++			}
++			break;
++		case '\n':
++		case '\v':
++		case '\f':
++		case '\r':
++			console_newline = 1;
++			break;
++		case '\t':
++			c = ' ';
++			/* Fallthrough */
++		default:
++			if (c < 32)
++				/* Ignore other control sequences */
++				break;
++			if (console_newline) {
++				memset(console_buf, 0, sizeof(console_buf));
++				console_cursor = 0;
++				console_newline = 0;
++			}
++			if (console_cursor == WIDTH)
++				memmove(console_buf, &console_buf[1],
++					(WIDTH-1) * sizeof(*console_buf));
++			else
++				console_cursor++;
++			console_buf[console_cursor-1] = c;
++			break;
++		}
++		if (console_show)
++			braille_write(console_buf);
++		else {
++			vc_maybe_cursor_moved(vc);
++			vc_refresh(vc);
++		}
++		break;
++	}
++	case VT_UPDATE:
++		/* Maybe a VT switch, flush */
++		if (console_show) {
++			if (vc->vc_num != lastVC) {
++				lastVC = vc->vc_num;
++				memset(console_buf, 0, sizeof(console_buf));
++				console_cursor = 0;
++				braille_write(console_buf);
++			}
++		} else {
++			vc_maybe_cursor_moved(vc);
++			vc_refresh(vc);
++		}
++		break;
++	}
++	return NOTIFY_OK;
++}
++
++static struct notifier_block vt_notifier_block = {
++	.notifier_call = vt_notifier_call,
++};
++
++/*
++ * Called from printk.c when console=brl is given
++ */
++
++int braille_register_console(struct console *console, int index,
++		char *console_options, char *braille_options)
++{
++	int ret;
++	if (!console_options)
++		/* Only support VisioBraille for now */
++		console_options = "57600o8";
++	if (braille_co)
++		return -ENODEV;
++	if (console->setup) {
++		ret = console->setup(console, console_options);
++		if (ret != 0)
++			return ret;
++	}
++	console->flags |= CON_ENABLED;
++	console->index = index;
++	braille_co = console;
++	return 0;
++}
++
++int braille_unregister_console(struct console *console)
++{
++	if (braille_co != console)
++		return -EINVAL;
++	braille_co = NULL;
++	return 0;
++}
++
++static int __init braille_init(void)
++{
++	register_keyboard_notifier(&keyboard_notifier_block);
++	register_vt_notifier(&vt_notifier_block);
++	return 0;
++}
++
++console_initcall(braille_init);
+diff -puN drivers/char/consolemap.c~basic-braille-screen-reader-support drivers/char/consolemap.c
+--- a/drivers/char/consolemap.c~basic-braille-screen-reader-support
++++ a/drivers/char/consolemap.c
+@@ -277,6 +277,7 @@ u16 inverse_translate(struct vc_data *co
+ 			return p->inverse_translations[m][glyph];
  	}
--	if ((nskb = gen_data_b3_resp_for(mp, skb)) == 0) {
-+	if ((nskb = gen_data_b3_resp_for(mp, skb)) == NULL) {
- 		printk(KERN_ERR "capi: gen_data_b3_resp failed\n");
- 		goto bad;
- 	}
-@@ -512,7 +512,7 @@ bad:
- static void handle_minor_recv(struct capiminor *mp)
+ }
++EXPORT_SYMBOL_GPL(inverse_translate);
+ 
+ static void update_user_maps(void)
  {
- 	struct sk_buff *skb;
--	while ((skb = skb_dequeue(&mp->inqueue)) != 0) {
-+	while ((skb = skb_dequeue(&mp->inqueue)) != NULL) {
- 		unsigned int len = skb->len;
- 		mp->inbytes -= len;
- 		if (handle_recv_skb(mp, skb) < 0) {
-@@ -538,7 +538,7 @@ static int handle_minor_send(struct capi
- 		return 0;
- 	}
+diff -puN drivers/char/keyboard.c~basic-braille-screen-reader-support drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~basic-braille-screen-reader-support
++++ a/drivers/char/keyboard.c
+@@ -109,6 +109,7 @@ const int max_vals[] = {
+ const int NR_TYPES = ARRAY_SIZE(max_vals);
  
--	while ((skb = skb_dequeue(&mp->outqueue)) != 0) {
-+	while ((skb = skb_dequeue(&mp->outqueue)) != NULL) {
- 		datahandle = mp->datahandle;
- 		len = (u16)skb->len;
- 		skb_push(skb, CAPI_DATA_B3_REQ_LEN);
-@@ -689,19 +689,19 @@ capi_read(struct file *file, char __user
- 	if (!cdev->ap.applid)
- 		return -ENODEV;
+ struct kbd_struct kbd_table[MAX_NR_CONSOLES];
++EXPORT_SYMBOL_GPL(kbd_table);
+ static struct kbd_struct *kbd = kbd_table;
  
--	if ((skb = skb_dequeue(&cdev->recvqueue)) == 0) {
-+	if ((skb = skb_dequeue(&cdev->recvqueue)) == NULL) {
+ struct vt_spawn_console vt_spawn_con = {
+@@ -259,6 +260,7 @@ void kd_mksound(unsigned int hz, unsigne
+ 	} else
+ 		kd_nosound(0);
+ }
++EXPORT_SYMBOL_GPL(kd_mksound);
  
- 		if (file->f_flags & O_NONBLOCK)
- 			return -EAGAIN;
+ /*
+  * Setting the keyboard rate.
+diff -puN drivers/char/vt.c~basic-braille-screen-reader-support drivers/char/vt.c
+--- a/drivers/char/vt.c~basic-braille-screen-reader-support
++++ a/drivers/char/vt.c
+@@ -4003,6 +4003,7 @@ u16 screen_glyph(struct vc_data *vc, int
+ 		c |= 0x100;
+ 	return c;
+ }
++EXPORT_SYMBOL_GPL(screen_glyph);
  
- 		for (;;) {
- 			interruptible_sleep_on(&cdev->recvwait);
--			if ((skb = skb_dequeue(&cdev->recvqueue)) != 0)
-+			if ((skb = skb_dequeue(&cdev->recvqueue)) != NULL)
- 				break;
- 			if (signal_pending(current))
- 				break;
- 		}
--		if (skb == 0)
-+		if (skb == NULL)
- 			return -ERESTARTNOHAND;
- 	}
- 	if (skb->len > count) {
-@@ -940,12 +940,12 @@ capi_ioctl(struct inode *inode, struct f
- 				return -EFAULT;
+ /* used by vcs - note the word offset */
+ unsigned short *screen_pos(struct vc_data *vc, int w_offset, int viewed)
+diff -puN include/linux/console.h~basic-braille-screen-reader-support include/linux/console.h
+--- a/include/linux/console.h~basic-braille-screen-reader-support
++++ a/include/linux/console.h
+@@ -91,6 +91,7 @@ void give_up_console(const struct consw 
+ #define CON_ENABLED	(4)
+ #define CON_BOOT	(8)
+ #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
++#define CON_BRL		(32) /* Used for a braille device */
  
- 			mutex_lock(&cdev->ncci_list_mtx);
--			if ((nccip = capincci_find(cdev, (u32) ncci)) == 0) {
-+			if ((nccip = capincci_find(cdev, (u32) ncci)) == NULL) {
- 				mutex_unlock(&cdev->ncci_list_mtx);
- 				return 0;
- 			}
- #ifdef CONFIG_ISDN_CAPI_MIDDLEWARE
--			if ((mp = nccip->minorp) != 0) {
-+			if ((mp = nccip->minorp) != NULL) {
- 				count += atomic_read(&mp->ttyopencount);
- 			}
- #endif /* CONFIG_ISDN_CAPI_MIDDLEWARE */
-@@ -966,7 +966,7 @@ capi_ioctl(struct inode *inode, struct f
- 				return -EFAULT;
- 			mutex_lock(&cdev->ncci_list_mtx);
- 			nccip = capincci_find(cdev, (u32) ncci);
--			if (!nccip || (mp = nccip->minorp) == 0) {
-+			if (!nccip || (mp = nccip->minorp) == NULL) {
- 				mutex_unlock(&cdev->ncci_list_mtx);
- 				return -ESRCH;
- 			}
-@@ -986,7 +986,7 @@ capi_open(struct inode *inode, struct fi
- 	if (file->private_data)
- 		return -EEXIST;
+ struct console {
+ 	char	name[16];
+@@ -121,6 +122,9 @@ extern struct tty_driver *console_device
+ extern void console_stop(struct console *);
+ extern void console_start(struct console *);
+ extern int is_console_locked(void);
++extern int braille_register_console(struct console *, int index,
++		char *console_options, char *braille_options);
++extern int braille_unregister_console(struct console *);
  
--	if ((file->private_data = capidev_alloc()) == 0)
-+	if ((file->private_data = capidev_alloc()) == NULL)
- 		return -ENOMEM;
+ extern int console_suspend_enabled;
  
- 	return nonseekable_open(inode, file);
-@@ -1023,9 +1023,9 @@ static int capinc_tty_open(struct tty_st
- 	struct capiminor *mp;
- 	unsigned long flags;
+diff -puN kernel/printk.c~basic-braille-screen-reader-support kernel/printk.c
+--- a/kernel/printk.c~basic-braille-screen-reader-support
++++ a/kernel/printk.c
+@@ -111,6 +111,7 @@ struct console_cmdline
+ 	char	name[8];			/* Name of the driver	    */
+ 	int	index;				/* Minor dev. to use	    */
+ 	char	*options;			/* Options for the driver   */
++	char	*brl_options;			/* Options for braille driver */
+ };
  
--	if ((mp = capiminor_find(iminor(file->f_path.dentry->d_inode))) == 0)
-+	if ((mp = capiminor_find(iminor(file->f_path.dentry->d_inode))) == NULL)
- 		return -ENXIO;
--	if (mp->nccip == 0)
-+	if (mp->nccip == NULL)
- 		return -ENXIO;
+ #define MAX_CMDLINECONSOLES 8
+@@ -784,15 +785,59 @@ static void call_console_drivers(unsigne
  
- 	tty->driver_data = (void *)mp;
-@@ -1058,7 +1058,7 @@ static void capinc_tty_close(struct tty_
- #ifdef _DEBUG_REFCOUNT
- 		printk(KERN_DEBUG "capinc_tty_close ocount=%d\n", atomic_read(&mp->ttyopencount));
  #endif
--		if (mp->nccip == 0)
-+		if (mp->nccip == NULL)
- 			capiminor_free(mp);
- 	}
  
-@@ -1526,9 +1526,9 @@ static int __init capi_init(void)
- 	char *compileinfo;
- 	int major_ret;
- 
--	if ((p = strchr(revision, ':')) != 0 && p[1]) {
-+	if ((p = strchr(revision, ':')) != NULL && p[1]) {
- 		strlcpy(rev, p + 2, sizeof(rev));
--		if ((p = strchr(rev, '$')) != 0 && p > rev)
-+		if ((p = strchr(rev, '$')) != NULL && p > rev)
- 		   *(p-1) = 0;
- 	} else
- 		strcpy(rev, "1.0");
-diff -puN drivers/isdn/capi/capidrv.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/capidrv.c
---- a/drivers/isdn/capi/capidrv.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/capidrv.c
-@@ -335,7 +335,7 @@ static capidrv_plci *new_plci(capidrv_co
- 
- 	plcip = kzalloc(sizeof(capidrv_plci), GFP_ATOMIC);
- 
--	if (plcip == 0)
-+	if (plcip == NULL)
- 		return NULL;
- 
- 	plcip->state = ST_PLCI_NONE;
-@@ -404,7 +404,7 @@ static inline capidrv_ncci *new_ncci(cap
- 
- 	nccip = kzalloc(sizeof(capidrv_ncci), GFP_ATOMIC);
- 
--	if (nccip == 0)
-+	if (nccip == NULL)
- 		return NULL;
- 
- 	nccip->ncci = ncci;
-@@ -426,7 +426,7 @@ static inline capidrv_ncci *find_ncci(ca
- 	capidrv_plci *plcip;
- 	capidrv_ncci *p;
- 
--	if ((plcip = find_plci_by_ncci(card, ncci)) == 0)
-+	if ((plcip = find_plci_by_ncci(card, ncci)) == NULL)
- 		return NULL;
- 
- 	for (p = plcip->ncci_list; p; p = p->next)
-@@ -441,7 +441,7 @@ static inline capidrv_ncci *find_ncci_by
- 	capidrv_plci *plcip;
- 	capidrv_ncci *p;
- 
--	if ((plcip = find_plci_by_ncci(card, ncci)) == 0)
-+	if ((plcip = find_plci_by_ncci(card, ncci)) == NULL)
- 		return NULL;
- 
- 	for (p = plcip->ncci_list; p; p = p->next)
-@@ -755,7 +755,7 @@ static inline int new_bchan(capidrv_cont
++static int __add_preferred_console(char *name, int idx, char *options,
++				   char *brl_options)
++{
++	struct console_cmdline *c;
++	int i;
++
++	/*
++	 *	See if this tty is not yet registered, and
++	 *	if we have a slot free.
++	 */
++	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
++		if (strcmp(console_cmdline[i].name, name) == 0 &&
++			  console_cmdline[i].index == idx) {
++				if (!brl_options)
++					selected_console = i;
++				return 0;
++		}
++	if (i == MAX_CMDLINECONSOLES)
++		return -E2BIG;
++	if (!brl_options)
++		selected_console = i;
++	c = &console_cmdline[i];
++	memcpy(c->name, name, sizeof(c->name));
++	c->name[sizeof(c->name) - 1] = 0;
++	c->options = options;
++	c->brl_options = brl_options;
++	c->index = idx;
++	return 0;
++}
+ /*
+  * Set up a list of consoles.  Called from init/main.c
+  */
+ static int __init console_setup(char *str)
  {
- 	int i;
- 	for (i = 0; i < card->nbchan; i++) {
--		if (card->bchans[i].plcip == 0) {
-+		if (card->bchans[i].plcip == NULL) {
- 			card->bchans[i].disconnecting = 0;
- 			return i;
- 		}
-@@ -877,7 +877,7 @@ static void handle_incoming_call(capidrv
- 		return;
- 	}
- 	bchan = &card->bchans[chan];
--	if ((plcip = new_plci(card, chan)) == 0) {
-+	if ((plcip = new_plci(card, chan)) == NULL) {
- 		printk(KERN_ERR "capidrv-%d: incoming call: no memory, sorry.\n", card->contrnr);
- 		return;
- 	}
-@@ -1661,7 +1661,7 @@ static int capidrv_command(isdn_ctrl * c
- 					      NULL,	/* Useruserdata */
- 					      NULL	/* Facilitydataarray */
- 			    );
--			if ((plcip = new_plci(card, (c->arg % card->nbchan))) == 0) {
-+			if ((plcip = new_plci(card, (c->arg % card->nbchan))) == NULL) {
- 				cmd.command = ISDN_STAT_DHUP;
- 				cmd.driver = card->myid;
- 				cmd.arg = (c->arg % card->nbchan);
-@@ -1966,7 +1966,7 @@ static void enable_dchannel_trace(capidr
- 			card->name, errcode);
- 	   return;
- 	}
--	if (strstr(manufacturer, "AVM") == 0) {
-+	if (strstr(manufacturer, "AVM") == NULL) {
- 	   printk(KERN_ERR "%s: not from AVM, no d-channel trace possible (%s)\n",
- 			card->name, manufacturer);
- 	   return;
-@@ -2291,10 +2291,10 @@ static int __init capidrv_init(void)
- 	u32 ncontr, contr;
- 	u16 errcode;
+ 	char buf[sizeof(console_cmdline[0].name) + 4]; /* 4 for index */
+-	char *s, *options;
++	char *s, *options, *brl_options = NULL;
+ 	int idx;
  
--	if ((p = strchr(revision, ':')) != 0 && p[1]) {
-+	if ((p = strchr(revision, ':')) != NULL && p[1]) {
- 		strncpy(rev, p + 2, sizeof(rev));
- 		rev[sizeof(rev)-1] = 0;
--		if ((p = strchr(rev, '$')) != 0 && p > rev)
-+		if ((p = strchr(rev, '$')) != NULL && p > rev)
- 		   *(p-1) = 0;
- 	} else
- 		strcpy(rev, "1.0");
-@@ -2335,10 +2335,10 @@ static void __exit capidrv_exit(void)
- 	char rev[32];
- 	char *p;
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
++	if (!memcmp(str, "brl,", 4)) {
++		brl_options = "";
++		str += 4;
++	} else if (!memcmp(str, "brl=", 4)) {
++		brl_options = str + 4;
++		str = strchr(brl_options, ',');
++		if (!str) {
++			printk(KERN_ERR "need port name after brl=\n");
++			return 1;
++		}
++		*(str++) = 0;
++	}
++#endif
++
+ 	/*
+ 	 * Decode str into name, index, options.
+ 	 */
+@@ -817,7 +862,7 @@ static int __init console_setup(char *st
+ 	idx = simple_strtoul(s, NULL, 10);
+ 	*s = 0;
  
--	if ((p = strchr(revision, ':')) != 0) {
-+	if ((p = strchr(revision, ':')) != NULL) {
- 		strncpy(rev, p + 1, sizeof(rev));
- 		rev[sizeof(rev)-1] = 0;
--		if ((p = strchr(rev, '$')) != 0)
-+		if ((p = strchr(rev, '$')) != NULL)
- 			*p = 0;
- 	} else {
- 		strcpy(rev, " ??? ");
-diff -puN drivers/isdn/capi/capifs.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/capifs.c
---- a/drivers/isdn/capi/capifs.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/capifs.c
-@@ -189,9 +189,9 @@ static int __init capifs_init(void)
- 	char *p;
- 	int err;
- 
--	if ((p = strchr(revision, ':')) != 0 && p[1]) {
-+	if ((p = strchr(revision, ':')) != NULL && p[1]) {
- 		strlcpy(rev, p + 2, sizeof(rev));
--		if ((p = strchr(rev, '$')) != 0 && p > rev)
-+		if ((p = strchr(rev, '$')) != NULL && p > rev)
- 		   *(p-1) = 0;
- 	} else
- 		strcpy(rev, "1.0");
-diff -puN drivers/isdn/capi/capilib.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/capilib.c
---- a/drivers/isdn/capi/capilib.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/capilib.c
-@@ -44,7 +44,7 @@ static inline void mq_init(struct capili
- static inline int mq_enqueue(struct capilib_ncci * np, u16 msgid)
+-	add_preferred_console(buf, idx, options);
++	__add_preferred_console(buf, idx, options, brl_options);
+ 	return 1;
+ }
+ __setup("console=", console_setup);
+@@ -837,28 +882,7 @@ __setup("console=", console_setup);
+  */
+ int add_preferred_console(char *name, int idx, char *options)
  {
- 	struct capilib_msgidqueue *mq;
--	if ((mq = np->msgidfree) == 0)
-+	if ((mq = np->msgidfree) == NULL)
- 		return 0;
- 	np->msgidfree = mq->next;
- 	mq->msgid = msgid;
-diff -puN drivers/isdn/capi/capiutil.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/capiutil.c
---- a/drivers/isdn/capi/capiutil.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/capiutil.c
-@@ -450,7 +450,7 @@ static void pars_2_message(_cmsg * cmsg)
- 			cmsg->l += 4;
+-	struct console_cmdline *c;
+-	int i;
+-
+-	/*
+-	 *	See if this tty is not yet registered, and
+-	 *	if we have a slot free.
+-	 */
+-	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
+-		if (strcmp(console_cmdline[i].name, name) == 0 &&
+-			  console_cmdline[i].index == idx) {
+-				selected_console = i;
+-				return 0;
+-		}
+-	if (i == MAX_CMDLINECONSOLES)
+-		return -E2BIG;
+-	selected_console = i;
+-	c = &console_cmdline[i];
+-	memcpy(c->name, name, sizeof(c->name));
+-	c->name[sizeof(c->name) - 1] = 0;
+-	c->options = options;
+-	c->index = idx;
+-	return 0;
++	return __add_preferred_console(name, idx, options, NULL);
+ }
+ 
+ int update_console_cmdline(char *name, int idx, char *name_new, int idx_new, char *options)
+@@ -1148,6 +1172,16 @@ void register_console(struct console *co
+ 			continue;
+ 		if (console->index < 0)
+ 			console->index = console_cmdline[i].index;
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
++		if (console_cmdline[i].brl_options) {
++			console->flags |= CON_BRL;
++			braille_register_console(console,
++					console_cmdline[i].index,
++					console_cmdline[i].options,
++					console_cmdline[i].brl_options);
++			return;
++		}
++#endif
+ 		if (console->setup &&
+ 		    console->setup(console, console_cmdline[i].options) != 0)
  			break;
- 		case _CSTRUCT:
--			if (*(u8 **) OFF == 0) {
-+			if (*(u8 **) OFF == NULL) {
- 				*(cmsg->m + cmsg->l) = '\0';
- 				cmsg->l++;
- 			} else if (**(_cstruct *) OFF != 0xff) {
-diff -puN drivers/isdn/capi/kcapi.c~capi-fix-sparse-warnings-using-integer-as-null-pointer drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~capi-fix-sparse-warnings-using-integer-as-null-pointer
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -826,7 +826,7 @@ static int old_capi_manufacturer(unsigne
- 		card = capi_ctr_get(card);
- 		if (!card)
- 			return -ESRCH;
--		if (card->load_firmware == 0) {
-+		if (card->load_firmware == NULL) {
- 			printk(KERN_DEBUG "kcapi: load: no load function\n");
- 			return -ESRCH;
- 		}
-@@ -835,7 +835,7 @@ static int old_capi_manufacturer(unsigne
- 			printk(KERN_DEBUG "kcapi: load: invalid parameter: length of t4file is %d ?\n", ldef.t4file.len);
- 			return -EINVAL;
- 		}
--		if (ldef.t4file.data == 0) {
-+		if (ldef.t4file.data == NULL) {
- 			printk(KERN_DEBUG "kcapi: load: invalid parameter: dataptr is 0\n");
- 			return -EINVAL;
- 		}
-@@ -951,7 +951,7 @@ int capi20_manufacturer(unsigned int cmd
- 			if (strcmp(driver->name, cdef.driver) == 0)
- 				break;
- 		}
--		if (driver == 0) {
-+		if (driver == NULL) {
- 			printk(KERN_ERR "kcapi: driver \"%s\" not loaded.\n",
- 					cdef.driver);
- 			return -ESRCH;
-@@ -1004,9 +1004,9 @@ static int __init kcapi_init(void)
- 		return ret;
-         kcapi_proc_init();
+@@ -1206,6 +1240,11 @@ int unregister_console(struct console *c
+         struct console *a, *b;
+ 	int res = 1;
  
--	if ((p = strchr(revision, ':')) != 0 && p[1]) {
-+	if ((p = strchr(revision, ':')) != NULL && p[1]) {
- 		strlcpy(rev, p + 2, sizeof(rev));
--		if ((p = strchr(rev, '$')) != 0 && p > rev)
-+		if ((p = strchr(rev, '$')) != NULL && p > rev)
- 		   *(p-1) = 0;
- 	} else
- 		strcpy(rev, "1.0");
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
++	if (console->flags & CON_BRL)
++		return braille_unregister_console(console);
++#endif
++
+ 	acquire_console_sem();
+ 	if (console_drivers == console) {
+ 		console_drivers=console->next;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
-origin.patch
-markers-fix-sparse-warnings-in-markersc.patch
-acpi-sparse-fix-replace-macro-with-static-function.patch
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-ata-fix-sparse-warning-in-libatah.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-lockd-fix-sparse-warning-in-svcsharec.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-debugfs-fix-sparse-warnings.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+keyboard-notifier-documentation.patch
+vt-notifier-extension-for-accessibility.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+vt-notifier-fix-for-vt-switch.patch
+basic-braille-screen-reader-support.patch
