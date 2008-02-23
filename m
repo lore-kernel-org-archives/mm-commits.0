@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-sparse-warning-in-journalc.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:22 -0800
-Message-ID: <200802230736.m1N7aBTv018414@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-sparse-warning-in-nameic.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:35:18 -0800
+Message-ID: <200802230736.m1N7a7rV018405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56276 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334AbYBWHy2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752545AbYBWHy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 23 Feb 2008 02:54:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com
 
 
 The patch titled
-     reiserfs: fix sparse warning in journal.c
+     reiserfs: fix sparse warning in namei.c
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-sparse-warning-in-journalc.patch
+     reiserfs-fix-sparse-warning-in-nameic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix sparse warning in journal.c
+Subject: reiserfs: fix sparse warning in namei.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-fs/reiserfs/journal.c:4319:2: warning: returning void-valued expression
+fs/reiserfs/namei.c:455:17: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -45,19 +45,21 @@ Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |    2 +-
+ fs/reiserfs/namei.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc
-+++ a/fs/reiserfs/journal.c
-@@ -4316,5 +4316,5 @@ static void __reiserfs_journal_abort_sof
- 
- void reiserfs_journal_abort(struct super_block *sb, int errno)
- {
--	return __reiserfs_journal_abort_soft(sb, errno);
-+	__reiserfs_journal_abort_soft(sb, errno);
- }
+diff -puN fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic fs/reiserfs/namei.c
+--- a/fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic
++++ a/fs/reiserfs/namei.c
+@@ -452,7 +452,7 @@ static int reiserfs_add_entry(struct rei
+ 	buflen = DEH_SIZE + ROUND_UP(namelen);
+ 	if (buflen > sizeof(small_buf)) {
+ 		buffer = kmalloc(buflen, GFP_NOFS);
+-		if (buffer == 0)
++		if (!buffer)
+ 			return -ENOMEM;
+ 	} else
+ 		buffer = small_buf;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
