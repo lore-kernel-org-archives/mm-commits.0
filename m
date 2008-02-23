@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-notifier-extension-for-accessibility.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:34:22 -0800
-Message-ID: <200802230735.m1N7ZBQx018342@imap1.linux-foundation.org>
+Subject: + cgroup-fix-memory-leak-in-cgroup_get_sb.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:32:40 -0800
+Message-ID: <200802230733.m1N7XTJY018225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47887 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752153AbYBWHyE (ORCPT
+	by vger.kernel.org with ESMTP id S1752362AbYBWHyC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:54:04 -0500
+	Sat, 23 Feb 2008 02:54:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eklhad@comcast.net, samuel.thibault@ens-lyon.org
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     VT notifier extension for accessibility
+     cgroup: fix memory leak in cgroup_get_sb()
 has been added to the -mm tree.  Its filename is
-     vt-notifier-extension-for-accessibility.patch
+     cgroup-fix-memory-leak-in-cgroup_get_sb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VT notifier extension for accessibility
-From: Karl Dahlke <eklhad@comcast.net>
+Subject: cgroup: fix memory leak in cgroup_get_sb()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Some accessibility modules need to be able to catch the output on the
-console before the VT interpretation, and possibly swallow it.
+opts.release_agent is not kfree()ed in all necessary places.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c        |    7 +++++++
- include/linux/notifier.h |    1 +
- 2 files changed, 8 insertions(+)
+ kernel/cgroup.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/vt.c~vt-notifier-extension-for-accessibility drivers/char/vt.c
---- a/drivers/char/vt.c~vt-notifier-extension-for-accessibility
-+++ a/drivers/char/vt.c
-@@ -2053,6 +2053,7 @@ static int do_con_write(struct tty_struc
- 	unsigned long draw_from = 0, draw_to = 0;
- 	struct vc_data *vc;
- 	unsigned char vc_attr;
-+	struct vt_notifier_param param;
- 	uint8_t rescan;
- 	uint8_t inverse;
- 	uint8_t width;
-@@ -2112,6 +2113,8 @@ static int do_con_write(struct tty_struc
- 	if (IS_FG(vc))
- 		hide_cursor(vc);
+diff -puN kernel/cgroup.c~cgroup-fix-memory-leak-in-cgroup_get_sb kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-memory-leak-in-cgroup_get_sb
++++ a/kernel/cgroup.c
+@@ -954,8 +954,11 @@ static int cgroup_get_sb(struct file_sys
+ 	}
  
-+	param.vc = vc;
-+
- 	while (!tty->stopped && count) {
- 		int orig = *buf;
- 		c = orig;
-@@ -2200,6 +2203,10 @@ rescan_last_byte:
- 		    tc = vc->vc_translate[vc->vc_toggle_meta ? (c | 0x80) : c];
- 		}
+ 	root = kzalloc(sizeof(*root), GFP_KERNEL);
+-	if (!root)
++	if (!root) {
++		if (opts.release_agent)
++			kfree(opts.release_agent);
+ 		return -ENOMEM;
++	}
  
-+		param.c = tc;
-+		if (atomic_notifier_call_chain(&vt_notifier_list, VT_PREWRITE, &param) == NOTIFY_STOP)
-+			continue;
-+
-                 /* If the original code was a control character we
-                  * only allow a glyph to be displayed if the code is
-                  * not normally used (such as for cursor movement) or
-diff -puN include/linux/notifier.h~vt-notifier-extension-for-accessibility include/linux/notifier.h
---- a/include/linux/notifier.h~vt-notifier-extension-for-accessibility
-+++ a/include/linux/notifier.h
-@@ -247,6 +247,7 @@ extern struct blocking_notifier_head reb
- #define VT_DEALLOCATE		0x0002 /* Console will be deallocated */
- #define VT_WRITE		0x0003 /* A char got output */
- #define VT_UPDATE		0x0004 /* A bigger update occurred */
-+#define VT_PREWRITE		0x0005 /* A char is about to be written to the console */
- 
- #endif /* __KERNEL__ */
- #endif /* _LINUX_NOTIFIER_H */
+ 	init_cgroup_root(root);
+ 	root->subsys_bits = opts.subsys_bits;
 _
 
-Patches currently in -mm which might be from eklhad@comcast.net are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-input-put-ledstate-in-the-keyboard-notifier.patch
-vt-notifier-extension-for-accessibility.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+cgroup-fix-and-update-documentation.patch
+cgroup-fix-comments.patch
+cgroup-clean-up-cgrouph.patch
+cgroup-fix-memory-leak-in-cgroup_get_sb.patch
+cgroup-fix-subsys-bitops.patch
+cgroup-remove-duplicate-code-in-find_css_set.patch
+cgroup-remove-dead-code-in-cgroup_get_rootdir.patch
+memcgroup-fix-and-update-documentation.patch
+memcgroup-remove-a-useless-vm_bug_on.patch
+memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
