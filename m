@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wdev-ath5k-dont-return-int-from-bool-function.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:31:28 -0800
-Message-ID: <200802230732.m1N7WHal018070@imap1.linux-foundation.org>
+Subject: + ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:31:05 -0800
+Message-ID: <200802230731.m1N7VrxV018040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55424 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753816AbYBWH6M (ORCPT
+	by vger.kernel.org with ESMTP id S1752285AbYBWH70 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:58:12 -0500
+	Sat, 23 Feb 2008 02:59:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     WDEV, ath5k, don't return int from bool function
+     ti_usb_3410_5052: Extend locking to msr and shadow mcr
 has been added to the -mm tree.  Its filename is
-     wdev-ath5k-dont-return-int-from-bool-function.patch
+     ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WDEV, ath5k, don't return int from bool function
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: ti_usb_3410_5052: Extend locking to msr and shadow mcr
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-sparse sees int -> bool cast as an error:
-hw.c:3754:10: warning: cast truncates bits from constant value (ffffffea becomes 0)
-Fix it by converting the rettype to int and check appropriately.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/ath5k.h |    2 +-
- drivers/net/wireless/ath5k/base.c  |    5 ++++-
- drivers/net/wireless/ath5k/hw.c    |    8 ++++----
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/usb/serial/ti_usb_3410_5052.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/ath5k.h
---- a/drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/ath5k.h
-@@ -1035,7 +1035,7 @@ struct ath5k_hw {
- 		unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
- 		unsigned int, unsigned int, unsigned int, unsigned int,
- 		unsigned int, unsigned int, unsigned int);
--	bool (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
-+	int (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
- 		unsigned int, unsigned int, unsigned int, unsigned int,
- 		unsigned int, unsigned int);
- 	int (*ah_proc_tx_desc)(struct ath5k_hw *, struct ath5k_desc *);
-diff -puN drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -668,7 +668,10 @@ ath5k_attach(struct pci_dev *pdev, struc
- 	 * return false w/o doing anything.  MAC's that do
- 	 * support it will return true w/o doing anything.
- 	 */
--	if (ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0))
-+	ret = ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0);
-+	if (ret < 0)
-+		goto err;
-+	if (ret > 0)
- 		__set_bit(ATH_STAT_MRRETRY, sc->status);
+diff -puN drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr drivers/usb/serial/ti_usb_3410_5052.c
+--- a/drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr
++++ a/drivers/usb/serial/ti_usb_3410_5052.c
+@@ -1022,14 +1022,17 @@ static int ti_tiocmget(struct usb_serial
+ 	unsigned int result;
+ 	unsigned int msr;
+ 	unsigned int mcr;
++	unsigned long flags;
  
- 	/*
-diff -puN drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/hw.c
---- a/drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/hw.c
-@@ -45,7 +45,7 @@ static int ath5k_hw_setup_4word_tx_desc(
- 	unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
- 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
- 	unsigned int, unsigned int);
--static bool ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
-+static int ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
- 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
- 	unsigned int);
- static int ath5k_hw_proc_4word_tx_status(struct ath5k_hw *, struct ath5k_desc *);
-@@ -3743,7 +3743,7 @@ static int ath5k_hw_setup_4word_tx_desc(
- /*
-  * Initialize a 4-word multirate tx descriptor on 5212
-  */
--static bool
-+static int
- ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *ah, struct ath5k_desc *desc,
- 	unsigned int tx_rate1, u_int tx_tries1, u_int tx_rate2, u_int tx_tries2,
- 	unsigned int tx_rate3, u_int tx_tries3)
-@@ -3783,10 +3783,10 @@ ath5k_hw_setup_xr_tx_desc(struct ath5k_h
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
  
- #undef _XTX_TRIES
+ 	if (tport == NULL)
+ 		return -ENODEV;
  
--		return true;
-+		return 1;
- 	}
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	msr = tport->tp_msr;
+ 	mcr = tport->tp_shadow_mcr;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
  
--	return false;
-+	return 0;
+ 	result = ((mcr & TI_MCR_DTR) ? TIOCM_DTR : 0)
+ 		| ((mcr & TI_MCR_RTS) ? TIOCM_RTS : 0)
+@@ -1050,12 +1053,14 @@ static int ti_tiocmset(struct usb_serial
+ {
+ 	struct ti_port *tport = usb_get_serial_port_data(port);
+ 	unsigned int mcr;
++	unsigned long flags;
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
+ 	if (tport == NULL)
+ 		return -ENODEV;
+ 
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	mcr = tport->tp_shadow_mcr;
+ 
+ 	if (set & TIOCM_RTS)
+@@ -1071,6 +1076,7 @@ static int ti_tiocmset(struct usb_serial
+ 		mcr &= ~TI_MCR_DTR;
+ 	if (clear & TIOCM_LOOP)
+ 		mcr &= ~TI_MCR_LOOP;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
+ 
+ 	return ti_set_mcr(tport, mcr);
  }
+@@ -1358,14 +1364,17 @@ static void ti_send(struct ti_port *tpor
  
- /*
+ static int ti_set_mcr(struct ti_port *tport, unsigned int mcr)
+ {
++	unsigned long flags;
+ 	int status;
+ 
+ 	status = ti_write_byte(tport->tp_tdev,
+ 		tport->tp_uart_base_addr + TI_UART_OFFSET_MCR,
+ 		TI_MCR_RTS | TI_MCR_DTR | TI_MCR_LOOP, mcr);
+ 
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	if (!status)
+ 		tport->tp_shadow_mcr = mcr;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
+ 
+ 	return status;
+ }
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
-git-dvb.patch
+origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+megaraid-outb_p-extermination.patch
+usb-serial-prepare-for-bkl-push-down.patch
+ftdi_sio-note-missing-locking.patch
+usb-serial-note-mos7480-and-option-dont-lock-modem-status.patch
+io_ti-lock-mcr-and-msr-shadows-properly.patch
+iuu_phoenix-lock-priv-tiostatus-properly.patch
+kobil_sct-get-rid-of-unneeded-priv-line_state.patch
+ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
 git-watchdog.patch
-wdev-ath5k-fix-lock-imbalance.patch
-wdev-ath5k-dont-return-int-from-bool-function.patch
-wdev-ath5k-typecheck-on-nondebug.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
 mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
 tty-bkl-pushdown-fix1.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
