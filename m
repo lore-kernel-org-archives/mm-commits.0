@@ -1,89 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - samples-build-fix.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 13:21:54 -0800
-Message-ID: <200802232121.m1NLLsiD015664@imap1.linux-foundation.org>
+Subject: + bluetooth-make-bnep_sock_cleanup-return-void.patch added to -mm tree
+Date: Sat, 23 Feb 2008 13:34:15 -0800
+Message-ID: <200802232134.m1NLYFlm016039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51640 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751060AbYBWVXk (ORCPT
+	by vger.kernel.org with ESMTP id S1754276AbYBWVe2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 16:23:40 -0500
+	Sat, 23 Feb 2008 16:34:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: tklauser@distanz.ch, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     samples: build fix
-has been removed from the -mm tree.  Its filename was
-     samples-build-fix.patch
+     bluetooth: make bnep_sock_cleanup() return void
+has been added to the -mm tree.  Its filename is
+     bluetooth-make-bnep_sock_cleanup-return-void.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: samples: build fix
-From: Roland McGrath <roland@redhat.com>
+Subject: bluetooth: make bnep_sock_cleanup() return void
+From: Tobias Klauser <tklauser@distanz.ch>
 
-The samples/ subdirectory contains only modules.  But the only make run
-done there is in commands for vmlinux.  I can't see why this was ever done
-in this nonstandard fashion.  As things stand, the modules don't get built
-by 'make modules'.
+bnep_sock_cleanup() always returns 0 and its return value isn't used
+anywhere in the code.
 
-I didn't make the addition of the directory use core-$(CONFIG_SAMPLES)
-because there is no other conditional like that in the top-level Makefile
-and samples/Makefile already uses obj-$(CONFIG_SAMPLES) as if it expects
-always to be included.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ net/bluetooth/bnep/bnep.h |    2 +-
+ net/bluetooth/bnep/sock.c |    4 +---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Makefile~samples-build-fix Makefile
---- a/Makefile~samples-build-fix
-+++ a/Makefile
-@@ -602,7 +602,7 @@ export mod_strip_cmd
+diff -puN net/bluetooth/bnep/bnep.h~bluetooth-make-bnep_sock_cleanup-return-void net/bluetooth/bnep/bnep.h
+--- a/net/bluetooth/bnep/bnep.h~bluetooth-make-bnep_sock_cleanup-return-void
++++ a/net/bluetooth/bnep/bnep.h
+@@ -174,7 +174,7 @@ struct bnep_session {
  
+ void bnep_net_setup(struct net_device *dev);
+ int bnep_sock_init(void);
+-int bnep_sock_cleanup(void);
++void bnep_sock_cleanup(void);
  
- ifeq ($(KBUILD_EXTMOD),)
--core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
-+core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ samples/
+ static inline int bnep_mc_hash(__u8 *addr)
+ {
+diff -puN net/bluetooth/bnep/sock.c~bluetooth-make-bnep_sock_cleanup-return-void net/bluetooth/bnep/sock.c
+--- a/net/bluetooth/bnep/sock.c~bluetooth-make-bnep_sock_cleanup-return-void
++++ a/net/bluetooth/bnep/sock.c
+@@ -257,12 +257,10 @@ error:
+ 	return err;
+ }
  
- vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
- 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
-@@ -802,9 +802,6 @@ vmlinux: $(vmlinux-lds) $(vmlinux-init) 
- ifdef CONFIG_HEADERS_CHECK
- 	$(Q)$(MAKE) -f $(srctree)/Makefile headers_check
- endif
--ifdef CONFIG_SAMPLES
--	$(Q)$(MAKE) $(build)=samples
--endif
- 	$(call vmlinux-modpost)
- 	$(call if_changed_rule,vmlinux__)
- 	$(Q)rm -f .old_version
+-int __exit bnep_sock_cleanup(void)
++void __exit bnep_sock_cleanup(void)
+ {
+ 	if (bt_sock_unregister(BTPROTO_BNEP) < 0)
+ 		BT_ERR("Can't unregister BNEP socket");
+ 
+ 	proto_unregister(&bnep_proto);
+-
+-	return 0;
+ }
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
 origin.patch
-samples-build-fix.patch
-git-x86.patch
-ptrace-fix-2625-ptrace_bts_config-structure-declaration.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+bluetooth-make-hci_sock_cleanup-return-void.patch
+bluetooth-make-bnep_sock_cleanup-return-void.patch
