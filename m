@@ -1,82 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:07 -0800
-Message-ID: <200802232023.m1NKN7qa013488@imap1.linux-foundation.org>
+Subject: - embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:50 -0800
+Message-ID: <200802232022.m1NKMoSj013458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35244 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41119 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755858AbYBWU23 (ORCPT
+	by vger.kernel.org with ESMTP id S1760897AbYBWU2e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:29 -0500
+	Sat, 23 Feb 2008 15:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/serial/io_ti.c: remove pointless eye-candy in debug statements
+Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-These strings always come up as false positives whenever I'm doing
-git-conflict fixups (ie: about 1000 times/day).
-
-I don't think the zillion "<" and ">" characters are very useful and removing
-them makes my life that little bit easier.
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_ti.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ fs/unionfs/inode.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~drivers-usb-serial-io_tic-remove-pointless-eye-candy-in-debug-statements
-+++ a/drivers/usb/serial/io_ti.c
-@@ -1087,12 +1087,11 @@ static int TIDownloadFirmware (struct ed
- 	if (serial->product_info.TiMode == TI_MODE_DOWNLOAD) {
- 		struct ti_i2c_desc *rom_desc;
+diff -puN fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs fs/unionfs/inode.c
+--- a/fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-vs-git-unionfs
++++ a/fs/unionfs/inode.c
+@@ -255,8 +255,8 @@ static struct dentry *unionfs_lookup(str
  
--		dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN DOWNLOAD MODE>>>>>>>>>>", __FUNCTION__);
-+		dbg("%s - RUNNING IN DOWNLOAD MODE", __FUNCTION__);
+ 	/* save the dentry & vfsmnt from namei */
+ 	if (nd) {
+-		path_save.dentry = nd->dentry;
+-		path_save.mnt = nd->mnt;
++		path_save.dentry = nd->path.dentry;
++		path_save.mnt = nd->path.mnt;
+ 	}
  
- 		status = TiValidateI2cImage (serial);
- 		if (status) {
--			dbg ("%s - <<<<<<<<<<<<<<<DOWNLOAD MODE -- BAD I2C >>>>>>>>>>",
--			     __FUNCTION__);
-+			dbg("%s - DOWNLOAD MODE -- BAD I2C", __FUNCTION__);
- 			return status;
- 		}
- 		
-@@ -1346,8 +1345,7 @@ static int TIDownloadFirmware (struct ed
- 	/********************************************************************/
- 	/* Boot Mode */
- 	/********************************************************************/
--	dbg ("%s - <<<<<<<<<<<<<<<RUNNING IN BOOT MODE>>>>>>>>>>>>>>>",
--	     __FUNCTION__);
-+	dbg("%s - RUNNING IN BOOT MODE", __FUNCTION__);
+ 	/*
+@@ -267,8 +267,8 @@ static struct dentry *unionfs_lookup(str
  
- 	// Configure the TI device so we can use the BULK pipes for download
- 	status = TIConfigureBootDevice (serial->serial->dev);
-@@ -1462,7 +1460,7 @@ static int TIDownloadFirmware (struct ed
+ 	/* restore the dentry & vfsmnt in namei */
+ 	if (nd) {
+-		nd->dentry = path_save.dentry;
+-		nd->mnt = path_save.mnt;
++		nd->path.dentry = path_save.dentry;
++		nd->path.mnt = path_save.mnt;
+ 	}
+ 	if (!IS_ERR(ret)) {
+ 		if (ret)
+@@ -861,7 +861,7 @@ static int unionfs_permission(struct ino
+ 	const int write_mask = (mask & MAY_WRITE) && !(mask & MAY_READ);
  
- StayInBootMode:
- 	// Eprom is invalid or blank stay in boot mode
--	dbg ("%s - <<<<<<<<<<<<<<<STAYING IN BOOT MODE>>>>>>>>>>>>", __FUNCTION__);
-+	dbg("%s - STAYING IN BOOT MODE", __FUNCTION__);
- 	serial->product_info.TiMode = TI_MODE_BOOT;
+ 	if (nd)
+-		unionfs_lock_dentry(nd->dentry, UNIONFS_DMUTEX_CHILD);
++		unionfs_lock_dentry(nd->path.dentry, UNIONFS_DMUTEX_CHILD);
  
- 	return 0;
+ 	if (!UNIONFS_I(inode)->lower_inodes) {
+ 		if (is_file)	/* dirs can be unlinked but chdir'ed to */
+@@ -936,7 +936,7 @@ out:
+ 	unionfs_check_inode(inode);
+ 	unionfs_check_nd(nd);
+ 	if (nd)
+-		unionfs_unlock_dentry(nd->dentry);
++		unionfs_unlock_dentry(nd->path.dentry);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
