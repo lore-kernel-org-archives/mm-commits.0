@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + k_getrusage-dont-take-rcu_read_lock.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:35:34 -0800
-Message-ID: <200802230736.m1N7aNDM018426@imap1.linux-foundation.org>
+Subject: + fix-uli526x-partially-recognizing-interface.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:30:11 -0800
+Message-ID: <200802230731.m1N7V0ZT017975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57989 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763364AbYBWIEb (ORCPT
+	by vger.kernel.org with ESMTP id S1763781AbYBWIEl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 03:04:31 -0500
+	Sat, 23 Feb 2008 03:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com, paulmck@linux.vnet.ibm.com, roland@redhat.com
+Cc: grundler@parisc-linux.org, kyle@mcmartin.ca, manty@manty.net, pozsy@uhulinux.hu, protasnb@gmail.com
 
 
 The patch titled
-     k_getrusage: don't take rcu_read_lock()
+     fix uli526x partially recognizing interface
 has been added to the -mm tree.  Its filename is
-     k_getrusage-dont-take-rcu_read_lock.patch
+     fix-uli526x-partially-recognizing-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: k_getrusage: don't take rcu_read_lock()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fix uli526x partially recognizing interface
+From: Grant Grundler <grundler@parisc-linux.org>
 
-Just a trivial example, more to come.
+Patch fixes:
+    http://bugzilla.kernel.org/show_bug.cgi?id=5839
 
-k_getrusage() holds rcu_read_lock() because it was previously required by
-lock_task_sighand().  Unneeded now.
+Init sequence needs to poll phy until phy reset is complete. This is the
+same problem that I fixed in 2002 in tulip driver.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Roland McGrath <roland@redhat.com>
+Thanks to manty@manty.net for testing this patch.
+Thanks to Pozsar Balazs <pozsy@uhulinux.hu> for posting/testing
+a similar patch before:
+    http://lkml.org/lkml/2006/8/21/45
+
+Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: <manty@manty.net>
+Cc: Pozsar Balazs <pozsy@uhulinux.hu>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/net/tulip/uli526x.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~k_getrusage-dont-take-rcu_read_lock kernel/sys.c
---- a/kernel/sys.c~k_getrusage-dont-take-rcu_read_lock
-+++ a/kernel/sys.c
-@@ -1566,11 +1566,8 @@ static void k_getrusage(struct task_stru
- 		goto out;
- 	}
+diff -puN drivers/net/tulip/uli526x.c~fix-uli526x-partially-recognizing-interface drivers/net/tulip/uli526x.c
+--- a/drivers/net/tulip/uli526x.c~fix-uli526x-partially-recognizing-interface
++++ a/drivers/net/tulip/uli526x.c
+@@ -482,9 +482,11 @@ static void uli526x_init(struct net_devi
+ 	struct uli526x_board_info *db = netdev_priv(dev);
+ 	unsigned long ioaddr = db->ioaddr;
+ 	u8	phy_tmp;
++	u8	timeout;
+ 	u16	phy_value;
+ 	u16 phy_reg_reset;
  
--	rcu_read_lock();
--	if (!lock_task_sighand(p, &flags)) {
--		rcu_read_unlock();
-+	if (!lock_task_sighand(p, &flags))
- 		return;
--	}
++
+ 	ULI526X_DBUG(0, "uli526x_init()", 0);
  
- 	switch (who) {
- 		case RUSAGE_BOTH:
-@@ -1606,9 +1603,7 @@ static void k_getrusage(struct task_stru
- 		default:
- 			BUG();
- 	}
--
- 	unlock_task_sighand(p, &flags);
--	rcu_read_unlock();
+ 	/* Reset M526x MAC controller */
+@@ -509,11 +511,19 @@ static void uli526x_init(struct net_devi
+ 	/* Parser SROM and media mode */
+ 	db->media_mode = uli526x_media_mode;
  
- out:
- 	cputime_to_timeval(utime, &r->ru_utime);
+-	/* Phyxcer capability setting */
++	/* phyxcer capability setting */
+ 	phy_reg_reset = phy_read(db->ioaddr, db->phy_addr, 0, db->chip_id);
+ 	phy_reg_reset = (phy_reg_reset | 0x8000);
+ 	phy_write(db->ioaddr, db->phy_addr, 0, phy_reg_reset, db->chip_id);
++
++	/* See IEEE 802.3-2002.pdf (Section 2, Chapter "22.2.4 Management
++	 * functions") or phy data sheet for details on phy reset
++	 */
+ 	udelay(500);
++	timeout = 10;
++	while (timeout-- &&
++		phy_read(db->ioaddr, db->phy_addr, 0, db->chip_id) & 0x8000)
++			udelay(100);
+ 
+ 	/* Process Phyxcer Media Mode */
+ 	uli526x_set_phyxcer(db);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from grundler@parisc-linux.org are
 
-kthread-synchronization-issues.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-timers-simplify-lockdep-stuff.patch
-hrtimers-simplify-lockdep-stuff.patch
-kill-double_spin_lock.patch
-redo-locking-of-tty-pgrp.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+fix-uli526x-partially-recognizing-interface.patch
+update-tulip-maintainers.patch
+parisc-new-termios-definitions.patch
