@@ -1,69 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - wdev-ath5k-fix-lock-imbalance.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:39 -0800
-Message-ID: <200802232023.m1NKNdjq013560@imap1.linux-foundation.org>
+Subject: - make-struct-def_blk_aops-static.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:24:16 -0800
+Message-ID: <200802232024.m1NKOG9x013626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42625 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761518AbYBWU2l (ORCPT
+	by vger.kernel.org with ESMTP id S1761866AbYBWU2p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:41 -0500
+	Sat, 23 Feb 2008 15:28:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     WDEV: ath5k, fix lock imbalance
+     make struct def_blk_aops static
 has been removed from the -mm tree.  Its filename was
-     wdev-ath5k-fix-lock-imbalance.patch
+     make-struct-def_blk_aops-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WDEV: ath5k, fix lock imbalance
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: make struct def_blk_aops static
+From: Adrian Bunk <bunk@kernel.org>
 
-Omitted lock causes sparse warning
-drivers/net/wireless/ath5k/base.c:1682:1: warning: context imbalance in 'ath5k_tasklet_rx' - different lock contexts for basic block
+Make the needlessly global struct def_blk_aops static.
 
-Add the lock to the guilty fail path.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/block_dev.c     |    4 +++-
+ include/linux/fs.h |    1 -
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~wdev-ath5k-fix-lock-imbalance drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wdev-ath5k-fix-lock-imbalance
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -1715,6 +1715,7 @@ ath5k_tasklet_rx(unsigned long data)
- 			break;
- 		else if (unlikely(ret)) {
- 			ATH5K_ERR(sc, "error in processing rx descriptor\n");
-+			spin_unlock(&sc->rxbuflock);
- 			return;
- 		}
+diff -puN fs/block_dev.c~make-struct-def_blk_aops-static fs/block_dev.c
+--- a/fs/block_dev.c~make-struct-def_blk_aops-static
++++ a/fs/block_dev.c
+@@ -31,6 +31,8 @@ struct bdev_inode {
+ 	struct inode vfs_inode;
+ };
  
++static const struct address_space_operations def_blk_aops;
++
+ static inline struct bdev_inode *BDEV_I(struct inode *inode)
+ {
+ 	return container_of(inode, struct bdev_inode, vfs_inode);
+@@ -1137,7 +1139,7 @@ static long block_ioctl(struct file *fil
+ 	return blkdev_ioctl(file->f_mapping->host, file, cmd, arg);
+ }
+ 
+-const struct address_space_operations def_blk_aops = {
++static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
+ 	.writepage	= blkdev_writepage,
+ 	.sync_page	= block_sync_page,
+diff -puN include/linux/fs.h~make-struct-def_blk_aops-static include/linux/fs.h
+--- a/include/linux/fs.h~make-struct-def_blk_aops-static
++++ a/include/linux/fs.h
+@@ -1589,7 +1589,6 @@ extern void bd_set_size(struct block_dev
+ extern void bd_forget(struct inode *inode);
+ extern void bdput(struct block_device *);
+ extern struct block_device *open_by_devnum(dev_t, unsigned);
+-extern const struct address_space_operations def_blk_aops;
+ #else
+ static inline void bd_forget(struct inode *inode) {}
+ #endif
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
+sparc-fix-build.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
 git-net.patch
-wdev-ath5k-typecheck-on-nondebug.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-mxser-convert-large-macros-to-functions.patch
+make-s2iocinit_tti-static.patch
+git-nfsd.patch
+git-ocfs2.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+git-scsi-rc-fixes.patch
+scsi-aic94xx-cleanups.patch
+if-0-ses_match_host.patch
+remove-ps2esdi.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
 reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
