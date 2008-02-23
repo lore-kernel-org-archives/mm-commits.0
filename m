@@ -1,127 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - make-struct-def_blk_aops-static.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:24:16 -0800
-Message-ID: <200802232024.m1NKOG9x013626@imap1.linux-foundation.org>
+Subject: - usb-microtek-remove-unused-semaphore.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:55 -0800
+Message-ID: <200802232022.m1NKMt1a013467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40099 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761866AbYBWU2p (ORCPT
+	by vger.kernel.org with ESMTP id S1761715AbYBWU2q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:45 -0500
+	Sat, 23 Feb 2008 15:28:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make struct def_blk_aops static
+     usb microtek: remove unused semaphore
 has been removed from the -mm tree.  Its filename was
-     make-struct-def_blk_aops-static.patch
+     usb-microtek-remove-unused-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make struct def_blk_aops static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: usb microtek: remove unused semaphore
+From: Daniel Walker <dwalker@mvista.com>
 
-Make the needlessly global struct def_blk_aops static.
+No current references, so removing it.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c     |    4 +++-
- include/linux/fs.h |    1 -
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/image/microtek.c |    1 -
+ drivers/usb/image/microtek.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN fs/block_dev.c~make-struct-def_blk_aops-static fs/block_dev.c
---- a/fs/block_dev.c~make-struct-def_blk_aops-static
-+++ a/fs/block_dev.c
-@@ -31,6 +31,8 @@ struct bdev_inode {
- 	struct inode vfs_inode;
- };
+diff -puN drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.c
+--- a/drivers/usb/image/microtek.c~usb-microtek-remove-unused-semaphore
++++ a/drivers/usb/image/microtek.c
+@@ -794,7 +794,6 @@ static int mts_usb_probe(struct usb_inte
  
-+static const struct address_space_operations def_blk_aops;
-+
- static inline struct bdev_inode *BDEV_I(struct inode *inode)
- {
- 	return container_of(inode, struct bdev_inode, vfs_inode);
-@@ -1137,7 +1139,7 @@ static long block_ioctl(struct file *fil
- 	return blkdev_ioctl(file->f_mapping->host, file, cmd, arg);
- }
+ 	new_desc->usb_dev = dev;
+ 	new_desc->usb_intf = intf;
+-	init_MUTEX(&new_desc->lock);
  
--const struct address_space_operations def_blk_aops = {
-+static const struct address_space_operations def_blk_aops = {
- 	.readpage	= blkdev_readpage,
- 	.writepage	= blkdev_writepage,
- 	.sync_page	= block_sync_page,
-diff -puN include/linux/fs.h~make-struct-def_blk_aops-static include/linux/fs.h
---- a/include/linux/fs.h~make-struct-def_blk_aops-static
-+++ a/include/linux/fs.h
-@@ -1589,7 +1589,6 @@ extern void bd_set_size(struct block_dev
- extern void bd_forget(struct inode *inode);
- extern void bdput(struct block_device *);
- extern struct block_device *open_by_devnum(dev_t, unsigned);
--extern const struct address_space_operations def_blk_aops;
- #else
- static inline void bd_forget(struct inode *inode) {}
- #endif
+ 	/* endpoints */
+ 	new_desc->ep_out = ep_out;
+diff -puN drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore drivers/usb/image/microtek.h
+--- a/drivers/usb/image/microtek.h~usb-microtek-remove-unused-semaphore
++++ a/drivers/usb/image/microtek.h
+@@ -39,7 +39,6 @@ struct mts_desc {
+ 	u8 ep_image;
+ 
+ 	struct Scsi_Host * host;
+-	struct semaphore lock;
+ 
+ 	struct urb *urb;
+ 	struct mts_transfer_context context;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-sparc-fix-build.patch
-git-acpi.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-git-net.patch
-make-s2iocinit_tti-static.patch
-git-nfsd.patch
-git-ocfs2.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-git-scsi-rc-fixes.patch
-scsi-aic94xx-cleanups.patch
-if-0-ses_match_host.patch
-remove-ps2esdi.patch
-make-b43_mac_enablesuspend-static.patch
-the-scheduled-bcm43xx-removal.patch
-the-scheduled-ieee80211-softmac-removal.patch
-the-scheduled-rc80211-simplec-removal.patch
-ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-make-udf_error-static.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-ipwireless-remove-dead-code.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-pnp-skip-dev-protocol-null-checks.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-kernel-cpusetc-make-3-functions-static.patch
-make-ext4_xattr_list-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
