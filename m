@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-use-bug_on.patch added to -mm tree
-Date: Fri, 22 Feb 2008 23:28:55 -0800
-Message-ID: <200802230729.m1N7TiYc017913@imap1.linux-foundation.org>
+Subject: + driver-core-fix-error-handling-in-bus_add_driver.patch added to -mm tree
+Date: Fri, 22 Feb 2008 23:29:09 -0800
+Message-ID: <200802230729.m1N7TwJq017919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42261 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbYBWHaA (ORCPT
+	by vger.kernel.org with ESMTP id S1753314AbYBWHaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 02:30:00 -0500
+	Sat, 23 Feb 2008 02:30:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: cornelia.huck@de.ibm.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     sound: Use BUG_ON
+     Driver core: fix error handling in bus_add_driver()
 has been added to the -mm tree.  Its filename is
-     sound-use-bug_on.patch
+     driver-core-fix-error-handling-in-bus_add_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound: Use BUG_ON
-From: Julia Lawall <julia@diku.dk>
+Subject: Driver core: fix error handling in bus_add_driver()
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
+- If the allocation of ->priv fails, the reference on the bus
+  must be dropped.
+- If adding the kobject fails, kobject_put must be called to
+  clean things up.
 
-if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
-side-effects to allow a definition of BUG_ON that drops the code completely.
-
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@ disable unlikely @ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (unlikely(E)) { BUG(); }
-+ BUG_ON(E);
-)
-
-@@ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (E) { BUG(); }
-+ BUG_ON(E);
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/seq/oss/seq_oss_synth.c |    3 +--
- sound/oss/trident.c                |   12 ++++--------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ drivers/base/bus.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN sound/core/seq/oss/seq_oss_synth.c~sound-use-bug_on sound/core/seq/oss/seq_oss_synth.c
---- a/sound/core/seq/oss/seq_oss_synth.c~sound-use-bug_on
-+++ a/sound/core/seq/oss/seq_oss_synth.c
-@@ -245,8 +245,7 @@ snd_seq_oss_synth_setup(struct seq_oss_d
- 		info->nr_voices = rec->nr_voices;
- 		if (info->nr_voices > 0) {
- 			info->ch = kcalloc(info->nr_voices, sizeof(struct seq_oss_chinfo), GFP_KERNEL);
--			if (!info->ch)
--				BUG();
-+			BUG_ON(!info->ch);
- 			reset_channels(info);
- 		}
- 		debug_printk(("synth %d assigned\n", i));
-diff -puN sound/oss/trident.c~sound-use-bug_on sound/oss/trident.c
---- a/sound/oss/trident.c~sound-use-bug_on
-+++ a/sound/oss/trident.c
-@@ -3076,8 +3076,7 @@ ali_ac97_get(struct trident_card *card, 
- 	u16 wcontrol;
- 	unsigned long flags;
+diff -puN drivers/base/bus.c~driver-core-fix-error-handling-in-bus_add_driver drivers/base/bus.c
+--- a/drivers/base/bus.c~driver-core-fix-error-handling-in-bus_add_driver
++++ a/drivers/base/bus.c
+@@ -658,9 +658,10 @@ int bus_add_driver(struct device_driver 
+ 	pr_debug("bus: '%s': add driver %s\n", bus->name, drv->name);
  
--	if (!card)
--		BUG();
-+	BUG_ON(!card);
+ 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
++	if (!priv) {
++		error = -ENOMEM;
++		goto out_put_bus;
++	}
+ 	klist_init(&priv->klist_devices, NULL, NULL);
+ 	priv->driver = drv;
+ 	drv->p = priv;
+@@ -668,7 +669,7 @@ int bus_add_driver(struct device_driver 
+ 	error = kobject_init_and_add(&priv->kobj, &driver_ktype, NULL,
+ 				     "%s", drv->name);
+ 	if (error)
+-		goto out_put_bus;
++		goto out_unregister;
  
- 	address = ALI_AC97_READ;
- 	if (card->revision == ALI_5451_V02) {
-@@ -3148,8 +3147,7 @@ ali_ac97_set(struct trident_card *card, 
- 
- 	data = ((u32) val) << 16;
- 
--	if (!card)
--		BUG();
-+	BUG_ON(!card);
- 
- 	address = ALI_AC97_WRITE;
- 	mask = ALI_AC97_WRITE_ACTION | ALI_AC97_AUDIO_BUSY;
-@@ -3213,8 +3211,7 @@ ali_ac97_read(struct ac97_codec *codec, 
- 	struct trident_card *card = NULL;
- 
- 	/* Added by Matt Wu */
--	if (!codec)
--		BUG();
-+	BUG_ON(!codec);
- 
- 	card = (struct trident_card *) codec->private_data;
- 
-@@ -3240,8 +3237,7 @@ ali_ac97_write(struct ac97_codec *codec,
- 	struct trident_card *card;
- 
- 	/*  Added by Matt Wu */
--	if (!codec)
--		BUG();
-+	BUG_ON(!codec);
- 
- 	card = (struct trident_card *) codec->private_data;
- 
+ 	if (drv->bus->p->drivers_autoprobe) {
+ 		error = driver_attach(drv);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
-sound-use-bug_on.patch
-git-hid.patch
-git-net.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-fs-ocfs2-use-bug_on.patch
-s390-use-div_round_up.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-usb-use-div_round_up.patch
-fs-affs-filec-use-bug_on.patch
-fbdev-use-div_round_up-or-roundup.patch
-fs-ext2-use-bug_on.patch
-fs-ext3-use-bug_on.patch
-fs-ext4-use-bug_on.patch
+driver-core-fix-error-handling-in-bus_add_driver.patch
+git-s390.patch
