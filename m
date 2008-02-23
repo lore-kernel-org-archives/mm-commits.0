@@ -1,126 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-misc-auerswaldc-convert-ccp-readmutex-into-a-mutex.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:32 -0800
-Message-ID: <200802232023.m1NKNWd2013531@imap1.linux-foundation.org>
+Subject: - debugfs-fix-sparse-warnings.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:24:10 -0800
+Message-ID: <200802232024.m1NKOAfs013615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56672 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:60583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761676AbYBWU2l (ORCPT
+	by vger.kernel.org with ESMTP id S1761586AbYBWU2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:41 -0500
+	Sat, 23 Feb 2008 15:28:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias@kaehlcke.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/misc/auerswald.c: convert ccp->readmutex into a mutex
+     debugfs: fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-misc-auerswaldc-convert-ccp-readmutex-into-a-mutex.patch
+     debugfs-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/misc/auerswald.c: convert ccp->readmutex into a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: debugfs: fix sparse warnings
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The semaphore ccp->readmutex is used as mutex, convert it to the mutex API
+extern does not belong in C files, move declaration to linux/debugfs.h
+fs/debugfs/file.c:42:30: warning: symbol 'debugfs_file_operations' was not declared. Should it be static?
+fs/debugfs/file.c:54:31: warning: symbol 'debugfs_link_operations' was not declared. Should it be static?
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/auerswald.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/debugfs/inode.c      |    4 ----
+ include/linux/debugfs.h |    5 +++++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/misc/auerswald.c~drivers-usb-misc-auerswaldc-convert-ccp-readmutex-into-a-mutex drivers/usb/misc/auerswald.c
---- a/drivers/usb/misc/auerswald.c~drivers-usb-misc-auerswaldc-convert-ccp-readmutex-into-a-mutex
-+++ a/drivers/usb/misc/auerswald.c
-@@ -259,7 +259,7 @@ typedef struct
-         auerbufctl_t bufctl;            /* controls the buffer chain */
-         auerscon_t scontext;            /* service context */
- 	wait_queue_head_t readwait;     /* for synchronous reading */
--	struct semaphore readmutex;     /* protection against multiple reads */
-+	struct mutex readmutex;		/* protection against multiple reads */
- 	pauerbuf_t readbuf;		/* buffer held for partial reading */
- 	unsigned int readoffset;	/* current offset in readbuf */
- 	unsigned int removed;		/* is != 0 if device is removed */
-@@ -1391,7 +1391,7 @@ static int auerchar_open (struct inode *
+diff -puN fs/debugfs/inode.c~debugfs-fix-sparse-warnings fs/debugfs/inode.c
+--- a/fs/debugfs/inode.c~debugfs-fix-sparse-warnings
++++ a/fs/debugfs/inode.c
+@@ -29,10 +29,6 @@
  
- 	/* Initialize device descriptor */
- 	init_MUTEX( &ccp->mutex);
--	init_MUTEX( &ccp->readmutex);
-+	mutex_init(&ccp->readmutex);
-         auerbuf_init (&ccp->bufctl);
-         ccp->scontext.id = AUH_UNASSIGNED;
-         ccp->scontext.dispatch = auerchar_ctrlread_dispatch;
-@@ -1585,7 +1585,7 @@ static ssize_t auerchar_read (struct fil
- 	}
+ #define DEBUGFS_MAGIC	0x64626720
  
- 	/* only one reader per device allowed */
--	if (down_interruptible (&ccp->readmutex)) {
-+	if (mutex_lock_interruptible(&ccp->readmutex)) {
- 		up (&ccp->mutex);
- 		return -ERESTARTSYS;
- 	}
-@@ -1603,7 +1603,7 @@ doreadbuf:
- 		if (count) {
- 			if (copy_to_user (buf, bp->bufp+ccp->readoffset, count)) {
- 				dbg ("auerswald_read: copy_to_user failed");
--				up (&ccp->readmutex);
-+				mutex_unlock(&ccp->readmutex);
- 				up (&ccp->mutex);
- 				return -EFAULT;
- 			}
-@@ -1618,7 +1618,7 @@ doreadbuf:
- 		}
- 		/* return with number of bytes read */
- 		if (count) {
--			up (&ccp->readmutex);
-+			mutex_unlock(&ccp->readmutex);
- 			up (&ccp->mutex);
- 			return count;
- 		}
-@@ -1655,7 +1655,7 @@ doreadlist:
-                 dbg ("No read buffer available, returning -EAGAIN");
- 		set_current_state (TASK_RUNNING);
- 		remove_wait_queue (&ccp->readwait, &wait);
--		up (&ccp->readmutex);
-+		mutex_unlock(&ccp->readmutex);
- 		up (&ccp->mutex);
- 		return -EAGAIN;  /* nonblocking, no data available */
-         }
-@@ -1666,18 +1666,18 @@ doreadlist:
- 	remove_wait_queue (&ccp->readwait, &wait);
- 	if (signal_pending (current)) {
- 		/* waked up by a signal */
--		up (&ccp->readmutex);
-+		mutex_unlock(&ccp->readmutex);
- 		return -ERESTARTSYS;
- 	}
+-/* declared over in file.c */
+-extern struct file_operations debugfs_file_operations;
+-extern struct inode_operations debugfs_link_operations;
+-
+ static struct vfsmount *debugfs_mount;
+ static int debugfs_mount_count;
  
- 	/* Anything left to read? */
- 	if ((ccp->scontext.id == AUH_UNASSIGNED) || ccp->removed) {
--		up (&ccp->readmutex);
-+		mutex_unlock(&ccp->readmutex);
- 		return -EIO;
- 	}
+diff -puN include/linux/debugfs.h~debugfs-fix-sparse-warnings include/linux/debugfs.h
+--- a/include/linux/debugfs.h~debugfs-fix-sparse-warnings
++++ a/include/linux/debugfs.h
+@@ -27,6 +27,11 @@ struct debugfs_blob_wrapper {
+ };
  
- 	if (down_interruptible (&ccp->mutex)) {
--		up (&ccp->readmutex);
-+		mutex_unlock(&ccp->readmutex);
- 		return -ERESTARTSYS;
- 	}
- 
+ #if defined(CONFIG_DEBUG_FS)
++
++/* declared over in file.c */
++extern const struct file_operations debugfs_file_operations;
++extern const struct inode_operations debugfs_link_operations;
++
+ struct dentry *debugfs_create_file(const char *name, mode_t mode,
+ 				   struct dentry *parent, void *data,
+ 				   const struct file_operations *fops);
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-cosa-srp-convert-channel_datarsem-to-mutex.patch
-convert-acl-sem-in-a-mutex.patch
-convert-stats_sem-in-a-mutex.patch
-convert-wpa_sem-in-a-mutex.patch
+origin.patch
+markers-fix-sparse-warnings-in-markersc.patch
+bttv-struct-member-initialized-twice.patch
+dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+git-nfsd.patch
+git-sched.patch
+git-scsi-rc-fixes.patch
+git-x86.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+jbd2-sparse-warnings-in-revokec-journalc.patch
