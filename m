@@ -1,102 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - usb-libusual-locking-cleanup.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:57 -0800
-Message-ID: <200802232022.m1NKMv4Q013470@imap1.linux-foundation.org>
+Subject: - ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:28 -0800
+Message-ID: <200802232023.m1NKNSOt013519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45207 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763290AbYBWU3p (ORCPT
+	by vger.kernel.org with ESMTP id S1763502AbYBWU3y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:45 -0500
+	Sat, 23 Feb 2008 15:29:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, greg@kroah.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: libusual: locking cleanup
+     ti_usb_3410_5052: Extend locking to msr and shadow mcr
 has been removed from the -mm tree.  Its filename was
-     usb-libusual-locking-cleanup.patch
+     ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: libusual: locking cleanup
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ti_usb_3410_5052: Extend locking to msr and shadow mcr
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-I converted the usu_init_notify semaphore to normal mutex usage, and it
-should still prevent the request_module before the init routine is
-complete.  Before it acted more like a complete, now the mutex protects two
-distinct section from running at the same time.
-
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/libusual.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/usb/serial/ti_usb_3410_5052.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup drivers/usb/storage/libusual.c
---- a/drivers/usb/storage/libusual.c~usb-libusual-locking-cleanup
-+++ a/drivers/usb/storage/libusual.c
-@@ -9,6 +9,7 @@
- #include <linux/usb_usual.h>
- #include <linux/vmalloc.h>
- #include <linux/kthread.h>
-+#include <linux/mutex.h>
+diff -puN drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr drivers/usb/serial/ti_usb_3410_5052.c
+--- a/drivers/usb/serial/ti_usb_3410_5052.c~ti_usb_3410_5052-extend-locking-to-msr-and-shadow-mcr
++++ a/drivers/usb/serial/ti_usb_3410_5052.c
+@@ -1022,14 +1022,17 @@ static int ti_tiocmget(struct usb_serial
+ 	unsigned int result;
+ 	unsigned int msr;
+ 	unsigned int mcr;
++	unsigned long flags;
  
- /*
-  */
-@@ -30,7 +31,7 @@ static atomic_t usu_bias = ATOMIC_INIT(U
- #define BIAS_NAME_SIZE  (sizeof("usb-storage"))
- static const char *bias_names[3] = { "none", "usb-storage", "ub" };
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
  
--static struct semaphore usu_init_notify;
-+static DEFINE_MUTEX(usu_probe_mutex);
- static DECLARE_COMPLETION(usu_end_notify);
- static atomic_t total_threads = ATOMIC_INIT(0);
+ 	if (tport == NULL)
+ 		return -ENODEV;
  
-@@ -178,10 +179,7 @@ static int usu_probe_thread(void *arg)
- 	int rc;
- 	unsigned long flags;
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	msr = tport->tp_msr;
+ 	mcr = tport->tp_shadow_mcr;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
  
--	/* A completion does not work here because it's counted. */
--	down(&usu_init_notify);
--	up(&usu_init_notify);
--
-+	mutex_lock(&usu_probe_mutex);
- 	rc = request_module(bias_names[type]);
- 	spin_lock_irqsave(&usu_lock, flags);
- 	if (rc == 0 && (st->fls & USU_MOD_FL_PRESENT) == 0) {
-@@ -194,6 +192,7 @@ static int usu_probe_thread(void *arg)
- 	}
- 	st->fls &= ~USU_MOD_FL_THREAD;
- 	spin_unlock_irqrestore(&usu_lock, flags);
-+	mutex_unlock(&usu_probe_mutex);
- 
- 	complete_and_exit(&usu_end_notify, 0);
- }
-@@ -204,10 +203,9 @@ static int __init usb_usual_init(void)
+ 	result = ((mcr & TI_MCR_DTR) ? TIOCM_DTR : 0)
+ 		| ((mcr & TI_MCR_RTS) ? TIOCM_RTS : 0)
+@@ -1050,12 +1053,14 @@ static int ti_tiocmset(struct usb_serial
  {
- 	int rc;
+ 	struct ti_port *tport = usb_get_serial_port_data(port);
+ 	unsigned int mcr;
++	unsigned long flags;
  
--	sema_init(&usu_init_notify, 0);
--
-+	mutex_lock(&usu_probe_mutex);
- 	rc = usb_register(&usu_driver);
--	up(&usu_init_notify);
-+	mutex_unlock(&usu_probe_mutex);
- 	return rc;
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
+ 	if (tport == NULL)
+ 		return -ENODEV;
+ 
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	mcr = tport->tp_shadow_mcr;
+ 
+ 	if (set & TIOCM_RTS)
+@@ -1071,6 +1076,7 @@ static int ti_tiocmset(struct usb_serial
+ 		mcr &= ~TI_MCR_DTR;
+ 	if (clear & TIOCM_LOOP)
+ 		mcr &= ~TI_MCR_LOOP;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
+ 
+ 	return ti_set_mcr(tport, mcr);
  }
+@@ -1358,14 +1364,17 @@ static void ti_send(struct ti_port *tpor
  
+ static int ti_set_mcr(struct ti_port *tport, unsigned int mcr)
+ {
++	unsigned long flags;
+ 	int status;
+ 
+ 	status = ti_write_byte(tport->tp_tdev,
+ 		tport->tp_uart_base_addr + TI_UART_OFFSET_MCR,
+ 		TI_MCR_RTS | TI_MCR_DTR | TI_MCR_LOOP, mcr);
+ 
++	spin_lock_irqsave(&tport->tp_lock, flags);
+ 	if (!status)
+ 		tport->tp_shadow_mcr = mcr;
++	spin_unlock_irqrestore(&tport->tp_lock, flags);
+ 
+ 	return status;
+ }
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+git-scsi-rc-fixes.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
