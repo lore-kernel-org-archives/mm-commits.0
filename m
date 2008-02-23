@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-sched-git-rejects.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 11:49:04 -0800
-Message-ID: <200802231949.m1NJn45H012128@imap1.linux-foundation.org>
+Subject: - git-unionfs-git-rejects.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 11:49:26 -0800
+Message-ID: <200802231949.m1NJnQBV012137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47805 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35627 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757771AbYBWTtp (ORCPT
+	by vger.kernel.org with ESMTP id S1758009AbYBWTuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 14:49:45 -0500
+	Sat, 23 Feb 2008 14:50:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sched-git-rejects
+     git-unionfs-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-sched-git-rejects.patch
+     git-unionfs-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-git-rejects
+Subject: git-unionfs-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/namei.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~git-sched-git-rejects arch/x86/Kconfig
---- a/arch/x86/Kconfig~git-sched-git-rejects
-+++ a/arch/x86/Kconfig
-@@ -21,12 +21,8 @@ config X86
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
--<<<<<<< HEAD:arch/x86/Kconfig
- 	select HAVE_KVM
--
--=======
- 	select HAVE_FTRACE
-->>>>>>> FETCH_HEAD:arch/x86/Kconfig
+diff -puN include/linux/namei.h~git-unionfs-git-rejects include/linux/namei.h
+--- a/include/linux/namei.h~git-unionfs-git-rejects
++++ a/include/linux/namei.h
+@@ -3,11 +3,8 @@
  
- config GENERIC_LOCKBREAK
- 	def_bool n
+ #include <linux/dcache.h>
+ #include <linux/linkage.h>
+-<<<<<<< HEAD:include/linux/namei.h
+ #include <linux/path.h>
+-=======
+ #include <linux/mount.h>
+->>>>>>> FETCH_HEAD:include/linux/namei.h
+ 
+ struct vfsmount;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +69,6 @@ git-ubi.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 git-sched.patch
-git-sched-git-rejects.patch
 tracing-is-borked-on-powerpc.patch
 scsi-aic94xx-cleanups.patch
 libsas-convert-ata-bridge-to-use-new-eh.patch
