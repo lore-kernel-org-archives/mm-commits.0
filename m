@@ -1,131 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:22:35 -0800
-Message-ID: <200802232022.m1NKMZHR013437@imap1.linux-foundation.org>
+Subject: - usb-serial-prepare-for-bkl-push-down.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:23:16 -0800
+Message-ID: <200802232023.m1NKNGST013501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58324 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763451AbYBWU3p (ORCPT
+	by vger.kernel.org with ESMTP id S1763171AbYBWU3v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:29:45 -0500
+	Sat, 23 Feb 2008 15:29:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pchen@nvidia.com, acurrid@nvidia.com, ak@suse.de, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
+     usb-serial: Prepare for BKL push down
 has been removed from the -mm tree.  Its filename was
-     quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform.patch
+     usb-serial-prepare-for-bkl-push-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quirks: set 'En' bit of MSI Mapping for devices onHT-based nvidia platform
-From: Peer Chen <pchen@nvidia.com>
+Subject: usb-serial: Prepare for BKL push down
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-According to HT spec, to get message interrupt from devices mapped to HT
-interrupt message, the 'En' bit of MSI Mapping capability need to be set. 
-The patch do this setting in quirks code for the devices on HT-based nvidia
-platform.
+Take the lock in usb-serial instead. As it relies on the BKL internally
+we can't push it any deeper yet.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andy Currid <acurrid@nvidia.com>
-Signed-off-by: Peer Chen <pchen@nvidia.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   68 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
+ drivers/usb/serial/usb-serial.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirks-set-en-bit-of-msi-mapping-for-devices-onht-based-nvidia-platform
-+++ a/drivers/pci/quirks.c
-@@ -1840,6 +1840,74 @@ static void __devinit nv_msi_ht_cap_quir
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk);
+diff -puN drivers/usb/serial/usb-serial.c~usb-serial-prepare-for-bkl-push-down drivers/usb/serial/usb-serial.c
+--- a/drivers/usb/serial/usb-serial.c~usb-serial-prepare-for-bkl-push-down
++++ a/drivers/usb/serial/usb-serial.c
+@@ -401,11 +401,13 @@ static int serial_ioctl (struct tty_stru
+ 	struct usb_serial_port *port = tty->driver_data;
+ 	int retval = -ENODEV;
  
-+/*
-+ *  Force enable MSI mapping capability on HT bridges  */
-+static inline void ht_enable_msi_mapping(struct pci_dev *dev)
-+{
-+	int pos, ttl = 48;
-+
-+	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
-+	while (pos && ttl--) {
-+		u8 flags;
-+
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-+			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
-+						dev->dev.bus_id);
-+
-+			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+					      flags | HT_MSI_FLAGS_ENABLE);
-+		}
-+		pos = pci_find_next_ht_capability(dev, pos,
-+						  HT_CAPTYPE_MSI_MAPPING);
-+	}
-+}
-+
-+static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev)
-+{
-+
-+	struct pci_dev *host_bridge;
-+	int pos, ttl = 48;
-+
-+	/*
-+	 * HT MSI mapping should be disabled on devices that are below
-+	 * a non-Hypertransport host bridge. Locate the host bridge...
-+	 */
-+
-+	host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0,0));
-+	if (host_bridge == NULL) {
-+		printk(KERN_WARNING
-+			"PCI: nv_msi_ht_cap_quirk didn't locate host bridge\n");
-+		return;
-+	}
-+
-+	pos = pci_find_ht_capability(host_bridge, HT_CAPTYPE_SLAVE);
-+	if (pos != 0) {
-+		/* Host bridge is to HT */
-+		ht_enable_msi_mapping(dev);
-+		return;
-+	}
-+
-+	/* Host bridge is not to HT, disable HT MSI mapping on this device */
-+
-+	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
-+	while (pos && ttl--) {
-+		u8 flags;
-+
-+		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
-+			printk(KERN_INFO "PCI: Quirk disabling HT MSI mapping "
-+					"on %s\n", pci_name(dev));
-+
-+			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
-+					      flags & ~HT_MSI_FLAGS_ENABLE);
-+		}
-+		pos = pci_find_next_ht_capability(dev, pos,
-+						  HT_CAPTYPE_MSI_MAPPING);
-+	}
-+}
-+
-+DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID,
-+							nv_msi_ht_cap_quirk);
-+
- static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
++	lock_kernel();
+ 	if (!port)
+ 		goto exit;
+ 
+ 	dbg("%s - port %d, cmd 0x%.4x", __FUNCTION__, port->number, cmd);
+ 
++	/* Caution - port->open_count is BKL protected */
+ 	if (!port->open_count) {
+ 		dbg ("%s - port not open", __FUNCTION__);
+ 		goto exit;
+@@ -416,8 +418,8 @@ static int serial_ioctl (struct tty_stru
+ 		retval = port->serial->type->ioctl(port, file, cmd, arg);
+ 	else
+ 		retval = -ENOIOCTLCMD;
+-
+ exit:
++	unlock_kernel();
+ 	return retval;
+ }
+ 
+@@ -446,19 +448,24 @@ static void serial_break (struct tty_str
  {
- 	dev->dev_flags |= PCI_DEV_FLAGS_MSI_INTX_DISABLE_BUG;
+ 	struct usb_serial_port *port = tty->driver_data;
+ 
+-	if (!port)
++	lock_kernel();
++	if (!port) {
++		unlock_kernel();
+ 		return;
++	}
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
+ 	if (!port->open_count) {
+ 		dbg("%s - port not open", __FUNCTION__);
++		unlock_kernel();
+ 		return;
+ 	}
+ 
+ 	/* pass on to the driver specific version of this function if it is available */
+ 	if (port->serial->type->break_ctl)
+ 		port->serial->type->break_ctl(port, break_state);
++	unlock_kernel();
+ }
+ 
+ static int serial_read_proc (char *page, char **start, off_t off, int count, int *eof, void *data)
 _
 
-Patches currently in -mm which might be from pchen@nvidia.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+git-scsi-rc-fixes.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
