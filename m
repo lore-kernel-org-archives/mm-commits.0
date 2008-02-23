@@ -1,120 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - wdev-ath5k-dont-return-int-from-bool-function.patch removed from -mm tree
-Date: Sat, 23 Feb 2008 12:23:41 -0800
-Message-ID: <200802232023.m1NKNfTd013563@imap1.linux-foundation.org>
+Subject: - mips-use-find_task_by_vpid-in-system-calls.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 12:22:04 -0800
+Message-ID: <200802232022.m1NKM4at013395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54989 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761949AbYBWU2r (ORCPT
+	by vger.kernel.org with ESMTP id S1761627AbYBWU2u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 15:28:47 -0500
+	Sat, 23 Feb 2008 15:28:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     WDEV, ath5k, don't return int from bool function
+     mips: use find_task_by_vpid in system calls
 has been removed from the -mm tree.  Its filename was
-     wdev-ath5k-dont-return-int-from-bool-function.patch
+     mips-use-find_task_by_vpid-in-system-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WDEV, ath5k, don't return int from bool function
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mips: use find_task_by_vpid in system calls
+From: Pavel Emelyanov <xemul@openvz.org>
 
-sparse sees int -> bool cast as an error:
-hw.c:3754:10: warning: cast truncates bits from constant value (ffffffea becomes 0)
-Fix it by converting the rettype to int and check appropriately.
+There are some places left in mips, that lookup task in initial namespace,
+while the code doing so gets the pid from the user space and thus must treat
+it as virtual.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/ath5k.h |    2 +-
- drivers/net/wireless/ath5k/base.c  |    5 ++++-
- drivers/net/wireless/ath5k/hw.c    |    8 ++++----
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ arch/mips/kernel/mips-mt-fpaff.c |    2 +-
+ arch/mips/kernel/sysirix.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/ath5k.h
---- a/drivers/net/wireless/ath5k/ath5k.h~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/ath5k.h
-@@ -1035,7 +1035,7 @@ struct ath5k_hw {
- 		unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
- 		unsigned int, unsigned int, unsigned int, unsigned int,
- 		unsigned int, unsigned int, unsigned int);
--	bool (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
-+	int (*ah_setup_xtx_desc)(struct ath5k_hw *, struct ath5k_desc *,
- 		unsigned int, unsigned int, unsigned int, unsigned int,
- 		unsigned int, unsigned int);
- 	int (*ah_proc_tx_desc)(struct ath5k_hw *, struct ath5k_desc *);
-diff -puN drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -668,7 +668,10 @@ ath5k_attach(struct pci_dev *pdev, struc
- 	 * return false w/o doing anything.  MAC's that do
- 	 * support it will return true w/o doing anything.
- 	 */
--	if (ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0))
-+	ret = ah->ah_setup_xtx_desc(ah, NULL, 0, 0, 0, 0, 0, 0);
-+	if (ret < 0)
-+		goto err;
-+	if (ret > 0)
- 		__set_bit(ATH_STAT_MRRETRY, sc->status);
- 
- 	/*
-diff -puN drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function drivers/net/wireless/ath5k/hw.c
---- a/drivers/net/wireless/ath5k/hw.c~wdev-ath5k-dont-return-int-from-bool-function
-+++ a/drivers/net/wireless/ath5k/hw.c
-@@ -45,7 +45,7 @@ static int ath5k_hw_setup_4word_tx_desc(
- 	unsigned int, unsigned int, enum ath5k_pkt_type, unsigned int,
- 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
- 	unsigned int, unsigned int);
--static bool ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
-+static int ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *, struct ath5k_desc *,
- 	unsigned int, unsigned int, unsigned int, unsigned int, unsigned int,
- 	unsigned int);
- static int ath5k_hw_proc_4word_tx_status(struct ath5k_hw *, struct ath5k_desc *);
-@@ -3743,7 +3743,7 @@ static int ath5k_hw_setup_4word_tx_desc(
- /*
-  * Initialize a 4-word multirate tx descriptor on 5212
+diff -puN arch/mips/kernel/mips-mt-fpaff.c~mips-use-find_task_by_vpid-in-system-calls arch/mips/kernel/mips-mt-fpaff.c
+--- a/arch/mips/kernel/mips-mt-fpaff.c~mips-use-find_task_by_vpid-in-system-calls
++++ a/arch/mips/kernel/mips-mt-fpaff.c
+@@ -36,7 +36,7 @@ unsigned long mt_fpemul_threshold = 0;
   */
--static bool
-+static int
- ath5k_hw_setup_xr_tx_desc(struct ath5k_hw *ah, struct ath5k_desc *desc,
- 	unsigned int tx_rate1, u_int tx_tries1, u_int tx_rate2, u_int tx_tries2,
- 	unsigned int tx_rate3, u_int tx_tries3)
-@@ -3783,10 +3783,10 @@ ath5k_hw_setup_xr_tx_desc(struct ath5k_h
- 
- #undef _XTX_TRIES
- 
--		return true;
-+		return 1;
- 	}
- 
--	return false;
-+	return 0;
+ static inline struct task_struct *find_process_by_pid(pid_t pid)
+ {
+-	return pid ? find_task_by_pid(pid) : current;
++	return pid ? find_task_by_vpid(pid) : current;
  }
  
- /*
+ 
+diff -puN arch/mips/kernel/sysirix.c~mips-use-find_task_by_vpid-in-system-calls arch/mips/kernel/sysirix.c
+--- a/arch/mips/kernel/sysirix.c~mips-use-find_task_by_vpid-in-system-calls
++++ a/arch/mips/kernel/sysirix.c
+@@ -111,7 +111,7 @@ asmlinkage int irix_prctl(unsigned optio
+ 		printk("irix_prctl[%s:%d]: Wants PR_ISBLOCKED\n",
+ 		       current->comm, current->pid);
+ 		read_lock(&tasklist_lock);
+-		task = find_task_by_pid(va_arg(args, pid_t));
++		task = find_task_by_vpid(va_arg(args, pid_t));
+ 		error = -ESRCH;
+ 		if (error)
+ 			error = (task->run_list.next != NULL);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-drm.patch
-drm-i915-fix-oops-after-killing-x.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
 git-net.patch
-wdev-ath5k-typecheck-on-nondebug.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-mxser-convert-large-macros-to-functions.patch
+udf-fix-anchor-point-detection.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
 reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
