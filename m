@@ -1,88 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-make-bnep_sock_cleanup-return-void.patch added to -mm tree
-Date: Sat, 23 Feb 2008 13:34:15 -0800
-Message-ID: <200802232134.m1NLYFlm016039@imap1.linux-foundation.org>
+Subject: - tc1100-wmi-fail-gracefully-if-acpi-is-disabled.patch removed from -mm tree
+Date: Sat, 23 Feb 2008 18:17:23 -0800
+Message-ID: <200802240217.m1O2HNn2025383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56040 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754276AbYBWVe2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753680AbYBXCRy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 23 Feb 2008 16:34:28 -0500
+	Sat, 23 Feb 2008 21:17:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tklauser@distanz.ch, hidave.darkstar@gmail.com, marcel@holtmann.org
+To: carlos@strangeworlds.co.uk, lenb@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: make bnep_sock_cleanup() return void
-has been added to the -mm tree.  Its filename is
-     bluetooth-make-bnep_sock_cleanup-return-void.patch
+     tc1100-wmi: fail gracefully if ACPI is disabled
+has been removed from the -mm tree.  Its filename was
+     tc1100-wmi-fail-gracefully-if-acpi-is-disabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: make bnep_sock_cleanup() return void
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: tc1100-wmi: fail gracefully if ACPI is disabled
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
 
-bnep_sock_cleanup() always returns 0 and its return value isn't used
-anywhere in the code.
+WMI drivers, like their ACPI counterparts, should also check if ACPI is
+disabled or not, and bail out if so, otherwise we cause a crash.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Spotted by Ingo Molnar.
+
+Signed-off-by: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/bnep/bnep.h |    2 +-
- net/bluetooth/bnep/sock.c |    4 +---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/misc/tc1100-wmi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN net/bluetooth/bnep/bnep.h~bluetooth-make-bnep_sock_cleanup-return-void net/bluetooth/bnep/bnep.h
---- a/net/bluetooth/bnep/bnep.h~bluetooth-make-bnep_sock_cleanup-return-void
-+++ a/net/bluetooth/bnep/bnep.h
-@@ -174,7 +174,7 @@ struct bnep_session {
- 
- void bnep_net_setup(struct net_device *dev);
- int bnep_sock_init(void);
--int bnep_sock_cleanup(void);
-+void bnep_sock_cleanup(void);
- 
- static inline int bnep_mc_hash(__u8 *addr)
+diff -puN drivers/misc/tc1100-wmi.c~tc1100-wmi-fail-gracefully-if-acpi-is-disabled drivers/misc/tc1100-wmi.c
+--- a/drivers/misc/tc1100-wmi.c~tc1100-wmi-fail-gracefully-if-acpi-is-disabled
++++ a/drivers/misc/tc1100-wmi.c
+@@ -263,6 +263,9 @@ static int __init tc1100_init(void)
  {
-diff -puN net/bluetooth/bnep/sock.c~bluetooth-make-bnep_sock_cleanup-return-void net/bluetooth/bnep/sock.c
---- a/net/bluetooth/bnep/sock.c~bluetooth-make-bnep_sock_cleanup-return-void
-+++ a/net/bluetooth/bnep/sock.c
-@@ -257,12 +257,10 @@ error:
- 	return err;
- }
+ 	int result = 0;
  
--int __exit bnep_sock_cleanup(void)
-+void __exit bnep_sock_cleanup(void)
- {
- 	if (bt_sock_unregister(BTPROTO_BNEP) < 0)
- 		BT_ERR("Can't unregister BNEP socket");
++	if (acpi_disabled)
++		return -ENODEV;
++
+ 	if (!wmi_has_guid(GUID))
+ 		return -ENODEV;
  
- 	proto_unregister(&bnep_proto);
--
--	return 0;
- }
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from carlos@strangeworlds.co.uk are
 
 origin.patch
-bluetooth-make-hci_sock_cleanup-return-void.patch
-bluetooth-make-bnep_sock_cleanup-return-void.patch
+acer-wmi-fail-gracefully-if-acpi-is-disabled.patch
+tc1100-wmi-fail-gracefully-if-acpi-is-disabled.patch
+git-acpi.patch
