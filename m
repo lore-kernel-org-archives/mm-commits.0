@@ -1,67 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-fix-parenthesisation-in-ufs_set_fs_state.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:12 -0800
-Message-ID: <200802250044.m1P0iCU8006090@imap1.linux-foundation.org>
+Subject: - mn10300-define-hz-as-a-config-option.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:08 -0800
+Message-ID: <200802250044.m1P0i8k5006083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53153 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752729AbYBYAoi (ORCPT
+	by vger.kernel.org with ESMTP id S1752729AbYBYAot (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:44:38 -0500
+	Sun, 24 Feb 2008 19:44:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 12o3l@tiscali.nl, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, stable@kernel.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: fix parenthesisation in ufs_set_fs_state()
+     MN10300: define HZ as a config option
 has been removed from the -mm tree.  Its filename was
-     ufs-fix-parenthesisation-in-ufs_set_fs_state.patch
+     mn10300-define-hz-as-a-config-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: fix parenthesisation in ufs_set_fs_state()
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: MN10300: define HZ as a config option
+From: David Howells <dhowells@redhat.com>
 
-This bug snuck in with
+Define HZ as a config option.
 
-commit 252e211e90ce56bf005cb533ad5a297c18c19407
-Author: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Date:   Tue Oct 16 23:26:31 2007 -0700
-
-    Add in SunOS 4.1.x compatible mode for UFS
-
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Acked-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
-Cc: <stable@kernel.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/util.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/Kconfig        |    4 ++++
+ include/asm-mn10300/param.h |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/ufs/util.h~ufs-fix-parenthesisation-in-ufs_set_fs_state fs/ufs/util.h
---- a/fs/ufs/util.h~ufs-fix-parenthesisation-in-ufs_set_fs_state
-+++ a/fs/ufs/util.h
-@@ -58,7 +58,7 @@ ufs_set_fs_state(struct super_block *sb,
- {
- 	switch (UFS_SB(sb)->s_flags & UFS_ST_MASK) {
- 	case UFS_ST_SUNOS:
--		if (fs32_to_cpu(sb, usb3->fs_postblformat == UFS_42POSTBLFMT)) {
-+		if (fs32_to_cpu(sb, usb3->fs_postblformat) == UFS_42POSTBLFMT) {
- 			usb1->fs_u0.fs_sun.fs_state = cpu_to_fs32(sb, value);
- 			break;
- 		}
+diff -puN arch/mn10300/Kconfig~mn10300-define-hz-as-a-config-option arch/mn10300/Kconfig
+--- a/arch/mn10300/Kconfig~mn10300-define-hz-as-a-config-option
++++ a/arch/mn10300/Kconfig
+@@ -63,6 +63,10 @@ config GENERIC_HARDIRQS
+ config HOTPLUG_CPU
+ 	def_bool n
+ 
++config HZ
++	int
++	default 1000
++
+ mainmenu "Matsushita MN10300/AM33 Kernel Configuration"
+ 
+ source "init/Kconfig"
+diff -puN include/asm-mn10300/param.h~mn10300-define-hz-as-a-config-option include/asm-mn10300/param.h
+--- a/include/asm-mn10300/param.h~mn10300-define-hz-as-a-config-option
++++ a/include/asm-mn10300/param.h
+@@ -12,7 +12,7 @@
+ #define _ASM_PARAM_H
+ 
+ #ifdef __KERNEL__
+-#define HZ		1000		/* Internal kernel timer frequency */
++#define HZ		CONFIG_HZ	/* Internal kernel timer frequency */
+ #define USER_HZ		100		/* .. some user interfaces are in
+ 					 * "ticks" */
+ #define CLOCKS_PER_SEC	(USER_HZ)	/* like times() */
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-alsa.patch
-git-cifs.patch
-git-dvb.patch
-arch-sh-drivers-heartbeatc-ioremap-is-expected-to-succeed.patch
+git-unionfs.patch
+ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
