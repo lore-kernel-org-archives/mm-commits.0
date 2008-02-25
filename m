@@ -1,83 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - sparc-fix-build.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:31 -0800
-Message-ID: <200802250044.m1P0iVRF006116@imap1.linux-foundation.org>
+Subject: - mn10300-define-so_mark.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:10 -0800
+Message-ID: <200802250044.m1P0iA4B006086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48682 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753214AbYBYAov (ORCPT
+	by vger.kernel.org with ESMTP id S1752894AbYBYAot (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:44:51 -0500
+	Sun, 24 Feb 2008 19:44:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, bunk@kernel.org, davem@davemloft.net, reif@earthlink.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc: fix build
+     MN10300: define SO_MARK
 has been removed from the -mm tree.  Its filename was
-     sparc-fix-build.patch
+     mn10300-define-so_mark.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: fix build
-From: David Rientjes <rientjes@google.com>
+Subject: MN10300: define SO_MARK
+From: David Howells <dhowells@redhat.com>
 
-Fix build failure on sparc:
+Define SO_MARK for MN10300.
 
-	In file included from include/linux/mm.h:39,
-	                from include/linux/memcontrol.h:24,
-	                from include/linux/swap.h:8,
-	                from include/linux/suspend.h:7,
-	                from init/do_mounts.c:6:
-	include/asm/pgtable.h:344: warning: parameter names (without
-		types) in function declaration
-	include/asm/pgtable.h:345: warning: parameter names (without
-		types) in function declaration
-	include/asm/pgtable.h:346: error: expected '=', ',', ';', 'asm' or
-		'__attribute__' before '___f___swp_entry'
-
-viro sayeth:
-
-  I've run allmodconfig builds on a bunch of target, FWIW (essentially the
-  same patch).  Note that these includes are recent addition caused by added
-  inline function that had since then become a define.  So while I agree with
-  your comments in general, in _this_ case it's pretty safe.
-
-  Commit that had done it is 3062fc67dad01b1d2a15d58c709eff946389eca4 and
-  switch to #define is 60c12b1202a60eabb1c61317e5d2678fcea9893f (BTW, that
-  warranted mentioning in changelog of the latter).
-
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Robert Reif <reif@earthlink.net>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/asm-mn10300/socket.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/memcontrol.h~sparc-fix-build include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~sparc-fix-build
-+++ a/include/linux/memcontrol.h
-@@ -20,9 +20,6 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
+diff -puN include/asm-mn10300/socket.h~mn10300-define-so_mark include/asm-mn10300/socket.h
+--- a/include/asm-mn10300/socket.h~mn10300-define-so_mark
++++ a/include/asm-mn10300/socket.h
+@@ -52,4 +52,6 @@
+ #define SO_TIMESTAMPNS		35
+ #define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
  
--#include <linux/rcupdate.h>
--#include <linux/mm.h>
--
- struct mem_cgroup;
- struct page_cgroup;
- struct page;
++#define SO_MARK			36
++
+ #endif /* _ASM_SOCKET_H */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-make-cgroup_enable_task_cg_lists-static.patch
+git-unionfs.patch
+ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
