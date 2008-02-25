@@ -1,139 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - solve-section-mismatch-for-free_area_init_core.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:46 -0800
-Message-ID: <200802250045.m1P0jkFQ006282@imap1.linux-foundation.org>
+Subject: - spi-pxa2xx_spi-clock-polarity-fix.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:46 -0800
+Message-ID: <200802250044.m1P0ikRl006135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51370 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754988AbYBYAtE (ORCPT
+	by vger.kernel.org with ESMTP id S1754997AbYBYAtO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:04 -0500
+	Sun, 24 Feb 2008 19:49:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heukelum@mailshack.com, geert@linux-m68k.org, heukelum@fastmail.fm, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: nforrester@whoi.edu, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Solve section mismatch for free_area_init_core.
+     spi: pxa2xx_spi clock polarity fix
 has been removed from the -mm tree.  Its filename was
-     solve-section-mismatch-for-free_area_init_core.patch
+     spi-pxa2xx_spi-clock-polarity-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Solve section mismatch for free_area_init_core.
-From: Alexander van Heukelum <heukelum@mailshack.com>
+Subject: spi: pxa2xx_spi clock polarity fix
+From: Ned Forrester <nforrester@whoi.edu>
 
-WARNING: vmlinux.o(.meminit.text+0x649):
-Section mismatch in reference from the
-function free_area_init_core() to the function .init.text:setup_usemap()
-The function __meminit free_area_init_core() references
-a function __init setup_usemap().
-If free_area_init_core is only used by setup_usemap then
-annotate free_area_init_core with a matching annotation.
+Fixes a sequencing bug in spi driver pxa2xx_spi.c in which the chip select
+for a transfer may be asserted before the clock polarity is set on the
+interface.  As a result of this bug, the clock signal may have the wrong
+polarity at transfer start, so it may need to make an extra half transition
+before the intended clock/data signals begin.  (This probably means all
+transfers are one bit out of sequence.)
 
-The warning is covers this stack of functions in mm/page_alloc.c:
+This only occurs on the first transfer following a change in clock polarity
+in systems using more than one more than one such polarity.  The fix
+assures that the clock mode is properly set before asserting chip select.
 
-alloc_bootmem_node must be marked __init.
-alloc_bootmem_node is used by setup_usemap, if !SPARSEMEM.
-(usemap_size is only used by setup_usemap, if !SPARSEMEM.)
-setup_usemap is only used by free_area_init_core.
-free_area_init_core is only used by free_area_init_node.
+This bug was introduced in a patch merged on 2006/12/10, kernel 2.6.20. 
+The patch defines an additional bit in: include/asm-arm/arch-pxa/regs-ssp.h
+for 2.6.25 and newer kernels but this addition must be made in:
+include/asm-arm/arch-pxa/pxa-regs.h for kernels between 2.6.20 and 2.6.24,
+inclusive
 
-free_area_init_node is used by:
-arch/alpha/mm/numa.c: __init paging_init()
-arch/arm/mm/init.c: __init bootmem_init_node()
-arch/avr32/mm/init.c: __init paging_init()
-arch/cris/arch-v10/mm/init.c: __init paging_init()
-arch/cris/arch-v32/mm/init.c: __init paging_init()
-arch/m32r/mm/discontig.c: __init zone_sizes_init()
-arch/m32r/mm/init.c: __init zone_sizes_init()
-arch/m68k/mm/motorola.c: __init paging_init()
-arch/m68k/mm/sun3mmu.c: __init paging_init()
-arch/mips/sgi-ip27/ip27-memory.c: __init paging_init()
-arch/parisc/mm/init.c: __init paging_init()
-arch/sparc/mm/srmmu.c: __init srmmu_paging_init()
-arch/sparc/mm/sun4c.c: __init sun4c_paging_init()
-arch/sparc64/mm/init.c: __init paging_init()
-mm/page_alloc.c: __init free_area_init_nodes()
-mm/page_alloc.c: __init free_area_init()
-and
-mm/memory_hotplug.c: hotadd_new_pgdat()
-
-hotadd_new_pgdat can not be an __init function, but:
-
-It is compiled for MEMORY_HOTPLUG configurations only
-MEMORY_HOTPLUG depends on SPARSEMEM || X86_64_ACPI_NUMA
-X86_64_ACPI_NUMA depends on X86_64
-ARCH_FLATMEM_ENABLE depends on X86_32
-ARCH_DISCONTIGMEM_ENABLE depends on X86_32
-So X86_64_ACPI_NUMA implies SPARSEMEM, right?
-
-So we can mark the stack of functions __init for !SPARSEMEM, but we must mark
-them __meminit for SPARSEMEM configurations.  This is ok, because then the
-calls to alloc_bootmem_node are also avoided.
-
-Compile-tested on:
-silly minimal config
-defconfig x86_32
-defconfig x86_64
-defconfig x86_64 -HIBERNATION +MEMORY_HOTPLUG
-
-Signed-off-by: Alexander van Heukelum <heukelum@fastmail.fm>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Ned Forrester <nforrester@whoi.edu>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |   13 +++++++++++++
- mm/page_alloc.c |    4 ++--
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/spi/pxa2xx_spi.c            |   41 +++++++++++++++++---------
+ include/asm-arm/arch-pxa/regs-ssp.h |    1 
+ 2 files changed, 28 insertions(+), 14 deletions(-)
 
-diff -puN mm/internal.h~solve-section-mismatch-for-free_area_init_core mm/internal.h
---- a/mm/internal.h~solve-section-mismatch-for-free_area_init_core
-+++ a/mm/internal.h
-@@ -47,4 +47,17 @@ static inline unsigned long page_order(s
- 	VM_BUG_ON(!PageBuddy(page));
- 	return page_private(page);
- }
-+
+diff -puN drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-clock-polarity-fix drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-clock-polarity-fix
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -51,13 +51,19 @@ MODULE_LICENSE("GPL");
+ #define RESET_DMA_CHANNEL (DCSR_NODESC | DMA_INT_MASK)
+ #define IS_DMA_ALIGNED(x) (((u32)(x)&0x07)==0)
+ 
+-/* for testing SSCR1 changes that require SSP restart, basically
+- * everything except the service and interrupt enables */
+-#define SSCR1_CHANGE_MASK (SSCR1_TTELP | SSCR1_TTE | SSCR1_EBCEI | SSCR1_SCFR \
 +/*
-+ * FLATMEM and DISCONTIGMEM configurations use alloc_bootmem_node,
-+ * so all functions starting at paging_init should be marked __init
-+ * in those cases. SPARSEMEM, however, allows for memory hotplug,
-+ * and alloc_bootmem_node is not used.
++ * for testing SSCR1 changes that require SSP restart, basically
++ * everything except the service and interrupt enables, the pxa270 developer
++ * manual says only SSCR1_SCFR, SSCR1_SPH, SSCR1_SPO need to be in this
++ * list, but the PXA255 dev man says all bits without really meaning the
++ * service and interrupt enables
 + */
-+#ifdef CONFIG_SPARSEMEM
-+#define __paginginit __meminit
-+#else
-+#define __paginginit __init
-+#endif
++#define SSCR1_CHANGE_MASK (SSCR1_TTELP | SSCR1_TTE | SSCR1_SCFR \
+ 				| SSCR1_ECRA | SSCR1_ECRB | SSCR1_SCLKDIR \
+-				| SSCR1_RWOT | SSCR1_TRAIL | SSCR1_PINTE \
+-				| SSCR1_STRF | SSCR1_EFWR |SSCR1_RFT \
+-				| SSCR1_TFT | SSCR1_SPH | SSCR1_SPO | SSCR1_LBM)
++				| SSCR1_SFRMDIR | SSCR1_RWOT | SSCR1_TRAIL \
++				| SSCR1_IFS | SSCR1_STRF | SSCR1_EFWR \
++				| SSCR1_RFT | SSCR1_TFT | SSCR1_MWDS \
++				| SSCR1_SPH | SSCR1_SPO | SSCR1_LBM)
+ 
+ #define DEFINE_SSP_REG(reg, off) \
+ static inline u32 read_##reg(void *p) { return __raw_readl(p + (off)); } \
+@@ -973,9 +979,6 @@ static void pump_transfers(unsigned long
+ 		if (drv_data->ssp_type == PXA25x_SSP)
+ 			DCMD(drv_data->tx_channel) |= DCMD_ENDIRQEN;
+ 
+-		/* Fix me, need to handle cs polarity */
+-		drv_data->cs_control(PXA2XX_CS_ASSERT);
+-
+ 		/* Clear status and start DMA engine */
+ 		cr1 = chip->cr1 | dma_thresh | drv_data->dma_cr1;
+ 		write_SSSR(drv_data->clear_sr, reg);
+@@ -985,9 +988,6 @@ static void pump_transfers(unsigned long
+ 		/* Ensure we have the correct interrupt handler	*/
+ 		drv_data->transfer_handler = interrupt_transfer;
+ 
+-		/* Fix me, need to handle cs polarity */
+-		drv_data->cs_control(PXA2XX_CS_ASSERT);
+-
+ 		/* Clear status  */
+ 		cr1 = chip->cr1 | chip->threshold | drv_data->int_cr1;
+ 		write_SSSR(drv_data->clear_sr, reg);
+@@ -998,16 +998,29 @@ static void pump_transfers(unsigned long
+ 		|| (read_SSCR1(reg) & SSCR1_CHANGE_MASK) !=
+ 			(cr1 & SSCR1_CHANGE_MASK)) {
+ 
++		/* stop the SSP, and update the other bits */
+ 		write_SSCR0(cr0 & ~SSCR0_SSE, reg);
+ 		if (drv_data->ssp_type != PXA25x_SSP)
+ 			write_SSTO(chip->timeout, reg);
+-		write_SSCR1(cr1, reg);
++		/* first set CR1 without interrupt and service enables */
++		write_SSCR1(cr1 & SSCR1_CHANGE_MASK, reg);
++		/* restart the SSP */
+ 		write_SSCR0(cr0, reg);
 +
- #endif
-diff -puN mm/page_alloc.c~solve-section-mismatch-for-free_area_init_core mm/page_alloc.c
---- a/mm/page_alloc.c~solve-section-mismatch-for-free_area_init_core
-+++ a/mm/page_alloc.c
-@@ -3314,7 +3314,7 @@ static inline int pageblock_default_orde
-  *   - mark all memory queues empty
-  *   - clear the memory bitmaps
-  */
--static void __meminit free_area_init_core(struct pglist_data *pgdat,
-+static void __paginginit free_area_init_core(struct pglist_data *pgdat,
- 		unsigned long *zones_size, unsigned long *zholes_size)
- {
- 	enum zone_type j;
-@@ -3438,7 +3438,7 @@ static void __init_refok alloc_node_mem_
- #endif /* CONFIG_FLAT_NODE_MEM_MAP */
+ 	} else {
+ 		if (drv_data->ssp_type != PXA25x_SSP)
+ 			write_SSTO(chip->timeout, reg);
+-		write_SSCR1(cr1, reg);
+ 	}
++
++	/* FIXME, need to handle cs polarity,
++	 * this driver uses struct pxa2xx_spi_chip.cs_control to
++	 * specify a CS handling function, and it ignores most
++	 * struct spi_device.mode[s], including SPI_CS_HIGH */
++	drv_data->cs_control(PXA2XX_CS_ASSERT);
++
++	/* after chip select, release the data by enabling service
++	 * requests and interrupts, without changing any mode bits */
++	write_SSCR1(cr1, reg);
  }
  
--void __meminit free_area_init_node(int nid, struct pglist_data *pgdat,
-+void __paginginit free_area_init_node(int nid, struct pglist_data *pgdat,
- 		unsigned long *zones_size, unsigned long node_start_pfn,
- 		unsigned long *zholes_size)
- {
+ static void pump_messages(struct work_struct *work)
+diff -puN include/asm-arm/arch-pxa/regs-ssp.h~spi-pxa2xx_spi-clock-polarity-fix include/asm-arm/arch-pxa/regs-ssp.h
+--- a/include/asm-arm/arch-pxa/regs-ssp.h~spi-pxa2xx_spi-clock-polarity-fix
++++ a/include/asm-arm/arch-pxa/regs-ssp.h
+@@ -85,6 +85,7 @@
+ #define SSCR1_RSRE		(1 << 20)	/* Receive Service Request Enable */
+ #define SSCR1_TINTE		(1 << 19)	/* Receiver Time-out Interrupt enable */
+ #define SSCR1_PINTE		(1 << 18)	/* Peripheral Trailing Byte Interupt Enable */
++#define SSCR1_IFS		(1 << 16)	/* Invert Frame Signal */
+ #define SSCR1_STRF		(1 << 15)	/* Select FIFO or EFWR */
+ #define SSCR1_EFWR		(1 << 14)	/* Enable FIFO Write/Read */
+ 
 _
 
-Patches currently in -mm which might be from heukelum@mailshack.com are
+Patches currently in -mm which might be from nforrester@whoi.edu are
+
+spi-pxa2xx_spi-sparse-fixes.patch
