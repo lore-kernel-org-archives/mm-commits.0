@@ -1,166 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-clean-up-cgrouph.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:54 -0800
-Message-ID: <200802250045.m1P0jssN006291@imap1.linux-foundation.org>
+Subject: - dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:58 -0800
+Message-ID: <200802250044.m1P0iwjY006147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:60378 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753615AbYBYAsq (ORCPT
+	by vger.kernel.org with ESMTP id S1754293AbYBYAsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 24 Feb 2008 19:48:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: clean up cgroup.h
+     dmi: don't save the same device twice
 has been removed from the -mm tree.  Its filename was
-     cgroup-clean-up-cgrouph.patch
+     dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: clean up cgroup.h
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: dmi: don't save the same device twice
+From: Jean Delvare <khali@linux-fr.org>
 
-- replace old name 'cont' with 'cgrp' (Paul Menage did this cleanup for
-  cgroup.c in commit bd89aabc6761de1c35b154fe6f914a445d301510)
-- remove a duplicate declaration of cgroup_path()
+Now that we gather on-board devices from both DMI types 10 and 41, there is
+a possibility that we list the same device twice.  In order to not confuse
+drivers, and also to save memory, make sure that we do not add duplicate
+devices to the dmi_devices list.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   48 ++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ drivers/firmware/dmi_scan.c |   74 ++++++++++++++++++++--------------
+ 1 file changed, 44 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-clean-up-cgrouph include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-clean-up-cgrouph
-+++ a/include/linux/cgroup.h
-@@ -186,15 +186,15 @@ struct cftype {
- 	char name[MAX_CFTYPE_NAME];
- 	int private;
- 	int (*open) (struct inode *inode, struct file *file);
--	ssize_t (*read) (struct cgroup *cont, struct cftype *cft,
-+	ssize_t (*read) (struct cgroup *cgrp, struct cftype *cft,
- 			 struct file *file,
- 			 char __user *buf, size_t nbytes, loff_t *ppos);
- 	/*
- 	 * read_uint() is a shortcut for the common case of returning a
- 	 * single integer. Use it in place of read()
- 	 */
--	u64 (*read_uint) (struct cgroup *cont, struct cftype *cft);
--	ssize_t (*write) (struct cgroup *cont, struct cftype *cft,
-+	u64 (*read_uint) (struct cgroup *cgrp, struct cftype *cft);
-+	ssize_t (*write) (struct cgroup *cgrp, struct cftype *cft,
- 			  struct file *file,
- 			  const char __user *buf, size_t nbytes, loff_t *ppos);
+diff -puN drivers/firmware/dmi_scan.c~dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~dmi-dont-save-the-same-device-twice-was-smbios-dmi-add-type-41-=-onboard-devices-extended-information
++++ a/drivers/firmware/dmi_scan.c
+@@ -10,10 +10,9 @@
  
-@@ -203,7 +203,7 @@ struct cftype {
- 	 * a single integer (as parsed by simple_strtoull) from
- 	 * userspace. Use in place of write(); return 0 or error.
- 	 */
--	int (*write_uint) (struct cgroup *cont, struct cftype *cft, u64 val);
-+	int (*write_uint) (struct cgroup *cgrp, struct cftype *cft, u64 val);
+ static char dmi_empty_string[] = "        ";
  
- 	int (*release) (struct inode *inode, struct file *file);
- };
-@@ -218,41 +218,41 @@ struct cgroup_scanner {
- 
- /* Add a new file to the given cgroup directory. Should only be
-  * called by subsystems from within a populate() method */
--int cgroup_add_file(struct cgroup *cont, struct cgroup_subsys *subsys,
-+int cgroup_add_file(struct cgroup *cgrp, struct cgroup_subsys *subsys,
- 		       const struct cftype *cft);
- 
- /* Add a set of new files to the given cgroup directory. Should
-  * only be called by subsystems from within a populate() method */
--int cgroup_add_files(struct cgroup *cont,
-+int cgroup_add_files(struct cgroup *cgrp,
- 			struct cgroup_subsys *subsys,
- 			const struct cftype cft[],
- 			int count);
- 
--int cgroup_is_removed(const struct cgroup *cont);
-+int cgroup_is_removed(const struct cgroup *cgrp);
- 
--int cgroup_path(const struct cgroup *cont, char *buf, int buflen);
-+int cgroup_path(const struct cgroup *cgrp, char *buf, int buflen);
- 
--int cgroup_task_count(const struct cgroup *cont);
-+int cgroup_task_count(const struct cgroup *cgrp);
- 
- /* Return true if the cgroup is a descendant of the current cgroup */
--int cgroup_is_descendant(const struct cgroup *cont);
-+int cgroup_is_descendant(const struct cgroup *cgrp);
- 
- /* Control Group subsystem type. See Documentation/cgroups.txt for details */
- 
- struct cgroup_subsys {
- 	struct cgroup_subsys_state *(*create)(struct cgroup_subsys *ss,
--						  struct cgroup *cont);
--	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
--	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
-+						  struct cgroup *cgrp);
-+	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
-+	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 	int (*can_attach)(struct cgroup_subsys *ss,
--			  struct cgroup *cont, struct task_struct *tsk);
--	void (*attach)(struct cgroup_subsys *ss, struct cgroup *cont,
--			struct cgroup *old_cont, struct task_struct *tsk);
-+			  struct cgroup *cgrp, struct task_struct *tsk);
-+	void (*attach)(struct cgroup_subsys *ss, struct cgroup *cgrp,
-+			struct cgroup *old_cgrp, struct task_struct *tsk);
- 	void (*fork)(struct cgroup_subsys *ss, struct task_struct *task);
- 	void (*exit)(struct cgroup_subsys *ss, struct task_struct *task);
- 	int (*populate)(struct cgroup_subsys *ss,
--			struct cgroup *cont);
--	void (*post_clone)(struct cgroup_subsys *ss, struct cgroup *cont);
-+			struct cgroup *cgrp);
-+	void (*post_clone)(struct cgroup_subsys *ss, struct cgroup *cgrp);
- 	void (*bind)(struct cgroup_subsys *ss, struct cgroup *root);
- 	int subsys_id;
- 	int active;
-@@ -273,9 +273,9 @@ struct cgroup_subsys {
- #undef SUBSYS
- 
- static inline struct cgroup_subsys_state *cgroup_subsys_state(
--	struct cgroup *cont, int subsys_id)
-+	struct cgroup *cgrp, int subsys_id)
+-static char * __init dmi_string(const struct dmi_header *dm, u8 s)
++static const char * __init dmi_string_nosave(const struct dmi_header *dm, u8 s)
  {
--	return cont->subsys[subsys_id];
-+	return cgrp->subsys[subsys_id];
+ 	const u8 *bp = ((u8 *) dm) + dm->length;
+-	char *str = "";
+ 
+ 	if (s) {
+ 		s--;
+@@ -28,14 +27,29 @@ static char * __init dmi_string(const st
+ 
+ 			if (!memcmp(bp, dmi_empty_string, cmp_len))
+ 				return dmi_empty_string;
+-			str = dmi_alloc(len);
+-			if (str != NULL)
+-				strcpy(str, bp);
+-			else
+-				printk(KERN_ERR "dmi_string: cannot allocate %Zu bytes.\n", len);
++			return bp;
+ 		}
+ 	}
+ 
++	return "";
++}
++
++static char * __init dmi_string(const struct dmi_header *dm, u8 s)
++{
++	const char *bp = dmi_string_nosave(dm, s);
++	char *str;
++	size_t len;
++
++	if (bp == dmi_empty_string)
++		return dmi_empty_string;
++
++	len = strlen(bp) + 1;
++	str = dmi_alloc(len);
++	if (str != NULL)
++		strcpy(str, bp);
++	else
++		printk(KERN_ERR "dmi_string: cannot allocate %Zu bytes.\n", len);
++
+ 	return str;
  }
  
- static inline struct cgroup_subsys_state *task_subsys_state(
-@@ -290,8 +290,6 @@ static inline struct cgroup* task_cgroup
- 	return task_subsys_state(task, subsys_id)->cgroup;
+@@ -167,10 +181,30 @@ static void __init dmi_save_type(const s
+ 	dmi_ident[slot] = s;
  }
  
--int cgroup_path(const struct cgroup *cont, char *buf, int buflen);
++static void __init dmi_save_one_device(int type, const char *name)
++{
++	struct dmi_device *dev;
++
++	/* No duplicate device */
++	if (dmi_find_device(type, name, NULL))
++		return;
++
++	dev = dmi_alloc(sizeof(*dev) + strlen(name) + 1);
++	if (!dev) {
++		printk(KERN_ERR "dmi_save_one_device: out of memory.\n");
++		return;
++	}
++
++	dev->type = type;
++	strcpy((char *)(dev + 1), name);
++	dev->name = (char *)(dev + 1);
++	dev->device_data = NULL;
++	list_add(&dev->list, &dmi_devices);
++}
++
+ static void __init dmi_save_devices(const struct dmi_header *dm)
+ {
+ 	int i, count = (dm->length - sizeof(struct dmi_header)) / 2;
+-	struct dmi_device *dev;
+ 
+ 	for (i = 0; i < count; i++) {
+ 		const char *d = (char *)(dm + 1) + (i * 2);
+@@ -179,16 +213,7 @@ static void __init dmi_save_devices(cons
+ 		if ((*d & 0x80) == 0)
+ 			continue;
+ 
+-		dev = dmi_alloc(sizeof(*dev));
+-		if (!dev) {
+-			printk(KERN_ERR "dmi_save_devices: out of memory.\n");
+-			break;
+-		}
 -
- int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss);
+-		dev->type = *d++ & 0x7f;
+-		dev->name = dmi_string(dm, *d);
+-		dev->device_data = NULL;
+-		list_add(&dev->list, &dmi_devices);
++		dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d + 1)));
+ 	}
+ }
  
- /* A cgroup_iter should be treated as an opaque object */
-@@ -313,10 +311,10 @@ struct cgroup_iter {
-  *    - cgroup_scan_tasks() holds the css_set_lock when calling the test_task()
-  *      callback, but not while calling the process_task() callback.
-  */
--void cgroup_iter_start(struct cgroup *cont, struct cgroup_iter *it);
--struct task_struct *cgroup_iter_next(struct cgroup *cont,
-+void cgroup_iter_start(struct cgroup *cgrp, struct cgroup_iter *it);
-+struct task_struct *cgroup_iter_next(struct cgroup *cgrp,
- 					struct cgroup_iter *it);
--void cgroup_iter_end(struct cgroup *cont, struct cgroup_iter *it);
-+void cgroup_iter_end(struct cgroup *cgrp, struct cgroup_iter *it);
- int cgroup_scan_tasks(struct cgroup_scanner *scan);
- int cgroup_attach_task(struct cgroup *, struct task_struct *);
+@@ -253,23 +278,12 @@ static void __init dmi_save_ipmi_device(
+ static void __init dmi_save_extended_devices(const struct dmi_header *dm)
+ {
+ 	const u8 *d = (u8*) dm + 5;
+-	struct dmi_device *dev;
  
+ 	/* Skip disabled device */
+ 	if ((*d & 0x80) == 0)
+ 		return;
+ 
+-	dev = dmi_alloc(sizeof(*dev));
+-	if (!dev) {
+-		printk(KERN_ERR "dmi_save_extended_devices: out of memory.\n");
+-		return;
+-	}
+-
+-	dev->type = *d-- & 0x7f;
+-	dev->name = dmi_string(dm, *d);
+-	dev->device_data = NULL;
+-
+-	list_add(&dev->list, &dmi_devices);
++	dmi_save_one_device(*d & 0x7f, dmi_string_nosave(dm, *(d - 1)));
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
+
+mm-only-enforce-acpi-resource-conflict-checks.patch
+oz99x-i2c-button-and-led-support-driver.patch
+apanel-fix-kconfig-dependencies.patch
+dmi-clean-up-dmi-helper-declarations.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
