@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-is_vmalloc_addr-wont-compile-if-mmu.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:39 -0800
-Message-ID: <200802250044.m1P0id6e006126@imap1.linux-foundation.org>
+Subject: - kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:40 -0800
+Message-ID: <200802250045.m1P0je0A006276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36500 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753261AbYBYAp2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753342AbYBYAsf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:45:28 -0500
+	Sun, 24 Feb 2008 19:48:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, clameter@sgi.com, gerg@snapgear.com, mm-commits@vger.kernel.org
+To: srinivasa@in.ibm.com, ananth@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NOMMU: is_vmalloc_addr() won't compile if !MMU
+     kprobes: refuse kprobe insertion on add/sub_preempt_counter()
 has been removed from the -mm tree.  Its filename was
-     nommu-is_vmalloc_addr-wont-compile-if-mmu.patch
+     kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NOMMU: is_vmalloc_addr() won't compile if !MMU
-From: David Howells <dhowells@redhat.com>
+Subject: kprobes: refuse kprobe insertion on add/sub_preempt_counter()
+From: Srinivasa Ds <srinivasa@in.ibm.com>
 
-Make is_vmalloc_addr() contingent on CONFIG_MMU=y, as it won't compile in !MMU
-mode (commit 9e2779fa281cfda13ac060753d674bbcaa23367e).
+Kprobes makes use of preempt_disable(),preempt_enable_noresched() and these
+functions inturn call add/sub_preempt_count().  So we need to refuse user from
+inserting probe in to these functions.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+This patch disallows user from probing add/sub_preempt_count().
+
+Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~nommu-is_vmalloc_addr-wont-compile-if-mmu include/linux/mm.h
---- a/include/linux/mm.h~nommu-is_vmalloc_addr-wont-compile-if-mmu
-+++ a/include/linux/mm.h
-@@ -235,6 +235,7 @@ static inline int get_page_unless_zero(s
- struct page *vmalloc_to_page(const void *addr);
- unsigned long vmalloc_to_pfn(const void *addr);
+diff -puN kernel/sched.c~kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter kernel/sched.c
+--- a/kernel/sched.c~kprobes-refuse-kprobe-insertion-on-add-sub_preempt_counter
++++ a/kernel/sched.c
+@@ -3766,7 +3766,7 @@ void scheduler_tick(void)
  
-+#ifdef CONFIG_MMU
- /* Determine if an address is within the vmalloc range */
- static inline int is_vmalloc_addr(const void *x)
+ #if defined(CONFIG_PREEMPT) && defined(CONFIG_DEBUG_PREEMPT)
+ 
+-void add_preempt_count(int val)
++void __kprobes add_preempt_count(int val)
  {
-@@ -242,6 +243,7 @@ static inline int is_vmalloc_addr(const 
- 
- 	return addr >= VMALLOC_START && addr < VMALLOC_END;
+ 	/*
+ 	 * Underflow?
+@@ -3782,7 +3782,7 @@ void add_preempt_count(int val)
  }
-+#endif
+ EXPORT_SYMBOL(add_preempt_count);
  
- static inline struct page *compound_head(struct page *page)
+-void sub_preempt_count(int val)
++void __kprobes sub_preempt_count(int val)
  {
+ 	/*
+ 	 * Underflow?
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
-
-git-unionfs.patch
-ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-mutex-subsystem-synchro-test-module.patch
+Patches currently in -mm which might be from srinivasa@in.ibm.com are
