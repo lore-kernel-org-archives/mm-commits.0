@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + de2104x-remove-bug_on-when-changing-media-type.patch added to -mm tree
-Date: Mon, 25 Feb 2008 11:16:32 -0800
-Message-ID: <200802251917.m1PJHObD015295@imap1.linux-foundation.org>
+Subject: + mm-try-both-endianess-when-checking-for-endianess.patch added to -mm tree
+Date: Mon, 25 Feb 2008 11:37:43 -0800
+Message-ID: <200802251938.m1PJceYf016143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35013 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35323 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755011AbYBYTVL (ORCPT
+	by vger.kernel.org with ESMTP id S1756693AbYBYTi7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 14:21:11 -0500
+	Mon, 25 Feb 2008 14:38:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, grundler@parisc-linux.org, jeff@garzik.org
+Cc: chris@mips.com, hugh@veritas.com, ralf@linux-mips.org
 
 
 The patch titled
-     de2104x: remove BUG_ON() when changing media type
+     mm: try both endianess when checking for endianess.
 has been added to the -mm tree.  Its filename is
-     de2104x-remove-bug_on-when-changing-media-type.patch
+     mm-try-both-endianess-when-checking-for-endianess.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: de2104x: remove BUG_ON() when changing media type
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: mm: try both endianess when checking for endianess.
+From: Chris Dearman <chris@mips.com>
 
-When the chip dies (probably because of a bug somewhere in the driver),
-de_stop_rxtx() fails and changing the media type crashes the whole machine.
- Replace BUG_ON() in de_set_media() with a warning.
+When checking for the swap header try byteswapping the endianess dependent
+fields to allow the swap partition to be shared between big & little endian
+systems.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+Signed-off-by: Chris Dearman <chris@mips.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/de2104x.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swapfile.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/net/tulip/de2104x.c~de2104x-remove-bug_on-when-changing-media-type drivers/net/tulip/de2104x.c
---- a/drivers/net/tulip/de2104x.c~de2104x-remove-bug_on-when-changing-media-type
-+++ a/drivers/net/tulip/de2104x.c
-@@ -910,7 +910,8 @@ static void de_set_media (struct de_priv
- 	unsigned media = de->media_type;
- 	u32 macmode = dr32(MacMode);
- 
--	BUG_ON(de_is_running(de));
-+	if (de_is_running(de))
-+		printk(KERN_WARNING "%s: chip is running while changing media!\n", de->dev->name);
- 
- 	if (de->de21040)
- 		dw32(CSR11, FULL_DUPLEX_MAGIC);
+diff -puN mm/swapfile.c~mm-try-both-endianess-when-checking-for-endianess mm/swapfile.c
+--- a/mm/swapfile.c~mm-try-both-endianess-when-checking-for-endianess
++++ a/mm/swapfile.c
+@@ -1582,6 +1582,14 @@ asmlinkage long sys_swapon(const char __
+ 		error = -EINVAL;
+ 		goto bad_swap;
+ 	case 2:
++		/* swap partition endianess hack... */
++		if (swab32(swap_header->info.version) == 1) {
++			swab32s(&swap_header->info.version);
++			swab32s(&swap_header->info.last_page);
++			swab32s(&swap_header->info.nr_badpages);
++			for (i = 0; i < swap_header->info.nr_badpages; i++)
++				swab32s(&swap_header->info.badpages[i]);
++		}
+ 		/* Check the swap header's sub-version and the size of
+                    the swap file and bad block lists */
+ 		if (swap_header->info.version != 1) {
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from chris@mips.com are
 
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-de2104x-remove-bug_on-when-changing-media-type.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
