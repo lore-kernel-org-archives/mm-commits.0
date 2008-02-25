@@ -1,53 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-remove-duplicate-code-in-find_css_set.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:46:00 -0800
-Message-ID: <200802250046.m1P0k0X2006300@imap1.linux-foundation.org>
+Subject: - drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:15 -0800
+Message-ID: <200802250045.m1P0jFup006249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55839 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbYBYAss (ORCPT
+	by vger.kernel.org with ESMTP id S1753885AbYBYAsl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:48:48 -0500
+	Sun, 24 Feb 2008 19:48:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: sergio@larces.uece.br, adaplas@pol.net, spock@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: remove duplicate code in find_css_set()
+     drivers/video/uvesafb.c: fix section mismatch warning in param_set_scroll()
 has been removed from the -mm tree.  Its filename was
-     cgroup-remove-duplicate-code-in-find_css_set.patch
+     drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: remove duplicate code in find_css_set()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: drivers/video/uvesafb.c: fix section mismatch warning in param_set_scroll()
+From: Sergio Luis <sergio@larces.uece.br>
 
-The list head res->tasks gets initialized twice in find_css_set().
+Fix following warnings:
+WARNING: drivers/video/built-in.o(.text+0x7c64a): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/video/built-in.o(.text+0x7c65d): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/video/built-in.o(.text+0x7c679): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/video/built-in.o(.text+0x7c699): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/video/built-in.o(.text+0x7c69f): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/built-in.o(.text+0xa3676): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/built-in.o(.text+0xa3689): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/built-in.o(.text+0xa36a5): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/built-in.o(.text+0xa36c5): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: drivers/built-in.o(.text+0xa36cb): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: vmlinux.o(.text+0x4a079a): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: vmlinux.o(.text+0x4a07ad): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: vmlinux.o(.text+0x4a07c9): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: vmlinux.o(.text+0x4a07e9): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
+WARNING: vmlinux.o(.text+0x4a07ef): Section mismatch in reference from the function param_set_scroll() to the variable .devinit.data:ypan
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Remove __devinitdata annotation from the variable ypan.
+
+Signed-off-by: Sergio Luis <sergio@larces.uece.br>
+Cc: Michal Januszewski <spock@gentoo.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/video/uvesafb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-remove-duplicate-code-in-find_css_set kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-remove-duplicate-code-in-find_css_set
-+++ a/kernel/cgroup.c
-@@ -470,7 +470,6 @@ static struct css_set *find_css_set(
- 	/* Link this cgroup group into the list */
- 	list_add(&res->list, &init_css_set.list);
- 	css_set_count++;
--	INIT_LIST_HEAD(&res->tasks);
- 	write_unlock(&css_set_lock);
+diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-fix-section-mismatch-warning-in-param_set_scroll
++++ a/drivers/video/uvesafb.c
+@@ -44,7 +44,7 @@ static struct fb_fix_screeninfo uvesafb_
  
- 	return res;
+ static int mtrr		__devinitdata = 3; /* enable mtrr by default */
+ static int blank	= 1;		   /* enable blanking by default */
+-static int ypan		__devinitdata = 1; /* 0: scroll, 1: ypan, 2: ywrap */
++static int ypan		= 1; 		 /* 0: scroll, 1: ypan, 2: ywrap */
+ static int pmi_setpal	__devinitdata = 1; /* use PMI for palette changes */
+ static int nocrtc	__devinitdata; /* ignore CRTC settings */
+ static int noedid	__devinitdata; /* don't try DDC transfers */
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from sergio@larces.uece.br are
