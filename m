@@ -1,248 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: - futex-runtime-enable-pi-and-robust-functionality.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:24 -0800
-Message-ID: <200802250045.m1P0jO4P006258@imap1.linux-foundation.org>
+Subject: - i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:46:10 -0800
+Message-ID: <200802250046.m1P0kAWQ006321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33355 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47405 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754293AbYBYAtK (ORCPT
+	by vger.kernel.org with ESMTP id S1754191AbYBYAs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:10 -0500
+	Sun, 24 Feb 2008 19:48:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, buytenh@wantstofly.org, mingo@elte.hu, riku.voipio@movial.fi, stable@kernel.org, mm-commits@vger.kernel.org
+To: me@felipebalbi.com, david-b@pacbell.net, khali@linux-fr.org, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: runtime enable pi and robust functionality
+     I2C: ISP1301_OMAP: New-style i2c driver updates, part 1
 has been removed from the -mm tree.  Its filename was
-     futex-runtime-enable-pi-and-robust-functionality.patch
+     i2c-isp1301_omap-new-style-i2c-driver-updates-part-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: futex: runtime enable pi and robust functionality
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: I2C: ISP1301_OMAP: New-style i2c driver updates, part 1
+From: Felipe Balbi <me@felipebalbi.com>
 
-Not all architectures implement futex_atomic_cmpxchg_inatomic().  The default
-implementation returns -ENOSYS, which is currently not handled inside of the
-futex guts.
+The following two patches updates isp1301_omap.c to new-style i2c driver.  The
+patches are against curent linux mailine head.
 
-Futex PI calls and robust list exits with a held futex result in an endless
-loop in the futex code on architectures which have no support.
+Tony Lindgren (Cc'ed here) already has a working version of this driver on his
+linux-omap git tree.  These are just a rework for them to apply cleanly on
+mainline.
 
-Fixing up every place where futex_atomic_cmpxchg_inatomic() is called would
-add a fair amount of extra if/else constructs to the already complex code.  It
-is also not possible to disable the robust feature before user space tries to
-register robust lists.
 
-Compile time disabling is not a good idea either, as there are already
-architectures with runtime detection of futex_atomic_cmpxchg_inatomic support.
+This patch:
 
-Detect the functionality at runtime instead by calling
-cmpxchg_futex_value_locked() with a NULL pointer from the futex initialization
-code.  This is guaranteed to fail, but the call of
-futex_atomic_cmpxchg_inatomic() happens with pagefaults disabled.
+Based on David Brownell's patch for tps65010, this patch
+starts converting isp1301_omap.c to new-style i2c driver.
 
-On architectures, which use the asm-generic implementation or have a runtime
-CPU feature detection, a -ENOSYS return value disables the PI/robust features.
-
-On architectures with a working implementation the call returns -EFAULT and
-the PI/robust features are enabled.
-
-The relevant syscalls return -ENOSYS and the robust list exit code is blocked,
-when the detection fails.
-
-Fixes http://lkml.org/lkml/2008/2/11/149
-Originally reported by: Lennart Buytenhek
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: Riku Voipio <riku.voipio@movial.fi>
-Cc: <stable@kernel.org>
+Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/futex.h |    1 +
- kernel/futex.c        |   38 ++++++++++++++++++++++++++++++++++----
- kernel/futex_compat.c |    9 +++++++++
- 3 files changed, 44 insertions(+), 4 deletions(-)
+ drivers/i2c/chips/isp1301_omap.c |   60 ++++++++++++++---------------
+ 1 file changed, 31 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/futex.h~futex-runtime-enable-pi-and-robust-functionality include/linux/futex.h
---- a/include/linux/futex.h~futex-runtime-enable-pi-and-robust-functionality
-+++ a/include/linux/futex.h
-@@ -167,6 +167,7 @@ union futex_key {
- #ifdef CONFIG_FUTEX
- extern void exit_robust_list(struct task_struct *curr);
- extern void exit_pi_state_list(struct task_struct *curr);
-+extern int futex_cmpxchg_enabled;
+diff -puN drivers/i2c/chips/isp1301_omap.c~i2c-isp1301_omap-new-style-i2c-driver-updates-part-1 drivers/i2c/chips/isp1301_omap.c
+--- a/drivers/i2c/chips/isp1301_omap.c~i2c-isp1301_omap-new-style-i2c-driver-updates-part-1
++++ a/drivers/i2c/chips/isp1301_omap.c
+@@ -49,7 +49,8 @@ MODULE_LICENSE("GPL");
+ 
+ struct isp1301 {
+ 	struct otg_transceiver	otg;
+-	struct i2c_client	client;
++	struct i2c_client	*client;
++	struct i2c_client	c;
+ 	void			(*i2c_release)(struct device *dev);
+ 
+ 	int			irq;
+@@ -153,25 +154,25 @@ static struct i2c_driver isp1301_driver;
+ static inline u8
+ isp1301_get_u8(struct isp1301 *isp, u8 reg)
+ {
+-	return i2c_smbus_read_byte_data(&isp->client, reg + 0);
++	return i2c_smbus_read_byte_data(isp->client, reg + 0);
+ }
+ 
+ static inline int
+ isp1301_get_u16(struct isp1301 *isp, u8 reg)
+ {
+-	return i2c_smbus_read_word_data(&isp->client, reg);
++	return i2c_smbus_read_word_data(isp->client, reg);
+ }
+ 
+ static inline int
+ isp1301_set_bits(struct isp1301 *isp, u8 reg, u8 bits)
+ {
+-	return i2c_smbus_write_byte_data(&isp->client, reg + 0, bits);
++	return i2c_smbus_write_byte_data(isp->client, reg + 0, bits);
+ }
+ 
+ static inline int
+ isp1301_clear_bits(struct isp1301 *isp, u8 reg, u8 bits)
+ {
+-	return i2c_smbus_write_byte_data(&isp->client, reg + 1, bits);
++	return i2c_smbus_write_byte_data(isp->client, reg + 1, bits);
+ }
+ 
+ /*-------------------------------------------------------------------------*/
+@@ -349,10 +350,10 @@ isp1301_defer_work(struct isp1301 *isp, 
+ 	int status;
+ 
+ 	if (isp && !test_and_set_bit(work, &isp->todo)) {
+-		(void) get_device(&isp->client.dev);
++		(void) get_device(&isp->client->dev);
+ 		status = schedule_work(&isp->work);
+ 		if (!status && !isp->working)
+-			dev_vdbg(&isp->client.dev,
++			dev_vdbg(&isp->client->dev,
+ 				"work item %d may be lost\n", work);
+ 	}
+ }
+@@ -1107,7 +1108,7 @@ isp1301_work(struct work_struct *work)
+ 		/* transfer state from otg engine to isp1301 */
+ 		if (test_and_clear_bit(WORK_UPDATE_ISP, &isp->todo)) {
+ 			otg_update_isp(isp);
+-			put_device(&isp->client.dev);
++			put_device(&isp->client->dev);
+ 		}
+ #endif
+ 		/* transfer state from isp1301 to otg engine */
+@@ -1115,7 +1116,7 @@ isp1301_work(struct work_struct *work)
+ 			u8		stat = isp1301_clear_latch(isp);
+ 
+ 			isp_update_otg(isp, stat);
+-			put_device(&isp->client.dev);
++			put_device(&isp->client->dev);
+ 		}
+ 
+ 		if (test_and_clear_bit(WORK_HOST_RESUME, &isp->todo)) {
+@@ -1150,7 +1151,7 @@ isp1301_work(struct work_struct *work)
+ 			}
+ 			host_resume(isp);
+ 			// mdelay(10);
+-			put_device(&isp->client.dev);
++			put_device(&isp->client->dev);
+ 		}
+ 
+ 		if (test_and_clear_bit(WORK_TIMER, &isp->todo)) {
+@@ -1159,15 +1160,15 @@ isp1301_work(struct work_struct *work)
+ 			if (!stop)
+ 				mod_timer(&isp->timer, jiffies + TIMER_JIFFIES);
+ #endif
+-			put_device(&isp->client.dev);
++			put_device(&isp->client->dev);
+ 		}
+ 
+ 		if (isp->todo)
+-			dev_vdbg(&isp->client.dev,
++			dev_vdbg(&isp->client->dev,
+ 				"work done, todo = 0x%lx\n",
+ 				isp->todo);
+ 		if (stop) {
+-			dev_dbg(&isp->client.dev, "stop\n");
++			dev_dbg(&isp->client->dev, "stop\n");
+ 			break;
+ 		}
+ 	} while (isp->todo);
+@@ -1191,7 +1192,7 @@ static void isp1301_release(struct devic
+ {
+ 	struct isp1301	*isp;
+ 
+-	isp = container_of(dev, struct isp1301, client.dev);
++	isp = container_of(dev, struct isp1301, c.dev);
+ 
+ 	/* ugly -- i2c hijacks our memory hook to wait_for_completion() */
+ 	if (isp->i2c_release)
+@@ -1205,7 +1206,7 @@ static int isp1301_detach_client(struct 
+ {
+ 	struct isp1301	*isp;
+ 
+-	isp = container_of(i2c, struct isp1301, client);
++	isp = container_of(i2c, struct isp1301, c);
+ 
+ 	isp1301_clear_bits(isp, ISP1301_INTERRUPT_FALLING, ~0);
+ 	isp1301_clear_bits(isp, ISP1301_INTERRUPT_RISING, ~0);
+@@ -1257,7 +1258,7 @@ static int isp1301_otg_enable(struct isp
+ 	isp1301_set_bits(isp, ISP1301_INTERRUPT_FALLING,
+ 		INTR_VBUS_VLD | INTR_SESS_VLD | INTR_ID_GND);
+ 
+-	dev_info(&isp->client.dev, "ready for dual-role USB ...\n");
++	dev_info(&isp->client->dev, "ready for dual-role USB ...\n");
+ 
+ 	return 0;
+ }
+@@ -1282,7 +1283,7 @@ isp1301_set_host(struct otg_transceiver 
+ 
+ #ifdef	CONFIG_USB_OTG
+ 	isp->otg.host = host;
+-	dev_dbg(&isp->client.dev, "registered host\n");
++	dev_dbg(&isp->client->dev, "registered host\n");
+ 	host_suspend(isp);
+ 	if (isp->otg.gadget)
+ 		return isp1301_otg_enable(isp);
+@@ -1297,7 +1298,7 @@ isp1301_set_host(struct otg_transceiver 
+ 	if (machine_is_omap_h2())
+ 		isp1301_set_bits(isp, ISP1301_MODE_CONTROL_1, MC1_DAT_SE0);
+ 
+-	dev_info(&isp->client.dev, "A-Host sessions ok\n");
++	dev_info(&isp->client->dev, "A-Host sessions ok\n");
+ 	isp1301_set_bits(isp, ISP1301_INTERRUPT_RISING,
+ 		INTR_ID_GND);
+ 	isp1301_set_bits(isp, ISP1301_INTERRUPT_FALLING,
+@@ -1315,7 +1316,7 @@ isp1301_set_host(struct otg_transceiver 
+ 	return 0;
+ 
  #else
- static inline void exit_robust_list(struct task_struct *curr)
- {
-diff -puN kernel/futex.c~futex-runtime-enable-pi-and-robust-functionality kernel/futex.c
---- a/kernel/futex.c~futex-runtime-enable-pi-and-robust-functionality
-+++ a/kernel/futex.c
-@@ -60,6 +60,8 @@
+-	dev_dbg(&isp->client.dev, "host sessions not allowed\n");
++	dev_dbg(&isp->client->dev, "host sessions not allowed\n");
+ 	return -EINVAL;
+ #endif
  
- #include "rtmutex_common.h"
+@@ -1341,7 +1342,7 @@ isp1301_set_peripheral(struct otg_transc
  
-+int __read_mostly futex_cmpxchg_enabled;
-+
- #define FUTEX_HASHBITS (CONFIG_BASE_SMALL ? 4 : 8)
+ #ifdef	CONFIG_USB_OTG
+ 	isp->otg.gadget = gadget;
+-	dev_dbg(&isp->client.dev, "registered gadget\n");
++	dev_dbg(&isp->client->dev, "registered gadget\n");
+ 	/* gadget driver may be suspended until vbus_connect () */
+ 	if (isp->otg.host)
+ 		return isp1301_otg_enable(isp);
+@@ -1364,7 +1365,7 @@ isp1301_set_peripheral(struct otg_transc
+ 		INTR_SESS_VLD);
+ 	isp1301_set_bits(isp, ISP1301_INTERRUPT_FALLING,
+ 		INTR_VBUS_VLD);
+-	dev_info(&isp->client.dev, "B-Peripheral sessions ok\n");
++	dev_info(&isp->client->dev, "B-Peripheral sessions ok\n");
+ 	dump_regs(isp, __FUNCTION__);
  
- /*
-@@ -469,6 +471,8 @@ void exit_pi_state_list(struct task_stru
- 	struct futex_hash_bucket *hb;
- 	union futex_key key;
+ 	/* If this has a Mini-AB connector, this mode is highly
+@@ -1377,7 +1378,7 @@ isp1301_set_peripheral(struct otg_transc
+ 	return 0;
  
-+	if (!futex_cmpxchg_enabled)
-+		return;
- 	/*
- 	 * We are a ZOMBIE and nobody can enqueue itself on
- 	 * pi_state_list anymore, but we have to be careful
-@@ -1870,6 +1874,8 @@ asmlinkage long
- sys_set_robust_list(struct robust_list_head __user *head,
- 		    size_t len)
- {
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
- 	/*
- 	 * The kernel knows only one size for now:
- 	 */
-@@ -1894,6 +1900,9 @@ sys_get_robust_list(int pid, struct robu
- 	struct robust_list_head __user *head;
- 	unsigned long ret;
+ #else
+-	dev_dbg(&isp->client.dev, "peripheral sessions not allowed\n");
++	dev_dbg(&isp->client->dev, "peripheral sessions not allowed\n");
+ 	return -EINVAL;
+ #endif
+ }
+@@ -1493,12 +1494,13 @@ static int isp1301_probe(struct i2c_adap
+ 	isp->timer.data = (unsigned long) isp;
  
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (!pid)
- 		head = current->robust_list;
- 	else {
-@@ -1997,6 +2006,9 @@ void exit_robust_list(struct task_struct
- 	unsigned long futex_offset;
- 	int rc;
+ 	isp->irq = -1;
+-	isp->client.addr = address;
+-	i2c_set_clientdata(&isp->client, isp);
+-	isp->client.adapter = bus;
+-	isp->client.driver = &isp1301_driver;
+-	strlcpy(isp->client.name, DRIVER_NAME, I2C_NAME_SIZE);
+-	i2c = &isp->client;
++	isp->irq_type = 0;
++	isp->c.addr = address;
++	i2c_set_clientdata(&isp->c, isp);
++	isp->c.adapter = bus;
++	isp->c.driver = &isp1301_driver;
++	strlcpy(isp->c.name, DRIVER_NAME, I2C_NAME_SIZE);
++	isp->client = i2c = &isp->c;
  
-+	if (!futex_cmpxchg_enabled)
-+		return;
-+
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
- 	 * sys_set_robust_list()):
-@@ -2051,7 +2063,7 @@ void exit_robust_list(struct task_struct
- long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
- 		u32 __user *uaddr2, u32 val2, u32 val3)
- {
--	int ret;
-+	int ret = -ENOSYS;
- 	int cmd = op & FUTEX_CMD_MASK;
- 	struct rw_semaphore *fshared = NULL;
+ 	/* if this is a true probe, verify the chip ... */
+ 	if (kind < 0) {
+@@ -1583,7 +1585,7 @@ fail2:
+ 		goto fail1;
+ 	}
  
-@@ -2083,13 +2095,16 @@ long do_futex(u32 __user *uaddr, int op,
- 		ret = futex_wake_op(uaddr, fshared, uaddr2, val, val2, val3);
- 		break;
- 	case FUTEX_LOCK_PI:
--		ret = futex_lock_pi(uaddr, fshared, val, timeout, 0);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_lock_pi(uaddr, fshared, val, timeout, 0);
- 		break;
- 	case FUTEX_UNLOCK_PI:
--		ret = futex_unlock_pi(uaddr, fshared);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_unlock_pi(uaddr, fshared);
- 		break;
- 	case FUTEX_TRYLOCK_PI:
--		ret = futex_lock_pi(uaddr, fshared, 0, timeout, 1);
-+		if (futex_cmpxchg_enabled)
-+			ret = futex_lock_pi(uaddr, fshared, 0, timeout, 1);
- 		break;
- 	default:
- 		ret = -ENOSYS;
-@@ -2145,8 +2160,23 @@ static struct file_system_type futex_fs_
+-	isp->otg.dev = &isp->client.dev;
++	isp->otg.dev = &isp->client->dev;
+ 	isp->otg.label = DRIVER_NAME;
  
- static int __init init(void)
- {
-+	u32 curval;
- 	int i;
- 
-+	/*
-+	 * This will fail and we want it. Some arch implementations do
-+	 * runtime detection of the futex_atomic_cmpxchg_inatomic()
-+	 * functionality. We want to know that before we call in any
-+	 * of the complex code paths. Also we want to prevent
-+	 * registration of robust lists in that case. NULL is
-+	 * guaranteed to fault and we get -EFAULT on functional
-+	 * implementation, the non functional ones will return
-+	 * -ENOSYS.
-+	 */
-+	curval = cmpxchg_futex_value_locked(NULL, 0, 0);
-+	if (curval == -EFAULT)
-+		futex_cmpxchg_enabled = 1;
-+
- 	for (i = 0; i < ARRAY_SIZE(futex_queues); i++) {
- 		plist_head_init(&futex_queues[i].chain, &futex_queues[i].lock);
- 		spin_lock_init(&futex_queues[i].lock);
-diff -puN kernel/futex_compat.c~futex-runtime-enable-pi-and-robust-functionality kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex-runtime-enable-pi-and-robust-functionality
-+++ a/kernel/futex_compat.c
-@@ -54,6 +54,9 @@ void compat_exit_robust_list(struct task
- 	compat_long_t futex_offset;
- 	int rc;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return;
-+
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
- 	 * sys_set_robust_list()):
-@@ -115,6 +118,9 @@ asmlinkage long
- compat_sys_set_robust_list(struct compat_robust_list_head __user *head,
- 			   compat_size_t len)
- {
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (unlikely(len != sizeof(*head)))
- 		return -EINVAL;
- 
-@@ -130,6 +136,9 @@ compat_sys_get_robust_list(int pid, comp
- 	struct compat_robust_list_head __user *head;
- 	unsigned long ret;
- 
-+	if (!futex_cmpxchg_enabled)
-+		return -ENOSYS;
-+
- 	if (!pid)
- 		head = current->compat_robust_list;
- 	else {
+ 	isp->otg.set_host = isp1301_set_host,
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-git-hrt.patch
-git-kvm.patch
-execute-tasklets-in-the-same-order-they-were-queued.patch
-git-x86.patch
-documentation-i386-io-apictxt-fix-description.patch
-add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-x86-fix-clearcopy_user_page-declarations-in-pageh.patch
-x86-visws-fix-printk-format-warnings.patch
-fix-typo-in-tick-broadcastc.patch
-x86-configurable-dmi-scanning-code.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-fix-shadowed-variables-in-kernel-posix-cpu-timersc.patch
-timers-simplify-lockdep-stuff.patch
-hrtimers-simplify-lockdep-stuff.patch
-kill-double_spin_lock.patch
-ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
-asm-futexh-should-include-linux-uaccessh.patch
-init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch
-generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
-x86_64-fold-pda-into-per-cpu-area-v3.patch
-x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
+Patches currently in -mm which might be from me@felipebalbi.com are
