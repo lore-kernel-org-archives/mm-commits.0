@@ -1,142 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-linux-fbdev-is-moderated.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:18 -0800
-Message-ID: <200802250044.m1P0iICX006098@imap1.linux-foundation.org>
+Subject: - copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:34 -0800
+Message-ID: <200802250044.m1P0iYr5006119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38336 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752554AbYBYAoa (ORCPT
+	by vger.kernel.org with ESMTP id S1752550AbYBYAog (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:44:30 -0500
+	Sun, 24 Feb 2008 19:44:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: mgross@linux.intel.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: linux-fbdev is moderated
+     copyright owner and author clean up for intel iommu and related files
 has been removed from the -mm tree.  Its filename was
-     maintainers-linux-fbdev-is-moderated.patch
+     copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: linux-fbdev is moderated
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: copyright owner and author clean up for intel iommu and related files
+From: mark gross <mgross@linux.intel.com>
 
-While linux-fbdev is subscribers-only, non-subscribers are not plainly
-rejected, but moderated, so the casual patch/comment/question comes through.
+The following is a clean up and correction of the copyright holding
+entities for the files associated with the intel iommu code.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: <mgross@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/pci/dmar.c        |    9 +++++----
+ drivers/pci/intel-iommu.c |    7 ++++---
+ drivers/pci/intel-iommu.h |    5 +++--
+ drivers/pci/iova.c        |    3 ++-
+ drivers/pci/iova.h        |    3 ++-
+ 5 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-linux-fbdev-is-moderated MAINTAINERS
---- a/MAINTAINERS~maintainers-linux-fbdev-is-moderated
-+++ a/MAINTAINERS
-@@ -697,7 +697,7 @@ S:	Supported
- ATMEL LCDFB DRIVER
- P:	Nicolas Ferre
- M:	nicolas.ferre@atmel.com
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
+diff -puN drivers/pci/dmar.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
++++ a/drivers/pci/dmar.c
+@@ -14,11 +14,12 @@
+  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+  * Place - Suite 330, Boston, MA 02111-1307 USA.
+  *
+- * 	Copyright (C) Ashok Raj <ashok.raj@intel.com>
+- *	Copyright (C) Shaohua Li <shaohua.li@intel.com>
+- *	Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * Copyright (C) 2006-2008 Intel Corporation
++ * Author: Ashok Raj <ashok.raj@intel.com>
++ * Author: Shaohua Li <shaohua.li@intel.com>
++ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  *
+- * 	This file implements early detection/parsing of DMA Remapping Devices
++ * This file implements early detection/parsing of DMA Remapping Devices
+  * reported to OS through BIOS via DMA remapping reporting (DMAR) ACPI
+  * tables.
+  */
+diff -puN drivers/pci/intel-iommu.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
++++ a/drivers/pci/intel-iommu.c
+@@ -14,9 +14,10 @@
+  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+  * Place - Suite 330, Boston, MA 02111-1307 USA.
+  *
+- * Copyright (C) Ashok Raj <ashok.raj@intel.com>
+- * Copyright (C) Shaohua Li <shaohua.li@intel.com>
+- * Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * Copyright (C) 2006-2008 Intel Corporation
++ * Author: Ashok Raj <ashok.raj@intel.com>
++ * Author: Shaohua Li <shaohua.li@intel.com>
++ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  */
  
- ATMEL MACB ETHERNET DRIVER
-@@ -1202,7 +1202,7 @@ S:	Maintained
- CYBLAFB FRAMEBUFFER DRIVER
- P:	Knut Petersen
- M:	Knut_Petersen@t-online.de
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
+ #include <linux/init.h>
+diff -puN drivers/pci/intel-iommu.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/intel-iommu.h
+--- a/drivers/pci/intel-iommu.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
++++ a/drivers/pci/intel-iommu.h
+@@ -14,8 +14,9 @@
+  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+  * Place - Suite 330, Boston, MA 02111-1307 USA.
+  *
+- * Copyright (C) Ashok Raj <ashok.raj@intel.com>
+- * Copyright (C) Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * Copyright (C) 2006-2008 Intel Corporation
++ * Author: Ashok Raj <ashok.raj@intel.com>
++ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  */
  
- CYCLADES 2X SYNC CARD DRIVER
-@@ -1579,7 +1579,7 @@ S:	Supported
- FRAMEBUFFER LAYER
- P:	Antonino Daplas
- M:	adaplas@gmail.com
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- W:	http://linux-fbdev.sourceforge.net/
- S:	Maintained
+ #ifndef _INTEL_IOMMU_H_
+diff -puN drivers/pci/iova.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/iova.c
+--- a/drivers/pci/iova.c~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
++++ a/drivers/pci/iova.c
+@@ -3,7 +3,8 @@
+  *
+  * This file is released under the GPLv2.
+  *
+- * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * Copyright (C) 2006-2008 Intel Corporation
++ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  */
  
-@@ -1964,7 +1964,7 @@ L:	linux1394-devel@lists.sourceforge.net
- S:	Maintained
+ #include "iova.h"
+diff -puN drivers/pci/iova.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files drivers/pci/iova.h
+--- a/drivers/pci/iova.h~copyright-owner-and-author-clean-up-for-intel-iommu-and-related-files
++++ a/drivers/pci/iova.h
+@@ -3,7 +3,8 @@
+  *
+  * This file is released under the GPLv2.
+  *
+- * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ * Copyright (C) 2006-2008 Intel Corporation
++ * Author: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+  *
+  */
  
- IMS TWINTURBO FRAMEBUFFER DRIVER
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Orphan
- 
- INFINIBAND SUBSYSTEM
-@@ -1998,13 +1998,13 @@ S:	Maintained
- INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
- P:	Sylvain Meyer
- M:	sylvain.meyer@worldonline.fr
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- INTEL 810/815 FRAMEBUFFER DRIVER
- P:	Antonino Daplas
- M:	adaplas@gmail.com
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- INTEL IA32 MICROCODE UPDATE SUPPORT
-@@ -2600,7 +2600,7 @@ S:	Odd Fixes for 2.4; Maintained for 2.6
- MATROX FRAMEBUFFER DRIVER
- P:	Petr Vandrovec
- M:	vandrove@vc.cvut.cz
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
-@@ -2909,7 +2909,7 @@ S:	Maintained
- NVIDIA (rivafb and nvidiafb) FRAMEBUFFER DRIVER
- P:	Antonino Daplas
- M:	adaplas@gmail.com
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- OPENCORES I2C BUS DRIVER
-@@ -3238,13 +3238,13 @@ S:	Maintained
- RADEON FRAMEBUFFER DISPLAY DRIVER
- P:	Benjamin Herrenschmidt
- M:	benh@kernel.crashing.org
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- RAGE128 FRAMEBUFFER DISPLAY DRIVER
- P:	Paul Mackerras
- M:	paulus@samba.org
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- RAYLINK/WEBGEAR 802.11 WIRELESS LAN DRIVER
-@@ -3349,7 +3349,7 @@ S:	Maintained
- S3 SAVAGE FRAMEBUFFER DRIVER
- P:	Antonino Daplas
- M:	adaplas@gmail.com
--L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
- S:	Maintained
- 
- S390
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
+pci-iova-rb-tree-setup-tweak.patch
+iova-lockdep-false-alarm-fix.patch
