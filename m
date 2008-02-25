@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iova-lockdep-false-alarm-fix.patch added to -mm tree
-Date: Mon, 25 Feb 2008 10:32:40 -0800
-Message-ID: <200802251833.m1PIXVSu013371@imap1.linux-foundation.org>
+Subject: + serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch added to -mm tree
+Date: Mon, 25 Feb 2008 10:37:44 -0800
+Message-ID: <200802251838.m1PIcZ7M013624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43759 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755686AbYBYSe3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757263AbYBYSjd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 13:34:29 -0500
+	Mon, 25 Feb 2008 13:39:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com, greg@kroah.com
+Cc: bjorn.helgaas@hp.com, alan@lxorguk.ukuu.org.uk, thomas.lehmann@alumni.tu-berlin.de
 
 
 The patch titled
-     iova: lockdep false alarm fix
+     serial: add PNP ID GVC0303 for Archtek 3334BRV ISA modem
 has been added to the -mm tree.  Its filename is
-     iova-lockdep-false-alarm-fix.patch
+     serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iova: lockdep false alarm fix
-From: mark gross <mgross@linux.intel.com>
+Subject: serial: add PNP ID GVC0303 for Archtek 3334BRV ISA modem
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-lockdep goes off on the iova copy_reserved_iova() because it and a function
-it calls grabs locks in the from, and the to of the copy operation.
+Thomas Lehmann <thomas.lehmann@alumni.tu-berlin.de> verified that this
+entry works.
 
-The function grab locks of the same lock classes triggering the warning.  The
-first lock grabbed is for the constant reserved areas that is never accessed
-after early boot.  Technically you could do without grabbing the locks for the
-"from" structure its copying reserved areas from.
-
-But dropping the from locks to me looks wrong, even though it would be ok.
-
-The affected code only runs in early boot as its setting up the DMAR
-engines.
-
-This patch gives the reserved_ioval_list locks special lockdep classes.
-
-Signed-off-by: <mgross@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/serial/8250_pnp.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pci/intel-iommu.c~iova-lockdep-false-alarm-fix drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~iova-lockdep-false-alarm-fix
-+++ a/drivers/pci/intel-iommu.c
-@@ -1097,6 +1097,8 @@ static void iommu_free_domain(struct dma
- }
- 
- static struct iova_domain reserved_iova_list;
-+static struct lock_class_key reserved_alloc_key;
-+static struct lock_class_key reserved_rbtree_key;
- 
- static void dmar_init_reserved_ranges(void)
- {
-@@ -1107,6 +1109,11 @@ static void dmar_init_reserved_ranges(vo
- 
- 	init_iova_domain(&reserved_iova_list, DMA_32BIT_PFN);
- 
-+	lockdep_set_class(&reserved_iova_list.iova_alloc_lock,
-+		&reserved_alloc_key);
-+	lockdep_set_class(&reserved_iova_list.iova_rbtree_lock,
-+		&reserved_rbtree_key);
-+
- 	/* IOAPIC ranges shouldn't be accessed by DMA */
- 	iova = reserve_iova(&reserved_iova_list, IOVA_PFN(IOAPIC_RANGE_START),
- 		IOVA_PFN(IOAPIC_RANGE_END));
+diff -puN drivers/serial/8250_pnp.c~serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem
++++ a/drivers/serial/8250_pnp.c
+@@ -91,6 +91,8 @@ static const struct pnp_device_id pnp_de
+ 	/* Archtek America Corp. */
+ 	/* Archtek SmartLink Modem 3334BT Plug & Play */
+ 	{	"GVC000F",		0	},
++	/* Archtek SmartLink Modem 3334BRV 33.6K Data Fax Voice */
++	{	"GVC0303",		0	},
+ 	/* Hayes */
+ 	/* Hayes Optima 288 V.34-V.FC + FAX + Voice Plug & Play */
+ 	{	"HAY0001",		0	},
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-pci-iova-rb-tree-setup-tweak.patch
-iova-lockdep-false-alarm-fix.patch
+serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+pci-simplify-quirk-debug-output.patch
+simplify-initcall_debug-output.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
