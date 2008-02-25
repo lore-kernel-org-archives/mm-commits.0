@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ds1wm-report-bus-reset-error.patch added to -mm tree
-Date: Mon, 25 Feb 2008 14:35:35 -0800
-Message-ID: <200802252236.m1PMaQo1023380@imap1.linux-foundation.org>
+Subject: + provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch added to -mm tree
+Date: Mon, 25 Feb 2008 14:37:27 -0800
+Message-ID: <200802252238.m1PMcIej023517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49185 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757821AbYBYWhQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751176AbYBYWi7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 17:37:16 -0500
+	Mon, 25 Feb 2008 17:38:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cbouatmailru@gmail.com, johnpol@2ka.mipt.ru
+Cc: jlim@sgi.com, rdunlap@xenotime.net, tglx@linutronix.de
 
 
 The patch titled
-     ds1wm: report bus reset error
+     Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
 has been added to the -mm tree.  Its filename is
-     ds1wm-report-bus-reset-error.patch
+     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ds1wm: report bus reset error
-From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
+From: Jonathan Lim <jlim@sgi.com>
 
-The patch replaces dev_dbg() by dev_err(), so the user could actually see the
-error, instead of wondering why w1 doesn't work.  The root cause of the bus
-reset error isn't yet debugged though, but this sometimes happens on iPaq
-H5555.
+It's possible that the values used in and returned from jiffies_to_usecs()
+are incorrect because of truncation when variables of type u64 are
+involved.  So a function specific to that type is used instead.
 
-And while I'm at it, some cosmetic cleanups also made (few lines were using
-spaces instead of tabs).
+This version implements a correction to jiffies_64_to_usecs() based on
+feedback from Randy Dunlap.
 
-Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Jonathan Lim <jlim@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/jiffies.h |    5 +++--
+ kernel/time.c           |    7 +++++++
+ kernel/tsacct.c         |    4 ++--
+ 3 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~ds1wm-report-bus-reset-error drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~ds1wm-report-bus-reset-error
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -103,12 +103,12 @@ struct ds1wm_data {
- static inline void ds1wm_write_register(struct ds1wm_data *ds1wm_data, u32 reg,
- 					u8 val)
- {
--        __raw_writeb(val, ds1wm_data->map + (reg << ds1wm_data->bus_shift));
-+	__raw_writeb(val, ds1wm_data->map + (reg << ds1wm_data->bus_shift));
+diff -puN include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc include/linux/jiffies.h
+--- a/include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/include/linux/jiffies.h
+@@ -42,7 +42,7 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
+ 
+-/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, then we can
++/* Suppose we want to divide two numbers NOM and DEN: NOM/DEN, then we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+  * This however means trouble for large NOM, because (NOM << LSH) may no
+@@ -204,7 +204,7 @@ extern unsigned long preset_lpj;
+  * operator if the result is a long long AND at least one of the
+  * operands is cast to long long (usually just prior to the "*" so as
+  * not to confuse it into thinking it really has a 64-bit operand,
+- * which, buy the way, it can do, but it takes more code and at least 2
++ * which, by the way, it can do, but it takes more code and at least 2
+  * mpys).
+ 
+  * We also need to be aware that one second in nanoseconds is only a
+@@ -269,6 +269,7 @@ extern unsigned long preset_lpj;
+  */
+ extern unsigned int jiffies_to_msecs(const unsigned long j);
+ extern unsigned int jiffies_to_usecs(const unsigned long j);
++extern u64 jiffies_64_to_usecs(const u64 j);
+ extern unsigned long msecs_to_jiffies(const unsigned int m);
+ extern unsigned long usecs_to_jiffies(const unsigned int u);
+ extern unsigned long timespec_to_jiffies(const struct timespec *value);
+diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/time.c
+--- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/time.c
+@@ -38,6 +38,7 @@
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
++#include <asm/div64.h>
+ 
+ #include "timeconst.h"
+ 
+@@ -268,6 +269,12 @@ unsigned int inline jiffies_to_usecs(con
  }
+ EXPORT_SYMBOL(jiffies_to_usecs);
  
- static inline u8 ds1wm_read_register(struct ds1wm_data *ds1wm_data, u32 reg)
- {
--        return __raw_readb(ds1wm_data->map + (reg << ds1wm_data->bus_shift));
-+	return __raw_readb(ds1wm_data->map + (reg << ds1wm_data->bus_shift));
- }
++u64 jiffies_64_to_usecs(const u64 j)
++{
++	return div64_64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
++}
++EXPORT_SYMBOL(jiffies_64_to_usecs);
++
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+diff -puN kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/tsacct.c
+--- a/kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/tsacct.c
+@@ -85,8 +85,8 @@ void xacct_add_tsk(struct taskstats *sta
+ 	struct mm_struct *mm;
  
- 
-@@ -150,8 +150,8 @@ static int ds1wm_reset(struct ds1wm_data
- 	timeleft = wait_for_completion_timeout(&reset_done, DS1WM_TIMEOUT);
- 	ds1wm_data->reset_complete = NULL;
- 	if (!timeleft) {
--                dev_dbg(&ds1wm_data->pdev->dev, "reset failed\n");
--                return 1;
-+		dev_err(&ds1wm_data->pdev->dev, "reset failed\n");
-+		return 1;
- 	}
- 
- 	/* Wait for the end of the reset. According to the specs, the time
-@@ -168,11 +168,11 @@ static int ds1wm_reset(struct ds1wm_data
- 		(ds1wm_data->active_high ? DS1WM_INTEN_IAS : 0));
- 
- 	if (!ds1wm_data->slave_present) {
--                dev_dbg(&ds1wm_data->pdev->dev, "reset: no devices found\n");
--                return 1;
--        }
-+		dev_dbg(&ds1wm_data->pdev->dev, "reset: no devices found\n");
-+		return 1;
-+	}
- 
--        return 0;
-+	return 0;
- }
- 
- static int ds1wm_write(struct ds1wm_data *ds1wm_data, u8 data)
-@@ -335,7 +335,7 @@ static int ds1wm_probe(struct platform_d
- 	if (!pdev)
- 		return -ENODEV;
- 
--	ds1wm_data = kzalloc(sizeof (*ds1wm_data), GFP_KERNEL);
-+	ds1wm_data = kzalloc(sizeof(*ds1wm_data), GFP_KERNEL);
- 	if (!ds1wm_data)
- 		return -ENOMEM;
- 
+ 	/* convert pages-jiffies to Mbyte-usec */
+-	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
+-	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
++	stats->coremem = jiffies_64_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
++	stats->virtmem = jiffies_64_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
+ 	mm = get_task_mm(p);
+ 	if (mm) {
+ 		/* adjust to KB unit */
 _
 
-Patches currently in -mm which might be from cbouatmailru@gmail.com are
+Patches currently in -mm which might be from jlim@sgi.com are
 
-ds1wm-should-check-for-is_errclk-instead-of-null.patch
-ds1wm-report-bus-reset-error.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+use-find_task_by_vpid-in-taskstats.patch
