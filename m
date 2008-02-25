@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - memcgroup-return-negative-error-code-in-mem_cgroup_create.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:46:08 -0800
-Message-ID: <200802250046.m1P0k80R006318@imap1.linux-foundation.org>
+Subject: - cgroup-fix-memory-leak-in-cgroup_get_sb.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:56 -0800
+Message-ID: <200802250045.m1P0juJj006294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53523 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754724AbYBYAsy (ORCPT
+	by vger.kernel.org with ESMTP id S1754665AbYBYAst (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:48:54 -0500
+	Sun, 24 Feb 2008 19:48:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup: return negative error code in mem_cgroup_create()
+     cgroup: fix memory leak in cgroup_get_sb()
 has been removed from the -mm tree.  Its filename was
-     memcgroup-return-negative-error-code-in-mem_cgroup_create.patch
+     cgroup-fix-memory-leak-in-cgroup_get_sb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: return negative error code in mem_cgroup_create()
+Subject: cgroup: fix memory leak in cgroup_get_sb()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Cgroup requires the subsystem to return negative error code on error in the
-create method.
+opts.release_agent is not kfree()ed in all necessary places.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@in.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcgroup-return-negative-error-code-in-mem_cgroup_create mm/memcontrol.c
---- a/mm/memcontrol.c~memcgroup-return-negative-error-code-in-mem_cgroup_create
-+++ a/mm/memcontrol.c
-@@ -1100,7 +1100,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 		mem = kzalloc(sizeof(struct mem_cgroup), GFP_KERNEL);
+diff -puN kernel/cgroup.c~cgroup-fix-memory-leak-in-cgroup_get_sb kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-memory-leak-in-cgroup_get_sb
++++ a/kernel/cgroup.c
+@@ -954,8 +954,11 @@ static int cgroup_get_sb(struct file_sys
+ 	}
  
- 	if (mem == NULL)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
+ 	root = kzalloc(sizeof(*root), GFP_KERNEL);
+-	if (!root)
++	if (!root) {
++		if (opts.release_agent)
++			kfree(opts.release_agent);
+ 		return -ENOMEM;
++	}
  
- 	res_counter_init(&mem->res);
- 
-@@ -1116,7 +1116,7 @@ free_out:
- 		free_mem_cgroup_per_zone_info(mem, node);
- 	if (cont->parent != NULL)
- 		kfree(mem);
--	return NULL;
-+	return ERR_PTR(-ENOMEM);
- }
- 
- static void mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
+ 	init_cgroup_root(root);
+ 	root->subsys_bits = opts.subsys_bits;
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
