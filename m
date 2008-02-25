@@ -1,85 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-cmos-display-hpet-emulation-mode.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:55 -0800
-Message-ID: <200802250044.m1P0it8D006144@imap1.linux-foundation.org>
+Subject: - kernel-doc-fix-function-pointer-parameter-parsing.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:37 -0800
+Message-ID: <200802250045.m1P0jbnd006273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55897 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755029AbYBYAtS (ORCPT
+	by vger.kernel.org with ESMTP id S1755187AbYBYAtj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:18 -0500
+	Sun, 24 Feb 2008 19:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-cmos: display HPET emulation mode
+     kernel-doc: fix function-pointer-parameter parsing
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-display-hpet-emulation-mode.patch
+     kernel-doc-fix-function-pointer-parameter-parsing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: display HPET emulation mode
-From: David Brownell <david-b@pacbell.net>
+Subject: kernel-doc: fix function-pointer-parameter parsing
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-For the "cmos" RTC, have /proc/driver/rtc say whether HPET based IRQ
-emulation is in effect.  Given the problems we've had with this particular
-hardware maldesign (and the fact that most BIOS code seems not to provide
-the IRQ routing needed to use the saner HPET modes), this should help
-troubleshooting.
+When running "make htmldocs" I'm seeing some non-fatal perl errors caused
+by trying to parse the callback function definitions in blk-core.c.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The errors are "Use of uninitialized value in concatenation (.)..."
+in combination with:
+Warning(linux-2.6.25-rc2/block/blk-core.c:1877): No description found for parameter ''
+
+The function pointers are defined without a * i.e.
+int (drv_callback)(struct request *)
+
+The compiler is happy with them, but kernel-doc isn't.
+
+This patch teaches create_parameterlist in kernel-doc to parse this type of
+function pointer definition, but is it the right way to fix the problem ? 
+The problem only seems to occur in blk-core.c.
+
+However with the patch applied, kernel-doc finds the correct parameter
+description for the callback in blk_end_request_callback, which is doesn't
+normally.
+
+I thought it would be a bit odd to change to code to use the more normal
+form of function pointers just to get the documentation to work, so I fixed
+kernel-doc instead - even though this is teaching it to understand code
+that might go away (The comment for blk_end_request_callback says that it
+should not be used and will removed at some point).
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/kernel-doc |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-display-hpet-emulation-mode drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-display-hpet-emulation-mode
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -388,6 +388,7 @@ static int cmos_procfs(struct device *de
- 	return seq_printf(seq,
- 			"periodic_IRQ\t: %s\n"
- 			"update_IRQ\t: %s\n"
-+			"HPET_emulated\t: %s\n"
- 			// "square_wave\t: %s\n"
- 			// "BCD\t\t: %s\n"
- 			"DST_enable\t: %s\n"
-@@ -395,6 +396,7 @@ static int cmos_procfs(struct device *de
- 			"batt_status\t: %s\n",
- 			(rtc_control & RTC_PIE) ? "yes" : "no",
- 			(rtc_control & RTC_UIE) ? "yes" : "no",
-+			is_hpet_enabled() ? "yes" : "no",
- 			// (rtc_control & RTC_SQWE) ? "yes" : "no",
- 			// (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
- 			(rtc_control & RTC_DST_EN) ? "yes" : "no",
+diff -puN scripts/kernel-doc~kernel-doc-fix-function-pointer-parameter-parsing scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-function-pointer-parameter-parsing
++++ a/scripts/kernel-doc
+@@ -1512,13 +1512,13 @@ sub create_parameterlist($$$) {
+ 	    # corresponding data structures "correctly". Catch it later in
+ 	    # output_* subs.
+ 	    push_parameter($arg, "", $file);
+-	} elsif ($arg =~ m/\(.*\*/) {
++	} elsif ($arg =~ m/\(.+\)\s*\(/) {
+ 	    # pointer-to-function
+ 	    $arg =~ tr/#/,/;
+-	    $arg =~ m/[^\(]+\(\*\s*([^\)]+)\)/;
++	    $arg =~ m/[^\(]+\(\*?\s*(\w*)\s*\)/;
+ 	    $param = $1;
+ 	    $type = $arg;
+-	    $type =~ s/([^\(]+\(\*)$param/$1/;
++	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
+ 	    push_parameter($param, $type, $file);
+ 	} elsif ($arg) {
+ 	    $arg =~ s/\s*:\s*/:/g;
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
-
-git-acpi.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-git-avr32.patch
-usb-net-asix-does-not-really-need-10-100mbit.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
