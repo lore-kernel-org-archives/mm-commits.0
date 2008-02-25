@@ -1,67 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-helper_wait-calls-in-watchdog.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:03 -0800
-Message-ID: <200802250045.m1P0j3mP006225@imap1.linux-foundation.org>
+Subject: + simplify-cpu_hotplug_begin-put_online_cpus.patch added to -mm tree
+Date: Sun, 24 Feb 2008 16:48:11 -0800
+Message-ID: <200802250048.m1P0mBqH006355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44920 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753648AbYBYAsi (ORCPT
+	by vger.kernel.org with ESMTP id S1753848AbYBYAsk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:48:38 -0500
+	Sun, 24 Feb 2008 19:48:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johfel@users.sourceforge.net, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, dipankar@in.ibm.com, ego@in.ibm.com, mingo@elte.hu, vatsa@in.ibm.com
 
 
 The patch titled
-     uml: fix helper_wait calls in watchdog
-has been removed from the -mm tree.  Its filename was
-     uml-fix-helper_wait-calls-in-watchdog.patch
+     simplify cpu_hotplug_begin()/put_online_cpus()
+has been added to the -mm tree.  Its filename is
+     simplify-cpu_hotplug_begin-put_online_cpus.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix helper_wait calls in watchdog
-From: Johann Felix Soden <johfel@users.sourceforge.net>
+Subject: simplify cpu_hotplug_begin()/put_online_cpus()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-In 1aa351a308d2c3ddb92b6cc45083fc54271d0010 the arguments of helper_wait() were
-changed. The adaptation of harddog_user.c was forgotten, so this errors occur:
+cpu_hotplug_begin() must be always called under cpu_add_remove_lock, this
+means that only one process can be cpu_hotplug.active_writer.  So we don't
+need the cpu_hotplug.writer_queue, we can wake up the ->active_writer
+directly.
 
-/arch/um/drivers/harddog_user.c: In function 'start_watchdog':
-/arch/um/drivers/harddog_user.c:82: error: too many arguments to function 'helper_wait'
-/arch/um/drivers/harddog_user.c:89: error: too many arguments to function 'helper_wait'
+Also, fix the comment.
 
-Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Acked-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/harddog_user.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cpu.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff -puN arch/um/drivers/harddog_user.c~uml-fix-helper_wait-calls-in-watchdog arch/um/drivers/harddog_user.c
---- a/arch/um/drivers/harddog_user.c~uml-fix-helper_wait-calls-in-watchdog
-+++ a/arch/um/drivers/harddog_user.c
-@@ -79,14 +79,14 @@ int start_watchdog(int *in_fd_ret, int *
- 	n = read(in_fds[0], &c, sizeof(c));
- 	if (n == 0) {
- 		printk("harddog_open - EOF on watchdog pipe\n");
--		helper_wait(pid, 1, NULL);
-+		helper_wait(pid);
- 		err = -EIO;
- 		goto out_close_out;
+diff -puN kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus
++++ a/kernel/cpu.c
+@@ -33,17 +33,13 @@ static struct {
+ 	 * an ongoing cpu hotplug operation.
+ 	 */
+ 	int refcount;
+-	wait_queue_head_t writer_queue;
+ } cpu_hotplug;
+ 
+-#define writer_exists() (cpu_hotplug.active_writer != NULL)
+-
+ void __init cpu_hotplug_init(void)
+ {
+ 	cpu_hotplug.active_writer = NULL;
+ 	mutex_init(&cpu_hotplug.lock);
+ 	cpu_hotplug.refcount = 0;
+-	init_waitqueue_head(&cpu_hotplug.writer_queue);
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -65,11 +61,8 @@ void put_online_cpus(void)
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+ 	mutex_lock(&cpu_hotplug.lock);
+-	cpu_hotplug.refcount--;
+-
+-	if (unlikely(writer_exists()) && !cpu_hotplug.refcount)
+-		wake_up(&cpu_hotplug.writer_queue);
+-
++	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
++		wake_up_process(cpu_hotplug.active_writer);
+ 	mutex_unlock(&cpu_hotplug.lock);
+ 
+ }
+@@ -98,8 +91,8 @@ void cpu_maps_update_done(void)
+  * Note that during a cpu-hotplug operation, the new readers, if any,
+  * will be blocked by the cpu_hotplug.lock
+  *
+- * Since cpu_maps_update_begin is always called after invoking
+- * cpu_maps_update_begin, we can be sure that only one writer is active.
++ * Since cpu_hotplug_begin() is always called after invoking
++ * cpu_maps_update_begin(), we can be sure that only one writer is active.
+  *
+  * Note that theoretically, there is a possibility of a livelock:
+  * - Refcount goes to zero, last reader wakes up the sleeping
+@@ -115,19 +108,16 @@ void cpu_maps_update_done(void)
+  */
+ static void cpu_hotplug_begin(void)
+ {
+-	DECLARE_WAITQUEUE(wait, current);
+-
+-	mutex_lock(&cpu_hotplug.lock);
+-
+ 	cpu_hotplug.active_writer = current;
+-	add_wait_queue_exclusive(&cpu_hotplug.writer_queue, &wait);
+-	while (cpu_hotplug.refcount) {
+-		set_current_state(TASK_UNINTERRUPTIBLE);
++
++	for (;;) {
++		mutex_lock(&cpu_hotplug.lock);
++		if (likely(!cpu_hotplug.refcount))
++			break;
++		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		mutex_unlock(&cpu_hotplug.lock);
+ 		schedule();
+-		mutex_lock(&cpu_hotplug.lock);
  	}
- 	else if (n < 0) {
- 		printk("harddog_open - read of watchdog pipe failed, "
- 		       "err = %d\n", errno);
--		helper_wait(pid, 1, NULL);
-+		helper_wait(pid);
- 		err = n;
- 		goto out_close_out;
- 	}
+-	remove_wait_queue_locked(&cpu_hotplug.writer_queue, &wait);
+ }
+ 
+ static void cpu_hotplug_done(void)
 _
 
-Patches currently in -mm which might be from johfel@users.sourceforge.net are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
+
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+timers-simplify-lockdep-stuff.patch
+hrtimers-simplify-lockdep-stuff.patch
+kill-double_spin_lock.patch
+redo-locking-of-tty-pgrp.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
