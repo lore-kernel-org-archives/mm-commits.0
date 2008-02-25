@@ -1,84 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - nbd-make-nbd-default-to-deadline-i-o-scheduler.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:08 -0800
-Message-ID: <200802250045.m1P0j88U006231@imap1.linux-foundation.org>
+Subject: - rtc-cmos-display-hpet-emulation-mode.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:55 -0800
+Message-ID: <200802250044.m1P0it8D006144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59122 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755100AbYBYAtb (ORCPT
+	by vger.kernel.org with ESMTP id S1755029AbYBYAtS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:31 -0500
+	Sun, 24 Feb 2008 19:49:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.clements@steeleye.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NBD: make nbd default to deadline I/O scheduler
+     rtc-cmos: display HPET emulation mode
 has been removed from the -mm tree.  Its filename was
-     nbd-make-nbd-default-to-deadline-i-o-scheduler.patch
+     rtc-cmos-display-hpet-emulation-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: NBD: make nbd default to deadline I/O scheduler
-From: Paul Clements <paul.clements@steeleye.com>
+Subject: rtc-cmos: display HPET emulation mode
+From: David Brownell <david-b@pacbell.net>
 
-NBD doesn't work well with CFQ (or AS) schedulers, so let's default to
-something else.
+For the "cmos" RTC, have /proc/driver/rtc say whether HPET based IRQ
+emulation is in effect.  Given the problems we've had with this particular
+hardware maldesign (and the fact that most BIOS code seems not to provide
+the IRQ routing needed to use the saner HPET modes), this should help
+troubleshooting.
 
-The two problems I have experienced with nbd and cfq are:
-
-1) nbd hangs with cfq on RHEL 5 (2.6.18) -- this may well have been
-   fixed
-
-   There's a similar debian bug that has been filed as well:
-
-   http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=447638
-
-   There have been posts to nbd-general mailing list about problems with
-   cfq and nbd also.
-
-2) nbd performs about 10% better (the last time I tested) with deadline
-   vs.  cfq (the overhead of cfq doesn't provide much advantage to nbd [not
-   being a real disk], and you end up going through the I/O scheduler on
-   the nbd server anyway, so it makes sense that deadline is better with
-   nbd)
-
-Signed-off-by: Paul Clements <paul.clements@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/rtc/rtc-cmos.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/nbd.c~nbd-make-nbd-default-to-deadline-i-o-scheduler drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-make-nbd-default-to-deadline-i-o-scheduler
-+++ a/drivers/block/nbd.c
-@@ -655,6 +655,7 @@ static int __init nbd_init(void)
- 
- 	for (i = 0; i < nbds_max; i++) {
- 		struct gendisk *disk = alloc_disk(1);
-+		elevator_t *old_e;
- 		if (!disk)
- 			goto out;
- 		nbd_dev[i].disk = disk;
-@@ -668,6 +669,11 @@ static int __init nbd_init(void)
- 			put_disk(disk);
- 			goto out;
- 		}
-+		old_e = disk->queue->elevator;
-+		if (elevator_init(disk->queue, "deadline") == 0 ||
-+			elevator_init(disk->queue, "noop") == 0) {
-+				elevator_exit(old_e);
-+		}
- 	}
- 
- 	if (register_blkdev(NBD_MAJOR, "nbd")) {
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-display-hpet-emulation-mode drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-display-hpet-emulation-mode
++++ a/drivers/rtc/rtc-cmos.c
+@@ -388,6 +388,7 @@ static int cmos_procfs(struct device *de
+ 	return seq_printf(seq,
+ 			"periodic_IRQ\t: %s\n"
+ 			"update_IRQ\t: %s\n"
++			"HPET_emulated\t: %s\n"
+ 			// "square_wave\t: %s\n"
+ 			// "BCD\t\t: %s\n"
+ 			"DST_enable\t: %s\n"
+@@ -395,6 +396,7 @@ static int cmos_procfs(struct device *de
+ 			"batt_status\t: %s\n",
+ 			(rtc_control & RTC_PIE) ? "yes" : "no",
+ 			(rtc_control & RTC_UIE) ? "yes" : "no",
++			is_hpet_enabled() ? "yes" : "no",
+ 			// (rtc_control & RTC_SQWE) ? "yes" : "no",
+ 			// (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
+ 			(rtc_control & RTC_DST_EN) ? "yes" : "no",
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
+
+git-acpi.patch
+at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
+git-avr32.patch
+usb-net-asix-does-not-really-need-10-100mbit.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
+make-ds1511_rtc_readset_time-static.patch
