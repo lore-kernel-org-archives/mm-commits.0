@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-cleanup-block-kconfig-help-descriptions.patch added to -mm tree
-Date: Mon, 25 Feb 2008 12:10:30 -0800
-Message-ID: <200802252011.m1PKBR5j017405@imap1.linux-foundation.org>
+Subject: + add-noinline_for_stack.patch added to -mm tree
+Date: Mon, 25 Feb 2008 12:24:05 -0800
+Message-ID: <200802252024.m1PKOvJJ017890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34374 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756064AbYBYUNe (ORCPT
+	by vger.kernel.org with ESMTP id S1751237AbYBYUY7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 15:13:34 -0500
+	Mon, 25 Feb 2008 15:24:59 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m1PKOvTh015027
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 25 Feb 2008 12:24:58 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nick@nick-andrew.net, jens.axboe@oracle.com, rdunlap@xenotime.net
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Kconfig: clean up block/Kconfig help descriptions
+     add noinline_for_stack
 has been added to the -mm tree.  Its filename is
-     kconfig-cleanup-block-kconfig-help-descriptions.patch
+     add-noinline_for_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,151 +38,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kconfig: clean up block/Kconfig help descriptions
-From: Nick Andrew <nick@nick-andrew.net>
+Subject: add noinline_for_stack
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Modify the help descriptions of block/Kconfig for clarity, accuracy and
-consistency.
+People are adding `noinline' in various places to prevent excess stack
+consumption due to gcc inlining.  But once this is done, it is quite unobvious
+why the `noinline' is present in the code.  We can comment each and every
+site, or we can use noinline_for_stack.
 
-Refactor the BLOCK description a bit.  The wording "This permits ...  to be
-removed" isn't quite right; the block layer is removed when the option is
-disabled, whereas most descriptions talk about what happens when the option is
-enabled.  Reformat the list of what is affected by disabling the block layer.
 
-Add more examples of large block devices to LBD and strive for technical
-accuracy; block devices of size _exactly_ 2TB require CONFIG_LBD, not only
-"bigger than 2TB".  Also try to say (perhaps not very clearly) that the config
-option is only needed when you want to have individual block devices of size
->= 2TB, for example if you had 3 x 1TB disks in your computer you'd have a
-total storage size of 3TB but you wouldn't need the option unless you want to
-aggregate those disks into a RAID or LVM.
-
-Improve terminology and grammar on BLK_DEV_IO_TRACE.
-
-I also added the boilerplate "If unsure, say N" to most options.
-
-Precisely say "2TB and larger" for LSF.
-
-Indent the help text for BLK_DEV_BSG by 2 spaces in accordance with the
-standard.
-
-Signed-off-by: Nick Andrew <nick@nick-andrew.net>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig |   65 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 42 insertions(+), 23 deletions(-)
+ include/linux/compiler.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN block/Kconfig~kconfig-cleanup-block-kconfig-help-descriptions block/Kconfig
---- a/block/Kconfig~kconfig-cleanup-block-kconfig-help-descriptions
-+++ a/block/Kconfig
-@@ -5,14 +5,18 @@ menuconfig BLOCK
-        bool "Enable the block layer" if EMBEDDED
-        default y
-        help
--	 This permits the block layer to be removed from the kernel if it's not
--	 needed (on some embedded devices for example).  If this option is
--	 disabled, then blockdev files will become unusable and some
--	 filesystems (such as ext3) will become unavailable.
--
--	 This option will also disable SCSI character devices and USB storage
--	 since they make use of various block layer definitions and
--	 facilities.
-+	 Provide block layer support for the kernel.
-+
-+	 Disable this option to remove the block layer support from the
-+	 kernel. This may be useful for embedded devices.
-+
-+	 If this option is disabled:
-+
-+	   - block device files will become unusable
-+	   - some filesystems (such as ext3) will become unavailable.
-+
-+	 Also, SCSI character devices and USB storage will be disabled since
-+	 they make use of various block layer definitions and facilities.
+diff -puN include/linux/compiler.h~add-noinline_for_stack include/linux/compiler.h
+--- a/include/linux/compiler.h~add-noinline_for_stack
++++ a/include/linux/compiler.h
+@@ -138,6 +138,12 @@ extern void __chk_io_ptr(const volatile 
+ #define noinline
+ #endif
  
- 	 Say Y here unless you know you really don't want to mount disks and
- 	 suchlike.
-@@ -23,9 +27,20 @@ config LBD
- 	bool "Support for Large Block Devices"
- 	depends on !64BIT
- 	help
--	  Say Y here if you want to attach large (bigger than 2TB) discs to
--	  your machine, or if you want to have a raid or loopback device
--	  bigger than 2TB.  Otherwise say N.
-+	  Enable block devices of size 2TB and larger.
++/*
++ * Rather then using noinline to prevent stack consumption, use
++ * noinline_for_stack instead.  For documentaiton reasons.
++ */
++#define noinline_for_stack noinline
 +
-+	  This option is required to support the full capacity of large
-+	  (2TB+) block devices, including RAID, disk, Network Block Device,
-+	  Logical Volume Manager (LVM) and loopback.
-+
-+	  For example, RAID devices are frequently bigger than the capacity
-+	  of the largest individual hard drive.
-+
-+	  This option is not required if you have individual disk drives
-+	  which total 2TB+ and you are not aggregating the capacity into
-+	  a large block device (e.g. using RAID or LVM).
-+
-+	  If unsure, say N.
- 
- config BLK_DEV_IO_TRACE
- 	bool "Support for tracing block io actions"
-@@ -33,19 +48,21 @@ config BLK_DEV_IO_TRACE
- 	select RELAY
- 	select DEBUG_FS
- 	help
--	  Say Y here, if you want to be able to trace the block layer actions
-+	  Say Y here if you want to be able to trace the block layer actions
- 	  on a given queue. Tracing allows you to see any traffic happening
--	  on a block device queue. For more information (and the user space
--	  support tools needed), fetch the blktrace app from:
-+	  on a block device queue. For more information (and the userspace
-+	  support tools needed), fetch the blktrace tools from:
- 
- 	  git://brick.kernel.dk/data/git/blktrace.git
- 
-+	  If unsure, say N.
-+
- config LSF
- 	bool "Support for Large Single Files"
- 	depends on !64BIT
- 	help
--	  Say Y here if you want to be able to handle very large files (bigger
--	  than 2TB), otherwise say N.
-+	  Say Y here if you want to be able to handle very large files (2TB
-+	  and larger), otherwise say N.
- 
- 	  If unsure, say Y.
- 
-@@ -53,14 +70,16 @@ config BLK_DEV_BSG
- 	bool "Block layer SG support v4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	---help---
--	Saying Y here will enable generic SG (SCSI generic) v4 support
--	for any block device.
-+	  Saying Y here will enable generic SG (SCSI generic) v4 support
-+	  for any block device.
-+
-+	  Unlike SG v3 (aka block/scsi_ioctl.c drivers/scsi/sg.c), SG v4
-+	  can handle complicated SCSI commands: tagged variable length cdbs
-+	  with bidirectional data transfers and generic request/response
-+	  protocols (e.g. Task Management Functions and SMP in Serial
-+	  Attached SCSI).
- 
--	Unlike SG v3 (aka block/scsi_ioctl.c drivers/scsi/sg.c), SG v4
--	can handle complicated SCSI commands: tagged variable length cdbs
--	with bidirectional data transfers and generic request/response
--	protocols (e.g. Task Management Functions and SMP in Serial
--	Attached SCSI).
-+	  If unsure, say N.
- 
- endif # BLOCK
- 
+ #ifndef __always_inline
+ #define __always_inline inline
+ #endif
 _
 
-Patches currently in -mm which might be from nick@nick-andrew.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kconfig-cleanup-block-kconfig-help-descriptions.patch
-documentation-i386-io-apictxt-fix-description.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-sched.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-fix-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+rtc-add-support-for-the-s-35390a-rtc-chip-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+procfs-task-exe-symlink-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
