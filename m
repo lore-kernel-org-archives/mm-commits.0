@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + iova-lockdep-false-alarm-fix.patch added to -mm tree
-Date: Mon, 25 Feb 2008 10:32:17 -0800
-Message-ID: <200802251833.m1PIX8me013355@imap1.linux-foundation.org>
+Date: Mon, 25 Feb 2008 10:32:40 -0800
+Message-ID: <200802251833.m1PIXVSu013371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56103 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758530AbYBYSdQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755686AbYBYSe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 13:33:16 -0500
+	Mon, 25 Feb 2008 13:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com
+Cc: mgross@linux.intel.com, greg@kroah.com
 
 
 The patch titled
@@ -53,6 +53,7 @@ engines.
 This patch gives the reserved_ioval_list locks special lockdep classes.
 
 Signed-off-by: <mgross@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
