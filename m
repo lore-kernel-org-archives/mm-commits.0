@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-replace-mono_col-macro-with-static-inline.patch added to -mm tree
-Date: Mon, 25 Feb 2008 10:48:26 -0800
-Message-ID: <200802251849.m1PInI7N014061@imap1.linux-foundation.org>
+Subject: + cris-v10-include-mmh-instead-of-vmstath-in-kernel-timec.patch added to -mm tree
+Date: Mon, 25 Feb 2008 10:52:09 -0800
+Message-ID: <200802251853.m1PIr003014229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41663 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754980AbYBYStz (ORCPT
+	by vger.kernel.org with ESMTP id S1757660AbYBYSyK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 13:49:55 -0500
+	Mon, 25 Feb 2008 13:54:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, adaplas@pol.net
+Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     fbcon: replace mono_col macro with static inline
+     CRIS v10: Include mm.h instead of vmstat.h in kernel/time.c
 has been added to the -mm tree.  Its filename is
-     fbcon-replace-mono_col-macro-with-static-inline.patch
+     cris-v10-include-mmh-instead-of-vmstath-in-kernel-timec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: replace mono_col macro with static inline
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: CRIS v10: Include mm.h instead of vmstat.h in kernel/time.c
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Use __u32 for max_len to match the declaration of length in the struct
-fb_bitfield.
+Commit 2f569afd9ced9ebec9a6eb3dbf6f83429be0a7b4
+(CONFIG_HIGHPTE vs. sub-page page tables) introduced use of
+inc_zone_page_state and dec_zone_page_state in include/linux/mm.h.
 
-Suppresses sparse shadowed variable warnings from the nested max()
-macros:
-drivers/video/console/fbcon.h:130:8: warning: symbol '_x' shadows an earlier one
-drivers/video/console/fbcon.h:130:8: originally declared here
-drivers/video/console/fbcon.h:130:8: warning: symbol '_x' shadows an earlier one
-drivers/video/console/fbcon.h:130:8: originally declared here
-drivers/video/console/fbcon.h:130:8: warning: symbol '_y' shadows an earlier one
-drivers/video/console/fbcon.h:130:8: originally declared here
+Those are defined in include/linux/vmstat.h, but after it includes
+mm.h, making it impossible to include vmstat.h since inc_zone_page_state
+and dec_zone_page_state then would be undefined.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+arch/cris/arch-v10/kernel/time.c does just this, which makes the
+CRIS v10 build break with the following error:
+
+...
+  CC      arch/cris/arch-v10/kernel/time.o
+In file included from include/linux/vmstat.h:7,
+                 from arch/cris/arch-v10/kernel/time.c:17:
+include/linux/mm.h: In function 'pgtable_page_ctor':
+include/linux/mm.h:902: error: implicit declaration of function 'inc_zone_page_state'
+include/linux/mm.h: In function 'pgtable_page_dtor':
+include/linux/mm.h:908: error: implicit declaration of function 'dec_zone_page_state'
+make[2]: *** [arch/cris/arch-v10/kernel/time.o] Error 1
+make[1]: *** [arch/cris/arch-v10/kernel] Error 2
+make: *** [sub-make] Error 2
+...
+
+By changing kernel/time.c to include linux/mm.h, the build succeeds.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/cris/arch-v10/kernel/time.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/console/fbcon.h~fbcon-replace-mono_col-macro-with-static-inline drivers/video/console/fbcon.h
---- a/drivers/video/console/fbcon.h~fbcon-replace-mono_col-macro-with-static-inline
-+++ a/drivers/video/console/fbcon.h
-@@ -104,10 +104,14 @@ struct fbcon_ops {
- #define attr_blink(s) \
- 	((s) & 0x8000)
- 	
--#define mono_col(info)							\
--	(~(0xfff << (max((info)->var.green.length,			\
--			 max((info)->var.red.length,			\
--			     (info)->var.blue.length)))) & 0xff)
-+
-+static inline int mono_col(struct fb_info *info)
-+{
-+	__u32 max_len;
-+	max_len = max(info->var.green.length, info->var.red.length);
-+	max_len = max(info->var.blue.length, max_len);
-+	return ~(0xfff << (max_len & 0xff));
-+}
- 
- static inline int attr_col_ec(int shift, struct vc_data *vc,
- 			      struct fb_info *info, int is_fg)
+diff -puN arch/cris/arch-v10/kernel/time.c~cris-v10-include-mmh-instead-of-vmstath-in-kernel-timec arch/cris/arch-v10/kernel/time.c
+--- a/arch/cris/arch-v10/kernel/time.c~cris-v10-include-mmh-instead-of-vmstath-in-kernel-timec
++++ a/arch/cris/arch-v10/kernel/time.c
+@@ -13,7 +13,7 @@
+ #include <linux/swap.h>
+ #include <linux/sched.h>
+ #include <linux/init.h>
+-#include <linux/vmstat.h>
++#include <linux/mm.h>
+ #include <asm/arch/svinto.h>
+ #include <asm/types.h>
+ #include <asm/signal.h>
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
-bttv-struct-member-initialized-twice.patch
-dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-git-nfsd.patch
-git-sched.patch
-git-x86.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-jbd2-sparse-warnings-in-revokec-journalc.patch
+cris-v10-include-mmh-instead-of-vmstath-in-kernel-timec.patch
