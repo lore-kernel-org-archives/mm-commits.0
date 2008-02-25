@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace-fix-2625-ptrace_bts_config-structure-declaration.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:46:13 -0800
-Message-ID: <200802250046.m1P0kDiu006324@imap1.linux-foundation.org>
+Subject: + cgroup-fix-default-notify_on_release-setting.patch added to -mm tree
+Date: Sun, 24 Feb 2008 23:17:16 -0800
+Message-ID: <200802250717.m1P7HG7Q019571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36580 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754997AbYBYAt3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751267AbYBYHSR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:29 -0500
+	Mon, 25 Feb 2008 02:18:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anderson@redhat.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     ptrace: fix 2.6.25 ptrace_bts_config structure declaration
-has been removed from the -mm tree.  Its filename was
-     ptrace-fix-2625-ptrace_bts_config-structure-declaration.patch
+     cgroup: fix default notify_on_release setting
+has been added to the -mm tree.  Its filename is
+     cgroup-fix-default-notify_on_release-setting.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: fix 2.6.25 ptrace_bts_config structure declaration
-From: Dave Anderson <anderson@redhat.com>
+Subject: cgroup: fix default notify_on_release setting
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The 2.6.25 ptrace_bts_config structure in asm-x86/ptrace-abi.h is defined
-with u32 types:
+The documentation says the default value of notify_on_release of a child
+cgroup is inherited from its parent, which is reasonable, but the
+implementation just sets the flag disabled.
 
-   #include <asm/types.h>
-
-   /* configuration/status structure used in PTRACE_BTS_CONFIG and
-      PTRACE_BTS_STATUS commands.
-   */
-   struct ptrace_bts_config {
-           /* requested or actual size of BTS buffer in bytes */
-           u32 size;
-           /* bitmask of below flags */
-           u32 flags;
-           /* buffer overflow signal */
-           u32 signal;
-           /* actual size of bts_struct in bytes */
-           u32 bts_size;
-   };
-   #endif
-
-But u32 is only accessible in asm-x86/types.h if __KERNEL__, leading to
-compile errors when ptrace.h is included from user-space.  Perhaps the
-double-underscore versions that are exported to user-space in
-asm-x86/types.h should be used instead?
-
-Signed-off-by: Dave Anderson <anderson@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/ptrace-abi.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/cgroup.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-x86/ptrace-abi.h~ptrace-fix-2625-ptrace_bts_config-structure-declaration include/asm-x86/ptrace-abi.h
---- a/include/asm-x86/ptrace-abi.h~ptrace-fix-2625-ptrace_bts_config-structure-declaration
-+++ a/include/asm-x86/ptrace-abi.h
-@@ -89,13 +89,13 @@
- */
- struct ptrace_bts_config {
- 	/* requested or actual size of BTS buffer in bytes */
--	u32 size;
-+	__u32 size;
- 	/* bitmask of below flags */
--	u32 flags;
-+	__u32 flags;
- 	/* buffer overflow signal */
--	u32 signal;
-+	__u32 signal;
- 	/* actual size of bts_struct in bytes */
--	u32 bts_size;
-+	__u32 bts_size;
- };
- #endif
+diff -puN kernel/cgroup.c~cgroup-fix-default-notify_on_release-setting kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-default-notify_on_release-setting
++++ a/kernel/cgroup.c
+@@ -2232,7 +2232,6 @@ static long cgroup_create(struct cgroup 
  
+ 	mutex_lock(&cgroup_mutex);
+ 
+-	cgrp->flags = 0;
+ 	INIT_LIST_HEAD(&cgrp->sibling);
+ 	INIT_LIST_HEAD(&cgrp->children);
+ 	INIT_LIST_HEAD(&cgrp->css_sets);
+@@ -2242,6 +2241,9 @@ static long cgroup_create(struct cgroup 
+ 	cgrp->root = parent->root;
+ 	cgrp->top_cgroup = parent->top_cgroup;
+ 
++	if (notify_on_release(parent))
++		set_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
++
+ 	for_each_subsys(root, ss) {
+ 		struct cgroup_subsys_state *css = ss->create(ss, cgrp);
+ 		if (IS_ERR(css)) {
 _
 
-Patches currently in -mm which might be from anderson@redhat.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-git-x86.patch
+cgroup-fix-default-notify_on_release-setting.patch
