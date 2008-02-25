@@ -1,78 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:44:24 -0800
-Message-ID: <200802250044.m1P0iOd5006107@imap1.linux-foundation.org>
+Subject: - proc-pid-pagemap-fix-pm_special-macro.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:44:21 -0800
+Message-ID: <200802250044.m1P0iLdj006102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44972 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753275AbYBYApG (ORCPT
+	by vger.kernel.org with ESMTP id S1753085AbYBYAo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:45:06 -0500
+	Sun, 24 Feb 2008 19:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, agl@us.ibm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: hans.rosenfeld@amd.com, Hans.Rosenfeld@amd.com, haveblue@us.ibm.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: ensure we do not reference a surplus page after handing it to buddy
+     /proc/pid/pagemap: fix PM_SPECIAL macro
 has been removed from the -mm tree.  Its filename was
-     hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy.patch
+     proc-pid-pagemap-fix-pm_special-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: ensure we do not reference a surplus page after handing it to buddy
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: /proc/pid/pagemap: fix PM_SPECIAL macro
+From: "Hans Rosenfeld" <hans.rosenfeld@amd.com>
 
-When we free a page via free_huge_page and we detect that we are in surplus
-the page will be returned to the buddy.  After this we no longer own the page.
- However at the end free_huge_page we clear out our mapping pointer from page
-private.  Even where the page is not a surplus we free the page to the
-hugepage pool, drop the pool locks and then clear page private.  In either
-case the page may have been reallocated.  BAD.
+There seems to be a bug in the PM_SPECIAL macro for /proc/pid/pagemap.  I
+think masking out those other bits makes more sense then setting all those
+mask bits.
 
-Make sure we clear out page private before we free the page.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Adam Litke <agl@us.ibm.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Hans Rosenfeld <Hans.Rosenfeld@amd.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ fs/proc/task_mmu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-ensure-we-do-not-reference-a-surplus-page-after-handing-it-to-buddy
-+++ a/mm/hugetlb.c
-@@ -120,6 +120,7 @@ static void free_huge_page(struct page *
- 	struct address_space *mapping;
- 
- 	mapping = (struct address_space *) page_private(page);
-+	set_page_private(page, 0);
- 	BUG_ON(page_count(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
-@@ -134,7 +135,6 @@ static void free_huge_page(struct page *
- 	spin_unlock(&hugetlb_lock);
- 	if (mapping)
- 		hugetlb_put_quota(mapping, 1);
--	set_page_private(page, 0);
- }
- 
- /*
+diff -puN fs/proc/task_mmu.c~proc-pid-pagemap-fix-pm_special-macro fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-pid-pagemap-fix-pm_special-macro
++++ a/fs/proc/task_mmu.c
+@@ -531,7 +531,7 @@ struct pagemapread {
+ #define PM_RESERVED_BITS    3
+ #define PM_RESERVED_OFFSET  (64 - PM_RESERVED_BITS)
+ #define PM_RESERVED_MASK    (((1LL<<PM_RESERVED_BITS)-1) << PM_RESERVED_OFFSET)
+-#define PM_SPECIAL(nr)      (((nr) << PM_RESERVED_OFFSET) | PM_RESERVED_MASK)
++#define PM_SPECIAL(nr)      (((nr) << PM_RESERVED_OFFSET) & PM_RESERVED_MASK)
+ #define PM_NOT_PRESENT      PM_SPECIAL(1LL)
+ #define PM_SWAP             PM_SPECIAL(2LL)
+ #define PM_END_OF_BUFFER    1
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from hans.rosenfeld@amd.com are
 
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-update-checkpatchpl-to-version-015.patch
-init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch
-generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
-x86_64-fold-pda-into-per-cpu-area-v3.patch
-x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
-page-owner-tracking-leak-detector.patch
+git-x86.patch
