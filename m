@@ -1,483 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-defconfig-update.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:35 -0800
-Message-ID: <200802250045.m1P0jZdu006270@imap1.linux-foundation.org>
+Subject: - proc-add-rlimit_rttime-to-proc-pid-limits.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:12 -0800
+Message-ID: <200802250045.m1P0jCJZ006238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52352 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753615AbYBYAsk (ORCPT
+	by vger.kernel.org with ESMTP id S1753629AbYBYAsr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:48:40 -0500
+	Sun, 24 Feb 2008 19:48:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: eugeneteo@kernel.sg, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300: defconfig update
+     proc: add RLIMIT_RTTIME to /proc/<pid>/limits
 has been removed from the -mm tree.  Its filename was
-     h8300-defconfig-update.patch
+     proc-add-rlimit_rttime-to-proc-pid-limits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: defconfig update
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: proc: add RLIMIT_RTTIME to /proc/<pid>/limits
+From: Eugene Teo <eugeneteo@kernel.sg>
 
-defconfig update.
+RLIMIT_RTTIME was introduced to allow the user to set a runtime timeout on
+real-time tasks: http://lkml.org/lkml/2007/12/18/218. This patch updates
+/proc/<pid>/limits with the new rlimit.
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Eugene Teo <eugeneteo@kernel.sg>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/defconfig |  263 +++++++++++++++++++++--------------------
- 1 file changed, 140 insertions(+), 123 deletions(-)
+ fs/proc/base.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/h8300/defconfig~h8300-defconfig-update arch/h8300/defconfig
---- a/arch/h8300/defconfig~h8300-defconfig-update
-+++ a/arch/h8300/defconfig
-@@ -1,51 +1,98 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.11-rc1
--# Sun Jan 16 17:24:38 2005
-+# Linux kernel version: 2.6.25-rc1
-+# Fri Feb 15 17:13:14 2008
- #
- CONFIG_H8300=y
- # CONFIG_MMU is not set
- # CONFIG_SWAP is not set
-+CONFIG_ZONE_DMA=y
- # CONFIG_FPU is not set
--CONFIG_UID16=y
- CONFIG_RWSEM_GENERIC_SPINLOCK=y
- # CONFIG_RWSEM_XCHGADD_ALGORITHM is not set
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_GENERIC_FIND_NEXT_BIT=y
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_HARDIRQS=y
- CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_GENERIC_TIME=y
-+CONFIG_TIME_LOW_RES=y
-+CONFIG_ARCH_SUPPORTS_AOUT=y
-+CONFIG_NO_IOPORT=y
-+CONFIG_NO_DMA=y
- CONFIG_ISA=y
- # CONFIG_PCI is not set
-+CONFIG_HZ=100
-+CONFIG_C_SYMBOL_PREFIX=y
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+diff -puN fs/proc/base.c~proc-add-rlimit_rttime-to-proc-pid-limits fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-rlimit_rttime-to-proc-pid-limits
++++ a/fs/proc/base.c
+@@ -416,6 +416,7 @@ static const struct limit_names lnames[R
+ 	[RLIMIT_MSGQUEUE] = {"Max msgqueue size", "bytes"},
+ 	[RLIMIT_NICE] = {"Max nice priority", NULL},
+ 	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
++	[RLIMIT_RTTIME] = {"Max realtime timeout", "us"},
+ };
  
- #
--# Code maturity level options
-+# General setup
- #
- CONFIG_EXPERIMENTAL=y
--CONFIG_CLEAN_COMPILE=y
- CONFIG_BROKEN_ON_SMP=y
--
--#
--# General setup
--#
-+CONFIG_INIT_ENV_ARG_LIMIT=32
- CONFIG_LOCALVERSION=""
-+# CONFIG_LOCALVERSION_AUTO is not set
-+# CONFIG_SYSVIPC is not set
- # CONFIG_BSD_PROCESS_ACCT is not set
--# CONFIG_SYSCTL is not set
--# CONFIG_AUDIT is not set
--CONFIG_LOG_BUF_SHIFT=14
--# CONFIG_HOTPLUG is not set
- # CONFIG_IKCONFIG is not set
-+CONFIG_LOG_BUF_SHIFT=14
-+# CONFIG_CGROUPS is not set
-+# CONFIG_FAIR_GROUP_SCHED is not set
-+# CONFIG_SYSFS_DEPRECATED is not set
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+# CONFIG_BLK_DEV_INITRD is not set
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
- CONFIG_EMBEDDED=y
-+# CONFIG_UID16 is not set
-+# CONFIG_SYSCTL_SYSCALL is not set
- # CONFIG_KALLSYMS is not set
-+# CONFIG_HOTPLUG is not set
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+CONFIG_ELF_CORE=y
-+# CONFIG_COMPAT_BRK is not set
-+# CONFIG_BASE_FULL is not set
- # CONFIG_FUTEX is not set
- # CONFIG_EPOLL is not set
--CONFIG_CC_OPTIMIZE_FOR_SIZE=y
--CONFIG_CC_ALIGN_FUNCTIONS=0
--CONFIG_CC_ALIGN_LABELS=0
--CONFIG_CC_ALIGN_LOOPS=0
--CONFIG_CC_ALIGN_JUMPS=0
-+# CONFIG_SIGNALFD is not set
-+# CONFIG_TIMERFD is not set
-+# CONFIG_EVENTFD is not set
-+# CONFIG_VM_EVENT_COUNTERS is not set
-+# CONFIG_SLAB is not set
-+# CONFIG_SLUB is not set
-+CONFIG_SLOB=y
-+# CONFIG_PROFILING is not set
-+# CONFIG_MARKERS is not set
-+# CONFIG_HAVE_OPROFILE is not set
-+# CONFIG_HAVE_KPROBES is not set
- CONFIG_TINY_SHMEM=y
-+CONFIG_BASE_SMALL=1
-+# CONFIG_MODULES is not set
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_LSF is not set
-+# CONFIG_BLK_DEV_BSG is not set
- 
- #
--# Loadable module support
-+# IO Schedulers
- #
--# CONFIG_MODULES is not set
-+CONFIG_IOSCHED_NOOP=y
-+# CONFIG_IOSCHED_AS is not set
-+# CONFIG_IOSCHED_DEADLINE is not set
-+# CONFIG_IOSCHED_CFQ is not set
-+# CONFIG_DEFAULT_AS is not set
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
-+CONFIG_DEFAULT_NOOP=y
-+CONFIG_DEFAULT_IOSCHED="noop"
-+CONFIG_CLASSIC_RCU=y
-+# CONFIG_PREEMPT_RCU is not set
- 
- #
- # Processor type and features
-@@ -62,14 +109,26 @@ CONFIG_H8300H_GENERIC=y
- # Detail Selection
- #
- # CONFIG_H83002 is not set
--# CONFIG_H83007 is not set
-+CONFIG_H83007=y
- # CONFIG_H83048 is not set
--CONFIG_H83068=y
-+# CONFIG_H83068 is not set
- CONFIG_CPU_CLOCK=20000
--# CONFIG_RAMKERNEL is not set
--CONFIG_ROMKERNEL=y
-+CONFIG_RAMKERNEL=y
-+# CONFIG_ROMKERNEL is not set
- CONFIG_CPU_H8300H=y
- # CONFIG_PREEMPT is not set
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+# CONFIG_SPARSEMEM_STATIC is not set
-+# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_RESOURCES_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=1
-+CONFIG_VIRT_TO_BUS=y
- 
- #
- # Executable file formats
-@@ -77,34 +136,42 @@ CONFIG_CPU_H8300H=y
- CONFIG_BINFMT_FLAT=y
- CONFIG_BINFMT_ZFLAT=y
- # CONFIG_BINFMT_SHARED_FLAT is not set
--# CONFIG_BINFMT_MISC is not set
-+CONFIG_BINFMT_MISC=y
- 
- #
--# Generic Driver Options
-+# Networking
- #
--# CONFIG_STANDALONE is not set
--# CONFIG_PREVENT_FIRMWARE_BUILD is not set
--# CONFIG_FW_LOADER is not set
--# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_NET is not set
- 
- #
--# Memory Technology Devices (MTD)
-+# Generic Driver Options
- #
-+CONFIG_STANDALONE=y
-+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
-+# CONFIG_SYS_HYPERVISOR is not set
- CONFIG_MTD=y
- # CONFIG_MTD_DEBUG is not set
-+# CONFIG_MTD_CONCAT is not set
- CONFIG_MTD_PARTITIONS=y
--CONFIG_MTD_CONCAT=y
--# CONFIG_MTD_REDBOOT_PARTS is not set
-+CONFIG_MTD_REDBOOT_PARTS=y
-+CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
-+# CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
-+# CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
- # CONFIG_MTD_CMDLINE_PARTS is not set
- 
- #
- # User Modules And Translation Layers
- #
- CONFIG_MTD_CHAR=y
--CONFIG_MTD_BLOCK=y
-+# CONFIG_MTD_BLKDEVS is not set
-+# CONFIG_MTD_BLOCK is not set
-+# CONFIG_MTD_BLOCK_RO is not set
- # CONFIG_FTL is not set
- # CONFIG_NFTL is not set
- # CONFIG_INFTL is not set
-+# CONFIG_RFD_FTL is not set
-+# CONFIG_SSFDC is not set
-+# CONFIG_MTD_OOPS is not set
- 
- #
- # RAM/ROM/Flash chip drivers
-@@ -129,7 +196,9 @@ CONFIG_MTD_ROM=y
- # Mapping drivers for chip access
- #
- # CONFIG_MTD_COMPLEX_MAPPINGS is not set
-+# CONFIG_MTD_PHYSMAP is not set
- CONFIG_MTD_UCLINUX=y
-+# CONFIG_MTD_PLATRAM is not set
- 
- #
- # Self-contained MTD device drivers
-@@ -137,7 +206,6 @@ CONFIG_MTD_UCLINUX=y
- # CONFIG_MTD_SLRAM is not set
- # CONFIG_MTD_PHRAM is not set
- # CONFIG_MTD_MTDRAM is not set
--# CONFIG_MTD_BLKMTD is not set
- # CONFIG_MTD_BLOCK2MTD is not set
- 
- #
-@@ -146,63 +214,27 @@ CONFIG_MTD_UCLINUX=y
- # CONFIG_MTD_DOC2000 is not set
- # CONFIG_MTD_DOC2001 is not set
- # CONFIG_MTD_DOC2001PLUS is not set
--
--#
--# NAND Flash Device Drivers
--#
- # CONFIG_MTD_NAND is not set
-+# CONFIG_MTD_ONENAND is not set
- 
- #
--# Block devices
--#
--# CONFIG_BLK_DEV_FD is not set
--# CONFIG_BLK_DEV_XD is not set
--# CONFIG_BLK_DEV_LOOP is not set
--# CONFIG_BLK_DEV_RAM is not set
--CONFIG_BLK_DEV_RAM_COUNT=16
--CONFIG_INITRAMFS_SOURCE=""
--# CONFIG_CDROM_PKTCDVD is not set
--
--#
--# IO Schedulers
--#
--CONFIG_IOSCHED_NOOP=y
--# CONFIG_IOSCHED_AS is not set
--# CONFIG_IOSCHED_DEADLINE is not set
--# CONFIG_IOSCHED_CFQ is not set
--
--#
--# ATA/ATAPI/MFM/RLL support
-+# UBI - Unsorted block images
- #
-+# CONFIG_MTD_UBI is not set
-+# CONFIG_BLK_DEV is not set
-+CONFIG_HAVE_IDE=y
- # CONFIG_IDE is not set
- 
- #
--# Networking support
--#
--# CONFIG_NET is not set
--# CONFIG_NETPOLL is not set
--# CONFIG_NET_POLL_CONTROLLER is not set
--
--#
- # Input device support
- #
- # CONFIG_INPUT is not set
- 
- #
--# Userland interfaces
--#
--
--#
--# Input I/O drivers
-+# Hardware I/O ports
- #
--# CONFIG_GAMEPORT is not set
--CONFIG_SOUND_GAMEPORT=y
- # CONFIG_SERIO is not set
--# CONFIG_SERIO_I8042 is not set
--
--#
--# Input Device Drivers
--#
-+# CONFIG_GAMEPORT is not set
- 
- #
- # Character devices
-@@ -223,45 +255,31 @@ CONFIG_SOUND_GAMEPORT=y
- # Non-8250 serial port support
- #
- CONFIG_SERIAL_SH_SCI=y
-+CONFIG_SERIAL_SH_SCI_NR_UARTS=2
- CONFIG_SERIAL_SH_SCI_CONSOLE=y
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
--
--#
--# I2C support
--#
- # CONFIG_I2C is not set
--
--#
--# USB support
--#
--# CONFIG_USB_ARCH_HAS_HCD is not set
--# CONFIG_USB_ARCH_HAS_OHCI is not set
--
--#
--# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support' may also be needed; see USB_STORAGE Help for more information
--#
--
--#
--# USB Gadget Support
--#
--# CONFIG_USB_GADGET is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_USB_SUPPORT is not set
- 
- #
- # File systems
- #
- # CONFIG_EXT2_FS is not set
- # CONFIG_EXT3_FS is not set
--# CONFIG_JBD is not set
-+# CONFIG_EXT4DEV_FS is not set
- # CONFIG_REISERFS_FS is not set
- # CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
- # CONFIG_XFS_FS is not set
--# CONFIG_MINIX_FS is not set
--CONFIG_ROMFS_FS=y
--# CONFIG_QUOTA is not set
-+# CONFIG_GFS2_FS is not set
- # CONFIG_DNOTIFY is not set
-+# CONFIG_INOTIFY is not set
-+# CONFIG_QUOTA is not set
- # CONFIG_AUTOFS_FS is not set
- # CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
- 
- #
- # CD-ROM/DVD Filesystems
-@@ -280,11 +298,11 @@ CONFIG_ROMFS_FS=y
- # Pseudo filesystems
- #
- CONFIG_PROC_FS=y
--# CONFIG_SYSFS is not set
--# CONFIG_DEVFS_FS is not set
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSFS=y
- # CONFIG_TMPFS is not set
- # CONFIG_HUGETLB_PAGE is not set
--CONFIG_RAMFS=y
-+# CONFIG_CONFIGFS_FS is not set
- 
- #
- # Miscellaneous filesystems
-@@ -296,12 +314,13 @@ CONFIG_RAMFS=y
- # CONFIG_BEFS_FS is not set
- # CONFIG_BFS_FS is not set
- # CONFIG_EFS_FS is not set
--# CONFIG_JFFS_FS is not set
- # CONFIG_JFFS2_FS is not set
- # CONFIG_CRAMFS is not set
- # CONFIG_VXFS_FS is not set
-+# CONFIG_MINIX_FS is not set
- # CONFIG_HPFS_FS is not set
- # CONFIG_QNX4FS_FS is not set
-+CONFIG_ROMFS_FS=y
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
- 
-@@ -310,22 +329,23 @@ CONFIG_RAMFS=y
- #
- # CONFIG_PARTITION_ADVANCED is not set
- CONFIG_MSDOS_PARTITION=y
--
--#
--# Native Language Support
--#
- # CONFIG_NLS is not set
- 
- #
- # Kernel hacking
- #
--CONFIG_DEBUG_KERNEL=y
--# CONFIG_SCHEDSTATS is not set
--# CONFIG_DEBUG_KOBJECT is not set
-+# CONFIG_PRINTK_TIME is not set
-+# CONFIG_ENABLE_WARN_DEPRECATED is not set
-+# CONFIG_ENABLE_MUST_CHECK is not set
-+# CONFIG_MAGIC_SYSRQ is not set
-+# CONFIG_UNUSED_SYMBOLS is not set
- # CONFIG_DEBUG_FS is not set
--CONFIG_FULLDEBUG=y
-+# CONFIG_HEADERS_CHECK is not set
-+# CONFIG_DEBUG_KERNEL is not set
-+# CONFIG_SAMPLES is not set
-+# CONFIG_FULLDEBUG is not set
- # CONFIG_HIGHPROFILE is not set
--CONFIG_NO_KERNEL_MSG=y
-+# CONFIG_NO_KERNEL_MSG is not set
- # CONFIG_SYSCALL_PRINT is not set
- # CONFIG_GDB_DEBUG is not set
- # CONFIG_SH_STANDARD_BIOS is not set
-@@ -337,20 +357,17 @@ CONFIG_NO_KERNEL_MSG=y
- #
- # CONFIG_KEYS is not set
- # CONFIG_SECURITY is not set
--
--#
--# Cryptographic options
--#
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
- # CONFIG_CRYPTO is not set
- 
- #
--# Hardware crypto devices
--#
--
--#
- # Library routines
- #
- # CONFIG_CRC_CCITT is not set
--CONFIG_CRC32=y
-+# CONFIG_CRC16 is not set
-+# CONFIG_CRC_ITU_T is not set
-+# CONFIG_CRC32 is not set
-+# CONFIG_CRC7 is not set
- # CONFIG_LIBCRC32C is not set
- CONFIG_ZLIB_INFLATE=y
-+CONFIG_HAS_IOMEM=y
+ /* Display limits for a process */
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from eugeneteo@kernel.sg are
 
-elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+git-sched.patch
