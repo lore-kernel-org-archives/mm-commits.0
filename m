@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-indicate-kretprobe-support-in-kconfig.patch added to -mm tree
-Date: Sun, 24 Feb 2008 23:20:39 -0800
-Message-ID: <200802250720.m1P7Kd38019674@imap1.linux-foundation.org>
+Subject: + kprobes-move-kprobe-examples-to-samples.patch added to -mm tree
+Date: Sun, 24 Feb 2008 23:20:42 -0800
+Message-ID: <200802250720.m1P7Kg7K019677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51197 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750726AbYBYHVb (ORCPT
+	by vger.kernel.org with ESMTP id S1751413AbYBYHWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 02:21:31 -0500
+	Mon, 25 Feb 2008 02:22:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ananth@in.ibm.com, mathieu.desnoyers@polymtl.ca
+Cc: ananth@in.ibm.com, mathieu.desnoyers@polymtl.ca, randy.dunlap@oracle.com
 
 
 The patch titled
-     Kprobes: indicate kretprobe support in Kconfig
+     Kprobes: move kprobe examples to samples/
 has been added to the -mm tree.  Its filename is
-     kprobes-indicate-kretprobe-support-in-kconfig.patch
+     kprobes-move-kprobe-examples-to-samples.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,248 +34,620 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kprobes: indicate kretprobe support in Kconfig
+Subject: Kprobes: move kprobe examples to samples/
 From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 
-Add CONFIG_HAVE_KRETPROBES to the arch/<arch>/Kconfig file for relevant
-architectures with kprobes support.  This facilitates easy handling of
-in-kernel modules (like samples/kprobes/kretprobe_example.c) that depend on
-kretprobes being present in the kernel.
+Move kprobes examples from Documentation/kprobes.txt to under samples/.
+Patch originally by Randy Dunlap.
 
-Thanks to Sam Ravnborg for helping make the patch more lean.
+o Updated the patch to apply on 2.6.25-rc3
+o Modified examples code to build on multiple architectures. Currently,
+  the kprobe and jprobe examples code works for x86 and powerpc
+o Cleaned up unneeded #includes
+o Cleaned up Kconfig per Sam Ravnborg's suggestions to fix build break
+  on archs that don't have kretprobes
+o Implemented suggestions by Mathieu Desnoyers on CONFIG_KRETPROBES
+o Included Andrew Morton's cleanup based on x86-git
+o Modified kretprobe_example to act as a arch-agnostic module to
+  determine routine execution times:
+	Use 'modprobe kretprobe_example func=<func_name>' to determine
+	execution time of func_name in nanoseconds.
 
-Per Mathieu's suggestion, added CONFIG_KRETPROBES and fixed up dependencies.
-
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                  |    7 +++++++
- arch/arm/Kconfig              |    1 +
- arch/ia64/Kconfig             |    1 +
- arch/powerpc/Kconfig          |    1 +
- arch/s390/Kconfig             |    1 +
- arch/sparc64/Kconfig          |    1 +
- arch/x86/Kconfig              |    1 +
- include/asm-arm/kprobes.h     |    1 -
- include/asm-ia64/kprobes.h    |    1 -
- include/asm-powerpc/kprobes.h |    1 -
- include/asm-s390/kprobes.h    |    1 -
- include/asm-sparc64/kprobes.h |    2 --
- include/asm-x86/kprobes.h     |    1 -
- include/linux/kprobes.h       |    6 +++---
- kernel/kprobes.c              |    9 +++------
- 15 files changed, 19 insertions(+), 16 deletions(-)
+ Documentation/kprobes.txt           |  243 --------------------------
+ samples/Kconfig                     |   11 +
+ samples/Makefile                    |    2 
+ samples/kprobes/Makefile            |    5 
+ samples/kprobes/jprobe_example.c    |   68 +++++++
+ samples/kprobes/kprobe_example.c    |   91 +++++++++
+ samples/kprobes/kretprobe_example.c |  106 +++++++++++
+ 7 files changed, 287 insertions(+), 239 deletions(-)
 
-diff -puN arch/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/Kconfig
---- a/arch/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/Kconfig
-@@ -27,5 +27,12 @@ config KPROBES
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
+diff -puN Documentation/kprobes.txt~kprobes-move-kprobe-examples-to-samples Documentation/kprobes.txt
+--- a/Documentation/kprobes.txt~kprobes-move-kprobe-examples-to-samples
++++ a/Documentation/kprobes.txt
+@@ -192,7 +192,8 @@ code mapping.
+ The Kprobes API includes a "register" function and an "unregister"
+ function for each type of probe.  Here are terse, mini-man-page
+ specifications for these functions and the associated probe handlers
+-that you'll write.  See the latter half of this document for examples.
++that you'll write.  See the files in the samples/kprobes/ sub-directory
++for examples.
  
-+config KRETPROBES
-+	def_bool y
-+	depends on KPROBES && HAVE_KRETPROBES
+ 4.1 register_kprobe
+ 
+@@ -420,249 +421,15 @@ e. Watchpoint probes (which fire on data
+ 
+ 8. Kprobes Example
+ 
+-Here's a sample kernel module showing the use of kprobes to dump a
+-stack trace and selected i386 registers when do_fork() is called.
+------ cut here -----
+-/*kprobe_example.c*/
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/kprobes.h>
+-#include <linux/sched.h>
+-
+-/*For each probe you need to allocate a kprobe structure*/
+-static struct kprobe kp;
+-
+-/*kprobe pre_handler: called just before the probed instruction is executed*/
+-int handler_pre(struct kprobe *p, struct pt_regs *regs)
+-{
+-	printk("pre_handler: p->addr=0x%p, eip=%lx, eflags=0x%lx\n",
+-		p->addr, regs->eip, regs->eflags);
+-	dump_stack();
+-	return 0;
+-}
+-
+-/*kprobe post_handler: called after the probed instruction is executed*/
+-void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
+-{
+-	printk("post_handler: p->addr=0x%p, eflags=0x%lx\n",
+-		p->addr, regs->eflags);
+-}
+-
+-/* fault_handler: this is called if an exception is generated for any
+- * instruction within the pre- or post-handler, or when Kprobes
+- * single-steps the probed instruction.
+- */
+-int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
+-{
+-	printk("fault_handler: p->addr=0x%p, trap #%dn",
+-		p->addr, trapnr);
+-	/* Return 0 because we don't handle the fault. */
+-	return 0;
+-}
+-
+-static int __init kprobe_init(void)
+-{
+-	int ret;
+-	kp.pre_handler = handler_pre;
+-	kp.post_handler = handler_post;
+-	kp.fault_handler = handler_fault;
+-	kp.symbol_name = "do_fork";
+-
+-	ret = register_kprobe(&kp);
+-	if (ret < 0) {
+-		printk("register_kprobe failed, returned %d\n", ret);
+-		return ret;
+-	}
+-	printk("kprobe registered\n");
+-	return 0;
+-}
+-
+-static void __exit kprobe_exit(void)
+-{
+-	unregister_kprobe(&kp);
+-	printk("kprobe unregistered\n");
+-}
+-
+-module_init(kprobe_init)
+-module_exit(kprobe_exit)
+-MODULE_LICENSE("GPL");
+------ cut here -----
+-
+-You can build the kernel module, kprobe-example.ko, using the following
+-Makefile:
+------ cut here -----
+-obj-m := kprobe-example.o
+-KDIR := /lib/modules/$(shell uname -r)/build
+-PWD := $(shell pwd)
+-default:
+-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+-clean:
+-	rm -f *.mod.c *.ko *.o
+------ cut here -----
+-
+-$ make
+-$ su -
+-...
+-# insmod kprobe-example.ko
+-
+-You will see the trace data in /var/log/messages and on the console
+-whenever do_fork() is invoked to create a new process.
++See samples/kprobes/kprobe_example.c
+ 
+ 9. Jprobes Example
+ 
+-Here's a sample kernel module showing the use of jprobes to dump
+-the arguments of do_fork().
+------ cut here -----
+-/*jprobe-example.c */
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/fs.h>
+-#include <linux/uio.h>
+-#include <linux/kprobes.h>
+-
+-/*
+- * Jumper probe for do_fork.
+- * Mirror principle enables access to arguments of the probed routine
+- * from the probe handler.
+- */
+-
+-/* Proxy routine having the same arguments as actual do_fork() routine */
+-long jdo_fork(unsigned long clone_flags, unsigned long stack_start,
+-	      struct pt_regs *regs, unsigned long stack_size,
+-	      int __user * parent_tidptr, int __user * child_tidptr)
+-{
+-	printk("jprobe: clone_flags=0x%lx, stack_size=0x%lx, regs=0x%p\n",
+-	       clone_flags, stack_size, regs);
+-	/* Always end with a call to jprobe_return(). */
+-	jprobe_return();
+-	/*NOTREACHED*/
+-	return 0;
+-}
+-
+-static struct jprobe my_jprobe = {
+-	.entry = jdo_fork
+-};
+-
+-static int __init jprobe_init(void)
+-{
+-	int ret;
+-	my_jprobe.kp.symbol_name = "do_fork";
+-
+-	if ((ret = register_jprobe(&my_jprobe)) <0) {
+-		printk("register_jprobe failed, returned %d\n", ret);
+-		return -1;
+-	}
+-	printk("Planted jprobe at %p, handler addr %p\n",
+-	       my_jprobe.kp.addr, my_jprobe.entry);
+-	return 0;
+-}
+-
+-static void __exit jprobe_exit(void)
+-{
+-	unregister_jprobe(&my_jprobe);
+-	printk("jprobe unregistered\n");
+-}
+-
+-module_init(jprobe_init)
+-module_exit(jprobe_exit)
+-MODULE_LICENSE("GPL");
+------ cut here -----
+-
+-Build and insert the kernel module as shown in the above kprobe
+-example.  You will see the trace data in /var/log/messages and on
+-the console whenever do_fork() is invoked to create a new process.
+-(Some messages may be suppressed if syslogd is configured to
+-eliminate duplicate messages.)
++See samples/kprobes/jprobe_example.c
+ 
+ 10. Kretprobes Example
+ 
+-Here's a sample kernel module showing the use of return probes to
+-report failed calls to sys_open().
+------ cut here -----
+-/*kretprobe-example.c*/
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/kprobes.h>
+-#include <linux/ktime.h>
+-
+-/* per-instance private data */
+-struct my_data {
+-	ktime_t entry_stamp;
+-};
+-
+-static const char *probed_func = "sys_open";
+-
+-/* Timestamp function entry. */
+-static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
+-{
+-	struct my_data *data;
+-
+-	if(!current->mm)
+-		return 1; /* skip kernel threads */
+-
+-	data = (struct my_data *)ri->data;
+-	data->entry_stamp = ktime_get();
+-	return 0;
+-}
+-
+-/* If the probed function failed, log the return value and duration.
+- * Duration may turn out to be zero consistently, depending upon the
+- * granularity of time accounting on the platform. */
+-static int return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
+-{
+-	int retval = regs_return_value(regs);
+-	struct my_data *data = (struct my_data *)ri->data;
+-	s64 delta;
+-	ktime_t now;
+-
+-	if (retval < 0) {
+-		now = ktime_get();
+-		delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
+-		printk("%s: return val = %d (duration = %lld ns)\n",
+-		       probed_func, retval, delta);
+-	}
+-	return 0;
+-}
+-
+-static struct kretprobe my_kretprobe = {
+-	.handler = return_handler,
+-	.entry_handler = entry_handler,
+-	.data_size = sizeof(struct my_data),
+-	.maxactive = 20, /* probe up to 20 instances concurrently */
+-};
+-
+-static int __init kretprobe_init(void)
+-{
+-	int ret;
+-	my_kretprobe.kp.symbol_name = (char *)probed_func;
+-
+-	if ((ret = register_kretprobe(&my_kretprobe)) < 0) {
+-		printk("register_kretprobe failed, returned %d\n", ret);
+-		return -1;
+-	}
+-	printk("Kretprobe active on %s\n", my_kretprobe.kp.symbol_name);
+-	return 0;
+-}
+-
+-static void __exit kretprobe_exit(void)
+-{
+-	unregister_kretprobe(&my_kretprobe);
+-	printk("kretprobe unregistered\n");
+-	/* nmissed > 0 suggests that maxactive was set too low. */
+-	printk("Missed probing %d instances of %s\n",
+-	       my_kretprobe.nmissed, probed_func);
+-}
+-
+-module_init(kretprobe_init)
+-module_exit(kretprobe_exit)
+-MODULE_LICENSE("GPL");
+------ cut here -----
+-
+-Build and insert the kernel module as shown in the above kprobe
+-example.  You will see the trace data in /var/log/messages and on the
+-console whenever sys_open() returns a negative value.  (Some messages
+-may be suppressed if syslogd is configured to eliminate duplicate
+-messages.)
++See samples/kprobes/kretprobe_example.c
+ 
+ For additional information on Kprobes, refer to the following URLs:
+ http://www-106.ibm.com/developerworks/library/l-kprobes.html?ca=dgr-lnxw42Kprobe
+diff -puN samples/Kconfig~kprobes-move-kprobe-examples-to-samples samples/Kconfig
+--- a/samples/Kconfig~kprobes-move-kprobe-examples-to-samples
++++ a/samples/Kconfig
+@@ -22,5 +22,16 @@ config SAMPLE_KOBJECT
+ 
+ 	  If in doubt, say "N" here.
+ 
++config SAMPLE_KPROBES
++	tristate "Build kprobes examples -- loadable modules only"
++	depends on KPROBES && m
++	help
++	  This build several kprobes example modules.
 +
- config HAVE_KPROBES
- 	def_bool n
++config SAMPLE_KRETPROBES
++	tristate "Build kretprobes example -- loadable modules only"
++	default m
++	depends on SAMPLE_KPROBES && KRETPROBES
 +
-+config HAVE_KRETPROBES
-+	def_bool n
-diff -puN arch/arm/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/arm/Kconfig
---- a/arch/arm/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/arm/Kconfig
-@@ -12,6 +12,7 @@ config ARM
- 	select SYS_SUPPORTS_APM_EMULATION
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES if (!XIP_KERNEL)
-+	select HAVE_KRETPROBES if (HAVE_KPROBES)
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/ia64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/ia64/Kconfig
-@@ -18,6 +18,7 @@ config IA64
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/powerpc/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/powerpc/Kconfig
-@@ -90,6 +90,7 @@ config PPC
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
+ endif # SAMPLES
  
- config EARLY_PRINTK
- 	bool
-diff -puN arch/s390/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/s390/Kconfig
---- a/arch/s390/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/s390/Kconfig
-@@ -61,6 +61,7 @@ config S390
- 	def_bool y
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
+diff -puN samples/Makefile~kprobes-move-kprobe-examples-to-samples samples/Makefile
+--- a/samples/Makefile~kprobes-move-kprobe-examples-to-samples
++++ a/samples/Makefile
+@@ -1,3 +1,3 @@
+ # Makefile for Linux samples code
  
- source "init/Kconfig"
- 
-diff -puN arch/sparc64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/sparc64/Kconfig
-@@ -10,6 +10,7 @@ config SPARC
- 	default y
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
- 
- config SPARC64
- 	bool
-diff -puN arch/x86/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/x86/Kconfig
-@@ -22,6 +22,7 @@ config X86
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
- 	select HAVE_KVM
- 
- 
-diff -puN include/asm-arm/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-arm/kprobes.h
---- a/include/asm-arm/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-arm/kprobes.h
-@@ -20,7 +20,6 @@
- #include <linux/ptrace.h>
- #include <linux/percpu.h>
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define __ARCH_WANT_KPROBES_INSN_SLOT
- #define MAX_INSN_SIZE			2
- #define MAX_STACK_SIZE			64	/* 32 would probably be OK */
-diff -puN include/asm-ia64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-ia64/kprobes.h
-@@ -82,7 +82,6 @@ struct kprobe_ctlblk {
- 	struct prev_kprobe prev_kprobe[ARCH_PREV_KPROBE_SZ];
- };
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define kretprobe_blacklist_size 0
- 
- #define SLOT0_OPCODE_SHIFT	(37)
-diff -puN include/asm-powerpc/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-powerpc/kprobes.h
---- a/include/asm-powerpc/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-powerpc/kprobes.h
-@@ -80,7 +80,6 @@ typedef unsigned int kprobe_opcode_t;
- #define is_trap(instr)	(IS_TW(instr) || IS_TWI(instr))
- #endif
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
- #define kretprobe_blacklist_size 0
- 
-diff -puN include/asm-s390/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-s390/kprobes.h
---- a/include/asm-s390/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-s390/kprobes.h
-@@ -46,7 +46,6 @@ typedef u16 kprobe_opcode_t;
- 	? (MAX_STACK_SIZE) \
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define kretprobe_blacklist_size 0
- 
- #define KPROBE_SWAP_INST	0x10
-diff -puN include/asm-sparc64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-sparc64/kprobes.h
---- a/include/asm-sparc64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-sparc64/kprobes.h
-@@ -14,8 +14,6 @@ typedef u32 kprobe_opcode_t;
- 
- #define arch_remove_kprobe(p)	do {} while (0)
- 
--#define ARCH_SUPPORTS_KRETPROBES
--
- #define flush_insn_slot(p)		\
- do { 	flushi(&(p)->ainsn.insn[0]);	\
- 	flushi(&(p)->ainsn.insn[1]);	\
-diff -puN include/asm-x86/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-x86/kprobes.h
---- a/include/asm-x86/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-x86/kprobes.h
-@@ -42,7 +42,6 @@ typedef u8 kprobe_opcode_t;
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE \
- 	   - (unsigned long)(ADDR)))
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
- 
- extern const int kretprobe_blacklist_size;
-diff -puN include/linux/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/linux/kprobes.h
-@@ -125,11 +125,11 @@ struct jprobe {
- DECLARE_PER_CPU(struct kprobe *, current_kprobe);
- DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
--#ifdef ARCH_SUPPORTS_KRETPROBES
-+#ifdef CONFIG_KRETPROBES
- extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				   struct pt_regs *regs);
- extern int arch_trampoline_kprobe(struct kprobe *p);
--#else /* ARCH_SUPPORTS_KRETPROBES */
-+#else /* CONFIG_KRETPROBES */
- static inline void arch_prepare_kretprobe(struct kretprobe *rp,
- 					struct pt_regs *regs)
- {
-@@ -138,7 +138,7 @@ static inline int arch_trampoline_kprobe
- {
- 	return 0;
- }
--#endif /* ARCH_SUPPORTS_KRETPROBES */
-+#endif /* CONFIG_KRETPROBES */
- /*
-  * Function-return probe -
-  * Note:
-diff -puN kernel/kprobes.c~kprobes-indicate-kretprobe-support-in-kconfig kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/kernel/kprobes.c
-@@ -678,8 +678,7 @@ void __kprobes unregister_jprobe(struct 
- 	unregister_kprobe(&jp->kp);
- }
- 
--#ifdef ARCH_SUPPORTS_KRETPROBES
--
-+#ifdef CONFIG_KRETPROBES
- /*
-  * This kprobe pre_handler is registered with every kretprobe. When probe
-  * hits it will set up the return probe.
-@@ -769,8 +768,7 @@ int __kprobes register_kretprobe(struct 
- 	return ret;
- }
- 
--#else /* ARCH_SUPPORTS_KRETPROBES */
--
-+#else /* CONFIG_KRETPROBES */
- int __kprobes register_kretprobe(struct kretprobe *rp)
- {
- 	return -ENOSYS;
-@@ -781,8 +779,7 @@ static int __kprobes pre_handler_kretpro
- {
- 	return 0;
- }
--
--#endif /* ARCH_SUPPORTS_KRETPROBES */
-+#endif /* CONFIG_KRETPROBES */
- 
- void __kprobes unregister_kretprobe(struct kretprobe *rp)
- {
+-obj-$(CONFIG_SAMPLES)	+= markers/ kobject/
++obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/
+diff -puN /dev/null samples/kprobes/Makefile
+--- /dev/null
++++ a/samples/kprobes/Makefile
+@@ -0,0 +1,5 @@
++# builds the kprobes example kernel modules;
++# then to use one (as root):  insmod <module_name.ko>
++
++obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o jprobe_example.o
++obj-$(CONFIG_SAMPLE_KRETPROBES) += kretprobe_example.o
+diff -puN /dev/null samples/kprobes/jprobe_example.c
+--- /dev/null
++++ a/samples/kprobes/jprobe_example.c
+@@ -0,0 +1,68 @@
++/*
++ * Here's a sample kernel module showing the use of jprobes to dump
++ * the arguments of do_fork().
++ *
++ * For more information on theory of operation of jprobes, see
++ * Documentation/kprobes.txt
++ *
++ * Build and insert the kernel module as done in the kprobe example.
++ * You will see the trace data in /var/log/messages and on the
++ * console whenever do_fork() is invoked to create a new process.
++ * (Some messages may be suppressed if syslogd is configured to
++ * eliminate duplicate messages.)
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++
++/*
++ * Jumper probe for do_fork.
++ * Mirror principle enables access to arguments of the probed routine
++ * from the probe handler.
++ */
++
++/* Proxy routine having the same arguments as actual do_fork() routine */
++static long jdo_fork(unsigned long clone_flags, unsigned long stack_start,
++	      struct pt_regs *regs, unsigned long stack_size,
++	      int __user *parent_tidptr, int __user *child_tidptr)
++{
++	printk(KERN_INFO "jprobe: clone_flags = 0x%lx, stack_size = 0x%lx,"
++			" regs = 0x%p\n",
++	       clone_flags, stack_size, regs);
++
++	/* Always end with a call to jprobe_return(). */
++	jprobe_return();
++	return 0;
++}
++
++static struct jprobe my_jprobe = {
++	.entry			= jdo_fork,
++	.kp = {
++		.symbol_name	= "do_fork",
++	},
++};
++
++static int __init jprobe_init(void)
++{
++	int ret;
++
++	ret = register_jprobe(&my_jprobe);
++	if (ret < 0) {
++		printk(KERN_INFO "register_jprobe failed, returned %d\n", ret);
++		return -1;
++	}
++	printk(KERN_INFO "Planted jprobe at %p, handler addr %p\n",
++	       my_jprobe.kp.addr, my_jprobe.entry);
++	return 0;
++}
++
++static void __exit jprobe_exit(void)
++{
++	unregister_jprobe(&my_jprobe);
++	printk(KERN_INFO "jprobe at %p unregistered\n", my_jprobe.kp.addr);
++}
++
++module_init(jprobe_init)
++module_exit(jprobe_exit)
++MODULE_LICENSE("GPL");
+diff -puN /dev/null samples/kprobes/kprobe_example.c
+--- /dev/null
++++ a/samples/kprobes/kprobe_example.c
+@@ -0,0 +1,91 @@
++/*
++ * NOTE: This example is works on x86 and powerpc.
++ * Here's a sample kernel module showing the use of kprobes to dump a
++ * stack trace and selected registers when do_fork() is called.
++ *
++ * For more information on theory of operation of kprobes, see
++ * Documentation/kprobes.txt
++ *
++ * You will see the trace data in /var/log/messages and on the console
++ * whenever do_fork() is invoked to create a new process.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++
++/* For each probe you need to allocate a kprobe structure */
++static struct kprobe kp = {
++	.symbol_name	= "do_fork",
++};
++
++/* kprobe pre_handler: called just before the probed instruction is executed */
++static int handler_pre(struct kprobe *p, struct pt_regs *regs)
++{
++#ifdef CONFIG_X86
++	printk(KERN_INFO "pre_handler: p->addr = 0x%p, ip = %lx,"
++			" flags = 0x%lx\n",
++		p->addr, regs->ip, regs->flags);
++#endif
++#ifdef CONFIG_PPC
++	printk(KERN_INFO "pre_handler: p->addr = 0x%p, nip = 0x%lx,"
++			" msr = 0x%lx\n",
++		p->addr, regs->nip, regs->msr);
++#endif
++
++	/* A dump_stack() here will give a stack backtrace */
++	return 0;
++}
++
++/* kprobe post_handler: called after the probed instruction is executed */
++static void handler_post(struct kprobe *p, struct pt_regs *regs,
++				unsigned long flags)
++{
++#ifdef CONFIG_X86
++	printk(KERN_INFO "post_handler: p->addr = 0x%p, flags = 0x%lx\n",
++		p->addr, regs->flags);
++#endif
++#ifdef CONFIG_PPC
++	printk(KERN_INFO "post_handler: p->addr = 0x%p, msr = 0x%lx\n",
++		p->addr, regs->msr);
++#endif
++}
++
++/*
++ * fault_handler: this is called if an exception is generated for any
++ * instruction within the pre- or post-handler, or when Kprobes
++ * single-steps the probed instruction.
++ */
++static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
++{
++	printk(KERN_INFO "fault_handler: p->addr = 0x%p, trap #%dn",
++		p->addr, trapnr);
++	/* Return 0 because we don't handle the fault. */
++	return 0;
++}
++
++static int __init kprobe_init(void)
++{
++	int ret;
++	kp.pre_handler = handler_pre;
++	kp.post_handler = handler_post;
++	kp.fault_handler = handler_fault;
++
++	ret = register_kprobe(&kp);
++	if (ret < 0) {
++		printk(KERN_INFO "register_kprobe failed, returned %d\n", ret);
++		return ret;
++	}
++	printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
++	return 0;
++}
++
++static void __exit kprobe_exit(void)
++{
++	unregister_kprobe(&kp);
++	printk(KERN_INFO "kprobe at %p unregistered\n", kp.addr);
++}
++
++module_init(kprobe_init)
++module_exit(kprobe_exit)
++MODULE_LICENSE("GPL");
+diff -puN /dev/null samples/kprobes/kretprobe_example.c
+--- /dev/null
++++ a/samples/kprobes/kretprobe_example.c
+@@ -0,0 +1,106 @@
++/*
++ * kretprobe_example.c
++ *
++ * Here's a sample kernel module showing the use of return probes to
++ * report the return value and total time taken for probed function
++ * to run.
++ *
++ * usage: insmod kretprobe_example.ko func=<func_name>
++ *
++ * If no func_name is specified, do_fork is instrumented
++ *
++ * For more information on theory of operation of kretprobes, see
++ * Documentation/kprobes.txt
++ *
++ * Build and insert the kernel module as done in the kprobe example.
++ * You will see the trace data in /var/log/messages and on the console
++ * whenever the probed function returns. (Some messages may be suppressed
++ * if syslogd is configured to eliminate duplicate messages.)
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++#include <linux/ktime.h>
++#include <linux/limits.h>
++
++static char func_name[NAME_MAX] = "do_fork";
++module_param_string(func, func_name, NAME_MAX, S_IRUGO);
++MODULE_PARM_DESC(func, "Function to kretprobe; this module will report the"
++			" function's execution time");
++
++/* per-instance private data */
++struct my_data {
++	ktime_t entry_stamp;
++};
++
++/* Here we use the entry_hanlder to timestamp function entry */
++static int entry_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
++{
++	struct my_data *data;
++
++	if (!current->mm)
++		return 1;	/* Skip kernel threads */
++
++	data = (struct my_data *)ri->data;
++	data->entry_stamp = ktime_get();
++	return 0;
++}
++
++/*
++ * Return-probe handler: Log the return value and duration. Duration may turn
++ * out to be zero consistently, depending upon the granularity of time
++ * accounting on the platform.
++ */
++static int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
++{
++	int retval = regs_return_value(regs);
++	struct my_data *data = (struct my_data *)ri->data;
++	s64 delta;
++	ktime_t now;
++
++	now = ktime_get();
++	delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
++	printk(KERN_INFO "%s returned %d and took %lld ns to execute\n",
++			func_name, retval, (long long)delta);
++	return 0;
++}
++
++static struct kretprobe my_kretprobe = {
++	.handler		= ret_handler,
++	.entry_handler		= entry_handler,
++	.data_size		= sizeof(struct my_data),
++	/* Probe up to 20 instances concurrently. */
++	.maxactive		= 20,
++};
++
++static int __init kretprobe_init(void)
++{
++	int ret;
++
++	my_kretprobe.kp.symbol_name = func_name;
++	ret = register_kretprobe(&my_kretprobe);
++	if (ret < 0) {
++		printk(KERN_INFO "register_kretprobe failed, returned %d\n",
++				ret);
++		return -1;
++	}
++	printk(KERN_INFO "Planted return probe at %s: %p\n",
++			my_kretprobe.kp.symbol_name, my_kretprobe.kp.addr);
++	return 0;
++}
++
++static void __exit kretprobe_exit(void)
++{
++	unregister_kretprobe(&my_kretprobe);
++	printk(KERN_INFO "kretprobe at %p unregistered\n",
++			my_kretprobe.kp.addr);
++
++	/* nmissed > 0 suggests that maxactive was set too low. */
++	printk(KERN_INFO "Missed probing %d instances of %s\n",
++		my_kretprobe.nmissed, my_kretprobe.kp.symbol_name);
++}
++
++module_init(kretprobe_init)
++module_exit(kretprobe_exit)
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from ananth@in.ibm.com are
