@@ -1,131 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - uml-remove-unused-sigcontext-accessors.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:01 -0800
-Message-ID: <200802250045.m1P0j1Om006150@imap1.linux-foundation.org>
+Subject: - documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:46:16 -0800
+Message-ID: <200802250046.m1P0kGB7006327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:35502 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753629AbYBYAsi (ORCPT
+	by vger.kernel.org with ESMTP id S1753483AbYBYAsf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:48:38 -0500
+	Sun, 24 Feb 2008 19:48:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, olsajiri@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: remove unused sigcontext accessors
+     documentation: atomic_add_unless() doesn't imply mb() on failure
 has been removed from the -mm tree.  Its filename was
-     uml-remove-unused-sigcontext-accessors.patch
+     documentation-atomic_add_unless-doesnt-imply-mb-on-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove unused sigcontext accessors
-From: Jeff Dike <jdike@addtoit.com>
+Subject: documentation: atomic_add_unless() doesn't imply mb() on failure
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The macros which extract registers from a struct sigcontext are no longer
-needed and can be removed.  They are starting not to build anyway, given the
-removal of the 'e' and 'r' from register names during the x86 merge.
+A "typical" implementation of atomic_add_unless() can return 0 immediately
+after the first atomic_read() (before doing cmpxchg).  In that case it
+doesn't provide any barrier semantics.  See include/asm-ia64/atomic.h as an
+example.
 
-Cc: Jiri Olsa <olsajiri@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+We should either change the implementation, or fix the docs.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/user-offsets.c   |   27 ---------------------------
- arch/um/sys-x86_64/user-offsets.c |   28 ----------------------------
- 2 files changed, 55 deletions(-)
+ Documentation/atomic_ops.txt      |    3 ++-
+ Documentation/memory-barriers.txt |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/sys-i386/user-offsets.c~uml-remove-unused-sigcontext-accessors arch/um/sys-i386/user-offsets.c
---- a/arch/um/sys-i386/user-offsets.c~uml-remove-unused-sigcontext-accessors
-+++ a/arch/um/sys-i386/user-offsets.c
-@@ -17,36 +17,9 @@
+diff -puN Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/atomic_ops.txt
+--- a/Documentation/atomic_ops.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/atomic_ops.txt
+@@ -186,7 +186,8 @@ If the atomic value v is not equal to u,
+ returns non zero. If v is equal to u then it returns zero. This is done as
+ an atomic operation.
  
- void foo(void)
- {
--	OFFSET(HOST_SC_IP, sigcontext, eip);
--	OFFSET(HOST_SC_SP, sigcontext, esp);
--	OFFSET(HOST_SC_FS, sigcontext, fs);
--	OFFSET(HOST_SC_GS, sigcontext, gs);
--	OFFSET(HOST_SC_DS, sigcontext, ds);
--	OFFSET(HOST_SC_ES, sigcontext, es);
--	OFFSET(HOST_SC_SS, sigcontext, ss);
--	OFFSET(HOST_SC_CS, sigcontext, cs);
--	OFFSET(HOST_SC_EFLAGS, sigcontext, eflags);
--	OFFSET(HOST_SC_EAX, sigcontext, eax);
--	OFFSET(HOST_SC_EBX, sigcontext, ebx);
--	OFFSET(HOST_SC_ECX, sigcontext, ecx);
--	OFFSET(HOST_SC_EDX, sigcontext, edx);
--	OFFSET(HOST_SC_EDI, sigcontext, edi);
--	OFFSET(HOST_SC_ESI, sigcontext, esi);
--	OFFSET(HOST_SC_EBP, sigcontext, ebp);
- 	OFFSET(HOST_SC_TRAPNO, sigcontext, trapno);
- 	OFFSET(HOST_SC_ERR, sigcontext, err);
- 	OFFSET(HOST_SC_CR2, sigcontext, cr2);
--	OFFSET(HOST_SC_FPSTATE, sigcontext, fpstate);
--	OFFSET(HOST_SC_SIGMASK, sigcontext, oldmask);
--	OFFSET(HOST_SC_FP_CW, _fpstate, cw);
--	OFFSET(HOST_SC_FP_SW, _fpstate, sw);
--	OFFSET(HOST_SC_FP_TAG, _fpstate, tag);
--	OFFSET(HOST_SC_FP_IPOFF, _fpstate, ipoff);
--	OFFSET(HOST_SC_FP_CSSEL, _fpstate, cssel);
--	OFFSET(HOST_SC_FP_DATAOFF, _fpstate, dataoff);
--	OFFSET(HOST_SC_FP_DATASEL, _fpstate, datasel);
--	OFFSET(HOST_SC_FP_ST, _fpstate, _st);
--	OFFSET(HOST_SC_FXSR_ENV, _fpstate, _fxsr_env);
+-atomic_add_unless requires explicit memory barriers around the operation.
++atomic_add_unless requires explicit memory barriers around the operation
++unless it fails (returns 0).
  
- 	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_fpregs_struct));
- 	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fpxregs_struct));
-diff -puN arch/um/sys-x86_64/user-offsets.c~uml-remove-unused-sigcontext-accessors arch/um/sys-x86_64/user-offsets.c
---- a/arch/um/sys-x86_64/user-offsets.c~uml-remove-unused-sigcontext-accessors
-+++ a/arch/um/sys-x86_64/user-offsets.c
-@@ -19,37 +19,9 @@
+ atomic_inc_not_zero, equivalent to atomic_add_unless(v, 1, 0)
  
- void foo(void)
- {
--	OFFSET(HOST_SC_RBX, sigcontext, rbx);
--	OFFSET(HOST_SC_RCX, sigcontext, rcx);
--	OFFSET(HOST_SC_RDX, sigcontext, rdx);
--	OFFSET(HOST_SC_RSI, sigcontext, rsi);
--	OFFSET(HOST_SC_RDI, sigcontext, rdi);
--	OFFSET(HOST_SC_RBP, sigcontext, rbp);
--	OFFSET(HOST_SC_RAX, sigcontext, rax);
--	OFFSET(HOST_SC_R8, sigcontext, r8);
--	OFFSET(HOST_SC_R9, sigcontext, r9);
--	OFFSET(HOST_SC_R10, sigcontext, r10);
--	OFFSET(HOST_SC_R11, sigcontext, r11);
--	OFFSET(HOST_SC_R12, sigcontext, r12);
--	OFFSET(HOST_SC_R13, sigcontext, r13);
--	OFFSET(HOST_SC_R14, sigcontext, r14);
--	OFFSET(HOST_SC_R15, sigcontext, r15);
--	OFFSET(HOST_SC_IP, sigcontext, rip);
--	OFFSET(HOST_SC_SP, sigcontext, rsp);
- 	OFFSET(HOST_SC_CR2, sigcontext, cr2);
- 	OFFSET(HOST_SC_ERR, sigcontext, err);
- 	OFFSET(HOST_SC_TRAPNO, sigcontext, trapno);
--	OFFSET(HOST_SC_CS, sigcontext, cs);
--	OFFSET(HOST_SC_FS, sigcontext, fs);
--	OFFSET(HOST_SC_GS, sigcontext, gs);
--	OFFSET(HOST_SC_EFLAGS, sigcontext, eflags);
--	OFFSET(HOST_SC_SIGMASK, sigcontext, oldmask);
--#if 0
--	OFFSET(HOST_SC_ORIG_RAX, sigcontext, orig_rax);
--	OFFSET(HOST_SC_DS, sigcontext, ds);
--	OFFSET(HOST_SC_ES, sigcontext, es);
--	OFFSET(HOST_SC_SS, sigcontext, ss);
--#endif
- 
- 	DEFINE(HOST_FP_SIZE, sizeof(struct _fpstate) / sizeof(unsigned long));
- 	DEFINE(HOST_XFP_SIZE, 0);
+diff -puN Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure Documentation/memory-barriers.txt
+--- a/Documentation/memory-barriers.txt~documentation-atomic_add_unless-doesnt-imply-mb-on-failure
++++ a/Documentation/memory-barriers.txt
+@@ -1493,7 +1493,7 @@ explicit lock operations, described late
+ 	atomic_dec_and_test();
+ 	atomic_sub_and_test();
+ 	atomic_add_negative();
+-	atomic_add_unless();
++	atomic_add_unless();	/* when succeeds (returns 1) */
+ 	test_and_set_bit();
+ 	test_and_clear_bit();
+ 	test_and_change_bit();
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-kvm.patch
-arch-um-kernel-um_archc-some-small-improvements.patch
-random-add-async-notification-support-to-dev-random.patch
-asm-futexh-should-include-linux-uaccessh.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+timers-simplify-lockdep-stuff.patch
+hrtimers-simplify-lockdep-stuff.patch
+kill-double_spin_lock.patch
+redo-locking-of-tty-pgrp.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
