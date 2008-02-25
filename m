@@ -1,202 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - smack-update-for-file-capabilities.patch removed from -mm tree
-Date: Sun, 24 Feb 2008 16:45:42 -0800
-Message-ID: <200802250045.m1P0jg4r006279@imap1.linux-foundation.org>
+Subject: - solve-section-mismatch-for-free_area_init_core.patch removed from -mm tree
+Date: Sun, 24 Feb 2008 16:45:46 -0800
+Message-ID: <200802250045.m1P0jkFQ006282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:43028 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754673AbYBYAtB (ORCPT
+	by vger.kernel.org with ESMTP id S1754988AbYBYAtE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 24 Feb 2008 19:49:01 -0500
+	Sun, 24 Feb 2008 19:49:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: casey@schaufler-ca.com, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: heukelum@mailshack.com, geert@linux-m68k.org, heukelum@fastmail.fm, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Smack: update for file capabilities
+     Solve section mismatch for free_area_init_core.
 has been removed from the -mm tree.  Its filename was
-     smack-update-for-file-capabilities.patch
+     solve-section-mismatch-for-free_area_init_core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Smack: update for file capabilities
-From: Casey Schaufler <casey@schaufler-ca.com>
+Subject: Solve section mismatch for free_area_init_core.
+From: Alexander van Heukelum <heukelum@mailshack.com>
 
-Update the Smack LSM to allow the registration of the capability "module"
-as a secondary LSM.  Integrate the new hooks required for file based
-capabilities.
+WARNING: vmlinux.o(.meminit.text+0x649):
+Section mismatch in reference from the
+function free_area_init_core() to the function .init.text:setup_usemap()
+The function __meminit free_area_init_core() references
+a function __init setup_usemap().
+If free_area_init_core is only used by setup_usemap then
+annotate free_area_init_core with a matching annotation.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: James Morris <jmorris@namei.org>
+The warning is covers this stack of functions in mm/page_alloc.c:
+
+alloc_bootmem_node must be marked __init.
+alloc_bootmem_node is used by setup_usemap, if !SPARSEMEM.
+(usemap_size is only used by setup_usemap, if !SPARSEMEM.)
+setup_usemap is only used by free_area_init_core.
+free_area_init_core is only used by free_area_init_node.
+
+free_area_init_node is used by:
+arch/alpha/mm/numa.c: __init paging_init()
+arch/arm/mm/init.c: __init bootmem_init_node()
+arch/avr32/mm/init.c: __init paging_init()
+arch/cris/arch-v10/mm/init.c: __init paging_init()
+arch/cris/arch-v32/mm/init.c: __init paging_init()
+arch/m32r/mm/discontig.c: __init zone_sizes_init()
+arch/m32r/mm/init.c: __init zone_sizes_init()
+arch/m68k/mm/motorola.c: __init paging_init()
+arch/m68k/mm/sun3mmu.c: __init paging_init()
+arch/mips/sgi-ip27/ip27-memory.c: __init paging_init()
+arch/parisc/mm/init.c: __init paging_init()
+arch/sparc/mm/srmmu.c: __init srmmu_paging_init()
+arch/sparc/mm/sun4c.c: __init sun4c_paging_init()
+arch/sparc64/mm/init.c: __init paging_init()
+mm/page_alloc.c: __init free_area_init_nodes()
+mm/page_alloc.c: __init free_area_init()
+and
+mm/memory_hotplug.c: hotadd_new_pgdat()
+
+hotadd_new_pgdat can not be an __init function, but:
+
+It is compiled for MEMORY_HOTPLUG configurations only
+MEMORY_HOTPLUG depends on SPARSEMEM || X86_64_ACPI_NUMA
+X86_64_ACPI_NUMA depends on X86_64
+ARCH_FLATMEM_ENABLE depends on X86_32
+ARCH_DISCONTIGMEM_ENABLE depends on X86_32
+So X86_64_ACPI_NUMA implies SPARSEMEM, right?
+
+So we can mark the stack of functions __init for !SPARSEMEM, but we must mark
+them __meminit for SPARSEMEM configurations.  This is ok, because then the
+calls to alloc_bootmem_node are also avoided.
+
+Compile-tested on:
+silly minimal config
+defconfig x86_32
+defconfig x86_64
+defconfig x86_64 -HIBERNATION +MEMORY_HOTPLUG
+
+Signed-off-by: Alexander van Heukelum <heukelum@fastmail.fm>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |   87 +++++++++++++++++++++++++++++------
- 1 file changed, 74 insertions(+), 13 deletions(-)
+ mm/internal.h   |   13 +++++++++++++
+ mm/page_alloc.c |    4 ++--
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-update-for-file-capabilities security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-update-for-file-capabilities
-+++ a/security/smack/smack_lsm.c
-@@ -584,14 +584,20 @@ static int smack_inode_getattr(struct vf
- static int smack_inode_setxattr(struct dentry *dentry, char *name,
- 				void *value, size_t size, int flags)
- {
--	if (!capable(CAP_MAC_ADMIN)) {
--		if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
--		    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
--		    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0)
--			return -EPERM;
--	}
-+	int rc = 0;
-+
-+	if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
-+	    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
-+	    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0) {
-+		if (!capable(CAP_MAC_ADMIN))
-+			rc = -EPERM;
-+	} else
-+		rc = cap_inode_setxattr(dentry, name, value, size, flags);
-+
-+	if (rc == 0)
-+		rc = smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
- 
--	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-+	return rc;
+diff -puN mm/internal.h~solve-section-mismatch-for-free_area_init_core mm/internal.h
+--- a/mm/internal.h~solve-section-mismatch-for-free_area_init_core
++++ a/mm/internal.h
+@@ -47,4 +47,17 @@ static inline unsigned long page_order(s
+ 	VM_BUG_ON(!PageBuddy(page));
+ 	return page_private(page);
  }
- 
- /**
-@@ -658,10 +664,20 @@ static int smack_inode_getxattr(struct d
-  */
- static int smack_inode_removexattr(struct dentry *dentry, char *name)
- {
--	if (strcmp(name, XATTR_NAME_SMACK) == 0 && !capable(CAP_MAC_ADMIN))
--		return -EPERM;
-+	int rc = 0;
- 
--	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-+	if (strcmp(name, XATTR_NAME_SMACK) == 0 ||
-+	    strcmp(name, XATTR_NAME_SMACKIPIN) == 0 ||
-+	    strcmp(name, XATTR_NAME_SMACKIPOUT) == 0) {
-+		if (!capable(CAP_MAC_ADMIN))
-+			rc = -EPERM;
-+	} else
-+		rc = cap_inode_removexattr(dentry, name);
 +
-+	if (rc == 0)
-+		rc = smk_curacc(smk_of_inode(dentry->d_inode), MAY_WRITE);
-+
-+	return rc;
- }
- 
- /**
-@@ -1016,7 +1032,12 @@ static void smack_task_getsecid(struct t
-  */
- static int smack_task_setnice(struct task_struct *p, int nice)
- {
--	return smk_curacc(p->security, MAY_WRITE);
-+	int rc;
-+
-+	rc = cap_task_setnice(p, nice);
-+	if (rc == 0)
-+		rc = smk_curacc(p->security, MAY_WRITE);
-+	return rc;
- }
- 
- /**
-@@ -1028,7 +1049,12 @@ static int smack_task_setnice(struct tas
-  */
- static int smack_task_setioprio(struct task_struct *p, int ioprio)
- {
--	return smk_curacc(p->security, MAY_WRITE);
-+	int rc;
-+
-+	rc = cap_task_setioprio(p, ioprio);
-+	if (rc == 0)
-+		rc = smk_curacc(p->security, MAY_WRITE);
-+	return rc;
- }
- 
- /**
-@@ -1053,7 +1079,12 @@ static int smack_task_getioprio(struct t
- static int smack_task_setscheduler(struct task_struct *p, int policy,
- 				   struct sched_param *lp)
- {
--	return smk_curacc(p->security, MAY_WRITE);
-+	int rc;
-+
-+	rc = cap_task_setscheduler(p, policy, lp);
-+	if (rc == 0)
-+		rc = smk_curacc(p->security, MAY_WRITE);
-+	return rc;
- }
- 
- /**
-@@ -1093,6 +1124,11 @@ static int smack_task_movememory(struct 
- static int smack_task_kill(struct task_struct *p, struct siginfo *info,
- 			   int sig, u32 secid)
- {
-+	int rc;
-+
-+	rc = cap_task_kill(p, info, sig, secid);
-+	if (rc != 0)
-+		return rc;
- 	/*
- 	 * Special cases where signals really ought to go through
- 	 * in spite of policy. Stephen Smalley suggests it may
-@@ -1778,6 +1814,27 @@ static int smack_ipc_permission(struct k
- 	return smk_curacc(isp, may);
- }
- 
-+/* module stacking operations */
-+
-+/**
-+ * smack_register_security - stack capability module
-+ * @name: module name
-+ * @ops: module operations - ignored
-+ *
-+ * Allow the capability module to register.
++/*
++ * FLATMEM and DISCONTIGMEM configurations use alloc_bootmem_node,
++ * so all functions starting at paging_init should be marked __init
++ * in those cases. SPARSEMEM, however, allows for memory hotplug,
++ * and alloc_bootmem_node is not used.
 + */
-+static int smack_register_security(const char *name,
-+				   struct security_operations *ops)
-+{
-+	if (strcmp(name, "capability") != 0)
-+		return -EINVAL;
++#ifdef CONFIG_SPARSEMEM
++#define __paginginit __meminit
++#else
++#define __paginginit __init
++#endif
 +
-+	printk(KERN_INFO "%s:  Registering secondary module %s\n",
-+	       __func__, name);
-+
-+	return 0;
-+}
-+
- /**
-  * smack_d_instantiate - Make sure the blob is correct on an inode
-  * @opt_dentry: unused
-@@ -2412,6 +2469,8 @@ static struct security_operations smack_
- 	.inode_post_setxattr = 		smack_inode_post_setxattr,
- 	.inode_getxattr = 		smack_inode_getxattr,
- 	.inode_removexattr = 		smack_inode_removexattr,
-+	.inode_need_killpriv =		cap_inode_need_killpriv,
-+	.inode_killpriv =		cap_inode_killpriv,
- 	.inode_getsecurity = 		smack_inode_getsecurity,
- 	.inode_setsecurity = 		smack_inode_setsecurity,
- 	.inode_listsecurity = 		smack_inode_listsecurity,
-@@ -2471,6 +2530,8 @@ static struct security_operations smack_
- 	.netlink_send =			cap_netlink_send,
- 	.netlink_recv = 		cap_netlink_recv,
+ #endif
+diff -puN mm/page_alloc.c~solve-section-mismatch-for-free_area_init_core mm/page_alloc.c
+--- a/mm/page_alloc.c~solve-section-mismatch-for-free_area_init_core
++++ a/mm/page_alloc.c
+@@ -3314,7 +3314,7 @@ static inline int pageblock_default_orde
+  *   - mark all memory queues empty
+  *   - clear the memory bitmaps
+  */
+-static void __meminit free_area_init_core(struct pglist_data *pgdat,
++static void __paginginit free_area_init_core(struct pglist_data *pgdat,
+ 		unsigned long *zones_size, unsigned long *zholes_size)
+ {
+ 	enum zone_type j;
+@@ -3438,7 +3438,7 @@ static void __init_refok alloc_node_mem_
+ #endif /* CONFIG_FLAT_NODE_MEM_MAP */
+ }
  
-+	.register_security = 		smack_register_security,
-+
- 	.d_instantiate = 		smack_d_instantiate,
- 
- 	.getprocattr = 			smack_getprocattr,
+-void __meminit free_area_init_node(int nid, struct pglist_data *pgdat,
++void __paginginit free_area_init_node(int nid, struct pglist_data *pgdat,
+ 		unsigned long *zones_size, unsigned long node_start_pfn,
+ 		unsigned long *zholes_size)
+ {
 _
 
-Patches currently in -mm which might be from casey@schaufler-ca.com are
+Patches currently in -mm which might be from heukelum@mailshack.com are
