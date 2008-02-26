@@ -1,122 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + video-limit-stack-usage-of-ir-kbd-i2cc.patch added to -mm tree
-Date: Mon, 25 Feb 2008 15:47:35 -0800
-Message-ID: <200802252348.m1PNmQJS026485@imap1.linux-foundation.org>
+Subject: - ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch removed from -mm tree
+Date: Mon, 25 Feb 2008 19:48:14 -0800
+Message-ID: <200802260348.m1Q3mEGM002931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52694 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756236AbYBYXtR (ORCPT
+	by vger.kernel.org with ESMTP id S1751740AbYBZDta (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Feb 2008 18:49:17 -0500
+	Mon, 25 Feb 2008 22:49:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, khali@linux-fr.org, mchehab@infradead.org
+To: dhowells@redhat.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: limit stack usage of ir-kbd-i2c.c
-has been added to the -mm tree.  Its filename is
-     video-limit-stack-usage-of-ir-kbd-i2cc.patch
+     ntp: make the kernel NTP code hand 64-bit *unsigned* values to do_div()
+has been removed from the -mm tree.  Its filename was
+     ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: limit stack usage of ir-kbd-i2c.c
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: ntp: make the kernel NTP code hand 64-bit *unsigned* values to do_div()
+From: David Howells <dhowells@redhat.com>
 
-ir_probe allocated struct i2c_client on stack; it's pretty big structure,
-so allocate it with kzalloc
+The kernel NTP code shouldn't hand 64-bit *signed* values to do_div().  Make it
+instead hand 64-bit unsigned values.  This gets rid of a couple of warnings.
 
-make checkstack output without this patch:
-x059d ir_probe [ir-kbd-i2c]:                           1000
-
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ir-kbd-i2c.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ kernel/time/ntp.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/video/ir-kbd-i2c.c~video-limit-stack-usage-of-ir-kbd-i2cc drivers/media/video/ir-kbd-i2c.c
---- a/drivers/media/video/ir-kbd-i2c.c~video-limit-stack-usage-of-ir-kbd-i2cc
-+++ a/drivers/media/video/ir-kbd-i2c.c
-@@ -510,9 +510,9 @@ static int ir_probe(struct i2c_adapter *
- 	static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
- 	static const int probe_cx23885[] = { 0x6b, -1 };
- 	const int *probe = NULL;
--	struct i2c_client c;
-+	struct i2c_client *c;
- 	unsigned char buf;
--	int i,rc;
-+	int i, rc;
- 
- 	switch (adap->id) {
- 	case I2C_HW_B_BT848:
-@@ -537,19 +537,23 @@ static int ir_probe(struct i2c_adapter *
- 	if (NULL == probe)
- 		return 0;
- 
--	memset(&c,0,sizeof(c));
--	c.adapter = adap;
-+	c = kzalloc(sizeof(*c), GFP_KERNEL);
-+	if (!c)
-+		return -ENOMEM;
-+
-+	c->adapter = adap;
- 	for (i = 0; -1 != probe[i]; i++) {
--		c.addr = probe[i];
--		rc = i2c_master_recv(&c,&buf,0);
-+		c->addr = probe[i];
-+		rc = i2c_master_recv(c, &buf, 0);
- 		dprintk(1,"probe 0x%02x @ %s: %s\n",
- 			probe[i], adap->name,
- 			(0 == rc) ? "yes" : "no");
- 		if (0 == rc) {
--			ir_attach(adap,probe[i],0,0);
-+			ir_attach(adap, probe[i], 0, 0);
- 			break;
- 		}
- 	}
-+	kfree(c);
- 	return 0;
- }
- 
+diff -puN kernel/time/ntp.c~ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div
++++ a/kernel/time/ntp.c
+@@ -342,14 +342,16 @@ int do_adjtimex(struct timex *txc)
+ 		    freq_adj = shift_right(freq_adj, time_constant * 2 +
+ 					   (SHIFT_PLL + 2) * 2 - SHIFT_NSEC);
+ 		    if (mtemp >= MINSEC && (time_status & STA_FLL || mtemp > MAXSEC)) {
++			u64 utemp64;
+ 			temp64 = time_offset << (SHIFT_NSEC - SHIFT_FLL);
+ 			if (time_offset < 0) {
+-			    temp64 = -temp64;
+-			    do_div(temp64, mtemp);
+-			    freq_adj -= temp64;
++			    utemp64 = -temp64;
++			    do_div(utemp64, mtemp);
++			    freq_adj -= utemp64;
+ 			} else {
+-			    do_div(temp64, mtemp);
+-			    freq_adj += temp64;
++			    utemp64 = temp64;
++			    do_div(utemp64, mtemp);
++			    freq_adj += utemp64;
+ 			}
+ 		    }
+ 		    freq_adj += time_freq;
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-video-limit-stack-usage-of-ir-kbd-i2cc.patch
-git-gfs2-nmw.patch
-git-ieee1394.patch
-git-jfs.patch
-qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch
-ntfs-le_add_cpu-conversion.patch
-git-ocfs2.patch
-scsi-le_add_cpu-conversion.patch
-ipw2200-le_add_cpu-conversion.patch
-ext2-le_add_cpu-conversion.patch
-ext2-convert-byte-order-of-constant-instead-of-variable.patch
-ext3-convert-byte-order-of-constant-instead-of-variable.patch
-ufs-e_add_cpu-conversion.patch
-reiserfs-le_add_cpu-conversion.patch
-ext4-le_add_cpu-conversion.patch
-ext4-convert-byte-order-of-constant-instead-of-variable.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-quota-le_add_cpu-conversion.patch
-sysv-e_add_cpu-conversion.patch
+git-unionfs.patch
+ntp-make-the-kernel-ntp-code-hand-64-bit-unsigned-values-to-do_div.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
