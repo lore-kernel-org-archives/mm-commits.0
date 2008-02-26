@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sm501fb-direct-color-visual-does-not-work.patch added to -mm tree
-Date: Tue, 26 Feb 2008 11:15:06 -0800
-Message-ID: <200802261915.m1QJFwYi004161@imap1.linux-foundation.org>
+Subject: + sm501fb-rgb-offsets-are-reversed-in-16bpp-modes.patch added to -mm tree
+Date: Tue, 26 Feb 2008 11:15:10 -0800
+Message-ID: <200802261916.m1QJG2oP004170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48973 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761772AbYBZTQr (ORCPT
+	by vger.kernel.org with ESMTP id S1760342AbYBZTQp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Feb 2008 14:16:47 -0500
+	Tue, 26 Feb 2008 14:16:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: syrjala@sci.fi, ben-linux@fluff.org, damm@igel.co.jp
+Cc: syrjala@sci.fi, ben-linux@fluff.org
 
 
 The patch titled
-     sm501fb: direct color visual does not work
+     sm501fb: RGB offsets are reversed in 16bpp modes
 has been added to the -mm tree.  Its filename is
-     sm501fb-direct-color-visual-does-not-work.patch
+     sm501fb-rgb-offsets-are-reversed-in-16bpp-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501fb: direct color visual does not work
+Subject: sm501fb: RGB offsets are reversed in 16bpp modes
 From: Ville Syrjala <syrjala@sci.fi>
 
-The sm501fb palette code clearly does not handle direct color so change the
-driver to use true color visual for 16bpp.
+The RGB offsets were reversed in 16bpp modes.  Simply trying to reverse the
+offsets when endianness differs is clearly the wrong thing to do but that is
+an issue for another patch.
 
 Signed-off-by: Ville Syrjala <syrjala@sci.fi>
-Acked-by: Magnus Damm <damm@igel.co.jp>
 Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sm501fb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/sm501fb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/sm501fb.c~sm501fb-direct-color-visual-does-not-work drivers/video/sm501fb.c
---- a/drivers/video/sm501fb.c~sm501fb-direct-color-visual-does-not-work
+diff -puN drivers/video/sm501fb.c~sm501fb-rgb-offsets-are-reversed-in-16bpp-modes drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-rgb-offsets-are-reversed-in-16bpp-modes
 +++ a/drivers/video/sm501fb.c
-@@ -397,7 +397,7 @@ static int sm501fb_set_par_common(struct
- 		break;
+@@ -286,13 +286,13 @@ static int sm501fb_check_var(struct fb_v
  
  	case 16:
--		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 		break;
+ 		if (sm->pdata->flags & SM501_FBPD_SWAP_FB_ENDIAN) {
+-			var->red.offset		= 11;
+-			var->green.offset	= 5;
+-			var->blue.offset	= 0;
+-		} else {
+ 			var->blue.offset	= 11;
+ 			var->green.offset	= 5;
+ 			var->red.offset		= 0;
++		} else {
++			var->red.offset		= 11;
++			var->green.offset	= 5;
++			var->blue.offset	= 0;
+ 		}
  
- 	case 32:
-@@ -613,6 +613,7 @@ static int sm501fb_set_par_crt(struct fb
- 
- 	case 16:
- 		control |= SM501_DC_CRT_CONTROL_16BPP;
-+		sm501fb_setup_gamma(fbi, SM501_DC_CRT_PALETTE);
- 		break;
- 
- 	case 32:
-@@ -750,6 +751,7 @@ static int sm501fb_set_par_pnl(struct fb
- 
- 	case 16:
- 		control |= SM501_DC_PANEL_CONTROL_16BPP;
-+		sm501fb_setup_gamma(fbi, SM501_DC_PANEL_PALETTE);
- 		break;
- 
- 	case 32:
+ 		var->red.length		= 5;
 _
 
 Patches currently in -mm which might be from syrjala@sci.fi are
