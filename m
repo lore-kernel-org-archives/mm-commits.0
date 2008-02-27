@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-fix-sparse-shadowed-variable-warnings-in-espc.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:24:14 -0800
-Message-ID: <200802272324.m1RNOEE9003932@imap1.linux-foundation.org>
+Subject: + char-espc-fix-possible-double-unlock.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:25:23 -0800
+Message-ID: <200802272325.m1RNPOlu003941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38023 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754215AbYB0XYR (ORCPT
+	by vger.kernel.org with ESMTP id S1753241AbYB0XZ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:24:17 -0500
+	Wed, 27 Feb 2008 18:25:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com, jirislaby@gmail.com
 
 
 The patch titled
-     char: fix sparse shadowed variable warnings in esp.c
+     char: esp.c: fix possible double-unlock
 has been added to the -mm tree.  Its filename is
-     char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+     char-espc-fix-possible-double-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: fix sparse shadowed variable warnings in esp.c
+Subject: char: esp.c: fix possible double-unlock
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-flags only use was in spin_lock_irqsave/spin_lock_irgrestore pairs, no
-need to redeclare for each one.
+Hitting either of the break statements in the while loop would cause a
+double-unlock of info->lock.
 
-drivers/char/esp.c:1599:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
-drivers/char/esp.c:1615:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
-drivers/char/esp.c:1631:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
+[Jiri Slaby suggested simply returning is safe here, rather than a goto]
+
+Noticed by sparse:
+drivers/char/esp.c:2042:2: warning: context imbalance in 'rs_wait_until_sent' - unexpected unlock
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/esp.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/char/esp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/esp.c~char-fix-sparse-shadowed-variable-warnings-in-espc drivers/char/esp.c
---- a/drivers/char/esp.c~char-fix-sparse-shadowed-variable-warnings-in-espc
+diff -puN drivers/char/esp.c~char-espc-fix-possible-double-unlock drivers/char/esp.c
+--- a/drivers/char/esp.c~char-espc-fix-possible-double-unlock
 +++ a/drivers/char/esp.c
-@@ -1600,8 +1600,6 @@ static int set_esp_config(struct esp_str
+@@ -2040,10 +2040,10 @@ static void rs_wait_until_sent(struct tt
+ 		msleep_interruptible(jiffies_to_msecs(char_time));
  
- 	if ((new_config.flow_off != info->config.flow_off) ||
- 	    (new_config.flow_on != info->config.flow_on)) {
--		unsigned long flags;
--
- 		info->config.flow_off = new_config.flow_off;
- 		info->config.flow_on = new_config.flow_on;
+ 		if (signal_pending(current))
+-			break;
++			return;
  
-@@ -1616,8 +1614,6 @@ static int set_esp_config(struct esp_str
+ 		if (timeout && time_after(jiffies, orig_jiffies + timeout))
+-			break;
++			return;
  
- 	if ((new_config.rx_trigger != info->config.rx_trigger) ||
- 	    (new_config.tx_trigger != info->config.tx_trigger)) {
--		unsigned long flags;
--
- 		info->config.rx_trigger = new_config.rx_trigger;
- 		info->config.tx_trigger = new_config.tx_trigger;
  		spin_lock_irqsave(&info->lock, flags);
-@@ -1632,8 +1628,6 @@ static int set_esp_config(struct esp_str
- 	}
- 
- 	if (new_config.rx_timeout != info->config.rx_timeout) {
--		unsigned long flags;
--
- 		info->config.rx_timeout = new_config.rx_timeout;
- 		spin_lock_irqsave(&info->lock, flags);
- 
+ 		serial_out(info, UART_ESI_CMD1, ESI_NO_COMMAND);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -128,3 +113,4 @@ reiserfs-fix-sparse-warning-in-journalc.patch
 reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
 cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
 char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
