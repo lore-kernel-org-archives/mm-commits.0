@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tags-add-menuconfig-symbols-as-well.patch added to -mm tree
-Date: Wed, 27 Feb 2008 14:51:24 -0800
-Message-ID: <200802272251.m1RMpOZ5002276@imap1.linux-foundation.org>
+Subject: + ipwireless-fix-potential-tty-==-null-dereference.patch added to -mm tree
+Date: Wed, 27 Feb 2008 14:49:53 -0800
+Message-ID: <200802272249.m1RMnrKZ002216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51692 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:50461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761576AbYB0Wv3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760693AbYB0WvM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:51:29 -0500
+	Wed, 27 Feb 2008 17:51:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, sam@ravnborg.org
+Cc: dsterba@suse.cz, bunk@kernel.org, jkosina@suse.cz, linville@tuxdriver.com
 
 
 The patch titled
-     tags: add menuconfig symbols as well
+     ipwireless: fix potential tty == NULL dereference
 has been added to the -mm tree.  Its filename is
-     tags-add-menuconfig-symbols-as-well.patch
+     ipwireless-fix-potential-tty-==-null-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tags: add menuconfig symbols as well
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ipwireless: fix potential tty == NULL dereference
+From: David Sterba <dsterba@suse.cz>
 
-Steps to reproduce:
+The Coverity checker spotted the following inconsequent NULL checking in
+drivers/char/pcmcia/ipwireless/network.c:ipwireless_network_packet_received()
 
-	vi -t NETFILTER
+if (tty && channel_idx == IPW_CHANNEL_RAS
+		&& (network->ras_control_lines &
+			IPW_CONTROL_LINE_DCD) != 0
+		&& ipwireless_tty_is_modem(tty)) {
+...
+	else
+		ipwireless_tty_received(tty, data, length);
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: David Sterba <dsterba@suse.cz>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/pcmcia/ipwireless/network.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN Makefile~tags-add-menuconfig-symbols-as-well Makefile
---- a/Makefile~tags-add-menuconfig-symbols-as-well
-+++ a/Makefile
-@@ -1400,7 +1400,7 @@ define xtags
- 	    $(all-kconfigs) | xargs $1 -a \
- 		--langdef=kconfig \
- 		--language-force=kconfig \
--		--regex-kconfig='/^[[:blank:]]*config[[:blank:]]+([[:alnum:]_]+)/\1/'; \
-+		--regex-kconfig='/^[[:blank:]]*(menu|)config[[:blank:]]+([[:alnum:]_]+)/\2/'; \
- 	    $(all-defconfigs) | xargs -r $1 -a \
- 		--langdef=dotconfig \
- 		--language-force=dotconfig \
-@@ -1408,7 +1408,7 @@ define xtags
- 	elif $1 --version 2>&1 | grep -iq emacs; then \
- 	    $(all-sources) | xargs $1 -a; \
- 	    $(all-kconfigs) | xargs $1 -a \
--		--regex='/^[ \t]*config[ \t]+\([a-zA-Z0-9_]+\)/\1/'; \
-+		--regex='/^[ \t]*(menu|)config[ \t]+\([a-zA-Z0-9_]+\)/\2/'; \
- 	    $(all-defconfigs) | xargs -r $1 -a \
- 		--regex='/^#?[ \t]?\(CONFIG_[a-zA-Z0-9_]+\)/\1/'; \
- 	else \
+diff -puN drivers/char/pcmcia/ipwireless/network.c~ipwireless-fix-potential-tty-==-null-dereference drivers/char/pcmcia/ipwireless/network.c
+--- a/drivers/char/pcmcia/ipwireless/network.c~ipwireless-fix-potential-tty-==-null-dereference
++++ a/drivers/char/pcmcia/ipwireless/network.c
+@@ -377,13 +377,16 @@ void ipwireless_network_packet_received(
+ 	for (i = 0; i < MAX_ASSOCIATED_TTYS; i++) {
+ 		struct ipw_tty *tty = network->associated_ttys[channel_idx][i];
+ 
++		if (!tty)
++			continue;
++
+ 		/*
+ 		 * If it's associated with a tty (other than the RAS channel
+ 		 * when we're online), then send the data to that tty.  The RAS
+ 		 * channel's data is handled above - it always goes through
+ 		 * ppp_generic.
+ 		 */
+-		if (tty && channel_idx == IPW_CHANNEL_RAS
++		if (channel_idx == IPW_CHANNEL_RAS
+ 				&& (network->ras_control_lines &
+ 					IPW_CONTROL_LINE_DCD) != 0
+ 				&& ipwireless_tty_is_modem(tty)) {
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from dsterba@suse.cz are
 
-tags-add-menuconfig-symbols-as-well.patch
-modules-warn-about-suspicious-return-values-from-modules-init-hook.patch
+ipwireless-fix-potential-tty-==-null-dereference.patch
