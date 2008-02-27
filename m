@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cycladesc-fix-sparse-shadowed-variable-warnings.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:30:29 -0800
-Message-ID: <200802272330.m1RNUTF4004138@imap1.linux-foundation.org>
+Subject: + epcac-static-functions-and-integer-as-null-pointer-fixes.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:35:45 -0800
+Message-ID: <200802272335.m1RNZj0Q004337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33671 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755576AbYB0Xa7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756519AbYB0Xgf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:30:59 -0500
+	Wed, 27 Feb 2008 18:36:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     cyclades.c: fix sparse shadowed variable warnings
+     epca.c: static functions and integer as NULL pointer fixes
 has been added to the -mm tree.  Its filename is
-     cycladesc-fix-sparse-shadowed-variable-warnings.patch
+     epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cyclades.c: fix sparse shadowed variable warnings
+Subject: epca.c: static functions and integer as NULL pointer fixes
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Nested min() macros.
-drivers/char/cyclades.c:2750:7: warning: symbol '_x' shadows an earlier one
-drivers/char/cyclades.c:2750:7: originally declared here
-drivers/char/cyclades.c:2750:7: warning: symbol '_x' shadows an earlier one
-drivers/char/cyclades.c:2750:7: originally declared here
-drivers/char/cyclades.c:2750:7: warning: symbol '_y' shadows an earlier one
-drivers/char/cyclades.c:2750:7: originally declared here
+drivers/char/epca.c:926:28: warning: Using plain integer as NULL pointer
+drivers/char/epca.c:1841:2: warning: Using plain integer as NULL pointer
+
+Forward declarations were already marked static, mark the definitions too.
+drivers/char/epca.c:2493:6: warning: symbol 'digi_send_break' was not declared. Should it be static?
+drivers/char/epca.c:2881:12: warning: symbol 'init_PCI' was not declared. Should it be static?
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/epca.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/cyclades.c~cycladesc-fix-sparse-shadowed-variable-warnings drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~cycladesc-fix-sparse-shadowed-variable-warnings
-+++ a/drivers/char/cyclades.c
-@@ -2747,8 +2747,8 @@ static int cy_write(struct tty_struct *t
+diff -puN drivers/char/epca.c~epcac-static-functions-and-integer-as-null-pointer-fixes drivers/char/epca.c
+--- a/drivers/char/epca.c~epcac-static-functions-and-integer-as-null-pointer-fixes
++++ a/drivers/char/epca.c
+@@ -923,7 +923,7 @@ static int pc_open(struct tty_struct *tt
+ 		return(-ENODEV);
+ 	}
  
- 	spin_lock_irqsave(&info->card->card_lock, flags);
- 	while (1) {
--		c = min(count, min((int)(SERIAL_XMIT_SIZE - info->xmit_cnt - 1),
--				   (int)(SERIAL_XMIT_SIZE - info->xmit_head)));
-+		c = min(count, (int)(SERIAL_XMIT_SIZE - info->xmit_cnt - 1));
-+		c = min(c, (int)(SERIAL_XMIT_SIZE - info->xmit_head));
+-	if ((bc = ch->brdchan) == 0) {
++	if ((bc = ch->brdchan) == NULL) {
+ 		tty->driver_data = NULL;
+ 		return -ENODEV;
+ 	}
+@@ -1838,7 +1838,7 @@ static void epcaparam(struct tty_struct 
+ 	unsigned mval, hflow, cflag, iflag;
  
- 		if (c <= 0)
- 			break;
+ 	bc = ch->brdchan;
+-	epcaassert(bc !=0, "bc out of range");
++	epcaassert(bc != NULL, "bc out of range");
+ 
+ 	assertgwinon(ch);
+ 	ts = tty->termios;
+@@ -2477,7 +2477,7 @@ static void pc_unthrottle(struct tty_str
+ 	}
+ }
+ 
+-void digi_send_break(struct channel *ch, int msec)
++static void digi_send_break(struct channel *ch, int msec)
+ {
+ 	unsigned long flags;
+ 
+@@ -2865,7 +2865,7 @@ static struct pci_device_id epca_pci_tbl
+ 
+ MODULE_DEVICE_TABLE(pci, epca_pci_tbl);
+ 
+-int __init init_PCI (void)
++static int __init init_PCI (void)
+ {
+ 	memset (&epca_driver, 0, sizeof (epca_driver));
+ 	epca_driver.name = "epca";
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -113,3 +137,4 @@ char-fix-sparse-shadowed-variable-warnings-in-espc.patch
 char-espc-fix-possible-double-unlock.patch
 char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
 cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
