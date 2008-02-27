@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:21:13 -0800
-Message-ID: <200802272321.m1RNLDrb003699@imap1.linux-foundation.org>
+Subject: + char-moxa-merge-c2xx-and-c320-firmware-loading.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:13:00 -0800
+Message-ID: <200802272313.m1RND0D2003250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59599 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:41885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758846AbYB0XWC (ORCPT
+	by vger.kernel.org with ESMTP id S1760278AbYB0XVe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:22:02 -0500
+	Wed, 27 Feb 2008 18:21:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tim.gardner@canonical.com, Matt_Domsch@dell.com, hpa@zytor.com, rdunlap@xenotime.net
+Cc: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk
 
 
 The patch titled
-     edd: add default mode CONFIG_EDD_OFF=n, override with edd={on,off}
+     Char: moxa, merge c2xx and c320 firmware loading
 has been added to the -mm tree.  Its filename is
-     edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
+     char-moxa-merge-c2xx-and-c320-firmware-loading.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,313 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edd: add default mode CONFIG_EDD_OFF=n, override with edd={on,off}
-From: Tim Gardner <tim.gardner@canonical.com>
+Subject: Char: moxa, merge c2xx and c320 firmware loading
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Add a kernel parameter option to 'edd' to enable/disable BIOS Enhanced Disk
-Drive Services.  CONFIG_EDD_OFF disables EDD while still compiling EDD into
-the kernel.  Default behavior can be forced using 'edd=on' or 'edd=off' as
-a kernel parameter.
-
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Signed-off-by: Matt Domsch <Matt_Domsch@dell.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 +--
- arch/x86/boot/edd.c                 |   10 +++++++++-
- drivers/firmware/Kconfig            |    9 +++++++++
- 3 files changed, 19 insertions(+), 3 deletions(-)
+ drivers/char/moxa.c |  188 +++++++++++++++---------------------------
+ 1 file changed, 69 insertions(+), 119 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff
-+++ a/Documentation/kernel-parameters.txt
-@@ -625,8 +625,7 @@ and is between 256 and 4096 characters. 
- 	eata=		[HW,SCSI]
+diff -puN drivers/char/moxa.c~char-moxa-merge-c2xx-and-c320-firmware-loading drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-merge-c2xx-and-c320-firmware-loading
++++ a/drivers/char/moxa.c
+@@ -368,92 +368,40 @@ static int moxa_load_320b(struct moxa_bo
+ 	return 0;
+ }
  
- 	edd=		[EDD]
--			Format: {"of[f]" | "sk[ipmbr]"}
--			See comment in arch/i386/boot/edd.S
-+			Format: {"off" | "on" | "sk[ipmbr]"}
- 
- 	eisa_irq_edge=	[PARISC,HW]
- 			See header of drivers/parisc/eisa.c.
-diff -puN arch/x86/boot/edd.c~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff arch/x86/boot/edd.c
---- a/arch/x86/boot/edd.c~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff
-+++ a/arch/x86/boot/edd.c
-@@ -128,17 +128,25 @@ void query_edd(void)
+-static int moxa_load_c218(struct moxa_board_conf *brd, const void *ptr,
++static int moxa_real_load_code(struct moxa_board_conf *brd, const void *ptr,
+ 		size_t len)
  {
- 	char eddarg[8];
- 	int do_mbr = 1;
-+#ifdef CONFIG_EDD_OFF
-+	int do_edd = 0;
-+#else
- 	int do_edd = 1;
-+#endif
- 	int be_quiet;
- 	int devno;
- 	struct edd_info ei, *edp;
- 	u32 *mbrptr;
+ 	void __iomem *baseAddr = brd->basemem;
+ 	const u16 *uptr = ptr;
+ 	size_t wlen, len2, j;
+-	unsigned int i, retry;
++	unsigned long key, loadbuf, loadlen, checksum, checksum_ok;
++	unsigned int i, retry, c320;
+ 	u16 usum, keycode;
  
- 	if (cmdline_find_option("edd", eddarg, sizeof eddarg) > 0) {
--		if (!strcmp(eddarg, "skipmbr") || !strcmp(eddarg, "skip"))
-+		if (!strcmp(eddarg, "skipmbr") || !strcmp(eddarg, "skip")) {
-+			do_edd = 1;
- 			do_mbr = 0;
+-	if (brd->boardType == MOXA_BOARD_CP204J)
+-		keycode = CP204J_KeyCode;
+-	else
+-		keycode = C218_KeyCode;
+-	usum = 0;
+-	wlen = len >> 1;
+-	for (i = 0; i < wlen; i++)
+-		usum += le16_to_cpu(uptr[i]);
+-	retry = 0;
+-	do {
+-		wlen = len >> 1;
+-		j = 0;
+-		while (wlen) {
+-			len2 = (wlen > 2048) ? 2048 : wlen;
+-			wlen -= len2;
+-			memcpy_toio(baseAddr + C218_LoadBuf, ptr + j,
+-					len2 << 1);
+-			j += len2 << 1;
++	c320 = brd->boardType == MOXA_BOARD_C320_PCI ||
++			brd->boardType == MOXA_BOARD_C320_ISA;
++	keycode = (brd->boardType == MOXA_BOARD_CP204J) ? CP204J_KeyCode :
++				C218_KeyCode;
+ 
+-			writew(len2, baseAddr + C218DLoad_len);
+-			writew(0, baseAddr + C218_key);
+-			for (i = 0; i < 100; i++) {
+-				if (readw(baseAddr + C218_key) == keycode)
+-					break;
+-				msleep(10);
+-			}
+-			if (readw(baseAddr + C218_key) != keycode)
+-				return -EIO;
+-		}
+-		writew(0, baseAddr + C218DLoad_len);
+-		writew(usum, baseAddr + C218check_sum);
+-		writew(0, baseAddr + C218_key);
+-		for (i = 0; i < 100; i++) {
+-			if (readw(baseAddr + C218_key) == keycode)
+-				break;
+-			msleep(10);
+-		}
+-		retry++;
+-	} while ((readb(baseAddr + C218chksum_ok) != 1) && (retry < 3));
+-	if (readb(baseAddr + C218chksum_ok) != 1)
+-		return -EIO;
+-
+-	writew(0, baseAddr + C218_key);
+-	for (i = 0; i < 100; i++) {
+-		if (readw(baseAddr + Magic_no) == Magic_code)
+-			break;
+-		msleep(10);
+-	}
+-	if (readw(baseAddr + Magic_no) != Magic_code)
+-		return -EIO;
+-
+-	writew(1, baseAddr + Disable_IRQ);
+-	writew(0, baseAddr + Magic_no);
+-	for (i = 0; i < 100; i++) {
+-		if (readw(baseAddr + Magic_no) == Magic_code)
+-			break;
+-		msleep(10);
++	switch (brd->boardType) {
++	case MOXA_BOARD_CP204J:
++	case MOXA_BOARD_C218_ISA:
++	case MOXA_BOARD_C218_PCI:
++		key = C218_key;
++		loadbuf = C218_LoadBuf;
++		loadlen = C218DLoad_len;
++		checksum = C218check_sum;
++		checksum_ok = C218chksum_ok;
++		break;
++	default:
++		key = C320_key;
++		keycode = C320_KeyCode;
++		loadbuf = C320_LoadBuf;
++		loadlen = C320DLoad_len;
++		checksum = C320check_sum;
++		checksum_ok = C320chksum_ok;
++		break;
+ 	}
+-	if (readw(baseAddr + Magic_no) != Magic_code)
+-		return -EIO;
+-
+-	moxaCard = 1;
+-	brd->intNdx = baseAddr + IRQindex;
+-	brd->intPend = baseAddr + IRQpending;
+-	brd->intTable = baseAddr + IRQtable;
+-
+-	return 0;
+-}
+-
+-static int moxa_load_c320(struct moxa_board_conf *brd, const void *ptr,
+-		size_t len)
+-{
+-	void __iomem *baseAddr = brd->basemem;
+-	const u16 *uptr = ptr;
+-	size_t wlen, len2, j;
+-	unsigned int i, retry;
+-	u16 usum;
+ 
+ 	usum = 0;
+ 	wlen = len >> 1;
+@@ -466,33 +414,33 @@ static int moxa_load_c320(struct moxa_bo
+ 		while (wlen) {
+ 			len2 = (wlen > 2048) ? 2048 : wlen;
+ 			wlen -= len2;
+-			memcpy_toio(baseAddr + C320_LoadBuf, ptr + j,
+-					len2 << 1);
++			memcpy_toio(baseAddr + loadbuf, ptr + j, len2 << 1);
+ 			j += len2 << 1;
+-			writew(len2, baseAddr + C320DLoad_len);
+-			writew(0, baseAddr + C320_key);
+-			for (i = 0; i < 10; i++) {
+-				if (readw(baseAddr + C320_key) == C320_KeyCode)
++
++			writew(len2, baseAddr + loadlen);
++			writew(0, baseAddr + key);
++			for (i = 0; i < 100; i++) {
++				if (readw(baseAddr + key) == keycode)
+ 					break;
+ 				msleep(10);
+ 			}
+-			if (readw(baseAddr + C320_key) != C320_KeyCode)
++			if (readw(baseAddr + key) != keycode)
+ 				return -EIO;
+ 		}
+-		writew(0, baseAddr + C320DLoad_len);
+-		writew(usum, baseAddr + C320check_sum);
+-		writew(0, baseAddr + C320_key);
+-		for (i = 0; i < 10; i++) {
+-			if (readw(baseAddr + C320_key) == C320_KeyCode)
++		writew(0, baseAddr + loadlen);
++		writew(usum, baseAddr + checksum);
++		writew(0, baseAddr + key);
++		for (i = 0; i < 100; i++) {
++			if (readw(baseAddr + key) == keycode)
+ 				break;
+ 			msleep(10);
+ 		}
+ 		retry++;
+-	} while ((readb(baseAddr + C320chksum_ok) != 1) && (retry < 3));
+-	if (readb(baseAddr + C320chksum_ok) != 1)
++	} while ((readb(baseAddr + checksum_ok) != 1) && (retry < 3));
++	if (readb(baseAddr + checksum_ok) != 1)
+ 		return -EIO;
+ 
+-	writew(0, baseAddr + C320_key);
++	writew(0, baseAddr + key);
+ 	for (i = 0; i < 600; i++) {
+ 		if (readw(baseAddr + Magic_no) == Magic_code)
+ 			break;
+@@ -501,14 +449,16 @@ static int moxa_load_c320(struct moxa_bo
+ 	if (readw(baseAddr + Magic_no) != Magic_code)
+ 		return -EIO;
+ 
+-	if (brd->busType == MOXA_BUS_TYPE_PCI) {	/* ASIC board */
+-		writew(0x3800, baseAddr + TMS320_PORT1);
+-		writew(0x3900, baseAddr + TMS320_PORT2);
+-		writew(28499, baseAddr + TMS320_CLOCK);
+-	} else {
+-		writew(0x3200, baseAddr + TMS320_PORT1);
+-		writew(0x3400, baseAddr + TMS320_PORT2);
+-		writew(19999, baseAddr + TMS320_CLOCK);
++	if (c320) {
++		if (brd->busType == MOXA_BUS_TYPE_PCI) {	/* ASIC board */
++			writew(0x3800, baseAddr + TMS320_PORT1);
++			writew(0x3900, baseAddr + TMS320_PORT2);
++			writew(28499, baseAddr + TMS320_CLOCK);
++		} else {
++			writew(0x3200, baseAddr + TMS320_PORT1);
++			writew(0x3400, baseAddr + TMS320_PORT2);
++			writew(19999, baseAddr + TMS320_CLOCK);
 +		}
- 		else if (!strcmp(eddarg, "off"))
- 			do_edd = 0;
-+		else if (!strcmp(eddarg, "on"))
-+			do_edd = 1;
+ 	}
+ 	writew(1, baseAddr + Disable_IRQ);
+ 	writew(0, baseAddr + Magic_no);
+@@ -520,19 +470,21 @@ static int moxa_load_c320(struct moxa_bo
+ 	if (readw(baseAddr + Magic_no) != Magic_code)
+ 		return -EIO;
+ 
+-	j = readw(baseAddr + Module_cnt);
+-	if (j <= 0)
+-		return -EIO;
+-	brd->numPorts = j * 8;
+-	writew(j, baseAddr + Module_no);
+-	writew(0, baseAddr + Magic_no);
+-	for (i = 0; i < 600; i++) {
+-		if (readw(baseAddr + Magic_no) == Magic_code)
+-			break;
+-		msleep(10);
++	if (c320) {
++		j = readw(baseAddr + Module_cnt);
++		if (j <= 0)
++			return -EIO;
++		brd->numPorts = j * 8;
++		writew(j, baseAddr + Module_no);
++		writew(0, baseAddr + Magic_no);
++		for (i = 0; i < 600; i++) {
++			if (readw(baseAddr + Magic_no) == Magic_code)
++				break;
++			msleep(10);
++		}
++		if (readw(baseAddr + Magic_no) != Magic_code)
++			return -EIO;
+ 	}
+-	if (readw(baseAddr + Magic_no) != Magic_code)
+-		return -EIO;
+ 	moxaCard = 1;
+ 	brd->intNdx = baseAddr + IRQindex;
+ 	brd->intPend = baseAddr + IRQpending;
+@@ -549,17 +501,18 @@ static int moxa_load_code(struct moxa_bo
+ 	int retval, i;
+ 
+ 	if (len % 2) {
+-		printk(KERN_ERR "moxa: C2XX bios length is not even\n");
++		printk(KERN_ERR "moxa: bios length is not even\n");
+ 		return -EINVAL;
  	}
  
- 	be_quiet = cmdline_find_option_bool("quiet");
-diff -puN drivers/firmware/Kconfig~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff drivers/firmware/Kconfig
---- a/drivers/firmware/Kconfig~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff
-+++ a/drivers/firmware/Kconfig
-@@ -17,6 +17,15 @@ config EDD
-           obscure configurations. Most disk controller BIOS vendors do
-           not yet implement this feature.
- 
-+config EDD_OFF
-+	bool "Sets default behavior for EDD detection to off"
-+	depends on EDD
-+	default n
-+	help
-+	  Say Y if you want EDD disabled by default, even though it is compiled into the
-+	  kernel. Say N if you want EDD enabled by default. EDD can be dynamically set
-+	  using the kernel parameter 'edd={on|skipmbr|off}'.
++	retval = moxa_real_load_code(brd, ptr, len); /* may change numPorts */
++	if (retval)
++		return retval;
 +
- config EFI_VARS
- 	tristate "EFI Variable Support via sysfs"
- 	depends on EFI
+ 	switch (brd->boardType) {
+ 	case MOXA_BOARD_C218_ISA:
+ 	case MOXA_BOARD_C218_PCI:
+ 	case MOXA_BOARD_CP204J:
+-		retval = moxa_load_c218(brd, ptr, len);
+-		if (retval)
+-			return retval;
+ 		port = brd->ports;
+ 		for (i = 0; i < brd->numPorts; i++, port++) {
+ 			port->chkPort = 1;
+@@ -579,9 +532,6 @@ static int moxa_load_code(struct moxa_bo
+ 		}
+ 		break;
+ 	default:
+-		retval = moxa_load_c320(brd, ptr, len); /* fills in numPorts */
+-		if (retval)
+-			return retval;
+ 		port = brd->ports;
+ 		for (i = 0; i < brd->numPorts; i++, port++) {
+ 			port->chkPort = 1;
 _
 
-Patches currently in -mm which might be from tim.gardner@canonical.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
+git-drm.patch
+drm-i915-fix-oops-after-killing-x.patch
+wdev-ath5k-typecheck-on-nondebug.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
