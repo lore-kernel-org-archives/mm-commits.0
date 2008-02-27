@@ -1,114 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-fdatasync-should-skip-metadata-writeout-when-overwriting.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:17:03 -0800
-Message-ID: <200802272217.m1RMH3uh000781__19097.6803460673$1204150931$gmane$org@imap1.linux-foundation.org>
+Subject: + tags-add-menuconfig-symbols-as-well.patch added to -mm tree
+Date: Wed, 27 Feb 2008 14:51:24 -0800
+Message-ID: <200802272251.m1RMpOZ5002276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39748 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760887AbYB0WVG (ORCPT
+	by vger.kernel.org with ESMTP id S1761576AbYB0Wv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:21:06 -0500
+	Wed, 27 Feb 2008 17:51:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hifumi.hisashi@oss.ntt.co.jp, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adobriyan@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     ext4: fdatasync should skip metadata writeout when overwriting
-has been removed from the -mm tree.  Its filename was
-     ext4-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+     tags: add menuconfig symbols as well
+has been added to the -mm tree.  Its filename is
+     tags-add-menuconfig-symbols-as-well.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fdatasync should skip metadata writeout when overwriting
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: tags: add menuconfig symbols as well
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Currently fdatasync is identical to fsync in ext3.
+Steps to reproduce:
 
-I think fdatasync should skip journal flush in data=ordered and
-data=writeback mode when it overwrites to already-instantiated blocks on
-HDD.  When I_DIRTY_DATASYNC flag is not set, fdatasync should skip journal
-writeout because this indicates only atime or/and mtime updates.
+	vi -t NETFILTER
 
-Following patch is the same approach of ext2's fsync code(ext2_sync_file).
-
-I did a performance test using the sysbench.
-
-#sysbench --num-threads=128 --max-requests=50000 --test=fileio --file-total-size=128G
---file-test-mode=rndwr --file-fsync-mode=fdatasync run
-
-The result on ext3 was:
-
-	-2.6.24
-	Operations performed:  0 Read, 50080 Write, 59600 Other = 109680 Total
-	Read 0b  Written 782.5Mb  Total transferred 782.5Mb  (12.116Mb/sec)
-	  775.45 Requests/sec executed
-
-	Test execution summary:
-	    total time:                          64.5814s
-	    total number of events:              50080
-	    total time taken by event execution: 3713.9836
-	    per-request statistics:
-	         min:                            0.0000s
-	         avg:                            0.0742s
-	         max:                            0.9375s
-	         approx.  95 percentile:         0.2901s
-
-	Threads fairness:
-	    events (avg/stddev):           391.2500/23.26
-	    execution time (avg/stddev):   29.0155/1.99
-
-	-2.6.24-patched
-	Operations performed:  0 Read, 50009 Write, 61596 Other = 111605 Total
-	Read 0b  Written 781.39Mb  Total transferred 781.39Mb  (16.419Mb/sec)
-	1050.83 Requests/sec executed
-
-	Test execution summary:
-	    total time:                          47.5900s
-	    total number of events:              50009
-	    total time taken by event execution: 2934.5768
-	    per-request statistics:
- 	         min:                            0.0000s
-	         avg:                            0.0587s
- 	         max:                            0.8938s
-	         approx.  95 percentile:         0.1993s
-
-	Threads fairness:
-	    events (avg/stddev):           390.6953/22.64
-	    execution time (avg/stddev):   22.9264/1.17
-
-Filesystem I/O throughput was improved.
-
-Signed-off-by :Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/fsync.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext4/fsync.c~ext4-fdatasync-should-skip-metadata-writeout-when-overwriting fs/ext4/fsync.c
---- a/fs/ext4/fsync.c~ext4-fdatasync-should-skip-metadata-writeout-when-overwriting
-+++ a/fs/ext4/fsync.c
-@@ -72,6 +72,9 @@ int ext4_sync_file(struct file * file, s
- 		goto out;
- 	}
- 
-+        if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
-+                goto out;
-+
- 	/*
- 	 * The VFS has written the file data.  If the inode is unaltered
- 	 * then we need not start a commit.
+diff -puN Makefile~tags-add-menuconfig-symbols-as-well Makefile
+--- a/Makefile~tags-add-menuconfig-symbols-as-well
++++ a/Makefile
+@@ -1400,7 +1400,7 @@ define xtags
+ 	    $(all-kconfigs) | xargs $1 -a \
+ 		--langdef=kconfig \
+ 		--language-force=kconfig \
+-		--regex-kconfig='/^[[:blank:]]*config[[:blank:]]+([[:alnum:]_]+)/\1/'; \
++		--regex-kconfig='/^[[:blank:]]*(menu|)config[[:blank:]]+([[:alnum:]_]+)/\2/'; \
+ 	    $(all-defconfigs) | xargs -r $1 -a \
+ 		--langdef=dotconfig \
+ 		--language-force=dotconfig \
+@@ -1408,7 +1408,7 @@ define xtags
+ 	elif $1 --version 2>&1 | grep -iq emacs; then \
+ 	    $(all-sources) | xargs $1 -a; \
+ 	    $(all-kconfigs) | xargs $1 -a \
+-		--regex='/^[ \t]*config[ \t]+\([a-zA-Z0-9_]+\)/\1/'; \
++		--regex='/^[ \t]*(menu|)config[ \t]+\([a-zA-Z0-9_]+\)/\2/'; \
+ 	    $(all-defconfigs) | xargs -r $1 -a \
+ 		--regex='/^#?[ \t]?\(CONFIG_[a-zA-Z0-9_]+\)/\1/'; \
+ 	else \
 _
 
-Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+tags-add-menuconfig-symbols-as-well.patch
+modules-warn-about-suspicious-return-values-from-modules-init-hook.patch
