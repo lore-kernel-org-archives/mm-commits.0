@@ -1,69 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - update-tulip-maintainers.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:16:47 -0800
-Message-ID: <200802272216.m1RMGlr5000747@imap1.linux-foundation.org>
+Subject: - ext4-use-ext4_group_first_block_no.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:17:12 -0800
+Message-ID: <200802272217.m1RMHCRV000794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46436 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbYB0WT5 (ORCPT
+	by vger.kernel.org with ESMTP id S1758358AbYB0WUB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:19:57 -0500
+	Wed, 27 Feb 2008 17:20:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grundler@parisc-linux.org, kyle@mcmartin.ca, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update TULIP MAINTAINERS
+     ext4: use ext4_group_first_block_no()
 has been removed from the -mm tree.  Its filename was
-     update-tulip-maintainers.patch
+     ext4-use-ext4_group_first_block_no.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: update TULIP MAINTAINERS
-From: Grant Grundler <grundler@parisc-linux.org>
+Subject: ext4: use ext4_group_first_block_no()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Kyle and I are co-maintaining tulip driver.  Normally kyle will review my
-patchs and submit them.  I'll deal with bugzilla.kernel.org bugs and try to
-resolve those bugs.
+Use ext4_group_first_block_no() and assign the return values to
+ext2_fsblk_t variables.
 
-Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/ext4/balloc.c |    6 +++---
+ fs/ext4/xattr.c  |    6 ++----
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~update-tulip-maintainers MAINTAINERS
---- a/MAINTAINERS~update-tulip-maintainers
-+++ a/MAINTAINERS
-@@ -3894,10 +3894,13 @@ M:	trivial@kernel.org
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+diff -puN fs/ext4/balloc.c~ext4-use-ext4_group_first_block_no fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-use-ext4_group_first_block_no
++++ a/fs/ext4/balloc.c
+@@ -48,7 +48,6 @@ void ext4_get_group_no_and_offset(struct
+ unsigned ext4_init_block_bitmap(struct super_block *sb, struct buffer_head *bh,
+ 		 ext4_group_t block_group, struct ext4_group_desc *gdp)
+ {
+-	unsigned long start;
+ 	int bit, bit_max;
+ 	unsigned free_blocks, group_blocks;
+ 	struct ext4_sb_info *sbi = EXT4_SB(sb);
+@@ -106,11 +105,12 @@ unsigned ext4_init_block_bitmap(struct s
+ 	free_blocks = group_blocks - bit_max;
  
--TULIP NETWORK DRIVER
--L:	tulip-users@lists.sourceforge.net
--W:	http://sourceforge.net/projects/tulip/
--S:	Orphan
-+TULIP NETWORK DRIVERS
-+P:	Grant Grundler
-+M:	grundler@parisc-linux.org
-+P:	Kyle McMartin
-+M:	kyle@parisc-linux.org
-+L:	netdev@vger.kernel.org
-+S:	Maintained
+ 	if (bh) {
++		ext4_fsblk_t start;
++
+ 		for (bit = 0; bit < bit_max; bit++)
+ 			ext4_set_bit(bit, bh->b_data);
  
- TUN/TAP driver
- P:	Maxim Krasnyansky
+-		start = block_group * EXT4_BLOCKS_PER_GROUP(sb) +
+-			le32_to_cpu(sbi->s_es->s_first_data_block);
++		start = ext4_group_first_block_no(sb, block_group);
+ 
+ 		/* Set bits for block and inode bitmaps, and inode table */
+ 		ext4_set_bit(ext4_block_bitmap(sb, gdp) - start, bh->b_data);
+diff -puN fs/ext4/xattr.c~ext4-use-ext4_group_first_block_no fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext4-use-ext4_group_first_block_no
++++ a/fs/ext4/xattr.c
+@@ -808,10 +808,8 @@ inserted:
+ 			get_bh(new_bh);
+ 		} else {
+ 			/* We need to allocate a new block */
+-			ext4_fsblk_t goal = le32_to_cpu(
+-					EXT4_SB(sb)->s_es->s_first_data_block) +
+-				(ext4_fsblk_t)EXT4_I(inode)->i_block_group *
+-				EXT4_BLOCKS_PER_GROUP(sb);
++			ext4_fsblk_t goal = ext4_group_first_block_no(sb,
++						EXT4_I(inode)->i_block_group);
+ 			ext4_fsblk_t block = ext4_new_block(handle, inode,
+ 							goal, &error);
+ 			if (error)
 _
 
-Patches currently in -mm which might be from grundler@parisc-linux.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-net.patch
-parisc-new-termios-definitions.patch
-de2104x-remove-bug_on-when-changing-media-type.patch
+origin.patch
+ext2-improve-ext2_readdir-return-value.patch
+ext2-use-ext2_group_first_block_no.patch
+ext2-use-ext2_fsblk_t-type.patch
+ext3-use-ext3_group_first_block_no.patch
+ext3-add-missing-ext3_journal_stop.patch
+ext3-use-ext3_get_group_desc.patch
+ext3-check-ext3_journal_get_write_access-errors.patch
