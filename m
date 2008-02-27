@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch added to -mm tree
-Date: Wed, 27 Feb 2008 14:59:58 -0800
-Message-ID: <200802272259.m1RMxxZW002660@imap1.linux-foundation.org>
+Subject: + cris-remove-dma_declare_coherent_memory-etc.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:05:58 -0800
+Message-ID: <200802272305.m1RN5wXQ002892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33961 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757963AbYB0XA6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751456AbYB0XGF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:00:58 -0500
+	Wed, 27 Feb 2008 18:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
+Cc: ak@suse.de, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     signals: consolidate checks for whether or not to ignore a signal
+     cris: remove dma_declare_coherent_memory etc.
 has been added to the -mm tree.  Its filename is
-     signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+     cris-remove-dma_declare_coherent_memory-etc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,172 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: consolidate checks for whether or not to ignore a signal
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: cris: remove dma_declare_coherent_memory etc.
+From: Andi Kleen <ak@suse.de>
 
-Both sig_ignored() and do_sigactoin() check for signr to be explicitly or
-implicitly ignored.  Introduce a helper for them.
+The DMA implementation seems to be only there for a single PCI driver and the
+driver does not use these interfaces.  So remove it.
 
-This patch is aimed to help handling signals by pid namespace's init, and was
-derived from one of Oleg's patches
-https://lists.linux-foundation.org/pipermail/containers/2007-December/009308.html
-so, if he doesn't mind, he should be considered as an author.
+I don't have cris cross compilers so uncompiled/untested.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ arch/cris/Kconfig                    |    5 -
+ arch/cris/arch-v32/drivers/pci/dma.c |   97 -------------------------
+ 2 files changed, 1 insertion(+), 101 deletions(-)
 
-diff -puN kernel/signal.c~signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal kernel/signal.c
---- a/kernel/signal.c~signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal
-+++ a/kernel/signal.c
-@@ -39,11 +39,19 @@
+diff -puN arch/cris/Kconfig~cris-remove-dma_declare_coherent_memory-etc arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-remove-dma_declare_coherent_memory-etc
++++ a/arch/cris/Kconfig
+@@ -47,11 +47,6 @@ config GENERIC_CALIBRATE_DELAY
+ config NO_IOPORT
+ 	def_bool y
  
- static struct kmem_cache *sigqueue_cachep;
- 
-+static int __sig_ignored(struct task_struct *t, int sig)
-+{
-+	void __user *handler;
-+
-+	/* Is it explicitly or implicitly ignored? */
-+
-+	handler = t->sighand->action[sig - 1].sa.sa_handler;
-+	return handler == SIG_IGN ||
-+		(handler == SIG_DFL && sig_kernel_ignore(sig));
-+}
- 
- static int sig_ignored(struct task_struct *t, int sig)
- {
--	void __user * handler;
+-config HAS_DMA_DECLARE_COHERENT
+-	# looks weird, but it really depends on that
+-	depends on ETRAX_CARDBUS
+-	def_bool y
 -
- 	/*
- 	 * Tracers always want to know about signals..
- 	 */
-@@ -58,10 +66,7 @@ static int sig_ignored(struct task_struc
- 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
- 		return 0;
- 
--	/* Is it explicitly or implicitly ignored? */
--	handler = t->sighand->action[sig-1].sa.sa_handler;
--	return   handler == SIG_IGN ||
--		(handler == SIG_DFL && sig_kernel_ignore(sig));
-+	return __sig_ignored(t, sig);
- }
- 
- /*
-@@ -2306,13 +2311,14 @@ sys_rt_sigqueueinfo(int pid, int sig, si
- 
- int do_sigaction(int sig, struct k_sigaction *act, struct k_sigaction *oact)
+ config FORCE_MAX_ZONEORDER
+ 	int
+ 	default 6
+diff -puN arch/cris/arch-v32/drivers/pci/dma.c~cris-remove-dma_declare_coherent_memory-etc arch/cris/arch-v32/drivers/pci/dma.c
+--- a/arch/cris/arch-v32/drivers/pci/dma.c~cris-remove-dma_declare_coherent_memory-etc
++++ a/arch/cris/arch-v32/drivers/pci/dma.c
+@@ -27,24 +27,10 @@ void *dma_alloc_coherent(struct device *
+ 			   dma_addr_t *dma_handle, gfp_t gfp)
  {
-+	struct task_struct *t = current;
- 	struct k_sigaction *k;
- 	sigset_t mask;
+ 	void *ret;
+-	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
+ 	int order = get_order(size);
+ 	/* ignore region specifiers */
+ 	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
  
- 	if (!valid_signal(sig) || sig < 1 || (act && sig_kernel_only(sig)))
- 		return -EINVAL;
+-	if (mem) {
+-		int page = bitmap_find_free_region(mem->bitmap, mem->size,
+-						     order);
+-		if (page >= 0) {
+-			*dma_handle = mem->device_base + (page << PAGE_SHIFT);
+-			ret = mem->virt_base + (page << PAGE_SHIFT);
+-			memset(ret, 0, size);
+-			return ret;
+-		}
+-		if (mem->flags & DMA_MEMORY_EXCLUSIVE)
+-			return NULL;
+-	}
+-
+ 	if (dev == NULL || (dev->coherent_dma_mask < 0xffffffff))
+ 		gfp |= GFP_DMA;
  
--	k = &current->sighand->action[sig-1];
-+	k = &t->sighand->action[sig-1];
+@@ -63,87 +49,6 @@ void dma_free_coherent(struct device *de
+ 	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
+ 	int order = get_order(size);
  
- 	spin_lock_irq(&current->sighand->siglock);
- 	if (oact)
-@@ -2333,9 +2339,7 @@ int do_sigaction(int sig, struct k_sigac
- 		 *   (for example, SIGCHLD), shall cause the pending signal to
- 		 *   be discarded, whether or not it is blocked"
- 		 */
--		if (act->sa.sa_handler == SIG_IGN ||
--		   (act->sa.sa_handler == SIG_DFL && sig_kernel_ignore(sig))) {
--			struct task_struct *t = current;
-+		if (__sig_ignored(t, sig)) {
- 			sigemptyset(&mask);
- 			sigaddset(&mask, sig);
- 			rm_from_queue_full(&mask, &t->signal->shared_pending);
+-	if (mem && vaddr >= mem->virt_base && vaddr < (mem->virt_base + (mem->size << PAGE_SHIFT))) {
+-		int page = (vaddr - mem->virt_base) >> PAGE_SHIFT;
+-
+-		bitmap_release_region(mem->bitmap, page, order);
+-	} else
+-		free_pages((unsigned long)vaddr, order);
+-}
+-
+-int dma_declare_coherent_memory(struct device *dev, dma_addr_t bus_addr,
+-				dma_addr_t device_addr, size_t size, int flags)
+-{
+-	void __iomem *mem_base;
+-	int pages = size >> PAGE_SHIFT;
+-	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
+-
+-	if ((flags & (DMA_MEMORY_MAP | DMA_MEMORY_IO)) == 0)
+-		goto out;
+-	if (!size)
+-		goto out;
+-	if (dev->dma_mem)
+-		goto out;
+-
+-	/* FIXME: this routine just ignores DMA_MEMORY_INCLUDES_CHILDREN */
+-
+-	mem_base = ioremap(bus_addr, size);
+-	if (!mem_base)
+-		goto out;
+-
+-	dev->dma_mem = kzalloc(sizeof(struct dma_coherent_mem), GFP_KERNEL);
+-	if (!dev->dma_mem)
+-		goto iounmap_out;
+-	dev->dma_mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
+-	if (!dev->dma_mem->bitmap)
+-		goto free1_out;
+-
+-	dev->dma_mem->virt_base = mem_base;
+-	dev->dma_mem->device_base = device_addr;
+-	dev->dma_mem->size = pages;
+-	dev->dma_mem->flags = flags;
+-
+-	if (flags & DMA_MEMORY_MAP)
+-		return DMA_MEMORY_MAP;
+-
+-	return DMA_MEMORY_IO;
+-
+- free1_out:
+-	kfree(dev->dma_mem);
+- iounmap_out:
+-	iounmap(mem_base);
+- out:
+-	return 0;
++	free_pages((unsigned long)vaddr, order);
+ }
+-EXPORT_SYMBOL(dma_declare_coherent_memory);
+ 
+-void dma_release_declared_memory(struct device *dev)
+-{
+-	struct dma_coherent_mem *mem = dev->dma_mem;
+-
+-	if(!mem)
+-		return;
+-	dev->dma_mem = NULL;
+-	iounmap(mem->virt_base);
+-	kfree(mem->bitmap);
+-	kfree(mem);
+-}
+-EXPORT_SYMBOL(dma_release_declared_memory);
+-
+-void *dma_mark_declared_memory_occupied(struct device *dev,
+-					dma_addr_t device_addr, size_t size)
+-{
+-	struct dma_coherent_mem *mem = dev->dma_mem;
+-	int pages = (size + (device_addr & ~PAGE_MASK) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	int pos, err;
+-
+-	if (!mem)
+-		return ERR_PTR(-EINVAL);
+-
+-	pos = (device_addr - mem->device_base) >> PAGE_SHIFT;
+-	err = bitmap_allocate_region(mem->bitmap, pos, get_order(pages));
+-	if (err != 0)
+-		return ERR_PTR(err);
+-	return mem->virt_base + (pos << PAGE_SHIFT);
+-}
+-EXPORT_SYMBOL(dma_mark_declared_memory_occupied);
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from ak@suse.de are
 
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-udf-fix-anchor-point-detection.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+origin.patch
+update-checkpatchpl-to-version-015.patch
+git-x86.patch
+bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
+git-ocfs2.patch
+git-xfs.patch
+make-all-drivers-that-use-dma_declare_coherent_memory-depend-on-it.patch
+cris-remove-dma_declare_coherent_memory-etc.patch
+init-move-setup-of-nr_cpu_ids-to-as-early-as-possible-v3.patch
+generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
+x86_64-fold-pda-into-per-cpu-area-v3.patch
+x86_64-fold-pda-into-per-cpu-area-v3-fix.patch
+x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
+profile-likely-unlikely-macros.patch
+remove-dmam_declarerelease_coherent_memory.patch
