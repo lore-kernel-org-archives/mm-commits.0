@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-moxa-serialise-timer.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:13:19 -0800
-Message-ID: <200802272313.m1RNDJYO003289@imap1.linux-foundation.org>
+Subject: + char-moxa-fix-tiocg-ssoftcar-param.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:12:52 -0800
+Message-ID: <200802272312.m1RNCrdA003235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46422 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762198AbYB0XNx (ORCPT
+	by vger.kernel.org with ESMTP id S1762254AbYB0XNZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:13:53 -0500
+	Wed, 27 Feb 2008 18:13:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk
 
 
 The patch titled
-     Char: moxa, serialise timer
+     Char: moxa, fix TIOC(G/S)SOFTCAR param
 has been added to the -mm tree.  Its filename is
-     char-moxa-serialise-timer.patch
+     char-moxa-fix-tiocg-ssoftcar-param.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: moxa, serialise timer
+Subject: Char: moxa, fix TIOC(G/S)SOFTCAR param
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- del timer after we are sure it won't be fired again
-- make timer scheduling atomic
-- don't reschedule timer when all cards have gone
+according to ioctl_list, both have int * as a param, not ulong *.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/char/moxa.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-serialise-timer drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-serialise-timer
+diff -puN drivers/char/moxa.c~char-moxa-fix-tiocg-ssoftcar-param drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-fix-tiocg-ssoftcar-param
 +++ a/drivers/char/moxa.c
-@@ -846,10 +846,11 @@ static int moxa_init_board(struct moxa_b
- 	if (ret)
- 		goto err_free;
- 
-+	spin_lock_bh(&moxa_lock);
- 	brd->ready = 1;
--
- 	if (!timer_pending(&moxaTimer))
- 		mod_timer(&moxaTimer, jiffies + HZ / 50);
-+	spin_unlock_bh(&moxa_lock);
- 
- 	return 0;
- err_free:
-@@ -1040,13 +1041,6 @@ static void __exit moxa_exit(void)
- {
- 	int i;
- 
--	del_timer_sync(&moxaTimer);
--
--	if (tty_unregister_driver(moxaDriver))
--		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
--				"serial driver\n");
--	put_tty_driver(moxaDriver);
--
- #ifdef CONFIG_PCI
- 	pci_unregister_driver(&moxa_pci_driver);
- #endif
-@@ -1054,6 +1048,13 @@ static void __exit moxa_exit(void)
- 	for (i = 0; i < MAX_BOARDS; i++) /* ISA boards */
- 		if (moxa_boards[i].ready)
- 			moxa_board_deinit(&moxa_boards[i]);
-+
-+	del_timer_sync(&moxaTimer);
-+
-+	if (tty_unregister_driver(moxaDriver))
-+		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
-+				"serial driver\n");
-+	put_tty_driver(moxaDriver);
- }
- 
- module_init(moxa_init);
-@@ -1431,7 +1432,7 @@ static void moxa_poll(unsigned long igno
- {
- 	struct moxa_board_conf *brd;
- 	u16 __iomem *ip;
--	unsigned int card, port;
-+	unsigned int card, port, served = 0;
- 
- 	spin_lock(&moxa_lock);
- 	for (card = 0; card < MAX_BOARDS; card++) {
-@@ -1439,6 +1440,8 @@ static void moxa_poll(unsigned long igno
- 		if (!brd->ready)
- 			continue;
- 
-+		served++;
-+
- 		ip = NULL;
- 		if (readb(brd->intPend) == 0xff)
- 			ip = brd->intTable + readb(brd->intNdx);
-@@ -1459,9 +1462,10 @@ static void moxa_poll(unsigned long igno
- 		}
- 	}
- 	moxaLowWaterChk = 0;
--	spin_unlock(&moxa_lock);
- 
--	mod_timer(&moxaTimer, jiffies + HZ / 50);
-+	if (served)
-+		mod_timer(&moxaTimer, jiffies + HZ / 50);
-+	spin_unlock(&moxa_lock);
- }
- 
- /******************************************************************************/
+@@ -741,9 +741,9 @@ static int moxa_ioctl(struct tty_struct 
+ 		MoxaPortSendBreak(ch->port, arg);
+ 		return (0);
+ 	case TIOCGSOFTCAR:
+-		return put_user(C_CLOCAL(tty) ? 1 : 0, (unsigned long __user *) argp);
++		return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)argp);
+ 	case TIOCSSOFTCAR:
+-		if(get_user(retval, (unsigned long __user *) argp))
++		if (get_user(retval, (int __user *)argp))
+ 			return -EFAULT;
+ 		arg = retval;
+ 		tty->termios->c_cflag = ((tty->termios->c_cflag & ~CLOCAL) |
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
