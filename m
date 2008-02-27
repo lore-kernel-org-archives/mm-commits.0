@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + epcac-static-functions-and-integer-as-null-pointer-fixes.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:35:45 -0800
-Message-ID: <200802272335.m1RNZj0Q004337@imap1.linux-foundation.org>
+Subject: + specialixc-fix-possible-double-unlock.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:37:44 -0800
+Message-ID: <200802272337.m1RNbiit004387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:54019 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756519AbYB0Xgf (ORCPT
+	by vger.kernel.org with ESMTP id S1756890AbYB0Xhq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:36:35 -0500
+	Wed, 27 Feb 2008 18:37:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     epca.c: static functions and integer as NULL pointer fixes
+     specialix.c: fix possible double-unlock
 has been added to the -mm tree.  Its filename is
-     epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+     specialixc-fix-possible-double-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epca.c: static functions and integer as NULL pointer fixes
+Subject: specialix.c: fix possible double-unlock
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-drivers/char/epca.c:926:28: warning: Using plain integer as NULL pointer
-drivers/char/epca.c:1841:2: warning: Using plain integer as NULL pointer
-
-Forward declarations were already marked static, mark the definitions too.
-drivers/char/epca.c:2493:6: warning: symbol 'digi_send_break' was not declared. Should it be static?
-drivers/char/epca.c:2881:12: warning: symbol 'init_PCI' was not declared. Should it be static?
+Noticed by sparse, trivial to see:
+drivers/char/specialix.c:2112:3: warning: context imbalance in 'sx_throttle' - unexpected unlock
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/epca.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/specialix.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/epca.c~epcac-static-functions-and-integer-as-null-pointer-fixes drivers/char/epca.c
---- a/drivers/char/epca.c~epcac-static-functions-and-integer-as-null-pointer-fixes
-+++ a/drivers/char/epca.c
-@@ -923,7 +923,7 @@ static int pc_open(struct tty_struct *tt
- 		return(-ENODEV);
- 	}
- 
--	if ((bc = ch->brdchan) == 0) {
-+	if ((bc = ch->brdchan) == NULL) {
- 		tty->driver_data = NULL;
- 		return -ENODEV;
- 	}
-@@ -1838,7 +1838,7 @@ static void epcaparam(struct tty_struct 
- 	unsigned mval, hflow, cflag, iflag;
- 
- 	bc = ch->brdchan;
--	epcaassert(bc !=0, "bc out of range");
-+	epcaassert(bc != NULL, "bc out of range");
- 
- 	assertgwinon(ch);
- 	ts = tty->termios;
-@@ -2477,7 +2477,7 @@ static void pc_unthrottle(struct tty_str
- 	}
- }
- 
--void digi_send_break(struct channel *ch, int msec)
-+static void digi_send_break(struct channel *ch, int msec)
- {
- 	unsigned long flags;
- 
-@@ -2865,7 +2865,7 @@ static struct pci_device_id epca_pci_tbl
- 
- MODULE_DEVICE_TABLE(pci, epca_pci_tbl);
- 
--int __init init_PCI (void)
-+static int __init init_PCI (void)
- {
- 	memset (&epca_driver, 0, sizeof (epca_driver));
- 	epca_driver.name = "epca";
+diff -puN drivers/char/specialix.c~specialixc-fix-possible-double-unlock drivers/char/specialix.c
+--- a/drivers/char/specialix.c~specialixc-fix-possible-double-unlock
++++ a/drivers/char/specialix.c
+@@ -2075,7 +2075,6 @@ static void sx_throttle(struct tty_struc
+ 	sx_out(bp, CD186x_CAR, port_No(port));
+ 	spin_unlock_irqrestore(&bp->lock, flags);
+ 	if (I_IXOFF(tty)) {
+-		spin_unlock_irqrestore(&bp->lock, flags);
+ 		sx_wait_CCR(bp);
+ 		spin_lock_irqsave(&bp->lock, flags);
+ 		sx_out(bp, CD186x_CCR, CCR_SSCH2);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -138,3 +106,5 @@ char-espc-fix-possible-double-unlock.patch
 char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
 cycladesc-fix-sparse-shadowed-variable-warnings.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+specialixc-fix-possible-double-unlock.patch
