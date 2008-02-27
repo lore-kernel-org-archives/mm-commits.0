@@ -1,142 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - s390-use-div_round_up.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:16:49 -0800
-Message-ID: <200802272216.m1RMGnuH000750@imap1.linux-foundation.org>
+Subject: - maple-remove-unused-variable.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:16:54 -0800
+Message-ID: <200802272216.m1RMGsVo000756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38448 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759955AbYB0WRl (ORCPT
+	by vger.kernel.org with ESMTP id S1757976AbYB0WR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:17:41 -0500
+	Wed, 27 Feb 2008 17:17:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: adrian@newgolddream.dyndns.info, adrian@mcmen.demon.co.uk, dtor@mail.ru, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390: use DIV_ROUND_UP
+     maple: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     s390-use-div_round_up.patch
+     maple-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390: use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: maple: remove unused variable
+From: Adrian McMenamin <adrian@newgolddream.dyndns.info>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+Remove an unused variable from the definition of struct maple_device
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/claw.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ include/linux/maple.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/s390/net/claw.c~s390-use-div_round_up drivers/s390/net/claw.c
---- a/drivers/s390/net/claw.c~s390-use-div_round_up
-+++ a/drivers/s390/net/claw.c
-@@ -2114,8 +2114,7 @@ init_ccw_bk(struct net_device *dev)
-         */
-         ccw_blocks_perpage= PAGE_SIZE /  CCWBK_SIZE;
-         ccw_pages_required=
--		(ccw_blocks_required+ccw_blocks_perpage -1) /
--			 ccw_blocks_perpage;
-+		DIV_ROUND_UP(ccw_blocks_required, ccw_blocks_perpage);
+diff -puN include/linux/maple.h~maple-remove-unused-variable include/linux/maple.h
+--- a/include/linux/maple.h~maple-remove-unused-variable
++++ a/include/linux/maple.h
+@@ -64,7 +64,6 @@ struct maple_driver {
+ 	int (*connect) (struct maple_device * dev);
+ 	void (*disconnect) (struct maple_device * dev);
+ 	struct device_driver drv;
+-	int registered;
+ };
  
- #ifdef DEBUGMSG
-         printk(KERN_INFO "%s: %s() > ccw_blocks_perpage=%d\n",
-@@ -2133,12 +2132,12 @@ init_ccw_bk(struct net_device *dev)
-          */
-         if (privptr->p_env->read_size < PAGE_SIZE) {
-             claw_reads_perpage= PAGE_SIZE / privptr->p_env->read_size;
--            claw_read_pages= (privptr->p_env->read_buffers +
--	    	claw_reads_perpage -1) / claw_reads_perpage;
-+	     claw_read_pages=
-+		DIV_ROUND_UP(privptr->p_env->read_buffers, claw_reads_perpage);
-          }
-          else {       /* > or equal  */
-             privptr->p_buff_pages_perread=
--	    	(privptr->p_env->read_size + PAGE_SIZE - 1) / PAGE_SIZE;
-+		DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
-             claw_read_pages=
- 	    	privptr->p_env->read_buffers * privptr->p_buff_pages_perread;
-          }
-@@ -2146,13 +2145,13 @@ init_ccw_bk(struct net_device *dev)
-             claw_writes_perpage=
- 	    	PAGE_SIZE / privptr->p_env->write_size;
-             claw_write_pages=
--	    	(privptr->p_env->write_buffers + claw_writes_perpage -1) /
--			claw_writes_perpage;
-+		DIV_ROUND_UP(privptr->p_env->write_buffers,
-+			     claw_writes_perpage);
- 
-         }
-         else {      /* >  or equal  */
-             privptr->p_buff_pages_perwrite=
--	    	 (privptr->p_env->read_size + PAGE_SIZE - 1) / PAGE_SIZE;
-+		DIV_ROUND_UP(privptr->p_env->read_size, PAGE_SIZE);
-             claw_write_pages=
- 	     	privptr->p_env->write_buffers * privptr->p_buff_pages_perwrite;
-         }
+ void maple_getcond_callback(struct maple_device *dev,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from adrian@newgolddream.dyndns.info are
 
-sound-use-bug_on.patch
-git-powerpc.patch
-git-hid.patch
-git-net.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-git-ocfs2.patch
-fs-ocfs2-use-bug_on.patch
-drivers-block-viodasdc-use-field_sizeof.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
 git-sh.patch
-usb-use-div_round_up.patch
-fs-affs-filec-use-bug_on.patch
-fbdev-use-div_round_up-or-roundup.patch
-fs-ext2-use-bug_on.patch
-fs-ext3-use-bug_on.patch
-fs-ext4-use-bug_on.patch
