@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + smc91x-add-insw-outsw-to-default-config-v2.patch added to -mm tree
-Date: Wed, 27 Feb 2008 13:27:23 -0800
-Message-ID: <200802272127.m1RLRN0H031149@imap1.linux-foundation.org>
+Subject: + smc91x-make-superh-use-default-config-v2.patch added to -mm tree
+Date: Wed, 27 Feb 2008 13:27:26 -0800
+Message-ID: <200802272127.m1RLRQ2v031152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59407 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbYB0V1v (ORCPT
+	by vger.kernel.org with ESMTP id S1757917AbYB0V1x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 16:27:51 -0500
+	Wed, 27 Feb 2008 16:27:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: magnus.damm@gmail.com, damm@igel.co.jp, jeff@garzik.org, lethal@linux-sh.org
 
 
 The patch titled
-     smc91x: add insw/outsw to default config
+     smc91x: make superh use default config
 has been added to the -mm tree.  Its filename is
-     smc91x-add-insw-outsw-to-default-config-v2.patch
+     smc91x-make-superh-use-default-config-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc91x: add insw/outsw to default config
+Subject: smc91x: make superh use default config
 From: Magnus Damm <magnus.damm@gmail.com>
 
-This patch makes sure SMC_insw()/SMC_outsw() are defined for the default
-configuration.  Without this change BUG()s will be triggered when using 16-bit
-only platform data and the default configuration.
+Removes superh board specific configuration from the header file.  These
+boards will instead be configured using platform data.
 
 Signed-off-by: Magnus Damm <damm@igel.co.jp>
 Acked-by: Nicolas Pitre <nico@cam.org>
@@ -48,21 +47,49 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/smc91x.h |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN drivers/net/smc91x.h~smc91x-add-insw-outsw-to-default-config-v2 drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~smc91x-add-insw-outsw-to-default-config-v2
+diff -puN drivers/net/smc91x.h~smc91x-make-superh-use-default-config-v2 drivers/net/smc91x.h
+--- a/drivers/net/smc91x.h~smc91x-make-superh-use-default-config-v2
 +++ a/drivers/net/smc91x.h
-@@ -476,6 +476,8 @@ static inline void LPD7_SMC_outsw (unsig
- #define SMC_outb(v, a, r)	writeb(v, (a) + (r))
- #define SMC_outw(v, a, r)	writew(v, (a) + (r))
- #define SMC_outl(v, a, r)	writel(v, (a) + (r))
-+#define SMC_insw(a, r, p, l)	readsw((a) + (r), p, l)
-+#define SMC_outsw(a, r, p, l)	writesw((a) + (r), p, l)
- #define SMC_insl(a, r, p, l)	readsl((a) + (r), p, l)
- #define SMC_outsl(a, r, p, l)	writesl((a) + (r), p, l)
+@@ -292,36 +292,6 @@ SMC_outw(u16 val, void __iomem *ioaddr, 
+ #define SMC_insw(a, r, p, l)	insw((a) + (r), p, l)
+ #define SMC_outsw(a, r, p, l)	outsw((a) + (r), p, l)
  
+-#elif   defined(CONFIG_SUPERH)
+-
+-#ifdef CONFIG_SOLUTION_ENGINE
+-#define SMC_IRQ_FLAGS		(0)
+-#define SMC_CAN_USE_8BIT       0
+-#define SMC_CAN_USE_16BIT      1
+-#define SMC_CAN_USE_32BIT      0
+-#define SMC_IO_SHIFT           0
+-#define SMC_NOWAIT             1
+-
+-#define SMC_inw(a, r)          inw((a) + (r))
+-#define SMC_outw(v, a, r)      outw(v, (a) + (r))
+-#define SMC_insw(a, r, p, l)   insw((a) + (r), p, l)
+-#define SMC_outsw(a, r, p, l)  outsw((a) + (r), p, l)
+-
+-#else /* BOARDS */
+-
+-#define SMC_CAN_USE_8BIT       1
+-#define SMC_CAN_USE_16BIT      1
+-#define SMC_CAN_USE_32BIT      0
+-
+-#define SMC_inb(a, r)          inb((a) + (r))
+-#define SMC_inw(a, r)          inw((a) + (r))
+-#define SMC_outb(v, a, r)      outb(v, (a) + (r))
+-#define SMC_outw(v, a, r)      outw(v, (a) + (r))
+-#define SMC_insw(a, r, p, l)   insw((a) + (r), p, l)
+-#define SMC_outsw(a, r, p, l)  outsw((a) + (r), p, l)
+-
+-#endif  /* BOARDS */
+-
+ #elif   defined(CONFIG_M32R)
+ 
+ #define SMC_CAN_USE_8BIT	0
 _
 
 Patches currently in -mm which might be from magnus.damm@gmail.com are
