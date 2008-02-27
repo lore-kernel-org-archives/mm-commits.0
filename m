@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:29:54 -0800
-Message-ID: <200802272329.m1RNTsFQ004101@imap1.linux-foundation.org>
+Subject: + cycladesc-fix-sparse-shadowed-variable-warnings.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:30:29 -0800
+Message-ID: <200802272330.m1RNUTF4004138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33381 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754421AbYB0XaZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755576AbYB0Xa7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:30:25 -0500
+	Wed, 27 Feb 2008 18:30:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     char: rocket.c: fix sparse variable shadowing and int as NULL pointer
+     cyclades.c: fix sparse shadowed variable warnings
 has been added to the -mm tree.  Its filename is
-     char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+     cycladesc-fix-sparse-shadowed-variable-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: rocket.c: fix sparse variable shadowing and int as NULL pointer
+Subject: cyclades.c: fix sparse shadowed variable warnings
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Nested min() macros shadow _x, separate into two lines.
-drivers/char/rocket.c:451:7: warning: symbol '_x' shadows an earlier one
-drivers/char/rocket.c:451:7: originally declared here
-drivers/char/rocket.c:451:7: warning: symbol '_x' shadows an earlier one
-drivers/char/rocket.c:451:7: originally declared here
-drivers/char/rocket.c:451:7: warning: symbol '_y' shadows an earlier one
-drivers/char/rocket.c:451:7: originally declared here
-drivers/char/rocket.c:1754:7: warning: symbol '_x' shadows an earlier one
-drivers/char/rocket.c:1754:7: originally declared here
-drivers/char/rocket.c:1754:7: warning: symbol '_x' shadows an earlier one
-drivers/char/rocket.c:1754:7: originally declared here
-drivers/char/rocket.c:1754:7: warning: symbol '_y' shadows an earlier one
-drivers/char/rocket.c:1754:7: originally declared here
-drivers/char/rocket.c:1751:20: warning: Using plain integer as NULL pointer
+Nested min() macros.
+drivers/char/cyclades.c:2750:7: warning: symbol '_x' shadows an earlier one
+drivers/char/cyclades.c:2750:7: originally declared here
+drivers/char/cyclades.c:2750:7: warning: symbol '_x' shadows an earlier one
+drivers/char/cyclades.c:2750:7: originally declared here
+drivers/char/cyclades.c:2750:7: warning: symbol '_y' shadows an earlier one
+drivers/char/cyclades.c:2750:7: originally declared here
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/cyclades.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/rocket.c~char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer
-+++ a/drivers/char/rocket.c
-@@ -448,7 +448,8 @@ static void rp_do_transmit(struct r_port
- 	while (1) {
- 		if (tty->stopped || tty->hw_stopped)
- 			break;
--		c = min(info->xmit_fifo_room, min(info->xmit_cnt, XMIT_BUF_SIZE - info->xmit_tail));
-+		c = min(info->xmit_fifo_room, info->xmit_cnt);
-+		c = min(c, XMIT_BUF_SIZE - info->xmit_tail);
- 		if (c <= 0 || info->xmit_fifo_room <= 0)
- 			break;
- 		sOutStrW(sGetTxRxDataIO(cp), (unsigned short *) (info->xmit_buf + info->xmit_tail), c / 2);
-@@ -1757,10 +1758,10 @@ static int rp_write(struct tty_struct *t
+diff -puN drivers/char/cyclades.c~cycladesc-fix-sparse-shadowed-variable-warnings drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cycladesc-fix-sparse-shadowed-variable-warnings
++++ a/drivers/char/cyclades.c
+@@ -2747,8 +2747,8 @@ static int cy_write(struct tty_struct *t
  
- 	/*  Write remaining data into the port's xmit_buf */
+ 	spin_lock_irqsave(&info->card->card_lock, flags);
  	while (1) {
--		if (info->tty == 0)	/*   Seemingly obligatory check... */
-+		if (info->tty == NULL)	/*   Seemingly obligatory check... */
- 			goto end;
--
--		c = min(count, min(XMIT_BUF_SIZE - info->xmit_cnt - 1, XMIT_BUF_SIZE - info->xmit_head));
-+		c = min(count, XMIT_BUF_SIZE - info->xmit_cnt - 1);
-+		c = min(c, XMIT_BUF_SIZE - info->xmit_head);
+-		c = min(count, min((int)(SERIAL_XMIT_SIZE - info->xmit_cnt - 1),
+-				   (int)(SERIAL_XMIT_SIZE - info->xmit_head)));
++		c = min(count, (int)(SERIAL_XMIT_SIZE - info->xmit_cnt - 1));
++		c = min(c, (int)(SERIAL_XMIT_SIZE - info->xmit_head));
+ 
  		if (c <= 0)
  			break;
- 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -132,3 +112,4 @@ cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
 char-fix-sparse-shadowed-variable-warnings-in-espc.patch
 char-espc-fix-possible-double-unlock.patch
 char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
