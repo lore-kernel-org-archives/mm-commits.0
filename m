@@ -1,133 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - sh-revert-dreamcast-pci-change.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:16:57 -0800
-Message-ID: <200802272216.m1RMGv01000761@imap1.linux-foundation.org>
+Subject: - dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:16:36 -0800
+Message-ID: <200802272216.m1RMGaAT000726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42725 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758416AbYB0WR1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759267AbYB0WRc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:17:27 -0500
+	Wed, 27 Feb 2008 17:17:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, adrian@mcmen.demon.co.uk, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, pcaulfie@redhat.com, swhiteho@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: revert dreamcast pci change
+     dlm: match signedness between dlm_config_info and cluster_set
 has been removed from the -mm tree.  Its filename was
-     sh-revert-dreamcast-pci-change.patch
+     dlm-match-signedness-between-dlm_config_info-and-cluster_set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: revert dreamcast pci change
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: dlm: match signedness between dlm_config_info and cluster_set
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Commit e036eaa681a17f71b64f6d9040fe605555623919 broke dreamcast pci, this
-patch fixes that by reverting the dreamcast specific bits.
+cluster_set is only called from the macro CLUSTER_ATTR which defines read/write
+access functions.  Make the signedness match to avoid sparse warnings every time
+CLUSTER_ATTR is used (lines 149-159) all of the form:
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
+fs/dlm/config.c:149:1: warning: incorrect type in argument 3 (different signedness)
+fs/dlm/config.c:149:1:    expected unsigned int *info_field
+fs/dlm/config.c:149:1:    got int extern [toplevel] *<noident>
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Patrick Caulfield <pcaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/pci/ops-dreamcast.c |   44 +++++++++++++-------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ fs/dlm/config.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/drivers/pci/ops-dreamcast.c~sh-revert-dreamcast-pci-change arch/sh/drivers/pci/ops-dreamcast.c
---- a/arch/sh/drivers/pci/ops-dreamcast.c~sh-revert-dreamcast-pci-change
-+++ a/arch/sh/drivers/pci/ops-dreamcast.c
-@@ -83,9 +83,9 @@ static int gapspci_read(struct pci_bus *
- 		return PCIBIOS_DEVICE_NOT_FOUND;
+diff -puN fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set fs/dlm/config.c
+--- a/fs/dlm/config.c~dlm-match-signedness-between-dlm_config_info-and-cluster_set
++++ a/fs/dlm/config.c
+@@ -114,7 +114,7 @@ struct cluster_attribute {
+ };
  
- 	switch (size) {
--		case 1: *val = ctrl_inb(GAPSPCI_BBA_CONFIG+where); break;
--		case 2: *val = ctrl_inw(GAPSPCI_BBA_CONFIG+where); break;
--		case 4: *val = ctrl_inl(GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: *val = inb(GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: *val = inw(GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: *val = inl(GAPSPCI_BBA_CONFIG+where); break;
- 	}	
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -97,9 +97,9 @@ static int gapspci_write(struct pci_bus 
- 		return PCIBIOS_DEVICE_NOT_FOUND;
- 
- 	switch (size) {
--		case 1: ctrl_outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 2: ctrl_outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
--		case 4: ctrl_outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 1: outb(( u8)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 2: outw((u16)val, GAPSPCI_BBA_CONFIG+where); break;
-+		case 4: outl((u32)val, GAPSPCI_BBA_CONFIG+where); break;
- 	}
- 
-         return PCIBIOS_SUCCESSFUL;
-@@ -127,36 +127,36 @@ int __init gapspci_init(void)
- 	 */
- 
- 	for (i=0; i<16; i++)
--		idbuf[i] = ctrl_inb(GAPSPCI_REGS+i);
-+		idbuf[i] = inb(GAPSPCI_REGS+i);
- 
- 	if (strncmp(idbuf, "GAPSPCI_BRIDGE_2", 16))
- 		return -ENODEV;
- 
--	ctrl_outl(0x5a14a501, GAPSPCI_REGS+0x18);
-+	outl(0x5a14a501, GAPSPCI_REGS+0x18);
- 
- 	for (i=0; i<1000000; i++)
- 		;
- 
--	if (ctrl_inl(GAPSPCI_REGS+0x18) != 1)
-+	if (inl(GAPSPCI_REGS+0x18) != 1)
- 		return -EINVAL;
- 
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x20);
--	ctrl_outl(0x01000000, GAPSPCI_REGS+0x24);
-+	outl(0x01000000, GAPSPCI_REGS+0x20);
-+	outl(0x01000000, GAPSPCI_REGS+0x24);
- 
--	ctrl_outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
--	ctrl_outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
-+	outl(GAPSPCI_DMA_BASE, GAPSPCI_REGS+0x28);
-+	outl(GAPSPCI_DMA_BASE+GAPSPCI_DMA_SIZE, GAPSPCI_REGS+0x2c);
- 
--	ctrl_outl(1, GAPSPCI_REGS+0x14);
--	ctrl_outl(1, GAPSPCI_REGS+0x34);
-+	outl(1, GAPSPCI_REGS+0x14);
-+	outl(1, GAPSPCI_REGS+0x34);
- 
- 	/* Setting Broadband Adapter */
--	ctrl_outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
--	ctrl_outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
--	ctrl_outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
--	ctrl_outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
--	ctrl_outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
--	ctrl_outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
--	ctrl_outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
-+	outw(0xf900, GAPSPCI_BBA_CONFIG+0x06);
-+	outl(0x00000000, GAPSPCI_BBA_CONFIG+0x30);
-+	outb(0x00, GAPSPCI_BBA_CONFIG+0x3c);
-+	outb(0xf0, GAPSPCI_BBA_CONFIG+0x0d);
-+	outw(0x0006, GAPSPCI_BBA_CONFIG+0x04);
-+	outl(0x00002001, GAPSPCI_BBA_CONFIG+0x10);
-+	outl(0x01000000, GAPSPCI_BBA_CONFIG+0x14);
- 
- 	return 0;
- }
+ static ssize_t cluster_set(struct cluster *cl, unsigned int *cl_field,
+-			   unsigned int *info_field, int check_zero,
++			   int *info_field, int check_zero,
+ 			   const char *buf, size_t len)
+ {
+ 	unsigned int x;
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-smc91x-pass-along-private-data-v2.patch
-smc91x-introduce-platform-data-flags-v2.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-smc91x-make-superh-use-default-config-v2.patch
-git-sh.patch
-sm501-add-uart-support.patch
+origin.patch
+git-x86.patch
+git-dvb.patch
+git-dlm.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+git-net.patch
+git-nfsd.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
