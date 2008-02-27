@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - hrtimers-simplify-lockdep-stuff.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:17:25 -0800
-Message-ID: <200802272217.m1RMHPbm000812@imap1.linux-foundation.org>
+Subject: - timers-simplify-lockdep-stuff.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:17:22 -0800
+Message-ID: <200802272217.m1RMHMBk000809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56097 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762246AbYB0WS3 (ORCPT
+	by vger.kernel.org with ESMTP id S1762380AbYB0WSm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:18:29 -0500
+	Wed, 27 Feb 2008 17:18:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, a.p.zijlstra@chello.nl, arjan@linux.intel.com, heiko.carstens@de.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimers: simplify lockdep stuff
+     timers: simplify lockdep stuff
 has been removed from the -mm tree.  Its filename was
-     hrtimers-simplify-lockdep-stuff.patch
+     timers-simplify-lockdep-stuff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimers: simplify lockdep stuff
+Subject: timers: simplify lockdep stuff
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
 In order to avoid the false positive from lockdep, each per-cpu base->lock has
-the separate lock class and migrate_hrtimers() uses double_spin_lock().
+the separate lock class and migrate_timers() uses double_spin_lock().
 
-This is overcomplicated: except for migrate_hrtimers() we never take 2 locks
-at once, and migrate_hrtimers() can use spin_lock_nested().
+This all is overcomplicated: except for migrate_timers() we never take 2 locks
+at once, and migrate_timers() can use spin_lock_nested().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Arjan van de Ven <arjan@linux.intel.com>
@@ -42,42 +42,36 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    2 --
- kernel/hrtimer.c        |    9 ++++-----
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ kernel/timer.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/hrtimer.h~hrtimers-simplify-lockdep-stuff include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimers-simplify-lockdep-stuff
-+++ a/include/linux/hrtimer.h
-@@ -173,7 +173,6 @@ struct hrtimer_clock_base {
-  * struct hrtimer_cpu_base - the per cpu clock bases
-  * @lock:		lock protecting the base and associated clock bases
-  *			and timers
-- * @lock_key:		the lock_class_key for use with lockdep
-  * @clock_base:		array of clock bases for this cpu
-  * @curr_timer:		the timer which is executing a callback right now
-  * @expires_next:	absolute time of the next event which was scheduled
-@@ -189,7 +188,6 @@ struct hrtimer_clock_base {
-  */
- struct hrtimer_cpu_base {
- 	spinlock_t			lock;
--	struct lock_class_key		lock_key;
- 	struct hrtimer_clock_base	clock_base[HRTIMER_MAX_CLOCK_BASES];
- 	struct list_head		cb_pending;
- #ifdef CONFIG_HIGH_RES_TIMERS
-diff -puN kernel/hrtimer.c~hrtimers-simplify-lockdep-stuff kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-simplify-lockdep-stuff
-+++ a/kernel/hrtimer.c
-@@ -1420,7 +1420,6 @@ static void __cpuinit init_hrtimers_cpu(
- 	int i;
+diff -puN kernel/timer.c~timers-simplify-lockdep-stuff kernel/timer.c
+--- a/kernel/timer.c~timers-simplify-lockdep-stuff
++++ a/kernel/timer.c
+@@ -1220,13 +1220,6 @@ asmlinkage long sys_sysinfo(struct sysin
+ 	return 0;
+ }
  
- 	spin_lock_init(&cpu_base->lock);
--	lockdep_set_class(&cpu_base->lock, &cpu_base->lock_key);
+-/*
+- * lockdep: we want to track each per-CPU base as a separate lock-class,
+- * but timer-bases are kmalloc()-ed, so we need to attach separate
+- * keys to them:
+- */
+-static struct lock_class_key base_lock_keys[NR_CPUS];
+-
+ static int __cpuinit init_timers_cpu(int cpu)
+ {
+ 	int j;
+@@ -1269,7 +1262,6 @@ static int __cpuinit init_timers_cpu(int
+ 	}
  
- 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
- 		cpu_base->clock_base[i].cpu_base = cpu_base;
-@@ -1461,16 +1460,16 @@ static void migrate_hrtimers(int cpu)
- 	tick_cancel_sched_timer(cpu);
+ 	spin_lock_init(&base->lock);
+-	lockdep_set_class(&base->lock, base_lock_keys + cpu);
+ 
+ 	for (j = 0; j < TVN_SIZE; j++) {
+ 		INIT_LIST_HEAD(base->tv5.vec + j);
+@@ -1308,8 +1300,8 @@ static void __cpuinit migrate_timers(int
+ 	new_base = get_cpu_var(tvec_bases);
  
  	local_irq_disable();
 -	double_spin_lock(&new_base->lock, &old_base->lock,
@@ -85,9 +79,10 @@ diff -puN kernel/hrtimer.c~hrtimers-simplify-lockdep-stuff kernel/hrtimer.c
 +	spin_lock(&new_base->lock);
 +	spin_lock_nested(&old_base->lock, SINGLE_DEPTH_NESTING);
  
- 	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++) {
- 		migrate_hrtimer_list(&old_base->clock_base[i],
- 				     &new_base->clock_base[i]);
+ 	BUG_ON(old_base->running_timer);
+ 
+@@ -1322,8 +1314,8 @@ static void __cpuinit migrate_timers(int
+ 		migrate_timer_list(new_base, old_base->tv5.vec + i);
  	}
  
 -	double_spin_unlock(&new_base->lock, &old_base->lock,
@@ -95,7 +90,7 @@ diff -puN kernel/hrtimer.c~hrtimers-simplify-lockdep-stuff kernel/hrtimer.c
 +	spin_unlock(&old_base->lock);
 +	spin_unlock(&new_base->lock);
  	local_irq_enable();
- 	put_cpu_var(hrtimer_bases);
+ 	put_cpu_var(tvec_bases);
  }
 _
 
