@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-espc-fix-possible-double-unlock.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:25:23 -0800
-Message-ID: <200802272325.m1RNPOlu003941@imap1.linux-foundation.org>
+Subject: + char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:29:54 -0800
+Message-ID: <200802272329.m1RNTsFQ004101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34892 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753241AbYB0XZ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754421AbYB0XaZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:25:27 -0500
+	Wed, 27 Feb 2008 18:30:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jirislaby@gmail.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     char: esp.c: fix possible double-unlock
+     char: rocket.c: fix sparse variable shadowing and int as NULL pointer
 has been added to the -mm tree.  Its filename is
-     char-espc-fix-possible-double-unlock.patch
+     char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: esp.c: fix possible double-unlock
+Subject: char: rocket.c: fix sparse variable shadowing and int as NULL pointer
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Hitting either of the break statements in the while loop would cause a
-double-unlock of info->lock.
-
-[Jiri Slaby suggested simply returning is safe here, rather than a goto]
-
-Noticed by sparse:
-drivers/char/esp.c:2042:2: warning: context imbalance in 'rs_wait_until_sent' - unexpected unlock
+Nested min() macros shadow _x, separate into two lines.
+drivers/char/rocket.c:451:7: warning: symbol '_x' shadows an earlier one
+drivers/char/rocket.c:451:7: originally declared here
+drivers/char/rocket.c:451:7: warning: symbol '_x' shadows an earlier one
+drivers/char/rocket.c:451:7: originally declared here
+drivers/char/rocket.c:451:7: warning: symbol '_y' shadows an earlier one
+drivers/char/rocket.c:451:7: originally declared here
+drivers/char/rocket.c:1754:7: warning: symbol '_x' shadows an earlier one
+drivers/char/rocket.c:1754:7: originally declared here
+drivers/char/rocket.c:1754:7: warning: symbol '_x' shadows an earlier one
+drivers/char/rocket.c:1754:7: originally declared here
+drivers/char/rocket.c:1754:7: warning: symbol '_y' shadows an earlier one
+drivers/char/rocket.c:1754:7: originally declared here
+drivers/char/rocket.c:1751:20: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/esp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/rocket.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/esp.c~char-espc-fix-possible-double-unlock drivers/char/esp.c
---- a/drivers/char/esp.c~char-espc-fix-possible-double-unlock
-+++ a/drivers/char/esp.c
-@@ -2040,10 +2040,10 @@ static void rs_wait_until_sent(struct tt
- 		msleep_interruptible(jiffies_to_msecs(char_time));
+diff -puN drivers/char/rocket.c~char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer
++++ a/drivers/char/rocket.c
+@@ -448,7 +448,8 @@ static void rp_do_transmit(struct r_port
+ 	while (1) {
+ 		if (tty->stopped || tty->hw_stopped)
+ 			break;
+-		c = min(info->xmit_fifo_room, min(info->xmit_cnt, XMIT_BUF_SIZE - info->xmit_tail));
++		c = min(info->xmit_fifo_room, info->xmit_cnt);
++		c = min(c, XMIT_BUF_SIZE - info->xmit_tail);
+ 		if (c <= 0 || info->xmit_fifo_room <= 0)
+ 			break;
+ 		sOutStrW(sGetTxRxDataIO(cp), (unsigned short *) (info->xmit_buf + info->xmit_tail), c / 2);
+@@ -1757,10 +1758,10 @@ static int rp_write(struct tty_struct *t
  
- 		if (signal_pending(current))
--			break;
-+			return;
+ 	/*  Write remaining data into the port's xmit_buf */
+ 	while (1) {
+-		if (info->tty == 0)	/*   Seemingly obligatory check... */
++		if (info->tty == NULL)	/*   Seemingly obligatory check... */
+ 			goto end;
+-
+-		c = min(count, min(XMIT_BUF_SIZE - info->xmit_cnt - 1, XMIT_BUF_SIZE - info->xmit_head));
++		c = min(count, XMIT_BUF_SIZE - info->xmit_cnt - 1);
++		c = min(c, XMIT_BUF_SIZE - info->xmit_head);
+ 		if (c <= 0)
+ 			break;
  
- 		if (timeout && time_after(jiffies, orig_jiffies + timeout))
--			break;
-+			return;
- 
- 		spin_lock_irqsave(&info->lock, flags);
- 		serial_out(info, UART_ESI_CMD1, ESI_NO_COMMAND);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -114,3 +131,4 @@ reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
 cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
 char-fix-sparse-shadowed-variable-warnings-in-espc.patch
 char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
