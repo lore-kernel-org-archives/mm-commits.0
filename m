@@ -1,75 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - sis190-read-the-mac-address-from-the-eeprom-first.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:16:41 -0800
-Message-ID: <200802272216.m1RMGfsG000736@imap1.linux-foundation.org>
+Subject: - ext4-convert-byte-order-of-constant-instead-of-variable.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:17:10 -0800
+Message-ID: <200802272217.m1RMHAQe000791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49075 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759609AbYB0WRT (ORCPT
+	by vger.kernel.org with ESMTP id S1757991AbYB0WRa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:17:19 -0500
+	Wed, 27 Feb 2008 17:17:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romieu@fr.zoreil.com, dsd@gentoo.org, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sis190: read the mac address from the eeprom first
+     ext4: convert byte order of constant instead of variable
 has been removed from the -mm tree.  Its filename was
-     sis190-read-the-mac-address-from-the-eeprom-first.patch
+     ext4-convert-byte-order-of-constant-instead-of-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sis190: read the mac address from the eeprom first
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: ext4: convert byte order of constant instead of variable
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Reading a series of zero from the cmos sram area do not work well with
-is_valid_ether_addr().  Let's read the mac address from the eeprom first as
-it seems more reliable.
+Convert byte order of constant instead of variable which can be done at
+compile time (vs run time).
 
-Fix for http://bugzilla.kernel.org/show_bug.cgi?id=9831
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Daniel Drake <dsd@gentoo.org>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sis190.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ fs/ext4/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sis190.c~sis190-read-the-mac-address-from-the-eeprom-first drivers/net/sis190.c
---- a/drivers/net/sis190.c~sis190-read-the-mac-address-from-the-eeprom-first
-+++ a/drivers/net/sis190.c
-@@ -1633,13 +1633,18 @@ static inline void sis190_init_rxfilter(
- static int __devinit sis190_get_mac_addr(struct pci_dev *pdev, 
- 					 struct net_device *dev)
- {
--	u8 from;
-+	int rc;
-+
-+	rc = sis190_get_mac_addr_from_eeprom(pdev, dev);
-+	if (rc < 0) {
-+		u8 reg;
- 
--	pci_read_config_byte(pdev, 0x73, &from);
-+		pci_read_config_byte(pdev, 0x73, &reg);
- 
--	return (from & 0x00000001) ?
--		sis190_get_mac_addr_from_apc(pdev, dev) :
--		sis190_get_mac_addr_from_eeprom(pdev, dev);
-+		if (reg & 0x00000001)
-+			rc = sis190_get_mac_addr_from_apc(pdev, dev);
-+	}
-+	return rc;
- }
- 
- static void sis190_set_speed_auto(struct net_device *dev)
+diff -puN fs/ext4/super.c~ext4-convert-byte-order-of-constant-instead-of-variable fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-convert-byte-order-of-constant-instead-of-variable
++++ a/fs/ext4/super.c
+@@ -1399,7 +1399,7 @@ static int ext4_setup_super(struct super
+ 		 * a plain journaled filesystem we can keep it set as
+ 		 * valid forever! :)
+ 		 */
+-	es->s_state = cpu_to_le16(le16_to_cpu(es->s_state) & ~EXT4_VALID_FS);
++	es->s_state &= cpu_to_le16(~EXT4_VALID_FS);
+ #endif
+ 	if (!(__s16) le16_to_cpu(es->s_max_mnt_count))
+ 		es->s_max_mnt_count = cpu_to_le16(EXT4_DFL_MAX_MNT_COUNT);
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-git-net.patch
+video-limit-stack-usage-of-ir-kbd-i2cc.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-jfs.patch
+qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch
+ntfs-le_add_cpu-conversion.patch
+git-ocfs2.patch
+scsi-le_add_cpu-conversion.patch
+ipw2200-le_add_cpu-conversion.patch
+ext2-le_add_cpu-conversion.patch
+ext2-convert-byte-order-of-constant-instead-of-variable.patch
+ext3-convert-byte-order-of-constant-instead-of-variable.patch
+ufs-e_add_cpu-conversion.patch
+reiserfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
