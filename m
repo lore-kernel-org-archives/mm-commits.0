@@ -1,72 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-check-ext4_journal_get_write_access-errors.patch removed from -mm tree
-Date: Wed, 27 Feb 2008 14:17:18 -0800
-Message-ID: <200802272217.m1RMHI2I000803@imap1.linux-foundation.org>
+Subject: - macb-fix-speed-setting.patch removed from -mm tree
+Date: Wed, 27 Feb 2008 14:16:38 -0800
+Message-ID: <200802272216.m1RMGcA0000729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46516 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759984AbYB0WRj (ORCPT
+	by vger.kernel.org with ESMTP id S1759279AbYB0WR2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 17:17:39 -0500
+	Wed, 27 Feb 2008 17:17:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, hskinnemoen@atmel.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: check ext4_journal_get_write_access() errors
+     macb: fix speed setting
 has been removed from the -mm tree.  Its filename was
-     ext4-check-ext4_journal_get_write_access-errors.patch
+     macb-fix-speed-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: check ext4_journal_get_write_access() errors
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: macb: fix speed setting
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Check ext4_journal_get_write_access() errors.
+Fix NCFGR.SPD setting on 10Mbps.  This bug was introduced by conversion to
+generic PHY layer in kernel 2.6.23.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/namei.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/net/macb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/namei.c~ext4-check-ext4_journal_get_write_access-errors fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext4-check-ext4_journal_get_write_access-errors
-+++ a/fs/ext4/namei.c
-@@ -57,10 +57,15 @@ static struct buffer_head *ext4_append(h
+diff -puN drivers/net/macb.c~macb-fix-speed-setting drivers/net/macb.c
+--- a/drivers/net/macb.c~macb-fix-speed-setting
++++ a/drivers/net/macb.c
+@@ -148,7 +148,7 @@ static void macb_handle_link_change(stru
  
- 	*block = inode->i_size >> inode->i_sb->s_blocksize_bits;
+ 			if (phydev->duplex)
+ 				reg |= MACB_BIT(FD);
+-			if (phydev->speed)
++			if (phydev->speed == SPEED_100)
+ 				reg |= MACB_BIT(SPD);
  
--	if ((bh = ext4_bread(handle, inode, *block, 1, err))) {
-+	bh = ext4_bread(handle, inode, *block, 1, err);
-+	if (bh) {
- 		inode->i_size += inode->i_sb->s_blocksize;
- 		EXT4_I(inode)->i_disksize = inode->i_size;
--		ext4_journal_get_write_access(handle,bh);
-+		*err = ext4_journal_get_write_access(handle, bh);
-+		if (*err) {
-+			brelse(bh);
-+			bh = NULL;
-+		}
- 	}
- 	return bh;
- }
+ 			macb_writel(bp, NCFGR, reg);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-ext2-improve-ext2_readdir-return-value.patch
-ext2-use-ext2_group_first_block_no.patch
-ext2-use-ext2_fsblk_t-type.patch
-ext3-use-ext3_group_first_block_no.patch
-ext3-add-missing-ext3_journal_stop.patch
-ext3-use-ext3_get_group_desc.patch
-ext3-check-ext3_journal_get_write_access-errors.patch
+git-net.patch
