@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-moxa-remove-useless-tty-functions.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:13:26 -0800
-Message-ID: <200802272313.m1RNDQlR003307@imap1.linux-foundation.org>
+Subject: + char-moxa-cleanup-rx-tx.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:13:17 -0800
+Message-ID: <200802272313.m1RNDHVW003285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52853 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763001AbYB0XN6 (ORCPT
+	by vger.kernel.org with ESMTP id S1762994AbYB0XNy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:13:58 -0500
+	Wed, 27 Feb 2008 18:13:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk
 
 
 The patch titled
-     Char: moxa, remove useless tty functions
+     Char: moxa, cleanup rx/tx
 has been added to the -mm tree.  Its filename is
-     char-moxa-remove-useless-tty-functions.patch
+     char-moxa-cleanup-rx-tx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,276 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: moxa, remove useless tty functions
+Subject: Char: moxa, cleanup rx/tx
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- moxa_flush_chars -- no code; ldics handle this well
-- moxa_put_char -- only wrapper to moxa_write (same code), tty does this
-  the same way if tty->driver->put_char is NULL
+- cleanup types
+- use tty_prepare_flip_string and io memcpys
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/char/moxa.c |  124 ++++++++++++++++--------------------------
+ drivers/char/moxa.h |    2 
+ 2 files changed, 51 insertions(+), 75 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-remove-useless-tty-functions drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-remove-useless-tty-functions
+diff -puN drivers/char/moxa.c~char-moxa-cleanup-rx-tx drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-cleanup-rx-tx
 +++ a/drivers/char/moxa.c
-@@ -193,8 +193,6 @@ static int moxa_write(struct tty_struct 
- static int moxa_write_room(struct tty_struct *);
- static void moxa_flush_buffer(struct tty_struct *);
- static int moxa_chars_in_buffer(struct tty_struct *);
--static void moxa_flush_chars(struct tty_struct *);
--static void moxa_put_char(struct tty_struct *, unsigned char);
- static void moxa_throttle(struct tty_struct *);
- static void moxa_unthrottle(struct tty_struct *);
- static void moxa_set_termios(struct tty_struct *, struct ktermios *);
-@@ -391,8 +389,6 @@ static const struct tty_operations moxa_
- 	.write_room = moxa_write_room,
- 	.flush_buffer = moxa_flush_buffer,
- 	.chars_in_buffer = moxa_chars_in_buffer,
--	.flush_chars = moxa_flush_chars,
--	.put_char = moxa_put_char,
- 	.ioctl = moxa_ioctl,
- 	.throttle = moxa_throttle,
- 	.unthrottle = moxa_unthrottle,
-@@ -1283,27 +1279,6 @@ static int moxa_chars_in_buffer(struct t
- 	return chars;
+@@ -224,7 +224,7 @@ static void MoxaPortLineCtrl(struct moxa
+ static void MoxaPortFlowCtrl(struct moxa_port *, int, int, int, int, int);
+ static int MoxaPortLineStatus(struct moxa_port *);
+ static void MoxaPortFlushData(struct moxa_port *, int);
+-static int MoxaPortWriteData(struct moxa_port *, unsigned char *, int);
++static int MoxaPortWriteData(struct moxa_port *, const unsigned char *, int);
+ static int MoxaPortReadData(struct moxa_port *);
+ static int MoxaPortTxQueue(struct moxa_port *);
+ static int MoxaPortRxQueue(struct moxa_port *);
+@@ -1164,7 +1164,7 @@ static int moxa_write(struct tty_struct 
+ 		return 0;
+ 
+ 	spin_lock_bh(&moxa_lock);
+-	len = MoxaPortWriteData(ch, (unsigned char *) buf, count);
++	len = MoxaPortWriteData(ch, buf, count);
+ 	spin_unlock_bh(&moxa_lock);
+ 
+ 	/*********************************************
+@@ -2029,15 +2029,13 @@ static int MoxaPortLineStatus(struct mox
+ 	return val;
  }
  
--static void moxa_flush_chars(struct tty_struct *tty)
--{
--	/*
--	 * Don't think I need this, because this is called to empty the TX
--	 * buffer for the 16450, 16550, etc.
--	 */
--}
--
--static void moxa_put_char(struct tty_struct *tty, unsigned char c)
--{
--	struct moxa_port *ch = tty->driver_data;
--
--	if (ch == NULL)
--		return;
--	spin_lock_bh(&moxa_lock);
--	MoxaPortWriteData(ch, &c, 1);
--	spin_unlock_bh(&moxa_lock);
--
--	ch->statusflags |= LOWWAIT;
--}
--
- static int moxa_tiocmget(struct tty_struct *tty, struct file *file)
+-static int MoxaPortWriteData(struct moxa_port *port, unsigned char *buffer,
+-		int len)
++static int MoxaPortWriteData(struct moxa_port *port,
++		const unsigned char *buffer, int len)
  {
- 	struct moxa_port *ch;
+-	int c, total, i;
+-	ushort tail;
+-	int cnt;
+-	ushort head, tx_mask, spage, epage;
+-	ushort pageno, pageofs, bufhead;
+ 	void __iomem *baseAddr, *ofsAddr, *ofs;
++	unsigned int c, total;
++	u16 head, tail, tx_mask, spage, epage;
++	u16 pageno, pageofs, bufhead;
+ 
+ 	ofsAddr = port->tableAddr;
+ 	baseAddr = port->board->basemem;
+@@ -2046,8 +2044,7 @@ static int MoxaPortWriteData(struct moxa
+ 	epage = readw(ofsAddr + EndPage_txb);
+ 	tail = readw(ofsAddr + TXwptr);
+ 	head = readw(ofsAddr + TXrptr);
+-	c = (head > tail) ? (head - tail - 1)
+-	    : (head - tail + tx_mask);
++	c = (head > tail) ? (head - tail - 1) : (head - tail + tx_mask);
+ 	if (c > len)
+ 		c = len;
+ 	moxaLog.txcnt[port->tty->index] += c;
+@@ -2062,46 +2059,42 @@ static int MoxaPortWriteData(struct moxa
+ 				len = tx_mask + 1 - tail;
+ 			len = (c > len) ? len : c;
+ 			ofs = baseAddr + DynPage_addr + bufhead + tail;
+-			for (i = 0; i < len; i++)
+-				writeb(*buffer++, ofs + i);
++			memcpy_toio(ofs, buffer, len);
++			buffer += len;
+ 			tail = (tail + len) & tx_mask;
+ 			c -= len;
+ 		}
+-		writew(tail, ofsAddr + TXwptr);
+ 	} else {
+-		len = c;
+ 		pageno = spage + (tail >> 13);
+ 		pageofs = tail & Page_mask;
+-		do {
+-			cnt = Page_size - pageofs;
+-			if (cnt > c)
+-				cnt = c;
+-			c -= cnt;
++		while (c > 0) {
++			len = Page_size - pageofs;
++			if (len > c)
++				len = c;
+ 			writeb(pageno, baseAddr + Control_reg);
+ 			ofs = baseAddr + DynPage_addr + pageofs;
+-			for (i = 0; i < cnt; i++)
+-				writeb(*buffer++, ofs + i);
+-			if (c == 0) {
+-				writew((tail + len) & tx_mask, ofsAddr + TXwptr);
+-				break;
+-			}
++			memcpy_toio(ofs, buffer, len);
++			buffer += len;
+ 			if (++pageno == epage)
+ 				pageno = spage;
+ 			pageofs = 0;
+-		} while (1);
++			c -= len;
++		}
++		tail = (tail + total) & tx_mask;
+ 	}
++	writew(tail, ofsAddr + TXwptr);
+ 	writeb(1, ofsAddr + CD180TXirq);	/* start to send */
+-	return (total);
++	return total;
+ }
+ 
+ static int MoxaPortReadData(struct moxa_port *port)
+ {
+ 	struct tty_struct *tty = port->tty;
+-	register ushort head, pageofs;
+-	int i, count, cnt, len, total, remain;
+-	ushort tail, rx_mask, spage, epage;
+-	ushort pageno, bufhead;
++	unsigned char *dst;
+ 	void __iomem *baseAddr, *ofsAddr, *ofs;
++	unsigned int count, len, total;
++	u16 tail, rx_mask, spage, epage;
++	u16 pageno, pageofs, bufhead, head;
+ 
+ 	ofsAddr = port->tableAddr;
+ 	baseAddr = port->board->basemem;
+@@ -2110,101 +2103,84 @@ static int MoxaPortReadData(struct moxa_
+ 	rx_mask = readw(ofsAddr + RX_mask);
+ 	spage = readw(ofsAddr + Page_rxb);
+ 	epage = readw(ofsAddr + EndPage_rxb);
+-	count = (tail >= head) ? (tail - head)
+-	    : (tail - head + rx_mask + 1);
++	count = (tail >= head) ? (tail - head) : (tail - head + rx_mask + 1);
+ 	if (count == 0)
+ 		return 0;
+ 
+ 	total = count;
+-	remain = count - total;
+ 	moxaLog.rxcnt[tty->index] += total;
+-	count = total;
+ 	if (spage == epage) {
+ 		bufhead = readw(ofsAddr + Ofs_rxb);
+ 		writew(spage, baseAddr + Control_reg);
+ 		while (count > 0) {
+-			if (tail >= head)
+-				len = tail - head;
+-			else
+-				len = rx_mask + 1 - head;
+-			len = (count > len) ? len : count;
+ 			ofs = baseAddr + DynPage_addr + bufhead + head;
+-			for (i = 0; i < len; i++)
+-				tty_insert_flip_char(tty, readb(ofs + i), TTY_NORMAL);
++			len = (tail >= head) ? (tail - head) :
++					(rx_mask + 1 - head);
++			len = tty_prepare_flip_string(tty, &dst,
++					min(len, count));
++			memcpy_fromio(dst, ofs, len);
+ 			head = (head + len) & rx_mask;
+ 			count -= len;
+ 		}
+-		writew(head, ofsAddr + RXrptr);
+ 	} else {
+-		len = count;
+ 		pageno = spage + (head >> 13);
+ 		pageofs = head & Page_mask;
+-		do {
+-			cnt = Page_size - pageofs;
+-			if (cnt > count)
+-				cnt = count;
+-			count -= cnt;
++		while (count > 0) {
+ 			writew(pageno, baseAddr + Control_reg);
+ 			ofs = baseAddr + DynPage_addr + pageofs;
+-			for (i = 0; i < cnt; i++)
+-				tty_insert_flip_char(tty, readb(ofs + i), TTY_NORMAL);
+-			if (count == 0) {
+-				writew((head + len) & rx_mask, ofsAddr + RXrptr);
+-				break;
+-			}
+-			if (++pageno == epage)
++			len = tty_prepare_flip_string(tty, &dst,
++					min(Page_size - pageofs, count));
++			memcpy_fromio(dst, ofs, len);
++
++			count -= len;
++			pageofs = (pageofs + len) & Page_mask;
++			if (pageofs == 0 && ++pageno == epage)
+ 				pageno = spage;
+-			pageofs = 0;
+-		} while (1);
++		}
++		head = (head + total) & rx_mask;
+ 	}
+-	if ((readb(ofsAddr + FlagStat) & Xoff_state) && (remain < LowWater)) {
++	writew(head, ofsAddr + RXrptr);
++	if (readb(ofsAddr + FlagStat) & Xoff_state) {
+ 		moxaLowWaterChk = 1;
+ 		port->lowChkFlag = 1;
+ 	}
+-	return (total);
++	return total;
+ }
+ 
+ 
+ static int MoxaPortTxQueue(struct moxa_port *port)
+ {
+ 	void __iomem *ofsAddr = port->tableAddr;
+-	ushort rptr, wptr, mask;
+-	int len;
++	u16 rptr, wptr, mask;
+ 
+ 	rptr = readw(ofsAddr + TXrptr);
+ 	wptr = readw(ofsAddr + TXwptr);
+ 	mask = readw(ofsAddr + TX_mask);
+-	len = (wptr - rptr) & mask;
+-	return (len);
++	return (wptr - rptr) & mask;
+ }
+ 
+ static int MoxaPortTxFree(struct moxa_port *port)
+ {
+ 	void __iomem *ofsAddr = port->tableAddr;
+-	ushort rptr, wptr, mask;
+-	int len;
++	u16 rptr, wptr, mask;
+ 
+ 	rptr = readw(ofsAddr + TXrptr);
+ 	wptr = readw(ofsAddr + TXwptr);
+ 	mask = readw(ofsAddr + TX_mask);
+-	len = mask - ((wptr - rptr) & mask);
+-	return (len);
++	return mask - ((wptr - rptr) & mask);
+ }
+ 
+ static int MoxaPortRxQueue(struct moxa_port *port)
+ {
+ 	void __iomem *ofsAddr = port->tableAddr;
+-	ushort rptr, wptr, mask;
+-	int len;
++	u16 rptr, wptr, mask;
+ 
+ 	rptr = readw(ofsAddr + RXrptr);
+ 	wptr = readw(ofsAddr + RXwptr);
+ 	mask = readw(ofsAddr + RX_mask);
+-	len = (wptr - rptr) & mask;
+-	return (len);
++	return (wptr - rptr) & mask;
+ }
+ 
+-
+ static void MoxaPortTxDisable(struct moxa_port *port)
+ {
+ 	moxafunc(port->tableAddr, FC_SetXoffState, Magic_code);
+diff -puN drivers/char/moxa.h~char-moxa-cleanup-rx-tx drivers/char/moxa.h
+--- a/drivers/char/moxa.h~char-moxa-cleanup-rx-tx
++++ a/drivers/char/moxa.h
+@@ -217,7 +217,7 @@
+ #define C320p32rx_mask	(C320p32rx_size - 1)
+ #define C320p32tx_mask	(C320p32tx_size - 1)
+ 
+-#define Page_size	0x2000
++#define Page_size	0x2000U
+ #define Page_mask	(Page_size - 1)
+ #define C218rx_spage	3
+ #define C218tx_spage	4
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
