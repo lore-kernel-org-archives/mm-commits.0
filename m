@@ -1,66 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 26 Feb 2008 13:35:12 -0800
-Message-ID: <200802262136.m1QLa8R0010091@imap1.linux-foundation.org>
+Subject: + ndelay-switch-to-c-function-to-avoid-64-bit-division.patch added to -mm tree
+Date: Tue, 26 Feb 2008 22:50:50 -0800
+Message-ID: <200802270650.m1R6ooUj030748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39715 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762442AbYBZVhA (ORCPT
+	by vger.kernel.org with ESMTP id S1753909AbYB0Gwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Feb 2008 16:37:00 -0500
+	Wed, 27 Feb 2008 01:52:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bunk@kernel.org, herbert@gondor.apana.org.au, johnpol@2ka.mipt.ru, mingo@elte.hu, ralf@linux-mips.org, tbm@cyrius.com, tglx@linutronix.de
 
 
 The patch titled
-     pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+     ndelay(): switch to C function to avoid 64-bit division
+has been added to the -mm tree.  Its filename is
+     ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 
-This patch was dropped because it was folded into pata-i-do-not-think-it-means-what-you-think-it-means.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes
+Subject: ndelay(): switch to C function to avoid 64-bit division
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: no space after that '~' (ctx:WxW)
-#66: FILE: drivers/ata/pata_hpt37x.c:300:
-+			mask &= ~ (0xE0 << ATA_SHIFT_UDMA);
- 			        ^
+We should be able to do ndelay(some_u64), but that can cause a call to
+__divdi3() to be emitted because the ndelay() macros does a divide.
 
-total: 1 errors, 0 warnings, 51 lines checked
+Fix it by switching to static inline which will force the u64 arg to be
+treated as an unsigned long.  udelay() takes an unsigned long arg.
 
-./patches/pata-i-do-not-think-it-means-what-you-think-it-means.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/delay.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -297,7 +297,7 @@ static unsigned long hpt370a_filter(stru
- {
- 	if (adev->class == ATA_DEV_ATA) {
- 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
--			mask &= ~ (0xE0 << ATA_SHIFT_UDMA);
-+			mask &= ~(0xE0 << ATA_SHIFT_UDMA);
- 	}
- 	return ata_pci_default_filter(adev, mask);
- }
+diff -puN include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division include/linux/delay.h
+--- a/include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division
++++ a/include/linux/delay.h
+@@ -7,10 +7,12 @@
+  * Delay routines, using a pre-computed "loops_per_jiffy" value.
+  */
+ 
+-extern unsigned long loops_per_jiffy;
++#include <linux/kernel.h>
+ 
+ #include <asm/delay.h>
+ 
++extern unsigned long loops_per_jiffy;
++
+ /*
+  * Using udelay() for intervals greater than a few milliseconds can
+  * risk overflow for high loops_per_jiffy (high bogomips) machines. The
+@@ -32,7 +34,11 @@ extern unsigned long loops_per_jiffy;
+ #endif
+ 
+ #ifndef ndelay
+-#define ndelay(x)	udelay(((x)+999)/1000)
++static inline void ndelay(unsigned long x)
++{
++	udelay(DIV_ROUND_UP(x, 1000));
++}
++#define ndelay(x) ndelay(x)
+ #endif
+ 
+ void calibrate_delay(void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,8 +100,6 @@ git-dvb.patch
 git-hwmon.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
 git-md-accel.patch
 git-ubi.patch
 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
@@ -94,7 +117,7 @@ git-x86-fix-rejects.patch
 documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 tridentfb-resource-management-fixes-in-probe-function-fix.patch
 add-noinline_for_stack.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
