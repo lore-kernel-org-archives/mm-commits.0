@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-moxa-introduce-moxa_is_320-macro.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:13:28 -0800
-Message-ID: <200802272313.m1RNDSNH003310@imap1.linux-foundation.org>
+Subject: + char-moxa-remove-useless-tty-functions.patch added to -mm tree
+Date: Wed, 27 Feb 2008 15:13:26 -0800
+Message-ID: <200802272313.m1RNDQlR003307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32961 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762268AbYB0XOE (ORCPT
+	by vger.kernel.org with ESMTP id S1763001AbYB0XN6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 18:14:04 -0500
+	Wed, 27 Feb 2008 18:13:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk
 
 
 The patch titled
-     Char: moxa, introduce MOXA_IS_320 macro
+     Char: moxa, remove useless tty functions
 has been added to the -mm tree.  Its filename is
-     char-moxa-introduce-moxa_is_320-macro.patch
+     char-moxa-remove-useless-tty-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,159 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: moxa, introduce MOXA_IS_320 macro
+Subject: Char: moxa, remove useless tty functions
 From: Jiri Slaby <jirislaby@gmail.com>
 
-It allows to simplify the code, especially MoxaPortSetBaud.
+- moxa_flush_chars -- no code; ldics handle this well
+- moxa_put_char -- only wrapper to moxa_write (same code), tty does this
+  the same way if tty->driver->put_char is NULL
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   65 ++++++++++++------------------------------
- 1 file changed, 19 insertions(+), 46 deletions(-)
+ drivers/char/moxa.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-introduce-moxa_is_320-macro drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-introduce-moxa_is_320-macro
+diff -puN drivers/char/moxa.c~char-moxa-remove-useless-tty-functions drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-remove-useless-tty-functions
 +++ a/drivers/char/moxa.c
-@@ -59,6 +59,9 @@
- #define MAX_PORTS_PER_BOARD	32	/* Don't change this value */
- #define MAX_PORTS		(MAX_BOARDS * MAX_PORTS_PER_BOARD)
- 
-+#define MOXA_IS_320(brd) ((brd)->boardType == MOXA_BOARD_C320_ISA || \
-+		(brd)->boardType == MOXA_BOARD_C320_PCI)
-+
- /*
-  *    Define the Moxa PCI vendor and device IDs.
-  */
-@@ -512,11 +515,9 @@ static int moxa_real_load_code(struct mo
- 	const u16 *uptr = ptr;
- 	size_t wlen, len2, j;
- 	unsigned long key, loadbuf, loadlen, checksum, checksum_ok;
--	unsigned int i, retry, c320;
-+	unsigned int i, retry;
- 	u16 usum, keycode;
- 
--	c320 = brd->boardType == MOXA_BOARD_C320_PCI ||
--			brd->boardType == MOXA_BOARD_C320_ISA;
- 	keycode = (brd->boardType == MOXA_BOARD_CP204J) ? CP204J_KeyCode :
- 				C218_KeyCode;
- 
-@@ -586,7 +587,7 @@ static int moxa_real_load_code(struct mo
- 	if (readw(baseAddr + Magic_no) != Magic_code)
- 		return -EIO;
- 
--	if (c320) {
-+	if (MOXA_IS_320(brd)) {
- 		if (brd->busType == MOXA_BUS_TYPE_PCI) {	/* ASIC board */
- 			writew(0x3800, baseAddr + TMS320_PORT1);
- 			writew(0x3900, baseAddr + TMS320_PORT2);
-@@ -607,7 +608,7 @@ static int moxa_real_load_code(struct mo
- 	if (readw(baseAddr + Magic_no) != Magic_code)
- 		return -EIO;
- 
--	if (c320) {
-+	if (MOXA_IS_320(brd)) {
- 		j = readw(baseAddr + Module_cnt);
- 		if (j <= 0)
- 			return -EIO;
-@@ -1634,18 +1635,9 @@ static void MoxaPortFlushData(struct mox
-  *           int port           : port number (0 - 127)
-  *
-  *
-- *      Function 8:     Get the maximun available baud rate of this port.
-- *      Syntax:
-- *      long MoxaPortGetMaxBaud(int port);
-- *           int port           : port number (0 - 127)
-- *
-- *           return:    0       : this port is invalid
-- *                      38400/57600/115200 bps
-- *
-- *
-  *      Function 10:    Setting baud rate of this port.
-  *      Syntax:
-- *      long MoxaPortSetBaud(int port, long baud);
-+ *      speed_t MoxaPortSetBaud(int port, speed_t baud);
-  *           int port           : port number (0 - 127)
-  *           long baud          : baud rate (50 - 115200)
-  *
-@@ -1794,8 +1786,7 @@ static void MoxaPortEnable(struct moxa_p
- 
- 	ofsAddr = port->tableAddr;
- 	writew(lowwater, ofsAddr + Low_water);
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI)
-+	if (MOXA_IS_320(port->board))
- 		moxafunc(ofsAddr, FC_SetBreakIrq, 0);
- 	else
- 		writew(readw(ofsAddr + HostStat) | WakeupBreak,
-@@ -1818,33 +1809,18 @@ static void MoxaPortDisable(struct moxa_
- 	moxafunc(ofsAddr, FC_DisableCH, Magic_code);
+@@ -193,8 +193,6 @@ static int moxa_write(struct tty_struct 
+ static int moxa_write_room(struct tty_struct *);
+ static void moxa_flush_buffer(struct tty_struct *);
+ static int moxa_chars_in_buffer(struct tty_struct *);
+-static void moxa_flush_chars(struct tty_struct *);
+-static void moxa_put_char(struct tty_struct *, unsigned char);
+ static void moxa_throttle(struct tty_struct *);
+ static void moxa_unthrottle(struct tty_struct *);
+ static void moxa_set_termios(struct tty_struct *, struct ktermios *);
+@@ -391,8 +389,6 @@ static const struct tty_operations moxa_
+ 	.write_room = moxa_write_room,
+ 	.flush_buffer = moxa_flush_buffer,
+ 	.chars_in_buffer = moxa_chars_in_buffer,
+-	.flush_chars = moxa_flush_chars,
+-	.put_char = moxa_put_char,
+ 	.ioctl = moxa_ioctl,
+ 	.throttle = moxa_throttle,
+ 	.unthrottle = moxa_unthrottle,
+@@ -1283,27 +1279,6 @@ static int moxa_chars_in_buffer(struct t
+ 	return chars;
  }
  
--static long MoxaPortGetMaxBaud(struct moxa_port *port)
+-static void moxa_flush_chars(struct tty_struct *tty)
 -{
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI)
--		return 460800L;
--	else
--		return 921600L;
+-	/*
+-	 * Don't think I need this, because this is called to empty the TX
+-	 * buffer for the 16450, 16550, etc.
+-	 */
 -}
 -
+-static void moxa_put_char(struct tty_struct *tty, unsigned char c)
+-{
+-	struct moxa_port *ch = tty->driver_data;
 -
--static long MoxaPortSetBaud(struct moxa_port *port, long baud)
-+static speed_t MoxaPortSetBaud(struct moxa_port *port, speed_t baud)
+-	if (ch == NULL)
+-		return;
+-	spin_lock_bh(&moxa_lock);
+-	MoxaPortWriteData(ch, &c, 1);
+-	spin_unlock_bh(&moxa_lock);
+-
+-	ch->statusflags |= LOWWAIT;
+-}
+-
+ static int moxa_tiocmget(struct tty_struct *tty, struct file *file)
  {
--	void __iomem *ofsAddr;
--	long max, clock;
--	unsigned int val;
-+	void __iomem *ofsAddr = port->tableAddr;
-+	unsigned int clock, val;
-+	speed_t max;
- 
--	if (baud < 50L || (max = MoxaPortGetMaxBaud(port)) == 0)
-+	max = MOXA_IS_320(port->board) ? 460800 : 921600;
-+	if (baud < 50)
- 		return 0;
--	ofsAddr = port->tableAddr;
- 	if (baud > max)
- 		baud = max;
--	if (max == 38400L)
--		clock = 614400L;	/* for 9.8304 Mhz : max. 38400 bps */
--	else if (max == 57600L)
--		clock = 691200L;	/* for 11.0592 Mhz : max. 57600 bps */
--	else
--		clock = 921600L;	/* for 14.7456 Mhz : max. 115200 bps */
-+	clock = 921600;
- 	val = clock / baud;
- 	moxafunc(ofsAddr, FC_SetBaud, val);
- 	baud = clock / val;
-@@ -1889,11 +1865,9 @@ static int MoxaPortSetTermio(struct moxa
- 
- 	moxafunc(ofsAddr, FC_SetDataMode, (u16)mode);
- 
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI) {
--		if (baud >= 921600L)
--			return -1;
--	}
-+	if (MOXA_IS_320(port->board) && baud >= 921600)
-+		return -1;
-+
- 	baud = MoxaPortSetBaud(port, baud);
- 
- 	if (termio->c_iflag & (IXON | IXOFF | IXANY)) {
-@@ -1953,8 +1927,7 @@ static int MoxaPortLineStatus(struct mox
- 	int val;
- 
- 	ofsAddr = port->tableAddr;
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI) {
-+	if (MOXA_IS_320(port->board)) {
- 		moxafunc(ofsAddr, FC_LineStatus, 0);
- 		val = readw(ofsAddr + FuncArg);
- 	} else {
+ 	struct moxa_port *ch;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
