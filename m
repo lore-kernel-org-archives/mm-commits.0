@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:29:35 -0800
-Message-ID: <200802280329.m1S3TZ40013462@imap1.linux-foundation.org>
+Subject: + acpi-ec-fix-regression.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:32:03 -0800
+Message-ID: <200802280332.m1S3W3SN013516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56122 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754311AbYB1D3j (ORCPT
+	by vger.kernel.org with ESMTP id S1759781AbYB1DcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:29:39 -0500
+	Wed, 27 Feb 2008 22:32:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave.ludlow@bay.ws, greg@kroah.com
+Cc: astarikovskiy@suse.de, len.brown@intel.com, m.s.tsirkin@gmail.com, rjw@sisk.pl
 
 
 The patch titled
-     usb: mos7840.c: add support for the mos7820/7840-based B&B USB/RS485 converter
+     ACPI: EC: fix regression
 has been added to the -mm tree.  Its filename is
-     usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter.patch
+     acpi-ec-fix-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: mos7840.c: add support for the mos7820/7840-based B&B USB/RS485 converter
-From: David Ludlow <dave.ludlow@bay.ws>
+Subject: ACPI: EC: fix regression
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Add support for the mos7820/7840-based B&B USOPTL4_2/USOPTL4_4 USB/RS485
-converter to mos7840.c.
+no changelog?
 
-DTR needs to be set/raised to receive and clear/lowered to send, as per the
-mos7840 datasheet.
-
-Signed-off-by: Dave Ludlow <dave.ludlow@bay.ws>
-Cc: Greg KH <greg@kroah.com>
+Tested-by: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mos7840.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/acpi/ec.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN drivers/usb/serial/mos7840.c~usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter drivers/usb/serial/mos7840.c
---- a/drivers/usb/serial/mos7840.c~usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter
-+++ a/drivers/usb/serial/mos7840.c
-@@ -110,11 +110,20 @@
+diff -puN drivers/acpi/ec.c~acpi-ec-fix-regression drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-fix-regression
++++ a/drivers/acpi/ec.c
+@@ -129,7 +129,8 @@ static struct acpi_ec {
+ 	struct mutex lock;
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
+-	u8 handlers_installed;
++	u8 handlers_installed:1;
++	u8 from_ecdt:1;
+ } *boot_ec, *first_ec;
  
- /* vendor id and device id defines */
+ /* --------------------------------------------------------------------------
+@@ -772,16 +773,18 @@ static int acpi_ec_add(struct acpi_devic
  
-+/* The native mos7840/7820 component */
- #define USB_VENDOR_ID_MOSCHIP           0x9710
- #define MOSCHIP_DEVICE_ID_7840          0x7840
- #define MOSCHIP_DEVICE_ID_7820          0x7820
-+/* The native component can have its vendor/device id's overridden
-+ * in vendor-specific implementations.  Such devices can be handled
-+ * by making a change here, in moschip_port_id_table, and in
-+ * moschip_id_table_combined
-+ */
-+#define USB_VENDOR_ID_BANDB             0x0856
-+#define BANDB_DEVICE_ID_USOPTL4_4       0xAC44
-+#define BANDB_DEVICE_ID_USOPTL4_2       0xAC42
+ 	/* Check for boot EC */
+ 	if (boot_ec) {
+-		if (boot_ec->handle == device->handle) {
+-			/* Pre-loaded EC from DSDT, just move pointer */
+-			ec = boot_ec;
+-			boot_ec = NULL;
+-			goto end;
+-		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
++		if (boot_ec->from_ecdt &&
++		    (boot_ec->handle == device->handle ||
++		     boot_ec->handle == ACPI_ROOT_OBJECT)) {
+ 			/* ECDT-based EC, time to shut it down */
+ 			ec_remove_handlers(boot_ec);
+ 			kfree(boot_ec);
+ 			first_ec = boot_ec = NULL;
++		} else if (boot_ec->handle == device->handle) {
++			/* Pre-loaded EC from DSDT, just move pointer */
++			ec = boot_ec;
++			boot_ec = NULL;
++			goto end;
+ 		}
+ 	}
  
--/* Interrupt Rotinue Defines    */
-+/* Interrupt Routine Defines    */
- 
- #define SERIAL_IIR_RLS      0x06
- #define SERIAL_IIR_MS       0x00
-@@ -159,12 +168,16 @@
- static struct usb_device_id moschip_port_id_table[] = {
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2)},
- 	{}			/* terminating entry */
- };
- 
- static __devinitdata struct usb_device_id moschip_id_table_combined[] = {
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2)},
- 	{}			/* terminating entry */
- };
- 
+@@ -943,6 +946,7 @@ int __init acpi_ec_ecdt_probe(void)
+ 		boot_ec->command_addr = ecdt_ptr->control.address;
+ 		boot_ec->data_addr = ecdt_ptr->data.address;
+ 		boot_ec->gpe = ecdt_ptr->gpe;
++		boot_ec->from_ecdt = 1;
+ 		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
+ 				&boot_ec->handle))) {
+ 			pr_info("Failed to locate handle for boot EC\n");
 _
 
-Patches currently in -mm which might be from dave.ludlow@bay.ws are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter.patch
+acpi-ec-fix-regression.patch
