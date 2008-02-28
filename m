@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch added to -mm tree
-Date: Wed, 27 Feb 2008 18:31:59 -0800
-Message-ID: <200802280231.m1S2VxOf011412@imap1.linux-foundation.org>
+Subject: + block-remove-extern-on-function-definition.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:32:02 -0800
+Message-ID: <200802280232.m1S2W2Oa011419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33365 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbYB1CcM (ORCPT
+	by vger.kernel.org with ESMTP id S1752171AbYB1CcP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 21:32:12 -0500
+	Wed, 27 Feb 2008 21:32:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, airlied@linux.ie
+Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     agp: fix shadowed variable warning in amd-k7-agp.c
+     block: remove extern on function definition
 has been added to the -mm tree.  Its filename is
-     agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+     block-remove-extern-on-function-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: fix shadowed variable warning in amd-k7-agp.c
+Subject: block: remove extern on function definition
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Introduced between 2.6.25-rc2 and -rc3
-drivers/char/agp/amd-k7-agp.c:439:6: warning: symbol 'cap_ptr' shadows an earlier one
-drivers/char/agp/amd-k7-agp.c:414:5: originally declared here
-
-cap_ptr is never used again in this function, don't bother redeclaring.
+Intoduced between 2.6.25-rc2 and -rc3
+block/blk-settings.c:319:12: warning: function 'blk_queue_dma_drain' with external linkage has definition
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd-k7-agp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ block/blk-settings.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/amd-k7-agp.c~agp-fix-shadowed-variable-warning-in-amd-k7-agpc drivers/char/agp/amd-k7-agp.c
---- a/drivers/char/agp/amd-k7-agp.c~agp-fix-shadowed-variable-warning-in-amd-k7-agpc
-+++ a/drivers/char/agp/amd-k7-agp.c
-@@ -436,8 +436,9 @@ static int __devinit agp_amdk7_probe(str
- 	   system controller may experience noise due to strong drive strengths
- 	 */
- 	if (agp_bridge->dev->device == PCI_DEVICE_ID_AMD_FE_GATE_7006) {
--		u8 cap_ptr=0;
- 		struct pci_dev *gfxcard=NULL;
-+
-+		cap_ptr = 0;
- 		while (!cap_ptr) {
- 			gfxcard = pci_get_class(PCI_CLASS_DISPLAY_VGA<<8, gfxcard);
- 			if (!gfxcard) {
+diff -puN block/blk-settings.c~block-remove-extern-on-function-definition block/blk-settings.c
+--- a/block/blk-settings.c~block-remove-extern-on-function-definition
++++ a/block/blk-settings.c
+@@ -316,7 +316,7 @@ EXPORT_SYMBOL(blk_queue_stack_limits);
+  * device can support otherwise there won't be room for the drain
+  * buffer.
+  */
+-extern int blk_queue_dma_drain(struct request_queue *q,
++int blk_queue_dma_drain(struct request_queue *q,
+ 			       dma_drain_needed_fn *dma_drain_needed,
+ 			       void *buf, unsigned int size)
+ {
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
