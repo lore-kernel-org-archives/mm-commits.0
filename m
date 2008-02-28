@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + block-fix-shadowed-variable-warning-in-blk-mapc.patch added to -mm tree
-Date: Wed, 27 Feb 2008 18:32:01 -0800
-Message-ID: <200802280232.m1S2W1QG011415@imap1.linux-foundation.org>
+Subject: + xen-make-blkif_getgeo-static.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:31:57 -0800
+Message-ID: <200802280231.m1S2VvJs011409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57137 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYB1CcM (ORCPT
+	by vger.kernel.org with ESMTP id S1751330AbYB1Ccm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 21:32:12 -0500
+	Wed, 27 Feb 2008 21:32:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
+Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com, jeremy@goop.org
 
 
 The patch titled
-     block: fix shadowed variable warning in blk-map.c
+     xen: make blkif_getgeo static
 has been added to the -mm tree.  Its filename is
-     block-fix-shadowed-variable-warning-in-blk-mapc.patch
+     xen-make-blkif_getgeo-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: fix shadowed variable warning in blk-map.c
+Subject: xen: make blkif_getgeo static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Introduced between 2.6.25-rc2 and -rc3
-block/blk-map.c:154:14: warning: symbol 'bio' shadows an earlier one
-block/blk-map.c:110:13: originally declared here
+drivers/block/xen-blkfront.c:139:5: warning: symbol 'blkif_getgeo' was not declared. Should it be static?
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-map.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/xen-blkfront.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/blk-map.c~block-fix-shadowed-variable-warning-in-blk-mapc block/blk-map.c
---- a/block/blk-map.c~block-fix-shadowed-variable-warning-in-blk-mapc
-+++ a/block/blk-map.c
-@@ -151,10 +151,10 @@ int blk_rq_map_user(struct request_queue
- 	 */
- 	if (len & queue_dma_alignment(q)) {
- 		unsigned int pad_len = (queue_dma_alignment(q) & ~len) + 1;
--		struct bio *bio = rq->biotail;
-+		struct bio *tail = rq->biotail;
+diff -puN drivers/block/xen-blkfront.c~xen-make-blkif_getgeo-static drivers/block/xen-blkfront.c
+--- a/drivers/block/xen-blkfront.c~xen-make-blkif_getgeo-static
++++ a/drivers/block/xen-blkfront.c
+@@ -136,7 +136,7 @@ static void blkif_restart_queue_callback
+ 	schedule_work(&info->work);
+ }
  
--		bio->bi_io_vec[bio->bi_vcnt - 1].bv_len += pad_len;
--		bio->bi_size += pad_len;
-+		tail->bi_io_vec[tail->bi_vcnt - 1].bv_len += pad_len;
-+		tail->bi_size += pad_len;
- 		rq->data_len += pad_len;
- 	}
- 
+-int blkif_getgeo(struct block_device *bd, struct hd_geometry *hg)
++static int blkif_getgeo(struct block_device *bd, struct hd_geometry *hg)
+ {
+ 	/* We don't have real geometry info, but let's at least return
+ 	   values consistent with the size of the device */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
