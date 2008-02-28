@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:04:49 -0800
-Message-ID: <200802280104.m1S14oCX008272@imap1.linux-foundation.org>
+Subject: + cgroup-api-files-drop-mem_cgroup_force_empty.patch added to -mm tree
+Date: Wed, 27 Feb 2008 17:04:40 -0800
+Message-ID: <200802280104.m1S14eL1008267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:32790 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763275AbYB1BFj (ORCPT
+	by vger.kernel.org with ESMTP id S1761437AbYB1BFc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:05:39 -0500
+	Wed, 27 Feb 2008 20:05:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@c
 
 
 The patch titled
-     CGroup API files: move "releasable" to cgroup_debug subsystem
+     CGroup API files: drop mem_cgroup_force_empty()
 has been added to the -mm tree.  Its filename is
-     cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+     cgroup-api-files-drop-mem_cgroup_force_empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: move "releasable" to cgroup_debug subsystem
+Subject: CGroup API files: drop mem_cgroup_force_empty()
 From: Paul Menage <menage@google.com>
 
-The "releasable" control file provided by the cgroup framework exports the
-state of a per-cgroup flag that's related to the notify-on-release feature. 
-This isn't really generally useful, unless you're trying to debug this
-particular feature of cgroups.
-
-This patch moves the "releasable" file to the cgroup_debug subsystem.
+This function isn't needed - a NULL pointer in the cftype read function will
+result in the same EINVAL response to userspace.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Li Zefan" <lizf@cn.fujitsu.com>
@@ -54,120 +50,40 @@ Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   11 +++++++++++
- kernel/cgroup.c        |   23 -----------------------
- kernel/cgroup_debug.c  |   12 +++++++++++-
- 3 files changed, 22 insertions(+), 24 deletions(-)
+ mm/memcontrol.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem
-+++ a/include/linux/cgroup.h
-@@ -88,6 +88,17 @@ static inline void css_put(struct cgroup
- 		__css_put(css);
+diff -puN mm/memcontrol.c~cgroup-api-files-drop-mem_cgroup_force_empty mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-api-files-drop-mem_cgroup_force_empty
++++ a/mm/memcontrol.c
+@@ -949,19 +949,6 @@ static ssize_t mem_force_empty_write(str
+ 	return ret;
  }
  
-+/* bits in struct cgroup flags field */
-+enum {
-+	/* Control Group is dead */
-+	CGRP_REMOVED,
-+	/* Control Group has previously had a child cgroup or a task,
-+	 * but no longer (only if CGRP_NOTIFY_ON_RELEASE is set) */
-+	CGRP_RELEASABLE,
-+	/* Control Group requires release notifications to userspace */
-+	CGRP_NOTIFY_ON_RELEASE,
-+};
-+
- struct cgroup {
- 	unsigned long flags;		/* "unsigned long" so bitops work */
- 
-diff -puN kernel/cgroup.c~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem
-+++ a/kernel/cgroup.c
-@@ -119,17 +119,6 @@ static int root_count;
-  */
- static int need_forkexit_callback;
- 
--/* bits in struct cgroup flags field */
--enum {
--	/* Control Group is dead */
--	CGRP_REMOVED,
--	/* Control Group has previously had a child cgroup or a task,
--	 * but no longer (only if CGRP_NOTIFY_ON_RELEASE is set) */
--	CGRP_RELEASABLE,
--	/* Control Group requires release notifications to userspace */
--	CGRP_NOTIFY_ON_RELEASE,
--};
+-/*
+- * Note: This should be removed if cgroup supports write-only file.
+- */
 -
- /* convenient tests for these bits */
- inline int cgroup_is_removed(const struct cgroup *cgrp)
- {
-@@ -1299,7 +1288,6 @@ enum cgroup_filetype {
- 	FILE_DIR,
- 	FILE_TASKLIST,
- 	FILE_NOTIFY_ON_RELEASE,
--	FILE_RELEASABLE,
- 	FILE_RELEASE_AGENT,
- };
- 
-@@ -2173,11 +2161,6 @@ static u64 cgroup_read_notify_on_release
- 	return notify_on_release(cgrp);
- }
- 
--static u64 cgroup_read_releasable(struct cgroup *cgrp, struct cftype *cft)
+-static ssize_t mem_force_empty_read(struct cgroup *cont,
+-				struct cftype *cft,
+-				struct file *file, char __user *userbuf,
+-				size_t nbytes, loff_t *ppos)
 -{
--	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
+-	return -EINVAL;
 -}
 -
- /*
-  * for the common functions, 'private' gives the type of file
-  */
-@@ -2197,12 +2180,6 @@ static struct cftype files[] = {
- 		.write = cgroup_common_file_write,
- 		.private = FILE_NOTIFY_ON_RELEASE,
- 	},
 -
--	{
--		.name = "releasable",
--		.read_u64 = cgroup_read_releasable,
--		.private = FILE_RELEASABLE,
--	}
- };
- 
- static struct cftype cft_release_agent = {
-diff -puN kernel/cgroup_debug.c~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem kernel/cgroup_debug.c
---- a/kernel/cgroup_debug.c~cgroup-api-files-move-releasable-to-cgroup_debug-subsystem
-+++ a/kernel/cgroup_debug.c
-@@ -1,5 +1,5 @@
- /*
-- * kernel/ccontainer_debug.c - Example cgroup subsystem that
-+ * kernel/cgroup_debug.c - Example cgroup subsystem that
-  * exposes debug info
-  *
-  * Copyright (C) Google Inc, 2007
-@@ -62,6 +62,11 @@ static u64 current_css_set_refcount_read
- 	return count;
- }
- 
-+static u64 releasable_read(struct cgroup *cgrp, struct cftype *cft)
-+{
-+	return test_bit(CGRP_RELEASABLE, &cgrp->flags);
-+}
-+
- static struct cftype files[] =  {
+ static const struct mem_cgroup_stat_desc {
+ 	const char *msg;
+ 	u64 unit;
+@@ -1018,7 +1005,6 @@ static struct cftype mem_cgroup_files[] 
  	{
- 		.name = "cgroup_refcount",
-@@ -81,6 +86,11 @@ static struct cftype files[] =  {
- 		.name = "current_css_set_refcount",
- 		.read_u64 = current_css_set_refcount_read,
+ 		.name = "force_empty",
+ 		.write = mem_force_empty_write,
+-		.read = mem_force_empty_read,
  	},
-+
-+	{
-+		.name = "releasable",
-+		.read_u64 = releasable_read,
-+	}
- };
- 
- static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ 	{
+ 		.name = "stat",
 _
 
 Patches currently in -mm which might be from menage@google.com are
