@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-asus_acpic-correct-use-of-and.patch added to -mm tree
-Date: Wed, 27 Feb 2008 23:56:56 -0800
-Message-ID: <200802280756.m1S7uuFe022631@imap1.linux-foundation.org>
+Subject: + drivers-char-isicomc-correct-use-of-and.patch added to -mm tree
+Date: Wed, 27 Feb 2008 23:56:59 -0800
+Message-ID: <200802280756.m1S7ux1r022634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45303 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753366AbYB1H5w (ORCPT
+	by vger.kernel.org with ESMTP id S1752968AbYB1H5w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 28 Feb 2008 02:57:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, kronos.it@gmail.com, len.brown@intel.com, maxime@tralhalla.org, trenn@suse.de
+Cc: julia@diku.dk, jirislaby@gmail.com
 
 
 The patch titled
-     drivers/acpi/asus_acpi.c: correct use of ! and &
+     drivers/char/isicom.c: correct use of ! and &
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-asus_acpic-correct-use-of-and.patch
+     drivers-char-isicomc-correct-use-of-and.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi/asus_acpi.c: correct use of ! and &
+Subject: drivers/char/isicom.c: correct use of ! and &
 From: Julia Lawall <julia@diku.dk>
 
 In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
@@ -58,28 +58,25 @@ The semantic patch that makes this change is as follows:
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Luca Tettamanti <kronos.it@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Maxime Austruy <maxime@tralhalla.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/asus_acpi.c |    2 +-
+ drivers/char/isicom.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and
-+++ a/drivers/acpi/asus_acpi.c
-@@ -610,7 +610,7 @@ write_led(const char __user * buffer, un
- 	    (led_out) ? (hotk->status | ledmask) : (hotk->status & ~ledmask);
+diff -puN drivers/char/isicom.c~drivers-char-isicomc-correct-use-of-and drivers/char/isicom.c
+--- a/drivers/char/isicom.c~drivers-char-isicomc-correct-use-of-and
++++ a/drivers/char/isicom.c
+@@ -1521,7 +1521,7 @@ static int __devinit reset_card(struct p
+ 	msleep(10);
  
- 	if (invert)		/* invert target value */
--		led_out = !led_out & 0x1;
-+		led_out = !(led_out & 0x1);
- 
- 	if (!write_acpi_int(hotk->handle, ledname, led_out, NULL))
- 		printk(KERN_WARNING "Asus ACPI: LED (%s) write failed\n",
+ 	portcount = inw(base + 0x2);
+-	if (!inw(base + 0xe) & 0x1 || (portcount != 0 && portcount != 4 &&
++	if (!(inw(base + 0xe) & 0x1) || (portcount != 0 && portcount != 4 &&
+ 				portcount != 8 && portcount != 16)) {
+ 		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure.\n",
+ 			card + 1);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
