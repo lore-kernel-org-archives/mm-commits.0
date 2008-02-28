@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-mem_cgroup_charge-never-null.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:42 -0800
-Message-ID: <200802280352.m1S3qgm0014220@imap1.linux-foundation.org>
+Subject: + memcg-move_lists-on-page-not-page_cgroup.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:32 -0800
+Message-ID: <200802280352.m1S3qWLU014205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56142 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:55562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754114AbYB1DxG (ORCPT
+	by vger.kernel.org with ESMTP id S1753320AbYB1DxG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 27 Feb 2008 22:53:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memcg: mem_cgroup_charge never NULL
+     memcg: move_lists on page not page_cgroup
 has been added to the -mm tree.  Its filename is
-     memcg-mem_cgroup_charge-never-null.patch
+     memcg-move_lists-on-page-not-page_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: mem_cgroup_charge never NULL
+Subject: memcg: move_lists on page not page_cgroup
 From: Hugh Dickins <hugh@veritas.com>
 
-My memcgroup patch to fix hang with shmem/tmpfs added NULL page handling to
-mem_cgroup_charge_common.  It seemed convenient at the time, but hard to
-justify now: there's a perfectly appropriate swappage to charge and uncharge
-instead, this is not on any hot path through shmem_getpage, and no performance
-hit was observed from the slight extra overhead.
-
-So revert that NULL page handling from mem_cgroup_charge_common; and make it
-clearer by bringing page_cgroup_assign_new_page_cgroup into its body - that
-was a helper I found more of a hindrance to understanding.
+Each caller of mem_cgroup_move_lists is having to use page_get_page_cgroup:
+it's more convenient if it acts upon the page itself not the page_cgroup; and
+in a later patch this becomes important to handle within memcontrol.c.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -57,130 +51,87 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   61 +++++++++++++++-------------------------------
- mm/shmem.c      |    9 ++++--
- 2 files changed, 27 insertions(+), 43 deletions(-)
+ include/linux/memcontrol.h |    5 ++---
+ mm/memcontrol.c            |    4 +++-
+ mm/swap.c                  |    2 +-
+ mm/vmscan.c                |    5 +++--
+ 4 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-mem_cgroup_charge-never-null mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mem_cgroup_charge-never-null
-+++ a/mm/memcontrol.c
-@@ -301,25 +301,6 @@ static void __always_inline unlock_page_
+diff -puN include/linux/memcontrol.h~memcg-move_lists-on-page-not-page_cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-move_lists-on-page-not-page_cgroup
++++ a/include/linux/memcontrol.h
+@@ -36,7 +36,7 @@ extern int mem_cgroup_charge(struct page
+ 				gfp_t gfp_mask);
+ extern void mem_cgroup_uncharge(struct page_cgroup *pc);
+ extern void mem_cgroup_uncharge_page(struct page *page);
+-extern void mem_cgroup_move_lists(struct page_cgroup *pc, bool active);
++extern void mem_cgroup_move_lists(struct page *page, bool active);
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+ 					struct list_head *dst,
+ 					unsigned long *scanned, int order,
+@@ -106,8 +106,7 @@ static inline void mem_cgroup_uncharge_p
+ {
  }
  
+-static inline void mem_cgroup_move_lists(struct page_cgroup *pc,
+-						bool active)
++static inline void mem_cgroup_move_lists(struct page *page, bool active)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~memcg-move_lists-on-page-not-page_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-move_lists-on-page-not-page_cgroup
++++ a/mm/memcontrol.c
+@@ -407,11 +407,13 @@ int task_in_mem_cgroup(struct task_struc
  /*
-- * Tie new page_cgroup to struct page under lock_page_cgroup()
-- * This can fail if the page has been tied to a page_cgroup.
-- * If success, returns 0.
-- */
--static int page_cgroup_assign_new_page_cgroup(struct page *page,
--						struct page_cgroup *pc)
--{
--	int ret = 0;
--
--	lock_page_cgroup(page);
--	if (!page_get_page_cgroup(page))
--		page_assign_page_cgroup(page, pc);
--	else /* A page is tied to other pc. */
--		ret = 1;
--	unlock_page_cgroup(page);
--	return ret;
--}
--
--/*
-  * Clear page->page_cgroup member under lock_page_cgroup().
-  * If given "pc" value is different from one page->page_cgroup,
-  * page->cgroup is not cleared.
-@@ -585,26 +566,24 @@ static int mem_cgroup_charge_common(stru
- 	 * with it
- 	 */
- retry:
--	if (page) {
--		lock_page_cgroup(page);
--		pc = page_get_page_cgroup(page);
--		/*
--		 * The page_cgroup exists and
--		 * the page has already been accounted.
--		 */
--		if (pc) {
--			if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
--				/* this page is under being uncharged ? */
--				unlock_page_cgroup(page);
--				cpu_relax();
--				goto retry;
--			} else {
--				unlock_page_cgroup(page);
--				goto done;
--			}
-+	lock_page_cgroup(page);
+  * This routine assumes that the appropriate zone's lru lock is already held
+  */
+-void mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
++void mem_cgroup_move_lists(struct page *page, bool active)
+ {
++	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long flags;
+ 
 +	pc = page_get_page_cgroup(page);
-+	/*
-+	 * The page_cgroup exists and
-+	 * the page has already been accounted.
-+	 */
-+	if (pc) {
-+		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
-+			/* this page is under being uncharged ? */
-+			unlock_page_cgroup(page);
-+			cpu_relax();
-+			goto retry;
-+		} else {
-+			unlock_page_cgroup(page);
-+			goto done;
- 		}
--		unlock_page_cgroup(page);
+ 	if (!pc)
+ 		return;
+ 
+diff -puN mm/swap.c~memcg-move_lists-on-page-not-page_cgroup mm/swap.c
+--- a/mm/swap.c~memcg-move_lists-on-page-not-page_cgroup
++++ a/mm/swap.c
+@@ -176,7 +176,7 @@ void activate_page(struct page *page)
+ 		SetPageActive(page);
+ 		add_page_to_active_list(zone, page);
+ 		__count_vm_event(PGACTIVATE);
+-		mem_cgroup_move_lists(page_get_page_cgroup(page), true);
++		mem_cgroup_move_lists(page, true);
  	}
-+	unlock_page_cgroup(page);
+ 	spin_unlock_irq(&zone->lru_lock);
+ }
+diff -puN mm/vmscan.c~memcg-move_lists-on-page-not-page_cgroup mm/vmscan.c
+--- a/mm/vmscan.c~memcg-move_lists-on-page-not-page_cgroup
++++ a/mm/vmscan.c
+@@ -1128,7 +1128,7 @@ static void shrink_active_list(unsigned 
+ 		ClearPageActive(page);
  
- 	pc = kzalloc(sizeof(struct page_cgroup), gfp_mask);
- 	if (pc == NULL)
-@@ -663,7 +642,9 @@ retry:
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
- 		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
- 
--	if (!page || page_cgroup_assign_new_page_cgroup(page, pc)) {
-+	lock_page_cgroup(page);
-+	if (page_get_page_cgroup(page)) {
-+		unlock_page_cgroup(page);
- 		/*
- 		 * Another charge has been added to this page already.
- 		 * We take lock_page_cgroup(page) again and read
-@@ -672,10 +653,10 @@ retry:
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
- 		css_put(&mem->css);
- 		kfree(pc);
--		if (!page)
--			goto done;
- 		goto retry;
- 	}
-+	page_assign_page_cgroup(page, pc);
-+	unlock_page_cgroup(page);
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
-diff -puN mm/shmem.c~memcg-mem_cgroup_charge-never-null mm/shmem.c
---- a/mm/shmem.c~memcg-mem_cgroup_charge-never-null
-+++ a/mm/shmem.c
-@@ -1370,14 +1370,17 @@ repeat:
- 			shmem_swp_unmap(entry);
- 			spin_unlock(&info->lock);
- 			unlock_page(swappage);
--			page_cache_release(swappage);
- 			if (error == -ENOMEM) {
- 				/* allow reclaim from this memory cgroup */
--				error = mem_cgroup_cache_charge(NULL,
-+				error = mem_cgroup_cache_charge(swappage,
- 					current->mm, gfp & ~__GFP_HIGHMEM);
--				if (error)
-+				if (error) {
-+					page_cache_release(swappage);
- 					goto failed;
-+				}
-+				mem_cgroup_uncharge_page(swappage);
- 			}
-+			page_cache_release(swappage);
- 			goto repeat;
- 		}
- 	} else if (sgp == SGP_READ && !filepage) {
+ 		list_move(&page->lru, &zone->inactive_list);
+-		mem_cgroup_move_lists(page_get_page_cgroup(page), false);
++		mem_cgroup_move_lists(page, false);
+ 		pgmoved++;
+ 		if (!pagevec_add(&pvec, page)) {
+ 			__mod_zone_page_state(zone, NR_INACTIVE, pgmoved);
+@@ -1156,8 +1156,9 @@ static void shrink_active_list(unsigned 
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+ 		VM_BUG_ON(!PageActive(page));
++
+ 		list_move(&page->lru, &zone->active_list);
+-		mem_cgroup_move_lists(page_get_page_cgroup(page), true);
++		mem_cgroup_move_lists(page, true);
+ 		pgmoved++;
+ 		if (!pagevec_add(&pvec, page)) {
+ 			__mod_zone_page_state(zone, NR_ACTIVE, pgmoved);
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
