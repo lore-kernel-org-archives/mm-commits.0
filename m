@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-api-files-make-cgroup_debug-default-to-off.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:04:55 -0800
-Message-ID: <200802280104.m1S14tS0008276@imap1.linux-foundation.org>
+Subject: + remove-the-macro-get_personality.patch added to -mm tree
+Date: Wed, 27 Feb 2008 17:05:41 -0800
+Message-ID: <200802280105.m1S15fBA008327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34347 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932092AbYB1BFo (ORCPT
+	by vger.kernel.org with ESMTP id S1760646AbYB1BHD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:05:44 -0500
+	Wed, 27 Feb 2008 20:07:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: xiyou.wangcong@gmail.com, adobriyan@gmail.com, bryan.wu@analog.com, dhowells@redhat.com, hch@infradead.org
 
 
 The patch titled
-     CGroup API files: make CGROUP_DEBUG default to off
+     Remove the macro get_personality
 has been added to the -mm tree.  Its filename is
-     cgroup-api-files-make-cgroup_debug-default-to-off.patch
+     remove-the-macro-get_personality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: make CGROUP_DEBUG default to off
-From: Paul Menage <menage@google.com>
+Subject: Remove the macro get_personality
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-The cgroup debug subsystem isn't generally useful for users.  It should
-default to "n".
+Remove the macro get_personality, use ->personality instead.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: "Li Zefan" <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
+Cc: Christoph Hellwig <hch@infradead.org
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/blackfin/kernel/signal.c |    2 +-
+ arch/frv/kernel/signal.c      |    4 ++--
+ include/linux/personality.h   |    4 ----
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN init/Kconfig~cgroup-api-files-make-cgroup_debug-default-to-off init/Kconfig
---- a/init/Kconfig~cgroup-api-files-make-cgroup_debug-default-to-off
-+++ a/init/Kconfig
-@@ -281,6 +281,7 @@ config CGROUPS
- config CGROUP_DEBUG
- 	bool "Example debug cgroup subsystem"
- 	depends on CGROUPS
-+	default n
- 	help
- 	  This option enables a simple cgroup subsystem that
- 	  exports useful debugging information about the cgroups
+diff -puN arch/blackfin/kernel/signal.c~remove-the-macro-get_personality arch/blackfin/kernel/signal.c
+--- a/arch/blackfin/kernel/signal.c~remove-the-macro-get_personality
++++ a/arch/blackfin/kernel/signal.c
+@@ -224,7 +224,7 @@ setup_rt_frame(int sig, struct k_sigacti
+ 
+ 	/* Set up registers for signal handler */
+ 	wrusp((unsigned long)frame);
+-	if (get_personality & FDPIC_FUNCPTRS) {
++	if (current->personality & FDPIC_FUNCPTRS) {
+ 		struct fdpic_func_descriptor __user *funcptr =
+ 			(struct fdpic_func_descriptor *) ka->sa.sa_handler;
+ 		__get_user(regs->pc, &funcptr->text);
+diff -puN arch/frv/kernel/signal.c~remove-the-macro-get_personality arch/frv/kernel/signal.c
+--- a/arch/frv/kernel/signal.c~remove-the-macro-get_personality
++++ a/arch/frv/kernel/signal.c
+@@ -297,7 +297,7 @@ static int setup_frame(int sig, struct k
+ 	__frame->lr   = (unsigned long) &frame->retcode;
+ 	__frame->gr8  = sig;
+ 
+-	if (get_personality & FDPIC_FUNCPTRS) {
++	if (current->personality & FDPIC_FUNCPTRS) {
+ 		struct fdpic_func_descriptor __user *funcptr =
+ 			(struct fdpic_func_descriptor __user *) ka->sa.sa_handler;
+ 		__get_user(__frame->pc, &funcptr->text);
+@@ -396,7 +396,7 @@ static int setup_rt_frame(int sig, struc
+ 	__frame->gr8 = sig;
+ 	__frame->gr9 = (unsigned long) &frame->info;
+ 
+-	if (get_personality & FDPIC_FUNCPTRS) {
++	if (current->personality & FDPIC_FUNCPTRS) {
+ 		struct fdpic_func_descriptor __user *funcptr =
+ 			(struct fdpic_func_descriptor __user *) ka->sa.sa_handler;
+ 		__get_user(__frame->pc, &funcptr->text);
+diff -puN include/linux/personality.h~remove-the-macro-get_personality include/linux/personality.h
+--- a/include/linux/personality.h~remove-the-macro-get_personality
++++ a/include/linux/personality.h
+@@ -105,10 +105,6 @@ struct exec_domain {
+  */
+ #define personality(pers)	(pers & PER_MASK)
+ 
+-/*
+- * Personality of the currently running process.
+- */
+-#define get_personality		(current->personality)
+ 
+ /*
+  * Change personality of the currently running process.
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-cgroup-fix-default-notify_on_release-setting.patch
-memory-resource-controller-use-strstrip-while-parsing-arguments.patch
-memory-controller-rename-to-memory-resource-controller.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-add-a-refcount-check-in-dput.patch
+git-hrt.patch
+arch-um-kernel-um_archc-some-small-improvements.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
