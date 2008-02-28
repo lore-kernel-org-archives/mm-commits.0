@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-prevent-probing-of-preempt_schedule.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:20:10 -0800
-Message-ID: <200802280320.m1S3KAsX013112@imap1.linux-foundation.org>
+Subject: + kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:20:50 -0800
+Message-ID: <200802280320.m1S3Komf013135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34999 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046AbYB1DUg (ORCPT
+	by vger.kernel.org with ESMTP id S1753103AbYB1DVH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:20:36 -0500
+	Wed, 27 Feb 2008 22:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srinivasa@in.ibm.com, ananth@in.ibm.com, haveblue@us.ibm.com, jkenisto@us.ibm.com
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, haveblue@us.ibm.com, jkenisto@us.ibm.com, srinivasa@in.ibm.com
 
 
 The patch titled
-     kprobes: prevent probing of preempt_schedule()
+     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     kprobes-prevent-probing-of-preempt_schedule.patch
+     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: prevent probing of preempt_schedule()
-From: Srinivasa Ds <srinivasa@in.ibm.com>
+Subject: kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Prohibit users from probing preempt_schedule().  One way of prohibiting the
-user from probing functions is by marking such functions with __kprobes.  But
-this method doesn't work for those functions, which are already marked to
-different section like preempt_schedule() (belongs to __sched section).  So we
-use blacklist approach to refuse user from probing these functions.
+ERROR: use tabs not spaces
+#57: FILE: kernel/kprobes.c:100:
++        {"preempt_schedule",},$
 
-In blacklist approach we populate the blacklisted function's starting address
-and its size in kprobe_blacklist structure.  Then we verify the user specified
-address against start and end of the blacklisted function.  So any attempt to
-register probe on blacklisted functions will be rejected.
+ERROR: use tabs not spaces
+#58: FILE: kernel/kprobes.c:101:
++        {NULL}    /* Terminator */$
 
-Signed-off-by: Srinivasa DS <srinivasa@in.ibm.com>
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Signed-off-by: Jim Keniston <jkenisto@us.ibm.com>
+total: 2 errors, 0 warnings, 92 lines checked
+
+./patches/kprobes-prevent-probing-of-preempt_schedule.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Srinivasa DS <srinivasa@in.ibm.com>
+Cc: Srinivasa Ds <srinivasa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    7 +++++
- kernel/kprobes.c        |   52 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ kernel/kprobes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kprobes.h~kprobes-prevent-probing-of-preempt_schedule include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-prevent-probing-of-preempt_schedule
-+++ a/include/linux/kprobes.h
-@@ -174,6 +174,13 @@ struct kretprobe_blackpoint {
- 	const char *name;
- 	void *addr;
- };
-+
-+struct kprobe_blackpoint {
-+	const char *name;
-+	unsigned long start_addr;
-+	unsigned long range;
-+};
-+
- extern struct kretprobe_blackpoint kretprobe_blacklist[];
- 
- static inline void kretprobe_assert(struct kretprobe_instance *ri,
-diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule
+diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
 +++ a/kernel/kprobes.c
-@@ -89,6 +89,18 @@ struct kprobe_insn_page {
- 	int ngarbage;
+@@ -97,8 +97,8 @@ struct kprobe_insn_page {
+  * For such cases, we now have a blacklist
+  */
+ struct kprobe_blackpoint kprobe_blacklist[] = {
+-        {"preempt_schedule",},
+-        {NULL}    /* Terminator */
++	{"preempt_schedule",},
++	{NULL}    /* Terminator */
  };
  
-+/*
-+ * Normally, functions that we'd want to prohibit kprobes in, are marked
-+ * __kprobes. But, there are cases where such functions already belong to
-+ * a different section (__sched for preempt_schedule)
-+ *
-+ * For such cases, we now have a blacklist
-+ */
-+struct kprobe_blackpoint kprobe_blacklist[] = {
-+        {"preempt_schedule",},
-+        {NULL}    /* Terminator */
-+};
-+
  enum kprobe_slot_state {
- 	SLOT_CLEAN = 0,
- 	SLOT_DIRTY = 1,
-@@ -492,9 +504,22 @@ static int __kprobes register_aggr_kprob
- 
- static int __kprobes in_kprobes_functions(unsigned long addr)
- {
-+	struct kprobe_blackpoint *kb;
-+
- 	if (addr >= (unsigned long)__kprobes_text_start &&
- 	    addr < (unsigned long)__kprobes_text_end)
- 		return -EINVAL;
-+	/*
-+	 * If there exists a kprobe_blacklist, verify and
-+	 * fail any probe registration in the prohibited area
-+	 */
-+	for (kb = kprobe_blacklist; kb->name != NULL; kb++) {
-+		if (kb->start_addr) {
-+			if (addr >= kb->start_addr &&
-+			    addr < (kb->start_addr + kb->range))
-+				return -EINVAL;
-+		}
-+	}
- 	return 0;
- }
- 
-@@ -802,6 +827,11 @@ void __kprobes unregister_kretprobe(stru
- static int __init init_kprobes(void)
- {
- 	int i, err = 0;
-+	unsigned long offset = 0, size = 0;
-+	char *modname, namebuf[128];
-+	const char *symbol_name;
-+	void *addr;
-+	struct kprobe_blackpoint *kb;
- 
- 	/* FIXME allocate the probe table, currently defined statically */
- 	/* initialize all list heads */
-@@ -810,6 +840,28 @@ static int __init init_kprobes(void)
- 		INIT_HLIST_HEAD(&kretprobe_inst_table[i]);
- 	}
- 
-+	/*
-+	 * Lookup and populate the kprobe_blacklist.
-+	 *
-+	 * Unlike the kretprobe blacklist, we'll need to determine
-+	 * the range of addresses that belong to the said functions,
-+	 * since a kprobe need not necessarily be at the beginning
-+	 * of a function.
-+	 */
-+	for (kb = kprobe_blacklist; kb->name != NULL; kb++) {
-+		kprobe_lookup_name(kb->name, addr);
-+		if (!addr)
-+			continue;
-+
-+		kb->start_addr = (unsigned long)addr;
-+		symbol_name = kallsyms_lookup(kb->start_addr,
-+				&size, &offset, &modname, namebuf);
-+		if (!symbol_name)
-+			kb->range = 0;
-+		else
-+			kb->range = size;
-+	}
-+
- 	if (kretprobe_blacklist_size) {
- 		/* lookup the function address from its name */
- 		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
 _
 
-Patches currently in -mm which might be from srinivasa@in.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kprobes-prevent-probing-of-preempt_schedule.patch
+origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch
+git-x86.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-sched.patch
+tracing-is-borked-on-powerpc.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
