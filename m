@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-isicomc-correct-use-of-and.patch added to -mm tree
-Date: Wed, 27 Feb 2008 23:56:59 -0800
-Message-ID: <200802280756.m1S7ux1r022634@imap1.linux-foundation.org>
+Subject: + drivers-isdn-correct-use-of-and.patch added to -mm tree
+Date: Wed, 27 Feb 2008 23:57:01 -0800
+Message-ID: <200802280757.m1S7v1x5022637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46714 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752968AbYB1H5w (ORCPT
+	by vger.kernel.org with ESMTP id S1753352AbYB1H5w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 28 Feb 2008 02:57:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jirislaby@gmail.com
+Cc: julia@diku.dk, kkeil@suse.de
 
 
 The patch titled
-     drivers/char/isicom.c: correct use of ! and &
+     drivers/isdn: correct use of ! and &
 has been added to the -mm tree.  Its filename is
-     drivers-char-isicomc-correct-use-of-and.patch
+     drivers-isdn-correct-use-of-and.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/isicom.c: correct use of ! and &
+Subject: drivers/isdn: correct use of ! and &
 From: Julia Lawall <julia@diku.dk>
 
 In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
@@ -58,25 +58,57 @@ The semantic patch that makes this change is as follows:
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/i4l/isdn_ttyfax.c   |    3 ++-
+ drivers/isdn/isdnloop/isdnloop.c |    6 +++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/isicom.c~drivers-char-isicomc-correct-use-of-and drivers/char/isicom.c
---- a/drivers/char/isicom.c~drivers-char-isicomc-correct-use-of-and
-+++ a/drivers/char/isicom.c
-@@ -1521,7 +1521,7 @@ static int __devinit reset_card(struct p
- 	msleep(10);
+diff -puN drivers/isdn/i4l/isdn_ttyfax.c~drivers-isdn-correct-use-of-and drivers/isdn/i4l/isdn_ttyfax.c
+--- a/drivers/isdn/i4l/isdn_ttyfax.c~drivers-isdn-correct-use-of-and
++++ a/drivers/isdn/i4l/isdn_ttyfax.c
+@@ -906,7 +906,8 @@ isdn_tty_cmd_FCLASS2(char **p, modem_inf
+ 			sprintf(rs, "\r\n0-2");
+ 			isdn_tty_at_cout(rs, info);
+ 		} else {
+-			if ((f->phase != ISDN_FAX_PHASE_D) || (!info->faxonline & 1))
++			if ((f->phase != ISDN_FAX_PHASE_D) ||
++			    (!(info->faxonline & 1)))
+ 				PARSE_ERROR1;
+ 			par = isdn_getnum(p);
+ 			if ((par < 0) || (par > 2))
+diff -puN drivers/isdn/isdnloop/isdnloop.c~drivers-isdn-correct-use-of-and drivers/isdn/isdnloop/isdnloop.c
+--- a/drivers/isdn/isdnloop/isdnloop.c~drivers-isdn-correct-use-of-and
++++ a/drivers/isdn/isdnloop/isdnloop.c
+@@ -1289,7 +1289,7 @@ isdnloop_command(isdn_ctrl * c, isdnloop
+ 				}
+ 				break;
+ 		case ISDN_CMD_CLREAZ:
+-				if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
++				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+ 					return -ENODEV;
+ 				if (card->leased)
+ 					break;
+@@ -1333,7 +1333,7 @@ isdnloop_command(isdn_ctrl * c, isdnloop
+ 				}
+ 				break;
+ 		case ISDN_CMD_SETL3:
+-				if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
++				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+ 					return -ENODEV;
+ 				return 0;
+ 		default:
+@@ -1380,7 +1380,7 @@ if_writecmd(const u_char __user *buf, in
+ 	isdnloop_card *card = isdnloop_findcard(id);
  
- 	portcount = inw(base + 0x2);
--	if (!inw(base + 0xe) & 0x1 || (portcount != 0 && portcount != 4 &&
-+	if (!(inw(base + 0xe) & 0x1) || (portcount != 0 && portcount != 4 &&
- 				portcount != 8 && portcount != 16)) {
- 		dev_err(&pdev->dev, "ISILoad:PCI Card%d reset failure.\n",
- 			card + 1);
+ 	if (card) {
+-		if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
++		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+ 			return -ENODEV;
+ 		return (isdnloop_writecmd(buf, len, 1, card));
+ 	}
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
