@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-css_put-after-remove_list.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:52 -0800
-Message-ID: <200802280352.m1S3qq2I014235@imap1.linux-foundation.org>
+Subject: + memcg-simplify-force_empty-and-move_lists.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:56 -0800
+Message-ID: <200802280352.m1S3quhT014243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48642 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755664AbYB1Dxb (ORCPT
+	by vger.kernel.org with ESMTP id S1751349AbYB1D6S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:53:31 -0500
+	Wed, 27 Feb 2008 22:58:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, taka@valinux.co.jp, yamamoto@valinux.co.jp
+Cc: taka@valinux.co.jp, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memcg: css_put after remove_list
+     memcg: simplify force_empty and move_lists
 has been added to the -mm tree.  Its filename is
-     memcg-css_put-after-remove_list.patch
+     memcg-simplify-force_empty-and-move_lists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: css_put after remove_list
-From: Hugh Dickins <hugh@veritas.com>
+Subject: memcg: simplify force_empty and move_lists
+From: Hirokazu Takahashi <taka@valinux.co.jp>
 
-mem_cgroup_uncharge_page does css_put on the mem_cgroup before uncharging from
-it, and before removing page_cgroup from one of its lru lists: isn't there a
-danger that struct mem_cgroup memory could be freed and reused before
-completing that, so corrupting something?  Never seen it, and for all I know
-there may be other constraints which make it impossible; but let's be
-defensive and reverse the ordering there.
+As for force_empty, though this may not be the main topic here,
+mem_cgroup_force_empty_list() can be implemented simpler.  It is possible to
+make the function just call mem_cgroup_uncharge_page() instead of releasing
+page_cgroups by itself.  The tip is to call get_page() before invoking
+mem_cgroup_uncharge_page(), so the page won't be released during this
+function.
 
-mem_cgroup_force_empty_list is safe because there's an extra css_get around
-all its works; but even so, change its ordering the same way round, to help
-get in the habit of doing it like this.
+Kamezawa-san points out that by the time mem_cgroup_uncharge_page() uncharges,
+the page might have been reassigned to an lru of a different mem_cgroup, and
+now be emptied from that; but Hugh claims that's okay, the end state is the
+same as when it hasn't gone to another list.
 
+And once force_empty stops taking lock_page_cgroup within mz->lru_lock,
+mem_cgroup_move_lists() can be simplified to take mz->lru_lock directly while
+holding page_cgroup lock (but still has to use try_lock_page_cgroup).
+
+Signed-off-by: Hirokazu Takahashi <taka@valinux.co.jp>
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   62 +++++++++-------------------------------------
+ 1 file changed, 13 insertions(+), 49 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-css_put-after-remove_list mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-css_put-after-remove_list
+diff -puN mm/memcontrol.c~memcg-simplify-force_empty-and-move_lists mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-force_empty-and-move_lists
 +++ a/mm/memcontrol.c
-@@ -665,15 +665,15 @@ void mem_cgroup_uncharge_page(struct pag
- 		page_assign_page_cgroup(page, NULL);
- 		unlock_page_cgroup(page);
+@@ -353,7 +353,6 @@ int task_in_mem_cgroup(struct task_struc
+ void mem_cgroup_move_lists(struct page *page, bool active)
+ {
+ 	struct page_cgroup *pc;
+-	struct mem_cgroup *mem;
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long flags;
  
--		mem = pc->mem_cgroup;
--		css_put(&mem->css);
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--
- 		mz = page_cgroup_zoneinfo(pc);
- 		spin_lock_irqsave(&mz->lru_lock, flags);
- 		__mem_cgroup_remove_list(pc);
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
-+		mem = pc->mem_cgroup;
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
-+		css_put(&mem->css);
-+
- 		kfree(pc);
+@@ -367,35 +366,14 @@ void mem_cgroup_move_lists(struct page *
+ 	if (!try_lock_page_cgroup(page))
  		return;
- 	}
-@@ -774,9 +774,9 @@ retry:
- 		if (page_get_page_cgroup(page) == pc) {
- 			page_assign_page_cgroup(page, NULL);
- 			unlock_page_cgroup(page);
--			css_put(&mem->css);
+ 
+-	/*
+-	 * Now page_cgroup is stable, but we cannot acquire mz->lru_lock
+-	 * while holding it, because mem_cgroup_force_empty_list does the
+-	 * reverse.  Get a hold on the mem_cgroup before unlocking, so that
+-	 * the zoneinfo remains stable, then take mz->lru_lock; then check
+-	 * that page still points to pc and pc (even if freed and reassigned
+-	 * to that same page meanwhile) still points to the same mem_cgroup.
+-	 * Then we know mz still points to the right spinlock, so it's safe
+-	 * to move_lists (page->page_cgroup might be reset while we do so, but
+-	 * that doesn't matter: pc->page is stable till we drop mz->lru_lock).
+-	 * We're being a little naughty not to try_lock_page_cgroup again
+-	 * inside there, but we are safe, aren't we?  Aren't we?  Whistle...
+-	 */
+ 	pc = page_get_page_cgroup(page);
+ 	if (pc) {
+-		mem = pc->mem_cgroup;
+ 		mz = page_cgroup_zoneinfo(pc);
+-		css_get(&mem->css);
+-
+-		unlock_page_cgroup(page);
+-
+ 		spin_lock_irqsave(&mz->lru_lock, flags);
+-		if (page_get_page_cgroup(page) == pc && pc->mem_cgroup == mem)
+-			__mem_cgroup_move_lists(pc, active);
++		__mem_cgroup_move_lists(pc, active);
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+-
+-		css_put(&mem->css);
+-	} else
+-		unlock_page_cgroup(page);
++	}
++	unlock_page_cgroup(page);
+ }
+ 
+ /*
+@@ -789,7 +767,7 @@ static void mem_cgroup_force_empty_list(
+ {
+ 	struct page_cgroup *pc;
+ 	struct page *page;
+-	int count;
++	int count = FORCE_UNCHARGE_BATCH;
+ 	unsigned long flags;
+ 	struct list_head *list;
+ 
+@@ -798,35 +776,21 @@ static void mem_cgroup_force_empty_list(
+ 	else
+ 		list = &mz->inactive_list;
+ 
+-	if (list_empty(list))
+-		return;
+-retry:
+-	count = FORCE_UNCHARGE_BATCH;
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-
+-	while (--count && !list_empty(list)) {
++	while (!list_empty(list)) {
+ 		pc = list_entry(list->prev, struct page_cgroup, lru);
+ 		page = pc->page;
+-		lock_page_cgroup(page);
+-		if (page_get_page_cgroup(page) == pc) {
+-			page_assign_page_cgroup(page, NULL);
+-			unlock_page_cgroup(page);
+-			__mem_cgroup_remove_list(pc);
 -			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			__mem_cgroup_remove_list(pc);
-+			res_counter_uncharge(&mem->res, PAGE_SIZE);
-+			css_put(&mem->css);
- 			kfree(pc);
- 		} else {
- 			/* racing uncharge: let page go then retry */
+-			css_put(&mem->css);
+-			kfree(pc);
+-		} else {
+-			/* racing uncharge: let page go then retry */
+-			unlock_page_cgroup(page);
+-			break;
++		get_page(page);
++		spin_unlock_irqrestore(&mz->lru_lock, flags);
++		mem_cgroup_uncharge_page(page);
++		put_page(page);
++		if (--count <= 0) {
++			count = FORCE_UNCHARGE_BATCH;
++			cond_resched();
+ 		}
++		spin_lock_irqsave(&mz->lru_lock, flags);
+ 	}
+-
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+-	if (!list_empty(list)) {
+-		cond_resched();
+-		goto retry;
+-	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from taka@valinux.co.jp are
 
-git-unionfs.patch
 memcg-mm_match_cgroup-not-vm_match_cgroup.patch
 memcg-move_lists-on-page-not-page_cgroup.patch
 memcg-page_cache_release-not-__free_page.patch
@@ -115,10 +188,3 @@ memcg-remove-clear_page_cgroup-and-atomics.patch
 memcg-css_put-after-remove_list.patch
 memcg-fix-mem_cgroup_move_lists-locking.patch
 memcg-simplify-force_empty-and-move_lists.patch
-memcg-fix-oops-on-null-lru-list.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-try-both-endianess-when-checking-for-endianess.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-prio_tree-debugging-patch.patch
