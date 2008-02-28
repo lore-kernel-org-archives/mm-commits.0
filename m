@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch added to -mm tree
-Date: Thu, 28 Feb 2008 13:14:37 -0800
-Message-ID: <200802282114.m1SLEc29020674@imap1.linux-foundation.org>
+Subject: + mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch added to -mm tree
+Date: Thu, 28 Feb 2008 13:14:34 -0800
+Message-ID: <200802282114.m1SLEYJi020671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52597 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759174AbYB1VPw (ORCPT
+	by vger.kernel.org with ESMTP id S1759386AbYB1VP4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 16:15:52 -0500
+	Thu, 28 Feb 2008 16:15:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mel@csn.ul.ie, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujits
 
 
 The patch titled
-     mm: introduce node_zonelist() for accessing the zonelist for a GFP mask
+     mm: use zonelists instead of zones when direct reclaiming pages
 has been added to the -mm tree.  Its filename is
-     mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+     mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce node_zonelist() for accessing the zonelist for a GFP mask
+Subject: mm: use zonelists instead of zones when direct reclaiming pages
 From: Mel Gorman <mel@csn.ul.ie>
 
-Introduce a node_zonelist() helper function.  It is used to lookup the
-appropriate zonelist given a node and a GFP mask.  The patch on its own is a
-cleanup but it helps clarify parts of the two-zonelist-per-node patchset.  If
-necessary, it can be merged with the next patch in this set without problems.
+The following patches replace multiple zonelists per node with two zonelists
+that are filtered based on the GFP flags.  The patches as a set fix a bug with
+regard to the use of MPOL_BIND and ZONE_MOVABLE.  With this patchset, the
+MPOL_BIND will apply to the two highest zones when the highest zone is
+ZONE_MOVABLE.  This should be considered as an alternative fix for the
+MPOL_BIND+ZONE_MOVABLE in 2.6.23 to the previously discussed hack that filters
+only custom zonelists.
 
-Reviewed-by: Christoph Lameter <clameter@sgi.com>
+The first patch cleans up an inconsistency where direct reclaim uses
+zonelist->zones where other places use zonelist.
+
+The second patch introduces a helper function node_zonelist() for looking up
+the appropriate zonelist for a GFP mask which simplifies patches later in the
+set.
+
+The third patch defines/remembers the "preferred zone" for numa statistics, as
+it is no longer always the first zone in a zonelist.
+
+The forth patch replaces multiple zonelists with two zonelists that are
+filtered.  The two zonelists are due to the fact that the memoryless patchset
+introduces a second set of zonelists for __GFP_THISNODE.
+
+The fifth patch introduces helper macros for retrieving the zone and node
+indices of entries in a zonelist.
+
+The final patch introduces filtering of the zonelists based on a nodemask. 
+Two zonelists exist per node, one for normal allocations and one for
+__GFP_THISNODE.
+
+Performance results varied depending on the machine configuration.  In real
+workloads the gain/loss will depend on how much the userspace portion of the
+benchmark benefits from having more cache available due to reduced referencing
+of zonelists.
+
+These are the range of performance losses/gains when running against
+2.6.24-rc4-mm1.  The set and these machines are a mix of i386, x86_64 and
+ppc64 both NUMA and non-NUMA.
+			     loss   to  gain
+Total CPU time on Kernbench: -0.86% to  1.13%
+Elapsed   time on Kernbench: -0.79% to  0.76%
+page_test from aim9:         -4.37% to  0.79%
+brk_test  from aim9:         -0.71% to  4.07%
+fork_test from aim9:         -1.84% to  4.60%
+exec_test from aim9:         -0.71% to  1.08%
+
+
+This patch:
+
+The allocator deals with zonelists which indicate the order in which zones
+should be targeted for an allocation.  Similarly, direct reclaim of pages
+iterates over an array of zones.  For consistency, this patch converts direct
+reclaim to use a zonelist.  No functionality is changed by this patch.  This
+simplifies zonelist iterators in the next patch.
+
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -53,161 +102,138 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c      |    3 +--
- fs/buffer.c               |    6 +++---
- include/linux/gfp.h       |    8 ++++++--
- include/linux/mempolicy.h |    2 +-
- mm/mempolicy.c            |    6 +++---
- mm/page_alloc.c           |    3 +--
- mm/slab.c                 |    3 +--
- mm/slub.c                 |    3 +--
- 8 files changed, 17 insertions(+), 17 deletions(-)
+ fs/buffer.c          |    8 ++++----
+ include/linux/swap.h |    2 +-
+ mm/page_alloc.c      |    2 +-
+ mm/vmscan.c          |   21 ++++++++++++---------
+ 4 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/sysrq.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/drivers/char/sysrq.c
-@@ -271,8 +271,7 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
- {
--	out_of_memory(&NODE_DATA(0)->node_zonelists[ZONE_NORMAL],
--			GFP_KERNEL, 0);
-+	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0);
- }
- 
- static DECLARE_WORK(moom_work, moom_callback);
-diff -puN fs/buffer.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask fs/buffer.c
---- a/fs/buffer.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
+diff -puN fs/buffer.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages fs/buffer.c
+--- a/fs/buffer.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages
 +++ a/fs/buffer.c
-@@ -361,13 +361,13 @@ void invalidate_bdev(struct block_device
+@@ -360,16 +360,16 @@ void invalidate_bdev(struct block_device
+  */
  static void free_more_memory(void)
  {
- 	struct zonelist *zonelist;
--	pg_data_t *pgdat;
-+	int nid;
+-	struct zone **zones;
++	struct zonelist *zonelist;
+ 	pg_data_t *pgdat;
  
  	wakeup_pdflush(1024);
  	yield();
  
--	for_each_online_pgdat(pgdat) {
--		zonelist = &pgdat->node_zonelists[gfp_zone(GFP_NOFS)];
-+	for_each_online_node(nid) {
-+		zonelist = node_zonelist(nid, GFP_NOFS);
- 		if (zonelist->zones[0])
- 			try_to_free_pages(zonelist, 0, GFP_NOFS);
+ 	for_each_online_pgdat(pgdat) {
+-		zones = pgdat->node_zonelists[gfp_zone(GFP_NOFS)].zones;
+-		if (*zones)
+-			try_to_free_pages(zones, 0, GFP_NOFS);
++		zonelist = &pgdat->node_zonelists[gfp_zone(GFP_NOFS)];
++		if (zonelist->zones[0])
++			try_to_free_pages(zonelist, 0, GFP_NOFS);
  	}
-diff -puN include/linux/gfp.h~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask include/linux/gfp.h
---- a/include/linux/gfp.h~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/include/linux/gfp.h
-@@ -154,10 +154,15 @@ static inline enum zone_type gfp_zone(gf
- /*
-  * We get the zone list from the current node and the gfp_mask.
-  * This zone list contains a maximum of MAXNODES*MAX_NR_ZONES zones.
-+ * There are many zonelists per node, two for each active zone.
-  *
-  * For the normal case of non-DISCONTIGMEM systems the NODE_DATA() gets
-  * optimized to &contig_page_data at compile-time.
-  */
-+static inline struct zonelist *node_zonelist(int nid, gfp_t flags)
-+{
-+	return NODE_DATA(nid)->node_zonelists + gfp_zone(flags);
-+}
- 
- #ifndef HAVE_ARCH_FREE_PAGE
- static inline void arch_free_page(struct page *page, int order) { }
-@@ -178,8 +183,7 @@ static inline struct page *alloc_pages_n
- 	if (nid < 0)
- 		nid = numa_node_id();
- 
--	return __alloc_pages(gfp_mask, order,
--		NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_mask));
-+	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
  }
  
- #ifdef CONFIG_NUMA
-diff -puN include/linux/mempolicy.h~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/include/linux/mempolicy.h
-@@ -241,7 +241,7 @@ static inline void mpol_fix_fork_child_f
- static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
-  		unsigned long addr, gfp_t gfp_flags, struct mempolicy **mpol)
- {
--	return NODE_DATA(0)->node_zonelists + gfp_zone(gfp_flags);
-+	return node_zonelist(0, gfp_flags);
- }
+diff -puN include/linux/swap.h~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages include/linux/swap.h
+--- a/include/linux/swap.h~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages
++++ a/include/linux/swap.h
+@@ -181,7 +181,7 @@ extern int rotate_reclaimable_page(struc
+ extern void swap_setup(void);
  
- static inline int do_migrate_pages(struct mm_struct *mm,
-diff -puN mm/mempolicy.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask mm/mempolicy.c
---- a/mm/mempolicy.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/mm/mempolicy.c
-@@ -1183,7 +1183,7 @@ static struct zonelist *zonelist_policy(
- 		nd = 0;
- 		BUG();
- 	}
--	return NODE_DATA(nd)->node_zonelists + gfp_zone(gfp);
-+	return node_zonelist(nd, gfp);
- }
- 
- /* Do dynamic interleaving for a process */
-@@ -1297,7 +1297,7 @@ struct zonelist *huge_zonelist(struct vm
- 
- 		nid = interleave_nid(pol, vma, addr, HPAGE_SHIFT);
- 		__mpol_free(pol);		/* finished with pol */
--		return NODE_DATA(nid)->node_zonelists + gfp_zone(gfp_flags);
-+		return node_zonelist(nid, gfp_flags);
- 	}
- 
- 	zl = zonelist_policy(GFP_HIGHUSER, pol);
-@@ -1319,7 +1319,7 @@ static struct page *alloc_page_interleav
- 	struct zonelist *zl;
- 	struct page *page;
- 
--	zl = NODE_DATA(nid)->node_zonelists + gfp_zone(gfp);
-+	zl = node_zonelist(nid, gfp);
- 	page = __alloc_pages(gfp, order, zl);
- 	if (page && page_zone(page) == zl->zones[0])
- 		inc_zone_page_state(page, NUMA_INTERLEAVE_HIT);
-diff -puN mm/page_alloc.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
+ /* linux/mm/vmscan.c */
+-extern unsigned long try_to_free_pages(struct zone **zones, int order,
++extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask);
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
+ 							gfp_t gfp_mask);
+diff -puN mm/page_alloc.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages
 +++ a/mm/page_alloc.c
-@@ -1712,10 +1712,9 @@ EXPORT_SYMBOL(free_pages);
- static unsigned int nr_free_zone_pages(int offset)
+@@ -1568,7 +1568,7 @@ nofail_alloc:
+ 	reclaim_state.reclaimed_slab = 0;
+ 	p->reclaim_state = &reclaim_state;
+ 
+-	did_some_progress = try_to_free_pages(zonelist->zones, order, gfp_mask);
++	did_some_progress = try_to_free_pages(zonelist, order, gfp_mask);
+ 
+ 	p->reclaim_state = NULL;
+ 	p->flags &= ~PF_MEMALLOC;
+diff -puN mm/vmscan.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages
++++ a/mm/vmscan.c
+@@ -1259,10 +1259,11 @@ static unsigned long shrink_zone(int pri
+  * If a zone is deemed to be full of pinned pages then just give it a light
+  * scan then give up on it.
+  */
+-static unsigned long shrink_zones(int priority, struct zone **zones,
++static unsigned long shrink_zones(int priority, struct zonelist *zonelist,
+ 					struct scan_control *sc)
  {
- 	/* Just pick one node, since fallback list is circular */
--	pg_data_t *pgdat = NODE_DATA(numa_node_id());
- 	unsigned int sum = 0;
+ 	unsigned long nr_reclaimed = 0;
++	struct zone **zones = zonelist->zones;
+ 	int i;
  
--	struct zonelist *zonelist = pgdat->node_zonelists + offset;
-+	struct zonelist *zonelist = node_zonelist(numa_node_id(), GFP_KERNEL);
- 	struct zone **zonep = zonelist->zones;
- 	struct zone *zone;
  
-diff -puN mm/slab.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask mm/slab.c
---- a/mm/slab.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/mm/slab.c
-@@ -3251,8 +3251,7 @@ static void *fallback_alloc(struct kmem_
- 	if (flags & __GFP_THISNODE)
- 		return NULL;
+@@ -1314,8 +1315,8 @@ static unsigned long shrink_zones(int pr
+  * holds filesystem locks which prevent writeout this might not work, and the
+  * allocation attempt will fail.
+  */
+-static unsigned long do_try_to_free_pages(struct zone **zones, gfp_t gfp_mask,
+-					  struct scan_control *sc)
++static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
++					gfp_t gfp_mask, struct scan_control *sc)
+ {
+ 	int priority;
+ 	int ret = 0;
+@@ -1323,6 +1324,7 @@ static unsigned long do_try_to_free_page
+ 	unsigned long nr_reclaimed = 0;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long lru_pages = 0;
++	struct zone **zones = zonelist->zones;
+ 	int i;
  
--	zonelist = &NODE_DATA(slab_node(current->mempolicy))
--			->node_zonelists[gfp_zone(flags)];
-+	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
+ 	if (scan_global_lru(sc))
+@@ -1347,7 +1349,7 @@ static unsigned long do_try_to_free_page
+ 		sc->nr_io_pages = 0;
+ 		if (!priority)
+ 			disable_swap_token();
+-		nr_reclaimed += shrink_zones(priority, zones, sc);
++		nr_reclaimed += shrink_zones(priority, zonelist, sc);
+ 		/*
+ 		 * Don't shrink slabs when reclaiming memory from
+ 		 * over limit cgroups
+@@ -1412,7 +1414,8 @@ out:
+ 	return ret;
+ }
  
- retry:
-diff -puN mm/slub.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask mm/slub.c
---- a/mm/slub.c~mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask
-+++ a/mm/slub.c
-@@ -1317,8 +1317,7 @@ static struct page *get_any_partial(stru
- 			get_cycles() % 1024 > s->remote_node_defrag_ratio)
- 		return NULL;
+-unsigned long try_to_free_pages(struct zone **zones, int order, gfp_t gfp_mask)
++unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
++								gfp_t gfp_mask)
+ {
+ 	struct scan_control sc = {
+ 		.gfp_mask = gfp_mask,
+@@ -1425,7 +1428,7 @@ unsigned long try_to_free_pages(struct z
+ 		.isolate_pages = isolate_pages_global,
+ 	};
  
--	zonelist = &NODE_DATA(
--		slab_node(current->mempolicy))->node_zonelists[gfp_zone(flags)];
-+	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
- 	for (z = zonelist->zones; *z; z++) {
- 		struct kmem_cache_node *n;
+-	return do_try_to_free_pages(zones, gfp_mask, &sc);
++	return do_try_to_free_pages(zonelist, gfp_mask, &sc);
+ }
  
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+@@ -1443,11 +1446,11 @@ unsigned long try_to_free_mem_cgroup_pag
+ 		.mem_cgroup = mem_cont,
+ 		.isolate_pages = mem_cgroup_isolate_pages,
+ 	};
+-	struct zone **zones;
++	struct zonelist *zonelist;
+ 	int target_zone = gfp_zone(GFP_HIGHUSER_MOVABLE);
+ 
+-	zones = NODE_DATA(numa_node_id())->node_zonelists[target_zone].zones;
+-	if (do_try_to_free_pages(zones, sc.gfp_mask, &sc))
++	zonelist = &NODE_DATA(numa_node_id())->node_zonelists[target_zone];
++	if (do_try_to_free_pages(zonelist, sc.gfp_mask, &sc))
+ 		return 1;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
