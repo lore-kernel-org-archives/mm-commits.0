@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch added to -mm tree
-Date: Thu, 28 Feb 2008 12:37:40 -0800
-Message-ID: <200802282037.m1SKbeBJ019251@imap1.linux-foundation.org>
+Subject: + lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch added to -mm tree
+Date: Thu, 28 Feb 2008 12:40:41 -0800
+Message-ID: <200802282040.m1SKefwV019349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53300 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753733AbYB1Uig (ORCPT
+	by vger.kernel.org with ESMTP id S1757136AbYB1Ula (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 15:38:36 -0500
+	Thu, 28 Feb 2008 15:41:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, davidel@xmailserver.org, jkosina@suse.cz, roland@redhat.com
+Cc: JRottmann@LiPPERT-AT.de, adaplas@pol.net, jordan.crouse@amd.com
 
 
 The patch titled
-     handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
+     lxfb: extend PLL table to support dotclocks below 25 MHz
 has been added to the -mm tree.  Its filename is
-     handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
+     lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,162 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: lxfb: extend PLL table to support dotclocks below 25 MHz
+From: Jens Rottmann <JRottmann@LiPPERT-AT.de>
 
-The bug was found by Jiri Kosina and the patch is based on his ideas.
+Extends the PLL frequency table of the AMD Geode-LX frame buffer driver to
+make use of the DIV4 bit, thus adding support for dotclocks between 6 and 25
+MHz.  These are needed for small LCDs (e.g.  320x240).  Also inserts some
+intermediate steps between pre-existing frequencies.
 
-handle_stop_signal(SIGCONT) wakes up the stopped task and unlocks ->siglock
-for do_notify_parent_cldstop(p, CLD_CONTINUED).  The woken task returns from
-do_signal_stop(), takes ->siglock and resumes to user-space without actually
-seeing SIGCONT which may have a handler.
-
-Move the code realated to do_notify_parent_cldstop(CLD_CONTINUED) up, before
-"wake_up_state(t, state)".
-
-NOTE: It is possible that the subsequent rm_from_queue(SIG_KERNEL_STOP_MASK)
-removes SIGSTOP which comes after SIGCONT when we drop ->siglock.  Not nice,
-but possible even without this change.  Hopefully we can remove the parent
-notifying code from the sender path completely, but this needs more thinking.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERT-AT.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ drivers/video/geode/lxfb_ops.c |  112 ++++++++++++++++++++++---------
+ 1 file changed, 81 insertions(+), 31 deletions(-)
 
-diff -puN kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont kernel/signal.c
---- a/kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont
-+++ a/kernel/signal.c
-@@ -600,12 +600,31 @@ static void handle_stop_signal(int sig, 
- 			do_notify_parent_cldstop(p, CLD_STOPPED);
- 			spin_lock(&p->sighand->siglock);
- 		}
-+
-+		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
-+			/*
-+			 * We were in fact stopped, and are now continued.
-+			 * Notify the parent with CLD_CONTINUED.
-+			 */
-+			p->signal->flags = SIGNAL_STOP_CONTINUED;
-+			p->signal->group_exit_code = 0;
-+			spin_unlock(&p->sighand->siglock);
-+			do_notify_parent_cldstop(p, CLD_CONTINUED);
-+			spin_lock(&p->sighand->siglock);
-+		} else {
-+			/*
-+			 * We are not stopped, but there could be a stop
-+			 * signal in the middle of being processed after
-+			 * being removed from the queue.  Clear that too.
-+			 */
-+			p->signal->flags = 0;
-+		}
-+
- 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
- 		t = p;
- 		do {
- 			unsigned int state;
- 			rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
--			
- 			/*
- 			 * If there is a handler for SIGCONT, we must make
- 			 * sure that no thread returns to user mode before
-@@ -629,25 +648,6 @@ static void handle_stop_signal(int sig, 
+diff -puN drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -34,35 +34,85 @@ static const struct {
+   unsigned int pllval;
+   unsigned int freq;
+ } pll_table[] = {
+-  { 0x000031AC, 24923 },
+-  { 0x0000215D, 25175 },
+-  { 0x00001087, 27000 },
+-  { 0x0000216C, 28322 },
+-  { 0x0000218D, 28560 },
+-  { 0x000010C9, 31200 },
+-  { 0x00003147, 31500 },
+-  { 0x000010A7, 33032 },
+-  { 0x00002159, 35112 },
+-  { 0x00004249, 35500 },
+-  { 0x00000057, 36000 },
+-  { 0x0000219A, 37889 },
+-  { 0x00002158, 39168 },
+-  { 0x00000045, 40000 },
+-  { 0x00000089, 43163 },
+-  { 0x000010E7, 44900 },
+-  { 0x00002136, 45720 },
+-  { 0x00003207, 49500 },
+-  { 0x00002187, 50000 },
+-  { 0x00004286, 56250 },
+-  { 0x000010E5, 60065 },
+-  { 0x00004214, 65000 },
+-  { 0x00001105, 68179 },
+-  { 0x000031E4, 74250 },
+-  { 0x00003183, 75000 },
+-  { 0x00004284, 78750 },
+-  { 0x00001104, 81600 },
+-  { 0x00006363, 94500 },
+-  { 0x00005303, 97520 },
++  { 0x000131AC,   6231 },
++  { 0x0001215D,   6294 },
++  { 0x00011087,   6750 },
++  { 0x0001216C,   7081 },
++  { 0x0001218D,   7140 },
++  { 0x000110C9,   7800 },
++  { 0x00013147,   7875 },
++  { 0x000110A7,   8258 },
++  { 0x00012159,   8778 },
++  { 0x00014249,   8875 },
++  { 0x00010057,   9000 },
++  { 0x0001219A,   9472 },
++  { 0x00012158,   9792 },
++  { 0x00010045,  10000 },
++  { 0x00010089,  10791 },
++  { 0x000110E7,  11225 },
++  { 0x00012136,  11430 },
++  { 0x00013207,  12375 },
++  { 0x00012187,  12500 },
++  { 0x00014286,  14063 },
++  { 0x000110E5,  15016 },
++  { 0x00014214,  16250 },
++  { 0x00011105,  17045 },
++  { 0x000131E4,  18563 },
++  { 0x00013183,  18750 },
++  { 0x00014284,  19688 },
++  { 0x00011104,  20400 },
++  { 0x00016363,  23625 },
++  { 0x00015303,  24380 },
++  { 0x000031AC,  24923 },
++  { 0x0000215D,  25175 },
++  { 0x00001087,  27000 },
++  { 0x0000216C,  28322 },
++  { 0x0000218D,  28560 },
++  { 0x00010041,  29913 },
++  { 0x000010C9,  31200 },
++  { 0x00003147,  31500 },
++  { 0x000141A1,  32400 },
++  { 0x000010A7,  33032 },
++  { 0x00012182,  33375 },
++  { 0x000141B1,  33750 },
++  { 0x00002159,  35112 },
++  { 0x00004249,  35500 },
++  { 0x00000057,  36000 },
++  { 0x000141E1,  37125 },
++  { 0x0000219A,  37889 },
++  { 0x00002158,  39168 },
++  { 0x00000045,  40000 },
++  { 0x000131A1,  40500 },
++  { 0x00010061,  42301 },
++  { 0x00000089,  43163 },
++  { 0x00012151,  43875 },
++  { 0x000010E7,  44900 },
++  { 0x00002136,  45720 },
++  { 0x000152E1,  47250 },
++  { 0x00010071,  48000 },
++  { 0x00003207,  49500 },
++  { 0x00002187,  50000 },
++  { 0x00014291,  50625 },
++  { 0x00011101,  51188 },
++  { 0x00017481,  54563 },
++  { 0x00004286,  56250 },
++  { 0x00014170,  57375 },
++  { 0x00016210,  58500 },
++  { 0x000010E5,  60065 },
++  { 0x00013140,  62796 },
++  { 0x00004214,  65000 },
++  { 0x00016250,  65250 },
++  { 0x00001105,  68179 },
++  { 0x000141C0,  69600 },
++  { 0x00015220,  70160 },
++  { 0x00010050,  72000 },
++  { 0x000031E4,  74250 },
++  { 0x00003183,  75000 },
++  { 0x00004284,  78750 },
++  { 0x00012130,  80052 },
++  { 0x00001104,  81600 },
++  { 0x00006363,  94500 },
++  { 0x00005303,  97520 },
+   { 0x00002183, 100187 },
+   { 0x00002122, 101420 },
+   { 0x00001081, 108000 },
+@@ -137,7 +187,7 @@ static void lx_set_clock(struct fb_info 
+ 	unsigned int diff, min, best = 0;
+ 	unsigned int freq, i;
  
- 			t = next_thread(t);
- 		} while (t != p);
--
--		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
--			/*
--			 * We were in fact stopped, and are now continued.
--			 * Notify the parent with CLD_CONTINUED.
--			 */
--			p->signal->flags = SIGNAL_STOP_CONTINUED;
--			p->signal->group_exit_code = 0;
--			spin_unlock(&p->sighand->siglock);
--			do_notify_parent_cldstop(p, CLD_CONTINUED);
--			spin_lock(&p->sighand->siglock);
--		} else {
--			/*
--			 * We are not stopped, but there could be a stop
--			 * signal in the middle of being processed after
--			 * being removed from the queue.  Clear that too.
--			 */
--			p->signal->flags = 0;
--		}
- 	} else if (sig == SIGKILL) {
- 		/*
- 		 * Make sure that any pending stop signal already dequeued
+-	freq = (unsigned int) (0x3b9aca00 / info->var.pixclock);
++	freq = (unsigned int) (1000000000 / info->var.pixclock);
+ 
+ 	min = abs(pll_table[0].freq - freq);
+ 
+@@ -149,7 +199,7 @@ static void lx_set_clock(struct fb_info 
+ 		}
+ 	}
+ 
+-	lx_set_dotpll(pll_table[best].pllval & 0x7FFF);
++	lx_set_dotpll(pll_table[best].pllval & 0x00017FFF);
+ }
+ 
+ static void lx_graphics_disable(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from JRottmann@LiPPERT-AT.de are
 
-git-hrt.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 
