@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch added to -mm tree
-Date: Wed, 27 Feb 2008 23:57:07 -0800
-Message-ID: <200802280757.m1S7v7ln022652@imap1.linux-foundation.org>
+Subject: + fs-reiserfs-superc-correct-use-of-and.patch added to -mm tree
+Date: Wed, 27 Feb 2008 23:57:11 -0800
+Message-ID: <200802280757.m1S7vBjU022658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42191 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752106AbYB1H6O (ORCPT
+	by vger.kernel.org with ESMTP id S1752808AbYB1H6T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 02:58:14 -0500
+	Thu, 28 Feb 2008 02:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, guy.cohen@intel.com, linville@tuxdriver.com, reinette.chatre@intel.com, tomas.winkler@intel.com, yi.zhu@intel.com
+Cc: julia@diku.dk, chris.mason@oracle.com, jack@ucw.cz, jeffm@suse.com
 
 
 The patch titled
-     drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
+     fs/reiserfs/super.c: correct use of ! and &
 has been added to the -mm tree.  Its filename is
-     drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
+     fs-reiserfs-superc-correct-use-of-and.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
+Subject: fs/reiserfs/super.c: correct use of ! and &
 From: Julia Lawall <julia@diku.dk>
 
 In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
@@ -58,29 +58,27 @@ The semantic patch that makes this change is as follows:
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Tomas Winkler <tomas.winkler@intel.com>
-Cc: Guy Cohen <guy.cohen@intel.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Reinette Chatre <reinette.chatre@intel.com>
-Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-4965.c |    2 +-
+ fs/reiserfs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and drivers/net/wireless/iwlwifi/iwl-4965.c
---- a/drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and
-+++ a/drivers/net/wireless/iwlwifi/iwl-4965.c
-@@ -4589,7 +4589,7 @@ static u8 iwl4965_is_fat_tx_allowed(stru
- 
- 	if (sta_ht_inf) {
- 		if ((!sta_ht_inf->ht_supported) ||
--		   (!sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH))
-+		   (!(sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH)))
- 			return 0;
+diff -puN fs/reiserfs/super.c~fs-reiserfs-superc-correct-use-of-and fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~fs-reiserfs-superc-correct-use-of-and
++++ a/fs/reiserfs/super.c
+@@ -2031,7 +2031,7 @@ static int reiserfs_quota_on(struct supe
+ 		return -EXDEV;
  	}
- 
+ 	/* We must not pack tails for quota files on reiserfs for quota IO to work */
+-	if (!REISERFS_I(nd.path.dentry->d_inode)->i_flags & i_nopack_mask) {
++	if (!(REISERFS_I(nd.path.dentry->d_inode)->i_flags & i_nopack_mask)) {
+ 		reiserfs_warning(sb,
+ 				 "reiserfs: Quota file must have tail packing disabled.");
+ 		path_put(&nd.path);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
