@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch added to -mm tree
-Date: Thu, 28 Feb 2008 00:15:12 -0800
-Message-ID: <200802280815.m1S8FCcx023298@imap1.linux-foundation.org>
+Subject: + block-fix-residual-byte-count-handling.patch added to -mm tree
+Date: Thu, 28 Feb 2008 01:13:54 -0800
+Message-ID: <200802280913.m1S9DsZM025289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33300 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40510 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752692AbYB1I2a (ORCPT
+	by vger.kernel.org with ESMTP id S1752750AbYB1JO1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 03:28:30 -0500
+	Thu, 28 Feb 2008 04:14:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org, herbert@gondor.apana.org.au, johnpol@2ka.mipt.ru, mingo@elte.hu, ralf@linux-mips.org, tbm@cyrius.com, tglx@linutronix.de
+Cc: htejun@gmail.com, efault@gmx.de
 
 
 The patch titled
-     ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
+     block: fix residual byte count handling
 has been added to the -mm tree.  Its filename is
-     ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+     block-fix-residual-byte-count-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,177 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block: fix residual byte count handling
+From: Tejun Heo <htejun@gmail.com>
 
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Martin Michlmayr <tbm@cyrius.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+rq->raw_data_len introduced for block layer padding and draining (commit
+6b00769fe1502b4ad97bb327ef7ac971b208bfb5) broke residual byte count handling. 
+Block drivers modify rq->data_len to notify residual byte count to the block
+layer which blindly reported unmodified rq->raw_data_len to userland.
+
+To keep block drivers dealing only with rq->data_len, this should be handled
+inside block layer.  However, how much extra buffer was appened is lost after
+rq->data_len is modified.
+
+This patch replaces rq->raw_data_len with rq->extra_len and add
+blk_rq_raw_data_len() helper to calculate raw data size from rq->data_len and
+rq->extra_len.  The helper returns correct raw residual byte count when called
+on a rq whose data_len is modified to carry residual byte count.
+
+This problem was reported and diagnosed by Mike Galbraith.
+
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delay.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/blk-core.c          |    3 +--
+ block/blk-map.c           |    2 +-
+ block/blk-merge.c         |    1 +
+ block/bsg.c               |    8 ++++----
+ block/scsi_ioctl.c        |    4 ++--
+ drivers/ata/libata-scsi.c |    3 ++-
+ include/linux/blkdev.h    |    8 +++++++-
+ 7 files changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division-fix include/linux/delay.h
---- a/include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
-+++ a/include/linux/delay.h
-@@ -9,10 +9,10 @@
+diff -puN block/blk-core.c~block-fix-residual-byte-count-handling block/blk-core.c
+--- a/block/blk-core.c~block-fix-residual-byte-count-handling
++++ a/block/blk-core.c
+@@ -127,7 +127,7 @@ void rq_init(struct request_queue *q, st
+ 	rq->nr_hw_segments = 0;
+ 	rq->ioprio = 0;
+ 	rq->special = NULL;
+-	rq->raw_data_len = 0;
++	rq->extra_len = 0;
+ 	rq->buffer = NULL;
+ 	rq->tag = -1;
+ 	rq->errors = 0;
+@@ -2016,7 +2016,6 @@ void blk_rq_bio_prep(struct request_queu
+ 	rq->hard_cur_sectors = rq->current_nr_sectors;
+ 	rq->hard_nr_sectors = rq->nr_sectors = bio_sectors(bio);
+ 	rq->buffer = bio_data(bio);
+-	rq->raw_data_len = bio->bi_size;
+ 	rq->data_len = bio->bi_size;
  
- #include <linux/kernel.h>
+ 	rq->bio = rq->biotail = bio;
+diff -puN block/blk-map.c~block-fix-residual-byte-count-handling block/blk-map.c
+--- a/block/blk-map.c~block-fix-residual-byte-count-handling
++++ a/block/blk-map.c
+@@ -19,7 +19,6 @@ int blk_rq_append_bio(struct request_que
+ 		rq->biotail->bi_next = bio;
+ 		rq->biotail = bio;
  
--#include <asm/delay.h>
--
- extern unsigned long loops_per_jiffy;
+-		rq->raw_data_len += bio->bi_size;
+ 		rq->data_len += bio->bi_size;
+ 	}
+ 	return 0;
+@@ -156,6 +155,7 @@ int blk_rq_map_user(struct request_queue
+ 		tail->bi_io_vec[tail->bi_vcnt - 1].bv_len += pad_len;
+ 		tail->bi_size += pad_len;
+ 		rq->data_len += pad_len;
++		rq->extra_len += pad_len;
+ 	}
  
-+#include <asm/delay.h>
+ 	rq->buffer = rq->data = NULL;
+diff -puN block/blk-merge.c~block-fix-residual-byte-count-handling block/blk-merge.c
+--- a/block/blk-merge.c~block-fix-residual-byte-count-handling
++++ a/block/blk-merge.c
+@@ -232,6 +232,7 @@ new_segment:
+ 			    (PAGE_SIZE - 1));
+ 		nsegs++;
+ 		rq->data_len += q->dma_drain_size;
++		rq->extra_len += q->dma_drain_size;
+ 	}
+ 
+ 	if (sg)
+diff -puN block/bsg.c~block-fix-residual-byte-count-handling block/bsg.c
+--- a/block/bsg.c~block-fix-residual-byte-count-handling
++++ a/block/bsg.c
+@@ -437,14 +437,14 @@ static int blk_complete_sgv4_hdr_rq(stru
+ 	}
+ 
+ 	if (rq->next_rq) {
+-		hdr->dout_resid = rq->raw_data_len;
+-		hdr->din_resid = rq->next_rq->raw_data_len;
++		hdr->dout_resid = blk_rq_raw_data_len(rq);
++		hdr->din_resid = blk_rq_raw_data_len(rq->next_rq);
+ 		blk_rq_unmap_user(bidi_bio);
+ 		blk_put_request(rq->next_rq);
+ 	} else if (rq_data_dir(rq) == READ)
+-		hdr->din_resid = rq->raw_data_len;
++		hdr->din_resid = blk_rq_raw_data_len(rq);
+ 	else
+-		hdr->dout_resid = rq->raw_data_len;
++		hdr->dout_resid = blk_rq_raw_data_len(rq);
+ 
+ 	/*
+ 	 * If the request generated a negative error number, return it
+diff -puN block/scsi_ioctl.c~block-fix-residual-byte-count-handling block/scsi_ioctl.c
+--- a/block/scsi_ioctl.c~block-fix-residual-byte-count-handling
++++ a/block/scsi_ioctl.c
+@@ -266,7 +266,7 @@ static int blk_complete_sghdr_rq(struct 
+ 	hdr->info = 0;
+ 	if (hdr->masked_status || hdr->host_status || hdr->driver_status)
+ 		hdr->info |= SG_INFO_CHECK;
+-	hdr->resid = rq->raw_data_len;
++	hdr->resid = blk_rq_raw_data_len(rq);
+ 	hdr->sb_len_wr = 0;
+ 
+ 	if (rq->sense_len && hdr->sbp) {
+@@ -528,8 +528,8 @@ static int __blk_send_generic(struct req
+ 	rq = blk_get_request(q, WRITE, __GFP_WAIT);
+ 	rq->cmd_type = REQ_TYPE_BLOCK_PC;
+ 	rq->data = NULL;
+-	rq->raw_data_len = 0;
+ 	rq->data_len = 0;
++	rq->extra_len = 0;
+ 	rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
+ 	memset(rq->cmd, 0, sizeof(rq->cmd));
+ 	rq->cmd[0] = cmd;
+diff -puN drivers/ata/libata-scsi.c~block-fix-residual-byte-count-handling drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~block-fix-residual-byte-count-handling
++++ a/drivers/ata/libata-scsi.c
+@@ -2539,7 +2539,8 @@ static unsigned int atapi_xlat(struct at
+ 	 * want to set it properly, and for DMA where it is
+ 	 * effectively meaningless.
+ 	 */
+-	nbytes = min(scmd->request->raw_data_len, (unsigned int)63 * 1024);
++	nbytes = min(blk_rq_raw_data_len(scmd->request),
++		     (unsigned int)63 * 1024);
+ 
+ 	/* Most ATAPI devices which honor transfer chunk size don't
+ 	 * behave according to the spec when odd chunk size which
+diff -puN include/linux/blkdev.h~block-fix-residual-byte-count-handling include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-fix-residual-byte-count-handling
++++ a/include/linux/blkdev.h
+@@ -216,8 +216,8 @@ struct request {
+ 	unsigned int cmd_len;
+ 	unsigned char cmd[BLK_MAX_CDB];
+ 
+-	unsigned int raw_data_len;
+ 	unsigned int data_len;
++	unsigned int extra_len;	/* length of alignment and padding */
+ 	unsigned int sense_len;
+ 	void *data;
+ 	void *sense;
+@@ -477,6 +477,12 @@ enum {
+ 
+ #define rq_data_dir(rq)		((rq)->cmd_flags & 1)
+ 
++/* data_len of the request sans extra stuff for alignment and padding */
++static inline unsigned int blk_rq_raw_data_len(struct request *rq)
++{
++	return rq->data_len - min(rq->extra_len, rq->data_len);
++}
 +
  /*
-  * Using udelay() for intervals greater than a few milliseconds can
-  * risk overflow for high loops_per_jiffy (high bogomips) machines. The
+  * We regard a request as sync, if it's a READ or a SYNC write.
+  */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
 git-sched.patch
-tracing-is-borked-on-powerpc.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+block-fix-residual-byte-count-handling.patch
+scsi-fix-cd-burning-regression.patch
