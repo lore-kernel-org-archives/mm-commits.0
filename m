@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch added to -mm tree
-Date: Wed, 27 Feb 2008 18:44:38 -0800
-Message-ID: <200802280244.m1S2icbC011894@imap1.linux-foundation.org>
+Subject: + md-fix-integer-as-null-pointer-warnings-in-mdc.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:45:31 -0800
+Message-ID: <200802280245.m1S2jVqp011923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53046 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751340AbYB1CpP (ORCPT
+	by vger.kernel.org with ESMTP id S1751252AbYB1CqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 21:45:15 -0500
+	Wed, 27 Feb 2008 21:46:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, casey@schaufler-ca.com
+Cc: harvey.harrison@gmail.com, neilb@suse.de
 
 
 The patch titled
-     smack: fix integer as NULL pointer warning in smack_lsm.c
+     md: fix integer as NULL pointer warnings in md.c
 has been added to the -mm tree.  Its filename is
-     smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+     md-fix-integer-as-null-pointer-warnings-in-mdc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack: fix integer as NULL pointer warning in smack_lsm.c
+Subject: md: fix integer as NULL pointer warnings in md.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-security/smack/smack_lsm.c:1257:16: warning: Using plain integer as NULL pointer
+drivers/md/md.c:734:16: warning: Using plain integer as NULL pointer
+drivers/md/md.c:1115:16: warning: Using plain integer as NULL pointer
+
+Add some braces to match the else-block as well.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/md.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc
-+++ a/security/smack/smack_lsm.c
-@@ -1254,7 +1254,7 @@ static void smack_set_catset(char *catse
- 	int rc;
- 	int byte;
+diff -puN drivers/md/md.c~md-fix-integer-as-null-pointer-warnings-in-mdc drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-integer-as-null-pointer-warnings-in-mdc
++++ a/drivers/md/md.c
+@@ -731,9 +731,9 @@ static int super_90_load(mdk_rdev_t *rde
+ 	else
+ 		rdev->desc_nr = sb->this_disk.number;
  
--	if (catset == 0)
-+	if (!catset)
- 		return;
+-	if (refdev == 0)
++	if (!refdev) {
+ 		ret = 1;
+-	else {
++	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = (mdp_super_t*)page_address(refdev->sb_page);
+ 		if (!uuid_equal(refsb, sb)) {
+@@ -1112,9 +1112,9 @@ static int super_1_load(mdk_rdev_t *rdev
+ 	else
+ 		rdev->desc_nr = le32_to_cpu(sb->dev_number);
  
- 	sap->flags |= NETLBL_SECATTR_MLS_CAT;
+-	if (refdev == 0)
++	if (!refdev) {
+ 		ret = 1;
+-	else {
++	} else {
+ 		__u64 ev1, ev2;
+ 		struct mdp_superblock_1 *refsb = 
+ 			(struct mdp_superblock_1*)page_address(refdev->sb_page);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -99,6 +117,7 @@ avm-fix-sparse-warning-using-integer-as-null-pointer.patch
 eicon-fix-sparse-integer-as-null-pointer-warnings.patch
 xen-make-blkif_getgeo-static.patch
 fbcon-replace-mono_col-macro-with-static-inline.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
 jbd-sparse-warnings-in-revokec-journalc.patch
 udf-fix-sparse-warning-in-nameic.patch
 reiserfs-fix-sparse-warnings-in-fix_nodec.patch
@@ -114,4 +133,3 @@ char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
 cycladesc-fix-sparse-shadowed-variable-warnings.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
