@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:34:37 -0800
-Message-ID: <200802280334.m1S3YbWM013644@imap1.linux-foundation.org>
+Subject: + memcg-mm_match_cgroup-not-vm_match_cgroup.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:30 -0800
+Message-ID: <200802280352.m1S3qUBC014202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:52112 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755277AbYB1Det (ORCPT
+	by vger.kernel.org with ESMTP id S1755089AbYB1Dwx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:34:49 -0500
+	Wed, 27 Feb 2008 22:52:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jesper.juhl@gmail.com, mathieu.desnoyers@polymtl.ca
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, taka@valinux.co.jp, yamamoto@valinux.co.jp
 
 
 The patch titled
-     markers-dont-risk-null-deref-in-marker-checkpatch-fixes
+     memcg: mm_match_cgroup not vm_match_cgroup
 has been added to the -mm tree.  Its filename is
-     markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+     memcg-mm_match_cgroup-not-vm_match_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,138 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers-dont-risk-null-deref-in-marker-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg: mm_match_cgroup not vm_match_cgroup
+From: Hugh Dickins <hugh@veritas.com>
 
-WARNING: braces {} are not necessary for single statement blocks
-#34: FILE: kernel/marker.c:715:
-+	if (!entry) {
-+		goto end;
-+	}
+vm_match_cgroup is a perverse name for a macro to match mm with cgroup: rename
+it mm_match_cgroup, matching mm_init_cgroup and mm_free_cgroup.
 
-total: 0 errors, 1 warnings, 29 lines checked
-
-./patches/markers-dont-risk-null-deref-in-marker.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: David Rientjes <rientjes@google.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hirokazu Takahashi <taka@valinux.co.jp>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |    2 +-
+ mm/rmap.c                  |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes kernel/marker.c
---- a/kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes
-+++ a/kernel/marker.c
-@@ -702,9 +702,8 @@ int marker_probe_unregister(const char *
+diff -puN include/linux/memcontrol.h~memcg-mm_match_cgroup-not-vm_match_cgroup include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-mm_match_cgroup-not-vm_match_cgroup
++++ a/include/linux/memcontrol.h
+@@ -48,7 +48,7 @@ extern int mem_cgroup_cache_charge(struc
+ 					gfp_t gfp_mask);
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
  
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
--	if (!entry) {
-+	if (!entry)
- 		goto end;
--	}
- 	if (entry->rcu_pending)
- 		rcu_barrier();
- 	old = marker_entry_remove_probe(entry, probe, probe_private);
-@@ -712,9 +711,8 @@ int marker_probe_unregister(const char *
- 	marker_update_probes();		/* may update entry */
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
--	if (!entry) {
-+	if (!entry)
- 		goto end;
--	}
- 	entry->oldptr = old;
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
+-#define vm_match_cgroup(mm, cgroup)	\
++#define mm_match_cgroup(mm, cgroup)	\
+ 	((cgroup) == rcu_dereference((mm)->mem_cgroup))
+ 
+ extern int mem_cgroup_prepare_migration(struct page *page);
+@@ -118,7 +118,7 @@ static inline int mem_cgroup_cache_charg
+ 	return 0;
+ }
+ 
+-static inline int vm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
++static inline int mm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
+ {
+ 	return 1;
+ }
+diff -puN mm/memcontrol.c~memcg-mm_match_cgroup-not-vm_match_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mm_match_cgroup-not-vm_match_cgroup
++++ a/mm/memcontrol.c
+@@ -399,7 +399,7 @@ int task_in_mem_cgroup(struct task_struc
+ 	int ret;
+ 
+ 	task_lock(task);
+-	ret = task->mm && vm_match_cgroup(task->mm, mem);
++	ret = task->mm && mm_match_cgroup(task->mm, mem);
+ 	task_unlock(task);
+ 	return ret;
+ }
+diff -puN mm/rmap.c~memcg-mm_match_cgroup-not-vm_match_cgroup mm/rmap.c
+--- a/mm/rmap.c~memcg-mm_match_cgroup-not-vm_match_cgroup
++++ a/mm/rmap.c
+@@ -321,7 +321,7 @@ static int page_referenced_anon(struct p
+ 		 * counting on behalf of references from different
+ 		 * cgroups
+ 		 */
+-		if (mem_cont && !vm_match_cgroup(vma->vm_mm, mem_cont))
++		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
+ 			continue;
+ 		referenced += page_referenced_one(page, vma, &mapcount);
+ 		if (!mapcount)
+@@ -382,7 +382,7 @@ static int page_referenced_file(struct p
+ 		 * counting on behalf of references from different
+ 		 * cgroups
+ 		 */
+-		if (mem_cont && !vm_match_cgroup(vma->vm_mm, mem_cont))
++		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
+ 			continue;
+ 		if ((vma->vm_flags & (VM_LOCKED|VM_MAYSHARE))
+ 				  == (VM_LOCKED|VM_MAYSHARE)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
 git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+memcg-mm_match_cgroup-not-vm_match_cgroup.patch
+memcg-move_lists-on-page-not-page_cgroup.patch
+memcg-page_cache_release-not-__free_page.patch
+memcg-when-do_swaps-do_wp_page-fails.patch
+memcg-fix-vm_bug_on-from-page-migration.patch
+memcg-bad-page-if-page_cgroup-when-free.patch
+memcg-mem_cgroup_charge-never-null.patch
+memcg-remove-mem_cgroup_uncharge.patch
+memcg-memcontrol-whitespace-cleanups.patch
+memcg-memcontrol-uninlined-and-static.patch
+memcg-remove-clear_page_cgroup-and-atomics.patch
+memcg-css_put-after-remove_list.patch
+memcg-fix-mem_cgroup_move_lists-locking.patch
+memcg-simplify-force_empty-and-move_lists.patch
+memcg-fix-oops-on-null-lru-list.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+prio_tree-debugging-patch.patch
