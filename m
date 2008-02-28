@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-ec-fix-regression.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:32:03 -0800
-Message-ID: <200802280332.m1S3W3SN013516@imap1.linux-foundation.org>
+Subject: + gitignore-ignore-emacs-backup-and-temporary-files.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:32:55 -0800
+Message-ID: <200802280332.m1S3Wtpf013530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46514 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53748 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759781AbYB1DcX (ORCPT
+	by vger.kernel.org with ESMTP id S1754871AbYB1DdH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:32:23 -0500
+	Wed, 27 Feb 2008 22:33:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: astarikovskiy@suse.de, len.brown@intel.com, m.s.tsirkin@gmail.com, rjw@sisk.pl
+Cc: chris@mips.com, ralf@linux-mips.org
 
 
 The patch titled
-     ACPI: EC: fix regression
+     .gitignore: ignore emacs backup and temporary files.
 has been added to the -mm tree.  Its filename is
-     acpi-ec-fix-regression.patch
+     gitignore-ignore-emacs-backup-and-temporary-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: EC: fix regression
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: .gitignore: ignore emacs backup and temporary files.
+From: Chris Dearman <chris@mips.com>
 
-no changelog?
-
-Tested-by: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Chris Dearman <chris@mips.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ .gitignore |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/acpi/ec.c~acpi-ec-fix-regression drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-fix-regression
-+++ a/drivers/acpi/ec.c
-@@ -129,7 +129,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	u8 handlers_installed;
-+	u8 handlers_installed:1;
-+	u8 from_ecdt:1;
- } *boot_ec, *first_ec;
+diff -puN .gitignore~gitignore-ignore-emacs-backup-and-temporary-files .gitignore
+--- a/.gitignore~gitignore-ignore-emacs-backup-and-temporary-files
++++ a/.gitignore
+@@ -53,3 +53,5 @@ cscope.*
  
- /* --------------------------------------------------------------------------
-@@ -772,16 +773,18 @@ static int acpi_ec_add(struct acpi_devic
- 
- 	/* Check for boot EC */
- 	if (boot_ec) {
--		if (boot_ec->handle == device->handle) {
--			/* Pre-loaded EC from DSDT, just move pointer */
--			ec = boot_ec;
--			boot_ec = NULL;
--			goto end;
--		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
-+		if (boot_ec->from_ecdt &&
-+		    (boot_ec->handle == device->handle ||
-+		     boot_ec->handle == ACPI_ROOT_OBJECT)) {
- 			/* ECDT-based EC, time to shut it down */
- 			ec_remove_handlers(boot_ec);
- 			kfree(boot_ec);
- 			first_ec = boot_ec = NULL;
-+		} else if (boot_ec->handle == device->handle) {
-+			/* Pre-loaded EC from DSDT, just move pointer */
-+			ec = boot_ec;
-+			boot_ec = NULL;
-+			goto end;
- 		}
- 	}
- 
-@@ -943,6 +946,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
-+		boot_ec->from_ecdt = 1;
- 		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
- 				&boot_ec->handle))) {
- 			pr_info("Failed to locate handle for boot EC\n");
+ *.orig
+ *.rej
++*~
++\#*#
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from chris@mips.com are
 
-acpi-ec-fix-regression.patch
+gitignore-ignore-emacs-backup-and-temporary-files.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
