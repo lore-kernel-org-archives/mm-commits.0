@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch added to -mm tree
-Date: Wed, 27 Feb 2008 15:59:51 -0800
-Message-ID: <200802272359.m1RNxpYM005447@imap1.linux-foundation.org>
+Subject: + gxfb-set-the-right-registers-to-tweak-the-sync-polarity.patch added to -mm tree
+Date: Wed, 27 Feb 2008 16:31:38 -0800
+Message-ID: <200802280031.m1S0VcI8006867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49045 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43266 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752017AbYB1AA3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757407AbYB1Ack (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 19:00:29 -0500
+	Wed, 27 Feb 2008 19:32:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Matt_Domsch@dell.com, hpa@zytor.com, rdunlap@xenotime.net, tim.gardner@canonical.com
+Cc: jordan.crouse@amd.com, adaplas@pol.net, dilinger@debian.org
 
 
 The patch titled
-     edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
+     gxfb: set the right registers to tweak the sync polarity
 has been added to the -mm tree.  Its filename is
-     edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+     gxfb-set-the-right-registers-to-tweak-the-sync-polarity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gxfb: set the right registers to tweak the sync polarity
+From: Jordan Crouse <jordan.crouse@amd.com>
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Tim Gardner <tim.gardner@canonical.com>
+While running in flatpanel mode it is important to change the FP sync bits (VG
+register 0x408) rather then the CRT sync bits (VG register 0x008).  This patch
+keeps the CRT sync bits at default when a flatpanel exists.
+
+Note that this also fixes inverted logic; we want CRT_VSYNC_POL to be set (ie,
+vsync is normally high) when FB_SYNC_VERT_HIGH_ACT is unset.
+
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/geode/video_gx.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
-+++ a/Documentation/kernel-parameters.txt
-@@ -625,7 +625,7 @@ and is between 256 and 4096 characters. 
- 	eata=		[HW,SCSI]
+diff -puN drivers/video/geode/video_gx.c~gxfb-set-the-right-registers-to-tweak-the-sync-polarity drivers/video/geode/video_gx.c
+--- a/drivers/video/geode/video_gx.c~gxfb-set-the-right-registers-to-tweak-the-sync-polarity
++++ a/drivers/video/geode/video_gx.c
+@@ -207,7 +207,7 @@ gx_configure_tft(struct fb_info *info)
  
- 	edd=		[EDD]
--			Format: {"off" | "on" | "sk[ipmbr]"}
-+			Format: {"off" | "on" | "skip[mbr]"}
+ 	fp = 0x0F100000;
  
- 	eisa_irq_edge=	[PARISC,HW]
- 			See header of drivers/parisc/eisa.c.
+-	/* Add sync polarity */
++	/* Configure sync polarity */
+ 
+ 	if (!(info->var.sync & FB_SYNC_VERT_HIGH_ACT))
+ 		fp |= GX_FP_PT2_VSP;
+@@ -268,11 +268,15 @@ static void gx_configure_display(struct 
+ 	/* Enable hsync and vsync. */
+ 	dcfg |= GX_DCFG_HSYNC_EN | GX_DCFG_VSYNC_EN;
+ 
+-	/* Sync polarities. */
+-	if (info->var.sync & FB_SYNC_HOR_HIGH_ACT)
+-		dcfg |= GX_DCFG_CRT_HSYNC_POL;
+-	if (info->var.sync & FB_SYNC_VERT_HIGH_ACT)
+-		dcfg |= GX_DCFG_CRT_VSYNC_POL;
++	/* Only change the sync polarities if we are running
++	 * in CRT mode.  The FP polarities will be handled in
++	 * gxfb_configure_tft */
++	if (par->enable_crt) {
++		if (!(info->var.sync & FB_SYNC_HOR_HIGH_ACT))
++			dcfg |= GX_DCFG_CRT_HSYNC_POL;
++		if (!(info->var.sync & FB_SYNC_VERT_HIGH_ACT))
++			dcfg |= GX_DCFG_CRT_VSYNC_POL;
++	}
+ 
+ 	/* Enable the display logic */
+ 	/* Set up the DACS to blank normally */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jordan.crouse@amd.com are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+gxfb-replace-fbsize-config-option-with-a-kernel-argument.patch
+gxfb-set-the-right-registers-to-tweak-the-sync-polarity.patch
+gxfb-dont-enable-the-crt-dacs-when-we-are-in-flatpanel-mode.patch
