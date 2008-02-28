@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-mem_cgroup_uncharge.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:44 -0800
-Message-ID: <200802280352.m1S3qiRR014223@imap1.linux-foundation.org>
+Subject: + memcg-remove-clear_page_cgroup-and-atomics.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:50 -0800
+Message-ID: <200802280352.m1S3qoB7014232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:38280 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:38314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754940AbYB1DxT (ORCPT
+	by vger.kernel.org with ESMTP id S1754798AbYB1DxN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:53:19 -0500
+	Wed, 27 Feb 2008 22:53:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memcg: remove mem_cgroup_uncharge
+     memcg: remove clear_page_cgroup and atomics
 has been added to the -mm tree.  Its filename is
-     memcg-remove-mem_cgroup_uncharge.patch
+     memcg-remove-clear_page_cgroup-and-atomics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove mem_cgroup_uncharge
+Subject: memcg: remove clear_page_cgroup and atomics
 From: Hugh Dickins <hugh@veritas.com>
 
-Nothing uses mem_cgroup_uncharge apart from mem_cgroup_uncharge_page, (a
-trivial wrapper around it) and mem_cgroup_end_migration (which does the same
-as mem_cgroup_uncharge_page).  And it often ends up having to lock just to let
-its caller unlock.  Remove it (but leave the silly locking until a later
-patch).
+Remove clear_page_cgroup: it's an unhelpful helper, see for example how
+mem_cgroup_uncharge_page had to unlock_page_cgroup just in order to call it
+(serious races from that?  I'm not sure).
 
-Moved mem_cgroup_cache_charge next to mem_cgroup_charge in memcontrol.h.
+Once that's gone, you can see it's pointless for page_cgroup's ref_cnt to be
+atomic: it's always manipulated under lock_page_cgroup, except where
+force_empty unilaterally reset it to 0 (and how does uncharge's
+atomic_dec_and_test protect against that?).
+
+Simplify this page_cgroup locking: if you've got the lock and the pc is
+attached, then the ref_cnt must be positive: VM_BUG_ONs to check that, and to
+check that pc->page matches page (we're on the way to finding why sometimes it
+doesn't, but this patch doesn't fix that).
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -55,124 +61,188 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   20 +++++++-------------
- mm/memcontrol.c            |   23 ++++++++---------------
- 2 files changed, 15 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |  106 ++++++++++++++++++----------------------------
+ 1 file changed, 43 insertions(+), 63 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_uncharge include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_uncharge
-+++ a/include/linux/memcontrol.h
-@@ -35,7 +35,8 @@ extern void mm_free_cgroup(struct mm_str
- extern struct page_cgroup *page_get_page_cgroup(struct page *page);
- extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask);
--extern void mem_cgroup_uncharge(struct page_cgroup *pc);
-+extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-+					gfp_t gfp_mask);
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_move_lists(struct page *page, bool active);
- extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
-@@ -45,8 +46,6 @@ extern unsigned long mem_cgroup_isolate_
- 					struct mem_cgroup *mem_cont,
- 					int active);
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
--extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
--					gfp_t gfp_mask);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
- 
- #define mm_match_cgroup(mm, cgroup)	\
-@@ -92,14 +91,16 @@ static inline struct page_cgroup *page_g
- 	return NULL;
+diff -puN mm/memcontrol.c~memcg-remove-clear_page_cgroup-and-atomics mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-clear_page_cgroup-and-atomics
++++ a/mm/memcontrol.c
+@@ -161,8 +161,7 @@ struct page_cgroup {
+ 	struct list_head lru;		/* per cgroup LRU list */
+ 	struct page *page;
+ 	struct mem_cgroup *mem_cgroup;
+-	atomic_t ref_cnt;		/* Helpful when pages move b/w  */
+-					/* mapped and cached states     */
++	int ref_cnt;			/* cached, mapped, migrating */
+ 	int flags;
+ };
+ #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
+@@ -283,27 +282,6 @@ static void unlock_page_cgroup(struct pa
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
  }
  
--static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
--					gfp_t gfp_mask)
-+static inline int mem_cgroup_charge(struct page *page,
-+					struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	return 0;
- }
- 
--static inline void mem_cgroup_uncharge(struct page_cgroup *pc)
-+static inline int mem_cgroup_cache_charge(struct page *page,
-+					struct mm_struct *mm, gfp_t gfp_mask)
- {
-+	return 0;
- }
- 
- static inline void mem_cgroup_uncharge_page(struct page *page)
-@@ -110,13 +111,6 @@ static inline void mem_cgroup_move_lists
- {
- }
- 
--static inline int mem_cgroup_cache_charge(struct page *page,
--						struct mm_struct *mm,
--						gfp_t gfp_mask)
+-/*
+- * Clear page->page_cgroup member under lock_page_cgroup().
+- * If given "pc" value is different from one page->page_cgroup,
+- * page->cgroup is not cleared.
+- * Returns a value of page->page_cgroup at lock taken.
+- * A can can detect failure of clearing by following
+- *  clear_page_cgroup(page, pc) == pc
+- */
+-static struct page_cgroup *clear_page_cgroup(struct page *page,
+-						struct page_cgroup *pc)
 -{
--	return 0;
+-	struct page_cgroup *ret;
+-	/* lock and clear */
+-	lock_page_cgroup(page);
+-	ret = page_get_page_cgroup(page);
+-	if (likely(ret == pc))
+-		page_assign_page_cgroup(page, NULL);
+-	unlock_page_cgroup(page);
+-	return ret;
 -}
 -
- static inline int mm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
+ static void __mem_cgroup_remove_list(struct page_cgroup *pc)
  {
- 	return 1;
-diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_uncharge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-mem_cgroup_uncharge
-+++ a/mm/memcontrol.c
-@@ -697,20 +697,22 @@ int mem_cgroup_cache_charge(struct page 
- 
- /*
-  * Uncharging is always a welcome operation, we never complain, simply
-- * uncharge. This routine should be called with lock_page_cgroup held
-+ * uncharge.
-  */
--void mem_cgroup_uncharge(struct page_cgroup *pc)
-+void mem_cgroup_uncharge_page(struct page *page)
- {
-+	struct page_cgroup *pc;
- 	struct mem_cgroup *mem;
- 	struct mem_cgroup_per_zone *mz;
--	struct page *page;
- 	unsigned long flags;
- 
- 	/*
- 	 * Check if our page_cgroup is valid
+ 	int from = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
+@@ -555,15 +533,12 @@ retry:
+ 	 * the page has already been accounted.
  	 */
-+	lock_page_cgroup(page);
-+	pc = page_get_page_cgroup(page);
- 	if (!pc)
--		return;
-+		goto unlock;
- 
- 	if (atomic_dec_and_test(&pc->ref_cnt)) {
- 		page = pc->page;
-@@ -731,12 +733,8 @@ void mem_cgroup_uncharge(struct page_cgr
- 		}
- 		lock_page_cgroup(page);
+ 	if (pc) {
+-		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
+-			/* this page is under being uncharged ? */
+-			unlock_page_cgroup(page);
+-			cpu_relax();
+-			goto retry;
+-		} else {
+-			unlock_page_cgroup(page);
+-			goto done;
+-		}
++		VM_BUG_ON(pc->page != page);
++		VM_BUG_ON(pc->ref_cnt <= 0);
++
++		pc->ref_cnt++;
++		unlock_page_cgroup(page);
++		goto done;
  	}
--}
- 
--void mem_cgroup_uncharge_page(struct page *page)
--{
--	lock_page_cgroup(page);
--	mem_cgroup_uncharge(page_get_page_cgroup(page));
-+unlock:
  	unlock_page_cgroup(page);
- }
  
-@@ -759,12 +757,7 @@ int mem_cgroup_prepare_migration(struct 
+@@ -612,7 +587,7 @@ retry:
+ 		congestion_wait(WRITE, HZ/10);
+ 	}
+ 
+-	atomic_set(&pc->ref_cnt, 1);
++	pc->ref_cnt = 1;
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+ 	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
+@@ -683,24 +658,24 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (!pc)
+ 		goto unlock;
+ 
+-	if (atomic_dec_and_test(&pc->ref_cnt)) {
+-		page = pc->page;
+-		mz = page_cgroup_zoneinfo(pc);
+-		/*
+-		 * get page->cgroup and clear it under lock.
+-		 * force_empty can drop page->cgroup without checking refcnt.
+-		 */
++	VM_BUG_ON(pc->page != page);
++	VM_BUG_ON(pc->ref_cnt <= 0);
++
++	if (--(pc->ref_cnt) == 0) {
++		page_assign_page_cgroup(page, NULL);
+ 		unlock_page_cgroup(page);
+-		if (clear_page_cgroup(page, pc) == pc) {
+-			mem = pc->mem_cgroup;
+-			css_put(&mem->css);
+-			res_counter_uncharge(&mem->res, PAGE_SIZE);
+-			spin_lock_irqsave(&mz->lru_lock, flags);
+-			__mem_cgroup_remove_list(pc);
+-			spin_unlock_irqrestore(&mz->lru_lock, flags);
+-			kfree(pc);
+-		}
+-		lock_page_cgroup(page);
++
++		mem = pc->mem_cgroup;
++		css_put(&mem->css);
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
++
++		mz = page_cgroup_zoneinfo(pc);
++		spin_lock_irqsave(&mz->lru_lock, flags);
++		__mem_cgroup_remove_list(pc);
++		spin_unlock_irqrestore(&mz->lru_lock, flags);
++
++		kfree(pc);
++		return;
+ 	}
+ 
+ unlock:
+@@ -714,14 +689,13 @@ unlock:
+ int mem_cgroup_prepare_migration(struct page *page)
+ {
+ 	struct page_cgroup *pc;
+-	int ret = 0;
+ 
+ 	lock_page_cgroup(page);
+ 	pc = page_get_page_cgroup(page);
+-	if (pc && atomic_inc_not_zero(&pc->ref_cnt))
+-		ret = 1;
++	if (pc)
++		pc->ref_cnt++;
+ 	unlock_page_cgroup(page);
+-	return ret;
++	return pc != NULL;
+ }
  
  void mem_cgroup_end_migration(struct page *page)
- {
--	struct page_cgroup *pc;
--
--	lock_page_cgroup(page);
--	pc = page_get_page_cgroup(page);
--	mem_cgroup_uncharge(pc);
--	unlock_page_cgroup(page);
-+	mem_cgroup_uncharge_page(page);
- }
- /*
-  * We know both *page* and *newpage* are now not-on-LRU and Pg_locked.
+@@ -740,15 +714,17 @@ void mem_cgroup_page_migration(struct pa
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long flags;
+ 
+-retry:
++	lock_page_cgroup(page);
+ 	pc = page_get_page_cgroup(page);
+-	if (!pc)
++	if (!pc) {
++		unlock_page_cgroup(page);
+ 		return;
++	}
+ 
+-	mz = page_cgroup_zoneinfo(pc);
+-	if (clear_page_cgroup(page, pc) != pc)
+-		goto retry;
++	page_assign_page_cgroup(page, NULL);
++	unlock_page_cgroup(page);
+ 
++	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+ 	__mem_cgroup_remove_list(pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+@@ -794,15 +770,19 @@ retry:
+ 	while (--count && !list_empty(list)) {
+ 		pc = list_entry(list->prev, struct page_cgroup, lru);
+ 		page = pc->page;
+-		/* Avoid race with charge */
+-		atomic_set(&pc->ref_cnt, 0);
+-		if (clear_page_cgroup(page, pc) == pc) {
++		lock_page_cgroup(page);
++		if (page_get_page_cgroup(page) == pc) {
++			page_assign_page_cgroup(page, NULL);
++			unlock_page_cgroup(page);
+ 			css_put(&mem->css);
+ 			res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 			__mem_cgroup_remove_list(pc);
+ 			kfree(pc);
+-		} else 	/* being uncharged ? ...do relax */
++		} else {
++			/* racing uncharge: let page go then retry */
++			unlock_page_cgroup(page);
+ 			break;
++		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
