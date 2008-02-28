@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-vm_bug_on-from-page-migration.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:38 -0800
-Message-ID: <200802280352.m1S3qcZj014214@imap1.linux-foundation.org>
+Subject: + memcg-memcontrol-uninlined-and-static.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:48 -0800
+Message-ID: <200802280352.m1S3qmPj014229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:50861 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756350AbYB1D6Y (ORCPT
+	by vger.kernel.org with ESMTP id S1758764AbYB1D6e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:58:24 -0500
+	Wed, 27 Feb 2008 22:58:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memcg: fix VM_BUG_ON from page migration
+     memcg: memcontrol uninlined and static
 has been added to the -mm tree.  Its filename is
-     memcg-fix-vm_bug_on-from-page-migration.patch
+     memcg-memcontrol-uninlined-and-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix VM_BUG_ON from page migration
+Subject: memcg: memcontrol uninlined and static
 From: Hugh Dickins <hugh@veritas.com>
 
-Page migration gave me free_hot_cold_page's VM_BUG_ON page->page_cgroup. 
-remove_migration_pte was calling mem_cgroup_charge on the new page whenever it
-found a swap pte, before it had determined it to be a migration entry.  That
-left a surplus reference count on the page_cgroup, so it was still attached
-when the page was later freed.
-
-Move that mem_cgroup_charge down to where we're sure it's a migration entry. 
-We were already under i_mmap_lock or anon_vma->lock, so its GFP_KERNEL was
-already inappropriate: change that to GFP_ATOMIC.
-
-It's essential that remove_migration_pte removes all the migration entries,
-other crashes follow if not.  So proceed even when the charge fails: normally
-it cannot, but after a mem_cgroup_force_empty it might - comment in the code.
+More cleanup to memcontrol.c, this time changing some of the code generated. 
+Let the compiler decide what to inline (except for page_cgroup_locked which is
+only used when CONFIG_DEBUG_VM): the __always_inline on lock_page_cgroup etc. 
+was quite a waste since bit_spin_lock etc.  are inlines in a header file; made
+mem_cgroup_force_empty and mem_cgroup_write_strategy static.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -61,45 +53,115 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN mm/migrate.c~memcg-fix-vm_bug_on-from-page-migration mm/migrate.c
---- a/mm/migrate.c~memcg-fix-vm_bug_on-from-page-migration
-+++ a/mm/migrate.c
-@@ -153,11 +153,6 @@ static void remove_migration_pte(struct 
-  		return;
-  	}
+diff -puN mm/memcontrol.c~memcg-memcontrol-uninlined-and-static mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-memcontrol-uninlined-and-static
++++ a/mm/memcontrol.c
+@@ -168,12 +168,12 @@ struct page_cgroup {
+ #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
+ #define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
  
--	if (mem_cgroup_charge(new, mm, GFP_KERNEL)) {
--		pte_unmap(ptep);
--		return;
--	}
--
-  	ptl = pte_lockptr(mm, pmd);
-  	spin_lock(ptl);
- 	pte = *ptep;
-@@ -169,6 +164,20 @@ static void remove_migration_pte(struct 
- 	if (!is_migration_entry(entry) || migration_entry_to_page(entry) != old)
- 		goto out;
+-static inline int page_cgroup_nid(struct page_cgroup *pc)
++static int page_cgroup_nid(struct page_cgroup *pc)
+ {
+ 	return page_to_nid(pc->page);
+ }
  
-+	/*
-+	 * Yes, ignore the return value from a GFP_ATOMIC mem_cgroup_charge.
-+	 * Failure is not an option here: we're now expected to remove every
-+	 * migration pte, and will cause crashes otherwise.  Normally this
-+	 * is not an issue: mem_cgroup_prepare_migration bumped up the old
-+	 * page_cgroup count for safety, that's now attached to the new page,
-+	 * so this charge should just be another incrementation of the count,
-+	 * to keep in balance with rmap.c's mem_cgroup_uncharging.  But if
-+	 * there's been a force_empty, those reference counts may no longer
-+	 * be reliable, and this charge can actually fail: oh well, we don't
-+	 * make the situation any worse by proceeding as if it had succeeded.
-+	 */
-+	mem_cgroup_charge(new, mm, GFP_ATOMIC);
-+
- 	get_page(new);
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (is_write_migration_entry(entry))
+-static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
++static enum zone_type page_cgroup_zid(struct page_cgroup *pc)
+ {
+ 	return page_zonenum(pc->page);
+ }
+@@ -199,14 +199,13 @@ static void mem_cgroup_charge_statistics
+ 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
+ }
+ 
+-static inline struct mem_cgroup_per_zone *
++static struct mem_cgroup_per_zone *
+ mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
+ {
+-	BUG_ON(!mem->info.nodeinfo[nid]);
+ 	return &mem->info.nodeinfo[nid]->zoneinfo[zid];
+ }
+ 
+-static inline struct mem_cgroup_per_zone *
++static struct mem_cgroup_per_zone *
+ page_cgroup_zoneinfo(struct page_cgroup *pc)
+ {
+ 	struct mem_cgroup *mem = pc->mem_cgroup;
+@@ -231,16 +230,14 @@ static unsigned long mem_cgroup_get_all_
+ 	return total;
+ }
+ 
+-static inline
+-struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
++static struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+ {
+ 	return container_of(cgroup_subsys_state(cont,
+ 				mem_cgroup_subsys_id), struct mem_cgroup,
+ 				css);
+ }
+ 
+-static inline
+-struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
++static struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
+ {
+ 	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
+ 				struct mem_cgroup, css);
+@@ -276,13 +273,12 @@ struct page_cgroup *page_get_page_cgroup
+ 	return (struct page_cgroup *) (page->page_cgroup & ~PAGE_CGROUP_LOCK);
+ }
+ 
+-static void __always_inline lock_page_cgroup(struct page *page)
++static void lock_page_cgroup(struct page *page)
+ {
+ 	bit_spin_lock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+-	VM_BUG_ON(!page_cgroup_locked(page));
+ }
+ 
+-static void __always_inline unlock_page_cgroup(struct page *page)
++static void unlock_page_cgroup(struct page *page)
+ {
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ }
+@@ -741,16 +737,14 @@ void mem_cgroup_end_migration(struct pag
+ void mem_cgroup_page_migration(struct page *page, struct page *newpage)
+ {
+ 	struct page_cgroup *pc;
+-	struct mem_cgroup *mem;
+-	unsigned long flags;
+ 	struct mem_cgroup_per_zone *mz;
++	unsigned long flags;
+ 
+ retry:
+ 	pc = page_get_page_cgroup(page);
+ 	if (!pc)
+ 		return;
+ 
+-	mem = pc->mem_cgroup;
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	if (clear_page_cgroup(page, pc) != pc)
+ 		goto retry;
+@@ -822,7 +816,7 @@ retry:
+  * make mem_cgroup's charge to be 0 if there is no task.
+  * This enables deleting this mem_cgroup.
+  */
+-int mem_cgroup_force_empty(struct mem_cgroup *mem)
++static int mem_cgroup_force_empty(struct mem_cgroup *mem)
+ {
+ 	int ret = -EBUSY;
+ 	int node, zid;
+@@ -852,7 +846,7 @@ out:
+ 	return ret;
+ }
+ 
+-int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
++static int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
+ {
+ 	*tmp = memparse(buf, &buf);
+ 	if (*buf != '\0')
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
