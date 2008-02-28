@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-api-files-add-cgroup-map-data-type.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:04:28 -0800
-Message-ID: <200802280104.m1S14S6I008257@imap1.linux-foundation.org>
+Subject: + cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch added to -mm tree
+Date: Wed, 27 Feb 2008 17:03:51 -0800
+Message-ID: <200802280103.m1S13p5Q008175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:44775 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762872AbYB1BFQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755136AbYB1BEk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:05:16 -0500
+	Wed, 27 Feb 2008 20:04:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     CGroup API files: add cgroup map data type
+     cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
 has been added to the -mm tree.  Its filename is
-     cgroup-api-files-add-cgroup-map-data-type.patch
+     cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: add cgroup map data type
-From: Paul Menage <menage@google.com>
+Subject: cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Adds a new type of supported control file representation, a map from strings
-to u64 values.
-
-Each map entry is printed as a line in a similar format to /proc/vmstat, i.e. 
-"$key $value\n"
-
-Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Li Zefan" <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   19 +++++++++++++
- kernel/cgroup.c        |   53 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 71 insertions(+), 1 deletion(-)
+ kernel/cpuset.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~cgroup-api-files-add-cgroup-map-data-type include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-api-files-add-cgroup-map-data-type
-+++ a/include/linux/cgroup.h
-@@ -166,6 +166,16 @@ struct css_set {
- 
- };
- 
-+/*
-+ * cgroup_map_cb is an abstract callback API for reporting map-valued
-+ * control files
-+ */
-+
-+struct cgroup_map_cb {
-+	int (*fill)(struct cgroup_map_cb *cb, const char *key, u64 value);
-+	void *state;
-+};
-+
- /* struct cftype:
-  *
-  * The files in the cgroup filesystem mostly have a very simple read/write
-@@ -194,6 +204,15 @@ struct cftype {
- 	 * single integer. Use it in place of read()
- 	 */
- 	u64 (*read_u64) (struct cgroup *cgrp, struct cftype *cft);
-+	/*
-+	 * read_map() is used for defining a map of key/value
-+	 * pairs. It should call cb->fill(cb, key, value) for each
-+	 * entry. The key/value pairs (and their ordering) should not
-+	 * change between reboots.
-+	 */
-+	int (*read_map) (struct cgroup *cont, struct cftype *cft,
-+			 struct cgroup_map_cb *cb);
-+
- 	ssize_t (*write) (struct cgroup *cgrp, struct cftype *cft,
- 			  struct file *file,
- 			  const char __user *buf, size_t nbytes, loff_t *ppos);
-diff -puN kernel/cgroup.c~cgroup-api-files-add-cgroup-map-data-type kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-api-files-add-cgroup-map-data-type
-+++ a/kernel/cgroup.c
-@@ -1484,6 +1484,46 @@ static ssize_t cgroup_file_read(struct f
- 	return -EINVAL;
- }
- 
-+/*
-+ * seqfile ops/methods for returning structured data. Currently just
-+ * supports string->u64 maps, but can be extended in future.
-+ */
-+
-+struct cgroup_seqfile_state {
-+	struct cftype *cft;
-+	struct cgroup *cgroup;
-+};
-+
-+static int cgroup_map_add(struct cgroup_map_cb *cb, const char *key, u64 value)
-+{
-+	struct seq_file *sf = cb->state;
-+	return seq_printf(sf, "%s %llu\n", key, (unsigned long long)value);
-+}
-+
-+static int cgroup_seqfile_show(struct seq_file *m, void *arg)
-+{
-+	struct cgroup_seqfile_state *state = m->private;
-+	struct cftype *cft = state->cft;
-+	struct cgroup_map_cb cb = {
-+		.fill = cgroup_map_add,
-+		.state = m,
-+	};
-+	return cft->read_map(state->cgroup, cft, &cb);
-+}
-+
-+int cgroup_seqfile_release(struct inode *inode, struct file *file)
-+{
-+	struct seq_file *seq = file->private_data;
-+	kfree(seq->private);
-+	return single_release(inode, file);
-+}
-+
-+static struct file_operations cgroup_seqfile_operations = {
-+	.read = seq_read,
-+	.llseek = seq_lseek,
-+	.release = cgroup_seqfile_release,
-+};
-+
- static int cgroup_file_open(struct inode *inode, struct file *file)
- {
- 	int err;
-@@ -1496,7 +1536,18 @@ static int cgroup_file_open(struct inode
- 	cft = __d_cft(file->f_dentry);
- 	if (!cft)
- 		return -ENODEV;
--	if (cft->open)
-+	if (cft->read_map) {
-+		struct cgroup_seqfile_state *state =
-+			kzalloc(sizeof(*state), GFP_USER);
-+		if (!state)
-+			return -ENOMEM;
-+		state->cft = cft;
-+		state->cgroup = __d_cgrp(file->f_dentry->d_parent);
-+		file->f_op = &cgroup_seqfile_operations;
-+		err = single_open(file, cgroup_seqfile_show, state);
-+		if (err < 0)
-+			kfree(state);
-+	} else if (cft->open)
- 		err = cft->open(inode, file);
- 	else
- 		err = 0;
+diff -puN kernel/cpuset.c~cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
++++ a/kernel/cpuset.c
+@@ -1381,7 +1381,6 @@ static u64 cpuset_read_u64(struct cgroup
+ 		return cpuset_memory_pressure_enabled;
+ 	case FILE_MEMORY_PRESSURE:
+ 		return fmeter_getrate(&cs->fmeter);
+-		break;
+ 	case FILE_SPREAD_PAGE:
+ 		return is_spread_page(cs);
+ 	case FILE_SPREAD_SLAB:
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cgroup-fix-default-notify_on_release-setting.patch
-memory-resource-controller-use-strstrip-while-parsing-arguments.patch
-memory-controller-rename-to-memory-resource-controller.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+git-x86.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-sched.patch
+tracing-is-borked-on-powerpc.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-add-a-refcount-check-in-dput.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
