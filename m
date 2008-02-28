@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-mm_match_cgroup-not-vm_match_cgroup.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:30 -0800
-Message-ID: <200802280352.m1S3qUBC014202@imap1.linux-foundation.org>
+Subject: + memcg-page_cache_release-not-__free_page.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:34 -0800
+Message-ID: <200802280352.m1S3qYVx014208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45172 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755089AbYB1Dwx (ORCPT
+	by vger.kernel.org with ESMTP id S1756132AbYB1Dw4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:52:53 -0500
+	Wed, 27 Feb 2008 22:52:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memcg: mm_match_cgroup not vm_match_cgroup
+     memcg: page_cache_release not __free_page
 has been added to the -mm tree.  Its filename is
-     memcg-mm_match_cgroup-not-vm_match_cgroup.patch
+     memcg-page_cache_release-not-__free_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: mm_match_cgroup not vm_match_cgroup
+Subject: memcg: page_cache_release not __free_page
 From: Hugh Dickins <hugh@veritas.com>
 
-vm_match_cgroup is a perverse name for a macro to match mm with cgroup: rename
-it mm_match_cgroup, matching mm_init_cgroup and mm_free_cgroup.
+There's nothing wrong with mem_cgroup_charge failure in do_wp_page and
+do_anonymous page using __free_page, but it does look odd when nearby code
+uses page_cache_release: use that instead (while turning a blind eye to
+ancient inconsistencies of page_cache_release versus put_page).
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -50,65 +52,30 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |    2 +-
- mm/rmap.c                  |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-mm_match_cgroup-not-vm_match_cgroup include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-mm_match_cgroup-not-vm_match_cgroup
-+++ a/include/linux/memcontrol.h
-@@ -48,7 +48,7 @@ extern int mem_cgroup_cache_charge(struc
- 					gfp_t gfp_mask);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
- 
--#define vm_match_cgroup(mm, cgroup)	\
-+#define mm_match_cgroup(mm, cgroup)	\
- 	((cgroup) == rcu_dereference((mm)->mem_cgroup))
- 
- extern int mem_cgroup_prepare_migration(struct page *page);
-@@ -118,7 +118,7 @@ static inline int mem_cgroup_cache_charg
- 	return 0;
- }
- 
--static inline int vm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
-+static inline int mm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
- {
- 	return 1;
- }
-diff -puN mm/memcontrol.c~memcg-mm_match_cgroup-not-vm_match_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mm_match_cgroup-not-vm_match_cgroup
-+++ a/mm/memcontrol.c
-@@ -399,7 +399,7 @@ int task_in_mem_cgroup(struct task_struc
- 	int ret;
- 
- 	task_lock(task);
--	ret = task->mm && vm_match_cgroup(task->mm, mem);
-+	ret = task->mm && mm_match_cgroup(task->mm, mem);
- 	task_unlock(task);
+diff -puN mm/memory.c~memcg-page_cache_release-not-__free_page mm/memory.c
+--- a/mm/memory.c~memcg-page_cache_release-not-__free_page
++++ a/mm/memory.c
+@@ -1711,7 +1711,7 @@ unlock:
+ 	}
  	return ret;
+ oom_free_new:
+-	__free_page(new_page);
++	page_cache_release(new_page);
+ oom:
+ 	if (old_page)
+ 		page_cache_release(old_page);
+@@ -2163,7 +2163,7 @@ release:
+ 	page_cache_release(page);
+ 	goto unlock;
+ oom_free_page:
+-	__free_page(page);
++	page_cache_release(page);
+ oom:
+ 	return VM_FAULT_OOM;
  }
-diff -puN mm/rmap.c~memcg-mm_match_cgroup-not-vm_match_cgroup mm/rmap.c
---- a/mm/rmap.c~memcg-mm_match_cgroup-not-vm_match_cgroup
-+++ a/mm/rmap.c
-@@ -321,7 +321,7 @@ static int page_referenced_anon(struct p
- 		 * counting on behalf of references from different
- 		 * cgroups
- 		 */
--		if (mem_cont && !vm_match_cgroup(vma->vm_mm, mem_cont))
-+		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
- 			continue;
- 		referenced += page_referenced_one(page, vma, &mapcount);
- 		if (!mapcount)
-@@ -382,7 +382,7 @@ static int page_referenced_file(struct p
- 		 * counting on behalf of references from different
- 		 * cgroups
- 		 */
--		if (mem_cont && !vm_match_cgroup(vma->vm_mm, mem_cont))
-+		if (mem_cont && !mm_match_cgroup(vma->vm_mm, mem_cont))
- 			continue;
- 		if ((vma->vm_flags & (VM_LOCKED|VM_MAYSHARE))
- 				  == (VM_LOCKED|VM_MAYSHARE)) {
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
