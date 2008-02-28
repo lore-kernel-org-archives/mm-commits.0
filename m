@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-api-files-use-read_u64-in-memory-controller.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:02:44 -0800
-Message-ID: <200802280102.m1S12i2J008142@imap1.linux-foundation.org>
+Subject: + cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch added to -mm tree
+Date: Wed, 27 Feb 2008 17:02:55 -0800
+Message-ID: <200802280102.m1S12t0G008150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37039 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:44441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760954AbYB1BDf (ORCPT
+	by vger.kernel.org with ESMTP id S1763362AbYB1BDp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:03:35 -0500
+	Wed, 27 Feb 2008 20:03:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@c
 
 
 The patch titled
-     CGroup API files: use read_u64 in memory controller
+     CGroup API files: strip all trailing whitespace in cgroup_write_u64
 has been added to the -mm tree.  Its filename is
-     cgroup-api-files-use-read_u64-in-memory-controller.patch
+     cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: use read_u64 in memory controller
+Subject: CGroup API files: strip all trailing whitespace in cgroup_write_u64
 From: Paul Menage <menage@google.com>
 
-Update the memory controller to use read_u64 for its limit/usage/failcnt
-control files, calling the new res_counter_read_u64() function.
+This removes the need for people to remember to pass the -n flag to echo when
+writing values to cgroup control files.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Li Zefan" <lizf@cn.fujitsu.com>
@@ -50,51 +50,24 @@ Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ kernel/cgroup.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~cgroup-api-files-use-read_u64-in-memory-controller mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-api-files-use-read_u64-in-memory-controller
-+++ a/mm/memcontrol.c
-@@ -921,13 +921,10 @@ int mem_cgroup_write_strategy(char *buf,
- 	return 0;
- }
+diff -puN kernel/cgroup.c~cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64 kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64
++++ a/kernel/cgroup.c
+@@ -1321,10 +1321,7 @@ static ssize_t cgroup_write_u64(struct c
+ 		return -EFAULT;
  
--static ssize_t mem_cgroup_read(struct cgroup *cont,
--			struct cftype *cft, struct file *file,
--			char __user *userbuf, size_t nbytes, loff_t *ppos)
-+static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
- {
--	return res_counter_read(&mem_cgroup_from_cont(cont)->res,
--				cft->private, userbuf, nbytes, ppos,
--				NULL);
-+	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
-+				    cft->private);
- }
- 
- static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
-@@ -1023,18 +1020,18 @@ static struct cftype mem_cgroup_files[] 
- 	{
- 		.name = "usage_in_bytes",
- 		.private = RES_USAGE,
--		.read = mem_cgroup_read,
-+		.read_u64 = mem_cgroup_read,
- 	},
- 	{
- 		.name = "limit_in_bytes",
- 		.private = RES_LIMIT,
- 		.write = mem_cgroup_write,
--		.read = mem_cgroup_read,
-+		.read_u64 = mem_cgroup_read,
- 	},
- 	{
- 		.name = "failcnt",
- 		.private = RES_FAILCNT,
--		.read = mem_cgroup_read,
-+		.read_u64 = mem_cgroup_read,
- 	},
- 	{
- 		.name = "force_empty",
+ 	buffer[nbytes] = 0;     /* nul-terminate */
+-
+-	/* strip newline if necessary */
+-	if (nbytes && (buffer[nbytes-1] == '\n'))
+-		buffer[nbytes-1] = 0;
++	strstrip(buffer);
+ 	val = simple_strtoull(buffer, &end, 0);
+ 	if (*end)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from menage@google.com are
