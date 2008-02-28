@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch added to -mm tree
-Date: Thu, 28 Feb 2008 12:36:09 -0800
-Message-ID: <200802282036.m1SKaAcg019204@imap1.linux-foundation.org>
+Subject: + handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch added to -mm tree
+Date: Thu, 28 Feb 2008 12:37:40 -0800
+Message-ID: <200802282037.m1SKbeBJ019251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:59433 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932575AbYB1UhA (ORCPT
+	by vger.kernel.org with ESMTP id S1753733AbYB1Uig (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 15:37:00 -0500
+	Thu, 28 Feb 2008 15:38:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, adobriyan@sw.ru, davem@davemloft.net, den@openvz.org, ebiederm@xmission.com
+Cc: oleg@tv-sign.ru, davidel@xmailserver.org, jkosina@suse.cz, roland@redhat.com
 
 
 The patch titled
-     sysctl: add the ->permissions callback on the ctl_table_root
+     handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
 has been added to the -mm tree.  Its filename is
-     sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+     handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,196 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add the ->permissions callback on the ctl_table_root
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-When reading from/writing to some table, a root, which this table came from,
-may affect this table's permissions, depending on who is working with the
-table.
+The bug was found by Jiri Kosina and the patch is based on his ideas.
 
-The core hunk is at the bottom of this patch.  All the rest is just pushing
-the ctl_table_root argument up to the sysctl_perm() function.
+handle_stop_signal(SIGCONT) wakes up the stopped task and unlocks ->siglock
+for do_notify_parent_cldstop(p, CLD_CONTINUED).  The woken task returns from
+do_signal_stop(), takes ->siglock and resumes to user-space without actually
+seeing SIGCONT which may have a handler.
 
-This will be mostly (only?) used in the net sysctls.
+Move the code realated to do_notify_parent_cldstop(CLD_CONTINUED) up, before
+"wake_up_state(t, state)".
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Denis V. Lunev <den@openvz.org>
+NOTE: It is possible that the subsequent rm_from_queue(SIG_KERNEL_STOP_MASK)
+removes SIGSTOP which comes after SIGCONT when we drop ->siglock.  Not nice,
+but possible even without this change.  Hopefully we can remove the parent
+notifying code from the sender path completely, but this needs more thinking.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |    4 ++--
- include/linux/sysctl.h |    7 ++++++-
- kernel/sysctl.c        |   25 ++++++++++++++++++-------
- 3 files changed, 26 insertions(+), 10 deletions(-)
+ kernel/signal.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-add-the-permissions-callback-on-the-ctl_table_root fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-add-the-permissions-callback-on-the-ctl_table_root
-+++ a/fs/proc/proc_sysctl.c
-@@ -190,7 +190,7 @@ static ssize_t proc_sys_call_handler(str
- 	 * and won't be until we finish.
- 	 */
- 	error = -EPERM;
--	if (sysctl_perm(table, write ? MAY_WRITE : MAY_READ))
-+	if (sysctl_perm(head->root, table, write ? MAY_WRITE : MAY_READ))
- 		goto out;
- 
- 	/* careful: calling conventions are nasty here */
-@@ -388,7 +388,7 @@ static int proc_sys_permission(struct in
- 		goto out;
- 
- 	/* Use the permissions on the sysctl table entry */
--	error = sysctl_perm(table, mask);
-+	error = sysctl_perm(head->root, table, mask);
- out:
- 	sysctl_head_finish(head);
- 	return error;
-diff -puN include/linux/sysctl.h~sysctl-add-the-permissions-callback-on-the-ctl_table_root include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-the-permissions-callback-on-the-ctl_table_root
-+++ a/include/linux/sysctl.h
-@@ -945,11 +945,14 @@ enum
- /* For the /proc/sys support */
- struct ctl_table;
- struct nsproxy;
-+struct ctl_table_root;
+diff -puN kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont kernel/signal.c
+--- a/kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont
++++ a/kernel/signal.c
+@@ -600,12 +600,31 @@ static void handle_stop_signal(int sig, 
+ 			do_notify_parent_cldstop(p, CLD_STOPPED);
+ 			spin_lock(&p->sighand->siglock);
+ 		}
 +
- extern struct ctl_table_header *sysctl_head_next(struct ctl_table_header *prev);
- extern struct ctl_table_header *__sysctl_head_next(struct nsproxy *namespaces,
- 						struct ctl_table_header *prev);
- extern void sysctl_head_finish(struct ctl_table_header *prev);
--extern int sysctl_perm(struct ctl_table *table, int op);
-+extern int sysctl_perm(struct ctl_table_root *root,
-+		struct ctl_table *table, int op);
- 
- typedef struct ctl_table ctl_table;
- 
-@@ -1049,6 +1052,8 @@ struct ctl_table_root {
- 	struct list_head header_list;
- 	struct list_head *(*lookup)(struct ctl_table_root *root,
- 					   struct nsproxy *namespaces);
-+	int (*permissions)(struct ctl_table_root *root,
-+			struct nsproxy *namespaces, struct ctl_table *table);
- };
- 
- /* struct ctl_table_header is used to maintain dynamic lists of
-diff -puN kernel/sysctl.c~sysctl-add-the-permissions-callback-on-the-ctl_table_root kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-the-permissions-callback-on-the-ctl_table_root
-+++ a/kernel/sysctl.c
-@@ -1454,7 +1454,8 @@ void register_sysctl_root(struct ctl_tab
- 
- #ifdef CONFIG_SYSCTL_SYSCALL
- /* Perform the actual read/write of a sysctl table entry. */
--static int do_sysctl_strategy(struct ctl_table *table,
-+static int do_sysctl_strategy(struct ctl_table_root *root,
-+			struct ctl_table *table,
- 			int __user *name, int nlen,
- 			void __user *oldval, size_t __user *oldlenp,
- 			void __user *newval, size_t newlen)
-@@ -1465,7 +1466,7 @@ static int do_sysctl_strategy(struct ctl
- 		op |= 004;
- 	if (newval)
- 		op |= 002;
--	if (sysctl_perm(table, op))
-+	if (sysctl_perm(root, table, op))
- 		return -EPERM;
- 
- 	if (table->strategy) {
-@@ -1491,6 +1492,7 @@ static int do_sysctl_strategy(struct ctl
- static int parse_table(int __user *name, int nlen,
- 		       void __user *oldval, size_t __user *oldlenp,
- 		       void __user *newval, size_t newlen,
-+		       struct ctl_table_root *root,
- 		       struct ctl_table *table)
- {
- 	int n;
-@@ -1505,14 +1507,14 @@ repeat:
- 		if (n == table->ctl_name) {
- 			int error;
- 			if (table->child) {
--				if (sysctl_perm(table, 001))
-+				if (sysctl_perm(root, table, 001))
- 					return -EPERM;
- 				name++;
- 				nlen--;
- 				table = table->child;
- 				goto repeat;
- 			}
--			error = do_sysctl_strategy(table, name, nlen,
-+			error = do_sysctl_strategy(root, table, name, nlen,
- 						   oldval, oldlenp,
- 						   newval, newlen);
- 			return error;
-@@ -1538,7 +1540,8 @@ int do_sysctl(int __user *name, int nlen
- 	for (head = sysctl_head_next(NULL); head;
- 			head = sysctl_head_next(head)) {
- 		error = parse_table(name, nlen, oldval, oldlenp, 
--					newval, newlen, head->ctl_table);
-+					newval, newlen,
-+					head->root, head->ctl_table);
- 		if (error != -ENOTDIR) {
- 			sysctl_head_finish(head);
- 			break;
-@@ -1584,13 +1587,21 @@ static int test_perm(int mode, int op)
- 	return -EACCES;
- }
- 
--int sysctl_perm(struct ctl_table *table, int op)
-+int sysctl_perm(struct ctl_table_root *root, struct ctl_table *table, int op)
- {
- 	int error;
-+	int mode;
++		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
++			/*
++			 * We were in fact stopped, and are now continued.
++			 * Notify the parent with CLD_CONTINUED.
++			 */
++			p->signal->flags = SIGNAL_STOP_CONTINUED;
++			p->signal->group_exit_code = 0;
++			spin_unlock(&p->sighand->siglock);
++			do_notify_parent_cldstop(p, CLD_CONTINUED);
++			spin_lock(&p->sighand->siglock);
++		} else {
++			/*
++			 * We are not stopped, but there could be a stop
++			 * signal in the middle of being processed after
++			 * being removed from the queue.  Clear that too.
++			 */
++			p->signal->flags = 0;
++		}
 +
- 	error = security_sysctl(table, op);
- 	if (error)
- 		return error;
--	return test_perm(table->mode, op);
-+
-+	if (root->permissions)
-+		mode = root->permissions(root, current->nsproxy, table);
-+	else
-+		mode = table->mode;
-+
-+	return test_perm(mode, op);
- }
+ 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			unsigned int state;
+ 			rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
+-			
+ 			/*
+ 			 * If there is a handler for SIGCONT, we must make
+ 			 * sure that no thread returns to user mode before
+@@ -629,25 +648,6 @@ static void handle_stop_signal(int sig, 
  
- static void sysctl_set_parent(struct ctl_table *parent, struct ctl_table *table)
+ 			t = next_thread(t);
+ 		} while (t != p);
+-
+-		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
+-			/*
+-			 * We were in fact stopped, and are now continued.
+-			 * Notify the parent with CLD_CONTINUED.
+-			 */
+-			p->signal->flags = SIGNAL_STOP_CONTINUED;
+-			p->signal->group_exit_code = 0;
+-			spin_unlock(&p->sighand->siglock);
+-			do_notify_parent_cldstop(p, CLD_CONTINUED);
+-			spin_lock(&p->sighand->siglock);
+-		} else {
+-			/*
+-			 * We are not stopped, but there could be a stop
+-			 * signal in the middle of being processed after
+-			 * being removed from the queue.  Clear that too.
+-			 */
+-			p->signal->flags = 0;
+-		}
+ 	} else if (sig == SIGKILL) {
+ 		/*
+ 		 * Make sure that any pending stop signal already dequeued
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-control-groups-add-paul-menage-a-maintainer.patch
-add-balbir-as-the-maintainer-for-memory-resource-controller.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-udf-fix-anchor-point-detection.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
+git-hrt.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
 remove-unused-variable-from-send_signal.patch
 turn-legacy_queue-macro-into-static-inline-function.patch
 consolidate-checking-for-ignored-legacy-signals.patch
 consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
 signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
 signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
 signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
 free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
