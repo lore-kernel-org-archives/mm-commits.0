@@ -1,102 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + core-dump-user_regset-writeback.patch added to -mm tree
-Date: Thu, 28 Feb 2008 12:44:38 -0800
-Message-ID: <200802282044.m1SKic44019500@imap1.linux-foundation.org>
+Subject: - handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch removed from -mm tree
+Date: Thu, 28 Feb 2008 13:10:54 -0800
+Message-ID: <200802282110.m1SLAsUT020514@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55498 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760729AbYB1Upt (ORCPT
+	by vger.kernel.org with ESMTP id S1759851AbYB1VMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 15:45:49 -0500
+	Thu, 28 Feb 2008 16:12:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, shaohua.li@intel.com, tony.luck@intel.com
+To: oleg@tv-sign.ru, davidel@xmailserver.org, jkosina@suse.cz, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     core dump: user_regset writeback
-has been added to the -mm tree.  Its filename is
-     core-dump-user_regset-writeback.patch
+     handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
+has been removed from the -mm tree.  Its filename was
+     handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: core dump: user_regset writeback
-From: Roland McGrath <roland@redhat.com>
+Subject: handle_stop_signal: don't wake up the stopped task until it sees SIGCONT
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This makes the user_regset-based core dump code call user_regset writeback
-hooks when available.  This is necessary groundwork to allow IA64 to set
-CORE_DUMP_USE_REGSET.
+The bug was found by Jiri Kosina and the patch is based on his ideas.
 
-Cc: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+handle_stop_signal(SIGCONT) wakes up the stopped task and unlocks ->siglock
+for do_notify_parent_cldstop(p, CLD_CONTINUED).  The woken task returns from
+do_signal_stop(), takes ->siglock and resumes to user-space without actually
+seeing SIGCONT which may have a handler.
+
+Move the code realated to do_notify_parent_cldstop(CLD_CONTINUED) up, before
+"wake_up_state(t, state)".
+
+NOTE: It is possible that the subsequent rm_from_queue(SIG_KERNEL_STOP_MASK)
+removes SIGSTOP which comes after SIGCONT when we drop ->siglock.  Not nice,
+but possible even without this change.  Hopefully we can remove the parent
+notifying code from the sender path completely, but this needs more thinking.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ kernel/signal.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/binfmt_elf.c~core-dump-user_regset-writeback fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~core-dump-user_regset-writeback
-+++ a/fs/binfmt_elf.c
-@@ -1421,6 +1421,18 @@ struct elf_note_info {
- 	int thread_notes;
- };
- 
-+/*
-+ * When a regset has a writeback hook, we call it on each thread before
-+ * dumping user memory.  On register window machines, this makes sure the
-+ * user memory backing the register data is up to date before we read it.
-+ */
-+static void do_thread_regset_writeback(struct task_struct *task,
-+				       const struct user_regset *regset)
-+{
-+	if (regset->writeback)
-+		regset->writeback(task, regset, 1);
-+}
+diff -puN kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont kernel/signal.c
+--- a/kernel/signal.c~handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont
++++ a/kernel/signal.c
+@@ -600,12 +600,31 @@ static void handle_stop_signal(int sig, 
+ 			do_notify_parent_cldstop(p, CLD_STOPPED);
+ 			spin_lock(&p->sighand->siglock);
+ 		}
 +
- static int fill_thread_core_info(struct elf_thread_core_info *t,
- 				 const struct user_regset_view *view,
- 				 long signr, size_t *total)
-@@ -1442,6 +1454,8 @@ static int fill_thread_core_info(struct 
- 		  sizeof(t->prstatus), &t->prstatus);
- 	*total += notesize(&t->notes[0]);
- 
-+	do_thread_regset_writeback(t->task, &view->regsets[0]);
++		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
++			/*
++			 * We were in fact stopped, and are now continued.
++			 * Notify the parent with CLD_CONTINUED.
++			 */
++			p->signal->flags = SIGNAL_STOP_CONTINUED;
++			p->signal->group_exit_code = 0;
++			spin_unlock(&p->sighand->siglock);
++			do_notify_parent_cldstop(p, CLD_CONTINUED);
++			spin_lock(&p->sighand->siglock);
++		} else {
++			/*
++			 * We are not stopped, but there could be a stop
++			 * signal in the middle of being processed after
++			 * being removed from the queue.  Clear that too.
++			 */
++			p->signal->flags = 0;
++		}
 +
- 	/*
- 	 * Each other regset might generate a note too.  For each regset
- 	 * that has no core_note_type or is inactive, we leave t->notes[i]
-@@ -1449,6 +1463,7 @@ static int fill_thread_core_info(struct 
- 	 */
- 	for (i = 1; i < view->n; ++i) {
- 		const struct user_regset *regset = &view->regsets[i];
-+		do_thread_regset_writeback(t->task, regset);
- 		if (regset->core_note_type &&
- 		    (!regset->active || regset->active(t->task, regset))) {
- 			int ret;
+ 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			unsigned int state;
+ 			rm_from_queue(SIG_KERNEL_STOP_MASK, &t->pending);
+-			
+ 			/*
+ 			 * If there is a handler for SIGCONT, we must make
+ 			 * sure that no thread returns to user mode before
+@@ -629,25 +648,6 @@ static void handle_stop_signal(int sig, 
+ 
+ 			t = next_thread(t);
+ 		} while (t != p);
+-
+-		if (p->signal->flags & SIGNAL_STOP_STOPPED) {
+-			/*
+-			 * We were in fact stopped, and are now continued.
+-			 * Notify the parent with CLD_CONTINUED.
+-			 */
+-			p->signal->flags = SIGNAL_STOP_CONTINUED;
+-			p->signal->group_exit_code = 0;
+-			spin_unlock(&p->sighand->siglock);
+-			do_notify_parent_cldstop(p, CLD_CONTINUED);
+-			spin_lock(&p->sighand->siglock);
+-		} else {
+-			/*
+-			 * We are not stopped, but there could be a stop
+-			 * signal in the middle of being processed after
+-			 * being removed from the queue.  Clear that too.
+-			 */
+-			p->signal->flags = 0;
+-		}
+ 	} else if (sig == SIGKILL) {
+ 		/*
+ 		 * Make sure that any pending stop signal already dequeued
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-elfcore-compat-fix-uid-gid-types.patch
-git-x86.patch
+git-hrt.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 handle_stop_signal-dont-wake-up-the-stopped-task-until-it-sees-sigcont.patch
-add-rusage_thread.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
 remove-unused-variable-from-send_signal.patch
 turn-legacy_queue-macro-into-static-inline-function.patch
 consolidate-checking-for-ignored-legacy-signals.patch
@@ -110,7 +137,15 @@ signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
 signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
 signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
-core-dump-user_regset-writeback.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
 free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
