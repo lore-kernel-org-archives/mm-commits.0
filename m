@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-api-files-add-res_counter_read_u64.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:02:39 -0800
-Message-ID: <200802280102.m1S12dJF008138@imap1.linux-foundation.org>
+Subject: + cgroup-api-files-use-read_u64-in-memory-controller.patch added to -mm tree
+Date: Wed, 27 Feb 2008 17:02:44 -0800
+Message-ID: <200802280102.m1S12i2J008142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:53153 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:37039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759627AbYB1BDb (ORCPT
+	by vger.kernel.org with ESMTP id S1760954AbYB1BDf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:03:31 -0500
+	Wed, 27 Feb 2008 20:03:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@c
 
 
 The patch titled
-     CGroup API files: add res_counter_read_u64()
+     CGroup API files: use read_u64 in memory controller
 has been added to the -mm tree.  Its filename is
-     cgroup-api-files-add-res_counter_read_u64.patch
+     cgroup-api-files-use-read_u64-in-memory-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: add res_counter_read_u64()
+Subject: CGroup API files: use read_u64 in memory controller
 From: Paul Menage <menage@google.com>
 
-Adds a function for returning the value of a resource counter member, in a
-form suitable for use in a cgroup read_u64 control file method.
+Update the memory controller to use read_u64 for its limit/usage/failcnt
+control files, calling the new res_counter_read_u64() function.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: "Li Zefan" <lizf@cn.fujitsu.com>
@@ -50,48 +50,51 @@ Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    5 ++++-
- kernel/res_counter.c        |    5 +++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/res_counter.h~cgroup-api-files-add-res_counter_read_u64 include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroup-api-files-add-res_counter_read_u64
-+++ a/include/linux/res_counter.h
-@@ -39,8 +39,9 @@ struct res_counter {
- 	spinlock_t lock;
- };
- 
--/*
-+/**
-  * Helpers to interact with userspace
-+ * res_counter_read_u64() - returns the value of the specified member.
-  * res_counter_read/_write - put/get the specified fields from the
-  * res_counter struct to/from the user
-  *
-@@ -51,6 +52,8 @@ struct res_counter {
-  * @pos:     and the offset.
-  */
- 
-+u64 res_counter_read_u64(struct res_counter *counter, int member);
-+
- ssize_t res_counter_read(struct res_counter *counter, int member,
- 		const char __user *buf, size_t nbytes, loff_t *pos,
- 		int (*read_strategy)(unsigned long long val, char *s));
-diff -puN kernel/res_counter.c~cgroup-api-files-add-res_counter_read_u64 kernel/res_counter.c
---- a/kernel/res_counter.c~cgroup-api-files-add-res_counter_read_u64
-+++ a/kernel/res_counter.c
-@@ -92,6 +92,11 @@ ssize_t res_counter_read(struct res_coun
- 			pos, buf, s - buf);
+diff -puN mm/memcontrol.c~cgroup-api-files-use-read_u64-in-memory-controller mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-api-files-use-read_u64-in-memory-controller
++++ a/mm/memcontrol.c
+@@ -921,13 +921,10 @@ int mem_cgroup_write_strategy(char *buf,
+ 	return 0;
  }
  
-+u64 res_counter_read_u64(struct res_counter *counter, int member)
-+{
-+	return *res_counter_member(counter, member);
-+}
-+
- ssize_t res_counter_write(struct res_counter *counter, int member,
- 		const char __user *userbuf, size_t nbytes, loff_t *pos,
- 		int (*write_strategy)(char *st_buf, unsigned long long *val))
+-static ssize_t mem_cgroup_read(struct cgroup *cont,
+-			struct cftype *cft, struct file *file,
+-			char __user *userbuf, size_t nbytes, loff_t *ppos)
++static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
+ {
+-	return res_counter_read(&mem_cgroup_from_cont(cont)->res,
+-				cft->private, userbuf, nbytes, ppos,
+-				NULL);
++	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
++				    cft->private);
+ }
+ 
+ static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
+@@ -1023,18 +1020,18 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "usage_in_bytes",
+ 		.private = RES_USAGE,
+-		.read = mem_cgroup_read,
++		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "limit_in_bytes",
+ 		.private = RES_LIMIT,
+ 		.write = mem_cgroup_write,
+-		.read = mem_cgroup_read,
++		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "failcnt",
+ 		.private = RES_FAILCNT,
+-		.read = mem_cgroup_read,
++		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+ 		.name = "force_empty",
 _
 
 Patches currently in -mm which might be from menage@google.com are
