@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + block-remove-extern-on-function-definition.patch added to -mm tree
-Date: Wed, 27 Feb 2008 18:32:02 -0800
-Message-ID: <200802280232.m1S2W2Oa011419@imap1.linux-foundation.org>
+Subject: + block-fix-shadowed-variable-warning-in-blk-mapc.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:32:01 -0800
+Message-ID: <200802280232.m1S2W1QG011415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45144 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbYB1CcP (ORCPT
+	by vger.kernel.org with ESMTP id S1751926AbYB1CcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 21:32:15 -0500
+	Wed, 27 Feb 2008 21:32:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     block: remove extern on function definition
+     block: fix shadowed variable warning in blk-map.c
 has been added to the -mm tree.  Its filename is
-     block-remove-extern-on-function-definition.patch
+     block-fix-shadowed-variable-warning-in-blk-mapc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: remove extern on function definition
+Subject: block: fix shadowed variable warning in blk-map.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Intoduced between 2.6.25-rc2 and -rc3
-block/blk-settings.c:319:12: warning: function 'blk_queue_dma_drain' with external linkage has definition
+Introduced between 2.6.25-rc2 and -rc3
+block/blk-map.c:154:14: warning: symbol 'bio' shadows an earlier one
+block/blk-map.c:110:13: originally declared here
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-settings.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-map.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN block/blk-settings.c~block-remove-extern-on-function-definition block/blk-settings.c
---- a/block/blk-settings.c~block-remove-extern-on-function-definition
-+++ a/block/blk-settings.c
-@@ -316,7 +316,7 @@ EXPORT_SYMBOL(blk_queue_stack_limits);
-  * device can support otherwise there won't be room for the drain
-  * buffer.
-  */
--extern int blk_queue_dma_drain(struct request_queue *q,
-+int blk_queue_dma_drain(struct request_queue *q,
- 			       dma_drain_needed_fn *dma_drain_needed,
- 			       void *buf, unsigned int size)
- {
+diff -puN block/blk-map.c~block-fix-shadowed-variable-warning-in-blk-mapc block/blk-map.c
+--- a/block/blk-map.c~block-fix-shadowed-variable-warning-in-blk-mapc
++++ a/block/blk-map.c
+@@ -151,10 +151,10 @@ int blk_rq_map_user(struct request_queue
+ 	 */
+ 	if (len & queue_dma_alignment(q)) {
+ 		unsigned int pad_len = (queue_dma_alignment(q) & ~len) + 1;
+-		struct bio *bio = rq->biotail;
++		struct bio *tail = rq->biotail;
+ 
+-		bio->bi_io_vec[bio->bi_vcnt - 1].bv_len += pad_len;
+-		bio->bi_size += pad_len;
++		tail->bi_io_vec[tail->bi_vcnt - 1].bv_len += pad_len;
++		tail->bi_size += pad_len;
+ 		rq->data_len += pad_len;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
