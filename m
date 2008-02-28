@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 27 Feb 2008 17:10:06 -0800
-Message-ID: <200802280110.m1S1A7Il008523@imap1.linux-foundation.org>
+Subject: + maple-add-driver-for-sega-dreamcast-controller-update.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:22:32 -0800
+Message-ID: <200802280222.m1S2MWfZ011086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58201 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:47885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756847AbYB1BKJ (ORCPT
+	by vger.kernel.org with ESMTP id S1750802AbYB1CWw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 20:10:09 -0500
+	Wed, 27 Feb 2008 21:22:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, tom.leiming@gmail.com
+Cc: adrian@newgolddream.dyndns.info, adrian@mcmen.demon.co.uk, dtor@mail.ru, lethal@linux-sh.org
 
 
 The patch titled
-     usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes
+     input: support maple controller on SEGA Dreamcast
 has been added to the -mm tree.  Its filename is
-     usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+     maple-add-driver-for-sega-dreamcast-controller-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,205 +34,163 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: input: support maple controller on SEGA Dreamcast
+From: Adrian McMenamin <adrian@newgolddream.dyndns.info>
 
-ERROR: use tabs not spaces
-#81: FILE: drivers/usb/misc/auerswald.c:287:
-+        pauerchainelement_t acep =  urb->context;$
+This adds support for the maple controller (as a joystick) on the SEGA
+Dreamcast.
 
-ERROR: use tabs not spaces
-#108: FILE: drivers/usb/misc/auerswald.c:863:
-+        pauerbuf_t bp =  urb->context;$
+I've adjusted the polling rate for the controller in comparison to
+earlier patches and the high rate of polling was locking out hotplugging
+updates.
 
-ERROR: use tabs not spaces
-#117: FILE: drivers/usb/misc/auerswald.c:907:
-+        pauerbuf_t    bp  =  urb->context;$
-
-ERROR: use tabs not spaces
-#126: FILE: drivers/usb/misc/auerswald.c:984:
-+        pauerswald_t cp =  urb->context;$
-
-ERROR: use tabs not spaces
-#138: FILE: drivers/usb/misc/ftdi-elan.c:749:
-+        struct usb_ftdi *ftdi = urb->context;$
-
-WARNING: no space between function name and open parenthesis '('
-#204: FILE: drivers/usb/misc/usbtest.c:204:
-+	complete (urb->context);
-
-WARNING: no space between function name and open parenthesis '('
-#213: FILE: drivers/usb/misc/usbtest.c:1048:
-+		complete (urb->context);
-
-total: 5 errors, 2 warnings, 808 lines checked
-
-./patches/usb-remove-unnecessary-type-casting-of-urb-context.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Ming Lei <tom.leiming@gmail.com>
+Signed-off-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/auerswald.c |    8 ++++----
- drivers/usb/misc/ftdi-elan.c |    2 +-
- drivers/usb/misc/usbtest.c   |    4 ++--
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/input/joystick/maplecontrol.c |   68 +++++++-----------------
+ 1 file changed, 22 insertions(+), 46 deletions(-)
 
-diff -puN drivers/usb/misc/auerswald.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes drivers/usb/misc/auerswald.c
---- a/drivers/usb/misc/auerswald.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes
-+++ a/drivers/usb/misc/auerswald.c
-@@ -284,7 +284,7 @@ static void auerchain_complete (struct u
-         int result;
+diff -puN drivers/input/joystick/maplecontrol.c~maple-add-driver-for-sega-dreamcast-controller-update drivers/input/joystick/maplecontrol.c
+--- a/drivers/input/joystick/maplecontrol.c~maple-add-driver-for-sega-dreamcast-controller-update
++++ a/drivers/input/joystick/maplecontrol.c
+@@ -25,10 +25,6 @@ struct dc_pad {
+ 	int open;
+ };
  
-         /* get pointer to element and to chain */
--        pauerchainelement_t acep =  urb->context;
-+	pauerchainelement_t acep = urb->context;
-         pauerchain_t         acp = acep->chain;
- 
-         /* restore original entries in urb */
-@@ -860,7 +860,7 @@ static void auerchar_ctrlwrite_complete 
- /* Completion handler for dummy retry packet */
- static void auerswald_ctrlread_wretcomplete (struct urb * urb)
+-static void dc_pad_callback_idle(struct mapleq *mq)
+-{
+-}
+-
+ static void dc_pad_callback(struct mapleq *mq)
  {
--        pauerbuf_t bp =  urb->context;
-+	pauerbuf_t bp = urb->context;
-         pauerswald_t cp;
- 	int ret;
- 	int status = urb->status;
-@@ -904,7 +904,7 @@ static void auerswald_ctrlread_complete 
-         unsigned int  serviceid;
-         pauerswald_t  cp;
-         pauerscon_t   scp;
--        pauerbuf_t    bp  =  urb->context;
-+	pauerbuf_t    bp = urb->context;
- 	int status = urb->status;
- 	int ret;
+ 	unsigned short buttons;
+@@ -37,7 +33,7 @@ static void dc_pad_callback(struct maple
+ 	struct input_dev *dev = pad->dev;
+ 	unsigned char *res = mq->recvbuf;
  
-@@ -981,7 +981,7 @@ static void auerswald_int_complete (stru
-         int ret;
- 	int status = urb->status;
-         pauerbuf_t   bp = NULL;
--        pauerswald_t cp =  urb->context;
-+	pauerswald_t cp = urb->context;
+-	buttons = ~*(unsigned short *)(res+8);
++	buttons = ~cpu_to_le16(*(unsigned short *)(res + 8));
  
-         dbg ("%s called", __FUNCTION__);
- 
-diff -puN drivers/usb/misc/ftdi-elan.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes drivers/usb/misc/ftdi-elan.c
---- a/drivers/usb/misc/ftdi-elan.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes
-+++ a/drivers/usb/misc/ftdi-elan.c
-@@ -746,7 +746,7 @@ static ssize_t ftdi_elan_read(struct fil
- 
- static void ftdi_elan_write_bulk_callback(struct urb *urb)
- {
--        struct usb_ftdi *ftdi = urb->context;
-+	struct usb_ftdi *ftdi = urb->context;
- 	int status = urb->status;
- 
- 	if (status && !(status == -ENOENT || status == -ECONNRESET ||
-diff -puN drivers/usb/misc/usbtest.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes
-+++ a/drivers/usb/misc/usbtest.c
-@@ -201,7 +201,7 @@ found:
- 
- static void simple_callback (struct urb *urb)
- {
--	complete (urb->context);
-+	complete(urb->context);
+ 	input_report_abs(dev, ABS_HAT0Y,
+ 			 (buttons & 0x0010 ? -1:0) + (buttons & 0x0020 ? 1:0));
+@@ -65,30 +61,6 @@ static void dc_pad_callback(struct maple
+ 	input_report_abs(dev, ABS_RY,    res[15]);
  }
  
- static struct urb *simple_alloc_urb (
-@@ -1045,7 +1045,7 @@ static void unlink1_callback (struct urb
- 		status = usb_submit_urb (urb, GFP_ATOMIC);
- 	if (status) {
- 		urb->status = status;
--		complete (urb->context);
-+		complete(urb->context);
+-static int dc_pad_open(struct input_dev *dev)
+-{
+-	struct dc_pad *pad = dev->private;
+-	if (!pad->open)
+-		maple_getcond_callback(pad->mdev, dc_pad_callback, HZ/50,
+-			MAPLE_FUNC_CONTROLLER);
+-	pad->open++;
+-	return 0;
+-
+-}
+-
+-static void dc_pad_close(struct input_dev *dev)
+-{
+-	struct dc_pad *pad = dev->private;
+-
+-	pad->open--;
+-	if (pad->open)
+-		return;
+-
+-	/* Almost never call something that does nothing */
+-	maple_getcond_callback(pad->mdev, dc_pad_callback_idle, 0xFFFFFFFF,
+-		MAPLE_FUNC_CONTROLLER);
+-}
+-
+ static int dc_pad_connect(struct maple_device *mdev)
+ {
+ 	int i, error;
+@@ -111,13 +83,15 @@ static int dc_pad_connect(struct maple_d
+ 	};
+ 
+ 	pad = kzalloc(sizeof(struct dc_pad), GFP_KERNEL);
+-	if (!pad)
+-		return -ENOMEM;
++	if (!pad){
++		error = ENOMEM;
++		goto fail_nomem_1;
++	}
+ 
+ 	dev = input_allocate_device();
+ 	if (!dev) {
+-		kfree(pad);
+-		return -ENOMEM;
++		error = ENOMEM;
++		goto fail_nomem_2;
  	}
+ 
+ 	pad->dev = dev;
+@@ -126,17 +100,17 @@ static int dc_pad_connect(struct maple_d
+ 
+ 	for (i = 0; i < 32; i++)
+ 		if (data & (1<<i) && btn_bit[i] >= 0)
+-			pad->dev->keybit[BTN_JOYSTICK/32] |= BIT(btn_bit[i]);
++			pad->dev->keybit[BIT_WORD(BTN_JOYSTICK)] |= BIT_MASK(btn_bit[i]);
+ 
+ 	if (pad->dev->keybit[BTN_JOYSTICK/32])
+-		pad->dev->evbit[0] |= BIT(EV_KEY);
++		pad->dev->evbit[0] |= BIT_MASK(EV_KEY);
+ 
+ 	for (i = 0; i < 32; i++)
+ 		if (data & (1<<i) && abs_bit[i] >= 0)
+-			pad->dev->absbit[0] |= BIT(abs_bit[i]);
++			pad->dev->absbit[0] |= BIT_MASK(abs_bit[i]);
+ 
+ 	if (pad->dev->absbit[0])
+-		pad->dev->evbit[0] |= BIT(EV_ABS);
++		pad->dev->evbit[0] |= BIT_MASK(EV_ABS);
+ 
+ 	for (i = ABS_X; i <= ABS_BRAKE; i++) {
+ 		pad->dev->absmax[i] = 255;
+@@ -152,8 +126,6 @@ static int dc_pad_connect(struct maple_d
+ 		pad->dev->absflat[i] = 0;
+ 	}
+ 
+-	pad->dev->open = dc_pad_open;
+-	pad->dev->close = dc_pad_close;
+ 	pad->dev->private = pad;
+ 	pad->dev->event = NULL;
+ 	pad->dev->dev.parent = &mdev->dev;
+@@ -162,16 +134,20 @@ static int dc_pad_connect(struct maple_d
+ 	input_set_drvdata(dev, pad);
+ 
+ 	error = input_register_device(pad->dev);
+-	if (error) {
+-		input_free_device(pad->dev);
+-		kfree(pad);
+-		return -error;
+-	}
++	if (error)
++		goto fail_register;
+ 
+-	maple_getcond_callback(mdev, dc_pad_callback_idle, 0xFFFFFFFF,
++	maple_getcond_callback(mdev, dc_pad_callback, HZ/10,
+ 		MAPLE_FUNC_CONTROLLER);
+ 
+-	return 0;
++	return error;
++
++fail_register:
++	input_free_device(pad->dev);
++fail_nomem_2:
++	kfree(pad);
++fail_nomem_1:
++	return -error;
  }
  
+ static void dc_pad_disconnect(struct maple_device *mdev)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adrian@newgolddream.dyndns.info are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+maple-add-driver-for-sega-dreamcast-controller-update.patch
 git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
