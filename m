@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-bad-page-if-page_cgroup-when-free.patch added to -mm tree
-Date: Wed, 27 Feb 2008 19:52:40 -0800
-Message-ID: <200802280352.m1S3qewI014217@imap1.linux-foundation.org>
+Subject: + memcg-fix-mem_cgroup_move_lists-locking.patch added to -mm tree
+Date: Wed, 27 Feb 2008 19:52:54 -0800
+Message-ID: <200802280352.m1S3qshu014238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:42463 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:45396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754841AbYB1DxN (ORCPT
+	by vger.kernel.org with ESMTP id S1754940AbYB1DxW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 22:53:13 -0500
+	Wed, 27 Feb 2008 22:53:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com,
 
 
 The patch titled
-     memcg: bad page if page_cgroup when free
+     memcg: fix mem_cgroup_move_lists locking
 has been added to the -mm tree.  Its filename is
-     memcg-bad-page-if-page_cgroup-when-free.patch
+     memcg-fix-mem_cgroup_move_lists-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: bad page if page_cgroup when free
+Subject: memcg: fix mem_cgroup_move_lists locking
 From: Hugh Dickins <hugh@veritas.com>
 
-Replace free_hot_cold_page's VM_BUG_ON(page_get_page_cgroup(page)) by a "Bad
-page state" and clear: most users don't have CONFIG_DEBUG_VM on, and if it
-were set here, it'd likely cause corruption when the page is reused.
+Ever since the VM_BUG_ON(page_get_page_cgroup(page)) (now Bad page state) went
+into page freeing, I've hit it from time to time in testing on some machines,
+sometimes only after many days.  Recently found a machine which could usually
+produce it within a few hours, which got me there at last.
 
-Don't use page_assign_page_cgroup to clear it: that should be private to
-memcontrol.c, and always called with the lock taken; and memmap_init_zone
-doesn't need it either - like page->mapping and other pointers throughout the
-kernel, Linux assumes pointers in zeroed structures are NULL pointers.
+The culprit is mem_cgroup_move_lists, whose locking is inadequate; and the
+arrangement of structures was such that you got page_cgroups from the lru list
+neatly put on to SLUB's freelist.  Kamezawa-san identified the same hole
+independently.
 
-Instead use page_reset_bad_cgroup, added to memcontrol.h for this only.
+The main problem was that it was missing the lock_page_cgroup it needs to
+safely page_get_page_cgroup; but it's tricky to go beyond that too, and I
+couldn't do it with SLAB_DESTROY_BY_RCU as I'd expected.  See the code for
+comments on the constraints.
+
+This patch immediately gets replaced by a simpler one from Hirokazu-san; but
+is it just foolish pride that tells me to put this one on record, in case we
+need to come back to it later?
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: David Rientjes <rientjes@google.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hirokazu Takahashi <taka@valinux.co.jp>
 Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -58,142 +66,80 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++++----
- mm/memcontrol.c            |   27 ++++++++++++---------------
- mm/page_alloc.c            |   18 ++++++++++++------
- 3 files changed, 28 insertions(+), 25 deletions(-)
+ mm/memcontrol.c |   49 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-bad-page-if-page_cgroup-when-free include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-bad-page-if-page_cgroup-when-free
-+++ a/include/linux/memcontrol.h
-@@ -29,8 +29,9 @@ struct mm_struct;
- 
- extern void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p);
- extern void mm_free_cgroup(struct mm_struct *mm);
--extern void page_assign_page_cgroup(struct page *page,
--					struct page_cgroup *pc);
-+
-+#define page_reset_bad_cgroup(page)	((page)->page_cgroup = 0)
-+
- extern struct page_cgroup *page_get_page_cgroup(struct page *page);
- extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask);
-@@ -82,8 +83,7 @@ static inline void mm_free_cgroup(struct
- {
- }
- 
--static inline void page_assign_page_cgroup(struct page *page,
--						struct page_cgroup *pc)
-+static inline void page_reset_bad_cgroup(struct page *page)
- {
- }
- 
-diff -puN mm/memcontrol.c~memcg-bad-page-if-page_cgroup-when-free mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-bad-page-if-page_cgroup-when-free
+diff -puN mm/memcontrol.c~memcg-fix-mem_cgroup_move_lists-locking mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-mem_cgroup_move_lists-locking
 +++ a/mm/memcontrol.c
-@@ -140,11 +140,17 @@ struct mem_cgroup {
- 
- /*
-  * We use the lower bit of the page->page_cgroup pointer as a bit spin
-- * lock. We need to ensure that page->page_cgroup is atleast two
-- * byte aligned (based on comments from Nick Piggin)
-+ * lock.  We need to ensure that page->page_cgroup is at least two
-+ * byte aligned (based on comments from Nick Piggin).  But since
-+ * bit_spin_lock doesn't actually set that lock bit in a non-debug
-+ * uniprocessor kernel, we should avoid setting it here too.
-  */
- #define PAGE_CGROUP_LOCK_BIT 	0x0
--#define PAGE_CGROUP_LOCK 		(1 << PAGE_CGROUP_LOCK_BIT)
-+#if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
-+#define PAGE_CGROUP_LOCK 	(1 << PAGE_CGROUP_LOCK_BIT)
-+#else
-+#define PAGE_CGROUP_LOCK	0x0
-+#endif
- 
- /*
-  * A page_cgroup page is associated with every page descriptor. The
-@@ -271,19 +277,10 @@ static inline int page_cgroup_locked(str
- 					&page->page_cgroup);
+@@ -277,6 +277,11 @@ static void lock_page_cgroup(struct page
+ 	bit_spin_lock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
  }
  
--void page_assign_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static void page_assign_page_cgroup(struct page *page, struct page_cgroup *pc)
- {
--	int locked;
--
--	/*
--	 * While resetting the page_cgroup we might not hold the
--	 * page_cgroup lock. free_hot_cold_page() is an example
--	 * of such a scenario
--	 */
--	if (pc)
--		VM_BUG_ON(!page_cgroup_locked(page));
--	locked = (page->page_cgroup & PAGE_CGROUP_LOCK);
--	page->page_cgroup = ((unsigned long)pc | locked);
-+	VM_BUG_ON(!page_cgroup_locked(page));
-+	page->page_cgroup = ((unsigned long)pc | PAGE_CGROUP_LOCK);
- }
- 
- struct page_cgroup *page_get_page_cgroup(struct page *page)
-diff -puN mm/page_alloc.c~memcg-bad-page-if-page_cgroup-when-free mm/page_alloc.c
---- a/mm/page_alloc.c~memcg-bad-page-if-page_cgroup-when-free
-+++ a/mm/page_alloc.c
-@@ -221,13 +221,19 @@ static inline int bad_range(struct zone 
- 
- static void bad_page(struct page *page)
- {
--	printk(KERN_EMERG "Bad page state in process '%s'\n"
--		KERN_EMERG "page:%p flags:0x%0*lx mapping:%p mapcount:%d count:%d\n"
--		KERN_EMERG "Trying to fix it up, but a reboot is needed\n"
--		KERN_EMERG "Backtrace:\n",
-+	void *pc = page_get_page_cgroup(page);
++static int try_lock_page_cgroup(struct page *page)
++{
++	return bit_spin_trylock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
++}
 +
-+	printk(KERN_EMERG "Bad page state in process '%s'\n" KERN_EMERG
-+		"page:%p flags:0x%0*lx mapping:%p mapcount:%d count:%d\n",
- 		current->comm, page, (int)(2*sizeof(unsigned long)),
- 		(unsigned long)page->flags, page->mapping,
- 		page_mapcount(page), page_count(page));
+ static void unlock_page_cgroup(struct page *page)
+ {
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+@@ -348,17 +353,49 @@ int task_in_mem_cgroup(struct task_struc
+ void mem_cgroup_move_lists(struct page *page, bool active)
+ {
+ 	struct page_cgroup *pc;
++	struct mem_cgroup *mem;
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long flags;
+ 
+-	pc = page_get_page_cgroup(page);
+-	if (!pc)
++	/*
++	 * We cannot lock_page_cgroup while holding zone's lru_lock,
++	 * because other holders of lock_page_cgroup can be interrupted
++	 * with an attempt to rotate_reclaimable_page.  But we cannot
++	 * safely get to page_cgroup without it, so just try_lock it:
++	 * mem_cgroup_isolate_pages allows for page left on wrong list.
++	 */
++	if (!try_lock_page_cgroup(page))
+ 		return;
+ 
+-	mz = page_cgroup_zoneinfo(pc);
+-	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_move_lists(pc, active);
+-	spin_unlock_irqrestore(&mz->lru_lock, flags);
++	/*
++	 * Now page_cgroup is stable, but we cannot acquire mz->lru_lock
++	 * while holding it, because mem_cgroup_force_empty_list does the
++	 * reverse.  Get a hold on the mem_cgroup before unlocking, so that
++	 * the zoneinfo remains stable, then take mz->lru_lock; then check
++	 * that page still points to pc and pc (even if freed and reassigned
++	 * to that same page meanwhile) still points to the same mem_cgroup.
++	 * Then we know mz still points to the right spinlock, so it's safe
++	 * to move_lists (page->page_cgroup might be reset while we do so, but
++	 * that doesn't matter: pc->page is stable till we drop mz->lru_lock).
++	 * We're being a little naughty not to try_lock_page_cgroup again
++	 * inside there, but we are safe, aren't we?  Aren't we?  Whistle...
++	 */
++	pc = page_get_page_cgroup(page);
 +	if (pc) {
-+		printk(KERN_EMERG "cgroup:%p\n", pc);
-+		page_reset_bad_cgroup(page);
-+	}
-+	printk(KERN_EMERG "Trying to fix it up, but a reboot is needed\n"
-+		KERN_EMERG "Backtrace:\n");
- 	dump_stack();
- 	page->flags &= ~(1 << PG_lru	|
- 			1 << PG_private |
-@@ -453,6 +459,7 @@ static inline int free_pages_check(struc
- {
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
-+		(page_get_page_cgroup(page) != NULL) |
- 		(page_count(page) != 0)  |
- 		(page->flags & (
- 			1 << PG_lru	|
-@@ -602,6 +609,7 @@ static int prep_new_page(struct page *pa
- {
- 	if (unlikely(page_mapcount(page) |
- 		(page->mapping != NULL)  |
-+		(page_get_page_cgroup(page) != NULL) |
- 		(page_count(page) != 0)  |
- 		(page->flags & (
- 			1 << PG_lru	|
-@@ -988,7 +996,6 @@ static void free_hot_cold_page(struct pa
++		mem = pc->mem_cgroup;
++		mz = page_cgroup_zoneinfo(pc);
++		css_get(&mem->css);
++
++		unlock_page_cgroup(page);
++
++		spin_lock_irqsave(&mz->lru_lock, flags);
++		if (page_get_page_cgroup(page) == pc && pc->mem_cgroup == mem)
++			__mem_cgroup_move_lists(pc, active);
++		spin_unlock_irqrestore(&mz->lru_lock, flags);
++
++		css_put(&mem->css);
++	} else
++		unlock_page_cgroup(page);
+ }
  
- 	if (!PageHighMem(page))
- 		debug_check_no_locks_freed(page_address(page), PAGE_SIZE);
--	VM_BUG_ON(page_get_page_cgroup(page));
- 	arch_free_page(page, 0);
- 	kernel_map_pages(page, 1, 0);
- 
-@@ -2527,7 +2534,6 @@ void __meminit memmap_init_zone(unsigned
- 		set_page_links(page, zone, nid, pfn);
- 		init_page_count(page);
- 		reset_page_mapcount(page);
--		page_assign_page_cgroup(page, NULL);
- 		SetPageReserved(page);
- 
- 		/*
+ /*
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
