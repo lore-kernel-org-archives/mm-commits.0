@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-serial-m32r_sioc-correct-use-of-and.patch added to -mm tree
-Date: Wed, 27 Feb 2008 23:57:09 -0800
-Message-ID: <200802280757.m1S7v9Pu022655@imap1.linux-foundation.org>
+Subject: + drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch added to -mm tree
+Date: Wed, 27 Feb 2008 23:57:07 -0800
+Message-ID: <200802280757.m1S7v7ln022652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36851 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:42191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753495AbYB1H5w (ORCPT
+	by vger.kernel.org with ESMTP id S1752106AbYB1H6O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 02:57:52 -0500
+	Thu, 28 Feb 2008 02:58:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, takata@linux-m32r.org
+Cc: julia@diku.dk, guy.cohen@intel.com, linville@tuxdriver.com, reinette.chatre@intel.com, tomas.winkler@intel.com, yi.zhu@intel.com
 
 
 The patch titled
-     drivers/serial/m32r_sio.c: correct use of ! and &
+     drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
 has been added to the -mm tree.  Its filename is
-     drivers-serial-m32r_sioc-correct-use-of-and.patch
+     drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/serial/m32r_sio.c: correct use of ! and &
+Subject: drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
 From: Julia Lawall <julia@diku.dk>
 
 In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
@@ -58,24 +58,28 @@ The semantic patch that makes this change is as follows:
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: Guy Cohen <guy.cohen@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/m32r_sio.c |    2 +-
+ drivers/net/wireless/iwlwifi/iwl-4965.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/m32r_sio.c~drivers-serial-m32r_sioc-correct-use-of-and drivers/serial/m32r_sio.c
---- a/drivers/serial/m32r_sio.c~drivers-serial-m32r_sioc-correct-use-of-and
-+++ a/drivers/serial/m32r_sio.c
-@@ -421,7 +421,7 @@ static void transmit_chars(struct uart_s
- 		up->port.icount.tx++;
- 		if (uart_circ_empty(xmit))
- 			break;
--		while (!serial_in(up, UART_LSR) & UART_LSR_THRE);
-+		while (!(serial_in(up, UART_LSR) & UART_LSR_THRE));
+diff -puN drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and drivers/net/wireless/iwlwifi/iwl-4965.c
+--- a/drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and
++++ a/drivers/net/wireless/iwlwifi/iwl-4965.c
+@@ -4589,7 +4589,7 @@ static u8 iwl4965_is_fat_tx_allowed(stru
  
- 	} while (--count > 0);
+ 	if (sta_ht_inf) {
+ 		if ((!sta_ht_inf->ht_supported) ||
+-		   (!sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH))
++		   (!(sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH)))
+ 			return 0;
+ 	}
  
 _
 
