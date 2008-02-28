@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch added to -mm tree
-Date: Thu, 28 Feb 2008 01:33:42 -0800
-Message-ID: <200802280933.m1S9XgJ1026003@imap1.linux-foundation.org>
+Subject: + acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch added to -mm tree
+Date: Thu, 28 Feb 2008 01:55:11 -0800
+Message-ID: <200802280955.m1S9tBSK026786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33041 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752977AbYB1JeZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755235AbYB1Jzk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 04:34:25 -0500
+	Thu, 28 Feb 2008 04:55:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gordonfarquharson@gmail.com, dwmw2@infradead.org, tglx@linutronix.de
+Cc: hmh@hmh.eng.br, lenb@kernel.org, rjw@sisk.pl, xhejtman@ics.muni.cz, zdenek.kabelac@gmail.com
 
 
 The patch titled
-     mtd: nor: add support for the ST M29W400DB flash chip
+     ACPI: thinkpad-acpi: fix hotkey_get_tablet_mode
 has been added to the -mm tree.  Its filename is
-     mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
+     acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: nor: add support for the ST M29W400DB flash chip
-From: "Gordon Farquharson" <gordonfarquharson@gmail.com>
+Subject: ACPI: thinkpad-acpi: fix hotkey_get_tablet_mode
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-Add support for the ST M29W400DB flash chip.  which is used on the GLAN Tank
-NAS.
+I used the wrong return convention on hotkey_get_tablet_mode(), breaking a lot
+of stuff.  Bad Henrique!
 
-Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Fix it to return the status in the parameter-by-reference, and IO status on
+the function return value.  Duh.
+
+Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/jedec_probe.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/misc/thinkpad_acpi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/chips/jedec_probe.c~mtd-nor-add-support-for-the-st-m29w400db-flash-chip drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mtd-nor-add-support-for-the-st-m29w400db-flash-chip
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -135,6 +135,7 @@
- #define M29W160DT	0x22C4
- #define M29W160DB	0x2249
- #define M29W040B	0x00E3
-+#define M29W400DB	0x00EF
- #define M50FW040	0x002C
- #define M50FW080	0x002D
- #define M50FW016	0x002E
-@@ -1498,7 +1499,22 @@ static const struct amd_flash_info jedec
- 		.regions	= {
- 			ERASEINFO(0x10000,8),
- 		}
--        }, {
-+	}, {
-+		.mfr_id		= MANUFACTURER_ST,
-+		.dev_id		= M29W400DB,
-+		.name		= "ST M29W400DB",
-+		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
-+		.uaddr		= MTD_UADDR_0x0555_0x02AA,
-+		.dev_size	= SIZE_512KiB,
-+		.cmd_set	= P_ID_AMD_STD,
-+		.nr_regions	= 4,
-+		.regions	= {
-+			ERASEINFO(0x04000,1),
-+			ERASEINFO(0x02000,2),
-+			ERASEINFO(0x08000,1),
-+			ERASEINFO(0x10000,7)
-+		}
-+	}, {
- 		.mfr_id		= MANUFACTURER_ST,
- 		.dev_id		= M50FW040,
- 		.name		= "ST M50FW040",
+diff -puN drivers/misc/thinkpad_acpi.c~acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -1078,7 +1078,8 @@ static int hotkey_get_tablet_mode(int *s
+ 	if (!acpi_evalf(hkey_handle, &s, "MHKG", "d"))
+ 		return -EIO;
+ 
+-	return ((s & TP_HOTKEY_TABLET_MASK) != 0);
++	*status = ((s & TP_HOTKEY_TABLET_MASK) != 0);
++	return 0;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from gordonfarquharson@gmail.com are
+Patches currently in -mm which might be from hmh@hmh.eng.br are
 
-mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
-fix-b43-driver-build-for-arm.patch
+miscacpibacklight-compal-laptop-extras-3rd-try.patch
+acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch
