@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-remove-argv_len-from-struct-linux_binprm.patch added to -mm tree
-Date: Wed, 27 Feb 2008 18:43:09 -0800
-Message-ID: <200802280243.m1S2h98J011789@imap1.linux-foundation.org>
+Subject: + smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch added to -mm tree
+Date: Wed, 27 Feb 2008 18:44:38 -0800
+Message-ID: <200802280244.m1S2icbC011894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:47755 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:53046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758779AbYB1Cnt (ORCPT
+	by vger.kernel.org with ESMTP id S1751340AbYB1CpP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Feb 2008 21:43:49 -0500
+	Wed, 27 Feb 2008 21:45:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penguin-kernel@i-love.sakura.ne.jp, aaw@google.compenguin-kernel@i-love.sakura.ne.jp
+Cc: harvey.harrison@gmail.com, casey@schaufler-ca.com
 
 
 The patch titled
-     exec: remove argv_len from struct linux_binprm
+     smack: fix integer as NULL pointer warning in smack_lsm.c
 has been added to the -mm tree.  Its filename is
-     exec-remove-argv_len-from-struct-linux_binprm.patch
+     smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exec: remove argv_len from struct linux_binprm
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: smack: fix integer as NULL pointer warning in smack_lsm.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-I noticed that 2.6.24.2 calculates bprm->argv_len at do_execve().  But it
-doesn't update bprm->argv_len after "remove_arg_zero() +
-copy_strings_kernel()" at load_script() etc.
+security/smack/smack_lsm.c:1257:16: warning: Using plain integer as NULL pointer
 
-audit_bprm() is called from search_binary_handler() and
-search_binary_handler() is called from load_script() etc.  Thus, I think the
-condition check
-
-  if (bprm->argv_len > (audit_argv_kb << 10))
-          return -E2BIG;
-
-in audit_bprm() might return wrong result when strlen(removed_arg) !=
-strlen(spliced_args).  Why not update bprm->argv_len at load_script() etc.  ?
-
-By the way, 2.6.25-rc3 seems to not doing the condition check.  Is the field
-bprm->argv_len no longer needed?
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Ollie Wild <aaw@google.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c               |    3 ---
- include/linux/binfmts.h |    1 -
- 2 files changed, 4 deletions(-)
+ security/smack/smack_lsm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-remove-argv_len-from-struct-linux_binprm fs/exec.c
---- a/fs/exec.c~exec-remove-argv_len-from-struct-linux_binprm
-+++ a/fs/exec.c
-@@ -1274,7 +1274,6 @@ int do_execve(char * filename,
- {
- 	struct linux_binprm *bprm;
- 	struct file *file;
--	unsigned long env_p;
- 	int retval;
+diff -puN security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc
++++ a/security/smack/smack_lsm.c
+@@ -1254,7 +1254,7 @@ static void smack_set_catset(char *catse
+ 	int rc;
+ 	int byte;
  
- 	retval = -ENOMEM;
-@@ -1322,11 +1321,9 @@ int do_execve(char * filename,
- 	if (retval < 0)
- 		goto out;
+-	if (catset == 0)
++	if (!catset)
+ 		return;
  
--	env_p = bprm->p;
- 	retval = copy_strings(bprm->argc, argv, bprm);
- 	if (retval < 0)
- 		goto out;
--	bprm->argv_len = env_p - bprm->p;
- 
- 	retval = search_binary_handler(bprm,regs);
- 	if (retval >= 0) {
-diff -puN include/linux/binfmts.h~exec-remove-argv_len-from-struct-linux_binprm include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-remove-argv_len-from-struct-linux_binprm
-+++ a/include/linux/binfmts.h
-@@ -48,7 +48,6 @@ struct linux_binprm{
- 	unsigned interp_flags;
- 	unsigned interp_data;
- 	unsigned long loader, exec;
--	unsigned long argv_len;
- };
- 
- #define BINPRM_FLAGS_ENFORCE_NONDUMP_BIT 0
+ 	sap->flags |= NETLBL_SECATTR_MLS_CAT;
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-exec-remove-argv_len-from-struct-linux_binprm.patch
-random-clean-up-checkpatch-complaints-fix.patch
+origin.patch
+specialixc-fix-possible-double-unlock.patch
+git-x86.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-dvb.patch
+git-dlm.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+git-net.patch
+git-nfsd.patch
+block-fix-shadowed-variable-warning-in-blk-mapc.patch
+block-remove-extern-on-function-definition.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
