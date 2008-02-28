@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-cleanup-block-kconfigiosched-help-descriptions.patch added to -mm tree
-Date: Wed, 27 Feb 2008 22:32:43 -0800
-Message-ID: <200802280632.m1S6WhEP019592@imap1.linux-foundation.org>
+Subject: + add-chip-driver-for-wm9705-touchscreen.patch added to -mm tree
+Date: Wed, 27 Feb 2008 23:09:24 -0800
+Message-ID: <200802280709.m1S79OJc020885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33273 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752081AbYB1GdX (ORCPT
+	by vger.kernel.org with ESMTP id S1756048AbYB1HMH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 01:33:23 -0500
+	Thu, 28 Feb 2008 02:12:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nick@nick-andrew.net, jens.axboe@oracle.com
+Cc: broonie@opensource.wolfsonmicro.com, dbaryshkov@gmail.com, dtor@mail.ru, gg@opensource.wolfsonmicro.com, giometti@enneenne.com, jikos@jikos.cz, liam.girdwood@wolfsonmicro.com, linux01@architechnical.net, mike.arthur@wolfsonmicro.com, mkl@pengutronix.de, rmk@arm.linux.org.uk, spyro@f2s.com, stanley.cai@intel.com, vince@kyllikki.org, zap@homelink.ru
 
 
 The patch titled
-     Kconfig: cleanup block/Kconfig.iosched help descriptions
+     Add chip driver for WM9705 touchscreen
 has been added to the -mm tree.  Its filename is
-     kconfig-cleanup-block-kconfigiosched-help-descriptions.patch
+     add-chip-driver-for-wm9705-touchscreen.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,165 +34,394 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kconfig: cleanup block/Kconfig.iosched help descriptions
-From: Nick Andrew <nick@nick-andrew.net>
+Subject: Add chip driver for WM9705 touchscreen
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Modify the help descriptions of block/Kconfig.iosched for clarity, accuracy
-and consistency.
-
-More information is added to each of the I/O scheduler choices and they are
-also reordered to improve the flow of information to the user.
-
-IOSCHED_CFQ is the default because it distributes the bandwidth fairly.  It's
-also the place I decided to add the most help text, because it seems not
-possible to add help text to the menu "IO Schedulers" itself.
-
-So IOSCHED_CFQ is annotated with two things.  Firstly a hint about how to use
-the prioritisation at runtime, i.e.  through the ionice(1) command.  Secondly,
-a reference to Documentation/block/switching-sched.txt to show how to switch
-the scheduler for block devices at runtime, and/or choose a new scheduler via
-the 'elevator=' kernel parameter.
-
-These schedulers can be compiled as modules (except for noop-iosched) so this
-is mentioned in each case.  However the Kconfig won't allow a scheduler which
-is built as a module to be chosen as the default scheduler, and I noted that.
-
-The boilerplate "If unsure, say Y" was added to IOSCHED_CFQ, IOSCHED_AS
-and IOSCHED_DEADLINE.
-
-A 1-line help description was added to each of the 4 choices under "Default
-I/O scheduler".  It won't explain anything, but it's friendlier than saying
-nothing at all.
-
-Signed-off-by: Nick Andrew <nick@nick-andrew.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
+Signed-off-by: Graeme Gregory <gg@opensource.wolfsonmicro.com>
+Signed-off-by: Mike Arthur <mike.arthur@wolfsonmicro.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Stanley Cai <stanley.cai@intel.com>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: Pete MacKay <linux01@architechnical.net>
+Cc: Ian Molton <spyro@f2s.com>
+Cc: Vince Sanders <vince@kyllikki.org>
+Cc: Andrew Zabolotny <zap@homelink.ru>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig.iosched |   74 +++++++++++++++++++++++++++++++---------
- 1 file changed, 58 insertions(+), 16 deletions(-)
+ drivers/input/touchscreen/wm9705.c |  352 +++++++++++++++++++++++++++
+ 1 file changed, 352 insertions(+)
 
-diff -puN block/Kconfig.iosched~kconfig-cleanup-block-kconfigiosched-help-descriptions block/Kconfig.iosched
---- a/block/Kconfig.iosched~kconfig-cleanup-block-kconfigiosched-help-descriptions
-+++ a/block/Kconfig.iosched
-@@ -2,15 +2,28 @@ if BLOCK
- 
- menu "IO Schedulers"
- 
--config IOSCHED_NOOP
--	bool
-+config IOSCHED_CFQ
-+	tristate "CFQ I/O scheduler"
- 	default y
- 	---help---
--	  The no-op I/O scheduler is a minimal scheduler that does basic merging
--	  and sorting. Its main uses include non-disk based block devices like
--	  memory devices, and specialised software or hardware environments
--	  that do their own scheduling and require only minimal assistance from
--	  the kernel.
-+	  The CFQ I/O scheduler tries to distribute bandwidth equally
-+	  among all processes in the system. It should provide a fair
-+	  working environment, suitable for desktop systems.
+diff -puN /dev/null drivers/input/touchscreen/wm9705.c
+--- /dev/null
++++ a/drivers/input/touchscreen/wm9705.c
+@@ -0,0 +1,352 @@
++/*
++ * wm9705.c  --  Codec driver for Wolfson WM9705 AC97 Codec.
++ *
++ * Copyright 2003, 2004, 2005, 2006, 2007 Wolfson Microelectronics PLC.
++ * Author: Liam Girdwood
++ *         liam.girdwood@wolfsonmicro.com or linux@wolfsonmicro.com
++ * Parts Copyright : Ian Molton <spyro@f2s.com>
++ *                   Andrew Zabolotny <zap@homelink.ru>
++ *                   Russell King <rmk@arm.linux.org.uk>
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
 +
-+	  This is the default I/O scheduler.
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/version.h>
++#include <linux/kernel.h>
++#include <linux/input.h>
++#include <linux/delay.h>
++#include <linux/bitops.h>
++#include <linux/wm97xx.h>
 +
-+	  The CFQ I/O scheduler supports prioritisation for individual
-+	  processes; see ionice(1) for details.
++#define TS_NAME			"wm97xx"
++#define WM9705_VERSION		"0.62"
++#define DEFAULT_PRESSURE	0xb0c0
 +
-+	  See <file:Documentation/block/switching-sched.txt> for details
-+	  on how to choose a default I/O scheduler at boot time and also
-+	  on a per-device basis at run time.
++/*
++ * Module parameters
++ */
 +
-+	  To compile this scheduler as a module, choose M here; the module
-+	  will be called cfq-iosched. A scheduler built as a module cannot
-+	  be chosen as default.
++/*
++ * Set current used for pressure measurement.
++ *
++ * Set pil = 2 to use 400uA
++ *     pil = 1 to use 200uA and
++ *     pil = 0 to disable pressure measurement.
++ *
++ * This is used to increase the range of values returned by the adc
++ * when measureing touchpanel pressure.
++ */
++static int pil;
++module_param(pil, int, 0);
++MODULE_PARM_DESC(pil, "Set current used for pressure measurement.");
 +
-+	  If unsure, say Y.
- 
- config IOSCHED_AS
- 	tristate "Anticipatory I/O scheduler"
-@@ -21,6 +34,15 @@ config IOSCHED_AS
- 	  deadline I/O scheduler, it can also be slower in some cases
- 	  especially some database loads.
- 
-+	  See <file:Documentation/block/as-iosched.txt> for detailed
-+	  information on this scheduler.
++/*
++ * Set threshold for pressure measurement.
++ *
++ * Pen down pressure below threshold is ignored.
++ */
++static int pressure = DEFAULT_PRESSURE & 0xfff;
++module_param(pressure, int, 0);
++MODULE_PARM_DESC(pressure, "Set threshold for pressure measurement.");
 +
-+	  To compile this scheduler as a module, choose M here; the module
-+	  will be called as-iosched. A scheduler built as a module cannot
-+	  be chosen as default.
++/*
++ * Set adc sample delay.
++ *
++ * For accurate touchpanel measurements, some settling time may be
++ * required between the switch matrix applying a voltage across the
++ * touchpanel plate and the ADC sampling the signal.
++ *
++ * This delay can be set by setting delay = n, where n is the array
++ * position of the delay in the array delay_table below.
++ * Long delays > 1ms are supported for completeness, but are not
++ * recommended.
++ */
++static int delay = 4;
++module_param(delay, int, 0);
++MODULE_PARM_DESC(delay, "Set adc sample delay.");
 +
-+	  If unsure, say Y.
++/*
++ * Pen detect comparator threshold.
++ *
++ * 0 to Vmid in 15 steps, 0 = use zero power comparator with Vmid threshold
++ * i.e. 1 =  Vmid/15 threshold
++ *      15 =  Vmid/1 threshold
++ *
++ * Adjust this value if you are having problems with pen detect not
++ * detecting any down events.
++ */
++static int pdd = 8;
++module_param(pdd, int, 0);
++MODULE_PARM_DESC(pdd, "Set pen detect comparator threshold");
 +
- config IOSCHED_DEADLINE
- 	tristate "Deadline I/O scheduler"
- 	default y
-@@ -31,14 +53,26 @@ config IOSCHED_DEADLINE
- 	  a disk at any one time, its behaviour is almost identical to the
- 	  anticipatory I/O scheduler and so is a good choice.
- 
--config IOSCHED_CFQ
--	tristate "CFQ I/O scheduler"
-+	  See <file:Documentation/block/deadline-iosched.txt> for detailed
-+	  information on this scheduler.
++/*
++ * Set adc mask function.
++ *
++ * Sources of glitch noise, such as signals driving an LCD display, may feed
++ * through to the touch screen plates and affect measurement accuracy. In
++ * order to minimise this, a signal may be applied to the MASK pin to delay or
++ * synchronise the sampling.
++ *
++ * 0 = No delay or sync
++ * 1 = High on pin stops conversions
++ * 2 = Edge triggered, edge on pin delays conversion by delay param (above)
++ * 3 = Edge triggered, edge on pin starts conversion after delay param
++ */
++static int mask;
++module_param(mask, int, 0);
++MODULE_PARM_DESC(mask, "Set adc mask function.");
 +
-+	  To compile this scheduler as a module, choose M here; the module
-+	  will be called deadline-iosched. A scheduler built as a module cannot
-+	  be chosen as default.
++/*
++ * ADC sample delay times in uS
++ */
++static const int delay_table[] = {
++	21,    /* 1 AC97 Link frames */
++	42,    /* 2                  */
++	84,    /* 4                  */
++	167,   /* 8                  */
++	333,   /* 16                 */
++	667,   /* 32                 */
++	1000,  /* 48                 */
++	1333,  /* 64                 */
++	2000,  /* 96                 */
++	2667,  /* 128                */
++	3333,  /* 160                */
++	4000,  /* 192                */
++	4667,  /* 224                */
++	5333,  /* 256                */
++	6000,  /* 288                */
++	0      /* No delay, switch matrix always on */
++};
 +
-+	  If unsure, say Y.
++/*
++ * Delay after issuing a POLL command.
++ *
++ * The delay is 3 AC97 link frames + the touchpanel settling delay
++ */
++static inline void poll_delay(int d)
++{
++	udelay(3 * AC97_LINK_FRAME + delay_table[d]);
++}
 +
-+config IOSCHED_NOOP
-+	bool
- 	default y
- 	---help---
--	  The CFQ I/O scheduler tries to distribute bandwidth equally
--	  among all processes in the system. It should provide a fair
--	  working environment, suitable for desktop systems.
--	  This is the default I/O scheduler.
-+	  The no-op I/O scheduler is a minimal scheduler that does basic merging
-+	  and sorting. Its main uses include non-disk based block devices like
-+	  memory devices, and specialised software or hardware environments
-+	  that do their own scheduling and require only minimal assistance from
-+	  the kernel.
++/*
++ * set up the physical settings of the WM9705
++ */
++static void wm9705_phy_init(struct wm97xx *wm)
++{
++	u16 dig1 = 0, dig2 = WM97XX_RPR;
 +
-+	  If unsure, say Y.
- 
- choice
- 	prompt "Default I/O scheduler"
-@@ -47,17 +81,25 @@ choice
- 	  Select the I/O scheduler which will be used by default for all
- 	  block devices.
- 
-+	config DEFAULT_CFQ
-+		bool "CFQ" if IOSCHED_CFQ=y
-+		help
-+		  Choose the CFQ I/O scheduler as default.
++	/*
++	* mute VIDEO and AUX as they share X and Y touchscreen
++	* inputs on the WM9705
++	*/
++	wm97xx_reg_write(wm, AC97_AUX, 0x8000);
++	wm97xx_reg_write(wm, AC97_VIDEO, 0x8000);
 +
- 	config DEFAULT_AS
- 		bool "Anticipatory" if IOSCHED_AS=y
-+		help
-+		  Choose the Anticipatory I/O scheduler as default.
- 
- 	config DEFAULT_DEADLINE
- 		bool "Deadline" if IOSCHED_DEADLINE=y
--
--	config DEFAULT_CFQ
--		bool "CFQ" if IOSCHED_CFQ=y
-+		help
-+		  Choose the Deadline I/O scheduler as default.
- 
- 	config DEFAULT_NOOP
- 		bool "No-op"
-+		help
-+		  Choose the No-op I/O scheduler as default.
- 
- endchoice
- 
++	/* touchpanel pressure current*/
++	if (pil == 2) {
++		dig2 |= WM9705_PIL;
++		dev_dbg(wm->dev,
++			"setting pressure measurement current to 400uA.");
++	} else if (pil)
++		dev_dbg(wm->dev,
++			"setting pressure measurement current to 200uA.");
++	if (!pil)
++		pressure = 0;
++
++	/* polling mode sample settling delay */
++	if (delay != 4) {
++		if (delay < 0 || delay > 15) {
++			dev_dbg(wm->dev, "supplied delay out of range.");
++			delay = 4;
++		}
++	}
++	dig1 &= 0xff0f;
++	dig1 |= WM97XX_DELAY(delay);
++	dev_dbg(wm->dev, "setting adc sample delay to %d u Secs.",
++		delay_table[delay]);
++
++	/* WM9705 pdd */
++	dig2 |= (pdd & 0x000f);
++	dev_dbg(wm->dev, "setting pdd to Vmid/%d", 1 - (pdd & 0x000f));
++
++	/* mask */
++	dig2 |= ((mask & 0x3) << 4);
++
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, dig1);
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, dig2);
++}
++
++static void wm9705_dig_enable(struct wm97xx *wm, int enable)
++{
++	if (enable) {
++		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
++				 wm->dig[2] | WM97XX_PRP_DET_DIG);
++		wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD); /* dummy read */
++	} else
++		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
++				 wm->dig[2] & ~WM97XX_PRP_DET_DIG);
++}
++
++static void wm9705_aux_prepare(struct wm97xx *wm)
++{
++	memcpy(wm->dig_save, wm->dig, sizeof(wm->dig));
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, 0);
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, WM97XX_PRP_DET_DIG);
++}
++
++static void wm9705_dig_restore(struct wm97xx *wm)
++{
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, wm->dig_save[1]);
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, wm->dig_save[2]);
++}
++
++static inline int is_pden(struct wm97xx *wm)
++{
++	return wm->dig[2] & WM9705_PDEN;
++}
++
++/*
++ * Read a sample from the WM9705 adc in polling mode.
++ */
++static int wm9705_poll_sample(struct wm97xx *wm, int adcsel, int *sample)
++{
++	int timeout = 5 * delay;
++
++	if (!wm->pen_probably_down) {
++		u16 data = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
++		if (!(data & WM97XX_PEN_DOWN))
++			return RC_PENUP;
++		wm->pen_probably_down = 1;
++	}
++
++	/* set up digitiser */
++	if (adcsel & 0x8000)
++		adcsel = ((adcsel & 0x7fff) + 3) << 12;
++
++	if (wm->mach_ops && wm->mach_ops->pre_sample)
++		wm->mach_ops->pre_sample(adcsel);
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1,
++			 adcsel | WM97XX_POLL | WM97XX_DELAY(delay));
++
++	/* wait 3 AC97 time slots + delay for conversion */
++	poll_delay(delay);
++
++	/* wait for POLL to go low */
++	while ((wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER1) & WM97XX_POLL)
++	       && timeout) {
++		udelay(AC97_LINK_FRAME);
++		timeout--;
++	}
++
++	if (timeout <= 0) {
++		/* If PDEN is set, we can get a timeout when pen goes up */
++		if (is_pden(wm))
++			wm->pen_probably_down = 0;
++		else
++			dev_dbg(wm->dev, "adc sample timeout");
++		return RC_PENUP;
++	}
++
++	*sample = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
++	if (wm->mach_ops && wm->mach_ops->post_sample)
++		wm->mach_ops->post_sample(adcsel);
++
++	/* check we have correct sample */
++	if ((*sample & WM97XX_ADCSEL_MASK) != adcsel) {
++		dev_dbg(wm->dev, "adc wrong sample, read %x got %x", adcsel,
++		*sample & WM97XX_ADCSEL_MASK);
++		return RC_PENUP;
++	}
++
++	if (!(*sample & WM97XX_PEN_DOWN)) {
++		wm->pen_probably_down = 0;
++		return RC_PENUP;
++	}
++
++	return RC_VALID;
++}
++
++/*
++ * Sample the WM9705 touchscreen in polling mode
++ */
++static int wm9705_poll_touch(struct wm97xx *wm, struct wm97xx_data *data)
++{
++	int rc;
++
++	rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_X, &data->x);
++	if (rc != RC_VALID)
++		return rc;
++	rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_Y, &data->y);
++	if (rc != RC_VALID)
++		return rc;
++	if (pil) {
++		rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_PRES, &data->p);
++		if (rc != RC_VALID)
++			return rc;
++	} else
++		data->p = DEFAULT_PRESSURE;
++
++	return RC_VALID;
++}
++
++/*
++ * Enable WM9705 continuous mode, i.e. touch data is streamed across
++ * an AC97 slot
++ */
++static int wm9705_acc_enable(struct wm97xx *wm, int enable)
++{
++	u16 dig1, dig2;
++	int ret = 0;
++
++	dig1 = wm->dig[1];
++	dig2 = wm->dig[2];
++
++	if (enable) {
++		/* continous mode */
++		if (wm->mach_ops->acc_startup &&
++		    (ret = wm->mach_ops->acc_startup(wm)) < 0)
++			return ret;
++		dig1 &= ~(WM97XX_CM_RATE_MASK | WM97XX_ADCSEL_MASK |
++			  WM97XX_DELAY_MASK | WM97XX_SLT_MASK);
++		dig1 |= WM97XX_CTC | WM97XX_COO | WM97XX_SLEN |
++			WM97XX_DELAY(delay) |
++			WM97XX_SLT(wm->acc_slot) |
++			WM97XX_RATE(wm->acc_rate);
++		if (pil)
++			dig1 |= WM97XX_ADCSEL_PRES;
++		dig2 |= WM9705_PDEN;
++	} else {
++		dig1 &= ~(WM97XX_CTC | WM97XX_COO | WM97XX_SLEN);
++		dig2 &= ~WM9705_PDEN;
++		if (wm->mach_ops->acc_shutdown)
++			wm->mach_ops->acc_shutdown(wm);
++	}
++
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, dig1);
++	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, dig2);
++	return ret;
++}
++
++struct wm97xx_codec_drv wm9705_codec = {
++	.id = 	WM9705_ID2,
++	.name = "wm9705",
++	.poll_sample = wm9705_poll_sample,
++	.poll_touch = wm9705_poll_touch,
++	.acc_enable = wm9705_acc_enable,
++	.phy_init = wm9705_phy_init,
++	.dig_enable = wm9705_dig_enable,
++	.dig_restore = wm9705_dig_restore,
++	.aux_prepare = wm9705_aux_prepare,
++};
++EXPORT_SYMBOL_GPL(wm9705_codec);
++
++/* Module information */
++MODULE_AUTHOR("Liam Girdwood <liam.girdwood@wolfsonmicro.com>");
++MODULE_DESCRIPTION("WM9705 Touch Screen Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from nick@nick-andrew.net are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-documentation-i386-io-apictxt-fix-description.patch
-kconfig-cleanup-block-kconfig-help-descriptions.patch
-kconfig-cleanup-block-kconfigiosched-help-descriptions.patch
+git-alsa.patch
+core-driver-for-wm97xx-touchscreens.patch
+add-chip-driver-for-wm9705-touchscreen.patch
+add-chip-driver-for-wm9712-touchscreen.patch
+add-chip-driver-for-wm9713-touchscreen.patch
+driver-for-wm97xx-touchscreens-in-streaming-mode-on-mainstone.patch
+build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers.patch
