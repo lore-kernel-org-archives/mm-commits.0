@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch added to -mm tree
-Date: Fri, 29 Feb 2008 01:56:06 -0800
-Message-ID: <200802291005.m1TA5OZZ016692@imap1.linux-foundation.org>
+Subject: + drivers-watchdog-hpwdtc-fix-warning.patch added to -mm tree
+Date: Fri, 29 Feb 2008 01:59:44 -0800
+Message-ID: <200802291009.m1TA93XJ016843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34152 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:36766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551AbYB2KGN (ORCPT
+	by vger.kernel.org with ESMTP id S1754879AbYB2KJO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 05:06:13 -0500
+	Fri, 29 Feb 2008 05:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
+Cc: akpm@linux-foundation.org, Thomas.Mingarelli@hp.com, rdreier@cisco.com, wim@iguana.be
 
 
 The patch titled
-     fs/ocfs2/dlm/dlmdomain.c: fix printk warning
+     drivers/watchdog/hpwdt.c: fix warning
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+     drivers-watchdog-hpwdtc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ocfs2/dlm/dlmdomain.c: fix printk warning
+Subject: drivers/watchdog/hpwdt.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ocfs2/dlm/dlmdomain.c: In function 'dlm_send_join_cancels':
-fs/ocfs2/dlm/dlmdomain.c:983: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'long unsigned int'
+drivers/watchdog/hpwdt.c: In function 'hpwdt_init_one':
+drivers/watchdog/hpwdt.c:568: warning: control may reach end of non-void function 'smbios_scan_machine' being inlined
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+smbios_scan_machine() can fail - should we be ignoring its return value?
+
+Cc: "Mingarelli, Thomas" <Thomas.Mingarelli@hp.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -982,7 +982,7 @@ static int dlm_send_join_cancels(struct 
- 			 sizeof(unsigned long))) {
- 		mlog(ML_ERROR,
- 		     "map_size %u != BITS_TO_LONGS(O2NM_MAX_NODES) %u\n",
--		     map_size, BITS_TO_LONGS(O2NM_MAX_NODES));
-+		     map_size, (unsigned)BITS_TO_LONGS(O2NM_MAX_NODES));
- 		return -EINVAL;
+diff -puN drivers/watchdog/hpwdt.c~drivers-watchdog-hpwdtc-fix-warning drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~drivers-watchdog-hpwdtc-fix-warning
++++ a/drivers/watchdog/hpwdt.c
+@@ -559,6 +559,7 @@ static int __devinit smbios_scan_machine
+ 		}
+ 		iounmap(p);
  	}
++	return 0;
+ }
  
+ static int __devinit detect_cru_service(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +88,7 @@ git-ubi.patch
 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
 git-sched.patch
 git-sh.patch
 scsi-aic94xx-cleanups.patch
@@ -153,5 +157,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+drivers-watchdog-hpwdtc-fix-warning.patch
 
