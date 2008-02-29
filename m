@@ -1,462 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-introduce-kprobe_handle_fault.patch removed from -mm tree
-Date: Fri, 29 Feb 2008 03:07:48 -0800
-Message-ID: <200802291117.m1TBH7Nq019197@imap1.linux-foundation.org>
+Subject: + mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch added to -mm tree
+Date: Fri, 29 Feb 2008 03:15:15 -0800
+Message-ID: <200802291124.m1TBOYZo019502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40430 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756122AbYB2LTo (ORCPT
+	by vger.kernel.org with ESMTP id S1756662AbYB2LZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 06:19:44 -0500
+	Fri, 29 Feb 2008 06:25:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, mhiramat
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, greg@kroah.com, kay.sievers@vrfy.org, mszeredi@suse.cz, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     kprobes: introduce kprobe_handle_fault()
-has been removed from the -mm tree.  Its filename was
-     kprobes-introduce-kprobe_handle_fault.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
+has been added to the -mm tree.  Its filename is
+     mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: introduce kprobe_handle_fault()
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use a central kprobe_handle_fault() inline in kprobes.h to remove all of the
-arch-dependant, practically identical implementations in avr32, ia64, powerpc,
-s390, sparc64, and x86.
+In file included from arch/ia64/ia32/sys_ia32.c:59:
+arch/ia64/ia32/ia32priv.h:342:1: warning: "SET_PERSONALITY" redefined
+In file included from include/linux/elf.h:7,
+                 from include/linux/module.h:14,
+                 from include/linux/device.h:21,
+                 from include/linux/backing-dev.h:15,
+                 from include/linux/nfs_fs_sb.h:5,
+                 from include/linux/nfs_fs.h:50,
+                 from arch/ia64/ia32/sys_ia32.c:35:
+include/asm/elf.h:180:1: warning: this is the location of the previous definition
 
-avr32 was the only arch without the preempt_disable/enable pair in its
-notify_page_fault implementation.
-
-This uncovered a possible bug in the s390 version as that purely copied the
-x86 version unconditionally passing 14 as the trapnr rather than the
-error_code parameter.  s390 is changed to pass error_code in this patch.
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c     |   25 +------------------------
- arch/avr32/mm/fault.c   |   21 +--------------------
- arch/ia64/mm/fault.c    |   24 +-----------------------
- arch/powerpc/mm/fault.c |   25 +------------------------
- arch/s390/mm/fault.c    |   25 +------------------------
- arch/sparc64/mm/fault.c |   23 +----------------------
- arch/x86/mm/fault.c     |   26 ++------------------------
- include/linux/kprobes.h |   20 ++++++++++++++++++++
- 8 files changed, 28 insertions(+), 161 deletions(-)
+ include/linux/backing-dev.h |    2 +-
+ readahead.c                 |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/arm/mm/fault.c
---- a/arch/arm/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/arm/mm/fault.c
-@@ -21,29 +21,6 @@
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix Documentation/ABI/testing/sysfs-class-bdi
+diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix block/genhd.c
+diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
++++ a/include/linux/backing-dev.h
+@@ -12,10 +12,10 @@
+ #include <linux/log2.h>
+ #include <linux/proportions.h>
+ #include <linux/kernel.h>
+-#include <linux/device.h>
+ #include <asm/atomic.h>
  
- #include "fault.h"
- 
--
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		/* kprobe_running() needs smp_processor_id() */
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, fsr))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
--{
--	return 0;
--}
--#endif
--
- /*
-  * This is useful to dump out the page tables associated with
-  * 'addr' in mm 'mm'.
-@@ -246,7 +223,7 @@ do_page_fault(unsigned long addr, unsign
- 	struct mm_struct *mm;
- 	int fault, sig, code;
- 
--	if (notify_page_fault(regs, fsr))
-+	if (handle_kprobe_fault(regs, fsr))
- 		return 0;
- 
- 	tsk = current;
-diff -puN arch/avr32/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/avr32/mm/fault.c
---- a/arch/avr32/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/avr32/mm/fault.c
-@@ -20,25 +20,6 @@
- #include <asm/tlb.h>
- #include <asm/uaccess.h>
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		if (kprobe_running() && kprobe_fault_handler(regs, trap))
--			ret = 1;
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	return 0;
--}
--#endif
--
- int exception_trace = 1;
+ struct page;
++struct device;
  
  /*
-@@ -66,7 +47,7 @@ asmlinkage void do_page_fault(unsigned l
- 	int code;
- 	int fault;
- 
--	if (notify_page_fault(regs, ecr))
-+	if (kprobe_handle_fault(regs, ecr))
- 		return;
- 
- 	address = sysreg_read(TLBEAR);
-diff -puN arch/ia64/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/ia64/mm/fault.c
---- a/arch/ia64/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/ia64/mm/fault.c
-@@ -18,28 +18,6 @@
- 
- extern int die(char *, struct pt_regs *, long);
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		/* kprobe_running() needs smp_processor_id() */
--		preempt_disable();
--		if (kprobe_running() && kprobes_fault_handler(regs, trap))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	return 0;
--}
--#endif
--
- /*
-  * Return TRUE if ADDRESS points at a page in the kernel's mapped segment
-  * (inside region 5, on ia64) and that page is present.
-@@ -106,7 +84,7 @@ ia64_do_page_fault (unsigned long addres
- 	/*
- 	 * This is to handle the kprobes on user space access instructions
- 	 */
--	if (notify_page_fault(regs, TRAP_BRKPT))
-+	if (kprobe_handle_fault(regs, TRAP_BRKPT))
- 		return;
- 
- 	down_read(&mm->mmap_sem);
-diff -puN arch/powerpc/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/powerpc/mm/fault.c
---- a/arch/powerpc/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/powerpc/mm/fault.c
-@@ -39,29 +39,6 @@
- #include <asm/tlbflush.h>
- #include <asm/siginfo.h>
- 
--
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 11))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	return 0;
--}
--#endif
--
- /*
-  * Check whether the instruction at regs->nip is a store using
-  * an update addressing form which will update r1.
-@@ -164,7 +141,7 @@ int __kprobes do_page_fault(struct pt_re
- 	is_write = error_code & ESR_DST;
- #endif /* CONFIG_4xx || CONFIG_BOOKE */
- 
--	if (notify_page_fault(regs))
-+	if (kprobe_handle_fault(regs, 11))
- 		return 0;
- 
- 	if (unlikely(debugger_fault_handler(regs)))
-diff -puN arch/s390/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/s390/mm/fault.c
---- a/arch/s390/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/s390/mm/fault.c
-@@ -52,29 +52,6 @@ extern int sysctl_userprocess_debug;
- 
- extern void die(const char *,struct pt_regs *,long);
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, long err)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 14))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, long err)
--{
--	return 0;
--}
--#endif
--
--
- /*
-  * Unlock any spinlocks which will prevent us from getting the
-  * message out.
-@@ -310,7 +287,7 @@ do_exception(struct pt_regs *regs, unsig
- 	int si_code;
- 	int fault;
- 
--	if (notify_page_fault(regs, error_code))
-+	if (kprobe_handle_fault(regs, error_code))
- 		return;
- 
- 	tsk = current;
-diff -puN arch/sparc64/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/sparc64/mm/fault.c
---- a/arch/sparc64/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/sparc64/mm/fault.c
-@@ -31,27 +31,6 @@
- #include <asm/sections.h>
- #include <asm/mmu_context.h>
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 0))
--			ret = 1;
--		preempt_enable();
--	}
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	return 0;
--}
--#endif
--
- /*
-  * To debug kernel to catch accesses to certain virtual/physical addresses.
-  * Mode = 0 selects physical watchpoints, mode = 1 selects virtual watchpoints.
-@@ -280,7 +259,7 @@ asmlinkage void __kprobes do_sparc64_fau
- 
- 	fault_code = get_thread_fault_code();
- 
--	if (notify_page_fault(regs))
-+	if (kprobe_handle_fault(regs, 0))
- 		return;
- 
- 	si_code = SEGV_MAPERR;
-diff -puN arch/x86/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/x86/mm/fault.c
-@@ -50,29 +50,6 @@
- #define PF_RSVD		(1<<3)
- #define PF_INSTR	(1<<4)
- 
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--#ifdef CONFIG_KPROBES
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--#ifdef CONFIG_X86_32
--	if (!user_mode_vm(regs)) {
--#else
--	if (!user_mode(regs)) {
--#endif
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 14))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--#else
--	return 0;
--#endif
--}
--
- /*
-  * X86_32
-  * Sometimes AMD Athlon/Opteron CPUs report invalid exceptions on prefetch.
-@@ -614,7 +591,8 @@ void __kprobes do_page_fault(struct pt_r
- 
- 	si_code = SEGV_MAPERR;
- 
--	if (notify_page_fault(regs))
-+	/* Must not try to handle kprobes in v8086 mode */
-+	if (!v8086_mode(regs) && kprobe_handle_fault(regs, 14))
- 		return;
- 
- 	/*
-diff -puN include/linux/kprobes.h~kprobes-introduce-kprobe_handle_fault include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-introduce-kprobe_handle_fault
-+++ a/include/linux/kprobes.h
-@@ -36,6 +36,7 @@
- #include <linux/spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/mutex.h>
-+#include <linux/hardirq.h>
- 
- #ifdef CONFIG_KPROBES
- #include <asm/kprobes.h>
-@@ -215,6 +216,21 @@ static inline struct kprobe *kprobe_runn
- 	return (__get_cpu_var(current_kprobe));
- }
- 
-+static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
-+{
-+	int ret = 0;
-+
-+	/* kprobe_running() needs smp_processor_id() */
-+	if (!user_mode(regs)) {
-+		preempt_disable();
-+		if (kprobe_running() && kprobe_fault_handler(regs, trapnr))
-+			ret = 1;
-+		preempt_enable();
-+	}
-+
-+	return ret;
-+}
-+
- static inline void reset_current_kprobe(void)
- {
- 	__get_cpu_var(current_kprobe) = NULL;
-@@ -250,6 +266,10 @@ static inline struct kprobe *kprobe_runn
- {
- 	return NULL;
- }
-+static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
-+{
-+	return 0;
-+}
- static inline int register_kprobe(struct kprobe *p)
- {
- 	return -ENOSYS;
+  * Bits in backing_dev_info.state
+diff -puN include/linux/writeback.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix include/linux/writeback.h
+diff -puN lib/percpu_counter.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix lib/percpu_counter.c
+diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/backing-dev.c
+diff -puN mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/page-writeback.c
+diff -puN mm/readahead.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/readahead.c
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-specialixc-fix-possible-double-unlock.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
 git-x86.patch
-git-alsa.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+git-drm.patch
 git-dvb.patch
-git-dlm.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
 git-ubi.patch
-git-net.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-block-fix-shadowed-variable-warning-in-blk-mapc.patch
-block-remove-extern-on-function-definition.patch
-kernel-add-clamp-and-clamp_t-macros.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+git-sched.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+drivers-watchdog-hpwdtc-fix-warning.patch
+git-semaphore-fixup.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
-remove-sparse-warning-for-mmzoneh.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+use-page_cache_xxx-in-ext2-fix.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+optimise-tick_nohz_stop_sched_tick-a-bit-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
