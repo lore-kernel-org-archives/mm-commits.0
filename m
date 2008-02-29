@@ -1,284 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - gdth-fix-to-internal-commands-execution-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 29 Feb 2008 00:38:11 -0800
-Message-ID: <200802290838.m1T8cBOY013812@imap1.linux-foundation.org>
+Subject: - ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 00:38:00 -0800
+Message-ID: <200802290838.m1T8c0UX013781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39345 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753347AbYB2IjM (ORCPT
+	by vger.kernel.org with ESMTP id S1753640AbYB2IjU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 03:39:12 -0500
+	Fri, 29 Feb 2008 03:39:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bharrosh@panasas.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, jarkao2@gmail.com, linville@tuxdriver.com, tomas.winkler@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gdth-fix-to-internal-commands-execution-checkpatch-fixes
+     ieee80211: fix broken error handling in ieee80211_sta_process_addba_request()
 has been removed from the -mm tree.  Its filename was
-     gdth-fix-to-internal-commands-execution-checkpatch-fixes.patch
+     ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gdth-fix-to-internal-commands-execution-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ieee80211: fix broken error handling in ieee80211_sta_process_addba_request()
+From: Adrian Bunk <bunk@kernel.org>
 
-ERROR: use tabs not spaces
-#40: FILE: drivers/scsi/gdth.c:163:
-+                                    char *buffer, ushort count);$
+The Coverity checker spotted this buggy error handling added by
+commit 07db218396650933abff3c5c1ad1e2a6e0cfedeb.
 
-ERROR: use tabs not spaces
-#82: FILE: drivers/scsi/gdth.c:2331:
-+                                    char *buffer, ushort count)$
-
-ERROR: use tabs not spaces
-#94: FILE: drivers/scsi/gdth.c:2357:
-+            memcpy(address, buffer, cpnow);$
-
-ERROR: use tabs not spaces
-#103: FILE: drivers/scsi/gdth.c:2411:
-+        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#103: FILE: drivers/scsi/gdth.c:2411:
-+        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));
-
-ERROR: use tabs not spaces
-#112: FILE: drivers/scsi/gdth.c:2421:
-+        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#112: FILE: drivers/scsi/gdth.c:2421:
-+        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));
-
-ERROR: use tabs not spaces
-#121: FILE: drivers/scsi/gdth.c:2433:
-+        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#121: FILE: drivers/scsi/gdth.c:2433:
-+        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));
-
-ERROR: use tabs not spaces
-#130: FILE: drivers/scsi/gdth.c:2443:
-+        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#130: FILE: drivers/scsi/gdth.c:2443:
-+        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));
-
-ERROR: use tabs not spaces
-#139: FILE: drivers/scsi/gdth.c:2455:
-+                                                 sizeof(gdth_rdcap16_data));$
-
-ERROR: use tabs not spaces
-#167: FILE: drivers/scsi/gdth.h:916:
-+        gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/$
-
-total: 13 errors, 0 warnings, 119 lines checked
-
-./patches/gdth-fix-to-internal-commands-execution.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: "Tomas Winkler" <tomas.winkler@intel.com>
+Cc: "Jarek Poplawski" <jarkao2@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   18 +++++++++---------
- drivers/scsi/gdth.h |    2 +-
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ net/mac80211/ieee80211_sta.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~gdth-fix-to-internal-commands-execution-checkpatch-fixes drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~gdth-fix-to-internal-commands-execution-checkpatch-fixes
-+++ a/drivers/scsi/gdth.c
-@@ -160,7 +160,7 @@ static void gdth_readapp_event(gdth_ha_s
- static void gdth_clear_events(void);
- 
- static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
--                                    char *buffer, ushort count);
-+				    char *buffer, ushort count);
- static int gdth_internal_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp);
- static int gdth_fill_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp, ushort hdrive);
- 
-@@ -913,7 +913,7 @@ static int gdth_init_pci(struct pci_dev 
-     if (ha->pdev->device <= PCI_DEVICE_ID_VORTEX_GDT6000B) {  /* GDT6000/B */
-         TRACE2(("init_pci() dpmem %lx irq %d\n",pcistr->dpmem,ha->irq));
-         ha->brd = ioremap(pcistr->dpmem, sizeof(gdt6_dpram_str));
--        if (ha->brd == NULL) {
-+	if (ha->brd == NULL) {
-             printk("GDT-PCI: Initialization error (DPMEM remap error)\n");
-             return 0;
-         }
-@@ -2328,7 +2328,7 @@ static void gdth_next(gdth_ha_str *ha)
-  * buffers, kmap_atomic() as needed.
-  */
- static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
--                                    char *buffer, ushort count)
-+				    char *buffer, ushort count)
- {
-     ushort cpcount,i, max_sg = gdth_sg_count(scp);
-     ushort cpsum,cpnow;
-@@ -2354,7 +2354,7 @@ static void gdth_copy_internal_data(gdth
-             }
-             local_irq_save(flags);
-             address = kmap_atomic(sg_page(sl), KM_BIO_SRC_IRQ) + sl->offset;
--            memcpy(address, buffer, cpnow);
-+	    memcpy(address, buffer, cpnow);
-             flush_dcache_page(sg_page(sl));
-             kunmap_atomic(address, KM_BIO_SRC_IRQ);
-             local_irq_restore(flags);
-@@ -2408,7 +2408,7 @@ static int gdth_internal_cache_cmd(gdth_
-         strcpy(inq.vendor,ha->oem_name);
-         sprintf(inq.product,"Host Drive  #%02d",t);
-         strcpy(inq.revision,"   ");
--        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&inq, sizeof(gdth_inq_data));
-         break;
- 
-       case REQUEST_SENSE:
-@@ -2418,7 +2418,7 @@ static int gdth_internal_cache_cmd(gdth_
-         sd.key       = NO_SENSE;
-         sd.info      = 0;
-         sd.add_length= 0;
--        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&sd, sizeof(gdth_sense_data));
-         break;
- 
-       case MODE_SENSE:
-@@ -2430,7 +2430,7 @@ static int gdth_internal_cache_cmd(gdth_
-         mpd.bd.block_length[0] = (SECTOR_SIZE & 0x00ff0000) >> 16;
-         mpd.bd.block_length[1] = (SECTOR_SIZE & 0x0000ff00) >> 8;
-         mpd.bd.block_length[2] = (SECTOR_SIZE & 0x000000ff);
--        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&mpd, sizeof(gdth_modep_data));
-         break;
- 
-       case READ_CAPACITY:
-@@ -2440,7 +2440,7 @@ static int gdth_internal_cache_cmd(gdth_
-         else
-             rdc.last_block_no = cpu_to_be32(ha->hdr[t].size-1);
-         rdc.block_length  = cpu_to_be32(SECTOR_SIZE);
--        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&rdc, sizeof(gdth_rdcap_data));
-         break;
- 
-       case SERVICE_ACTION_IN:
-@@ -2452,7 +2452,7 @@ static int gdth_internal_cache_cmd(gdth_
-             rdc16.last_block_no = cpu_to_be64(ha->hdr[t].size-1);
-             rdc16.block_length  = cpu_to_be32(SECTOR_SIZE);
-             gdth_copy_internal_data(ha, scp, (char*)&rdc16,
--                                                 sizeof(gdth_rdcap16_data));
-+				    sizeof(gdth_rdcap16_data));
-         } else { 
-             scp->result = DID_ABORT << 16;
-         }
-diff -puN drivers/scsi/gdth.h~gdth-fix-to-internal-commands-execution-checkpatch-fixes drivers/scsi/gdth.h
---- a/drivers/scsi/gdth.h~gdth-fix-to-internal-commands-execution-checkpatch-fixes
-+++ a/drivers/scsi/gdth.h
-@@ -913,7 +913,7 @@ typedef struct {
-     struct gdth_cmndinfo {                      /* per-command private info */
-         int index;
-         int internal_command;                   /* don't call scsi_done */
--        gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/
-+	gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/
-         dma_addr_t sense_paddr;                 /* sense dma-addr */
-         unchar priority;
-         int timeout;
+diff -puN net/mac80211/ieee80211_sta.c~ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request net/mac80211/ieee80211_sta.c
+--- a/net/mac80211/ieee80211_sta.c~ieee80211-fix-broken-error-handling-in-ieee80211_sta_process_addba_request
++++ a/net/mac80211/ieee80211_sta.c
+@@ -1116,9 +1116,10 @@ static void ieee80211_sta_process_addba_
+ 	/* prepare reordering buffer */
+ 	tid_agg_rx->reorder_buf =
+ 		kmalloc(buf_size * sizeof(struct sk_buf *), GFP_ATOMIC);
+-	if ((!tid_agg_rx->reorder_buf) && net_ratelimit()) {
+-		printk(KERN_ERR "can not allocate reordering buffer "
+-						"to tid %d\n", tid);
++	if (!tid_agg_rx->reorder_buf) {
++		if (net_ratelimit())
++			printk(KERN_ERR "cannot allocate reordering buffer "
++							"to tid %d\n", tid);
+ 		goto end;
+ 	}
+ 	memset(tid_agg_rx->reorder_buf, 0,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
+git-acpi.patch
 git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+git-gfs2-nmw.patch
+git-dlm.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+git-net.patch
+make-s2iocinit_tti-static.patch
 git-nfsd.patch
-git-sched.patch
-git-sh.patch
+git-ocfs2.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-selinux.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
 scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-git-semaphore-fixup.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
+if-0-ses_match_host.patch
+remove-ps2esdi.patch
+drivers-usb-serial-io_tic-remove-unneeded-null-tty-check.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-optimise-tick_nohz_stop_sched_tick-a-bit-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+ipwireless-fix-potential-tty-==-null-dereference.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+make-udf_error-static.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+proper-__do_softirq-prototype.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+kernel-cpusetc-make-3-functions-static.patch
+make-ext4_xattr_list-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
