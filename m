@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + deprecate-find_task_by_pid-warning-fix.patch added to -mm tree
-Date: Thu, 28 Feb 2008 17:24:30 -0800
-Message-ID: <200802290124.m1T1OUga031171@imap1.linux-foundation.org>
+Subject: + acpi-make-real-parent-for-acpi-button-input-devices.patch added to -mm tree
+Date: Thu, 28 Feb 2008 17:27:30 -0800
+Message-ID: <200802290127.m1T1RUWs031305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:46912 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:32844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750912AbYB2BZ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753945AbYB2B3e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 20:25:58 -0500
+	Thu, 28 Feb 2008 20:29:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, ebiederm@xmission.com, xemul@openvz.org
+Cc: arvidjaar@mail.ru, dtor@mail.ru, lenb@kernel.org
 
 
 The patch titled
-     Fix warning in kernel/pid.c
+     acpi: make real parent for ACPI button input devices
 has been added to the -mm tree.  Its filename is
-     deprecate-find_task_by_pid-warning-fix.patch
+     acpi-make-real-parent-for-acpi-button-input-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix warning in kernel/pid.c
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: acpi: make real parent for ACPI button input devices
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-We get a warning in kernel/pid.c due to the deprecated find_task_by_pid(). 
-Make the function inline in sched.h to avoid the warning.
+Make sure input device for ACPI button gets proper place in device tree.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    5 ++++-
- kernel/pid.c          |    6 ------
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/acpi/button.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/sched.h~deprecate-find_task_by_pid-warning-fix include/linux/sched.h
---- a/include/linux/sched.h~deprecate-find_task_by_pid-warning-fix
-+++ a/include/linux/sched.h
-@@ -1633,7 +1633,10 @@ extern struct pid_namespace init_pid_ns;
- extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
- 		struct pid_namespace *ns);
+diff -puN drivers/acpi/button.c~acpi-make-real-parent-for-acpi-button-input-devices drivers/acpi/button.c
+--- a/drivers/acpi/button.c~acpi-make-real-parent-for-acpi-button-input-devices
++++ a/drivers/acpi/button.c
+@@ -449,6 +449,7 @@ static int acpi_button_add(struct acpi_d
+ 	input->phys = button->phys;
+ 	input->id.bustype = BUS_HOST;
+ 	input->id.product = button->type;
++	input->dev.parent = &device->dev;
  
--extern struct task_struct *find_task_by_pid(pid_t nr) __deprecated;
-+static inline struct task_struct *__deprecated find_task_by_pid(pid_t nr)
-+{
-+	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, &init_pid_ns);
-+}
- extern struct task_struct *find_task_by_vpid(pid_t nr);
- extern struct task_struct *find_task_by_pid_ns(pid_t nr,
- 		struct pid_namespace *ns);
-diff -puN kernel/pid.c~deprecate-find_task_by_pid-warning-fix kernel/pid.c
---- a/kernel/pid.c~deprecate-find_task_by_pid-warning-fix
-+++ a/kernel/pid.c
-@@ -382,12 +382,6 @@ struct task_struct *find_task_by_pid_typ
- 
- EXPORT_SYMBOL(find_task_by_pid_type_ns);
- 
--struct task_struct *find_task_by_pid(pid_t nr)
--{
--	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, &init_pid_ns);
--}
--EXPORT_SYMBOL(find_task_by_pid);
+ 	switch (button->type) {
+ 	case ACPI_BUTTON_TYPE_POWER:
+_
+
+Patches currently in -mm which might be from arvidjaar@mail.ru are
+
+acpi-add-acpi-aliases-to-toshiba_acpi-module.patch
+acpi-make-real-parent-for-acpi-button-input-devices.patch
+e100-do-suspend-shutdown-like-e1000.patch
+
