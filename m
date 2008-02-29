@@ -1,359 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch added to -mm tree
-Date: Fri, 29 Feb 2008 02:06:41 -0800
-Message-ID: <200802291016.m1TAG0Ji017049@imap1.linux-foundation.org>
+Subject: - kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 03:07:58 -0800
+Message-ID: <200802291117.m1TBHHsr019200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49595 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753027AbYB2KRD (ORCPT
+	by vger.kernel.org with ESMTP id S1755627AbYB2LTb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 05:17:03 -0500
+	Fri, 29 Feb 2008 06:19:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com
+To: harvey.harrison@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, mhiramat
 
 
 The patch titled
-     arch/x86/kernel/ptrace.c: fix defined-but-unused warnings
-has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+     kprobes: remove preempt_enable/disable from kprobe_handle_fault()
+has been removed from the -mm tree.  Its filename was
+     kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/ptrace.c: fix defined-but-unused warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kprobes: remove preempt_enable/disable from kprobe_handle_fault()
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-arch/x86/kernel/ptrace.c:548: warning: 'ptrace_bts_get_size' defined but not used
-arch/x86/kernel/ptrace.c:558: warning: 'ptrace_bts_read_record' defined but not used
-arch/x86/kernel/ptrace.c:607: warning: 'ptrace_bts_clear' defined but not used
-arch/x86/kernel/ptrace.c:617: warning: 'ptrace_bts_drain' defined but not used
-arch/x86/kernel/ptrace.c:720: warning: 'ptrace_bts_config' defined but not used
-arch/x86/kernel/ptrace.c:788: warning: 'ptrace_bts_status' defined but not used
+Remove the preempt_disable/enable pair around kprobe_running which was
+originally added to avoid the assertion from smp_processor_id which would be
+hit an assertion if preemption was enabled.
 
+Kprobes can not be running if we are preemptible, so test explicitly for
+preemption and bail out before hitting kprobe_running().
 
-There appears to be no way of defining CONFIG_X86_BTS?
-
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |  173 +++++++++++++++++++------------------
- 1 file changed, 89 insertions(+), 84 deletions(-)
+ include/linux/kprobes.h |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/kernel/ptrace.c~arch-x86-kernel-ptracec-fix-defined-but-unused-warnings arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~arch-x86-kernel-ptracec-fix-defined-but-unused-warnings
-+++ a/arch/x86/kernel/ptrace.c
-@@ -544,6 +544,8 @@ static int ptrace_set_debugreg(struct ta
- 	return 0;
+diff -puN include/linux/kprobes.h~kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault
++++ a/include/linux/kprobes.h
+@@ -216,19 +216,16 @@ static inline struct kprobe *kprobe_runn
+ 	return (__get_cpu_var(current_kprobe));
  }
  
-+#ifdef X86_BTS
-+
- static int ptrace_bts_get_size(struct task_struct *child)
++/*
++ * If it is a kprobe pagefault we can not be preemptible so return before
++ * calling kprobe_running() as it will assert on smp_processor_id if
++ * preemption is enabled.
++ */
+ static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
  {
- 	if (!child->thread.ds_area_msr)
-@@ -588,21 +590,6 @@ static int ptrace_bts_read_record(struct
- 	return sizeof(ret);
- }
- 
--static int ptrace_bts_write_record(struct task_struct *child,
--				   const struct bts_struct *in)
--{
--	int retval;
+-	int ret = 0;
 -
--	if (!child->thread.ds_area_msr)
--		return -ENXIO;
--
--	retval = ds_write_bts((void *)child->thread.ds_area_msr, in);
--	if (retval)
--		return retval;
--
--	return sizeof(*in);
--}
--
- static int ptrace_bts_clear(struct task_struct *child)
- {
- 	if (!child->thread.ds_area_msr)
-@@ -645,75 +632,6 @@ static int ptrace_bts_drain(struct task_
- 	return end;
- }
- 
--static int ptrace_bts_realloc(struct task_struct *child,
--			      int size, int reduce_size)
--{
--	unsigned long rlim, vm;
--	int ret, old_size;
--
--	if (size < 0)
--		return -EINVAL;
--
--	old_size = ds_get_bts_size((void *)child->thread.ds_area_msr);
--	if (old_size < 0)
--		return old_size;
--
--	ret = ds_free((void **)&child->thread.ds_area_msr);
--	if (ret < 0)
--		goto out;
--
--	size >>= PAGE_SHIFT;
--	old_size >>= PAGE_SHIFT;
--
--	current->mm->total_vm  -= old_size;
--	current->mm->locked_vm -= old_size;
--
--	if (size == 0)
--		goto out;
--
--	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
--	vm = current->mm->total_vm  + size;
--	if (rlim < vm) {
--		ret = -ENOMEM;
--
--		if (!reduce_size)
--			goto out;
--
--		size = rlim - current->mm->total_vm;
--		if (size <= 0)
--			goto out;
+-	/* kprobe_running() needs smp_processor_id() */
+-	if (!user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, trapnr))
+-			ret = 1;
+-		preempt_enable();
 -	}
--
--	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
--	vm = current->mm->locked_vm  + size;
--	if (rlim < vm) {
--		ret = -ENOMEM;
--
--		if (!reduce_size)
--			goto out;
--
--		size = rlim - current->mm->locked_vm;
--		if (size <= 0)
--			goto out;
--	}
--
--	ret = ds_allocate((void **)&child->thread.ds_area_msr,
--			  size << PAGE_SHIFT);
--	if (ret < 0)
--		goto out;
--
--	current->mm->total_vm  += size;
--	current->mm->locked_vm += size;
--
--out:
--	if (child->thread.ds_area_msr)
--		set_tsk_thread_flag(child, TIF_DS_AREA_MSR);
--	else
--		clear_tsk_thread_flag(child, TIF_DS_AREA_MSR);
 -
 -	return ret;
--}
--
- static int ptrace_bts_config(struct task_struct *child,
- 			     long cfg_size,
- 			     const struct ptrace_bts_config __user *ucfg)
-@@ -816,6 +734,93 @@ static int ptrace_bts_status(struct task
- 	return sizeof(cfg);
++	if (!user_mode(regs) && !preemptible() && kprobe_running())
++		return kprobe_fault_handler(regs, trapnr);
++	return 0;
  }
  
-+
-+#endif
-+
-+static int ptrace_bts_write_record(struct task_struct *child,
-+				   const struct bts_struct *in)
-+{
-+	int retval;
-+
-+	if (!child->thread.ds_area_msr)
-+		return -ENXIO;
-+
-+	retval = ds_write_bts((void *)child->thread.ds_area_msr, in);
-+	if (retval)
-+		return retval;
-+
-+	return sizeof(*in);
-+}
-+
-+static int ptrace_bts_realloc(struct task_struct *child,
-+			      int size, int reduce_size)
-+{
-+	unsigned long rlim, vm;
-+	int ret, old_size;
-+
-+	if (size < 0)
-+		return -EINVAL;
-+
-+	old_size = ds_get_bts_size((void *)child->thread.ds_area_msr);
-+	if (old_size < 0)
-+		return old_size;
-+
-+	ret = ds_free((void **)&child->thread.ds_area_msr);
-+	if (ret < 0)
-+		goto out;
-+
-+	size >>= PAGE_SHIFT;
-+	old_size >>= PAGE_SHIFT;
-+
-+	current->mm->total_vm  -= old_size;
-+	current->mm->locked_vm -= old_size;
-+
-+	if (size == 0)
-+		goto out;
-+
-+	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
-+	vm = current->mm->total_vm  + size;
-+	if (rlim < vm) {
-+		ret = -ENOMEM;
-+
-+		if (!reduce_size)
-+			goto out;
-+
-+		size = rlim - current->mm->total_vm;
-+		if (size <= 0)
-+			goto out;
-+	}
-+
-+	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
-+	vm = current->mm->locked_vm  + size;
-+	if (rlim < vm) {
-+		ret = -ENOMEM;
-+
-+		if (!reduce_size)
-+			goto out;
-+
-+		size = rlim - current->mm->locked_vm;
-+		if (size <= 0)
-+			goto out;
-+	}
-+
-+	ret = ds_allocate((void **)&child->thread.ds_area_msr,
-+			  size << PAGE_SHIFT);
-+	if (ret < 0)
-+		goto out;
-+
-+	current->mm->total_vm  += size;
-+	current->mm->locked_vm += size;
-+
-+out:
-+	if (child->thread.ds_area_msr)
-+		set_tsk_thread_flag(child, TIF_DS_AREA_MSR);
-+	else
-+		clear_tsk_thread_flag(child, TIF_DS_AREA_MSR);
-+
-+	return ret;
-+}
-+
- void ptrace_bts_take_timestamp(struct task_struct *tsk,
- 			       enum bts_qualifier qualifier)
- {
+ static inline void reset_current_kprobe(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
+specialixc-fix-possible-double-unlock.patch
 git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-git-drm.patch
+git-alsa.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
 git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-dlm.patch
 git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
 git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+git-net.patch
 git-nfsd.patch
-fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
-git-sched.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-drivers-watchdog-hpwdtc-fix-warning.patch
-git-semaphore-fixup.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+block-fix-shadowed-variable-warning-in-blk-mapc.patch
+block-remove-extern-on-function-definition.patch
+kernel-add-clamp-and-clamp_t-macros.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-use-page_cache_xxx-in-ext2-fix.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-optimise-tick_nohz_stop_sched_tick-a-bit-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
