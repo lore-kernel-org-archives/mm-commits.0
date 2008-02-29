@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + capabilities-implement-per-process-securebits-warning-fix.patch added to -mm tree
-Date: Fri, 29 Feb 2008 00:35:37 -0800
-Message-ID: <200802290844.m1T8iuIq014009@imap1.linux-foundation.org>
+Subject: + kernel-add-clamp-and-clamp_t-macros-fix.patch added to -mm tree
+Date: Fri, 29 Feb 2008 00:43:54 -0800
+Message-ID: <200802290853.m1T8rCZa014311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:39448 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:52788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753149AbYB2Iv3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754015AbYB2IxV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 03:51:29 -0500
+	Fri, 29 Feb 2008 03:53:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, harvey.harrison@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     capabilities-implement-per-process-securebits-warning-fix
+     kernel-add-clamp-and-clamp_t-macros-fix
 has been added to the -mm tree.  Its filename is
-     capabilities-implement-per-process-securebits-warning-fix.patch
+     kernel-add-clamp-and-clamp_t-macros-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities-implement-per-process-securebits-warning-fix
+Subject: kernel-add-clamp-and-clamp_t-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/sys.c: In function 'sys_prctl':
-kernel/sys.c:1629: warning: 'error' may be used uninitialized in this function
-
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c    |    2 +-
- selinux/hooks.c |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/bt8xx/bttvp.h    |    2 --
+ drivers/media/video/usbvideo/vicam.c |    6 ------
+ 2 files changed, 8 deletions(-)
 
-diff -puN include/linux/capability.h~capabilities-implement-per-process-securebits-warning-fix include/linux/capability.h
-diff -puN include/linux/init_task.h~capabilities-implement-per-process-securebits-warning-fix include/linux/init_task.h
-diff -puN include/linux/prctl.h~capabilities-implement-per-process-securebits-warning-fix include/linux/prctl.h
-diff -puN include/linux/sched.h~capabilities-implement-per-process-securebits-warning-fix include/linux/sched.h
-diff -puN include/linux/securebits.h~capabilities-implement-per-process-securebits-warning-fix include/linux/securebits.h
-diff -puN include/linux/security.h~capabilities-implement-per-process-securebits-warning-fix include/linux/security.h
-diff -puN kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix kernel/sys.c
---- a/kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix
-+++ a/kernel/sys.c
-@@ -1626,7 +1626,7 @@ asmlinkage long sys_umask(int mask)
- asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
- 			  unsigned long arg4, unsigned long arg5)
- {
--	long error;
-+	long uninitialized_var(error);
+diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros-fix include/linux/kernel.h
+diff -puN drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/bt8xx/bttvp.h
+--- a/drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix
++++ a/drivers/media/video/bt8xx/bttvp.h
+@@ -82,8 +82,6 @@
+ /* Limits scaled width, which must be a multiple of 4. */
+ #define MAX_HACTIVE (0x3FF & -4)
  
- 	if (security_task_prctl(option, arg2, arg3, arg4, arg5, &error))
- 		return error;
-diff -puN security/capability.c~capabilities-implement-per-process-securebits-warning-fix security/capability.c
-diff -puN security/commoncap.c~capabilities-implement-per-process-securebits-warning-fix security/commoncap.c
-diff -puN security/dummy.c~capabilities-implement-per-process-securebits-warning-fix security/dummy.c
-diff -puN security/security.c~capabilities-implement-per-process-securebits-warning-fix security/security.c
-diff -puN security/selinux/hooks.c~capabilities-implement-per-process-securebits-warning-fix security/selinux/hooks.c
+-#define clamp(x, low, high) min (max (low, x), high)
+-
+ #define BTTV_NORMS    (\
+ 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+ 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+diff -puN drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/usbvideo/vicam.c
+--- a/drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix
++++ a/drivers/media/video/usbvideo/vicam.c
+@@ -70,12 +70,6 @@
+ 
+ #define VICAM_HEADER_SIZE       64
+ 
+-#define clamp( x, l, h )        max_t( __typeof__( x ),         \
+-				       ( l ),                   \
+-				       min_t( __typeof__( x ),  \
+-					      ( h ),            \
+-					      ( x ) ) )
+-
+ /* Not sure what all the bytes in these char
+  * arrays do, but they're necessary to make
+  * the camera work.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,6 +117,7 @@ ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
 sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
 markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
 drivers-media-video-em28xx-correct-use-of-and-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
