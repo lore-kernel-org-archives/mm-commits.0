@@ -1,152 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 28 Feb 2008 16:59:34 -0800
-Message-ID: <200802290059.m1T0xY41029908@imap1.linux-foundation.org>
+Subject: + kernel-add-clamp-and-clamp_t-macros.patch added to -mm tree
+Date: Thu, 28 Feb 2008 17:00:19 -0800
+Message-ID: <200802290100.m1T10JvV029941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:40475 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760900AbYB2BAQ (ORCPT
+	by vger.kernel.org with ESMTP id S1762273AbYB2BAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 20:00:16 -0500
+	Thu, 28 Feb 2008 20:00:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: harvey.harrison@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch
+     kernel: add clamp() and clamp_t() macros
+has been added to the -mm tree.  Its filename is
+     kernel-add-clamp-and-clamp_t-macros.patch
 
-This patch was dropped because it was folded into video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel: add clamp() and clamp_t() macros
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ERROR: need space after that ',' (ctx:VxV)
-#52: FILE: include/linux/kernel.h:357:
-+#define clamp(val,min,max) ({ \
-                  ^
+Adds macros similar to min/max/min_t/max_t.
 
-total: 1 errors, 0 warnings, 39 lines checked
+Also, change the variable names used in the min/max macros to avoid shadowed
+variable warnings when min/max min_t/max_t are nested.
 
-./patches/video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Small formatting changes to make all the macros have a similar form.
 
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |   56 ++++++++++++++++++++++++++-------------
+ 1 file changed, 38 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/kernel.h~video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes include/linux/kernel.h
---- a/include/linux/kernel.h~video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes
+diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros include/linux/kernel.h
+--- a/include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros
 +++ a/include/linux/kernel.h
-@@ -354,7 +354,7 @@ static inline int __attribute__ ((format
+@@ -335,33 +335,53 @@ static inline int __attribute__ ((format
+ #endif /* __LITTLE_ENDIAN */
+ 
  /*
-  * Clamp a value to within a given range with strict type checking
+- * min()/max() macros that also do
++ * min()/max()/clamp() macros that also do
+  * strict type-checking.. See the
+  * "unnecessary" pointer comparison.
   */
--#define clamp(val,min,max) ({ \
-+#define clamp(val, min, max) ({ \
- 	typeof(val) __val = (val); \
- 	typeof(min) __min = (min); \
- 	typeof(max) __max = (max); \
+-#define min(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x < _y ? _x : _y; })
+-
+-#define max(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x > _y ? _x : _y; })
++#define min(x,y) ({				\
++	typeof(x) _min1 = (x);			\
++	typeof(y) _min2 = (y);			\
++	(void) (&_min1 == &_min2);		\
++	_min1 < _min2 ? _min1 : _min2; })
++
++#define max(x,y) ({				\
++	typeof(x) _max1 = (x);			\
++	typeof(y) _max2 = (y);			\
++	(void) (&_max1 == &_max2);		\
++	_max1 > _max2 ? _max1 : _max2; })
++
++#define clamp(val,min,max) ({			\
++	typeof(val) __val = (val);		\
++	typeof(min) __min = (min);		\
++	typeof(max) __max = (max);		\
++	(void) (&__val == &__min);		\
++	(void) (&__val == &__max);		\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
+ 
+ /*
+  * ..and if you can't take the strict
+  * types, you can specify one yourself.
+  *
+- * Or not use min/max at all, of course.
++ * Or not use min/max/clamp at all, of course.
+  */
+-#define min_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
+-#define max_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
+-
++#define min_t(type,x,y) ({			\
++	type __min1 = (x);			\
++	type __min2 = (y);			\
++	__min1 < __min2 ? __min1: __min2; })
++
++#define max_t(type,x,y) ({			\
++	type __max1 = (x);			\
++	type __max2 = (y);			\
++	__max1 > __max2 ? __max1: __max2; })
++
++#define clamp_t(type,val,min,max) ({		\
++	type __val = (val);			\
++	type __min = (min);			\
++	type __max = (max);			\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
+ 
+ /**
+  * container_of - cast a member of a structure out to the containing structure
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs.patch
-video-add-a-clamp-macro-to-kernelh-and-replace-two-existing-defs-checkpatch-fixes.patch
+specialixc-fix-possible-double-unlock.patch
 git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
 git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-dlm.patch
 git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
+pata_amd-fix-sparse-warning.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
 git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+git-net.patch
 git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
+block-fix-shadowed-variable-warning-in-blk-mapc.patch
+block-remove-extern-on-function-definition.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
