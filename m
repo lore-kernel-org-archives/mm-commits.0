@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-watchdog-hpwdtc-fix-warning.patch added to -mm tree
-Date: Fri, 29 Feb 2008 01:59:44 -0800
-Message-ID: <200802291009.m1TA93XJ016843@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch added to -mm tree
+Date: Fri, 29 Feb 2008 02:06:41 -0800
+Message-ID: <200802291016.m1TAG0Ji017049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36766 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:49595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754879AbYB2KJO (ORCPT
+	by vger.kernel.org with ESMTP id S1753027AbYB2KRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 05:09:14 -0500
+	Fri, 29 Feb 2008 05:17:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Thomas.Mingarelli@hp.com, rdreier@cisco.com, wim@iguana.be
+Cc: akpm@linux-foundation.org, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     drivers/watchdog/hpwdt.c: fix warning
+     arch/x86/kernel/ptrace.c: fix defined-but-unused warnings
 has been added to the -mm tree.  Its filename is
-     drivers-watchdog-hpwdtc-fix-warning.patch
+     arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,231 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/watchdog/hpwdt.c: fix warning
+Subject: arch/x86/kernel/ptrace.c: fix defined-but-unused warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/watchdog/hpwdt.c: In function 'hpwdt_init_one':
-drivers/watchdog/hpwdt.c:568: warning: control may reach end of non-void function 'smbios_scan_machine' being inlined
+arch/x86/kernel/ptrace.c:548: warning: 'ptrace_bts_get_size' defined but not used
+arch/x86/kernel/ptrace.c:558: warning: 'ptrace_bts_read_record' defined but not used
+arch/x86/kernel/ptrace.c:607: warning: 'ptrace_bts_clear' defined but not used
+arch/x86/kernel/ptrace.c:617: warning: 'ptrace_bts_drain' defined but not used
+arch/x86/kernel/ptrace.c:720: warning: 'ptrace_bts_config' defined but not used
+arch/x86/kernel/ptrace.c:788: warning: 'ptrace_bts_status' defined but not used
 
-smbios_scan_machine() can fail - should we be ignoring its return value?
 
-Cc: "Mingarelli, Thomas" <Thomas.Mingarelli@hp.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+There appears to be no way of defining CONFIG_X86_BTS?
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/hpwdt.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/ptrace.c |  173 +++++++++++++++++++------------------
+ 1 file changed, 89 insertions(+), 84 deletions(-)
 
-diff -puN drivers/watchdog/hpwdt.c~drivers-watchdog-hpwdtc-fix-warning drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~drivers-watchdog-hpwdtc-fix-warning
-+++ a/drivers/watchdog/hpwdt.c
-@@ -559,6 +559,7 @@ static int __devinit smbios_scan_machine
- 		}
- 		iounmap(p);
- 	}
-+	return 0;
+diff -puN arch/x86/kernel/ptrace.c~arch-x86-kernel-ptracec-fix-defined-but-unused-warnings arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~arch-x86-kernel-ptracec-fix-defined-but-unused-warnings
++++ a/arch/x86/kernel/ptrace.c
+@@ -544,6 +544,8 @@ static int ptrace_set_debugreg(struct ta
+ 	return 0;
  }
  
- static int __devinit detect_cru_service(void)
++#ifdef X86_BTS
++
+ static int ptrace_bts_get_size(struct task_struct *child)
+ {
+ 	if (!child->thread.ds_area_msr)
+@@ -588,21 +590,6 @@ static int ptrace_bts_read_record(struct
+ 	return sizeof(ret);
+ }
+ 
+-static int ptrace_bts_write_record(struct task_struct *child,
+-				   const struct bts_struct *in)
+-{
+-	int retval;
+-
+-	if (!child->thread.ds_area_msr)
+-		return -ENXIO;
+-
+-	retval = ds_write_bts((void *)child->thread.ds_area_msr, in);
+-	if (retval)
+-		return retval;
+-
+-	return sizeof(*in);
+-}
+-
+ static int ptrace_bts_clear(struct task_struct *child)
+ {
+ 	if (!child->thread.ds_area_msr)
+@@ -645,75 +632,6 @@ static int ptrace_bts_drain(struct task_
+ 	return end;
+ }
+ 
+-static int ptrace_bts_realloc(struct task_struct *child,
+-			      int size, int reduce_size)
+-{
+-	unsigned long rlim, vm;
+-	int ret, old_size;
+-
+-	if (size < 0)
+-		return -EINVAL;
+-
+-	old_size = ds_get_bts_size((void *)child->thread.ds_area_msr);
+-	if (old_size < 0)
+-		return old_size;
+-
+-	ret = ds_free((void **)&child->thread.ds_area_msr);
+-	if (ret < 0)
+-		goto out;
+-
+-	size >>= PAGE_SHIFT;
+-	old_size >>= PAGE_SHIFT;
+-
+-	current->mm->total_vm  -= old_size;
+-	current->mm->locked_vm -= old_size;
+-
+-	if (size == 0)
+-		goto out;
+-
+-	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
+-	vm = current->mm->total_vm  + size;
+-	if (rlim < vm) {
+-		ret = -ENOMEM;
+-
+-		if (!reduce_size)
+-			goto out;
+-
+-		size = rlim - current->mm->total_vm;
+-		if (size <= 0)
+-			goto out;
+-	}
+-
+-	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
+-	vm = current->mm->locked_vm  + size;
+-	if (rlim < vm) {
+-		ret = -ENOMEM;
+-
+-		if (!reduce_size)
+-			goto out;
+-
+-		size = rlim - current->mm->locked_vm;
+-		if (size <= 0)
+-			goto out;
+-	}
+-
+-	ret = ds_allocate((void **)&child->thread.ds_area_msr,
+-			  size << PAGE_SHIFT);
+-	if (ret < 0)
+-		goto out;
+-
+-	current->mm->total_vm  += size;
+-	current->mm->locked_vm += size;
+-
+-out:
+-	if (child->thread.ds_area_msr)
+-		set_tsk_thread_flag(child, TIF_DS_AREA_MSR);
+-	else
+-		clear_tsk_thread_flag(child, TIF_DS_AREA_MSR);
+-
+-	return ret;
+-}
+-
+ static int ptrace_bts_config(struct task_struct *child,
+ 			     long cfg_size,
+ 			     const struct ptrace_bts_config __user *ucfg)
+@@ -816,6 +734,93 @@ static int ptrace_bts_status(struct task
+ 	return sizeof(cfg);
+ }
+ 
++
++#endif
++
++static int ptrace_bts_write_record(struct task_struct *child,
++				   const struct bts_struct *in)
++{
++	int retval;
++
++	if (!child->thread.ds_area_msr)
++		return -ENXIO;
++
++	retval = ds_write_bts((void *)child->thread.ds_area_msr, in);
++	if (retval)
++		return retval;
++
++	return sizeof(*in);
++}
++
++static int ptrace_bts_realloc(struct task_struct *child,
++			      int size, int reduce_size)
++{
++	unsigned long rlim, vm;
++	int ret, old_size;
++
++	if (size < 0)
++		return -EINVAL;
++
++	old_size = ds_get_bts_size((void *)child->thread.ds_area_msr);
++	if (old_size < 0)
++		return old_size;
++
++	ret = ds_free((void **)&child->thread.ds_area_msr);
++	if (ret < 0)
++		goto out;
++
++	size >>= PAGE_SHIFT;
++	old_size >>= PAGE_SHIFT;
++
++	current->mm->total_vm  -= old_size;
++	current->mm->locked_vm -= old_size;
++
++	if (size == 0)
++		goto out;
++
++	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
++	vm = current->mm->total_vm  + size;
++	if (rlim < vm) {
++		ret = -ENOMEM;
++
++		if (!reduce_size)
++			goto out;
++
++		size = rlim - current->mm->total_vm;
++		if (size <= 0)
++			goto out;
++	}
++
++	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
++	vm = current->mm->locked_vm  + size;
++	if (rlim < vm) {
++		ret = -ENOMEM;
++
++		if (!reduce_size)
++			goto out;
++
++		size = rlim - current->mm->locked_vm;
++		if (size <= 0)
++			goto out;
++	}
++
++	ret = ds_allocate((void **)&child->thread.ds_area_msr,
++			  size << PAGE_SHIFT);
++	if (ret < 0)
++		goto out;
++
++	current->mm->total_vm  += size;
++	current->mm->locked_vm += size;
++
++out:
++	if (child->thread.ds_area_msr)
++		set_tsk_thread_flag(child, TIF_DS_AREA_MSR);
++	else
++		clear_tsk_thread_flag(child, TIF_DS_AREA_MSR);
++
++	return ret;
++}
++
+ void ptrace_bts_take_timestamp(struct task_struct *tsk,
+ 			       enum bts_qualifier qualifier)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +266,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
 git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-fix-git-conflicts.patch
@@ -97,6 +295,7 @@ git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
 git-v9fs.patch
+drivers-watchdog-hpwdtc-fix-warning.patch
 git-semaphore-fixup.patch
 documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 tridentfb-resource-management-fixes-in-probe-function-fix.patch
@@ -157,5 +356,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-watchdog-hpwdtc-fix-warning.patch
 
