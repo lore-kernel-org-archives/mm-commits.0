@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-malformed-early-option-loglevel.patch added to -mm tree
-Date: Thu, 28 Feb 2008 17:22:05 -0800
-Message-ID: <200802290122.m1T1M5Db031122@imap1.linux-foundation.org>
+Subject: + deprecate-find_task_by_pid-warning-fix.patch added to -mm tree
+Date: Thu, 28 Feb 2008 17:24:30 -0800
+Message-ID: <200802290124.m1T1OUga031171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:41038 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:46912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750733AbYB2BW1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750912AbYB2BZ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 20:22:27 -0500
+	Thu, 28 Feb 2008 20:25:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raa.lkml@gmail.com, kmannth@gmail.com, rusty@rustcorp.com.au, yhlu.kernel@gmai.com
+Cc: sukadev@us.ibm.com, ebiederm@xmission.com, xemul@openvz.org
 
 
 The patch titled
-     Fix "Malformed early option 'loglevel'"
+     Fix warning in kernel/pid.c
 has been added to the -mm tree.  Its filename is
-     fix-malformed-early-option-loglevel.patch
+     deprecate-find_task_by_pid-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix "Malformed early option 'loglevel'"
-From: Alex Riesen <raa.lkml@gmail.com>
+Subject: Fix warning in kernel/pid.c
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Keith Mannthey said:
+We get a warning in kernel/pid.c due to the deprecated find_task_by_pid(). 
+Make the function inline in sched.h to avoid the warning.
 
-  The parameter hotadd_percent is setup right but there is a "Malformed
-  early option 'numa'" message.
-
-Rusty Russell said:
-
-  This happens when the function registered with early_param() returns
-  non-zero.  __setup() functions return 1 if OK, module_param() and
-  early_param() return 0 or a -ve error code.
-
-For instance:
-
-Linux version 2.6.25-rc3-t (raa@steel) (gcc version 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)) #22 SMP PREEMPT Tue Feb 26
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
- BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000003fff0000 (usable)
- BIOS-e820: 000000003fff0000 - 000000003fff3000 (ACPI NVS)
- BIOS-e820: 000000003fff3000 - 0000000040000000 (ACPI data)
- BIOS-e820: 00000000fec00000 - 0000000100000000 (reserved)
-Malformed early option 'loglevel'
-127MB HIGHMEM available.
-896MB LOWMEM available.
-
-Command line:
-
-BOOT_IMAGE=2.6.25-t ro root=809 ro console=ttyS0,57600n8 console=tty0 loglevel=5
-
-Acked-by: Yinghai Lu <yhlu.kernel@gmai.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Keith Mannthey <kmannth@gmail.com>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    5 ++++-
+ kernel/pid.c          |    6 ------
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN init/main.c~fix-malformed-early-option-loglevel init/main.c
---- a/init/main.c~fix-malformed-early-option-loglevel
-+++ a/init/main.c
-@@ -254,7 +254,7 @@ early_param("quiet", quiet_kernel);
- static int __init loglevel(char *str)
- {
- 	get_option(&str, &console_loglevel);
--	return 1;
-+	return 0;
- }
+diff -puN include/linux/sched.h~deprecate-find_task_by_pid-warning-fix include/linux/sched.h
+--- a/include/linux/sched.h~deprecate-find_task_by_pid-warning-fix
++++ a/include/linux/sched.h
+@@ -1633,7 +1633,10 @@ extern struct pid_namespace init_pid_ns;
+ extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
+ 		struct pid_namespace *ns);
  
- early_param("loglevel", loglevel);
-_
-
-Patches currently in -mm which might be from raa.lkml@gmail.com are
-
-fix-malformed-early-option-loglevel.patch
-
+-extern struct task_struct *find_task_by_pid(pid_t nr) __deprecated;
++static inline struct task_struct *__deprecated find_task_by_pid(pid_t nr)
++{
++	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, &init_pid_ns);
++}
+ extern struct task_struct *find_task_by_vpid(pid_t nr);
+ extern struct task_struct *find_task_by_pid_ns(pid_t nr,
+ 		struct pid_namespace *ns);
+diff -puN kernel/pid.c~deprecate-find_task_by_pid-warning-fix kernel/pid.c
+--- a/kernel/pid.c~deprecate-find_task_by_pid-warning-fix
++++ a/kernel/pid.c
+@@ -382,12 +382,6 @@ struct task_struct *find_task_by_pid_typ
+ 
+ EXPORT_SYMBOL(find_task_by_pid_type_ns);
+ 
+-struct task_struct *find_task_by_pid(pid_t nr)
+-{
+-	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, &init_pid_ns);
+-}
+-EXPORT_SYMBOL(find_task_by_pid);
