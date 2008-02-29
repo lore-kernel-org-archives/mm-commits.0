@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + pci-iommu-iotlb-flushing.patch added to -mm tree
-Date: Fri, 29 Feb 2008 15:27:39 -0800
-Message-ID: <200802292327.m1TNRe0c026189@imap1.linux-foundation.org>
+Subject: + mm-use-__dec_zone_state-in-__dec_zone_page_state.patch added to -mm tree
+Date: Fri, 29 Feb 2008 15:32:29 -0800
+Message-ID: <200802292332.m1TNWTFt026363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34971 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:43964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756214AbYB2X2M (ORCPT
+	by vger.kernel.org with ESMTP id S1757878AbYB2XdE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 18:28:12 -0500
+	Fri, 29 Feb 2008 18:33:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com, greg@kroah.com
+Cc: Uwe.Kleine-Koenig@digi.com, clameter@sgi.com
 
 
 The patch titled
-     pci: iommu: iotlb flushing
+     mm: use __dec_zone_state() in __dec_zone_page_state()
 has been added to the -mm tree.  Its filename is
-     pci-iommu-iotlb-flushing.patch
+     mm-use-__dec_zone_state-in-__dec_zone_page_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,332 +29,56 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pci: iommu: iotlb flushing
-From: mark gross <mgross@linux.intel.com>
+Subject: mm: use __dec_zone_state() in __dec_zone_page_state()
+=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
 
-This patch is for batching up the flushing of the IOTLB for the DMAR
-implementation found in the Intel VT-d hardware.  It works by building a list
-of to be flushed IOTLB entries and a bitmap list of which DMAR engine they are
-from.
+This removes code duplication and makes __dec_zone_page_state look like
+__inc_zone_page_state.
 
-After either a high water mark (250 accessible via debugfs) or 10ms the list
-of iova's will be reclaimed and the DMAR engines associated are IOTLB-flushed.
-
-This approach recovers 15 to 20% of the performance lost when using the IOMMU
-for my netperf udp stream benchmark with small packets.  It can be disabled
-with a kernel boot parameter "intel_iommu=strict".
-
-Its use does weaken the IOMMU protections a bit.
-
-Signed-off-by: <mgross@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 
- drivers/pci/intel-iommu.c           |  147 ++++++++++++++++++++++----
- drivers/pci/iova.h                  |    2 
- 3 files changed, 135 insertions(+), 18 deletions(-)
+ include/linux/vmstat.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~pci-iommu-iotlb-flushing Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~pci-iommu-iotlb-flushing
-+++ a/Documentation/kernel-parameters.txt
-@@ -830,6 +830,10 @@ and is between 256 and 4096 characters. 
- 			than 32 bit addressing. The default is to look
- 			for translation below 32 bit and if not available
- 			then look in the higher range.
-+		strict [Default Off]
-+			With this option on every unmap_single operation will
-+			result in a hardware IOTLB flush operation as opposed
-+			to batching them for performance.
- 
- 	io_delay=	[X86-32,X86-64] I/O delay method
- 		0x80
-diff -puN drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing
-+++ a/drivers/pci/intel-iommu.c
-@@ -22,6 +22,7 @@
- 
- #include <linux/init.h>
- #include <linux/bitmap.h>
-+#include <linux/debugfs.h>
- #include <linux/slab.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
-@@ -31,6 +32,7 @@
- #include <linux/dmar.h>
- #include <linux/dma-mapping.h>
- #include <linux/mempool.h>
-+#include <linux/timer.h>
- #include "iova.h"
- #include "intel-iommu.h"
- #include <asm/proto.h> /* force_iommu in this header in x86-64*/
-@@ -51,11 +53,32 @@
- 
- #define DOMAIN_MAX_ADDR(gaw) ((((u64)1) << gaw) - 1)
- 
-+
-+static void flush_unmaps_timeout(unsigned long data);
-+
-+DEFINE_TIMER(unmap_timer,  flush_unmaps_timeout, 0, 0);
-+
-+static struct intel_iommu *g_iommus;
-+/* bitmap for indexing intel_iommus */
-+static unsigned long 	*g_iommus_to_flush;
-+static int g_num_of_iommus;
-+
-+static DEFINE_SPINLOCK(async_umap_flush_lock);
-+static LIST_HEAD(unmaps_to_do);
-+
-+static int timer_on;
-+static long list_size;
-+static int high_watermark;
-+
-+static struct dentry *intel_iommu_debug, *debug;
-+
-+
- static void domain_remove_dev_info(struct dmar_domain *domain);
- 
- static int dmar_disabled;
- static int __initdata dmar_map_gfx = 1;
- static int dmar_forcedac;
-+static int intel_iommu_strict;
- 
- #define DUMMY_DEVICE_DOMAIN_INFO ((struct device_domain_info *)(-1))
- static DEFINE_SPINLOCK(device_domain_lock);
-@@ -74,9 +97,13 @@ static int __init intel_iommu_setup(char
- 			printk(KERN_INFO
- 				"Intel-IOMMU: disable GFX device mapping\n");
- 		} else if (!strncmp(str, "forcedac", 8)) {
--			printk (KERN_INFO
-+			printk(KERN_INFO
- 				"Intel-IOMMU: Forcing DAC for PCI devices\n");
- 			dmar_forcedac = 1;
-+		} else if (!strncmp(str, "strict", 6)) {
-+			printk(KERN_INFO
-+				"Intel-IOMMU: disable batched IOTLB flush\n");
-+			intel_iommu_strict = 1;
- 		}
- 
- 		str += strcspn(str, ",");
-@@ -966,17 +993,13 @@ static int iommu_init_domains(struct int
- 		set_bit(0, iommu->domain_ids);
- 	return 0;
- }
--
--static struct intel_iommu *alloc_iommu(struct dmar_drhd_unit *drhd)
-+static struct intel_iommu *alloc_iommu(struct intel_iommu *iommu,
-+					struct dmar_drhd_unit *drhd)
+diff -puN include/linux/vmstat.h~mm-use-__dec_zone_state-in-__dec_zone_=
+page_state include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-use-__dec_zone_state-in-__dec_zone_page=
+_state
++++ a/include/linux/vmstat.h
+@@ -246,8 +246,7 @@ static inline void __dec_zone_state(stru
+ static inline void __dec_zone_page_state(struct page *page,
+ 			enum zone_stat_item item)
  {
--	struct intel_iommu *iommu;
- 	int ret;
- 	int map_size;
- 	u32 ver;
- 
--	iommu = kzalloc(sizeof(*iommu), GFP_KERNEL);
--	if (!iommu)
--		return NULL;
- 	iommu->reg = ioremap(drhd->reg_base_addr, PAGE_SIZE_4K);
- 	if (!iommu->reg) {
- 		printk(KERN_ERR "IOMMU: can't map the region\n");
-@@ -1397,7 +1420,7 @@ static int dmar_pci_device_match(struct 
- 	int index;
- 
- 	while (dev) {
--		for (index = 0; index < cnt; index ++)
-+		for (index = 0; index < cnt; index++)
- 			if (dev == devices[index])
- 				return 1;
- 
-@@ -1662,7 +1685,7 @@ int __init init_dmars(void)
- 	struct dmar_rmrr_unit *rmrr;
- 	struct pci_dev *pdev;
- 	struct intel_iommu *iommu;
--	int ret, unit = 0;
-+	int nlongs, i, ret, unit = 0;
- 
- 	/*
- 	 * for each drhd
-@@ -1673,7 +1696,35 @@ int __init init_dmars(void)
- 	for_each_drhd_unit(drhd) {
- 		if (drhd->ignored)
- 			continue;
--		iommu = alloc_iommu(drhd);
-+		g_num_of_iommus++;
-+		/*
-+		 * lock not needed as this is only incremented in the single
-+		 * threaded kernel __init code path all other access are read
-+		 * only
-+		 */
-+	}
-+
-+	nlongs = BITS_TO_LONGS(g_num_of_iommus);
-+	g_iommus_to_flush = kzalloc(nlongs * sizeof(unsigned long), GFP_KERNEL);
-+	if (!g_iommus_to_flush) {
-+		printk(KERN_ERR "Intel-IOMMU: "
-+			"Allocating bitmap array failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	g_iommus = kzalloc(g_num_of_iommus * sizeof(*iommu), GFP_KERNEL);
-+	if (!g_iommus) {
-+		kfree(g_iommus_to_flush);
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
-+	i = 0;
-+	for_each_drhd_unit(drhd) {
-+		if (drhd->ignored)
-+			continue;
-+		iommu = alloc_iommu(&g_iommus[i], drhd);
-+		i++;
- 		if (!iommu) {
- 			ret = -ENOMEM;
- 			goto error;
-@@ -1706,7 +1757,6 @@ int __init init_dmars(void)
- 	 * endfor
- 	 */
- 	for_each_rmrr_units(rmrr) {
--		int i;
- 		for (i = 0; i < rmrr->devices_cnt; i++) {
- 			pdev = rmrr->devices[i];
- 			/* some BIOS lists non-exist devices in DMAR table */
-@@ -1762,6 +1812,7 @@ error:
- 		iommu = drhd->iommu;
- 		free_iommu(iommu);
- 	}
-+	kfree(g_iommus);
- 	return ret;
+-	atomic_long_dec(&page_zone(page)->vm_stat[item]);
+-	atomic_long_dec(&vm_stat[item]);
++	__dec_zone_state(page_zone(page), item);
  }
- 
-@@ -1910,6 +1961,53 @@ error:
- 	return 0;
- }
- 
-+static void flush_unmaps(void)
-+{
-+	struct iova *node, *n;
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&async_umap_flush_lock, flags);
-+	timer_on = 0;
-+
-+	/* just flush them all */
-+	for (i = 0; i < g_num_of_iommus; i++) {
-+		if (test_and_clear_bit(i, g_iommus_to_flush))
-+			iommu_flush_iotlb_global(&g_iommus[i], 0);
-+	}
-+
-+	list_for_each_entry_safe(node, n, &unmaps_to_do, list) {
-+		/* free iova */
-+		list_del(&node->list);
-+		__free_iova(&((struct dmar_domain *)node->dmar)->iovad, node);
-+
-+	}
-+	list_size = 0;
-+	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
-+}
-+
-+static void flush_unmaps_timeout(unsigned long data)
-+{
-+	flush_unmaps();
-+}
-+
-+static void add_unmap(struct dmar_domain *dom, struct iova *iova)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&async_umap_flush_lock, flags);
-+	iova->dmar = dom;
-+	list_add(&iova->list, &unmaps_to_do);
-+	set_bit((dom->iommu - g_iommus), g_iommus_to_flush);
-+
-+	if (!timer_on) {
-+		mod_timer(&unmap_timer, jiffies + msecs_to_jiffies(10));
-+		timer_on = 1;
-+	}
-+	list_size++;
-+	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
-+}
-+
- static void intel_unmap_single(struct device *dev, dma_addr_t dev_addr,
- 	size_t size, int dir)
- {
-@@ -1937,13 +2035,21 @@ static void intel_unmap_single(struct de
- 	dma_pte_clear_range(domain, start_addr, start_addr + size);
- 	/* free page tables */
- 	dma_pte_free_pagetable(domain, start_addr, start_addr + size);
--
--	if (iommu_flush_iotlb_psi(domain->iommu, domain->id, start_addr,
--			size >> PAGE_SHIFT_4K, 0))
--		iommu_flush_write_buffer(domain->iommu);
--
--	/* free iova */
--	__free_iova(&domain->iovad, iova);
-+	if (intel_iommu_strict) {
-+		if (iommu_flush_iotlb_psi(domain->iommu,
-+			domain->id, start_addr, size >> PAGE_SHIFT_4K, 0))
-+			iommu_flush_write_buffer(domain->iommu);
-+		/* free iova */
-+		__free_iova(&domain->iovad, iova);
-+	} else {
-+		add_unmap(domain, iova);
-+		/*
-+		 * queue up the release of the unmap to save the 1/6th of the
-+		 * cpu used up by the iotlb flush operation...
-+		 */
-+		if (list_size > high_watermark)
-+			flush_unmaps();
-+	}
- }
- 
- static void * intel_alloc_coherent(struct device *hwdev, size_t size,
-@@ -2267,6 +2373,10 @@ int __init intel_iommu_init(void)
- 	if (dmar_table_init())
- 		return 	-ENODEV;
- 
-+	high_watermark = 250;
-+	intel_iommu_debug = debugfs_create_dir("intel_iommu", NULL);
-+	debug = debugfs_create_u32("high_watermark", S_IWUGO | S_IRUGO,
-+					intel_iommu_debug, &high_watermark);
- 	iommu_init_mempool();
- 	dmar_init_reserved_ranges();
- 
-@@ -2282,6 +2392,7 @@ int __init intel_iommu_init(void)
- 	printk(KERN_INFO
- 	"PCI-DMA: Intel(R) Virtualization Technology for Directed I/O\n");
- 
-+	init_timer(&unmap_timer);
- 	force_iommu = 1;
- 	dma_ops = &intel_dma_ops;
- 	return 0;
-diff -puN drivers/pci/iova.h~pci-iommu-iotlb-flushing drivers/pci/iova.h
---- a/drivers/pci/iova.h~pci-iommu-iotlb-flushing
-+++ a/drivers/pci/iova.h
-@@ -24,6 +24,8 @@ struct iova {
- 	struct rb_node	node;
- 	unsigned long	pfn_hi; /* IOMMU dish out addr hi */
- 	unsigned long	pfn_lo; /* IOMMU dish out addr lo */
-+	struct list_head list;
-+	void *dmar;
- };
- 
- /* holds all the iova translations for a domain */
+=20
+ /*
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
+ are
 
-pci-iova-rb-tree-setup-tweak.patch
-pci-iommu-iotlb-flushing.patch
-iova-lockdep-false-alarm-fix.patch
+arm-fix-freeing-of-page-tables-in-free_pgd_slow.patch
+mm-use-__dec_zone_state-in-__dec_zone_page_state.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
