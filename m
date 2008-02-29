@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-is-borked-on-powerpc.patch added to -mm tree
-Date: Fri, 29 Feb 2008 03:20:42 -0800
-Message-ID: <200802291130.m1TBU1du019690@imap1.linux-foundation.org>
+Subject: + zlc_setup-handle-jiffies-wraparound-fix.patch added to -mm tree
+Date: Fri, 29 Feb 2008 11:46:15 -0800
+Message-ID: <200802291946.m1TJkFS7017634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58193 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:48306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752182AbYB2Lac (ORCPT
+	by vger.kernel.org with ESMTP id S932990AbYB2Tqv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 06:30:32 -0500
+	Fri, 29 Feb 2008 14:46:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org
+Cc: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, caglar@pardus.org.tr, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, pj@sgi.com
 
 
 The patch titled
-     tracing-is-borked-on-powerpc
+     zlc_setup-handle-jiffies-wraparound-fix
 has been added to the -mm tree.  Its filename is
-     tracing-is-borked-on-powerpc.patch
+     zlc_setup-handle-jiffies-wraparound-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracing-is-borked-on-powerpc
+Subject: zlc_setup-handle-jiffies-wraparound-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/trace/trace.c: In function `tracing_generic_entry_update':
-kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
-
-Can't make the damn thing go away.  select sucks.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-CC: Steven Rostedt <rostedt@goodmis.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/Kconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
---- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
-+++ a/kernel/trace/Kconfig
-@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
- 
- config TRACING
- 	bool
-+	depends on X86
- 	select DEBUG_FS
- 
- config FTRACE
-@@ -17,6 +18,7 @@ config FTRACE
- 	select FRAME_POINTER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
-+	depends on X86
- 	help
- 	  Enable the kernel to trace every kernel function. This is done
- 	  by using a compiler feature to insert a small, 5-byte No-Operation
-@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
- 	select TRACE_IRQFLAGS
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in irqs-off critical
- 	  sections, with microsecond accuracy.
-@@ -55,6 +58,7 @@ config PREEMPT_TRACER
- 	depends on PREEMPT
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in preemption off critical
- 	  sections, with microsecond accuracy.
-@@ -83,6 +87,7 @@ config SCHED_TRACER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This tracer tracks the latency of the highest priority task
- 	  to be scheduled in, starting from the point it has woken up.
-@@ -92,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
- 	depends on DEBUG_KERNEL
- 	select TRACING
- 	select MARKERS
-+	depends on X86
- 	help
- 	  This tracer gets called from the context switch and records
- 	  all switching of tasks.
-@@ -99,6 +105,7 @@ config CONTEXT_SWITCH_TRACER
- config DYNAMIC_FTRACE
- 	bool "enable/disable ftrace tracepoints dynamically"
- 	depends on FTRACE
-+	depends on X86
- 	default y
- 	help
-          This option will modify all the calls to ftrace dynamically
+diff -puN mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix
++++ a/mm/page_alloc.c
+@@ -19,6 +19,7 @@
+ #include <linux/swap.h>
+ #include <linux/interrupt.h>
+ #include <linux/pagemap.h>
++#include <linux/jiffies.h>
+ #include <linux/bootmem.h>
+ #include <linux/compiler.h>
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 git-acpi-fixup.patch
@@ -138,6 +89,7 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
 git-sched.patch
+tracing-is-borked-on-powerpc.patch
 git-sh.patch
 scsi-aic94xx-cleanups.patch
 git-block-git-rejects.patch
@@ -207,5 +159,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-tracing-is-borked-on-powerpc.patch
 
