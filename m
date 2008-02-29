@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch added to -mm tree
-Date: Fri, 29 Feb 2008 03:15:15 -0800
-Message-ID: <200802291124.m1TBOYZo019502@imap1.linux-foundation.org>
+Subject: + tracing-is-borked-on-powerpc.patch added to -mm tree
+Date: Fri, 29 Feb 2008 03:20:42 -0800
+Message-ID: <200802291130.m1TBU1du019690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:51250 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756662AbYB2LZE (ORCPT
+	by vger.kernel.org with ESMTP id S1752182AbYB2Lac (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 06:25:04 -0500
+	Fri, 29 Feb 2008 06:30:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, greg@kroah.com, kay.sievers@vrfy.org, mszeredi@suse.cz, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
+     tracing-is-borked-on-powerpc
 has been added to the -mm tree.  Its filename is
-     mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+     tracing-is-borked-on-powerpc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
+Subject: tracing-is-borked-on-powerpc
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:342:1: warning: "SET_PERSONALITY" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:180:1: warning: this is the location of the previous definition
+kernel/trace/trace.c: In function `tracing_generic_entry_update':
+kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Can't make the damn thing go away.  select sucks.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+CC: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev.h |    2 +-
- readahead.c                 |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ kernel/trace/Kconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix Documentation/ABI/testing/sysfs-class-bdi
-diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix block/genhd.c
-diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix
-+++ a/include/linux/backing-dev.h
-@@ -12,10 +12,10 @@
- #include <linux/log2.h>
- #include <linux/proportions.h>
- #include <linux/kernel.h>
--#include <linux/device.h>
- #include <asm/atomic.h>
+diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
+--- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
++++ a/kernel/trace/Kconfig
+@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
  
- struct page;
-+struct device;
+ config TRACING
+ 	bool
++	depends on X86
+ 	select DEBUG_FS
  
- /*
-  * Bits in backing_dev_info.state
-diff -puN include/linux/writeback.h~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix include/linux/writeback.h
-diff -puN lib/percpu_counter.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix lib/percpu_counter.c
-diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/backing-dev.c
-diff -puN mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/page-writeback.c
-diff -puN mm/readahead.c~mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix mm/readahead.c
+ config FTRACE
+@@ -17,6 +18,7 @@ config FTRACE
+ 	select FRAME_POINTER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
++	depends on X86
+ 	help
+ 	  Enable the kernel to trace every kernel function. This is done
+ 	  by using a compiler feature to insert a small, 5-byte No-Operation
+@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
+ 	select TRACE_IRQFLAGS
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in irqs-off critical
+ 	  sections, with microsecond accuracy.
+@@ -55,6 +58,7 @@ config PREEMPT_TRACER
+ 	depends on PREEMPT
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in preemption off critical
+ 	  sections, with microsecond accuracy.
+@@ -83,6 +87,7 @@ config SCHED_TRACER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This tracer tracks the latency of the highest priority task
+ 	  to be scheduled in, starting from the point it has woken up.
+@@ -92,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
+ 	depends on DEBUG_KERNEL
+ 	select TRACING
+ 	select MARKERS
++	depends on X86
+ 	help
+ 	  This tracer gets called from the context switch and records
+ 	  all switching of tasks.
+@@ -99,6 +105,7 @@ config CONTEXT_SWITCH_TRACER
+ config DYNAMIC_FTRACE
+ 	bool "enable/disable ftrace tracepoints dynamically"
+ 	depends on FTRACE
++	depends on X86
+ 	default y
+ 	help
+          This option will modify all the calls to ftrace dynamically
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -180,4 +207,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+tracing-is-borked-on-powerpc.patch
 
