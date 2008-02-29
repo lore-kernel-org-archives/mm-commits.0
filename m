@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-page_cache_xxx-in-ext2-fix.patch added to -mm tree
-Date: Fri, 29 Feb 2008 01:29:05 -0800
-Message-ID: <200802290938.m1T9cOWo015837@imap1.linux-foundation.org>
+Subject: + fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch added to -mm tree
+Date: Fri, 29 Feb 2008 01:56:06 -0800
+Message-ID: <200802291005.m1TA5OZZ016692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58988 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbYB2Ji3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754551AbYB2KGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 04:38:29 -0500
+	Fri, 29 Feb 2008 05:06:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, linux-ext4@vger.kernel.org
+Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     use-page_cache_xxx-in-ext2-fix
+     fs/ocfs2/dlm/dlmdomain.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     use-page_cache_xxx-in-ext2-fix.patch
+     fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use-page_cache_xxx-in-ext2-fix
+Subject: fs/ocfs2/dlm/dlmdomain.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Christoph Lameter <clameter@sgi.com>
+fs/ocfs2/dlm/dlmdomain.c: In function 'dlm_send_join_cancels':
+fs/ocfs2/dlm/dlmdomain.c:983: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'long unsigned int'
+
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/dir.c~use-page_cache_xxx-in-ext2-fix fs/ext2/dir.c
---- a/fs/ext2/dir.c~use-page_cache_xxx-in-ext2-fix
-+++ a/fs/ext2/dir.c
-@@ -170,8 +170,9 @@ Einumber:
- bad_entry:
- 	ext2_error (sb, "ext2_check_page", "bad entry in directory #%lu: %s - "
- 		"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
--		dir->i_ino, error, page_cache_pos(mapping, page->index, offs),
--		(unsigned long) le32_to_cpu(p->inode),
-+		dir->i_ino, error,
-+		(unsigned long)page_cache_pos(mapping, page->index, offs),
-+		(unsigned long)le32_to_cpu(p->inode),
- 		rec_len, p->name_len);
- 	goto fail;
- Eend:
-@@ -179,8 +180,9 @@ Eend:
- 	ext2_error (sb, "ext2_check_page",
- 		"entry in directory #%lu spans the page boundary"
- 		"offset=%lu, inode=%lu",
--		dir->i_ino, page_cache_pos(mapping, page->index, offs),
--		(unsigned long) le32_to_cpu(p->inode));
-+		dir->i_ino,
-+		(unsigned long)page_cache_pos(mapping, page->index, offs),
-+		(unsigned long)le32_to_cpu(p->inode));
- fail:
- 	SetPageChecked(page);
- 	SetPageError(page);
-@@ -301,7 +303,7 @@ ext2_readdir (struct file * filp, void *
- 			ext2_error(sb, __FUNCTION__,
- 				   "bad page in #%lu",
- 				   inode->i_ino);
--			filp->f_pos += page_cache_size(mapping) - offset
-+			filp->f_pos += page_cache_size(mapping) - offset;
- 			return PTR_ERR(page);
- 		}
- 		kaddr = page_address(page);
+diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -982,7 +982,7 @@ static int dlm_send_join_cancels(struct 
+ 			 sizeof(unsigned long))) {
+ 		mlog(ML_ERROR,
+ 		     "map_size %u != BITS_TO_LONGS(O2NM_MAX_NODES) %u\n",
+-		     map_size, BITS_TO_LONGS(O2NM_MAX_NODES));
++		     map_size, (unsigned)BITS_TO_LONGS(O2NM_MAX_NODES));
+ 		return -EINVAL;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,4 +153,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
 
