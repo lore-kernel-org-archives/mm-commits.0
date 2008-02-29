@@ -1,82 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch added to -mm tree
-Date: Fri, 29 Feb 2008 13:19:18 -0800
-Message-ID: <200802292119.m1TLJI3w021275@imap1.linux-foundation.org>
+Subject: - build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 13:20:19 -0800
+Message-ID: <200802292120.m1TLKJwD021324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:49193 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:34997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761081AbYB2VUf (ORCPT
+	by vger.kernel.org with ESMTP id S1761654AbYB2VVZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 16:20:35 -0500
+	Fri, 29 Feb 2008 16:21:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, gregkh@suse.de, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, xhejtman@ics.muni.cz, zdenek.kabelac@gmail.com
+To: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, jikos@jikos.cz, liam.girdwood@wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: fix new mutex-locking bug in the PM core
-has been added to the -mm tree.  Its filename is
-     pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch
+     Build system and MAINTAINERS entry for WM97xx touchscreen drivers
+has been removed from the -mm tree.  Its filename was
+     build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: fix new mutex-locking bug in the PM core
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Build system and MAINTAINERS entry for WM97xx touchscreen drivers
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-This patch (as1041) fixes a bug introduced by the
-acquire-all-device-semaphores reversion.  The error pathway of dpm_suspend()
-fails to reacquire a mutex it should be holding.
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS                        |   10 +++++
+ drivers/input/touchscreen/Kconfig  |   52 +++++++++++++++++++++++++++
+ drivers/input/touchscreen/Makefile |    7 +++
+ 3 files changed, 69 insertions(+)
 
-diff -puN drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix
-+++ a/drivers/base/power/main.c
-@@ -423,6 +423,7 @@ static int dpm_suspend(pm_message_t stat
+diff -puN MAINTAINERS~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers MAINTAINERS
+--- a/MAINTAINERS~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers
++++ a/MAINTAINERS
+@@ -4317,6 +4317,16 @@ L:	linux-wireless@vger.kernel.org
+ W:	http://oops.ghostprotocols.net:81/blog
+ S:	Maintained
  
- 		mutex_unlock(&dpm_list_mtx);
- 		error = suspend_device(dev, state);
-+		mutex_lock(&dpm_list_mtx);
- 		if (error) {
- 			printk(KERN_ERR "Could not suspend device %s: "
- 					"error %d%s\n",
-@@ -433,7 +434,6 @@ static int dpm_suspend(pm_message_t stat
- 					""));
- 			break;
- 		}
--		mutex_lock(&dpm_list_mtx);
- 		if (!list_empty(&dev->power.entry))
- 			list_move(&dev->power.entry, &dpm_off);
- 	}
++WM97XX TOUCHSCREEN DRIVERS
++P:	Mark Brown
++M:	broonie@opensource.wolfsonmicro.com
++P:	Liam Girdwood
++M:	liam.girdwood@wolfsonmicro.com
++L:	linux-input@vger.kernel.org
++T:	git git://opensource.wolfsonmicro.com/linux-2.6-touch
++W:	http://opensource.wolfsonmicro.com/node/7
++S:	Supported
++
+ X.25 NETWORK LAYER
+ P:	Henner Eisen
+ M:	eis@baty.hanse.de
+diff -puN drivers/input/touchscreen/Kconfig~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers
++++ a/drivers/input/touchscreen/Kconfig
+@@ -158,6 +158,58 @@ config TOUCHSCREEN_TOUCHRIGHT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called touchright.
+ 
++config TOUCHSCREEN_WM97XX
++	tristate "Support for WM97xx AC97 touchscreen controllers"
++	depends on AC97_BUS
++
++config TOUCHSCREEN_WM9705
++	bool "WM9705 Touchscreen interface support"
++	depends on TOUCHSCREEN_WM97XX
++	help
++	  Say Y here if you have a Wolfson Microelectronics WM9705 touchscreen
++	  controller connected to your system.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called wm9705.
++
++config TOUCHSCREEN_WM9712
++	bool "WM9712 Touchscreen interface support"
++	depends on TOUCHSCREEN_WM97XX
++	help
++	  Say Y here if you have a Wolfson Microelectronics WM9712 touchscreen
++	  controller connected to your system.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called wm9712.
++
++config TOUCHSCREEN_WM9713
++	bool "WM9713 Touchscreen interface support"
++	depends on TOUCHSCREEN_WM97XX
++	help
++	  Say Y here if you have a Wolfson Microelectronics WM9713 touchscreen
++	  controller connected to your system.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called wm9713.
++
++config TOUCHSCREEN_WM97XX_MAINSTONE
++	tristate "WM97xx Mainstone accelerated touch"
++	depends on TOUCHSCREEN_WM97XX && ARCH_PXA
++	help
++	  Say Y here for support for streaming mode with WM97xx touchscreens
++	  on Mainstone systems.
++
++	  If unsure, say N
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called mainstone-wm97xx
++
+ config TOUCHSCREEN_TOUCHWIN
+ 	tristate "Touchwin serial touchscreen"
+ 	select SERIO
+diff -puN drivers/input/touchscreen/Makefile~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers drivers/input/touchscreen/Makefile
+--- a/drivers/input/touchscreen/Makefile~build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers
++++ a/drivers/input/touchscreen/Makefile
+@@ -4,6 +4,8 @@
+ 
+ # Each configuration option enables a list of files.
+ 
++wm97xx-ts-y := wm97xx-core.o
++
+ obj-$(CONFIG_TOUCHSCREEN_ADS7846)	+= ads7846.o
+ obj-$(CONFIG_TOUCHSCREEN_BITSY)		+= h3600_ts_input.o
+ obj-$(CONFIG_TOUCHSCREEN_CORGI)		+= corgi_ts.o
+@@ -19,3 +21,8 @@ obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= pe
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
+ obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
++obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
++obj-$(CONFIG_TOUCHSCREEN_WM97XX_MAINSTONE)	+= mainstone-wm97xx.o
++wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)  += wm9705.o
++wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9712)  += wm9712.o
++wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9713)  += wm9713.o
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-pm-do-not-acquire-device-semaphores-upfront-during-suspend.patch
-pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch
+git-alsa.patch
+git-arm-master.patch
+build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers.patch
 
