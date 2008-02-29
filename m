@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-detect-media-without-partition-table-correctly.patch added to -mm tree
-Date: Fri, 29 Feb 2008 14:52:00 -0800
-Message-ID: <200802292252.m1TMq0We024859@imap1.linux-foundation.org>
+Subject: + watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point.patch added to -mm tree
+Date: Fri, 29 Feb 2008 14:49:09 -0800
+Message-ID: <200802292249.m1TMnA5h024768@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:37383 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:35476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754225AbYB2Wwh (ORCPT
+	by vger.kernel.org with ESMTP id S1753853AbYB2W62 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 17:52:37 -0500
+	Fri, 29 Feb 2008 17:58:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fseidel@suse.de, adilger@sun.com, hirofumi@mail.parknet.co.jp
+Cc: rdreier@cisco.com, Thomas.Mingarelli@hp.com, rolandd@cisco.com, wim@iguana.be
 
 
 The patch titled
-     fat: detect media without partition table correctly
+     watchdog: hpwdt: fix declaration of struct smbios_entry_point()
 has been added to the -mm tree.  Its filename is
-     fat-detect-media-without-partition-table-correctly.patch
+     watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: detect media without partition table correctly
-From: Frank Seidel <fseidel@suse.de>
+Subject: watchdog: hpwdt: fix declaration of struct smbios_entry_point()
+From: Roland Dreier <rdreier@cisco.com>
 
-I received a complaint that some FAT formated medias
-(e.g. sd memory cards) trigger a "unknown partition table" message even though
-there is no partition table and they work correctly, while in general
-(when e.g. formated with mkdosfs or even Windows Vista) this message is not
-shown.
+On my HP DL380 G5 system running a 64-bit kernel, loading the hpwdt driver
+causes a crash because the driver attempts to ioremap an invalid physical
+address.  This is because the driver has an incorrect definition of the SMBIOS
+table entry point structure: the table address is only a 32-bit quantity, and
+making it a u64 means that the high-order 32 bits end up containing garbage.
 
-Currently this seems only to happen when the medias get formatted with
-Windows XP (and possibly Win 2000). Then the boot indicator byte contains
-garbage (part of text message) and so do the other parts checked by
-msdos_paritition which then later triggers this message.
+Correcting the structure definition fixes the driver so that it loads without
+any problems on my system.
 
-References: novell bug #364365
-
-Most fat formatted media without partition table contains zeros in the boot
-indication and the other tested bytes and so falls through the checks in
-msdos_partition, leading it to return with 1 (all is fine).
-
-But some (e.g.  WinXP formatted) fat fomated medias don't use boot_ind and so
-the check fails and causes a "unkown partition table" warning eventhough there
-is none and everything would be fine.
-
-This additional check directly verifies if there is a fat formatted medium
-without a partition table.
-
-Signed-off-by: Frank Seidel <fseidel@suse.de>
-Cc: Andreas Dilger <adilger@sun.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Roland Dreier <rolandd@cisco.com>
+Acked-by: Thomas Mingarelli <Thomas.Mingarelli@hp.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly
-+++ a/fs/partitions/msdos.c
-@@ -18,7 +18,7 @@
-  *
-  *  Re-organised Feb 1998 Russell King
-  */
--
-+#include <linux/msdos_fs.h>
- 
- #include "check.h"
- #include "msdos.h"
-@@ -419,6 +419,7 @@ int msdos_partition(struct parsed_partit
- 	Sector sect;
- 	unsigned char *data;
- 	struct partition *p;
-+	struct fat_boot_sector *fb;
- 	int slot;
- 
- 	data = read_dev_sector(bdev, 0, &sect);
-@@ -441,6 +442,12 @@ int msdos_partition(struct parsed_partit
- 	 * partition table. Reject this in case the boot indicator
- 	 * is not 0 or 0x80.
- 	 */
-+	fb = (struct fat_boot_sector *) data;
-+	if (fb->reserved && fb->fats && FAT_VALID_MEDIA(fb->media)) {
-+		printk("\n");
-+		put_dev_sector(sect);
-+		return 1;
-+	}
- 	p = (struct partition *) (data + 0x1be);
- 	for (slot = 1; slot <= 4; slot++, p++) {
- 		if (p->boot_ind != 0 && p->boot_ind != 0x80) {
+diff -puN drivers/watchdog/hpwdt.c~watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point
++++ a/drivers/watchdog/hpwdt.c
+@@ -88,7 +88,7 @@ struct smbios_entry_point {
+ 	u8 intermediate_anchor[5];
+ 	u8 intermediate_checksum;
+ 	u16 table_length;
+-	u64 table_address;
++	u32 table_address;
+ 	u16 table_num_structs;
+ 	u8 bcd_revision;
+ };
 _
 
-Patches currently in -mm which might be from fseidel@suse.de are
+Patches currently in -mm which might be from rdreier@cisco.com are
 
-fat-detect-media-without-partition-table-correctly.patch
+input-i8042-fix-warning-on-non-x86-builds.patch
+git-net.patch
+watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point.patch
+watchdog-hpwdt-fix-return-value-warning.patch
+watchdog-hpwdt-use-dmi_walk-instead-of-own-copy.patch
 
