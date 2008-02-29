@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gdth-fix-to-internal-commands-execution-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 28 Feb 2008 17:07:22 -0800
-Message-ID: <200802290107.m1T17Mit030354@imap1.linux-foundation.org>
+Subject: + gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 28 Feb 2008 17:07:25 -0800
+Message-ID: <200802290107.m1T17PGf030359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:34190 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:33770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760603AbYB2BJF (ORCPT
+	by vger.kernel.org with ESMTP id S1761890AbYB2BJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 20:09:05 -0500
+	Thu, 28 Feb 2008 20:09:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bharrosh@panasas.com
 
 
 The patch titled
-     gdth-fix-to-internal-commands-execution-checkpatch-fixes
+     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     gdth-fix-to-internal-commands-execution-checkpatch-fixes.patch
+     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gdth-fix-to-internal-commands-execution-checkpatch-fixes
+Subject: gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#40: FILE: drivers/scsi/gdth.c:163:
-+                                    char *buffer, ushort count);$
+ERROR: need space after that ',' (ctx:VxV)
+#85: FILE: drivers/scsi/gdth.c:2292:
++    ushort cpcount,i, max_sg = scsi_sg_count(scp);
+                   ^
 
 ERROR: use tabs not spaces
-#82: FILE: drivers/scsi/gdth.c:2331:
-+                                    char *buffer, ushort count)$
+#100: FILE: drivers/scsi/gdth.c:2305:
++                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));$
 
 ERROR: use tabs not spaces
-#94: FILE: drivers/scsi/gdth.c:2357:
-+            memcpy(address, buffer, cpnow);$
+#109: FILE: drivers/scsi/gdth.c:2528:
++        if (scsi_bufflen(scp)) {$
 
 ERROR: use tabs not spaces
-#103: FILE: drivers/scsi/gdth.c:2411:
-+        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#103: FILE: drivers/scsi/gdth.c:2411:
-+        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));
+#113: FILE: drivers/scsi/gdth.c:2531:
++            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
 
 ERROR: use tabs not spaces
-#112: FILE: drivers/scsi/gdth.c:2421:
-+        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#112: FILE: drivers/scsi/gdth.c:2421:
-+        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));
+#122: FILE: drivers/scsi/gdth.c:2678:
++            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);$
 
 ERROR: use tabs not spaces
-#121: FILE: drivers/scsi/gdth.c:2433:
-+        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#121: FILE: drivers/scsi/gdth.c:2433:
-+        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));
+#131: FILE: drivers/scsi/gdth.c:2695:
++            cmdp->u.raw.sdlen      = scsi_bufflen(scp);$
 
 ERROR: use tabs not spaces
-#130: FILE: drivers/scsi/gdth.c:2443:
-+        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));$
-
-ERROR: "(foo*)" should be "(foo *)"
-#130: FILE: drivers/scsi/gdth.c:2443:
-+        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));
+#140: FILE: drivers/scsi/gdth.c:2704:
++        if (scsi_bufflen(scp)) {$
 
 ERROR: use tabs not spaces
-#139: FILE: drivers/scsi/gdth.c:2455:
-+                                                 sizeof(gdth_rdcap16_data));$
+#143: FILE: drivers/scsi/gdth.c:2706:
++            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
 
 ERROR: use tabs not spaces
-#167: FILE: drivers/scsi/gdth.h:916:
-+        gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/$
+#153: FILE: drivers/scsi/gdth.c:3327:
++        if (scsi_bufflen(scp))$
 
-total: 13 errors, 0 warnings, 119 lines checked
+ERROR: use tabs not spaces
+#154: FILE: drivers/scsi/gdth.c:3328:
++            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
 
-./patches/gdth-fix-to-internal-commands-execution.patch has style problems, please review.  If any of these errors
+total: 10 errors, 0 warnings, 141 lines checked
+
+./patches/gdth-remove-gdth-cooked-up-command-accessors.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -101,106 +90,84 @@ Cc: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   18 +++++++++---------
- drivers/scsi/gdth.h |    2 +-
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/scsi/gdth.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~gdth-fix-to-internal-commands-execution-checkpatch-fixes drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~gdth-fix-to-internal-commands-execution-checkpatch-fixes
+diff -puN drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
 +++ a/drivers/scsi/gdth.c
-@@ -160,7 +160,7 @@ static void gdth_readapp_event(gdth_ha_s
- static void gdth_clear_events(void);
- 
+@@ -2289,7 +2289,7 @@ static void gdth_next(gdth_ha_str *ha)
  static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
--                                    char *buffer, ushort count);
-+				    char *buffer, ushort count);
- static int gdth_internal_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp);
- static int gdth_fill_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp, ushort hdrive);
- 
-@@ -913,7 +913,7 @@ static int gdth_init_pci(struct pci_dev 
-     if (ha->pdev->device <= PCI_DEVICE_ID_VORTEX_GDT6000B) {  /* GDT6000/B */
-         TRACE2(("init_pci() dpmem %lx irq %d\n",pcistr->dpmem,ha->irq));
-         ha->brd = ioremap(pcistr->dpmem, sizeof(gdt6_dpram_str));
--        if (ha->brd == NULL) {
-+	if (ha->brd == NULL) {
-             printk("GDT-PCI: Initialization error (DPMEM remap error)\n");
-             return 0;
-         }
-@@ -2328,7 +2328,7 @@ static void gdth_next(gdth_ha_str *ha)
-  * buffers, kmap_atomic() as needed.
-  */
- static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
--                                    char *buffer, ushort count)
-+				    char *buffer, ushort count)
+ 				    char *buffer, ushort count)
  {
-     ushort cpcount,i, max_sg = gdth_sg_count(scp);
+-    ushort cpcount,i, max_sg = scsi_sg_count(scp);
++    ushort cpcount, i, max_sg = scsi_sg_count(scp);
      ushort cpsum,cpnow;
-@@ -2354,7 +2354,7 @@ static void gdth_copy_internal_data(gdth
-             }
-             local_irq_save(flags);
-             address = kmap_atomic(sg_page(sl), KM_BIO_SRC_IRQ) + sl->offset;
--            memcpy(address, buffer, cpnow);
-+	    memcpy(address, buffer, cpnow);
-             flush_dcache_page(sg_page(sl));
-             kunmap_atomic(address, KM_BIO_SRC_IRQ);
-             local_irq_restore(flags);
-@@ -2408,7 +2408,7 @@ static int gdth_internal_cache_cmd(gdth_
-         strcpy(inq.vendor,ha->oem_name);
-         sprintf(inq.product,"Host Drive  #%02d",t);
-         strcpy(inq.revision,"   ");
--        gdth_copy_internal_data(ha, scp, (char*)&inq, sizeof(gdth_inq_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&inq, sizeof(gdth_inq_data));
-         break;
- 
-       case REQUEST_SENSE:
-@@ -2418,7 +2418,7 @@ static int gdth_internal_cache_cmd(gdth_
-         sd.key       = NO_SENSE;
-         sd.info      = 0;
-         sd.add_length= 0;
--        gdth_copy_internal_data(ha, scp, (char*)&sd, sizeof(gdth_sense_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&sd, sizeof(gdth_sense_data));
-         break;
- 
-       case MODE_SENSE:
-@@ -2430,7 +2430,7 @@ static int gdth_internal_cache_cmd(gdth_
-         mpd.bd.block_length[0] = (SECTOR_SIZE & 0x00ff0000) >> 16;
-         mpd.bd.block_length[1] = (SECTOR_SIZE & 0x0000ff00) >> 8;
-         mpd.bd.block_length[2] = (SECTOR_SIZE & 0x000000ff);
--        gdth_copy_internal_data(ha, scp, (char*)&mpd, sizeof(gdth_modep_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&mpd, sizeof(gdth_modep_data));
-         break;
- 
-       case READ_CAPACITY:
-@@ -2440,7 +2440,7 @@ static int gdth_internal_cache_cmd(gdth_
-         else
-             rdc.last_block_no = cpu_to_be32(ha->hdr[t].size-1);
-         rdc.block_length  = cpu_to_be32(SECTOR_SIZE);
--        gdth_copy_internal_data(ha, scp, (char*)&rdc, sizeof(gdth_rdcap_data));
-+	gdth_copy_internal_data(ha, scp, (char *)&rdc, sizeof(gdth_rdcap_data));
-         break;
- 
-       case SERVICE_ACTION_IN:
-@@ -2452,7 +2452,7 @@ static int gdth_internal_cache_cmd(gdth_
-             rdc16.last_block_no = cpu_to_be64(ha->hdr[t].size-1);
-             rdc16.block_length  = cpu_to_be32(SECTOR_SIZE);
-             gdth_copy_internal_data(ha, scp, (char*)&rdc16,
--                                                 sizeof(gdth_rdcap16_data));
-+				    sizeof(gdth_rdcap16_data));
-         } else { 
-             scp->result = DID_ABORT << 16;
+     struct scatterlist *sl;
+     char *address;
+@@ -2302,7 +2302,7 @@ static void gdth_copy_internal_data(gdth
+             unsigned long flags;
+             cpnow = (ushort)sl->length;
+             TRACE(("copy_internal() now %d sum %d count %d %d\n",
+-                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));
++		   cpnow, cpsum, cpcount, scsi_bufflen(scp)));
+             if (cpsum+cpnow > cpcount) 
+                 cpnow = cpcount - cpsum;
+             cpsum += cpnow;
+@@ -2525,10 +2525,10 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+             cmdp->u.cache.BlockCnt = blockcnt;
          }
-diff -puN drivers/scsi/gdth.h~gdth-fix-to-internal-commands-execution-checkpatch-fixes drivers/scsi/gdth.h
---- a/drivers/scsi/gdth.h~gdth-fix-to-internal-commands-execution-checkpatch-fixes
-+++ a/drivers/scsi/gdth.h
-@@ -913,7 +913,7 @@ typedef struct {
-     struct gdth_cmndinfo {                      /* per-command private info */
-         int index;
-         int internal_command;                   /* don't call scsi_done */
--        gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/
-+	gdth_cmd_str *internal_cmd_str;         /* crier for internal messages*/
-         dma_addr_t sense_paddr;                 /* sense dma-addr */
-         unchar priority;
-         int timeout;
+ 
+-        if (scsi_bufflen(scp)) {
++	if (scsi_bufflen(scp)) {
+             cmndinfo->dma_dir = (read_write == 1 ?
+                 PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);   
+-            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
++	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
+                                cmndinfo->dma_dir);
+             if (mode64) {
+                 struct scatterlist *sl;
+@@ -2675,7 +2675,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
+             cmdp->u.raw64.lun        = l;
+             cmdp->u.raw64.bus        = b;
+             cmdp->u.raw64.priority   = 0;
+-            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
++	    cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
+             cmdp->u.raw64.sense_len  = 16;
+             cmdp->u.raw64.sense_data = sense_paddr;
+             cmdp->u.raw64.direction  = 
+@@ -2692,7 +2692,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
+             cmdp->u.raw.bus        = b;
+             cmdp->u.raw.priority   = 0;
+             cmdp->u.raw.link_p     = 0;
+-            cmdp->u.raw.sdlen      = scsi_bufflen(scp);
++	    cmdp->u.raw.sdlen      = scsi_bufflen(scp);
+             cmdp->u.raw.sense_len  = 16;
+             cmdp->u.raw.sense_data = sense_paddr;
+             cmdp->u.raw.direction  = 
+@@ -2701,9 +2701,9 @@ static int gdth_fill_raw_cmd(gdth_ha_str
+             cmdp->u.raw.sg_ranz    = 0;
+         }
+ 
+-        if (scsi_bufflen(scp)) {
++	if (scsi_bufflen(scp)) {
+             cmndinfo->dma_dir = PCI_DMA_BIDIRECTIONAL;
+-            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
++	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
+                                cmndinfo->dma_dir);
+             if (mode64) {
+                 struct scatterlist *sl;
+@@ -3324,8 +3324,8 @@ static int gdth_sync_event(gdth_ha_str *
+             /* retry */
+             return 2;
+         }
+-        if (scsi_bufflen(scp))
+-            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
++	if (scsi_bufflen(scp))
++	    pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
+                          cmndinfo->dma_dir);
+ 
+         if (cmndinfo->sense_paddr)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
