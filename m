@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-overflow.patch added to -mm tree
-Date: Fri, 29 Feb 2008 00:47:51 -0800
-Message-ID: <200802290847.m1T8lqQS014068@imap1.linux-foundation.org>
+Subject: + capabilities-implement-per-process-securebits-warning-fix.patch added to -mm tree
+Date: Fri, 29 Feb 2008 00:35:37 -0800
+Message-ID: <200802290844.m1T8iuIq014009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:36644 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:39448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077AbYB2Irz (ORCPT
+	by vger.kernel.org with ESMTP id S1753149AbYB2Iv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 03:47:55 -0500
+	Fri, 29 Feb 2008 03:51:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ming.m.lin@intel.com, rui.zhang@intel.com
+Cc: akpm@linux-foundation.org, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     acpi: fix overflow
+     capabilities-implement-per-process-securebits-warning-fix
 has been added to the -mm tree.  Its filename is
-     acpi-fix-overflow.patch
+     capabilities-implement-per-process-securebits-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix overflow
-From: Lin Ming <ming.m.lin@intel.com>
+Subject: capabilities-implement-per-process-securebits-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a memory overflow bug when copying NULL internal package element object to
-external.
+kernel/sys.c: In function 'sys_prctl':
+kernel/sys.c:1629: warning: 'error' may be used uninitialized in this function
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/utilities/utobject.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c    |    2 +-
+ selinux/hooks.c |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/utilities/utobject.c~acpi-fix-overflow drivers/acpi/utilities/utobject.c
---- a/drivers/acpi/utilities/utobject.c~acpi-fix-overflow
-+++ a/drivers/acpi/utilities/utobject.c
-@@ -432,7 +432,7 @@ acpi_ut_get_simple_object_size(union acp
- 	 * element -- which is legal)
- 	 */
- 	if (!internal_object) {
--		*obj_length = 0;
-+		*obj_length = sizeof(union acpi_object);
- 		return_ACPI_STATUS(AE_OK);
- 	}
+diff -puN include/linux/capability.h~capabilities-implement-per-process-securebits-warning-fix include/linux/capability.h
+diff -puN include/linux/init_task.h~capabilities-implement-per-process-securebits-warning-fix include/linux/init_task.h
+diff -puN include/linux/prctl.h~capabilities-implement-per-process-securebits-warning-fix include/linux/prctl.h
+diff -puN include/linux/sched.h~capabilities-implement-per-process-securebits-warning-fix include/linux/sched.h
+diff -puN include/linux/securebits.h~capabilities-implement-per-process-securebits-warning-fix include/linux/securebits.h
+diff -puN include/linux/security.h~capabilities-implement-per-process-securebits-warning-fix include/linux/security.h
+diff -puN kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix kernel/sys.c
+--- a/kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix
++++ a/kernel/sys.c
+@@ -1626,7 +1626,7 @@ asmlinkage long sys_umask(int mask)
+ asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
+ 			  unsigned long arg4, unsigned long arg5)
+ {
+-	long error;
++	long uninitialized_var(error);
  
+ 	if (security_task_prctl(option, arg2, arg3, arg4, arg5, &error))
+ 		return error;
+diff -puN security/capability.c~capabilities-implement-per-process-securebits-warning-fix security/capability.c
+diff -puN security/commoncap.c~capabilities-implement-per-process-securebits-warning-fix security/commoncap.c
+diff -puN security/dummy.c~capabilities-implement-per-process-securebits-warning-fix security/dummy.c
+diff -puN security/security.c~capabilities-implement-per-process-securebits-warning-fix security/security.c
+diff -puN security/selinux/hooks.c~capabilities-implement-per-process-securebits-warning-fix security/selinux/hooks.c
 _
 
-Patches currently in -mm which might be from ming.m.lin@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-fix-overflow.patch
+origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+git-x86.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-sched.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-fixup.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+optimise-tick_nohz_stop_sched_tick-a-bit-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
