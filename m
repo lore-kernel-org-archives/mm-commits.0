@@ -1,163 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 29 Feb 2008 00:25:55 -0800
-Message-ID: <200802290825.m1T8PtWj013347@imap1.linux-foundation.org>
+Subject: - tracing-is-borked-on-powerpc.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 00:32:39 -0800
+Message-ID: <200802290832.m1T8Wdfi013537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:55912 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:51320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753200AbYB2I0J (ORCPT
+	by vger.kernel.org with ESMTP id S1755227AbYB2Id3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 03:26:09 -0500
+	Fri, 29 Feb 2008 03:33:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bharrosh@panasas.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
+     tracing-is-borked-on-powerpc
 has been removed from the -mm tree.  Its filename was
-     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch
+     tracing-is-borked-on-powerpc.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
+Subject: tracing-is-borked-on-powerpc
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need space after that ',' (ctx:VxV)
-#85: FILE: drivers/scsi/gdth.c:2292:
-+    ushort cpcount,i, max_sg = scsi_sg_count(scp);
-                   ^
+kernel/trace/trace.c: In function `tracing_generic_entry_update':
+kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
 
-ERROR: use tabs not spaces
-#100: FILE: drivers/scsi/gdth.c:2305:
-+                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));$
+Can't make the damn thing go away.  select sucks.
 
-ERROR: use tabs not spaces
-#109: FILE: drivers/scsi/gdth.c:2528:
-+        if (scsi_bufflen(scp)) {$
-
-ERROR: use tabs not spaces
-#113: FILE: drivers/scsi/gdth.c:2531:
-+            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-ERROR: use tabs not spaces
-#122: FILE: drivers/scsi/gdth.c:2678:
-+            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);$
-
-ERROR: use tabs not spaces
-#131: FILE: drivers/scsi/gdth.c:2695:
-+            cmdp->u.raw.sdlen      = scsi_bufflen(scp);$
-
-ERROR: use tabs not spaces
-#140: FILE: drivers/scsi/gdth.c:2704:
-+        if (scsi_bufflen(scp)) {$
-
-ERROR: use tabs not spaces
-#143: FILE: drivers/scsi/gdth.c:2706:
-+            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-ERROR: use tabs not spaces
-#153: FILE: drivers/scsi/gdth.c:3327:
-+        if (scsi_bufflen(scp))$
-
-ERROR: use tabs not spaces
-#154: FILE: drivers/scsi/gdth.c:3328:
-+            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-total: 10 errors, 0 warnings, 141 lines checked
-
-./patches/gdth-remove-gdth-cooked-up-command-accessors.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+CC: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ kernel/trace/Kconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
-+++ a/drivers/scsi/gdth.c
-@@ -2289,7 +2289,7 @@ static void gdth_next(gdth_ha_str *ha)
- static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
- 				    char *buffer, ushort count)
- {
--    ushort cpcount,i, max_sg = scsi_sg_count(scp);
-+    ushort cpcount, i, max_sg = scsi_sg_count(scp);
-     ushort cpsum,cpnow;
-     struct scatterlist *sl;
-     char *address;
-@@ -2302,7 +2302,7 @@ static void gdth_copy_internal_data(gdth
-             unsigned long flags;
-             cpnow = (ushort)sl->length;
-             TRACE(("copy_internal() now %d sum %d count %d %d\n",
--                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));
-+		   cpnow, cpsum, cpcount, scsi_bufflen(scp)));
-             if (cpsum+cpnow > cpcount) 
-                 cpnow = cpcount - cpsum;
-             cpsum += cpnow;
-@@ -2525,10 +2525,10 @@ static int gdth_fill_cache_cmd(gdth_ha_s
-             cmdp->u.cache.BlockCnt = blockcnt;
-         }
+diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
+--- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
++++ a/kernel/trace/Kconfig
+@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
  
--        if (scsi_bufflen(scp)) {
-+	if (scsi_bufflen(scp)) {
-             cmndinfo->dma_dir = (read_write == 1 ?
-                 PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);   
--            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                                cmndinfo->dma_dir);
-             if (mode64) {
-                 struct scatterlist *sl;
-@@ -2675,7 +2675,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw64.lun        = l;
-             cmdp->u.raw64.bus        = b;
-             cmdp->u.raw64.priority   = 0;
--            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
-+	    cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
-             cmdp->u.raw64.sense_len  = 16;
-             cmdp->u.raw64.sense_data = sense_paddr;
-             cmdp->u.raw64.direction  = 
-@@ -2692,7 +2692,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw.bus        = b;
-             cmdp->u.raw.priority   = 0;
-             cmdp->u.raw.link_p     = 0;
--            cmdp->u.raw.sdlen      = scsi_bufflen(scp);
-+	    cmdp->u.raw.sdlen      = scsi_bufflen(scp);
-             cmdp->u.raw.sense_len  = 16;
-             cmdp->u.raw.sense_data = sense_paddr;
-             cmdp->u.raw.direction  = 
-@@ -2701,9 +2701,9 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw.sg_ranz    = 0;
-         }
+ config TRACING
+ 	bool
++	depends on X86
+ 	select DEBUG_FS
  
--        if (scsi_bufflen(scp)) {
-+	if (scsi_bufflen(scp)) {
-             cmndinfo->dma_dir = PCI_DMA_BIDIRECTIONAL;
--            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                                cmndinfo->dma_dir);
-             if (mode64) {
-                 struct scatterlist *sl;
-@@ -3324,8 +3324,8 @@ static int gdth_sync_event(gdth_ha_str *
-             /* retry */
-             return 2;
-         }
--        if (scsi_bufflen(scp))
--            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	if (scsi_bufflen(scp))
-+	    pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                          cmndinfo->dma_dir);
- 
-         if (cmndinfo->sense_paddr)
+ config FTRACE
+@@ -17,6 +18,7 @@ config FTRACE
+ 	select FRAME_POINTER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
++	depends on X86
+ 	help
+ 	  Enable the kernel to trace every kernel function. This is done
+ 	  by using a compiler feature to insert a small, 5-byte No-Operation
+@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
+ 	select TRACE_IRQFLAGS
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in irqs-off critical
+ 	  sections, with microsecond accuracy.
+@@ -55,6 +58,7 @@ config PREEMPT_TRACER
+ 	depends on PREEMPT
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in preemption off critical
+ 	  sections, with microsecond accuracy.
+@@ -75,6 +79,7 @@ config SCHED_TRACER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This tracer tracks the latency of the highest priority task
+ 	  to be scheduled in, starting from the point it has woken up.
+@@ -84,6 +89,7 @@ config CONTEXT_SWITCH_TRACER
+ 	depends on DEBUG_KERNEL
+ 	select TRACING
+ 	select MARKERS
++	depends on X86
+ 	help
+ 	  This tracer gets called from the context switch and records
+ 	  all switching of tasks.
+@@ -91,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
+ config DYNAMIC_FTRACE
+ 	bool "enable/disable ftrace tracepoints dynamically"
+ 	depends on FTRACE
++	depends on X86
+ 	default y
+ 	help
+          This option will modify all the calls to ftrace dynamically
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -183,7 +124,6 @@ git-ubi.patch
 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-git-sched.patch
 tracing-is-borked-on-powerpc.patch
 git-sh.patch
 scsi-aic94xx-cleanups.patch
@@ -202,7 +142,6 @@ sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
 markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 drivers-media-video-em28xx-correct-use-of-and-fix.patch
-gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
