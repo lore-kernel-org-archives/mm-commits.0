@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 28 Feb 2008 17:07:25 -0800
-Message-ID: <200802290107.m1T17PGf030359@imap1.linux-foundation.org>
+Subject: + tcp-debug-sl.patch added to -mm tree
+Date: Thu, 28 Feb 2008 17:10:19 -0800
+Message-ID: <200802290110.m1T1AJjI030478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:33770 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:40881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761890AbYB2BJh (ORCPT
+	by vger.kernel.org with ESMTP id S1750728AbYB2BK2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Feb 2008 20:09:37 -0500
+	Thu, 28 Feb 2008 20:10:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bharrosh@panasas.com
+Cc: ilpo.jarvinen@helsinki.fi
 
 
 The patch titled
-     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
+     TCP debug S+L
 has been added to the -mm tree.  Its filename is
-     gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch
+     tcp-debug-sl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,228 +34,354 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: TCP debug S+L
+From: "Ilpo Jarvinen" <ilpo.jarvinen@helsinki.fi>
 
-ERROR: need space after that ',' (ctx:VxV)
-#85: FILE: drivers/scsi/gdth.c:2292:
-+    ushort cpcount,i, max_sg = scsi_sg_count(scp);
-                   ^
 
-ERROR: use tabs not spaces
-#100: FILE: drivers/scsi/gdth.c:2305:
-+                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));$
 
-ERROR: use tabs not spaces
-#109: FILE: drivers/scsi/gdth.c:2528:
-+        if (scsi_bufflen(scp)) {$
-
-ERROR: use tabs not spaces
-#113: FILE: drivers/scsi/gdth.c:2531:
-+            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-ERROR: use tabs not spaces
-#122: FILE: drivers/scsi/gdth.c:2678:
-+            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);$
-
-ERROR: use tabs not spaces
-#131: FILE: drivers/scsi/gdth.c:2695:
-+            cmdp->u.raw.sdlen      = scsi_bufflen(scp);$
-
-ERROR: use tabs not spaces
-#140: FILE: drivers/scsi/gdth.c:2704:
-+        if (scsi_bufflen(scp)) {$
-
-ERROR: use tabs not spaces
-#143: FILE: drivers/scsi/gdth.c:2706:
-+            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-ERROR: use tabs not spaces
-#153: FILE: drivers/scsi/gdth.c:3327:
-+        if (scsi_bufflen(scp))$
-
-ERROR: use tabs not spaces
-#154: FILE: drivers/scsi/gdth.c:3328:
-+            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),$
-
-total: 10 errors, 0 warnings, 141 lines checked
-
-./patches/gdth-remove-gdth-cooked-up-command-accessors.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Boaz Harrosh <bharrosh@panasas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/net/tcp.h     |    9 ++
+ net/ipv4/tcp_input.c  |   18 +++++
+ net/ipv4/tcp_ipv4.c   |  127 ++++++++++++++++++++++++++++++++++++++++
+ net/ipv4/tcp_output.c |   23 +++++--
+ 4 files changed, 169 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes
-+++ a/drivers/scsi/gdth.c
-@@ -2289,7 +2289,7 @@ static void gdth_next(gdth_ha_str *ha)
- static void gdth_copy_internal_data(gdth_ha_str *ha, Scsi_Cmnd *scp,
- 				    char *buffer, ushort count)
+diff -puN include/net/tcp.h~tcp-debug-sl include/net/tcp.h
+--- a/include/net/tcp.h~tcp-debug-sl
++++ a/include/net/tcp.h
+@@ -272,6 +272,9 @@ DECLARE_SNMP_STAT(struct tcp_mib, tcp_st
+ #define TCP_ADD_STATS_BH(field, val)	SNMP_ADD_STATS_BH(tcp_statistics, field, val)
+ #define TCP_ADD_STATS_USER(field, val)	SNMP_ADD_STATS_USER(tcp_statistics, field, val)
+ 
++extern void tcp_print_queue(struct sock *sk);
++extern void			tcp_verify_wq(struct sock *sk);
++
+ extern void			tcp_v4_err(struct sk_buff *skb, u32);
+ 
+ extern void			tcp_shutdown (struct sock *sk, int how);
+@@ -768,7 +771,11 @@ static inline __u32 tcp_current_ssthresh
+ }
+ 
+ /* Use define here intentionally to get WARN_ON location shown at the caller */
+-#define tcp_verify_left_out(tp)	WARN_ON(tcp_left_out(tp) > tp->packets_out)
++#define tcp_verify_left_out(tp)		\
++	do {\
++		WARN_ON(tcp_left_out(tp) > tp->packets_out); \
++		tcp_verify_wq((struct sock *)tp); \
++	} while(0)
+ 
+ extern void tcp_enter_cwr(struct sock *sk, const int set_ssthresh);
+ extern __u32 tcp_init_cwnd(struct tcp_sock *tp, struct dst_entry *dst);
+diff -puN net/ipv4/tcp_input.c~tcp-debug-sl net/ipv4/tcp_input.c
+--- a/net/ipv4/tcp_input.c~tcp-debug-sl
++++ a/net/ipv4/tcp_input.c
+@@ -1426,8 +1426,10 @@ tcp_sacktag_write_queue(struct sock *sk,
+ 	int first_sack_index;
+ 
+ 	if (!tp->sacked_out) {
+-		if (WARN_ON(tp->fackets_out))
++		if (WARN_ON(tp->fackets_out)) {
++			tcp_verify_left_out(tp);
+ 			tp->fackets_out = 0;
++		}
+ 		tcp_highest_sack_reset(sk);
+ 	}
+ 
+@@ -2136,6 +2138,8 @@ static void tcp_mark_head_lost(struct so
+ 	struct sk_buff *skb;
+ 	int cnt;
+ 
++	tcp_verify_left_out(tp);
++
+ 	BUG_TRAP(packets <= tp->packets_out);
+ 	if (tp->lost_skb_hint) {
+ 		skb = tp->lost_skb_hint;
+@@ -2501,6 +2505,8 @@ static void tcp_fastretrans_alert(struct
+ 				    (tcp_fackets_out(tp) > tp->reordering));
+ 	int fast_rexmit = 0;
+ 
++	tcp_verify_left_out(tp);
++
+ 	if (WARN_ON(!tp->packets_out && tp->sacked_out))
+ 		tp->sacked_out = 0;
+ 	if (WARN_ON(!tp->sacked_out && tp->fackets_out))
+@@ -2645,6 +2651,10 @@ static void tcp_fastretrans_alert(struct
+ 	if (do_lost || (tcp_is_fack(tp) && tcp_head_timedout(sk)))
+ 		tcp_update_scoreboard(sk, fast_rexmit);
+ 	tcp_cwnd_down(sk, flag);
++
++	WARN_ON(tcp_write_queue_head(sk) == NULL);
++	WARN_ON(!tp->packets_out);
++
+ 	tcp_xmit_retransmit_queue(sk);
+ }
+ 
+@@ -2848,6 +2858,8 @@ static int tcp_clean_rtx_queue(struct so
+ 		tcp_clear_all_retrans_hints(tp);
+ 	}
+ 
++	tcp_verify_left_out(tp);
++
+ 	if (skb && (TCP_SKB_CB(skb)->sacked & TCPCB_SACKED_ACKED))
+ 		flag |= FLAG_SACK_RENEGING;
+ 
+@@ -3175,6 +3187,8 @@ static int tcp_ack(struct sock *sk, stru
+ 	prior_fackets = tp->fackets_out;
+ 	prior_in_flight = tcp_packets_in_flight(tp);
+ 
++	tcp_verify_left_out(tp);
++
+ 	if (!(flag & FLAG_SLOWPATH) && after(ack, prior_snd_una)) {
+ 		/* Window is constant, pure forward advance.
+ 		 * No more checks are required.
+@@ -3237,6 +3251,8 @@ static int tcp_ack(struct sock *sk, stru
+ 	if ((flag & FLAG_FORWARD_PROGRESS) || !(flag & FLAG_NOT_DUP))
+ 		dst_confirm(sk->sk_dst_cache);
+ 
++	tcp_verify_left_out(tp);
++
+ 	return 1;
+ 
+ no_queue:
+diff -puN net/ipv4/tcp_ipv4.c~tcp-debug-sl net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~tcp-debug-sl
++++ a/net/ipv4/tcp_ipv4.c
+@@ -108,6 +108,133 @@ struct inet_hashinfo __cacheline_aligned
+ 	.lhash_wait  = __WAIT_QUEUE_HEAD_INITIALIZER(tcp_hashinfo.lhash_wait),
+ };
+ 
++void tcp_print_queue(struct sock *sk)
++{
++	struct tcp_sock *tp = tcp_sk(sk);
++	struct sk_buff *skb;
++	char s[50+1];
++	char h[50+1];
++	int idx = 0;
++	int i;
++
++	i = 0;
++	tcp_for_write_queue(skb, sk) {
++		if (skb == tcp_send_head(sk))
++			printk(KERN_ERR "head %u %p\n", i, skb);
++		else
++			printk(KERN_ERR "skb %u %p\n", i, skb);
++		i++;
++	}
++
++	tcp_for_write_queue(skb, sk) {
++		if (skb == tcp_send_head(sk))
++			break;
++
++		for (i = 0; i < tcp_skb_pcount(skb); i++) {
++			if (TCP_SKB_CB(skb)->sacked & TCPCB_SACKED_ACKED) {
++				s[idx] = 'S';
++				if (TCP_SKB_CB(skb)->sacked & TCPCB_LOST)
++					s[idx] = 'B';
++
++			} else if (TCP_SKB_CB(skb)->sacked & TCPCB_LOST) {
++				s[idx] = 'L';
++			} else {
++				s[idx] = ' ';
++			}
++			if (s[idx] != ' ' && skb->len < tp->mss_cache)
++				s[idx] += 'a' - 'A';
++
++			if (i == 0) {
++				if (skb == tcp_highest_sack(sk))
++					h[idx] = 'h';
++				else
++					h[idx] = '+';
++			} else {
++				h[idx] = '-';
++			}
++
++			if (++idx >= 50) {
++				s[idx] = 0;
++				h[idx] = 0;
++				printk(KERN_ERR "TCP wq(s) %s\n", s);
++				printk(KERN_ERR "TCP wq(h) %s\n", h);
++				idx = 0;
++			}
++		}
++	}
++	if (idx) {
++		s[idx] = '<';
++		s[idx+1] = 0;
++		h[idx] = '<';
++		h[idx+1] = 0;
++		printk(KERN_ERR "TCP wq(s) %s\n", s);
++		printk(KERN_ERR "TCP wq(h) %s\n", h);
++	}
++	printk(KERN_ERR "l%u s%u f%u p%u seq: su%u hs%u sn%u\n",
++		tp->lost_out, tp->sacked_out, tp->fackets_out, tp->packets_out,
++		tp->snd_una, tcp_highest_sack_seq(tp), tp->snd_nxt);
++}
++
++void tcp_verify_wq(struct sock *sk)
++{
++	struct tcp_sock *tp = tcp_sk(sk);
++	u32 lost = 0;
++	u32 sacked = 0;
++	u32 packets = 0;
++	u32 fackets = 0;
++	int hs_valid = 0;
++	struct sk_buff *skb;
++
++	tcp_for_write_queue(skb, sk) {
++		if (skb == tcp_send_head(sk))
++			break;
++
++		if ((fackets == packets) && (skb == tp->highest_sack))
++			hs_valid = 1;
++
++		packets += tcp_skb_pcount(skb);
++
++		if (TCP_SKB_CB(skb)->sacked & TCPCB_SACKED_ACKED) {
++			sacked += tcp_skb_pcount(skb);
++			if (TCP_SKB_CB(skb)->sacked & TCPCB_LOST)
++				printk(KERN_ERR "Sacked bitmap S+L: %u %u-%u/%u\n",
++					TCP_SKB_CB(skb)->sacked,
++					TCP_SKB_CB(skb)->end_seq - tp->snd_una,
++					TCP_SKB_CB(skb)->seq - tp->snd_una,
++					tp->snd_una);
++			fackets = packets;
++			hs_valid = 0;
++		}
++		if (TCP_SKB_CB(skb)->sacked & TCPCB_LOST)
++			lost += tcp_skb_pcount(skb);
++	}
++
++	if ((fackets == packets) && (tp->highest_sack == tcp_send_head(sk)))
++		hs_valid = 1;
++
++	if ((lost != tp->lost_out) ||
++	    (tcp_is_sack(tp) && (sacked != tp->sacked_out)) ||
++	    ((sacked || (tcp_is_sack(tp) && tp->sacked_out)) && !hs_valid) ||
++	    (packets != tp->packets_out) ||
++	    (fackets != tp->fackets_out) ||
++	    tcp_left_out(tp) > tp->packets_out) {
++		printk(KERN_ERR "P: %u L: %u vs %u S: %u vs %u F: %u vs %u w: %u-%u (%u)\n",
++			tp->packets_out,
++			lost, tp->lost_out,
++			sacked, tp->sacked_out,
++			fackets, tp->fackets_out,
++			tp->snd_una, tp->snd_nxt,
++			tp->rx_opt.sack_ok);
++		tcp_print_queue(sk);
++	}
++
++	WARN_ON(lost != tp->lost_out);
++	WARN_ON(tcp_is_sack(tp) && (sacked != tp->sacked_out));
++	WARN_ON(packets != tp->packets_out);
++	WARN_ON(fackets != tp->fackets_out);
++	WARN_ON(tcp_left_out(tp) > tp->packets_out);
++}
++
+ static inline __u32 tcp_v4_init_sequence(struct sk_buff *skb)
  {
--    ushort cpcount,i, max_sg = scsi_sg_count(scp);
-+    ushort cpcount, i, max_sg = scsi_sg_count(scp);
-     ushort cpsum,cpnow;
-     struct scatterlist *sl;
-     char *address;
-@@ -2302,7 +2302,7 @@ static void gdth_copy_internal_data(gdth
-             unsigned long flags;
-             cpnow = (ushort)sl->length;
-             TRACE(("copy_internal() now %d sum %d count %d %d\n",
--                          cpnow, cpsum, cpcount, scsi_bufflen(scp)));
-+		   cpnow, cpsum, cpcount, scsi_bufflen(scp)));
-             if (cpsum+cpnow > cpcount) 
-                 cpnow = cpcount - cpsum;
-             cpsum += cpnow;
-@@ -2525,10 +2525,10 @@ static int gdth_fill_cache_cmd(gdth_ha_s
-             cmdp->u.cache.BlockCnt = blockcnt;
-         }
+ 	return secure_tcp_sequence_number(ip_hdr(skb)->daddr,
+diff -puN net/ipv4/tcp_output.c~tcp-debug-sl net/ipv4/tcp_output.c
+--- a/net/ipv4/tcp_output.c~tcp-debug-sl
++++ a/net/ipv4/tcp_output.c
+@@ -779,10 +779,9 @@ int tcp_fragment(struct sock *sk, struct
+ 			tp->lost_out -= diff;
  
--        if (scsi_bufflen(scp)) {
-+	if (scsi_bufflen(scp)) {
-             cmndinfo->dma_dir = (read_write == 1 ?
-                 PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);   
--            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                                cmndinfo->dma_dir);
-             if (mode64) {
-                 struct scatterlist *sl;
-@@ -2675,7 +2675,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw64.lun        = l;
-             cmdp->u.raw64.bus        = b;
-             cmdp->u.raw64.priority   = 0;
--            cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
-+	    cmdp->u.raw64.sdlen      = scsi_bufflen(scp);
-             cmdp->u.raw64.sense_len  = 16;
-             cmdp->u.raw64.sense_data = sense_paddr;
-             cmdp->u.raw64.direction  = 
-@@ -2692,7 +2692,7 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw.bus        = b;
-             cmdp->u.raw.priority   = 0;
-             cmdp->u.raw.link_p     = 0;
--            cmdp->u.raw.sdlen      = scsi_bufflen(scp);
-+	    cmdp->u.raw.sdlen      = scsi_bufflen(scp);
-             cmdp->u.raw.sense_len  = 16;
-             cmdp->u.raw.sense_data = sense_paddr;
-             cmdp->u.raw.direction  = 
-@@ -2701,9 +2701,9 @@ static int gdth_fill_raw_cmd(gdth_ha_str
-             cmdp->u.raw.sg_ranz    = 0;
-         }
+ 		/* Adjust Reno SACK estimate. */
+-		if (tcp_is_reno(tp) && diff > 0) {
++		if (tcp_is_reno(tp) && diff > 0)
+ 			tcp_dec_pcount_approx_int(&tp->sacked_out, diff);
+-			tcp_verify_left_out(tp);
+-		}
++
+ 		tcp_adjust_fackets_out(sk, skb, diff);
+ 	}
  
--        if (scsi_bufflen(scp)) {
-+	if (scsi_bufflen(scp)) {
-             cmndinfo->dma_dir = PCI_DMA_BIDIRECTIONAL;
--            sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	    sgcnt = pci_map_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                                cmndinfo->dma_dir);
-             if (mode64) {
-                 struct scatterlist *sl;
-@@ -3324,8 +3324,8 @@ static int gdth_sync_event(gdth_ha_str *
-             /* retry */
-             return 2;
-         }
--        if (scsi_bufflen(scp))
--            pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-+	if (scsi_bufflen(scp))
-+	    pci_unmap_sg(ha->pdev, scsi_sglist(scp), scsi_sg_count(scp),
-                          cmndinfo->dma_dir);
+@@ -790,6 +789,8 @@ int tcp_fragment(struct sock *sk, struct
+ 	skb_header_release(buff);
+ 	tcp_insert_write_queue_after(skb, buff, sk);
  
-         if (cmndinfo->sense_paddr)
++	tcp_verify_left_out(tp);
++
+ 	return 0;
+ }
+ 
+@@ -1463,6 +1464,7 @@ static int tcp_write_xmit(struct sock *s
+ 	} else if (result > 0) {
+ 		sent_pkts = 1;
+ 	}
++	tcp_verify_left_out(tp);
+ 
+ 	while ((skb = tcp_send_head(sk))) {
+ 		unsigned int limit;
+@@ -1764,6 +1766,7 @@ static void tcp_retrans_try_collapse(str
+ 	tcp_clear_retrans_hints_partial(tp);
+ 
+ 	sk_wmem_free_skb(sk, next_skb);
++	tcp_verify_left_out(tp);
+ }
+ 
+ /* Do a simple retransmit without using the backoff mechanisms in
+@@ -1795,13 +1798,13 @@ void tcp_simple_retransmit(struct sock *
+ 		}
+ 	}
+ 
++	tcp_verify_left_out(tp);
++
+ 	tcp_clear_all_retrans_hints(tp);
+ 
+ 	if (!lost)
+ 		return;
+ 
+-	tcp_verify_left_out(tp);
+-
+ 	/* Don't muck with the congestion window here.
+ 	 * Reason is that we do not increase amount of _data_
+ 	 * in network, but units changed and effective
+@@ -1888,6 +1891,8 @@ int tcp_retransmit_skb(struct sock *sk, 
+ 			tcp_init_nondata_skb(skb, TCP_SKB_CB(skb)->end_seq - 1,
+ 					     TCP_SKB_CB(skb)->flags);
+ 			skb->ip_summed = CHECKSUM_NONE;
++
++			tcp_verify_left_out(tp);
+ 		}
+ 	}
+ 
+@@ -1970,8 +1975,10 @@ void tcp_xmit_retransmit_queue(struct so
+ 			 * packet to be MSS sized and all the
+ 			 * packet counting works out.
+ 			 */
+-			if (tcp_packets_in_flight(tp) >= tp->snd_cwnd)
++			if (tcp_packets_in_flight(tp) >= tp->snd_cwnd) {
++				tcp_verify_left_out(tp);
+ 				return;
++			}
+ 
+ 			if (sacked & TCPCB_LOST) {
+ 				if (!(sacked & (TCPCB_SACKED_ACKED|TCPCB_SACKED_RETRANS))) {
+@@ -1997,6 +2004,8 @@ void tcp_xmit_retransmit_queue(struct so
+ 		}
+ 	}
+ 
++	tcp_verify_left_out(tp);
++
+ 	/* OK, demanded retransmission is finished. */
+ 
+ 	/* Forward retransmissions are possible only during Recovery. */
+@@ -2054,6 +2063,8 @@ void tcp_xmit_retransmit_queue(struct so
+ 
+ 		NET_INC_STATS_BH(LINUX_MIB_TCPFORWARDRETRANS);
+ 	}
++
++	tcp_verify_left_out(tp);
+ }
+ 
+ /* Send a fin.  The caller locks the socket for us.  This cannot be
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-git-x86.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-sched.patch
-tracing-is-borked-on-powerpc.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
-gdth-fix-to-internal-commands-execution-checkpatch-fixes.patch
-gdth-remove-gdth-cooked-up-command-accessors-checkpatch-fixes.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+fs-coda-remove-static-inline-forward-declarations.patch
+tcp-debug-sl.patch
 
