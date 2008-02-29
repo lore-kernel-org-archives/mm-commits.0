@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tun-tap-fix-rtnl-locking.patch added to -mm tree
-Date: Fri, 29 Feb 2008 15:35:36 -0800
-Message-ID: <200802292335.m1TNZaE9026507@imap1.linux-foundation.org>
+Subject: + fixed_phy-must-depend-on-phylib=y.patch added to -mm tree
+Date: Fri, 29 Feb 2008 15:52:47 -0800
+Message-ID: <200802292352.m1TNql8f027087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:48257 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:56825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760073AbYB2Xji (ORCPT
+	by vger.kernel.org with ESMTP id S1755593AbYB2Xxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 18:39:38 -0500
+	Fri, 29 Feb 2008 18:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Kim.Heino@bluegiga.com, davem@davemloft.net, maxk@qualcomm.com
+Cc: adrian.bunk@movial.fi, jeff@garzik.org, olaf@aepfle.de
 
 
 The patch titled
-     tun/tap: fix RTNL-locking
+     FIXED_PHY must depend on PHYLIB=y
 has been added to the -mm tree.  Its filename is
-     tun-tap-fix-rtnl-locking.patch
+     fixed_phy-must-depend-on-phylib=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tun/tap: fix RTNL-locking
-From: "Kim B. Heino" <Kim.Heino@bluegiga.com>
+Subject: FIXED_PHY must depend on PHYLIB=y
+From: Adrian Bunk <adrian.bunk@movial.fi>
 
-Current tun/tap driver sets also net device's hw address when asked to change
-character device's hw address.  This is a good idea, but it misses
-RTLN-locking, resulting following error message in 2.6.25-rc3's
-inetdev_event() function:
+Fix the following build error introduced by commit
+a79d8e93d300adb84cccc38ac396cfb118c238ad and reported by Olaf Hering:
 
-RTNL: assertion failed at net/ipv4/devinet.c (1050)
+arch/powerpc/sysdev/built-in.o: In function `of_add_fixed_phys':
+fsl_soc.c:(.init.text+0xd34): undefined reference to `fixed_phy_add'
 
-Signed-off-by: Kim B. Heino <Kim.Heino@bluegiga.com>
-Cc: Maxim Krasnyansky <maxk@qualcomm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Adrian Bunk <adrian.bunk@movial.fi>
+Tested-by: Olaf Hering <olaf@aepfle.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tun.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/net/phy/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/tun.c~tun-tap-fix-rtnl-locking drivers/net/tun.c
---- a/drivers/net/tun.c~tun-tap-fix-rtnl-locking
-+++ a/drivers/net/tun.c
-@@ -663,7 +663,11 @@ static int tun_chr_ioctl(struct inode *i
- 	case SIOCSIFHWADDR:
- 	{
- 		/* try to set the actual net device's hw address */
--		int ret = dev_set_mac_address(tun->dev, &ifr.ifr_hwaddr);
-+		int ret;
-+
-+		rtnl_lock();
-+		ret = dev_set_mac_address(tun->dev, &ifr.ifr_hwaddr);
-+		rtnl_unlock();
+diff -puN drivers/net/phy/Kconfig~fixed_phy-must-depend-on-phylib=y drivers/net/phy/Kconfig
+--- a/drivers/net/phy/Kconfig~fixed_phy-must-depend-on-phylib=y
++++ a/drivers/net/phy/Kconfig
+@@ -67,6 +67,7 @@ config REALTEK_PHY
  
- 		if (ret == 0) {
- 			/** Set the character device's hardware address. This is used when
+ config FIXED_PHY
+ 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
++	depends on PHYLIB=y
+ 	---help---
+ 	  Adds the platform "fixed" MDIO Bus to cover the boards that use
+ 	  PHYs that are not connected to the real MDIO bus.
 _
 
-Patches currently in -mm which might be from Kim.Heino@bluegiga.com are
+Patches currently in -mm which might be from adrian.bunk@movial.fi are
 
-tun-tap-fix-rtnl-locking.patch
+fixed_phy-must-depend-on-phylib=y.patch
 
