@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fixed_phy-must-depend-on-phylib=y.patch added to -mm tree
-Date: Fri, 29 Feb 2008 15:52:47 -0800
-Message-ID: <200802292352.m1TNql8f027087@imap1.linux-foundation.org>
+Subject: + jbd2-fix-the-way-the-b_modified-flag-is-cleared.patch added to -mm tree
+Date: Fri, 29 Feb 2008 16:04:06 -0800
+Message-ID: <200803010004.m21046Tv027545__21411.4852402874$1204329987$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:56825 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:54886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755593AbYB2Xxb (ORCPT
+	by vger.kernel.org with ESMTP id S932294AbYCAAFT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 18:53:31 -0500
+	Fri, 29 Feb 2008 19:05:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.bunk@movial.fi, jeff@garzik.org, olaf@aepfle.de
+Cc: jbacik@redhat.com, jack@ucw.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     FIXED_PHY must depend on PHYLIB=y
+     jbd2: fix the way the b_modified flag is cleared
 has been added to the -mm tree.  Its filename is
-     fixed_phy-must-depend-on-phylib=y.patch
+     jbd2-fix-the-way-the-b_modified-flag-is-cleared.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FIXED_PHY must depend on PHYLIB=y
-From: Adrian Bunk <adrian.bunk@movial.fi>
+Subject: jbd2: fix the way the b_modified flag is cleared
+From: Josef Bacik <jbacik@redhat.com>
 
-Fix the following build error introduced by commit
-a79d8e93d300adb84cccc38ac396cfb118c238ad and reported by Olaf Hering:
+Currently at the start of a journal commit we loop through all of the buffers
+on the committing transaction and clear the b_modified flag (the flag that is
+set when a transaction modifies the buffer) under the j_list_lock.
 
-arch/powerpc/sysdev/built-in.o: In function `of_add_fixed_phys':
-fsl_soc.c:(.init.text+0xd34): undefined reference to `fixed_phy_add'
+The problem is that everywhere else this flag is modified only under the jbd2
+lock buffer flag, so it will race with a running transaction who could
+potentially set it, and have it unset by the committing transaction.
 
-Signed-off-by: Adrian Bunk <adrian.bunk@movial.fi>
-Tested-by: Olaf Hering <olaf@aepfle.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+This is also a big waste, you can have several thousands of buffers that you
+are clearing the modified flag on when you may not need to.  This patch
+removes this code and instead clears the b_modified flag upon entering
+do_get_write_access/journal_get_create_access, so if that transaction does
+indeed use the buffer then it will be accounted for properly, and if it does
+not then we know we didn't use it.
+
+That will be important for the next patch in this series.  Tested thoroughly
+by myself using postmark/iozone/bonnie++.
+
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/jbd2/commit.c      |   16 ----------------
+ fs/jbd2/transaction.c |   13 +++++++++++++
+ 2 files changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN drivers/net/phy/Kconfig~fixed_phy-must-depend-on-phylib=y drivers/net/phy/Kconfig
---- a/drivers/net/phy/Kconfig~fixed_phy-must-depend-on-phylib=y
-+++ a/drivers/net/phy/Kconfig
-@@ -67,6 +67,7 @@ config REALTEK_PHY
+diff -puN fs/jbd2/commit.c~jbd2-fix-the-way-the-b_modified-flag-is-cleared fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~jbd2-fix-the-way-the-b_modified-flag-is-cleared
++++ a/fs/jbd2/commit.c
+@@ -520,22 +520,6 @@ void jbd2_journal_commit_transaction(jou
+ 	jbd_debug (3, "JBD: commit phase 2\n");
  
- config FIXED_PHY
- 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
-+	depends on PHYLIB=y
- 	---help---
- 	  Adds the platform "fixed" MDIO Bus to cover the boards that use
- 	  PHYs that are not connected to the real MDIO bus.
+ 	/*
+-	 * First, drop modified flag: all accesses to the buffers
+-	 * will be tracked for a new trasaction only -bzzz
+-	 */
+-	spin_lock(&journal->j_list_lock);
+-	if (commit_transaction->t_buffers) {
+-		new_jh = jh = commit_transaction->t_buffers->b_tnext;
+-		do {
+-			J_ASSERT_JH(new_jh, new_jh->b_modified == 1 ||
+-					new_jh->b_modified == 0);
+-			new_jh->b_modified = 0;
+-			new_jh = new_jh->b_tnext;
+-		} while (new_jh != jh);
+-	}
+-	spin_unlock(&journal->j_list_lock);
+-
+-	/*
+ 	 * Now start flushing things to disk, in the order they appear
+ 	 * on the transaction lists.  Data blocks go first.
+ 	 */
+diff -puN fs/jbd2/transaction.c~jbd2-fix-the-way-the-b_modified-flag-is-cleared fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~jbd2-fix-the-way-the-b_modified-flag-is-cleared
++++ a/fs/jbd2/transaction.c
+@@ -618,6 +618,12 @@ repeat:
+ 		goto done;
+ 
+ 	/*
++	 * this is the first time this transaction is touching this buffer,
++	 * reset the modified flag
++	 */
++       jh->b_modified = 0;
++
++	/*
+ 	 * If there is already a copy-out version of this buffer, then we don't
+ 	 * need to make another one
+ 	 */
+@@ -829,9 +835,16 @@ int jbd2_journal_get_create_access(handl
+ 
+ 	if (jh->b_transaction == NULL) {
+ 		jh->b_transaction = transaction;
++
++		/* first access by this transaction */
++		jh->b_modified = 0;
++
+ 		JBUFFER_TRACE(jh, "file as BJ_Reserved");
+ 		__jbd2_journal_file_buffer(jh, transaction, BJ_Reserved);
+ 	} else if (jh->b_transaction == journal->j_committing_transaction) {
++		/* first access by this transaction */
++		jh->b_modified = 0;
++
+ 		JBUFFER_TRACE(jh, "set next transaction");
+ 		jh->b_next_transaction = transaction;
+ 	}
 _
 
-Patches currently in -mm which might be from adrian.bunk@movial.fi are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
-fixed_phy-must-depend-on-phylib=y.patch
+jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd2-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd-fix-possible-journal-overflow-issues.patch
+jbd2-fix-possible-journal-overflow-issues.patch
 
