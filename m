@@ -1,141 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: + pci-consolidate-duplicated-msi-enable-functions.patch added to -mm tree
-Date: Fri, 29 Feb 2008 16:06:43 -0800
-Message-ID: <200803010006.m2106hBj027628@imap1.linux-foundation.org>
+Subject: - tracing-is-borked-on-powerpc.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 16:29:41 -0800
+Message-ID: <200803010029.m210Tf8W028421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:45771 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:57383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739AbYCAAIJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752131AbYCAAaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 19:08:09 -0500
+	Fri, 29 Feb 2008 19:30:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ebiederm@xmission.com, greg@kroah.com, mingo@elte.hu, sebastien.dugue@bull.net, tglx@linutronix.de
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: consolidate duplicated MSI enable functions
-has been added to the -mm tree.  Its filename is
-     pci-consolidate-duplicated-msi-enable-functions.patch
+     tracing-is-borked-on-powerpc
+has been removed from the -mm tree.  Its filename was
+     tracing-is-borked-on-powerpc.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: consolidate duplicated MSI enable functions
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: tracing-is-borked-on-powerpc
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Two recent patches added basically the same code to turn on HT MSI mapping:
+kernel/trace/trace.c: In function `tracing_generic_entry_update':
+kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
 
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=6bae1d96c6d7dde078994f6cb98235fd46f8736b
-    http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=9dc625e72309e1c919ea3e7f51d0ffca96123787
+Can't make the damn thing go away.  select sucks.
 
-There's no need to have both, so this patch removes one copy.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Sebastien Dugue <sebastien.dugue@bull.net>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+CC: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   36 ++++++------------------------------
- 1 file changed, 6 insertions(+), 30 deletions(-)
+ kernel/trace/Kconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/pci/quirks.c~pci-consolidate-duplicated-msi-enable-functions drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-consolidate-duplicated-msi-enable-functions
-+++ a/drivers/pci/quirks.c
-@@ -1726,32 +1726,6 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_SE
- 			quirk_msi_ht_cap);
+diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
+--- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
++++ a/kernel/trace/Kconfig
+@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
  
+ config TRACING
+ 	bool
++	depends on X86
+ 	select DEBUG_FS
  
--/*
-- *  Force enable MSI mapping capability on HT bridges
-- */
--static void __devinit quirk_msi_ht_cap_enable(struct pci_dev *dev)
--{
--	int pos, ttl = 48;
--
--	pos = pci_find_ht_capability(dev, HT_CAPTYPE_MSI_MAPPING);
--	while (pos && ttl--) {
--		u8 flags;
--
--		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS, &flags) == 0) {
--			printk(KERN_INFO "PCI: Enabling HT MSI Mapping on %s\n",
--			       pci_name(dev));
--
--			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
--					      flags | HT_MSI_FLAGS_ENABLE);
--		}
--		pos = pci_find_next_ht_capability(dev, pos,
--						  HT_CAPTYPE_MSI_MAPPING);
--	}
--}
--DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SERVERWORKS,
--			 PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
--			 quirk_msi_ht_cap_enable);
--
- /* The nVidia CK804 chipset may have 2 HT MSI mappings.
-  * MSI are supported if the MSI capability set in any of these mappings.
-  */
-@@ -1778,9 +1752,8 @@ static void __devinit quirk_nvidia_ck804
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_CK804_PCIE,
- 			quirk_nvidia_ck804_msi_ht_cap);
- 
--/*
-- *  Force enable MSI mapping capability on HT bridges  */
--static inline void ht_enable_msi_mapping(struct pci_dev *dev)
-+/* Force enable MSI mapping capability on HT bridges */
-+static void __devinit ht_enable_msi_mapping(struct pci_dev *dev)
- {
- 	int pos, ttl = 48;
- 
-@@ -1799,6 +1772,9 @@ static inline void ht_enable_msi_mapping
- 						  HT_CAPTYPE_MSI_MAPPING);
- 	}
- }
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SERVERWORKS,
-+			 PCI_DEVICE_ID_SERVERWORKS_HT1000_PXB,
-+			 ht_enable_msi_mapping);
- 
- static void __devinit nv_msi_ht_cap_quirk(struct pci_dev *dev)
- {
-@@ -1830,7 +1806,7 @@ static void __devinit nv_msi_ht_cap_quir
- 
- 		if (pci_read_config_byte(dev, pos + HT_MSI_FLAGS,
- 					 &flags) == 0) {
--			dev_info(&dev->dev, "Quirk disabling HT MSI mapping");
-+			dev_info(&dev->dev, "Disabling HT MSI mapping");
- 			pci_write_config_byte(dev, pos + HT_MSI_FLAGS,
- 					      flags & ~HT_MSI_FLAGS_ENABLE);
- 		}
+ config FTRACE
+@@ -17,6 +18,7 @@ config FTRACE
+ 	select FRAME_POINTER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
++	depends on X86
+ 	help
+ 	  Enable the kernel to trace every kernel function. This is done
+ 	  by using a compiler feature to insert a small, 5-byte No-Operation
+@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
+ 	select TRACE_IRQFLAGS
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in irqs-off critical
+ 	  sections, with microsecond accuracy.
+@@ -55,6 +58,7 @@ config PREEMPT_TRACER
+ 	depends on PREEMPT
+ 	select TRACING
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This option measures the time spent in preemption off critical
+ 	  sections, with microsecond accuracy.
+@@ -83,6 +87,7 @@ config SCHED_TRACER
+ 	select TRACING
+ 	select CONTEXT_SWITCH_TRACER
+ 	select TRACER_MAX_TRACE
++	depends on X86
+ 	help
+ 	  This tracer tracks the latency of the highest priority task
+ 	  to be scheduled in, starting from the point it has woken up.
+@@ -92,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
+ 	depends on DEBUG_KERNEL
+ 	select TRACING
+ 	select MARKERS
++	depends on X86
+ 	help
+ 	  This tracer gets called from the context switch and records
+ 	  all switching of tasks.
+@@ -99,6 +105,7 @@ config CONTEXT_SWITCH_TRACER
+ config DYNAMIC_FTRACE
+ 	bool "enable/disable ftrace tracepoints dynamically"
+ 	depends on FTRACE
++	depends on X86
+ 	default y
+ 	help
+          This option will modify all the calls to ftrace dynamically
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup-update.patch
+origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-pci-simplify-quirk-debug-output.patch
-pci-consolidate-duplicated-msi-enable-functions.patch
-pci-use-dev_printk-in-quirk-messages.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+tracing-is-borked-on-powerpc.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-fixup.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+use-page_cache_xxx-in-ext2-fix.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
