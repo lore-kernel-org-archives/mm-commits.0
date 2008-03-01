@@ -1,54 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - git-semaphore-fixup.patch removed from -mm tree
-Date: Fri, 29 Feb 2008 16:34:55 -0800
-Message-ID: <200803010034.m210YtvU028590@imap1.linux-foundation.org>
+Subject: + git-alsa-fix-git-conflicts.patch added to -mm tree
+Date: Fri, 29 Feb 2008 16:37:07 -0800
+Message-ID: <200803010037.m210b7og028644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:58762 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:59208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752151AbYCAAe5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752151AbYCAAhS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 19:34:57 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m210YuRF027894
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 29 Feb 2008 16:34:57 -0800
+	Fri, 29 Feb 2008 19:37:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     git-semaphore-fixup
-has been removed from the -mm tree.  Its filename was
-     git-semaphore-fixup.patch
+     git-alsa-fix-git-conflicts
+has been added to the -mm tree.  Its filename is
+     git-alsa-fix-git-conflicts.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-semaphore-fixup
+Subject: git-alsa-fix-git-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
-
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    1 -
- 1 file changed, 1 deletion(-)
+ sound/pci/hda/hda_intel.c      |   12 ----------
+ sound/pci/hda/patch_realtek.c  |   34 -------------------------------
+ sound/soc/codecs/tlv320aic3x.c |    3 --
+ 3 files changed, 49 deletions(-)
 
-diff -puN kernel/kthread.c~git-semaphore-fixup kernel/kthread.c
---- a/kernel/kthread.c~git-semaphore-fixup
-+++ a/kernel/kthread.c
-@@ -13,7 +13,6 @@
- #include <linux/file.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
--#include <asm/semaphore.h>
+diff -puN sound/pci/hda/hda_intel.c~git-alsa-fix-git-conflicts sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~git-alsa-fix-git-conflicts
++++ a/sound/pci/hda/hda_intel.c
+@@ -1836,17 +1836,6 @@ static int __devinit azx_create(struct s
+ 	gcap = azx_readw(chip, GCAP);
+ 	snd_printdd("chipset global capabilities = 0x%x\n", gcap);
  
- #define KTHREAD_NICE_LEVEL (-5)
+-<<<<<<< HEAD:sound/pci/hda/hda_intel.c
+-	if (gcap) {
+-		/* read number of streams from GCAP register instead of using
+-		 * hardcoded value
+-		 */
+-		chip->playback_streams = (gcap & (0xF << 12)) >> 12;
+-		chip->capture_streams = (gcap & (0xF << 8)) >> 8;
+-		chip->playback_index_offset = chip->capture_streams;
+-		chip->capture_index_offset = 0;
+-	} else {
+-=======
+ 	/* allow 64bit DMA address if supported by H/W */
+ 	if ((gcap & 0x01) && !pci_set_dma_mask(pci, DMA_64BIT_MASK))
+ 		pci_set_consistent_dma_mask(pci, DMA_64BIT_MASK);
+@@ -1857,7 +1846,6 @@ static int __devinit azx_create(struct s
+ 	chip->capture_streams = (gcap >> 8) & 0x0f;
+ 	chip->playback_streams = (gcap >> 12) & 0x0f;
+ 	if (!chip->playback_streams && !chip->capture_streams) {
+->>>>>>> FETCH_HEAD:sound/pci/hda/hda_intel.c
+ 		/* gcap didn't give any info, switching to old method */
  
+ 		switch (chip->driver_type) {
+diff -puN sound/pci/hda/patch_realtek.c~git-alsa-fix-git-conflicts sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~git-alsa-fix-git-conflicts
++++ a/sound/pci/hda/patch_realtek.c
+@@ -5254,13 +5254,9 @@ static int alc882_mux_enum_put(struct sn
+ 	struct alc_spec *spec = codec->spec;
+ 	const struct hda_input_mux *imux = spec->input_mux;
+ 	unsigned int adc_idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
+-<<<<<<< HEAD:sound/pci/hda/patch_realtek.c
+ 	static hda_nid_t capture_mixers[3] = { 0x24, 0x23, 0x22 };
+-	hda_nid_t nid;
+-=======
+ 	hda_nid_t nid = spec->capsrc_nids ?
+ 		spec->capsrc_nids[adc_idx] : spec->adc_nids[adc_idx];
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_realtek.c
+ 	unsigned int *cur_val = &spec->cur_mux[adc_idx];
+ 	unsigned int i, idx;
+ 
+@@ -6494,38 +6490,8 @@ static struct hda_input_mux alc883_lenov
+ 
+ #define alc883_mux_enum_info alc_mux_enum_info
+ #define alc883_mux_enum_get alc_mux_enum_get
+-<<<<<<< HEAD:sound/pci/hda/patch_realtek.c
+-
+-static int alc883_mux_enum_put(struct snd_kcontrol *kcontrol,
+-			       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct hda_codec *codec = snd_kcontrol_chip(kcontrol);
+-	struct alc_spec *spec = codec->spec;
+-	const struct hda_input_mux *imux = spec->input_mux;
+-	unsigned int adc_idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
+-	static hda_nid_t capture_mixers[2] = { 0x23, 0x22 };
+-	hda_nid_t nid = capture_mixers[adc_idx];
+-	unsigned int *cur_val = &spec->cur_mux[adc_idx];
+-	unsigned int i, idx;
+-
+-	idx = ucontrol->value.enumerated.item[0];
+-	if (idx >= imux->num_items)
+-		idx = imux->num_items - 1;
+-	if (*cur_val == idx)
+-		return 0;
+-	for (i = 0; i < imux->num_items; i++) {
+-		unsigned int v = (i == idx) ? 0 : HDA_AMP_MUTE;
+-		snd_hda_codec_amp_stereo(codec, nid, HDA_INPUT,
+-					 imux->items[i].index,
+-					 HDA_AMP_MUTE, v);
+-	}
+-	*cur_val = idx;
+-	return 1;
+-}
+-=======
+ /* ALC883 has the ALC882-type input selection */
+ #define alc883_mux_enum_put alc882_mux_enum_put
+->>>>>>> FETCH_HEAD:sound/pci/hda/patch_realtek.c
+ 
+ /*
+  * 2ch mode
+diff -puN sound/soc/codecs/tlv320aic3x.c~git-alsa-fix-git-conflicts sound/soc/codecs/tlv320aic3x.c
+--- a/sound/soc/codecs/tlv320aic3x.c~git-alsa-fix-git-conflicts
++++ a/sound/soc/codecs/tlv320aic3x.c
+@@ -688,10 +688,7 @@ static const struct aic3x_rate_divs aic3
+ 	{22579200, 48000, 48000, 0x0, 8, 7075},
+ 	{33868800, 48000, 48000, 0x0, 5, 8049},
+ 	/* 64k */
+-<<<<<<< HEAD:sound/soc/codecs/tlv320aic3x.c
+-=======
+ 	{12000000, 64000, 96000, 0x1, 16, 3840},
+->>>>>>> FETCH_HEAD:sound/soc/codecs/tlv320aic3x.c
+ 	{22579200, 64000, 96000, 0x1, 8, 7075},
+ 	{33868800, 64000, 96000, 0x1, 5, 8049},
+ 	/* 88.2k */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +181,6 @@ git-unionfs.patch
 drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
 git-v9fs.patch
-git-semaphore-fixup.patch
 documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 tridentfb-resource-management-fixes-in-probe-function-fix.patch
 add-noinline_for_stack.patch
