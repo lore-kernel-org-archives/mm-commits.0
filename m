@@ -1,104 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - tracing-is-borked-on-powerpc.patch removed from -mm tree
-Date: Fri, 29 Feb 2008 16:29:41 -0800
-Message-ID: <200803010029.m210Tf8W028421@imap1.linux-foundation.org>
+Subject: - git-semaphore-fixup.patch removed from -mm tree
+Date: Fri, 29 Feb 2008 16:34:55 -0800
+Message-ID: <200803010034.m210YtvU028590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([207.189.120.13]:57383 "EHLO
+Received: from smtp1.linux-foundation.org ([207.189.120.13]:58762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752131AbYCAAaE (ORCPT
+	by vger.kernel.org with ESMTP id S1752151AbYCAAe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Feb 2008 19:30:04 -0500
+	Fri, 29 Feb 2008 19:34:57 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m210YuRF027894
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 29 Feb 2008 16:34:57 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracing-is-borked-on-powerpc
+     git-semaphore-fixup
 has been removed from the -mm tree.  Its filename was
-     tracing-is-borked-on-powerpc.patch
+     git-semaphore-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracing-is-borked-on-powerpc
+Subject: git-semaphore-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/trace/trace.c: In function `tracing_generic_entry_update':
-kernel/trace/trace.c:426: error: implicit declaration of function `irqs_disabled_flags'
 
-Can't make the damn thing go away.  select sucks.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-CC: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/Kconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/kthread.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/trace/Kconfig~tracing-is-borked-on-powerpc kernel/trace/Kconfig
---- a/kernel/trace/Kconfig~tracing-is-borked-on-powerpc
-+++ a/kernel/trace/Kconfig
-@@ -9,6 +9,7 @@ config TRACER_MAX_TRACE
+diff -puN kernel/kthread.c~git-semaphore-fixup kernel/kthread.c
+--- a/kernel/kthread.c~git-semaphore-fixup
++++ a/kernel/kthread.c
+@@ -13,7 +13,6 @@
+ #include <linux/file.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+-#include <asm/semaphore.h>
  
- config TRACING
- 	bool
-+	depends on X86
- 	select DEBUG_FS
+ #define KTHREAD_NICE_LEVEL (-5)
  
- config FTRACE
-@@ -17,6 +18,7 @@ config FTRACE
- 	select FRAME_POINTER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
-+	depends on X86
- 	help
- 	  Enable the kernel to trace every kernel function. This is done
- 	  by using a compiler feature to insert a small, 5-byte No-Operation
-@@ -34,6 +36,7 @@ config IRQSOFF_TRACER
- 	select TRACE_IRQFLAGS
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in irqs-off critical
- 	  sections, with microsecond accuracy.
-@@ -55,6 +58,7 @@ config PREEMPT_TRACER
- 	depends on PREEMPT
- 	select TRACING
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This option measures the time spent in preemption off critical
- 	  sections, with microsecond accuracy.
-@@ -83,6 +87,7 @@ config SCHED_TRACER
- 	select TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	select TRACER_MAX_TRACE
-+	depends on X86
- 	help
- 	  This tracer tracks the latency of the highest priority task
- 	  to be scheduled in, starting from the point it has woken up.
-@@ -92,6 +97,7 @@ config CONTEXT_SWITCH_TRACER
- 	depends on DEBUG_KERNEL
- 	select TRACING
- 	select MARKERS
-+	depends on X86
- 	help
- 	  This tracer gets called from the context switch and records
- 	  all switching of tasks.
-@@ -99,6 +105,7 @@ config CONTEXT_SWITCH_TRACER
- config DYNAMIC_FTRACE
- 	bool "enable/disable ftrace tracepoints dynamically"
- 	depends on FTRACE
-+	depends on X86
- 	default y
- 	help
-          This option will modify all the calls to ftrace dynamically
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,7 +78,6 @@ git-ubi.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
-tracing-is-borked-on-powerpc.patch
 scsi-aic94xx-cleanups.patch
 git-block-git-rejects.patch
 git-unionfs.patch
