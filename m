@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch added to -mm tree
-Date: Sun, 02 Mar 2008 00:20:32 -0800
-Message-ID: <200803020820.m228KW2D023394@imap1.linux-foundation.org>
+Date: Sun, 02 Mar 2008 11:36:54 -0800
+Message-ID: <200803021936.m22JasaP013540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752192AbYCBIWu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 03:22:50 -0500
+	by vger.kernel.org with ESMTP id S1751648AbYCBTkj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 14:40:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, bdriessen@escrypt.com
+Cc: mhalcrow@us.ibm.com, bdriessen@escrypt.com, stable@kernel.org
 
 
 The patch titled
@@ -58,6 +58,7 @@ be something other than "abc\ndef\n".
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Cc: Benedikt Driessen <bdriessen@escrypt.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
