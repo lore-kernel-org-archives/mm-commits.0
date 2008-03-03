@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lsm-audit-introduce-generic-audit-lsm-hooks.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:41:51 -0800
-Message-ID: <200803030741.m237fpvc005098@imap1.linux-foundation.org>
+Subject: + lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:47:54 -0800
+Message-ID: <200803030747.m237ls01005289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751462AbYCCHrM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:12 -0500
+	by vger.kernel.org with ESMTP id S1751409AbYCCHr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@infradead.org, eparis@parisplace.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, darwish.07@gmail.com
 
 
 The patch titled
-     LSM/Audit: Introduce generic Audit LSM hooks
+     lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lsm-audit-introduce-generic-audit-lsm-hooks.patch
+     lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,230 +33,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: LSM/Audit: Introduce generic Audit LSM hooks
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce a generic Audit interface for security modules by adding the
-following new LSM hooks:
+WARNING: line over 80 characters
+#49: FILE: include/linux/security.h:1226:
++ *	@field contains the required Audit action. Fields flags are defined in include/linux/audit.h
 
-audit_rule_init(field, op, rulestr, lsmrule)
-audit_rule_known(krule)
-audit_rule_match(secid, field, op, rule, actx)
-audit_rule_free(rule)
+WARNING: line over 80 characters
+#57: FILE: include/linux/security.h:1234:
++ *	Specifies whether given @rule contains any fields related to current LSM.
 
-Those hooks are only available if CONFIG_AUDIT is enabled.
+WARNING: line over 80 characters
+#84: FILE: include/linux/security.h:1514:
++	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Paul Moore <paul.moore@hp.com>
+total: 0 errors, 3 warnings, 165 lines checked
+
+./patches/lsm-audit-introduce-generic-audit-lsm-hooks.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ahmed S. Darwish <darwish.07@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |   72 +++++++++++++++++++++++++++++++++++++
- security/dummy.c         |   31 +++++++++++++++
- security/security.c      |   25 ++++++++++++
- 3 files changed, 127 insertions(+), 1 deletion(-)
+ include/linux/security.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks include/linux/security.h
---- a/include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks
+diff -puN include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes include/linux/security.h
+--- a/include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
 +++ a/include/linux/security.h
-@@ -41,6 +41,7 @@
- #define DEFCONTEXT_MNT		0x08
- 
- struct ctl_table;
-+struct audit_krule;
- 
- /*
-  * These functions are in security/capability.c and are used
-@@ -1218,6 +1219,37 @@ struct request_sock;
-  *	@secdata contains the security context.
-  *	@seclen contains the length of the security context.
-  *
-+ * Security hooks for Audit
-+ *
-+ * @audit_rule_init:
-+ *	Allocate and initialize an LSM audit rule structure.
-+ *	@field contains the required Audit action. Fields flags are defined in include/linux/audit.h
-+ *	@op contains the operator the rule uses.
-+ *	@rulestr contains the context where the rule will be applied to.
-+ *	@lsmrule contains a pointer to receive the result.
-+ *	Return 0 if @lsmrule has been successfully set,
-+ *	-EINVAL in case of an invalid rule.
-+ *
-+ * @audit_rule_known:
-+ *	Specifies whether given @rule contains any fields related to current LSM.
-+ *	@rule contains the audit rule of interest.
-+ *	Return 1 in case of relation found, 0 otherwise.
-+ *
-+ * @audit_rule_match:
-+ *	Determine if given @secid matches a rule previously approved
-+ *	by @audit_rule_known.
-+ *	@secid contains the security id in question.
-+ *	@field contains the field which relates to current LSM.
-+ *	@op contains the operator that will be used for matching.
-+ *	@rule points to the audit rule that will be checked against.
-+ *	@actx points to the audit context associated with the check.
-+ *	Return 1 if secid matches the rule, 0 if it does not, -ERRNO on failure.
-+ *
-+ * @audit_rule_free:
-+ *	Deallocate the LSM audit rule structure previously allocated by
-+ *	audit_rule_init.
-+ *	@rule contains the allocated rule
-+ *
-  * This is the main security structure.
-  */
- struct security_operations {
-@@ -1478,6 +1510,13 @@ struct security_operations {
- 
+@@ -1511,7 +1511,8 @@ struct security_operations {
  #endif	/* CONFIG_KEYS */
  
-+#ifdef CONFIG_AUDIT
-+	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
-+	int (*audit_rule_known)(struct audit_krule *krule);
-+	int (*audit_rule_match)(u32 secid, u32 field, u32 op, void *lsmrule,
-+				struct audit_context *actx);
-+	void (*audit_rule_free)(void *lsmrule);
-+#endif /* CONFIG_AUDIT */
- };
- 
- /* prototypes */
-@@ -2654,5 +2693,38 @@ static inline int security_key_permissio
- #endif
- #endif /* CONFIG_KEYS */
- 
-+#ifdef CONFIG_AUDIT
-+#ifdef CONFIG_SECURITY
-+int security_audit_rule_init(u32 field, u32 op, char *rulestr, void **lsmrule);
-+int security_audit_rule_known(struct audit_krule *krule);
-+int security_audit_rule_match(u32 secid, u32 field, u32 op, void *lsmrule,
-+			      struct audit_context *actx);
-+void security_audit_rule_free(void *lsmrule);
-+
-+#else
-+
-+static inline int security_audit_rule_init(u32 field, u32 op, char *rulestr,
-+					   void **lsmrule)
-+{
-+	return 0;
-+}
-+
-+static inline int security_audit_rule_known(struct audit_krule *krule)
-+{
-+	return 0;
-+}
-+
-+static inline int security_audit_rule_match(u32 secid, u32 field, u32 op,
-+				   void *lsmrule, struct audit_context *actx)
-+{
-+	return 0;
-+}
-+
-+static inline void security_audit_rule_free(void *lsmrule)
-+{ }
-+
-+#endif /* CONFIG_SECURITY */
-+#endif /* CONFIG_AUDIT */
-+
- #endif /* ! __LINUX_SECURITY_H */
- 
-diff -puN security/dummy.c~lsm-audit-introduce-generic-audit-lsm-hooks security/dummy.c
---- a/security/dummy.c~lsm-audit-introduce-generic-audit-lsm-hooks
-+++ a/security/dummy.c
-@@ -991,6 +991,30 @@ static inline int dummy_key_permission(k
- }
- #endif /* CONFIG_KEYS */
- 
-+#ifdef CONFIG_AUDIT
-+static inline int dummy_audit_rule_init(u32 field, u32 op, char *rulestr,
-+					void **lsmrule)
-+{
-+	return 0;
-+}
-+
-+static inline int dummy_audit_rule_known(struct audit_krule *krule)
-+{
-+	return 0;
-+}
-+
-+static inline int dummy_audit_rule_match(u32 secid, u32 field, u32 op,
-+					 void *lsmrule,
-+					 struct audit_context *actx)
-+{
-+	return 0;
-+}
-+
-+static inline void dummy_audit_rule_free(void *lsmrule)
-+{ }
-+
-+#endif /* CONFIG_AUDIT */
-+
- struct security_operations dummy_security_ops;
- 
- #define set_to_dummy_if_null(ops, function)				\
-@@ -1179,6 +1203,11 @@ void security_fixup_ops (struct security
- 	set_to_dummy_if_null(ops, key_free);
- 	set_to_dummy_if_null(ops, key_permission);
- #endif	/* CONFIG_KEYS */
--
-+#ifdef CONFIG_AUDIT
-+	set_to_dummy_if_null(ops, audit_rule_init);
-+	set_to_dummy_if_null(ops, audit_rule_known);
-+	set_to_dummy_if_null(ops, audit_rule_match);
-+	set_to_dummy_if_null(ops, audit_rule_free);
-+#endif
- }
- 
-diff -puN security/security.c~lsm-audit-introduce-generic-audit-lsm-hooks security/security.c
---- a/security/security.c~lsm-audit-introduce-generic-audit-lsm-hooks
-+++ a/security/security.c
-@@ -1113,3 +1113,28 @@ int security_key_permission(key_ref_t ke
- }
- 
- #endif	/* CONFIG_KEYS */
-+
-+#ifdef CONFIG_AUDIT
-+
-+int security_audit_rule_init(u32 field, u32 op, char *rulestr, void **lsmrule)
-+{
-+	return security_ops->audit_rule_init(field, op, rulestr, lsmrule);
-+}
-+
-+int security_audit_rule_known(struct audit_krule *krule)
-+{
-+	return security_ops->audit_rule_known(krule);
-+}
-+
-+void security_audit_rule_free(void *lsmrule)
-+{
-+	security_ops->audit_rule_free(lsmrule);
-+}
-+
-+int security_audit_rule_match(u32 secid, u32 field, u32 op, void *lsmrule,
-+			      struct audit_context *actx)
-+{
-+	return security_ops->audit_rule_match(secid, field, op, lsmrule, actx);
-+}
-+
-+#endif /* CONFIG_AUDIT */
+ #ifdef CONFIG_AUDIT
+-	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
++	int (*audit_rule_init)(u32 field, u32 op, char *rulestr,
++			       void **lsmrule);
+ 	int (*audit_rule_known)(struct audit_krule *krule);
+ 	int (*audit_rule_match)(u32 secid, u32 field, u32 op, void *lsmrule,
+ 				struct audit_context *actx);
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks.patch
-selinux-setup-new-inode-ipc-getsecid-hooks.patch
-audit-use-new-lsm-hooks-instead-of-selinux-exports.patch
-netlink-use-generic-lsm-hook.patch
-selinux-remove-redundant-exports.patch
-lsm-audit-introduce-generic-audit-lsm-hooks.patch
-audit-internally-use-the-new-lsm-audit-hooks.patch
-selinux-use-new-audit-hooks-remove-redundant-exports.patch
-audit-final-renamings-and-cleanup.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+use-page_cache_xxx-in-ext2-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
