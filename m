@@ -1,86 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - arm-fix-freeing-of-page-tables-in-free_pgd_slow.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 13:02:46 -0800
-Message-ID: <200803032102.m23L2k6w006272@imap1.linux-foundation.org>
+Subject: - docbook-fix-filesystemstmpl-source-files.patch removed from -mm tree
+Date: Mon, 03 Mar 2008 13:02:53 -0800
+Message-ID: <200803032102.m23L2rgC006278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752084AbYCCVDN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:03:13 -0500
+	by vger.kernel.org with ESMTP id S1753022AbYCCVDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:03:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Uwe.Kleine-Koenig@digi.com, rmk@arm.linux.org.uk, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: fix freeing of page tables in free_pgd_slow
+     docbook: fix filesystems.tmpl source files
 has been removed from the -mm tree.  Its filename was
-     arm-fix-freeing-of-page-tables-in-free_pgd_slow.patch
+     docbook-fix-filesystemstmpl-source-files.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: fix freeing of page tables in free_pgd_slow
-=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Subject: docbook: fix filesystems.tmpl source files
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Since 2f569af (CONFIG_HIGHPTE vs.  sub-page page tables.) pte_free() ca=
-lls
-pte_lock_deinit() and dec_zone_page_state().  So free_pgd_slow must not=
- call
-the latter two when calling the first.
+Fix docbook problems in filesystems.tmpl.  These cause the generated docbook
+to be incorrect.
 
-Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/pgd.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/buffer.c          |    3 +--
+ fs/jbd/transaction.c |   17 +++++++++--------
+ fs/mpage.c           |   11 +++--------
+ 3 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/mm/pgd.c~arm-fix-freeing-of-page-tables-in-free_pgd_=
-slow arch/arm/mm/pgd.c
---- a/arch/arm/mm/pgd.c~arm-fix-freeing-of-page-tables-in-free_pgd_slow
-+++ a/arch/arm/mm/pgd.c
-@@ -75,7 +75,7 @@ no_pgd:
- void free_pgd_slow(struct mm_struct *mm, pgd_t *pgd)
- {
- 	pmd_t *pmd;
--	struct page *pte;
-+	pgtable_t pte;
-=20
- 	if (!pgd)
- 		return;
-@@ -90,10 +90,8 @@ void free_pgd_slow(struct mm_struct *mm,
- 		goto free;
- 	}
-=20
--	pte =3D pmd_page(*pmd);
-+	pte =3D pmd_pgtable(*pmd);
- 	pmd_clear(pmd);
--	dec_zone_page_state(virt_to_page((unsigned long *)pgd), NR_PAGETABLE)=
-;
--	pte_lock_deinit(pte);
- 	pte_free(mm, pte);
- 	pmd_free(mm, pmd);
- free:
+diff -puN fs/buffer.c~docbook-fix-filesystemstmpl-source-files fs/buffer.c
+--- a/fs/buffer.c~docbook-fix-filesystemstmpl-source-files
++++ a/fs/buffer.c
+@@ -637,8 +637,7 @@ repeat:
+ }
+ 
+ /**
+- * sync_mapping_buffers - write out and wait upon a mapping's "associated"
+- *                        buffers
++ * sync_mapping_buffers - write out & wait upon a mapping's "associated" buffers
+  * @mapping: the mapping which wants those buffers written
+  *
+  * Starts I/O against the buffers at mapping->private_list, and waits upon
+diff -puN fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files
++++ a/fs/jbd/transaction.c
+@@ -369,7 +369,7 @@ out:
+ 
+ 
+ /**
+- * int journal_restart() - restart a handle .
++ * int journal_restart() - restart a handle.
+  * @handle:  handle to restart
+  * @nblocks: nr credits requested
+  *
+@@ -857,8 +857,7 @@ out:
+ }
+ 
+ /**
+- * int journal_get_undo_access() -  Notify intent to modify metadata with
+- *     non-rewindable consequences
++ * int journal_get_undo_access() - Notify intent to modify metadata with non-rewindable consequences
+  * @handle: transaction
+  * @bh: buffer to undo
+  * @credits: store the number of taken credits here (if not NULL)
+@@ -934,12 +933,14 @@ out:
+ }
+ 
+ /**
+- * int journal_dirty_data() -  mark a buffer as containing dirty data which
+- *                             needs to be flushed before we can commit the
+- *                             current transaction.
++ * int journal_dirty_data() - mark a buffer as containing dirty data to be flushed
+  * @handle: transaction
+  * @bh: bufferhead to mark
+  *
++ * Description:
++ * Mark a buffer as containing dirty data which needs to be flushed before
++ * we can commit the current transaction.
++ *
+  * The buffer is placed on the transaction's data list and is marked as
+  * belonging to the transaction.
+  *
+@@ -1111,11 +1112,11 @@ no_journal:
+ }
+ 
+ /**
+- * int journal_dirty_metadata() -  mark a buffer as containing dirty metadata
++ * int journal_dirty_metadata() - mark a buffer as containing dirty metadata
+  * @handle: transaction to add buffer to.
+  * @bh: buffer to mark
+  *
+- * mark dirty metadata which needs to be journaled as part of the current
++ * Mark dirty metadata which needs to be journaled as part of the current
+  * transaction.
+  *
+  * The buffer is placed on the transaction's metadata list and is marked
+diff -puN fs/mpage.c~docbook-fix-filesystemstmpl-source-files fs/mpage.c
+--- a/fs/mpage.c~docbook-fix-filesystemstmpl-source-files
++++ a/fs/mpage.c
+@@ -330,16 +330,12 @@ confused:
+ }
+ 
+ /**
+- * mpage_readpages - populate an address space with some pages, and
+- *                       start reads against them.
+- *
++ * mpage_readpages - populate an address space with some pages & start reads against them
+  * @mapping: the address_space
+  * @pages: The address of a list_head which contains the target pages.  These
+  *   pages have their ->index populated and are otherwise uninitialised.
+- *
+  *   The page at @pages->prev has the lowest file offset, and reads should be
+  *   issued in @pages->prev to @pages->next order.
+- *
+  * @nr_pages: The number of pages at *@pages
+  * @get_block: The filesystem's block mapper function.
+  *
+@@ -365,6 +361,7 @@ confused:
+  * So an mpage read of the first 16 blocks of an ext2 file will cause I/O to be
+  * submitted in the following order:
+  * 	12 0 1 2 3 4 5 6 7 8 9 10 11 13 14 15 16
++ *
+  * because the indirect block has to be read to get the mappings of blocks
+  * 13,14,15,16.  Obviously, this impacts performance.
+  *
+@@ -662,9 +659,7 @@ out:
+ }
+ 
+ /**
+- * mpage_writepages - walk the list of dirty pages of the given
+- * address space and writepage() all of them.
+- * 
++ * mpage_writepages - walk the list of dirty pages of the given address space & writepage() all of them
+  * @mapping: address space structure to write
+  * @wbc: subtract the number of written pages from *@wbc->nr_to_write
+  * @get_block: the filesystem's block mapper function.
 _
 
-Patches currently in -mm which might be from Uwe.Kleine-Koenig@digi.com=
- are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-acpi.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+kprobes-move-kprobe-examples-to-samples.patch
+x86-visws-fix-printk-format-warnings.patch
+apanel-fix-kconfig-dependencies.patch
+let-log_buf_shift-default-to-17.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+profile-likely-unlikely-macros.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
