@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + document-de_thread-with-exit_notify-connection.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:31:24 -0800
-Message-ID: <200803030831.m238VOeF006881@imap1.linux-foundation.org>
+Subject: + ptrace-introduce-ptrace_reparented-helper.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:31:21 -0800
+Message-ID: <200803030831.m238VLEb006875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753840AbYCCIco (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:32:44 -0500
+	by vger.kernel.org with ESMTP id S1753666AbYCCIdF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     document de_thread() with exit_notify() connection
+     ptrace: introduce ptrace_reparented() helper
 has been added to the -mm tree.  Its filename is
-     document-de_thread-with-exit_notify-connection.patch
+     ptrace-introduce-ptrace_reparented-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: document de_thread() with exit_notify() connection
+Subject: ptrace: introduce ptrace_reparented() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Add a couple of small comments, it is not easy to see what this code does.
+Add another trivial helper for the sake of grep.  It also auto-documents the
+fact that ->parent != real_parent implies ->ptrace.
+
+No functional changes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |    2 +-
- kernel/exit.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ include/linux/ptrace.h |    4 ++++
+ kernel/exit.c          |    9 ++++-----
+ kernel/ptrace.c        |    2 +-
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/exec.c~document-de_thread-with-exit_notify-connection fs/exec.c
---- a/fs/exec.c~document-de_thread-with-exit_notify-connection
-+++ a/fs/exec.c
-@@ -802,7 +802,7 @@ static int de_thread(struct task_struct 
- 	if (!thread_group_leader(tsk)) {
- 		leader = tsk->group_leader;
+diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper
++++ a/include/linux/ptrace.h
+@@ -98,6 +98,10 @@ extern void ptrace_untrace(struct task_s
+ extern int ptrace_may_attach(struct task_struct *task);
+ extern int __ptrace_may_attach(struct task_struct *task);
  
--		sig->notify_count = -1;
-+		sig->notify_count = -1;	/* for exit_notify() */
- 		for (;;) {
- 			write_lock_irq(&tasklist_lock);
- 			if (likely(leader->exit_state))
-diff -puN kernel/exit.c~document-de_thread-with-exit_notify-connection kernel/exit.c
---- a/kernel/exit.c~document-de_thread-with-exit_notify-connection
++static inline int ptrace_reparented(struct task_struct *child)
++{
++	return child->real_parent != child->parent;
++}
+ static inline void ptrace_link(struct task_struct *child,
+ 			       struct task_struct *new_parent)
+ {
+diff -puN kernel/exit.c~ptrace-introduce-ptrace_reparented-helper kernel/exit.c
+--- a/kernel/exit.c~ptrace-introduce-ptrace_reparented-helper
 +++ a/kernel/exit.c
-@@ -811,6 +811,7 @@ static void exit_notify(struct task_stru
- 		state = EXIT_DEAD;
- 	tsk->exit_state = state;
+@@ -632,7 +632,7 @@ reparent_thread(struct task_struct *p, s
+ 	if (unlikely(traced)) {
+ 		/* Preserve ptrace links if someone else is tracing this child.  */
+ 		list_del_init(&p->ptrace_list);
+-		if (p->parent != p->real_parent)
++		if (ptrace_reparented(p))
+ 			list_add(&p->ptrace_list, &p->real_parent->ptrace_children);
+ 	} else {
+ 		/* If this child is being traced, then we're the one tracing it
+@@ -799,8 +799,8 @@ static void exit_notify(struct task_stru
+ 	 * only has special meaning to our real parent.
+ 	 */
+ 	if (!task_detached(tsk) && thread_group_empty(tsk)) {
+-		int signal = (tsk->parent == tsk->real_parent)
+-				? tsk->exit_signal : SIGCHLD;
++		int signal = ptrace_reparented(tsk) ?
++				SIGCHLD : tsk->exit_signal;
+ 		do_notify_parent(tsk, signal);
+ 	} else if (tsk->ptrace) {
+ 		do_notify_parent(tsk, SIGCHLD);
+@@ -1202,8 +1202,7 @@ static int wait_task_zombie(struct task_
+ 		return 0;
+ 	}
  
-+	/* mt-exec, de_thread() is waiting for us */
- 	if (thread_group_leader(tsk) &&
- 	    tsk->signal->notify_count < 0 &&
- 	    tsk->signal->group_exit_task)
+-	/* traced means p->ptrace, but not vice versa */
+-	traced = (p->real_parent != p->parent);
++	traced = ptrace_reparented(p);
+ 
+ 	if (likely(!traced)) {
+ 		struct signal_struct *psig;
+diff -puN kernel/ptrace.c~ptrace-introduce-ptrace_reparented-helper kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-introduce-ptrace_reparented-helper
++++ a/kernel/ptrace.c
+@@ -73,7 +73,7 @@ void __ptrace_unlink(struct task_struct 
+ 	BUG_ON(!child->ptrace);
+ 
+ 	child->ptrace = 0;
+-	if (!list_empty(&child->ptrace_list)) {
++	if (ptrace_reparented(child)) {
+ 		list_del_init(&child->ptrace_list);
+ 		remove_parent(child);
+ 		child->parent = child->real_parent;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
