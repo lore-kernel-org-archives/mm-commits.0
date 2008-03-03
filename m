@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:11:10 -0800
-Message-ID: <200803030811.m238BAwr006148@imap1.linux-foundation.org>
+Subject: + introduce-kill_orphaned_pgrp-helper.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:11:08 -0800
+Message-ID: <200803030811.m238B83E006145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107AbYCCIMj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:12:39 -0500
+	by vger.kernel.org with ESMTP id S1751701AbYCCIMv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:12:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
+     pgrp: introduce kill_orphaned_pgrp() helper
 has been added to the -mm tree.  Its filename is
-     will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch
+     introduce-kill_orphaned_pgrp-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
+Subject: pgrp: introduce kill_orphaned_pgrp() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-p->exit_state != 0 doesn't mean this process is dead, it may have sub-threads.
- Change the code to use "p->exit_state && thread_group_empty(p)" instead.
+Factor out the common code in reparent_thread() and exit_notify().
 
-Without this patch, ^Z doesn't deliver SIGTSTP to the foreground process if
-the main thread has exited.
-
-However, the new check is not perfect too.  There is a window when
-exit_notify() drops tasklist and before release_task().  Suppose that the last
-(non-leader) thread exits.  This means that entire group exits, but
-thread_group_empty() is not true yet.
-
-As Eric pointed out, is_global_init() is wrong as well, but I did not dare to
-do other changes.
-
-Just for the record, has_stopped_jobs() is absolutely wrong too.  But we can't
-fix it now, we should first fix SIGNAL_STOP_STOPPED issues.
-
-And.  Even with this patch ^Z doesn't play well with the dead main thread. 
-The task is stopped correctly but do_wait(WSTOPPED) can't see it.  This is
-another unrelated issue, will be (hopefully) fixed separately.
+No functional changes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -63,41 +46,121 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ kernel/exit.c |   74 ++++++++++++++++++++++--------------------------
+ 1 file changed, 35 insertions(+), 39 deletions(-)
 
-diff -puN kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check kernel/exit.c
---- a/kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check
+diff -puN kernel/exit.c~introduce-kill_orphaned_pgrp-helper kernel/exit.c
+--- a/kernel/exit.c~introduce-kill_orphaned_pgrp-helper
 +++ a/kernel/exit.c
-@@ -214,20 +214,19 @@ struct pid *session_of_pgrp(struct pid *
- static int will_become_orphaned_pgrp(struct pid *pgrp, struct task_struct *ignored_task)
- {
- 	struct task_struct *p;
--	int ret = 1;
- 
- 	do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
--		if (p == ignored_task
--				|| p->exit_state
--				|| is_global_init(p->real_parent))
-+		if ((p == ignored_task) ||
-+		    (p->exit_state && thread_group_empty(p)) ||
-+		    is_global_init(p->real_parent))
- 			continue;
-+
- 		if (task_pgrp(p->real_parent) != pgrp &&
--		    task_session(p->real_parent) == task_session(p)) {
--			ret = 0;
--			break;
--		}
-+		    task_session(p->real_parent) == task_session(p))
-+			return 0;
- 	} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
--	return ret;	/* (sighing) "Often!" */
-+
-+	return 1;
+@@ -255,6 +255,37 @@ static int has_stopped_jobs(struct pid *
+ 	return retval;
  }
  
- int is_current_pgrp_orphaned(void)
++/*
++ * Check to see if any process groups have become orphaned as
++ * a result of our exiting, and if they have any stopped jobs,
++ * send them a SIGHUP and then a SIGCONT. (POSIX 3.2.2.2)
++ */
++static void
++kill_orphaned_pgrp(struct task_struct *tsk, struct task_struct *parent)
++{
++	struct pid *pgrp = task_pgrp(tsk);
++	struct task_struct *ignored_task = tsk;
++
++	if (!parent)
++		 /* exit: our father is in a different pgrp than
++		  * we are and we were the only connection outside.
++		  */
++		parent = tsk->real_parent;
++	else
++		/* reparent: our child is in a different pgrp than
++		 * we are, and it was the only connection outside.
++		 */
++		ignored_task = NULL;
++
++	if (task_pgrp(parent) != pgrp &&
++	    task_session(parent) == task_session(tsk) &&
++	    will_become_orphaned_pgrp(pgrp, ignored_task) &&
++	    has_stopped_jobs(pgrp)) {
++		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
++		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
++	}
++}
++
+ /**
+  * reparent_to_kthreadd - Reparent the calling kernel thread to kthreadd
+  *
+@@ -635,22 +666,7 @@ reparent_thread(struct task_struct *p, s
+ 	    p->exit_signal != -1 && thread_group_empty(p))
+ 		do_notify_parent(p, p->exit_signal);
+ 
+-	/*
+-	 * process group orphan check
+-	 * Case ii: Our child is in a different pgrp
+-	 * than we are, and it was the only connection
+-	 * outside, so the child pgrp is now orphaned.
+-	 */
+-	if ((task_pgrp(p) != task_pgrp(father)) &&
+-	    (task_session(p) == task_session(father))) {
+-		struct pid *pgrp = task_pgrp(p);
+-
+-		if (will_become_orphaned_pgrp(pgrp, NULL) &&
+-		    has_stopped_jobs(pgrp)) {
+-			__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
+-			__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
+-		}
+-	}
++	kill_orphaned_pgrp(p, father);
+ }
+ 
+ /*
+@@ -738,8 +754,6 @@ static void forget_original_parent(struc
+ static void exit_notify(struct task_struct *tsk)
+ {
+ 	int state;
+-	struct task_struct *t;
+-	struct pid *pgrp;
+ 
+ 	/*
+ 	 * This does two things:
+@@ -753,25 +767,7 @@ static void exit_notify(struct task_stru
+ 	exit_task_namespaces(tsk);
+ 
+ 	write_lock_irq(&tasklist_lock);
+-	/*
+-	 * Check to see if any process groups have become orphaned
+-	 * as a result of our exiting, and if they have any stopped
+-	 * jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+-	 *
+-	 * Case i: Our father is in a different pgrp than we are
+-	 * and we were the only connection outside, so our pgrp
+-	 * is about to become orphaned.
+-	 */
+-	t = tsk->real_parent;
+-
+-	pgrp = task_pgrp(tsk);
+-	if ((task_pgrp(t) != pgrp) &&
+-	    (task_session(t) == task_session(tsk)) &&
+-	    will_become_orphaned_pgrp(pgrp, tsk) &&
+-	    has_stopped_jobs(pgrp)) {
+-		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
+-		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
+-	}
++	kill_orphaned_pgrp(tsk, NULL);
+ 
+ 	/* Let father know we died
+ 	 *
+@@ -788,8 +784,8 @@ static void exit_notify(struct task_stru
+ 	 * the same after a fork.
+ 	 */
+ 	if (tsk->exit_signal != SIGCHLD && tsk->exit_signal != -1 &&
+-	    ( tsk->parent_exec_id != t->self_exec_id  ||
+-	      tsk->self_exec_id != tsk->parent_exec_id)
++	    (tsk->parent_exec_id != tsk->real_parent->self_exec_id ||
++	     tsk->self_exec_id != tsk->parent_exec_id)
+ 	    && !capable(CAP_KILL))
+ 		tsk->exit_signal = SIGCHLD;
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
