@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-replace-remaining-__function__-occurances.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:26:09 -0800
-Message-ID: <200803030826.m238Q9pj006670@imap1.linux-foundation.org>
+Subject: + lib-replace-remaining-__function__-occurances.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:26:10 -0800
+Message-ID: <200803030826.m238QAfi006673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752938AbYCCI0l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:26:41 -0500
+	by vger.kernel.org with ESMTP id S1752959AbYCCI0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     kernel: replace remaining __FUNCTION__ occurences
+     lib: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     kernel-replace-remaining-__function__-occurances.patch
+     lib-replace-remaining-__function__-occurances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel: replace remaining __FUNCTION__ occurences
+Subject: lib: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-__FUNCTION__ is gcc-specific, use __func__
+__FUNCTION__ is gcc specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c       |    4 ++--
- kernel/workqueue.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ lib/kobject.c        |   16 ++++++++--------
+ lib/kobject_uevent.c |   10 +++++-----
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN kernel/cpu.c~kernel-replace-remaining-__function__-occurances kernel/cpu.c
---- a/kernel/cpu.c~kernel-replace-remaining-__function__-occurances
-+++ a/kernel/cpu.c
-@@ -215,7 +215,7 @@ static int __ref _cpu_down(unsigned int 
- 		__raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
- 					  hcpu, nr_calls, NULL);
- 		printk("%s: attempt to take down CPU %u failed\n",
--				__FUNCTION__, cpu);
-+				__func__, cpu);
- 		err = -EINVAL;
- 		goto out_release;
+diff -puN lib/kobject.c~lib-replace-remaining-__function__-occurances lib/kobject.c
+--- a/lib/kobject.c~lib-replace-remaining-__function__-occurances
++++ a/lib/kobject.c
+@@ -146,7 +146,7 @@ static void fill_kobj_path(struct kobjec
  	}
-@@ -295,7 +295,7 @@ static int __cpuinit _cpu_up(unsigned in
- 	if (ret == NOTIFY_BAD) {
- 		nr_calls--;
- 		printk("%s: attempt to bring up CPU %u failed\n",
--				__FUNCTION__, cpu);
-+				__func__, cpu);
- 		ret = -EINVAL;
- 		goto out_notify;
+ 
+ 	pr_debug("kobject: '%s' (%p): %s: path = '%s'\n", kobject_name(kobj),
+-		 kobj, __FUNCTION__, path);
++		 kobj, __func__, path);
+ }
+ 
+ /**
+@@ -237,7 +237,7 @@ static int kobject_add_internal(struct k
  	}
-diff -puN kernel/workqueue.c~kernel-replace-remaining-__function__-occurances kernel/workqueue.c
---- a/kernel/workqueue.c~kernel-replace-remaining-__function__-occurances
-+++ a/kernel/workqueue.c
-@@ -247,7 +247,7 @@ static void run_workqueue(struct cpu_wor
- 	if (cwq->run_depth > 3) {
- 		/* morton gets to eat his hat */
- 		printk("%s: recursion depth exceeded: %d\n",
--			__FUNCTION__, cwq->run_depth);
-+			__func__, cwq->run_depth);
+ 
+ 	pr_debug("kobject: '%s' (%p): %s: parent: '%s', set: '%s'\n",
+-		 kobject_name(kobj), kobj, __FUNCTION__,
++		 kobject_name(kobj), kobj, __func__,
+ 		 parent ? kobject_name(parent) : "<NULL>",
+ 		 kobj->kset ? kobject_name(&kobj->kset->kobj) : "<NULL>");
+ 
+@@ -252,10 +252,10 @@ static int kobject_add_internal(struct k
+ 			printk(KERN_ERR "%s failed for %s with "
+ 			       "-EEXIST, don't try to register things with "
+ 			       "the same name in the same directory.\n",
+-			       __FUNCTION__, kobject_name(kobj));
++			       __func__, kobject_name(kobj));
+ 		else
+ 			printk(KERN_ERR "%s failed for %s (%d)\n",
+-			       __FUNCTION__, kobject_name(kobj), error);
++			       __func__, kobject_name(kobj), error);
  		dump_stack();
+ 	} else
+ 		kobj->state_in_sysfs = 1;
+@@ -597,7 +597,7 @@ static void kobject_cleanup(struct kobje
+ 	const char *name = kobj->name;
+ 
+ 	pr_debug("kobject: '%s' (%p): %s\n",
+-		 kobject_name(kobj), kobj, __FUNCTION__);
++		 kobject_name(kobj), kobj, __func__);
+ 
+ 	if (t && !t->release)
+ 		pr_debug("kobject: '%s' (%p): does not have a release() "
+@@ -657,7 +657,7 @@ void kobject_put(struct kobject *kobj)
+ 
+ static void dynamic_kobj_release(struct kobject *kobj)
+ {
+-	pr_debug("kobject: (%p): %s\n", kobj, __FUNCTION__);
++	pr_debug("kobject: (%p): %s\n", kobj, __func__);
+ 	kfree(kobj);
+ }
+ 
+@@ -714,7 +714,7 @@ struct kobject *kobject_create_and_add(c
+ 	retval = kobject_add(kobj, parent, "%s", name);
+ 	if (retval) {
+ 		printk(KERN_WARNING "%s: kobject_add error: %d\n",
+-		       __FUNCTION__, retval);
++		       __func__, retval);
+ 		kobject_put(kobj);
+ 		kobj = NULL;
  	}
- 	while (!list_empty(&cwq->worklist)) {
+@@ -823,7 +823,7 @@ static void kset_release(struct kobject 
+ {
+ 	struct kset *kset = container_of(kobj, struct kset, kobj);
+ 	pr_debug("kobject: '%s' (%p): %s\n",
+-		 kobject_name(kobj), kobj, __FUNCTION__);
++		 kobject_name(kobj), kobj, __func__);
+ 	kfree(kset);
+ }
+ 
+diff -puN lib/kobject_uevent.c~lib-replace-remaining-__function__-occurances lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~lib-replace-remaining-__function__-occurances
++++ a/lib/kobject_uevent.c
+@@ -99,7 +99,7 @@ int kobject_uevent_env(struct kobject *k
+ 	int retval = 0;
+ 
+ 	pr_debug("kobject: '%s' (%p): %s\n",
+-		 kobject_name(kobj), kobj, __FUNCTION__);
++		 kobject_name(kobj), kobj, __func__);
+ 
+ 	/* search the kset we belong to */
+ 	top_kobj = kobj;
+@@ -109,7 +109,7 @@ int kobject_uevent_env(struct kobject *k
+ 	if (!top_kobj->kset) {
+ 		pr_debug("kobject: '%s' (%p): %s: attempted to send uevent "
+ 			 "without kset!\n", kobject_name(kobj), kobj,
+-			 __FUNCTION__);
++			 __func__);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -121,7 +121,7 @@ int kobject_uevent_env(struct kobject *k
+ 		if (!uevent_ops->filter(kset, kobj)) {
+ 			pr_debug("kobject: '%s' (%p): %s: filter function "
+ 				 "caused the event to drop!\n",
+-				 kobject_name(kobj), kobj, __FUNCTION__);
++				 kobject_name(kobj), kobj, __func__);
+ 			return 0;
+ 		}
+ 
+@@ -133,7 +133,7 @@ int kobject_uevent_env(struct kobject *k
+ 	if (!subsystem) {
+ 		pr_debug("kobject: '%s' (%p): %s: unset subsystem caused the "
+ 			 "event to drop!\n", kobject_name(kobj), kobj,
+-			 __FUNCTION__);
++			 __func__);
+ 		return 0;
+ 	}
+ 
+@@ -175,7 +175,7 @@ int kobject_uevent_env(struct kobject *k
+ 		if (retval) {
+ 			pr_debug("kobject: '%s' (%p): %s: uevent() returned "
+ 				 "%d\n", kobject_name(kobj), kobj,
+-				 __FUNCTION__, retval);
++				 __func__, retval);
+ 			goto exit;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
