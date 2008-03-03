@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xpad-match-xbox-360-devices-with-interface-info.patch added to -mm tree
-Date: Mon, 03 Mar 2008 14:38:03 -0800
-Message-ID: <200803032238.m23Mc3Qr010390@imap1.linux-foundation.org>
+Subject: + kprobes-fix-a-null-pointer-bug-in-register_kretprobe.patch added to -mm tree
+Date: Mon, 03 Mar 2008 14:36:18 -0800
+Message-ID: <200803032236.m23MaI56010302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752179AbYCCWiu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 17:38:50 -0500
+	by vger.kernel.org with ESMTP id S1752720AbYCCWlH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 17:41:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anssi.hannula@gmail.com, dtor@mail.ru, jkosina@suse.cz
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, jkenisto@us.ibm.com
 
 
 The patch titled
-     xpad: match xbox 360 devices with interface info
+     kprobes: fix a null pointer bug in register_kretprobe()
 has been added to the -mm tree.  Its filename is
-     xpad-match-xbox-360-devices-with-interface-info.patch
+     kprobes-fix-a-null-pointer-bug-in-register_kretprobe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xpad: match xbox 360 devices with interface info
-From: Anssi Hannula <anssi.hannula@gmail.com>
+Subject: kprobes: fix a null pointer bug in register_kretprobe()
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Match Xbox 360 controllers using the interface info, i.e.  interface class 255
-(Vendor specific), subclass 93 and protocol 1, instead of specifying the
-device ids individually.  As the class is vendor-specific, we have to still
-match against vendor id as well, though.
+Fix a bug in regiseter_kretprobe() which does not check rp->kp.symbol_name ==
+NULL before calling kprobe_lookup_name.
 
-Signed-off-by: Anssi Hannula <anssi.hannula@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+For maintainability, this introduces kprobe_addr helper function which
+resolves addr field.  It is used by register_kprobe and register_kretprobe.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/xpad.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ kernel/kprobes.c |   43 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff -puN drivers/input/joystick/xpad.c~xpad-match-xbox-360-devices-with-interface-info drivers/input/joystick/xpad.c
---- a/drivers/input/joystick/xpad.c~xpad-match-xbox-360-devices-with-interface-info
-+++ a/drivers/input/joystick/xpad.c
-@@ -91,6 +91,7 @@
+diff -puN kernel/kprobes.c~kprobes-fix-a-null-pointer-bug-in-register_kretprobe kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-fix-a-null-pointer-bug-in-register_kretprobe
++++ a/kernel/kprobes.c
+@@ -498,27 +498,36 @@ static int __kprobes in_kprobes_function
+ 	return 0;
+ }
  
- #define XTYPE_XBOX        0
- #define XTYPE_XBOX360     1
-+#define XTYPE_UNKNOWN     2
- 
- static int dpad_to_buttons;
- module_param(dpad_to_buttons, bool, S_IRUGO);
-@@ -138,7 +139,7 @@ static const struct xpad_device {
- 	{ 0x1430, 0x8888, "TX6500+ Dance Pad (first generation)", MAP_DPAD_TO_BUTTONS, XTYPE_XBOX },
- 	{ 0x045e, 0x028e, "Microsoft X-Box 360 pad", MAP_DPAD_TO_AXES, XTYPE_XBOX360 },
- 	{ 0xffff, 0xffff, "Chinese-made Xbox Controller", MAP_DPAD_TO_AXES, XTYPE_XBOX },
--	{ 0x0000, 0x0000, "Generic X-Box pad", MAP_DPAD_UNKNOWN, XTYPE_XBOX }
-+	{ 0x0000, 0x0000, "Generic X-Box pad", MAP_DPAD_UNKNOWN, XTYPE_UNKNOWN }
- };
- 
- static const signed short xpad_btn[] = {
-@@ -173,12 +174,20 @@ static const signed short xpad_abs_pad[]
- 	-1			/* terminating entry */
- };
- 
--/* Xbox 360 has a vendor-specific (sub)class, so we cannot match it with only
-- * USB_INTERFACE_INFO, more to that this device has 4 InterfaceProtocols,
-- * but we need only one of them. */
-+/* Xbox 360 has a vendor-specific class, so we cannot match it with only
-+ * USB_INTERFACE_INFO (also specifically refused by USB subsystem), so we
-+ * match against vendor id as well. Also, some Xbox 360 devices have multiple
-+ * interface protocols, we only need protocol 1. */
-+#define XPAD_XBOX360_VENDOR(vend) \
-+	.match_flags = USB_DEVICE_ID_MATCH_VENDOR | USB_DEVICE_ID_MATCH_INT_INFO, \
-+	.idVendor = (vend), \
-+	.bInterfaceClass = USB_CLASS_VENDOR_SPEC, \
-+	.bInterfaceSubClass = 93, \
-+	.bInterfaceProtocol = 1
++/*
++ * If we have a symbol_name argument, look it up and add the offset field
++ * to it. This way, we can specify a relative address to a symbol.
++ */
++static kprobe_opcode_t __kprobes *kprobe_addr(struct kprobe *p)
++{
++	kprobe_opcode_t *addr = p->addr;
++	if (p->symbol_name) {
++		if (addr)
++			return NULL;
++		kprobe_lookup_name(p->symbol_name, addr);
++	}
 +
- static struct usb_device_id xpad_table [] = {
- 	{ USB_INTERFACE_INFO('X', 'B', 0) },	/* X-Box USB-IF not approved class */
--	{ USB_DEVICE_INTERFACE_PROTOCOL(0x045e, 0x028e, 1) },	/* X-Box 360 controller */
-+	{ XPAD_XBOX360_VENDOR(0x045e) },	/* Microsoft X-Box 360 controllers */
- 	{ }
- };
++	if (!addr)
++		return NULL;
++	return (kprobe_opcode_t *)(((char *)addr) + p->offset);
++}
++
+ static int __kprobes __register_kprobe(struct kprobe *p,
+ 	unsigned long called_from)
+ {
+ 	int ret = 0;
+ 	struct kprobe *old_p;
+ 	struct module *probed_mod;
++	kprobe_opcode_t *addr;
  
-@@ -645,6 +654,8 @@ static int xpad_probe(struct usb_interfa
- 	xpad->xtype = xpad_device[i].xtype;
- 	if (xpad->dpad_mapping == MAP_DPAD_UNKNOWN)
- 		xpad->dpad_mapping = dpad_to_buttons;
-+	if (xpad->xtype == XTYPE_UNKNOWN)
-+		xpad->xtype = (intf->cur_altsetting->desc.bInterfaceClass == USB_CLASS_VENDOR_SPEC);
- 	xpad->dev = input_dev;
- 	usb_make_path(udev, xpad->phys, sizeof(xpad->phys));
- 	strlcat(xpad->phys, "/input0", sizeof(xpad->phys));
+-	/*
+-	 * If we have a symbol_name argument look it up,
+-	 * and add it to the address.  That way the addr
+-	 * field can either be global or relative to a symbol.
+-	 */
+-	if (p->symbol_name) {
+-		if (p->addr)
+-			return -EINVAL;
+-		kprobe_lookup_name(p->symbol_name, p->addr);
+-	}
+-
+-	if (!p->addr)
++	addr = kprobe_addr(p);
++	if (!addr)
+ 		return -EINVAL;
+-	p->addr = (kprobe_opcode_t *)(((char *)p->addr)+ p->offset);
++	p->addr = addr;
+ 
+ 	if (!kernel_text_address((unsigned long) p->addr) ||
+ 	    in_kprobes_functions((unsigned long) p->addr))
+@@ -721,12 +730,12 @@ int __kprobes register_kretprobe(struct 
+ 	int ret = 0;
+ 	struct kretprobe_instance *inst;
+ 	int i;
+-	void *addr = rp->kp.addr;
++	void *addr;
+ 
+ 	if (kretprobe_blacklist_size) {
+-		if (addr == NULL)
+-			kprobe_lookup_name(rp->kp.symbol_name, addr);
+-		addr += rp->kp.offset;
++		addr = kprobe_addr(&rp->kp);
++		if (!addr)
++			return -EINVAL;
+ 
+ 		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
+ 			if (kretprobe_blacklist[i].addr == addr)
 _
 
-Patches currently in -mm which might be from anssi.hannula@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-xpad-match-xbox-360-devices-with-interface-info.patch
+kprobes-fix-a-null-pointer-bug-in-register_kretprobe.patch
+kprobes-introduce-kprobe_handle_fault.patch
+kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
 
