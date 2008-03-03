@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-cache_line_size-to-linux-cacheh.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:48:39 -0800
-Message-ID: <200803032148.m23Lmd7Y008318@imap1.linux-foundation.org>
+Subject: + fat-detect-media-without-partition-table-correctly.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:50:31 -0800
+Message-ID: <200803032150.m23LoV7U008369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37851 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751909AbYCCVuR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:50:17 -0500
+	by vger.kernel.org with ESMTP id S1751123AbYCCVu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:50:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: penberg@cs.helsinki.fi, clameter@sgi.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
+Cc: fseidel@suse.de, adilger@sun.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     mm: move cache_line_size() to <linux/cache.h>
+     fat: detect media without partition table correctly
 has been added to the -mm tree.  Its filename is
-     mm-move-cache_line_size-to-linux-cacheh.patch
+     fat-detect-media-without-partition-table-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: move cache_line_size() to <linux/cache.h>
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: fat: detect media without partition table correctly
+From: Frank Seidel <fseidel@suse.de>
 
-Not all architectures define cache_line_size() so as suggested by Andrew move
-the private implementations in mm/slab.c and mm/slob.c to <linux/cache.h>.
+I received a complaint that some FAT formated medias (e.g.  sd memory cards)
+trigger a "unknown partition table" message even though there is no partition
+table and they work correctly, while in general (when e.g.  formated with
+mkdosfs or even Windows Vista) this message is not shown.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Reviewed-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Currently this seems only to happen when the medias get formatted with Windows
+XP (and possibly Win 2000).  Then the boot indicator byte contains garbage
+(part of text message) and so do the other parts checked by msdos_paritition
+which then later triggers this message.
+
+References: novell bug #364365
+
+Most fat formatted media without partition table contains zeros in the boot
+indication and the other tested bytes and so falls through the checks in
+msdos_partition, leading it to return with 1 (all is fine).
+
+But some (e.g.  WinXP formatted) fat fomated medias don't use boot_ind and so
+the check fails and causes a "unkown partition table" warning eventhough there
+is none and everything would be fine.
+
+This additional check directly verifies if there is a fat formatted medium
+without a partition table.
+
+Signed-off-by: Frank Seidel <fseidel@suse.de>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig      |    3 +++
- include/linux/cache.h |    4 ++++
- mm/slab.c             |    4 ----
- mm/slub.c             |    5 -----
- 4 files changed, 7 insertions(+), 9 deletions(-)
+ fs/partitions/msdos.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-move-cache_line_size-to-linux-cacheh arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-move-cache_line_size-to-linux-cacheh
-+++ a/arch/x86/Kconfig
-@@ -116,6 +116,9 @@ config GENERIC_TIME_VSYSCALL
- config ARCH_HAS_CPU_RELAX
- 	def_bool y
- 
-+config ARCH_HAS_CACHE_LINE_SIZE
-+	def_bool y
-+
- config HAVE_SETUP_PER_CPU_AREA
- 	def_bool X86_64
- 
-diff -puN include/linux/cache.h~mm-move-cache_line_size-to-linux-cacheh include/linux/cache.h
---- a/include/linux/cache.h~mm-move-cache_line_size-to-linux-cacheh
-+++ a/include/linux/cache.h
-@@ -60,4 +60,8 @@
- #endif
- #endif
- 
-+#ifndef CONFIG_ARCH_HAS_CACHE_LINE_SIZE
-+#define cache_line_size()	L1_CACHE_BYTES
-+#endif
-+
- #endif /* __LINUX_CACHE_H */
-diff -puN mm/slab.c~mm-move-cache_line_size-to-linux-cacheh mm/slab.c
---- a/mm/slab.c~mm-move-cache_line_size-to-linux-cacheh
-+++ a/mm/slab.c
-@@ -139,10 +139,6 @@
- #define	BYTES_PER_WORD		sizeof(void *)
- #define	REDZONE_ALIGN		max(BYTES_PER_WORD, __alignof__(unsigned long long))
- 
--#ifndef cache_line_size
--#define cache_line_size()	L1_CACHE_BYTES
--#endif
+diff -puN fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly
++++ a/fs/partitions/msdos.c
+@@ -18,7 +18,7 @@
+  *
+  *  Re-organised Feb 1998 Russell King
+  */
 -
- #ifndef ARCH_KMALLOC_MINALIGN
- /*
-  * Enforce a minimum alignment for the kmalloc caches.
-diff -puN mm/slub.c~mm-move-cache_line_size-to-linux-cacheh mm/slub.c
---- a/mm/slub.c~mm-move-cache_line_size-to-linux-cacheh
-+++ a/mm/slub.c
-@@ -189,11 +189,6 @@ static inline void ClearSlabDebug(struct
- #define __OBJECT_POISON		0x80000000 /* Poison object */
- #define __SYSFS_ADD_DEFERRED	0x40000000 /* Not yet visible via sysfs */
++#include <linux/msdos_fs.h>
  
--/* Not all arches define cache_line_size */
--#ifndef cache_line_size
--#define cache_line_size()	L1_CACHE_BYTES
--#endif
+ #include "check.h"
+ #include "msdos.h"
+@@ -419,6 +419,7 @@ int msdos_partition(struct parsed_partit
+ 	Sector sect;
+ 	unsigned char *data;
+ 	struct partition *p;
++	struct fat_boot_sector *fb;
+ 	int slot;
+ 
+ 	data = read_dev_sector(bdev, 0, &sect);
+@@ -444,8 +445,21 @@ int msdos_partition(struct parsed_partit
+ 	p = (struct partition *) (data + 0x1be);
+ 	for (slot = 1; slot <= 4; slot++, p++) {
+ 		if (p->boot_ind != 0 && p->boot_ind != 0x80) {
+-			put_dev_sector(sect);
+-			return 0;
++			/*
++			 * Even without a valid boot inidicator value
++			 * its still possible this is valid FAT filesystem
++			 * without a partition table.
++			 */
++			fb = (struct fat_boot_sector *) data;
++			if (slot == 1 && fb->reserved && fb->fats
++				&& fat_valid_media(fb->media)) {
++				printk("\n");
++				put_dev_sector(sect);
++				return 1;
++			} else {
++				put_dev_sector(sect);
++				return 0;
++			}
+ 		}
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from fseidel@suse.de are
+
+fat_valid_media-remove-pointless-test.patch
+fat-detect-media-without-partition-table-correctly.patch
+
