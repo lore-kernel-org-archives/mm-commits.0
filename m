@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + md-make-sure-a-reshape-is-started-when-device-switches-to-read-write.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:23:34 -0800
-Message-ID: <200803030823.m238NY6K006530@imap1.linux-foundation.org>
+Subject: + md-lock-access-to-rdev-attributes-properly.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:23:36 -0800
+Message-ID: <200803030823.m238NaBf006533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752195AbYCCIYI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:24:08 -0500
+	by vger.kernel.org with ESMTP id S1752252AbYCCIYK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:24:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: make sure a reshape is started when device switches to read-write
+     md: lock access to rdev attributes properly
 has been added to the -mm tree.  Its filename is
-     md-make-sure-a-reshape-is-started-when-device-switches-to-read-write.patch
+     md-lock-access-to-rdev-attributes-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: make sure a reshape is started when device switches to read-write
+Subject: md: lock access to rdev attributes properly
 From: NeilBrown <neilb@suse.de>
 
-A resync/reshape/recovery thread will refuse to progress when the array is
-marked read-only.  So whenever it mark it not read-only, it is important to
-wake up thread resync thread.  There is one place we didn't do this.
+When we access attributes of an rdev (component device on an md array) through
+sysfs, we really need to lock the array against concurrent changes.  We
+currently do that when we change an attribute, but not when we read an
+attribute.  We need to lock when reading as well else rdev->mddev could become
+NULL while we are accessing it.
 
-The problem manifests if the start_ro module parameters is set, and a raid5
-array that is in the middle of a reshape (restripe) is started.  The array
-will initially be semi-read-only (meaning it acts like it is readonly until
-the first write).  So the reshape will not proceed.
+So add appropriate locking (mddev_lock) to rdev_attr_show.
 
-On the first write, the array will become read-write, but the reshape will not
-be started, and there is no event which will ever restart that thread.
+rdev_size_store requires some extra care as well as it needs to unlock the
+mddev while scanning other mddevs for overlapping regions.  We currently
+assume that rdev->mddev will still be unchanged after the scan, but that
+cannot be certain.  So take a copy of rdev->mddev for use at the end of the
+function.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/md.c |   35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN drivers/md/md.c~md-make-sure-a-reshape-is-started-when-device-switches-to-read-write drivers/md/md.c
---- a/drivers/md/md.c~md-make-sure-a-reshape-is-started-when-device-switches-to-read-write
+diff -puN drivers/md/md.c~md-lock-access-to-rdev-attributes-properly drivers/md/md.c
+--- a/drivers/md/md.c~md-lock-access-to-rdev-attributes-properly
 +++ a/drivers/md/md.c
-@@ -5356,6 +5356,7 @@ void md_write_start(mddev_t *mddev, stru
- 		mddev->ro = 0;
- 		set_bit(MD_RECOVERY_NEEDED, &mddev->recovery);
- 		md_wakeup_thread(mddev->thread);
-+		md_wakeup_thread(mddev->sync_thread);
+@@ -2001,9 +2001,11 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 	char *e;
+ 	unsigned long long size = simple_strtoull(buf, &e, 10);
+ 	unsigned long long oldsize = rdev->size;
++	mddev_t *my_mddev = rdev->mddev;
++
+ 	if (e==buf || (*e && *e != '\n'))
+ 		return -EINVAL;
+-	if (rdev->mddev->pers)
++	if (my_mddev->pers)
+ 		return -EBUSY;
+ 	rdev->size = size;
+ 	if (size > oldsize && rdev->mddev->external) {
+@@ -2016,7 +2018,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 		int overlap = 0;
+ 		struct list_head *tmp, *tmp2;
+ 
+-		mddev_unlock(rdev->mddev);
++		mddev_unlock(my_mddev);
+ 		for_each_mddev(mddev, tmp) {
+ 			mdk_rdev_t *rdev2;
+ 
+@@ -2036,7 +2038,7 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 				break;
+ 			}
+ 		}
+-		mddev_lock(rdev->mddev);
++		mddev_lock(my_mddev);
+ 		if (overlap) {
+ 			/* Someone else could have slipped in a size
+ 			 * change here, but doing so is just silly.
+@@ -2048,8 +2050,8 @@ rdev_size_store(mdk_rdev_t *rdev, const 
+ 			return -EBUSY;
+ 		}
  	}
- 	atomic_inc(&mddev->writes_pending);
- 	if (mddev->in_sync) {
+-	if (size < rdev->mddev->size || rdev->mddev->size == 0)
+-		rdev->mddev->size = size;
++	if (size < my_mddev->size || my_mddev->size == 0)
++		my_mddev->size = size;
+ 	return len;
+ }
+ 
+@@ -2070,10 +2072,21 @@ rdev_attr_show(struct kobject *kobj, str
+ {
+ 	struct rdev_sysfs_entry *entry = container_of(attr, struct rdev_sysfs_entry, attr);
+ 	mdk_rdev_t *rdev = container_of(kobj, mdk_rdev_t, kobj);
++	mddev_t *mddev = rdev->mddev;
++	ssize_t rv;
+ 
+ 	if (!entry->show)
+ 		return -EIO;
+-	return entry->show(rdev, page);
++
++	rv = mddev ? mddev_lock(mddev) : -EBUSY;
++	if (!rv) {
++		if (rdev->mddev == NULL)
++			rv = -EBUSY;
++		else
++			rv = entry->show(rdev, page);
++		mddev_unlock(mddev);
++	}
++	return rv;
+ }
+ 
+ static ssize_t
+@@ -2082,15 +2095,19 @@ rdev_attr_store(struct kobject *kobj, st
+ {
+ 	struct rdev_sysfs_entry *entry = container_of(attr, struct rdev_sysfs_entry, attr);
+ 	mdk_rdev_t *rdev = container_of(kobj, mdk_rdev_t, kobj);
+-	int rv;
++	ssize_t rv;
++	mddev_t *mddev = rdev->mddev;
+ 
+ 	if (!entry->store)
+ 		return -EIO;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EACCES;
+-	rv = mddev_lock(rdev->mddev);
++	rv = mddev ? mddev_lock(mddev): -EBUSY;
+ 	if (!rv) {
+-		rv = entry->store(rdev, page, length);
++		if (rdev->mddev == NULL)
++			rv = -EBUSY;
++		else
++			rv = entry->store(rdev, page, length);
+ 		mddev_unlock(rdev->mddev);
+ 	}
+ 	return rv;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
