@@ -1,84 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-fix-kernel-api-source-files.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 13:02:55 -0800
-Message-ID: <200803032102.m23L2t4b006281@imap1.linux-foundation.org>
+Subject: - docbook-fix-rapidio-source-files.patch removed from -mm tree
+Date: Mon, 03 Mar 2008 13:02:57 -0800
+Message-ID: <200803032102.m23L2v28006284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751430AbYCCVDw (ORCPT
+	by vger.kernel.org with ESMTP id S1751365AbYCCVDw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:03:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: fix kernel-api source files
+     docbook: fix rapidio source files
 has been removed from the -mm tree.  Its filename was
-     docbook-fix-kernel-api-source-files.patch
+     docbook-fix-rapidio-source-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: fix kernel-api source files
+Subject: docbook: fix rapidio source files
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix docbook problems in kernel-api.tmpl.  These cause the generated docbook to
-be incorrect.
+Fix docbook problems in rapidio source files.  These cause the generated
+docbook to be incorrect.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/transport_class.c |    4 +---
- drivers/pci/rom.c              |    3 +--
- mm/truncate.c                  |    3 +--
- 3 files changed, 3 insertions(+), 7 deletions(-)
+ drivers/rapidio/rio-driver.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/transport_class.c~docbook-fix-kernel-api-source-files drivers/base/transport_class.c
---- a/drivers/base/transport_class.c~docbook-fix-kernel-api-source-files
-+++ a/drivers/base/transport_class.c
-@@ -126,9 +126,7 @@ static int transport_setup_classdev(stru
+diff -puN drivers/rapidio/rio-driver.c~docbook-fix-rapidio-source-files drivers/rapidio/rio-driver.c
+--- a/drivers/rapidio/rio-driver.c~docbook-fix-rapidio-source-files
++++ a/drivers/rapidio/rio-driver.c
+@@ -78,8 +78,7 @@ void rio_dev_put(struct rio_dev *rdev)
  }
  
  /**
-- * transport_setup_device - declare a new dev for transport class association
-- *			    but don't make it visible yet.
-- *
-+ * transport_setup_device - declare a new dev for transport class association but don't make it visible yet.
-  * @dev: the generic device representing the entity being added
+- *  rio_device_probe - Tell if a RIO device structure has a matching RIO
+- *                     device id structure
++ *  rio_device_probe - Tell if a RIO device structure has a matching RIO device id structure
+  *  @id: the RIO device id structure to match against
+  *  @dev: the RIO device structure to match against
   *
-  * Usually, dev represents some component in the HBA system (either
-diff -puN drivers/pci/rom.c~docbook-fix-kernel-api-source-files drivers/pci/rom.c
---- a/drivers/pci/rom.c~docbook-fix-kernel-api-source-files
-+++ a/drivers/pci/rom.c
-@@ -242,8 +242,7 @@ void pci_remove_rom(struct pci_dev *pdev
- #endif  /*  0  */
- 
- /**
-- * pci_cleanup_rom - internal routine for freeing the ROM copy created
-- * by pci_map_rom_copy called from remove.c
-+ * pci_cleanup_rom - free the ROM copy created by pci_map_rom_copy
-  * @pdev: pointer to pci device struct
+@@ -137,7 +136,7 @@ static int rio_device_remove(struct devi
+  *  rio_register_driver - register a new RIO driver
+  *  @rdrv: the RIO driver structure to register
   *
-  * Free the copied ROM if we allocated one.
-diff -puN mm/truncate.c~docbook-fix-kernel-api-source-files mm/truncate.c
---- a/mm/truncate.c~docbook-fix-kernel-api-source-files
-+++ a/mm/truncate.c
-@@ -135,8 +135,7 @@ invalidate_complete_page(struct address_
+- *  Adds a &struct rio_driver to the list of registered drivers
++ *  Adds a &struct rio_driver to the list of registered drivers.
+  *  Returns a negative value on error, otherwise 0. If no error
+  *  occurred, the driver remains registered even if no device
+  *  was claimed during registration.
+@@ -167,8 +166,7 @@ void rio_unregister_driver(struct rio_dr
  }
  
  /**
-- * truncate_inode_pages - truncate range of pages specified by start and
-- * end byte offsets
-+ * truncate_inode_pages - truncate range of pages specified by start & end byte offsets
-  * @mapping: mapping to truncate
-  * @lstart: offset from which to truncate
-  * @lend: offset to which to truncate
+- *  rio_match_bus - Tell if a RIO device structure has a matching RIO
+- *                  driver device id structure
++ *  rio_match_bus - Tell if a RIO device structure has a matching RIO driver device id structure
+  *  @dev: the standard device structure to match against
+  *  @drv: the standard driver structure containing the ids to match against
+  *
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
