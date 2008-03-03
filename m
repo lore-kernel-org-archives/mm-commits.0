@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + selinux-use-new-audit-hooks-remove-redundant-exports.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:41:55 -0800
-Message-ID: <200803030741.m237ftJo005104@imap1.linux-foundation.org>
+Subject: + audit-internally-use-the-new-lsm-audit-hooks.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:41:53 -0800
+Message-ID: <200803030741.m237frNp005101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750774AbYCCHnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:43:35 -0500
+	by vger.kernel.org with ESMTP id S1750826AbYCCHnn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:43:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@inf
 
 
 The patch titled
-     SELinux: use new audit hooks, remove redundant exports
+     Audit: internally use the new LSM audit hooks
 has been added to the -mm tree.  Its filename is
-     selinux-use-new-audit-hooks-remove-redundant-exports.patch
+     audit-internally-use-the-new-lsm-audit-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,15 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SELinux: use new audit hooks, remove redundant exports
+Subject: Audit: internally use the new LSM audit hooks
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Setup the new Audit LSM hooks for SELinux.  Remove the now redundant exported
-SELinux Audit interface.
+Convert Audit to use the new LSM Audit hooks instead of the exported SELinux
+interface.
 
-Audit: Export 'audit_krule' and 'audit_field' to the public
-since their internals are needed by the implementation of the
-new LSM hook 'audit_rule_known'.
+Basically, use:
+security_audit_rule_init
+secuirty_audit_rule_free
+security_audit_rule_known
+security_audit_rule_match
+
+instad of (respectively) :
+selinux_audit_rule_init
+selinux_audit_rule_free
+audit_rule_has_selinux
+selinux_audit_rule_match
 
 Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
@@ -55,373 +63,250 @@ Cc: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/audit.h            |   29 +++++++++++
- include/linux/selinux.h          |   72 -----------------------------
- kernel/audit.h                   |   25 ----------
- security/selinux/hooks.c         |    8 +++
- security/selinux/include/audit.h |   65 ++++++++++++++++++++++++++
- security/selinux/ss/services.c   |   45 +++++++++++++-----
- 6 files changed, 136 insertions(+), 108 deletions(-)
+ kernel/audit.c       |    7 ----
+ kernel/auditfilter.c |   61 +++++++++++------------------------------
+ kernel/auditsc.c     |    9 ++----
+ 3 files changed, 22 insertions(+), 55 deletions(-)
 
-diff -puN include/linux/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports include/linux/audit.h
---- a/include/linux/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports
-+++ a/include/linux/audit.h
-@@ -353,6 +353,33 @@ struct netlink_skb_parms;
- struct linux_binprm;
- struct mq_attr;
- struct mqstat;
-+struct audit_watch;
-+struct audit_tree;
-+
-+struct audit_krule {
-+	int			vers_ops;
-+	u32			flags;
-+	u32			listnr;
-+	u32			action;
-+	u32			mask[AUDIT_BITMASK_SIZE];
-+	u32			buflen; /* for data alloc on list rules */
-+	u32			field_count;
-+	char			*filterkey; /* ties events to rules */
-+	struct audit_field	*fields;
-+	struct audit_field	*arch_f; /* quick access to arch field */
-+	struct audit_field	*inode_f; /* quick access to an inode field */
-+	struct audit_watch	*watch;	/* associated watch */
-+	struct audit_tree	*tree;	/* associated watched tree */
-+	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
-+};
-+
-+struct audit_field {
-+	u32				type;
-+	u32				val;
-+	u32				op;
-+	char				*se_str;
-+	void				*se_rule;
-+};
+diff -puN kernel/audit.c~audit-internally-use-the-new-lsm-audit-hooks kernel/audit.c
+--- a/kernel/audit.c~audit-internally-use-the-new-lsm-audit-hooks
++++ a/kernel/audit.c
+@@ -21,7 +21,7 @@
+  *
+  * Written by Rickard E. (Rik) Faith <faith@redhat.com>
+  *
+- * Goals: 1) Integrate fully with SELinux.
++ * Goals: 1) Integrate fully with Security Modules.
+  *	  2) Minimal run-time overhead:
+  *	     a) Minimal when syscall auditing is disabled (audit_enable=0).
+  *	     b) Small when syscall auditing is enabled and no audit record
+@@ -55,7 +55,6 @@
+ #include <net/netlink.h>
+ #include <linux/skbuff.h>
+ #include <linux/netlink.h>
+-#include <linux/selinux.h>
+ #include <linux/inotify.h>
+ #include <linux/freezer.h>
+ #include <linux/tty.h>
+@@ -874,10 +873,6 @@ static int __init audit_init(void)
+ 	audit_enabled = audit_default;
+ 	audit_ever_enabled |= !!audit_default;
  
- #define AUDITSC_INVALID 0
- #define AUDITSC_SUCCESS 1
-@@ -536,6 +563,8 @@ extern void		    audit_log_d_path(struct
- 					     const char *prefix,
- 					     struct path *path);
- extern void		    audit_log_lost(const char *message);
-+extern int		    audit_update_lsm_rules(void);
-+
- 				/* Private API (for audit.c only) */
- extern int audit_filter_user(struct netlink_skb_parms *cb, int type);
- extern int audit_filter_type(int type);
-diff -puN include/linux/selinux.h~selinux-use-new-audit-hooks-remove-redundant-exports include/linux/selinux.h
---- a/include/linux/selinux.h~selinux-use-new-audit-hooks-remove-redundant-exports
-+++ a/include/linux/selinux.h
-@@ -21,54 +21,6 @@ struct kern_ipc_perm;
- #ifdef CONFIG_SECURITY_SELINUX
+-	/* Register the callback with selinux.  This callback will be invoked
+-	 * when a new policy is loaded. */
+-	selinux_audit_set_callback(&selinux_audit_rule_update);
+-
+ 	audit_log(NULL, GFP_KERNEL, AUDIT_KERNEL, "initialized");
  
- /**
-- *	selinux_audit_rule_init - alloc/init an selinux audit rule structure.
-- *	@field: the field this rule refers to
-- *	@op: the operater the rule uses
-- *	@rulestr: the text "target" of the rule
-- *	@rule: pointer to the new rule structure returned via this
-- *
-- *	Returns 0 if successful, -errno if not.  On success, the rule structure
-- *	will be allocated internally.  The caller must free this structure with
-- *	selinux_audit_rule_free() after use.
-- */
--int selinux_audit_rule_init(u32 field, u32 op, char *rulestr,
--                            struct selinux_audit_rule **rule);
--
--/**
-- *	selinux_audit_rule_free - free an selinux audit rule structure.
-- *	@rule: pointer to the audit rule to be freed
-- *
-- *	This will free all memory associated with the given rule.
-- *	If @rule is NULL, no operation is performed.
-- */
--void selinux_audit_rule_free(struct selinux_audit_rule *rule);
--
--/**
-- *	selinux_audit_rule_match - determine if a context ID matches a rule.
-- *	@sid: the context ID to check
-- *	@field: the field this rule refers to
-- *	@op: the operater the rule uses
-- *	@rule: pointer to the audit rule to check against
-- *	@actx: the audit context (can be NULL) associated with the check
-- *
-- *	Returns 1 if the context id matches the rule, 0 if it does not, and
-- *	-errno on failure.
-- */
--int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
--                             struct selinux_audit_rule *rule,
--                             struct audit_context *actx);
--
--/**
-- *	selinux_audit_set_callback - set the callback for policy reloads.
-- *	@callback: the function to call when the policy is reloaded
-- *
-- *	This sets the function callback function that will update the rules
-- *	upon policy reloads.  This callback should rebuild all existing rules
-- *	using selinux_audit_rule_init().
-- */
--void selinux_audit_set_callback(int (*callback)(void));
--
--/**
-  *     selinux_string_to_sid - map a security context string to a security ID
-  *     @str: the security context string to be mapped
-  *     @sid: ID value returned via this.
-@@ -111,30 +63,6 @@ void selinux_secmark_refcount_inc(void);
- void selinux_secmark_refcount_dec(void);
- #else
+ #ifdef CONFIG_AUDITSYSCALL
+diff -puN kernel/auditfilter.c~audit-internally-use-the-new-lsm-audit-hooks kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-internally-use-the-new-lsm-audit-hooks
++++ a/kernel/auditfilter.c
+@@ -29,7 +29,6 @@
+ #include <linux/sched.h>
+ #include <linux/inotify.h>
+ #include <linux/security.h>
+-#include <linux/selinux.h>
+ #include "audit.h"
  
--static inline int selinux_audit_rule_init(u32 field, u32 op,
--                                          char *rulestr,
--                                          struct selinux_audit_rule **rule)
+ /*
+@@ -39,7 +38,7 @@
+  * 		Synchronizes writes and blocking reads of audit's filterlist
+  * 		data.  Rcu is used to traverse the filterlist and access
+  * 		contents of structs audit_entry, audit_watch and opaque
+- * 		selinux rules during filtering.  If modified, these structures
++ * 		LSM rules during filtering.  If modified, these structures
+  * 		must be copied and replace their counterparts in the filterlist.
+  * 		An audit_parent struct is not accessed during filtering, so may
+  * 		be written directly provided audit_filter_mutex is held.
+@@ -141,7 +140,7 @@ static inline void audit_free_rule(struc
+ 		for (i = 0; i < e->rule.field_count; i++) {
+ 			struct audit_field *f = &e->rule.fields[i];
+ 			kfree(f->se_str);
+-			selinux_audit_rule_free(f->se_rule);
++			security_audit_rule_free(f->se_rule);
+ 		}
+ 	kfree(e->rule.fields);
+ 	kfree(e->rule.filterkey);
+@@ -598,12 +597,12 @@ static struct audit_entry *audit_data_to
+ 				goto exit_free;
+ 			entry->rule.buflen += f->val;
+ 
+-			err = selinux_audit_rule_init(f->type, f->op, str,
+-						      &f->se_rule);
++			err = security_audit_rule_init(f->type, f->op, str,
++						       (void **)&f->se_rule);
+ 			/* Keep currently invalid fields around in case they
+ 			 * become valid after a policy reload. */
+ 			if (err == -EINVAL) {
+-				printk(KERN_WARNING "audit rule for selinux "
++				printk(KERN_WARNING "audit rule for LSM "
+ 				       "\'%s\' is invalid\n",  str);
+ 				err = 0;
+ 			}
+@@ -863,9 +862,9 @@ out:
+ 	return new;
+ }
+ 
+-/* Duplicate selinux field information.  The se_rule is opaque, so must be
++/* Duplicate LSM field information.  The se_rule is opaque, so must be
+  * re-initialized. */
+-static inline int audit_dupe_selinux_field(struct audit_field *df,
++static inline int audit_dupe_lsm_field(struct audit_field *df,
+ 					   struct audit_field *sf)
+ {
+ 	int ret = 0;
+@@ -878,12 +877,12 @@ static inline int audit_dupe_selinux_fie
+ 	df->se_str = se_str;
+ 
+ 	/* our own (refreshed) copy of se_rule */
+-	ret = selinux_audit_rule_init(df->type, df->op, df->se_str,
+-				      &df->se_rule);
++	ret = security_audit_rule_init(df->type, df->op, df->se_str,
++				       (void **)&df->se_rule);
+ 	/* Keep currently invalid fields around in case they
+ 	 * become valid after a policy reload. */
+ 	if (ret == -EINVAL) {
+-		printk(KERN_WARNING "audit rule for selinux \'%s\' is "
++		printk(KERN_WARNING "audit rule for LSM \'%s\' is "
+ 		       "invalid\n", df->se_str);
+ 		ret = 0;
+ 	}
+@@ -892,7 +891,7 @@ static inline int audit_dupe_selinux_fie
+ }
+ 
+ /* Duplicate an audit rule.  This will be a deep copy with the exception
+- * of the watch - that pointer is carried over.  The selinux specific fields
++ * of the watch - that pointer is carried over.  The LSM specific fields
+  * will be updated in the copy.  The point is to be able to replace the old
+  * rule with the new rule in the filterlist, then free the old rule.
+  * The rlist element is undefined; list manipulations are handled apart from
+@@ -945,7 +944,7 @@ static struct audit_entry *audit_dupe_ru
+ 		case AUDIT_OBJ_TYPE:
+ 		case AUDIT_OBJ_LEV_LOW:
+ 		case AUDIT_OBJ_LEV_HIGH:
+-			err = audit_dupe_selinux_field(&new->fields[i],
++			err = audit_dupe_lsm_field(&new->fields[i],
+ 						       &old->fields[i]);
+ 			break;
+ 		case AUDIT_FILTERKEY:
+@@ -1763,38 +1762,12 @@ unlock_and_return:
+ 	return result;
+ }
+ 
+-/* Check to see if the rule contains any selinux fields.  Returns 1 if there
+-   are selinux fields specified in the rule, 0 otherwise. */
+-static inline int audit_rule_has_selinux(struct audit_krule *rule)
 -{
--	return -EOPNOTSUPP;
--}
+-	int i;
 -
--static inline void selinux_audit_rule_free(struct selinux_audit_rule *rule)
--{
--	return;
--}
+-	for (i = 0; i < rule->field_count; i++) {
+-		struct audit_field *f = &rule->fields[i];
+-		switch (f->type) {
+-		case AUDIT_SUBJ_USER:
+-		case AUDIT_SUBJ_ROLE:
+-		case AUDIT_SUBJ_TYPE:
+-		case AUDIT_SUBJ_SEN:
+-		case AUDIT_SUBJ_CLR:
+-		case AUDIT_OBJ_USER:
+-		case AUDIT_OBJ_ROLE:
+-		case AUDIT_OBJ_TYPE:
+-		case AUDIT_OBJ_LEV_LOW:
+-		case AUDIT_OBJ_LEV_HIGH:
+-			return 1;
+-		}
+-	}
 -
--static inline int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
--                                           struct selinux_audit_rule *rule,
--                                           struct audit_context *actx)
--{
 -	return 0;
 -}
 -
--static inline void selinux_audit_set_callback(int (*callback)(void))
--{
--	return;
--}
--
- static inline int selinux_string_to_sid(const char *str, u32 *sid)
+ /* This function will re-initialize the se_rule field of all applicable rules.
+- * It will traverse the filter lists serarching for rules that contain selinux
++ * It will traverse the filter lists serarching for rules that contain LSM
+  * specific filter fields.  When such a rule is found, it is copied, the
+- * selinux field is re-initialized, and the old rule is replaced with the
++ * LSM field is re-initialized, and the old rule is replaced with the
+  * updated rule. */
+-int selinux_audit_rule_update(void)
++int audit_update_lsm_rules(void)
  {
-        *sid = 0;
-diff -puN kernel/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports kernel/audit.h
---- a/kernel/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports
-+++ a/kernel/audit.h
-@@ -65,34 +65,9 @@ struct audit_watch {
- 	struct list_head	rules;	/* associated rules */
- };
+ 	struct audit_entry *entry, *n, *nentry;
+ 	struct audit_watch *watch;
+@@ -1806,7 +1779,7 @@ int selinux_audit_rule_update(void)
  
--struct audit_field {
--	u32				type;
--	u32				val;
--	u32				op;
--	char				*se_str;
--	struct selinux_audit_rule	*se_rule;
--};
--
- struct audit_tree;
- struct audit_chunk;
+ 	for (i = 0; i < AUDIT_NR_FILTERS; i++) {
+ 		list_for_each_entry_safe(entry, n, &audit_filter_list[i], list) {
+-			if (!audit_rule_has_selinux(&entry->rule))
++			if (!security_audit_rule_known(&entry->rule))
+ 				continue;
  
--struct audit_krule {
--	int			vers_ops;
--	u32			flags;
--	u32			listnr;
--	u32			action;
--	u32			mask[AUDIT_BITMASK_SIZE];
--	u32			buflen; /* for data alloc on list rules */
--	u32			field_count;
--	char			*filterkey; /* ties events to rules */
--	struct audit_field	*fields;
--	struct audit_field	*arch_f; /* quick access to arch field */
--	struct audit_field	*inode_f; /* quick access to an inode field */
--	struct audit_watch	*watch;	/* associated watch */
--	struct audit_tree	*tree;	/* associated watched tree */
--	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
--};
--
- struct audit_entry {
- 	struct list_head	list;
- 	struct rcu_head		rcu;
-diff -puN security/selinux/hooks.c~selinux-use-new-audit-hooks-remove-redundant-exports security/selinux/hooks.c
---- a/security/selinux/hooks.c~selinux-use-new-audit-hooks-remove-redundant-exports
-+++ a/security/selinux/hooks.c
-@@ -82,6 +82,7 @@
- #include "netnode.h"
- #include "xfrm.h"
- #include "netlabel.h"
-+#include "audit.h"
- 
- #define XATTR_SELINUX_SUFFIX "selinux"
- #define XATTR_NAME_SELINUX XATTR_SECURITY_PREFIX XATTR_SELINUX_SUFFIX
-@@ -5437,6 +5438,13 @@ static struct security_operations selinu
- 	.key_free =                     selinux_key_free,
- 	.key_permission =               selinux_key_permission,
- #endif
-+
-+#ifdef CONFIG_AUDIT
-+	.audit_rule_init =		selinux_audit_rule_init,
-+	.audit_rule_known =		selinux_audit_rule_known,
-+	.audit_rule_match =		selinux_audit_rule_match,
-+	.audit_rule_free =		selinux_audit_rule_free,
-+#endif
- };
- 
- static __init int selinux_init(void)
-diff -puN /dev/null security/selinux/include/audit.h
---- /dev/null
-+++ a/security/selinux/include/audit.h
-@@ -0,0 +1,65 @@
-+/*
-+ * SELinux support for the Audit LSM hooks
-+ *
-+ * Most of below header was moved from include/linux/selinux.h which
-+ * is released under below copyrights:
-+ *
-+ * Author: James Morris <jmorris@redhat.com>
-+ *
-+ * Copyright (C) 2005 Red Hat, Inc., James Morris <jmorris@redhat.com>
-+ * Copyright (C) 2006 Trusted Computer Solutions, Inc. <dgoeddel@trustedcs.com>
-+ * Copyright (C) 2006 IBM Corporation, Timothy R. Chavez <tinytim@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2,
-+ * as published by the Free Software Foundation.
-+ */
-+
-+#ifndef _SELINUX_AUDIT_H
-+#define _SELINUX_AUDIT_H
-+
-+/**
-+ *	selinux_audit_rule_init - alloc/init an selinux audit rule structure.
-+ *	@field: the field this rule refers to
-+ *	@op: the operater the rule uses
-+ *	@rulestr: the text "target" of the rule
-+ *	@rule: pointer to the new rule structure returned via this
-+ *
-+ *	Returns 0 if successful, -errno if not.  On success, the rule structure
-+ *	will be allocated internally.  The caller must free this structure with
-+ *	selinux_audit_rule_free() after use.
-+ */
-+int selinux_audit_rule_init(u32 field, u32 op, char *rulestr, void **rule);
-+
-+/**
-+ *	selinux_audit_rule_free - free an selinux audit rule structure.
-+ *	@rule: pointer to the audit rule to be freed
-+ *
-+ *	This will free all memory associated with the given rule.
-+ *	If @rule is NULL, no operation is performed.
-+ */
-+void selinux_audit_rule_free(void *rule);
-+
-+/**
-+ *	selinux_audit_rule_match - determine if a context ID matches a rule.
-+ *	@sid: the context ID to check
-+ *	@field: the field this rule refers to
-+ *	@op: the operater the rule uses
-+ *	@rule: pointer to the audit rule to check against
-+ *	@actx: the audit context (can be NULL) associated with the check
-+ *
-+ *	Returns 1 if the context id matches the rule, 0 if it does not, and
-+ *	-errno on failure.
-+ */
-+int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *rule,
-+                             struct audit_context *actx);
-+
-+/**
-+ *	selinux_audit_rule_known - check to see if rule contains selinux fields.
-+ *	@rule: rule to be checked
-+ *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
-+ */
-+int selinux_audit_rule_known(struct audit_krule *krule);
-+
-+#endif /* _SELINUX_AUDIT_H */
-+
-diff -puN security/selinux/ss/services.c~selinux-use-new-audit-hooks-remove-redundant-exports security/selinux/ss/services.c
---- a/security/selinux/ss/services.c~selinux-use-new-audit-hooks-remove-redundant-exports
-+++ a/security/selinux/ss/services.c
-@@ -56,6 +56,7 @@
- #include "netlabel.h"
- #include "xfrm.h"
- #include "ebitmap.h"
-+#include "audit.h"
- 
- extern void selnl_notify_policyload(u32 seqno);
- unsigned int policydb_loaded_version;
-@@ -2274,21 +2275,23 @@ struct selinux_audit_rule {
- 	struct context au_ctxt;
- };
- 
--void selinux_audit_rule_free(struct selinux_audit_rule *rule)
-+void selinux_audit_rule_free(void *vrule)
- {
-+	struct selinux_audit_rule *rule = vrule;
-+
- 	if (rule) {
- 		context_destroy(&rule->au_ctxt);
- 		kfree(rule);
- 	}
- }
- 
--int selinux_audit_rule_init(u32 field, u32 op, char *rulestr,
--                            struct selinux_audit_rule **rule)
-+int selinux_audit_rule_init(u32 field, u32 op, char *rulestr, void **vrule)
- {
- 	struct selinux_audit_rule *tmprule;
- 	struct role_datum *roledatum;
- 	struct type_datum *typedatum;
- 	struct user_datum *userdatum;
-+	struct selinux_audit_rule **rule = (struct selinux_audit_rule **)vrule;
- 	int rc = 0;
- 
- 	*rule = NULL;
-@@ -2375,12 +2378,37 @@ int selinux_audit_rule_init(u32 field, u
- 	return rc;
- }
- 
--int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
--                             struct selinux_audit_rule *rule,
-+/* Check to see if the rule contains any selinux fields */
-+int selinux_audit_rule_known(struct audit_krule *rule)
-+{
-+	int i;
-+
-+	for (i = 0; i < rule->field_count; i++) {
-+		struct audit_field *f = &rule->fields[i];
-+		switch (f->type) {
-+		case AUDIT_SUBJ_USER:
-+		case AUDIT_SUBJ_ROLE:
-+		case AUDIT_SUBJ_TYPE:
-+		case AUDIT_SUBJ_SEN:
-+		case AUDIT_SUBJ_CLR:
-+		case AUDIT_OBJ_USER:
-+		case AUDIT_OBJ_ROLE:
-+		case AUDIT_OBJ_TYPE:
-+		case AUDIT_OBJ_LEV_LOW:
-+		case AUDIT_OBJ_LEV_HIGH:
-+			return 1;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *vrule,
-                              struct audit_context *actx)
- {
- 	struct context *ctxt;
- 	struct mls_level *level;
-+	struct selinux_audit_rule *rule = vrule;
- 	int match = 0;
- 
- 	if (!rule) {
-@@ -2487,7 +2515,7 @@ out:
- 	return match;
- }
- 
--static int (*aurule_callback)(void) = NULL;
-+static int (*aurule_callback)(void) = audit_update_lsm_rules;
- 
- static int aurule_avc_callback(u32 event, u32 ssid, u32 tsid,
-                                u16 class, u32 perms, u32 *retained)
-@@ -2512,11 +2540,6 @@ static int __init aurule_init(void)
- }
- __initcall(aurule_init);
- 
--void selinux_audit_set_callback(int (*callback)(void))
--{
--	aurule_callback = callback;
--}
+ 			watch = entry->rule.watch;
+@@ -1817,7 +1790,7 @@ int selinux_audit_rule_update(void)
+ 				 * return value */
+ 				if (!err)
+ 					err = PTR_ERR(nentry);
+-				audit_panic("error updating selinux filters");
++				audit_panic("error updating LSM filters");
+ 				if (watch)
+ 					list_del(&entry->rule.rlist);
+ 				list_del_rcu(&entry->list);
+diff -puN kernel/auditsc.c~audit-internally-use-the-new-lsm-audit-hooks kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-internally-use-the-new-lsm-audit-hooks
++++ a/kernel/auditsc.c
+@@ -61,7 +61,6 @@
+ #include <linux/security.h>
+ #include <linux/list.h>
+ #include <linux/tty.h>
+-#include <linux/selinux.h>
+ #include <linux/binfmts.h>
+ #include <linux/highmem.h>
+ #include <linux/syscalls.h>
+@@ -533,7 +532,7 @@ static int audit_filter_rules(struct tas
+ 					security_task_getsecid(tsk, &sid);
+ 					need_sid = 0;
+ 				}
+-				result = selinux_audit_rule_match(sid, f->type,
++				result = security_audit_rule_match(sid, f->type,
+ 				                                  f->op,
+ 				                                  f->se_rule,
+ 				                                  ctx);
+@@ -549,12 +548,12 @@ static int audit_filter_rules(struct tas
+ 			if (f->se_rule) {
+ 				/* Find files that match */
+ 				if (name) {
+-					result = selinux_audit_rule_match(
++					result = security_audit_rule_match(
+ 					           name->osid, f->type, f->op,
+ 					           f->se_rule, ctx);
+ 				} else if (ctx) {
+ 					for (j = 0; j < ctx->name_count; j++) {
+-						if (selinux_audit_rule_match(
++						if (security_audit_rule_match(
+ 						      ctx->names[j].osid,
+ 						      f->type, f->op,
+ 						      f->se_rule, ctx)) {
+@@ -570,7 +569,7 @@ static int audit_filter_rules(struct tas
+ 					     aux = aux->next) {
+ 						if (aux->type == AUDIT_IPC) {
+ 							struct audit_aux_data_ipcctl *axi = (void *)aux;
+-							if (selinux_audit_rule_match(axi->osid, f->type, f->op, f->se_rule, ctx)) {
++							if (security_audit_rule_match(axi->osid, f->type, f->op, f->se_rule, ctx)) {
+ 								++result;
+ 								break;
+ 							}
+_
+
+Patches currently in -mm which might be from darwish.07@gmail.com are
+
+origin.patch
+git-kvm.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks.patch
+selinux-setup-new-inode-ipc-getsecid-hooks.patch
+audit-use-new-lsm-hooks-instead-of-selinux-exports.patch
+netlink-use-generic-lsm-hook.patch
+selinux-remove-redundant-exports.patch
+lsm-audit-introduce-generic-audit-lsm-hooks.patch
+audit-internally-use-the-new-lsm-audit-hooks.patch
+selinux-use-new-audit-hooks-remove-redundant-exports.patch
+audit-final-renamings-and-cleanup.patch
+
