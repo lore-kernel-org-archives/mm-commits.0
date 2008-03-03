@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-fix-filesystemstmpl-source-files.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:23:31 -0800
-Message-ID: <200803030723.m237NVxF004376@imap1.linux-foundation.org>
+Subject: + docbook-fix-fusion-source-files.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:23:37 -0800
+Message-ID: <200803030723.m237Nbph004400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751385AbYCCHXm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:23:42 -0500
+	by vger.kernel.org with ESMTP id S1751922AbYCCHXw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:23:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     docbook: fix filesystems.tmpl source files
+     docbook: fix fusion source files
 has been added to the -mm tree.  Its filename is
-     docbook-fix-filesystemstmpl-source-files.patch
+     docbook-fix-fusion-source-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,128 +33,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: fix filesystems.tmpl source files
+Subject: docbook: fix fusion source files
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix docbook problems in filesystems.tmpl.  These cause the generated docbook
-to be incorrect.
+Fix docbook problems in fusion source files.  These cause the generated
+docbook to be incorrect.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c          |    3 +--
- fs/jbd/transaction.c |   17 +++++++++--------
- fs/mpage.c           |   11 +++--------
- 3 files changed, 13 insertions(+), 18 deletions(-)
+ drivers/message/fusion/mptbase.c  |   25 +++++++++++++------------
+ drivers/message/fusion/mptscsih.c |   14 +++++---------
+ 2 files changed, 18 insertions(+), 21 deletions(-)
 
-diff -puN fs/buffer.c~docbook-fix-filesystemstmpl-source-files fs/buffer.c
---- a/fs/buffer.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/buffer.c
-@@ -637,8 +637,7 @@ repeat:
- }
+diff -puN drivers/message/fusion/mptbase.c~docbook-fix-fusion-source-files drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~docbook-fix-fusion-source-files
++++ a/drivers/message/fusion/mptbase.c
+@@ -632,8 +632,7 @@ mpt_deregister(u8 cb_idx)
  
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  /**
-- * sync_mapping_buffers - write out and wait upon a mapping's "associated"
-- *                        buffers
-+ * sync_mapping_buffers - write out & wait upon a mapping's "associated" buffers
-  * @mapping: the mapping which wants those buffers written
+- *	mpt_event_register - Register protocol-specific event callback
+- *	handler.
++ *	mpt_event_register - Register protocol-specific event callback handler.
+  *	@cb_idx: previously registered (via mpt_register) callback handle
+  *	@ev_cbfunc: callback function
   *
-  * Starts I/O against the buffers at mapping->private_list, and waits upon
-diff -puN fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/jbd/transaction.c
-@@ -369,7 +369,7 @@ out:
+@@ -654,8 +653,7 @@ mpt_event_register(u8 cb_idx, MPT_EVHAND
  
- 
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  /**
-- * int journal_restart() - restart a handle .
-+ * int journal_restart() - restart a handle.
-  * @handle:  handle to restart
-  * @nblocks: nr credits requested
+- *	mpt_event_deregister - Deregister protocol-specific event callback
+- *	handler.
++ *	mpt_event_deregister - Deregister protocol-specific event callback handler
+  *	@cb_idx: previously registered callback handle
   *
-@@ -857,8 +857,7 @@ out:
- }
+  *	Each protocol-specific driver should call this routine
+@@ -765,11 +763,13 @@ mpt_device_driver_deregister(u8 cb_idx)
  
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
  /**
-- * int journal_get_undo_access() -  Notify intent to modify metadata with
-- *     non-rewindable consequences
-+ * int journal_get_undo_access() - Notify intent to modify metadata with non-rewindable consequences
-  * @handle: transaction
-  * @bh: buffer to undo
-  * @credits: store the number of taken credits here (if not NULL)
-@@ -934,12 +933,14 @@ out:
- }
- 
- /**
-- * int journal_dirty_data() -  mark a buffer as containing dirty data which
-- *                             needs to be flushed before we can commit the
-- *                             current transaction.
-+ * int journal_dirty_data() - mark a buffer as containing dirty data to be flushed
-  * @handle: transaction
-  * @bh: bufferhead to mark
+- *	mpt_get_msg_frame - Obtain a MPT request frame from the pool (of 1024)
+- *	allocated per MPT adapter.
++ *	mpt_get_msg_frame - Obtain an MPT request frame from the pool
+  *	@cb_idx: Handle of registered MPT protocol driver
+  *	@ioc: Pointer to MPT adapter structure
   *
-+ * Description:
-+ * Mark a buffer as containing dirty data which needs to be flushed before
-+ * we can commit the current transaction.
++ *	Obtain an MPT request frame from the pool (of 1024) that are
++ *	allocated per MPT adapter.
 + *
-  * The buffer is placed on the transaction's data list and is marked as
-  * belonging to the transaction.
+  *	Returns pointer to a MPT request frame or %NULL if none are available
+  *	or IOC is not active.
+  */
+@@ -834,13 +834,12 @@ mpt_get_msg_frame(u8 cb_idx, MPT_ADAPTER
+ 
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ /**
+- *	mpt_put_msg_frame - Send a protocol specific MPT request frame
+- *	to a IOC.
++ *	mpt_put_msg_frame - Send a protocol-specific MPT request frame to an IOC
+  *	@cb_idx: Handle of registered MPT protocol driver
+  *	@ioc: Pointer to MPT adapter structure
+  *	@mf: Pointer to MPT request frame
   *
-@@ -1111,11 +1112,11 @@ no_journal:
+- *	This routine posts a MPT request frame to the request post FIFO of a
++ *	This routine posts an MPT request frame to the request post FIFO of a
+  *	specific MPT adapter.
+  */
+ void
+@@ -868,13 +867,15 @@ mpt_put_msg_frame(u8 cb_idx, MPT_ADAPTER
  }
  
  /**
-- * int journal_dirty_metadata() -  mark a buffer as containing dirty metadata
-+ * int journal_dirty_metadata() - mark a buffer as containing dirty metadata
-  * @handle: transaction to add buffer to.
-  * @bh: buffer to mark
+- *	mpt_put_msg_frame_hi_pri - Send a protocol specific MPT request frame
+- *	to a IOC using hi priority request queue.
++ *	mpt_put_msg_frame_hi_pri - Send a hi-pri protocol-specific MPT request frame
+  *	@cb_idx: Handle of registered MPT protocol driver
+  *	@ioc: Pointer to MPT adapter structure
+  *	@mf: Pointer to MPT request frame
   *
-- * mark dirty metadata which needs to be journaled as part of the current
-+ * Mark dirty metadata which needs to be journaled as part of the current
-  * transaction.
-  *
-  * The buffer is placed on the transaction's metadata list and is marked
-diff -puN fs/mpage.c~docbook-fix-filesystemstmpl-source-files fs/mpage.c
---- a/fs/mpage.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/mpage.c
-@@ -330,16 +330,12 @@ confused:
- }
- 
- /**
-- * mpage_readpages - populate an address space with some pages, and
-- *                       start reads against them.
-- *
-+ * mpage_readpages - populate an address space with some pages & start reads against them
-  * @mapping: the address_space
-  * @pages: The address of a list_head which contains the target pages.  These
-  *   pages have their ->index populated and are otherwise uninitialised.
-- *
-  *   The page at @pages->prev has the lowest file offset, and reads should be
-  *   issued in @pages->prev to @pages->next order.
-- *
-  * @nr_pages: The number of pages at *@pages
-  * @get_block: The filesystem's block mapper function.
-  *
-@@ -365,6 +361,7 @@ confused:
-  * So an mpage read of the first 16 blocks of an ext2 file will cause I/O to be
-  * submitted in the following order:
-  * 	12 0 1 2 3 4 5 6 7 8 9 10 11 13 14 15 16
+- *	This routine posts a MPT request frame to the request post FIFO of a
++ *	Send a protocol-specific MPT request frame to an IOC using
++ *	hi-priority request queue.
 + *
-  * because the indirect block has to be read to get the mappings of blocks
-  * 13,14,15,16.  Obviously, this impacts performance.
++ *	This routine posts an MPT request frame to the request post FIFO of a
+  *	specific MPT adapter.
+  **/
+ void
+diff -puN drivers/message/fusion/mptscsih.c~docbook-fix-fusion-source-files drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~docbook-fix-fusion-source-files
++++ a/drivers/message/fusion/mptscsih.c
+@@ -1533,7 +1533,7 @@ mptscsih_freeChainBuffers(MPT_ADAPTER *i
   *
-@@ -662,9 +659,7 @@ out:
- }
+  *	Remark: Currently invoked from a non-interrupt thread (_bh).
+  *
+- *	Remark: With old EH code, at most 1 SCSI TaskMgmt function per IOC
++ *	Note: With old EH code, at most 1 SCSI TaskMgmt function per IOC
+  *	will be active.
+  *
+  *	Returns 0 for SUCCESS, or %FAILED.
+@@ -2537,14 +2537,12 @@ mptscsih_copy_sense_data(struct scsi_cmn
  
  /**
-- * mpage_writepages - walk the list of dirty pages of the given
-- * address space and writepage() all of them.
-- * 
-+ * mpage_writepages - walk the list of dirty pages of the given address space & writepage() all of them
-  * @mapping: address space structure to write
-  * @wbc: subtract the number of written pages from *@wbc->nr_to_write
-  * @get_block: the filesystem's block mapper function.
+  * mptscsih_get_scsi_lookup
+- *
+- * retrieves scmd entry from ScsiLookup[] array list
+- *
+  * @ioc: Pointer to MPT_ADAPTER structure
+  * @i: index into the array
+  *
+- * Returns the scsi_cmd pointer
++ * retrieves scmd entry from ScsiLookup[] array list
+  *
++ * Returns the scsi_cmd pointer
+  **/
+ static struct scsi_cmnd *
+ mptscsih_get_scsi_lookup(MPT_ADAPTER *ioc, int i)
+@@ -2561,14 +2559,12 @@ mptscsih_get_scsi_lookup(MPT_ADAPTER *io
+ 
+ /**
+  * mptscsih_getclear_scsi_lookup
+- *
+- * retrieves and clears scmd entry from ScsiLookup[] array list
+- *
+  * @ioc: Pointer to MPT_ADAPTER structure
+  * @i: index into the array
+  *
+- * Returns the scsi_cmd pointer
++ * retrieves and clears scmd entry from ScsiLookup[] array list
+  *
++ * Returns the scsi_cmd pointer
+  **/
+ static struct scsi_cmnd *
+ mptscsih_getclear_scsi_lookup(MPT_ADAPTER *ioc, int i)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
