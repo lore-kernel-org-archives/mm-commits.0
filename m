@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-replace-remaining-__function__-occurences.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:36:51 -0800
-Message-ID: <200803032136.m23LapRn007774@imap1.linux-foundation.org>
+Subject: + uml-replace-remaining-__function__-occurences.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:37:32 -0800
+Message-ID: <200803032137.m23LbWlQ007855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763322AbYCCVhV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:37:21 -0500
+	by vger.kernel.org with ESMTP id S1759067AbYCCViG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, chris@zankel.net
+Cc: harvey.harrison@gmail.com, jdike@addtoit.com
 
 
 The patch titled
-     xtensa: replace remaining __FUNCTION__ occurences
+     uml: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     xtensa-replace-remaining-__function__-occurences.patch
+     uml-replace-remaining-__function__-occurences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: replace remaining __FUNCTION__ occurences
+Subject: uml: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/irq.c |    2 +-
+ arch/um/drivers/line.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/irq.c~xtensa-replace-remaining-__function__-occurences arch/xtensa/kernel/irq.c
---- a/arch/xtensa/kernel/irq.c~xtensa-replace-remaining-__function__-occurences
-+++ a/arch/xtensa/kernel/irq.c
-@@ -48,7 +48,7 @@ asmlinkage void do_IRQ(int irq, struct p
- 
- 	if (irq >= NR_IRQS) {
- 		printk(KERN_EMERG "%s: cannot handle IRQ %d\n",
--				__FUNCTION__, irq);
-+				__func__, irq);
- 	}
- 
- 	irq_enter();
+diff -puN arch/um/drivers/line.c~uml-replace-remaining-__function__-occurences arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-replace-remaining-__function__-occurences
++++ a/arch/um/drivers/line.c
+@@ -304,7 +304,7 @@ int line_ioctl(struct tty_struct *tty, s
+ 				break;
+ 		if (i == ARRAY_SIZE(tty_ioctls)) {
+ 			printk(KERN_ERR "%s: %s: unknown ioctl: 0x%x\n",
+-			       __FUNCTION__, tty->name, cmd);
++			       __func__, tty->name, cmd);
+ 		}
+ 		ret = -ENOIOCTLCMD;
+ 		break;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -98,6 +98,7 @@ remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
 alpha-remove-remaining-__function__-occurences.patch
 m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
 adfs-work-around-bogus-sparse-warning.patch
 coda-add-static-to-functions-in-dirc.patch
 befs-fix-sparse-warning-in-linuxvfsc.patch
@@ -136,5 +137,4 @@ mm-remove-remaining-__function__-occurances.patch
 block-remove-remaining-__function__-occurances.patch
 kernel-replace-remaining-__function__-occurances.patch
 lib-replace-remaining-__function__-occurances.patch
-uml-replace-remaining-__function__-occueance.patch
 
