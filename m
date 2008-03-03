@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + audit-final-renamings-and-cleanup.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:41:57 -0800
-Message-ID: <200803030741.m237fvZC005107@imap1.linux-foundation.org>
+Subject: + audit-use-new-lsm-hooks-instead-of-selinux-exports.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:41:45 -0800
+Message-ID: <200803030741.m237fjYI005089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50021 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750938AbYCCHoH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:44:07 -0500
+	by vger.kernel.org with ESMTP id S1751014AbYCCHoI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:44:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@inf
 
 
 The patch titled
-     Audit: Final renamings and cleanup
+     Audit: use new LSM hooks instead of SELinux exports
 has been added to the -mm tree.  Its filename is
-     audit-final-renamings-and-cleanup.patch
+     audit-use-new-lsm-hooks-instead-of-selinux-exports.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Audit: Final renamings and cleanup
+Subject: Audit: use new LSM hooks instead of SELinux exports
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Rename the se_str and se_rule audit fields elements to lsm_str and lsm_rule to
-avoid confusion.
+Stop using the following exported SELinux interfaces:
+selinux_get_inode_sid(inode, sid)
+selinux_get_ipc_sid(ipcp, sid)
+selinux_get_task_sid(tsk, sid)
+selinux_sid_to_string(sid, ctx, len)
+kfree(ctx)
+
+and use following generic LSM equivalents respectively:
+security_inode_getsecid(inode, secid)
+security_ipc_getsecid*(ipcp, secid)
+security_task_getsecid(tsk, secid)
+security_sid_to_secctx(sid, ctx, len)
+security_release_secctx(ctx, len)
+
+Call security_release_secctx only if security_secid_to_secctx
+succeeded.
 
 Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
@@ -51,194 +65,275 @@ Cc: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/audit.h |    4 ++--
- kernel/auditfilter.c  |   40 ++++++++++++++++++++--------------------
- kernel/auditsc.c      |   12 ++++++------
- 3 files changed, 28 insertions(+), 28 deletions(-)
+ kernel/audit.c       |   17 ++++++------
+ kernel/auditfilter.c |    8 +++--
+ kernel/auditsc.c     |   55 +++++++++++++++++++++--------------------
+ 3 files changed, 43 insertions(+), 37 deletions(-)
 
-diff -puN include/linux/audit.h~audit-final-renamings-and-cleanup include/linux/audit.h
---- a/include/linux/audit.h~audit-final-renamings-and-cleanup
-+++ a/include/linux/audit.h
-@@ -377,8 +377,8 @@ struct audit_field {
- 	u32				type;
- 	u32				val;
- 	u32				op;
--	char				*se_str;
--	void				*se_rule;
-+	char				*lsm_str;
-+	void				*lsm_rule;
- };
+diff -puN kernel/audit.c~audit-use-new-lsm-hooks-instead-of-selinux-exports kernel/audit.c
+--- a/kernel/audit.c~audit-use-new-lsm-hooks-instead-of-selinux-exports
++++ a/kernel/audit.c
+@@ -259,13 +259,13 @@ static int audit_log_config_change(char 
+ 		char *ctx = NULL;
+ 		u32 len;
  
- #define AUDITSC_INVALID 0
-diff -puN kernel/auditfilter.c~audit-final-renamings-and-cleanup kernel/auditfilter.c
---- a/kernel/auditfilter.c~audit-final-renamings-and-cleanup
-+++ a/kernel/auditfilter.c
-@@ -139,8 +139,8 @@ static inline void audit_free_rule(struc
- 	if (e->rule.fields)
- 		for (i = 0; i < e->rule.field_count; i++) {
- 			struct audit_field *f = &e->rule.fields[i];
--			kfree(f->se_str);
--			security_audit_rule_free(f->se_rule);
-+			kfree(f->lsm_str);
-+			security_audit_rule_free(f->lsm_rule);
+-		rc = selinux_sid_to_string(sid, &ctx, &len);
++		rc = security_secid_to_secctx(sid, &ctx, &len);
+ 		if (rc) {
+ 			audit_log_format(ab, " sid=%u", sid);
+ 			allow_changes = 0; /* Something weird, deny request */
+ 		} else {
+ 			audit_log_format(ab, " subj=%s", ctx);
+-			kfree(ctx);
++			security_release_secctx(ctx, len);
  		}
- 	kfree(e->rule.fields);
- 	kfree(e->rule.filterkey);
-@@ -554,8 +554,8 @@ static struct audit_entry *audit_data_to
- 		f->op = data->fieldflags[i] & AUDIT_OPERATORS;
- 		f->type = data->fields[i];
- 		f->val = data->values[i];
--		f->se_str = NULL;
--		f->se_rule = NULL;
-+		f->lsm_str = NULL;
-+		f->lsm_rule = NULL;
- 		switch(f->type) {
- 		case AUDIT_PID:
- 		case AUDIT_UID:
-@@ -598,7 +598,7 @@ static struct audit_entry *audit_data_to
- 			entry->rule.buflen += f->val;
- 
- 			err = security_audit_rule_init(f->type, f->op, str,
--						       (void **)&f->se_rule);
-+						       (void **)&f->lsm_rule);
- 			/* Keep currently invalid fields around in case they
- 			 * become valid after a policy reload. */
- 			if (err == -EINVAL) {
-@@ -610,7 +610,7 @@ static struct audit_entry *audit_data_to
- 				kfree(str);
- 				goto exit_free;
- 			} else
--				f->se_str = str;
-+				f->lsm_str = str;
- 			break;
- 		case AUDIT_WATCH:
- 			str = audit_unpack_string(&bufp, &remain, f->val);
-@@ -754,7 +754,7 @@ static struct audit_rule_data *audit_kru
- 		case AUDIT_OBJ_LEV_LOW:
- 		case AUDIT_OBJ_LEV_HIGH:
- 			data->buflen += data->values[i] =
--				audit_pack_string(&bufp, f->se_str);
-+				audit_pack_string(&bufp, f->lsm_str);
- 			break;
- 		case AUDIT_WATCH:
- 			data->buflen += data->values[i] =
-@@ -806,7 +806,7 @@ static int audit_compare_rule(struct aud
- 		case AUDIT_OBJ_TYPE:
- 		case AUDIT_OBJ_LEV_LOW:
- 		case AUDIT_OBJ_LEV_HIGH:
--			if (strcmp(a->fields[i].se_str, b->fields[i].se_str))
-+			if (strcmp(a->fields[i].lsm_str, b->fields[i].lsm_str))
- 				return 1;
- 			break;
- 		case AUDIT_WATCH:
-@@ -862,28 +862,28 @@ out:
- 	return new;
- }
- 
--/* Duplicate LSM field information.  The se_rule is opaque, so must be
-+/* Duplicate LSM field information.  The lsm_rule is opaque, so must be
-  * re-initialized. */
- static inline int audit_dupe_lsm_field(struct audit_field *df,
- 					   struct audit_field *sf)
- {
- 	int ret = 0;
--	char *se_str;
-+	char *lsm_str;
- 
--	/* our own copy of se_str */
--	se_str = kstrdup(sf->se_str, GFP_KERNEL);
--	if (unlikely(!se_str))
-+	/* our own copy of lsm_str */
-+	lsm_str = kstrdup(sf->lsm_str, GFP_KERNEL);
-+	if (unlikely(!lsm_str))
- 		return -ENOMEM;
--	df->se_str = se_str;
-+	df->lsm_str = lsm_str;
- 
--	/* our own (refreshed) copy of se_rule */
--	ret = security_audit_rule_init(df->type, df->op, df->se_str,
--				       (void **)&df->se_rule);
-+	/* our own (refreshed) copy of lsm_rule */
-+	ret = security_audit_rule_init(df->type, df->op, df->lsm_str,
-+				       (void **)&df->lsm_rule);
- 	/* Keep currently invalid fields around in case they
- 	 * become valid after a policy reload. */
- 	if (ret == -EINVAL) {
- 		printk(KERN_WARNING "audit rule for LSM \'%s\' is "
--		       "invalid\n", df->se_str);
-+		       "invalid\n", df->lsm_str);
- 		ret = 0;
+ 	}
+ 	audit_log_format(ab, " res=%d", allow_changes);
+@@ -543,12 +543,13 @@ static int audit_log_common_recv_msg(str
+ 	audit_log_format(*ab, "user pid=%d uid=%u auid=%u",
+ 			 pid, uid, auid);
+ 	if (sid) {
+-		rc = selinux_sid_to_string(sid, &ctx, &len);
++		rc = security_secid_to_secctx(sid, &ctx, &len);
+ 		if (rc)
+ 			audit_log_format(*ab, " ssid=%u", sid);
+-		else
++		else {
+ 			audit_log_format(*ab, " subj=%s", ctx);
+-		kfree(ctx);
++			security_release_secctx(ctx, len);
++		}
  	}
  
-@@ -930,7 +930,7 @@ static struct audit_entry *audit_dupe_ru
- 	new->tree = old->tree;
- 	memcpy(new->fields, old->fields, sizeof(struct audit_field) * fcount);
+ 	return rc;
+@@ -750,18 +751,18 @@ static int audit_receive_msg(struct sk_b
+ 		break;
+ 	}
+ 	case AUDIT_SIGNAL_INFO:
+-		err = selinux_sid_to_string(audit_sig_sid, &ctx, &len);
++		err = security_secid_to_secctx(audit_sig_sid, &ctx, &len);
+ 		if (err)
+ 			return err;
+ 		sig_data = kmalloc(sizeof(*sig_data) + len, GFP_KERNEL);
+ 		if (!sig_data) {
+-			kfree(ctx);
++			security_release_secctx(ctx, len);
+ 			return -ENOMEM;
+ 		}
+ 		sig_data->uid = audit_sig_uid;
+ 		sig_data->pid = audit_sig_pid;
+ 		memcpy(sig_data->ctx, ctx, len);
+-		kfree(ctx);
++		security_release_secctx(ctx, len);
+ 		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_SIGNAL_INFO,
+ 				0, 0, sig_data, sizeof(*sig_data) + len);
+ 		kfree(sig_data);
+diff -puN kernel/auditfilter.c~audit-use-new-lsm-hooks-instead-of-selinux-exports kernel/auditfilter.c
+--- a/kernel/auditfilter.c~audit-use-new-lsm-hooks-instead-of-selinux-exports
++++ a/kernel/auditfilter.c
+@@ -28,6 +28,7 @@
+ #include <linux/netlink.h>
+ #include <linux/sched.h>
+ #include <linux/inotify.h>
++#include <linux/security.h>
+ #include <linux/selinux.h>
+ #include "audit.h"
  
--	/* deep copy this information, updating the se_rule fields, because
-+	/* deep copy this information, updating the lsm_rule fields, because
- 	 * the originals will all be freed when the old rule is freed. */
- 	for (i = 0; i < fcount; i++) {
- 		switch (new->fields[i].type) {
-@@ -1762,7 +1762,7 @@ unlock_and_return:
- 	return result;
- }
- 
--/* This function will re-initialize the se_rule field of all applicable rules.
-+/* This function will re-initialize the lsm_rule field of all applicable rules.
-  * It will traverse the filter lists serarching for rules that contain LSM
-  * specific filter fields.  When such a rule is found, it is copied, the
-  * LSM field is re-initialized, and the old rule is replaced with the
-diff -puN kernel/auditsc.c~audit-final-renamings-and-cleanup kernel/auditsc.c
---- a/kernel/auditsc.c~audit-final-renamings-and-cleanup
+@@ -1515,11 +1516,12 @@ static void audit_log_rule_change(uid_t 
+ 	if (sid) {
+ 		char *ctx = NULL;
+ 		u32 len;
+-		if (selinux_sid_to_string(sid, &ctx, &len))
++		if (security_secid_to_secctx(sid, &ctx, &len))
+ 			audit_log_format(ab, " ssid=%u", sid);
+-		else
++		else {
+ 			audit_log_format(ab, " subj=%s", ctx);
+-		kfree(ctx);
++			security_release_secctx(ctx, len);
++		}
+ 	}
+ 	audit_log_format(ab, " op=%s rule key=", action);
+ 	if (rule->filterkey)
+diff -puN kernel/auditsc.c~audit-use-new-lsm-hooks-instead-of-selinux-exports kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-use-new-lsm-hooks-instead-of-selinux-exports
 +++ a/kernel/auditsc.c
-@@ -527,14 +527,14 @@ static int audit_filter_rules(struct tas
- 			   match for now to avoid losing information that
- 			   may be wanted.   An error message will also be
+@@ -530,7 +530,7 @@ static int audit_filter_rules(struct tas
  			   logged upon error */
--			if (f->se_rule) {
-+			if (f->lsm_rule) {
+ 			if (f->se_rule) {
  				if (need_sid) {
- 					security_task_getsecid(tsk, &sid);
+-					selinux_get_task_sid(tsk, &sid);
++					security_task_getsecid(tsk, &sid);
  					need_sid = 0;
  				}
- 				result = security_audit_rule_match(sid, f->type,
- 				                                  f->op,
--				                                  f->se_rule,
-+				                                  f->lsm_rule,
- 				                                  ctx);
+ 				result = selinux_audit_rule_match(sid, f->type,
+@@ -885,11 +885,11 @@ void audit_log_task_context(struct audit
+ 	int error;
+ 	u32 sid;
+ 
+-	selinux_get_task_sid(current, &sid);
++	security_task_getsecid(current, &sid);
+ 	if (!sid)
+ 		return;
+ 
+-	error = selinux_sid_to_string(sid, &ctx, &len);
++	error = security_secid_to_secctx(sid, &ctx, &len);
+ 	if (error) {
+ 		if (error != -EINVAL)
+ 			goto error_path;
+@@ -897,7 +897,7 @@ void audit_log_task_context(struct audit
+ 	}
+ 
+ 	audit_log_format(ab, " subj=%s", ctx);
+-	kfree(ctx);
++	security_release_secctx(ctx, len);
+ 	return;
+ 
+ error_path:
+@@ -941,7 +941,7 @@ static int audit_log_pid_context(struct 
+ 				 u32 sid, char *comm)
+ {
+ 	struct audit_buffer *ab;
+-	char *s = NULL;
++	char *ctx = NULL;
+ 	u32 len;
+ 	int rc = 0;
+ 
+@@ -951,15 +951,16 @@ static int audit_log_pid_context(struct 
+ 
+ 	audit_log_format(ab, "opid=%d oauid=%d ouid=%d oses=%d", pid, auid,
+ 			 uid, sessionid);
+-	if (selinux_sid_to_string(sid, &s, &len)) {
++	if (security_secid_to_secctx(sid, &ctx, &len)) {
+ 		audit_log_format(ab, " obj=(none)");
+ 		rc = 1;
+-	} else
+-		audit_log_format(ab, " obj=%s", s);
++	} else {
++		audit_log_format(ab, " obj=%s", ctx);
++		security_release_secctx(ctx, len);
++	}
+ 	audit_log_format(ab, " ocomm=");
+ 	audit_log_untrustedstring(ab, comm);
+ 	audit_log_end(ab);
+-	kfree(s);
+ 
+ 	return rc;
+ }
+@@ -1271,14 +1272,15 @@ static void audit_log_exit(struct audit_
+ 			if (axi->osid != 0) {
+ 				char *ctx = NULL;
+ 				u32 len;
+-				if (selinux_sid_to_string(
++				if (security_secid_to_secctx(
+ 						axi->osid, &ctx, &len)) {
+ 					audit_log_format(ab, " osid=%u",
+ 							axi->osid);
+ 					call_panic = 1;
+-				} else
++				} else {
+ 					audit_log_format(ab, " obj=%s", ctx);
+-				kfree(ctx);
++					security_release_secctx(ctx, len);
++				}
  			}
- 			break;
-@@ -545,18 +545,18 @@ static int audit_filter_rules(struct tas
- 		case AUDIT_OBJ_LEV_HIGH:
- 			/* The above note for AUDIT_SUBJ_USER...AUDIT_SUBJ_CLR
- 			   also applies here */
--			if (f->se_rule) {
-+			if (f->lsm_rule) {
- 				/* Find files that match */
- 				if (name) {
- 					result = security_audit_rule_match(
- 					           name->osid, f->type, f->op,
--					           f->se_rule, ctx);
-+					           f->lsm_rule, ctx);
- 				} else if (ctx) {
- 					for (j = 0; j < ctx->name_count; j++) {
- 						if (security_audit_rule_match(
- 						      ctx->names[j].osid,
- 						      f->type, f->op,
--						      f->se_rule, ctx)) {
-+						      f->lsm_rule, ctx)) {
- 							++result;
- 							break;
- 						}
-@@ -569,7 +569,7 @@ static int audit_filter_rules(struct tas
- 					     aux = aux->next) {
- 						if (aux->type == AUDIT_IPC) {
- 							struct audit_aux_data_ipcctl *axi = (void *)aux;
--							if (security_audit_rule_match(axi->osid, f->type, f->op, f->se_rule, ctx)) {
-+							if (security_audit_rule_match(axi->osid, f->type, f->op, f->lsm_rule, ctx)) {
- 								++result;
- 								break;
- 							}
+ 			break; }
+ 
+@@ -1392,13 +1394,14 @@ static void audit_log_exit(struct audit_
+ 		if (n->osid != 0) {
+ 			char *ctx = NULL;
+ 			u32 len;
+-			if (selinux_sid_to_string(
++			if (security_secid_to_secctx(
+ 				n->osid, &ctx, &len)) {
+ 				audit_log_format(ab, " osid=%u", n->osid);
+ 				call_panic = 2;
+-			} else
++			} else {
+ 				audit_log_format(ab, " obj=%s", ctx);
+-			kfree(ctx);
++				security_release_secctx(ctx, len);
++			}
+ 		}
+ 
+ 		audit_log_end(ab);
+@@ -1775,7 +1778,7 @@ static void audit_copy_inode(struct audi
+ 	name->uid   = inode->i_uid;
+ 	name->gid   = inode->i_gid;
+ 	name->rdev  = inode->i_rdev;
+-	selinux_get_inode_sid(inode, &name->osid);
++	security_inode_getsecid(inode, &name->osid);
+ }
+ 
+ /**
+@@ -2190,8 +2193,7 @@ int __audit_ipc_obj(struct kern_ipc_perm
+ 	ax->uid = ipcp->uid;
+ 	ax->gid = ipcp->gid;
+ 	ax->mode = ipcp->mode;
+-	selinux_get_ipc_sid(ipcp, &ax->osid);
+-
++	security_ipc_getsecid(ipcp, &ax->osid);
+ 	ax->d.type = AUDIT_IPC;
+ 	ax->d.next = context->aux;
+ 	context->aux = (void *)ax;
+@@ -2343,7 +2345,7 @@ void __audit_ptrace(struct task_struct *
+ 	context->target_auid = audit_get_loginuid(t);
+ 	context->target_uid = t->uid;
+ 	context->target_sessionid = audit_get_sessionid(t);
+-	selinux_get_task_sid(t, &context->target_sid);
++	security_task_getsecid(t, &context->target_sid);
+ 	memcpy(context->target_comm, t->comm, TASK_COMM_LEN);
+ }
+ 
+@@ -2371,7 +2373,7 @@ int __audit_signal_info(int sig, struct 
+ 				audit_sig_uid = tsk->loginuid;
+ 			else
+ 				audit_sig_uid = tsk->uid;
+-			selinux_get_task_sid(tsk, &audit_sig_sid);
++			security_task_getsecid(tsk, &audit_sig_sid);
+ 		}
+ 		if (!audit_signals || audit_dummy_context())
+ 			return 0;
+@@ -2384,7 +2386,7 @@ int __audit_signal_info(int sig, struct 
+ 		ctx->target_auid = audit_get_loginuid(t);
+ 		ctx->target_uid = t->uid;
+ 		ctx->target_sessionid = audit_get_sessionid(t);
+-		selinux_get_task_sid(t, &ctx->target_sid);
++		security_task_getsecid(t, &ctx->target_sid);
+ 		memcpy(ctx->target_comm, t->comm, TASK_COMM_LEN);
+ 		return 0;
+ 	}
+@@ -2405,7 +2407,7 @@ int __audit_signal_info(int sig, struct 
+ 	axp->target_auid[axp->pid_count] = audit_get_loginuid(t);
+ 	axp->target_uid[axp->pid_count] = t->uid;
+ 	axp->target_sessionid[axp->pid_count] = audit_get_sessionid(t);
+-	selinux_get_task_sid(t, &axp->target_sid[axp->pid_count]);
++	security_task_getsecid(t, &axp->target_sid[axp->pid_count]);
+ 	memcpy(axp->target_comm[axp->pid_count], t->comm, TASK_COMM_LEN);
+ 	axp->pid_count++;
+ 
+@@ -2435,16 +2437,17 @@ void audit_core_dumps(long signr)
+ 	ab = audit_log_start(NULL, GFP_KERNEL, AUDIT_ANOM_ABEND);
+ 	audit_log_format(ab, "auid=%u uid=%u gid=%u ses=%u",
+ 			auid, current->uid, current->gid, sessionid);
+-	selinux_get_task_sid(current, &sid);
++	security_task_getsecid(current, &sid);
+ 	if (sid) {
+ 		char *ctx = NULL;
+ 		u32 len;
+ 
+-		if (selinux_sid_to_string(sid, &ctx, &len))
++		if (security_secid_to_secctx(sid, &ctx, &len))
+ 			audit_log_format(ab, " ssid=%u", sid);
+-		else
++		else {
+ 			audit_log_format(ab, " subj=%s", ctx);
+-		kfree(ctx);
++			security_release_secctx(ctx, len);
++		}
+ 	}
+ 	audit_log_format(ab, " pid=%d comm=", current->pid);
+ 	audit_log_untrustedstring(ab, current->comm);
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
