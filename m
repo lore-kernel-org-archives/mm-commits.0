@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sh-replace-remaining-__function__-occurences.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:35:43 -0800
-Message-ID: <200803032135.m23LZhqM007754@imap1.linux-foundation.org>
+Subject: + xtensa-replace-remaining-__function__-occurences.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:36:51 -0800
+Message-ID: <200803032136.m23LapRn007774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759202AbYCCVgQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:36:16 -0500
+	by vger.kernel.org with ESMTP id S1763322AbYCCVhV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:37:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, lethal@linux-sh.org
+Cc: harvey.harrison@gmail.com, chris@zankel.net
 
 
 The patch titled
-     sh: replace remaining __FUNCTION__ occurences
+     xtensa: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     sh-replace-remaining-__function__-occurences.patch
+     xtensa-replace-remaining-__function__-occurences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,223 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: replace remaining __FUNCTION__ occurences
+Subject: xtensa: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/renesas/x3proto/ilsel.c |    2 +-
- arch/sh/boards/superh/microdev/io.c    |    2 +-
- arch/sh/kernel/cpu/sh4/sq.c            |    4 ++--
- arch/sh/kernel/cpu/sh5/unwind.c        |    2 +-
- arch/sh/kernel/timers/timer-cmt.c      |    2 +-
- arch/sh/kernel/timers/timer-mtu2.c     |    2 +-
- arch/sh/kernel/topology.c              |    2 +-
- arch/sh/kernel/traps_64.c              |    2 +-
- arch/sh/lib64/c-checksum.c             |    2 +-
- arch/sh/mm/init.c                      |    2 +-
- arch/sh/mm/ioremap_32.c                |    2 +-
- arch/sh/mm/ioremap_64.c                |    4 ++--
- arch/sh/mm/tlbflush_64.c               |    6 +++---
- 13 files changed, 17 insertions(+), 17 deletions(-)
+ arch/xtensa/kernel/irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sh/boards/renesas/x3proto/ilsel.c~sh-replace-remaining-__function__-occurences arch/sh/boards/renesas/x3proto/ilsel.c
---- a/arch/sh/boards/renesas/x3proto/ilsel.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/boards/renesas/x3proto/ilsel.c
-@@ -68,7 +68,7 @@ static void __ilsel_enable(ilsel_source_
- 	shift = mk_ilsel_shift(bit);
+diff -puN arch/xtensa/kernel/irq.c~xtensa-replace-remaining-__function__-occurences arch/xtensa/kernel/irq.c
+--- a/arch/xtensa/kernel/irq.c~xtensa-replace-remaining-__function__-occurences
++++ a/arch/xtensa/kernel/irq.c
+@@ -48,7 +48,7 @@ asmlinkage void do_IRQ(int irq, struct p
  
- 	pr_debug("%s: bit#%d: addr - 0x%08lx (shift %d, set %d)\n",
--		 __FUNCTION__, bit, addr, shift, set);
-+		 __func__, bit, addr, shift, set);
- 
- 	tmp = ctrl_inw(addr);
- 	tmp &= ~(0xf << shift);
-diff -puN arch/sh/boards/superh/microdev/io.c~sh-replace-remaining-__function__-occurences arch/sh/boards/superh/microdev/io.c
---- a/arch/sh/boards/superh/microdev/io.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/boards/superh/microdev/io.c
-@@ -127,7 +127,7 @@ static unsigned long microdev_isa_port2a
- 			 *	safe default.
- 			 */
- 		printk("Warning: unexpected port in %s( offset = 0x%lx )\n",
--		       __FUNCTION__, offset);
-+		       __func__, offset);
- 		result = PVR;
+ 	if (irq >= NR_IRQS) {
+ 		printk(KERN_EMERG "%s: cannot handle IRQ %d\n",
+-				__FUNCTION__, irq);
++				__func__, irq);
  	}
  
-diff -puN arch/sh/kernel/cpu/sh4/sq.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/cpu/sh4/sq.c
---- a/arch/sh/kernel/cpu/sh4/sq.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/cpu/sh4/sq.c
-@@ -216,7 +216,7 @@ void sq_unmap(unsigned long vaddr)
- 
- 	if (unlikely(!map)) {
- 		printk("%s: bad store queue address 0x%08lx\n",
--		       __FUNCTION__, vaddr);
-+		       __func__, vaddr);
- 		return;
- 	}
- 
-@@ -233,7 +233,7 @@ void sq_unmap(unsigned long vaddr)
- 		vma = remove_vm_area((void *)(map->sq_addr & PAGE_MASK));
- 		if (!vma) {
- 			printk(KERN_ERR "%s: bad address 0x%08lx\n",
--			       __FUNCTION__, map->sq_addr);
-+			       __func__, map->sq_addr);
- 			return;
- 		}
- 	}
-diff -puN arch/sh/kernel/cpu/sh5/unwind.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/cpu/sh5/unwind.c
---- a/arch/sh/kernel/cpu/sh5/unwind.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/cpu/sh5/unwind.c
-@@ -149,7 +149,7 @@ static int lookup_prev_stack_frame(unsig
- 			if (dest >= 63) {
- 				printk(KERN_NOTICE "%s: Invalid dest reg %d "
- 				       "specified in movi handler. Failed "
--				       "opcode was 0x%lx: ", __FUNCTION__,
-+				       "opcode was 0x%lx: ", __func__,
- 				       dest, op);
- 
- 				continue;
-diff -puN arch/sh/kernel/timers/timer-cmt.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/timers/timer-cmt.c
---- a/arch/sh/kernel/timers/timer-cmt.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/timers/timer-cmt.c
-@@ -77,7 +77,7 @@ static unsigned long cmt_timer_get_offse
- 				count -= LATCH;
- 			} else {
- 				printk("%s (): hardware timer problem?\n",
--				       __FUNCTION__);
-+				       __func__);
- 			}
- 		}
- 	} else
-diff -puN arch/sh/kernel/timers/timer-mtu2.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/timers/timer-mtu2.c
---- a/arch/sh/kernel/timers/timer-mtu2.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/timers/timer-mtu2.c
-@@ -76,7 +76,7 @@ static unsigned long mtu2_timer_get_offs
- 				count -= LATCH;
- 			} else {
- 				printk("%s (): hardware timer problem?\n",
--				       __FUNCTION__);
-+				       __func__);
- 			}
- 		}
- 	} else
-diff -puN arch/sh/kernel/topology.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/topology.c
---- a/arch/sh/kernel/topology.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/topology.c
-@@ -29,7 +29,7 @@ static int __init topology_init(void)
- 		ret = register_cpu(&per_cpu(cpu_devices, i), i);
- 		if (unlikely(ret))
- 			printk(KERN_WARNING "%s: register_cpu %d failed (%d)\n",
--			       __FUNCTION__, i, ret);
-+			       __func__, i, ret);
- 	}
- 
- #if defined(CONFIG_NUMA) && !defined(CONFIG_SMP)
-diff -puN arch/sh/kernel/traps_64.c~sh-replace-remaining-__function__-occurences arch/sh/kernel/traps_64.c
---- a/arch/sh/kernel/traps_64.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/kernel/traps_64.c
-@@ -238,7 +238,7 @@ DO_ERROR(12, SIGILL,  "reserved instruct
- /* Called with interrupts disabled */
- asmlinkage void do_exception_error(unsigned long ex, struct pt_regs *regs)
- {
--	show_excp_regs(__FUNCTION__, -1, -1, regs);
-+	show_excp_regs(__func__, -1, -1, regs);
- 	die_if_kernel("exception", regs, ex);
- }
- 
-diff -puN arch/sh/lib64/c-checksum.c~sh-replace-remaining-__function__-occurences arch/sh/lib64/c-checksum.c
---- a/arch/sh/lib64/c-checksum.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/lib64/c-checksum.c
-@@ -207,7 +207,7 @@ __wsum csum_tcpudp_nofold(__be32 saddr, 
- 	result = (result & 0xffffffff) + (result >> 32);
- 
- 	pr_debug("%s saddr %x daddr %x len %x proto %x sum %x result %08Lx\n",
--		__FUNCTION__, saddr, daddr, len, proto, sum, result);
-+		__func__, saddr, daddr, len, proto, sum, result);
- 
- 	return (__wsum)result;
- }
-diff -puN arch/sh/mm/init.c~sh-replace-remaining-__function__-occurences arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/mm/init.c
-@@ -328,7 +328,7 @@ int arch_add_memory(int nid, u64 start, 
- 	/* We only have ZONE_NORMAL, so this is easy.. */
- 	ret = __add_pages(pgdat->node_zones + ZONE_NORMAL, start_pfn, nr_pages);
- 	if (unlikely(ret))
--		printk("%s: Failed, __add_pages() == %d\n", __FUNCTION__, ret);
-+		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
- 
- 	return ret;
- }
-diff -puN arch/sh/mm/ioremap_32.c~sh-replace-remaining-__function__-occurences arch/sh/mm/ioremap_32.c
---- a/arch/sh/mm/ioremap_32.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/mm/ioremap_32.c
-@@ -141,7 +141,7 @@ void __iounmap(void __iomem *addr)
- 
- 	p = remove_vm_area((void *)(vaddr & PAGE_MASK));
- 	if (!p) {
--		printk(KERN_ERR "%s: bad address %p\n", __FUNCTION__, addr);
-+		printk(KERN_ERR "%s: bad address %p\n", __func__, addr);
- 		return;
- 	}
- 
-diff -puN arch/sh/mm/ioremap_64.c~sh-replace-remaining-__function__-occurences arch/sh/mm/ioremap_64.c
---- a/arch/sh/mm/ioremap_64.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/mm/ioremap_64.c
-@@ -178,7 +178,7 @@ static unsigned long shmedia_alloc_io(un
-         } else {
-                 if (!printed_full) {
-                         printk("%s: done with statics, switching to kmalloc\n",
--			       __FUNCTION__);
-+			       __func__);
-                         printed_full = 1;
-                 }
-                 tlen = strlen(name);
-@@ -352,7 +352,7 @@ void onchip_unmap(unsigned long vaddr)
- 	res = shmedia_find_resource(&shmedia_iomap, vaddr);
- 	if (!res) {
- 		printk(KERN_ERR "%s: Failed to free 0x%08lx\n",
--		       __FUNCTION__, vaddr);
-+		       __func__, vaddr);
- 		return;
- 	}
- 
-diff -puN arch/sh/mm/tlbflush_64.c~sh-replace-remaining-__function__-occurences arch/sh/mm/tlbflush_64.c
---- a/arch/sh/mm/tlbflush_64.c~sh-replace-remaining-__function__-occurences
-+++ a/arch/sh/mm/tlbflush_64.c
-@@ -131,7 +131,7 @@ asmlinkage void do_page_fault(struct pt_
- #ifdef DEBUG_FAULT
- 		print_task(tsk);
- 		printk("%s:%d fault, address is 0x%08x PC %016Lx textaccess %d writeaccess %d\n",
--		       __FUNCTION__,__LINE__,
-+		       __func__, __LINE__,
- 		       address,regs->pc,textaccess,writeaccess);
- 		show_regs(regs);
- #endif
-@@ -145,7 +145,7 @@ asmlinkage void do_page_fault(struct pt_
- #ifdef DEBUG_FAULT
- 		print_task(tsk);
- 		printk("%s:%d fault, address is 0x%08x PC %016Lx textaccess %d writeaccess %d\n",
--		       __FUNCTION__,__LINE__,
-+		       __func__, __LINE__,
- 		       address,regs->pc,textaccess,writeaccess);
- 		show_regs(regs);
- 
-@@ -157,7 +157,7 @@ asmlinkage void do_page_fault(struct pt_
- #ifdef DEBUG_FAULT
- 		print_task(tsk);
- 		printk("%s:%d fault, address is 0x%08x PC %016Lx textaccess %d writeaccess %d\n",
--		       __FUNCTION__,__LINE__,
-+		       __func__, __LINE__,
- 		       address,regs->pc,textaccess,writeaccess);
- 		show_regs(regs);
- #endif
+ 	irq_enter();
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -281,6 +89,7 @@ parisc-replace-remaining-__function__-occurences.patch
 sh-replace-remaining-__function__-occurences.patch
 block-fix-shadowed-variable-warning-in-blk-mapc.patch
 block-remove-extern-on-function-definition.patch
+xtensa-replace-remaining-__function__-occurences.patch
 kernel-add-clamp-and-clamp_t-macros.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
@@ -327,6 +136,5 @@ mm-remove-remaining-__function__-occurances.patch
 block-remove-remaining-__function__-occurances.patch
 kernel-replace-remaining-__function__-occurances.patch
 lib-replace-remaining-__function__-occurances.patch
-xtensa-replace-remaining-__function__-occueance.patch
 uml-replace-remaining-__function__-occueance.patch
 
