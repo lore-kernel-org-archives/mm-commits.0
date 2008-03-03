@@ -1,85 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - apanel-fix-kconfig-dependencies.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 14:10:17 -0800
-Message-ID: <200803032210.m23MAIWl009253@imap1.linux-foundation.org>
+Subject: - block-separate-out-padding-from-alignment.patch removed from -mm tree
+Date: Mon, 03 Mar 2008 14:22:12 -0800
+Message-ID: <200803032231.m23MVaxH010125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752326AbYCCWLf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 17:11:35 -0500
+	by vger.kernel.org with ESMTP id S1751528AbYCCWce (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 17:32:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dtor@mail.ru, khali@linux-fr.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: htejun@gmail.com, James.Bottomley@HansenPartnership.com, efault@gmx.de, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     apanel: fix kconfig dependencies
+     block: separate out padding from alignment
 has been removed from the -mm tree.  Its filename was
-     apanel-fix-kconfig-dependencies.patch
+     block-separate-out-padding-from-alignment.patch
 
-This patch was dropped because it's a dupe
+This patch was dropped because it doesn't compile
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: apanel: fix kconfig dependencies
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: block: separate out padding from alignment
+From: Tejun Heo <htejun@gmail.com>
 
-Add I2C to config since the driver makes several i2c*() calls.
+Block layer alignment was used for two different purposes - memory alignment
+and padding.  This causes problems in lower layers because drivers which only
+require memory alignment ends up with adjusted rq->data_len.  Separate out
+padding such that padding occurs iff driver explicitly requests it.
 
-Add to help text that the Intel I2C ICH (i801) driver is also needed
-for this kernel.
+The major problem was that drivers which don't want size adjustment got it
+acciedentally by mixing up aligning and padding which are two conceptually
+separate things.  Let padding occur iff the driver explicitly requested it. 
+This makes both parties happy.
 
-Add LEDS_CLASS to config since the driver makes les_classdev_*() calls:
-ERROR: "led_classdev_register" [drivers/input/misc/apanel.ko] undefined!
-ERROR: "__led_classdev_unregister" [drivers/input/misc/apanel.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Stephen Hemminger <shemminger@osdl.org>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ block/blk-map.c           |   15 +++++++++------
+ block/blk-settings.c      |   17 +++++++++++++++++
+ drivers/ata/libata-scsi.c |    3 ++-
+ include/linux/blkdev.h    |    2 ++
+ 4 files changed, 30 insertions(+), 7 deletions(-)
 
-diff -puN drivers/input/misc/Kconfig~apanel-fix-kconfig-dependencies drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~apanel-fix-kconfig-dependencies
-+++ a/drivers/input/misc/Kconfig
-@@ -42,14 +42,14 @@ config INPUT_M68K_BEEP
+diff -puN block/blk-map.c~block-separate-out-padding-from-alignment block/blk-map.c
+--- a/block/blk-map.c~block-separate-out-padding-from-alignment
++++ a/block/blk-map.c
+@@ -43,6 +43,7 @@ static int __blk_rq_map_user(struct requ
+ 			     void __user *ubuf, unsigned int len)
+ {
+ 	unsigned long uaddr;
++	unsigned int alignment;
+ 	struct bio *bio, *orig_bio;
+ 	int reading, ret;
  
- config INPUT_APANEL
- 	tristate "Fujitsu Lifebook Application Panel buttons"
--	depends on X86
--	select I2C_I801
-+	depends on X86 && I2C && LEDS_CLASS
- 	select INPUT_POLLDEV
- 	select CHECK_SIGNATURE
- 	help
- 	 Say Y here for support of the Application Panel buttons, used on
- 	 Fujitsu Lifebook. These are attached to the mainboard through
--	 an SMBus interface managed by the I2C Intel ICH (i801) driver.
-+	 an SMBus interface managed by the I2C Intel ICH (i801) driver,
-+	 which you should also build for this kernel.
+@@ -53,8 +54,8 @@ static int __blk_rq_map_user(struct requ
+ 	 * direct dma. else, set up kernel bounce buffers
+ 	 */
+ 	uaddr = (unsigned long) ubuf;
+-	if (!(uaddr & queue_dma_alignment(q)) &&
+-	    !(len & queue_dma_alignment(q)))
++	alignment = queue_dma_alignment(q) | q->dma_pad_mask;
++	if (!(uaddr & alignment) && !(len & alignment))
+ 		bio = bio_map_user(q, NULL, uaddr, len, reading);
+ 	else
+ 		bio = bio_copy_user(q, uaddr, len, reading);
+@@ -141,15 +142,17 @@ int blk_rq_map_user(struct request_queue
  
- 	 To compile this driver as a module, choose M here: the module will
- 	 be called apanel.
+ 	/*
+ 	 * __blk_rq_map_user() copies the buffers if starting address
+-	 * or length isn't aligned.  As the copied buffer is always
+-	 * page aligned, we know that there's enough room for padding.
+-	 * Extend the last bio and update rq->data_len accordingly.
++	 * or length isn't aligned to dma_pad_mask.  As the copied
++	 * buffer is always page aligned, we know that there's enough
++	 * room for padding.  Extend the last bio and update
++	 * rq->data_len accordingly.
+ 	 *
+ 	 * On unmap, bio_uncopy_user() will use unmodified
+ 	 * bio_map_data pointed to by bio->bi_private.
+ 	 */
+ 	if (len & queue_dma_alignment(q)) {
+-		unsigned int pad_len = (queue_dma_alignment(q) & ~len) + 1;
++	if (len & q->dma_pad_mask) {
++		unsigned int pad_len = (q->dma_pad_mask & ~len) + 1;
+ 		struct bio *tail = rq->biotail;
+ 
+ 		tail->bi_io_vec[tail->bi_vcnt - 1].bv_len += pad_len;
+diff -puN block/blk-settings.c~block-separate-out-padding-from-alignment block/blk-settings.c
+--- a/block/blk-settings.c~block-separate-out-padding-from-alignment
++++ a/block/blk-settings.c
+@@ -293,6 +293,23 @@ void blk_queue_stack_limits(struct reque
+ EXPORT_SYMBOL(blk_queue_stack_limits);
+ 
+ /**
++ * blk_queue_dma_pad - set pad mask
++ * @q:     the request queue for the device
++ * @mask:  pad mask
++ *
++ * Set pad mask.  Direct IO requests are padded to the mask specified.
++ *
++ * Appending pad buffer to a request modifies ->data_len such that it
++ * includes the pad buffer.  The original requested data length can be
++ * obtained using blk_rq_raw_data_len().
++ **/
++void blk_queue_dma_pad(struct request_queue *q, unsigned int mask)
++{
++	q->dma_pad_mask = mask;
++}
++EXPORT_SYMBOL(blk_queue_dma_pad);
++
++/**
+  * blk_queue_dma_drain - Set up a drain buffer for excess dma.
+  *
+  * @q:  the request queue for the device
+diff -puN drivers/ata/libata-scsi.c~block-separate-out-padding-from-alignment drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~block-separate-out-padding-from-alignment
++++ a/drivers/ata/libata-scsi.c
+@@ -862,9 +862,10 @@ static int ata_scsi_dev_config(struct sc
+ 		struct request_queue *q = sdev->request_queue;
+ 		void *buf;
+ 
+-		/* set the min alignment */
++		/* set the min alignment and padding */
+ 		blk_queue_update_dma_alignment(sdev->request_queue,
+ 					       ATA_DMA_PAD_SZ - 1);
++		blk_queue_dma_pad(sdev->request_queue, ATA_DMA_PAD_SZ - 1);
+ 
+ 		/* configure draining */
+ 		buf = kmalloc(ATAPI_MAX_DRAIN, q->bounce_gfp | GFP_KERNEL);
+diff -puN include/linux/blkdev.h~block-separate-out-padding-from-alignment include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-separate-out-padding-from-alignment
++++ a/include/linux/blkdev.h
+@@ -362,6 +362,7 @@ struct request_queue
+ 	unsigned long		seg_boundary_mask;
+ 	void			*dma_drain_buffer;
+ 	unsigned int		dma_drain_size;
++	unsigned int		dma_pad_mask;
+ 	unsigned int		dma_alignment;
+ 
+ 	struct blk_queue_tag	*queue_tags;
+@@ -707,6 +708,7 @@ extern void blk_queue_max_hw_segments(st
+ extern void blk_queue_max_segment_size(struct request_queue *, unsigned int);
+ extern void blk_queue_hardsect_size(struct request_queue *, unsigned short);
+ extern void blk_queue_stack_limits(struct request_queue *t, struct request_queue *b);
++extern void blk_queue_dma_pad(struct request_queue *, unsigned int);
+ extern int blk_queue_dma_drain(struct request_queue *q,
+ 			       dma_drain_needed_fn *dma_drain_needed,
+ 			       void *buf, unsigned int size);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
-git-acpi.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-kprobes-move-kprobe-examples-to-samples.patch
-input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls.patch
-x86-visws-fix-printk-format-warnings.patch
-apanel-fix-kconfig-dependencies.patch
-let-log_buf_shift-default-to-17.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-profile-likely-unlikely-macros.patch
+block-fix-residual-byte-count-handling.patch
+block-separate-out-padding-from-alignment.patch
 
