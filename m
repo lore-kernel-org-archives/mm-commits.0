@@ -1,150 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-fix-filesystemstmpl-source-files.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 13:02:53 -0800
-Message-ID: <200803032102.m23L2rgC006278@imap1.linux-foundation.org>
+Subject: - docbook-fix-kernel-api-source-files.patch removed from -mm tree
+Date: Mon, 03 Mar 2008 13:02:55 -0800
+Message-ID: <200803032102.m23L2t4b006281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753022AbYCCVDE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:03:04 -0500
+	by vger.kernel.org with ESMTP id S1751430AbYCCVDw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:03:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: fix filesystems.tmpl source files
+     docbook: fix kernel-api source files
 has been removed from the -mm tree.  Its filename was
-     docbook-fix-filesystemstmpl-source-files.patch
+     docbook-fix-kernel-api-source-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: fix filesystems.tmpl source files
+Subject: docbook: fix kernel-api source files
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix docbook problems in filesystems.tmpl.  These cause the generated docbook
-to be incorrect.
+Fix docbook problems in kernel-api.tmpl.  These cause the generated docbook to
+be incorrect.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c          |    3 +--
- fs/jbd/transaction.c |   17 +++++++++--------
- fs/mpage.c           |   11 +++--------
- 3 files changed, 13 insertions(+), 18 deletions(-)
+ drivers/base/transport_class.c |    4 +---
+ drivers/pci/rom.c              |    3 +--
+ mm/truncate.c                  |    3 +--
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN fs/buffer.c~docbook-fix-filesystemstmpl-source-files fs/buffer.c
---- a/fs/buffer.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/buffer.c
-@@ -637,8 +637,7 @@ repeat:
+diff -puN drivers/base/transport_class.c~docbook-fix-kernel-api-source-files drivers/base/transport_class.c
+--- a/drivers/base/transport_class.c~docbook-fix-kernel-api-source-files
++++ a/drivers/base/transport_class.c
+@@ -126,9 +126,7 @@ static int transport_setup_classdev(stru
  }
  
  /**
-- * sync_mapping_buffers - write out and wait upon a mapping's "associated"
-- *                        buffers
-+ * sync_mapping_buffers - write out & wait upon a mapping's "associated" buffers
-  * @mapping: the mapping which wants those buffers written
-  *
-  * Starts I/O against the buffers at mapping->private_list, and waits upon
-diff -puN fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/jbd/transaction.c
-@@ -369,7 +369,7 @@ out:
- 
- 
- /**
-- * int journal_restart() - restart a handle .
-+ * int journal_restart() - restart a handle.
-  * @handle:  handle to restart
-  * @nblocks: nr credits requested
-  *
-@@ -857,8 +857,7 @@ out:
- }
- 
- /**
-- * int journal_get_undo_access() -  Notify intent to modify metadata with
-- *     non-rewindable consequences
-+ * int journal_get_undo_access() - Notify intent to modify metadata with non-rewindable consequences
-  * @handle: transaction
-  * @bh: buffer to undo
-  * @credits: store the number of taken credits here (if not NULL)
-@@ -934,12 +933,14 @@ out:
- }
- 
- /**
-- * int journal_dirty_data() -  mark a buffer as containing dirty data which
-- *                             needs to be flushed before we can commit the
-- *                             current transaction.
-+ * int journal_dirty_data() - mark a buffer as containing dirty data to be flushed
-  * @handle: transaction
-  * @bh: bufferhead to mark
-  *
-+ * Description:
-+ * Mark a buffer as containing dirty data which needs to be flushed before
-+ * we can commit the current transaction.
-+ *
-  * The buffer is placed on the transaction's data list and is marked as
-  * belonging to the transaction.
-  *
-@@ -1111,11 +1112,11 @@ no_journal:
- }
- 
- /**
-- * int journal_dirty_metadata() -  mark a buffer as containing dirty metadata
-+ * int journal_dirty_metadata() - mark a buffer as containing dirty metadata
-  * @handle: transaction to add buffer to.
-  * @bh: buffer to mark
-  *
-- * mark dirty metadata which needs to be journaled as part of the current
-+ * Mark dirty metadata which needs to be journaled as part of the current
-  * transaction.
-  *
-  * The buffer is placed on the transaction's metadata list and is marked
-diff -puN fs/mpage.c~docbook-fix-filesystemstmpl-source-files fs/mpage.c
---- a/fs/mpage.c~docbook-fix-filesystemstmpl-source-files
-+++ a/fs/mpage.c
-@@ -330,16 +330,12 @@ confused:
- }
- 
- /**
-- * mpage_readpages - populate an address space with some pages, and
-- *                       start reads against them.
+- * transport_setup_device - declare a new dev for transport class association
+- *			    but don't make it visible yet.
 - *
-+ * mpage_readpages - populate an address space with some pages & start reads against them
-  * @mapping: the address_space
-  * @pages: The address of a list_head which contains the target pages.  These
-  *   pages have their ->index populated and are otherwise uninitialised.
-- *
-  *   The page at @pages->prev has the lowest file offset, and reads should be
-  *   issued in @pages->prev to @pages->next order.
-- *
-  * @nr_pages: The number of pages at *@pages
-  * @get_block: The filesystem's block mapper function.
++ * transport_setup_device - declare a new dev for transport class association but don't make it visible yet.
+  * @dev: the generic device representing the entity being added
   *
-@@ -365,6 +361,7 @@ confused:
-  * So an mpage read of the first 16 blocks of an ext2 file will cause I/O to be
-  * submitted in the following order:
-  * 	12 0 1 2 3 4 5 6 7 8 9 10 11 13 14 15 16
-+ *
-  * because the indirect block has to be read to get the mappings of blocks
-  * 13,14,15,16.  Obviously, this impacts performance.
+  * Usually, dev represents some component in the HBA system (either
+diff -puN drivers/pci/rom.c~docbook-fix-kernel-api-source-files drivers/pci/rom.c
+--- a/drivers/pci/rom.c~docbook-fix-kernel-api-source-files
++++ a/drivers/pci/rom.c
+@@ -242,8 +242,7 @@ void pci_remove_rom(struct pci_dev *pdev
+ #endif  /*  0  */
+ 
+ /**
+- * pci_cleanup_rom - internal routine for freeing the ROM copy created
+- * by pci_map_rom_copy called from remove.c
++ * pci_cleanup_rom - free the ROM copy created by pci_map_rom_copy
+  * @pdev: pointer to pci device struct
   *
-@@ -662,9 +659,7 @@ out:
+  * Free the copied ROM if we allocated one.
+diff -puN mm/truncate.c~docbook-fix-kernel-api-source-files mm/truncate.c
+--- a/mm/truncate.c~docbook-fix-kernel-api-source-files
++++ a/mm/truncate.c
+@@ -135,8 +135,7 @@ invalidate_complete_page(struct address_
  }
  
  /**
-- * mpage_writepages - walk the list of dirty pages of the given
-- * address space and writepage() all of them.
-- * 
-+ * mpage_writepages - walk the list of dirty pages of the given address space & writepage() all of them
-  * @mapping: address space structure to write
-  * @wbc: subtract the number of written pages from *@wbc->nr_to_write
-  * @get_block: the filesystem's block mapper function.
+- * truncate_inode_pages - truncate range of pages specified by start and
+- * end byte offsets
++ * truncate_inode_pages - truncate range of pages specified by start & end byte offsets
+  * @mapping: mapping to truncate
+  * @lstart: offset from which to truncate
+  * @lend: offset to which to truncate
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
