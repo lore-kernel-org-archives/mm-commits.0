@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-replace-remaining-__function__-occurences.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:27:28 -0800
-Message-ID: <200803032127.m23LRST0007443@imap1.linux-foundation.org>
+Subject: + mips-replace-remaining-__function__-occurences.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:28:18 -0800
+Message-ID: <200803032128.m23LSItf007466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50561 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755573AbYCCV1m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:27:42 -0500
+	by vger.kernel.org with ESMTP id S1763230AbYCCV21 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:28:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: harvey.harrison@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     m68k: replace remaining __FUNCTION__ occurences
+     mips: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     m68k-replace-remaining-__function__-occurences.patch
+     mips-replace-remaining-__function__-occurences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: replace remaining __FUNCTION__ occurences
+Subject: mips: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/ints.c |   10 +++++-----
- arch/m68k/mac/oss.c     |    4 ++--
- arch/m68k/q40/q40ints.c |    2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ arch/mips/au1000/common/power.c                            |    2 +-
+ arch/mips/kernel/signal-common.h                           |    2 +-
+ arch/mips/pci/ops-pnx8550.c                                |    4 ++--
+ arch/mips/sgi-ip32/ip32-reset.c                            |    2 +-
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c   |    2 +-
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/m68k/kernel/ints.c~m68k-replace-remaining-__function__-occurences arch/m68k/kernel/ints.c
---- a/arch/m68k/kernel/ints.c~m68k-replace-remaining-__function__-occurences
-+++ a/arch/m68k/kernel/ints.c
-@@ -186,7 +186,7 @@ int setup_irq(unsigned int irq, struct i
+diff -puN arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/au1000/common/power.c
+@@ -47,7 +47,7 @@
  
- 	if (irq >= NR_IRQS || !(contr = irq_controller[irq])) {
- 		printk("%s: Incorrect IRQ %d from %s\n",
--		       __FUNCTION__, irq, node->devname);
-+		       __func__, irq, node->devname);
- 		return -ENXIO;
- 	}
- 
-@@ -249,7 +249,7 @@ void free_irq(unsigned int irq, void *de
- 	unsigned long flags;
- 
- 	if (irq >= NR_IRQS || !(contr = irq_controller[irq])) {
--		printk("%s: Incorrect IRQ %d\n", __FUNCTION__, irq);
-+		printk("%s: Incorrect IRQ %d\n", __func__, irq);
- 		return;
- 	}
- 
-@@ -267,7 +267,7 @@ void free_irq(unsigned int irq, void *de
- 		node->handler = NULL;
- 	} else
- 		printk("%s: Removing probably wrong IRQ %d\n",
--		       __FUNCTION__, irq);
-+		       __func__, irq);
- 
- 	if (!irq_list[irq]) {
- 		if (contr->shutdown)
-@@ -288,7 +288,7 @@ void enable_irq(unsigned int irq)
- 
- 	if (irq >= NR_IRQS || !(contr = irq_controller[irq])) {
- 		printk("%s: Incorrect IRQ %d\n",
--		       __FUNCTION__, irq);
-+		       __func__, irq);
- 		return;
- 	}
- 
-@@ -312,7 +312,7 @@ void disable_irq(unsigned int irq)
- 
- 	if (irq >= NR_IRQS || !(contr = irq_controller[irq])) {
- 		printk("%s: Incorrect IRQ %d\n",
--		       __FUNCTION__, irq);
-+		       __func__, irq);
- 		return;
- 	}
- 
-diff -puN arch/m68k/mac/oss.c~m68k-replace-remaining-__function__-occurences arch/m68k/mac/oss.c
---- a/arch/m68k/mac/oss.c~m68k-replace-remaining-__function__-occurences
-+++ a/arch/m68k/mac/oss.c
-@@ -190,7 +190,7 @@ void oss_irq_enable(int irq) {
- 			break;
- #ifdef DEBUG_IRQUSE
- 		default:
--			printk("%s unknown irq %d\n",__FUNCTION__, irq);
-+			printk("%s unknown irq %d\n", __func__, irq);
- 			break;
+ #define DEBUG 1
+ #ifdef DEBUG
+-#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __FUNCTION__ , ## args)
++#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __func__, ## args)
+ #else
+ #  define DPRINTK(fmt, args...)
  #endif
- 	}
-@@ -230,7 +230,7 @@ void oss_irq_disable(int irq) {
- 			break;
- #ifdef DEBUG_IRQUSE
- 		default:
--			printk("%s unknown irq %d\n", __FUNCTION__, irq);
-+			printk("%s unknown irq %d\n", __func__, irq);
- 			break;
+diff -puN arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences arch/mips/kernel/signal-common.h
+--- a/arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/kernel/signal-common.h
+@@ -14,7 +14,7 @@
+ /* #define DEBUG_SIG */
+ 
+ #ifdef DEBUG_SIG
+-#  define DEBUGP(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
++#  define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
+ #else
+ #  define DEBUGP(fmt, args...)
  #endif
+diff -puN arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences arch/mips/pci/ops-pnx8550.c
+--- a/arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/pci/ops-pnx8550.c
+@@ -90,14 +90,14 @@ config_access(unsigned int pci_cmd, stru
+ 
+ 		loops--;
+ 		if (loops == 0) {
+-			printk("%s : Arbiter Locked.\n", __FUNCTION__);
++			printk("%s : Arbiter Locked.\n", __func__);
+ 		}
  	}
-diff -puN arch/m68k/q40/q40ints.c~m68k-replace-remaining-__function__-occurences arch/m68k/q40/q40ints.c
---- a/arch/m68k/q40/q40ints.c~m68k-replace-remaining-__function__-occurences
-+++ a/arch/m68k/q40/q40ints.c
-@@ -47,7 +47,7 @@ static int q40_irq_startup(unsigned int 
- 	switch (irq) {
- 	case 1: case 2: case 8: case 9:
- 	case 11: case 12: case 13:
--		printk("%s: ISA IRQ %d not implemented by HW\n", __FUNCTION__, irq);
-+		printk("%s: ISA IRQ %d not implemented by HW\n", __func__, irq);
- 		return -ENXIO;
+ 
+ 	clear_status();
+ 	if ((pci_cmd == PCI_CMD_IOR) || (pci_cmd == PCI_CMD_IOW)) {
+ 		printk("%s timeout (GPPM_CTRL=%X) ioaddr %lX pci_cmd %X\n",
+-		       __FUNCTION__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
++		       __func__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
+ 		       pci_cmd);
  	}
- 	return 0;
+ 
+diff -puN arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences arch/mips/sgi-ip32/ip32-reset.c
+--- a/arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/sgi-ip32/ip32-reset.c
+@@ -142,7 +142,7 @@ static irqreturn_t ip32_rtc_int(int irq,
+ 	reg_c = CMOS_READ(RTC_INTR_FLAGS);
+ 	if (!(reg_c & RTC_IRQF)) {
+ 		printk(KERN_WARNING
+-			"%s: RTC IRQ without RTC_IRQF\n", __FUNCTION__);
++			"%s: RTC IRQ without RTC_IRQF\n", __func__);
+ 	}
+ 	/* Wait until interrupt goes away */
+ 	disable_irq(MACEISA_RTC_IRQ);
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
+@@ -173,7 +173,7 @@ static const u32 toshiba_rbtx4927_irq_de
+         { \
+            char tmp[100]; \
+            sprintf( tmp, str ); \
+-           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
++           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
+         }
+ #else
+ #define TOSHIBA_RBTX4927_IRQ_DPRINTK(flag, str...)
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+@@ -93,7 +93,7 @@ static const u32 toshiba_rbtx4927_setup_
+         { \
+            char tmp[100]; \
+            sprintf( tmp, str ); \
+-           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
++           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
+         }
+ #else
+ #define TOSHIBA_RBTX4927_SETUP_DPRINTK(flag, str...)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -202,4 +203,5 @@ mm-remove-remaining-__function__-occurances.patch
 block-remove-remaining-__function__-occurances.patch
 kernel-replace-remaining-__function__-occurances.patch
 lib-replace-remaining-__function__-occurances.patch
+mips-replace-remaining-__function__-occurences.patch
 
