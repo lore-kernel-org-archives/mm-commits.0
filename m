@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-remove-remaining-__function__-occurences.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:21:05 -0800
-Message-ID: <200803032121.m23LL6o8007074@imap1.linux-foundation.org>
+Subject: + arm-replace-remaining-__function__-occurences.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:25:07 -0800
+Message-ID: <200803032125.m23LP8Wi007332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763180AbYCCVVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:21:55 -0500
+	by vger.kernel.org with ESMTP id S1763584AbYCCVZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:25:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: harvey.harrison@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     alpha: remove remaining __FUNCTION__ occurences
+     arm: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     alpha-remove-remaining-__function__-occurences.patch
+     arm-replace-remaining-__function__-occurences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,490 +33,964 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: remove remaining __FUNCTION__ occurences
+Subject: arm: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
-The change in pci-iommu,c should be safe as arena has not been assigned
-when we get to this point.
-
-Some were within #if 0 blocks, have changed them and left the blocks
-as they appear to be debugging infrastructure.
-
-A #define FN __FUNCTION__ was removed and occurances of FN were replaced
-with __func__ as well.
-
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/core_marvel.c  |    6 ++---
- arch/alpha/kernel/core_t2.c      |   24 +++++++-------------
- arch/alpha/kernel/core_titan.c   |   34 ++++++++++++++---------------
- arch/alpha/kernel/core_tsunami.c |   28 +++++++++++------------
- arch/alpha/kernel/pci.c          |    2 -
- arch/alpha/kernel/pci_iommu.c    |   34 ++++++++++++-----------------
- arch/alpha/kernel/smp.c          |    4 +--
- arch/alpha/kernel/srm_env.c      |    2 -
- arch/alpha/kernel/sys_alcor.c    |    2 -
- arch/alpha/kernel/sys_marvel.c   |   12 +++++-----
- arch/alpha/kernel/sys_sable.c    |    6 ++---
- arch/alpha/kernel/sys_sio.c      |    2 -
- drivers/video/i810/i810_main.c   |   32 +++++++--------------------
- 13 files changed, 81 insertions(+), 107 deletions(-)
+ arch/arm/common/it8152.c            |    6 +-
+ arch/arm/mach-h720x/common.c        |   12 ++--
+ arch/arm/mach-imx/dma.c             |   12 ++--
+ arch/arm/mach-imx/irq.c             |    6 +-
+ arch/arm/mach-iop13xx/iq81340mc.c   |    2 
+ arch/arm/mach-iop13xx/iq81340sc.c   |    2 
+ arch/arm/mach-iop13xx/pci.c         |    8 +--
+ arch/arm/mach-iop13xx/setup.c       |    2 
+ arch/arm/mach-ixp4xx/common-pci.c   |    2 
+ arch/arm/mach-ixp4xx/gtwx5715-pci.c |    2 
+ arch/arm/mach-netx/generic.c        |    6 +-
+ arch/arm/mach-orion/gpio.c          |   12 ++--
+ arch/arm/mach-pnx4008/clock.c       |    2 
+ arch/arm/mach-pnx4008/dma.c         |    2 
+ arch/arm/mach-pxa/cm-x270-pci.c     |    2 
+ arch/arm/mach-pxa/cm-x270.c         |    4 -
+ arch/arm/mach-pxa/dma.c             |    2 
+ arch/arm/mach-pxa/em-x270.c         |    2 
+ arch/arm/mach-pxa/mainstone.c       |    4 -
+ arch/arm/mach-pxa/trizeps4.c        |    8 +--
+ arch/arm/mach-sa1100/badge4.c       |    6 +-
+ arch/arm/mach-sa1100/cpu-sa1100.c   |    2 
+ arch/arm/mach-sa1100/dma.c          |    8 +--
+ arch/arm/mach-sa1100/h3600.c        |   14 ++---
+ arch/arm/plat-iop/pci.c             |    2 
+ arch/arm/plat-omap/dma.c            |    4 -
+ arch/arm/plat-omap/dmtimer.c        |    2 
+ arch/arm/plat-s3c24xx/dma.c         |   64 +++++++++++++-------------
+ 28 files changed, 100 insertions(+), 100 deletions(-)
 
-diff -puN arch/alpha/kernel/core_marvel.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/core_marvel.c
---- a/arch/alpha/kernel/core_marvel.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/core_marvel.c
-@@ -994,7 +994,7 @@ marvel_agp_configure(alpha_agp_info *agp
- 		 * rate, but warn the user.
- 		 */
- 		printk("%s: unknown PLL setting RNGB=%lx (PLL6_CTL=%016lx)\n",
--		       __FUNCTION__, IO7_PLL_RNGB(agp_pll), agp_pll);
-+		       __func__, IO7_PLL_RNGB(agp_pll), agp_pll);
- 		break;
- 	}
+diff -puN arch/arm/common/it8152.c~arm-replace-remaining-__function__-occurences arch/arm/common/it8152.c
+--- a/arch/arm/common/it8152.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/common/it8152.c
+@@ -274,7 +274,7 @@ static int it8152_pci_platform_notify_re
+ int dma_needs_bounce(struct device *dev, dma_addr_t dma_addr, size_t size)
+ {
+ 	dev_dbg(dev, "%s: dma_addr %08x, size %08x\n",
+-		__FUNCTION__, dma_addr, size);
++		__func__, dma_addr, size);
+ 	return (dev->bus == &pci_bus_type) &&
+ 		((dma_addr + size - PHYS_OFFSET) >= SZ_64M);
+ }
+@@ -289,7 +289,7 @@ int dma_needs_bounce(struct device *dev,
+  */
+ int pci_set_dma_mask(struct pci_dev *dev, u64 mask)
+ {
+-	dev_dbg(&dev->dev, "%s: %llx\n", __FUNCTION__, mask);
++	dev_dbg(&dev->dev, "%s: %llx\n", __func__, mask);
+ 	if (mask >= PHYS_OFFSET + SZ_64M - 1)
+ 		return 0;
  
-@@ -1044,13 +1044,13 @@ marvel_agp_translate(alpha_agp_info *agp
+@@ -299,7 +299,7 @@ int pci_set_dma_mask(struct pci_dev *dev
+ int
+ pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
+ {
+-	dev_dbg(&dev->dev, "%s: %llx\n", __FUNCTION__, mask);
++	dev_dbg(&dev->dev, "%s: %llx\n", __func__, mask);
+ 	if (mask >= PHYS_OFFSET + SZ_64M - 1)
+ 		return 0;
  
- 	if (addr < agp->aperture.bus_base ||
- 	    addr >= agp->aperture.bus_base + agp->aperture.size) {
--		printk("%s: addr out of range\n", __FUNCTION__);
-+		printk("%s: addr out of range\n", __func__);
- 		return -EINVAL;
- 	}
+diff -puN arch/arm/mach-h720x/common.c~arm-replace-remaining-__function__-occurences arch/arm/mach-h720x/common.c
+--- a/arch/arm/mach-h720x/common.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-h720x/common.c
+@@ -103,7 +103,7 @@ static void
+ h720x_gpio_handler(unsigned int mask, unsigned int irq,
+                  struct irq_desc *desc)
+ {
+-	IRQDBG("%s irq: %d\n",__FUNCTION__,irq);
++	IRQDBG("%s irq: %d\n", __func__, irq);
+ 	desc = irq_desc + irq;
+ 	while (mask) {
+ 		if (mask & 1) {
+@@ -123,7 +123,7 @@ h720x_gpioa_demux_handler(unsigned int i
  
- 	pte = aper->arena->ptes[baddr >> PAGE_SHIFT];
- 	if (!(pte & 1)) {
--		printk("%s: pte not valid\n", __FUNCTION__);
-+		printk("%s: pte not valid\n", __func__);
- 		return -EINVAL;
- 	} 
- 	return (pte >> 1) << PAGE_SHIFT;
-diff -puN arch/alpha/kernel/core_t2.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/core_t2.c
---- a/arch/alpha/kernel/core_t2.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/core_t2.c
-@@ -336,10 +336,7 @@ t2_direct_map_window1(unsigned long base
- 
- #if DEBUG_PRINT_FINAL_SETTINGS
- 	printk("%s: setting WBASE1=0x%lx WMASK1=0x%lx TBASE1=0x%lx\n",
--	       __FUNCTION__,
--	       *(vulp)T2_WBASE1,
--	       *(vulp)T2_WMASK1,
--	       *(vulp)T2_TBASE1);
-+	       __func__, *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
- #endif
+ 	mask = CPU_REG(GPIO_A_VIRT,GPIO_STAT);
+ 	irq = IRQ_CHAINED_GPIOA(0);
+-	IRQDBG("%s mask: 0x%08x irq: %d\n",__FUNCTION__,mask,irq);
++	IRQDBG("%s mask: 0x%08x irq: %d\n", __func__, mask,irq);
+ 	h720x_gpio_handler(mask, irq, desc);
  }
  
-@@ -366,10 +363,7 @@ t2_sg_map_window2(struct pci_controller 
- 
- #if DEBUG_PRINT_FINAL_SETTINGS
- 	printk("%s: setting WBASE2=0x%lx WMASK2=0x%lx TBASE2=0x%lx\n",
--	       __FUNCTION__,
--	       *(vulp)T2_WBASE2,
--	       *(vulp)T2_WMASK2,
--	       *(vulp)T2_TBASE2);
-+	       __func__, *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
- #endif
+@@ -133,7 +133,7 @@ h720x_gpiob_demux_handler(unsigned int i
+ 	unsigned int mask, irq;
+ 	mask = CPU_REG(GPIO_B_VIRT,GPIO_STAT);
+ 	irq = IRQ_CHAINED_GPIOB(0);
+-	IRQDBG("%s mask: 0x%08x irq: %d\n",__FUNCTION__,mask,irq);
++	IRQDBG("%s mask: 0x%08x irq: %d\n", __func__, mask,irq);
+ 	h720x_gpio_handler(mask, irq, desc);
  }
  
-@@ -377,15 +371,15 @@ static void __init
- t2_save_configuration(void)
- {
- #if DEBUG_PRINT_INITIAL_SETTINGS
--	printk("%s: HAE_1 was 0x%lx\n", __FUNCTION__, srm_hae); /* HW is 0 */
--	printk("%s: HAE_2 was 0x%lx\n", __FUNCTION__, *(vulp)T2_HAE_2);
--	printk("%s: HAE_3 was 0x%lx\n", __FUNCTION__, *(vulp)T2_HAE_3);
--	printk("%s: HAE_4 was 0x%lx\n", __FUNCTION__, *(vulp)T2_HAE_4);
--	printk("%s: HBASE was 0x%lx\n", __FUNCTION__, *(vulp)T2_HBASE);
-+	printk("%s: HAE_1 was 0x%lx\n", __func__, srm_hae); /* HW is 0 */
-+	printk("%s: HAE_2 was 0x%lx\n", __func__, *(vulp)T2_HAE_2);
-+	printk("%s: HAE_3 was 0x%lx\n", __func__, *(vulp)T2_HAE_3);
-+	printk("%s: HAE_4 was 0x%lx\n", __func__, *(vulp)T2_HAE_4);
-+	printk("%s: HBASE was 0x%lx\n", __func__, *(vulp)T2_HBASE);
+@@ -144,7 +144,7 @@ h720x_gpioc_demux_handler(unsigned int i
  
--	printk("%s: WBASE1=0x%lx WMASK1=0x%lx TBASE1=0x%lx\n", __FUNCTION__, 
-+	printk("%s: WBASE1=0x%lx WMASK1=0x%lx TBASE1=0x%lx\n", __func__,
- 	       *(vulp)T2_WBASE1, *(vulp)T2_WMASK1, *(vulp)T2_TBASE1);
--	printk("%s: WBASE2=0x%lx WMASK2=0x%lx TBASE2=0x%lx\n", __FUNCTION__, 
-+	printk("%s: WBASE2=0x%lx WMASK2=0x%lx TBASE2=0x%lx\n", __func__,
- 	       *(vulp)T2_WBASE2, *(vulp)T2_WMASK2, *(vulp)T2_TBASE2);
+ 	mask = CPU_REG(GPIO_C_VIRT,GPIO_STAT);
+ 	irq = IRQ_CHAINED_GPIOC(0);
+-	IRQDBG("%s mask: 0x%08x irq: %d\n",__FUNCTION__,mask,irq);
++	IRQDBG("%s mask: 0x%08x irq: %d\n", __func__, mask,irq);
+ 	h720x_gpio_handler(mask, irq, desc);
+ }
+ 
+@@ -155,7 +155,7 @@ h720x_gpiod_demux_handler(unsigned int i
+ 
+ 	mask = CPU_REG(GPIO_D_VIRT,GPIO_STAT);
+ 	irq = IRQ_CHAINED_GPIOD(0);
+-	IRQDBG("%s mask: 0x%08x irq: %d\n",__FUNCTION__,mask,irq);
++	IRQDBG("%s mask: 0x%08x irq: %d\n", __func__, mask,irq);
+ 	h720x_gpio_handler(mask, irq, desc);
+ }
+ 
+@@ -167,7 +167,7 @@ h720x_gpioe_demux_handler(unsigned int i
+ 
+ 	mask = CPU_REG(GPIO_E_VIRT,GPIO_STAT);
+ 	irq = IRQ_CHAINED_GPIOE(0);
+-	IRQDBG("%s mask: 0x%08x irq: %d\n",__FUNCTION__,mask,irq);
++	IRQDBG("%s mask: 0x%08x irq: %d\n", __func__, mask,irq);
+ 	h720x_gpio_handler(mask, irq, desc);
+ }
  #endif
+diff -puN arch/arm/mach-imx/dma.c~arm-replace-remaining-__function__-occurences arch/arm/mach-imx/dma.c
+--- a/arch/arm/mach-imx/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-imx/dma.c
+@@ -54,7 +54,7 @@ static inline int imx_dma_sg_next(imx_dm
  
-diff -puN arch/alpha/kernel/core_titan.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/core_titan.c
---- a/arch/alpha/kernel/core_titan.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/core_titan.c
-@@ -365,21 +365,21 @@ void __init
- titan_init_arch(void)
- {
- #if 0
--	printk("%s: titan_init_arch()\n", __FUNCTION__);
--	printk("%s: CChip registers:\n", __FUNCTION__);
--	printk("%s: CSR_CSC 0x%lx\n", __FUNCTION__, TITAN_cchip->csc.csr);
--	printk("%s: CSR_MTR 0x%lx\n", __FUNCTION__, TITAN_cchip->mtr.csr);
--	printk("%s: CSR_MISC 0x%lx\n", __FUNCTION__, TITAN_cchip->misc.csr);
--	printk("%s: CSR_DIM0 0x%lx\n", __FUNCTION__, TITAN_cchip->dim0.csr);
--	printk("%s: CSR_DIM1 0x%lx\n", __FUNCTION__, TITAN_cchip->dim1.csr);
--	printk("%s: CSR_DIR0 0x%lx\n", __FUNCTION__, TITAN_cchip->dir0.csr);
--	printk("%s: CSR_DIR1 0x%lx\n", __FUNCTION__, TITAN_cchip->dir1.csr);
--	printk("%s: CSR_DRIR 0x%lx\n", __FUNCTION__, TITAN_cchip->drir.csr);
--
--	printk("%s: DChip registers:\n", __FUNCTION__);
--	printk("%s: CSR_DSC 0x%lx\n", __FUNCTION__, TITAN_dchip->dsc.csr);
--	printk("%s: CSR_STR 0x%lx\n", __FUNCTION__, TITAN_dchip->str.csr);
--	printk("%s: CSR_DREV 0x%lx\n", __FUNCTION__, TITAN_dchip->drev.csr);
-+	printk("%s: titan_init_arch()\n", __func__);
-+	printk("%s: CChip registers:\n", __func__);
-+	printk("%s: CSR_CSC 0x%lx\n", __func__, TITAN_cchip->csc.csr);
-+	printk("%s: CSR_MTR 0x%lx\n", __func__, TITAN_cchip->mtr.csr);
-+	printk("%s: CSR_MISC 0x%lx\n", __func__, TITAN_cchip->misc.csr);
-+	printk("%s: CSR_DIM0 0x%lx\n", __func__, TITAN_cchip->dim0.csr);
-+	printk("%s: CSR_DIM1 0x%lx\n", __func__, TITAN_cchip->dim1.csr);
-+	printk("%s: CSR_DIR0 0x%lx\n", __func__, TITAN_cchip->dir0.csr);
-+	printk("%s: CSR_DIR1 0x%lx\n", __func__, TITAN_cchip->dir1.csr);
-+	printk("%s: CSR_DRIR 0x%lx\n", __func__, TITAN_cchip->drir.csr);
-+
-+	printk("%s: DChip registers:\n", __func__);
-+	printk("%s: CSR_DSC 0x%lx\n", __func__, TITAN_dchip->dsc.csr);
-+	printk("%s: CSR_STR 0x%lx\n", __func__, TITAN_dchip->str.csr);
-+	printk("%s: CSR_DREV 0x%lx\n", __func__, TITAN_dchip->drev.csr);
- #endif
- 
- 	boot_cpuid = __hard_smp_processor_id();
-@@ -700,13 +700,13 @@ titan_agp_translate(alpha_agp_info *agp,
- 
- 	if (addr < agp->aperture.bus_base ||
- 	    addr >= agp->aperture.bus_base + agp->aperture.size) {
--		printk("%s: addr out of range\n", __FUNCTION__);
-+		printk("%s: addr out of range\n", __func__);
- 		return -EINVAL;
+ 	if (!imxdma->name) {
+ 		printk(KERN_CRIT "%s: called for  not allocated channel %d\n",
+-		       __FUNCTION__, dma_ch);
++		       __func__, dma_ch);
+ 		return 0;
  	}
  
- 	pte = aper->arena->ptes[baddr >> PAGE_SHIFT];
- 	if (!(pte & 1)) {
--		printk("%s: pte not valid\n", __FUNCTION__);
-+		printk("%s: pte not valid\n", __func__);
- 		return -EINVAL;
- 	}
+@@ -288,7 +288,7 @@ imx_dma_setup_handlers(imx_dmach_t dma_c
  
-diff -puN arch/alpha/kernel/core_tsunami.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/core_tsunami.c
---- a/arch/alpha/kernel/core_tsunami.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/core_tsunami.c
-@@ -241,8 +241,6 @@ tsunami_probe_write(volatile unsigned lo
- #define tsunami_probe_read(ADDR) 1
- #endif /* NXM_MACHINE_CHECKS_ON_TSUNAMI */
- 
--#define FN __FUNCTION__
--
- static void __init
- tsunami_init_one_pchip(tsunami_pchip *pchip, int index)
- {
-@@ -383,27 +381,27 @@ tsunami_init_arch(void)
- 	/* NXMs just don't matter to Tsunami--unless they make it
- 	   choke completely. */
- 	tmp = (unsigned long)(TSUNAMI_cchip - 1);
--	printk("%s: probing bogus address:  0x%016lx\n", FN, bogus_addr);
-+	printk("%s: probing bogus address:  0x%016lx\n", __func__, bogus_addr);
- 	printk("\tprobe %s\n",
- 	       tsunami_probe_write((unsigned long *)bogus_addr)
- 	       ? "succeeded" : "failed");
- #endif /* NXM_MACHINE_CHECKS_ON_TSUNAMI */
- 
- #if 0
--	printk("%s: CChip registers:\n", FN);
--	printk("%s: CSR_CSC 0x%lx\n", FN, TSUNAMI_cchip->csc.csr);
--	printk("%s: CSR_MTR 0x%lx\n", FN, TSUNAMI_cchip.mtr.csr);
--	printk("%s: CSR_MISC 0x%lx\n", FN, TSUNAMI_cchip->misc.csr);
--	printk("%s: CSR_DIM0 0x%lx\n", FN, TSUNAMI_cchip->dim0.csr);
--	printk("%s: CSR_DIM1 0x%lx\n", FN, TSUNAMI_cchip->dim1.csr);
--	printk("%s: CSR_DIR0 0x%lx\n", FN, TSUNAMI_cchip->dir0.csr);
--	printk("%s: CSR_DIR1 0x%lx\n", FN, TSUNAMI_cchip->dir1.csr);
--	printk("%s: CSR_DRIR 0x%lx\n", FN, TSUNAMI_cchip->drir.csr);
-+	printk("%s: CChip registers:\n", __func__);
-+	printk("%s: CSR_CSC 0x%lx\n", __func__, TSUNAMI_cchip->csc.csr);
-+	printk("%s: CSR_MTR 0x%lx\n", __func__, TSUNAMI_cchip.mtr.csr);
-+	printk("%s: CSR_MISC 0x%lx\n", __func__, TSUNAMI_cchip->misc.csr);
-+	printk("%s: CSR_DIM0 0x%lx\n", __func__, TSUNAMI_cchip->dim0.csr);
-+	printk("%s: CSR_DIM1 0x%lx\n", __func__, TSUNAMI_cchip->dim1.csr);
-+	printk("%s: CSR_DIR0 0x%lx\n", __func__, TSUNAMI_cchip->dir0.csr);
-+	printk("%s: CSR_DIR1 0x%lx\n", __func__, TSUNAMI_cchip->dir1.csr);
-+	printk("%s: CSR_DRIR 0x%lx\n", __func__, TSUNAMI_cchip->drir.csr);
- 
- 	printk("%s: DChip registers:\n");
--	printk("%s: CSR_DSC 0x%lx\n", FN, TSUNAMI_dchip->dsc.csr);
--	printk("%s: CSR_STR 0x%lx\n", FN, TSUNAMI_dchip->str.csr);
--	printk("%s: CSR_DREV 0x%lx\n", FN, TSUNAMI_dchip->drev.csr);
-+	printk("%s: CSR_DSC 0x%lx\n", __func__, TSUNAMI_dchip->dsc.csr);
-+	printk("%s: CSR_STR 0x%lx\n", __func__, TSUNAMI_dchip->str.csr);
-+	printk("%s: CSR_DREV 0x%lx\n", __func__, TSUNAMI_dchip->drev.csr);
- #endif
- 	/* With multiple PCI busses, we play with I/O as physical addrs.  */
- 	ioport_resource.end = ~0UL;
-diff -puN arch/alpha/kernel/pci.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/pci.c
-@@ -220,7 +220,7 @@ pdev_save_srm_config(struct pci_dev *dev
- 
- 	tmp = kmalloc(sizeof(*tmp), GFP_KERNEL);
- 	if (!tmp) {
--		printk(KERN_ERR "%s: kmalloc() failed!\n", __FUNCTION__);
-+		printk(KERN_ERR "%s: kmalloc() failed!\n", __func__);
- 		return;
- 	}
- 	tmp->next = srm_saved_configs;
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -78,25 +78,21 @@ iommu_arena_new_node(int nid, struct pci
- 
- #ifdef CONFIG_DISCONTIGMEM
- 
--        if (!NODE_DATA(nid) ||
--            (NULL == (arena = alloc_bootmem_node(NODE_DATA(nid),
--                                                 sizeof(*arena))))) {
--                printk("%s: couldn't allocate arena from node %d\n"
--                       "    falling back to system-wide allocation\n",
--                       __FUNCTION__, nid);
--                arena = alloc_bootmem(sizeof(*arena));
--        }
--
--        if (!NODE_DATA(nid) ||
--            (NULL == (arena->ptes = __alloc_bootmem_node(NODE_DATA(nid),
--                                                         mem_size,
--                                                         align,
--                                                         0)))) {
--                printk("%s: couldn't allocate arena ptes from node %d\n"
--                       "    falling back to system-wide allocation\n",
--                       __FUNCTION__, nid);
--                arena->ptes = __alloc_bootmem(mem_size, align, 0);
--        }
-+	arena = alloc_bootmem_node(NODE_DATA(nid), sizeof(*arena));
-+	if (!NODE_DATA(nid) || !arena) {
-+		printk("%s: couldn't allocate arena from node %d\n"
-+		       "    falling back to system-wide allocation\n",
-+		       __func__, nid);
-+		arena = alloc_bootmem(sizeof(*arena));
-+	}
-+
-+	arena->ptes = __alloc_bootmem_node(NODE_DATA(nid), mem_size, align, 0);
-+	if (!NODE_DATA(nid) || !arena->ptes) {
-+		printk("%s: couldn't allocate arena ptes from node %d\n"
-+		       "    falling back to system-wide allocation\n",
-+		       __func__, nid);
-+		arena->ptes = __alloc_bootmem(mem_size, align, 0);
-+	}
- 
- #else /* CONFIG_DISCONTIGMEM */
- 
-diff -puN arch/alpha/kernel/smp.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/smp.c
---- a/arch/alpha/kernel/smp.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/smp.c
-@@ -755,7 +755,7 @@ smp_call_function_on_cpu (void (*func) (
- 	if (atomic_read(&data.unstarted_count) > 0) {
- 		long start_time = jiffies;
- 		printk(KERN_ERR "%s: initial timeout -- trying long wait\n",
--		       __FUNCTION__);
-+		       __func__);
- 		timeout = jiffies + 30 * HZ;
- 		while (atomic_read(&data.unstarted_count) > 0
- 		       && time_before(jiffies, timeout))
-@@ -764,7 +764,7 @@ smp_call_function_on_cpu (void (*func) (
- 			long delta = jiffies - start_time;
- 			printk(KERN_ERR 
- 			       "%s: response %ld.%ld seconds into long wait\n",
--			       __FUNCTION__, delta / HZ,
-+			       __func__, delta / HZ,
- 			       (100 * (delta - ((delta / HZ) * HZ))) / HZ);
- 		}
- 	}
-diff -puN arch/alpha/kernel/srm_env.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/srm_env.c
---- a/arch/alpha/kernel/srm_env.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/srm_env.c
-@@ -199,7 +199,7 @@ srm_env_init(void)
- 		printk(KERN_INFO "%s: This Alpha system doesn't "
- 				"know about SRM (or you've booted "
- 				"SRM->MILO->Linux, which gets "
--				"misdetected)...\n", __FUNCTION__);
-+				"misdetected)...\n", __func__);
+ 	if (!imxdma->name) {
+ 		printk(KERN_CRIT "%s: called for  not allocated channel %d\n",
+-		       __FUNCTION__, dma_ch);
++		       __func__, dma_ch);
  		return -ENODEV;
  	}
  
-diff -puN arch/alpha/kernel/sys_alcor.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/sys_alcor.c
---- a/arch/alpha/kernel/sys_alcor.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/sys_alcor.c
-@@ -259,7 +259,7 @@ alcor_init_pci(void)
- 	if (dev && dev->devfn == PCI_DEVFN(6,0)) {
- 		alpha_mv.sys.cia.gru_int_req_bits = XLT_GRU_INT_REQ_BITS; 
- 		printk(KERN_INFO "%s: Detected AS500 or XLT motherboard.\n",
--		       __FUNCTION__);
-+		       __func__);
- 	}
- 	pci_dev_put(dev);
- }
-diff -puN arch/alpha/kernel/sys_marvel.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/sys_marvel.c
---- a/arch/alpha/kernel/sys_marvel.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/sys_marvel.c
-@@ -80,7 +80,7 @@ io7_get_irq_ctl(unsigned int irq, struct
- 	if (!(io7 = marvel_find_io7(pid))) {
- 		printk(KERN_ERR 
- 		       "%s for nonexistent io7 -- vec %x, pid %d\n",
--		       __FUNCTION__, irq, pid);
-+		       __func__, irq, pid);
- 		return NULL;
- 	}
+@@ -321,7 +321,7 @@ void imx_dma_enable(imx_dmach_t dma_ch)
  
-@@ -90,7 +90,7 @@ io7_get_irq_ctl(unsigned int irq, struct
- 	if (irq >= 0x180) {
- 		printk(KERN_ERR 
- 		       "%s for invalid irq -- pid %d adjusted irq %x\n",
--		       __FUNCTION__, pid, irq);
-+		       __func__, pid, irq);
- 		return NULL;
- 	}
- 
-@@ -110,8 +110,8 @@ io7_enable_irq(unsigned int irq)
- 
- 	ctl = io7_get_irq_ctl(irq, &io7);
- 	if (!ctl || !io7) {
--		printk(KERN_ERR "%s: get_ctl failed for irq %x\n", 
--		       __FUNCTION__, irq);
-+		printk(KERN_ERR "%s: get_ctl failed for irq %x\n",
-+		       __func__, irq);
+ 	if (!imxdma->name) {
+ 		printk(KERN_CRIT "%s: called for  not allocated channel %d\n",
+-		       __FUNCTION__, dma_ch);
++		       __func__, dma_ch);
  		return;
  	}
- 		
-@@ -130,8 +130,8 @@ io7_disable_irq(unsigned int irq)
  
- 	ctl = io7_get_irq_ctl(irq, &io7);
- 	if (!ctl || !io7) {
--		printk(KERN_ERR "%s: get_ctl failed for irq %x\n", 
--		       __FUNCTION__, irq);
-+		printk(KERN_ERR "%s: get_ctl failed for irq %x\n",
-+		       __func__, irq);
+@@ -365,7 +365,7 @@ int imx_dma_request(imx_dmach_t dma_ch, 
+ 
+ 	if (dma_ch >= IMX_DMA_CHANNELS) {
+ 		printk(KERN_CRIT "%s: called for  non-existed channel %d\n",
+-		       __FUNCTION__, dma_ch);
++		       __func__, dma_ch);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -396,7 +396,7 @@ void imx_dma_free(imx_dmach_t dma_ch)
+ 	if (!imxdma->name) {
+ 		printk(KERN_CRIT
+ 		       "%s: trying to free channel %d which is already freed\n",
+-		       __FUNCTION__, dma_ch);
++		       __func__, dma_ch);
  		return;
  	}
- 		
-diff -puN arch/alpha/kernel/sys_sable.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/sys_sable.c
---- a/arch/alpha/kernel/sys_sable.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/sys_sable.c
-@@ -454,7 +454,7 @@ sable_lynx_enable_irq(unsigned int irq)
- 	spin_unlock(&sable_lynx_irq_lock);
- #if 0
- 	printk("%s: mask 0x%lx bit 0x%x irq 0x%x\n",
--	       __FUNCTION__, mask, bit, irq);
-+	       __func__, mask, bit, irq);
- #endif
- }
  
-@@ -470,7 +470,7 @@ sable_lynx_disable_irq(unsigned int irq)
- 	spin_unlock(&sable_lynx_irq_lock);
- #if 0
- 	printk("%s: mask 0x%lx bit 0x%x irq 0x%x\n",
--	       __FUNCTION__, mask, bit, irq);
-+	       __func__, mask, bit, irq);
- #endif
- }
+@@ -456,7 +456,7 @@ imx_dma_request_by_prio(imx_dmach_t * pd
+ 		}
+ 	}
  
-@@ -524,7 +524,7 @@ sable_lynx_srm_device_interrupt(unsigned
- 	irq = sable_lynx_irq_swizzle->mask_to_irq[bit];
- #if 0
- 	printk("%s: vector 0x%lx bit 0x%x irq 0x%x\n",
--	       __FUNCTION__, vector, bit, irq);
-+	       __func__, vector, bit, irq);
- #endif
- 	handle_irq(irq);
- }
-diff -puN arch/alpha/kernel/sys_sio.c~alpha-remove-remaining-__function__-occurences arch/alpha/kernel/sys_sio.c
---- a/arch/alpha/kernel/sys_sio.c~alpha-remove-remaining-__function__-occurences
-+++ a/arch/alpha/kernel/sys_sio.c
-@@ -89,7 +89,7 @@ sio_pci_route(void)
- 	/* First, ALWAYS read and print the original setting. */
- 	pci_bus_read_config_dword(pci_isa_hose->bus, PCI_DEVFN(7, 0), 0x60,
- 				  &orig_route_tab);
--	printk("%s: PIRQ original 0x%x new 0x%x\n", __FUNCTION__,
-+	printk("%s: PIRQ original 0x%x new 0x%x\n", __func__,
- 	       orig_route_tab, alpha_mv.sys.sio.route_tab);
+-	printk(KERN_ERR "%s: no free DMA channel found\n", __FUNCTION__);
++	printk(KERN_ERR "%s: no free DMA channel found\n", __func__);
  
- #if defined(ALPHA_RESTORE_SRM_SETUP)
-diff -puN drivers/video/i810/i810_main.c~alpha-remove-remaining-__function__-occurences drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~alpha-remove-remaining-__function__-occurences
-+++ a/drivers/video/i810/i810_main.c
-@@ -859,7 +859,7 @@ static void i810_init_cursor(struct i810
-  *                    Framebuffer hook helpers                       *
-  *********************************************************************/
- /**
-- * i810_round_off -  Round off values to capability of hardware
-+ * i810_clamp_res -  Clamp values to capability of hardware
-  * @var: pointer to fb_var_screeninfo structure
-  *
-  * DESCRIPTION:
-@@ -867,42 +867,28 @@ static void i810_init_cursor(struct i810
-  * This will try modify those values to ones nearest the
-  * capability of the hardware
-  */
--static void i810_round_off(struct fb_var_screeninfo *var)
-+static void i810_clamp_res(struct fb_var_screeninfo *var)
+ 	return -ENODEV;
+ }
+diff -puN arch/arm/mach-imx/irq.c~arm-replace-remaining-__function__-occurences arch/arm/mach-imx/irq.c
+--- a/arch/arm/mach-imx/irq.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-imx/irq.c
+@@ -160,21 +160,21 @@ imx_gpio_irq_type(unsigned int _irq, uns
+ static void
+ imx_gpio_ack_irq(unsigned int irq)
  {
- 	u32 xres, yres, vxres, vyres;
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, irq);
+ 	ISR(IRQ_TO_REG(irq)) = 1 << ((irq - IRQ_GPIOA(0)) % 32);
+ }
  
--	/*
--	 *  Presently supports only these configurations 
--	 */
--
- 	xres = var->xres;
- 	yres = var->yres;
- 	vxres = var->xres_virtual;
- 	vyres = var->yres_virtual;
+ static void
+ imx_gpio_mask_irq(unsigned int irq)
+ {
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, irq);
+ 	IMR(IRQ_TO_REG(irq)) &= ~( 1 << ((irq - IRQ_GPIOA(0)) % 32));
+ }
  
--	var->bits_per_pixel += 7;
--	var->bits_per_pixel &= ~7;
--	
--	if (var->bits_per_pixel < 8)
--		var->bits_per_pixel = 8;
--	if (var->bits_per_pixel > 32) 
--		var->bits_per_pixel = 32;
-+	var->bits_per_pixel = (var->bits_per_pixel + 7) & ~7;
-+	var->bits_per_pixel = clamp(var->bits_per_pixel, 8, 32);
+ static void
+ imx_gpio_unmask_irq(unsigned int irq)
+ {
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, irq);
+ 	IMR(IRQ_TO_REG(irq)) |= 1 << ((irq - IRQ_GPIOA(0)) % 32);
+ }
  
- 	round_off_xres(&xres);
--	if (xres < 40)
--		xres = 40;
--	if (xres > 2048) 
--		xres = 2048;
- 	xres = (xres + 7) & ~7;
-+	xres = clamp(xres, 40, 2048);
-+
+diff -puN arch/arm/mach-iop13xx/iq81340mc.c~arm-replace-remaining-__function__-occurences arch/arm/mach-iop13xx/iq81340mc.c
+--- a/arch/arm/mach-iop13xx/iq81340mc.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-iop13xx/iq81340mc.c
+@@ -81,7 +81,7 @@ static void __init iq81340mc_init(void)
+ static void __init iq81340mc_timer_init(void)
+ {
+ 	unsigned long bus_freq = iop13xx_core_freq() / iop13xx_xsi_bus_ratio();
+-	printk(KERN_DEBUG "%s: bus frequency: %lu\n", __FUNCTION__, bus_freq);
++	printk(KERN_DEBUG "%s: bus frequency: %lu\n", __func__, bus_freq);
+ 	iop_init_time(bus_freq);
+ }
  
- 	if (vxres < xres) 
- 		vxres = xres;
+diff -puN arch/arm/mach-iop13xx/iq81340sc.c~arm-replace-remaining-__function__-occurences arch/arm/mach-iop13xx/iq81340sc.c
+--- a/arch/arm/mach-iop13xx/iq81340sc.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-iop13xx/iq81340sc.c
+@@ -83,7 +83,7 @@ static void __init iq81340sc_init(void)
+ static void __init iq81340sc_timer_init(void)
+ {
+ 	unsigned long bus_freq = iop13xx_core_freq() / iop13xx_xsi_bus_ratio();
+-	printk(KERN_DEBUG "%s: bus frequency: %lu\n", __FUNCTION__, bus_freq);
++	printk(KERN_DEBUG "%s: bus frequency: %lu\n", __func__, bus_freq);
+ 	iop_init_time(bus_freq);
+ }
  
- 	round_off_yres(&xres, &yres);
--	if (yres < 1)
--		yres = 1;
--	if (yres >= 2048)
--		yres = 2048;
-+	yres = clamp(yres, 1, 2048);
+diff -puN arch/arm/mach-iop13xx/pci.c~arm-replace-remaining-__function__-occurences arch/arm/mach-iop13xx/pci.c
+--- a/arch/arm/mach-iop13xx/pci.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-iop13xx/pci.c
+@@ -94,13 +94,13 @@ void iop13xx_map_pci_memory(void)
+ 					, 0, iop13xx_atux_mem_size, MT_DEVICE);
+ 					if (!iop13xx_atux_mem_base) {
+ 						printk("%s: atux allocation "
+-						       "failed\n", __FUNCTION__);
++						       "failed\n", __func__);
+ 						BUG();
+ 					}
+ 				} else
+ 					iop13xx_atux_mem_size = 0;
+ 				PRINTK("%s: atu: %d bus_size: %d mem_base: %x\n",
+-				__FUNCTION__, atu, iop13xx_atux_mem_size,
++				__func__, atu, iop13xx_atux_mem_size,
+ 				iop13xx_atux_mem_base);
+ 				break;
+ 			case 1:
+@@ -120,13 +120,13 @@ void iop13xx_map_pci_memory(void)
+ 					, 0, iop13xx_atue_mem_size, MT_DEVICE);
+ 					if (!iop13xx_atue_mem_base) {
+ 						printk("%s: atue allocation "
+-						       "failed\n", __FUNCTION__);
++						       "failed\n", __func__);
+ 						BUG();
+ 					}
+ 				} else
+ 					iop13xx_atue_mem_size = 0;
+ 				PRINTK("%s: atu: %d bus_size: %d mem_base: %x\n",
+-				__FUNCTION__, atu, iop13xx_atue_mem_size,
++				__func__, atu, iop13xx_atue_mem_size,
+ 				iop13xx_atue_mem_base);
+ 				break;
+ 			}
+diff -puN arch/arm/mach-iop13xx/setup.c~arm-replace-remaining-__function__-occurences arch/arm/mach-iop13xx/setup.c
+--- a/arch/arm/mach-iop13xx/setup.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-iop13xx/setup.c
+@@ -519,7 +519,7 @@ void __init iop13xx_platform_init(void)
+ 	if (iq8134x_flash_resource.end > iq8134x_flash_resource.start)
+ 		iop13xx_devices[plat_idx++] = &iq8134x_flash;
+ 	else
+-		printk(KERN_ERR "%s: Failed to probe flash size\n", __FUNCTION__);
++		printk(KERN_ERR "%s: Failed to probe flash size\n", __func__);
+ #endif
  
- 	if (vyres < yres) 
- 		vyres = yres;
-@@ -920,12 +906,12 @@ static void i810_round_off(struct fb_var
- 		       var->lower_margin) & 1))
- 			var->upper_margin++;
+ 	platform_add_devices(iop13xx_devices, plat_idx);
+diff -puN arch/arm/mach-ixp4xx/common-pci.c~arm-replace-remaining-__function__-occurences arch/arm/mach-ixp4xx/common-pci.c
+--- a/arch/arm/mach-ixp4xx/common-pci.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-ixp4xx/common-pci.c
+@@ -87,7 +87,7 @@ static inline int check_master_abort(voi
+ 	if (isr & PCI_ISR_PFE) {
+ 		/* make sure the Master Abort bit is reset */    
+ 		*PCI_ISR = PCI_ISR_PFE;
+-		pr_debug("%s failed\n", __FUNCTION__);
++		pr_debug("%s failed\n", __func__);
+ 		return 1;
  	}
--	
-+
- 	var->xres = xres;
- 	var->yres = yres;
- 	var->xres_virtual = vxres;
- 	var->yres_virtual = vyres;
--}	
-+}
  
- /**
-  * set_color_bitfields - sets rgba fields
+diff -puN arch/arm/mach-ixp4xx/gtwx5715-pci.c~arm-replace-remaining-__function__-occurences arch/arm/mach-ixp4xx/gtwx5715-pci.c
+--- a/arch/arm/mach-ixp4xx/gtwx5715-pci.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-ixp4xx/gtwx5715-pci.c
+@@ -65,7 +65,7 @@ static int __init gtwx5715_map_irq(struc
+ 	else
+ 		rc = gtwx5715_irqmap[slot][pin-1];
+ 
+-	printk("%s: Mapped slot %d pin %d to IRQ %d\n", __FUNCTION__,slot, pin, rc);
++	printk("%s: Mapped slot %d pin %d to IRQ %d\n", __func__, slot, pin, rc);
+ 	return(rc);
+ }
+ 
+diff -puN arch/arm/mach-netx/generic.c~arm-replace-remaining-__function__-occurences arch/arm/mach-netx/generic.c
+--- a/arch/arm/mach-netx/generic.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-netx/generic.c
+@@ -133,7 +133,7 @@ netx_hif_ack_irq(unsigned int _irq)
+ 	val &= ~((1 << 24) << irq);
+ 	writel(val, NETX_DPMAS_INT_EN);
+ 
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, _irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, _irq);
+ }
+ 
+ static void
+@@ -145,7 +145,7 @@ netx_hif_mask_irq(unsigned int _irq)
+ 	val = readl(NETX_DPMAS_INT_EN);
+ 	val &= ~((1 << 24) << irq);
+ 	writel(val, NETX_DPMAS_INT_EN);
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, _irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, _irq);
+ }
+ 
+ static void
+@@ -157,7 +157,7 @@ netx_hif_unmask_irq(unsigned int _irq)
+ 	val = readl(NETX_DPMAS_INT_EN);
+ 	val |= (1 << 24) << irq;
+ 	writel(val, NETX_DPMAS_INT_EN);
+-	DEBUG_IRQ("%s: irq %d\n", __FUNCTION__, _irq);
++	DEBUG_IRQ("%s: irq %d\n", __func__, _irq);
+ }
+ 
+ static struct irq_chip netx_hif_chip = {
+diff -puN arch/arm/mach-orion/gpio.c~arm-replace-remaining-__function__-occurences arch/arm/mach-orion/gpio.c
+--- a/arch/arm/mach-orion/gpio.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-orion/gpio.c
+@@ -36,7 +36,7 @@ int gpio_direction_input(unsigned pin)
+ 	unsigned long flags;
+ 
+ 	if (pin >= GPIO_MAX || !test_bit(pin, gpio_valid)) {
+-		pr_debug("%s: invalid GPIO %d\n", __FUNCTION__, pin);
++		pr_debug("%s: invalid GPIO %d\n", __func__, pin);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -62,7 +62,7 @@ int gpio_direction_output(unsigned pin, 
+ 	int mask;
+ 
+ 	if (pin >= GPIO_MAX || !test_bit(pin, gpio_valid)) {
+-		pr_debug("%s: invalid GPIO %d\n", __FUNCTION__, pin);
++		pr_debug("%s: invalid GPIO %d\n", __func__, pin);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -141,7 +141,7 @@ int gpio_request(unsigned pin, const cha
+ 	unsigned long flags;
+ 
+ 	if (pin >= GPIO_MAX || !test_bit(pin, gpio_valid)) {
+-		pr_debug("%s: invalid GPIO %d\n", __FUNCTION__, pin);
++		pr_debug("%s: invalid GPIO %d\n", __func__, pin);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -149,7 +149,7 @@ int gpio_request(unsigned pin, const cha
+ 
+ 	if (gpio_label[pin]) {
+ 		pr_debug("%s: GPIO %d already used as %s\n",
+-			 __FUNCTION__, pin, gpio_label[pin]);
++			 __func__, pin, gpio_label[pin]);
+ 		ret = -EBUSY;
+ 	} else
+ 		gpio_label[pin] = label ? label : "?";
+@@ -162,12 +162,12 @@ EXPORT_SYMBOL(gpio_request);
+ void gpio_free(unsigned pin)
+ {
+ 	if (pin >= GPIO_MAX || !test_bit(pin, gpio_valid)) {
+-		pr_debug("%s: invalid GPIO %d\n", __FUNCTION__, pin);
++		pr_debug("%s: invalid GPIO %d\n", __func__, pin);
+ 		return;
+ 	}
+ 
+ 	if (!gpio_label[pin])
+-		pr_warning("%s: GPIO %d already freed\n", __FUNCTION__, pin);
++		pr_warning("%s: GPIO %d already freed\n", __func__, pin);
+ 	else
+ 		gpio_label[pin] = NULL;
+ }
+diff -puN arch/arm/mach-pnx4008/clock.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pnx4008/clock.c
+--- a/arch/arm/mach-pnx4008/clock.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pnx4008/clock.c
+@@ -976,7 +976,7 @@ static int __init clk_init(void)
+ 				(*clkp)->set_parent((*clkp), (*clkp)->parent);
+ 		}
+ 		pr_debug("%s: clock %s, rate %ld\n",
+-			__FUNCTION__, (*clkp)->name, (*clkp)->rate);
++			__func__, (*clkp)->name, (*clkp)->rate);
+ 	}
+ 
+ 	local_clk_use(&ck_pll4);
+diff -puN arch/arm/mach-pnx4008/dma.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pnx4008/dma.c
+--- a/arch/arm/mach-pnx4008/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pnx4008/dma.c
+@@ -192,7 +192,7 @@ void pnx4008_free_channel(int ch)
+ 	if (!dma_channels[ch].name) {
+ 		printk(KERN_CRIT
+ 		       "%s: trying to free channel %d which is already freed\n",
+-		       __FUNCTION__, ch);
++		       __func__, ch);
+ 		return;
+ 	}
+ 
+diff -puN arch/arm/mach-pxa/cm-x270-pci.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/cm-x270-pci.c
+--- a/arch/arm/mach-pxa/cm-x270-pci.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/cm-x270-pci.c
+@@ -104,7 +104,7 @@ static int __init cmx270_pci_map_irq(str
+ {
+ 	int irq;
+ 
+-	dev_dbg(&dev->dev, "%s: slot=%x, pin=%x\n", __FUNCTION__, slot, pin);
++	dev_dbg(&dev->dev, "%s: slot=%x, pin=%x\n", __func__, slot, pin);
+ 
+ 	irq = it8152_pci_map_irq(dev, slot, pin);
+ 	if (irq)
+diff -puN arch/arm/mach-pxa/cm-x270.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/cm-x270.c
+--- a/arch/arm/mach-pxa/cm-x270.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/cm-x270.c
+@@ -504,11 +504,11 @@ static void cmx270_mci_setpower(struct d
+ 	struct pxamci_platform_data *p_d = dev->platform_data;
+ 
+ 	if ((1 << vdd) & p_d->ocr_mask) {
+-		printk(KERN_DEBUG "%s: on\n", __FUNCTION__);
++		printk(KERN_DEBUG "%s: on\n", __func__);
+ 		GPCR(105) = GPIO_bit(105);
+ 	} else {
+ 		GPSR(105) = GPIO_bit(105);
+-		printk(KERN_DEBUG "%s: off\n", __FUNCTION__);
++		printk(KERN_DEBUG "%s: off\n", __func__);
+ 	}
+ }
+ 
+diff -puN arch/arm/mach-pxa/dma.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/dma.c
+--- a/arch/arm/mach-pxa/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/dma.c
+@@ -81,7 +81,7 @@ void pxa_free_dma (int dma_ch)
+ 	if (!dma_channels[dma_ch].name) {
+ 		printk (KERN_CRIT
+ 			"%s: trying to free channel %d which is already freed\n",
+-			__FUNCTION__, dma_ch);
++			__func__, dma_ch);
+ 		return;
+ 	}
+ 
+diff -puN arch/arm/mach-pxa/em-x270.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/em-x270.c
+--- a/arch/arm/mach-pxa/em-x270.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/em-x270.c
+@@ -264,7 +264,7 @@ static int em_x270_mci_init(struct devic
+ 			  "MMC card detect", data);
+ 	if (err) {
+ 		printk(KERN_ERR "%s: can't request MMC card detect IRQ: %d\n",
+-		       __FUNCTION__, err);
++		       __func__, err);
+ 		return err;
+ 	}
+ 
+diff -puN arch/arm/mach-pxa/mainstone.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/mainstone.c
+--- a/arch/arm/mach-pxa/mainstone.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/mainstone.c
+@@ -390,11 +390,11 @@ static void mainstone_mci_setpower(struc
+ 	struct pxamci_platform_data* p_d = dev->platform_data;
+ 
+ 	if (( 1 << vdd) & p_d->ocr_mask) {
+-		printk(KERN_DEBUG "%s: on\n", __FUNCTION__);
++		printk(KERN_DEBUG "%s: on\n", __func__);
+ 		MST_MSCWR1 |= MST_MSCWR1_MMC_ON;
+ 		MST_MSCWR1 &= ~MST_MSCWR1_MS_SEL;
+ 	} else {
+-		printk(KERN_DEBUG "%s: off\n", __FUNCTION__);
++		printk(KERN_DEBUG "%s: off\n", __func__);
+ 		MST_MSCWR1 &= ~MST_MSCWR1_MMC_ON;
+ 	}
+ }
+diff -puN arch/arm/mach-pxa/trizeps4.c~arm-replace-remaining-__function__-occurences arch/arm/mach-pxa/trizeps4.c
+--- a/arch/arm/mach-pxa/trizeps4.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-pxa/trizeps4.c
+@@ -217,7 +217,7 @@ void board_pcmcia_power(int power)
+ 		ConXS_BCR = trizeps_conxs_bcr;
+ 
+ 	}
+-	pr_debug("%s: o%s 0x%x\n", __FUNCTION__, power ? "n": "ff", trizeps_conxs_bcr);
++	pr_debug("%s: o%s 0x%x\n", __func__, power ? "n": "ff", trizeps_conxs_bcr);
+ }
+ 
+ /* backlight power switching for LCD panel */
+@@ -228,7 +228,7 @@ static void board_backlight_power(int on
+ 	} else {
+ 		trizeps_conxs_bcr &= ~ConXS_BCR_L_DISP;
+ 	}
+-	pr_debug("%s: o%s 0x%x\n", __FUNCTION__, on ? "n" : "ff", trizeps_conxs_bcr);
++	pr_debug("%s: o%s 0x%x\n", __func__, on ? "n" : "ff", trizeps_conxs_bcr);
+ 	ConXS_BCR = trizeps_conxs_bcr;
+ }
+ 
+@@ -238,10 +238,10 @@ static void board_mci_power(struct devic
+ 	struct pxamci_platform_data* p_d = dev->platform_data;
+ 
+ 	if (( 1 << vdd) & p_d->ocr_mask) {
+-		pr_debug("%s: on\n", __FUNCTION__);
++		pr_debug("%s: on\n", __func__);
+ 		/* FIXME fill in values here */
+ 	} else {
+-		pr_debug("%s: off\n", __FUNCTION__);
++		pr_debug("%s: off\n", __func__);
+ 		/* FIXME fill in values here */
+ 	}
+ }
+diff -puN arch/arm/mach-sa1100/badge4.c~arm-replace-remaining-__function__-occurences arch/arm/mach-sa1100/badge4.c
+--- a/arch/arm/mach-sa1100/badge4.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-sa1100/badge4.c
+@@ -206,7 +206,7 @@ static int __init badge4_init(void)
+ 	if (ret < 0)
+ 		printk(KERN_ERR
+ 		       "%s: SA-1111 initialization failed (%d)\n",
+-		       __FUNCTION__, ret);
++		       __func__, ret);
+ 
+ 
+ 	/* maybe turn on 5v0 from the start */
+@@ -240,11 +240,11 @@ void badge4_set_5V(unsigned subsystem, i
+ 	/* detect on->off and off->on transitions */
+ 	if ((!old_5V_bitmap) && (badge4_5V_bitmap)) {
+ 		/* was off, now on */
+-		printk(KERN_INFO "%s: enabling 5V supply rail\n", __FUNCTION__);
++		printk(KERN_INFO "%s: enabling 5V supply rail\n", __func__);
+ 		GPSR = BADGE4_GPIO_PCMEN5V;
+ 	} else if ((old_5V_bitmap) && (!badge4_5V_bitmap)) {
+ 		/* was on, now off */
+-		printk(KERN_INFO "%s: disabling 5V supply rail\n", __FUNCTION__);
++		printk(KERN_INFO "%s: disabling 5V supply rail\n", __func__);
+ 		GPCR = BADGE4_GPIO_PCMEN5V;
+ 	}
+ 
+diff -puN arch/arm/mach-sa1100/cpu-sa1100.c~arm-replace-remaining-__function__-occurences arch/arm/mach-sa1100/cpu-sa1100.c
+--- a/arch/arm/mach-sa1100/cpu-sa1100.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-sa1100/cpu-sa1100.c
+@@ -139,7 +139,7 @@ static void sa1100_update_dram_timings(i
+ 
+ 	if (settings->speed == 0) {
+ 		panic("%s: couldn't find dram setting for speed %d\n",
+-		      __FUNCTION__, new_speed);
++		      __func__, new_speed);
+ 	}
+ 
+ 	/* No risk, no fun: run with interrupts on! */
+diff -puN arch/arm/mach-sa1100/dma.c~arm-replace-remaining-__function__-occurences arch/arm/mach-sa1100/dma.c
+--- a/arch/arm/mach-sa1100/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-sa1100/dma.c
+@@ -129,7 +129,7 @@ int sa1100_request_dma (dma_device_t dev
+ 	if (err) {
+ 		printk(KERN_ERR
+ 		       "%s: unable to request IRQ %d for %s\n",
+-		       __FUNCTION__, IRQ_DMA0 + i, device_id);
++		       __func__, IRQ_DMA0 + i, device_id);
+ 		dma->device = 0;
+ 		return err;
+ 	}
+@@ -165,12 +165,12 @@ void sa1100_free_dma(dma_regs_t *regs)
+ 		if (regs == (dma_regs_t *)&DDAR(i))
+ 			break;
+ 	if (i >= SA1100_DMA_CHANNELS) {
+-		printk(KERN_ERR "%s: bad DMA identifier\n", __FUNCTION__);
++		printk(KERN_ERR "%s: bad DMA identifier\n", __func__);
+ 		return;
+ 	}
+ 
+ 	if (!dma_chan[i].device) {
+-		printk(KERN_ERR "%s: Trying to free free DMA\n", __FUNCTION__);
++		printk(KERN_ERR "%s: Trying to free free DMA\n", __func__);
+ 		return;
+ 	}
+ 
+@@ -329,7 +329,7 @@ void sa1100_reset_dma(dma_regs_t *regs)
+ 		if (regs == (dma_regs_t *)&DDAR(i))
+ 			break;
+ 	if (i >= SA1100_DMA_CHANNELS) {
+-		printk(KERN_ERR "%s: bad DMA identifier\n", __FUNCTION__);
++		printk(KERN_ERR "%s: bad DMA identifier\n", __func__);
+ 		return;
+ 	}
+ 
+diff -puN arch/arm/mach-sa1100/h3600.c~arm-replace-remaining-__function__-occurences arch/arm/mach-sa1100/h3600.c
+--- a/arch/arm/mach-sa1100/h3600.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/mach-sa1100/h3600.c
+@@ -596,7 +596,7 @@ static void h3800_control_egpio(enum ipa
+ 	case IPAQ_EGPIO_CODEC_NRESET:
+ 	case IPAQ_EGPIO_AUDIO_ON:
+ 	case IPAQ_EGPIO_QMUTE:
+-		printk("%s: error - should not be called\n", __FUNCTION__);
++		printk("%s: error - should not be called\n", __func__);
+ 		break;
+ 	case IPAQ_EGPIO_OPT_NVRAM_ON:
+ 		SET_ASIC2(GPIO2_OPT_ON_NVRAM);
+@@ -638,7 +638,7 @@ static int h3800_pm_callback(int req)
+ 	static u16 asic2_data;
+ 	int result = 0;
+ 
+-	printk("%s %d\n", __FUNCTION__, req);
++	printk("%s %d\n", __func__, req);
+ 
+ 	switch (req) {
+ 	case PM_RESUME:
+@@ -666,7 +666,7 @@ static int h3800_pm_callback(int req)
+ 		asic2_data = H3800_ASIC2_GPIOPIOD;
+ 		break;
+ 	default:
+-		printk("%s: unrecognized PM callback\n", __FUNCTION__);
++		printk("%s: unrecognized PM callback\n", __func__);
+ 		break;
+ 	}
+ 	return result;
+@@ -706,7 +706,7 @@ static void h3800_IRQ_demux(unsigned int
+ {
+ 	int i;
+ 
+-	if (0) printk("%s: interrupt received\n", __FUNCTION__);
++	if (0) printk("%s: interrupt received\n", __func__);
+ 
+ 	desc->chip->ack(irq);
+ 
+@@ -716,21 +716,21 @@ static void h3800_IRQ_demux(unsigned int
+ 
+ 		/* KPIO */
+ 		irq = H3800_ASIC2_KPIINTFLAG;
+-		if (0) printk("%s KPIO 0x%08X\n", __FUNCTION__, irq);
++		if (0) printk("%s KPIO 0x%08X\n", __func__, irq);
+ 		for (j = 0; j < H3800_KPIO_IRQ_COUNT; j++)
+ 			if (irq & kpio_irq_mask[j])
+ 				handle_edge_irq(H3800_KPIO_IRQ_COUNT + j, irq_desc + H3800_KPIO_IRQ_COUNT + j);
+ 
+ 		/* GPIO2 */
+ 		irq = H3800_ASIC2_GPIINTFLAG;
+-		if (0) printk("%s GPIO 0x%08X\n", __FUNCTION__, irq);
++		if (0) printk("%s GPIO 0x%08X\n", __func__, irq);
+ 		for (j = 0; j < H3800_GPIO_IRQ_COUNT; j++)
+ 			if (irq & gpio_irq_mask[j])
+ 				handle_edge_irq(H3800_GPIO_IRQ_COUNT + j, irq_desc + H3800_GPIO_IRQ_COUNT + j);
+ 	}
+ 
+ 	if (i >= MAX_ASIC_ISR_LOOPS)
+-		printk("%s: interrupt processing overrun\n", __FUNCTION__);
++		printk("%s: interrupt processing overrun\n", __func__);
+ 
+ 	/* For level-based interrupts */
+ 	desc->chip->unmask(irq);
+diff -puN arch/arm/plat-iop/pci.c~arm-replace-remaining-__function__-occurences arch/arm/plat-iop/pci.c
+--- a/arch/arm/plat-iop/pci.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/plat-iop/pci.c
+@@ -371,7 +371,7 @@ static int __init iop3xx_init_atu_setup(
+ 			default:
+ 				printk(KERN_DEBUG "\"%s\" malformed at "
+ 					    "character: \'%c\'",
+-					    __FUNCTION__,
++					    __func__,
+ 					    *str);
+ 				*(str + 1) = '\0';
+ 			}
+diff -puN arch/arm/plat-omap/dma.c~arm-replace-remaining-__function__-occurences arch/arm/plat-omap/dma.c
+--- a/arch/arm/plat-omap/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/plat-omap/dma.c
+@@ -137,7 +137,7 @@ static void omap_disable_channel_irq(int
+ static inline void omap_enable_channel_irq(int lch);
+ 
+ #define REVISIT_24XX()		printk(KERN_ERR "FIXME: no %s on 24xx\n", \
+-						__FUNCTION__);
++						__func__);
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+ /* Returns 1 if the DMA module is in OMAP1510-compatible mode, 0 otherwise */
+@@ -699,7 +699,7 @@ omap_dma_set_global_params(int arb_rate,
+ 	u32 reg;
+ 
+ 	if (!cpu_class_is_omap2()) {
+-		printk(KERN_ERR "FIXME: no %s on 15xx/16xx\n", __FUNCTION__);
++		printk(KERN_ERR "FIXME: no %s on 15xx/16xx\n", __func__);
+ 		return;
+ 	}
+ 
+diff -puN arch/arm/plat-omap/dmtimer.c~arm-replace-remaining-__function__-occurences arch/arm/plat-omap/dmtimer.c
+--- a/arch/arm/plat-omap/dmtimer.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/plat-omap/dmtimer.c
+@@ -268,7 +268,7 @@ struct omap_dm_timer *omap_dm_timer_requ
+ 	if (id <= 0 || id > dm_timer_count || dm_timers[id-1].reserved) {
+ 		spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 		printk("BUG: warning at %s:%d/%s(): unable to get timer %d\n",
+-		       __FILE__, __LINE__, __FUNCTION__, id);
++		       __FILE__, __LINE__, __func__, id);
+ 		dump_stack();
+ 		return NULL;
+ 	}
+diff -puN arch/arm/plat-s3c24xx/dma.c~arm-replace-remaining-__function__-occurences arch/arm/plat-s3c24xx/dma.c
+--- a/arch/arm/plat-s3c24xx/dma.c~arm-replace-remaining-__function__-occurences
++++ a/arch/arm/plat-s3c24xx/dma.c
+@@ -130,8 +130,8 @@ dmadbg_showregs(const char *fname, int l
+ 	dmadbg_dumpregs(fname, line, chan, &state);
+ }
+ 
+-#define dbg_showregs(chan) dmadbg_showregs(__FUNCTION__, __LINE__, (chan))
+-#define dbg_showchan(chan) dmadbg_showchan(__FUNCTION__, __LINE__, (chan))
++#define dbg_showregs(chan) dmadbg_showregs(__func__, __LINE__, (chan))
++#define dbg_showchan(chan) dmadbg_showchan(__func__, __LINE__, (chan))
+ #else
+ #define dbg_showregs(chan) do { } while(0)
+ #define dbg_showchan(chan) do { } while(0)
+@@ -403,7 +403,7 @@ static int s3c2410_dma_start(struct s3c2
+ 
+ 			if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
+ 				pr_debug("%s: buff not yet loaded, no more todo\n",
+-					 __FUNCTION__);
++					 __func__);
+ 			} else {
+ 				chan->load_state = S3C2410_DMALOAD_1RUNNING;
+ 				s3c2410_dma_loadbuffer(chan, chan->next);
+@@ -463,16 +463,16 @@ int s3c2410_dma_enqueue(unsigned int cha
+ 		return -EINVAL;
+ 
+ 	pr_debug("%s: id=%p, data=%08x, size=%d\n",
+-		 __FUNCTION__, id, (unsigned int)data, size);
++		 __func__, id, (unsigned int)data, size);
+ 
+ 	buf = kmem_cache_alloc(dma_kmem, GFP_ATOMIC);
+ 	if (buf == NULL) {
+ 		pr_debug("%s: out of memory (%ld alloc)\n",
+-			 __FUNCTION__, (long)sizeof(*buf));
++			 __func__, (long)sizeof(*buf));
+ 		return -ENOMEM;
+ 	}
+ 
+-	//pr_debug("%s: new buffer %p\n", __FUNCTION__, buf);
++	//pr_debug("%s: new buffer %p\n", __func__, buf);
+ 	//dbg_showchan(chan);
+ 
+ 	buf->next  = NULL;
+@@ -486,18 +486,18 @@ int s3c2410_dma_enqueue(unsigned int cha
+ 	if (chan->curr == NULL) {
+ 		/* we've got nothing loaded... */
+ 		pr_debug("%s: buffer %p queued onto empty channel\n",
+-			 __FUNCTION__, buf);
++			 __func__, buf);
+ 
+ 		chan->curr = buf;
+ 		chan->end  = buf;
+ 		chan->next = NULL;
+ 	} else {
+ 		pr_debug("dma%d: %s: buffer %p queued onto non-empty channel\n",
+-			 chan->number, __FUNCTION__, buf);
++			 chan->number, __func__, buf);
+ 
+ 		if (chan->end == NULL)
+ 			pr_debug("dma%d: %s: %p not empty, and chan->end==NULL?\n",
+-				 chan->number, __FUNCTION__, chan);
++				 chan->number, __func__, chan);
+ 
+ 		chan->end->next = buf;
+ 		chan->end = buf;
+@@ -572,7 +572,7 @@ s3c2410_dma_lastxfer(struct s3c2410_dma_
+ 		if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
+ 				/* flag error? */
+ 			printk(KERN_ERR "dma%d: timeout waiting for load (%s)\n",
+-			       chan->number, __FUNCTION__);
++			       chan->number, __func__);
+ 			return;
+ 		}
+ 		break;
+@@ -658,7 +658,7 @@ s3c2410_dma_irq(int irq, void *devpw)
+ 
+ 		if (buf->magic != BUF_MAGIC) {
+ 			printk(KERN_ERR "dma%d: %s: buf %p incorrect magic\n",
+-			       chan->number, __FUNCTION__, buf);
++			       chan->number, __func__, buf);
+ 			return IRQ_HANDLED;
+ 		}
+ 
+@@ -692,7 +692,7 @@ s3c2410_dma_irq(int irq, void *devpw)
+ 			if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
+ 				/* flag error? */
+ 				printk(KERN_ERR "dma%d: timeout waiting for load (%s)\n",
+-				       chan->number, __FUNCTION__);
++				       chan->number, __func__);
+ 				return IRQ_HANDLED;
+ 			}
+ 
+@@ -759,7 +759,7 @@ int s3c2410_dma_request(unsigned int cha
+ 
+ 	if (!chan->irq_claimed) {
+ 		pr_debug("dma%d: %s : requesting irq %d\n",
+-			 channel, __FUNCTION__, chan->irq);
++			 channel, __func__, chan->irq);
+ 
+ 		chan->irq_claimed = 1;
+ 		local_irq_restore(flags);
+@@ -786,7 +786,7 @@ int s3c2410_dma_request(unsigned int cha
+ 
+ 	/* need to setup */
+ 
+-	pr_debug("%s: channel initialised, %p\n", __FUNCTION__, chan);
++	pr_debug("%s: channel initialised, %p\n", __func__, chan);
+ 
+ 	return chan->number | DMACH_LOW_LEVEL;
+ }
+@@ -823,7 +823,7 @@ int s3c2410_dma_free(dmach_t channel, st
+ 
+ 	if (chan->state != S3C2410_DMA_IDLE) {
+ 		pr_debug("%s: need to stop dma channel %p\n",
+-		       __FUNCTION__, chan);
++		       __func__, chan);
+ 
+ 		/* possibly flush the channel */
+ 		s3c2410_dma_ctrl(channel, S3C2410_DMAOP_STOP);
+@@ -852,7 +852,7 @@ static int s3c2410_dma_dostop(struct s3c
+ 	unsigned long flags;
+ 	unsigned long tmp;
+ 
+-	pr_debug("%s:\n", __FUNCTION__);
++	pr_debug("%s:\n", __func__);
+ 
+ 	dbg_showchan(chan);
+ 
+@@ -907,14 +907,14 @@ static int s3c2410_dma_flush(struct s3c2
+ 	struct s3c2410_dma_buf *buf, *next;
+ 	unsigned long flags;
+ 
+-	pr_debug("%s: chan %p (%d)\n", __FUNCTION__, chan, chan->number);
++	pr_debug("%s: chan %p (%d)\n", __func__, chan, chan->number);
+ 
+ 	dbg_showchan(chan);
+ 
+ 	local_irq_save(flags);
+ 
+ 	if (chan->state != S3C2410_DMA_IDLE) {
+-		pr_debug("%s: stopping channel...\n", __FUNCTION__ );
++		pr_debug("%s: stopping channel...\n", __func__ );
+ 		s3c2410_dma_ctrl(chan->number, S3C2410_DMAOP_STOP);
+ 	}
+ 
+@@ -929,7 +929,7 @@ static int s3c2410_dma_flush(struct s3c2
+ 			next = buf->next;
+ 
+ 			pr_debug("%s: free buffer %p, next %p\n",
+-			       __FUNCTION__, buf, buf->next);
++			       __func__, buf, buf->next);
+ 
+ 			s3c2410_dma_buffdone(chan, buf, S3C2410_RES_ABORT);
+ 			s3c2410_dma_freebuf(buf);
+@@ -976,7 +976,7 @@ static int s3c2410_dma_started(struct s3
+ 
+ 			if (s3c2410_dma_waitforload(chan, __LINE__) == 0) {
+ 				pr_debug("%s: buff not yet loaded, no more todo\n",
+-					 __FUNCTION__);
++					 __func__);
+ 			} else {
+ 				chan->load_state = S3C2410_DMALOAD_1RUNNING;
+ 				s3c2410_dma_loadbuffer(chan, chan->next);
+@@ -1050,16 +1050,16 @@ int s3c2410_dma_config(dmach_t channel,
+ 	struct s3c2410_dma_chan *chan = lookup_dma_channel(channel);
+ 
+ 	pr_debug("%s: chan=%d, xfer_unit=%d, dcon=%08x\n",
+-		 __FUNCTION__, channel, xferunit, dcon);
++		 __func__, channel, xferunit, dcon);
+ 
+ 	if (chan == NULL)
+ 		return -EINVAL;
+ 
+-	pr_debug("%s: Initial dcon is %08x\n", __FUNCTION__, dcon);
++	pr_debug("%s: Initial dcon is %08x\n", __func__, dcon);
+ 
+ 	dcon |= chan->dcon & dma_sel.dcon_mask;
+ 
+-	pr_debug("%s: New dcon is %08x\n", __FUNCTION__, dcon);
++	pr_debug("%s: New dcon is %08x\n", __func__, dcon);
+ 
+ 	switch (xferunit) {
+ 	case 1:
+@@ -1075,14 +1075,14 @@ int s3c2410_dma_config(dmach_t channel,
+ 		break;
+ 
+ 	default:
+-		pr_debug("%s: bad transfer size %d\n", __FUNCTION__, xferunit);
++		pr_debug("%s: bad transfer size %d\n", __func__, xferunit);
+ 		return -EINVAL;
+ 	}
+ 
+ 	dcon |= S3C2410_DCON_HWTRIG;
+ 	dcon |= S3C2410_DCON_INTREQ;
+ 
+-	pr_debug("%s: dcon now %08x\n", __FUNCTION__, dcon);
++	pr_debug("%s: dcon now %08x\n", __func__, dcon);
+ 
+ 	chan->dcon = dcon;
+ 	chan->xfer_unit = xferunit;
+@@ -1099,7 +1099,7 @@ int s3c2410_dma_setflags(dmach_t channel
+ 	if (chan == NULL)
+ 		return -EINVAL;
+ 
+-	pr_debug("%s: chan=%p, flags=%08x\n", __FUNCTION__, chan, flags);
++	pr_debug("%s: chan=%p, flags=%08x\n", __func__, chan, flags);
+ 
+ 	chan->flags = flags;
+ 
+@@ -1120,7 +1120,7 @@ int s3c2410_dma_set_opfn(dmach_t channel
+ 	if (chan == NULL)
+ 		return -EINVAL;
+ 
+-	pr_debug("%s: chan=%p, op rtn=%p\n", __FUNCTION__, chan, rtn);
++	pr_debug("%s: chan=%p, op rtn=%p\n", __func__, chan, rtn);
+ 
+ 	chan->op_fn = rtn;
+ 
+@@ -1136,7 +1136,7 @@ int s3c2410_dma_set_buffdone_fn(dmach_t 
+ 	if (chan == NULL)
+ 		return -EINVAL;
+ 
+-	pr_debug("%s: chan=%p, callback rtn=%p\n", __FUNCTION__, chan, rtn);
++	pr_debug("%s: chan=%p, callback rtn=%p\n", __func__, chan, rtn);
+ 
+ 	chan->callback_fn = rtn;
+ 
+@@ -1170,7 +1170,7 @@ int s3c2410_dma_devconfig(int channel,
+ 		return -EINVAL;
+ 
+ 	pr_debug("%s: source=%d, hwcfg=%08x, devaddr=%08lx\n",
+-		 __FUNCTION__, (int)source, hwcfg, devaddr);
++		 __func__, (int)source, hwcfg, devaddr);
+ 
+ 	chan->source = source;
+ 	chan->dev_addr = devaddr;
+@@ -1180,7 +1180,7 @@ int s3c2410_dma_devconfig(int channel,
+ 	case S3C2410_DMASRC_HW:
+ 		/* source is hardware */
+ 		pr_debug("%s: hw source, devaddr=%08lx, hwcfg=%d\n",
+-			 __FUNCTION__, devaddr, hwcfg);
++			 __func__, devaddr, hwcfg);
+ 		dma_wrreg(chan, S3C2410_DMA_DISRCC, hwcfg & 3);
+ 		dma_wrreg(chan, S3C2410_DMA_DISRC,  devaddr);
+ 		dma_wrreg(chan, S3C2410_DMA_DIDSTC, (0<<1) | (0<<0));
+@@ -1190,8 +1190,8 @@ int s3c2410_dma_devconfig(int channel,
+ 
+ 	case S3C2410_DMASRC_MEM:
+ 		/* source is memory */
+-		pr_debug( "%s: mem source, devaddr=%08lx, hwcfg=%d\n",
+-			  __FUNCTION__, devaddr, hwcfg);
++		pr_debug("%s: mem source, devaddr=%08lx, hwcfg=%d\n",
++			 __func__, devaddr, hwcfg);
+ 		dma_wrreg(chan, S3C2410_DMA_DISRCC, (0<<1) | (0<<0));
+ 		dma_wrreg(chan, S3C2410_DMA_DIDST,  devaddr);
+ 		dma_wrreg(chan, S3C2410_DMA_DIDSTC, hwcfg & 3);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -526,6 +1000,7 @@ specialixc-fix-possible-double-unlock.patch
 git-x86.patch
 git-alsa.patch
 agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+arm-replace-remaining-__function__-occurences.patch
 cifs-remove-global_extern-macro.patch
 radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
 git-dvb.patch
