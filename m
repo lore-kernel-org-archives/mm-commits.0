@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-remaining-__function__-occurances.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:26:05 -0800
-Message-ID: <200803030826.m238Q5lY006664@imap1.linux-foundation.org>
+Subject: + kernel-replace-remaining-__function__-occurances.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:26:09 -0800
+Message-ID: <200803030826.m238Q9pj006670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752796AbYCCI0i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:26:38 -0500
+	by vger.kernel.org with ESMTP id S1752938AbYCCI0l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:26:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     mm: remove remaining __FUNCTION__ occurences
+     kernel: replace remaining __FUNCTION__ occurences
 has been added to the -mm tree.  Its filename is
-     mm-remove-remaining-__function__-occurances.patch
+     kernel-replace-remaining-__function__-occurances.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove remaining __FUNCTION__ occurences
+Subject: kernel: replace remaining __FUNCTION__ occurences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
@@ -42,74 +42,43 @@ Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c   |    4 ++--
- mm/sparse.c |    4 ++--
- mm/vmscan.c |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/cpu.c       |    4 ++--
+ kernel/workqueue.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~mm-remove-remaining-__function__-occurances mm/slab.c
---- a/mm/slab.c~mm-remove-remaining-__function__-occurances
-+++ a/mm/slab.c
-@@ -862,7 +862,7 @@ static void cache_estimate(unsigned long
- 	*left_over = slab_size - nr_objs*buffer_size - mgmt_size;
- }
- 
--#define slab_error(cachep, msg) __slab_error(__FUNCTION__, cachep, msg)
-+#define slab_error(cachep, msg) __slab_error(__func__, cachep, msg)
- 
- static void __slab_error(const char *function, struct kmem_cache *cachep,
- 			char *msg)
-@@ -2158,7 +2158,7 @@ kmem_cache_create (const char *name, siz
- 	 */
- 	if (!name || in_interrupt() || (size < BYTES_PER_WORD) ||
- 	    size > KMALLOC_MAX_SIZE) {
--		printk(KERN_ERR "%s: Early error in slab %s\n", __FUNCTION__,
-+		printk(KERN_ERR "%s: Early error in slab %s\n", __func__,
- 				name);
- 		BUG();
+diff -puN kernel/cpu.c~kernel-replace-remaining-__function__-occurances kernel/cpu.c
+--- a/kernel/cpu.c~kernel-replace-remaining-__function__-occurances
++++ a/kernel/cpu.c
+@@ -215,7 +215,7 @@ static int __ref _cpu_down(unsigned int 
+ 		__raw_notifier_call_chain(&cpu_chain, CPU_DOWN_FAILED | mod,
+ 					  hcpu, nr_calls, NULL);
+ 		printk("%s: attempt to take down CPU %u failed\n",
+-				__FUNCTION__, cpu);
++				__func__, cpu);
+ 		err = -EINVAL;
+ 		goto out_release;
  	}
-diff -puN mm/sparse.c~mm-remove-remaining-__function__-occurances mm/sparse.c
---- a/mm/sparse.c~mm-remove-remaining-__function__-occurances
-+++ a/mm/sparse.c
-@@ -250,7 +250,7 @@ static unsigned long *__init sparse_earl
- 	/* Stupid: suppress gcc warning for SPARSEMEM && !NUMA */
- 	nid = 0;
- 
--	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
-+	printk(KERN_WARNING "%s: allocation failed\n", __func__);
- 	return NULL;
- }
- 
-@@ -280,7 +280,7 @@ struct page __init *sparse_early_mem_map
- 		return map;
- 
- 	printk(KERN_ERR "%s: sparsemem memory map backing failed "
--			"some memory will not be available.\n", __FUNCTION__);
-+			"some memory will not be available.\n", __func__);
- 	ms->section_mem_map = 0;
- 	return NULL;
- }
-diff -puN mm/vmscan.c~mm-remove-remaining-__function__-occurances mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-remaining-__function__-occurances
-+++ a/mm/vmscan.c
-@@ -198,7 +198,7 @@ unsigned long shrink_slab(unsigned long 
- 		shrinker->nr += delta;
- 		if (shrinker->nr < 0) {
- 			printk(KERN_ERR "%s: nr=%ld\n",
--					__FUNCTION__, shrinker->nr);
-+					__func__, shrinker->nr);
- 			shrinker->nr = max_pass;
- 		}
- 
-@@ -346,7 +346,7 @@ static pageout_t pageout(struct page *pa
- 		if (PagePrivate(page)) {
- 			if (try_to_free_buffers(page)) {
- 				ClearPageDirty(page);
--				printk("%s: orphaned page\n", __FUNCTION__);
-+				printk("%s: orphaned page\n", __func__);
- 				return PAGE_CLEAN;
- 			}
- 		}
+@@ -295,7 +295,7 @@ static int __cpuinit _cpu_up(unsigned in
+ 	if (ret == NOTIFY_BAD) {
+ 		nr_calls--;
+ 		printk("%s: attempt to bring up CPU %u failed\n",
+-				__FUNCTION__, cpu);
++				__func__, cpu);
+ 		ret = -EINVAL;
+ 		goto out_notify;
+ 	}
+diff -puN kernel/workqueue.c~kernel-replace-remaining-__function__-occurances kernel/workqueue.c
+--- a/kernel/workqueue.c~kernel-replace-remaining-__function__-occurances
++++ a/kernel/workqueue.c
+@@ -247,7 +247,7 @@ static void run_workqueue(struct cpu_wor
+ 	if (cwq->run_depth > 3) {
+ 		/* morton gets to eat his hat */
+ 		printk("%s: recursion depth exceeded: %d\n",
+-			__FUNCTION__, cwq->run_depth);
++			__func__, cwq->run_depth);
+ 		dump_stack();
+ 	}
+ 	while (!list_empty(&cwq->worklist)) {
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
