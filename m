@@ -1,207 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch added to -mm tree
-Date: Sun, 02 Mar 2008 11:36:54 -0800
-Message-ID: <200803021936.m22JasaP013540@imap1.linux-foundation.org>
+Subject: - kthread-add-a-missing-memory-barrier-to-kthread_stop.patch removed from -mm tree
+Date: Sun, 02 Mar 2008 19:50:03 -0800
+Message-ID: <200803030350.m233o3ft029917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751648AbYCBTkj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 14:40:39 -0500
+	by vger.kernel.org with ESMTP id S1751162AbYCCDu5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 22:50:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, bdriessen@escrypt.com, stable@kernel.org
+To: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mm-co
 
 
 The patch titled
-     eCryptfs: make ecryptfs_prepare_write decrypt the page
-has been added to the -mm tree.  Its filename is
-     ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch
+     kthread: add a missing memory barrier to kthread_stop()
+has been removed from the -mm tree.  Its filename was
+     kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: make ecryptfs_prepare_write decrypt the page
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: kthread: add a missing memory barrier to kthread_stop()
+From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
 
-When the page is not up to date, ecryptfs_prepare_write() should be
-acting much like ecryptfs_readpage(). This includes the painfully
-obvious step of actually decrypting the page contents read from the
-lower encrypted file.
+We must ensure that kthread_stop_info.k has been updated before kthread's
+wakeup.  This is required to properly support the use of kthread_should_stop()
+in the main loop of kthread.
 
-Note that this patch resolves a bug in eCryptfs in 2.6.24 that one can
-produce with these steps:
+wake_up_process() doesn't imply a full memory barrier,
+so we add an explicit one.
 
-# mount -t ecryptfs /secret /secret
-# echo "abc" > /secret/file.txt
-# umount /secret
-# mount -t ecryptfs /secret /secret
-# echo "def" >> /secret/file.txt
-# cat /secret/file.txt
+There is a requirement on how a main loop of kthread has to be orginized.
 
-Without this patch, the resulting data returned from cat is likely to
-be something other than "abc\ndef\n".
+Namely, the sequence of events that lead to kthread being blocked (schedule())
+has to be ordered as follows:
 
-(Thanks to Benedikt Driessen for reporting this.)
+- set_current_state(TASK_INTERRUPTIBLE);
+- if (kthread_should_stop()) break;
+- schedule() or similar.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Benedikt Driessen <bdriessen@escrypt.com>
-Cc: <stable@kernel.org>
+set_current_state() implies a full memory barrier, so this is
+a matching barrier on the side of kthread_should_stop().
+
+Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>index 45f8b83..86b69a0 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |  102 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 76 insertions(+), 26 deletions(-)
+ kernel/kthread.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page
-+++ a/fs/ecryptfs/mmap.c
-@@ -263,52 +263,102 @@ out:
- 	return 0;
- }
- 
--/* This function must zero any hole we create */
-+/**
-+ * ecryptfs_prepare_write
-+ * @file: The eCryptfs file
-+ * @page: The eCryptfs page
-+ * @from: The start byte from which we will write
-+ * @to: The end byte to which we will write
+diff -puN kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop kernel/kthread.c
+--- a/kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop
++++ a/kernel/kthread.c
+@@ -53,6 +53,19 @@ static struct kthread_stop_info kthread_
+  * When someone calls kthread_stop() on your kthread, it will be woken
+  * and this will return true.  You should then return, and your return
+  * value will be passed through to kthread_stop().
 + *
-+ * This function must zero any hole we create
++ * In order to safely use kthread_stop() for kthread, there is a requirement
++ * on how its main loop has to be orginized. Namely, the sequence of
++ * events that lead to kthread being blocked (schedule()) has to be
++ * ordered as follows:
 + *
-+ * Returns zero on success; non-zero otherwise
-+ */
- static int ecryptfs_prepare_write(struct file *file, struct page *page,
- 				  unsigned from, unsigned to)
++ * - set_current_state(TASK_INTERRUPTIBLE);
++ * - if (kthread_should_stop()) break;
++ * - schedule() or similar.
++ *
++ * set_current_state() implies a full memory barrier. kthread_stop()
++ * has a matching barrier right after an update of kthread_stop_info.k
++ * and before kthread's wakeup.
+  */
+ int kthread_should_stop(void)
  {
--	int rc = 0;
- 	loff_t prev_page_end_size;
-+	int rc = 0;
+@@ -211,6 +224,15 @@ int kthread_stop(struct task_struct *k)
  
- 	if (!PageUptodate(page)) {
--		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
--						      PAGE_CACHE_SIZE,
--						      page->mapping->host);
--		if (rc) {
--			printk(KERN_ERR "%s: Error attemping to read lower "
--			       "page segment; rc = [%d]\n", __FUNCTION__, rc);
--			ClearPageUptodate(page);
--			goto out;
--		} else
-+		struct ecryptfs_crypt_stat *crypt_stat =
-+			&ecryptfs_inode_to_private(
-+				file->f_path.dentry->d_inode)->crypt_stat;
+ 	/* Now set kthread_should_stop() to true, and wake it up. */
+ 	kthread_stop_info.k = k;
 +
-+		if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)
-+		    || (crypt_stat->flags & ECRYPTFS_NEW_FILE)) {
-+			rc = ecryptfs_read_lower_page_segment(
-+				page, page->index, 0, PAGE_CACHE_SIZE,
-+				page->mapping->host);
-+			if (rc) {
-+				printk(KERN_ERR "%s: Error attemping to read "
-+				       "lower page segment; rc = [%d]\n",
-+				       __FUNCTION__, rc);
-+				ClearPageUptodate(page);
-+				goto out;
-+			} else
-+				SetPageUptodate(page);
-+		} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
-+			if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
-+				rc = ecryptfs_copy_up_encrypted_with_header(
-+					page, crypt_stat);
-+				if (rc) {
-+					printk(KERN_ERR "%s: Error attempting "
-+					       "to copy the encrypted content "
-+					       "from the lower file whilst "
-+					       "inserting the metadata from "
-+					       "the xattr into the header; rc "
-+					       "= [%d]\n", __FUNCTION__, rc);
-+					ClearPageUptodate(page);
-+					goto out;
-+				}
-+				SetPageUptodate(page);
-+			} else {
-+				rc = ecryptfs_read_lower_page_segment(
-+					page, page->index, 0, PAGE_CACHE_SIZE,
-+					page->mapping->host);
-+				if (rc) {
-+					printk(KERN_ERR "%s: Error reading "
-+					       "page; rc = [%d]\n",
-+					       __FUNCTION__, rc);
-+					ClearPageUptodate(page);
-+					goto out;
-+				}
-+				SetPageUptodate(page);
-+			}
-+		} else {
-+			rc = ecryptfs_decrypt_page(page);
-+			if (rc) {
-+				printk(KERN_ERR "%s: Error decrypting page "
-+				       "at index [%ld]; rc = [%d]\n",
-+				       __FUNCTION__, page->index, rc);
-+				ClearPageUptodate(page);
-+				goto out;
-+			}
- 			SetPageUptodate(page);
-+		}
- 	}
--
- 	prev_page_end_size = ((loff_t)page->index << PAGE_CACHE_SHIFT);
--
--	/*
--	 * If creating a page or more of holes, zero them out via truncate.
--	 * Note, this will increase i_size.
--	 */
-+	/* If creating a page or more of holes, zero them out via truncate.
-+	 * Note, this will increase i_size. */
- 	if (page->index != 0) {
- 		if (prev_page_end_size > i_size_read(page->mapping->host)) {
- 			rc = ecryptfs_truncate(file->f_path.dentry,
- 					       prev_page_end_size);
- 			if (rc) {
--				printk(KERN_ERR "Error on attempt to "
-+				printk(KERN_ERR "%s: Error on attempt to "
- 				       "truncate to (higher) offset [%lld];"
--				       " rc = [%d]\n", prev_page_end_size, rc);
-+				       " rc = [%d]\n", __FUNCTION__,
-+				       prev_page_end_size, rc);
- 				goto out;
- 			}
- 		}
- 	}
--	/*
--	 * Writing to a new page, and creating a small hole from start of page?
--	 * Zero it out.
--	 */
--	if ((i_size_read(page->mapping->host) == prev_page_end_size) &&
--	    (from != 0)) {
-+	/* Writing to a new page, and creating a small hole from start
-+	 * of page?  Zero it out. */
-+	if ((i_size_read(page->mapping->host) == prev_page_end_size)
-+	    && (from != 0))
- 		zero_user(page, 0, PAGE_CACHE_SIZE);
--	}
- out:
- 	return rc;
- }
++	/*
++	 * We must ensure that kthread_stop_info.k has been updated before
++	 * the following wakeup. This is required to properly support the use
++	 * of kthread_should_stop() in the main loop of kthread
++	 * (see description of kthread_should_stop() for more details).
++	 */
++	smp_mb();
++
+ 	wake_up_process(k);
+ 	put_task_struct(k);
+ 
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
 
-git-unionfs.patch
-ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch
-remove-ecryptfs_header_cache_0.patch
+origin.patch
+kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
 
