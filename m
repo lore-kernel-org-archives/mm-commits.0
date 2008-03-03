@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:04:40 -0800
-Message-ID: <200803030804.m2384euk005875@imap1.linux-foundation.org>
+Subject: + 2625-rc2-mm1-warning-at-arch-x86-mm-ioremapc129.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:08:59 -0800
+Message-ID: <200803030808.m2388xem006020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56216 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751973AbYCCIF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:05:27 -0500
+	by vger.kernel.org with ESMTP id S1751853AbYCCIJo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:09:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
+Cc: fchecconi@gmail.com, fabio@gandalf.sssup.it
 
 
 The patch titled
-     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
+     ioremap: fix off-by-one
 has been added to the -mm tree.  Its filename is
-     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
+     2625-rc2-mm1-warning-at-arch-x86-mm-ioremapc129.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,192 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ioremap: fix off-by-one
+From: Fabio Checconi <fchecconi@gmail.com>
 
-ERROR: use tabs not spaces
-#49: FILE: drivers/parisc/ccio-dma.c:306:
-+               int ret;\$
+Fix "WARNING at arch/x86/mm/ioremap.c:129".
 
-ERROR: use tabs not spaces
-#50: FILE: drivers/parisc/ccio-dma.c:307:
-+               unsigned int idx;\$
+__ioremap() emits a warning if the pfn after the last one it's going to map is
+of normal ram.  Correct this and emit the warning (once) only if one of the
+asked pages is.
 
-WARNING: line over 80 characters
-#51: FILE: drivers/parisc/ccio-dma.c:308:
-+               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
-
-ERROR: use tabs not spaces
-#51: FILE: drivers/parisc/ccio-dma.c:308:
-+               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \$
-
-WARNING: line over 80 characters
-#52: FILE: drivers/parisc/ccio-dma.c:309:
-+		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
-
-ERROR: use tabs not spaces
-#53: FILE: drivers/parisc/ccio-dma.c:310:
-+               if((0 == (*res_ptr & mask)) && !ret) { \$
-
-ERROR: need a space before the open parenthesis '('
-#53: FILE: drivers/parisc/ccio-dma.c:310:
-+               if((0 == (*res_ptr & mask)) && !ret) { \
-
-ERROR: use tabs not spaces
-#56: FILE: drivers/parisc/ccio-dma.c:312:
-+                       res_idx = idx;\$
-
-total: 6 errors, 2 warnings, 137 lines checked
-
-./patches/iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Fabio Checconi <fabio@gandalf.sssup.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/ccio-dma.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/mm/ioremap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
-+++ a/drivers/parisc/ccio-dma.c
-@@ -303,17 +303,17 @@ static int ioc_count;
- */
- #define CCIO_SEARCH_LOOP(ioc, res_idx, mask, size)  \
-        for(; res_ptr < res_end; ++res_ptr) { \
--               int ret;\
--               unsigned int idx;\
--               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
-+		int ret;\
-+		unsigned int idx;\
-+		idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
- 		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
--               if((0 == (*res_ptr & mask)) && !ret) { \
--                       *res_ptr |= mask; \
--                       res_idx = idx;\
--                       ioc->res_hint = res_idx + (size >> 3); \
--                       goto resource_found; \
--               } \
--       }
-+		if ((0 == (*res_ptr & mask)) && !ret) { \
-+			*res_ptr |= mask; \
-+			res_idx = idx;\
-+			ioc->res_hint = res_idx + (size >> 3); \
-+			goto resource_found; \
-+		} \
-+	}
+diff -puN arch/x86/mm/ioremap.c~2625-rc2-mm1-warning-at-arch-x86-mm-ioremapc129 arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~2625-rc2-mm1-warning-at-arch-x86-mm-ioremapc129
++++ a/arch/x86/mm/ioremap.c
+@@ -109,7 +109,7 @@ static int ioremap_change_attr(unsigned 
+ static void __iomem *__ioremap(unsigned long phys_addr, unsigned long size,
+ 			       enum ioremap_mode mode)
+ {
+-	unsigned long pfn, offset, last_addr, vaddr;
++	unsigned long pfn, offset, last_addr, vaddr, is_ram = 0;
+ 	struct vm_struct *area;
+ 	pgprot_t prot;
  
- #define CCIO_FIND_FREE_MAPPING(ioa, res_idx, mask, size) \
-        u##size *res_ptr = (u##size *)&((ioc)->res_map[ioa->res_hint & ~((size >> 3) - 1)]); \
+@@ -132,9 +132,10 @@ static void __iomem *__ioremap(unsigned 
+ 		if (page_is_ram(pfn) && pfn_valid(pfn) &&
+ 		    !PageReserved(pfn_to_page(pfn)))
+ 			return NULL;
++		is_ram |= page_is_ram(pfn);
+ 	}
+ 
+-	WARN_ON_ONCE(page_is_ram(pfn));
++	WARN_ON_ONCE(is_ram);
+ 
+ 	switch (mode) {
+ 	case IOR_MODE_UNCACHED:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fchecconi@gmail.com are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-zlc_setup-handle-jiffies-wraparound-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-audit-printk-warning-fix.patch
-git-cifs.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
-iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-use-page_cache_xxx-in-ext2-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+2625-rc2-mm1-warning-at-arch-x86-mm-ioremapc129.patch
 
