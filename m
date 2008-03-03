@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fat-detect-media-without-partition-table-correctly.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:50:45 -0800
-Message-ID: <200803032150.m23LojwO008372@imap1.linux-foundation.org>
+Subject: + tty_io-fix-remaining-pid-struct-locking.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:52:20 -0800
+Message-ID: <200803032152.m23LqKNS008470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752586AbYCCVvM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:51:12 -0500
+	by vger.kernel.org with ESMTP id S1751733AbYCCVxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:53:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fseidel@suse.de, adilger@sun.com, hirofumi@mail.parknet.co.jp
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     fat: detect media without partition table correctly
+     tty_io: fix remaining pid struct locking
 has been added to the -mm tree.  Its filename is
-     fat-detect-media-without-partition-table-correctly.patch
+     tty_io-fix-remaining-pid-struct-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: detect media without partition table correctly
-From: Frank Seidel <fseidel@suse.de>
+Subject: tty_io: fix remaining pid struct locking
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-I received a complaint that some FAT formated medias (e.g.  sd memory cards)
-trigger a "unknown partition table" message even though there is no partition
-table and they work correctly, while in general (when e.g.  formated with
-mkdosfs or even Windows Vista) this message is not shown.
+This fixes the last couple of pid struct locking failures I know about.
 
-Currently this seems only to happen when the medias get formatted with Windows
-XP (and possibly Win 2000).  Then the boot indicator byte contains garbage
-(part of text message) and so do the other parts checked by msdos_paritition
-which then later triggers this message.
-
-References: novell bug #364365
-
-Most fat formatted media without partition table contains zeros in the boot
-indication and the other tested bytes and so falls through the checks in
-msdos_partition, leading it to return with 1 (all is fine).
-
-But some (e.g.  WinXP formatted) fat fomated medias don't use boot_ind and so
-the check fails and causes a "unkown partition table" warning eventhough there
-is none and everything would be fine.
-
-This additional check directly verifies if there is a fat formatted medium
-without a partition table.
-
-Signed-off-by: Frank Seidel <fseidel@suse.de>
-Cc: Andreas Dilger <adilger@sun.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/msdos.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/char/tty_io.c |   28 +++++++++++++++++++++++++++-
+ fs/proc/array.c       |    5 ++++-
+ include/linux/tty.h   |    1 +
+ 3 files changed, 32 insertions(+), 2 deletions(-)
 
-diff -puN fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly fs/partitions/msdos.c
---- a/fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly
-+++ a/fs/partitions/msdos.c
-@@ -18,7 +18,7 @@
-  *
-  *  Re-organised Feb 1998 Russell King
-  */
--
-+#include <linux/msdos_fs.h>
+diff -puN drivers/char/tty_io.c~tty_io-fix-remaining-pid-struct-locking drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_io-fix-remaining-pid-struct-locking
++++ a/drivers/char/tty_io.c
+@@ -3132,6 +3132,27 @@ unlock:
+ }
  
- #include "check.h"
- #include "msdos.h"
-@@ -419,6 +419,7 @@ int msdos_partition(struct parsed_partit
- 	Sector sect;
- 	unsigned char *data;
- 	struct partition *p;
-+	struct fat_boot_sector *fb;
- 	int slot;
+ /**
++ *	tty_get_pgrp	-	return a ref counted pgrp pid
++ *	@tty: tty to read
++ *
++ *	Returns a refcounted instance of the pid struct for the process
++ *	group controlling the tty.
++ */
++
++struct pid *tty_get_pgrp(struct tty_struct *tty)
++{
++	unsigned long flags;
++	struct pid *pgrp;
++
++	spin_lock_irqsave(&tty->ctrl_lock, flags);
++	pgrp = get_pid(tty->pgrp);
++	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
++
++	return pgrp;
++}
++EXPORT_SYMBOL_GPL(tty_get_pgrp);
++
++/**
+  *	tiocgpgrp		-	get process group
+  *	@tty: tty passed by user
+  *	@real_tty: tty side of the tty pased by the user if a pty else the tty
+@@ -3145,13 +3166,18 @@ unlock:
  
- 	data = read_dev_sector(bdev, 0, &sect);
-@@ -444,8 +445,21 @@ int msdos_partition(struct parsed_partit
- 	p = (struct partition *) (data + 0x1be);
- 	for (slot = 1; slot <= 4; slot++, p++) {
- 		if (p->boot_ind != 0 && p->boot_ind != 0x80) {
--			put_dev_sector(sect);
--			return 0;
-+			/*
-+			 * Even without a valid boot inidicator value
-+			 * its still possible this is valid FAT filesystem
-+			 * without a partition table.
-+			 */
-+			fb = (struct fat_boot_sector *) data;
-+			if (slot == 1 && fb->reserved && fb->fats
-+				&& fat_valid_media(fb->media)) {
-+				printk("\n");
-+				put_dev_sector(sect);
-+				return 1;
-+			} else {
-+				put_dev_sector(sect);
-+				return 0;
-+			}
+ static int tiocgpgrp(struct tty_struct *tty, struct tty_struct *real_tty, pid_t __user *p)
+ {
++	struct pid *pid;
++	int ret;
+ 	/*
+ 	 * (tty == real_tty) is a cheap way of
+ 	 * testing if the tty is NOT a master pty.
+ 	 */
+ 	if (tty == real_tty && current->signal->tty != real_tty)
+ 		return -ENOTTY;
+-	return put_user(pid_vnr(real_tty->pgrp), p);
++	pid = tty_get_pgrp(real_tty);
++	ret =  put_user(pid_vnr(pid), p);
++	put_pid(pid);
++	return ret;
+ }
+ 
+ /**
+diff -puN fs/proc/array.c~tty_io-fix-remaining-pid-struct-locking fs/proc/array.c
+--- a/fs/proc/array.c~tty_io-fix-remaining-pid-struct-locking
++++ a/fs/proc/array.c
+@@ -408,6 +408,7 @@ static int do_task_stat(struct seq_file 
+ 	unsigned long rsslim = 0;
+ 	char tcomm[sizeof(task->comm)];
+ 	unsigned long flags;
++	struct pid *pgrp;
+ 
+ 	state = *get_task_state(task);
+ 	vsize = eip = esp = 0;
+@@ -429,7 +430,9 @@ static int do_task_stat(struct seq_file 
+ 		struct signal_struct *sig = task->signal;
+ 
+ 		if (sig->tty) {
+-			tty_pgrp = pid_nr_ns(sig->tty->pgrp, ns);
++			pgrp = tty_get_pgrp(sig->tty);
++			tty_pgrp = pid_nr_ns(pgrp, ns);
++			put_pid(pgrp);
+ 			tty_nr = new_encode_dev(tty_devnum(sig->tty));
  		}
- 	}
  
+diff -puN include/linux/tty.h~tty_io-fix-remaining-pid-struct-locking include/linux/tty.h
+--- a/include/linux/tty.h~tty_io-fix-remaining-pid-struct-locking
++++ a/include/linux/tty.h
+@@ -297,6 +297,7 @@ extern int tty_read_raw_data(struct tty_
+ extern void tty_write_message(struct tty_struct *tty, char *msg);
+ 
+ extern int is_current_pgrp_orphaned(void);
++extern struct pid *tty_get_pgrp(struct tty_struct *tty);
+ extern int is_ignored(int sig);
+ extern int tty_signal(int sig, struct tty_struct *tty);
+ extern void tty_hangup(struct tty_struct * tty);
 _
 
-Patches currently in -mm which might be from fseidel@suse.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-fat_valid_media-remove-pointless-test.patch
-fat-detect-media-without-partition-table-correctly.patch
+serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+pata-i-do-not-think-it-means-what-you-think-it-means.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+drivers-net-8390c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+drivers-usb-serial-io_tic-remove-unneeded-null-tty-check.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+nozomi-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
