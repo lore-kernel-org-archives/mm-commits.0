@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-introduce-kprobe_handle_fault.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:58:59 -0800
-Message-ID: <200803030758.m237wxJq005658@imap1.linux-foundation.org>
+Subject: + iommu-export-iommu_is_span_boundary-helper-function.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:02:20 -0800
+Message-ID: <200803030802.m2382Ktu005814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751831AbYCCIBq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:01:46 -0500
+	by vger.kernel.org with ESMTP id S1751956AbYCCIEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:04:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, mhiramat@redhat.com, mingo@elte.hu, paulus@samba.org, prasanna@in.ibm.com, tglx@linutronix.de, tony.luck@intel.com
+Cc: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
 
 
 The patch titled
-     kprobes: introduce kprobe_handle_fault()
+     iommu: export iommu_is_span_boundary helper function
 has been added to the -mm tree.  Its filename is
-     kprobes-introduce-kprobe_handle_fault.patch
+     iommu-export-iommu_is_span_boundary-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,438 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: introduce kprobe_handle_fault()
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: iommu: export iommu_is_span_boundary helper function
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Use a central kprobe_handle_fault() inline in kprobes.h to remove all of the
-arch-dependant, practically identical implementations in avr32, ia64, powerpc,
-s390, sparc64, and x86.
+iommu_is_span_boundary is used internally in the IOMMU helper
+(lib/iommu-helper.c), a primitive function that judges whether a memory area
+spans LLD's segment boundary or not.
 
-avr32 was the only arch without the preempt_disable/enable pair in its
-notify_page_fault implementation.
+It's difficult to convert some IOMMUs to use the IOMMU helper but
+iommu_is_span_boundary is still useful for them.  So this patch exports it.
 
-This uncovered a possible bug in the s390 version as that purely copied the
-x86 version unconditionally passing 14 as the trapnr rather than the
-error_code parameter.  s390 is changed to pass error_code in this patch.
+This is needed for the parisc iommu fixes.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c     |   25 +------------------------
- arch/avr32/mm/fault.c   |   21 +--------------------
- arch/ia64/mm/fault.c    |   24 +-----------------------
- arch/powerpc/mm/fault.c |   25 +------------------------
- arch/s390/mm/fault.c    |   25 +------------------------
- arch/sparc64/mm/fault.c |   23 +----------------------
- arch/x86/mm/fault.c     |   26 ++------------------------
- include/linux/kprobes.h |   20 ++++++++++++++++++++
- 8 files changed, 28 insertions(+), 161 deletions(-)
+ include/linux/iommu-helper.h |    3 +++
+ lib/iommu-helper.c           |   10 ++++++----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/arm/mm/fault.c
---- a/arch/arm/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/arm/mm/fault.c
-@@ -21,29 +21,6 @@
- 
- #include "fault.h"
- 
--
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		/* kprobe_running() needs smp_processor_id() */
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, fsr))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
--{
--	return 0;
--}
--#endif
--
- /*
-  * This is useful to dump out the page tables associated with
-  * 'addr' in mm 'mm'.
-@@ -246,7 +223,7 @@ do_page_fault(unsigned long addr, unsign
- 	struct mm_struct *mm;
- 	int fault, sig, code;
- 
--	if (notify_page_fault(regs, fsr))
-+	if (handle_kprobe_fault(regs, fsr))
- 		return 0;
- 
- 	tsk = current;
-diff -puN arch/avr32/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/avr32/mm/fault.c
---- a/arch/avr32/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/avr32/mm/fault.c
-@@ -20,25 +20,6 @@
- #include <asm/tlb.h>
- #include <asm/uaccess.h>
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		if (kprobe_running() && kprobe_fault_handler(regs, trap))
--			ret = 1;
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	return 0;
--}
--#endif
--
- int exception_trace = 1;
- 
- /*
-@@ -66,7 +47,7 @@ asmlinkage void do_page_fault(unsigned l
- 	int code;
- 	int fault;
- 
--	if (notify_page_fault(regs, ecr))
-+	if (kprobe_handle_fault(regs, ecr))
- 		return;
- 
- 	address = sysreg_read(TLBEAR);
-diff -puN arch/ia64/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/ia64/mm/fault.c
---- a/arch/ia64/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/ia64/mm/fault.c
-@@ -18,28 +18,6 @@
- 
- extern int die(char *, struct pt_regs *, long);
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	int ret = 0;
--
--	if (!user_mode(regs)) {
--		/* kprobe_running() needs smp_processor_id() */
--		preempt_disable();
--		if (kprobe_running() && kprobes_fault_handler(regs, trap))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, int trap)
--{
--	return 0;
--}
--#endif
--
- /*
-  * Return TRUE if ADDRESS points at a page in the kernel's mapped segment
-  * (inside region 5, on ia64) and that page is present.
-@@ -106,7 +84,7 @@ ia64_do_page_fault (unsigned long addres
- 	/*
- 	 * This is to handle the kprobes on user space access instructions
- 	 */
--	if (notify_page_fault(regs, TRAP_BRKPT))
-+	if (kprobe_handle_fault(regs, TRAP_BRKPT))
- 		return;
- 
- 	down_read(&mm->mmap_sem);
-diff -puN arch/powerpc/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/powerpc/mm/fault.c
---- a/arch/powerpc/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/powerpc/mm/fault.c
-@@ -39,29 +39,6 @@
- #include <asm/tlbflush.h>
- #include <asm/siginfo.h>
- 
--
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 11))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	return 0;
--}
--#endif
--
- /*
-  * Check whether the instruction at regs->nip is a store using
-  * an update addressing form which will update r1.
-@@ -164,7 +141,7 @@ int __kprobes do_page_fault(struct pt_re
- 	is_write = error_code & ESR_DST;
- #endif /* CONFIG_4xx || CONFIG_BOOKE */
- 
--	if (notify_page_fault(regs))
-+	if (kprobe_handle_fault(regs, 11))
- 		return 0;
- 
- 	if (unlikely(debugger_fault_handler(regs)))
-diff -puN arch/s390/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/s390/mm/fault.c
---- a/arch/s390/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/s390/mm/fault.c
-@@ -52,29 +52,6 @@ extern int sysctl_userprocess_debug;
- 
- extern void die(const char *,struct pt_regs *,long);
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs, long err)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 14))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs, long err)
--{
--	return 0;
--}
--#endif
--
--
- /*
-  * Unlock any spinlocks which will prevent us from getting the
-  * message out.
-@@ -310,7 +287,7 @@ do_exception(struct pt_regs *regs, unsig
- 	int si_code;
- 	int fault;
- 
--	if (notify_page_fault(regs, error_code))
-+	if (kprobe_handle_fault(regs, error_code))
- 		return;
- 
- 	tsk = current;
-diff -puN arch/sparc64/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/sparc64/mm/fault.c
---- a/arch/sparc64/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/sparc64/mm/fault.c
-@@ -31,27 +31,6 @@
- #include <asm/sections.h>
- #include <asm/mmu_context.h>
- 
--#ifdef CONFIG_KPROBES
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 0))
--			ret = 1;
--		preempt_enable();
--	}
--	return ret;
--}
--#else
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--	return 0;
--}
--#endif
--
- /*
-  * To debug kernel to catch accesses to certain virtual/physical addresses.
-  * Mode = 0 selects physical watchpoints, mode = 1 selects virtual watchpoints.
-@@ -272,7 +251,7 @@ asmlinkage void __kprobes do_sparc64_fau
- 
- 	fault_code = get_thread_fault_code();
- 
--	if (notify_page_fault(regs))
-+	if (kprobe_handle_fault(regs, 0))
- 		return;
- 
- 	si_code = SEGV_MAPERR;
-diff -puN arch/x86/mm/fault.c~kprobes-introduce-kprobe_handle_fault arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~kprobes-introduce-kprobe_handle_fault
-+++ a/arch/x86/mm/fault.c
-@@ -49,29 +49,6 @@
- #define PF_RSVD		(1<<3)
- #define PF_INSTR	(1<<4)
- 
--static inline int notify_page_fault(struct pt_regs *regs)
--{
--#ifdef CONFIG_KPROBES
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--#ifdef CONFIG_X86_32
--	if (!user_mode_vm(regs)) {
--#else
--	if (!user_mode(regs)) {
--#endif
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, 14))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
--#else
--	return 0;
--#endif
--}
--
- /*
-  * X86_32
-  * Sometimes AMD Athlon/Opteron CPUs report invalid exceptions on prefetch.
-@@ -601,7 +578,8 @@ void __kprobes do_page_fault(struct pt_r
- 
- 	si_code = SEGV_MAPERR;
- 
--	if (notify_page_fault(regs))
-+	/* Must not try to handle kprobes in v8086 mode */
-+	if (!v8086_mode(regs) && kprobe_handle_fault(regs, 14))
- 		return;
- 
- 	/*
-diff -puN include/linux/kprobes.h~kprobes-introduce-kprobe_handle_fault include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-introduce-kprobe_handle_fault
-+++ a/include/linux/kprobes.h
-@@ -36,6 +36,7 @@
- #include <linux/spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/mutex.h>
-+#include <linux/hardirq.h>
- 
- #ifdef CONFIG_KPROBES
- #include <asm/kprobes.h>
-@@ -222,6 +223,21 @@ static inline struct kprobe *kprobe_runn
- 	return (__get_cpu_var(current_kprobe));
+diff -puN include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function include/linux/iommu-helper.h
+--- a/include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function
++++ a/include/linux/iommu-helper.h
+@@ -1,3 +1,6 @@
++extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
++				  unsigned long shift,
++				  unsigned long boundary_size);
+ extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 				      unsigned long start, unsigned int nr,
+ 				      unsigned long shift,
+diff -puN lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function lib/iommu-helper.c
+--- a/lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function
++++ a/lib/iommu-helper.c
+@@ -40,10 +40,12 @@ static inline void set_bit_area(unsigned
+ 	}
  }
  
-+static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
-+{
-+	int ret = 0;
-+
-+	/* kprobe_running() needs smp_processor_id() */
-+	if (!user_mode(regs)) {
-+		preempt_disable();
-+		if (kprobe_running() && kprobe_fault_handler(regs, trapnr))
-+			ret = 1;
-+		preempt_enable();
-+	}
-+
-+	return ret;
-+}
-+
- static inline void reset_current_kprobe(void)
+-static inline int is_span_boundary(unsigned int index, unsigned int nr,
+-				   unsigned long shift,
+-				   unsigned long boundary_size)
++int iommu_is_span_boundary(unsigned int index, unsigned int nr,
++			   unsigned long shift,
++			   unsigned long boundary_size)
  {
- 	__get_cpu_var(current_kprobe) = NULL;
-@@ -257,6 +273,10 @@ static inline struct kprobe *kprobe_runn
- {
- 	return NULL;
++	BUG_ON(!is_power_of_2(boundary_size));
++
+ 	shift = (shift + index) & (boundary_size - 1);
+ 	return shift + nr > boundary_size;
  }
-+static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
-+{
-+	return 0;
-+}
- static inline int register_kprobe(struct kprobe *p)
- {
- 	return -ENOSYS;
+@@ -57,7 +59,7 @@ unsigned long iommu_area_alloc(unsigned 
+ again:
+ 	index = find_next_zero_area(map, size, start, nr, align_mask);
+ 	if (index != -1) {
+-		if (is_span_boundary(index, nr, shift, boundary_size)) {
++		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
+ 			goto again;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-origin.patch
-specialixc-fix-possible-double-unlock.patch
-git-x86.patch
-git-alsa.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-git-nfsd.patch
-block-fix-shadowed-variable-warning-in-blk-mapc.patch
-block-remove-extern-on-function-definition.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-ia64-kprobes-arch-consolidation-build-fix.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+git-scsi-misc.patch
+alpha-convert-iommu-to-use-align.patch
+alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place.patch
+alpha-make-iommu-respect-the-segment-boundary-limits.patch
+alpha-remove-unused-debug_forcedac-define-in-iommu.patch
+iommu-export-iommu_is_span_boundary-helper-function.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
+mpt-fusion-dont-oops-if-numphys==0.patch
 
