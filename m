@@ -1,108 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - kthread-add-a-missing-memory-barrier-to-kthread_stop.patch removed from -mm tree
-Date: Sun, 02 Mar 2008 19:50:03 -0800
-Message-ID: <200803030350.m233o3ft029917@imap1.linux-foundation.org>
+Subject: + driver-core-debug-for-bad-dev_attr_show-return-value.patch added to -mm tree
+Date: Sun, 02 Mar 2008 19:56:30 -0800
+Message-ID: <200803030356.m233uU6T030095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52220 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751162AbYCCDu5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 22:50:57 -0500
+	by vger.kernel.org with ESMTP id S1754162AbYCCD4j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 2 Mar 2008 22:56:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mm-co
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, balajirrao@gmail.com, greg@kroah.com
 
 
 The patch titled
-     kthread: add a missing memory barrier to kthread_stop()
-has been removed from the -mm tree.  Its filename was
-     kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
+     driver core: debug for bad dev_attr_show() return value.
+has been added to the -mm tree.  Its filename is
+     driver-core-debug-for-bad-dev_attr_show-return-value.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread: add a missing memory barrier to kthread_stop()
-From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Subject: driver core: debug for bad dev_attr_show() return value.
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We must ensure that kthread_stop_info.k has been updated before kthread's
-wakeup.  This is required to properly support the use of kthread_should_stop()
-in the main loop of kthread.
+Try to find the culprit who caused
+http://bugzilla.kernel.org/show_bug.cgi?id=10150
 
-wake_up_process() doesn't imply a full memory barrier,
-so we add an explicit one.
-
-There is a requirement on how a main loop of kthread has to be orginized.
-
-Namely, the sequence of events that lead to kthread being blocked (schedule())
-has to be ordered as follows:
-
-- set_current_state(TASK_INTERRUPTIBLE);
-- if (kthread_should_stop()) break;
-- schedule() or similar.
-
-set_current_state() implies a full memory barrier, so this is
-a matching barrier on the side of kthread_should_stop().
-
-Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>index 45f8b83..86b69a0 100644
+Cc: <balajirrao@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/base/core.c |    5 +++++
+ fs/sysfs/file.c     |    8 +++++++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop kernel/kthread.c
---- a/kernel/kthread.c~kthread-add-a-missing-memory-barrier-to-kthread_stop
-+++ a/kernel/kthread.c
-@@ -53,6 +53,19 @@ static struct kthread_stop_info kthread_
-  * When someone calls kthread_stop() on your kthread, it will be woken
-  * and this will return true.  You should then return, and your return
-  * value will be passed through to kthread_stop().
-+ *
-+ * In order to safely use kthread_stop() for kthread, there is a requirement
-+ * on how its main loop has to be orginized. Namely, the sequence of
-+ * events that lead to kthread being blocked (schedule()) has to be
-+ * ordered as follows:
-+ *
-+ * - set_current_state(TASK_INTERRUPTIBLE);
-+ * - if (kthread_should_stop()) break;
-+ * - schedule() or similar.
-+ *
-+ * set_current_state() implies a full memory barrier. kthread_stop()
-+ * has a matching barrier right after an update of kthread_stop_info.k
-+ * and before kthread's wakeup.
-  */
- int kthread_should_stop(void)
- {
-@@ -211,6 +224,15 @@ int kthread_stop(struct task_struct *k)
+diff -puN fs/Kconfig~driver-core-debug-for-bad-dev_attr_show-return-value fs/Kconfig
+diff -puN fs/sysfs/file.c~driver-core-debug-for-bad-dev_attr_show-return-value fs/sysfs/file.c
+--- a/fs/sysfs/file.c~driver-core-debug-for-bad-dev_attr_show-return-value
++++ a/fs/sysfs/file.c
+@@ -16,6 +16,7 @@
+ #include <linux/poll.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/kallsyms.h>
+ #include <asm/uaccess.h>
  
- 	/* Now set kthread_should_stop() to true, and wake it up. */
- 	kthread_stop_info.k = k;
-+
-+	/*
-+	 * We must ensure that kthread_stop_info.k has been updated before
-+	 * the following wakeup. This is required to properly support the use
-+	 * of kthread_should_stop() in the main loop of kthread
-+	 * (see description of kthread_should_stop() for more details).
-+	 */
-+	smp_mb();
-+
- 	wake_up_process(k);
- 	put_task_struct(k);
+ #include "sysfs.h"
+@@ -86,7 +87,12 @@ static int fill_read_buffer(struct dentr
+ 	 * The code works fine with PAGE_SIZE return but it's likely to
+ 	 * indicate truncated result or overflow in normal use cases.
+ 	 */
+-	BUG_ON(count >= (ssize_t)PAGE_SIZE);
++	if (count >= (ssize_t)PAGE_SIZE) {
++		print_symbol("fill_read_buffer: %s returned bad count\n",
++			(unsigned long)ops->show);
++		/* Try to struggle along */
++		count = PAGE_SIZE - 1;
++	}
+ 	if (count >= 0) {
+ 		buffer->needs_read_fill = 0;
+ 		buffer->count = count;
+diff -puN drivers/base/core.c~driver-core-debug-for-bad-dev_attr_show-return-value drivers/base/core.c
+--- a/drivers/base/core.c~driver-core-debug-for-bad-dev_attr_show-return-value
++++ a/drivers/base/core.c
+@@ -19,6 +19,7 @@
+ #include <linux/kdev_t.h>
+ #include <linux/notifier.h>
+ #include <linux/genhd.h>
++#include <linux/kallsyms.h>
+ #include <asm/semaphore.h>
+ 
+ #include "base.h"
+@@ -68,6 +69,10 @@ static ssize_t dev_attr_show(struct kobj
+ 
+ 	if (dev_attr->show)
+ 		ret = dev_attr->show(dev, dev_attr, buf);
++	if (ret >= (ssize_t)PAGE_SIZE) {
++		print_symbol("dev_attr_show: %s returned bad count\n",
++				(unsigned long)dev_attr->show);
++	}
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kthread-add-a-missing-memory-barrier-to-kthread_stop.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+use-page_cache_xxx-in-ext2-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
