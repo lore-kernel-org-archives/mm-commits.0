@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:47:52 -0800
-Message-ID: <200803030747.m237lqNk005286@imap1.linux-foundation.org>
+Subject: + selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:47:56 -0800
+Message-ID: <200803030747.m237luw2005292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45314 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbYCCHry (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:54 -0500
+	by vger.kernel.org with ESMTP id S1751480AbYCCHr7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, darwish.07@gmail.com
 
 
 The patch titled
-     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
+     selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+     selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
+Subject: selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#123: FILE: include/linux/security.h:1995:
-+static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
+#54: FILE: include/linux/audit.h:373:
++	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
 
-total: 0 errors, 1 warnings, 158 lines checked
+ERROR: use tabs not spaces
+#286: FILE: security/selinux/include/audit.h:55:
++                             struct audit_context *actx);$
 
-./patches/lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks.patch has style problems, please review.  If any of these errors
+WARNING: line over 80 characters
+#291: FILE: security/selinux/include/audit.h:60:
++ *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
+
+total: 1 errors, 2 warnings, 335 lines checked
+
+./patches/selinux-use-new-audit-hooks-remove-redundant-exports.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -52,22 +60,28 @@ Cc: Ahmed S. Darwish <darwish.07@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ security/selinux/include/audit.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes include/linux/security.h
---- a/include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
-+++ a/include/linux/security.h
-@@ -1992,7 +1992,8 @@ static inline int security_inode_listsec
- 	return 0;
- }
+diff -puN security/selinux/include/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes security/selinux/include/audit.h
+--- a/security/selinux/include/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
++++ a/security/selinux/include/audit.h
+@@ -52,12 +52,13 @@ void selinux_audit_rule_free(void *rule)
+  *	-errno on failure.
+  */
+ int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *rule,
+-                             struct audit_context *actx);
++			     struct audit_context *actx);
  
--static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
-+static inline void security_inode_getsecid(const struct inode *inode,
-+					   u32 *secid)
- {
- 	*secid = 0;
- }
+ /**
+  *	selinux_audit_rule_known - check to see if rule contains selinux fields.
+  *	@rule: rule to be checked
+- *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
++ *	Returns 1 if there are selinux fields specified in the rule, 0
++ *	otherwise.
+  */
+ int selinux_audit_rule_known(struct audit_krule *krule);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
