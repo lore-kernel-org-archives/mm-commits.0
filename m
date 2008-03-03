@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + netlink-use-generic-lsm-hook.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:41:47 -0800
-Message-ID: <200803030741.m237flhL005092@imap1.linux-foundation.org>
+Subject: + selinux-setup-new-inode-ipc-getsecid-hooks.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:41:43 -0800
+Message-ID: <200803030741.m237fhED005086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751207AbYCCHoP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:44:15 -0500
+	by vger.kernel.org with ESMTP id S1751214AbYCCHo0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:44:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@inf
 
 
 The patch titled
-     Netlink: Use generic LSM hook
+     SELinux: setup new inode/ipc getsecid hooks
 has been added to the -mm tree.  Its filename is
-     netlink-use-generic-lsm-hook.patch
+     selinux-setup-new-inode-ipc-getsecid-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Netlink: Use generic LSM hook
+Subject: SELinux: setup new inode/ipc getsecid hooks
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Don't use SELinux exported selinux_get_task_sid symbol.  Use the generic LSM
-equivalent instead.
+Setup the new inode_getsecid and ipc_getsecid() LSM hooks for SELinux.
 
 Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
@@ -51,29 +50,73 @@ Cc: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netlink/af_netlink.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ security/selinux/hooks.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN net/netlink/af_netlink.c~netlink-use-generic-lsm-hook net/netlink/af_netlink.c
---- a/net/netlink/af_netlink.c~netlink-use-generic-lsm-hook
-+++ a/net/netlink/af_netlink.c
-@@ -54,7 +54,6 @@
- #include <linux/mm.h>
- #include <linux/types.h>
- #include <linux/audit.h>
--#include <linux/selinux.h>
- #include <linux/mutex.h>
+diff -puN security/selinux/hooks.c~selinux-setup-new-inode-ipc-getsecid-hooks security/selinux/hooks.c
+--- a/security/selinux/hooks.c~selinux-setup-new-inode-ipc-getsecid-hooks
++++ a/security/selinux/hooks.c
+@@ -2749,6 +2749,12 @@ static int selinux_inode_killpriv(struct
+ 	return secondary_ops->inode_killpriv(dentry);
+ }
  
- #include <net/net_namespace.h>
-@@ -1239,7 +1238,7 @@ static int netlink_sendmsg(struct kiocb 
- 	NETLINK_CB(skb).pid	= nlk->pid;
- 	NETLINK_CB(skb).dst_group = dst_group;
- 	NETLINK_CB(skb).loginuid = audit_get_loginuid(current);
--	selinux_get_task_sid(current, &(NETLINK_CB(skb).sid));
-+	security_task_getsecid(current, &(NETLINK_CB(skb).sid));
- 	memcpy(NETLINK_CREDS(skb), &siocb->scm->creds, sizeof(struct ucred));
++static void selinux_inode_getsecid(const struct inode *inode, u32 *secid)
++{
++	struct inode_security_struct *isec = inode->i_security;
++	*secid = isec->sid;
++}
++
+ /* file security operations */
  
- 	/* What can I do? Netlink is asynchronous, so that
+ static int selinux_revalidate_file_permission(struct file *file, int mask)
+@@ -3145,7 +3151,8 @@ static int selinux_task_getsid(struct ta
+ 
+ static void selinux_task_getsecid(struct task_struct *p, u32 *secid)
+ {
+-	selinux_get_task_sid(p, secid);
++	struct task_security_struct *tsec = p->security;
++	*secid = tsec->sid;
+ }
+ 
+ static int selinux_task_setgroups(struct group_info *group_info)
+@@ -4116,7 +4123,7 @@ static int selinux_socket_getpeersec_dgr
+ 		goto out;
+ 
+ 	if (sock && family == PF_UNIX)
+-		selinux_get_inode_sid(SOCK_INODE(sock), &peer_secid);
++		selinux_inode_getsecid(SOCK_INODE(sock), &peer_secid);
+ 	else if (skb)
+ 		selinux_skb_peerlbl_sid(skb, family, &peer_secid);
+ 
+@@ -4994,6 +5001,12 @@ static int selinux_ipc_permission(struct
+ 	return ipc_has_perm(ipcp, av);
+ }
+ 
++static void selinux_ipc_getsecid(struct kern_ipc_perm *ipcp, u32 *secid)
++{
++	struct ipc_security_struct *isec = ipcp->security;
++	*secid = isec->sid;
++}
++
+ /* module stacking operations */
+ static int selinux_register_security (const char *name, struct security_operations *ops)
+ {
+@@ -5301,6 +5314,7 @@ static struct security_operations selinu
+ 	.inode_listsecurity =           selinux_inode_listsecurity,
+ 	.inode_need_killpriv =		selinux_inode_need_killpriv,
+ 	.inode_killpriv =		selinux_inode_killpriv,
++	.inode_getsecid =               selinux_inode_getsecid,
+ 
+ 	.file_permission =		selinux_file_permission,
+ 	.file_alloc_security =		selinux_file_alloc_security,
+@@ -5341,6 +5355,7 @@ static struct security_operations selinu
+ 	.task_to_inode =                selinux_task_to_inode,
+ 
+ 	.ipc_permission =		selinux_ipc_permission,
++	.ipc_getsecid =                 selinux_ipc_getsecid,
+ 
+ 	.msg_msg_alloc_security =	selinux_msg_msg_alloc_security,
+ 	.msg_msg_free_security =	selinux_msg_msg_free_security,
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
