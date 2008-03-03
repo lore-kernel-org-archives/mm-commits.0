@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-export-iommu_is_span_boundary-helper-function.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:02:20 -0800
-Message-ID: <200803030802.m2382Ktu005814@imap1.linux-foundation.org>
+Subject: + iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:02:22 -0800
+Message-ID: <200803030802.m2382MmC005817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbYCCIEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:04:48 -0500
+	by vger.kernel.org with ESMTP id S1752020AbYCCIEt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:04:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.
 
 
 The patch titled
-     iommu: export iommu_is_span_boundary helper function
+     iommu: parisc: pass struct device to iommu_alloc_range
 has been added to the -mm tree.  Its filename is
-     iommu-export-iommu_is_span_boundary-helper-function.patch
+     iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu: export iommu_is_span_boundary helper function
+Subject: iommu: parisc: pass struct device to iommu_alloc_range
 From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-iommu_is_span_boundary is used internally in the IOMMU helper
-(lib/iommu-helper.c), a primitive function that judges whether a memory area
-spans LLD's segment boundary or not.
-
-It's difficult to convert some IOMMUs to use the IOMMU helper but
-iommu_is_span_boundary is still useful for them.  So this patch exports it.
-
-This is needed for the parisc iommu fixes.
+This adds struct device argument to sba_alloc_range and ccio_alloc_range, a
+preparation for modifications to fix the IOMMU segment boundary problem.  This
+change enables ccio_alloc_range to access to LLD's segment boundary limits.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Kyle McMartin <kyle@parisc-linux.org>
@@ -52,48 +47,74 @@ Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iommu-helper.h |    3 +++
- lib/iommu-helper.c           |   10 ++++++----
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ drivers/parisc/ccio-dma.c      |    4 ++--
+ drivers/parisc/iommu-helpers.h |    4 ++--
+ drivers/parisc/sba_iommu.c     |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function include/linux/iommu-helper.h
---- a/include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function
-+++ a/include/linux/iommu-helper.h
-@@ -1,3 +1,6 @@
-+extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
-+				  unsigned long shift,
-+				  unsigned long boundary_size);
- extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
- 				      unsigned long start, unsigned int nr,
- 				      unsigned long shift,
-diff -puN lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function lib/iommu-helper.c
---- a/lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function
-+++ a/lib/iommu-helper.c
-@@ -40,10 +40,12 @@ static inline void set_bit_area(unsigned
- 	}
- }
- 
--static inline int is_span_boundary(unsigned int index, unsigned int nr,
--				   unsigned long shift,
--				   unsigned long boundary_size)
-+int iommu_is_span_boundary(unsigned int index, unsigned int nr,
-+			   unsigned long shift,
-+			   unsigned long boundary_size)
+diff -puN drivers/parisc/ccio-dma.c~iommu-parisc-pass-struct-device-to-iommu_alloc_range drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~iommu-parisc-pass-struct-device-to-iommu_alloc_range
++++ a/drivers/parisc/ccio-dma.c
+@@ -341,7 +341,7 @@ static int ioc_count;
+  * of available pages for the requested size.
+  */
+ static int
+-ccio_alloc_range(struct ioc *ioc, size_t size)
++ccio_alloc_range(struct ioc *ioc, struct device *dev, size_t size)
  {
-+	BUG_ON(!is_power_of_2(boundary_size));
-+
- 	shift = (shift + index) & (boundary_size - 1);
- 	return shift + nr > boundary_size;
- }
-@@ -57,7 +59,7 @@ unsigned long iommu_area_alloc(unsigned 
- again:
- 	index = find_next_zero_area(map, size, start, nr, align_mask);
- 	if (index != -1) {
--		if (is_span_boundary(index, nr, shift, boundary_size)) {
-+		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
- 			/* we could do more effectively */
- 			start = index + 1;
- 			goto again;
+ 	unsigned int pages_needed = size >> IOVP_SHIFT;
+ 	unsigned int res_idx;
+@@ -760,7 +760,7 @@ ccio_map_single(struct device *dev, void
+ 	ioc->msingle_pages += size >> IOVP_SHIFT;
+ #endif
+ 
+-	idx = ccio_alloc_range(ioc, size);
++	idx = ccio_alloc_range(ioc, dev, size);
+ 	iovp = (dma_addr_t)MKIOVP(idx);
+ 
+ 	pdir_start = &(ioc->pdir_base[idx]);
+diff -puN drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range drivers/parisc/iommu-helpers.h
+--- a/drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range
++++ a/drivers/parisc/iommu-helpers.h
+@@ -97,7 +97,7 @@ iommu_fill_pdir(struct ioc *ioc, struct 
+ static inline unsigned int
+ iommu_coalesce_chunks(struct ioc *ioc, struct device *dev,
+ 		      struct scatterlist *startsg, int nents,
+-		      int (*iommu_alloc_range)(struct ioc *, size_t))
++		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
+ {
+ 	struct scatterlist *contig_sg;	   /* contig chunk head */
+ 	unsigned long dma_offset, dma_len; /* start/len of DMA stream */
+@@ -166,7 +166,7 @@ iommu_coalesce_chunks(struct ioc *ioc, s
+ 		dma_len = ALIGN(dma_len + dma_offset, IOVP_SIZE);
+ 		sg_dma_address(contig_sg) =
+ 			PIDE_FLAG 
+-			| (iommu_alloc_range(ioc, dma_len) << IOVP_SHIFT)
++			| (iommu_alloc_range(ioc, dev, dma_len) << IOVP_SHIFT)
+ 			| dma_offset;
+ 		n_mappings++;
+ 	}
+diff -puN drivers/parisc/sba_iommu.c~iommu-parisc-pass-struct-device-to-iommu_alloc_range drivers/parisc/sba_iommu.c
+--- a/drivers/parisc/sba_iommu.c~iommu-parisc-pass-struct-device-to-iommu_alloc_range
++++ a/drivers/parisc/sba_iommu.c
+@@ -404,7 +404,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
+  * resource bit map.
+  */
+ static int
+-sba_alloc_range(struct ioc *ioc, size_t size)
++sba_alloc_range(struct ioc *ioc, struct device *dev, size_t size)
+ {
+ 	unsigned int pages_needed = size >> IOVP_SHIFT;
+ #ifdef SBA_COLLECT_STATS
+@@ -710,7 +710,7 @@ sba_map_single(struct device *dev, void 
+ 	ioc->msingle_calls++;
+ 	ioc->msingle_pages += size >> IOVP_SHIFT;
+ #endif
+-	pide = sba_alloc_range(ioc, size);
++	pide = sba_alloc_range(ioc, dev, size);
+ 	iovp = (dma_addr_t) pide << IOVP_SHIFT;
+ 
+ 	DBG_RUN("%s() 0x%p -> 0x%lx\n",
 _
 
 Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
