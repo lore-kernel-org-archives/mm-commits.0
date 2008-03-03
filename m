@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:02:24 -0800
-Message-ID: <200803030802.m2382OSi005820@imap1.linux-foundation.org>
+Subject: + iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:03:19 -0800
+Message-ID: <200803030803.m2383JQk005835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952AbYCCIEs (ORCPT
+	by vger.kernel.org with ESMTP id S1751760AbYCCIEs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:04:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
+Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
 
 
 The patch titled
-     iommu: parisc: make the IOMMUs respect the segment boundary limits
+     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
+     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,191 +33,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu: parisc: make the IOMMUs respect the segment boundary limits
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make PARISC's two IOMMU implementations not allocate a memory area spanning
-LLD's segment boundary.
+WARNING: line over 80 characters
+#48: FILE: drivers/parisc/iommu-helpers.h:100:
++		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+total: 0 errors, 1 warnings, 48 lines checked
+
+./patches/iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Cc: Kyle McMartin <kyle@parisc-linux.org>
 Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/Kconfig     |    5 +++
- drivers/parisc/ccio-dma.c  |   13 ++++++++-
- drivers/parisc/sba_iommu.c |   48 ++++++++++++++++++++++++++---------
- 3 files changed, 53 insertions(+), 13 deletions(-)
+ drivers/parisc/iommu-helpers.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/parisc/Kconfig~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits drivers/parisc/Kconfig
---- a/drivers/parisc/Kconfig~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits
-+++ a/drivers/parisc/Kconfig
-@@ -103,6 +103,11 @@ config IOMMU_SBA
- 	depends on PCI_LBA
- 	default PCI_LBA
+diff -puN drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes drivers/parisc/iommu-helpers.h
+--- a/drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
++++ a/drivers/parisc/iommu-helpers.h
+@@ -96,8 +96,8 @@ iommu_fill_pdir(struct ioc *ioc, struct 
  
-+config IOMMU_HELPER
-+	bool
-+	depends on IOMMU_SBA || IOMMU_CCIO
-+	default y
-+
- #config PCI_EPIC
- #	bool "EPIC/SAGA PCI support"
- #	depends on PCI
-diff -puN drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits
-+++ a/drivers/parisc/ccio-dma.c
-@@ -43,6 +43,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/scatterlist.h>
-+#include <linux/iommu-helper.h>
- 
- #include <asm/byteorder.h>
- #include <asm/cache.h>		/* for L1_CACHE_BYTES */
-@@ -302,9 +303,13 @@ static int ioc_count;
- */
- #define CCIO_SEARCH_LOOP(ioc, res_idx, mask, size)  \
-        for(; res_ptr < res_end; ++res_ptr) { \
--               if(0 == (*res_ptr & mask)) { \
-+               int ret;\
-+               unsigned int idx;\
-+               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
-+		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
-+               if((0 == (*res_ptr & mask)) && !ret) { \
-                        *res_ptr |= mask; \
--                       res_idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
-+                       res_idx = idx;\
-                        ioc->res_hint = res_idx + (size >> 3); \
-                        goto resource_found; \
-                } \
-@@ -345,6 +350,7 @@ ccio_alloc_range(struct ioc *ioc, struct
+ static inline unsigned int
+ iommu_coalesce_chunks(struct ioc *ioc, struct device *dev,
+-		      struct scatterlist *startsg, int nents,
+-		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
++		struct scatterlist *startsg, int nents,
++		int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
  {
- 	unsigned int pages_needed = size >> IOVP_SHIFT;
- 	unsigned int res_idx;
-+	unsigned long boundary_size;
- #ifdef CCIO_SEARCH_TIME
- 	unsigned long cr_start = mfctl(16);
- #endif
-@@ -360,6 +366,9 @@ ccio_alloc_range(struct ioc *ioc, struct
- 	** ggg sacrifices another 710 to the computer gods.
- 	*/
- 
-+	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
-+	boundary_size >>= IOVP_SHIFT;
-+
- 	if (pages_needed <= 8) {
- 		/*
- 		 * LAN traffic will not thrash the TLB IFF the same NIC
-diff -puN drivers/parisc/sba_iommu.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits drivers/parisc/sba_iommu.c
---- a/drivers/parisc/sba_iommu.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits
-+++ a/drivers/parisc/sba_iommu.c
-@@ -29,6 +29,7 @@
- #include <linux/string.h>
- #include <linux/pci.h>
- #include <linux/scatterlist.h>
-+#include <linux/iommu-helper.h>
- 
- #include <asm/byteorder.h>
- #include <asm/io.h>
-@@ -313,6 +314,12 @@ sba_dump_sg( struct ioc *ioc, struct sca
- #define RESMAP_MASK(n)    (~0UL << (BITS_PER_LONG - (n)))
- #define RESMAP_IDX_MASK   (sizeof(unsigned long) - 1)
- 
-+unsigned long ptr_to_pide(struct ioc *ioc, unsigned long *res_ptr,
-+			  unsigned int bitshiftcnt)
-+{
-+	return (((unsigned long)res_ptr - (unsigned long)ioc->res_map) << 3)
-+		+ bitshiftcnt;
-+}
- 
- /**
-  * sba_search_bitmap - find free space in IO PDIR resource bitmap
-@@ -324,19 +331,36 @@ sba_dump_sg( struct ioc *ioc, struct sca
-  * Cool perf optimization: search for log2(size) bits at a time.
-  */
- static SBA_INLINE unsigned long
--sba_search_bitmap(struct ioc *ioc, unsigned long bits_wanted)
-+sba_search_bitmap(struct ioc *ioc, struct device *dev,
-+		  unsigned long bits_wanted)
- {
- 	unsigned long *res_ptr = ioc->res_hint;
- 	unsigned long *res_end = (unsigned long *) &(ioc->res_map[ioc->res_size]);
--	unsigned long pide = ~0UL;
-+	unsigned long pide = ~0UL, tpide;
-+	unsigned long boundary_size;
-+	unsigned long shift;
-+	int ret;
-+
-+	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
-+	boundary_size >>= IOVP_SHIFT;
-+
-+#if defined(ZX1_SUPPORT)
-+	BUG_ON(ioc->ibase & ~IOVP_MASK);
-+	shift = ioc->ibase >> IOVP_SHIFT;
-+#else
-+	shift = 0;
-+#endif
- 
- 	if (bits_wanted > (BITS_PER_LONG/2)) {
- 		/* Search word at a time - no mask needed */
- 		for(; res_ptr < res_end; ++res_ptr) {
--			if (*res_ptr == 0) {
-+			tpide = ptr_to_pide(ioc, res_ptr, 0);
-+			ret = iommu_is_span_boundary(tpide, bits_wanted,
-+						     shift,
-+						     boundary_size);
-+			if ((*res_ptr == 0) && !ret) {
- 				*res_ptr = RESMAP_MASK(bits_wanted);
--				pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
--				pide <<= 3;	/* convert to bit address */
-+				pide = tpide;
- 				break;
- 			}
- 		}
-@@ -365,11 +389,13 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 		{ 
- 			DBG_RES("    %p %lx %lx\n", res_ptr, mask, *res_ptr);
- 			WARN_ON(mask == 0);
--			if(((*res_ptr) & mask) == 0) {
-+			tpide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
-+			ret = iommu_is_span_boundary(tpide, bits_wanted,
-+						     shift,
-+						     boundary_size);
-+			if ((((*res_ptr) & mask) == 0) && !ret) {
- 				*res_ptr |= mask;     /* mark resources busy! */
--				pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
--				pide <<= 3;	/* convert to bit address */
--				pide += bitshiftcnt;
-+				pide = tpide;
- 				break;
- 			}
- 			mask >>= o;
-@@ -412,9 +438,9 @@ sba_alloc_range(struct ioc *ioc, struct 
- #endif
- 	unsigned long pide;
- 
--	pide = sba_search_bitmap(ioc, pages_needed);
-+	pide = sba_search_bitmap(ioc, dev, pages_needed);
- 	if (pide >= (ioc->res_size << 3)) {
--		pide = sba_search_bitmap(ioc, pages_needed);
-+		pide = sba_search_bitmap(ioc, dev, pages_needed);
- 		if (pide >= (ioc->res_size << 3))
- 			panic("%s: I/O MMU @ %p is out of mapping resources\n",
- 			      __FILE__, ioc->ioc_hpa);
+ 	struct scatterlist *contig_sg;	   /* contig chunk head */
+ 	unsigned long dma_offset, dma_len; /* start/len of DMA stream */
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-scsi-misc.patch
-alpha-convert-iommu-to-use-align.patch
-alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place.patch
-alpha-make-iommu-respect-the-segment-boundary-limits.patch
-alpha-remove-unused-debug_forcedac-define-in-iommu.patch
-iommu-export-iommu_is_span_boundary-helper-function.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
-iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
-mpt-fusion-dont-oops-if-numphys==0.patch
+origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-audit-printk-warning-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+use-page_cache_xxx-in-ext2-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
