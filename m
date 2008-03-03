@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - block-fix-residual-byte-count-handling.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 00:32:27 -0800
-Message-ID: <200803030832.m238WReq006898@imap1.linux-foundation.org>
+Subject: + block-fix-residual-byte-count-handling.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:35:04 -0800
+Message-ID: <200803030835.m238Z4B3007031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754795AbYCCIdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:33:17 -0500
+	by vger.kernel.org with ESMTP id S1753213AbYCCIgR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:36:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: htejun@gmail.com, efault@gmx.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: htejun@gmail.com, James.Bottomley@HansenPartnership.com, efault@gmx.de, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com
 
 
 The patch titled
      block: fix residual byte count handling
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      block-fix-residual-byte-count-handling.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -44,17 +54,22 @@ This problem was reported and diagnosed by Mike Galbraith.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
 Cc: Mike Galbraith <efault@gmx.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  block/blk-core.c          |    3 +--
  block/blk-map.c           |    2 +-
  block/blk-merge.c         |    1 +
+ block/blk-settings.c      |    4 ++++
  block/bsg.c               |    8 ++++----
  block/scsi_ioctl.c        |    4 ++--
  drivers/ata/libata-scsi.c |    3 ++-
  include/linux/blkdev.h    |    8 +++++++-
- 7 files changed, 18 insertions(+), 11 deletions(-)
+ 8 files changed, 22 insertions(+), 11 deletions(-)
 
 diff -puN block/blk-core.c~block-fix-residual-byte-count-handling block/blk-core.c
 --- a/block/blk-core.c~block-fix-residual-byte-count-handling
@@ -106,6 +121,20 @@ diff -puN block/blk-merge.c~block-fix-residual-byte-count-handling block/blk-mer
  	}
  
  	if (sg)
+diff -puN block/blk-settings.c~block-fix-residual-byte-count-handling block/blk-settings.c
+--- a/block/blk-settings.c~block-fix-residual-byte-count-handling
++++ a/block/blk-settings.c
+@@ -309,6 +309,10 @@ EXPORT_SYMBOL(blk_queue_stack_limits);
+  * does is adjust the queue so that the buf is always appended
+  * silently to the scatterlist.
+  *
++ * Appending draining buffer to a request modifies ->data_len such
++ * that it includes the drain buffer.  The original requested data
++ * length can be obtained using blk_rq_raw_data_len().
++ *
+  * Note: This routine adjusts max_hw_segments to make room for
+  * appending the drain buffer.  If you call
+  * blk_queue_max_hw_segments() or blk_queue_max_phys_segments() after
 diff -puN block/bsg.c~block-fix-residual-byte-count-handling block/bsg.c
 --- a/block/bsg.c~block-fix-residual-byte-count-handling
 +++ a/block/bsg.c
@@ -172,7 +201,7 @@ diff -puN include/linux/blkdev.h~block-fix-residual-byte-count-handling include/
  
 -	unsigned int raw_data_len;
  	unsigned int data_len;
-+	unsigned int extra_len;	/* length of alignment and padding */
++	unsigned int extra_len;	/* length of padding and draining buffers */
  	unsigned int sense_len;
  	void *data;
  	void *sense;
@@ -180,7 +209,7 @@ diff -puN include/linux/blkdev.h~block-fix-residual-byte-count-handling include/
  
  #define rq_data_dir(rq)		((rq)->cmd_flags & 1)
  
-+/* data_len of the request sans extra stuff for alignment and padding */
++/* data_len of the request sans extra stuff for padding and draining */
 +static inline unsigned int blk_rq_raw_data_len(struct request *rq)
 +{
 +	return rq->data_len - min(rq->extra_len, rq->data_len);
