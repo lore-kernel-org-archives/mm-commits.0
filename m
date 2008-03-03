@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:47:56 -0800
-Message-ID: <200803030747.m237luw2005292@imap1.linux-foundation.org>
+Subject: + audit-final-renamings-and-cleanup-checkpatch-fixes.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:48:02 -0800
+Message-ID: <200803030748.m237m25J005301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45314 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751480AbYCCHr7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:59 -0500
+	by vger.kernel.org with ESMTP id S1751455AbYCCHsE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:48:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, darwish.07@gmail.com
 
 
 The patch titled
-     selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
+     audit-final-renamings-and-cleanup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+     audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
+Subject: audit-final-renamings-and-cleanup-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#54: FILE: include/linux/audit.h:373:
-+	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
+ERROR: use tabs not spaces
+#171: FILE: kernel/auditsc.c:537:
++^I^I^I^I                                  f->lsm_rule,$
 
 ERROR: use tabs not spaces
-#286: FILE: security/selinux/include/audit.h:55:
-+                             struct audit_context *actx);$
+#186: FILE: kernel/auditsc.c:553:
++^I^I^I^I^I           f->lsm_rule, ctx);$
 
 WARNING: line over 80 characters
-#291: FILE: security/selinux/include/audit.h:60:
-+ *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
+#202: FILE: kernel/auditsc.c:572:
++							if (security_audit_rule_match(axi->osid, f->type, f->op, f->lsm_rule, ctx)) {
 
-total: 1 errors, 2 warnings, 335 lines checked
+total: 2 errors, 1 warnings, 161 lines checked
 
-./patches/selinux-use-new-audit-hooks-remove-redundant-exports.patch has style problems, please review.  If any of these errors
+./patches/audit-final-renamings-and-cleanup.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -60,28 +60,30 @@ Cc: Ahmed S. Darwish <darwish.07@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/include/audit.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/auditsc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/selinux/include/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes security/selinux/include/audit.h
---- a/security/selinux/include/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes
-+++ a/security/selinux/include/audit.h
-@@ -52,12 +52,13 @@ void selinux_audit_rule_free(void *rule)
-  *	-errno on failure.
-  */
- int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *rule,
--                             struct audit_context *actx);
-+			     struct audit_context *actx);
- 
- /**
-  *	selinux_audit_rule_known - check to see if rule contains selinux fields.
-  *	@rule: rule to be checked
-- *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
-+ *	Returns 1 if there are selinux fields specified in the rule, 0
-+ *	otherwise.
-  */
- int selinux_audit_rule_known(struct audit_krule *krule);
- 
+diff -puN kernel/auditsc.c~audit-final-renamings-and-cleanup-checkpatch-fixes kernel/auditsc.c
+--- a/kernel/auditsc.c~audit-final-renamings-and-cleanup-checkpatch-fixes
++++ a/kernel/auditsc.c
+@@ -534,7 +534,7 @@ static int audit_filter_rules(struct tas
+ 				}
+ 				result = security_audit_rule_match(sid, f->type,
+ 				                                  f->op,
+-				                                  f->lsm_rule,
++								  f->lsm_rule,
+ 				                                  ctx);
+ 			}
+ 			break;
+@@ -550,7 +550,7 @@ static int audit_filter_rules(struct tas
+ 				if (name) {
+ 					result = security_audit_rule_match(
+ 					           name->osid, f->type, f->op,
+-					           f->lsm_rule, ctx);
++						   f->lsm_rule, ctx);
+ 				} else if (ctx) {
+ 					for (j = 0; j < ctx->name_count; j++) {
+ 						if (security_audit_rule_match(
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
