@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch added to -mm tree
-Date: Sun, 02 Mar 2008 23:47:54 -0800
-Message-ID: <200803030747.m237ls01005289@imap1.linux-foundation.org>
+Subject: + lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch added to -mm tree
+Date: Sun, 02 Mar 2008 23:47:52 -0800
+Message-ID: <200803030747.m237lqNk005286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751409AbYCCHr4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:56 -0500
+	by vger.kernel.org with ESMTP id S1751250AbYCCHry (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 02:47:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, darwish.07@gmail.com
 
 
 The patch titled
-     lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
+     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
+Subject: lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#49: FILE: include/linux/security.h:1226:
-+ *	@field contains the required Audit action. Fields flags are defined in include/linux/audit.h
+#123: FILE: include/linux/security.h:1995:
++static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
 
-WARNING: line over 80 characters
-#57: FILE: include/linux/security.h:1234:
-+ *	Specifies whether given @rule contains any fields related to current LSM.
+total: 0 errors, 1 warnings, 158 lines checked
 
-WARNING: line over 80 characters
-#84: FILE: include/linux/security.h:1514:
-+	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
-
-total: 0 errors, 3 warnings, 165 lines checked
-
-./patches/lsm-audit-introduce-generic-audit-lsm-hooks.patch has style problems, please review.  If any of these errors
+./patches/lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -63,19 +55,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/security.h |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes include/linux/security.h
---- a/include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes
+diff -puN include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes include/linux/security.h
+--- a/include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
 +++ a/include/linux/security.h
-@@ -1511,7 +1511,8 @@ struct security_operations {
- #endif	/* CONFIG_KEYS */
+@@ -1992,7 +1992,8 @@ static inline int security_inode_listsec
+ 	return 0;
+ }
  
- #ifdef CONFIG_AUDIT
--	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
-+	int (*audit_rule_init)(u32 field, u32 op, char *rulestr,
-+			       void **lsmrule);
- 	int (*audit_rule_known)(struct audit_krule *krule);
- 	int (*audit_rule_match)(u32 secid, u32 field, u32 op, void *lsmrule,
- 				struct audit_context *actx);
+-static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
++static inline void security_inode_getsecid(const struct inode *inode,
++					   u32 *secid)
+ {
+ 	*secid = 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
