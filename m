@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 03 Mar 2008 00:03:19 -0800
-Message-ID: <200803030803.m2383JQk005835@imap1.linux-foundation.org>
+Subject: + iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 03 Mar 2008 00:04:40 -0800
+Message-ID: <200803030804.m2384euk005875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56216 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbYCCIEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:04:48 -0500
+	by vger.kernel.org with ESMTP id S1751973AbYCCIF1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 03:05:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-li
 
 
 The patch titled
-     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
+     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
+Subject: iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: use tabs not spaces
+#49: FILE: drivers/parisc/ccio-dma.c:306:
++               int ret;\$
+
+ERROR: use tabs not spaces
+#50: FILE: drivers/parisc/ccio-dma.c:307:
++               unsigned int idx;\$
+
 WARNING: line over 80 characters
-#48: FILE: drivers/parisc/iommu-helpers.h:100:
-+		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
+#51: FILE: drivers/parisc/ccio-dma.c:308:
++               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
 
-total: 0 errors, 1 warnings, 48 lines checked
+ERROR: use tabs not spaces
+#51: FILE: drivers/parisc/ccio-dma.c:308:
++               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \$
 
-./patches/iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch has style problems, please review.  If any of these errors
+WARNING: line over 80 characters
+#52: FILE: drivers/parisc/ccio-dma.c:309:
++		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
+
+ERROR: use tabs not spaces
+#53: FILE: drivers/parisc/ccio-dma.c:310:
++               if((0 == (*res_ptr & mask)) && !ret) { \$
+
+ERROR: need a space before the open parenthesis '('
+#53: FILE: drivers/parisc/ccio-dma.c:310:
++               if((0 == (*res_ptr & mask)) && !ret) { \
+
+ERROR: use tabs not spaces
+#56: FILE: drivers/parisc/ccio-dma.c:312:
++                       res_idx = idx;\$
+
+total: 6 errors, 2 warnings, 137 lines checked
+
+./patches/iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -55,23 +83,40 @@ Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/iommu-helpers.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/parisc/ccio-dma.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes drivers/parisc/iommu-helpers.h
---- a/drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
-+++ a/drivers/parisc/iommu-helpers.h
-@@ -96,8 +96,8 @@ iommu_fill_pdir(struct ioc *ioc, struct 
+diff -puN drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
++++ a/drivers/parisc/ccio-dma.c
+@@ -303,17 +303,17 @@ static int ioc_count;
+ */
+ #define CCIO_SEARCH_LOOP(ioc, res_idx, mask, size)  \
+        for(; res_ptr < res_end; ++res_ptr) { \
+-               int ret;\
+-               unsigned int idx;\
+-               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
++		int ret;\
++		unsigned int idx;\
++		idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
+ 		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
+-               if((0 == (*res_ptr & mask)) && !ret) { \
+-                       *res_ptr |= mask; \
+-                       res_idx = idx;\
+-                       ioc->res_hint = res_idx + (size >> 3); \
+-                       goto resource_found; \
+-               } \
+-       }
++		if ((0 == (*res_ptr & mask)) && !ret) { \
++			*res_ptr |= mask; \
++			res_idx = idx;\
++			ioc->res_hint = res_idx + (size >> 3); \
++			goto resource_found; \
++		} \
++	}
  
- static inline unsigned int
- iommu_coalesce_chunks(struct ioc *ioc, struct device *dev,
--		      struct scatterlist *startsg, int nents,
--		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
-+		struct scatterlist *startsg, int nents,
-+		int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
- {
- 	struct scatterlist *contig_sg;	   /* contig chunk head */
- 	unsigned long dma_offset, dma_len; /* start/len of DMA stream */
+ #define CCIO_FIND_FREE_MAPPING(ioa, res_idx, mask, size) \
+        u##size *res_ptr = (u##size *)&((ioc)->res_map[ioa->res_hint & ~((size >> 3) - 1)]); \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +164,7 @@ markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
 iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
 drivers-media-video-em28xx-correct-use-of-and-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
