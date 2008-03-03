@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mips-replace-remaining-__function__-occurences.patch added to -mm tree
-Date: Mon, 03 Mar 2008 13:28:18 -0800
-Message-ID: <200803032128.m23LSItf007466@imap1.linux-foundation.org>
+Subject: + hugetlb-close-a-difficult-to-trigger-reservation-race.patch added to -mm tree
+Date: Mon, 03 Mar 2008 13:23:57 -0800
+Message-ID: <200803032123.m23LNv09007277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763230AbYCCV21 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:28:27 -0500
+	by vger.kernel.org with ESMTP id S1758553AbYCCV2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 16:28:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ralf@linux-mips.org
+Cc: agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, haveblue@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com
 
 
 The patch titled
-     mips: replace remaining __FUNCTION__ occurences
+     hugetlb: close a difficult to trigger reservation race
 has been added to the -mm tree.  Its filename is
-     mips-replace-remaining-__function__-occurences.patch
+     hugetlb-close-a-difficult-to-trigger-reservation-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,175 +33,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: replace remaining __FUNCTION__ occurences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: hugetlb: close a difficult to trigger reservation race
+From: Adam Litke <agl@us.ibm.com>
 
-__FUNCTION__ is gcc-specific, use __func__
+A hugetlb reservation may be inadequately backed in the event of racing
+allocations and frees when utilizing surplus huge pages.  Consider the
+following series of events in processes A and B:
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+ A) Allocates some surplus pages to satisfy a reservation
+ B) Frees some huge pages
+ A) A notices the extra free pages and drops hugetlb_lock to free some of
+    its surplus pages back to the buddy allocator.
+ B) Allocates some huge pages
+ A) Reacquires hugetlb_lock and returns from gather_surplus_huge_pages()
+
+Avoid this by commiting the reservation after pages have been allocated but
+before dropping the lock to free excess pages.  For parity, release the
+reservation in return_unused_surplus_pages().
+
+This patch also corrects the cpuset_mems_nr() error path in
+hugetlb_acct_memory().  If the cpuset check fails, uncommit the
+reservation, but also be sure to return any surplus huge pages that may
+have been allocated to back the failed reservation.
+
+Thanks to Andy Whitcroft for discovering this.
+
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/common/power.c                            |    2 +-
- arch/mips/kernel/signal-common.h                           |    2 +-
- arch/mips/pci/ops-pnx8550.c                                |    4 ++--
- arch/mips/sgi-ip32/ip32-reset.c                            |    2 +-
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c   |    2 +-
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences arch/mips/au1000/common/power.c
---- a/arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/au1000/common/power.c
-@@ -47,7 +47,7 @@
+diff -puN mm/hugetlb.c~hugetlb-close-a-difficult-to-trigger-reservation-race mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-close-a-difficult-to-trigger-reservation-race
++++ a/mm/hugetlb.c
+@@ -302,8 +302,10 @@ static int gather_surplus_pages(int delt
+ 	int needed, allocated;
  
- #define DEBUG 1
- #ifdef DEBUG
--#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __FUNCTION__ , ## args)
-+#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __func__, ## args)
- #else
- #  define DPRINTK(fmt, args...)
- #endif
-diff -puN arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences arch/mips/kernel/signal-common.h
---- a/arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/kernel/signal-common.h
-@@ -14,7 +14,7 @@
- /* #define DEBUG_SIG */
+ 	needed = (resv_huge_pages + delta) - free_huge_pages;
+-	if (needed <= 0)
++	if (needed <= 0) {
++		resv_huge_pages += delta;
+ 		return 0;
++	}
  
- #ifdef DEBUG_SIG
--#  define DEBUGP(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
-+#  define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
- #else
- #  define DEBUGP(fmt, args...)
- #endif
-diff -puN arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences arch/mips/pci/ops-pnx8550.c
---- a/arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/pci/ops-pnx8550.c
-@@ -90,14 +90,14 @@ config_access(unsigned int pci_cmd, stru
+ 	allocated = 0;
+ 	INIT_LIST_HEAD(&surplus_list);
+@@ -341,9 +343,12 @@ retry:
+ 	 * The surplus_list now contains _at_least_ the number of extra pages
+ 	 * needed to accomodate the reservation.  Add the appropriate number
+ 	 * of pages to the hugetlb pool and free the extras back to the buddy
+-	 * allocator.
++	 * allocator.  Commit the entire reservation here to prevent another
++	 * process from stealing the pages as they are added to the pool but
++	 * before they are reserved.
+ 	 */
+ 	needed += allocated;
++	resv_huge_pages += delta;
+ 	ret = 0;
+ free:
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+@@ -378,6 +383,9 @@ static void return_unused_surplus_pages(
+ 	struct page *page;
+ 	unsigned long nr_pages;
  
- 		loops--;
- 		if (loops == 0) {
--			printk("%s : Arbiter Locked.\n", __FUNCTION__);
-+			printk("%s : Arbiter Locked.\n", __func__);
- 		}
++	/* Uncommit the reservation */
++	resv_huge_pages -= unused_resv_pages;
++
+ 	nr_pages = min(unused_resv_pages, surplus_huge_pages);
+ 
+ 	while (nr_pages) {
+@@ -1212,12 +1220,13 @@ static int hugetlb_acct_memory(long delt
+ 		if (gather_surplus_pages(delta) < 0)
+ 			goto out;
+ 
+-		if (delta > cpuset_mems_nr(free_huge_pages_node))
++		if (delta > cpuset_mems_nr(free_huge_pages_node)) {
++			return_unused_surplus_pages(delta);
+ 			goto out;
++		}
  	}
  
- 	clear_status();
- 	if ((pci_cmd == PCI_CMD_IOR) || (pci_cmd == PCI_CMD_IOW)) {
- 		printk("%s timeout (GPPM_CTRL=%X) ioaddr %lX pci_cmd %X\n",
--		       __FUNCTION__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
-+		       __func__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
- 		       pci_cmd);
- 	}
+ 	ret = 0;
+-	resv_huge_pages += delta;
+ 	if (delta < 0)
+ 		return_unused_surplus_pages((unsigned long) -delta);
  
-diff -puN arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences arch/mips/sgi-ip32/ip32-reset.c
---- a/arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/sgi-ip32/ip32-reset.c
-@@ -142,7 +142,7 @@ static irqreturn_t ip32_rtc_int(int irq,
- 	reg_c = CMOS_READ(RTC_INTR_FLAGS);
- 	if (!(reg_c & RTC_IRQF)) {
- 		printk(KERN_WARNING
--			"%s: RTC IRQ without RTC_IRQF\n", __FUNCTION__);
-+			"%s: RTC IRQ without RTC_IRQF\n", __func__);
- 	}
- 	/* Wait until interrupt goes away */
- 	disable_irq(MACEISA_RTC_IRQ);
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
-@@ -173,7 +173,7 @@ static const u32 toshiba_rbtx4927_irq_de
-         { \
-            char tmp[100]; \
-            sprintf( tmp, str ); \
--           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
-+           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
-         }
- #else
- #define TOSHIBA_RBTX4927_IRQ_DPRINTK(flag, str...)
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -93,7 +93,7 @@ static const u32 toshiba_rbtx4927_setup_
-         { \
-            char tmp[100]; \
-            sprintf( tmp, str ); \
--           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
-+           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
-         }
- #else
- #define TOSHIBA_RBTX4927_SETUP_DPRINTK(flag, str...)
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
-origin.patch
-specialixc-fix-possible-double-unlock.patch
-git-x86.patch
-git-alsa.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-block-fix-shadowed-variable-warning-in-blk-mapc.patch
-block-remove-extern-on-function-definition.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-m68k-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-introduce-kprobe_handle_fault.patch
-kprobes-introduce-kprobe_handle_fault-ia64-fix.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-mips-replace-remaining-__function__-occurences.patch
+hugetlb-correct-page-count-for-surplus-huge-pages.patch
+hugetlb-close-a-difficult-to-trigger-reservation-race.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
 
