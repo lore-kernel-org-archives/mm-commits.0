@@ -1,64 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - use-page_cache_xxx-in-mm-page-writebackc.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 11:47:39 -0800
-Message-ID: <200803041947.m24JldA6025684@imap1.linux-foundation.org>
+Subject: - use-page_cache_xxx-in-mm-rmapc.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 11:47:43 -0800
+Message-ID: <200803041947.m24JlhjA025690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753460AbYCDTsM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:48:12 -0500
+	by vger.kernel.org with ESMTP id S1753578AbYCDTsO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:48:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use page_cache_xxx in mm/page-writeback.c
+     Use page_cache_xxx in mm/rmap.c
 has been removed from the -mm tree.  Its filename was
-     use-page_cache_xxx-in-mm-page-writebackc.patch
+     use-page_cache_xxx-in-mm-rmapc.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in mm/page-writeback.c
+Subject: Use page_cache_xxx in mm/rmap.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use page_cache_xxx in mm/page-writeback.c
+Use page_cache_xxx in mm/rmap.c
 
 Reviewed-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/rmap.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN mm/page-writeback.c~use-page_cache_xxx-in-mm-page-writebackc mm/page-writeback.c
---- a/mm/page-writeback.c~use-page_cache_xxx-in-mm-page-writebackc
-+++ a/mm/page-writeback.c
-@@ -818,8 +818,8 @@ int write_cache_pages(struct address_spa
- 		index = mapping->writeback_index; /* Start from prev offset */
- 		end = -1;
- 	} else {
--		index = wbc->range_start >> PAGE_CACHE_SHIFT;
--		end = wbc->range_end >> PAGE_CACHE_SHIFT;
-+		index = page_cache_index(mapping, wbc->range_start);
-+		end = page_cache_index(mapping, wbc->range_end);
- 		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
- 			range_whole = 1;
- 		scanned = 1;
-@@ -1025,7 +1025,7 @@ int __set_page_dirty_nobuffers(struct pa
- 				__inc_zone_page_state(page, NR_FILE_DIRTY);
- 				__inc_bdi_stat(mapping->backing_dev_info,
- 						BDI_RECLAIMABLE);
--				task_io_account_write(PAGE_CACHE_SIZE);
-+				task_io_account_write(page_cache_size(mapping));
- 			}
- 			radix_tree_tag_set(&mapping->page_tree,
- 				page_index(page), PAGECACHE_TAG_DIRTY);
+diff -puN mm/rmap.c~use-page_cache_xxx-in-mm-rmapc mm/rmap.c
+--- a/mm/rmap.c~use-page_cache_xxx-in-mm-rmapc
++++ a/mm/rmap.c
+@@ -190,9 +190,21 @@ static void page_unlock_anon_vma(struct 
+ static inline unsigned long
+ vma_address(struct page *page, struct vm_area_struct *vma)
+ {
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff;
+ 	unsigned long address;
+ 
++	if (PageAnon(page))
++		pgoff = page->index;
++	else {
++		struct address_space *mapping = page->mapping;
++
++		if (!mapping)
++			/* Page was truncated */
++			return -EFAULT;
++
++		pgoff = page->index << mapping_order(mapping);
++	}
++
+ 	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
+ 		/* page should be within @vma mapping range */
+@@ -348,7 +360,7 @@ static int page_referenced_file(struct p
+ {
+ 	unsigned int mapcount;
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff;
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int referenced = 0;
+@@ -368,6 +380,9 @@ static int page_referenced_file(struct p
+ 	 */
+ 	BUG_ON(!PageLocked(page));
+ 
++	/* Safe to use mapping */
++	pgoff = page->index << mapping_order(mapping);
++
+ 	spin_lock(&mapping->i_mmap_lock);
+ 
+ 	/*
+@@ -468,7 +483,7 @@ out:
+ 
+ static int page_mkclean_file(struct address_space *mapping, struct page *page)
+ {
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff = page->index << mapping_order(mapping);
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int ret = 0;
+@@ -898,7 +913,7 @@ static int try_to_unmap_anon(struct page
+ static int try_to_unmap_file(struct page *page, int migration)
+ {
+ 	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff = page->index << (PAGE_CACHE_SHIFT - PAGE_SHIFT);
++	pgoff_t pgoff = page->index << mapping_order(mapping);
+ 	struct vm_area_struct *vma;
+ 	struct prio_tree_iter iter;
+ 	int ret = SWAP_AGAIN;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -78,8 +118,6 @@ mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
 mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-use-page_cache_xxx-in-mm-page-writebackc.patch
-use-page_cache_xxx-in-mm-truncatec.patch
 use-page_cache_xxx-in-mm-rmapc.patch
 use-page_cache_xxx-in-mm-filemap_xipc.patch
 use-page_cache_xxx-in-mm-migratec.patch
