@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-wire-up-new-timerfd-syscalls.patch added to -mm tree
-Date: Tue, 04 Mar 2008 00:27:01 -0800
-Message-ID: <200803040827.m248R3OL031386@imap1.linux-foundation.org>
+Subject: + romfs-prevent-romfs_lookup-from-always-failing.patch added to -mm tree
+Date: Tue, 04 Mar 2008 01:25:22 -0800
+Message-ID: <200803040925.m249PMQk001189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751385AbYCDI1r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:27:47 -0500
+	by vger.kernel.org with ESMTP id S1754974AbYCDJ0E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 04:26:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, davidel@xmailserver.org, gerg@uclinux.org, zippel@linux-m68k.org
+Cc: adam@yggdrasil.com, dhowells@redhat.com
 
 
 The patch titled
-     m68k{,nommu}: Wire up new timerfd syscalls
+     romfs: prevent romfs_lookup() from always failing
 has been added to the -mm tree.  Its filename is
-     m68knommu-wire-up-new-timerfd-syscalls.patch
+     romfs-prevent-romfs_lookup-from-always-failing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k{,nommu}: Wire up new timerfd syscalls
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: romfs: prevent romfs_lookup() from always failing
+From: "Adam J. Richter" <adam@yggdrasil.com>
 
-m68k{,nommu}: Wire up the new timerfd syscalls, which were introduced in
-commit 4d672e7ac79b5ec5cdc90e450823441e20464691 ("timerfd: new timerfd API").
+romfs_lookup worked in 2.6.24.2, but always fails in linux-2.6.25-rc3-git3. 
+fs/romfs/inode.c is the same in at least 2.6.25-rc3 through 2.6.25-rc3-git4
+and the latest sources from git, so these versions almost certainly have the
+same problem.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+The bug appears to be from a well meaning but botched attempt to eliminate a
+goto from romfs_lookup.  Previously, a goto statement was used to skip over
+"inode = NULL;" when the lookup succeeded.  In the 2.6.25-rc3 version, inode
+is set to NULL even when an inode was found, so the result is the the lookup
+always appears to fail.
+
+The attached patch fixes the problem while still eliminating the goto.
+
+P.S.  romfs_lookup casts a valid pointer to an int and then back again with
+res = PTR_ERR(inode);...return ERR_PTR(res).  This may break on arhictectures
+where sizeof(int) < sizeof(pointer).
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/entry.S             |    4 +++-
- arch/m68knommu/kernel/syscalltable.S |    4 +++-
- include/asm-m68k/unistd.h            |    6 ++++--
- include/asm-m68knommu/unistd.h       |    6 ++++--
- 4 files changed, 14 insertions(+), 6 deletions(-)
+ fs/romfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68k/kernel/entry.S
---- a/arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls
-+++ a/arch/m68k/kernel/entry.S
-@@ -742,7 +742,9 @@ sys_call_table:
- 	.long sys_epoll_pwait		/* 315 */
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_ni_syscall
-+	.long sys_timerfd_create
- 	.long sys_eventfd
- 	.long sys_fallocate		/* 320 */
-+	.long sys_timerfd_settime
-+	.long sys_timerfd_gettime
+diff -puN fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing fs/romfs/inode.c
+--- a/fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing
++++ a/fs/romfs/inode.c
+@@ -347,6 +347,7 @@ romfs_lookup(struct inode *dir, struct d
+ 	const char *name;		/* got from dentry */
+ 	int len;
  
-diff -puN arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68knommu/kernel/syscalltable.S
---- a/arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls
-+++ a/arch/m68knommu/kernel/syscalltable.S
-@@ -336,9 +336,11 @@ ENTRY(sys_call_table)
- 	.long sys_epoll_pwait		/* 315 */
- 	.long sys_utimensat
- 	.long sys_signalfd
--	.long sys_ni_syscall
-+	.long sys_timerfd_create
- 	.long sys_eventfd
- 	.long sys_fallocate		/* 320 */
-+	.long sys_timerfd_settime
-+	.long sys_timerfd_gettime
++	inode = NULL;
+ 	res = -EACCES;			/* placeholder for "no data here" */
+ 	offset = dir->i_ino & ROMFH_MASK;
+ 	lock_kernel();
+@@ -409,7 +410,7 @@ romfs_lookup(struct inode *dir, struct d
+ 	 * systems).
+ 	 */
  
- 	.rept NR_syscalls-(.-sys_call_table)/4
- 		.long sys_ni_syscall
-diff -puN include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68knommu/unistd.h
---- a/include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
-+++ a/include/asm-m68knommu/unistd.h
-@@ -321,13 +321,15 @@
- #define __NR_epoll_pwait	315
- #define __NR_utimensat		316
- #define __NR_signalfd		317
--#define __NR_timerfd		318
-+#define __NR_timerfd_create	318
- #define __NR_eventfd		319
- #define __NR_fallocate		320
-+#define __NR_timerfd_settime	321
-+#define __NR_timerfd_gettime	322
+-out0:	inode = NULL;
++out0:
+ 	res = 0;
+ 	d_add (dentry, inode);
  
- #ifdef __KERNEL__
- 
--#define NR_syscalls		321
-+#define NR_syscalls		323
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
-diff -puN include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68k/unistd.h
---- a/include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
-+++ a/include/asm-m68k/unistd.h
-@@ -320,13 +320,15 @@
- #define __NR_epoll_pwait	315
- #define __NR_utimensat		316
- #define __NR_signalfd		317
--#define __NR_timerfd		318
-+#define __NR_timerfd_create	318
- #define __NR_eventfd		319
- #define __NR_fallocate		320
-+#define __NR_timerfd_settime	321
-+#define __NR_timerfd_gettime	322
- 
- #ifdef __KERNEL__
- 
--#define NR_syscalls		321
-+#define NR_syscalls		323
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from adam@yggdrasil.com are
 
-m68knommu-wire-up-new-timerfd-syscalls.patch
-m68k-replace-remaining-__function__-occurences.patch
-fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+romfs-prevent-romfs_lookup-from-always-failing.patch
 
