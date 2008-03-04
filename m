@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arcmsr-modify-the-type-of-element-of-messageunit_b.patch added to -mm tree
-Date: Tue, 04 Mar 2008 01:56:52 -0800
-Message-ID: <200803040956.m249uquT002315@imap1.linux-foundation.org>
+Subject: + block-fix-dma-access-of-block-device-in-64-bit-kernel-on-some-non-x86-systems-with-4gb-or-upper-4gb-memory.patch added to -mm tree
+Date: Tue, 04 Mar 2008 02:12:00 -0800
+Message-ID: <200803041012.m24AC1c4002856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41416 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758046AbYCDJ47 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 04:56:59 -0500
+	by vger.kernel.org with ESMTP id S1752497AbYCDKMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 05:12:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nick.cheng@areca.com.tw, James.Bottomley@HansenPartnership.com, erich@areca.com.tw
+Cc: yang.shi@windriver.com, jens.axboe@oracle.com
 
 
 The patch titled
-     arcmsr: modify the type of element of MessageUnit_B
+     block: fix DMA access of block device in 64-bit kernel on some non-x86 systems with 4GB or upper 4GB memory
 has been added to the -mm tree.  Its filename is
-     arcmsr-modify-the-type-of-element-of-messageunit_b.patch
+     block-fix-dma-access-of-block-device-in-64-bit-kernel-on-some-non-x86-systems-with-4gb-or-upper-4gb-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arcmsr: modify the type of element of MessageUnit_B
-From: Nick Cheng <nick.cheng@areca.com.tw>
+Subject: block: fix DMA access of block device in 64-bit kernel on some non-x86 systems with 4GB or upper 4GB memory
+From: yshi <yang.shi@windriver.com>
 
-Modify the element type of MessageUnit_B in arcmsr-1.20.00.15-80227 to keep
-off the error while doing iounmap in arcmsr_free_ccb_pool().
+For some non-x86 systems with 4GB or upper 4GB memory, we need increase the
+range of addresses that can be used for direct DMA in 64-bit kernel.
 
-Signed-off-by: Nick Cheng <nick.cheng@areca.com.tw>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: erich <erich@areca.com.tw>
+Signed-off-by: Yang Shi <yang.shi@windriver.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/arcmsr/arcmsr.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ block/blk-settings.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/arcmsr/arcmsr.h~arcmsr-modify-the-type-of-element-of-messageunit_b drivers/scsi/arcmsr/arcmsr.h
---- a/drivers/scsi/arcmsr/arcmsr.h~arcmsr-modify-the-type-of-element-of-messageunit_b
-+++ a/drivers/scsi/arcmsr/arcmsr.h
-@@ -341,13 +341,13 @@ struct MessageUnit_B
- 	uint32_t	done_qbuffer[ARCMSR_MAX_HBB_POSTQUEUE];
- 	uint32_t	postq_index;
- 	uint32_t	doneq_index;
--	uint32_t	__iomem *drv2iop_doorbell_reg;
--	uint32_t	__iomem *drv2iop_doorbell_mask_reg;
--	uint32_t	__iomem *iop2drv_doorbell_reg;
--	uint32_t	__iomem *iop2drv_doorbell_mask_reg;
--	uint32_t	__iomem *msgcode_rwbuffer_reg;
--	uint32_t	__iomem *ioctl_wbuffer_reg;
--	uint32_t	__iomem *ioctl_rbuffer_reg;
-+	void		__iomem *drv2iop_doorbell_reg;
-+	void		__iomem *drv2iop_doorbell_mask_reg;
-+	void		__iomem *iop2drv_doorbell_reg;
-+	void		__iomem *iop2drv_doorbell_mask_reg;
-+	void		__iomem *msgcode_rwbuffer_reg;
-+	void		__iomem *ioctl_wbuffer_reg;
-+	void		__iomem *ioctl_rbuffer_reg;
- };
- 
- /*
+diff -puN block/blk-settings.c~block-fix-dma-access-of-block-device-in-64-bit-kernel-on-some-non-x86-systems-with-4gb-or-upper-4gb-memory block/blk-settings.c
+--- a/block/blk-settings.c~block-fix-dma-access-of-block-device-in-64-bit-kernel-on-some-non-x86-systems-with-4gb-or-upper-4gb-memory
++++ a/block/blk-settings.c
+@@ -140,7 +140,7 @@ void blk_queue_bounce_limit(struct reque
+ 	/* Assume anything <= 4GB can be handled by IOMMU.
+ 	   Actually some IOMMUs can handle everything, but I don't
+ 	   know of a way to test this here. */
+-	if (b_pfn < (min_t(u64, 0xffffffff, BLK_BOUNCE_HIGH) >> PAGE_SHIFT))
++	if (b_pfn <= (min_t(u64, 0xffffffff, BLK_BOUNCE_HIGH) >> PAGE_SHIFT))
+ 		dma = 1;
+ 	q->bounce_pfn = max_low_pfn;
+ #else
 _
 
-Patches currently in -mm which might be from nick.cheng@areca.com.tw are
+Patches currently in -mm which might be from yang.shi@windriver.com are
 
-arcmsr-modify-the-type-of-element-of-messageunit_b.patch
-scsi-arcmsr-update-driver-version.patch
+block-fix-dma-access-of-block-device-in-64-bit-kernel-on-some-non-x86-systems-with-4gb-or-upper-4gb-memory.patch
 
