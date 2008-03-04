@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-ec-fix-regression.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 15:33:56 -0800
-Message-ID: <200803042333.m24NXvx4003724@imap1.linux-foundation.org>
+Subject: + acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e.patch added to -mm tree
+Date: Tue, 04 Mar 2008 15:35:36 -0800
+Message-ID: <200803042335.m24NZaBp003843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43952 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935518AbYCDXed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 18:34:33 -0500
+	by vger.kernel.org with ESMTP id S1750891AbYCDXgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 18:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: astarikovskiy@suse.de, len.brown@intel.com, m.s.tsirkin@gmail.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: astarikovskiy@suse.de, lenb@kernel.org
 
 
 The patch titled
-     ACPI: EC: fix regression
-has been removed from the -mm tree.  Its filename was
-     acpi-ec-fix-regression.patch
+     ACPI: EC: Revert 208c70a45624400fafd7511b96bc426bf01f8f5e
+has been added to the -mm tree.  Its filename is
+     acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: EC: fix regression
+Subject: ACPI: EC: Revert 208c70a45624400fafd7511b96bc426bf01f8f5e
 From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-no changelog?
+This patch for non-fatal error causes some fatal ones.  Just revert it and
+find better solution for original problem.
 
-Tested-by: "Michael S. Tsirkin" <m.s.tsirkin@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/acpi/ec.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/acpi/ec.c~acpi-ec-fix-regression drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-fix-regression
+diff -puN drivers/acpi/ec.c~acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e
 +++ a/drivers/acpi/ec.c
-@@ -129,7 +129,8 @@ static struct acpi_ec {
- 	struct mutex lock;
- 	wait_queue_head_t wait;
- 	struct list_head list;
--	u8 handlers_installed;
-+	u8 handlers_installed:1;
-+	u8 from_ecdt:1;
- } *boot_ec, *first_ec;
- 
- /* --------------------------------------------------------------------------
-@@ -772,16 +773,18 @@ static int acpi_ec_add(struct acpi_devic
- 
- 	/* Check for boot EC */
- 	if (boot_ec) {
--		if (boot_ec->handle == device->handle) {
--			/* Pre-loaded EC from DSDT, just move pointer */
--			ec = boot_ec;
--			boot_ec = NULL;
--			goto end;
--		} else if (boot_ec->handle == ACPI_ROOT_OBJECT) {
-+		if (boot_ec->from_ecdt &&
-+		    (boot_ec->handle == device->handle ||
-+		     boot_ec->handle == ACPI_ROOT_OBJECT)) {
- 			/* ECDT-based EC, time to shut it down */
- 			ec_remove_handlers(boot_ec);
- 			kfree(boot_ec);
- 			first_ec = boot_ec = NULL;
-+		} else if (boot_ec->handle == device->handle) {
-+			/* Pre-loaded EC from DSDT, just move pointer */
-+			ec = boot_ec;
-+			boot_ec = NULL;
-+			goto end;
- 		}
- 	}
- 
-@@ -943,6 +946,7 @@ int __init acpi_ec_ecdt_probe(void)
+@@ -943,11 +943,7 @@ int __init acpi_ec_ecdt_probe(void)
  		boot_ec->command_addr = ecdt_ptr->control.address;
  		boot_ec->data_addr = ecdt_ptr->data.address;
  		boot_ec->gpe = ecdt_ptr->gpe;
-+		boot_ec->from_ecdt = 1;
- 		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
- 				&boot_ec->handle))) {
- 			pr_info("Failed to locate handle for boot EC\n");
+-		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
+-				&boot_ec->handle))) {
+-			pr_info("Failed to locate handle for boot EC\n");
+-			boot_ec->handle = ACPI_ROOT_OBJECT;
+-		}
++		boot_ec->handle = ACPI_ROOT_OBJECT;
+ 	} else {
+ 		/* This workaround is needed only on some broken machines,
+ 		 * which require early EC, but fail to provide ECDT */
 _
 
 Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-acpi-ec-fix-regression.patch
+acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e.patch
 
