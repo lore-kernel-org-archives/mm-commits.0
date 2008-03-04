@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:31 -0800
-Message-ID: <200803042010.m24KAVa9026917@imap1.linux-foundation.org>
+Subject: - exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:33 -0800
+Message-ID: <200803042010.m24KAXYF026920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755555AbYCDULp (ORCPT
+	by vger.kernel.org with ESMTP id S1757561AbYCDULp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,38 +14,67 @@ To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.or
 
 
 The patch titled
-     pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
+     pgrp: exit_notify: fix kill_orphaned_pgrp() usage with mt exit
 has been removed from the -mm tree.  Its filename was
-     will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch
+     exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
+Subject: pgrp: exit_notify: fix kill_orphaned_pgrp() usage with mt exit
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-p->exit_state != 0 doesn't mean this process is dead, it may have sub-threads.
- Change the code to use "p->exit_state && thread_group_empty(p)" instead.
+1. exit_notify() always calls kill_orphaned_pgrp(). This is wrong, we
+   should do this only when the whole process exits.
 
-Without this patch, ^Z doesn't deliver SIGTSTP to the foreground process if
-the main thread has exited.
+2. exit_notify() uses "current" as "ignored_task", obviously wrong.
+   Use ->group_leader instead.
 
-However, the new check is not perfect too.  There is a window when
-exit_notify() drops tasklist and before release_task().  Suppose that the last
-(non-leader) thread exits.  This means that entire group exits, but
-thread_group_empty() is not true yet.
+Test case:
 
-As Eric pointed out, is_global_init() is wrong as well, but I did not dare to
-do other changes.
+	void hup(int sig)
+	{
+		printf("HUP received\n");
+	}
 
-Just for the record, has_stopped_jobs() is absolutely wrong too.  But we can't
-fix it now, we should first fix SIGNAL_STOP_STOPPED issues.
+	void *tfunc(void *arg)
+	{
+		sleep(2);
+		printf("sub-thread exited\n");
+		return NULL;
+	}
 
-And.  Even with this patch ^Z doesn't play well with the dead main thread. 
-The task is stopped correctly but do_wait(WSTOPPED) can't see it.  This is
-another unrelated issue, will be (hopefully) fixed separately.
+	int main(int argc, char *argv[])
+	{
+		if (!fork()) {
+			signal(SIGHUP, hup);
+			kill(getpid(), SIGSTOP);
+			exit(0);
+		}
+
+		pthread_t thr;
+		pthread_create(&thr, NULL, tfunc, NULL);
+
+		sleep(1);
+		printf("main thread exited\n");
+		syscall(__NR_exit, 0);
+
+		return 0;
+	}
+
+output:
+
+	main thread exited
+	HUP received
+	Hangup
+
+With this patch the output is:
+
+	main thread exited
+	sub-thread exited
+	HUP received
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -53,41 +82,40 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ kernel/exit.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check kernel/exit.c
---- a/kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check
+diff -puN kernel/exit.c~exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit kernel/exit.c
+--- a/kernel/exit.c~exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit
 +++ a/kernel/exit.c
-@@ -214,20 +214,19 @@ struct pid *session_of_pgrp(struct pid *
- static int will_become_orphaned_pgrp(struct pid *pgrp, struct task_struct *ignored_task)
+@@ -750,7 +750,7 @@ static void forget_original_parent(struc
+  * Send signals to all our closest relatives so that they know
+  * to properly mourn us..
+  */
+-static void exit_notify(struct task_struct *tsk)
++static void exit_notify(struct task_struct *tsk, int group_dead)
  {
- 	struct task_struct *p;
--	int ret = 1;
+ 	int state;
  
- 	do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
--		if (p == ignored_task
--				|| p->exit_state
--				|| is_global_init(p->real_parent))
-+		if ((p == ignored_task) ||
-+		    (p->exit_state && thread_group_empty(p)) ||
-+		    is_global_init(p->real_parent))
- 			continue;
-+
- 		if (task_pgrp(p->real_parent) != pgrp &&
--		    task_session(p->real_parent) == task_session(p)) {
--			ret = 0;
--			break;
--		}
-+		    task_session(p->real_parent) == task_session(p))
-+			return 0;
- 	} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
--	return ret;	/* (sighing) "Often!" */
-+
-+	return 1;
- }
+@@ -766,7 +766,8 @@ static void exit_notify(struct task_stru
+ 	exit_task_namespaces(tsk);
  
- int is_current_pgrp_orphaned(void)
+ 	write_lock_irq(&tasklist_lock);
+-	kill_orphaned_pgrp(tsk, NULL);
++	if (group_dead)
++		kill_orphaned_pgrp(tsk->group_leader, NULL);
+ 
+ 	/* Let father know we died
+ 	 *
+@@ -981,7 +982,7 @@ NORET_TYPE void do_exit(long code)
+ 		module_put(tsk->binfmt->module);
+ 
+ 	proc_exit_connector(tsk);
+-	exit_notify(tsk);
++	exit_notify(tsk, group_dead);
+ #ifdef CONFIG_NUMA
+ 	mpol_free(tsk->mempolicy);
+ 	tsk->mempolicy = NULL;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
