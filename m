@@ -1,36 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 16:53:57 -0800
-Message-ID: <200803040103.m2413K5N016169@imap1.linux-foundation.org>
+Subject: - generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch removed from -mm tree
+Date: Mon, 03 Mar 2008 16:53:48 -0800
+Message-ID: <200803040103.m2413Cnu016160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750937AbYCDBIg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 20:08:36 -0500
+	by vger.kernel.org with ESMTP id S1753611AbYCDBIp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 20:08:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: travis@sgi.com, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jschopp@austin.ibm.com, mingo@elte.hu, rdunlap@xenotime.net, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Cleanup non-smp usage of cpu maps
+     generic: Percpu infrastructure to rebase the per cpu area to zero
 has been removed from the -mm tree.  Its filename was
-     x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
+     generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: Cleanup non-smp usage of cpu maps
+Subject: generic: Percpu infrastructure to rebase the per cpu area to zero
 From: Mike Travis <travis@sgi.com>
 
-Cleanup references to the early cpu maps for the non-SMP configuration
-and remove some functions called for SMP configurations only.
+    * Support an option
+
+	CONFIG_HAVE_ZERO_BASED_PER_CPU
+
+      that makes offsets for per cpu variables to start at zero.
+
+      If a percpu area starts at zero then:
+
+	-  We do not need RELOC_HIDE anymore
+
+	-  Provides for the future capability of architectures providing
+	   a per cpu allocator that returns offsets instead of pointers.
+	   The offsets would be independent of the processor so that
+	   address calculations can be done in a processor independent way.
+	   Per cpu instructions can then add the processor specific offset
+	   at the last minute possibly in an atomic instruction.
+
+      The data the linker provides is different for zero based percpu segments:
+
+	__per_cpu_load	-> The address at which the percpu area was loaded
+	__per_cpu_size	-> The length of the per cpu area
+
+      For non-zero-based percpu segments, the above symbols are adjusted to
+      maintain compatibility with existing architectures.
+
+    * Removes the &__per_cpu_x in lockdep. The __per_cpu_x are already
+      pointers. There is no need to take the address.
 
 Based on git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
 
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Mike Travis <travis@sgi.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
@@ -38,189 +64,160 @@ Cc: Joel Schopp <jschopp@austin.ibm.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genapic_64.c |    2 ++
- arch/x86/kernel/mpparse_64.c |    2 ++
- arch/x86/kernel/setup64.c    |    3 +++
- arch/x86/kernel/smpboot_32.c |    2 ++
- arch/x86/mm/numa_64.c        |    4 +++-
- include/asm-x86/smp_32.h     |    4 ++++
- include/asm-x86/smp_64.h     |    5 +++++
- include/asm-x86/topology.h   |   16 ++++++++++++----
- 8 files changed, 33 insertions(+), 5 deletions(-)
+ include/asm-generic/percpu.h      |    5 +++++
+ include/asm-generic/sections.h    |   10 ++++++++++
+ include/asm-generic/vmlinux.lds.h |   16 ++++++++++++++++
+ include/linux/percpu.h            |    9 ++++++++-
+ kernel/lockdep.c                  |    4 ++--
+ kernel/module.c                   |    7 ++++---
+ 6 files changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/genapic_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 arch/x86/kernel/genapic_64.c
---- a/arch/x86/kernel/genapic_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/arch/x86/kernel/genapic_64.c
-@@ -25,9 +25,11 @@
+diff -puN include/asm-generic/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/percpu.h
+--- a/include/asm-generic/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/include/asm-generic/percpu.h
+@@ -45,7 +45,12 @@ extern unsigned long __per_cpu_offset[NR
+  * Only S390 provides its own means of moving the pointer.
+  */
+ #ifndef SHIFT_PERCPU_PTR
++#ifndef CONFIG_HAVE_ZERO_BASED_PER_CPU
+ #define SHIFT_PERCPU_PTR(__p, __offset)	RELOC_HIDE((__p), (__offset))
++#else
++#define SHIFT_PERCPU_PTR(__p, __offset) \
++	((__typeof(__p))(((void *)(__p)) + (__offset)))
++#endif
  #endif
  
- /* which logical CPU number maps to which CPU (physical APIC ID) */
-+#ifdef CONFIG_SMP
- u16 x86_cpu_to_apicid_init[NR_CPUS] __initdata
- 					= { [0 ... NR_CPUS-1] = BAD_APICID };
- void *x86_cpu_to_apicid_early_ptr;
-+#endif
- DEFINE_PER_CPU(u16, x86_cpu_to_apicid) = BAD_APICID;
- EXPORT_PER_CPU_SYMBOL(x86_cpu_to_apicid);
- 
-diff -puN arch/x86/kernel/mpparse_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 arch/x86/kernel/mpparse_64.c
---- a/arch/x86/kernel/mpparse_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/arch/x86/kernel/mpparse_64.c
-@@ -67,9 +67,11 @@ unsigned disabled_cpus __cpuinitdata;
- /* Bitmask of physically existing CPUs */
- physid_mask_t phys_cpu_present_map = PHYSID_MASK_NONE;
- 
-+#ifdef CONFIG_SMP
- u16 x86_bios_cpu_apicid_init[NR_CPUS] __initdata
- 				= { [0 ... NR_CPUS-1] = BAD_APICID };
- void *x86_bios_cpu_apicid_early_ptr;
-+#endif
- DEFINE_PER_CPU(u16, x86_bios_cpu_apicid) = BAD_APICID;
- EXPORT_PER_CPU_SYMBOL(x86_bios_cpu_apicid);
- 
-diff -puN arch/x86/kernel/setup64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 arch/x86/kernel/setup64.c
---- a/arch/x86/kernel/setup64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/arch/x86/kernel/setup64.c
-@@ -89,6 +89,8 @@ static int __init nonx32_setup(char *str
- }
- __setup("noexec32=", nonx32_setup);
- 
-+
-+#ifdef CONFIG_SMP
  /*
-  * Copy data used in early init routines from the initial arrays to the
-  * per cpu data areas.  These arrays then become expendable and the
-@@ -175,6 +177,7 @@ void __init setup_per_cpu_areas(void)
- 	/* Fix up pda for this processor .... */
- 	pda_init(0);
- } 
-+#endif /* CONFIG_SMP */
- 
- void pda_init(int cpu)
- { 
-diff -puN arch/x86/kernel/smpboot_32.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/arch/x86/kernel/smpboot_32.c
-@@ -92,9 +92,11 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct cpu
- EXPORT_PER_CPU_SYMBOL(cpu_info);
- 
- /* which logical CPU number maps to which CPU (physical APIC ID) */
-+#ifdef CONFIG_SMP
- u8 x86_cpu_to_apicid_init[NR_CPUS] __initdata =
- 			{ [0 ... NR_CPUS-1] = BAD_APICID };
- void *x86_cpu_to_apicid_early_ptr;
-+#endif
- DEFINE_PER_CPU(u8, x86_cpu_to_apicid) = BAD_APICID;
- EXPORT_PER_CPU_SYMBOL(x86_cpu_to_apicid);
- 
-diff -puN arch/x86/mm/numa_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 arch/x86/mm/numa_64.c
---- a/arch/x86/mm/numa_64.c~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/arch/x86/mm/numa_64.c
-@@ -31,13 +31,15 @@ bootmem_data_t plat_node_bdata[MAX_NUMNO
- 
- struct memnode memnode;
- 
-+#ifdef CONFIG_SMP
- int x86_cpu_to_node_map_init[NR_CPUS] = {
- 	[0 ... NR_CPUS-1] = NUMA_NO_NODE
- };
- void *x86_cpu_to_node_map_early_ptr;
-+EXPORT_SYMBOL(x86_cpu_to_node_map_early_ptr);
-+#endif
- DEFINE_PER_CPU(int, x86_cpu_to_node_map) = NUMA_NO_NODE;
- EXPORT_PER_CPU_SYMBOL(x86_cpu_to_node_map);
--EXPORT_SYMBOL(x86_cpu_to_node_map_early_ptr);
- 
- s16 apicid_to_node[MAX_LOCAL_APIC] __cpuinitdata = {
- 	[0 ... MAX_LOCAL_APIC-1] = NUMA_NO_NODE
-diff -puN include/asm-x86/smp_32.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 include/asm-x86/smp_32.h
---- a/include/asm-x86/smp_32.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/include/asm-x86/smp_32.h
-@@ -29,8 +29,12 @@ extern void unlock_ipi_call_lock(void);
- extern void (*mtrr_hook) (void);
- extern void zap_low_mappings (void);
- 
-+#ifdef CONFIG_SMP
- extern u8 __initdata x86_cpu_to_apicid_init[];
- extern void *x86_cpu_to_apicid_early_ptr;
+diff -puN include/asm-generic/sections.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/include/asm-generic/sections.h
+@@ -9,7 +9,17 @@ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
+ extern char _end[];
++#ifdef CONFIG_HAVE_ZERO_BASED_PER_CPU
++extern char __per_cpu_load[];
++extern char ____per_cpu_size[];
++#define __per_cpu_size ((unsigned long)&____per_cpu_size)
++#define __per_cpu_start ((char *)0)
++#define __per_cpu_end ((char *)__per_cpu_size)
 +#else
-+#define x86_cpu_to_apicid_early_ptr NULL
+ extern char __per_cpu_start[], __per_cpu_end[];
++#define __per_cpu_load __per_cpu_start
++#define __per_cpu_size (__per_cpu_end - __per_cpu_start)
 +#endif
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+ extern char __initdata_begin[], __initdata_end[];
+ extern char __start_rodata[], __end_rodata[];
+diff -puN include/asm-generic/vmlinux.lds.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -344,11 +344,27 @@
+   	*(.initcall7.init)						\
+   	*(.initcall7s.init)
  
- DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- DECLARE_PER_CPU(cpumask_t, cpu_core_map);
-diff -puN include/asm-x86/smp_64.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 include/asm-x86/smp_64.h
---- a/include/asm-x86/smp_64.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/include/asm-x86/smp_64.h
-@@ -26,10 +26,15 @@ extern void unlock_ipi_call_lock(void);
- extern int smp_call_function_mask(cpumask_t mask, void (*func)(void *),
- 				  void *info, int wait);
- 
-+#ifdef CONFIG_SMP
- extern u16 __initdata x86_cpu_to_apicid_init[];
- extern u16 __initdata x86_bios_cpu_apicid_init[];
- extern void *x86_cpu_to_apicid_early_ptr;
- extern void *x86_bios_cpu_apicid_early_ptr;
++#ifdef CONFIG_HAVE_ZERO_BASED_PER_CPU
++#define PERCPU(align)							\
++	. = ALIGN(align);						\
++	percpu : { } :percpu						\
++	__per_cpu_load = .;						\
++	.data.percpu 0 : AT(__per_cpu_load - LOAD_OFFSET) {		\
++		*(.data.percpu.first)					\
++		*(.data.percpu)						\
++		*(.data.percpu.shared_aligned)				\
++		____per_cpu_size = .;					\
++	}								\
++	. = __per_cpu_load + ____per_cpu_size;				\
++	data : { } :data
 +#else
-+#define x86_cpu_to_apicid_early_ptr NULL
-+#define x86_bios_cpu_apicid_early_ptr NULL
+ #define PERCPU(align)							\
+ 	. = ALIGN(align);						\
+ 	__per_cpu_start = .;						\
+ 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
++		*(.data.percpu.first)					\
+ 		*(.data.percpu)						\
+ 		*(.data.percpu.shared_aligned)				\
+ 	}								\
+ 	__per_cpu_end = .;
 +#endif
- 
- DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- DECLARE_PER_CPU(cpumask_t, cpu_core_map);
-diff -puN include/asm-x86/topology.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3 include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~x86_64-cleanup-non-smp-usage-of-cpu-maps-v3
-+++ a/include/asm-x86/topology.h
-@@ -35,8 +35,14 @@ extern int cpu_to_node_map[];
- 
+diff -puN include/linux/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 include/linux/percpu.h
+--- a/include/linux/percpu.h~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/include/linux/percpu.h
+@@ -18,11 +18,18 @@
+ 	__attribute__((__section__(".data.percpu.shared_aligned")))	\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name		\
+ 	____cacheline_aligned_in_smp
++
++#define DEFINE_PER_CPU_FIRST(type, name)				\
++	__attribute__((__section__(".data.percpu.first")))		\
++	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
  #else
- DECLARE_PER_CPU(int, x86_cpu_to_node_map);
+ #define DEFINE_PER_CPU(type, name)					\
+ 	PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+ 
+-#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)		      \
++#define DEFINE_PER_CPU_SHARED_ALIGNED(type, name)			\
++	DEFINE_PER_CPU(type, name)
 +
-+#ifdef CONFIG_SMP
- extern int x86_cpu_to_node_map_init[];
- extern void *x86_cpu_to_node_map_early_ptr;
-+#else
-+#define x86_cpu_to_node_map_early_ptr NULL
-+#endif
-+
- /* Returns the number of the current Node. */
- #define numa_node_id()		(early_cpu_to_node(raw_smp_processor_id()))
++#define DEFINE_PER_CPU_FIRST(type, name)				\
+ 	DEFINE_PER_CPU(type, name)
  #endif
-@@ -54,6 +60,8 @@ static inline int cpu_to_node(int cpu)
- }
  
- #else /* CONFIG_X86_64 */
-+
-+#ifdef CONFIG_SMP
- static inline int early_cpu_to_node(int cpu)
- {
- 	int *cpu_to_node_map = x86_cpu_to_node_map_early_ptr;
-@@ -65,6 +73,9 @@ static inline int early_cpu_to_node(int 
- 	else
- 		return NUMA_NO_NODE;
- }
-+#else
-+#define	early_cpu_to_node(cpu)	cpu_to_node(cpu)
-+#endif
+diff -puN kernel/lockdep.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 kernel/lockdep.c
+--- a/kernel/lockdep.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/kernel/lockdep.c
+@@ -610,8 +610,8 @@ static int static_obj(void *obj)
+ 	 * percpu var?
+ 	 */
+ 	for_each_possible_cpu(i) {
+-		start = (unsigned long) &__per_cpu_start + per_cpu_offset(i);
+-		end   = (unsigned long) &__per_cpu_start + PERCPU_ENOUGH_ROOM
++		start = (unsigned long) __per_cpu_start + per_cpu_offset(i);
++		end   = (unsigned long) __per_cpu_start + PERCPU_ENOUGH_ROOM
+ 					+ per_cpu_offset(i);
  
- static inline int cpu_to_node(int cpu)
- {
-@@ -76,10 +87,7 @@ static inline int cpu_to_node(int cpu)
- 		return ((int *)x86_cpu_to_node_map_early_ptr)[cpu];
+ 		if ((addr >= start) && (addr < end))
+diff -puN kernel/module.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3 kernel/module.c
+--- a/kernel/module.c~generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3
++++ a/kernel/module.c
+@@ -44,6 +44,7 @@
+ #include <linux/unwind.h>
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
++#include <asm/sections.h>
+ #include <linux/license.h>
+ #include <asm/sections.h>
+ 
+@@ -356,7 +357,7 @@ static void *percpu_modalloc(unsigned lo
+ 		align = PAGE_SIZE;
  	}
- #endif
--	if (per_cpu_offset(cpu))
--		return per_cpu(x86_cpu_to_node_map, cpu);
--	else
--		return NUMA_NO_NODE;
-+	return per_cpu(x86_cpu_to_node_map, cpu);
- }
- #endif /* CONFIG_X86_64 */
  
+-	ptr = __per_cpu_start;
++	ptr = __per_cpu_load;
+ 	for (i = 0; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
+ 		/* Extra for alignment requirement. */
+ 		extra = ALIGN((unsigned long)ptr, align) - (unsigned long)ptr;
+@@ -391,7 +392,7 @@ static void *percpu_modalloc(unsigned lo
+ static void percpu_modfree(void *freeme)
+ {
+ 	unsigned int i;
+-	void *ptr = __per_cpu_start + block_size(pcpu_size[0]);
++	void *ptr = __per_cpu_load + block_size(pcpu_size[0]);
+ 
+ 	/* First entry is core kernel percpu data. */
+ 	for (i = 1; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
+@@ -442,7 +443,7 @@ static int percpu_modinit(void)
+ 	pcpu_size = kmalloc(sizeof(pcpu_size[0]) * pcpu_num_allocated,
+ 			    GFP_KERNEL);
+ 	/* Static in-kernel percpu data (used). */
+-	pcpu_size[0] = -(__per_cpu_end-__per_cpu_start);
++	pcpu_size[0] = -__per_cpu_size;
+ 	/* Free room. */
+ 	pcpu_size[1] = PERCPU_ENOUGH_ROOM + pcpu_size[0];
+ 	if (pcpu_size[1] < 0) {
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
@@ -228,5 +225,8 @@ Patches currently in -mm which might be from travis@sgi.com are
 cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+generic-percpu-infrastructure-to-rebase-the-per-cpu-area-to-zero-v3.patch
+x86_64-fold-pda-into-per-cpu-area-v3.patch
+x86_64-fold-pda-into-per-cpu-area-v3-fix.patch
 x86_64-cleanup-non-smp-usage-of-cpu-maps-v3.patch
 
