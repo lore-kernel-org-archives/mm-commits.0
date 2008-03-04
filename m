@@ -1,86 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-fix-fec-driver-interrupt-races.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:00 -0800
-Message-ID: <200803042010.m24KA0Tl026802@imap1.linux-foundation.org>
+Subject: + slab-pass-correct-flags-to-kmem_getpages.patch added to -mm tree
+Date: Tue, 04 Mar 2008 12:34:11 -0800
+Message-ID: <200803042034.m24KYBJ5027844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35637 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763812AbYCDUTk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:19:40 -0500
+	by vger.kernel.org with ESMTP id S1756152AbYCDUfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:35:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, gerg@uclinux.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com, kamalesh@linux.vnet.ibm.com, mel@csn.ul.ie, penberg@cs.helsinki.fi, stable@kernel.org
 
 
 The patch titled
-     m68knommu: fix fec driver interrupt races
-has been removed from the -mm tree.  Its filename was
-     m68knommu-fix-fec-driver-interrupt-races.patch
+     slab: pass correct flags to kmem_getpages()
+has been added to the -mm tree.  Its filename is
+     slab-pass-correct-flags-to-kmem_getpages.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: fix fec driver interrupt races
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: slab: pass correct flags to kmem_getpages()
+From: Christoph Lameter <clameter@sgi.com>
 
-The FEC driver has a common interrupt handler for all interrupt event types. 
-It is raised on a number of distinct interrupt vectors.  This handler can't be
-re-entered while processing an interrupt, so make sure all requested vectors
-are flagged as IRQF_DISABLED.
+The NUMA fallback logic should be passing local_flags to kmem_get_pages() and
+not simply the flags.
 
-Signed-off-by: Greg Ungerer <gerg@uclinux.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/fec.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/fec.c~m68knommu-fix-fec-driver-interrupt-races drivers/net/fec.c
---- a/drivers/net/fec.c~m68knommu-fix-fec-driver-interrupt-races
-+++ a/drivers/net/fec.c
-@@ -1253,7 +1253,7 @@ static void __inline__ fec_request_intrs
- 
- 	/* Setup interrupt handlers. */
- 	for (idp = id; idp->name; idp++) {
--		if (request_irq(idp->irq, idp->handler, 0, idp->name, dev) != 0)
-+		if (request_irq(idp->irq, idp->handler, IRQF_DISABLED, idp->name, dev) != 0)
- 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, idp->irq);
- 	}
- 
-@@ -1382,7 +1382,7 @@ static void __inline__ fec_request_intrs
- 
- 	/* Setup interrupt handlers. */
- 	for (idp = id; idp->name; idp++) {
--		if (request_irq(b+idp->irq, fec_enet_interrupt, 0, idp->name, dev) != 0)
-+		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name, dev) != 0)
- 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, b+idp->irq);
- 	}
- 
-@@ -1553,7 +1553,7 @@ static void __inline__ fec_request_intrs
- 
- 	/* Setup interrupt handlers. */
- 	for (idp = id; idp->name; idp++) {
--		if (request_irq(b+idp->irq,fec_enet_interrupt,0,idp->name,dev)!=0)
-+		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name,dev) != 0)
- 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, b+idp->irq);
- 	}
- 
-@@ -1680,7 +1680,7 @@ static void __inline__ fec_request_intrs
- 
- 	/* Setup interrupt handlers. */
- 	for (idp = id; idp->name; idp++) {
--		if (request_irq(b+idp->irq,fec_enet_interrupt,0,idp->name,dev)!=0)
-+		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name,dev) != 0)
- 			printk("FEC: Could not allocate %s IRQ(%d)!\n",
- 				idp->name, b+idp->irq);
- 	}
+diff -puN mm/slab.c~slab-pass-correct-flags-to-kmem_getpages mm/slab.c
+--- a/mm/slab.c~slab-pass-correct-flags-to-kmem_getpages
++++ a/mm/slab.c
+@@ -3280,7 +3280,7 @@ retry:
+ 		if (local_flags & __GFP_WAIT)
+ 			local_irq_enable();
+ 		kmem_flagcheck(cache, flags);
+-		obj = kmem_getpages(cache, flags, -1);
++		obj = kmem_getpages(cache, local_flags, -1);
+ 		if (local_flags & __GFP_WAIT)
+ 			local_irq_disable();
+ 		if (obj) {
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+git-unionfs.patch
+git-slub.patch
+hugetlb-fix-pool-shrinking-while-in-restricted-cpuset.patch
+slab-pass-correct-flags-to-kmem_getpages.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+ntfs-fix-nommu-build.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
