@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-null-pointer-dereference-in-fsync_buffers_list.patch added to -mm tree
-Date: Tue, 04 Mar 2008 11:41:32 -0800
-Message-ID: <200803041941.m24JfWFn025422@imap1.linux-foundation.org>
+Subject: + device-core-remove-dpm_sysfs_remove-from-error-path-of-device_add.patch added to -mm tree
+Date: Tue, 04 Mar 2008 11:44:59 -0800
+Message-ID: <200803041944.m24Jixb0025532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59009 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755973AbYCDTmE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:42:04 -0500
+	by vger.kernel.org with ESMTP id S1758662AbYCDTp2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:45:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: rjw@sisk.pl, greg@kroah.com
 
 
 The patch titled
-     vfs: fix NULL pointer dereference in fsync_buffers_list()
+     Device core: Remove dpm_sysfs_remove() from error path of device_add()
 has been added to the -mm tree.  Its filename is
-     vfs-fix-null-pointer-dereference-in-fsync_buffers_list.patch
+     device-core-remove-dpm_sysfs_remove-from-error-path-of-device_add.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix NULL pointer dereference in fsync_buffers_list()
-From: Jan Kara <jack@suse.cz>
+Subject: Device core: Remove dpm_sysfs_remove() from error path of device_add()
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Fix NULL pointer dereference in fsync_buffers_list() introduced by recent fix
-of races in private_list handling.  Since bh->b_assoc_map has been cleared in
-__remove_assoc_queue() we should really use original value stored in the
-'mapping' variable.
+Since device_pm_remove(dev) calls dpm_sysfs_remove(dev), it's incorrect to
+call the latter after the former in the device_add() error path.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/buffer.c~vfs-fix-null-pointer-dereference-in-fsync_buffers_list fs/buffer.c
---- a/fs/buffer.c~vfs-fix-null-pointer-dereference-in-fsync_buffers_list
-+++ a/fs/buffer.c
-@@ -835,7 +835,7 @@ static int fsync_buffers_list(spinlock_t
- 		smp_mb();
- 		if (buffer_dirty(bh)) {
- 			list_add(&bh->b_assoc_buffers,
--				 &bh->b_assoc_map->private_list);
-+				 &mapping->private_list);
- 			bh->b_assoc_map = mapping;
- 		}
- 		spin_unlock(lock);
+diff -puN drivers/base/core.c~device-core-remove-dpm_sysfs_remove-from-error-path-of-device_add drivers/base/core.c
+--- a/drivers/base/core.c~device-core-remove-dpm_sysfs_remove-from-error-path-of-device_add
++++ a/drivers/base/core.c
+@@ -845,7 +845,6 @@ int device_add(struct device *dev)
+ 	return error;
+  BusError:
+ 	device_pm_remove(dev);
+-	dpm_sysfs_remove(dev);
+  PMError:
+ 	if (dev->bus)
+ 		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-vfs-fix-null-pointer-dereference-in-fsync_buffers_list.patch
-git-ocfs2.patch
-ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
-udf-fix-anchor-point-detection.patch
-quota-le_add_cpu-conversion.patch
+origin.patch
+git-acpi.patch
+acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch
+pm-do-not-acquire-device-semaphores-upfront-during-suspend.patch
+pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch
+acpi-ec-fix-regression.patch
+time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
+device-core-remove-dpm_sysfs_remove-from-error-path-of-device_add.patch
+shrink_slab-handle-bad-shrinkers.patch
 
