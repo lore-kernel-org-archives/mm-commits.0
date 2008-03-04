@@ -1,164 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 02:01:26 -0500
-Message-ID: <200803040702.m24729jf028451@imap1.linux-foundation.org>
+Subject: + sh-export-copy-page-to-modules.patch added to -mm tree
+Date: Tue, 04 Mar 2008 02:52:51 -0500
+Message-ID: <200803040753.m247rYk2030259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42396 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbYCDHEQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 02:04:16 -0500
+	by vger.kernel.org with ESMTP id S1753741AbYCDHxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 02:53:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, mhiramat
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu, lethal@linux-sh.org
 
 
 The patch titled
-     kprobes: remove preempt_enable/disable from kprobe_handle_fault()
-has been removed from the -mm tree.  Its filename was
-     kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
+     sh: export copy-page() to modules
+has been added to the -mm tree.  Its filename is
+     sh-export-copy-page-to-modules.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: remove preempt_enable/disable from kprobe_handle_fault()
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: sh: export copy-page() to modules
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove the preempt_disable/enable pair around kprobe_running which was
-originally added to avoid the assertion from smp_processor_id which would be
-hit an assertion if preemption was enabled.
+ERROR: "copy_page" [fs/unionfs/unionfs.ko] undefined!
 
-Kprobes can not be running if we are preemptible, so test explicitly for
-preemption and bail out before hitting kprobe_running().
+like all the other architectures.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ arch/sh/kernel/sh_ksyms_32.c |    1 +
+ arch/sh/kernel/sh_ksyms_64.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN include/linux/kprobes.h~kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault
-+++ a/include/linux/kprobes.h
-@@ -223,19 +223,16 @@ static inline struct kprobe *kprobe_runn
- 	return (__get_cpu_var(current_kprobe));
- }
+diff -puN arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_32.c
+--- a/arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules
++++ a/arch/sh/kernel/sh_ksyms_32.c
+@@ -139,5 +139,6 @@ EXPORT_SYMBOL(csum_partial_copy_generic)
+ EXPORT_SYMBOL(csum_ipv6_magic);
+ #endif
+ EXPORT_SYMBOL(clear_page);
++EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__clear_user);
+ EXPORT_SYMBOL(_ebss);
+diff -puN arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_64.c
+--- a/arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules
++++ a/arch/sh/kernel/sh_ksyms_64.c
+@@ -38,6 +38,7 @@ EXPORT_SYMBOL(screen_info);
  
-+/*
-+ * If it is a kprobe pagefault we can not be preemptible so return before
-+ * calling kprobe_running() as it will assert on smp_processor_id if
-+ * preemption is enabled.
-+ */
- static inline int kprobe_handle_fault(struct pt_regs *regs, int trapnr)
- {
--	int ret = 0;
--
--	/* kprobe_running() needs smp_processor_id() */
--	if (!user_mode(regs)) {
--		preempt_disable();
--		if (kprobe_running() && kprobe_fault_handler(regs, trapnr))
--			ret = 1;
--		preempt_enable();
--	}
--
--	return ret;
-+	if (!user_mode(regs) && !preemptible() && kprobe_running())
-+		return kprobe_fault_handler(regs, trapnr);
-+	return 0;
- }
- 
- static inline void reset_current_kprobe(void)
+ EXPORT_SYMBOL(__put_user_asm_l);
+ EXPORT_SYMBOL(__get_user_asm_l);
++EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__copy_user);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__udelay);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-specialixc-fix-possible-double-unlock.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
 git-x86.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-fix-git-conflicts.patch
+git-alsa-build-fix.patch
+git-cifs.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
 git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
 git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-sh-replace-remaining-__function__-occurences.patch
-block-fix-shadowed-variable-warning-in-blk-mapc.patch
-block-remove-extern-on-function-definition.patch
-xtensa-replace-remaining-__function__-occurences.patch
-kernel-add-clamp-and-clamp_t-macros.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
-remove-sparse-warning-for-mmzoneh.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
+drivers-media-video-em28xx-correct-use-of-and-fix.patch
+slub-fix-possible-null-pointer-dereference-fix.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-kprobes-remove-preempt_enable-disable-from-kprobe_handle_fault.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+use-page_cache_xxx-in-ext2-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+sh-export-copy-page-to-modules.patch
 
