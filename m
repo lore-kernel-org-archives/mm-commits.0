@@ -1,192 +1,391 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-kill_orphaned_pgrp-helper.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:29 -0800
-Message-ID: <200803042010.m24KATQx026914@imap1.linux-foundation.org>
+Subject: - cciss-procfs-updates-to-display-info-about-many-volumes.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:25 -0800
+Message-ID: <200803042010.m24KAP4m026907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761312AbYCDULx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:53 -0500
+	by vger.kernel.org with ESMTP id S1758913AbYCDULp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pgrp: introduce kill_orphaned_pgrp() helper
+     cciss: procfs updates to display info about many volumes
 has been removed from the -mm tree.  Its filename was
-     introduce-kill_orphaned_pgrp-helper.patch
+     cciss-procfs-updates-to-display-info-about-many-volumes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pgrp: introduce kill_orphaned_pgrp() helper
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: cciss: procfs updates to display info about many volumes
+From: Mike Miller <mike.miller@hp.com>
 
-Factor out the common code in reparent_thread() and exit_notify().
+This patch allows us to display information about all of the logical
+volumes configured on a particular without stepping on memory even when
+there are many volumes (128 or more) configured.
 
-No functional changes.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   74 ++++++++++++++++++++++--------------------------
- 1 file changed, 35 insertions(+), 39 deletions(-)
+ drivers/block/cciss.c      |  242 +++++++++++++++++++++--------------
+ drivers/block/cciss_scsi.c |   11 -
+ 2 files changed, 152 insertions(+), 101 deletions(-)
 
-diff -puN kernel/exit.c~introduce-kill_orphaned_pgrp-helper kernel/exit.c
---- a/kernel/exit.c~introduce-kill_orphaned_pgrp-helper
-+++ a/kernel/exit.c
-@@ -255,6 +255,37 @@ static int has_stopped_jobs(struct pid *
- 	return retval;
- }
+diff -puN drivers/block/cciss.c~cciss-procfs-updates-to-display-info-about-many-volumes drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-procfs-updates-to-display-info-about-many-volumes
++++ a/drivers/block/cciss.c
+@@ -33,6 +33,7 @@
+ #include <linux/blkpg.h>
+ #include <linux/timer.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/init.h>
+ #include <linux/hdreg.h>
+ #include <linux/spinlock.h>
+@@ -174,8 +175,6 @@ static int sendcmd_withirq(__u8 cmd, int
+ static void fail_all_cmds(unsigned long ctlr);
  
-+/*
-+ * Check to see if any process groups have become orphaned as
-+ * a result of our exiting, and if they have any stopped jobs,
-+ * send them a SIGHUP and then a SIGCONT. (POSIX 3.2.2.2)
-+ */
-+static void
-+kill_orphaned_pgrp(struct task_struct *tsk, struct task_struct *parent)
-+{
-+	struct pid *pgrp = task_pgrp(tsk);
-+	struct task_struct *ignored_task = tsk;
+ #ifdef CONFIG_PROC_FS
+-static int cciss_proc_get_info(char *buffer, char **start, off_t offset,
+-			       int length, int *eof, void *data);
+ static void cciss_procinit(int i);
+ #else
+ static void cciss_procinit(int i)
+@@ -240,24 +239,44 @@ static inline CommandList_struct *remove
+  */
+ #define ENG_GIG 1000000000
+ #define ENG_GIG_FACTOR (ENG_GIG/512)
++#define ENGAGE_SCSI	"engage scsi"
+ static const char *raid_label[] = { "0", "4", "1(1+0)", "5", "5+1", "ADG",
+ 	"UNKNOWN"
+ };
+ 
+ static struct proc_dir_entry *proc_cciss;
+ 
+-static int cciss_proc_get_info(char *buffer, char **start, off_t offset,
+-			       int length, int *eof, void *data)
++static void cciss_seq_show_header(struct seq_file *seq)
+ {
+-	off_t pos = 0;
+-	off_t len = 0;
+-	int size, i, ctlr;
+-	ctlr_info_t *h = (ctlr_info_t *) data;
+-	drive_info_struct *drv;
+-	unsigned long flags;
+-	sector_t vol_sz, vol_sz_frac;
++	ctlr_info_t *h = seq->private;
 +
-+	if (!parent)
-+		 /* exit: our father is in a different pgrp than
-+		  * we are and we were the only connection outside.
-+		  */
-+		parent = tsk->real_parent;
-+	else
-+		/* reparent: our child is in a different pgrp than
-+		 * we are, and it was the only connection outside.
-+		 */
-+		ignored_task = NULL;
-+
-+	if (task_pgrp(parent) != pgrp &&
-+	    task_session(parent) == task_session(tsk) &&
-+	    will_become_orphaned_pgrp(pgrp, ignored_task) &&
-+	    has_stopped_jobs(pgrp)) {
-+		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
-+		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
-+	}
++	seq_printf(seq, "%s: HP %s Controller\n"
++		"Board ID: 0x%08lx\n"
++		"Firmware Version: %c%c%c%c\n"
++		"IRQ: %d\n"
++		"Logical drives: %d\n"
++		"Current Q depth: %d\n"
++		"Current # commands on controller: %d\n"
++		"Max Q depth since init: %d\n"
++		"Max # commands on controller since init: %d\n"
++		"Max SG entries since init: %d\n",
++		h->devname,
++		h->product_name,
++		(unsigned long)h->board_id,
++		h->firm_ver[0], h->firm_ver[1], h->firm_ver[2],
++		h->firm_ver[3], (unsigned int)h->intr[SIMPLE_MODE_INT],
++		h->num_luns,
++		h->Qdepth, h->commands_outstanding,
++		h->maxQsinceinit, h->max_outstanding, h->maxSG);
+ 
+-	ctlr = h->ctlr;
++	cciss_seq_tape_report(seq, h->ctlr);
 +}
 +
- /**
-  * reparent_to_kthreadd - Reparent the calling kernel thread to kthreadd
-  *
-@@ -635,22 +666,7 @@ reparent_thread(struct task_struct *p, s
- 	    p->exit_signal != -1 && thread_group_empty(p))
- 		do_notify_parent(p, p->exit_signal);
++static void *cciss_seq_start(struct seq_file *seq, loff_t *pos)
++{
++	ctlr_info_t *h = seq->private;
++	unsigned ctlr = h->ctlr;
++	unsigned long flags;
  
--	/*
--	 * process group orphan check
--	 * Case ii: Our child is in a different pgrp
--	 * than we are, and it was the only connection
--	 * outside, so the child pgrp is now orphaned.
--	 */
--	if ((task_pgrp(p) != task_pgrp(father)) &&
--	    (task_session(p) == task_session(father))) {
--		struct pid *pgrp = task_pgrp(p);
+ 	/* prevent displaying bogus info during configuration
+ 	 * or deconfiguration of a logical volume
+@@ -265,115 +284,150 @@ static int cciss_proc_get_info(char *buf
+ 	spin_lock_irqsave(CCISS_LOCK(ctlr), flags);
+ 	if (h->busy_configuring) {
+ 		spin_unlock_irqrestore(CCISS_LOCK(ctlr), flags);
+-		return -EBUSY;
++		return ERR_PTR(-EBUSY);
+ 	}
+ 	h->busy_configuring = 1;
+ 	spin_unlock_irqrestore(CCISS_LOCK(ctlr), flags);
+ 
+-	size = sprintf(buffer, "%s: HP %s Controller\n"
+-		       "Board ID: 0x%08lx\n"
+-		       "Firmware Version: %c%c%c%c\n"
+-		       "IRQ: %d\n"
+-		       "Logical drives: %d\n"
+-		       "Max sectors: %d\n"
+-		       "Current Q depth: %d\n"
+-		       "Current # commands on controller: %d\n"
+-		       "Max Q depth since init: %d\n"
+-		       "Max # commands on controller since init: %d\n"
+-		       "Max SG entries since init: %d\n\n",
+-		       h->devname,
+-		       h->product_name,
+-		       (unsigned long)h->board_id,
+-		       h->firm_ver[0], h->firm_ver[1], h->firm_ver[2],
+-		       h->firm_ver[3], (unsigned int)h->intr[SIMPLE_MODE_INT],
+-		       h->num_luns,
+-		       h->cciss_max_sectors,
+-		       h->Qdepth, h->commands_outstanding,
+-		       h->maxQsinceinit, h->max_outstanding, h->maxSG);
 -
--		if (will_become_orphaned_pgrp(pgrp, NULL) &&
--		    has_stopped_jobs(pgrp)) {
--			__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
--			__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
--		}
+-	pos += size;
+-	len += size;
+-	cciss_proc_tape_report(ctlr, buffer, &pos, &len);
+-	for (i = 0; i <= h->highest_lun; i++) {
++	if (*pos == 0)
++		cciss_seq_show_header(seq);
+ 
+-		drv = &h->drv[i];
+-		if (drv->heads == 0)
+-			continue;
++	return pos;
++}
+ 
+-		vol_sz = drv->nr_blocks;
+-		vol_sz_frac = sector_div(vol_sz, ENG_GIG_FACTOR);
+-		vol_sz_frac *= 100;
+-		sector_div(vol_sz_frac, ENG_GIG_FACTOR);
++static int cciss_seq_show(struct seq_file *seq, void *v)
++{
++	sector_t vol_sz, vol_sz_frac;
++	ctlr_info_t *h = seq->private;
++	unsigned ctlr = h->ctlr;
++	loff_t *pos = v;
++	drive_info_struct *drv = &h->drv[*pos];
+ 
+-		if (drv->raid_level > 5)
+-			drv->raid_level = RAID_UNKNOWN;
+-		size = sprintf(buffer + len, "cciss/c%dd%d:"
+-			       "\t%4u.%02uGB\tRAID %s\n",
+-			       ctlr, i, (int)vol_sz, (int)vol_sz_frac,
+-			       raid_label[drv->raid_level]);
+-		pos += size;
+-		len += size;
 -	}
-+	kill_orphaned_pgrp(p, father);
++	if (*pos > h->highest_lun)
++		return 0;
++
++	if (drv->heads == 0)
++		return 0;
++
++	vol_sz = drv->nr_blocks;
++	vol_sz_frac = sector_div(vol_sz, ENG_GIG_FACTOR);
++	vol_sz_frac *= 100;
++	sector_div(vol_sz_frac, ENG_GIG_FACTOR);
++
++	if (drv->raid_level > 5)
++		drv->raid_level = RAID_UNKNOWN;
++	seq_printf(seq, "cciss/c%dd%d:"
++			"\t%4u.%02uGB\tRAID %s\n",
++			ctlr, (int) *pos, (int)vol_sz, (int)vol_sz_frac,
++			raid_label[drv->raid_level]);
++	return 0;
++}
++
++static void *cciss_seq_next(struct seq_file *seq, void *v, loff_t *pos)
++{
++	ctlr_info_t *h = seq->private;
++
++	if (*pos > h->highest_lun)
++		return NULL;
++	*pos += 1;
++
++	return pos;
++}
++
++static void cciss_seq_stop(struct seq_file *seq, void *v)
++{
++	ctlr_info_t *h = seq->private;
++
++	/* Only reset h->busy_configuring if we succeeded in setting
++	 * it during cciss_seq_start. */
++	if (v == ERR_PTR(-EBUSY))
++		return;
+ 
+-	*eof = 1;
+-	*start = buffer + offset;
+-	len -= offset;
+-	if (len > length)
+-		len = length;
+ 	h->busy_configuring = 0;
+-	return len;
  }
  
- /*
-@@ -738,8 +754,6 @@ static void forget_original_parent(struc
- static void exit_notify(struct task_struct *tsk)
+-static int
+-cciss_proc_write(struct file *file, const char __user *buffer,
+-		 unsigned long count, void *data)
++static struct seq_operations cciss_seq_ops = {
++	.start = cciss_seq_start,
++	.show  = cciss_seq_show,
++	.next  = cciss_seq_next,
++	.stop  = cciss_seq_stop,
++};
++
++static int cciss_seq_open(struct inode *inode, struct file *file)
  {
- 	int state;
--	struct task_struct *t;
--	struct pid *pgrp;
+-	unsigned char cmd[80];
+-	int len;
+-#ifdef CONFIG_CISS_SCSI_TAPE
+-	ctlr_info_t *h = (ctlr_info_t *) data;
+-	int rc;
++	int ret = seq_open(file, &cciss_seq_ops);
++	struct seq_file *seq = file->private_data;
++
++	if (!ret)
++		seq->private = PDE(inode)->data;
++
++	return ret;
++}
++
++static ssize_t
++cciss_proc_write(struct file *file, const char __user *buf,
++		 size_t length, loff_t *ppos)
++{
++	struct seq_file *seq = file->private_data;
++	ctlr_info_t *h = seq->private;
++	int err, rc;
++	char *buffer;
++
++#ifndef CONFIG_CISS_SCSI_TAPE
++	return -EINVAL;
+ #endif
  
- 	/*
- 	 * This does two things:
-@@ -753,25 +767,7 @@ static void exit_notify(struct task_stru
- 	exit_task_namespaces(tsk);
- 
- 	write_lock_irq(&tasklist_lock);
--	/*
--	 * Check to see if any process groups have become orphaned
--	 * as a result of our exiting, and if they have any stopped
--	 * jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
--	 *
--	 * Case i: Our father is in a different pgrp than we are
--	 * and we were the only connection outside, so our pgrp
--	 * is about to become orphaned.
--	 */
--	t = tsk->real_parent;
--
--	pgrp = task_pgrp(tsk);
--	if ((task_pgrp(t) != pgrp) &&
--	    (task_session(t) == task_session(tsk)) &&
--	    will_become_orphaned_pgrp(pgrp, tsk) &&
--	    has_stopped_jobs(pgrp)) {
--		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
--		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
+-	if (count > sizeof(cmd) - 1)
++	if (!buf || length > PAGE_SIZE - 1)
+ 		return -EINVAL;
+-	if (copy_from_user(cmd, buffer, count))
+-		return -EFAULT;
+-	cmd[count] = '\0';
+-	len = strlen(cmd);	// above 3 lines ensure safety
+-	if (len && cmd[len - 1] == '\n')
+-		cmd[--len] = '\0';
+-#	ifdef CONFIG_CISS_SCSI_TAPE
+-	if (strcmp("engage scsi", cmd) == 0) {
++
++	buffer = (char *)__get_free_page(GFP_KERNEL);
++	if (!buffer)
++		return -ENOMEM;
++
++	err = -EFAULT;
++	if (copy_from_user(buffer, buf, length))
++		goto out;
++	buffer[length] = '\0';
++
++	if (strncmp(ENGAGE_SCSI, buffer, sizeof ENGAGE_SCSI - 1) == 0) {
+ 		rc = cciss_engage_scsi(h->ctlr);
+ 		if (rc != 0)
+-			return -rc;
+-		return count;
 -	}
-+	kill_orphaned_pgrp(tsk, NULL);
++			err = -rc;
++		else
++			err = length;
++	} else
++		err = -EINVAL;
+ 	/* might be nice to have "disengage" too, but it's not
+ 	   safely possible. (only 1 module use count, lock issues.) */
+-#	endif
+-	return -EINVAL;
++out:
++	free_page((unsigned long)buffer);
++	return err;
+ }
  
- 	/* Let father know we died
- 	 *
-@@ -788,8 +784,8 @@ static void exit_notify(struct task_stru
- 	 * the same after a fork.
- 	 */
- 	if (tsk->exit_signal != SIGCHLD && tsk->exit_signal != -1 &&
--	    ( tsk->parent_exec_id != t->self_exec_id  ||
--	      tsk->self_exec_id != tsk->parent_exec_id)
-+	    (tsk->parent_exec_id != tsk->real_parent->self_exec_id ||
-+	     tsk->self_exec_id != tsk->parent_exec_id)
- 	    && !capable(CAP_KILL))
- 		tsk->exit_signal = SIGCHLD;
+-/*
+- * Get us a file in /proc/cciss that says something about each controller.
+- * Create /proc/cciss if it doesn't exist yet.
+- */
++static struct file_operations cciss_proc_fops = {
++	.owner	 = THIS_MODULE,
++	.open    = cciss_seq_open,
++	.read    = seq_read,
++	.llseek  = seq_lseek,
++	.release = seq_release,
++	.write	 = cciss_proc_write,
++};
++
+ static void __devinit cciss_procinit(int i)
+ {
+ 	struct proc_dir_entry *pde;
  
+-	if (proc_cciss == NULL) {
++	if (proc_cciss == NULL)
+ 		proc_cciss = proc_mkdir("cciss", proc_root_driver);
+-		if (!proc_cciss)
+-			return;
+-	}
++	if (!proc_cciss)
++		return;
++	pde = create_proc_entry(hba[i]->devname, S_IWUSR | S_IRUSR |
++					S_IRGRP | S_IROTH, proc_cciss);
++	if (!pde)
++		return;
+ 
+-	pde = create_proc_read_entry(hba[i]->devname,
+-				     S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH,
+-				     proc_cciss, cciss_proc_get_info, hba[i]);
+-	pde->write_proc = cciss_proc_write;
++	pde->proc_fops = &cciss_proc_fops;
++	pde->data = hba[i];
+ }
+ #endif				/* CONFIG_PROC_FS */
+ 
+diff -puN drivers/block/cciss_scsi.c~cciss-procfs-updates-to-display-info-about-many-volumes drivers/block/cciss_scsi.c
+--- a/drivers/block/cciss_scsi.c~cciss-procfs-updates-to-display-info-about-many-volumes
++++ a/drivers/block/cciss_scsi.c
+@@ -1404,21 +1404,18 @@ cciss_engage_scsi(int ctlr)
+ }
+ 
+ static void
+-cciss_proc_tape_report(int ctlr, unsigned char *buffer, off_t *pos, off_t *len)
++cciss_seq_tape_report(struct seq_file *seq, int ctlr)
+ {
+ 	unsigned long flags;
+-	int size;
+-
+-	*pos = *pos -1; *len = *len - 1; // cut off the last trailing newline
+ 
+ 	CPQ_TAPE_LOCK(ctlr, flags);
+-	size = sprintf(buffer + *len, 
++	seq_printf(seq,
+ 		"Sequential access devices: %d\n\n",
+ 			ccissscsi[ctlr].ndevices);
+ 	CPQ_TAPE_UNLOCK(ctlr, flags);
+-	*pos += size; *len += size;
+ }
+ 
++
+ /* Need at least one of these error handlers to keep ../scsi/hosts.c from 
+  * complaining.  Doing a host- or bus-reset can't do anything good here. 
+  * Despite what it might say in scsi_error.c, there may well be commands
+@@ -1498,6 +1495,6 @@ static int  cciss_eh_abort_handler(struc
+ #define cciss_scsi_setup(cntl_num)
+ #define cciss_unregister_scsi(ctlr)
+ #define cciss_register_scsi(ctlr)
+-#define cciss_proc_tape_report(ctlr, buffer, pos, len)
++#define cciss_seq_tape_report(struct seq_file *seq, int ctlr)
+ 
+ #endif /* CONFIG_CISS_SCSI_TAPE */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
 origin.patch
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-ptrace-introduce-task_detached-helper.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
 
