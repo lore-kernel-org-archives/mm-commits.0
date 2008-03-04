@@ -1,333 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - pm-do-not-acquire-device-semaphores-upfront-during-suspend.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:03 -0800
-Message-ID: <200803042010.m24KA3ne026877@imap1.linux-foundation.org>
+Subject: - will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:31 -0800
+Message-ID: <200803042010.m24KAVa9026917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933286AbYCDUK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:10:56 -0500
+	by vger.kernel.org with ESMTP id S1755555AbYCDULp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, gregkh@suse.de, lenb@kernel.org, pavel@ucw.cz, stern@rowland.harvard.edu, xhejtman@ics.muni.cz, zdenek.kabelac@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: do not acquire device semaphores upfront during suspend
+     pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
 has been removed from the -mm tree.  Its filename was
-     pm-do-not-acquire-device-semaphores-upfront-during-suspend.patch
+     will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: do not acquire device semaphores upfront during suspend
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pgrp: will_become_orphaned_pgrp: partially fix insufficient ->exit_state check
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Remove the code that acquires all device semaphores from the suspend code path
-as it causes multiple problems to appear (most notably,
-http://bugzilla.kernel.org/show_bug.cgi?id=10030) and revert the change
-introduced by commit 4145ed6dc597a9bea5f6ae8c574653b2de10620f depending on the
-code being removed.
+p->exit_state != 0 doesn't mean this process is dead, it may have sub-threads.
+ Change the code to use "p->exit_state && thread_group_empty(p)" instead.
 
-Remove pm_sleep_lock()/pm_sleep_unlock() from device_add() to avoid the issue
-reported at http://bugzilla.kernel.org/show_bug.cgi?id=9874.
+Without this patch, ^Z doesn't deliver SIGTSTP to the foreground process if
+the main thread has exited.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
+However, the new check is not perfect too.  There is a window when
+exit_notify() drops tasklist and before release_task().  Suppose that the last
+(non-leader) thread exits.  This means that entire group exits, but
+thread_group_empty() is not true yet.
+
+As Eric pointed out, is_global_init() is wrong as well, but I did not dare to
+do other changes.
+
+Just for the record, has_stopped_jobs() is absolutely wrong too.  But we can't
+fix it now, we should first fix SIGNAL_STOP_STOPPED issues.
+
+And.  Even with this patch ^Z doesn't play well with the dead main thread. 
+The task is stopped correctly but do_wait(WSTOPPED) can't see it.  This is
+another unrelated issue, will be (hopefully) fixed separately.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c       |    8 --
- drivers/base/power/main.c |  106 +++++-------------------------------
- drivers/usb/core/usb.c    |    2 
- 3 files changed, 17 insertions(+), 99 deletions(-)
+ kernel/exit.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/base/core.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend drivers/base/core.c
---- a/drivers/base/core.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend
-+++ a/drivers/base/core.c
-@@ -771,13 +771,6 @@ int device_add(struct device *dev)
- 	struct class_interface *class_intf;
- 	int error;
- 
--	error = pm_sleep_lock();
--	if (error) {
--		dev_warn(dev, "Suspicious %s during suspend\n", __FUNCTION__);
--		dump_stack();
--		return error;
--	}
--
- 	dev = get_device(dev);
- 	if (!dev || !strlen(dev->bus_id)) {
- 		error = -EINVAL;
-@@ -844,7 +837,6 @@ int device_add(struct device *dev)
- 	}
-  Done:
- 	put_device(dev);
--	pm_sleep_unlock();
- 	return error;
-  BusError:
- 	device_pm_remove(dev);
-diff -puN drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend
-+++ a/drivers/base/power/main.c
-@@ -48,7 +48,6 @@
-  */
- 
- LIST_HEAD(dpm_active);
--static LIST_HEAD(dpm_locked);
- static LIST_HEAD(dpm_off);
- static LIST_HEAD(dpm_off_irq);
- static LIST_HEAD(dpm_destroy);
-@@ -81,28 +80,6 @@ void device_pm_add(struct device *dev)
-  */
- void device_pm_remove(struct device *dev)
+diff -puN kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check kernel/exit.c
+--- a/kernel/exit.c~will_become_orphaned_pgrp-partially-fix-insufficient-exit_state-check
++++ a/kernel/exit.c
+@@ -214,20 +214,19 @@ struct pid *session_of_pgrp(struct pid *
+ static int will_become_orphaned_pgrp(struct pid *pgrp, struct task_struct *ignored_task)
  {
--	/*
--	 * If this function is called during a suspend, it will be blocked,
--	 * because we're holding the device's semaphore at that time, which may
--	 * lead to a deadlock.  In that case we want to print a warning.
--	 * However, it may also be called by unregister_dropped_devices() with
--	 * the device's semaphore released, in which case the warning should
--	 * not be printed.
--	 */
--	if (down_trylock(&dev->sem)) {
--		if (down_read_trylock(&pm_sleep_rwsem)) {
--			/* No suspend in progress, wait on dev->sem */
--			down(&dev->sem);
--			up_read(&pm_sleep_rwsem);
--		} else {
--			/* Suspend in progress, we may deadlock */
--			dev_warn(dev, "Suspicious %s during suspend\n",
--				__FUNCTION__);
--			dump_stack();
--			/* The user has been warned ... */
--			down(&dev->sem);
+ 	struct task_struct *p;
+-	int ret = 1;
+ 
+ 	do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
+-		if (p == ignored_task
+-				|| p->exit_state
+-				|| is_global_init(p->real_parent))
++		if ((p == ignored_task) ||
++		    (p->exit_state && thread_group_empty(p)) ||
++		    is_global_init(p->real_parent))
+ 			continue;
++
+ 		if (task_pgrp(p->real_parent) != pgrp &&
+-		    task_session(p->real_parent) == task_session(p)) {
+-			ret = 0;
+-			break;
 -		}
--	}
- 	pr_debug("PM: Removing info for %s:%s\n",
- 		 dev->bus ? dev->bus->name : "No Bus",
- 		 kobject_name(&dev->kobj));
-@@ -110,7 +87,6 @@ void device_pm_remove(struct device *dev
- 	dpm_sysfs_remove(dev);
- 	list_del_init(&dev->power.entry);
- 	mutex_unlock(&dpm_list_mtx);
--	up(&dev->sem);
- }
- 
- /**
-@@ -230,6 +206,8 @@ static int resume_device(struct device *
- 	TRACE_DEVICE(dev);
- 	TRACE_RESUME(0);
- 
-+	down(&dev->sem);
++		    task_session(p->real_parent) == task_session(p))
++			return 0;
+ 	} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
+-	return ret;	/* (sighing) "Often!" */
 +
- 	if (dev->bus && dev->bus->resume) {
- 		dev_dbg(dev,"resuming\n");
- 		error = dev->bus->resume(dev);
-@@ -245,6 +223,8 @@ static int resume_device(struct device *
- 		error = dev->class->resume(dev);
- 	}
- 
-+	up(&dev->sem);
-+
- 	TRACE_RESUME(error);
- 	return error;
- }
-@@ -266,7 +246,7 @@ static void dpm_resume(void)
- 		struct list_head *entry = dpm_off.next;
- 		struct device *dev = to_device(entry);
- 
--		list_move_tail(entry, &dpm_locked);
-+		list_move_tail(entry, &dpm_active);
- 		mutex_unlock(&dpm_list_mtx);
- 		resume_device(dev);
- 		mutex_lock(&dpm_list_mtx);
-@@ -275,25 +255,6 @@ static void dpm_resume(void)
++	return 1;
  }
  
- /**
-- *	unlock_all_devices - Release each device's semaphore
-- *
-- *	Go through the dpm_off list.  Put each device on the dpm_active
-- *	list and unlock it.
-- */
--static void unlock_all_devices(void)
--{
--	mutex_lock(&dpm_list_mtx);
--	while (!list_empty(&dpm_locked)) {
--		struct list_head *entry = dpm_locked.prev;
--		struct device *dev = to_device(entry);
--
--		list_move(entry, &dpm_active);
--		up(&dev->sem);
--	}
--	mutex_unlock(&dpm_list_mtx);
--}
--
--/**
-  *	unregister_dropped_devices - Unregister devices scheduled for removal
-  *
-  *	Unregister all devices on the dpm_destroy list.
-@@ -305,7 +266,6 @@ static void unregister_dropped_devices(v
- 		struct list_head *entry = dpm_destroy.next;
- 		struct device *dev = to_device(entry);
- 
--		up(&dev->sem);
- 		mutex_unlock(&dpm_list_mtx);
- 		/* This also removes the device from the list */
- 		device_unregister(dev);
-@@ -324,7 +284,6 @@ void device_resume(void)
- {
- 	might_sleep();
- 	dpm_resume();
--	unlock_all_devices();
- 	unregister_dropped_devices();
- 	up_write(&pm_sleep_rwsem);
- }
-@@ -388,18 +347,15 @@ int device_power_down(pm_message_t state
- 		struct list_head *entry = dpm_off.prev;
- 		struct device *dev = to_device(entry);
- 
--		list_del_init(&dev->power.entry);
- 		error = suspend_device_late(dev, state);
- 		if (error) {
- 			printk(KERN_ERR "Could not power down device %s: "
- 					"error %d\n",
- 					kobject_name(&dev->kobj), error);
--			if (list_empty(&dev->power.entry))
--				list_add(&dev->power.entry, &dpm_off);
- 			break;
- 		}
--		if (list_empty(&dev->power.entry))
--			list_add(&dev->power.entry, &dpm_off_irq);
-+		if (!list_empty(&dev->power.entry))
-+			list_move(&dev->power.entry, &dpm_off_irq);
- 	}
- 
- 	if (!error)
-@@ -419,6 +375,8 @@ static int suspend_device(struct device 
- {
- 	int error = 0;
- 
-+	down(&dev->sem);
-+
- 	if (dev->class && dev->class->suspend) {
- 		suspend_device_dbg(dev, state, "class ");
- 		error = dev->class->suspend(dev, state);
-@@ -436,6 +394,9 @@ static int suspend_device(struct device 
- 		error = dev->bus->suspend(dev, state);
- 		suspend_report_result(dev->bus->suspend, error);
- 	}
-+
-+	up(&dev->sem);
-+
- 	return error;
- }
- 
-@@ -456,11 +417,10 @@ static int dpm_suspend(pm_message_t stat
- 	int error = 0;
- 
- 	mutex_lock(&dpm_list_mtx);
--	while (!list_empty(&dpm_locked)) {
--		struct list_head *entry = dpm_locked.prev;
-+	while (!list_empty(&dpm_active)) {
-+		struct list_head *entry = dpm_active.prev;
- 		struct device *dev = to_device(entry);
- 
--		list_del_init(&dev->power.entry);
- 		mutex_unlock(&dpm_list_mtx);
- 		error = suspend_device(dev, state);
- 		if (error) {
-@@ -471,14 +431,11 @@ static int dpm_suspend(pm_message_t stat
- 					(error == -EAGAIN ?
- 					" (please convert to suspend_late)" :
- 					""));
--			mutex_lock(&dpm_list_mtx);
--			if (list_empty(&dev->power.entry))
--				list_add(&dev->power.entry, &dpm_locked);
- 			break;
- 		}
- 		mutex_lock(&dpm_list_mtx);
--		if (list_empty(&dev->power.entry))
--			list_add(&dev->power.entry, &dpm_off);
-+		if (!list_empty(&dev->power.entry))
-+			list_move(&dev->power.entry, &dpm_off);
- 	}
- 	mutex_unlock(&dpm_list_mtx);
- 
-@@ -486,36 +443,6 @@ static int dpm_suspend(pm_message_t stat
- }
- 
- /**
-- *	lock_all_devices - Acquire every device's semaphore
-- *
-- *	Go through the dpm_active list. Carefully lock each device's
-- *	semaphore and put it in on the dpm_locked list.
-- */
--static void lock_all_devices(void)
--{
--	mutex_lock(&dpm_list_mtx);
--	while (!list_empty(&dpm_active)) {
--		struct list_head *entry = dpm_active.next;
--		struct device *dev = to_device(entry);
--
--		/* Required locking order is dev->sem first,
--		 * then dpm_list_mutex.  Hence this awkward code.
--		 */
--		get_device(dev);
--		mutex_unlock(&dpm_list_mtx);
--		down(&dev->sem);
--		mutex_lock(&dpm_list_mtx);
--
--		if (list_empty(entry))
--			up(&dev->sem);		/* Device was removed */
--		else
--			list_move_tail(entry, &dpm_locked);
--		put_device(dev);
--	}
--	mutex_unlock(&dpm_list_mtx);
--}
--
--/**
-  *	device_suspend - Save state and stop all devices in system.
-  *	@state: new power management state
-  *
-@@ -528,7 +455,6 @@ int device_suspend(pm_message_t state)
- 
- 	might_sleep();
- 	down_write(&pm_sleep_rwsem);
--	lock_all_devices();
- 	error = dpm_suspend(state);
- 	if (error)
- 		device_resume();
-diff -puN drivers/usb/core/usb.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend drivers/usb/core/usb.c
---- a/drivers/usb/core/usb.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend
-+++ a/drivers/usb/core/usb.c
-@@ -234,7 +234,7 @@ static int ksuspend_usb_init(void)
- 	 * singlethreaded.  Its job doesn't justify running on more
- 	 * than one CPU.
- 	 */
--	ksuspend_usb_wq = create_singlethread_workqueue("ksuspend_usbd");
-+	ksuspend_usb_wq = create_freezeable_workqueue("ksuspend_usbd");
- 	if (!ksuspend_usb_wq)
- 		return -ENOMEM;
- 	return 0;
+ int is_current_pgrp_orphaned(void)
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-acpi.patch
-acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch
-acpi-ec-fix-regression.patch
-time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-hrt.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+ptrace-introduce-task_detached-helper.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
