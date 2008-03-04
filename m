@@ -1,391 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - cciss-procfs-updates-to-display-info-about-many-volumes.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:25 -0800
-Message-ID: <200803042010.m24KAP4m026907@imap1.linux-foundation.org>
+Subject: - slub-fix-possible-null-pointer-dereference-fix.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:18 -0800
+Message-ID: <200803042010.m24KAIqd026898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758913AbYCDULp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:45 -0500
+	by vger.kernel.org with ESMTP id S1751722AbYCDUSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:18:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, gorcunov@gmail.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cciss: procfs updates to display info about many volumes
+     slub-fix-possible-null-pointer-dereference-fix
 has been removed from the -mm tree.  Its filename was
-     cciss-procfs-updates-to-display-info-about-many-volumes.patch
+     slub-fix-possible-null-pointer-dereference-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: procfs updates to display info about many volumes
-From: Mike Miller <mike.miller@hp.com>
+Subject: slub-fix-possible-null-pointer-dereference-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch allows us to display information about all of the logical
-volumes configured on a particular without stepping on memory even when
-there are many volumes (128 or more) configured.
+show_slab_objects() should return ssize_t as well.  Or at least _something_
+signed...
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c      |  242 +++++++++++++++++++++--------------
- drivers/block/cciss_scsi.c |   11 -
- 2 files changed, 152 insertions(+), 101 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-procfs-updates-to-display-info-about-many-volumes drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-procfs-updates-to-display-info-about-many-volumes
-+++ a/drivers/block/cciss.c
-@@ -33,6 +33,7 @@
- #include <linux/blkpg.h>
- #include <linux/timer.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/init.h>
- #include <linux/hdreg.h>
- #include <linux/spinlock.h>
-@@ -174,8 +175,6 @@ static int sendcmd_withirq(__u8 cmd, int
- static void fail_all_cmds(unsigned long ctlr);
+diff -puN mm/slub.c~slub-fix-possible-null-pointer-dereference-fix mm/slub.c
+--- a/mm/slub.c~slub-fix-possible-null-pointer-dereference-fix
++++ a/mm/slub.c
+@@ -3575,8 +3575,8 @@ enum slab_stat_type {
+ #define SO_OBJECTS	(1 << SL_OBJECTS)
+ #define SO_TOTAL	(1 << SL_TOTAL)
  
- #ifdef CONFIG_PROC_FS
--static int cciss_proc_get_info(char *buffer, char **start, off_t offset,
--			       int length, int *eof, void *data);
- static void cciss_procinit(int i);
- #else
- static void cciss_procinit(int i)
-@@ -240,24 +239,44 @@ static inline CommandList_struct *remove
-  */
- #define ENG_GIG 1000000000
- #define ENG_GIG_FACTOR (ENG_GIG/512)
-+#define ENGAGE_SCSI	"engage scsi"
- static const char *raid_label[] = { "0", "4", "1(1+0)", "5", "5+1", "ADG",
- 	"UNKNOWN"
- };
- 
- static struct proc_dir_entry *proc_cciss;
- 
--static int cciss_proc_get_info(char *buffer, char **start, off_t offset,
--			       int length, int *eof, void *data)
-+static void cciss_seq_show_header(struct seq_file *seq)
+-static unsigned long show_slab_objects(struct kmem_cache *s,
+-			char *buf, unsigned long flags)
++static ssize_t show_slab_objects(struct kmem_cache *s, char *buf,
++				unsigned long flags)
  {
--	off_t pos = 0;
--	off_t len = 0;
--	int size, i, ctlr;
--	ctlr_info_t *h = (ctlr_info_t *) data;
--	drive_info_struct *drv;
--	unsigned long flags;
--	sector_t vol_sz, vol_sz_frac;
-+	ctlr_info_t *h = seq->private;
-+
-+	seq_printf(seq, "%s: HP %s Controller\n"
-+		"Board ID: 0x%08lx\n"
-+		"Firmware Version: %c%c%c%c\n"
-+		"IRQ: %d\n"
-+		"Logical drives: %d\n"
-+		"Current Q depth: %d\n"
-+		"Current # commands on controller: %d\n"
-+		"Max Q depth since init: %d\n"
-+		"Max # commands on controller since init: %d\n"
-+		"Max SG entries since init: %d\n",
-+		h->devname,
-+		h->product_name,
-+		(unsigned long)h->board_id,
-+		h->firm_ver[0], h->firm_ver[1], h->firm_ver[2],
-+		h->firm_ver[3], (unsigned int)h->intr[SIMPLE_MODE_INT],
-+		h->num_luns,
-+		h->Qdepth, h->commands_outstanding,
-+		h->maxQsinceinit, h->max_outstanding, h->maxSG);
- 
--	ctlr = h->ctlr;
-+	cciss_seq_tape_report(seq, h->ctlr);
-+}
-+
-+static void *cciss_seq_start(struct seq_file *seq, loff_t *pos)
-+{
-+	ctlr_info_t *h = seq->private;
-+	unsigned ctlr = h->ctlr;
-+	unsigned long flags;
- 
- 	/* prevent displaying bogus info during configuration
- 	 * or deconfiguration of a logical volume
-@@ -265,115 +284,150 @@ static int cciss_proc_get_info(char *buf
- 	spin_lock_irqsave(CCISS_LOCK(ctlr), flags);
- 	if (h->busy_configuring) {
- 		spin_unlock_irqrestore(CCISS_LOCK(ctlr), flags);
--		return -EBUSY;
-+		return ERR_PTR(-EBUSY);
- 	}
- 	h->busy_configuring = 1;
- 	spin_unlock_irqrestore(CCISS_LOCK(ctlr), flags);
- 
--	size = sprintf(buffer, "%s: HP %s Controller\n"
--		       "Board ID: 0x%08lx\n"
--		       "Firmware Version: %c%c%c%c\n"
--		       "IRQ: %d\n"
--		       "Logical drives: %d\n"
--		       "Max sectors: %d\n"
--		       "Current Q depth: %d\n"
--		       "Current # commands on controller: %d\n"
--		       "Max Q depth since init: %d\n"
--		       "Max # commands on controller since init: %d\n"
--		       "Max SG entries since init: %d\n\n",
--		       h->devname,
--		       h->product_name,
--		       (unsigned long)h->board_id,
--		       h->firm_ver[0], h->firm_ver[1], h->firm_ver[2],
--		       h->firm_ver[3], (unsigned int)h->intr[SIMPLE_MODE_INT],
--		       h->num_luns,
--		       h->cciss_max_sectors,
--		       h->Qdepth, h->commands_outstanding,
--		       h->maxQsinceinit, h->max_outstanding, h->maxSG);
--
--	pos += size;
--	len += size;
--	cciss_proc_tape_report(ctlr, buffer, &pos, &len);
--	for (i = 0; i <= h->highest_lun; i++) {
-+	if (*pos == 0)
-+		cciss_seq_show_header(seq);
- 
--		drv = &h->drv[i];
--		if (drv->heads == 0)
--			continue;
-+	return pos;
-+}
- 
--		vol_sz = drv->nr_blocks;
--		vol_sz_frac = sector_div(vol_sz, ENG_GIG_FACTOR);
--		vol_sz_frac *= 100;
--		sector_div(vol_sz_frac, ENG_GIG_FACTOR);
-+static int cciss_seq_show(struct seq_file *seq, void *v)
-+{
-+	sector_t vol_sz, vol_sz_frac;
-+	ctlr_info_t *h = seq->private;
-+	unsigned ctlr = h->ctlr;
-+	loff_t *pos = v;
-+	drive_info_struct *drv = &h->drv[*pos];
- 
--		if (drv->raid_level > 5)
--			drv->raid_level = RAID_UNKNOWN;
--		size = sprintf(buffer + len, "cciss/c%dd%d:"
--			       "\t%4u.%02uGB\tRAID %s\n",
--			       ctlr, i, (int)vol_sz, (int)vol_sz_frac,
--			       raid_label[drv->raid_level]);
--		pos += size;
--		len += size;
--	}
-+	if (*pos > h->highest_lun)
-+		return 0;
-+
-+	if (drv->heads == 0)
-+		return 0;
-+
-+	vol_sz = drv->nr_blocks;
-+	vol_sz_frac = sector_div(vol_sz, ENG_GIG_FACTOR);
-+	vol_sz_frac *= 100;
-+	sector_div(vol_sz_frac, ENG_GIG_FACTOR);
-+
-+	if (drv->raid_level > 5)
-+		drv->raid_level = RAID_UNKNOWN;
-+	seq_printf(seq, "cciss/c%dd%d:"
-+			"\t%4u.%02uGB\tRAID %s\n",
-+			ctlr, (int) *pos, (int)vol_sz, (int)vol_sz_frac,
-+			raid_label[drv->raid_level]);
-+	return 0;
-+}
-+
-+static void *cciss_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	ctlr_info_t *h = seq->private;
-+
-+	if (*pos > h->highest_lun)
-+		return NULL;
-+	*pos += 1;
-+
-+	return pos;
-+}
-+
-+static void cciss_seq_stop(struct seq_file *seq, void *v)
-+{
-+	ctlr_info_t *h = seq->private;
-+
-+	/* Only reset h->busy_configuring if we succeeded in setting
-+	 * it during cciss_seq_start. */
-+	if (v == ERR_PTR(-EBUSY))
-+		return;
- 
--	*eof = 1;
--	*start = buffer + offset;
--	len -= offset;
--	if (len > length)
--		len = length;
- 	h->busy_configuring = 0;
--	return len;
- }
- 
--static int
--cciss_proc_write(struct file *file, const char __user *buffer,
--		 unsigned long count, void *data)
-+static struct seq_operations cciss_seq_ops = {
-+	.start = cciss_seq_start,
-+	.show  = cciss_seq_show,
-+	.next  = cciss_seq_next,
-+	.stop  = cciss_seq_stop,
-+};
-+
-+static int cciss_seq_open(struct inode *inode, struct file *file)
- {
--	unsigned char cmd[80];
--	int len;
--#ifdef CONFIG_CISS_SCSI_TAPE
--	ctlr_info_t *h = (ctlr_info_t *) data;
--	int rc;
-+	int ret = seq_open(file, &cciss_seq_ops);
-+	struct seq_file *seq = file->private_data;
-+
-+	if (!ret)
-+		seq->private = PDE(inode)->data;
-+
-+	return ret;
-+}
-+
-+static ssize_t
-+cciss_proc_write(struct file *file, const char __user *buf,
-+		 size_t length, loff_t *ppos)
-+{
-+	struct seq_file *seq = file->private_data;
-+	ctlr_info_t *h = seq->private;
-+	int err, rc;
-+	char *buffer;
-+
-+#ifndef CONFIG_CISS_SCSI_TAPE
-+	return -EINVAL;
- #endif
- 
--	if (count > sizeof(cmd) - 1)
-+	if (!buf || length > PAGE_SIZE - 1)
- 		return -EINVAL;
--	if (copy_from_user(cmd, buffer, count))
--		return -EFAULT;
--	cmd[count] = '\0';
--	len = strlen(cmd);	// above 3 lines ensure safety
--	if (len && cmd[len - 1] == '\n')
--		cmd[--len] = '\0';
--#	ifdef CONFIG_CISS_SCSI_TAPE
--	if (strcmp("engage scsi", cmd) == 0) {
-+
-+	buffer = (char *)__get_free_page(GFP_KERNEL);
-+	if (!buffer)
-+		return -ENOMEM;
-+
-+	err = -EFAULT;
-+	if (copy_from_user(buffer, buf, length))
-+		goto out;
-+	buffer[length] = '\0';
-+
-+	if (strncmp(ENGAGE_SCSI, buffer, sizeof ENGAGE_SCSI - 1) == 0) {
- 		rc = cciss_engage_scsi(h->ctlr);
- 		if (rc != 0)
--			return -rc;
--		return count;
--	}
-+			err = -rc;
-+		else
-+			err = length;
-+	} else
-+		err = -EINVAL;
- 	/* might be nice to have "disengage" too, but it's not
- 	   safely possible. (only 1 module use count, lock issues.) */
--#	endif
--	return -EINVAL;
-+out:
-+	free_page((unsigned long)buffer);
-+	return err;
- }
- 
--/*
-- * Get us a file in /proc/cciss that says something about each controller.
-- * Create /proc/cciss if it doesn't exist yet.
-- */
-+static struct file_operations cciss_proc_fops = {
-+	.owner	 = THIS_MODULE,
-+	.open    = cciss_seq_open,
-+	.read    = seq_read,
-+	.llseek  = seq_lseek,
-+	.release = seq_release,
-+	.write	 = cciss_proc_write,
-+};
-+
- static void __devinit cciss_procinit(int i)
- {
- 	struct proc_dir_entry *pde;
- 
--	if (proc_cciss == NULL) {
-+	if (proc_cciss == NULL)
- 		proc_cciss = proc_mkdir("cciss", proc_root_driver);
--		if (!proc_cciss)
--			return;
--	}
-+	if (!proc_cciss)
-+		return;
-+	pde = create_proc_entry(hba[i]->devname, S_IWUSR | S_IRUSR |
-+					S_IRGRP | S_IROTH, proc_cciss);
-+	if (!pde)
-+		return;
- 
--	pde = create_proc_read_entry(hba[i]->devname,
--				     S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH,
--				     proc_cciss, cciss_proc_get_info, hba[i]);
--	pde->write_proc = cciss_proc_write;
-+	pde->proc_fops = &cciss_proc_fops;
-+	pde->data = hba[i];
- }
- #endif				/* CONFIG_PROC_FS */
- 
-diff -puN drivers/block/cciss_scsi.c~cciss-procfs-updates-to-display-info-about-many-volumes drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-procfs-updates-to-display-info-about-many-volumes
-+++ a/drivers/block/cciss_scsi.c
-@@ -1404,21 +1404,18 @@ cciss_engage_scsi(int ctlr)
- }
- 
- static void
--cciss_proc_tape_report(int ctlr, unsigned char *buffer, off_t *pos, off_t *len)
-+cciss_seq_tape_report(struct seq_file *seq, int ctlr)
- {
- 	unsigned long flags;
--	int size;
--
--	*pos = *pos -1; *len = *len - 1; // cut off the last trailing newline
- 
- 	CPQ_TAPE_LOCK(ctlr, flags);
--	size = sprintf(buffer + *len, 
-+	seq_printf(seq,
- 		"Sequential access devices: %d\n\n",
- 			ccissscsi[ctlr].ndevices);
- 	CPQ_TAPE_UNLOCK(ctlr, flags);
--	*pos += size; *len += size;
- }
- 
-+
- /* Need at least one of these error handlers to keep ../scsi/hosts.c from 
-  * complaining.  Doing a host- or bus-reset can't do anything good here. 
-  * Despite what it might say in scsi_error.c, there may well be commands
-@@ -1498,6 +1495,6 @@ static int  cciss_eh_abort_handler(struc
- #define cciss_scsi_setup(cntl_num)
- #define cciss_unregister_scsi(ctlr)
- #define cciss_register_scsi(ctlr)
--#define cciss_proc_tape_report(ctlr, buffer, pos, len)
-+#define cciss_seq_tape_report(struct seq_file *seq, int ctlr)
- 
- #endif /* CONFIG_CISS_SCSI_TAPE */
+ 	unsigned long total = 0;
+ 	int cpu;
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-alsa-build-fix.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+sh-export-copy-page-to-modules.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
