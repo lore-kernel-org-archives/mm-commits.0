@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sh-export-copy-page-to-modules.patch added to -mm tree
-Date: Tue, 04 Mar 2008 02:52:51 -0500
-Message-ID: <200803040753.m247rYk2030259@imap1.linux-foundation.org>
+Subject: + hda_intel-needs-dma-mappingh.patch added to -mm tree
+Date: Tue, 04 Mar 2008 03:06:18 -0500
+Message-ID: <200803040807.m248710f030667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49064 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753741AbYCDHxs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 02:53:48 -0500
+	by vger.kernel.org with ESMTP id S1753901AbYCDIHm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:07:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     sh: export copy-page() to modules
+     hda_intel needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     sh-export-copy-page-to-modules.patch
+     hda_intel-needs-dma-mappingh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: export copy-page() to modules
+Subject: hda_intel needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "copy_page" [fs/unionfs/unionfs.ko] undefined!
+sparc32:
 
-like all the other architectures.
+sound/pci/hda/hda_intel.c: In function 'azx_create':
+sound/pci/hda/hda_intel.c:1838: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
+sound/pci/hda/hda_intel.c:1838: error: (Each undeclared identifier is reported only once
+sound/pci/hda/hda_intel.c:1838: error: for each function it appears in.)
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/sh_ksyms_32.c |    1 +
- arch/sh/kernel/sh_ksyms_64.c |    1 +
- 2 files changed, 2 insertions(+)
+ sound/pci/hda/hda_intel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_32.c
---- a/arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules
-+++ a/arch/sh/kernel/sh_ksyms_32.c
-@@ -139,5 +139,6 @@ EXPORT_SYMBOL(csum_partial_copy_generic)
- EXPORT_SYMBOL(csum_ipv6_magic);
- #endif
- EXPORT_SYMBOL(clear_page);
-+EXPORT_SYMBOL(copy_page);
- EXPORT_SYMBOL(__clear_user);
- EXPORT_SYMBOL(_ebss);
-diff -puN arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_64.c
---- a/arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules
-+++ a/arch/sh/kernel/sh_ksyms_64.c
-@@ -38,6 +38,7 @@ EXPORT_SYMBOL(screen_info);
- 
- EXPORT_SYMBOL(__put_user_asm_l);
- EXPORT_SYMBOL(__get_user_asm_l);
-+EXPORT_SYMBOL(copy_page);
- EXPORT_SYMBOL(__copy_user);
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(__udelay);
+diff -puN sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh
++++ a/sound/pci/hda/hda_intel.c
+@@ -39,6 +39,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/dma-mapping.h>
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +91,7 @@ git-ubi.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+sh-export-copy-page-to-modules.patch
 scsi-aic94xx-cleanups.patch
 git-block-git-rejects.patch
 git-unionfs.patch
@@ -176,5 +169,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-sh-export-copy-page-to-modules.patch
+hda_intel-needs-dma-mappingh.patch
 
