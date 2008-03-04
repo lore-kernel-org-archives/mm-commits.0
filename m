@@ -1,53 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - zlc_setup-handle-jiffies-wraparound-fix.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 13:33:01 -0800
-Message-ID: <200803042133.m24LX1H8030186@imap1.linux-foundation.org>
+Subject: - sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 13:34:44 -0800
+Message-ID: <200803042134.m24LYiGF030261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758359AbYCDVeP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:34:15 -0500
+	by vger.kernel.org with ESMTP id S1759857AbYCDVf2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:35:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, caglar@pardus.org.tr, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, pj@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zlc_setup-handle-jiffies-wraparound-fix
+     sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     zlc_setup-handle-jiffies-wraparound-fix.patch
+     sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into zlc_setup-handle-jiffies-wraparound.patch
+This patch was dropped because it was folded into sm501-add-support-for-the-sm502-programmable-pll.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zlc_setup-handle-jiffies-wraparound-fix
+Subject: sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: <caglar@pardus.org.tr>
+ERROR: need spaces around that '=' (ctx:VxV)
+#185: FILE: drivers/mfd/sm501.c:563:
++			reg=to.shift & 0x07;/* bottom 3 bits are shift */
+ 			   ^
+
+ERROR: need spaces around that '=' (ctx:VxV)
+#195: FILE: drivers/mfd/sm501.c:573:
++			reg=to.shift & 0x07;/* bottom 3 bits are shift */
+ 			   ^
+
+total: 2 errors, 0 warnings, 250 lines checked
+
+./patches/sm501-add-support-for-the-sm502-programmable-pll.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Ville Syrjala <syrjala@sci.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mfd/sm501.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix mm/page_alloc.c
---- a/mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix
-+++ a/mm/page_alloc.c
-@@ -19,6 +19,7 @@
- #include <linux/swap.h>
- #include <linux/interrupt.h>
- #include <linux/pagemap.h>
-+#include <linux/jiffies.h>
- #include <linux/bootmem.h>
- #include <linux/compiler.h>
- #include <linux/kernel.h>
+diff -puN drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
++++ a/drivers/mfd/sm501.c
+@@ -560,7 +560,7 @@ unsigned long sm501_set_clock(struct dev
+ 			/* SM502 -> use the programmable PLL */
+ 			sm501_freq = (sm501_calc_pll(2 * req_freq,
+ 						     &to, 5) / 2);
+-			reg=to.shift & 0x07;/* bottom 3 bits are shift */
++			reg = to.shift & 0x07;/* bottom 3 bits are shift */
+ 			if (to.divider == 3)
+ 				reg |= 0x08; /* /3 divider required */
+ 			else if (to.divider == 5)
+@@ -570,7 +570,7 @@ unsigned long sm501_set_clock(struct dev
+ 		} else {
+ 			sm501_freq = (sm501_select_clock(2 * req_freq,
+ 							 &to, 5) / 2);
+-			reg=to.shift & 0x07;/* bottom 3 bits are shift */
++			reg = to.shift & 0x07;/* bottom 3 bits are shift */
+ 			if (to.divider == 3)
+ 				reg |= 0x08; /* /3 divider required */
+ 			else if (to.divider == 5)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -55,12 +80,11 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
 zlc_setup-handle-jiffies-wraparound.patch
-zlc_setup-handle-jiffies-wraparound-fix.patch
 documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
+tridentfb-resource-management-fixes-in-probe-function.patch
 add-noinline_for_stack.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll.patch
 sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
 markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
