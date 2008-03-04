@@ -1,78 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 13:35:10 -0800
-Message-ID: <200803042135.m24LZAjD030341@imap1.linux-foundation.org>
+Subject: - iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 13:36:23 -0800
+Message-ID: <200803042136.m24LaNJb030369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53521 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933275AbYCDVf1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:35:27 -0500
+	by vger.kernel.org with ESMTP id S1760621AbYCDVhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jesper.juhl@gmail.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers-dont-risk-null-deref-in-marker-checkpatch-fixes
+     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+     iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into markers-dont-risk-null-deref-in-marker.patch
+This patch was dropped because it was folded into iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers-dont-risk-null-deref-in-marker-checkpatch-fixes
+Subject: iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#34: FILE: kernel/marker.c:715:
-+	if (!entry) {
-+		goto end;
-+	}
+ERROR: use tabs not spaces
+#49: FILE: drivers/parisc/ccio-dma.c:306:
++               int ret;\$
 
-total: 0 errors, 1 warnings, 29 lines checked
+ERROR: use tabs not spaces
+#50: FILE: drivers/parisc/ccio-dma.c:307:
++               unsigned int idx;\$
 
-./patches/markers-dont-risk-null-deref-in-marker.patch has style problems, please review.  If any of these errors
+WARNING: line over 80 characters
+#51: FILE: drivers/parisc/ccio-dma.c:308:
++               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
+
+ERROR: use tabs not spaces
+#51: FILE: drivers/parisc/ccio-dma.c:308:
++               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \$
+
+WARNING: line over 80 characters
+#52: FILE: drivers/parisc/ccio-dma.c:309:
++		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
+
+ERROR: use tabs not spaces
+#53: FILE: drivers/parisc/ccio-dma.c:310:
++               if((0 == (*res_ptr & mask)) && !ret) { \$
+
+ERROR: need a space before the open parenthesis '('
+#53: FILE: drivers/parisc/ccio-dma.c:310:
++               if((0 == (*res_ptr & mask)) && !ret) { \
+
+ERROR: use tabs not spaces
+#56: FILE: drivers/parisc/ccio-dma.c:312:
++                       res_idx = idx;\$
+
+total: 6 errors, 2 warnings, 137 lines checked
+
+./patches/iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/parisc/ccio-dma.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes kernel/marker.c
---- a/kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes
-+++ a/kernel/marker.c
-@@ -702,9 +702,8 @@ int marker_probe_unregister(const char *
+diff -puN drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes
++++ a/drivers/parisc/ccio-dma.c
+@@ -303,17 +303,17 @@ static int ioc_count;
+ */
+ #define CCIO_SEARCH_LOOP(ioc, res_idx, mask, size)  \
+        for(; res_ptr < res_end; ++res_ptr) { \
+-               int ret;\
+-               unsigned int idx;\
+-               idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
++		int ret;\
++		unsigned int idx;\
++		idx = (unsigned int)((unsigned long)res_ptr - (unsigned long)ioc->res_map); \
+ 		ret = iommu_is_span_boundary(idx << 3, pages_needed, 0, boundary_size);\
+-               if((0 == (*res_ptr & mask)) && !ret) { \
+-                       *res_ptr |= mask; \
+-                       res_idx = idx;\
+-                       ioc->res_hint = res_idx + (size >> 3); \
+-                       goto resource_found; \
+-               } \
+-       }
++		if ((0 == (*res_ptr & mask)) && !ret) { \
++			*res_ptr |= mask; \
++			res_idx = idx;\
++			ioc->res_hint = res_idx + (size >> 3); \
++			goto resource_found; \
++		} \
++	}
  
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
--	if (!entry) {
-+	if (!entry)
- 		goto end;
--	}
- 	if (entry->rcu_pending)
- 		rcu_barrier();
- 	old = marker_entry_remove_probe(entry, probe, probe_private);
-@@ -712,9 +711,8 @@ int marker_probe_unregister(const char *
- 	marker_update_probes();		/* may update entry */
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
--	if (!entry) {
-+	if (!entry)
- 		goto end;
--	}
- 	entry->oldptr = old;
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
+ #define CCIO_FIND_FREE_MAPPING(ioa, res_idx, mask, size) \
+        u##size *res_ptr = (u##size *)&((ioc)->res_map[ioa->res_hint & ~((size >> 3) - 1)]); \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,8 +120,8 @@ add-noinline_for_stack.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 sm501-add-support-for-the-sm502-programmable-pll.patch
 markers-dont-risk-null-deref-in-marker.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
 iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
