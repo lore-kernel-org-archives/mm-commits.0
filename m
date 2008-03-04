@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hda_intel-needs-dma-mappingh.patch added to -mm tree
-Date: Tue, 04 Mar 2008 03:06:18 -0500
-Message-ID: <200803040807.m248710f030667@imap1.linux-foundation.org>
+Subject: + kprobes-prevent-probing-of-preempt_schedule-fix.patch added to -mm tree
+Date: Tue, 04 Mar 2008 03:23:08 -0500
+Message-ID: <200803040823.m248Nqmm031308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753901AbYCDIHm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:07:42 -0500
+	by vger.kernel.org with ESMTP id S1751455AbYCDIZl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:25:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, ananth@in.ibm.com, davem@davemloft.net, haveblue@us.ibm.com, jkenisto@us.ibm.com, srinivasa@in.ibm.com
 
 
 The patch titled
-     hda_intel needs dma-mapping.h
+     kprobes-prevent-probing-of-preempt_schedule-fix
 has been added to the -mm tree.  Its filename is
-     hda_intel-needs-dma-mappingh.patch
+     kprobes-prevent-probing-of-preempt_schedule-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hda_intel needs dma-mapping.h
+Subject: kprobes-prevent-probing-of-preempt_schedule-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
+kernel/kprobes.c: In function `in_kprobes_functions':
+kernel/kprobes.c:516: error: `kprobe_blacklist' undeclared (first use in this function)
+kernel/kprobes.c:516: error: (Each undeclared identifier is reported only once
+kernel/kprobes.c:516: error: for each function it appears in.)
+kernel/kprobes.c: In function `init_kprobes':
+kernel/kprobes.c:860: error: `kprobe_blacklist' undeclared (first use in this function)
 
-sound/pci/hda/hda_intel.c: In function 'azx_create':
-sound/pci/hda/hda_intel.c:1838: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
-sound/pci/hda/hda_intel.c:1838: error: (Each undeclared identifier is reported only once
-sound/pci/hda/hda_intel.c:1838: error: for each function it appears in.)
-
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Srinivasa DS <srinivasa@in.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kprobes.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh
-+++ a/sound/pci/hda/hda_intel.c
-@@ -39,6 +39,7 @@
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/dma-mapping.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/slab.h>
+diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-fix kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-fix
++++ a/kernel/kprobes.c
+@@ -72,6 +72,18 @@ DEFINE_MUTEX(kprobe_mutex);		/* Protects
+ DEFINE_SPINLOCK(kretprobe_lock);	/* Protects kretprobe_inst_table */
+ static DEFINE_PER_CPU(struct kprobe *, kprobe_instance) = NULL;
+ 
++/*
++ * Normally, functions that we'd want to prohibit kprobes in, are marked
++ * __kprobes. But, there are cases where such functions already belong to
++ * a different section (__sched for preempt_schedule)
++ *
++ * For such cases, we now have a blacklist
++ */
++struct kprobe_blackpoint kprobe_blacklist[] = {
++        {"preempt_schedule",},
++        {NULL}    /* Terminator */
++};
++
+ #ifdef __ARCH_WANT_KPROBES_INSN_SLOT
+ /*
+  * kprobe->ainsn.insn points to the copy of the instruction to be
+@@ -89,18 +101,6 @@ struct kprobe_insn_page {
+ 	int ngarbage;
+ };
+ 
+-/*
+- * Normally, functions that we'd want to prohibit kprobes in, are marked
+- * __kprobes. But, there are cases where such functions already belong to
+- * a different section (__sched for preempt_schedule)
+- *
+- * For such cases, we now have a blacklist
+- */
+-struct kprobe_blackpoint kprobe_blacklist[] = {
+-        {"preempt_schedule",},
+-        {NULL}    /* Terminator */
+-};
+-
+ enum kprobe_slot_state {
+ 	SLOT_CLEAN = 0,
+ 	SLOT_DIRTY = 1,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +102,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
 zlc_setup-handle-jiffies-wraparound-fix.patch
+hda_intel-needs-dma-mappingh.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 git-acpi-fixup.patch
@@ -133,6 +167,7 @@ fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 add-rcu_assign_index-if-ever-needed-fix.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
@@ -169,5 +204,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-hda_intel-needs-dma-mappingh.patch
 
