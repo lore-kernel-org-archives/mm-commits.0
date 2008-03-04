@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-declare-do_irq.patch added to -mm tree
-Date: Tue, 04 Mar 2008 01:33:40 -0800
-Message-ID: <200803040933.m249XeYd001530@imap1.linux-foundation.org>
+Subject: + m68knommu-fix-fec-driver-interrupt-races.patch added to -mm tree
+Date: Tue, 04 Mar 2008 01:33:41 -0800
+Message-ID: <200803040933.m249XfER001533@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752948AbYCDJep (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 04:34:45 -0500
+	by vger.kernel.org with ESMTP id S1755691AbYCDJjU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 04:39:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerg@snapgear.com, gerg@uclinux.org
+Cc: gerg@snapgear.com, gerg@uclinux.org, jeff@garzik.org
 
 
 The patch titled
-     m68knommu: declare do_IRQ()
+     m68knommu: fix fec driver interrupt races
 has been added to the -mm tree.  Its filename is
-     m68knommu-declare-do_irq.patch
+     m68knommu-fix-fec-driver-interrupt-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68knommu: declare do_IRQ()
+Subject: m68knommu: fix fec driver interrupt races
 From: Greg Ungerer <gerg@snapgear.com>
 
-Need a declaration of do_IRQ for the 68328 interrupt handling code.
-It is common to all m68knommu targets, so a common declaration makes
-sense.
+The FEC driver has a common interrupt handler for all interrupt event types. 
+It is raised on a number of distinct interrupt vectors.  This handler can't be
+re-entered while processing an interrupt, so make sure all requested vectors
+are flagged as IRQF_DISABLED.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68knommu/machdep.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/net/fec.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-m68knommu/machdep.h~m68knommu-declare-do_irq include/asm-m68knommu/machdep.h
---- a/include/asm-m68knommu/machdep.h~m68knommu-declare-do_irq
-+++ a/include/asm-m68knommu/machdep.h
-@@ -21,4 +21,6 @@ extern void (*mach_power_off)( void );
+diff -puN drivers/net/fec.c~m68knommu-fix-fec-driver-interrupt-races drivers/net/fec.c
+--- a/drivers/net/fec.c~m68knommu-fix-fec-driver-interrupt-races
++++ a/drivers/net/fec.c
+@@ -1253,7 +1253,7 @@ static void __inline__ fec_request_intrs
  
- extern void config_BSP(char *command, int len);
+ 	/* Setup interrupt handlers. */
+ 	for (idp = id; idp->name; idp++) {
+-		if (request_irq(idp->irq, idp->handler, 0, idp->name, dev) != 0)
++		if (request_irq(idp->irq, idp->handler, IRQF_DISABLED, idp->name, dev) != 0)
+ 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, idp->irq);
+ 	}
  
-+extern void do_IRQ(int irq, struct pt_regs *fp);
-+
- #endif /* _M68KNOMMU_MACHDEP_H */
+@@ -1382,7 +1382,7 @@ static void __inline__ fec_request_intrs
+ 
+ 	/* Setup interrupt handlers. */
+ 	for (idp = id; idp->name; idp++) {
+-		if (request_irq(b+idp->irq, fec_enet_interrupt, 0, idp->name, dev) != 0)
++		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name, dev) != 0)
+ 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, b+idp->irq);
+ 	}
+ 
+@@ -1553,7 +1553,7 @@ static void __inline__ fec_request_intrs
+ 
+ 	/* Setup interrupt handlers. */
+ 	for (idp = id; idp->name; idp++) {
+-		if (request_irq(b+idp->irq,fec_enet_interrupt,0,idp->name,dev)!=0)
++		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name,dev) != 0)
+ 			printk("FEC: Could not allocate %s IRQ(%d)!\n", idp->name, b+idp->irq);
+ 	}
+ 
+@@ -1680,7 +1680,7 @@ static void __inline__ fec_request_intrs
+ 
+ 	/* Setup interrupt handlers. */
+ 	for (idp = id; idp->name; idp++) {
+-		if (request_irq(b+idp->irq,fec_enet_interrupt,0,idp->name,dev)!=0)
++		if (request_irq(b+idp->irq, fec_enet_interrupt, IRQF_DISABLED, idp->name,dev) != 0)
+ 			printk("FEC: Could not allocate %s IRQ(%d)!\n",
+ 				idp->name, b+idp->irq);
+ 	}
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
