@@ -1,286 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - use-page_cache_xxx-in-fs-reiserfs.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 11:48:09 -0800
-Message-ID: <200803041948.m24Jm9OH025732@imap1.linux-foundation.org>
+Subject: - use-page_cache_xxx-in-mm-filemap_xipc.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 11:47:45 -0800
+Message-ID: <200803041947.m24JljMt025693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753983AbYCDTtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:49:25 -0500
+	by vger.kernel.org with ESMTP id S1753941AbYCDTtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:49:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, chris.mason@oracle.com, dgc@sgi.com, jeffm@suse.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, cotte@de.ibm.com, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use page_cache_xxx in fs/reiserfs
+     Use page_cache_xxx in mm/filemap_xip.c
 has been removed from the -mm tree.  Its filename was
-     use-page_cache_xxx-in-fs-reiserfs.patch
+     use-page_cache_xxx-in-mm-filemap_xipc.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in fs/reiserfs
+Subject: Use page_cache_xxx in mm/filemap_xip.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use page_cache_xxx in fs/reiserfs
+Use page_cache_xxx in mm/filemap_xip.c
 
 Reviewed-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/file.c            |    5 ++--
- fs/reiserfs/inode.c           |   36 +++++++++++++++++++-------------
- fs/reiserfs/ioctl.c           |    2 -
- fs/reiserfs/stree.c           |    5 ++--
- fs/reiserfs/tail_conversion.c |    5 ++--
- fs/reiserfs/xattr.c           |   19 ++++++++--------
- 6 files changed, 42 insertions(+), 30 deletions(-)
+ mm/filemap_xip.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/reiserfs/file.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/file.c
---- a/fs/reiserfs/file.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/file.c
-@@ -161,11 +161,12 @@ int reiserfs_commit_page(struct inode *i
- 	int partial = 0;
- 	unsigned blocksize;
- 	struct buffer_head *bh, *head;
--	unsigned long i_size_index = inode->i_size >> PAGE_CACHE_SHIFT;
-+	unsigned long i_size_index =
-+		page_cache_index(inode->i_mapping, inode->i_size);
- 	int new;
- 	int logit = reiserfs_file_data_log(inode);
- 	struct super_block *s = inode->i_sb;
--	int bh_per_page = PAGE_CACHE_SIZE / s->s_blocksize;
-+	int bh_per_page = page_cache_size(inode->i_mapping) / s->s_blocksize;
- 	struct reiserfs_transaction_handle th;
- 	int ret = 0;
+diff -puN mm/filemap_xip.c~use-page_cache_xxx-in-mm-filemap_xipc mm/filemap_xip.c
+--- a/mm/filemap_xip.c~use-page_cache_xxx-in-mm-filemap_xipc
++++ a/mm/filemap_xip.c
+@@ -62,24 +62,24 @@ do_xip_mapping_read(struct address_space
  
-diff -puN fs/reiserfs/inode.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/inode.c
-@@ -337,7 +337,8 @@ static int _get_block_create_0(struct in
- 		goto finished;
- 	}
- 	// read file tail into part of page
--	offset = (cpu_key_k_offset(&key) - 1) & (PAGE_CACHE_SIZE - 1);
-+	offset = page_cache_offset(inode->i_mapping,
-+				cpu_key_k_offset(&key) - 1);
- 	fs_gen = get_generation(inode->i_sb);
- 	copy_item_head(&tmp_ih, ih);
+ 	BUG_ON(!mapping->a_ops->get_xip_page);
  
-@@ -523,10 +524,10 @@ static int convert_tail_for_hole(struct 
- 		return -EIO;
+-	index = *ppos >> PAGE_CACHE_SHIFT;
+-	offset = *ppos & ~PAGE_CACHE_MASK;
++	index = page_cache_index(mapping, *ppos);
++	offset = page_cache_offset(mapping, *ppos);
  
- 	/* always try to read until the end of the block */
--	tail_start = tail_offset & (PAGE_CACHE_SIZE - 1);
-+	tail_start = page_cache_offset(inode->i_mapping, tail_offset);
- 	tail_end = (tail_start | (bh_result->b_size - 1)) + 1;
+ 	isize = i_size_read(inode);
+ 	if (!isize)
+ 		goto out;
  
--	index = tail_offset >> PAGE_CACHE_SHIFT;
-+	index = page_cache_index(inode->i_mapping, tail_offset);
- 	/* hole_page can be zero in case of direct_io, we are sure
- 	   that we cannot get here if we write with O_DIRECT into
- 	   tail page */
-@@ -2000,11 +2001,13 @@ static int grab_tail_page(struct inode *
- 	/* we want the page with the last byte in the file,
- 	 ** not the page that will hold the next byte for appending
- 	 */
--	unsigned long index = (p_s_inode->i_size - 1) >> PAGE_CACHE_SHIFT;
-+	unsigned long index = page_cache_index(p_s_inode->i_mapping,
-+						p_s_inode->i_size - 1);
- 	unsigned long pos = 0;
- 	unsigned long start = 0;
- 	unsigned long blocksize = p_s_inode->i_sb->s_blocksize;
--	unsigned long offset = (p_s_inode->i_size) & (PAGE_CACHE_SIZE - 1);
-+	unsigned long offset = page_cache_offset(p_s_inode->i_mapping,
-+							p_s_inode->i_size);
- 	struct buffer_head *bh;
- 	struct buffer_head *head;
- 	struct page *page;
-@@ -2076,7 +2079,8 @@ int reiserfs_truncate_file(struct inode 
- {
- 	struct reiserfs_transaction_handle th;
- 	/* we want the offset for the first byte after the end of the file */
--	unsigned long offset = p_s_inode->i_size & (PAGE_CACHE_SIZE - 1);
-+	unsigned long offset = page_cache_offset(p_s_inode->i_mapping,
-+							p_s_inode->i_size);
- 	unsigned blocksize = p_s_inode->i_sb->s_blocksize;
- 	unsigned length;
- 	struct page *page = NULL;
-@@ -2225,7 +2229,7 @@ static int map_block_for_writepage(struc
- 	} else if (is_direct_le_ih(ih)) {
- 		char *p;
- 		p = page_address(bh_result->b_page);
--		p += (byte_offset - 1) & (PAGE_CACHE_SIZE - 1);
-+		p += page_cache_offset(inode->i_mapping, byte_offset - 1);
- 		copy_size = ih_item_len(ih) - pos_in_item;
+-	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
++	end_index = page_cache_index(mapping, isize - 1);
+ 	for (;;) {
+ 		struct page *page;
+ 		unsigned long nr, ret;
  
- 		fs_gen = get_generation(inode->i_sb);
-@@ -2324,7 +2328,8 @@ static int reiserfs_write_full_page(stru
- 				    struct writeback_control *wbc)
- {
- 	struct inode *inode = page->mapping->host;
--	unsigned long end_index = inode->i_size >> PAGE_CACHE_SHIFT;
-+	unsigned long end_index = page_cache_index(inode->i_mapping,
-+							inode->i_size);
- 	int error = 0;
- 	unsigned long block;
- 	sector_t last_block;
-@@ -2334,7 +2339,7 @@ static int reiserfs_write_full_page(stru
- 	int checked = PageChecked(page);
- 	struct reiserfs_transaction_handle th;
- 	struct super_block *s = inode->i_sb;
--	int bh_per_page = PAGE_CACHE_SIZE / s->s_blocksize;
-+	int bh_per_page = page_cache_size(inode->i_mapping) / s->s_blocksize;
- 	th.t_trans_id = 0;
- 
- 	/* no logging allowed when nonblocking or from PF_MEMALLOC */
-@@ -2361,16 +2366,18 @@ static int reiserfs_write_full_page(stru
- 	if (page->index >= end_index) {
- 		unsigned last_offset;
- 
--		last_offset = inode->i_size & (PAGE_CACHE_SIZE - 1);
-+		last_offset = page_cache_offset(inode->i_mapping, inode->i_size);
- 		/* no file contents in this page */
- 		if (page->index >= end_index + 1 || !last_offset) {
- 			unlock_page(page);
- 			return 0;
- 		}
--		zero_user_segment(page, last_offset, PAGE_CACHE_SIZE);
-+		zero_user_segment(page, last_offset,
-+				page_cache_size(inode->i_mapping));
- 	}
- 	bh = head;
--	block = page->index << (PAGE_CACHE_SHIFT - s->s_blocksize_bits);
-+	block = page->index << (page_cache_shift(inode->i_mapping)
-+						- s->s_blocksize_bits);
- 	last_block = (i_size_read(inode) - 1) >> inode->i_blkbits;
- 	/* first map all the buffers, logging any direct items we find */
- 	do {
-@@ -2764,8 +2771,9 @@ static int reiserfs_write_end(struct fil
- int reiserfs_commit_write(struct file *f, struct page *page,
- 			  unsigned from, unsigned to)
- {
--	struct inode *inode = page->mapping->host;
--	loff_t pos = ((loff_t) page->index << PAGE_CACHE_SHIFT) + to;
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+	loff_t pos = page_cache_pos(mapping, page->index, to);
- 	int ret = 0;
- 	int update_sd = 0;
- 	struct reiserfs_transaction_handle *th = NULL;
-diff -puN fs/reiserfs/ioctl.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/ioctl.c
---- a/fs/reiserfs/ioctl.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/ioctl.c
-@@ -194,8 +194,8 @@ static int reiserfs_unpack(struct inode 
- 	 ** reiserfs_prepare_write on that page.  This will force a 
- 	 ** reiserfs_get_block to unpack the tail for us.
- 	 */
--	index = inode->i_size >> PAGE_CACHE_SHIFT;
- 	mapping = inode->i_mapping;
-+	index = page_cache_index(mapping, inode->i_size);
- 	page = grab_cache_page(mapping, index);
- 	retval = -ENOMEM;
- 	if (!page) {
-diff -puN fs/reiserfs/stree.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/stree.c
-@@ -1283,7 +1283,8 @@ int reiserfs_delete_item(struct reiserfs
+ 		/* nr is the maximum number of bytes to copy from this page */
+-		nr = PAGE_CACHE_SIZE;
++		nr = page_cache_size(mapping);
+ 		if (index >= end_index) {
+ 			if (index > end_index)
+ 				goto out;
+-			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
++			nr = page_cache_next(mapping, isize);
+ 			if (nr <= offset) {
+ 				goto out;
+ 			}
+@@ -118,8 +118,8 @@ do_xip_mapping_read(struct address_space
  		 */
+ 		ret = actor(desc, page, offset, nr);
+ 		offset += ret;
+-		index += offset >> PAGE_CACHE_SHIFT;
+-		offset &= ~PAGE_CACHE_MASK;
++		index += page_cache_index(mapping, offset);
++		offset = page_cache_offset(mapping, offset);
  
- 		data = kmap_atomic(p_s_un_bh->b_page, KM_USER0);
--		off = ((le_ih_k_offset(&s_ih) - 1) & (PAGE_CACHE_SIZE - 1));
-+		off = page_cache_offset(p_s_inode->i_mapping,
-+					le_ih_k_offset(&s_ih) - 1);
- 		memcpy(data + off,
- 		       B_I_PITEM(PATH_PLAST_BUFFER(p_s_path), &s_ih),
- 		       n_ret_value);
-@@ -1438,7 +1439,7 @@ static void unmap_buffers(struct page *p
+ 		if (ret == nr && desc->count)
+ 			continue;
+@@ -132,7 +132,7 @@ no_xip_page:
+ 	}
  
- 	if (page) {
- 		if (page_has_buffers(page)) {
--			tail_index = pos & (PAGE_CACHE_SIZE - 1);
-+			tail_index = page_cache_offset(page_mapping(page), pos);
- 			cur_index = 0;
- 			head = page_buffers(page);
- 			bh = head;
-diff -puN fs/reiserfs/tail_conversion.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/tail_conversion.c
---- a/fs/reiserfs/tail_conversion.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/tail_conversion.c
-@@ -128,7 +128,8 @@ int direct2indirect(struct reiserfs_tran
- 	 */
- 	if (up_to_date_bh) {
- 		unsigned pgoff =
--		    (tail_offset + total_tail - 1) & (PAGE_CACHE_SIZE - 1);
-+			page_cache_offset(inode->i_mapping,
-+			tail_offset + total_tail - 1);
- 		char *kaddr = kmap_atomic(up_to_date_bh->b_page, KM_USER0);
- 		memset(kaddr + pgoff, 0, n_blk_size - total_tail);
- 		kunmap_atomic(kaddr, KM_USER0);
-@@ -238,7 +239,7 @@ int indirect2direct(struct reiserfs_tran
- 	 ** the page was locked and this part of the page was up to date when
- 	 ** indirect2direct was called, so we know the bytes are still valid
- 	 */
--	tail = tail + (pos & (PAGE_CACHE_SIZE - 1));
-+	tail = tail + page_cache_offset(p_s_inode->i_mapping, pos);
+ out:
+-	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
++	*ppos = page_cache_pos(mapping, index, offset);
+ 	if (filp)
+ 		file_accessed(filp);
+ }
+@@ -221,7 +221,7 @@ static int xip_file_fault(struct vm_area
  
- 	PATH_LAST_POSITION(p_s_path)++;
+ 	/* XXX: are VM_FAULT_ codes OK? */
  
-diff -puN fs/reiserfs/xattr.c~use-page_cache_xxx-in-fs-reiserfs fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~use-page_cache_xxx-in-fs-reiserfs
-+++ a/fs/reiserfs/xattr.c
-@@ -468,13 +468,13 @@ reiserfs_xattr_set(struct inode *inode, 
- 	while (buffer_pos < buffer_size || buffer_pos == 0) {
- 		size_t chunk;
- 		size_t skip = 0;
--		size_t page_offset = (file_pos & (PAGE_CACHE_SIZE - 1));
--		if (buffer_size - buffer_pos > PAGE_CACHE_SIZE)
--			chunk = PAGE_CACHE_SIZE;
-+		size_t page_offset = page_cache_offset(mapping, file_pos);
-+		if (buffer_size - buffer_pos > page_cache_size(mapping))
-+			chunk = page_cache_size(mapping);
- 		else
- 			chunk = buffer_size - buffer_pos;
+-	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++	size = page_cache_next(mapping, i_size_read(inode));
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
  
--		page = reiserfs_get_page(xinode, file_pos >> PAGE_CACHE_SHIFT);
-+		page = reiserfs_get_page(xinode, page_cache_index(mapping, file_pos));
- 		if (IS_ERR(page)) {
- 			err = PTR_ERR(page);
- 			goto out_filp;
-@@ -486,8 +486,8 @@ reiserfs_xattr_set(struct inode *inode, 
- 		if (file_pos == 0) {
- 			struct reiserfs_xattr_header *rxh;
- 			skip = file_pos = sizeof(struct reiserfs_xattr_header);
--			if (chunk + skip > PAGE_CACHE_SIZE)
--				chunk = PAGE_CACHE_SIZE - skip;
-+			if (chunk + skip > page_cache_size(mapping))
-+				chunk = page_cache_size(mapping) - skip;
- 			rxh = (struct reiserfs_xattr_header *)data;
- 			rxh->h_magic = cpu_to_le32(REISERFS_XATTR_MAGIC);
- 			rxh->h_hash = cpu_to_le32(xahash);
-@@ -577,12 +577,13 @@ reiserfs_xattr_get(const struct inode *i
- 		size_t chunk;
- 		char *data;
- 		size_t skip = 0;
--		if (isize - file_pos > PAGE_CACHE_SIZE)
--			chunk = PAGE_CACHE_SIZE;
-+		if (isize - file_pos > page_cache_size(xinode->i_mapping))
-+			chunk = page_cache_size(xinode->i_mapping);
- 		else
- 			chunk = isize - file_pos;
+@@ -291,9 +291,9 @@ __xip_file_write(struct file *filp, cons
+ 		size_t copied;
+ 		char *kaddr;
  
--		page = reiserfs_get_page(xinode, file_pos >> PAGE_CACHE_SHIFT);
-+		page = reiserfs_get_page(xinode,
-+				page_cache_index(xinode->i_mapping, file_pos));
- 		if (IS_ERR(page)) {
- 			err = PTR_ERR(page);
- 			goto out_dput;
+-		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
+-		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = PAGE_CACHE_SIZE - offset;
++		offset = page_cache_offset(mapping, pos); /* Within page */
++		index = page_cache_index(mapping, pos);
++		bytes = page_cache_size(mapping) - offset;
+ 		if (bytes > count)
+ 			bytes = count;
+ 
+@@ -404,8 +404,8 @@ EXPORT_SYMBOL_GPL(xip_file_write);
+ int
+ xip_truncate_page(struct address_space *mapping, loff_t from)
+ {
+-	pgoff_t index = from >> PAGE_CACHE_SHIFT;
+-	unsigned offset = from & (PAGE_CACHE_SIZE-1);
++	pgoff_t index = page_cache_index(mapping, from);
++	unsigned offset = page_cache_offset(mapping, from);
+ 	unsigned blocksize;
+ 	unsigned length;
+ 	struct page *page;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -300,7 +142,18 @@ mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
 mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+use-page_cache_xxx-in-mm-filemap_xipc.patch
+use-page_cache_xxx-in-mm-migratec.patch
+use-page_cache_xxx-in-fs-libfsc.patch
+use-page_cache_xxx-in-fs-sync.patch
+use-page_cache_xxx-in-fs-bufferc.patch
+use-page_cache_xxx-in-mm-mpagec.patch
+use-page_cache_xxx-in-mm-fadvisec.patch
 mm-move-cache_line_size-to-linux-cacheh.patch
+use-page_cache_xxx-in-ext2.patch
+use-page_cache_xxx-in-ext2-fix.patch
+use-page_cache_xxx-in-ext2-fix-2.patch
+use-page_cache_xxx-in-fs-ext3.patch
 use-page_cache_xxx-in-fs-reiserfs.patch
 use-page_cache_xxx-in-fs-ext4.patch
 reiser4.patch
