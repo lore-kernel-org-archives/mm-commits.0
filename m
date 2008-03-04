@@ -1,29 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + keys-add-keyctl-function-to-get-a-security-label-fix.patch added to -mm tree
-Date: Mon, 03 Mar 2008 19:17:04 -0800
-Message-ID: <200803040326.m243QSlU021190@imap1.linux-foundation.org>
+Subject: + git-alsa-build-fix.patch added to -mm tree
+Date: Mon, 03 Mar 2008 21:23:37 -0700
+Message-ID: <200803040423.m244NbTw023169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45839 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753200AbYCDD1J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 22:27:09 -0500
+	by vger.kernel.org with ESMTP id S1750696AbYCDEYV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 23:24:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     keys-add-keyctl-function-to-get-a-security-label-fix
+     git-alsa-build-fix
 has been added to the -mm tree.  Its filename is
-     keys-add-keyctl-function-to-get-a-security-label-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+     git-alsa-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -33,32 +27,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys-add-keyctl-function-to-get-a-security-label-fix
+Subject: git-alsa-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/keys/compat.c: In function 'compat_sys_keyctl':
-security/keys/compat.c:83: error: implicit declaration of function 'keyctl_get_security'
+broken on big-endian
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/internal.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ sound/pci/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN security/keys/internal.h~keys-add-keyctl-function-to-get-a-security-label-fix security/keys/internal.h
---- a/security/keys/internal.h~keys-add-keyctl-function-to-get-a-security-label-fix
-+++ a/security/keys/internal.h
-@@ -155,7 +155,8 @@ extern long keyctl_negate_key(key_serial
- extern long keyctl_set_reqkey_keyring(int);
- extern long keyctl_set_timeout(key_serial_t, unsigned);
- extern long keyctl_assume_authority(key_serial_t);
--
-+extern long keyctl_get_security(key_serial_t keyid, char __user *buffer,
-+				size_t buflen);
+diff -puN sound/pci/Kconfig~git-alsa-build-fix sound/pci/Kconfig
+--- a/sound/pci/Kconfig~git-alsa-build-fix
++++ a/sound/pci/Kconfig
+@@ -125,6 +125,7 @@ config SND_AU8830
+ config SND_AW2
+ 	tristate "Emagic Audiowerk 2"
+ 	depends on SND
++	depends on X86
+ 	help
+ 	  Say Y here to include support for Emagic Audiowerk 2 soundcards.
  
- /*
-  * debugging key validation
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,4 +156,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+git-alsa-build-fix.patch
 
