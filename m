@@ -1,128 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - block-remove-extern-on-function-definition.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:09:36 -0800
-Message-ID: <200803042009.m24K9ams026770@imap1.linux-foundation.org>
+Subject: - m68knommu-wire-up-new-timerfd-syscalls.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:09:15 -0800
+Message-ID: <200803042009.m24K9FQG026736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759973AbYCDUJy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:09:54 -0500
+	by vger.kernel.org with ESMTP id S1764584AbYCDUKE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:10:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, davidel@xmailserver.org, gerg@uclinux.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: remove extern on function definition
+     m68k{,nommu}: Wire up new timerfd syscalls
 has been removed from the -mm tree.  Its filename was
-     block-remove-extern-on-function-definition.patch
+     m68knommu-wire-up-new-timerfd-syscalls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: remove extern on function definition
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: m68k{,nommu}: Wire up new timerfd syscalls
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Intoduced between 2.6.25-rc2 and -rc3
-block/blk-settings.c:319:12: warning: function 'blk_queue_dma_drain' with external linkage has definition
+m68k{,nommu}: Wire up the new timerfd syscalls, which were introduced in
+commit 4d672e7ac79b5ec5cdc90e450823441e20464691 ("timerfd: new timerfd API").
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-settings.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68k/kernel/entry.S             |    4 +++-
+ arch/m68knommu/kernel/syscalltable.S |    4 +++-
+ include/asm-m68k/unistd.h            |    6 ++++--
+ include/asm-m68knommu/unistd.h       |    6 ++++--
+ 4 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN block/blk-settings.c~block-remove-extern-on-function-definition block/blk-settings.c
---- a/block/blk-settings.c~block-remove-extern-on-function-definition
-+++ a/block/blk-settings.c
-@@ -316,7 +316,7 @@ EXPORT_SYMBOL(blk_queue_stack_limits);
-  * device can support otherwise there won't be room for the drain
-  * buffer.
-  */
--extern int blk_queue_dma_drain(struct request_queue *q,
-+int blk_queue_dma_drain(struct request_queue *q,
- 			       dma_drain_needed_fn *dma_drain_needed,
- 			       void *buf, unsigned int size)
- {
+diff -puN arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68k/kernel/entry.S
+--- a/arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls
++++ a/arch/m68k/kernel/entry.S
+@@ -742,7 +742,9 @@ sys_call_table:
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_ni_syscall
++	.long sys_timerfd_create
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
++	.long sys_timerfd_settime
++	.long sys_timerfd_gettime
+ 
+diff -puN arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68knommu/kernel/syscalltable.S
+--- a/arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls
++++ a/arch/m68knommu/kernel/syscalltable.S
+@@ -336,9 +336,11 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_ni_syscall
++	.long sys_timerfd_create
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
++	.long sys_timerfd_settime
++	.long sys_timerfd_gettime
+ 
+ 	.rept NR_syscalls-(.-sys_call_table)/4
+ 		.long sys_ni_syscall
+diff -puN include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68knommu/unistd.h
+--- a/include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
++++ a/include/asm-m68knommu/unistd.h
+@@ -321,13 +321,15 @@
+ #define __NR_epoll_pwait	315
+ #define __NR_utimensat		316
+ #define __NR_signalfd		317
+-#define __NR_timerfd		318
++#define __NR_timerfd_create	318
+ #define __NR_eventfd		319
+ #define __NR_fallocate		320
++#define __NR_timerfd_settime	321
++#define __NR_timerfd_gettime	322
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls		321
++#define NR_syscalls		323
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68k/unistd.h
+--- a/include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
++++ a/include/asm-m68k/unistd.h
+@@ -320,13 +320,15 @@
+ #define __NR_epoll_pwait	315
+ #define __NR_utimensat		316
+ #define __NR_signalfd		317
+-#define __NR_timerfd		318
++#define __NR_timerfd_create	318
+ #define __NR_eventfd		319
+ #define __NR_fallocate		320
++#define __NR_timerfd_settime	321
++#define __NR_timerfd_gettime	322
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls		321
++#define NR_syscalls		323
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-specialixc-fix-possible-double-unlock.patch
-git-x86.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-sh-replace-remaining-__function__-occurences.patch
-git-sparc64.patch
-xtensa-replace-remaining-__function__-occurences.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
 m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
 
