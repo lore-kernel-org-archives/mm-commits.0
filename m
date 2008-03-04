@@ -1,89 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:09:49 -0800
-Message-ID: <200803042009.m24K9nPg026790@imap1.linux-foundation.org>
+Subject: - cciss-remove-read_ahead-define-and-use-block-layer-defaults.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:09:38 -0800
+Message-ID: <200803042009.m24K9cYG026775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34764 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932536AbYCDUKX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:10:23 -0500
+	by vger.kernel.org with ESMTP id S1765663AbYCDUKK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:10:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.ludlow@bay.ws, greg@kroah.com, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: mos7840.c: add support for the mos7820/7840-based B&B USB/RS485 converter
+     cciss: remove READ_AHEAD define and use block layer defaults
 has been removed from the -mm tree.  Its filename was
-     usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter.patch
+     cciss-remove-read_ahead-define-and-use-block-layer-defaults.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: mos7840.c: add support for the mos7820/7840-based B&B USB/RS485 converter
-From: David Ludlow <dave.ludlow@bay.ws>
+Subject: cciss: remove READ_AHEAD define and use block layer defaults
+From: Mike Miller <mike.miller@hp.com>
 
-Add support for the mos7820/7840-based B&B USOPTL4_2/USOPTL4_4 USB/RS485
-converter to mos7840.c.
+This patch removes the #define READ_AHEAD 1024 from the driver and uses the
+block layer defaults, instead.  We have found that under certain workloads the
+setting can cause a disk connected to the e200 controller to go offline.
 
-DTR needs to be set/raised to receive and clear/lowered to send, as per the
-mos7840 datasheet.
+If the disk hiccups the link may try to downshift but the controller is never
+notified that the link successfully completed the renegotiation.  We've also
+found that performance using the block layer default of 32 pages was on par
+with the 1024 setting.  We tried setting it to zero at one time based on info
+from our firmware guys but that killed performance.  Turns out we were talking
+about 2 different read ahead settings.
 
-Signed-off-by: Dave Ludlow <dave.ludlow@bay.ws>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/mos7840.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/block/cciss.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/usb/serial/mos7840.c~usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter drivers/usb/serial/mos7840.c
---- a/drivers/usb/serial/mos7840.c~usb-mos7840c-add-support-for-the-mos7820-7840-based-bb-usb-rs485-converter
-+++ a/drivers/usb/serial/mos7840.c
-@@ -110,11 +110,20 @@
+diff -puN drivers/block/cciss.c~cciss-remove-read_ahead-define-and-use-block-layer-defaults drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-remove-read_ahead-define-and-use-block-layer-defaults
++++ a/drivers/block/cciss.c
+@@ -131,7 +131,6 @@ static struct board_type products[] = {
+ /*define how many times we will try a command because of bus resets */
+ #define MAX_CMD_RETRIES 3
  
- /* vendor id and device id defines */
+-#define READ_AHEAD 	 1024
+ #define MAX_CTLR	32
  
-+/* The native mos7840/7820 component */
- #define USB_VENDOR_ID_MOSCHIP           0x9710
- #define MOSCHIP_DEVICE_ID_7840          0x7840
- #define MOSCHIP_DEVICE_ID_7820          0x7820
-+/* The native component can have its vendor/device id's overridden
-+ * in vendor-specific implementations.  Such devices can be handled
-+ * by making a change here, in moschip_port_id_table, and in
-+ * moschip_id_table_combined
-+ */
-+#define USB_VENDOR_ID_BANDB             0x0856
-+#define BANDB_DEVICE_ID_USOPTL4_4       0xAC44
-+#define BANDB_DEVICE_ID_USOPTL4_2       0xAC42
+ /* Originally cciss driver only supports 8 major numbers */
+@@ -1341,7 +1340,6 @@ geo_inq:
+ 		disk->private_data = &h->drv[drv_index];
  
--/* Interrupt Rotinue Defines    */
-+/* Interrupt Routine Defines    */
+ 		/* Set up queue information */
+-		disk->queue->backing_dev_info.ra_pages = READ_AHEAD;
+ 		blk_queue_bounce_limit(disk->queue, hba[ctlr]->pdev->dma_mask);
  
- #define SERIAL_IIR_RLS      0x06
- #define SERIAL_IIR_MS       0x00
-@@ -159,12 +168,16 @@
- static struct usb_device_id moschip_port_id_table[] = {
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2)},
- 	{}			/* terminating entry */
- };
+ 		/* This is a hardware imposed limit. */
+@@ -3434,7 +3432,6 @@ static int __devinit cciss_init_one(stru
+ 		}
+ 		drv->queue = q;
  
- static __devinitdata struct usb_device_id moschip_id_table_combined[] = {
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7840)},
- 	{USB_DEVICE(USB_VENDOR_ID_MOSCHIP, MOSCHIP_DEVICE_ID_7820)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_4)},
-+	{USB_DEVICE(USB_VENDOR_ID_BANDB, BANDB_DEVICE_ID_USOPTL4_2)},
- 	{}			/* terminating entry */
- };
+-		q->backing_dev_info.ra_pages = READ_AHEAD;
+ 		blk_queue_bounce_limit(q, hba[i]->pdev->dma_mask);
  
+ 		/* This is a hardware imposed limit. */
 _
 
-Patches currently in -mm which might be from dave.ludlow@bay.ws are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
+origin.patch
 
