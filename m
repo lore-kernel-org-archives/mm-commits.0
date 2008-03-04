@@ -1,85 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch removed from -mm tree
-Date: Mon, 03 Mar 2008 20:18:52 -0800
-Message-ID: <200803040428.m244SGap023337@imap1.linux-foundation.org>
+Subject: + basic-braille-screen-reader-support-ppc-fix.patch added to -mm tree
+Date: Mon, 03 Mar 2008 20:49:41 -0800
+Message-ID: <200803040449.m244niB8023988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42891 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206AbYCDE27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 23:28:59 -0500
+	by vger.kernel.org with ESMTP id S1751657AbYCDEug (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Mar 2008 23:50:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, jeff@garzik.org, linux@rainbow-software.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, dtor@mail.ru, jikos@jikos.cz, paulus@samba.org, samuel.thibault@ens-lyon.org
 
 
 The patch titled
-     3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup
-has been removed from the -mm tree.  Its filename was
-     3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
+     basic-braille-screen-reader-support-ppc-fix
+has been added to the -mm tree.  Its filename is
+     basic-braille-screen-reader-support-ppc-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup
+Subject: basic-braille-screen-reader-support-ppc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The standard ifdef-avoidance trick.
+- As this patch exports kd_mksound we remove the pc-private esports.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>
+- switch the export to non-gpl, as that was what powerpc was using.
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/3c509.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/powerpc/kernel/ppc_ksyms.c |    3 ---
+ arch/ppc/kernel/ppc_ksyms.c     |    3 ---
+ drivers/char/keyboard.c         |    2 +-
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/net/3c509.c~3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup drivers/net/3c509.c
---- a/drivers/net/3c509.c~3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup
-+++ a/drivers/net/3c509.c
-@@ -378,15 +378,16 @@ static int el3_isa_resume(struct device 
- 	outw(0x0f00, ioaddr + WN0_IRQ);
- 	return el3_resume(dev);
- }
-+#else
-+#define el3_isa_suspend NULL
-+#define el3_isa_resume NULL
- #endif
- 
- static struct isa_driver el3_isa_driver = {
- 	.match		= el3_isa_match,
- 	.remove		= __devexit_p(el3_isa_remove),
--#ifdef CONFIG_PM
- 	.suspend	= el3_isa_suspend,
- 	.resume		= el3_isa_resume,
+diff -puN arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/powerpc/kernel/ppc_ksyms.c
+--- a/arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
++++ a/arch/powerpc/kernel/ppc_ksyms.c
+@@ -136,9 +136,6 @@ EXPORT_SYMBOL(adb_try_handler_change);
+ EXPORT_SYMBOL(cuda_request);
+ EXPORT_SYMBOL(cuda_poll);
+ #endif /* CONFIG_ADB_CUDA */
+-#ifdef CONFIG_VT
+-EXPORT_SYMBOL(kd_mksound);
 -#endif
- 	.driver		= {
- 		.name	= "3c509"
- 	},
-@@ -461,6 +462,9 @@ static int el3_pnp_resume(struct pnp_dev
- {
- 	return el3_resume(&pdev->dev);
- }
-+#else
-+#define el3_pnp_suspend NULL
-+#define el3_pnp_resume NULL
- #endif
+ EXPORT_SYMBOL(to_tm);
  
- static struct pnp_driver el3_pnp_driver = {
-@@ -468,10 +472,8 @@ static struct pnp_driver el3_pnp_driver 
- 	.id_table	= el3_pnp_ids,
- 	.probe		= el3_pnp_probe,
- 	.remove		= __devexit_p(el3_pnp_remove),
--#ifdef CONFIG_PM
- 	.suspend	= el3_pnp_suspend,
- 	.resume		= el3_pnp_resume,
+ #ifdef CONFIG_PPC32
+diff -puN arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/ppc/kernel/ppc_ksyms.c
+--- a/arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
++++ a/arch/ppc/kernel/ppc_ksyms.c
+@@ -182,9 +182,6 @@ EXPORT_SYMBOL(cuda_poll);
+ #if defined(CONFIG_BOOTX_TEXT)
+ EXPORT_SYMBOL(btext_update_display);
+ #endif
+-#ifdef CONFIG_VT
+-EXPORT_SYMBOL(kd_mksound);
 -#endif
- };
- static int pnp_registered;
- #endif /* CONFIG_PNP */
+ EXPORT_SYMBOL(to_tm);
+ 
+ EXPORT_SYMBOL(pm_power_off);
+diff -puN drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix
++++ a/drivers/char/keyboard.c
+@@ -260,7 +260,7 @@ void kd_mksound(unsigned int hz, unsigne
+ 	} else
+ 		kd_nosound(0);
+ }
+-EXPORT_SYMBOL_GPL(kd_mksound);
++EXPORT_SYMBOL(kd_mksound);
+ 
+ /*
+  * Setting the keyboard rate.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +117,6 @@ git-kvm.patch
 pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
 git-md-accel.patch
 git-ubi.patch
-3c509-convert-to-isa_driver-and-pnp_driver-v4-cleanup.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
 fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
@@ -174,6 +184,7 @@ keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
