@@ -1,73 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - slub-fix-possible-null-pointer-dereference.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:16 -0800
-Message-ID: <200803042010.m24KAGVi026893@imap1.linux-foundation.org>
+Subject: - pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:06 -0800
+Message-ID: <200803042010.m24KA6EW026880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755216AbYCDUTd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:19:33 -0500
+	by vger.kernel.org with ESMTP id S1759151AbYCDUT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, gregkh@suse.de, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, xhejtman@ics.muni.cz, zdenek.kabelac@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: fix possible NULL pointer dereference
+     PM: fix new mutex-locking bug in the PM core
 has been removed from the -mm tree.  Its filename was
-     slub-fix-possible-null-pointer-dereference.patch
+     pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slub: fix possible NULL pointer dereference
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: PM: fix new mutex-locking bug in the PM core
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Fix possible NULL pointer dereference if kzalloc failed.  To be able to return
-proper error code the function return type is changed to ssize_t (according to
-callees and sysfs definitions).
+This patch (as1041) fixes a bug introduced by the
+acquire-all-device-semaphores reversion.  The error pathway of dpm_suspend()
+fails to reacquire a mutex it should be holding.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
+Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/base/power/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-possible-null-pointer-dereference mm/slub.c
---- a/mm/slub.c~slub-fix-possible-null-pointer-dereference
-+++ a/mm/slub.c
-@@ -274,7 +274,7 @@ static inline struct kmem_cache_cpu *get
- }
+diff -puN drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-do-not-acquire-device-semaphores-upfront-during-suspend-fix
++++ a/drivers/base/power/main.c
+@@ -423,6 +423,7 @@ static int dpm_suspend(pm_message_t stat
  
- /* Determine the maximum number of objects that a slab page can hold */
--static inline unsigned long slab_objects(struct kmem_cache *s, struct page *page)
-+static inline ssize_t slab_objects(struct kmem_cache *s, struct page *page)
- {
- 	if (PageCompound(page))
- 		return page[1].inuse;
-@@ -3586,6 +3586,8 @@ static unsigned long show_slab_objects(s
- 	unsigned long *per_cpu;
- 
- 	nodes = kzalloc(2 * sizeof(unsigned long) * nr_node_ids, GFP_KERNEL);
-+	if (!nodes)
-+		return -ENOMEM;
- 	per_cpu = nodes + nr_node_ids;
- 
- 	for_each_possible_cpu(cpu) {
+ 		mutex_unlock(&dpm_list_mtx);
+ 		error = suspend_device(dev, state);
++		mutex_lock(&dpm_list_mtx);
+ 		if (error) {
+ 			printk(KERN_ERR "Could not suspend device %s: "
+ 					"error %d%s\n",
+@@ -433,7 +434,6 @@ static int dpm_suspend(pm_message_t stat
+ 					""));
+ 			break;
+ 		}
+-		mutex_lock(&dpm_list_mtx);
+ 		if (!list_empty(&dev->power.entry))
+ 			list_move(&dev->power.entry, &dpm_off);
+ 	}
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-origin.patch
-git-avr32.patch
-git-gfs2-nmw.patch
-m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch
-elf-use-ei_nident-instead-of-numeric-value.patch
-binfmt-fill_elf_header-cleanup-use-straight-memset-first.patch
 
