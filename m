@@ -1,78 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 13:34:44 -0800
-Message-ID: <200803042134.m24LYiGF030261@imap1.linux-foundation.org>
+Subject: - markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 13:35:10 -0800
+Message-ID: <200803042135.m24LZAjD030341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759857AbYCDVf2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:35:28 -0500
+	by vger.kernel.org with ESMTP id S933275AbYCDVf1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:35:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben-linux@fluff.org, syrjala@sci.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jesper.juhl@gmail.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
+     markers-dont-risk-null-deref-in-marker-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+     markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into sm501-add-support-for-the-sm502-programmable-pll.patch
+This patch was dropped because it was folded into markers-dont-risk-null-deref-in-marker.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
+Subject: markers-dont-risk-null-deref-in-marker-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need spaces around that '=' (ctx:VxV)
-#185: FILE: drivers/mfd/sm501.c:563:
-+			reg=to.shift & 0x07;/* bottom 3 bits are shift */
- 			   ^
+WARNING: braces {} are not necessary for single statement blocks
+#34: FILE: kernel/marker.c:715:
++	if (!entry) {
++		goto end;
++	}
 
-ERROR: need spaces around that '=' (ctx:VxV)
-#195: FILE: drivers/mfd/sm501.c:573:
-+			reg=to.shift & 0x07;/* bottom 3 bits are shift */
- 			   ^
+total: 0 errors, 1 warnings, 29 lines checked
 
-total: 2 errors, 0 warnings, 250 lines checked
-
-./patches/sm501-add-support-for-the-sm502-programmable-pll.patch has style problems, please review.  If any of these errors
+./patches/markers-dont-risk-null-deref-in-marker.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Ville Syrjala <syrjala@sci.fi>
+Cc: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/marker.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes
-+++ a/drivers/mfd/sm501.c
-@@ -560,7 +560,7 @@ unsigned long sm501_set_clock(struct dev
- 			/* SM502 -> use the programmable PLL */
- 			sm501_freq = (sm501_calc_pll(2 * req_freq,
- 						     &to, 5) / 2);
--			reg=to.shift & 0x07;/* bottom 3 bits are shift */
-+			reg = to.shift & 0x07;/* bottom 3 bits are shift */
- 			if (to.divider == 3)
- 				reg |= 0x08; /* /3 divider required */
- 			else if (to.divider == 5)
-@@ -570,7 +570,7 @@ unsigned long sm501_set_clock(struct dev
- 		} else {
- 			sm501_freq = (sm501_select_clock(2 * req_freq,
- 							 &to, 5) / 2);
--			reg=to.shift & 0x07;/* bottom 3 bits are shift */
-+			reg = to.shift & 0x07;/* bottom 3 bits are shift */
- 			if (to.divider == 3)
- 				reg |= 0x08; /* /3 divider required */
- 			else if (to.divider == 5)
+diff -puN kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes kernel/marker.c
+--- a/kernel/marker.c~markers-dont-risk-null-deref-in-marker-checkpatch-fixes
++++ a/kernel/marker.c
+@@ -702,9 +702,8 @@ int marker_probe_unregister(const char *
+ 
+ 	mutex_lock(&markers_mutex);
+ 	entry = get_marker(name);
+-	if (!entry) {
++	if (!entry)
+ 		goto end;
+-	}
+ 	if (entry->rcu_pending)
+ 		rcu_barrier();
+ 	old = marker_entry_remove_probe(entry, probe, probe_private);
+@@ -712,9 +711,8 @@ int marker_probe_unregister(const char *
+ 	marker_update_probes();		/* may update entry */
+ 	mutex_lock(&markers_mutex);
+ 	entry = get_marker(name);
+-	if (!entry) {
++	if (!entry)
+ 		goto end;
+-	}
+ 	entry->oldptr = old;
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +85,7 @@ tridentfb-resource-management-fixes-in-probe-function.patch
 add-noinline_for_stack.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 sm501-add-support-for-the-sm502-programmable-pll.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker.patch
 markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
 iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
