@@ -1,192 +1,377 @@
 From: akpm@linux-foundation.org
-Subject: - use-page_cache_xxx-in-ext2.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 11:48:00 -0800
-Message-ID: <200803041948.m24Jm0SM025714@imap1.linux-foundation.org>
+Subject: - use-page_cache_xxx-in-fs-bufferc.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 11:47:53 -0800
+Message-ID: <200803041947.m24Jlr0l025705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697AbYCDTtl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:49:41 -0500
+	by vger.kernel.org with ESMTP id S1754504AbYCDTtk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 14:49:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, dgc@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use page_cache_xxx in ext2
+     Use page_cache_xxx in fs/buffer.c
 has been removed from the -mm tree.  Its filename was
-     use-page_cache_xxx-in-ext2.patch
+     use-page_cache_xxx-in-fs-bufferc.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use page_cache_xxx in ext2
+Subject: Use page_cache_xxx in fs/buffer.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use page_cache_xxx functions in fs/ext2/*
+Use page_cache_xxx in fs/buffer.c.
 
 Reviewed-by: Dave Chinner <dgc@sgi.com>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |   41 +++++++++++++++++++++++------------------
- 1 file changed, 23 insertions(+), 18 deletions(-)
+ fs/buffer.c |  107 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 62 insertions(+), 45 deletions(-)
 
-diff -puN fs/ext2/dir.c~use-page_cache_xxx-in-ext2 fs/ext2/dir.c
---- a/fs/ext2/dir.c~use-page_cache_xxx-in-ext2
-+++ a/fs/ext2/dir.c
-@@ -63,7 +63,7 @@ static inline void ext2_put_page(struct 
+diff -puN fs/buffer.c~use-page_cache_xxx-in-fs-bufferc fs/buffer.c
+--- a/fs/buffer.c~use-page_cache_xxx-in-fs-bufferc
++++ a/fs/buffer.c
+@@ -270,7 +270,7 @@ __find_get_block_slow(struct block_devic
+ 	struct page *page;
+ 	int all_mapped = 1;
  
- static inline unsigned long dir_pages(struct inode *inode)
- {
--	return (inode->i_size+PAGE_CACHE_SIZE-1)>>PAGE_CACHE_SHIFT;
-+	return page_cache_next(inode->i_mapping, inode->i_size);
- }
- 
- /*
-@@ -74,10 +74,11 @@ static unsigned
- ext2_last_byte(struct inode *inode, unsigned long page_nr)
- {
- 	unsigned last_byte = inode->i_size;
-+	struct address_space *mapping = inode->i_mapping;
- 
--	last_byte -= page_nr << PAGE_CACHE_SHIFT;
--	if (last_byte > PAGE_CACHE_SIZE)
--		last_byte = PAGE_CACHE_SIZE;
-+	last_byte -= page_cache_pos(mapping, page_nr, 0);
-+	if (last_byte > page_cache_size(mapping))
-+		last_byte = page_cache_size(mapping);
- 	return last_byte;
- }
- 
-@@ -105,18 +106,19 @@ static int ext2_commit_chunk(struct page
- 
- static void ext2_check_page(struct page *page)
- {
--	struct inode *dir = page->mapping->host;
-+	struct address_space *mapping = page->mapping;
-+	struct inode *dir = mapping->host;
- 	struct super_block *sb = dir->i_sb;
- 	unsigned chunk_size = ext2_chunk_size(dir);
- 	char *kaddr = page_address(page);
- 	u32 max_inumber = le32_to_cpu(EXT2_SB(sb)->s_es->s_inodes_count);
- 	unsigned offs, rec_len;
--	unsigned limit = PAGE_CACHE_SIZE;
-+	unsigned limit = page_cache_size(mapping);
- 	ext2_dirent *p;
- 	char *error;
- 
--	if ((dir->i_size >> PAGE_CACHE_SHIFT) == page->index) {
--		limit = dir->i_size & ~PAGE_CACHE_MASK;
-+	if (page_cache_index(mapping, dir->i_size) == page->index) {
-+		limit = page_cache_offset(mapping, dir->i_size);
- 		if (limit & (chunk_size - 1))
- 			goto Ebadsize;
- 		if (!limit)
-@@ -168,7 +170,7 @@ Einumber:
- bad_entry:
- 	ext2_error (sb, "ext2_check_page", "bad entry in directory #%lu: %s - "
- 		"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
--		dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+		dir->i_ino, error, page_cache_pos(mapping, page->index, offs),
- 		(unsigned long) le32_to_cpu(p->inode),
- 		rec_len, p->name_len);
- 	goto fail;
-@@ -177,7 +179,7 @@ Eend:
- 	ext2_error (sb, "ext2_check_page",
- 		"entry in directory #%lu spans the page boundary"
- 		"offset=%lu, inode=%lu",
--		dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+		dir->i_ino, page_cache_pos(mapping, page->index, offs),
- 		(unsigned long) le32_to_cpu(p->inode));
- fail:
- 	SetPageChecked(page);
-@@ -276,8 +278,9 @@ ext2_readdir (struct file * filp, void *
- 	loff_t pos = filp->f_pos;
- 	struct inode *inode = filp->f_path.dentry->d_inode;
- 	struct super_block *sb = inode->i_sb;
--	unsigned int offset = pos & ~PAGE_CACHE_MASK;
--	unsigned long n = pos >> PAGE_CACHE_SHIFT;
-+	struct address_space *mapping = inode->i_mapping;
-+	unsigned int offset = page_cache_offset(mapping, pos);
-+	unsigned long n = page_cache_index(mapping, pos);
- 	unsigned long npages = dir_pages(inode);
- 	unsigned chunk_mask = ~(ext2_chunk_size(inode)-1);
- 	unsigned char *types = NULL;
-@@ -298,14 +301,14 @@ ext2_readdir (struct file * filp, void *
- 			ext2_error(sb, __FUNCTION__,
- 				   "bad page in #%lu",
- 				   inode->i_ino);
--			filp->f_pos += PAGE_CACHE_SIZE - offset;
-+			filp->f_pos += page_cache_size(mapping) - offset
- 			return PTR_ERR(page);
+-	index = block >> (PAGE_CACHE_SHIFT - bd_inode->i_blkbits);
++	index = block >> (page_cache_shift(bd_mapping) - bd_inode->i_blkbits);
+ 	page = find_get_page(bd_mapping, index);
+ 	if (!page)
+ 		goto out;
+@@ -712,7 +712,7 @@ static int __set_page_dirty(struct page 
+ 			__inc_zone_page_state(page, NR_FILE_DIRTY);
+ 			__inc_bdi_stat(mapping->backing_dev_info,
+ 					BDI_RECLAIMABLE);
+-			task_io_account_write(PAGE_CACHE_SIZE);
++			task_io_account_write(page_cache_size(mapping));
  		}
- 		kaddr = page_address(page);
- 		if (unlikely(need_revalidate)) {
- 			if (offset) {
- 				offset = ext2_validate_entry(kaddr, offset, chunk_mask);
--				filp->f_pos = (n<<PAGE_CACHE_SHIFT) + offset;
-+				filp->f_pos = page_cache_pos(mapping, n, offset);
- 			}
- 			filp->f_version = inode->i_version;
- 			need_revalidate = 0;
-@@ -328,7 +331,7 @@ ext2_readdir (struct file * filp, void *
+ 		radix_tree_tag_set(&mapping->page_tree,
+ 				page_index(page), PAGECACHE_TAG_DIRTY);
+@@ -924,7 +924,13 @@ struct buffer_head *alloc_page_buffers(s
  
- 				offset = (char *)de - kaddr;
- 				over = filldir(dirent, de->name, de->name_len,
--						(n<<PAGE_CACHE_SHIFT) | offset,
-+						page_cache_pos(mapping, n, offset),
- 						le32_to_cpu(de->inode), d_type);
- 				if (over) {
- 					ext2_put_page(page);
-@@ -354,6 +357,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 			struct dentry *dentry, struct page ** res_page)
- {
- 	const char *name = dentry->d_name.name;
-+	struct address_space *mapping = dir->i_mapping;
- 	int namelen = dentry->d_name.len;
- 	unsigned reclen = EXT2_DIR_REC_LEN(namelen);
- 	unsigned long start, n;
-@@ -395,7 +399,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 		if (++n >= npages)
- 			n = 0;
- 		/* next page is past the blocks we've got */
--		if (unlikely(n > (dir->i_blocks >> (PAGE_CACHE_SHIFT - 9)))) {
-+		if (unlikely(n > (dir->i_blocks >> (page_cache_shift(mapping) - 9)))) {
- 			ext2_error(dir->i_sb, __FUNCTION__,
- 				"dir %lu size %lld exceeds block count %llu",
- 				dir->i_ino, dir->i_size,
-@@ -466,6 +470,7 @@ void ext2_set_link(struct inode *dir, st
- int ext2_add_link (struct dentry *dentry, struct inode *inode)
- {
- 	struct inode *dir = dentry->d_parent->d_inode;
+ try_again:
+ 	head = NULL;
+-	offset = PAGE_SIZE;
++
++	/*
++	 * Page is locked to serialize alloc_page_buffers()
++	 * so we can use page->mapping here.
++	 */
++	offset = page_cache_size(page->mapping);
++
+ 	while ((offset -= size) >= 0) {
+ 		bh = alloc_buffer_head(GFP_NOFS);
+ 		if (!bh)
+@@ -1636,6 +1642,7 @@ static int __block_write_full_page(struc
+ 	struct buffer_head *bh, *head;
+ 	const unsigned blocksize = 1 << inode->i_blkbits;
+ 	int nr_underway = 0;
 +	struct address_space *mapping = inode->i_mapping;
- 	const char *name = dentry->d_name.name;
- 	int namelen = dentry->d_name.len;
- 	unsigned chunk_size = ext2_chunk_size(dir);
-@@ -495,7 +500,7 @@ int ext2_add_link (struct dentry *dentry
- 		kaddr = page_address(page);
- 		dir_end = kaddr + ext2_last_byte(dir, n);
- 		de = (ext2_dirent *)kaddr;
--		kaddr += PAGE_CACHE_SIZE - reclen;
-+		kaddr += page_cache_size(mapping) - reclen;
- 		while ((char *)de <= kaddr) {
- 			if ((char *)de == dir_end) {
- 				/* We hit i_size */
-@@ -531,7 +536,7 @@ int ext2_add_link (struct dentry *dentry
- got_it:
- 	pos = page_offset(page) +
- 		(char*)de - (char*)page_address(page);
--	err = __ext2_write_begin(NULL, page->mapping, pos, rec_len, 0,
-+	err = __ext2_write_begin(NULL, mapping, pos, rec_len, 0,
- 							&page, NULL);
+ 
+ 	BUG_ON(!PageLocked(page));
+ 
+@@ -1656,7 +1663,8 @@ static int __block_write_full_page(struc
+ 	 * handle that here by just cleaning them.
+ 	 */
+ 
+-	block = (sector_t)page->index << (PAGE_CACHE_SHIFT - inode->i_blkbits);
++	block = (sector_t)page->index <<
++		(page_cache_shift(mapping) - inode->i_blkbits);
+ 	head = page_buffers(page);
+ 	bh = head;
+ 
+@@ -1772,7 +1780,7 @@ recover:
+ 	} while ((bh = bh->b_this_page) != head);
+ 	SetPageError(page);
+ 	BUG_ON(PageWriteback(page));
+-	mapping_set_error(page->mapping, err);
++	mapping_set_error(mapping, err);
+ 	set_page_writeback(page);
+ 	do {
+ 		struct buffer_head *next = bh->b_this_page;
+@@ -1839,8 +1847,8 @@ static int __block_prepare_write(struct 
+ 	struct buffer_head *bh, *head, *wait[2], **wait_bh=wait;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	BUG_ON(from > PAGE_CACHE_SIZE);
+-	BUG_ON(to > PAGE_CACHE_SIZE);
++	BUG_ON(from > page_cache_size(inode->i_mapping));
++	BUG_ON(to > page_cache_size(inode->i_mapping));
+ 	BUG_ON(from > to);
+ 
+ 	blocksize = 1 << inode->i_blkbits;
+@@ -1849,7 +1857,8 @@ static int __block_prepare_write(struct 
+ 	head = page_buffers(page);
+ 
+ 	bbits = inode->i_blkbits;
+-	block = (sector_t)page->index << (PAGE_CACHE_SHIFT - bbits);
++	block = (sector_t)page->index <<
++		(page_cache_shift(inode->i_mapping) - bbits);
+ 
+ 	for(bh = head, block_start = 0; bh != head || !block_start;
+ 	    block++, block_start=block_end, bh = bh->b_this_page) {
+@@ -1964,8 +1973,8 @@ int block_write_begin(struct file *file,
+ 	unsigned start, end;
+ 	int ownpage = 0;
+ 
+-	index = pos >> PAGE_CACHE_SHIFT;
+-	start = pos & (PAGE_CACHE_SIZE - 1);
++	index = page_cache_index(mapping, pos);
++	start = page_cache_offset(mapping, pos);
+ 	end = start + len;
+ 
+ 	page = *pagep;
+@@ -2012,7 +2021,7 @@ int block_write_end(struct file *file, s
+ 	struct inode *inode = mapping->host;
+ 	unsigned start;
+ 
+-	start = pos & (PAGE_CACHE_SIZE - 1);
++	start = page_cache_offset(mapping, pos);
+ 
+ 	if (unlikely(copied < len)) {
+ 		/*
+@@ -2077,7 +2086,8 @@ EXPORT_SYMBOL(generic_write_end);
+  */
+ int block_read_full_page(struct page *page, get_block_t *get_block)
+ {
+-	struct inode *inode = page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode *inode = mapping->host;
+ 	sector_t iblock, lblock;
+ 	struct buffer_head *bh, *head, *arr[MAX_BUF_PER_PAGE];
+ 	unsigned int blocksize;
+@@ -2090,7 +2100,8 @@ int block_read_full_page(struct page *pa
+ 		create_empty_buffers(page, blocksize, 0);
+ 	head = page_buffers(page);
+ 
+-	iblock = (sector_t)page->index << (PAGE_CACHE_SHIFT - inode->i_blkbits);
++	iblock = (sector_t)page->index <<
++		(page_cache_shift(mapping) - inode->i_blkbits);
+ 	lblock = (i_size_read(inode)+blocksize-1) >> inode->i_blkbits;
+ 	bh = head;
+ 	nr = 0;
+@@ -2208,16 +2219,17 @@ int cont_expand_zero(struct file *file, 
+ 	unsigned zerofrom, offset, len;
+ 	int err = 0;
+ 
+-	index = pos >> PAGE_CACHE_SHIFT;
+-	offset = pos & ~PAGE_CACHE_MASK;
++	index = page_cache_index(mapping, pos);
++	offset = page_cache_offset(mapping, pos);
+ 
+-	while (index > (curidx = (curpos = *bytes)>>PAGE_CACHE_SHIFT)) {
+-		zerofrom = curpos & ~PAGE_CACHE_MASK;
++	while (curpos = *bytes, curidx = page_cache_index(mapping, curpos),
++			index > curidx) {
++		zerofrom = page_cache_offset(mapping, curpos);
+ 		if (zerofrom & (blocksize-1)) {
+ 			*bytes |= (blocksize-1);
+ 			(*bytes)++;
+ 		}
+-		len = PAGE_CACHE_SIZE - zerofrom;
++		len = page_cache_size(mapping) - zerofrom;
+ 
+ 		err = pagecache_write_begin(file, mapping, curpos, len,
+ 						AOP_FLAG_UNINTERRUPTIBLE,
+@@ -2235,7 +2247,7 @@ int cont_expand_zero(struct file *file, 
+ 
+ 	/* page covers the boundary, find the boundary offset */
+ 	if (index == curidx) {
+-		zerofrom = curpos & ~PAGE_CACHE_MASK;
++		zerofrom = page_cache_offset(mapping, curpos);
+ 		/* if we will expand the thing last block will be filled */
+ 		if (offset <= zerofrom) {
+ 			goto out;
+@@ -2281,7 +2293,7 @@ int cont_write_begin(struct file *file, 
  	if (err)
+ 		goto out;
+ 
+-	zerofrom = *bytes & ~PAGE_CACHE_MASK;
++	zerofrom = page_cache_offset(mapping, *bytes);
+ 	if (pos+len > *bytes && zerofrom & (blocksize-1)) {
+ 		*bytes |= (blocksize-1);
+ 		(*bytes)++;
+@@ -2351,20 +2363,22 @@ block_page_mkwrite(struct vm_area_struct
+ 	unsigned long end;
+ 	loff_t size;
+ 	int ret = -EINVAL;
++	struct address_space *mapping;
+ 
+ 	lock_page(page);
++	mapping = page->mapping;
+ 	size = i_size_read(inode);
+-	if ((page->mapping != inode->i_mapping) ||
+-	    (page_offset(page) > size)) {
++	if ((mapping != inode->i_mapping) ||
++	    (page_cache_pos(mapping, page->index, 0) > size)) {
+ 		/* page got truncated out from underneath us */
  		goto out_unlock;
+ 	}
+ 
+ 	/* page is wholly or partially inside EOF */
+-	if (((page->index + 1) << PAGE_CACHE_SHIFT) > size)
+-		end = size & ~PAGE_CACHE_MASK;
++	if (page_cache_pos(mapping, page->index + 1, 0) > size)
++		end = page_cache_offset(mapping, size);
+ 	else
+-		end = PAGE_CACHE_SIZE;
++		end = page_cache_size(mapping);
+ 
+ 	ret = block_prepare_write(page, 0, end, get_block);
+ 	if (!ret)
+@@ -2432,8 +2446,8 @@ int nobh_write_begin(struct file *file, 
+ 	int ret = 0;
+ 	int is_mapped_to_disk = 1;
+ 
+-	index = pos >> PAGE_CACHE_SHIFT;
+-	from = pos & (PAGE_CACHE_SIZE - 1);
++	index = page_cache_index(mapping, pos);
++	from = page_cache_offset(mapping, pos);
+ 	to = from + len;
+ 
+ 	page = __grab_cache_page(mapping, index);
+@@ -2468,7 +2482,8 @@ int nobh_write_begin(struct file *file, 
+ 		goto out_release;
+ 	}
+ 
+-	block_in_file = (sector_t)page->index << (PAGE_CACHE_SHIFT - blkbits);
++	block_in_file = (sector_t)page->index <<
++			(page_cache_shift(mapping) - blkbits);
+ 
+ 	/*
+ 	 * We loop across all blocks in the page, whether or not they are
+@@ -2476,7 +2491,7 @@ int nobh_write_begin(struct file *file, 
+ 	 * page is fully mapped-to-disk.
+ 	 */
+ 	for (block_start = 0, block_in_page = 0, bh = head;
+-		  block_start < PAGE_CACHE_SIZE;
++		  block_start < page_cache_size(mapping);
+ 		  block_in_page++, block_start += blocksize, bh = bh->b_this_page) {
+ 		int create;
+ 
+@@ -2602,9 +2617,10 @@ EXPORT_SYMBOL(nobh_write_end);
+ int nobh_writepage(struct page *page, get_block_t *get_block,
+ 			struct writeback_control *wbc)
+ {
+-	struct inode * const inode = page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode * const inode = mapping->host;
+ 	loff_t i_size = i_size_read(inode);
+-	const pgoff_t end_index = i_size >> PAGE_CACHE_SHIFT;
++	const pgoff_t end_index = page_cache_index(mapping, i_size);
+ 	unsigned offset;
+ 	int ret;
+ 
+@@ -2613,7 +2629,7 @@ int nobh_writepage(struct page *page, ge
+ 		goto out;
+ 
+ 	/* Is the page fully outside i_size? (truncate in progress) */
+-	offset = i_size & (PAGE_CACHE_SIZE-1);
++	offset = page_cache_offset(mapping, i_size);
+ 	if (page->index >= end_index+1 || !offset) {
+ 		/*
+ 		 * The page may have dirty, unmapped buffers.  For example,
+@@ -2636,7 +2652,7 @@ int nobh_writepage(struct page *page, ge
+ 	 * the  page size, the remaining memory is zeroed when mapped, and
+ 	 * writes to that region are not written out to the file."
+ 	 */
+-	zero_user_segment(page, offset, PAGE_CACHE_SIZE);
++	zero_user_segment(page, offset, page_cache_size(mapping));
+ out:
+ 	ret = mpage_writepage(page, get_block, wbc);
+ 	if (ret == -EAGAIN)
+@@ -2648,8 +2664,8 @@ EXPORT_SYMBOL(nobh_writepage);
+ int nobh_truncate_page(struct address_space *mapping,
+ 			loff_t from, get_block_t *get_block)
+ {
+-	pgoff_t index = from >> PAGE_CACHE_SHIFT;
+-	unsigned offset = from & (PAGE_CACHE_SIZE-1);
++	pgoff_t index = page_cache_index(mapping, from);
++	unsigned offset = page_cache_offset(mapping, from);
+ 	unsigned blocksize;
+ 	sector_t iblock;
+ 	unsigned length, pos;
+@@ -2666,7 +2682,7 @@ int nobh_truncate_page(struct address_sp
+ 		return 0;
+ 
+ 	length = blocksize - length;
+-	iblock = (sector_t)index << (PAGE_CACHE_SHIFT - inode->i_blkbits);
++	iblock = (sector_t)index << (page_cache_shift(mapping) - inode->i_blkbits);
+ 
+ 	page = grab_cache_page(mapping, index);
+ 	err = -ENOMEM;
+@@ -2724,8 +2740,8 @@ EXPORT_SYMBOL(nobh_truncate_page);
+ int block_truncate_page(struct address_space *mapping,
+ 			loff_t from, get_block_t *get_block)
+ {
+-	pgoff_t index = from >> PAGE_CACHE_SHIFT;
+-	unsigned offset = from & (PAGE_CACHE_SIZE-1);
++	pgoff_t index = page_cache_index(mapping, from);
++	unsigned offset = page_cache_offset(mapping, from);
+ 	unsigned blocksize;
+ 	sector_t iblock;
+ 	unsigned length, pos;
+@@ -2742,8 +2758,8 @@ int block_truncate_page(struct address_s
+ 		return 0;
+ 
+ 	length = blocksize - length;
+-	iblock = (sector_t)index << (PAGE_CACHE_SHIFT - inode->i_blkbits);
+-	
++	iblock = (sector_t)index <<
++			(page_cache_shift(mapping) - inode->i_blkbits);
+ 	page = grab_cache_page(mapping, index);
+ 	err = -ENOMEM;
+ 	if (!page)
+@@ -2802,9 +2818,10 @@ out:
+ int block_write_full_page(struct page *page, get_block_t *get_block,
+ 			struct writeback_control *wbc)
+ {
+-	struct inode * const inode = page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode * const inode = mapping->host;
+ 	loff_t i_size = i_size_read(inode);
+-	const pgoff_t end_index = i_size >> PAGE_CACHE_SHIFT;
++	const pgoff_t end_index = page_cache_index(mapping, i_size);
+ 	unsigned offset;
+ 
+ 	/* Is the page fully inside i_size? */
+@@ -2812,7 +2829,7 @@ int block_write_full_page(struct page *p
+ 		return __block_write_full_page(inode, page, get_block, wbc);
+ 
+ 	/* Is the page fully outside i_size? (truncate in progress) */
+-	offset = i_size & (PAGE_CACHE_SIZE-1);
++	offset = page_cache_offset(mapping, i_size);
+ 	if (page->index >= end_index+1 || !offset) {
+ 		/*
+ 		 * The page may have dirty, unmapped buffers.  For example,
+@@ -2831,7 +2848,7 @@ int block_write_full_page(struct page *p
+ 	 * the  page size, the remaining memory is zeroed when mapped, and
+ 	 * writes to that region are not written out to the file."
+ 	 */
+-	zero_user_segment(page, offset, PAGE_CACHE_SIZE);
++	zero_user_segment(page, offset, page_cache_size(mapping));
+ 	return __block_write_full_page(inode, page, get_block, wbc);
+ }
+ 
+@@ -3081,7 +3098,7 @@ int try_to_free_buffers(struct page *pag
+ 	 * dirty bit from being lost.
+ 	 */
+ 	if (ret)
+-		cancel_dirty_page(page, PAGE_CACHE_SIZE);
++		cancel_dirty_page(page, page_cache_size(mapping));
+ 	spin_unlock(&mapping->private_lock);
+ out:
+ 	if (buffers_to_free) {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -206,6 +391,9 @@ mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
 mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+use-page_cache_xxx-in-fs-bufferc.patch
+use-page_cache_xxx-in-mm-mpagec.patch
+use-page_cache_xxx-in-mm-fadvisec.patch
 mm-move-cache_line_size-to-linux-cacheh.patch
 use-page_cache_xxx-in-ext2.patch
 use-page_cache_xxx-in-ext2-fix.patch
