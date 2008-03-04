@@ -1,70 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-resource-management-fixes-in-probe-function-fix.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 13:33:42 -0800
-Message-ID: <200803042133.m24LXgb8030212@imap1.linux-foundation.org>
+Subject: - zlc_setup-handle-jiffies-wraparound-fix.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 13:33:01 -0800
+Message-ID: <200803042133.m24LX1H8030186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758359AbYCDVeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:34:06 -0500
+	by vger.kernel.org with ESMTP id S1758359AbYCDVeP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:34:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, caglar@pardus.org.tr, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb-resource-management-fixes-in-probe-function-fix
+     zlc_setup-handle-jiffies-wraparound-fix
 has been removed from the -mm tree.  Its filename was
-     tridentfb-resource-management-fixes-in-probe-function-fix.patch
+     zlc_setup-handle-jiffies-wraparound-fix.patch
 
-This patch was dropped because it was folded into tridentfb-resource-management-fixes-in-probe-function.patch
+This patch was dropped because it was folded into zlc_setup-handle-jiffies-wraparound.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb-resource-management-fixes-in-probe-function-fix
+Subject: zlc_setup-handle-jiffies-wraparound-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Remove inlines - they're slower!
-
-- coding-style fixes
-
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-resource-management-fixes-in-probe-function-fix drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-resource-management-fixes-in-probe-function-fix
-+++ a/drivers/video/tridentfb.c
-@@ -564,9 +564,10 @@ static inline void write3CE(int reg, uns
- 	t_outb(val, 0x3CF);
- }
- 
--static inline void enable_mmio(void)
-+static void enable_mmio(void)
- {
- 	unsigned char tmp;
-+
- 	/* Goto New Mode */
- 	outb(0x0B, 0x3C4);
- 	inb(0x3C5);
-@@ -584,9 +585,10 @@ static inline void enable_mmio(void)
- 	t_outb(tmp, 0x3C5);
- }
- 
--static inline void disable_mmio(void)
-+static void disable_mmio(void)
- {
- 	unsigned char tmp;
-+
- 	/* Goto New Mode */
- 	t_outb(0x0B, 0x3C4);
- 	t_inb(0x3C5);
+diff -puN mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~zlc_setup-handle-jiffies-wraparound-fix
++++ a/mm/page_alloc.c
+@@ -19,6 +19,7 @@
+ #include <linux/swap.h>
+ #include <linux/interrupt.h>
+ #include <linux/pagemap.h>
++#include <linux/jiffies.h>
+ #include <linux/bootmem.h>
+ #include <linux/compiler.h>
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,8 +55,8 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 rtc-add-support-for-the-s-35390a-rtc-chip.patch
 zlc_setup-handle-jiffies-wraparound.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
 documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function.patch
 tridentfb-resource-management-fixes-in-probe-function-fix.patch
 add-noinline_for_stack.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
