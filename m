@@ -1,123 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - udf-fix-anchor-point-detection.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:08:40 -0800
-Message-ID: <200803042008.m24K8eFl026696@imap1.linux-foundation.org>
+Subject: - hda_intel-needs-dma-mappingh.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:09:18 -0800
+Message-ID: <200803042009.m24K9IDG026739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751275AbYCDUJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:09:05 -0500
+	by vger.kernel.org with ESMTP id S1752469AbYCDUJY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:09:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, Andrew.Neporada@acronis.com, Max.Lyadvinsky@acronis.com, Vladimir.Simonov@acronis.com, Yuri.Per@acronis.com, dev@openvz.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UDF: fix anchor point detection
+     hda_intel needs dma-mapping.h
 has been removed from the -mm tree.  Its filename was
-     udf-fix-anchor-point-detection.patch
+     hda_intel-needs-dma-mappingh.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UDF: fix anchor point detection
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: hda_intel needs dma-mapping.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-According to ECMA 167 rev.  3 (see 3/8.4.2.1), Anchor Volume Descriptor
-Pointer should be recorded at two or more anchor points located at sectors
-256, N, N - 256, where N - is a largest logical sector number at volume
-space.
+sparc32:
 
-So we should always try to detect N on UDF volume before trying to find
-Anchor Volume Descriptor (i.e.  calling to udf_find_anchor()).
+sound/pci/hda/hda_intel.c: In function 'azx_create':
+sound/pci/hda/hda_intel.c:1838: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
+sound/pci/hda/hda_intel.c:1838: error: (Each undeclared identifier is reported only once
+sound/pci/hda/hda_intel.c:1838: error: for each function it appears in.)
 
-That said, all this patch does is updates the s_last_block even if the
-udf_vrs() returns positive value.
-
-Originally written and tested by Yuri Per, ported on latest mainline by me.
-
-Signed-off-by: Yuri Per <Yuri.Per@acronis.com>
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Max Lyadvinsky <Max.Lyadvinsky@acronis.com>
-Cc: Vladimir Simonov <Vladimir.Simonov@acronis.com>
-Cc: Andrew Neporada <Andrew.Neporada@acronis.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ sound/pci/hda/hda_intel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/udf/super.c~udf-fix-anchor-point-detection fs/udf/super.c
---- a/fs/udf/super.c~udf-fix-anchor-point-detection
-+++ a/fs/udf/super.c
-@@ -1488,16 +1488,17 @@ static int udf_check_valid(struct super_
- 	/* Check that it is NSR02 compliant */
- 	/* Process any "CD-ROM Volume Descriptor Set" (ECMA 167 2/8.3.1) */
- 	else {
-+		struct udf_sb_info *sbi = UDF_SB(sb);
-+
- 		block = udf_vrs(sb, silent);
--		if (block == -1) {
--			struct udf_sb_info *sbi = UDF_SB(sb);
-+		if (block == -1)
- 			udf_debug("Failed to read byte 32768. Assuming open "
- 				  "disc. Skipping validity check\n");
--			if (!sbi->s_last_block)
--				sbi->s_last_block = udf_get_last_block(sb);
--			return 0;
--		} else
--			return !block;
-+
-+		if (block && !sbi->s_last_block)
-+			sbi->s_last_block = udf_get_last_block(sb);
-+
-+		return !block;
- 	}
- }
- 
+diff -puN sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~hda_intel-needs-dma-mappingh
++++ a/sound/pci/hda/hda_intel.c
+@@ -39,6 +39,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/dma-mapping.h>
+ #include <linux/moduleparam.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-control-groups-add-paul-menage-a-maintainer.patch
-add-balbir-as-the-maintainer-for-memory-resource-controller.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-git-net.patch
-udf-fix-anchor-point-detection.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+rtc-add-support-for-the-s-35390a-rtc-chip.patch
+zlc_setup-handle-jiffies-wraparound-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-alsa-build-fix.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
+git-md-accel.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+sh-export-copy-page-to-modules.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
+tridentfb-resource-management-fixes-in-probe-function-fix.patch
+add-noinline_for_stack.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
 reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
