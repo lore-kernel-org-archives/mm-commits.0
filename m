@@ -1,80 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 12:10:33 -0800
-Message-ID: <200803042010.m24KAXYF026920@imap1.linux-foundation.org>
+Subject: - introduce-kill_orphaned_pgrp-helper.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 12:10:29 -0800
+Message-ID: <200803042010.m24KATQx026914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757561AbYCDULp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:45 -0500
+	by vger.kernel.org with ESMTP id S1761312AbYCDULx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 15:11:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pgrp: exit_notify: fix kill_orphaned_pgrp() usage with mt exit
+     pgrp: introduce kill_orphaned_pgrp() helper
 has been removed from the -mm tree.  Its filename was
-     exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit.patch
+     introduce-kill_orphaned_pgrp-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pgrp: exit_notify: fix kill_orphaned_pgrp() usage with mt exit
+Subject: pgrp: introduce kill_orphaned_pgrp() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-1. exit_notify() always calls kill_orphaned_pgrp(). This is wrong, we
-   should do this only when the whole process exits.
+Factor out the common code in reparent_thread() and exit_notify().
 
-2. exit_notify() uses "current" as "ignored_task", obviously wrong.
-   Use ->group_leader instead.
-
-Test case:
-
-	void hup(int sig)
-	{
-		printf("HUP received\n");
-	}
-
-	void *tfunc(void *arg)
-	{
-		sleep(2);
-		printf("sub-thread exited\n");
-		return NULL;
-	}
-
-	int main(int argc, char *argv[])
-	{
-		if (!fork()) {
-			signal(SIGHUP, hup);
-			kill(getpid(), SIGSTOP);
-			exit(0);
-		}
-
-		pthread_t thr;
-		pthread_create(&thr, NULL, tfunc, NULL);
-
-		sleep(1);
-		printf("main thread exited\n");
-		syscall(__NR_exit, 0);
-
-		return 0;
-	}
-
-output:
-
-	main thread exited
-	HUP received
-	Hangup
-
-With this patch the output is:
-
-	main thread exited
-	sub-thread exited
-	HUP received
+No functional changes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -82,40 +36,121 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/exit.c |   74 ++++++++++++++++++++++--------------------------
+ 1 file changed, 35 insertions(+), 39 deletions(-)
 
-diff -puN kernel/exit.c~exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit kernel/exit.c
---- a/kernel/exit.c~exit_notify-fix-kill_orphaned_pgrp-usage-with-mt-exit
+diff -puN kernel/exit.c~introduce-kill_orphaned_pgrp-helper kernel/exit.c
+--- a/kernel/exit.c~introduce-kill_orphaned_pgrp-helper
 +++ a/kernel/exit.c
-@@ -750,7 +750,7 @@ static void forget_original_parent(struc
-  * Send signals to all our closest relatives so that they know
-  * to properly mourn us..
-  */
--static void exit_notify(struct task_struct *tsk)
-+static void exit_notify(struct task_struct *tsk, int group_dead)
+@@ -255,6 +255,37 @@ static int has_stopped_jobs(struct pid *
+ 	return retval;
+ }
+ 
++/*
++ * Check to see if any process groups have become orphaned as
++ * a result of our exiting, and if they have any stopped jobs,
++ * send them a SIGHUP and then a SIGCONT. (POSIX 3.2.2.2)
++ */
++static void
++kill_orphaned_pgrp(struct task_struct *tsk, struct task_struct *parent)
++{
++	struct pid *pgrp = task_pgrp(tsk);
++	struct task_struct *ignored_task = tsk;
++
++	if (!parent)
++		 /* exit: our father is in a different pgrp than
++		  * we are and we were the only connection outside.
++		  */
++		parent = tsk->real_parent;
++	else
++		/* reparent: our child is in a different pgrp than
++		 * we are, and it was the only connection outside.
++		 */
++		ignored_task = NULL;
++
++	if (task_pgrp(parent) != pgrp &&
++	    task_session(parent) == task_session(tsk) &&
++	    will_become_orphaned_pgrp(pgrp, ignored_task) &&
++	    has_stopped_jobs(pgrp)) {
++		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
++		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
++	}
++}
++
+ /**
+  * reparent_to_kthreadd - Reparent the calling kernel thread to kthreadd
+  *
+@@ -635,22 +666,7 @@ reparent_thread(struct task_struct *p, s
+ 	    p->exit_signal != -1 && thread_group_empty(p))
+ 		do_notify_parent(p, p->exit_signal);
+ 
+-	/*
+-	 * process group orphan check
+-	 * Case ii: Our child is in a different pgrp
+-	 * than we are, and it was the only connection
+-	 * outside, so the child pgrp is now orphaned.
+-	 */
+-	if ((task_pgrp(p) != task_pgrp(father)) &&
+-	    (task_session(p) == task_session(father))) {
+-		struct pid *pgrp = task_pgrp(p);
+-
+-		if (will_become_orphaned_pgrp(pgrp, NULL) &&
+-		    has_stopped_jobs(pgrp)) {
+-			__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
+-			__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
+-		}
+-	}
++	kill_orphaned_pgrp(p, father);
+ }
+ 
+ /*
+@@ -738,8 +754,6 @@ static void forget_original_parent(struc
+ static void exit_notify(struct task_struct *tsk)
  {
  	int state;
+-	struct task_struct *t;
+-	struct pid *pgrp;
  
-@@ -766,7 +766,8 @@ static void exit_notify(struct task_stru
+ 	/*
+ 	 * This does two things:
+@@ -753,25 +767,7 @@ static void exit_notify(struct task_stru
  	exit_task_namespaces(tsk);
  
  	write_lock_irq(&tasklist_lock);
--	kill_orphaned_pgrp(tsk, NULL);
-+	if (group_dead)
-+		kill_orphaned_pgrp(tsk->group_leader, NULL);
+-	/*
+-	 * Check to see if any process groups have become orphaned
+-	 * as a result of our exiting, and if they have any stopped
+-	 * jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+-	 *
+-	 * Case i: Our father is in a different pgrp than we are
+-	 * and we were the only connection outside, so our pgrp
+-	 * is about to become orphaned.
+-	 */
+-	t = tsk->real_parent;
+-
+-	pgrp = task_pgrp(tsk);
+-	if ((task_pgrp(t) != pgrp) &&
+-	    (task_session(t) == task_session(tsk)) &&
+-	    will_become_orphaned_pgrp(pgrp, tsk) &&
+-	    has_stopped_jobs(pgrp)) {
+-		__kill_pgrp_info(SIGHUP, SEND_SIG_PRIV, pgrp);
+-		__kill_pgrp_info(SIGCONT, SEND_SIG_PRIV, pgrp);
+-	}
++	kill_orphaned_pgrp(tsk, NULL);
  
  	/* Let father know we died
  	 *
-@@ -981,7 +982,7 @@ NORET_TYPE void do_exit(long code)
- 		module_put(tsk->binfmt->module);
+@@ -788,8 +784,8 @@ static void exit_notify(struct task_stru
+ 	 * the same after a fork.
+ 	 */
+ 	if (tsk->exit_signal != SIGCHLD && tsk->exit_signal != -1 &&
+-	    ( tsk->parent_exec_id != t->self_exec_id  ||
+-	      tsk->self_exec_id != tsk->parent_exec_id)
++	    (tsk->parent_exec_id != tsk->real_parent->self_exec_id ||
++	     tsk->self_exec_id != tsk->parent_exec_id)
+ 	    && !capable(CAP_KILL))
+ 		tsk->exit_signal = SIGCHLD;
  
- 	proc_exit_connector(tsk);
--	exit_notify(tsk);
-+	exit_notify(tsk, group_dead);
- #ifdef CONFIG_NUMA
- 	mpol_free(tsk->mempolicy);
- 	tsk->mempolicy = NULL;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
