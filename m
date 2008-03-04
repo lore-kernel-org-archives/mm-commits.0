@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-prevent-probing-of-preempt_schedule-fix.patch added to -mm tree
-Date: Tue, 04 Mar 2008 03:23:08 -0500
-Message-ID: <200803040823.m248Nqmm031308@imap1.linux-foundation.org>
+Subject: + m68knommu-wire-up-new-timerfd-syscalls.patch added to -mm tree
+Date: Tue, 04 Mar 2008 00:27:01 -0800
+Message-ID: <200803040827.m248R3OL031386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751455AbYCDIZl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:25:41 -0500
+	by vger.kernel.org with ESMTP id S1751385AbYCDI1r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 03:27:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ananth@in.ibm.com, davem@davemloft.net, haveblue@us.ibm.com, jkenisto@us.ibm.com, srinivasa@in.ibm.com
+Cc: geert@linux-m68k.org, davidel@xmailserver.org, gerg@uclinux.org, zippel@linux-m68k.org
 
 
 The patch titled
-     kprobes-prevent-probing-of-preempt_schedule-fix
+     m68k{,nommu}: Wire up new timerfd syscalls
 has been added to the -mm tree.  Its filename is
-     kprobes-prevent-probing-of-preempt_schedule-fix.patch
+     m68knommu-wire-up-new-timerfd-syscalls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,175 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes-prevent-probing-of-preempt_schedule-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m68k{,nommu}: Wire up new timerfd syscalls
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-kernel/kprobes.c: In function `in_kprobes_functions':
-kernel/kprobes.c:516: error: `kprobe_blacklist' undeclared (first use in this function)
-kernel/kprobes.c:516: error: (Each undeclared identifier is reported only once
-kernel/kprobes.c:516: error: for each function it appears in.)
-kernel/kprobes.c: In function `init_kprobes':
-kernel/kprobes.c:860: error: `kprobe_blacklist' undeclared (first use in this function)
+m68k{,nommu}: Wire up the new timerfd syscalls, which were introduced in
+commit 4d672e7ac79b5ec5cdc90e450823441e20464691 ("timerfd: new timerfd API").
 
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Srinivasa DS <srinivasa@in.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ arch/m68k/kernel/entry.S             |    4 +++-
+ arch/m68knommu/kernel/syscalltable.S |    4 +++-
+ include/asm-m68k/unistd.h            |    6 ++++--
+ include/asm-m68knommu/unistd.h       |    6 ++++--
+ 4 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-fix kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-fix
-+++ a/kernel/kprobes.c
-@@ -72,6 +72,18 @@ DEFINE_MUTEX(kprobe_mutex);		/* Protects
- DEFINE_SPINLOCK(kretprobe_lock);	/* Protects kretprobe_inst_table */
- static DEFINE_PER_CPU(struct kprobe *, kprobe_instance) = NULL;
+diff -puN arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68k/kernel/entry.S
+--- a/arch/m68k/kernel/entry.S~m68knommu-wire-up-new-timerfd-syscalls
++++ a/arch/m68k/kernel/entry.S
+@@ -742,7 +742,9 @@ sys_call_table:
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_ni_syscall
++	.long sys_timerfd_create
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
++	.long sys_timerfd_settime
++	.long sys_timerfd_gettime
  
-+/*
-+ * Normally, functions that we'd want to prohibit kprobes in, are marked
-+ * __kprobes. But, there are cases where such functions already belong to
-+ * a different section (__sched for preempt_schedule)
-+ *
-+ * For such cases, we now have a blacklist
-+ */
-+struct kprobe_blackpoint kprobe_blacklist[] = {
-+        {"preempt_schedule",},
-+        {NULL}    /* Terminator */
-+};
-+
- #ifdef __ARCH_WANT_KPROBES_INSN_SLOT
- /*
-  * kprobe->ainsn.insn points to the copy of the instruction to be
-@@ -89,18 +101,6 @@ struct kprobe_insn_page {
- 	int ngarbage;
- };
+diff -puN arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls arch/m68knommu/kernel/syscalltable.S
+--- a/arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-timerfd-syscalls
++++ a/arch/m68knommu/kernel/syscalltable.S
+@@ -336,9 +336,11 @@ ENTRY(sys_call_table)
+ 	.long sys_epoll_pwait		/* 315 */
+ 	.long sys_utimensat
+ 	.long sys_signalfd
+-	.long sys_ni_syscall
++	.long sys_timerfd_create
+ 	.long sys_eventfd
+ 	.long sys_fallocate		/* 320 */
++	.long sys_timerfd_settime
++	.long sys_timerfd_gettime
  
--/*
-- * Normally, functions that we'd want to prohibit kprobes in, are marked
-- * __kprobes. But, there are cases where such functions already belong to
-- * a different section (__sched for preempt_schedule)
-- *
-- * For such cases, we now have a blacklist
-- */
--struct kprobe_blackpoint kprobe_blacklist[] = {
--        {"preempt_schedule",},
--        {NULL}    /* Terminator */
--};
--
- enum kprobe_slot_state {
- 	SLOT_CLEAN = 0,
- 	SLOT_DIRTY = 1,
+ 	.rept NR_syscalls-(.-sys_call_table)/4
+ 		.long sys_ni_syscall
+diff -puN include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68knommu/unistd.h
+--- a/include/asm-m68knommu/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
++++ a/include/asm-m68knommu/unistd.h
+@@ -321,13 +321,15 @@
+ #define __NR_epoll_pwait	315
+ #define __NR_utimensat		316
+ #define __NR_signalfd		317
+-#define __NR_timerfd		318
++#define __NR_timerfd_create	318
+ #define __NR_eventfd		319
+ #define __NR_fallocate		320
++#define __NR_timerfd_settime	321
++#define __NR_timerfd_gettime	322
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls		321
++#define NR_syscalls		323
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls include/asm-m68k/unistd.h
+--- a/include/asm-m68k/unistd.h~m68knommu-wire-up-new-timerfd-syscalls
++++ a/include/asm-m68k/unistd.h
+@@ -320,13 +320,15 @@
+ #define __NR_epoll_pwait	315
+ #define __NR_utimensat		316
+ #define __NR_signalfd		317
+-#define __NR_timerfd		318
++#define __NR_timerfd_create	318
+ #define __NR_eventfd		319
+ #define __NR_fallocate		320
++#define __NR_timerfd_settime	321
++#define __NR_timerfd_gettime	322
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls		321
++#define NR_syscalls		323
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-origin.patch
-rtc-add-support-for-the-s-35390a-rtc-chip.patch
-zlc_setup-handle-jiffies-wraparound-fix.patch
-hda_intel-needs-dma-mappingh.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-fix-git-conflicts.patch
-git-alsa-build-fix.patch
-git-cifs.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means-checkpatch-fixes.patch
-git-md-accel.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
-sh-export-copy-page-to-modules.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-usb-remove-unnecessary-type-casting-of-urb-context-checkpatch-fixes.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
-tridentfb-resource-management-fixes-in-probe-function-fix.patch
-add-noinline_for_stack.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
-sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
-markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
-iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
-drivers-media-video-em28xx-correct-use-of-and-fix.patch
-slub-fix-possible-null-pointer-dereference-fix.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+m68knommu-wire-up-new-timerfd-syscalls.patch
+m68k-replace-remaining-__function__-occurences.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-use-page_cache_xxx-in-ext2-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
