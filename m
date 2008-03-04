@@ -1,67 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 13:35:56 -0800
-Message-ID: <200803042135.m24LZuJe030353@imap1.linux-foundation.org>
+Subject: - ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 13:34:09 -0800
+Message-ID: <200803042134.m24LY97R030231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbYCDViO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:38:14 -0500
+	by vger.kernel.org with ESMTP id S1750875AbYCDVmp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 16:42:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bunk@kernel.org, herbert@gondor.apana.org.au, johnpol@2ka.mipt.ru, mingo@elte.hu, ralf@linux-mips.org, tbm@cyrius.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
+     ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
 has been removed from the -mm tree.  Its filename was
-     iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
+     ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
 
-This patch was dropped because it was folded into iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
+This patch was dropped because it was folded into ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
+Subject: ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#48: FILE: drivers/parisc/iommu-helpers.h:100:
-+		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
+Fix build, due to Adrian.
 
-total: 0 errors, 1 warnings, 48 lines checked
-
-./patches/iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/iommu-helpers.h |    4 ++--
+ include/linux/delay.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes drivers/parisc/iommu-helpers.h
---- a/drivers/parisc/iommu-helpers.h~iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes
-+++ a/drivers/parisc/iommu-helpers.h
-@@ -96,8 +96,8 @@ iommu_fill_pdir(struct ioc *ioc, struct 
+diff -puN include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division-fix include/linux/delay.h
+--- a/include/linux/delay.h~ndelay-switch-to-c-function-to-avoid-64-bit-division-fix
++++ a/include/linux/delay.h
+@@ -9,10 +9,10 @@
  
- static inline unsigned int
- iommu_coalesce_chunks(struct ioc *ioc, struct device *dev,
--		      struct scatterlist *startsg, int nents,
--		      int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
-+		struct scatterlist *startsg, int nents,
-+		int (*iommu_alloc_range)(struct ioc *, struct device *, size_t))
- {
- 	struct scatterlist *contig_sg;	   /* contig chunk head */
- 	unsigned long dma_offset, dma_len; /* start/len of DMA stream */
+ #include <linux/kernel.h>
+ 
+-#include <asm/delay.h>
+-
+ extern unsigned long loops_per_jiffy;
+ 
++#include <asm/delay.h>
++
+ /*
+  * Using udelay() for intervals greater than a few milliseconds can
+  * risk overflow for high loops_per_jiffy (high bogomips) machines. The
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,9 +68,9 @@ documentation-atomic_add_unless-doesnt-imply-mb-on-failure-fix.patch
 tridentfb-resource-management-fixes-in-probe-function.patch
 add-noinline_for_stack.patch
 ndelay-switch-to-c-function-to-avoid-64-bit-division.patch
-sm501-add-support-for-the-sm502-programmable-pll.patch
-markers-dont-risk-null-deref-in-marker.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
+ndelay-switch-to-c-function-to-avoid-64-bit-division-fix.patch
+sm501-add-support-for-the-sm502-programmable-pll-checkpatch-fixes.patch
+markers-dont-risk-null-deref-in-marker-checkpatch-fixes.patch
 iommu-parisc-pass-struct-device-to-iommu_alloc_range-checkpatch-fixes.patch
 iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits-checkpatch-fixes.patch
 git-x86.patch
