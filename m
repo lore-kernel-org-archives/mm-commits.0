@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-add-memstick_suspend-resume_host-methods.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:17:40 -0800
-Message-ID: <200803052317.m25NHeok026669@imap1.linux-foundation.org>
+Subject: + tifm-fix-memorystick-host-initialization-code.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:17:49 -0800
+Message-ID: <200803052317.m25NHn31026687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934041AbYCEXSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:18:00 -0500
+	by vger.kernel.org with ESMTP id S932849AbYCEXSN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:18:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oakad@yahoo.com
 
 
 The patch titled
-     memstick: add memstick_suspend/resume_host methods
+     tifm: fix memorystick host initialization code
 has been added to the -mm tree.  Its filename is
-     memstick-add-memstick_suspend-resume_host-methods.patch
+     tifm-fix-memorystick-host-initialization-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: add memstick_suspend/resume_host methods
+Subject: tifm: fix memorystick host initialization code
 From: Alex Dubov <oakad@yahoo.com>
 
-Bus driver may need to be informed that host is being suspended/resumed.
+Instead of assuming that host is powered on only once at card insertion, allow
+for the possibility that memstick layer may need to cycle card's power to get
+it out from some unhealthy states.
 
 Signed-off-by: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c |   25 +++++++++++++++++++++++++
- drivers/memstick/host/tifm_ms.c  |    8 ++++----
- include/linux/memstick.h         |    2 ++
- 3 files changed, 31 insertions(+), 4 deletions(-)
+ drivers/memstick/host/tifm_ms.c |   40 +++++++++++-------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-add-memstick_suspend-resume_host-methods drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-add-memstick_suspend-resume_host-methods
-+++ a/drivers/memstick/core/memstick.c
-@@ -561,6 +561,31 @@ void memstick_free_host(struct memstick_
- }
- EXPORT_SYMBOL(memstick_free_host);
- 
-+/**
-+ * memstick_suspend_host - notify bus driver of host suspension
-+ * @host - host to use
-+ */
-+void memstick_suspend_host(struct memstick_host *host)
-+{
-+	mutex_lock(&host->lock);
-+	host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
-+	mutex_unlock(&host->lock);
-+}
-+EXPORT_SYMBOL(memstick_suspend_host);
-+
-+/**
-+ * memstick_resume_host - notify bus driver of host resumption
-+ * @host - host to use
-+ */
-+void memstick_resume_host(struct memstick_host *host)
-+{
-+	mutex_lock(&host->lock);
-+	host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
-+	mutex_unlock(&host->lock);
-+	memstick_detect_change(host);
-+}
-+EXPORT_SYMBOL(memstick_resume_host);
-+
- int memstick_register_driver(struct memstick_driver *drv)
- {
- 	drv->driver.bus = &memstick_bus_type;
-diff -puN drivers/memstick/host/tifm_ms.c~memstick-add-memstick_suspend-resume_host-methods drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~memstick-add-memstick_suspend-resume_host-methods
+diff -puN drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code
 +++ a/drivers/memstick/host/tifm_ms.c
-@@ -627,17 +627,17 @@ static void tifm_ms_remove(struct tifm_d
+@@ -496,7 +496,18 @@ static void tifm_ms_set_param(struct mem
  
- static int tifm_ms_suspend(struct tifm_dev *sock, pm_message_t state)
- {
-+	struct memstick_host *msh = tifm_get_drvdata(sock);
-+
-+	memstick_suspend_host(msh);
- 	return 0;
+ 	switch (param) {
+ 	case MEMSTICK_POWER:
+-		/* this is set by card detection mechanism */
++		/* also affected by media detection mechanism */
++		if (value == MEMSTICK_POWER_ON) {
++			host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
++			writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
++			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
++			       sock->addr + SOCK_MS_SYSTEM);
++			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
++		} else if (value == MEMSTICK_POWER_OFF) {
++			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
++			       sock->addr + SOCK_MS_SYSTEM);
++			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
++		}
+ 		break;
+ 	case MEMSTICK_INTERFACE:
+ 		if (value == MEMSTICK_SERIAL) {
+@@ -531,22 +542,6 @@ static void tifm_ms_abort(unsigned long 
+ 	tifm_eject(host->dev);
  }
  
- static int tifm_ms_resume(struct tifm_dev *sock)
- {
- 	struct memstick_host *msh = tifm_get_drvdata(sock);
--	struct tifm_ms *host = memstick_priv(msh);
+-static int tifm_ms_initialize_host(struct tifm_ms *host)
+-{
+-	struct tifm_dev *sock = host->dev;
+-	struct memstick_host *msh = tifm_get_drvdata(sock);
 -
--	tifm_ms_initialize_host(host);
--	memstick_detect_change(msh);
+-	host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
+-	writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
+-	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
+-	       sock->addr + SOCK_MS_SYSTEM);
+-	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
+-	if (tifm_has_ms_pif(sock))
+-		msh->caps |= MEMSTICK_CAP_PAR4;
+-
+-	return 0;
+-}
+-
+ static int tifm_ms_probe(struct tifm_dev *sock)
+ {
+ 	struct memstick_host *msh;
+@@ -575,10 +570,10 @@ static int tifm_ms_probe(struct tifm_dev
+ 	msh->set_param = tifm_ms_set_param;
+ 	sock->card_event = tifm_ms_card_event;
+ 	sock->data_event = tifm_ms_data_event;
+-	rc = tifm_ms_initialize_host(host);
++	if (tifm_has_ms_pif(sock))
++		msh->caps |= MEMSTICK_CAP_PAR4;
  
-+	memstick_resume_host(msh);
- 	return 0;
- }
+-	if (!rc)
+-		rc = memstick_add_host(msh);
++	rc = memstick_add_host(msh);
+ 	if (!rc)
+ 		return 0;
  
-diff -puN include/linux/memstick.h~memstick-add-memstick_suspend-resume_host-methods include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-add-memstick_suspend-resume_host-methods
-+++ a/include/linux/memstick.h
-@@ -312,6 +312,8 @@ int memstick_add_host(struct memstick_ho
- void memstick_remove_host(struct memstick_host *host);
- void memstick_free_host(struct memstick_host *host);
- void memstick_detect_change(struct memstick_host *host);
-+void memstick_suspend_host(struct memstick_host *host);
-+void memstick_resume_host(struct memstick_host *host);
+@@ -616,11 +611,6 @@ static void tifm_ms_remove(struct tifm_d
+ 	spin_unlock_irqrestore(&sock->lock, flags);
  
- void memstick_init_req_sg(struct memstick_request *mrq, unsigned char tpc,
- 			  struct scatterlist *sg);
-_
-
-Patches currently in -mm which might be from oakad@yahoo.com are
-
-memstick-introduce-correct-definitions-in-the-header.patch
-memstick-add-memstick_suspend-resume_host-methods.patch
-memstick-make-sure-number-of-command-retries-is-exactly-as-specified.patch
-memstick-drop-driver_version-numbers-as-meaningless.patch
-tifm-fix-the-memorystick-host-fifo-handling-code.patch
-tifm-fix-memorystick-host-initialization-code.patch
-tifm-clear-interrupt-mask-bits-before-setting-them-on-adapter-init.patch
-memstick-add-support-for-decoding-specfile-media-attributes.patch
-memstick-fix-parsing-of-assembly_date-attribute-field.patch
-memstick-try-harder-to-recover-from-unsuccessful-interface-mode-switch.patch
-memstick-add-support-for-jmicron-jmb38x-memorystick-host-controller.patch
-
+ 	memstick_remove_host(msh);
+-
+-	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
+-	       sock->addr + SOCK_MS_SYSTEM);
+-	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
