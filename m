@@ -1,143 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:58 -0800
-Message-ID: <200803050746.m257kwSU021813@imap1.linux-foundation.org>
+Subject: - x86-a-p4-is-a-p6-not-an-i486.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:47:08 -0800
+Message-ID: <200803050747.m257l8uq021831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932432AbYCEHs0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:48:26 -0500
+	by vger.kernel.org with ESMTP id S1759996AbYCEHsp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:48:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ocfs2/dlm/dlmdomain.c: fix printk warning
+     x86: a P4 is a P6 not an i486
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
+     x86-a-p4-is-a-p6-not-an-i486.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ocfs2/dlm/dlmdomain.c: fix printk warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: a P4 is a P6 not an i486
+From: Hugh Dickins <hugh@veritas.com>
 
-fs/ocfs2/dlm/dlmdomain.c: In function 'dlm_send_join_cancels':
-fs/ocfs2/dlm/dlmdomain.c:983: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'long unsigned int'
+P4 has been coming out as CPU_FAMILY=4 instead of 6: fix MPENTIUM4 typo.
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ arch/x86/Kconfig.cpu |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -982,7 +982,7 @@ static int dlm_send_join_cancels(struct 
- 			 sizeof(unsigned long))) {
- 		mlog(ML_ERROR,
- 		     "map_size %u != BITS_TO_LONGS(O2NM_MAX_NODES) %u\n",
--		     map_size, BITS_TO_LONGS(O2NM_MAX_NODES));
-+		     map_size, (unsigned)BITS_TO_LONGS(O2NM_MAX_NODES));
- 		return -EINVAL;
- 	}
+diff -puN arch/x86/Kconfig.cpu~x86-a-p4-is-a-p6-not-an-i486 arch/x86/Kconfig.cpu
+--- a/arch/x86/Kconfig.cpu~x86-a-p4-is-a-p6-not-an-i486
++++ a/arch/x86/Kconfig.cpu
+@@ -388,7 +388,7 @@ config X86_OOSTORE
+ #
+ config X86_P6_NOP
+ 	def_bool y
+-	depends on (X86_64 || !X86_GENERIC) && (M686 || MPENTIUMII || MPENTIUMIII || MPENTIUMM || MCORE2 || PENTIUM4)
++	depends on (X86_64 || !X86_GENERIC) && (M686 || MPENTIUMII || MPENTIUMIII || MPENTIUMM || MCORE2 || MPENTIUM4)
  
+ config X86_TSC
+ 	def_bool y
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means.patch
-git-md-accel.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-sh-export-copy-page-to-modules.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
 git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+prio_tree-debugging-patch.patch
 
