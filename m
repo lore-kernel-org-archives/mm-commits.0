@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-replace-__inline-with-inline.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:45:24 -0800
-Message-ID: <200803052345.m25NjOEk027822@imap1.linux-foundation.org>
+Subject: + xfs-replace-__inline-with-inline.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:45:19 -0800
+Message-ID: <200803052345.m25NjJM2027816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59684 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755903AbYCEXvx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:51:53 -0500
+	by vger.kernel.org with ESMTP id S1756707AbYCEXwJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:52:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: harvey.harrison@gmail.com, dgc@sgi.com, tes@sgi.com
 
 
 The patch titled
-     alpha: replace __inline with inline
+     xfs: replace __inline with inline
 has been added to the -mm tree.  Its filename is
-     alpha-replace-__inline-with-inline.patch
+     xfs-replace-__inline-with-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: replace __inline with inline
+Subject: xfs: replace __inline with inline
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/byteorder.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/linux-2.6/xfs_cred.h  |    2 +-
+ fs/xfs/linux-2.6/xfs_stats.h |    4 ++--
+ fs/xfs/quota/xfs_qm_stats.h  |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-alpha/byteorder.h~alpha-replace-__inline-with-inline include/asm-alpha/byteorder.h
---- a/include/asm-alpha/byteorder.h~alpha-replace-__inline-with-inline
-+++ a/include/asm-alpha/byteorder.h
-@@ -7,7 +7,7 @@
+diff -puN fs/xfs/linux-2.6/xfs_cred.h~xfs-replace-__inline-with-inline fs/xfs/linux-2.6/xfs_cred.h
+--- a/fs/xfs/linux-2.6/xfs_cred.h~xfs-replace-__inline-with-inline
++++ a/fs/xfs/linux-2.6/xfs_cred.h
+@@ -30,7 +30,7 @@ typedef struct cred {
+ extern struct cred *sys_cred;
  
- #ifdef __GNUC__
- 
--static __inline __attribute_const__ __u32 __arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch__swab32(__u32 x)
+ /* this is a hack.. (assumes sys_cred is the only cred_t in the system) */
+-static __inline int capable_cred(cred_t *cr, int cid)
++static inline int capable_cred(cred_t *cr, int cid)
  {
- 	/*
- 	 * Unfortunately, we can't use the 6 instruction sequence
+ 	return (cr == sys_cred) ? 1 : capable(cid);
+ }
+diff -puN fs/xfs/linux-2.6/xfs_stats.h~xfs-replace-__inline-with-inline fs/xfs/linux-2.6/xfs_stats.h
+--- a/fs/xfs/linux-2.6/xfs_stats.h~xfs-replace-__inline-with-inline
++++ a/fs/xfs/linux-2.6/xfs_stats.h
+@@ -144,8 +144,8 @@ extern void xfs_cleanup_procfs(void);
+ # define XFS_STATS_DEC(count)
+ # define XFS_STATS_ADD(count, inc)
+ 
+-static __inline void xfs_init_procfs(void) { };
+-static __inline void xfs_cleanup_procfs(void) { };
++static inline void xfs_init_procfs(void) { };
++static inline void xfs_cleanup_procfs(void) { };
+ 
+ #endif	/* !CONFIG_PROC_FS */
+ 
+diff -puN fs/xfs/quota/xfs_qm_stats.h~xfs-replace-__inline-with-inline fs/xfs/quota/xfs_qm_stats.h
+--- a/fs/xfs/quota/xfs_qm_stats.h~xfs-replace-__inline-with-inline
++++ a/fs/xfs/quota/xfs_qm_stats.h
+@@ -45,8 +45,8 @@ extern void xfs_qm_cleanup_procfs(void);
+ 
+ # define XQM_STATS_INC(count)	do { } while (0)
+ 
+-static __inline void xfs_qm_init_procfs(void) { };
+-static __inline void xfs_qm_cleanup_procfs(void) { };
++static inline void xfs_qm_init_procfs(void) { };
++static inline void xfs_qm_cleanup_procfs(void) { };
+ 
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
