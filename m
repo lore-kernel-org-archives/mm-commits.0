@@ -1,171 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-memcontrol-uninlined-and-static.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:45:31 -0800
-Message-ID: <200803050745.m257jV43021599@imap1.linux-foundation.org>
+Subject: - cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:03 -0800
+Message-ID: <200803050746.m257k34N021713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759366AbYCEHps (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:48 -0500
+	by vger.kernel.org with ESMTP id S1763907AbYCEHqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, taka@valinux.co.jp, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: memcontrol uninlined and static
+     cris: correct usage of __user for copy to and from user space in lib/usercopy and uaccess.h
 has been removed from the -mm tree.  Its filename was
-     memcg-memcontrol-uninlined-and-static.patch
+     cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: memcontrol uninlined and static
-From: Hugh Dickins <hugh@veritas.com>
+Subject: cris: correct usage of __user for copy to and from user space in lib/usercopy and uaccess.h
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-More cleanup to memcontrol.c, this time changing some of the code generated. 
-Let the compiler decide what to inline (except for page_cgroup_locked which is
-only used when CONFIG_DEBUG_VM): the __always_inline on lock_page_cgroup etc. 
-was quite a waste since bit_spin_lock etc.  are inlines in a header file; made
-mem_cgroup_force_empty and mem_cgroup_write_strategy static.
+Function __copy_user_zeroing in arch/lib/usercopy.c had the wrong parameter
+set as __user, and in include/asm-cris/uaccess.h, it was not set at all for
+some of the calling functions.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
+This will cut the number of warnings quite dramatically when using sparse.
+
+While we're here, remove useless CVS log and correct confusing typo.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ arch/cris/arch-v10/lib/usercopy.c |    2 -
+ arch/cris/arch-v32/lib/usercopy.c |    2 -
+ include/asm-cris/uaccess.h        |   53 ++++------------------------
+ 3 files changed, 11 insertions(+), 46 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-memcontrol-uninlined-and-static mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-memcontrol-uninlined-and-static
-+++ a/mm/memcontrol.c
-@@ -168,12 +168,12 @@ struct page_cgroup {
- #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
- #define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
+diff -puN arch/cris/arch-v10/lib/usercopy.c~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2 arch/cris/arch-v10/lib/usercopy.c
+--- a/arch/cris/arch-v10/lib/usercopy.c~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2
++++ a/arch/cris/arch-v10/lib/usercopy.c
+@@ -193,7 +193,7 @@ __copy_user (void __user *pdst, const vo
+    inaccessible.  */
  
--static inline int page_cgroup_nid(struct page_cgroup *pc)
-+static int page_cgroup_nid(struct page_cgroup *pc)
+ unsigned long
+-__copy_user_zeroing (void __user *pdst, const void *psrc, unsigned long pn)
++__copy_user_zeroing(void *pdst, const void __user *psrc, unsigned long pn)
  {
- 	return page_to_nid(pc->page);
- }
+   /* We want the parameters put in special registers.
+      Make sure the compiler is able to make something useful of this.
+diff -puN arch/cris/arch-v32/lib/usercopy.c~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2 arch/cris/arch-v32/lib/usercopy.c
+--- a/arch/cris/arch-v32/lib/usercopy.c~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2
++++ a/arch/cris/arch-v32/lib/usercopy.c
+@@ -161,7 +161,7 @@ __copy_user (void __user *pdst, const vo
+    inaccessible.  */
  
--static inline enum zone_type page_cgroup_zid(struct page_cgroup *pc)
-+static enum zone_type page_cgroup_zid(struct page_cgroup *pc)
+ unsigned long
+-__copy_user_zeroing (void __user *pdst, const void *psrc, unsigned long pn)
++__copy_user_zeroing(void *pdst, const void __user *psrc, unsigned long pn)
  {
- 	return page_zonenum(pc->page);
- }
-@@ -199,14 +199,13 @@ static void mem_cgroup_charge_statistics
- 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
- }
- 
--static inline struct mem_cgroup_per_zone *
-+static struct mem_cgroup_per_zone *
- mem_cgroup_zoneinfo(struct mem_cgroup *mem, int nid, int zid)
- {
--	BUG_ON(!mem->info.nodeinfo[nid]);
- 	return &mem->info.nodeinfo[nid]->zoneinfo[zid];
- }
- 
--static inline struct mem_cgroup_per_zone *
-+static struct mem_cgroup_per_zone *
- page_cgroup_zoneinfo(struct page_cgroup *pc)
- {
- 	struct mem_cgroup *mem = pc->mem_cgroup;
-@@ -231,16 +230,14 @@ static unsigned long mem_cgroup_get_all_
- 	return total;
- }
- 
--static inline
--struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
-+static struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
- {
- 	return container_of(cgroup_subsys_state(cont,
- 				mem_cgroup_subsys_id), struct mem_cgroup,
- 				css);
- }
- 
--static inline
--struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
-+static struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
- {
- 	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
- 				struct mem_cgroup, css);
-@@ -276,13 +273,12 @@ struct page_cgroup *page_get_page_cgroup
- 	return (struct page_cgroup *) (page->page_cgroup & ~PAGE_CGROUP_LOCK);
- }
- 
--static void __always_inline lock_page_cgroup(struct page *page)
-+static void lock_page_cgroup(struct page *page)
- {
- 	bit_spin_lock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
--	VM_BUG_ON(!page_cgroup_locked(page));
- }
- 
--static void __always_inline unlock_page_cgroup(struct page *page)
-+static void unlock_page_cgroup(struct page *page)
- {
- 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
- }
-@@ -741,16 +737,14 @@ void mem_cgroup_end_migration(struct pag
- void mem_cgroup_page_migration(struct page *page, struct page *newpage)
- {
- 	struct page_cgroup *pc;
--	struct mem_cgroup *mem;
--	unsigned long flags;
- 	struct mem_cgroup_per_zone *mz;
-+	unsigned long flags;
- 
- retry:
- 	pc = page_get_page_cgroup(page);
- 	if (!pc)
- 		return;
- 
--	mem = pc->mem_cgroup;
- 	mz = page_cgroup_zoneinfo(pc);
- 	if (clear_page_cgroup(page, pc) != pc)
- 		goto retry;
-@@ -822,7 +816,7 @@ retry:
-  * make mem_cgroup's charge to be 0 if there is no task.
-  * This enables deleting this mem_cgroup.
+   /* We want the parameters put in special registers.
+      Make sure the compiler is able to make something useful of this.
+diff -puN include/asm-cris/uaccess.h~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2 include/asm-cris/uaccess.h
+--- a/include/asm-cris/uaccess.h~cris-correct-usage-of-__user-for-copy-to-and-from-user-space-in-lib-usercopy-and-uaccessh-try-2
++++ a/include/asm-cris/uaccess.h
+@@ -1,43 +1,6 @@
+ /* 
+  * Authors:    Bjorn Wesen (bjornw@axis.com)
+  *	       Hans-Peter Nilsson (hp@axis.com)
+- *
+- * $Log: uaccess.h,v $
+- * Revision 1.8  2001/10/29 13:01:48  bjornw
+- * Removed unused variable tmp2 in strnlen_user
+- *
+- * Revision 1.7  2001/10/02 12:44:52  hp
+- * Add support for 64-bit put_user/get_user
+- *
+- * Revision 1.6  2001/10/01 14:51:17  bjornw
+- * Added register prefixes and removed underscores
+- *
+- * Revision 1.5  2000/10/25 03:33:21  hp
+- * - Provide implementation for everything else but get_user and put_user;
+- *   copying inline to/from user for constant length 0..16, 20, 24, and
+- *   clearing for 0..4, 8, 12, 16, 20, 24, strncpy_from_user and strnlen_user
+- *   always inline.
+- * - Constraints for destination addr in get_user cannot be memory, only reg.
+- * - Correct labels for PC at expected fault points.
+- * - Nits with assembly code.
+- * - Don't use statement expressions without value; use "do {} while (0)".
+- * - Return correct values from __generic_... functions.
+- *
+- * Revision 1.4  2000/09/12 16:28:25  bjornw
+- * * Removed comments from the get/put user asm code
+- * * Constrains for destination addr in put_user cannot be memory, only reg
+- *
+- * Revision 1.3  2000/09/12 14:30:20  bjornw
+- * MAX_ADDR_USER does not exist anymore
+- *
+- * Revision 1.2  2000/07/13 15:52:48  bjornw
+- * New user-access functions
+- *
+- * Revision 1.1.1.1  2000/07/10 16:32:31  bjornw
+- * CRIS architecture, working draft
+- *
+- *
+- *
   */
--int mem_cgroup_force_empty(struct mem_cgroup *mem)
-+static int mem_cgroup_force_empty(struct mem_cgroup *mem)
- {
- 	int ret = -EBUSY;
- 	int node, zid;
-@@ -852,7 +846,7 @@ out:
- 	return ret;
+ 
+ /* Asm:s have been tweaked (within the domain of correctness) to give
+@@ -209,9 +172,9 @@ extern long __get_user_bad(void);
+ /* More complex functions.  Most are inline, but some call functions that
+    live in lib/usercopy.c  */
+ 
+-extern unsigned long __copy_user(void *to, const void *from, unsigned long n);
+-extern unsigned long __copy_user_zeroing(void *to, const void *from, unsigned long n);
+-extern unsigned long __do_clear_user(void *to, unsigned long n);
++extern unsigned long __copy_user(void __user *to, const void *from, unsigned long n);
++extern unsigned long __copy_user_zeroing(void *to, const void __user *from, unsigned long n);
++extern unsigned long __do_clear_user(void __user *to, unsigned long n);
+ 
+ static inline unsigned long
+ __generic_copy_to_user(void __user *to, const void *from, unsigned long n)
+@@ -253,7 +216,7 @@ strncpy_from_user(char *dst, const char 
  }
  
--int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
-+static int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
+ 
+-/* Note that if these expand awfully if made into switch constructs, so
++/* Note that these expand awfully if made into switch constructs, so
+    don't do that.  */
+ 
+ static inline unsigned long
+@@ -407,19 +370,21 @@ __constant_clear_user(void __user *to, u
+  */
+ 
+ static inline unsigned long
+-__generic_copy_from_user_nocheck(void *to, const void *from, unsigned long n)
++__generic_copy_from_user_nocheck(void *to, const void __user *from,
++				 unsigned long n)
  {
- 	*tmp = memparse(buf, &buf);
- 	if (*buf != '\0')
+ 	return __copy_user_zeroing(to,from,n);
+ }
+ 
+ static inline unsigned long
+-__generic_copy_to_user_nocheck(void *to, const void *from, unsigned long n)
++__generic_copy_to_user_nocheck(void __user *to, const void *from,
++			       unsigned long n)
+ {
+ 	return __copy_user(to,from,n);
+ }
+ 
+ static inline unsigned long
+-__generic_clear_user_nocheck(void *to, unsigned long n)
++__generic_clear_user_nocheck(void __user *to, unsigned long n)
+ {
+ 	return __do_clear_user(to,n);
+ }
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
-git-unionfs.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-try-both-endianess-when-checking-for-endianess.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-prio_tree-debugging-patch.patch
 
