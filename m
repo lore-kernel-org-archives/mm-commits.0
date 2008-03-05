@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_tc-clocksource-clockevent-code-update.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:45:28 -0800
-Message-ID: <200803052245.m25MjSw9025187@imap1.linux-foundation.org>
+Subject: + serial-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:38:24 -0800
+Message-ID: <200803052238.m25McP5n024849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753470AbYCEWrS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:47:18 -0500
+	by vger.kernel.org with ESMTP id S1751353AbYCEWtq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:49:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, johnstul@us.ibm.com, linux@maxim.org.za, nicolas.ferre@rfo.atmel.com, tglx@linutronix.de
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     atmel_tc clocksource/clockevent code (update)
+     serial: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     atmel_tc-clocksource-clockevent-code-update.patch
+     serial-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,308 +33,646 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_tc clocksource/clockevent code (update)
-From: David Brownell <david-b@pacbell.net>
+Subject: serial: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-  * Update to use new tclib API
-  * Replace open-coded do-while loop using goto with a real do-while loop
-  * Minor irq handler optimization: Load register base address from
-    dev_id instead of a global variable.
-  * Aggressively turn off clocks when the clockevent isn't being used
-  * Include the clockevent code on AT91RM9200 as well. The rating is
-    lower than the System Timer, so the clock will usually stay off.
-  * Don't assume that the number of clocks is always equal to the
-    number of irqs.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/tcb_clksrc.c |  142 ++++++++++++++---------------
- 1 file changed, 72 insertions(+), 70 deletions(-)
+ drivers/serial/68360serial.c            |    4 +-
+ drivers/serial/8250_early.c             |    2 -
+ drivers/serial/bfin_5xx.c               |    4 +-
+ drivers/serial/cpm_uart/cpm_uart_core.c |    2 -
+ drivers/serial/crisv10.c                |    8 ++--
+ drivers/serial/ioc3_serial.c            |   36 +++++++++++-----------
+ drivers/serial/ioc4_serial.c            |   32 +++++++++----------
+ drivers/serial/s3c2410.c                |    6 +--
+ drivers/serial/sa1100.c                 |    4 +-
+ drivers/serial/sh-sci.c                 |    2 -
+ drivers/serial/sn_console.c             |    2 -
+ drivers/serial/uartlite.c               |    2 -
+ drivers/serial/ucc_uart.c               |    4 +-
+ 13 files changed, 54 insertions(+), 54 deletions(-)
 
-diff -puN drivers/clocksource/tcb_clksrc.c~atmel_tc-clocksource-clockevent-code-update drivers/clocksource/tcb_clksrc.c
---- a/drivers/clocksource/tcb_clksrc.c~atmel_tc-clocksource-clockevent-code-update
-+++ a/drivers/clocksource/tcb_clksrc.c
-@@ -45,11 +45,10 @@ static cycle_t tc_get_cycles(void)
- 	u32		lower, upper;
+diff -puN drivers/serial/68360serial.c~serial-replace-remaining-__function__-occurrences drivers/serial/68360serial.c
+--- a/drivers/serial/68360serial.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/68360serial.c
+@@ -1245,7 +1245,7 @@ static int rs_360_tiocmget(struct tty_st
+ #ifdef modem_control
+ 	unsigned char control, status;
  
- 	raw_local_irq_save(flags);
--retry:
--	upper = __raw_readl(tcaddr + ATMEL_TC_REG(1, CV));
--	lower = __raw_readl(tcaddr + ATMEL_TC_REG(0, CV));
--	if (upper != __raw_readl(tcaddr + ATMEL_TC_REG(1, CV)))
--		goto retry;
-+	do {
-+		upper = __raw_readl(tcaddr + ATMEL_TC_REG(1, CV));
-+		lower = __raw_readl(tcaddr + ATMEL_TC_REG(0, CV));
-+	} while (upper != __raw_readl(tcaddr + ATMEL_TC_REG(1, CV)));
- 
- 	raw_local_irq_restore(flags);
- 	return (upper << 16) | lower;
-@@ -65,18 +64,17 @@ static struct clocksource clksrc = {
- };
- 
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
--#define USE_TC_CLKEVT
--#endif
- 
--#ifdef CONFIG_ARCH_AT91RM9200
--/* The AT91rm9200 system timer is a oneshot-capable 32k timer that's
-- * always running ... configuring a TC channel to work the same way
-- * would just waste some power.
-- */
--#undef USE_TC_CLKEVT
--#endif
-+struct tc_clkevt_device {
-+	struct clock_event_device	clkevt;
-+	struct clk			*clk;
-+	void __iomem			*regs;
-+};
- 
--#ifdef USE_TC_CLKEVT
-+static struct tc_clkevt_device *to_tc_clkevt(struct clock_event_device *clkevt)
-+{
-+	return container_of(clkevt, struct tc_clkevt_device, clkevt);
-+}
- 
- /* For now, we always use the 32K clock ... this optimizes for NO_HZ,
-  * because using one of the divided clocks would usually mean the
-@@ -89,8 +87,15 @@ static u32 timer_clock;
- 
- static void tc_mode(enum clock_event_mode m, struct clock_event_device *d)
- {
--	__raw_writel(0xff, tcaddr + ATMEL_TC_REG(2, IDR));
--	__raw_writel(ATMEL_TC_CLKDIS, tcaddr + ATMEL_TC_REG(2, CCR));
-+	struct tc_clkevt_device *tcd = to_tc_clkevt(d);
-+	void __iomem		*regs = tcd->regs;
-+
-+	if (tcd->clkevt.mode == CLOCK_EVT_MODE_PERIODIC
-+			|| tcd->clkevt.mode == CLOCK_EVT_MODE_ONESHOT) {
-+		__raw_writel(0xff, regs + ATMEL_TC_REG(2, IDR));
-+		__raw_writel(ATMEL_TC_CLKDIS, regs + ATMEL_TC_REG(2, CCR));
-+		clk_disable(tcd->clk);
-+	}
- 
- 	switch (m) {
- 
-@@ -98,26 +103,30 @@ static void tc_mode(enum clock_event_mod
- 	 * of oneshot, we get lower overhead and improved accuracy.
- 	 */
- 	case CLOCK_EVT_MODE_PERIODIC:
-+		clk_enable(tcd->clk);
-+
- 		/* slow clock, count up to RC, then irq and restart */
- 		__raw_writel(timer_clock
- 				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
--				tcaddr + ATMEL_TC_REG(2, CMR));
-+				regs + ATMEL_TC_REG(2, CMR));
- 		__raw_writel((32768 + HZ/2) / HZ, tcaddr + ATMEL_TC_REG(2, RC));
- 
- 		/* Enable clock and interrupts on RC compare */
--		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
-+		__raw_writel(ATMEL_TC_CPCS, regs + ATMEL_TC_REG(2, IER));
- 
- 		/* go go gadget! */
- 		__raw_writel(ATMEL_TC_CLKEN | ATMEL_TC_SWTRG,
--				tcaddr + ATMEL_TC_REG(2, CCR));
-+				regs + ATMEL_TC_REG(2, CCR));
- 		break;
- 
- 	case CLOCK_EVT_MODE_ONESHOT:
-+		clk_enable(tcd->clk);
-+
- 		/* slow clock, count up to RC, then irq and stop */
- 		__raw_writel(timer_clock | ATMEL_TC_CPCSTOP
- 				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
--				tcaddr + ATMEL_TC_REG(2, CMR));
--		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
-+				regs + ATMEL_TC_REG(2, CMR));
-+		__raw_writel(ATMEL_TC_CPCS, regs + ATMEL_TC_REG(2, IER));
- 
- 		/* set_next_event() configures and starts the timer */
- 		break;
-@@ -137,22 +146,28 @@ static int tc_next_event(unsigned long d
- 	return 0;
- }
- 
--static struct clock_event_device clkevt = {
--	.name		= "tc_clkevt",
--	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
--	.shift		= 32,
--	.rating		= 125,
--	.cpumask	= CPU_MASK_CPU0,
--	.set_next_event	= tc_next_event,
--	.set_mode	= tc_mode,
-+static struct tc_clkevt_device clkevt = {
-+	.clkevt	= {
-+		.name		= "tc_clkevt",
-+		.features	= CLOCK_EVT_FEAT_PERIODIC
-+					| CLOCK_EVT_FEAT_ONESHOT,
-+		.shift		= 32,
-+		/* Should be lower than at91rm9200's system timer */
-+		.rating		= 125,
-+		.cpumask	= CPU_MASK_CPU0,
-+		.set_next_event	= tc_next_event,
-+		.set_mode	= tc_mode,
-+	},
- };
- 
- static irqreturn_t ch2_irq(int irq, void *handle)
- {
--	unsigned int	sr = __raw_readl(tcaddr + ATMEL_TC_REG(2, SR));
-+	struct tc_clkevt_device	*dev = handle;
-+	unsigned int		sr;
- 
-+	sr = __raw_readl(dev->regs + ATMEL_TC_REG(2, SR));
- 	if (sr & ATMEL_TC_CPCS) {
--		clkevt.event_handler(&clkevt);
-+		dev->clkevt.event_handler(&dev->clkevt);
- 		return IRQ_HANDLED;
- 	}
- 
-@@ -165,37 +180,32 @@ static struct irqaction tc_irqaction = {
- 	.handler	= ch2_irq,
- };
- 
--static void __init setup_clkevents(struct platform_device *pdev,
-+static void __init setup_clkevents(struct atmel_tc *tc,
- 		struct clk *t0_clk, int clk32k_divisor_idx)
- {
--	struct clk	*t2_clk = clk_get(&pdev->dev, "t2_clk");
--	int		irq;
--
--	/* SOCs have either one IRQ and one clock for the whole
--	 * TC block; or one each per channel.  We use channel 2.
--	 */
--	if (IS_ERR(t2_clk)) {
--		t2_clk = t0_clk;
--		irq = platform_get_irq(pdev, 0);
--	} else {
--		irq = platform_get_irq(pdev, 2);
--		clk_enable(t2_clk);
--	}
-+	struct platform_device *pdev = tc->pdev;
-+	struct clk *t2_clk = tc->clk[2];
-+	int irq = tc->irq[2];
-+
-+	clkevt.regs = tc->regs;
-+	clkevt.clk = t2_clk;
-+	tc_irqaction.dev_id = &clkevt;
- 
- 	timer_clock = clk32k_divisor_idx;
- 
--	clkevt.mult = div_sc(32768, NSEC_PER_SEC, clkevt.shift);
--	clkevt.max_delta_ns = clockevent_delta2ns(0xffff, &clkevt);
--	clkevt.min_delta_ns = clockevent_delta2ns(1, &clkevt) + 1;
-+	clkevt.clkevt.mult = div_sc(32768, NSEC_PER_SEC, clkevt.clkevt.shift);
-+	clkevt.clkevt.max_delta_ns
-+		= clockevent_delta2ns(0xffff, &clkevt.clkevt);
-+	clkevt.clkevt.min_delta_ns = clockevent_delta2ns(1, &clkevt.clkevt) + 1;
- 
- 	setup_irq(irq, &tc_irqaction);
- 
--	clockevents_register_device(&clkevt);
-+	clockevents_register_device(&clkevt.clkevt);
- }
- 
--#else /* !USE_TC_CLKEVT */
-+#else /* !CONFIG_GENERIC_CLOCKEVENTS */
- 
--static void __init setup_clkevents(struct platform_device *pdev,
-+static void __init setup_clkevents(struct atmel_tc *tc,
- 		struct clk *t0_clk, int clk32k_divisor_idx)
- {
- 	/* NOTHING */
-@@ -209,26 +219,22 @@ static int __init tcb_clksrc_init(void)
- 		= KERN_DEBUG "%s: tc%d at %d.%03d MHz\n";
- 
- 	struct platform_device *pdev;
-+	struct atmel_tc *tc;
- 	struct clk *t0_clk, *t1_clk;
- 	u32 rate, divided_rate = 0;
- 	int best_divisor_idx = -1;
- 	int clk32k_divisor_idx = -1;
- 	int i;
--	struct resource *iomem;
- 
--	pdev = atmel_tc_alloc(CONFIG_ATMEL_TCB_CLKSRC_BLOCK, &iomem);
--	if (pdev == NULL) {
-+	tc = atmel_tc_alloc(CONFIG_ATMEL_TCB_CLKSRC_BLOCK, clksrc.name);
-+	if (!tc) {
- 		pr_debug("can't alloc TC for clocksource\n");
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
  		return -ENODEV;
+ 
+ 	if (tty->flags & (1 << TTY_IO_ERROR))
+@@ -1276,7 +1276,7 @@ static int rs_360_tiocmset(struct tty_st
+ 	ser_info_t *info = (ser_info_t *)tty->driver_data;
+  	unsigned int arg;
+ 
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
+ 		return -ENODEV;
+ 
+ 	if (tty->flags & (1 << TTY_IO_ERROR))
+diff -puN drivers/serial/8250_early.c~serial-replace-remaining-__function__-occurrences drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/8250_early.c
+@@ -156,7 +156,7 @@ static int __init parse_options(struct e
+ 		port->membase = ioremap(port->mapbase, 64);
+ 		if (!port->membase) {
+ 			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
+-				__FUNCTION__,
++				__func__,
+ 			       (unsigned long long)port->mapbase);
+ 			return -ENOMEM;
+ 		}
+diff -puN drivers/serial/bfin_5xx.c~serial-replace-remaining-__function__-occurrences drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/bfin_5xx.c
+@@ -766,7 +766,7 @@ bfin_serial_set_termios(struct uart_port
+ 		break;
+ 	default:
+ 		printk(KERN_ERR "%s: word lengh not supported\n",
+-			__FUNCTION__);
++			__func__);
  	}
--	rename_region(iomem, clksrc.name);
--	tcaddr = ioremap(iomem->start, 256);
-+	tcaddr = tc->regs;
-+	pdev = tc->pdev;
  
--	t0_clk = clk_get(&pdev->dev, "t0_clk");
--	if (IS_ERR(t0_clk)) {
--		atmel_tc_free(pdev);
--		return PTR_ERR(t0_clk);
--	}
-+	t0_clk = tc->clk[0];
- 	clk_enable(t0_clk);
+ 	if (termios->c_cflag & CSTOPB)
+@@ -1012,7 +1012,7 @@ bfin_serial_console_get_options(struct b
  
- 	/* How fast will we be counting?  Pick something over 5 MHz.  */
-@@ -259,14 +265,10 @@ static int __init tcb_clksrc_init(void)
- 			divided_rate / 1000000,
- 			((divided_rate + 500000) % 1000000) / 1000);
+ 		*baud = get_sclk() / (16*(dll | dlh << 8));
+ 	}
+-	pr_debug("%s:baud = %d, parity = %c, bits= %d\n", __FUNCTION__, *baud, *parity, *bits);
++	pr_debug("%s:baud = %d, parity = %c, bits= %d\n", __func__, *baud, *parity, *bits);
+ }
+ #endif
  
--	/* Some platforms (like at91rm9200, at91sam9260, etc) have one clock
--	 * (and IRQ) per timer.  Others (at91sam9263, ap700x, etc) don't.
-+	/* tclib will give us three clocks no matter what the
-+	 * underlying platform supports.
- 	 */
--	t1_clk = clk_get(&pdev->dev, "t1_clk");
--	if (IS_ERR(t1_clk))
--		t1_clk = t0_clk;
--	else
--		clk_enable(t1_clk);
-+	clk_enable(tc->clk[1]);
+diff -puN drivers/serial/cpm_uart/cpm_uart_core.c~serial-replace-remaining-__function__-occurrences drivers/serial/cpm_uart/cpm_uart_core.c
+--- a/drivers/serial/cpm_uart/cpm_uart_core.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/cpm_uart/cpm_uart_core.c
+@@ -1118,7 +1118,7 @@ int cpm_uart_drv_get_platform_data(struc
  
- 	/* channel 0:  waveform mode, input mclk/8, clock TIOA0 on overflow */
- 	__raw_writel(best_divisor_idx			/* likely divide-by-8 */
-@@ -296,7 +298,7 @@ static int __init tcb_clksrc_init(void)
- 	clocksource_register(&clksrc);
+ 	line = cpm_uart_id2nr(idx);
+ 	if(line < 0) {
+-		printk(KERN_ERR"%s(): port %d is not registered", __FUNCTION__, idx);
++		printk(KERN_ERR"%s(): port %d is not registered", __func__, idx);
+ 		return -EINVAL;
+ 	}
  
- 	/* channel 2:  periodic and oneshot timer support */
--	setup_clkevents(pdev, t0_clk, clk32k_divisor_idx);
-+	setup_clkevents(tc, t0_clk, clk32k_divisor_idx);
+diff -puN drivers/serial/crisv10.c~serial-replace-remaining-__function__-occurrences drivers/serial/crisv10.c
+--- a/drivers/serial/crisv10.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/crisv10.c
+@@ -1788,7 +1788,7 @@ static unsigned int handle_descr_data(st
  
+ 	if (info->recv_cnt + recvl > 65536) {
+ 		printk(KERN_CRIT
+-		       "%s: Too much pending incoming serial data! Dropping %u bytes.\n", __FUNCTION__, recvl);
++		       "%s: Too much pending incoming serial data! Dropping %u bytes.\n", __func__, recvl);
+ 		return 0;
+ 	}
+ 
+@@ -1801,7 +1801,7 @@ static unsigned int handle_descr_data(st
+ 	append_recv_buffer(info, buffer);
+ 
+ 	if (!(buffer = alloc_recv_buffer(SERIAL_DESCR_BUF_SIZE)))
+-		panic("%s: Failed to allocate memory for receive buffer!\n", __FUNCTION__);
++		panic("%s: Failed to allocate memory for receive buffer!\n", __func__);
+ 
+ 	descr->buf = virt_to_phys(buffer->buffer);
+ 
+@@ -1925,7 +1925,7 @@ static int start_recv_dma(struct e100_se
+ 	/* Set up the receiving descriptors */
+ 	for (i = 0; i < SERIAL_RECV_DESCRIPTORS; i++) {
+ 		if (!(buffer = alloc_recv_buffer(SERIAL_DESCR_BUF_SIZE)))
+-			panic("%s: Failed to allocate memory for receive buffer!\n", __FUNCTION__);
++			panic("%s: Failed to allocate memory for receive buffer!\n", __func__);
+ 
+ 		descr[i].ctrl = d_int;
+ 		descr[i].buf = virt_to_phys(buffer->buffer);
+@@ -4520,7 +4520,7 @@ rs_init(void)
+ 
+ 	if (request_irq(SERIAL_IRQ_NBR, ser_interrupt,
+ 			IRQF_SHARED | IRQF_DISABLED, "serial ", driver))
+-		panic("%s: Failed to request irq8", __FUNCTION__);
++		panic("%s: Failed to request irq8", __func__);
+ 
+ #endif
+ #endif /* CONFIG_SVINTO_SIM */
+diff -puN drivers/serial/ioc3_serial.c~serial-replace-remaining-__function__-occurrences drivers/serial/ioc3_serial.c
+--- a/drivers/serial/ioc3_serial.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/ioc3_serial.c
+@@ -52,7 +52,7 @@ static unsigned int Submodule_slot;
+ #define DPRINT_CONFIG(_x...)	;
+ //#define DPRINT_CONFIG(_x...)  printk _x
+ #define NOT_PROGRESS()	;
+-//#define NOT_PROGRESS()	printk("%s : fails %d\n", __FUNCTION__, __LINE__)
++//#define NOT_PROGRESS()	printk("%s : fails %d\n", __func__, __LINE__)
+ 
+ /* number of characters we want to transmit to the lower level at a time */
+ #define MAX_CHARS		256
+@@ -445,7 +445,7 @@ static int inline port_init(struct ioc3_
+ 		sbbr_h = &idd->vma->sbbr_h;
+ 		ring_pci_addr = (unsigned long __iomem)port->ip_dma_ringbuf;
+ 		DPRINT_CONFIG(("%s: ring_pci_addr 0x%p\n",
+-			       __FUNCTION__, (void *)ring_pci_addr));
++			       __func__, (void *)ring_pci_addr));
+ 
+ 		writel((unsigned int)((uint64_t) ring_pci_addr >> 32), sbbr_h);
+ 		writel((unsigned int)ring_pci_addr | BUF_SIZE_BIT, sbbr_l);
+@@ -593,7 +593,7 @@ config_port(struct ioc3_port *port,
+ 
+ 	DPRINT_CONFIG(("%s: line %d baud %d byte_size %d stop %d parenb %d "
+ 			"parodd %d\n",
+-		       __FUNCTION__, ((struct uart_port *)port->ip_port)->line,
++		       __func__, ((struct uart_port *)port->ip_port)->line,
+ 			baud, byte_size, stop_bits, parenb, parodd));
+ 
+ 	if (set_baud(port, baud))
+@@ -871,14 +871,14 @@ static int ioc3_set_proto(struct ioc3_po
+ 	default:
+ 	case PROTO_RS232:
+ 		/* Clear the appropriate GIO pin */
+-		DPRINT_CONFIG(("%s: rs232\n", __FUNCTION__));
++		DPRINT_CONFIG(("%s: rs232\n", __func__));
+ 		writel(0, (&port->ip_idd->vma->gppr[0]
+ 					+ hooks->rs422_select_pin));
+ 		break;
+ 
+ 	case PROTO_RS422:
+ 		/* Set the appropriate GIO pin */
+-		DPRINT_CONFIG(("%s: rs422\n", __FUNCTION__));
++		DPRINT_CONFIG(("%s: rs422\n", __func__));
+ 		writel(1, (&port->ip_idd->vma->gppr[0]
+ 					+ hooks->rs422_select_pin));
+ 		break;
+@@ -988,7 +988,7 @@ ioc3_change_speed(struct uart_port *the_
+ 	}
+ 	baud = uart_get_baud_rate(the_port, new_termios, old_termios,
+ 				  MIN_BAUD_SUPPORTED, MAX_BAUD_SUPPORTED);
+-	DPRINT_CONFIG(("%s: returned baud %d for line %d\n", __FUNCTION__, baud,
++	DPRINT_CONFIG(("%s: returned baud %d for line %d\n", __func__, baud,
+ 				the_port->line));
+ 
+ 	if (!the_port->fifosize)
+@@ -1026,7 +1026,7 @@ ioc3_change_speed(struct uart_port *the_
+ 	DPRINT_CONFIG(("%s : port 0x%p line %d cflag 0%o "
+ 		       "config_port(baud %d data %d stop %d penable %d "
+ 			" parity %d), notification 0x%x\n",
+-		       __FUNCTION__, (void *)port, the_port->line, cflag, baud,
++		       __func__, (void *)port, the_port->line, cflag, baud,
+ 		       new_data, new_stop, new_parity_enable, new_parity,
+ 		       the_port->ignore_status_mask));
+ 
+@@ -1919,7 +1919,7 @@ static inline int ioc3_serial_core_attac
+ 	struct pci_dev *pdev = idd->pdev;
+ 
+ 	DPRINT_CONFIG(("%s: attach pdev 0x%p - card_ptr 0x%p\n",
+-		       __FUNCTION__, pdev, (void *)card_ptr));
++		       __func__, pdev, (void *)card_ptr));
+ 
+ 	if (!card_ptr)
+ 		return -ENODEV;
+@@ -1933,7 +1933,7 @@ static inline int ioc3_serial_core_attac
+ 		port->ip_port = the_port;
+ 
+ 		DPRINT_CONFIG(("%s: attach the_port 0x%p / port 0x%p [%d/%d]\n",
+-			__FUNCTION__, (void *)the_port, (void *)port,
++			__func__, (void *)the_port, (void *)port,
+ 				phys_port, ii));
+ 
+ 		/* membase, iobase and mapbase just need to be non-0 */
+@@ -1950,7 +1950,7 @@ static inline int ioc3_serial_core_attac
+ 		if (uart_add_one_port(&ioc3_uart, the_port) < 0) {
+ 			printk(KERN_WARNING
+ 		          "%s: unable to add port %d bus %d\n",
+-			       __FUNCTION__, the_port->line, pdev->bus->number);
++			       __func__, the_port->line, pdev->bus->number);
+ 		} else {
+ 			DPRINT_CONFIG(("IOC3 serial port %d irq %d bus %d\n",
+ 		          the_port->line, the_port->irq, pdev->bus->number));
+@@ -2017,7 +2017,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 	struct ioc3_port *ports[PORTS_PER_CARD];
+ 	int phys_port;
+ 
+-	DPRINT_CONFIG(("%s (0x%p, 0x%p)\n", __FUNCTION__, is, idd));
++	DPRINT_CONFIG(("%s (0x%p, 0x%p)\n", __func__, is, idd));
+ 
+ 	card_ptr = kzalloc(sizeof(struct ioc3_card), GFP_KERNEL);
+ 	if (!card_ptr) {
+@@ -2067,7 +2067,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 
+ 			DPRINT_CONFIG(("%s : Port A ip_serial_regs 0x%p "
+ 				       "ip_uart_regs 0x%p\n",
+-				       __FUNCTION__,
++				       __func__,
+ 				       (void *)port->ip_serial_regs,
+ 				       (void *)port->ip_uart_regs));
+ 
+@@ -2082,7 +2082,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 			DPRINT_CONFIG(("%s : Port A ip_cpu_ringbuf 0x%p "
+ 				       "ip_dma_ringbuf 0x%p, ip_inring 0x%p "
+ 					"ip_outring 0x%p\n",
+-				       __FUNCTION__,
++				       __func__,
+ 				       (void *)port->ip_cpu_ringbuf,
+ 				       (void *)port->ip_dma_ringbuf,
+ 				       (void *)port->ip_inring,
+@@ -2094,7 +2094,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 
+ 			DPRINT_CONFIG(("%s : Port B ip_serial_regs 0x%p "
+ 				       "ip_uart_regs 0x%p\n",
+-				       __FUNCTION__,
++				       __func__,
+ 				       (void *)port->ip_serial_regs,
+ 				       (void *)port->ip_uart_regs));
+ 
+@@ -2108,7 +2108,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 			DPRINT_CONFIG(("%s : Port B ip_cpu_ringbuf 0x%p "
+ 				       "ip_dma_ringbuf 0x%p, ip_inring 0x%p "
+ 					"ip_outring 0x%p\n",
+-				       __FUNCTION__,
++				       __func__,
+ 				       (void *)port->ip_cpu_ringbuf,
+ 				       (void *)port->ip_dma_ringbuf,
+ 				       (void *)port->ip_inring,
+@@ -2116,7 +2116,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 		}
+ 
+ 		DPRINT_CONFIG(("%s : port %d [addr 0x%p] card_ptr 0x%p",
+-			       __FUNCTION__,
++			       __func__,
+ 			       phys_port, (void *)port, (void *)card_ptr));
+ 		DPRINT_CONFIG((" ip_serial_regs 0x%p ip_uart_regs 0x%p\n",
+ 			       (void *)port->ip_serial_regs,
+@@ -2127,7 +2127,7 @@ ioc3uart_probe(struct ioc3_submodule *is
+ 
+ 		DPRINT_CONFIG(("%s: phys_port %d port 0x%p inring 0x%p "
+ 			       "outring 0x%p\n",
+-			       __FUNCTION__,
++			       __func__,
+ 			       phys_port, (void *)port,
+ 			       (void *)port->ip_inring,
+ 			       (void *)port->ip_outring));
+@@ -2170,7 +2170,7 @@ static int __devinit ioc3uart_init(void)
+ 	if ((ret = uart_register_driver(&ioc3_uart)) < 0) {
+ 		printk(KERN_WARNING
+ 		       "%s: Couldn't register IOC3 uart serial driver\n",
+-		       __FUNCTION__);
++		       __func__);
+ 		return ret;
+ 	}
+ 	ret = ioc3_register_submodule(&ioc3uart_submodule);
+diff -puN drivers/serial/ioc4_serial.c~serial-replace-remaining-__function__-occurrences drivers/serial/ioc4_serial.c
+--- a/drivers/serial/ioc4_serial.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/ioc4_serial.c
+@@ -889,7 +889,7 @@ static int inline port_init(struct ioc4_
+ 
+ 		ring_pci_addr = (unsigned long __iomem)port->ip_dma_ringbuf;
+ 		DPRINT_CONFIG(("%s: ring_pci_addr 0x%lx\n",
+-					__FUNCTION__, ring_pci_addr));
++					__func__, ring_pci_addr));
+ 
+ 		writel((unsigned int)((uint64_t)ring_pci_addr >> 32), sbbr_h);
+ 		writel((unsigned int)ring_pci_addr | IOC4_BUF_SIZE_BIT, sbbr_l);
+@@ -1028,7 +1028,7 @@ static irqreturn_t ioc4_intr(int irq, vo
+ 		spin_lock_irqsave(&soft->is_ir_lock, flag);
+ 		printk ("%s : %d : mem 0x%p sio_ir 0x%x sio_ies 0x%x "
+ 				"other_ir 0x%x other_ies 0x%x mask 0x%x\n",
+-		     __FUNCTION__, __LINE__,
++		     __func__, __LINE__,
+ 		     (void *)mem, readl(&mem->sio_ir.raw),
+ 		     readl(&mem->sio_ies.raw),
+ 		     readl(&mem->other_ir.raw),
+@@ -1155,14 +1155,14 @@ static int inline ioc4_attach_local(stru
+ 				(TOTAL_RING_BUF_SIZE - 1)) == 0));
+ 			DPRINT_CONFIG(("%s : ip_cpu_ringbuf 0x%p "
+ 						"ip_dma_ringbuf 0x%p\n",
+-					__FUNCTION__,
++					__func__,
+ 					(void *)port->ip_cpu_ringbuf,
+ 					(void *)port->ip_dma_ringbuf));
+ 			port->ip_inring = RING(port, RX_0_OR_2);
+ 			port->ip_outring = RING(port, TX_0_OR_2);
+ 		}
+ 		DPRINT_CONFIG(("%s : port %d [addr 0x%p] control 0x%p",
+-				__FUNCTION__,
++				__func__,
+ 				port_number, (void *)port, (void *)control));
+ 		DPRINT_CONFIG((" ip_serial_regs 0x%p ip_uart_regs 0x%p\n",
+ 				(void *)port->ip_serial_regs,
+@@ -1173,7 +1173,7 @@ static int inline ioc4_attach_local(stru
+ 
+ 		DPRINT_CONFIG(("%s: port_number %d port 0x%p inring 0x%p "
+ 						"outring 0x%p\n",
+-				__FUNCTION__,
++				__func__,
+ 				port_number, (void *)port,
+ 				(void *)port->ip_inring,
+ 				(void *)port->ip_outring));
+@@ -1317,7 +1317,7 @@ config_port(struct ioc4_port *port,
+ 	int spiniter = 0;
+ 
+ 	DPRINT_CONFIG(("%s: baud %d byte_size %d stop %d parenb %d parodd %d\n",
+-		__FUNCTION__, baud, byte_size, stop_bits, parenb, parodd));
++		__func__, baud, byte_size, stop_bits, parenb, parodd));
+ 
+ 	if (set_baud(port, baud))
+ 		return 1;
+@@ -1725,7 +1725,7 @@ ioc4_change_speed(struct uart_port *the_
+ 	}
+ 	baud = uart_get_baud_rate(the_port, new_termios, old_termios,
+ 				MIN_BAUD_SUPPORTED, MAX_BAUD_SUPPORTED);
+-	DPRINT_CONFIG(("%s: returned baud %d\n", __FUNCTION__, baud));
++	DPRINT_CONFIG(("%s: returned baud %d\n", __func__, baud));
+ 
+ 	/* default is 9600 */
+ 	if (!baud)
+@@ -1765,7 +1765,7 @@ ioc4_change_speed(struct uart_port *the_
+ 	DPRINT_CONFIG(("%s : port 0x%p cflag 0%o "
+ 		"config_port(baud %d data %d stop %d p enable %d parity %d),"
+ 		" notification 0x%x\n",
+-	     __FUNCTION__, (void *)port, cflag, baud, new_data, new_stop,
++	     __func__, (void *)port, cflag, baud, new_data, new_stop,
+ 	     new_parity_enable, new_parity, the_port->ignore_status_mask));
+ 
+ 	if ((config_port(port, baud,		/* baud */
+@@ -2715,7 +2715,7 @@ ioc4_serial_core_attach(struct pci_dev *
+ 
+ 
+ 	DPRINT_CONFIG(("%s: attach pdev 0x%p - control 0x%p\n",
+-			__FUNCTION__, pdev, (void *)control));
++			__func__, pdev, (void *)control));
+ 
+ 	if (!control)
+ 		return -ENODEV;
+@@ -2734,7 +2734,7 @@ ioc4_serial_core_attach(struct pci_dev *
+ 		port->ip_all_ports[port_type_idx] = the_port;
+ 
+ 		DPRINT_CONFIG(("%s: attach the_port 0x%p / port 0x%p : type %s\n",
+-				__FUNCTION__, (void *)the_port,
++				__func__, (void *)the_port,
+ 				(void *)port,
+ 				port_type == PROTO_RS232 ? "rs232" : "rs422"));
+ 
+@@ -2752,7 +2752,7 @@ ioc4_serial_core_attach(struct pci_dev *
+ 		if (uart_add_one_port(u_driver, the_port) < 0) {
+ 			printk(KERN_WARNING
+ 		           "%s: unable to add port %d bus %d\n",
+-			       __FUNCTION__, the_port->line, pdev->bus->number);
++			       __func__, the_port->line, pdev->bus->number);
+ 		} else {
+ 			DPRINT_CONFIG(
+ 			    ("IOC4 serial port %d irq = %d, bus %d\n",
+@@ -2777,7 +2777,7 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 	int ret = 0;
+ 
+ 
+-	DPRINT_CONFIG(("%s (0x%p, 0x%p)\n", __FUNCTION__, idd->idd_pdev,
++	DPRINT_CONFIG(("%s (0x%p, 0x%p)\n", __func__, idd->idd_pdev,
+ 							idd->idd_pci_id));
+ 
+ 	/* PCI-RT does not bring out serial connections.
+@@ -2806,7 +2806,7 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 		goto out2;
+ 	}
+ 	DPRINT_CONFIG(("%s : mem 0x%p, serial 0x%p\n",
+-				__FUNCTION__, (void *)idd->idd_misc_regs,
++				__func__, (void *)idd->idd_misc_regs,
+ 				(void *)serial));
+ 
+ 	/* Get memory for the new card */
+@@ -2858,7 +2858,7 @@ ioc4_serial_attach_one(struct ioc4_drive
+ 	} else {
+ 		printk(KERN_WARNING
+ 		    "%s : request_irq fails for IRQ 0x%x\n ",
+-			__FUNCTION__, idd->idd_pdev->irq);
++			__func__, idd->idd_pdev->irq);
+ 	}
+ 	ret = ioc4_attach_local(idd);
+ 	if (ret)
+@@ -2911,13 +2911,13 @@ int ioc4_serial_init(void)
+ 	if ((ret = uart_register_driver(&ioc4_uart_rs232)) < 0) {
+ 		printk(KERN_WARNING
+ 			"%s: Couldn't register rs232 IOC4 serial driver\n",
+-			__FUNCTION__);
++			__func__);
+ 		return ret;
+ 	}
+ 	if ((ret = uart_register_driver(&ioc4_uart_rs422)) < 0) {
+ 		printk(KERN_WARNING
+ 			"%s: Couldn't register rs422 IOC4 serial driver\n",
+-			__FUNCTION__);
++			__func__);
+ 		return ret;
+ 	}
+ 
+diff -puN drivers/serial/s3c2410.c~serial-replace-remaining-__function__-occurrences drivers/serial/s3c2410.c
+--- a/drivers/serial/s3c2410.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/s3c2410.c
+@@ -1093,13 +1093,13 @@ static int s3c24xx_serial_probe(struct p
+ 	ourport = &s3c24xx_serial_ports[probe_index];
+ 	probe_index++;
+ 
+-	dbg("%s: initialising port %p...\n", __FUNCTION__, ourport);
++	dbg("%s: initialising port %p...\n", __func__, ourport);
+ 
+ 	ret = s3c24xx_serial_init_port(ourport, info, dev);
+ 	if (ret < 0)
+ 		goto probe_err;
+ 
+-	dbg("%s: adding port\n", __FUNCTION__);
++	dbg("%s: adding port\n", __func__);
+ 	uart_add_one_port(&s3c24xx_uart_drv, &ourport->port);
+ 	platform_set_drvdata(dev, &ourport->port);
+ 
+@@ -1584,7 +1584,7 @@ static int s3c2412_serial_resetport(stru
+ 	unsigned long ucon = rd_regl(port, S3C2410_UCON);
+ 
+ 	dbg("%s: port=%p (%08lx), cfg=%p\n",
+-	    __FUNCTION__, port, port->mapbase, cfg);
++	    __func__, port, port->mapbase, cfg);
+ 
+ 	/* ensure we don't change the clock settings... */
+ 
+diff -puN drivers/serial/sa1100.c~serial-replace-remaining-__function__-occurrences drivers/serial/sa1100.c
+--- a/drivers/serial/sa1100.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/sa1100.c
+@@ -655,7 +655,7 @@ void __init sa1100_register_uart_fns(str
+ void __init sa1100_register_uart(int idx, int port)
+ {
+ 	if (idx >= NR_PORTS) {
+-		printk(KERN_ERR "%s: bad index number %d\n", __FUNCTION__, idx);
++		printk(KERN_ERR "%s: bad index number %d\n", __func__, idx);
+ 		return;
+ 	}
+ 
+@@ -682,7 +682,7 @@ void __init sa1100_register_uart(int idx
+ 		break;
+ 
+ 	default:
+-		printk(KERN_ERR "%s: bad port number %d\n", __FUNCTION__, port);
++		printk(KERN_ERR "%s: bad port number %d\n", __func__, port);
+ 	}
+ }
+ 
+diff -puN drivers/serial/sh-sci.c~serial-replace-remaining-__function__-occurrences drivers/serial/sh-sci.c
+--- a/drivers/serial/sh-sci.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/sh-sci.c
+@@ -850,7 +850,7 @@ static int sci_notifier(struct notifier_
+ 
+ 		printk(KERN_INFO "%s: got a postchange notification "
+ 		       "for cpu %d (old %d, new %d)\n",
+-		       __FUNCTION__, freqs->cpu, freqs->old, freqs->new);
++		       __func__, freqs->cpu, freqs->old, freqs->new);
+ 	}
+ 
+ 	return NOTIFY_OK;
+diff -puN drivers/serial/sn_console.c~serial-replace-remaining-__function__-occurrences drivers/serial/sn_console.c
+--- a/drivers/serial/sn_console.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/sn_console.c
+@@ -839,7 +839,7 @@ static int __init sn_sal_module_init(voi
+ 
+ 	if (uart_add_one_port(&sal_console_uart, &sal_console_port.sc_port) < 0) {
+ 		/* error - not sure what I'd do - so I'll do nothing */
+-		printk(KERN_ERR "%s: unable to add port\n", __FUNCTION__);
++		printk(KERN_ERR "%s: unable to add port\n", __func__);
+ 	}
+ 
+ 	/* when this driver is compiled in, the console initialization
+diff -puN drivers/serial/uartlite.c~serial-replace-remaining-__function__-occurrences drivers/serial/uartlite.c
+--- a/drivers/serial/uartlite.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/uartlite.c
+@@ -581,7 +581,7 @@ ulite_of_probe(struct of_device *op, con
+ 	const unsigned int *id;
+ 	int irq, rc;
+ 
+-	dev_dbg(&op->dev, "%s(%p, %p)\n", __FUNCTION__, op, match);
++	dev_dbg(&op->dev, "%s(%p, %p)\n", __func__, op, match);
+ 
+ 	rc = of_address_to_resource(op->node, 0, &res);
+ 	if (rc) {
+diff -puN drivers/serial/ucc_uart.c~serial-replace-remaining-__function__-occurrences drivers/serial/ucc_uart.c
+--- a/drivers/serial/ucc_uart.c~serial-replace-remaining-__function__-occurrences
++++ a/drivers/serial/ucc_uart.c
+@@ -215,7 +215,7 @@ static inline dma_addr_t cpu2qe_addr(voi
+ 		return qe_port->bd_dma_addr + (addr - qe_port->bd_virt);
+ 
+ 	/* something nasty happened */
+-	printk(KERN_ERR "%s: addr=%p\n", __FUNCTION__, addr);
++	printk(KERN_ERR "%s: addr=%p\n", __func__, addr);
+ 	BUG();
  	return 0;
+ }
+@@ -234,7 +234,7 @@ static inline void *qe2cpu_addr(dma_addr
+ 		return qe_port->bd_virt + (addr - qe_port->bd_dma_addr);
+ 
+ 	/* something nasty happened */
+-	printk(KERN_ERR "%s: addr=%x\n", __FUNCTION__, addr);
++	printk(KERN_ERR "%s: addr=%x\n", __func__, addr);
+ 	BUG();
+ 	return NULL;
  }
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-git-acpi.patch
-at91-correct-at91sam9263ek-lcd-power-gpio-pin.patch
-git-avr32.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-usb-net-asix-does-not-really-need-10-100mbit.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
+git-x86.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+arm-replace-remaining-__function__-occurences.patch
+cifs-remove-global_extern-macro.patch
+cifs-replace-remaining-__function__-occurrences.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+ia64-remove-remaining-__function__-occurences.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+sh-replace-remaining-__function__-occurences.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+security-replace-remaining-__function__-occurences.patch
+security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+isdn-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+video-replace-remaining-__function__-occurrences.patch
 rtc-replace-remaining-__function__-occurrences.patch
-atmel_tc-library.patch
-atmel_tc-library-update.patch
-atmel_tc-clocksource-clockevent-code.patch
-atmel_tc-clocksource-clockevent-code-update.patch
-remove-duplicated-unlikely-in-is_err.patch
+fusion-replace-remaining-__function__-occurrences.patch
 
