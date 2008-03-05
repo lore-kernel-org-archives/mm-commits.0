@@ -1,96 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-fix-a-overflow-bug-on-32bit-architectures.patch added to -mm tree
-Date: Wed, 05 Mar 2008 00:20:24 -0500
-Message-ID: <200803050521.m255L8oc016265@imap1.linux-foundation.org>
+Subject: - tridentfb-resource-management-fixes-in-probe-function.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:44:06 -0800
+Message-ID: <200803050744.m257i6TA021482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751668AbYCEFYi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 00:24:38 -0500
+	by vger.kernel.org with ESMTP id S1759679AbYCEHom (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:44:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
+To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parisc: fix a overflow bug on 32bit architectures
-has been added to the -mm tree.  Its filename is
-     parisc-fix-a-overflow-bug-on-32bit-architectures.patch
+     tridentfb: resource management fixes in probe function
+has been removed from the -mm tree.  Its filename was
+     tridentfb-resource-management-fixes-in-probe-function.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: fix a overflow bug on 32bit architectures
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: tridentfb: resource management fixes in probe function
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-On 32bit2 boxes, boundary_size becomes zero due to a overflow and we
-hit BUG_ON in iommu_is_span_boundary.
+Correct error paths in probe function.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+The probe function enables mmio mode so it important to disable the mmio
+mode before exiting the probe function.  Otherwise, the console is left in
+unusable state (garbled fonts at least, lock up at worst).
+
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/ccio-dma.c  |    4 ++--
- drivers/parisc/sba_iommu.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/tridentfb.c |   65 ++++++++++++++++++++++++++----------
+ 1 file changed, 48 insertions(+), 17 deletions(-)
 
-diff -puN drivers/parisc/ccio-dma.c~parisc-fix-a-overflow-bug-on-32bit-architectures drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~parisc-fix-a-overflow-bug-on-32bit-architectures
-+++ a/drivers/parisc/ccio-dma.c
-@@ -366,8 +366,8 @@ ccio_alloc_range(struct ioc *ioc, struct
- 	** ggg sacrifices another 710 to the computer gods.
- 	*/
+diff -puN drivers/video/tridentfb.c~tridentfb-resource-management-fixes-in-probe-function drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-resource-management-fixes-in-probe-function
++++ a/drivers/video/tridentfb.c
+@@ -564,19 +564,46 @@ static inline void write3CE(int reg, uns
+ 	t_outb(val, 0x3CF);
+ }
  
--	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
--	boundary_size >>= IOVP_SHIFT;
-+	boundary_size = ALIGN((unsigned long long)dma_get_seg_boundary(dev) + 1,
-+			      1ULL << IOVP_SHIFT) >> IOVP_SHIFT;
+-static inline void enable_mmio(void)
++static void enable_mmio(void)
+ {
++	unsigned char tmp;
++
+ 	/* Goto New Mode */
+ 	outb(0x0B, 0x3C4);
+ 	inb(0x3C5);
  
- 	if (pages_needed <= 8) {
- 		/*
-diff -puN drivers/parisc/sba_iommu.c~parisc-fix-a-overflow-bug-on-32bit-architectures drivers/parisc/sba_iommu.c
---- a/drivers/parisc/sba_iommu.c~parisc-fix-a-overflow-bug-on-32bit-architectures
-+++ a/drivers/parisc/sba_iommu.c
-@@ -341,8 +341,8 @@ sba_search_bitmap(struct ioc *ioc, struc
- 	unsigned long shift;
- 	int ret;
+ 	/* Unprotect registers */
+ 	outb(NewMode1, 0x3C4);
++	tmp = inb(0x3C5);
+ 	outb(0x80, 0x3C5);
  
--	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
--	boundary_size >>= IOVP_SHIFT;
-+	boundary_size = ALIGN((unsigned long long)dma_get_seg_boundary(dev) + 1,
-+			      1ULL << IOVP_SHIFT) >> IOVP_SHIFT;
+ 	/* Enable MMIO */
+ 	outb(PCIReg, 0x3D4);
+ 	outb(inb(0x3D5) | 0x01, 0x3D5);
++
++	t_outb(NewMode1, 0x3C4);
++	t_outb(tmp, 0x3C5);
++}
++
++static void disable_mmio(void)
++{
++	unsigned char tmp;
++
++	/* Goto New Mode */
++	t_outb(0x0B, 0x3C4);
++	t_inb(0x3C5);
++
++	/* Unprotect registers */
++	t_outb(NewMode1, 0x3C4);
++	tmp = t_inb(0x3C5);
++	t_outb(0x80, 0x3C5);
++
++	/* Disable MMIO */
++	t_outb(PCIReg, 0x3D4);
++	t_outb(t_inb(0x3D5) & ~0x01, 0x3D5);
++
++	outb(NewMode1, 0x3C4);
++	outb(tmp, 0x3C5);
+ }
  
- #if defined(ZX1_SUPPORT)
- 	BUG_ON(ioc->ibase & ~IOVP_MASK);
+ #define crtc_unlock()	write3X4(CRTVSyncEnd, read3X4(CRTVSyncEnd) & 0x7F)
+@@ -1239,9 +1266,9 @@ static int __devinit trident_pci_probe(s
+ 	default_par.io_virt = ioremap_nocache(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ 
+ 	if (!default_par.io_virt) {
+-		release_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ 		debug("ioremap failed\n");
+-		return -1;
++		err = -1;
++		goto out_unmap1;
+ 	}
+ 
+ 	enable_mmio();
+@@ -1252,25 +1279,21 @@ static int __devinit trident_pci_probe(s
+ 
+ 	if (!request_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len, "tridentfb")) {
+ 		debug("request_mem_region failed!\n");
++		disable_mmio();
+ 		err = -1;
+-		goto out_unmap;
++		goto out_unmap1;
+ 	}
+ 
+ 	fb_info.screen_base = ioremap_nocache(tridentfb_fix.smem_start,
+ 					      tridentfb_fix.smem_len);
+ 
+ 	if (!fb_info.screen_base) {
+-		release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+ 		debug("ioremap failed\n");
+ 		err = -1;
+-		goto out_unmap;
++		goto out_unmap2;
+ 	}
+ 
+ 	output("%s board found\n", pci_name(dev));
+-#if 0
+-	output("Trident board found : mem = %X, io = %X, mem_v = %X, io_v = %X\n",
+-		tridentfb_fix.smem_start, tridentfb_fix.mmio_start, fb_info.screen_base, default_par.io_virt);
+-#endif
+ 	displaytype = get_displaytype();
+ 
+ 	if (flatpanel)
+@@ -1288,9 +1311,12 @@ static int __devinit trident_pci_probe(s
+ 
+ 	if (!fb_find_mode(&default_var, &fb_info, mode, NULL, 0, NULL, bpp)) {
+ 		err = -EINVAL;
+-		goto out_unmap;
++		goto out_unmap2;
+ 	}
+-	fb_alloc_cmap(&fb_info.cmap, 256, 0);
++	err = fb_alloc_cmap(&fb_info.cmap, 256, 0);
++	if (err < 0)
++		goto out_unmap2;
++
+ 	if (defaultaccel && acc)
+ 		default_var.accel_flags |= FB_ACCELF_TEXT;
+ 	else
+@@ -1300,19 +1326,24 @@ static int __devinit trident_pci_probe(s
+ 	fb_info.device = &dev->dev;
+ 	if (register_framebuffer(&fb_info) < 0) {
+ 		printk(KERN_ERR "tridentfb: could not register Trident framebuffer\n");
++		fb_dealloc_cmap(&fb_info.cmap);
+ 		err = -EINVAL;
+-		goto out_unmap;
++		goto out_unmap2;
+ 	}
+ 	output("fb%d: %s frame buffer device %dx%d-%dbpp\n",
+ 	   fb_info.node, fb_info.fix.id, default_var.xres,
+ 	   default_var.yres, default_var.bits_per_pixel);
+ 	return 0;
+ 
+-out_unmap:
+-	if (default_par.io_virt)
+-		iounmap(default_par.io_virt);
++out_unmap2:
+ 	if (fb_info.screen_base)
+ 		iounmap(fb_info.screen_base);
++	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
++	disable_mmio();
++out_unmap1:
++	if (default_par.io_virt)
++		iounmap(default_par.io_virt);
++	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ 	return err;
+ }
+ 
+@@ -1323,7 +1354,7 @@ static void __devexit trident_pci_remove
+ 	iounmap(par->io_virt);
+ 	iounmap(fb_info.screen_base);
+ 	release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+-	release_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
++	release_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len);
+ }
+ 
+ /* List of boards that we are trying to support */
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-alpha-convert-iommu-to-use-align.patch
-alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place.patch
-alpha-make-iommu-respect-the-segment-boundary-limits.patch
-alpha-remove-unused-debug_forcedac-define-in-iommu.patch
-iommu-export-iommu_is_span_boundary-helper-function.patch
-iommu-parisc-pass-struct-device-to-iommu_alloc_range.patch
-iommu-parisc-make-the-iommus-respect-the-segment-boundary-limits.patch
-parisc-fix-a-overflow-bug-on-32bit-architectures.patch
-git-scsi-misc.patch
-mpt-fusion-dont-oops-if-numphys==0.patch
+pm2fb-correct-error-values-returned-from-probe-function.patch
+pm2fb-change-option-mode-to-mode_option.patch
+tridentfb-change-option-mode-to-mode_option.patch
+pm3fb-change-option-mode-to-mode_option.patch
+update-modedbtxt-documentation-about-mode_option-parameter-change.patch
+vt8623fb-change-option-mode-to-mode_option.patch
+arkfb-add-option-mode_option.patch
+s3fb-add-option-mode_option.patch
+fbdev-add-removed-option-mode-to-keep-compatibility.patch
 
