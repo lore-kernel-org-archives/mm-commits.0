@@ -1,70 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - md-guard-against-possible-bad-array-geometry-in-v1-metadata.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:25 -0800
-Message-ID: <200803050746.m257kPMC021769@imap1.linux-foundation.org>
+Subject: - md-dont-attempt-read-balancing-for-raid10-far-layouts.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:33 -0800
+Message-ID: <200803050746.m257kXO3021781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764769AbYCEHq3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:29 -0500
+	by vger.kernel.org with ESMTP id S1764500AbYCEHqs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: keld@dkuug.dk, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: guard against possible bad array geometry in v1 metadata
+     md: don't attempt read-balancing for raid10 'far' layouts
 has been removed from the -mm tree.  Its filename was
-     md-guard-against-possible-bad-array-geometry-in-v1-metadata.patch
+     md-dont-attempt-read-balancing-for-raid10-far-layouts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: guard against possible bad array geometry in v1 metadata
-From: NeilBrown <neilb@suse.de>
+Subject: md: don't attempt read-balancing for raid10 'far' layouts
+From: Keld Simonsen <keld@dkuug.dk>
 
-Make sure the data doesn't start before the end of the superblock when the
-superblock is at the start of the device.
+This patch changes the disk to be read for layout "far > 1" to always be the
+disk with the lowest block address.
 
+Thus the chunks to be read will always be (for a fully functioning array) from
+the first band of stripes, and the raid will then work as a raid0 consisting
+of the first band of stripes.
+
+Some advantages:
+
+The fastest part which is the outer sectors of the disks involved will be
+used.  The outer blocks of a disk may be as much as 100 % faster than the
+inner blocks.
+
+Average seek time will be smaller, as seeks will always be confined to the
+first part of the disks.
+
+Mixed disks with different performance characteristics will work better, as
+they will work as raid0, the sequential read rate will be number of disks
+involved times the IO rate of the slowest disk.
+
+If a disk is malfunctioning, the first disk which is working, and has the
+lowest block address for the logical block will be used.
+
+Signed-off-by: Keld Simonsen <keld@dkuug.dk>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/md/raid10.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/md.c~md-guard-against-possible-bad-array-geometry-in-v1-metadata drivers/md/md.c
---- a/drivers/md/md.c~md-guard-against-possible-bad-array-geometry-in-v1-metadata
-+++ a/drivers/md/md.c
-@@ -1105,7 +1105,11 @@ static int super_1_load(mdk_rdev_t *rdev
- 	rdev->sb_size = le32_to_cpu(sb->max_dev) * 2 + 256;
- 	bmask = queue_hardsect_size(rdev->bdev->bd_disk->queue)-1;
- 	if (rdev->sb_size & bmask)
--		rdev-> sb_size = (rdev->sb_size | bmask)+1;
-+		rdev->sb_size = (rdev->sb_size | bmask) + 1;
-+
-+	if (minor_version
-+	    && rdev->data_offset < sb_offset + (rdev->sb_size/512))
-+		return -EINVAL;
+diff -puN drivers/md/raid10.c~md-dont-attempt-read-balancing-for-raid10-far-layouts drivers/md/raid10.c
+--- a/drivers/md/raid10.c~md-dont-attempt-read-balancing-for-raid10-far-layouts
++++ a/drivers/md/raid10.c
+@@ -537,7 +537,8 @@ static int read_balance(conf_t *conf, r1
+ 	current_distance = abs(r10_bio->devs[slot].addr -
+ 			       conf->mirrors[disk].head_position);
  
- 	if (sb->level == cpu_to_le32(LEVEL_MULTIPATH))
- 		rdev->desc_nr = -1;
-@@ -1137,7 +1141,7 @@ static int super_1_load(mdk_rdev_t *rdev
- 		else
- 			ret = 0;
- 	}
--	if (minor_version) 
-+	if (minor_version)
- 		rdev->size = ((rdev->bdev->bd_inode->i_size>>9) - le64_to_cpu(sb->data_offset)) / 2;
- 	else
- 		rdev->size = rdev->sb_offset;
+-	/* Find the disk whose head is closest */
++	/* Find the disk whose head is closest,
++	 * or - for far > 1 - find the closest to partition beginning */
+ 
+ 	for (nslot = slot; nslot < conf->copies; nslot++) {
+ 		int ndisk = r10_bio->devs[nslot].devnum;
+@@ -557,8 +558,13 @@ static int read_balance(conf_t *conf, r1
+ 			slot = nslot;
+ 			break;
+ 		}
+-		new_distance = abs(r10_bio->devs[nslot].addr -
+-				   conf->mirrors[ndisk].head_position);
++
++		/* for far > 1 always use the lowest address */
++		if (conf->far_copies > 1)
++			new_distance = r10_bio->devs[nslot].addr;
++		else
++			new_distance = abs(r10_bio->devs[nslot].addr -
++					   conf->mirrors[ndisk].head_position);
+ 		if (new_distance < current_distance) {
+ 			current_distance = new_distance;
+ 			disk = ndisk;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from keld@dkuug.dk are
 
-git-nfsd.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
 
