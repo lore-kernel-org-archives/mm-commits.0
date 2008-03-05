@@ -1,69 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - driver-core-fix-cleanup-when-failing-device_add.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:47:03 -0800
-Message-ID: <200803050747.m257l3AK021825@imap1.linux-foundation.org>
+Subject: - the-kernel-gets-no-ip-from-some-dhcp-servers.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:47:00 -0800
+Message-ID: <200803050747.m257l0G1021816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763058AbYCEHrt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:49 -0500
+	by vger.kernel.org with ESMTP id S1763058AbYCEHrq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cornelia.huck@de.ibm.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: Marcel.Wappler@bridgeco.net, davem@davemloft.net, kaber@trash.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Driver core: Fix cleanup when failing device_add().
+     The kernel gets no IP from some DHCP servers
 has been removed from the -mm tree.  Its filename was
-     driver-core-fix-cleanup-when-failing-device_add.patch
+     the-kernel-gets-no-ip-from-some-dhcp-servers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Driver core: Fix cleanup when failing device_add().
-From: Cornelia Huck <cornelia.huck@de.ibm.com>
+Subject: The kernel gets no IP from some DHCP servers
+From: "Wappler Marcel" <Marcel.Wappler@bridgeco.net>
 
-- Don't call cleanup_device_parent() if we didn't call setup_parent().
+This patch fixes a DHCP issue of the kernel: some DHCP servers (i.e.  in the
+Linksys WRT54Gv5) are very strict about the contents of the DHCPDISCOVER
+packet they receive from clients.
 
-- dev->kobj.parent may be NULL when cleanup_device_parent() is called, so we
-  need to handle glue_dir == NULL in cleanup_glue_dir().
+Table 5 in RFC2131 page 36 requests the fields 'ciaddr' and 'siaddr' MUST be
+set to '0'.  These DHCP servers ignore Linux kernel's DHCP discovery packets
+with these two fields set to '255.255.255.255' (in contrast to popular DHCP
+clients, such as 'dhclient' or 'udhcpc').  This leads to a not booting system.
 
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+I tested this on a ARM embedded device mounting rootfs over NFS obtaining its
+IP from a Linksys WRT54Gv5 Router running VxWorks and a PC based Server
+running a Linux.  Changing the two fields to '0.0.0.0' worked.
+
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/ipv4/ipconfig.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/core.c~driver-core-fix-cleanup-when-failing-device_add drivers/base/core.c
---- a/drivers/base/core.c~driver-core-fix-cleanup-when-failing-device_add
-+++ a/drivers/base/core.c
-@@ -627,7 +627,8 @@ static struct kobject *get_device_parent
- static void cleanup_glue_dir(struct device *dev, struct kobject *glue_dir)
- {
- 	/* see if we live in a "glue" directory */
--	if (!dev->class || glue_dir->kset != &dev->class->class_dirs)
-+	if (!glue_dir || !dev->class ||
-+	    glue_dir->kset != &dev->class->class_dirs)
- 		return;
+diff -puN net/ipv4/ipconfig.c~the-kernel-gets-no-ip-from-some-dhcp-servers net/ipv4/ipconfig.c
+--- a/net/ipv4/ipconfig.c~the-kernel-gets-no-ip-from-some-dhcp-servers
++++ a/net/ipv4/ipconfig.c
+@@ -29,6 +29,10 @@
+  *
+  *  Multiple Nameservers in /proc/net/pnp
+  *              --  Josef Siemes <jsiemes@web.de>, Aug 2002
++ *
++ *  Bugfix: Not getting an IP from some DHCP servers: RFC2131 page 36
++ *  Table 5 requests DHCPDISCOVER fields ciaddr and siaddr MUST be '0'.
++ *              -- marcel.wappler@bridgeco.net
+  */
  
- 	kobject_put(glue_dir);
-@@ -779,7 +780,7 @@ int device_add(struct device *dev)
- 	dev = get_device(dev);
- 	if (!dev || !strlen(dev->bus_id)) {
- 		error = -EINVAL;
--		goto Error;
-+		goto Done;
+ #include <linux/types.h>
+@@ -103,6 +107,7 @@
+ 					   - '3' from resolv.h */
+ 
+ #define NONE __constant_htonl(INADDR_NONE)
++#define ZERO __constant_htonl(((unsigned long int) 0x00000000))
+ 
+ /*
+  * Public IP configuration
+@@ -754,8 +759,8 @@ static void __init ic_bootp_send_if(stru
+ 		b->htype = dev->type; /* can cause undefined behavior */
  	}
- 
- 	pr_debug("device: '%s': %s\n", dev->bus_id, __FUNCTION__);
+ 	b->hlen = dev->addr_len;
+-	b->your_ip = NONE;
+-	b->server_ip = NONE;
++	b->your_ip = ZERO;
++	b->server_ip = ZERO;
+ 	memcpy(b->hw_addr, dev->dev_addr, dev->addr_len);
+ 	b->secs = htons(jiffies_diff / HZ);
+ 	b->xid = d->xid;
 _
 
-Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
+Patches currently in -mm which might be from Marcel.Wappler@bridgeco.net are
 
 
