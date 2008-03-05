@@ -1,262 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-indicate-kretprobe-support-in-kconfig.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:43:58 -0800
-Message-ID: <200803050743.m257hwaO021462@imap1.linux-foundation.org>
+Subject: - memory-controller-rename-to-memory-resource-controller.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:44:04 -0800
+Message-ID: <200803050744.m257i4bb021477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760821AbYCEHpC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:02 -0500
+	by vger.kernel.org with ESMTP id S1760650AbYCEHo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ananth@in.ibm.com, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kprobes: indicate kretprobe support in Kconfig
+     Memory controller: rename to Memory Resource Controller
 has been removed from the -mm tree.  Its filename was
-     kprobes-indicate-kretprobe-support-in-kconfig.patch
+     memory-controller-rename-to-memory-resource-controller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Kprobes: indicate kretprobe support in Kconfig
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Subject: Memory controller: rename to Memory Resource Controller
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Add CONFIG_HAVE_KRETPROBES to the arch/<arch>/Kconfig file for relevant
-architectures with kprobes support.  This facilitates easy handling of
-in-kernel modules (like samples/kprobes/kretprobe_example.c) that depend on
-kretprobes being present in the kernel.
+Rename Memory Controller to Memory Resource Controller.  Reflect the same
+changes in the CONFIG definition for the Memory Resource Controller.  Group
+together the config options for Resource Counters and Memory Resource
+Controller.
 
-Thanks to Sam Ravnborg for helping make the patch more lean.
-
-Per Mathieu's suggestion, added CONFIG_KRETPROBES and fixed up dependencies.
-
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                  |    7 +++++++
- arch/arm/Kconfig              |    1 +
- arch/ia64/Kconfig             |    1 +
- arch/powerpc/Kconfig          |    1 +
- arch/s390/Kconfig             |    1 +
- arch/sparc64/Kconfig          |    1 +
- arch/x86/Kconfig              |    1 +
- include/asm-arm/kprobes.h     |    1 -
- include/asm-ia64/kprobes.h    |    1 -
- include/asm-powerpc/kprobes.h |    1 -
- include/asm-s390/kprobes.h    |    1 -
- include/asm-sparc64/kprobes.h |    2 --
- include/asm-x86/kprobes.h     |    1 -
- include/linux/kprobes.h       |    6 +++---
- kernel/kprobes.c              |    9 +++------
- 15 files changed, 19 insertions(+), 16 deletions(-)
+ Documentation/controllers/memory.txt |    8 +++++-
+ include/linux/cgroup_subsys.h        |    2 -
+ include/linux/memcontrol.h           |    4 +--
+ include/linux/mm_types.h             |    4 +--
+ init/Kconfig                         |   30 ++++++++++++-------------
+ mm/Makefile                          |    2 -
+ mm/oom_kill.c                        |    2 -
+ mm/vmscan.c                          |    4 +--
+ 8 files changed, 30 insertions(+), 26 deletions(-)
 
-diff -puN arch/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/Kconfig
---- a/arch/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/Kconfig
-@@ -27,5 +27,12 @@ config KPROBES
- 	  for kernel debugging, non-intrusive instrumentation and testing.
- 	  If in doubt, say "N".
- 
-+config KRETPROBES
-+	def_bool y
-+	depends on KPROBES && HAVE_KRETPROBES
+diff -puN Documentation/controllers/memory.txt~memory-controller-rename-to-memory-resource-controller Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memory-controller-rename-to-memory-resource-controller
++++ a/Documentation/controllers/memory.txt
+@@ -1,4 +1,8 @@
+-Memory Controller
++Memory Resource Controller
 +
- config HAVE_KPROBES
- 	def_bool n
-+
-+config HAVE_KRETPROBES
-+	def_bool n
-diff -puN arch/arm/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/arm/Kconfig
---- a/arch/arm/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/arm/Kconfig
-@@ -12,6 +12,7 @@ config ARM
- 	select SYS_SUPPORTS_APM_EMULATION
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES if (!XIP_KERNEL)
-+	select HAVE_KRETPROBES if (HAVE_KPROBES)
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/ia64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/ia64/Kconfig
-@@ -18,6 +18,7 @@ config IA64
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/powerpc/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/powerpc/Kconfig
-@@ -90,6 +90,7 @@ config PPC
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
++NOTE: The Memory Resource Controller has been generically been referred
++to as the memory controller in this document. Do not confuse memory controller
++used here with the memory controller that is used in hardware.
  
- config EARLY_PRINTK
- 	bool
-diff -puN arch/s390/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/s390/Kconfig
---- a/arch/s390/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/s390/Kconfig
-@@ -61,6 +61,7 @@ config S390
- 	def_bool y
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
+ Salient features
  
- source "init/Kconfig"
+@@ -152,7 +156,7 @@ The memory controller uses the following
  
-diff -puN arch/sparc64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/sparc64/Kconfig
-@@ -10,6 +10,7 @@ config SPARC
- 	default y
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
+ a. Enable CONFIG_CGROUPS
+ b. Enable CONFIG_RESOURCE_COUNTERS
+-c. Enable CONFIG_CGROUP_MEM_CONT
++c. Enable CONFIG_CGROUP_MEM_RES_CTLR
  
- config SPARC64
- 	bool
-diff -puN arch/x86/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/arch/x86/Kconfig
-@@ -21,6 +21,7 @@ config X86
- 	select HAVE_IDE
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
-+	select HAVE_KRETPROBES
- 	select HAVE_KVM if ((X86_32 && !X86_VOYAGER && !X86_VISWS && !X86_NUMAQ) || X86_64)
+ 1. Prepare the cgroups
+ # mkdir -p /cgroups
+diff -puN include/linux/cgroup_subsys.h~memory-controller-rename-to-memory-resource-controller include/linux/cgroup_subsys.h
+--- a/include/linux/cgroup_subsys.h~memory-controller-rename-to-memory-resource-controller
++++ a/include/linux/cgroup_subsys.h
+@@ -37,7 +37,7 @@ SUBSYS(cpuacct)
  
+ /* */
  
-diff -puN include/asm-arm/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-arm/kprobes.h
---- a/include/asm-arm/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-arm/kprobes.h
-@@ -20,7 +20,6 @@
- #include <linux/ptrace.h>
- #include <linux/percpu.h>
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define __ARCH_WANT_KPROBES_INSN_SLOT
- #define MAX_INSN_SIZE			2
- #define MAX_STACK_SIZE			64	/* 32 would probably be OK */
-diff -puN include/asm-ia64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-ia64/kprobes.h
-@@ -82,7 +82,6 @@ struct kprobe_ctlblk {
- 	struct prev_kprobe prev_kprobe[ARCH_PREV_KPROBE_SZ];
- };
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define kretprobe_blacklist_size 0
- 
- #define SLOT0_OPCODE_SHIFT	(37)
-diff -puN include/asm-powerpc/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-powerpc/kprobes.h
---- a/include/asm-powerpc/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-powerpc/kprobes.h
-@@ -80,7 +80,6 @@ typedef unsigned int kprobe_opcode_t;
- #define is_trap(instr)	(IS_TW(instr) || IS_TWI(instr))
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ SUBSYS(mem_cgroup)
  #endif
  
--#define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
- #define kretprobe_blacklist_size 0
+diff -puN include/linux/memcontrol.h~memory-controller-rename-to-memory-resource-controller include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-rename-to-memory-resource-controller
++++ a/include/linux/memcontrol.h
+@@ -25,7 +25,7 @@ struct page_cgroup;
+ struct page;
+ struct mm_struct;
  
-diff -puN include/asm-s390/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-s390/kprobes.h
---- a/include/asm-s390/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-s390/kprobes.h
-@@ -46,7 +46,6 @@ typedef u16 kprobe_opcode_t;
- 	? (MAX_STACK_SIZE) \
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
  
--#define ARCH_SUPPORTS_KRETPROBES
- #define kretprobe_blacklist_size 0
+ extern void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p);
+ extern void mm_free_cgroup(struct mm_struct *mm);
+@@ -72,7 +72,7 @@ extern long mem_cgroup_calc_reclaim_acti
+ extern long mem_cgroup_calc_reclaim_inactive(struct mem_cgroup *mem,
+ 				struct zone *zone, int priority);
  
- #define KPROBE_SWAP_INST	0x10
-diff -puN include/asm-sparc64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-sparc64/kprobes.h
---- a/include/asm-sparc64/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-sparc64/kprobes.h
-@@ -14,8 +14,6 @@ typedef u32 kprobe_opcode_t;
+-#else /* CONFIG_CGROUP_MEM_CONT */
++#else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ static inline void mm_init_cgroup(struct mm_struct *mm,
+ 					struct task_struct *p)
+ {
+diff -puN include/linux/mm_types.h~memory-controller-rename-to-memory-resource-controller include/linux/mm_types.h
+--- a/include/linux/mm_types.h~memory-controller-rename-to-memory-resource-controller
++++ a/include/linux/mm_types.h
+@@ -88,7 +88,7 @@ struct page {
+ 	void *virtual;			/* Kernel virtual address (NULL if
+ 					   not kmapped, ie. highmem) */
+ #endif /* WANT_PAGE_VIRTUAL */
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 	unsigned long page_cgroup;
+ #endif
+ };
+@@ -222,7 +222,7 @@ struct mm_struct {
+ 	/* aio bits */
+ 	rwlock_t		ioctx_list_lock;
+ 	struct kioctx		*ioctx_list;
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 	struct mem_cgroup *mem_cgroup;
+ #endif
+ };
+diff -puN init/Kconfig~memory-controller-rename-to-memory-resource-controller init/Kconfig
+--- a/init/Kconfig~memory-controller-rename-to-memory-resource-controller
++++ a/init/Kconfig
+@@ -366,6 +366,21 @@ config RESOURCE_COUNTERS
+           infrastructure that works with cgroups
+ 	depends on CGROUPS
  
- #define arch_remove_kprobe(p)	do {} while (0)
++config CGROUP_MEM_RES_CTLR
++	bool "Memory Resource Controller for Control Groups"
++	depends on CGROUPS && RESOURCE_COUNTERS
++	help
++	  Provides a memory resource controller that manages both page cache and
++	  RSS memory.
++
++	  Note that setting this option increases fixed memory overhead
++	  associated with each page of memory in the system by 4/8 bytes
++	  and also increases cache misses because struct page on many 64bit
++	  systems will not fit into a single cache line anymore.
++
++	  Only enable when you're ok with these trade offs and really
++	  sure you need the memory resource controller.
++
+ config SYSFS_DEPRECATED
+ 	bool "Create deprecated sysfs files"
+ 	depends on SYSFS
+@@ -387,21 +402,6 @@ config SYSFS_DEPRECATED
+ 	  If you are using a distro that was released in 2006 or later,
+ 	  it should be safe to say N here.
  
--#define ARCH_SUPPORTS_KRETPROBES
+-config CGROUP_MEM_CONT
+-	bool "Memory controller for cgroups"
+-	depends on CGROUPS && RESOURCE_COUNTERS
+-	help
+-	  Provides a memory controller that manages both page cache and
+-	  RSS memory.
 -
- #define flush_insn_slot(p)		\
- do { 	flushi(&(p)->ainsn.insn[0]);	\
- 	flushi(&(p)->ainsn.insn[1]);	\
-diff -puN include/asm-x86/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/asm-x86/kprobes.h
---- a/include/asm-x86/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/asm-x86/kprobes.h
-@@ -42,7 +42,6 @@ typedef u8 kprobe_opcode_t;
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE \
- 	   - (unsigned long)(ADDR)))
- 
--#define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
- 
- extern const int kretprobe_blacklist_size;
-diff -puN include/linux/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/include/linux/kprobes.h
-@@ -125,11 +125,11 @@ struct jprobe {
- DECLARE_PER_CPU(struct kprobe *, current_kprobe);
- DECLARE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
--#ifdef ARCH_SUPPORTS_KRETPROBES
-+#ifdef CONFIG_KRETPROBES
- extern void arch_prepare_kretprobe(struct kretprobe_instance *ri,
- 				   struct pt_regs *regs);
- extern int arch_trampoline_kprobe(struct kprobe *p);
--#else /* ARCH_SUPPORTS_KRETPROBES */
-+#else /* CONFIG_KRETPROBES */
- static inline void arch_prepare_kretprobe(struct kretprobe *rp,
- 					struct pt_regs *regs)
- {
-@@ -138,7 +138,7 @@ static inline int arch_trampoline_kprobe
- {
- 	return 0;
- }
--#endif /* ARCH_SUPPORTS_KRETPROBES */
-+#endif /* CONFIG_KRETPROBES */
- /*
-  * Function-return probe -
-  * Note:
-diff -puN kernel/kprobes.c~kprobes-indicate-kretprobe-support-in-kconfig kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-indicate-kretprobe-support-in-kconfig
-+++ a/kernel/kprobes.c
-@@ -678,8 +678,7 @@ void __kprobes unregister_jprobe(struct 
- 	unregister_kprobe(&jp->kp);
- }
- 
--#ifdef ARCH_SUPPORTS_KRETPROBES
+-	  Note that setting this option increases fixed memory overhead
+-	  associated with each page of memory in the system by 4/8 bytes
+-	  and also increases cache misses because struct page on many 64bit
+-	  systems will not fit into a single cache line anymore.
 -
-+#ifdef CONFIG_KRETPROBES
- /*
-  * This kprobe pre_handler is registered with every kretprobe. When probe
-  * hits it will set up the return probe.
-@@ -769,8 +768,7 @@ int __kprobes register_kretprobe(struct 
- 	return ret;
+-	  Only enable when you're ok with these trade offs and really
+-	  sure you need the memory controller.
+-
+ config PROC_PID_CPUSET
+ 	bool "Include legacy /proc/<pid>/cpuset file"
+ 	depends on CPUSETS
+diff -puN mm/Makefile~memory-controller-rename-to-memory-resource-controller mm/Makefile
+--- a/mm/Makefile~memory-controller-rename-to-memory-resource-controller
++++ a/mm/Makefile
+@@ -32,5 +32,5 @@ obj-$(CONFIG_FS_XIP) += filemap_xip.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_SMP) += allocpercpu.o
+ obj-$(CONFIG_QUICKLIST) += quicklist.o
+-obj-$(CONFIG_CGROUP_MEM_CONT) += memcontrol.o
++obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o
+ 
+diff -puN mm/oom_kill.c~memory-controller-rename-to-memory-resource-controller mm/oom_kill.c
+--- a/mm/oom_kill.c~memory-controller-rename-to-memory-resource-controller
++++ a/mm/oom_kill.c
+@@ -412,7 +412,7 @@ static int oom_kill_process(struct task_
+ 	return oom_kill_task(p);
  }
  
--#else /* ARCH_SUPPORTS_KRETPROBES */
--
-+#else /* CONFIG_KRETPROBES */
- int __kprobes register_kretprobe(struct kretprobe *rp)
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
  {
- 	return -ENOSYS;
-@@ -781,8 +779,7 @@ static int __kprobes pre_handler_kretpro
- {
- 	return 0;
+ 	unsigned long points = 0;
+diff -puN mm/vmscan.c~memory-controller-rename-to-memory-resource-controller mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-rename-to-memory-resource-controller
++++ a/mm/vmscan.c
+@@ -126,7 +126,7 @@ long vm_total_pages;	/* The total number
+ static LIST_HEAD(shrinker_list);
+ static DECLARE_RWSEM(shrinker_rwsem);
+ 
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ #define scan_global_lru(sc)	(!(sc)->mem_cgroup)
+ #else
+ #define scan_global_lru(sc)	(1)
+@@ -1427,7 +1427,7 @@ unsigned long try_to_free_pages(struct z
+ 	return do_try_to_free_pages(zones, gfp_mask, &sc);
  }
+ 
+-#ifdef CONFIG_CGROUP_MEM_CONT
++#ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ 
+ unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
+ 						gfp_t gfp_mask)
+_
+
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+
+git-kvm.patch
+
