@@ -1,121 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-isdn-correct-use-of-and.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:45:51 -0800
-Message-ID: <200803050745.m257jpeF021623@imap1.linux-foundation.org>
+Subject: - memcg-remove-mem_cgroup_uncharge.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:45:26 -0800
+Message-ID: <200803050745.m257jQhv021592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41972 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764916AbYCEHp6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:58 -0500
+	by vger.kernel.org with ESMTP id S1764275AbYCEHqT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, kkeil@suse.de, mm-commits@vger.kernel.org
+To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, taka@valinux.co.jp, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/isdn: correct use of ! and &
+     memcg: remove mem_cgroup_uncharge
 has been removed from the -mm tree.  Its filename was
-     drivers-isdn-correct-use-of-and.patch
+     memcg-remove-mem_cgroup_uncharge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/isdn: correct use of ! and &
-From: Julia Lawall <julia@diku.dk>
+Subject: memcg: remove mem_cgroup_uncharge
+From: Hugh Dickins <hugh@veritas.com>
 
-In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
-involved converting !x & y to !(x & y).  The code below shows the same
-pattern, and thus should perhaps be fixed in the same way.
+Nothing uses mem_cgroup_uncharge apart from mem_cgroup_uncharge_page, (a
+trivial wrapper around it) and mem_cgroup_end_migration (which does the same
+as mem_cgroup_uncharge_page).  And it often ends up having to lock just to let
+its caller unlock.  Remove it (but leave the silly locking until a later
+patch).
 
-This is not tested and clearly changes the semantics, so it is only
-something to consider.
+Moved mem_cgroup_cache_charge next to mem_cgroup_charge in memcontrol.h.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@ expression E1,E2; @@
-(
-  !E1 & !E2
-|
-- !E1 & E2
-+ !(E1 & E2)
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: David Rientjes <rientjes@google.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hirokazu Takahashi <taka@valinux.co.jp>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_ttyfax.c   |    3 ++-
- drivers/isdn/isdnloop/isdnloop.c |    6 +++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   20 +++++++-------------
+ mm/memcontrol.c            |   23 ++++++++---------------
+ 2 files changed, 15 insertions(+), 28 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_ttyfax.c~drivers-isdn-correct-use-of-and drivers/isdn/i4l/isdn_ttyfax.c
---- a/drivers/isdn/i4l/isdn_ttyfax.c~drivers-isdn-correct-use-of-and
-+++ a/drivers/isdn/i4l/isdn_ttyfax.c
-@@ -906,7 +906,8 @@ isdn_tty_cmd_FCLASS2(char **p, modem_inf
- 			sprintf(rs, "\r\n0-2");
- 			isdn_tty_at_cout(rs, info);
- 		} else {
--			if ((f->phase != ISDN_FAX_PHASE_D) || (!info->faxonline & 1))
-+			if ((f->phase != ISDN_FAX_PHASE_D) ||
-+			    (!(info->faxonline & 1)))
- 				PARSE_ERROR1;
- 			par = isdn_getnum(p);
- 			if ((par < 0) || (par > 2))
-diff -puN drivers/isdn/isdnloop/isdnloop.c~drivers-isdn-correct-use-of-and drivers/isdn/isdnloop/isdnloop.c
---- a/drivers/isdn/isdnloop/isdnloop.c~drivers-isdn-correct-use-of-and
-+++ a/drivers/isdn/isdnloop/isdnloop.c
-@@ -1289,7 +1289,7 @@ isdnloop_command(isdn_ctrl * c, isdnloop
- 				}
- 				break;
- 		case ISDN_CMD_CLREAZ:
--				if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
-+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
- 					return -ENODEV;
- 				if (card->leased)
- 					break;
-@@ -1333,7 +1333,7 @@ isdnloop_command(isdn_ctrl * c, isdnloop
- 				}
- 				break;
- 		case ISDN_CMD_SETL3:
--				if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
-+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
- 					return -ENODEV;
- 				return 0;
- 		default:
-@@ -1380,7 +1380,7 @@ if_writecmd(const u_char __user *buf, in
- 	isdnloop_card *card = isdnloop_findcard(id);
+diff -puN include/linux/memcontrol.h~memcg-remove-mem_cgroup_uncharge include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-mem_cgroup_uncharge
++++ a/include/linux/memcontrol.h
+@@ -35,7 +35,8 @@ extern void mm_free_cgroup(struct mm_str
+ extern struct page_cgroup *page_get_page_cgroup(struct page *page);
+ extern int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
+ 				gfp_t gfp_mask);
+-extern void mem_cgroup_uncharge(struct page_cgroup *pc);
++extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
++					gfp_t gfp_mask);
+ extern void mem_cgroup_uncharge_page(struct page *page);
+ extern void mem_cgroup_move_lists(struct page *page, bool active);
+ extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+@@ -45,8 +46,6 @@ extern unsigned long mem_cgroup_isolate_
+ 					struct mem_cgroup *mem_cont,
+ 					int active);
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
+-extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+-					gfp_t gfp_mask);
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
  
- 	if (card) {
--		if (!card->flags & ISDNLOOP_FLAGS_RUNNING)
-+		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
- 			return -ENODEV;
- 		return (isdnloop_writecmd(buf, len, 1, card));
+ #define mm_match_cgroup(mm, cgroup)	\
+@@ -92,14 +91,16 @@ static inline struct page_cgroup *page_g
+ 	return NULL;
+ }
+ 
+-static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
+-					gfp_t gfp_mask)
++static inline int mem_cgroup_charge(struct page *page,
++					struct mm_struct *mm, gfp_t gfp_mask)
+ {
+ 	return 0;
+ }
+ 
+-static inline void mem_cgroup_uncharge(struct page_cgroup *pc)
++static inline int mem_cgroup_cache_charge(struct page *page,
++					struct mm_struct *mm, gfp_t gfp_mask)
+ {
++	return 0;
+ }
+ 
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+@@ -110,13 +111,6 @@ static inline void mem_cgroup_move_lists
+ {
+ }
+ 
+-static inline int mem_cgroup_cache_charge(struct page *page,
+-						struct mm_struct *mm,
+-						gfp_t gfp_mask)
+-{
+-	return 0;
+-}
+-
+ static inline int mm_match_cgroup(struct mm_struct *mm, struct mem_cgroup *mem)
+ {
+ 	return 1;
+diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_uncharge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-mem_cgroup_uncharge
++++ a/mm/memcontrol.c
+@@ -697,20 +697,22 @@ int mem_cgroup_cache_charge(struct page 
+ 
+ /*
+  * Uncharging is always a welcome operation, we never complain, simply
+- * uncharge. This routine should be called with lock_page_cgroup held
++ * uncharge.
+  */
+-void mem_cgroup_uncharge(struct page_cgroup *pc)
++void mem_cgroup_uncharge_page(struct page *page)
+ {
++	struct page_cgroup *pc;
+ 	struct mem_cgroup *mem;
+ 	struct mem_cgroup_per_zone *mz;
+-	struct page *page;
+ 	unsigned long flags;
+ 
+ 	/*
+ 	 * Check if our page_cgroup is valid
+ 	 */
++	lock_page_cgroup(page);
++	pc = page_get_page_cgroup(page);
+ 	if (!pc)
+-		return;
++		goto unlock;
+ 
+ 	if (atomic_dec_and_test(&pc->ref_cnt)) {
+ 		page = pc->page;
+@@ -731,12 +733,8 @@ void mem_cgroup_uncharge(struct page_cgr
+ 		}
+ 		lock_page_cgroup(page);
  	}
+-}
+ 
+-void mem_cgroup_uncharge_page(struct page *page)
+-{
+-	lock_page_cgroup(page);
+-	mem_cgroup_uncharge(page_get_page_cgroup(page));
++unlock:
+ 	unlock_page_cgroup(page);
+ }
+ 
+@@ -759,12 +757,7 @@ int mem_cgroup_prepare_migration(struct 
+ 
+ void mem_cgroup_end_migration(struct page *page)
+ {
+-	struct page_cgroup *pc;
+-
+-	lock_page_cgroup(page);
+-	pc = page_get_page_cgroup(page);
+-	mem_cgroup_uncharge(pc);
+-	unlock_page_cgroup(page);
++	mem_cgroup_uncharge_page(page);
+ }
+ /*
+  * We know both *page* and *newpage* are now not-on-LRU and Pg_locked.
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-sound-use-bug_on.patch
-git-powerpc.patch
-git-dvb.patch
-git-hid.patch
-git-udf.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
-git-ocfs2.patch
-drivers-block-viodasdc-use-field_sizeof.patch
-usb-use-div_round_up.patch
-drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
-drivers-acpi-asus_acpic-correct-use-of-and.patch
-fs-affs-filec-use-bug_on.patch
-fbdev-use-div_round_up-or-roundup.patch
-fs-ext2-use-bug_on.patch
-fs-ext3-use-bug_on.patch
-fs-ext4-use-bug_on.patch
+git-unionfs.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+prio_tree-debugging-patch.patch
 
