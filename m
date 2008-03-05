@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + trace-sample.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:14:04 -0800
-Message-ID: <200803052214.m25ME423023712@imap1.linux-foundation.org>
+Subject: + ext2-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:20:22 -0800
+Message-ID: <200803052220.m25MKMMI024003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764878AbYCEWTs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:19:48 -0500
+	by vger.kernel.org with ESMTP id S1765036AbYCEWUy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:20:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwilder@us.ibm.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     Trace sample
+     ext2: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     trace-sample.patch
+     ext2-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,193 +33,263 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Trace sample
-From: "David J. Wilder" <dwilder@us.ibm.com>
+Subject: ext2: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Add the trace example to samples/.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: David Wilder <dwilder@us.ibm.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/Kconfig            |    6 +
- samples/Makefile           |    2 
- samples/trace/Makefile     |    4 +
- samples/trace/fork_trace.c |  132 +++++++++++++++++++++++++++++++++++
- 4 files changed, 143 insertions(+), 1 deletion(-)
+ fs/ext2/balloc.c |   10 +++++-----
+ fs/ext2/dir.c    |   14 +++++++-------
+ fs/ext2/super.c  |    6 +++---
+ fs/ext2/xip.c    |    2 +-
+ 4 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN samples/Kconfig~trace-sample samples/Kconfig
---- a/samples/Kconfig~trace-sample
-+++ a/samples/Kconfig
-@@ -33,5 +33,11 @@ config SAMPLE_KRETPROBES
- 	default m
- 	depends on SAMPLE_KPROBES && KRETPROBES
+diff -puN fs/ext2/balloc.c~ext2-replace-remaining-__function__-occurrences fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-replace-remaining-__function__-occurrences
++++ a/fs/ext2/balloc.c
+@@ -106,7 +106,7 @@ static int ext2_valid_block_bitmap(struc
+ 		return 1;
  
-+config SAMPLE_TRACE
-+	tristate "Build trace example -- loadable modules only"
-+	depends on TRACE && KPROBES && m
-+	help
-+	  This builds a trace example module.
-+
- endif # SAMPLES
+ err_out:
+-	ext2_error(sb, __FUNCTION__,
++	ext2_error(sb, __func__,
+ 			"Invalid block bitmap - "
+ 			"block_group = %d, block = %lu",
+ 			block_group, bitmap_blk);
+@@ -132,7 +132,7 @@ read_block_bitmap(struct super_block *sb
+ 	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
+ 	bh = sb_getblk(sb, bitmap_blk);
+ 	if (unlikely(!bh)) {
+-		ext2_error(sb, __FUNCTION__,
++		ext2_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+@@ -143,7 +143,7 @@ read_block_bitmap(struct super_block *sb
  
-diff -puN samples/Makefile~trace-sample samples/Makefile
---- a/samples/Makefile~trace-sample
-+++ a/samples/Makefile
-@@ -1,3 +1,3 @@
- # Makefile for Linux samples code
+ 	if (bh_submit_read(bh) < 0) {
+ 		brelse(bh);
+-		ext2_error(sb, __FUNCTION__,
++		ext2_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+@@ -248,7 +248,7 @@ restart:
+ 	BUG_ON(bad);
+ }
+ #define rsv_window_dump(root, verbose) \
+-	__rsv_window_dump((root), (verbose), __FUNCTION__)
++	__rsv_window_dump((root), (verbose), __func__)
+ #else
+ #define rsv_window_dump(root, verbose) do {} while (0)
+ #endif
+@@ -547,7 +547,7 @@ do_more:
+ 	for (i = 0, group_freed = 0; i < count; i++) {
+ 		if (!ext2_clear_bit_atomic(sb_bgl_lock(sbi, block_group),
+ 						bit + i, bitmap_bh->b_data)) {
+-			ext2_error(sb, __FUNCTION__,
++			ext2_error(sb, __func__,
+ 				"bit already cleared for block %lu", block + i);
+ 		} else {
+ 			group_freed++;
+diff -puN fs/ext2/dir.c~ext2-replace-remaining-__function__-occurrences fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-replace-remaining-__function__-occurrences
++++ a/fs/ext2/dir.c
+@@ -295,7 +295,7 @@ ext2_readdir (struct file * filp, void *
+ 		struct page *page = ext2_get_page(inode, n);
  
--obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/
-+obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/ trace/
-diff -puN /dev/null samples/trace/Makefile
---- /dev/null
-+++ a/samples/trace/Makefile
-@@ -0,0 +1,4 @@
-+# builds the trace example kernel modules;
-+# then to use (as root):  insmod <fork_trace.ko>
-+
-+obj-$(CONFIG_SAMPLE_TRACE) := fork_trace.o
-diff -puN /dev/null samples/trace/fork_trace.c
---- /dev/null
-+++ a/samples/trace/fork_trace.c
-@@ -0,0 +1,132 @@
-+/*
-+ * An example of using trace in a kprobes module
-+ *
-+ * Copyright (C) 2007 IBM Inc.
-+ *
-+ * David Wilder <dwilder@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ *
-+ * -------
-+ * This module creates a trace channel and places a kprobe
-+ * on the function do_fork(). The value of current->pid is written to
-+ * the trace channel each time the kprobe is hit..
-+ *
-+ * How to run the example:
-+ * $ mount -t debugfs /debug
-+ * $ insmod fork_trace.ko
-+ *
-+ * To view the data produced by the module:
-+ * $ cat /debug/trace_example/do_fork/trace0
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/kprobes.h>
-+#include <linux/trace.h>
-+
-+#define USE_GLOBAL_BUFFERS 1
-+#define USE_FLIGHT 1
-+
-+#define PROBE_POINT "do_fork"
-+
-+static struct kprobe kp;
-+static struct trace_info *kprobes_trace;
-+
-+#ifdef USE_GLOBAL_BUFFERS
-+static DEFINE_SPINLOCK(trace_lock);
-+#endif
-+
-+/*
-+ * Send formatted trace data to trace channel.
-+ * @note Preemption must be disabled to use this.
-+ */
-+static void trace_printf(struct trace_info *trace, const char *format, ...)
-+{
-+	va_list ap, aq;
-+	char *record;
-+	unsigned long flags;
-+	int len;
-+
-+	if (!trace)
-+		return;
-+
-+#ifdef USE_GLOBAL_BUFFERS
-+	spin_lock_irqsave(&trace_lock, flags);
-+#endif
-+	if (trace_running(trace)) {
-+		va_start(ap, format);
-+		va_copy(aq, ap);
-+		len = vsnprintf(NULL, 0, format, aq);
-+		va_end(aq);
-+		record = relay_reserve(trace->rchan, ++len);
-+		if (record)
-+			vsnprintf(record, len, format, ap);
-+		va_end(ap);
-+	}
-+#ifdef USE_GLOBAL_BUFFERS
-+	spin_unlock_irqrestore(&trace_lock, flags);
-+#endif
-+}
-+
-+static int handler_pre(struct kprobe *p, struct pt_regs *regs)
-+{
-+	rcu_read_lock();
-+	trace_printf(kprobes_trace, "%d\n", current->pid);
-+	rcu_read_unlock();
-+	return 0;
-+}
-+
-+int init_module(void)
-+{
-+	int ret;
-+	u32 flags = 0;
-+
-+#ifdef USE_GLOBAL_BUFFERS
-+	flags |= TRACE_GLOBAL_CHANNEL;
-+#endif
-+
-+#ifdef USE_FLIGHT
-+	flags |= TRACE_FLIGHT_CHANNEL;
-+#endif
-+
-+	/* setup the trace */
-+	kprobes_trace = trace_setup("trace_example", PROBE_POINT,
-+				     1024, 8, flags);
-+	if (IS_ERR(kprobes_trace))
-+		return PTR_ERR(kprobes_trace);
-+
-+	trace_start(kprobes_trace);
-+
-+	/* setup the kprobe */
-+	kp.pre_handler = handler_pre;
-+	kp.post_handler = NULL;
-+	kp.fault_handler = NULL;
-+	kp.symbol_name = PROBE_POINT;
-+	ret = register_kprobe(&kp);
-+	if (ret) {
-+		printk(KERN_ERR "fork_trace: register_kprobe failed\n");
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+void cleanup_module(void)
-+{
-+	unregister_kprobe(&kp);
-+	trace_stop(kprobes_trace);
-+	trace_cleanup(kprobes_trace);
-+}
-+MODULE_LICENSE("GPL");
+ 		if (IS_ERR(page)) {
+-			ext2_error(sb, __FUNCTION__,
++			ext2_error(sb, __func__,
+ 				   "bad page in #%lu",
+ 				   inode->i_ino);
+ 			filp->f_pos += PAGE_CACHE_SIZE - offset;
+@@ -314,7 +314,7 @@ ext2_readdir (struct file * filp, void *
+ 		limit = kaddr + ext2_last_byte(inode, n) - EXT2_DIR_REC_LEN(1);
+ 		for ( ;(char*)de <= limit; de = ext2_next_entry(de)) {
+ 			if (de->rec_len == 0) {
+-				ext2_error(sb, __FUNCTION__,
++				ext2_error(sb, __func__,
+ 					"zero-length directory entry");
+ 				ext2_put_page(page);
+ 				return -EIO;
+@@ -381,7 +381,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
+ 			kaddr += ext2_last_byte(dir, n) - reclen;
+ 			while ((char *) de <= kaddr) {
+ 				if (de->rec_len == 0) {
+-					ext2_error(dir->i_sb, __FUNCTION__,
++					ext2_error(dir->i_sb, __func__,
+ 						"zero-length directory entry");
+ 					ext2_put_page(page);
+ 					goto out;
+@@ -396,7 +396,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
+ 			n = 0;
+ 		/* next page is past the blocks we've got */
+ 		if (unlikely(n > (dir->i_blocks >> (PAGE_CACHE_SHIFT - 9)))) {
+-			ext2_error(dir->i_sb, __FUNCTION__,
++			ext2_error(dir->i_sb, __func__,
+ 				"dir %lu size %lld exceeds block count %llu",
+ 				dir->i_ino, dir->i_size,
+ 				(unsigned long long)dir->i_blocks);
+@@ -506,7 +506,7 @@ int ext2_add_link (struct dentry *dentry
+ 				goto got_it;
+ 			}
+ 			if (de->rec_len == 0) {
+-				ext2_error(dir->i_sb, __FUNCTION__,
++				ext2_error(dir->i_sb, __func__,
+ 					"zero-length directory entry");
+ 				err = -EIO;
+ 				goto out_unlock;
+@@ -578,7 +578,7 @@ int ext2_delete_entry (struct ext2_dir_e
+ 
+ 	while ((char*)de < (char*)dir) {
+ 		if (de->rec_len == 0) {
+-			ext2_error(inode->i_sb, __FUNCTION__,
++			ext2_error(inode->i_sb, __func__,
+ 				"zero-length directory entry");
+ 			err = -EIO;
+ 			goto out;
+@@ -670,7 +670,7 @@ int ext2_empty_dir (struct inode * inode
+ 
+ 		while ((char *)de <= kaddr) {
+ 			if (de->rec_len == 0) {
+-				ext2_error(inode->i_sb, __FUNCTION__,
++				ext2_error(inode->i_sb, __func__,
+ 					"zero-length directory entry");
+ 				printk("kaddr=%p, de=%p\n", kaddr, de);
+ 				goto not_empty;
+diff -puN fs/ext2/super.c~ext2-replace-remaining-__function__-occurrences fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-replace-remaining-__function__-occurrences
++++ a/fs/ext2/super.c
+@@ -89,7 +89,7 @@ void ext2_update_dynamic_rev(struct supe
+ 	if (le32_to_cpu(es->s_rev_level) > EXT2_GOOD_OLD_REV)
+ 		return;
+ 
+-	ext2_warning(sb, __FUNCTION__,
++	ext2_warning(sb, __func__,
+ 		     "updating to rev %d because of new feature flag, "
+ 		     "running e2fsck is recommended",
+ 		     EXT2_DYNAMIC_REV);
+@@ -1060,7 +1060,7 @@ static int ext2_fill_super(struct super_
+ 		goto failed_mount3;
+ 	}
+ 	if (EXT2_HAS_COMPAT_FEATURE(sb, EXT3_FEATURE_COMPAT_HAS_JOURNAL))
+-		ext2_warning(sb, __FUNCTION__,
++		ext2_warning(sb, __func__,
+ 			"mounting ext3 filesystem as ext2");
+ 	ext2_setup_super (sb, es, sb->s_flags & MS_RDONLY);
+ 	return 0;
+@@ -1177,7 +1177,7 @@ static int ext2_remount (struct super_bl
+ 	if (((sbi->s_mount_opt & EXT2_MOUNT_XIP) !=
+ 	    (old_mount_opt & EXT2_MOUNT_XIP)) &&
+ 	    invalidate_inodes(sb))
+-		ext2_warning(sb, __FUNCTION__, "busy inodes while remounting "\
++		ext2_warning(sb, __func__, "busy inodes while remounting "\
+ 			     "xip remain in cache (no functional problem)");
+ 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
+ 		return 0;
+diff -puN fs/ext2/xip.c~ext2-replace-remaining-__function__-occurrences fs/ext2/xip.c
+--- a/fs/ext2/xip.c~ext2-replace-remaining-__function__-occurrences
++++ a/fs/ext2/xip.c
+@@ -64,7 +64,7 @@ void ext2_xip_verify_sb(struct super_blo
+ 	if ((sbi->s_mount_opt & EXT2_MOUNT_XIP) &&
+ 	    !sb->s_bdev->bd_disk->fops->direct_access) {
+ 		sbi->s_mount_opt &= (~EXT2_MOUNT_XIP);
+-		ext2_warning(sb, __FUNCTION__,
++		ext2_warning(sb, __func__,
+ 			     "ignoring xip option - not supported by bdev");
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from dwilder@us.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-relay-reset-consumed.patch
-trace-code-and-documentation.patch
-trace-sample.patch
+git-x86.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+arm-replace-remaining-__function__-occurences.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+ia64-remove-remaining-__function__-occurences.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+sh-replace-remaining-__function__-occurences.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+security-replace-remaining-__function__-occurences.patch
+security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+ext4-replace-remaining-__function__-occurrences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-remaining-__function__-occurrences.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+cifs-replace-remaining-__function__-occurrences.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
 
