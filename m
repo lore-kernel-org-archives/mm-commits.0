@@ -1,93 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-use-dev_printk-for-quirk-messages.patch added to -mm tree
-Date: Tue, 04 Mar 2008 16:05:41 -0800
-Message-ID: <200803050005.m2505fv0005045@imap1.linux-foundation.org>
+Subject: - cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 16:13:54 -0800
+Message-ID: <200803050013.m250Ds2K005350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763736AbYCEAFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 19:05:51 -0500
+	by vger.kernel.org with ESMTP id S1754482AbYCEAOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Mar 2008 19:14:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com
+To: travis@sgi.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: use dev_printk for quirk messages
-has been added to the -mm tree.  Its filename is
-     pnp-use-dev_printk-for-quirk-messages.patch
+     cpufreq: change cpu freq tables to per_cpu variables
+has been removed from the -mm tree.  Its filename was
+     cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: use dev_printk for quirk messages
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: cpufreq: change cpu freq tables to per_cpu variables
+From: Mike Travis <travis@sgi.com>
 
-Convert quirk printks to dev_printk().
+Change cpu frequency tables from arrays to per_cpu variables.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/cpufreq/cpufreq_userspace.c |   70 +++++++++++++-------------
+ 1 file changed, 37 insertions(+), 33 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages
-+++ a/drivers/pnp/quirks.c
-@@ -51,7 +51,8 @@ static void quirk_awe32_resources(struct
- 		port3->min += 0x800;
- 		port3->max += 0x800;
- 	}
--	printk(KERN_INFO "pnp: AWE32 quirk - adding two ports\n");
-+	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
-+		(unsigned long) port2->min, (unsigned long) port3->min);
+diff -puN drivers/cpufreq/cpufreq_userspace.c~cpufreq-change-cpu-freq-tables-to-per_cpu-variables drivers/cpufreq/cpufreq_userspace.c
+--- a/drivers/cpufreq/cpufreq_userspace.c~cpufreq-change-cpu-freq-tables-to-per_cpu-variables
++++ a/drivers/cpufreq/cpufreq_userspace.c
+@@ -30,11 +30,11 @@
+ /**
+  * A few values needed by the userspace governor
+  */
+-static unsigned int	cpu_max_freq[NR_CPUS];
+-static unsigned int	cpu_min_freq[NR_CPUS];
+-static unsigned int	cpu_cur_freq[NR_CPUS]; /* current CPU freq */
+-static unsigned int	cpu_set_freq[NR_CPUS]; /* CPU freq desired by userspace */
+-static unsigned int	cpu_is_managed[NR_CPUS];
++DEFINE_PER_CPU(int, cpu_max_freq);
++DEFINE_PER_CPU(int, cpu_min_freq);
++DEFINE_PER_CPU(int, cpu_cur_freq); /* current CPU freq */
++DEFINE_PER_CPU(int, cpu_set_freq); /* CPU freq desired by userspace */
++DEFINE_PER_CPU(int, cpu_is_managed);
+ 
+ static DEFINE_MUTEX	(userspace_mutex);
+ static int cpus_using_userspace_governor;
+@@ -48,12 +48,12 @@ userspace_cpufreq_notifier(struct notifi
+ {
+         struct cpufreq_freqs *freq = data;
+ 
+-	if (!cpu_is_managed[freq->cpu])
++	if (!per_cpu(cpu_is_managed, freq->cpu))
+ 		return 0;
+ 
+ 	dprintk("saving cpu_cur_freq of cpu %u to be %u kHz\n",
+ 			freq->cpu, freq->new);
+-	cpu_cur_freq[freq->cpu] = freq->new;
++	per_cpu(cpu_cur_freq, freq->cpu) = freq->new;
+ 
+         return 0;
+ }
+@@ -77,15 +77,15 @@ static int cpufreq_set(struct cpufreq_po
+ 	dprintk("cpufreq_set for cpu %u, freq %u kHz\n", policy->cpu, freq);
+ 
+ 	mutex_lock(&userspace_mutex);
+-	if (!cpu_is_managed[policy->cpu])
++	if (!per_cpu(cpu_is_managed, policy->cpu))
+ 		goto err;
+ 
+-	cpu_set_freq[policy->cpu] = freq;
++	per_cpu(cpu_set_freq, policy->cpu) = freq;
+ 
+-	if (freq < cpu_min_freq[policy->cpu])
+-		freq = cpu_min_freq[policy->cpu];
+-	if (freq > cpu_max_freq[policy->cpu])
+-		freq = cpu_max_freq[policy->cpu];
++	if (freq < per_cpu(cpu_min_freq, policy->cpu))
++		freq = per_cpu(cpu_min_freq, policy->cpu);
++	if (freq > per_cpu(cpu_max_freq, policy->cpu))
++		freq = per_cpu(cpu_max_freq, policy->cpu);
+ 
+ 	/*
+ 	 * We're safe from concurrent calls to ->target() here
+@@ -101,10 +101,9 @@ static int cpufreq_set(struct cpufreq_po
+ 	return ret;
  }
  
- static void quirk_cmi8330_resources(struct pnp_dev *dev)
-@@ -74,7 +75,8 @@ static void quirk_cmi8330_resources(stru
- 			    IORESOURCE_DMA_8BIT)
- 				dma->map = 0x000A;
- 	}
--	printk(KERN_INFO "pnp: CMI8330 quirk - fixing interrupts and dma\n");
-+	dev_info(&dev->dev, "CMI8330 quirk - forced possible IRQs to 5, 7, 10 "
-+		"and DMA channels to 1, 3\n");
+-
+ static ssize_t show_speed(struct cpufreq_policy *policy, char *buf)
+ {
+-	return sprintf(buf, "%u\n", cpu_cur_freq[policy->cpu]);
++	return sprintf (buf, "%u\n", per_cpu(cpu_cur_freq, policy->cpu));
  }
  
- static void quirk_sb16audio_resources(struct pnp_dev *dev)
-@@ -105,8 +107,7 @@ static void quirk_sb16audio_resources(st
- 		changed = 1;
- 	}
- 	if (changed)
--		printk(KERN_INFO
--		       "pnp: SB audio device quirk - increasing port range\n");
-+		dev_info(&dev->dev, "SB audio device quirk - increased port range\n");
- }
+ static int cpufreq_governor_userspace(struct cpufreq_policy *policy,
+@@ -127,13 +126,16 @@ static int cpufreq_governor_userspace(st
+ 		}
+ 		cpus_using_userspace_governor++;
  
- static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
+-		cpu_is_managed[cpu] = 1;
+-		cpu_min_freq[cpu] = policy->min;
+-		cpu_max_freq[cpu] = policy->max;
+-		cpu_cur_freq[cpu] = policy->cur;
+-		cpu_set_freq[cpu] = policy->cur;
+-		dprintk("managing cpu %u started (%u - %u kHz, currently %u kHz)\n", cpu, cpu_min_freq[cpu], cpu_max_freq[cpu], cpu_cur_freq[cpu]);
+-
++		per_cpu(cpu_is_managed, cpu) = 1;
++		per_cpu(cpu_min_freq, cpu) = policy->min;
++		per_cpu(cpu_max_freq, cpu) = policy->max;
++		per_cpu(cpu_cur_freq, cpu) = policy->cur;
++		per_cpu(cpu_set_freq, cpu) = policy->cur;
++		dprintk("managing cpu %u started "
++			"(%u - %u kHz, currently %u kHz)\n", cpu,
++				per_cpu(cpu_min_freq, cpu),
++				per_cpu(cpu_max_freq, cpu),
++				per_cpu(cpu_cur_freq, cpu));
+ 		mutex_unlock(&userspace_mutex);
+ 		break;
+ 	case CPUFREQ_GOV_STOP:
+@@ -145,10 +147,10 @@ static int cpufreq_governor_userspace(st
+ 					CPUFREQ_TRANSITION_NOTIFIER);
+ 		}
+ 
+-		cpu_is_managed[cpu] = 0;
+-		cpu_min_freq[cpu] = 0;
+-		cpu_max_freq[cpu] = 0;
+-		cpu_set_freq[cpu] = 0;
++		per_cpu(cpu_is_managed, cpu) = 0;
++		per_cpu(cpu_min_freq, cpu) = 0;
++		per_cpu(cpu_max_freq, cpu) = 0;
++		per_cpu(cpu_set_freq, cpu) = 0;
+ 		dprintk("managing cpu %u stopped\n", cpu);
+ 		mutex_unlock(&userspace_mutex);
+ 		break;
+@@ -157,22 +159,24 @@ static int cpufreq_governor_userspace(st
+ 		dprintk("limit event for cpu %u: %u - %u kHz,"
+ 			"currently %u kHz, last set to %u kHz\n",
+ 			cpu, policy->min, policy->max,
+-			cpu_cur_freq[cpu], cpu_set_freq[cpu]);
+-		if (policy->max < cpu_set_freq[cpu]) {
++			per_cpu(cpu_cur_freq, cpu),
++			per_cpu(cpu_set_freq, cpu));
++		if (policy->max < per_cpu(cpu_set_freq, cpu)) {
+ 			__cpufreq_driver_target(policy, policy->max,
+ 						CPUFREQ_RELATION_H);
+ 		}
+-		else if (policy->min > cpu_set_freq[cpu]) {
++		else if (policy->min > per_cpu(cpu_set_freq, cpu)) {
+ 			__cpufreq_driver_target(policy, policy->min,
+ 						CPUFREQ_RELATION_L);
+ 		}
+ 		else {
+-			__cpufreq_driver_target(policy, cpu_set_freq[cpu],
++			__cpufreq_driver_target(policy,
++						per_cpu(cpu_set_freq, cpu),
+ 						CPUFREQ_RELATION_L);
+ 		}
+-		cpu_min_freq[cpu] = policy->min;
+-		cpu_max_freq[cpu] = policy->max;
+-		cpu_cur_freq[cpu] = policy->cur;
++		per_cpu(cpu_min_freq, cpu) = policy->min;
++		per_cpu(cpu_max_freq, cpu) = policy->max;
++		per_cpu(cpu_cur_freq, cpu) = policy->cur;
+ 		mutex_unlock(&userspace_mutex);
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
-serial-add-pnp-id-gvc0303-for-archtek-3334brv-isa-modem.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-pci-simplify-quirk-debug-output.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
+cpufreq-change-cpu-freq-tables-to-per_cpu-variables.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 
