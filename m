@@ -1,77 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:52 -0800
-Message-ID: <200803050746.m257kqp0021800@imap1.linux-foundation.org>
+Subject: - netpoll-revert-two-bogus-cleanups-that-broke-netconsole.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:47:06 -0800
+Message-ID: <200803050747.m257l6Wi021828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764071AbYCEHrc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:32 -0500
+	by vger.kernel.org with ESMTP id S1763150AbYCEHrt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: add I2C to config since the driver makes several i2c*() calls
+     netpoll: revert two bogus cleanups that broke netconsole
 has been removed from the -mm tree.  Its filename was
-     input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls.patch
+     netpoll-revert-two-bogus-cleanups-that-broke-netconsole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add I2C to config since the driver makes several i2c*() calls
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: netpoll: revert two bogus cleanups that broke netconsole
+From: David Miller <davem@davemloft.net>
 
-Add to help text that the Intel I2C ICH (i801) driver is also needed
-for this kernel.
+Based upon a report by Andrew Morton and code analysis done by Jarek
+Poplawski.
 
-Add LEDS_CLASS to config since the driver makes les_classdev_*() calls:
-ERROR: "led_classdev_register" [drivers/input/misc/apanel.ko] undefined!
-ERROR: "__led_classdev_unregister" [drivers/input/misc/apanel.ko]
-undefined!
+This reverts 33f807ba0d9259e7c75c7a2ce8bd2787e5b540c7 ("[NETPOLL]: Kill
+NETPOLL_RX_DROP, set but never tested.") and
+c7b6ea24b43afb5749cb704e143df19d70e23dea ("[NETPOLL]: Don't need rx_flags.").
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+The rx_flags did get tested for zero vs.  non-zero and therefore we do need
+those tests and that code which sets NETPOLL_RX_DROP et al.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/netpoll.h |    7 ++++---
+ net/core/netpoll.c      |   12 ++++++++----
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN drivers/input/misc/Kconfig~input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls
-+++ a/drivers/input/misc/Kconfig
-@@ -42,14 +42,14 @@ config INPUT_M68K_BEEP
+diff -puN include/linux/netpoll.h~netpoll-revert-two-bogus-cleanups-that-broke-netconsole include/linux/netpoll.h
+--- a/include/linux/netpoll.h~netpoll-revert-two-bogus-cleanups-that-broke-netconsole
++++ a/include/linux/netpoll.h
+@@ -25,6 +25,7 @@ struct netpoll {
  
- config INPUT_APANEL
- 	tristate "Fujitsu Lifebook Application Panel buttons"
--	depends on X86
--	select I2C_I801
-+	depends on X86 && I2C && LEDS_CLASS
- 	select INPUT_POLLDEV
- 	select CHECK_SIGNATURE
- 	help
- 	 Say Y here for support of the Application Panel buttons, used on
- 	 Fujitsu Lifebook. These are attached to the mainboard through
--	 an SMBus interface managed by the I2C Intel ICH (i801) driver.
-+	 an SMBus interface managed by the I2C Intel ICH (i801) driver,
-+	 which you should also build for this kernel.
+ struct netpoll_info {
+ 	atomic_t refcnt;
++	int rx_flags;
+ 	spinlock_t rx_lock;
+ 	struct netpoll *rx_np; /* netpoll that registered an rx_hook */
+ 	struct sk_buff_head arp_tx; /* list of arp requests to reply to */
+@@ -50,12 +51,12 @@ static inline int netpoll_rx(struct sk_b
+ 	unsigned long flags;
+ 	int ret = 0;
  
- 	 To compile this driver as a module, choose M here: the module will
- 	 be called apanel.
+-	if (!npinfo || !npinfo->rx_np)
++	if (!npinfo || (!npinfo->rx_np && !npinfo->rx_flags))
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&npinfo->rx_lock, flags);
+-	/* check rx_np again with the lock held */
+-	if (npinfo->rx_np && __netpoll_rx(skb))
++	/* check rx_flags again with the lock held */
++	if (npinfo->rx_flags && __netpoll_rx(skb))
+ 		ret = 1;
+ 	spin_unlock_irqrestore(&npinfo->rx_lock, flags);
+ 
+diff -puN net/core/netpoll.c~netpoll-revert-two-bogus-cleanups-that-broke-netconsole net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-revert-two-bogus-cleanups-that-broke-netconsole
++++ a/net/core/netpoll.c
+@@ -39,6 +39,8 @@ static struct sk_buff_head skb_pool;
+ static atomic_t trapped;
+ 
+ #define USEC_PER_POLL	50
++#define NETPOLL_RX_ENABLED  1
++#define NETPOLL_RX_DROP     2
+ 
+ #define MAX_SKB_SIZE \
+ 		(MAX_UDP_CHUNK + sizeof(struct udphdr) + \
+@@ -126,11 +128,13 @@ static int poll_one_napi(struct netpoll_
+ 	if (!test_bit(NAPI_STATE_SCHED, &napi->state))
+ 		return budget;
+ 
++	npinfo->rx_flags |= NETPOLL_RX_DROP;
+ 	atomic_inc(&trapped);
+ 
+ 	work = napi->poll(napi, budget);
+ 
+ 	atomic_dec(&trapped);
++	npinfo->rx_flags &= ~NETPOLL_RX_DROP;
+ 
+ 	return budget - work;
+ }
+@@ -472,7 +476,7 @@ int __netpoll_rx(struct sk_buff *skb)
+ 	if (skb->dev->type != ARPHRD_ETHER)
+ 		goto out;
+ 
+-	/* if receive ARP during middle of NAPI poll, then queue */
++	/* check if netpoll clients need ARP */
+ 	if (skb->protocol == htons(ETH_P_ARP) &&
+ 	    atomic_read(&trapped)) {
+ 		skb_queue_tail(&npi->arp_tx, skb);
+@@ -534,9 +538,6 @@ int __netpoll_rx(struct sk_buff *skb)
+ 	return 1;
+ 
+ out:
+-	/* If packet received while already in poll then just
+-	 * silently drop.
+-	 */
+ 	if (atomic_read(&trapped)) {
+ 		kfree_skb(skb);
+ 		return 1;
+@@ -675,6 +676,7 @@ int netpoll_setup(struct netpoll *np)
+ 			goto release;
+ 		}
+ 
++		npinfo->rx_flags = 0;
+ 		npinfo->rx_np = NULL;
+ 
+ 		spin_lock_init(&npinfo->rx_lock);
+@@ -756,6 +758,7 @@ int netpoll_setup(struct netpoll *np)
+ 
+ 	if (np->rx_hook) {
+ 		spin_lock_irqsave(&npinfo->rx_lock, flags);
++		npinfo->rx_flags |= NETPOLL_RX_ENABLED;
+ 		npinfo->rx_np = np;
+ 		spin_unlock_irqrestore(&npinfo->rx_lock, flags);
+ 	}
+@@ -797,6 +800,7 @@ void netpoll_cleanup(struct netpoll *np)
+ 			if (npinfo->rx_np == np) {
+ 				spin_lock_irqsave(&npinfo->rx_lock, flags);
+ 				npinfo->rx_np = NULL;
++				npinfo->rx_flags &= ~NETPOLL_RX_ENABLED;
+ 				spin_unlock_irqrestore(&npinfo->rx_lock, flags);
+ 			}
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-git-acpi.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
-let-log_buf_shift-default-to-17.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-profile-likely-unlikely-macros.patch
+git-powerpc.patch
+execute-tasklets-in-the-same-order-they-were-queued.patch
+rxrpc-fix-rxrpc_recvmsgs-returning-of-msg_name.patch
+bluetooth-hci_core-defer-hci_unregister_sysfs.patch
+bluetooth-conwise-technology-based-adapters-with-buggy-sco-support-bugzilla-9027.patch
+netlink-use-generic-lsm-hook.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+asm-futexh-should-include-linux-uaccessh.patch
+remove-duplicated-unlikely-in-is_err.patch
 
