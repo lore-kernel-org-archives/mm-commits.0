@@ -1,67 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - x86-a-p4-is-a-p6-not-an-i486.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:47:08 -0800
-Message-ID: <200803050747.m257l8uq021831@imap1.linux-foundation.org>
+Subject: - iommu-export-iommu_is_span_boundary-helper-function.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:13 -0800
+Message-ID: <200803050746.m257kDdg021746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759996AbYCEHsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:48:45 -0500
+	by vger.kernel.org with ESMTP id S1759125AbYCEHtA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: a P4 is a P6 not an i486
+     iommu: export iommu_is_span_boundary helper function
 has been removed from the -mm tree.  Its filename was
-     x86-a-p4-is-a-p6-not-an-i486.patch
+     iommu-export-iommu_is_span_boundary-helper-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: a P4 is a P6 not an i486
-From: Hugh Dickins <hugh@veritas.com>
+Subject: iommu: export iommu_is_span_boundary helper function
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-P4 has been coming out as CPU_FAMILY=4 instead of 6: fix MPENTIUM4 typo.
+iommu_is_span_boundary is used internally in the IOMMU helper
+(lib/iommu-helper.c), a primitive function that judges whether a memory area
+spans LLD's segment boundary or not.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+It's difficult to convert some IOMMUs to use the IOMMU helper but
+iommu_is_span_boundary is still useful for them.  So this patch exports it.
+
+This is needed for the parisc iommu fixes.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig.cpu |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/iommu-helper.h |    3 +++
+ lib/iommu-helper.c           |   10 ++++++----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/Kconfig.cpu~x86-a-p4-is-a-p6-not-an-i486 arch/x86/Kconfig.cpu
---- a/arch/x86/Kconfig.cpu~x86-a-p4-is-a-p6-not-an-i486
-+++ a/arch/x86/Kconfig.cpu
-@@ -388,7 +388,7 @@ config X86_OOSTORE
- #
- config X86_P6_NOP
- 	def_bool y
--	depends on (X86_64 || !X86_GENERIC) && (M686 || MPENTIUMII || MPENTIUMIII || MPENTIUMM || MCORE2 || PENTIUM4)
-+	depends on (X86_64 || !X86_GENERIC) && (M686 || MPENTIUMII || MPENTIUMIII || MPENTIUMM || MCORE2 || MPENTIUM4)
+diff -puN include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function include/linux/iommu-helper.h
+--- a/include/linux/iommu-helper.h~iommu-export-iommu_is_span_boundary-helper-function
++++ a/include/linux/iommu-helper.h
+@@ -1,3 +1,6 @@
++extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
++				  unsigned long shift,
++				  unsigned long boundary_size);
+ extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 				      unsigned long start, unsigned int nr,
+ 				      unsigned long shift,
+diff -puN lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function lib/iommu-helper.c
+--- a/lib/iommu-helper.c~iommu-export-iommu_is_span_boundary-helper-function
++++ a/lib/iommu-helper.c
+@@ -40,10 +40,12 @@ static inline void set_bit_area(unsigned
+ 	}
+ }
  
- config X86_TSC
- 	def_bool y
+-static inline int is_span_boundary(unsigned int index, unsigned int nr,
+-				   unsigned long shift,
+-				   unsigned long boundary_size)
++int iommu_is_span_boundary(unsigned int index, unsigned int nr,
++			   unsigned long shift,
++			   unsigned long boundary_size)
+ {
++	BUG_ON(!is_power_of_2(boundary_size));
++
+ 	shift = (shift + index) & (boundary_size - 1);
+ 	return shift + nr > boundary_size;
+ }
+@@ -57,7 +59,7 @@ unsigned long iommu_area_alloc(unsigned 
+ again:
+ 	index = find_next_zero_area(map, size, start, nr, align_mask);
+ 	if (index != -1) {
+-		if (is_span_boundary(index, nr, shift, boundary_size)) {
++		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+ 			/* we could do more effectively */
+ 			start = index + 1;
+ 			goto again;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-git-unionfs.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-try-both-endianess-when-checking-for-endianess.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-prio_tree-debugging-patch.patch
+parisc-fix-a-overflow-bug-on-32bit-architectures.patch
+git-scsi-misc.patch
+mpt-fusion-dont-oops-if-numphys==0.patch
 
