@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fusion-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:38:35 -0800
-Message-ID: <200803052238.m25McaWR024868@imap1.linux-foundation.org>
+Subject: + rtc-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:38:32 -0800
+Message-ID: <200803052238.m25McXRq024861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41907 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760722AbYCEWvZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:51:25 -0500
+	by vger.kernel.org with ESMTP id S1758709AbYCEWwJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:52:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com
+Cc: harvey.harrison@gmail.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     fusion: replace remaining __FUNCTION__ occurrences
+     rtc: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     fusion-replace-remaining-__function__-occurrences.patch
+     rtc-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,532 +33,593 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fusion: replace remaining __FUNCTION__ occurrences
+Subject: rtc: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c  |   18 ++++-----
- drivers/message/fusion/mptctl.c   |    4 +-
- drivers/message/fusion/mptfc.c    |    8 ++--
- drivers/message/fusion/mptlan.c   |   26 ++++++-------
- drivers/message/fusion/mptsas.c   |   54 ++++++++++++++--------------
- drivers/message/fusion/mptscsih.c |    4 +-
- 6 files changed, 57 insertions(+), 57 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |   12 ++++-----
+ drivers/rtc/rtc-at91sam9.c   |    2 -
+ drivers/rtc/rtc-ds1302.c     |    2 -
+ drivers/rtc/rtc-ds1672.c     |   14 +++++------
+ drivers/rtc/rtc-max6900.c    |    6 ++--
+ drivers/rtc/rtc-max6902.c    |    4 +--
+ drivers/rtc/rtc-pcf8563.c    |   14 +++++------
+ drivers/rtc/rtc-rs5c313.c    |    4 +--
+ drivers/rtc/rtc-rs5c372.c    |   10 ++++----
+ drivers/rtc/rtc-s3c.c        |    6 ++--
+ drivers/rtc/rtc-sh.c         |    2 -
+ drivers/rtc/rtc-v3020.c      |    4 +--
+ drivers/rtc/rtc-x1205.c      |   40 ++++++++++++++++-----------------
+ 13 files changed, 60 insertions(+), 60 deletions(-)
 
-diff -puN drivers/message/fusion/mptbase.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptbase.c
-@@ -307,7 +307,7 @@ mpt_turbo_reply(MPT_ADAPTER *ioc, u32 pa
- 	if (!cb_idx || cb_idx >= MPT_MAX_PROTOCOL_DRIVERS ||
- 		MptCallbacks[cb_idx] == NULL) {
- 		printk(MYIOC_s_WARN_FMT "%s: Invalid cb_idx (%d)!\n",
--				__FUNCTION__, ioc->name, cb_idx);
-+				__func__, ioc->name, cb_idx);
- 		goto out;
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -83,7 +83,7 @@ static int at91_rtc_readtime(struct devi
+ 	tm->tm_yday = rtc_year_days(tm->tm_mday, tm->tm_mon, tm->tm_year);
+ 	tm->tm_year = tm->tm_year - 1900;
+ 
+-	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
++	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+ 
+@@ -97,7 +97,7 @@ static int at91_rtc_settime(struct devic
+ {
+ 	unsigned long cr;
+ 
+-	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
++	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+ 
+@@ -142,7 +142,7 @@ static int at91_rtc_readalarm(struct dev
+ 	alrm->enabled = (at91_sys_read(AT91_RTC_IMR) & AT91_RTC_ALARM)
+ 			? 1 : 0;
+ 
+-	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
++	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+ 		1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		tm->tm_hour, tm->tm_min, tm->tm_sec);
+ 
+@@ -178,7 +178,7 @@ static int at91_rtc_setalarm(struct devi
+ 	if (alrm->enabled)
+ 		at91_sys_write(AT91_RTC_IER, AT91_RTC_ALARM);
+ 
+-	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __FUNCTION__,
++	pr_debug("%s(): %4d-%02d-%02d %02d:%02d:%02d\n", __func__,
+ 		at91_alarm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour,
+ 		tm.tm_min, tm.tm_sec);
+ 
+@@ -193,7 +193,7 @@ static int at91_rtc_ioctl(struct device 
+ {
+ 	int ret = 0;
+ 
+-	pr_debug("%s(): cmd=%08x, arg=%08lx.\n", __FUNCTION__, cmd, arg);
++	pr_debug("%s(): cmd=%08x, arg=%08lx.\n", __func__, cmd, arg);
+ 
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:	/* alarm off */
+@@ -265,7 +265,7 @@ static irqreturn_t at91_rtc_interrupt(in
+ 
+ 		rtc_update_irq(rtc, 1, events);
+ 
+-		pr_debug("%s(): num=%ld, events=0x%02lx\n", __FUNCTION__,
++		pr_debug("%s(): num=%ld, events=0x%02lx\n", __func__,
+ 			events >> 8, events & 0x000000FF);
+ 
+ 		return IRQ_HANDLED;
+diff -puN drivers/rtc/rtc-at91sam9.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-at91sam9.c
+--- a/drivers/rtc/rtc-at91sam9.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-at91sam9.c
+@@ -288,7 +288,7 @@ static irqreturn_t at91_rtc_interrupt(in
+ 
+ 	rtc_update_irq(rtc->rtcdev, 1, events);
+ 
+-	pr_debug("%s: num=%ld, events=0x%02lx\n", __FUNCTION__,
++	pr_debug("%s: num=%ld, events=0x%02lx\n", __func__,
+ 		events >> 8, events & 0x000000FF);
+ 
+ 	return IRQ_HANDLED;
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-ds1302.c
+@@ -122,7 +122,7 @@ static int ds1302_rtc_read_time(struct d
+ 
+ 	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon + 1, tm->tm_year, tm->tm_wday);
+ 
+diff -puN drivers/rtc/rtc-ds1672.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-ds1672.c
+--- a/drivers/rtc/rtc-ds1672.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-ds1672.c
+@@ -50,13 +50,13 @@ static int ds1672_get_datetime(struct i2
+ 
+ 	/* read date registers */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
-@@ -371,7 +371,7 @@ mpt_reply(MPT_ADAPTER *ioc, u32 pa)
- 	if (!cb_idx || cb_idx >= MPT_MAX_PROTOCOL_DRIVERS ||
- 		MptCallbacks[cb_idx] == NULL) {
- 		printk(MYIOC_s_WARN_FMT "%s: Invalid cb_idx (%d)!\n",
--				__FUNCTION__, ioc->name, cb_idx);
-+				__func__, ioc->name, cb_idx);
- 		freeme = 0;
- 		goto out;
- 	}
-@@ -2305,7 +2305,7 @@ mpt_adapter_disable(MPT_ADAPTER *ioc)
+ 	dev_dbg(&client->dev,
+ 		"%s: raw read data - counters=%02x,%02x,%02x,%02x\n",
+-		__FUNCTION__, buf[0], buf[1], buf[2], buf[3]);
++		__func__, buf[0], buf[1], buf[2], buf[3]);
  
- 	if (ioc->cached_fw != NULL) {
- 		ddlprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s: Pushing FW onto "
--		    "adapter\n", __FUNCTION__, ioc->name));
-+		    "adapter\n", __func__, ioc->name));
- 		if ((ret = mpt_downloadboot(ioc, (MpiFwHeader_t *)
- 		    ioc->cached_fw, CAN_SLEEP)) < 0) {
- 			printk(MYIOC_s_WARN_FMT
-@@ -3564,7 +3564,7 @@ mpt_diag_reset(MPT_ADAPTER *ioc, int ign
+ 	time = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
  
- 	if (ioc->pcidev->device == MPI_MANUFACTPAGE_DEVID_SAS1078) {
- 		drsprintk(ioc, printk(MYIOC_s_WARN_FMT "%s: Doorbell=%p; 1078 reset "
--			"address=%p\n",  ioc->name, __FUNCTION__,
-+			"address=%p\n",  ioc->name, __func__,
- 			&ioc->chip->Doorbell, &ioc->chip->Reset_1078));
- 		CHIPREG_WRITE32(&ioc->chip->Reset_1078, 0x07);
- 		if (sleepFlag == CAN_SLEEP)
-@@ -4613,12 +4613,12 @@ mptbase_sas_persist_operation(MPT_ADAPTE
- 		break;
- 	}
+@@ -64,7 +64,7 @@ static int ds1672_get_datetime(struct i2
  
--	printk("%s: persist_opcode=%x\n",__FUNCTION__, persist_opcode);
-+	printk("%s: persist_opcode=%x\n",__func__, persist_opcode);
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__, tm->tm_sec, tm->tm_min, tm->tm_hour,
++		__func__, tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
  
- 	/* Get a MF for this command.
- 	 */
- 	if ((mf = mpt_get_msg_frame(mpt_base_index, ioc)) == NULL) {
--		printk("%s: no msg frames!\n",__FUNCTION__);
-+		printk("%s: no msg frames!\n",__func__);
- 		return -1;
-         }
- 
-@@ -4642,13 +4642,13 @@ mptbase_sas_persist_operation(MPT_ADAPTE
- 	    (SasIoUnitControlReply_t *)ioc->persist_reply_frame;
- 	if (le16_to_cpu(sasIoUnitCntrReply->IOCStatus) != MPI_IOCSTATUS_SUCCESS) {
- 		printk("%s: IOCStatus=0x%X IOCLogInfo=0x%X\n",
--		    __FUNCTION__,
-+		    __func__,
- 		    sasIoUnitCntrReply->IOCStatus,
- 		    sasIoUnitCntrReply->IOCLogInfo);
- 		return -1;
- 	}
- 
--	printk("%s: success\n",__FUNCTION__);
-+	printk("%s: success\n",__func__);
  	return 0;
- }
+@@ -84,7 +84,7 @@ static int ds1672_set_mmss(struct i2c_cl
  
-@@ -5655,7 +5655,7 @@ SendEventAck(MPT_ADAPTER *ioc, EventNoti
- 
- 	if ((pAck = (EventAck_t *) mpt_get_msg_frame(mpt_base_index, ioc)) == NULL) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames!!\n",
--		    ioc->name,__FUNCTION__));
-+		    ioc->name,__func__));
- 		return -1;
+ 	xfer = i2c_master_send(client, buf, 6);
+ 	if (xfer != 6) {
+-		dev_err(&client->dev, "%s: send: %d\n", __FUNCTION__, xfer);
++		dev_err(&client->dev, "%s: send: %d\n", __func__, xfer);
+ 		return -EIO;
  	}
  
-diff -puN drivers/message/fusion/mptctl.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptctl.c
---- a/drivers/message/fusion/mptctl.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptctl.c
-@@ -505,7 +505,7 @@ mptctl_event_process(MPT_ADAPTER *ioc, E
- 	event = le32_to_cpu(pEvReply->Event) & 0xFF;
+@@ -98,7 +98,7 @@ static int ds1672_set_datetime(struct i2
+ 	dev_dbg(&client->dev,
+ 		"%s: secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
  
- 	dctlprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s() called\n",
--	    ioc->name, __FUNCTION__));
-+	    ioc->name, __func__));
- 	if(async_queue == NULL)
- 		return 1;
+@@ -133,7 +133,7 @@ static int ds1672_get_control(struct i2c
  
-@@ -2478,7 +2478,7 @@ mptctl_hp_hostinfo(unsigned long arg, un
- 	 */
- 	if ((mf = mpt_get_msg_frame(mptctl_id, ioc)) == NULL) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames!!\n",
--		    ioc->name,__FUNCTION__));
-+		    ioc->name,__func__));
- 		goto out;
+ 	/* read control register */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
-diff -puN drivers/message/fusion/mptfc.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptfc.c
---- a/drivers/message/fusion/mptfc.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptfc.c
-@@ -231,28 +231,28 @@ static int
- mptfc_abort(struct scsi_cmnd *SCpnt)
- {
- 	return
--	    mptfc_block_error_handler(SCpnt, mptscsih_abort, __FUNCTION__);
-+	    mptfc_block_error_handler(SCpnt, mptscsih_abort, __func__);
- }
+@@ -199,7 +199,7 @@ static int ds1672_probe(struct i2c_adapt
+ 	struct i2c_client *client;
+ 	struct rtc_device *rtc;
  
- static int
- mptfc_dev_reset(struct scsi_cmnd *SCpnt)
- {
- 	return
--	    mptfc_block_error_handler(SCpnt, mptscsih_dev_reset, __FUNCTION__);
-+	    mptfc_block_error_handler(SCpnt, mptscsih_dev_reset, __func__);
- }
+-	dev_dbg(&adapter->dev, "%s\n", __FUNCTION__);
++	dev_dbg(&adapter->dev, "%s\n", __func__);
  
- static int
- mptfc_bus_reset(struct scsi_cmnd *SCpnt)
- {
- 	return
--	    mptfc_block_error_handler(SCpnt, mptscsih_bus_reset, __FUNCTION__);
-+	    mptfc_block_error_handler(SCpnt, mptscsih_bus_reset, __func__);
- }
- 
- static int
- mptfc_host_reset(struct scsi_cmnd *SCpnt)
- {
- 	return
--	    mptfc_block_error_handler(SCpnt, mptscsih_host_reset, __FUNCTION__);
-+	    mptfc_block_error_handler(SCpnt, mptscsih_host_reset, __func__);
- }
- 
- static void
-diff -puN drivers/message/fusion/mptlan.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptlan.c
---- a/drivers/message/fusion/mptlan.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptlan.c
-@@ -610,7 +610,7 @@ mpt_lan_send_turbo(struct net_device *de
- 
- 	dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, skb %p sent.\n",
- 			IOC_AND_NETDEV_NAMES_s_s(dev),
--			__FUNCTION__, sent));
-+			__func__, sent));
- 
- 	priv->SendCtl[ctx].skb = NULL;
- 	pci_unmap_single(mpt_dev->pcidev, priv->SendCtl[ctx].dma,
-@@ -676,7 +676,7 @@ mpt_lan_send_reply(struct net_device *de
- 
- 		dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, skb %p sent.\n",
- 				IOC_AND_NETDEV_NAMES_s_s(dev),
--				__FUNCTION__, sent));
-+				__func__, sent));
- 
- 		priv->SendCtl[ctx].skb = NULL;
- 		pci_unmap_single(mpt_dev->pcidev, priv->SendCtl[ctx].dma,
-@@ -715,7 +715,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
- 	u16 cur_naa = 0x1000;
- 
- 	dioprintk((KERN_INFO MYNAM ": %s called, skb_addr = %p\n",
--			__FUNCTION__, skb));
-+			__func__, skb));
- 
- 	spin_lock_irqsave(&priv->txfidx_lock, flags);
- 	if (priv->mpt_txfidx_tail < 0) {
-@@ -723,7 +723,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
- 		spin_unlock_irqrestore(&priv->txfidx_lock, flags);
- 
- 		printk (KERN_ERR "%s: no tx context available: %u\n",
--			__FUNCTION__, priv->mpt_txfidx_tail);
-+			__func__, priv->mpt_txfidx_tail);
- 		return 1;
- 	}
- 
-@@ -733,7 +733,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
- 		spin_unlock_irqrestore(&priv->txfidx_lock, flags);
- 
- 		printk (KERN_ERR "%s: Unable to alloc request frame\n",
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
+ 		err = -ENODEV;
+diff -puN drivers/rtc/rtc-max6900.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-max6900.c
+@@ -98,7 +98,7 @@ static int max6900_i2c_read_regs(struct 
+ 	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+ 	if (rc != ARRAY_SIZE(msgs)) {
+ 		dev_err(&client->dev, "%s: register read failed\n",
 -			__FUNCTION__);
 +			__func__);
- 		return 1;
+ 		return -EIO;
  	}
+ 	return 0;
+@@ -150,7 +150,7 @@ static int max6900_i2c_write_regs(struct
  
-@@ -1208,7 +1208,7 @@ mpt_lan_post_receive_buckets(struct mpt_
- 
- 	dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, Start_buckets = %u, buckets_out = %u\n",
- 			IOC_AND_NETDEV_NAMES_s_s(dev),
--			__FUNCTION__, buckets, curr));
-+			__func__, buckets, curr));
- 
- 	max = (mpt_dev->req_sz - MPT_LAN_RECEIVE_POST_REQUEST_SIZE) /
- 			(MPT_LAN_TRANSACTION32_SIZE + sizeof(SGESimple64_t));
-@@ -1217,9 +1217,9 @@ mpt_lan_post_receive_buckets(struct mpt_
- 		mf = mpt_get_msg_frame(LanCtx, mpt_dev);
- 		if (mf == NULL) {
- 			printk (KERN_ERR "%s: Unable to alloc request frame\n",
--				__FUNCTION__);
-+				__func__);
- 			dioprintk((KERN_ERR "%s: %u buckets remaining\n",
--				 __FUNCTION__, buckets));
-+				 __func__, buckets));
- 			goto out;
- 		}
- 		pRecvReq = (LANReceivePostRequest_t *) mf;
-@@ -1244,7 +1244,7 @@ mpt_lan_post_receive_buckets(struct mpt_
- 			spin_lock_irqsave(&priv->rxfidx_lock, flags);
- 			if (priv->mpt_rxfidx_tail < 0) {
- 				printk (KERN_ERR "%s: Can't alloc context\n",
--					__FUNCTION__);
-+					__func__);
- 				spin_unlock_irqrestore(&priv->rxfidx_lock,
- 						       flags);
- 				break;
-@@ -1267,7 +1267,7 @@ mpt_lan_post_receive_buckets(struct mpt_
- 				if (skb == NULL) {
- 					printk (KERN_WARNING
- 						MYNAM "/%s: Can't alloc skb\n",
--						__FUNCTION__);
-+						__func__);
- 					priv->mpt_rxfidx[++priv->mpt_rxfidx_tail] = ctx;
- 					spin_unlock_irqrestore(&priv->rxfidx_lock, flags);
- 					break;
-@@ -1305,7 +1305,7 @@ mpt_lan_post_receive_buckets(struct mpt_
- 
- 		if (pSimple == NULL) {
- /**/			printk (KERN_WARNING MYNAM "/%s: No buckets posted\n",
--/**/				__FUNCTION__);
-+/**/				__func__);
- 			mpt_free_msg_frame(mpt_dev, mf);
- 			goto out;
- 		}
-@@ -1329,9 +1329,9 @@ mpt_lan_post_receive_buckets(struct mpt_
- 
- out:
- 	dioprintk((KERN_INFO MYNAM "/%s: End_buckets = %u, priv->buckets_out = %u\n",
--		  __FUNCTION__, buckets, atomic_read(&priv->buckets_out)));
-+		  __func__, buckets, atomic_read(&priv->buckets_out)));
- 	dioprintk((KERN_INFO MYNAM "/%s: Posted %u buckets and received %u back\n",
--	__FUNCTION__, priv->total_posted, priv->total_received));
-+	__func__, priv->total_posted, priv->total_received));
- 
- 	clear_bit(0, &priv->post_buckets_active);
+ write_failed:
+ 	dev_err(&client->dev, "%s: register write failed\n",
+-		__FUNCTION__);
++		__func__);
+ 	return -EIO;
  }
-diff -puN drivers/message/fusion/mptsas.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptsas.c
---- a/drivers/message/fusion/mptsas.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptsas.c
-@@ -286,7 +286,7 @@ mptsas_port_delete(MPT_ADAPTER *ioc, str
- 	phy_info = port_info->phy_info;
  
- 	dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s: [%p]: num_phys=%02d "
--	    "bitmask=0x%016llX\n", ioc->name, __FUNCTION__, port_details,
-+	    "bitmask=0x%016llX\n", ioc->name, __func__, port_details,
- 	    port_details->num_phys, (unsigned long long)
- 	    port_details->phy_bitmask));
+@@ -214,7 +214,7 @@ static int max6900_i2c_clear_write_prote
+ 	rc = i2c_smbus_write_byte_data (client, MAX6900_REG_CONTROL_WRITE, 0);
+ 	if (rc < 0) {
+ 		dev_err(&client->dev, "%s: control register write failed\n",
+-			__FUNCTION__);
++			__func__);
+ 		return -EIO;
+ 	}
+ 	return 0;
+diff -puN drivers/rtc/rtc-max6902.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-max6902.c
+@@ -140,7 +140,7 @@ static int max6902_get_datetime(struct d
+ 	dt->tm_year -= 1900;
  
-@@ -397,7 +397,7 @@ mptsas_setup_wide_ports(MPT_ADAPTER *ioc
- 		 */
- 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT
- 		    "%s: [%p]: deleting phy = %d\n",
--		    ioc->name, __FUNCTION__, port_details, i));
-+		    ioc->name, __func__, port_details, i));
- 		port_details->num_phys--;
- 		port_details->phy_bitmask &= ~ (1 << phy_info->phy_id);
- 		memset(&phy_info->attached, 0, sizeof(struct mptsas_devinfo));
-@@ -483,7 +483,7 @@ mptsas_setup_wide_ports(MPT_ADAPTER *ioc
- 			continue;
- 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT
- 		    "%s: [%p]: phy_id=%02d num_phys=%02d "
--		    "bitmask=0x%016llX\n", ioc->name, __FUNCTION__,
-+		    "bitmask=0x%016llX\n", ioc->name, __func__,
- 		    port_details, i, port_details->num_phys,
- 		    (unsigned long long)port_details->phy_bitmask));
- 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT "\t\tport = %p rphy=%p\n",
-@@ -539,7 +539,7 @@ mptsas_target_reset(MPT_ADAPTER *ioc, u8
+ #ifdef MAX6902_DEBUG
+-	printk("\n%s : Read RTC values\n",__FUNCTION__);
++	printk("\n%s : Read RTC values\n",__func__);
+ 	printk("tm_hour: %i\n",dt->tm_hour);
+ 	printk("tm_min : %i\n",dt->tm_min);
+ 	printk("tm_sec : %i\n",dt->tm_sec);
+@@ -158,7 +158,7 @@ static int max6902_set_datetime(struct d
+ 	dt->tm_year = dt->tm_year+1900;
  
- 	if ((mf = mpt_get_msg_frame(ioc->TaskCtx, ioc)) == NULL) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames @%d!!\n",
--		    ioc->name,__FUNCTION__, __LINE__));
-+		    ioc->name,__func__, __LINE__));
- 		return 0;
+ #ifdef MAX6902_DEBUG
+-	printk("\n%s : Setting RTC values\n",__FUNCTION__);
++	printk("\n%s : Setting RTC values\n",__func__);
+ 	printk("tm_sec : %i\n",dt->tm_sec);
+ 	printk("tm_min : %i\n",dt->tm_min);
+ 	printk("tm_hour: %i\n",dt->tm_hour);
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -80,7 +80,7 @@ static int pcf8563_get_datetime(struct i
+ 
+ 	/* read registers */
+ 	if ((i2c_transfer(client->adapter, msgs, 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
-@@ -592,7 +592,7 @@ mptsas_target_reset_queue(MPT_ADAPTER *i
- 	    GFP_ATOMIC);
- 	if (!target_reset_list) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, failed to allocate mem @%d..!!\n",
--		    ioc->name,__FUNCTION__, __LINE__));
-+		    ioc->name,__func__, __LINE__));
- 		return;
+@@ -91,7 +91,7 @@ static int pcf8563_get_datetime(struct i
+ 	dev_dbg(&client->dev,
+ 		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
+ 		"mday=%02x, wday=%02x, mon=%02x, year=%02x\n",
+-		__FUNCTION__,
++		__func__,
+ 		buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6], buf[7],
+ 		buf[8]);
+@@ -112,7 +112,7 @@ static int pcf8563_get_datetime(struct i
+ 
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+@@ -133,7 +133,7 @@ static int pcf8563_set_datetime(struct i
+ 
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+@@ -163,7 +163,7 @@ static int pcf8563_set_datetime(struct i
+ 		if (err != sizeof(data)) {
+ 			dev_err(&client->dev,
+ 				"%s: err=%d addr=%02x, data=%02x\n",
+-				__FUNCTION__, err, data[0], data[1]);
++				__func__, err, data[0], data[1]);
+ 			return -EIO;
+ 		}
+ 	};
+@@ -208,7 +208,7 @@ static int pcf8563_validate_client(struc
+ 		if (xfer != ARRAY_SIZE(msgs)) {
+ 			dev_err(&client->dev,
+ 				"%s: could not read register 0x%02X\n",
+-				__FUNCTION__, pattern[i].reg);
++				__func__, pattern[i].reg);
+ 
+ 			return -EIO;
+ 		}
+@@ -220,7 +220,7 @@ static int pcf8563_validate_client(struc
+ 			dev_dbg(&client->dev,
+ 				"%s: pattern=%d, reg=%x, mask=0x%02x, min=%d, "
+ 				"max=%d, value=%d, raw=0x%02X\n",
+-				__FUNCTION__, i, pattern[i].reg, pattern[i].mask,
++				__func__, i, pattern[i].reg, pattern[i].mask,
+ 				pattern[i].min, pattern[i].max,
+ 				value, buf);
+ 
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -228,7 +228,7 @@ static int rs5c313_rtc_read_time(struct 
+ 		ndelay(700);	/* CE:L */
+ 
+ 		if (cnt++ > 100) {
+-			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
++			dev_err(dev, "%s: timeout error\n", __func__);
+ 			return -EIO;
+ 		}
+ 	}
+@@ -289,7 +289,7 @@ static int rs5c313_rtc_set_time(struct d
+ 		ndelay(700);	/* CE:L */
+ 
+ 		if (cnt++ > 100) {
+-			dev_err(dev, "%s: timeout error\n", __FUNCTION__);
++			dev_err(dev, "%s: timeout error\n", __func__);
+ 			return -EIO;
+ 		}
+ 	}
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -166,7 +166,7 @@ static int rs5c372_get_datetime(struct i
+ 
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+@@ -181,7 +181,7 @@ static int rs5c372_set_datetime(struct i
+ 
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+@@ -195,7 +195,7 @@ static int rs5c372_set_datetime(struct i
+ 	buf[7] = BIN2BCD(tm->tm_year - 100);
+ 
+ 	if ((i2c_master_send(client, buf, 8)) != 8) {
+-		dev_err(&client->dev, "%s: write error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: write error\n", __func__);
+ 		return -EIO;
  	}
  
-@@ -659,7 +659,7 @@ mptsas_dev_reset_complete(MPT_ADAPTER *i
- 	ev = kzalloc(sizeof(*ev), GFP_ATOMIC);
- 	if (!ev) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, failed to allocate mem @%d..!!\n",
--		    ioc->name,__FUNCTION__, __LINE__));
-+		    ioc->name,__func__, __LINE__));
- 		return;
+@@ -220,7 +220,7 @@ static int rs5c372_get_trim(struct i2c_c
+ 		*osc = (tmp & RS5C372_TRIM_XSL) ? 32000 : 32768;
+ 
+ 	if (trim) {
+-		dev_dbg(&client->dev, "%s: raw trim=%x\n", __FUNCTION__, tmp);
++		dev_dbg(&client->dev, "%s: raw trim=%x\n", __func__, tmp);
+ 		tmp &= RS5C372_TRIM_MASK;
+ 		if (tmp & 0x3e) {
+ 			int t = tmp & 0x3f;
+@@ -500,7 +500,7 @@ static int rs5c372_probe(struct i2c_clie
+ 	struct rs5c372 *rs5c372;
+ 	struct rtc_time tm;
+ 
+-	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
++	dev_dbg(&client->dev, "%s\n", __func__);
+ 
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+ 		err = -ENODEV;
+diff -puN drivers/rtc/rtc-s3c.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-s3c.c
+@@ -68,7 +68,7 @@ static void s3c_rtc_setaie(int to)
+ {
+ 	unsigned int tmp;
+ 
+-	pr_debug("%s: aie=%d\n", __FUNCTION__, to);
++	pr_debug("%s: aie=%d\n", __func__, to);
+ 
+ 	tmp = readb(s3c_rtc_base + S3C2410_RTCALM) & ~S3C2410_RTCALM_ALMEN;
+ 
+@@ -82,7 +82,7 @@ static void s3c_rtc_setpie(int to)
+ {
+ 	unsigned int tmp;
+ 
+-	pr_debug("%s: pie=%d\n", __FUNCTION__, to);
++	pr_debug("%s: pie=%d\n", __func__, to);
+ 
+ 	spin_lock_irq(&s3c_rtc_pie_lock);
+ 	tmp = readb(s3c_rtc_base + S3C2410_TICNT) & ~S3C2410_TICNT_ENABLE;
+@@ -457,7 +457,7 @@ static int s3c_rtc_probe(struct platform
+ 	struct resource *res;
+ 	int ret;
+ 
+-	pr_debug("%s: probe=%p\n", __FUNCTION__, pdev);
++	pr_debug("%s: probe=%p\n", __func__, pdev);
+ 
+ 	/* find the IRQs */
+ 
+diff -puN drivers/rtc/rtc-sh.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-sh.c
+@@ -349,7 +349,7 @@ static int sh_rtc_read_time(struct devic
+ 
+ 	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon + 1, tm->tm_year, tm->tm_wday);
+ 
+diff -puN drivers/rtc/rtc-v3020.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-v3020.c
+@@ -107,7 +107,7 @@ static int v3020_read_time(struct device
+ 	dt->tm_year = BCD2BIN(tmp)+100;
+ 
+ #ifdef DEBUG
+-	printk("\n%s : Read RTC values\n",__FUNCTION__);
++	printk("\n%s : Read RTC values\n",__func__);
+ 	printk("tm_hour: %i\n",dt->tm_hour);
+ 	printk("tm_min : %i\n",dt->tm_min);
+ 	printk("tm_sec : %i\n",dt->tm_sec);
+@@ -126,7 +126,7 @@ static int v3020_set_time(struct device 
+ 	struct v3020 *chip = dev_get_drvdata(dev);
+ 
+ #ifdef DEBUG
+-	printk("\n%s : Setting RTC values\n",__FUNCTION__);
++	printk("\n%s : Setting RTC values\n",__func__);
+ 	printk("tm_sec : %i\n",dt->tm_sec);
+ 	printk("tm_min : %i\n",dt->tm_min);
+ 	printk("tm_hour: %i\n",dt->tm_hour);
+diff -puN drivers/rtc/rtc-x1205.c~rtc-replace-remaining-__function__-occurrences drivers/rtc/rtc-x1205.c
+--- a/drivers/rtc/rtc-x1205.c~rtc-replace-remaining-__function__-occurrences
++++ a/drivers/rtc/rtc-x1205.c
+@@ -99,14 +99,14 @@ static int x1205_get_datetime(struct i2c
+ 
+ 	/* read date registers */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
-@@ -1169,7 +1169,7 @@ static int mptsas_phy_reset(struct sas_p
- 	reply = (SasIoUnitControlReply_t *)ioc->sas_mgmt.reply;
- 	if (reply->IOCStatus != MPI_IOCSTATUS_SUCCESS) {
- 		printk(MYIOC_s_INFO_FMT "%s: IOCStatus=0x%X IOCLogInfo=0x%X\n",
--		    ioc->name, __FUNCTION__, reply->IOCStatus, reply->IOCLogInfo);
-+		    ioc->name, __func__, reply->IOCStatus, reply->IOCLogInfo);
- 		error = -ENXIO;
- 		goto out_unlock;
- 	}
-@@ -1256,14 +1256,14 @@ static int mptsas_smp_handler(struct Scs
+ 	dev_dbg(&client->dev,
+ 		"%s: raw read data - sec=%02x, min=%02x, hr=%02x, "
+ 		"mday=%02x, mon=%02x, year=%02x, wday=%02x, y2k=%02x\n",
+-		__FUNCTION__,
++		__func__,
+ 		buf[0], buf[1], buf[2], buf[3],
+ 		buf[4], buf[5], buf[6], buf[7]);
  
- 	if (!rsp) {
- 		printk(MYIOC_s_ERR_FMT "%s: the smp response space is missing\n",
--		    ioc->name, __FUNCTION__);
-+		    ioc->name, __func__);
- 		return -EINVAL;
- 	}
+@@ -121,7 +121,7 @@ static int x1205_get_datetime(struct i2c
  
- 	/* do we need to support multiple segments? */
- 	if (req->bio->bi_vcnt > 1 || rsp->bio->bi_vcnt > 1) {
- 		printk(MYIOC_s_ERR_FMT "%s: multiple segments req %u %u, rsp %u %u\n",
--		    ioc->name, __FUNCTION__, req->bio->bi_vcnt, req->data_len,
-+		    ioc->name, __func__, req->bio->bi_vcnt, req->data_len,
- 		    rsp->bio->bi_vcnt, rsp->data_len);
- 		return -EINVAL;
- 	}
-@@ -1329,7 +1329,7 @@ static int mptsas_smp_handler(struct Scs
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
  
- 	timeleft = wait_for_completion_timeout(&ioc->sas_mgmt.done, 10 * HZ);
- 	if (!timeleft) {
--		printk(MYIOC_s_ERR_FMT "%s: smp timeout!\n", ioc->name, __FUNCTION__);
-+		printk(MYIOC_s_ERR_FMT "%s: smp timeout!\n", ioc->name, __func__);
- 		/* On timeout reset the board */
- 		mpt_HardResetHandler(ioc, CAN_SLEEP);
- 		ret = -ETIMEDOUT;
-@@ -1347,7 +1347,7 @@ static int mptsas_smp_handler(struct Scs
- 		rsp->data_len -= smprep->ResponseDataLength;
- 	} else {
- 		printk(MYIOC_s_ERR_FMT "%s: smp passthru reply failed to be returned\n",
--		    ioc->name, __FUNCTION__);
-+		    ioc->name, __func__);
- 		ret = -ENXIO;
- 	}
- unmap:
-@@ -1992,7 +1992,7 @@ static int mptsas_probe_one_phy(struct d
- 			if (error) {
- 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 					"%s: exit at line=%d\n", ioc->name,
--					__FUNCTION__, __LINE__));
-+					__func__, __LINE__));
- 				goto out;
- 			}
- 			mptsas_set_port(ioc, phy_info, port);
-@@ -2063,7 +2063,7 @@ static int mptsas_probe_one_phy(struct d
- 		if (!rphy) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--				__FUNCTION__, __LINE__));
-+				__func__, __LINE__));
- 			goto out;
- 		}
+@@ -139,7 +139,7 @@ static int x1205_get_status(struct i2c_c
  
-@@ -2072,7 +2072,7 @@ static int mptsas_probe_one_phy(struct d
- 		if (error) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--				__FUNCTION__, __LINE__));
-+				__func__, __LINE__));
- 			sas_rphy_free(rphy);
- 			goto out;
- 		}
-@@ -2601,7 +2601,7 @@ mptsas_hotplug_work(struct work_struct *
- 				    (ev->channel << 8) + ev->id)) {
- 					dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 					"%s: exit at line=%d\n", ioc->name,
--						__FUNCTION__, __LINE__));
-+						__func__, __LINE__));
- 					break;
- 				}
- 				phy_info = mptsas_find_phyinfo_by_sas_address(
-@@ -2621,20 +2621,20 @@ mptsas_hotplug_work(struct work_struct *
- 		if (!phy_info){
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--				__FUNCTION__, __LINE__));
-+				__func__, __LINE__));
- 			break;
- 		}
- 		if (!phy_info->port_details) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break;
- 		}
- 		rphy = mptsas_get_rphy(phy_info);
- 		if (!rphy) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break;
- 		}
- 
-@@ -2642,7 +2642,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (!port) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break;
- 		}
- 
-@@ -2653,7 +2653,7 @@ mptsas_hotplug_work(struct work_struct *
- 			if (!vtarget) {
- 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 					"%s: exit at line=%d\n", ioc->name,
--					__FUNCTION__, __LINE__));
-+					__func__, __LINE__));
- 				break;
- 			}
- 
-@@ -2708,7 +2708,7 @@ mptsas_hotplug_work(struct work_struct *
- 			(ev->channel << 8) + ev->id)) {
- 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 					"%s: exit at line=%d\n", ioc->name,
--					__FUNCTION__, __LINE__));
-+					__func__, __LINE__));
- 			break;
- 		}
- 
-@@ -2720,7 +2720,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (!phy_info || !phy_info->port_details) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break;
- 		}
- 
-@@ -2732,7 +2732,7 @@ mptsas_hotplug_work(struct work_struct *
- 			if (!vtarget) {
- 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				    "%s: exit at line=%d\n", ioc->name,
--				    __FUNCTION__, __LINE__));
-+				    __func__, __LINE__));
- 				break;
- 			}
- 			/*
-@@ -2755,7 +2755,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (mptsas_get_rphy(phy_info)) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			if (ev->channel) printk("%d\n", __LINE__);
- 			break;
- 		}
-@@ -2764,7 +2764,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (!port) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break;
- 		}
- 		memcpy(&phy_info->attached, &sas_device,
-@@ -2789,7 +2789,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (!rphy) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			break; /* non-fatal: an rphy can be added later */
- 		}
- 
-@@ -2797,7 +2797,7 @@ mptsas_hotplug_work(struct work_struct *
- 		if (sas_rphy_add(rphy)) {
- 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
- 				"%s: exit at line=%d\n", ioc->name,
--			       	__FUNCTION__, __LINE__));
-+			       	__func__, __LINE__));
- 			sas_rphy_free(rphy);
- 			break;
- 		}
-diff -puN drivers/message/fusion/mptscsih.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~fusion-replace-remaining-__function__-occurrences
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -461,7 +461,7 @@ mptscsih_issue_sep_command(MPT_ADAPTER *
- 
- 	if ((mf = mpt_get_msg_frame(ioc->InternalCtx, ioc)) == NULL) {
- 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s: no msg frames!!\n",
--		    ioc->name,__FUNCTION__));
-+		    ioc->name,__func__));
- 		return;
+ 	/* read status register */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
  	}
  
-@@ -2178,7 +2178,7 @@ mptscsih_taskmgmt_complete(MPT_ADAPTER *
- 				(ioc->debug_level & MPT_DEBUG_TM ))
- 		printk("%s: ha=%d [%d:%d:0] task_type=0x%02X "
- 			"iocstatus=0x%04X\n\tloginfo=0x%08X response_code=0x%02X "
--			"term_cmnds=%d\n", __FUNCTION__, ioc->id, pScsiTmReply->Bus,
-+			"term_cmnds=%d\n", __func__, ioc->id, pScsiTmReply->Bus,
- 			 pScsiTmReply->TargetID, pScsiTmReq->TaskType,
- 			le16_to_cpu(pScsiTmReply->IOCStatus),
- 			le32_to_cpu(pScsiTmReply->IOCLogInfo),pScsiTmReply->ResponseCode,
+@@ -162,7 +162,7 @@ static int x1205_set_datetime(struct i2c
+ 
+ 	dev_dbg(&client->dev,
+ 		"%s: secs=%d, mins=%d, hours=%d\n",
+-		__FUNCTION__,
++		__func__,
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour);
+ 
+ 	buf[CCR_SEC] = BIN2BCD(tm->tm_sec);
+@@ -175,7 +175,7 @@ static int x1205_set_datetime(struct i2c
+ 	if (datetoo) {
+ 		dev_dbg(&client->dev,
+ 			"%s: mday=%d, mon=%d, year=%d, wday=%d\n",
+-			__FUNCTION__,
++			__func__,
+ 			tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+ 		buf[CCR_MDAY] = BIN2BCD(tm->tm_mday);
+@@ -191,12 +191,12 @@ static int x1205_set_datetime(struct i2c
+ 
+ 	/* this sequence is required to unlock the chip */
+ 	if ((xfer = i2c_master_send(client, wel, 3)) != 3) {
+-		dev_err(&client->dev, "%s: wel - %d\n", __FUNCTION__, xfer);
++		dev_err(&client->dev, "%s: wel - %d\n", __func__, xfer);
+ 		return -EIO;
+ 	}
+ 
+ 	if ((xfer = i2c_master_send(client, rwel, 3)) != 3) {
+-		dev_err(&client->dev, "%s: rwel - %d\n", __FUNCTION__, xfer);
++		dev_err(&client->dev, "%s: rwel - %d\n", __func__, xfer);
+ 		return -EIO;
+ 	}
+ 
+@@ -208,7 +208,7 @@ static int x1205_set_datetime(struct i2c
+ 		if (xfer != 3) {
+ 			dev_err(&client->dev,
+ 				"%s: xfer=%d addr=%02x, data=%02x\n",
+-				__FUNCTION__,
++				__func__,
+ 				 xfer, rdata[1], rdata[2]);
+ 			return -EIO;
+ 		}
+@@ -216,7 +216,7 @@ static int x1205_set_datetime(struct i2c
+ 
+ 	/* disable further writes */
+ 	if ((xfer = i2c_master_send(client, diswe, 3)) != 3) {
+-		dev_err(&client->dev, "%s: diswe - %d\n", __FUNCTION__, xfer);
++		dev_err(&client->dev, "%s: diswe - %d\n", __func__, xfer);
+ 		return -EIO;
+ 	}
+ 
+@@ -249,11 +249,11 @@ static int x1205_get_dtrim(struct i2c_cl
+ 
+ 	/* read dtr register */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
+ 	}
+ 
+-	dev_dbg(&client->dev, "%s: raw dtr=%x\n", __FUNCTION__, dtr);
++	dev_dbg(&client->dev, "%s: raw dtr=%x\n", __func__, dtr);
+ 
+ 	*trim = 0;
+ 
+@@ -281,11 +281,11 @@ static int x1205_get_atrim(struct i2c_cl
+ 
+ 	/* read atr register */
+ 	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
+-		dev_err(&client->dev, "%s: read error\n", __FUNCTION__);
++		dev_err(&client->dev, "%s: read error\n", __func__);
+ 		return -EIO;
+ 	}
+ 
+-	dev_dbg(&client->dev, "%s: raw atr=%x\n", __FUNCTION__, atr);
++	dev_dbg(&client->dev, "%s: raw atr=%x\n", __func__, atr);
+ 
+ 	/* atr is a two's complement value on 6 bits,
+ 	 * perform sign extension. The formula is
+@@ -294,11 +294,11 @@ static int x1205_get_atrim(struct i2c_cl
+ 	if (atr & 0x20)
+ 		atr |= 0xC0;
+ 
+-	dev_dbg(&client->dev, "%s: raw atr=%x (%d)\n", __FUNCTION__, atr, atr);
++	dev_dbg(&client->dev, "%s: raw atr=%x (%d)\n", __func__, atr, atr);
+ 
+ 	*trim = (atr * 250) + 11000;
+ 
+-	dev_dbg(&client->dev, "%s: real=%d\n", __FUNCTION__, *trim);
++	dev_dbg(&client->dev, "%s: real=%d\n", __func__, *trim);
+ 
+ 	return 0;
+ }
+@@ -352,7 +352,7 @@ static int x1205_validate_client(struct 
+ 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
+ 			dev_err(&client->dev,
+ 				"%s: could not read register %x\n",
+-				__FUNCTION__, probe_zero_pattern[i]);
++				__func__, probe_zero_pattern[i]);
+ 
+ 			return -EIO;
+ 		}
+@@ -360,7 +360,7 @@ static int x1205_validate_client(struct 
+ 		if ((buf & probe_zero_pattern[i+1]) != 0) {
+ 			dev_err(&client->dev,
+ 				"%s: register=%02x, zero pattern=%d, value=%x\n",
+-				__FUNCTION__, probe_zero_pattern[i], i, buf);
++				__func__, probe_zero_pattern[i], i, buf);
+ 
+ 			return -ENODEV;
+ 		}
+@@ -380,7 +380,7 @@ static int x1205_validate_client(struct 
+ 		if ((xfer = i2c_transfer(client->adapter, msgs, 2)) != 2) {
+ 			dev_err(&client->dev,
+ 				"%s: could not read register %x\n",
+-				__FUNCTION__, probe_limits_pattern[i].reg);
++				__func__, probe_limits_pattern[i].reg);
+ 
+ 			return -EIO;
+ 		}
+@@ -391,7 +391,7 @@ static int x1205_validate_client(struct 
+ 			value < probe_limits_pattern[i].min) {
+ 			dev_dbg(&client->dev,
+ 				"%s: register=%x, lim pattern=%d, value=%d\n",
+-				__FUNCTION__, probe_limits_pattern[i].reg,
++				__func__, probe_limits_pattern[i].reg,
+ 				i, value);
+ 
+ 			return -ENODEV;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
