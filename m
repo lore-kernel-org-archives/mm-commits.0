@@ -1,144 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-oops-on-null-lru-list.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:45:45 -0800
-Message-ID: <200803050745.m257jjrR021617@imap1.linux-foundation.org>
+Subject: - sm501-add-support-for-the-sm502-programmable-pll.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:44:39 -0800
+Message-ID: <200803050744.m257id0e021529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44960 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765041AbYCEHpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:53 -0500
+	by vger.kernel.org with ESMTP id S1764913AbYCEHpw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, mm-commits@vger.kernel.org
+To: syrjala@sci.fi, ben-linux@fluff.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix oops on NULL lru list
+     sm501: add support for the SM502 programmable PLL
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-oops-on-null-lru-list.patch
+     sm501-add-support-for-the-sm502-programmable-pll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix oops on NULL lru list
-From: Hugh Dickins <hugh@veritas.com>
+Subject: sm501: add support for the SM502 programmable PLL
+From: Ville Syrjala <syrjala@sci.fi>
 
-While testing force_empty, during an exit_mmap, __mem_cgroup_remove_list
-called from mem_cgroup_uncharge_page oopsed on a NULL pointer in the lru list.
- I couldn't see what racing tasks on other cpus were doing, but surmise that
-another must have been in mem_cgroup_charge_common on the same page, between
-its unlock_page_cgroup and spin_lock_irqsave near done (thanks to that kzalloc
-which I'd almost changed to a kmalloc).
+SM502 has a programmable PLL which can provide the panel pixel clock instead
+of the 288MHz and 336MHz PLLs.
 
-Normally such a race cannot happen, the ref_cnt prevents it, the final
-uncharge cannot race with the initial charge.  But force_empty buggers the
-ref_cnt, that's what it's all about; and thereafter forced pages are
-vulnerable to races such as this (just think of a shared page also mapped into
-an mm of another mem_cgroup than that just emptied).  And remain vulnerable
-until they're freed indefinitely later.
-
-This patch just fixes the oops by moving the unlock_page_cgroups down below
-adding to and removing from the list (only possible given the previous patch);
-and while we're at it, we might as well make it an invariant that
-page->page_cgroup is always set while pc is on lru.
-
-But this behaviour of force_empty seems highly unsatisfactory to me: why have
-a ref_cnt if we always have to cope with it being violated (as in the earlier
-page migration patch).  We may prefer force_empty to move pages to an orphan
-mem_cgroup (could be the root, but better not), from which other cgroups could
-recover them; we might need to reverse the locking again; but no time now for
-such concerns.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Ville Syrjala <syrjala@sci.fi>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/mfd/sm501.c        |  163 +++++++++++++++++++++++++++--------
+ include/linux/sm501-regs.h |    3 
+ include/linux/sm501.h      |    3 
+ 3 files changed, 133 insertions(+), 36 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-oops-on-null-lru-list mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oops-on-null-lru-list
-+++ a/mm/memcontrol.c
-@@ -623,13 +623,13 @@ retry:
- 		goto retry;
- 	}
- 	page_assign_page_cgroup(page, pc);
--	unlock_page_cgroup(page);
+diff -puN drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-add-support-for-the-sm502-programmable-pll
++++ a/drivers/mfd/sm501.c
+@@ -48,6 +48,7 @@ struct sm501_devdata {
+ 	unsigned int			 pdev_id;
+ 	unsigned int			 irq;
+ 	void __iomem			*regs;
++	unsigned int			 rev;
+ };
  
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
- 	__mem_cgroup_add_list(pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ #define MHZ (1000 * 1000)
+@@ -417,46 +418,108 @@ struct sm501_clock {
+ 	unsigned long mclk;
+ 	int divider;
+ 	int shift;
++	unsigned int m, n, k;
+ };
  
-+	unlock_page_cgroup(page);
- done:
- 	return 0;
- out:
-@@ -677,14 +677,14 @@ void mem_cgroup_uncharge_page(struct pag
- 	VM_BUG_ON(pc->ref_cnt <= 0);
++/* sm501_calc_clock
++ *
++ * Calculates the nearest discrete clock frequency that
++ * can be achieved with the specified input clock.
++ *   the maximum divisor is 3 or 5
++ */
++
++static int sm501_calc_clock(unsigned long freq,
++			    struct sm501_clock *clock,
++			    int max_div,
++			    unsigned long mclk,
++			    long *best_diff)
++{
++	int ret = 0;
++	int divider;
++	int shift;
++	long diff;
++
++	/* try dividers 1 and 3 for CRT and for panel,
++	   try divider 5 for panel only.*/
++
++	for (divider = 1; divider <= max_div; divider += 2) {
++		/* try all 8 shift values.*/
++		for (shift = 0; shift < 8; shift++) {
++			/* Calculate difference to requested clock */
++			diff = sm501fb_round_div(mclk, divider << shift) - freq;
++			if (diff < 0)
++				diff = -diff;
++
++			/* If it is less than the current, use it */
++			if (diff < *best_diff) {
++				*best_diff = diff;
++
++				clock->mclk = mclk;
++				clock->divider = divider;
++				clock->shift = shift;
++				ret = 1;
++			}
++		}
++	}
++
++	return ret;
++}
++
++/* sm501_calc_pll
++ *
++ * Calculates the nearest discrete clock frequency that can be
++ * achieved using the programmable PLL.
++ *   the maximum divisor is 3 or 5
++ */
++
++static unsigned long sm501_calc_pll(unsigned long freq,
++					struct sm501_clock *clock,
++					int max_div)
++{
++	unsigned long mclk;
++	unsigned int m, n, k;
++	long best_diff = 999999999;
++
++	/*
++	 * The SM502 datasheet doesn't specify the min/max values for M and N.
++	 * N = 1 at least doesn't work in practice.
++	 */
++	for (m = 2; m <= 255; m++) {
++		for (n = 2; n <= 127; n++) {
++			for (k = 0; k <= 1; k++) {
++				mclk = (24000000UL * m / n) >> k;
++
++				if (sm501_calc_clock(freq, clock, max_div,
++						     mclk, &best_diff)) {
++					clock->m = m;
++					clock->n = n;
++					clock->k = k;
++				}
++			}
++		}
++	}
++
++	/* Return best clock. */
++	return clock->mclk / (clock->divider << clock->shift);
++}
++
+ /* sm501_select_clock
+  *
+- * selects nearest discrete clock frequency the SM501 can achive
++ * Calculates the nearest discrete clock frequency that can be
++ * achieved using the 288MHz and 336MHz PLLs.
+  *   the maximum divisor is 3 or 5
+  */
++
+ static unsigned long sm501_select_clock(unsigned long freq,
+ 					struct sm501_clock *clock,
+ 					int max_div)
+ {
+ 	unsigned long mclk;
+-	int divider;
+-	int shift;
+-	long diff;
+ 	long best_diff = 999999999;
  
- 	if (--(pc->ref_cnt) == 0) {
--		page_assign_page_cgroup(page, NULL);
--		unlock_page_cgroup(page);
+ 	/* Try 288MHz and 336MHz clocks. */
+ 	for (mclk = 288000000; mclk <= 336000000; mclk += 48000000) {
+-		/* try dividers 1 and 3 for CRT and for panel,
+-		   try divider 5 for panel only.*/
 -
- 		mz = page_cgroup_zoneinfo(pc);
- 		spin_lock_irqsave(&mz->lru_lock, flags);
- 		__mem_cgroup_remove_list(pc);
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
-+		page_assign_page_cgroup(page, NULL);
-+		unlock_page_cgroup(page);
-+
- 		mem = pc->mem_cgroup;
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
- 		css_put(&mem->css);
-@@ -736,23 +736,24 @@ void mem_cgroup_page_migration(struct pa
- 		return;
+-		for (divider = 1; divider <= max_div; divider += 2) {
+-			/* try all 8 shift values.*/
+-			for (shift = 0; shift < 8; shift++) {
+-				/* Calculate difference to requested clock */
+-				diff = sm501fb_round_div(mclk, divider << shift) - freq;
+-				if (diff < 0)
+-					diff = -diff;
+-
+-				/* If it is less than the current, use it */
+-				if (diff < best_diff) {
+-					best_diff = diff;
+-
+-					clock->mclk = mclk;
+-					clock->divider = divider;
+-					clock->shift = shift;
+-				}
+-			}
+-		}
++		sm501_calc_clock(freq, clock, max_div, mclk, &best_diff);
  	}
  
--	page_assign_page_cgroup(page, NULL);
--	unlock_page_cgroup(page);
--
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
- 	__mem_cgroup_remove_list(pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 	/* Return best clock. */
+@@ -478,6 +541,7 @@ unsigned long sm501_set_clock(struct dev
+ 	unsigned long gate = readl(sm->regs + SM501_CURRENT_GATE);
+ 	unsigned long clock = readl(sm->regs + SM501_CURRENT_CLOCK);
+ 	unsigned char reg;
++	unsigned int pll_reg = 0;
+ 	unsigned long sm501_freq; /* the actual frequency acheived */
  
-+	page_assign_page_cgroup(page, NULL);
-+	unlock_page_cgroup(page);
+ 	struct sm501_clock to;
+@@ -492,14 +556,28 @@ unsigned long sm501_set_clock(struct dev
+ 		 * requested frequency the value must be multiplied by
+ 		 * 2. This clock also has an additional pre divisor */
+ 
+-		sm501_freq = (sm501_select_clock(2 * req_freq, &to, 5) / 2);
+-		reg=to.shift & 0x07;/* bottom 3 bits are shift */
+-		if (to.divider == 3)
+-			reg |= 0x08; /* /3 divider required */
+-		else if (to.divider == 5)
+-			reg |= 0x10; /* /5 divider required */
+-		if (to.mclk != 288000000)
+-			reg |= 0x20; /* which mclk pll is source */
++		if (sm->rev >= 0xC0) {
++			/* SM502 -> use the programmable PLL */
++			sm501_freq = (sm501_calc_pll(2 * req_freq,
++						     &to, 5) / 2);
++			reg = to.shift & 0x07;/* bottom 3 bits are shift */
++			if (to.divider == 3)
++				reg |= 0x08; /* /3 divider required */
++			else if (to.divider == 5)
++				reg |= 0x10; /* /5 divider required */
++			reg |= 0x40; /* select the programmable PLL */
++			pll_reg = 0x20000 | (to.k << 15) | (to.n << 8) | to.m;
++		} else {
++			sm501_freq = (sm501_select_clock(2 * req_freq,
++							 &to, 5) / 2);
++			reg = to.shift & 0x07;/* bottom 3 bits are shift */
++			if (to.divider == 3)
++				reg |= 0x08; /* /3 divider required */
++			else if (to.divider == 5)
++				reg |= 0x10; /* /5 divider required */
++			if (to.mclk != 288000000)
++				reg |= 0x20; /* which mclk pll is source */
++		}
+ 		break;
+ 
+ 	case SM501_CLOCK_V2XCLK:
+@@ -560,6 +638,10 @@ unsigned long sm501_set_clock(struct dev
+ 	}
+ 
+ 	writel(mode, sm->regs + SM501_POWER_MODE_CONTROL);
 +
- 	pc->page = newpage;
- 	lock_page_cgroup(newpage);
- 	page_assign_page_cgroup(newpage, pc);
--	unlock_page_cgroup(newpage);
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
- 	__mem_cgroup_add_list(pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
++	if (pll_reg)
++		writel(pll_reg, sm->regs + SM501_PROGRAMMABLE_PLL_CONTROL);
 +
-+	unlock_page_cgroup(newpage);
- }
+ 	sm501_sync_regs(sm);
  
- /*
+ 	dev_info(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
+@@ -580,15 +662,24 @@ EXPORT_SYMBOL_GPL(sm501_set_clock);
+  * finds the closest available frequency for a given clock
+ */
+ 
+-unsigned long sm501_find_clock(int clksrc,
++unsigned long sm501_find_clock(struct device *dev,
++			       int clksrc,
+ 			       unsigned long req_freq)
+ {
++	struct sm501_devdata *sm = dev_get_drvdata(dev);
+ 	unsigned long sm501_freq; /* the frequency achiveable by the 501 */
+ 	struct sm501_clock to;
+ 
+ 	switch (clksrc) {
+ 	case SM501_CLOCK_P2XCLK:
+-		sm501_freq = (sm501_select_clock(2 * req_freq, &to, 5) / 2);
++		if (sm->rev >= 0xC0) {
++			/* SM502 -> use the programmable PLL */
++			sm501_freq = (sm501_calc_pll(2 * req_freq,
++						     &to, 5) / 2);
++		} else {
++			sm501_freq = (sm501_select_clock(2 * req_freq,
++							 &to, 5) / 2);
++		}
+ 		break;
+ 
+ 	case SM501_CLOCK_V2XCLK:
+@@ -895,6 +986,8 @@ static int sm501_init_dev(struct sm501_d
+ 	dev_info(sm->dev, "SM501 At %p: Version %08lx, %ld Mb, IRQ %d\n",
+ 		 sm->regs, devid, (unsigned long)mem_avail >> 20, sm->irq);
+ 
++	sm->rev = devid & SM501_DEVICEID_REVMASK;
++
+ 	sm501_dump_gate(sm);
+ 
+ 	ret = device_create_file(sm->dev, &dev_attr_dbg_regs);
+diff -puN include/linux/sm501-regs.h~sm501-add-support-for-the-sm502-programmable-pll include/linux/sm501-regs.h
+--- a/include/linux/sm501-regs.h~sm501-add-support-for-the-sm502-programmable-pll
++++ a/include/linux/sm501-regs.h
+@@ -129,11 +129,14 @@
+ 
+ #define SM501_DEVICEID_SM501		(0x05010000)
+ #define SM501_DEVICEID_IDMASK		(0xffff0000)
++#define SM501_DEVICEID_REVMASK		(0x000000ff)
+ 
+ #define SM501_PLLCLOCK_COUNT		(0x000064)
+ #define SM501_MISC_TIMING		(0x000068)
+ #define SM501_CURRENT_SDRAM_CLOCK	(0x00006C)
+ 
++#define SM501_PROGRAMMABLE_PLL_CONTROL	(0x000074)
++
+ /* GPIO base */
+ #define SM501_GPIO			(0x010000)
+ #define SM501_GPIO_DATA_LOW		(0x00)
+diff -puN include/linux/sm501.h~sm501-add-support-for-the-sm502-programmable-pll include/linux/sm501.h
+--- a/include/linux/sm501.h~sm501-add-support-for-the-sm502-programmable-pll
++++ a/include/linux/sm501.h
+@@ -24,7 +24,8 @@ extern int sm501_unit_power(struct devic
+ extern unsigned long sm501_set_clock(struct device *dev,
+ 				     int clksrc, unsigned long freq);
+ 
+-extern unsigned long sm501_find_clock(int clksrc, unsigned long req_freq);
++extern unsigned long sm501_find_clock(struct device *dev,
++				      int clksrc, unsigned long req_freq);
+ 
+ /* sm501_misc_control
+  *
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from syrjala@sci.fi are
 
-git-unionfs.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-try-both-endianess-when-checking-for-endianess.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-prio_tree-debugging-patch.patch
 
