@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:32:58 -0800
-Message-ID: <200803052332.m25NWxcu027339@imap1.linux-foundation.org>
+Subject: + kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:33:53 -0800
+Message-ID: <200803052333.m25NXrN2027367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbYCEXeT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:34:19 -0500
+	by vger.kernel.org with ESMTP id S1750875AbYCEXfS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:35:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, jkosina@suse.cz, roland@redhat.com
 
 
 The patch titled
-     signals: re-assign CLD_CONTINUED notification from the sender to reciever
+     kill_pid_info: don't take now unneeded tasklist_lock
 has been added to the -mm tree.  Its filename is
-     signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+     kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: re-assign CLD_CONTINUED notification from the sender to reciever
+Subject: kill_pid_info: don't take now unneeded tasklist_lock
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Based on discussion with Jiri and Roland.
-
-In short: currently handle_stop_signal(SIGCONT, p) sends the notification to
-p->parent, with this patch p itself notifies its parent when it becomes
-running.
-
-handle_stop_signal(SIGCONT) has to drop ->siglock temporary in order to notify
-the parent with do_notify_parent_cldstop().  This leads to multiple problems:
-
-	- as Jiri Kosina pointed out, the stopped task can resume without
-	  actually seeing SIGCONT which may have a handler.
-
-	- we race with another sig_kernel_stop() signal which may come in
-	  that window.
-
-	- we race with sig_fatal() signals which may set SIGNAL_GROUP_EXIT
-	  in that window.
-
-	- we can't avoid taking tasklist_lock() while sending SIGCONT.
-
-With this patch handle_stop_signal() just sets the new SIGNAL_CLD_CONTINUED
-flag in p->signal->flags and returns.  The notification is sent by the first
-task which returns from finish_stop() (there should be at least one) or any
-other signalled thread from get_signal_to_deliver().
-
-This is a user-visible change.  Say, currently kill(SIGCONT, stopped_child)
-can't return without seeing SIGCHLD, with this patch SIGCHLD can be delayed
-unpredictably.  Another difference is that if the child is ptraced by another
-process, CLD_CONTINUED may be delivered to ->real_parent after ptrace_detach()
-while currently it always goes to the tracer which doesn't actually need this
-notification.  Hopefully not a problem.
-
-The patch asks for the futher obvious cleanups, I'll send them separately.
+Previously handle_stop_signal(SIGCONT) could drop ->siglock.  That is why
+kill_pid_info(SIGCONT) takes tasklist_lock to make sure the target task can't
+go away after unlock.  Not needed now.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -76,91 +46,46 @@ Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    6 ++++++
- kernel/signal.c       |   29 +++++++++++++++++++----------
- 2 files changed, 25 insertions(+), 10 deletions(-)
+ include/linux/signal.h |    2 --
+ kernel/signal.c        |    7 +------
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~signals-re-assign-cld_continued-notification-from-the-sender-to-reciever include/linux/sched.h
---- a/include/linux/sched.h~signals-re-assign-cld_continued-notification-from-the-sender-to-reciever
-+++ a/include/linux/sched.h
-@@ -554,6 +554,12 @@ struct signal_struct {
- #define SIGNAL_STOP_DEQUEUED	0x00000002 /* stop signal dequeued */
- #define SIGNAL_STOP_CONTINUED	0x00000004 /* SIGCONT since WCONTINUED reap */
- #define SIGNAL_GROUP_EXIT	0x00000008 /* group exit in progress */
-+/*
-+ * Pending notifications to parent.
-+ */
-+#define SIGNAL_CLD_STOPPED	0x00000010
-+#define SIGNAL_CLD_CONTINUED	0x00000020
-+#define SIGNAL_CLD_MASK		(SIGNAL_CLD_STOPPED|SIGNAL_CLD_CONTINUED)
+diff -puN include/linux/signal.h~kill_pid_info-dont-take-now-unneeded-tasklist_lock include/linux/signal.h
+--- a/include/linux/signal.h~kill_pid_info-dont-take-now-unneeded-tasklist_lock
++++ a/include/linux/signal.h
+@@ -362,8 +362,6 @@ int unhandled_signal(struct task_struct 
+ #define sig_kernel_stop(sig) \
+ 	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_STOP_MASK))
  
- /* If true, all threads except ->group_exit_task have pending SIGKILL */
- static inline int signal_group_exit(const struct signal_struct *sig)
-diff -puN kernel/signal.c~signals-re-assign-cld_continued-notification-from-the-sender-to-reciever kernel/signal.c
---- a/kernel/signal.c~signals-re-assign-cld_continued-notification-from-the-sender-to-reciever
+-#define sig_needs_tasklist(sig)	((sig) == SIGCONT)
+-
+ #define sig_user_defined(t, signr) \
+ 	(((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_DFL) &&	\
+ 	 ((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_IGN))
+diff -puN kernel/signal.c~kill_pid_info-dont-take-now-unneeded-tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~kill_pid_info-dont-take-now-unneeded-tasklist_lock
 +++ a/kernel/signal.c
-@@ -603,10 +603,8 @@ static void handle_stop_signal(int sig, 
- 			 * the SIGCHLD was pending on entry to this kill.
+@@ -1039,9 +1039,6 @@ int kill_pid_info(int sig, struct siginf
+ 	struct task_struct *p;
+ 
+ 	rcu_read_lock();
+-	if (unlikely(sig_needs_tasklist(sig)))
+-		read_lock(&tasklist_lock);
+-
+ retry:
+ 	p = pid_task(pid, PIDTYPE_PID);
+ 	if (p) {
+@@ -1055,10 +1052,8 @@ retry:
  			 */
- 			p->signal->group_stop_count = 0;
--			p->signal->flags = SIGNAL_STOP_CONTINUED;
--			spin_unlock(&p->sighand->siglock);
--			do_notify_parent_cldstop(p, CLD_STOPPED);
--			spin_lock(&p->sighand->siglock);
-+			p->signal->flags = SIGNAL_STOP_CONTINUED |
-+						SIGNAL_CLD_STOPPED;
- 		}
- 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
- 		t = p;
-@@ -643,25 +641,23 @@ static void handle_stop_signal(int sig, 
- 			 * We were in fact stopped, and are now continued.
- 			 * Notify the parent with CLD_CONTINUED.
- 			 */
--			p->signal->flags = SIGNAL_STOP_CONTINUED;
-+			p->signal->flags = SIGNAL_STOP_CONTINUED |
-+						SIGNAL_CLD_CONTINUED;
- 			p->signal->group_exit_code = 0;
--			spin_unlock(&p->sighand->siglock);
--			do_notify_parent_cldstop(p, CLD_CONTINUED);
--			spin_lock(&p->sighand->siglock);
- 		} else {
- 			/*
- 			 * We are not stopped, but there could be a stop
- 			 * signal in the middle of being processed after
- 			 * being removed from the queue.  Clear that too.
- 			 */
--			p->signal->flags = 0;
-+			p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
- 		}
- 	} else if (sig == SIGKILL) {
- 		/*
- 		 * Make sure that any pending stop signal already dequeued
- 		 * is undone by the wakeup for SIGKILL.
- 		 */
--		p->signal->flags = 0;
-+		p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
+ 			goto retry;
  	}
+-
+-	if (unlikely(sig_needs_tasklist(sig)))
+-		read_unlock(&tasklist_lock);
+ 	rcu_read_unlock();
++
+ 	return error;
  }
- 
-@@ -1745,6 +1741,19 @@ relock:
- 	try_to_freeze();
- 
- 	spin_lock_irq(&current->sighand->siglock);
-+
-+	if (unlikely(current->signal->flags & SIGNAL_CLD_MASK)) {
-+		int why = (current->signal->flags & SIGNAL_STOP_CONTINUED)
-+				? CLD_CONTINUED : CLD_STOPPED;
-+		current->signal->flags &= ~SIGNAL_CLD_MASK;
-+		spin_unlock_irq(&current->sighand->siglock);
-+
-+		read_lock(&tasklist_lock);
-+		do_notify_parent_cldstop(current->group_leader, why);
-+		read_unlock(&tasklist_lock);
-+		goto relock;
-+	}
-+
- 	for (;;) {
- 		struct k_sigaction *ka;
  
 _
 
@@ -183,6 +108,7 @@ signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
 signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
 signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
 ptrace-introduce-task_detached-helper.patch
 ptrace-introduce-ptrace_reparented-helper.patch
 reparent_thread-use-same_thread_group.patch
