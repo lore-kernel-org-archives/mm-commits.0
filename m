@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-replace-__inline-with-inline.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:45:19 -0800
-Message-ID: <200803052345.m25NjJM2027816@imap1.linux-foundation.org>
+Subject: + pci-iommu-iotlb-flushing-speedup.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:54:09 -0800
+Message-ID: <200803052354.m25Ns9rK028253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756707AbYCEXwJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:52:09 -0500
+	by vger.kernel.org with ESMTP id S1756833AbYCEXy6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:54:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dgc@sgi.com, tes@sgi.com
+Cc: mgross@linux.intel.com, greg@kroah.com, grundler@parisc-linux.org
 
 
 The patch titled
-     xfs: replace __inline with inline
+     Use an array instead of a list for deferred intel-iommu iotlb flushing
 has been added to the -mm tree.  Its filename is
-     xfs-replace-__inline-with-inline.patch
+     pci-iommu-iotlb-flushing-speedup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,207 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: replace __inline with inline
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Use an array instead of a list for deferred intel-iommu iotlb flushing
+From: mark gross <mgross@linux.intel.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Timothy Shimmin <tes@sgi.com>
+The following patch is an update to use an array instead of a list of
+IOVA's in the implementation of defered iotlb flushes.  It takes
+inspiration from sba_iommu.c
+
+I like this implementation better as it encapsulates the batch process
+within intel-iommu.c, and no longer touches iova.h (which is shared)
+
+Performance data:  Netperf 32byte UDP streaming
+2.6.25-rc3-mm1:
+IOMMU-strict : 58Mps @ 62% cpu
+NO-IOMMU : 71Mbs @ 41% cpu
+List-based IOMMU-default-batched-IOTLB flush: 66Mbps @ 57% cpu
+
+with this patch:
+IOMMU-strict : 73Mps @ 75% cpu
+NO-IOMMU : 74Mbs @ 42% cpu
+Array-based IOMMU-default-batched-IOTLB flush: 72Mbps @ 62% cpu
+
+Signed-off-by: <mgross@linux.intel.com>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_cred.h  |    2 +-
- fs/xfs/linux-2.6/xfs_stats.h |    4 ++--
- fs/xfs/quota/xfs_qm_stats.h  |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/pci/intel-iommu.c |   76 ++++++++++++++++++------------------
+ drivers/pci/iova.h        |    2 
+ 2 files changed, 40 insertions(+), 38 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_cred.h~xfs-replace-__inline-with-inline fs/xfs/linux-2.6/xfs_cred.h
---- a/fs/xfs/linux-2.6/xfs_cred.h~xfs-replace-__inline-with-inline
-+++ a/fs/xfs/linux-2.6/xfs_cred.h
-@@ -30,7 +30,7 @@ typedef struct cred {
- extern struct cred *sys_cred;
+diff -puN drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing-speedup drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing-speedup
++++ a/drivers/pci/intel-iommu.c
+@@ -59,8 +59,17 @@ static void flush_unmaps_timeout(unsigne
+ DEFINE_TIMER(unmap_timer,  flush_unmaps_timeout, 0, 0);
  
- /* this is a hack.. (assumes sys_cred is the only cred_t in the system) */
--static __inline int capable_cred(cred_t *cr, int cid)
-+static inline int capable_cred(cred_t *cr, int cid)
+ static struct intel_iommu *g_iommus;
++
++#define HIGH_WATER_MARK 250
++struct deferred_flush_tables {
++	int next;
++	struct iova *iova[HIGH_WATER_MARK];
++	struct dmar_domain *domain[HIGH_WATER_MARK];
++};
++
++static struct deferred_flush_tables *deferred_flush;
++
+ /* bitmap for indexing intel_iommus */
+-static unsigned long 	*g_iommus_to_flush;
+ static int g_num_of_iommus;
+ 
+ static DEFINE_SPINLOCK(async_umap_flush_lock);
+@@ -68,10 +77,6 @@ static LIST_HEAD(unmaps_to_do);
+ 
+ static int timer_on;
+ static long list_size;
+-static int high_watermark;
+-
+-static struct dentry *intel_iommu_debug, *debug;
+-
+ 
+ static void domain_remove_dev_info(struct dmar_domain *domain);
+ 
+@@ -1685,7 +1690,7 @@ int __init init_dmars(void)
+ 	struct dmar_rmrr_unit *rmrr;
+ 	struct pci_dev *pdev;
+ 	struct intel_iommu *iommu;
+-	int nlongs, i, ret, unit = 0;
++	int i, ret, unit = 0;
+ 
+ 	/*
+ 	 * for each drhd
+@@ -1704,17 +1709,16 @@ int __init init_dmars(void)
+ 		 */
+ 	}
+ 
+-	nlongs = BITS_TO_LONGS(g_num_of_iommus);
+-	g_iommus_to_flush = kzalloc(nlongs * sizeof(unsigned long), GFP_KERNEL);
+-	if (!g_iommus_to_flush) {
+-		printk(KERN_ERR "Intel-IOMMU: "
+-			"Allocating bitmap array failed\n");
+-		return -ENOMEM;
+-	}
+-
+ 	g_iommus = kzalloc(g_num_of_iommus * sizeof(*iommu), GFP_KERNEL);
+ 	if (!g_iommus) {
+-		kfree(g_iommus_to_flush);
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	deferred_flush = kzalloc(g_num_of_iommus *
++		sizeof(struct deferred_flush_tables), GFP_KERNEL);
++	if (!deferred_flush) {
++		kfree(g_iommus);
+ 		ret = -ENOMEM;
+ 		goto error;
+ 	}
+@@ -1963,42 +1967,48 @@ error:
+ 
+ static void flush_unmaps(void)
  {
- 	return (cr == sys_cred) ? 1 : capable(cid);
+-	struct iova *node, *n;
+-	unsigned long flags;
+-	int i;
++	int i, j;
+ 
+-	spin_lock_irqsave(&async_umap_flush_lock, flags);
+ 	timer_on = 0;
+ 
+ 	/* just flush them all */
+ 	for (i = 0; i < g_num_of_iommus; i++) {
+-		if (test_and_clear_bit(i, g_iommus_to_flush))
++		if (deferred_flush[i].next) {
+ 			iommu_flush_iotlb_global(&g_iommus[i], 0);
++			for (j = 0; j < deferred_flush[i].next; j++) {
++				__free_iova(&deferred_flush[i].domain[j]->iovad,
++						deferred_flush[i].iova[j]);
++			}
++			deferred_flush[i].next = 0;
++		}
+ 	}
+ 
+-	list_for_each_entry_safe(node, n, &unmaps_to_do, list) {
+-		/* free iova */
+-		list_del(&node->list);
+-		__free_iova(&((struct dmar_domain *)node->dmar)->iovad, node);
+-
+-	}
+ 	list_size = 0;
+-	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
  }
-diff -puN fs/xfs/linux-2.6/xfs_stats.h~xfs-replace-__inline-with-inline fs/xfs/linux-2.6/xfs_stats.h
---- a/fs/xfs/linux-2.6/xfs_stats.h~xfs-replace-__inline-with-inline
-+++ a/fs/xfs/linux-2.6/xfs_stats.h
-@@ -144,8 +144,8 @@ extern void xfs_cleanup_procfs(void);
- # define XFS_STATS_DEC(count)
- # define XFS_STATS_ADD(count, inc)
  
--static __inline void xfs_init_procfs(void) { };
--static __inline void xfs_cleanup_procfs(void) { };
-+static inline void xfs_init_procfs(void) { };
-+static inline void xfs_cleanup_procfs(void) { };
+ static void flush_unmaps_timeout(unsigned long data)
+ {
++	unsigned long flags;
++
++	spin_lock_irqsave(&async_umap_flush_lock, flags);
+ 	flush_unmaps();
++	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
+ }
  
- #endif	/* !CONFIG_PROC_FS */
+ static void add_unmap(struct dmar_domain *dom, struct iova *iova)
+ {
+ 	unsigned long flags;
++	int next, iommu_id;
  
-diff -puN fs/xfs/quota/xfs_qm_stats.h~xfs-replace-__inline-with-inline fs/xfs/quota/xfs_qm_stats.h
---- a/fs/xfs/quota/xfs_qm_stats.h~xfs-replace-__inline-with-inline
-+++ a/fs/xfs/quota/xfs_qm_stats.h
-@@ -45,8 +45,8 @@ extern void xfs_qm_cleanup_procfs(void);
+ 	spin_lock_irqsave(&async_umap_flush_lock, flags);
+-	iova->dmar = dom;
+-	list_add(&iova->list, &unmaps_to_do);
+-	set_bit((dom->iommu - g_iommus), g_iommus_to_flush);
++	if (list_size == HIGH_WATER_MARK)
++		flush_unmaps();
++
++	iommu_id = dom->iommu - g_iommus;
++	next = deferred_flush[iommu_id].next;
++	deferred_flush[iommu_id].domain[next] = dom;
++	deferred_flush[iommu_id].iova[next] = iova;
++	deferred_flush[iommu_id].next++;
  
- # define XQM_STATS_INC(count)	do { } while (0)
+ 	if (!timer_on) {
+ 		mod_timer(&unmap_timer, jiffies + msecs_to_jiffies(10));
+@@ -2047,8 +2057,6 @@ static void intel_unmap_single(struct de
+ 		 * queue up the release of the unmap to save the 1/6th of the
+ 		 * cpu used up by the iotlb flush operation...
+ 		 */
+-		if (list_size > high_watermark)
+-			flush_unmaps();
+ 	}
+ }
  
--static __inline void xfs_qm_init_procfs(void) { };
--static __inline void xfs_qm_cleanup_procfs(void) { };
-+static inline void xfs_qm_init_procfs(void) { };
-+static inline void xfs_qm_cleanup_procfs(void) { };
+@@ -2373,10 +2381,6 @@ int __init intel_iommu_init(void)
+ 	if (dmar_table_init())
+ 		return 	-ENODEV;
  
- #endif
+-	high_watermark = 250;
+-	intel_iommu_debug = debugfs_create_dir("intel_iommu", NULL);
+-	debug = debugfs_create_u32("high_watermark", S_IWUGO | S_IRUGO,
+-					intel_iommu_debug, &high_watermark);
+ 	iommu_init_mempool();
+ 	dmar_init_reserved_ranges();
  
+diff -puN drivers/pci/iova.h~pci-iommu-iotlb-flushing-speedup drivers/pci/iova.h
+--- a/drivers/pci/iova.h~pci-iommu-iotlb-flushing-speedup
++++ a/drivers/pci/iova.h
+@@ -24,8 +24,6 @@ struct iova {
+ 	struct rb_node	node;
+ 	unsigned long	pfn_hi; /* IOMMU dish out addr hi */
+ 	unsigned long	pfn_lo; /* IOMMU dish out addr lo */
+-	struct list_head list;
+-	void *dmar;
+ };
+ 
+ /* holds all the iova translations for a domain */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-git-x86.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-cifs-replace-remaining-__function__-occurrences.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-drivers-base-replace-remaining-__function__-occurrences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-infiniband-replace-remaining-__function__-occurrences.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
-nfs-replace-remaining-__function__-occurrences.patch
-git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-sh-replace-remaining-__function__-occurences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-ext2-replace-remaining-__function__-occurrences.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-security-replace-remaining-__function__-occurences.patch
-security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-mips-replace-__inline-with-inline.patch
-isdn-replace-__inline-with-inline.patch
-jfs-replace-__inline-with-inline.patch
-net-replace-__inline-with-inline.patch
-ufs-replace-__inline-with-inline.patch
-xfs-replace-__inline-with-inline.patch
-irda-replace-__inline-with-inline.patch
-alpha-replace-__inline-with-inline.patch
+pci-iova-rb-tree-setup-tweak.patch
+pci-iommu-iotlb-flushing.patch
+pci-iommu-iotlb-flushing-speedup.patch
+iova-lockdep-false-alarm-fix.patch
 
