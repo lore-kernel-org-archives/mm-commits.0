@@ -1,190 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-mem_cgroup_charge-never-null.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:45:23 -0800
-Message-ID: <200803050745.m257jNfr021589@imap1.linux-foundation.org>
+Subject: + git-powerpc-fix-git-rejects.patch added to -mm tree
+Date: Tue, 04 Mar 2008 23:53:16 -0800
+Message-ID: <200803050753.m257rGeM022022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764651AbYCEHxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:53:32 -0500
+	by vger.kernel.org with ESMTP id S1764890AbYCEHxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:53:48 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m257rVU8015427
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 4 Mar 2008 23:53:32 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, taka@valinux.co.jp, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     memcg: mem_cgroup_charge never NULL
-has been removed from the -mm tree.  Its filename was
-     memcg-mem_cgroup_charge-never-null.patch
+     git-powerpc-fix-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-powerpc-fix-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: mem_cgroup_charge never NULL
-From: Hugh Dickins <hugh@veritas.com>
+Subject: git-powerpc-fix-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-My memcgroup patch to fix hang with shmem/tmpfs added NULL page handling to
-mem_cgroup_charge_common.  It seemed convenient at the time, but hard to
-justify now: there's a perfectly appropriate swappage to charge and uncharge
-instead, this is not on any hot path through shmem_getpage, and no performance
-hit was observed from the slight extra overhead.
-
-So revert that NULL page handling from mem_cgroup_charge_common; and make it
-clearer by bringing page_cgroup_assign_new_page_cgroup into its body - that
-was a helper I found more of a hindrance to understanding.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hirokazu Takahashi <taka@valinux.co.jp>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   61 +++++++++++++++-------------------------------
- mm/shmem.c      |    9 ++++--
- 2 files changed, 27 insertions(+), 43 deletions(-)
+ arch/powerpc/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-mem_cgroup_charge-never-null mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mem_cgroup_charge-never-null
-+++ a/mm/memcontrol.c
-@@ -301,25 +301,6 @@ static void __always_inline unlock_page_
- }
+diff -puN arch/powerpc/Kconfig~git-powerpc-fix-git-rejects arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~git-powerpc-fix-git-rejects
++++ a/arch/powerpc/Kconfig
+@@ -90,11 +90,8 @@ config PPC
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
+ 	select HAVE_KPROBES
+-<<<<<<< HEAD:arch/powerpc/Kconfig
+ 	select HAVE_KRETPROBES
+-=======
+ 	select HAVE_LMB
+->>>>>>> FETCH_HEAD:arch/powerpc/Kconfig
  
- /*
-- * Tie new page_cgroup to struct page under lock_page_cgroup()
-- * This can fail if the page has been tied to a page_cgroup.
-- * If success, returns 0.
-- */
--static int page_cgroup_assign_new_page_cgroup(struct page *page,
--						struct page_cgroup *pc)
--{
--	int ret = 0;
--
--	lock_page_cgroup(page);
--	if (!page_get_page_cgroup(page))
--		page_assign_page_cgroup(page, pc);
--	else /* A page is tied to other pc. */
--		ret = 1;
--	unlock_page_cgroup(page);
--	return ret;
--}
--
--/*
-  * Clear page->page_cgroup member under lock_page_cgroup().
-  * If given "pc" value is different from one page->page_cgroup,
-  * page->cgroup is not cleared.
-@@ -585,26 +566,24 @@ static int mem_cgroup_charge_common(stru
- 	 * with it
- 	 */
- retry:
--	if (page) {
--		lock_page_cgroup(page);
--		pc = page_get_page_cgroup(page);
--		/*
--		 * The page_cgroup exists and
--		 * the page has already been accounted.
--		 */
--		if (pc) {
--			if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
--				/* this page is under being uncharged ? */
--				unlock_page_cgroup(page);
--				cpu_relax();
--				goto retry;
--			} else {
--				unlock_page_cgroup(page);
--				goto done;
--			}
-+	lock_page_cgroup(page);
-+	pc = page_get_page_cgroup(page);
-+	/*
-+	 * The page_cgroup exists and
-+	 * the page has already been accounted.
-+	 */
-+	if (pc) {
-+		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
-+			/* this page is under being uncharged ? */
-+			unlock_page_cgroup(page);
-+			cpu_relax();
-+			goto retry;
-+		} else {
-+			unlock_page_cgroup(page);
-+			goto done;
- 		}
--		unlock_page_cgroup(page);
- 	}
-+	unlock_page_cgroup(page);
- 
- 	pc = kzalloc(sizeof(struct page_cgroup), gfp_mask);
- 	if (pc == NULL)
-@@ -663,7 +642,9 @@ retry:
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
- 		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
- 
--	if (!page || page_cgroup_assign_new_page_cgroup(page, pc)) {
-+	lock_page_cgroup(page);
-+	if (page_get_page_cgroup(page)) {
-+		unlock_page_cgroup(page);
- 		/*
- 		 * Another charge has been added to this page already.
- 		 * We take lock_page_cgroup(page) again and read
-@@ -672,10 +653,10 @@ retry:
- 		res_counter_uncharge(&mem->res, PAGE_SIZE);
- 		css_put(&mem->css);
- 		kfree(pc);
--		if (!page)
--			goto done;
- 		goto retry;
- 	}
-+	page_assign_page_cgroup(page, pc);
-+	unlock_page_cgroup(page);
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
-diff -puN mm/shmem.c~memcg-mem_cgroup_charge-never-null mm/shmem.c
---- a/mm/shmem.c~memcg-mem_cgroup_charge-never-null
-+++ a/mm/shmem.c
-@@ -1370,14 +1370,17 @@ repeat:
- 			shmem_swp_unmap(entry);
- 			spin_unlock(&info->lock);
- 			unlock_page(swappage);
--			page_cache_release(swappage);
- 			if (error == -ENOMEM) {
- 				/* allow reclaim from this memory cgroup */
--				error = mem_cgroup_cache_charge(NULL,
-+				error = mem_cgroup_cache_charge(swappage,
- 					current->mm, gfp & ~__GFP_HIGHMEM);
--				if (error)
-+				if (error) {
-+					page_cache_release(swappage);
- 					goto failed;
-+				}
-+				mem_cgroup_uncharge_page(swappage);
- 			}
-+			page_cache_release(swappage);
- 			goto repeat;
- 		}
- 	} else if (sgp == SGP_READ && !filepage) {
+ config EARLY_PRINTK
+ 	bool
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means.patch
+git-md-accel.patch
+git-md-accel-fix-git-rejects.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-ocfs2.patch
+sh-export-copy-page-to-modules.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
 git-unionfs.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-try-both-endianess-when-checking-for-endianess.patch
-procfs-task-exe-symlink.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-prio_tree-debugging-patch.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
