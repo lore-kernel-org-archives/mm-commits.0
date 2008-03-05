@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-replace-__inline-with-inline.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:45:16 -0800
-Message-ID: <200803052345.m25NjG8a027813@imap1.linux-foundation.org>
+Subject: + irda-replace-__inline-with-inline.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:45:21 -0800
+Message-ID: <200803052345.m25NjLif027819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757388AbYCEXuX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:50:23 -0500
+	by vger.kernel.org with ESMTP id S1756207AbYCEXur (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:50:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dushistov@mail.ru
+Cc: harvey.harrison@gmail.com, samuel@sortiz.org
 
 
 The patch titled
-     ufs: replace __inline with inline
+     irda: replace __inline with inline
 has been added to the -mm tree.  Its filename is
-     ufs-replace-__inline-with-inline.patch
+     irda-replace-__inline-with-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: replace __inline with inline
+Subject: irda: replace __inline with inline
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/swab.h |    6 +++---
+ include/net/irda/irttp.h |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/swab.h~ufs-replace-__inline-with-inline fs/ufs/swab.h
---- a/fs/ufs/swab.h~ufs-replace-__inline-with-inline
-+++ a/fs/ufs/swab.h
-@@ -40,7 +40,7 @@ cpu_to_fs64(struct super_block *sbp, u64
- 		return (__force __fs64)cpu_to_be64(n);
+diff -puN include/net/irda/irttp.h~irda-replace-__inline-with-inline include/net/irda/irttp.h
+--- a/include/net/irda/irttp.h~irda-replace-__inline-with-inline
++++ a/include/net/irda/irttp.h
+@@ -169,17 +169,17 @@ int irttp_disconnect_request(struct tsap
+ void irttp_flow_request(struct tsap_cb *self, LOCAL_FLOW flow);
+ struct tsap_cb *irttp_dup(struct tsap_cb *self, void *instance);
+ 
+-static __inline __u32 irttp_get_saddr(struct tsap_cb *self)
++static inline __u32 irttp_get_saddr(struct tsap_cb *self)
+ {
+ 	return irlmp_get_saddr(self->lsap);
  }
  
--static __inline u32
-+static inline u32
- fs64_add(struct super_block *sbp, u32 *n, int d)
+-static __inline __u32 irttp_get_daddr(struct tsap_cb *self)
++static inline __u32 irttp_get_daddr(struct tsap_cb *self)
  {
- 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
-@@ -49,7 +49,7 @@ fs64_add(struct super_block *sbp, u32 *n
- 		return *n = cpu_to_be64(be64_to_cpu(*n)+d);
+ 	return irlmp_get_daddr(self->lsap);
  }
  
--static __inline u32
-+static inline u32
- fs64_sub(struct super_block *sbp, u32 *n, int d)
+-static __inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
++static inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
  {
- 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
-@@ -58,7 +58,7 @@ fs64_sub(struct super_block *sbp, u32 *n
- 		return *n = cpu_to_be64(be64_to_cpu(*n)-d);
+ 	return self->max_seg_size;
  }
- 
--static __inline u32
-+static inline u32
- fs32_to_cpu(struct super_block *sbp, __fs32 n)
- {
- 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
