@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:20:38 -0800
-Message-ID: <200803052220.m25MKcaE024025@imap1.linux-foundation.org>
+Subject: + drivers-char-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:38:07 -0800
+Message-ID: <200803052238.m25Mc86U024831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758535AbYCEWah (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:30:37 -0500
+	by vger.kernel.org with ESMTP id S1752036AbYCEWi6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:38:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     reiserfs: replace remaining __FUNCTION__ occurrences
+     drivers/char: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     reiserfs-replace-remaining-__function__-occurrences.patch
+     drivers-char-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,912 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: replace remaining __FUNCTION__ occurrences
+Subject: drivers/char: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c   |    8 ++++----
- fs/reiserfs/journal.c  |    8 ++++----
- fs/reiserfs/namei.c    |    8 ++++----
- fs/reiserfs/objectid.c |    2 +-
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/char/agp/agp.h          |    2 -
+ drivers/char/cyclades.c         |    4 +-
+ drivers/char/drm/drmP.h         |    8 ++--
+ drivers/char/drm/drm_sysfs.c    |    2 -
+ drivers/char/drm/i830_dma.c     |   18 +++++-----
+ drivers/char/drm/i830_drv.h     |    2 -
+ drivers/char/drm/i830_irq.c     |    8 ++--
+ drivers/char/drm/i915_dma.c     |   11 ++----
+ drivers/char/drm/i915_drv.h     |    2 -
+ drivers/char/drm/radeon_cp.c    |    2 -
+ drivers/char/esp.c              |    4 +-
+ drivers/char/generic_serial.c   |    4 +-
+ drivers/char/hpet.c             |   10 ++---
+ drivers/char/hvsi.c             |   52 +++++++++++++++---------------
+ drivers/char/nozomi.c           |    2 -
+ drivers/char/pcmcia/cm4000_cs.c |    2 -
+ drivers/char/pcmcia/cm4040_cs.c |    2 -
+ drivers/char/rio/rio_linux.h    |    6 +--
+ drivers/char/riscom8.c          |    4 +-
+ drivers/char/snsc.c             |   18 +++++-----
+ drivers/char/snsc_event.c       |    6 +--
+ drivers/char/sonypi.c           |    2 -
+ drivers/char/specialix.c        |   10 ++---
+ drivers/char/sx.c               |    8 ++--
+ 24 files changed, 94 insertions(+), 95 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/bitmap.c
-@@ -479,7 +479,7 @@ static void __discard_prealloc(struct re
- 	if (ei->i_prealloc_count < 0)
- 		reiserfs_warning(th->t_super,
- 				 "zam-4001:%s: inode has negative prealloc blocks count.",
--				 __FUNCTION__);
-+				 __func__);
+diff -puN drivers/char/agp/agp.h~drivers-char-replace-remaining-__function__-occurrences drivers/char/agp/agp.h
+--- a/drivers/char/agp/agp.h~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/agp/agp.h
+@@ -35,7 +35,7 @@
+ 
+ //#define AGP_DEBUG 1
+ #ifdef AGP_DEBUG
+-#define DBG(x,y...) printk (KERN_DEBUG PFX "%s: " x "\n", __FUNCTION__ , ## y)
++#define DBG(x,y...) printk (KERN_DEBUG PFX "%s: " x "\n", __func__ , ## y)
+ #else
+ #define DBG(x,y...) do { } while (0)
  #endif
- 	while (ei->i_prealloc_count > 0) {
- 		reiserfs_free_prealloc_block(th, inode, ei->i_prealloc_block);
-@@ -517,7 +517,7 @@ void reiserfs_discard_all_prealloc(struc
- 		if (!ei->i_prealloc_count) {
- 			reiserfs_warning(th->t_super,
- 					 "zam-4001:%s: inode is in prealloc list but has no preallocated blocks.",
--					 __FUNCTION__);
-+					 __func__);
- 		}
- #endif
- 		__discard_prealloc(th, ei);
-@@ -632,7 +632,7 @@ int reiserfs_parse_alloc_options(struct 
- 		}
+diff -puN drivers/char/cyclades.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/cyclades.c
+@@ -3461,7 +3461,7 @@ static int cy_tiocmget(struct tty_struct
+ 	struct BOARD_CTRL __iomem *board_ctrl;
+ 	struct CH_CTRL __iomem *ch_ctrl;
  
- 		reiserfs_warning(s, "zam-4001: %s : unknown option - %s",
--				 __FUNCTION__, this_char);
-+				 __func__, this_char);
- 		return 1;
- 	}
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
+ 		return -ENODEV;
  
-@@ -1254,7 +1254,7 @@ struct buffer_head *reiserfs_read_bitmap
- 	bh = sb_bread(sb, block);
- 	if (bh == NULL)
- 		reiserfs_warning(sb, "sh-2029: %s: bitmap block (#%u) "
--		                 "reading failed", __FUNCTION__, block);
-+		                 "reading failed", __func__, block);
- 	else {
- 		if (buffer_locked(bh)) {
- 			PROC_INFO_INC(sb, scan_bitmap.wait);
-diff -puN fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/journal.c
-@@ -1187,7 +1187,7 @@ static int flush_commit_list(struct supe
+ 	lock_kernel();
+@@ -3532,7 +3532,7 @@ cy_tiocmset(struct tty_struct *tty, stru
+ 	struct CH_CTRL __iomem *ch_ctrl;
+ 	int retval;
  
- 	if (retval)
- 		reiserfs_abort(s, retval, "Journal write error in %s",
--			       __FUNCTION__);
-+			       __func__);
- 	put_fs_excl();
- 	return retval;
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
+ 		return -ENODEV;
+ 
+ 	card = info->card;
+diff -puN drivers/char/drm/drmP.h~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/drmP.h
+--- a/drivers/char/drm/drmP.h~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/drmP.h
+@@ -176,7 +176,7 @@ struct drm_device;
+  * \param arg arguments
+  */
+ #define DRM_ERROR(fmt, arg...) \
+-	printk(KERN_ERR "[" DRM_NAME ":%s] *ERROR* " fmt , __FUNCTION__ , ##arg)
++	printk(KERN_ERR "[" DRM_NAME ":%s] *ERROR* " fmt , __func__ , ##arg)
+ 
+ /**
+  * Memory error output.
+@@ -186,7 +186,7 @@ struct drm_device;
+  * \param arg arguments
+  */
+ #define DRM_MEM_ERROR(area, fmt, arg...) \
+-	printk(KERN_ERR "[" DRM_NAME ":%s:%s] *ERROR* " fmt , __FUNCTION__, \
++	printk(KERN_ERR "[" DRM_NAME ":%s:%s] *ERROR* " fmt , __func__, \
+ 	       drm_mem_stats[area].name , ##arg)
+ 
+ #define DRM_INFO(fmt, arg...)  printk(KERN_INFO "[" DRM_NAME "] " fmt , ##arg)
+@@ -203,7 +203,7 @@ struct drm_device;
+ 		if ( drm_debug )			\
+ 			printk(KERN_DEBUG				\
+ 			       "[" DRM_NAME ":%s] " fmt ,	\
+-			       __FUNCTION__ , ##arg);			\
++			       __func__ , ##arg);			\
+ 	} while (0)
+ #else
+ #define DRM_DEBUG(fmt, arg...)		 do { } while (0)
+@@ -254,7 +254,7 @@ do {									\
+ 	if ( !_DRM_LOCK_IS_HELD( dev->lock.hw_lock->lock ) ||		\
+ 	     dev->lock.file_priv != file_priv )	{			\
+ 		DRM_ERROR( "%s called without lock held, held  %d owner %p %p\n",\
+-			   __FUNCTION__, _DRM_LOCK_IS_HELD( dev->lock.hw_lock->lock ),\
++			   __func__, _DRM_LOCK_IS_HELD( dev->lock.hw_lock->lock ),\
+ 			   dev->lock.file_priv, file_priv );		\
+ 		return -EINVAL;						\
+ 	}								\
+diff -puN drivers/char/drm/drm_sysfs.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/drm_sysfs.c
+--- a/drivers/char/drm/drm_sysfs.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/drm_sysfs.c
+@@ -33,7 +33,7 @@ static int drm_sysfs_suspend(struct devi
+ {
+ 	struct drm_device *drm_dev = to_drm_device(dev);
+ 
+-	printk(KERN_ERR "%s\n", __FUNCTION__);
++	printk(KERN_ERR "%s\n", __func__);
+ 
+ 	if (drm_dev->driver->suspend)
+ 		return drm_dev->driver->suspend(drm_dev, state);
+diff -puN drivers/char/drm/i830_dma.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/i830_dma.c
+--- a/drivers/char/drm/i830_dma.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/i830_dma.c
+@@ -692,7 +692,7 @@ static void i830EmitState(struct drm_dev
+ 	drm_i830_sarea_t *sarea_priv = dev_priv->sarea_priv;
+ 	unsigned int dirty = sarea_priv->dirty;
+ 
+-	DRM_DEBUG("%s %x\n", __FUNCTION__, dirty);
++	DRM_DEBUG("%s %x\n", __func__, dirty);
+ 
+ 	if (dirty & I830_UPLOAD_BUFFERS) {
+ 		i830EmitDestVerified(dev, sarea_priv->BufferState);
+@@ -1043,7 +1043,7 @@ static void i830_dma_dispatch_flip(struc
+ 	RING_LOCALS;
+ 
+ 	DRM_DEBUG("%s: page=%d pfCurrentPage=%d\n",
+-		  __FUNCTION__,
++		  __func__,
+ 		  dev_priv->current_page,
+ 		  dev_priv->sarea_priv->pf_current_page);
+ 
+@@ -1206,7 +1206,7 @@ static void i830_dma_quiescent(struct dr
+ 	OUT_RING(0);
+ 	ADVANCE_LP_RING();
+ 
+-	i830_wait_ring(dev, dev_priv->ring.Size - 8, __FUNCTION__);
++	i830_wait_ring(dev, dev_priv->ring.Size - 8, __func__);
  }
-@@ -1534,7 +1534,7 @@ static int flush_journal_list(struct sup
- 			reiserfs_warning(s,
- 					 "clm-2082: Unable to flush buffer %llu in %s",
- 					 (unsigned long long)saved_bh->
--					 b_blocknr, __FUNCTION__);
-+					 b_blocknr, __func__);
- 		}
- 	      free_cnode:
- 		last = cn;
-@@ -1586,7 +1586,7 @@ static int flush_journal_list(struct sup
- 	if (err)
- 		reiserfs_abort(s, -EIO,
- 			       "Write error while pushing transaction to disk in %s",
--			       __FUNCTION__);
-+			       __func__);
-       flush_older_and_return:
  
- 	/* before we can update the journal header block, we _must_ flush all 
-@@ -1616,7 +1616,7 @@ static int flush_journal_list(struct sup
- 		if (err)
- 			reiserfs_abort(s, -EIO,
- 				       "Write error while updating journal header in %s",
--				       __FUNCTION__);
-+				       __func__);
+ static int i830_flush_queue(struct drm_device * dev)
+@@ -1223,7 +1223,7 @@ static int i830_flush_queue(struct drm_d
+ 	OUT_RING(0);
+ 	ADVANCE_LP_RING();
+ 
+-	i830_wait_ring(dev, dev_priv->ring.Size - 8, __FUNCTION__);
++	i830_wait_ring(dev, dev_priv->ring.Size - 8, __func__);
+ 
+ 	for (i = 0; i < dma->buf_count; i++) {
+ 		struct drm_buf *buf = dma->buflist[i];
+@@ -1344,7 +1344,7 @@ static void i830_do_init_pageflip(struct
+ {
+ 	drm_i830_private_t *dev_priv = dev->dev_private;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 	dev_priv->page_flipping = 1;
+ 	dev_priv->current_page = 0;
+ 	dev_priv->sarea_priv->pf_current_page = dev_priv->current_page;
+@@ -1354,7 +1354,7 @@ static int i830_do_cleanup_pageflip(stru
+ {
+ 	drm_i830_private_t *dev_priv = dev->dev_private;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 	if (dev_priv->current_page != 0)
+ 		i830_dma_dispatch_flip(dev);
+ 
+@@ -1367,7 +1367,7 @@ static int i830_flip_bufs(struct drm_dev
+ {
+ 	drm_i830_private_t *dev_priv = dev->dev_private;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	LOCK_TEST_WITH_RETURN(dev, file_priv);
+ 
+@@ -1437,7 +1437,7 @@ static int i830_getparam(struct drm_devi
+ 	int value;
+ 
+ 	if (!dev_priv) {
+-		DRM_ERROR("%s called with no initialization\n", __FUNCTION__);
++		DRM_ERROR("%s called with no initialization\n", __func__);
+ 		return -EINVAL;
  	}
- 	remove_all_from_journal_list(s, jl, 0);
- 	list_del_init(&jl->j_list);
-diff -puN fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/namei.c
---- a/fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/namei.c
-@@ -301,7 +301,7 @@ static int reiserfs_find_entry(struct in
- 					path_to_entry, de);
- 		if (retval == IO_ERROR) {
- 			reiserfs_warning(dir->i_sb, "zam-7001: io error in %s",
--					 __FUNCTION__);
-+					 __func__);
- 			return IO_ERROR;
- 		}
  
-@@ -496,7 +496,7 @@ static int reiserfs_add_entry(struct rei
- 			reiserfs_warning(dir->i_sb,
- 					 "zam-7002:%s: \"reiserfs_find_entry\" "
- 					 "has returned unexpected value (%d)",
--					 __FUNCTION__, retval);
-+					 __func__, retval);
- 		}
+@@ -1464,7 +1464,7 @@ static int i830_setparam(struct drm_devi
+ 	drm_i830_setparam_t *param = data;
  
- 		return -EEXIST;
-@@ -907,7 +907,7 @@ static int reiserfs_rmdir(struct inode *
+ 	if (!dev_priv) {
+-		DRM_ERROR("%s called with no initialization\n", __FUNCTION__);
++		DRM_ERROR("%s called with no initialization\n", __func__);
+ 		return -EINVAL;
+ 	}
  
- 	if (inode->i_nlink != 2 && inode->i_nlink != 1)
- 		reiserfs_warning(inode->i_sb, "%s: empty directory has nlink "
--				 "!= 2 (%d)", __FUNCTION__, inode->i_nlink);
-+				 "!= 2 (%d)", __func__, inode->i_nlink);
+diff -puN drivers/char/drm/i830_drv.h~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/i830_drv.h
+--- a/drivers/char/drm/i830_drv.h~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/i830_drv.h
+@@ -158,7 +158,7 @@ extern int i830_driver_device_is_agp(str
+ 	if (I830_VERBOSE)				\
+ 		printk("BEGIN_LP_RING(%d)\n", (n));	\
+ 	if (dev_priv->ring.space < n*4)			\
+-		i830_wait_ring(dev, n*4, __FUNCTION__);		\
++		i830_wait_ring(dev, n*4, __func__);		\
+ 	outcount = 0;					\
+ 	outring = dev_priv->ring.tail;			\
+ 	ringmask = dev_priv->ring.tail_mask;		\
+diff -puN drivers/char/drm/i830_irq.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/i830_irq.c
+--- a/drivers/char/drm/i830_irq.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/i830_irq.c
+@@ -58,7 +58,7 @@ static int i830_emit_irq(struct drm_devi
+ 	drm_i830_private_t *dev_priv = dev->dev_private;
+ 	RING_LOCALS;
  
- 	clear_nlink(inode);
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME_SEC;
-@@ -984,7 +984,7 @@ static int reiserfs_unlink(struct inode 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
  
- 	if (!inode->i_nlink) {
- 		reiserfs_warning(inode->i_sb, "%s: deleting nonexistent file "
--				 "(%s:%lu), %d", __FUNCTION__,
-+				 "(%s:%lu), %d", __func__,
- 				 reiserfs_bdevname(inode->i_sb), inode->i_ino,
- 				 inode->i_nlink);
- 		inode->i_nlink = 1;
-diff -puN fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/objectid.c
---- a/fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/objectid.c
-@@ -61,7 +61,7 @@ __u32 reiserfs_get_unused_objectid(struc
- 	/* comment needed -Hans */
- 	unused_objectid = le32_to_cpu(map[1]);
- 	if (unused_objectid == U32_MAX) {
--		reiserfs_warning(s, "%s: no more object ids", __FUNCTION__);
-+		reiserfs_warning(s, "%s: no more object ids", __func__);
- 		reiserfs_restore_prepared_buffer(s, SB_BUFFER_WITH_SB(s));
+ 	atomic_inc(&dev_priv->irq_emitted);
+ 
+@@ -77,7 +77,7 @@ static int i830_wait_irq(struct drm_devi
+ 	unsigned long end = jiffies + HZ * 3;
+ 	int ret = 0;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	if (atomic_read(&dev_priv->irq_received) >= irq_nr)
+ 		return 0;
+@@ -124,7 +124,7 @@ int i830_irq_emit(struct drm_device *dev
+ 	LOCK_TEST_WITH_RETURN(dev, file_priv);
+ 
+ 	if (!dev_priv) {
+-		DRM_ERROR("%s called with no initialization\n", __FUNCTION__);
++		DRM_ERROR("%s called with no initialization\n", __func__);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -147,7 +147,7 @@ int i830_irq_wait(struct drm_device *dev
+ 	drm_i830_irq_wait_t *irqwait = data;
+ 
+ 	if (!dev_priv) {
+-		DRM_ERROR("%s called with no initialization\n", __FUNCTION__);
++		DRM_ERROR("%s called with no initialization\n", __func__);
+ 		return -EINVAL;
+ 	}
+ 
+diff -puN drivers/char/drm/i915_dma.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/i915_dma.c
+--- a/drivers/char/drm/i915_dma.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/i915_dma.c
+@@ -278,7 +278,7 @@ static int i915_dma_resume(struct drm_de
+ {
+ 	drm_i915_private_t *dev_priv = (drm_i915_private_t *) dev->dev_private;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	if (!dev_priv->sarea) {
+ 		DRM_ERROR("can not find sarea!\n");
+@@ -684,8 +684,7 @@ void i915_dispatch_flip(struct drm_devic
+ 	int i;
+ 
+ 	DRM_DEBUG("%s: planes=0x%x pfCurrentPage=%d\n",
+-		  __FUNCTION__,
+-		  planes, dev_priv->sarea_priv->pf_current_page);
++		  __func__, planes, dev_priv->sarea_priv->pf_current_page);
+ 
+ 	i915_emit_mi_flush(dev, MI_READ_FLUSH | MI_EXE_FLUSH);
+ 
+@@ -703,7 +702,7 @@ static int i915_quiescent(struct drm_dev
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+ 
+ 	i915_kernel_lost_context(dev);
+-	return i915_wait_ring(dev, dev_priv->ring.Size - 8, __FUNCTION__);
++	return i915_wait_ring(dev, dev_priv->ring.Size - 8, __func__);
+ }
+ 
+ static int i915_flush_ioctl(struct drm_device *dev, void *data,
+@@ -1334,7 +1333,7 @@ static int i915_do_cleanup_pageflip(stru
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+ 	int i, planes, num_pages = dev_priv->sarea_priv->third_handle ? 3 : 2;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	for (i = 0, planes = 0; i < 2; i++)
+ 		if (dev_priv->sarea_priv->pf_current_page & (0x3 << (2 * i))) {
+@@ -1355,7 +1354,7 @@ static int i915_flip_bufs(struct drm_dev
+ {
+ 	drm_i915_flip_t *param = data;
+ 
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	LOCK_TEST_WITH_RETURN(dev, file_priv);
+ 
+diff -puN drivers/char/drm/i915_drv.h~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/i915_drv.h
+--- a/drivers/char/drm/i915_drv.h~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/i915_drv.h
+@@ -310,7 +310,7 @@ extern void intel_fini_chipset_flush_com
+ 	if (I915_VERBOSE)				\
+ 		DRM_DEBUG("BEGIN_LP_RING(%d)\n", (n));	\
+ 	if (dev_priv->ring.space < (n)*4)		\
+-		i915_wait_ring(dev, (n)*4, __FUNCTION__);		\
++		i915_wait_ring(dev, (n)*4, __func__);		\
+ 	outcount = 0;					\
+ 	outring = dev_priv->ring.tail;			\
+ 	ringmask = dev_priv->ring.tail_mask;		\
+diff -puN drivers/char/drm/radeon_cp.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/drm/radeon_cp.c
+--- a/drivers/char/drm/radeon_cp.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/drm/radeon_cp.c
+@@ -894,7 +894,7 @@ static u32 RADEON_READ_IGPGART(drm_radeo
+ #if RADEON_FIFO_DEBUG
+ static void radeon_status(drm_radeon_private_t * dev_priv)
+ {
+-	printk("%s:\n", __FUNCTION__);
++	printk("%s:\n", __func__);
+ 	printk("RBBM_STATUS = 0x%08x\n",
+ 	       (unsigned int)RADEON_READ(RADEON_RBBM_STATUS));
+ 	printk("CP_RB_RTPR = 0x%08x\n",
+diff -puN drivers/char/esp.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/esp.c
+--- a/drivers/char/esp.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/esp.c
+@@ -1678,7 +1678,7 @@ static int esp_tiocmget(struct tty_struc
+ 	unsigned char control, status;
+ 	unsigned long flags;
+ 
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
+ 		return -ENODEV;
+ 	if (tty->flags & (1 << TTY_IO_ERROR))
+ 		return -EIO;
+@@ -1704,7 +1704,7 @@ static int esp_tiocmset(struct tty_struc
+ 	struct esp_struct * info = (struct esp_struct *)tty->driver_data;
+ 	unsigned long flags;
+ 
+-	if (serial_paranoia_check(info, tty->name, __FUNCTION__))
++	if (serial_paranoia_check(info, tty->name, __func__))
+ 		return -ENODEV;
+ 	if (tty->flags & (1 << TTY_IO_ERROR))
+ 		return -EIO;
+diff -puN drivers/char/generic_serial.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/generic_serial.c
+--- a/drivers/char/generic_serial.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/generic_serial.c
+@@ -40,8 +40,8 @@ static int gs_debug;
+ #define gs_dprintk(f, str...) /* nothing */
+ #endif
+ 
+-#define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __FUNCTION__)
+-#define func_exit()  gs_dprintk (GS_DEBUG_FLOW, "gs: exit  %s\n", __FUNCTION__)
++#define func_enter() gs_dprintk (GS_DEBUG_FLOW, "gs: enter %s\n", __func__)
++#define func_exit()  gs_dprintk (GS_DEBUG_FLOW, "gs: exit  %s\n", __func__)
+ 
+ #define RS_EVENT_WRITE_WAKEUP	1
+ 
+diff -puN drivers/char/hpet.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/hpet.c
+--- a/drivers/char/hpet.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/hpet.c
+@@ -308,7 +308,7 @@ static int hpet_mmap(struct file *file, 
+ 	if (io_remap_pfn_range(vma, vma->vm_start, addr >> PAGE_SHIFT,
+ 					PAGE_SIZE, vma->vm_page_prot)) {
+ 		printk(KERN_ERR "%s: io_remap_pfn_range failed\n",
+-			__FUNCTION__);
++			__func__);
+ 		return -EAGAIN;
+ 	}
+ 
+@@ -748,7 +748,7 @@ int hpet_alloc(struct hpet_data *hdp)
+ 	 */
+ 	if (hpet_is_known(hdp)) {
+ 		printk(KERN_DEBUG "%s: duplicate HPET ignored\n",
+-			__FUNCTION__);
++			__func__);
  		return 0;
  	}
+ 
+@@ -906,7 +906,7 @@ static acpi_status hpet_resources(struct
+ 
+ 		if (hpet_is_known(hdp)) {
+ 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
+-				__FUNCTION__, hdp->hd_phys_address);
++				__func__, hdp->hd_phys_address);
+ 			iounmap(hdp->hd_address);
+ 			return AE_ALREADY_EXISTS;
+ 		}
+@@ -923,7 +923,7 @@ static acpi_status hpet_resources(struct
+ 
+ 		if (hpet_is_known(hdp)) {
+ 			printk(KERN_DEBUG "%s: 0x%lx is busy\n",
+-				__FUNCTION__, hdp->hd_phys_address);
++				__func__, hdp->hd_phys_address);
+ 			iounmap(hdp->hd_address);
+ 			return AE_ALREADY_EXISTS;
+ 		}
+@@ -962,7 +962,7 @@ static int hpet_acpi_add(struct acpi_dev
+ 		return -ENODEV;
+ 
+ 	if (!data.hd_address || !data.hd_nirqs) {
+-		printk("%s: no address or irqs in _CRS\n", __FUNCTION__);
++		printk("%s: no address or irqs in _CRS\n", __func__);
+ 		return -ENODEV;
+ 	}
+ 
+diff -puN drivers/char/hvsi.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/hvsi.c
+--- a/drivers/char/hvsi.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/hvsi.c
+@@ -246,7 +246,7 @@ static void compact_inbuf(struct hvsi_st
+ {
+ 	int remaining = (int)(hp->inbuf_end - read_to);
+ 
+-	pr_debug("%s: %i chars remain\n", __FUNCTION__, remaining);
++	pr_debug("%s: %i chars remain\n", __func__, remaining);
+ 
+ 	if (read_to != hp->inbuf)
+ 		memmove(hp->inbuf, read_to, remaining);
+@@ -365,7 +365,7 @@ static int hvsi_version_respond(struct h
+ 	packet.u.version = HVSI_VERSION;
+ 	packet.query_seqno = query_seqno+1;
+ 
+-	pr_debug("%s: sending %i bytes\n", __FUNCTION__, packet.len);
++	pr_debug("%s: sending %i bytes\n", __func__, packet.len);
+ 	dbg_dump_hex((uint8_t*)&packet, packet.len);
+ 
+ 	wrote = hvc_put_chars(hp->vtermno, (char *)&packet, packet.len);
+@@ -437,7 +437,7 @@ static struct tty_struct *hvsi_recv_data
+ 		return NULL;
+ 
+ 	if (overflow > 0) {
+-		pr_debug("%s: got >TTY_THRESHOLD_THROTTLE bytes\n", __FUNCTION__);
++		pr_debug("%s: got >TTY_THRESHOLD_THROTTLE bytes\n", __func__);
+ 		datalen = TTY_THRESHOLD_THROTTLE;
+ 	}
+ 
+@@ -448,7 +448,7 @@ static struct tty_struct *hvsi_recv_data
+ 		 * we still have more data to deliver, so we need to save off the
+ 		 * overflow and send it later
+ 		 */
+-		pr_debug("%s: deferring overflow\n", __FUNCTION__);
++		pr_debug("%s: deferring overflow\n", __func__);
+ 		memcpy(hp->throttle_buf, data + TTY_THRESHOLD_THROTTLE, overflow);
+ 		hp->n_throttle = overflow;
+ 	}
+@@ -474,11 +474,11 @@ static int hvsi_load_chunk(struct hvsi_s
+ 
+ 	chunklen = hvsi_read(hp, hp->inbuf_end, HVSI_MAX_READ);
+ 	if (chunklen == 0) {
+-		pr_debug("%s: 0-length read\n", __FUNCTION__);
++		pr_debug("%s: 0-length read\n", __func__);
+ 		return 0;
+ 	}
+ 
+-	pr_debug("%s: got %i bytes\n", __FUNCTION__, chunklen);
++	pr_debug("%s: got %i bytes\n", __func__, chunklen);
+ 	dbg_dump_hex(hp->inbuf_end, chunklen);
+ 
+ 	hp->inbuf_end += chunklen;
+@@ -495,7 +495,7 @@ static int hvsi_load_chunk(struct hvsi_s
+ 			continue;
+ 		}
+ 
+-		pr_debug("%s: handling %i-byte packet\n", __FUNCTION__,
++		pr_debug("%s: handling %i-byte packet\n", __func__,
+ 				len_packet(packet));
+ 		dbg_dump_packet(packet);
+ 
+@@ -526,7 +526,7 @@ static int hvsi_load_chunk(struct hvsi_s
+ 		packet += len_packet(packet);
+ 
+ 		if (*hangup || *handshake) {
+-			pr_debug("%s: hangup or handshake\n", __FUNCTION__);
++			pr_debug("%s: hangup or handshake\n", __func__);
+ 			/*
+ 			 * we need to send the hangup now before receiving any more data.
+ 			 * If we get "data, hangup, data", we can't deliver the second
+@@ -543,7 +543,7 @@ static int hvsi_load_chunk(struct hvsi_s
+ 
+ static void hvsi_send_overflow(struct hvsi_struct *hp)
+ {
+-	pr_debug("%s: delivering %i bytes overflow\n", __FUNCTION__,
++	pr_debug("%s: delivering %i bytes overflow\n", __func__,
+ 			hp->n_throttle);
+ 
+ 	hvsi_insert_chars(hp, hp->throttle_buf, hp->n_throttle);
+@@ -563,7 +563,7 @@ static irqreturn_t hvsi_interrupt(int ir
+ 	unsigned long flags;
+ 	int again = 1;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	while (again) {
+ 		spin_lock_irqsave(&hp->lock, flags);
+@@ -647,7 +647,7 @@ static int hvsi_query(struct hvsi_struct
+ 	packet.seqno = atomic_inc_return(&hp->seqno);
+ 	packet.verb = verb;
+ 
+-	pr_debug("%s: sending %i bytes\n", __FUNCTION__, packet.len);
++	pr_debug("%s: sending %i bytes\n", __func__, packet.len);
+ 	dbg_dump_hex((uint8_t*)&packet, packet.len);
+ 
+ 	wrote = hvc_put_chars(hp->vtermno, (char *)&packet, packet.len);
+@@ -674,7 +674,7 @@ static int hvsi_get_mctrl(struct hvsi_st
+ 		return ret;
+ 	}
+ 
+-	pr_debug("%s: mctrl 0x%x\n", __FUNCTION__, hp->mctrl);
++	pr_debug("%s: mctrl 0x%x\n", __func__, hp->mctrl);
+ 
+ 	return 0;
+ }
+@@ -694,7 +694,7 @@ static int hvsi_set_mctrl(struct hvsi_st
+ 	if (mctrl & TIOCM_DTR)
+ 		packet.word = HVSI_TSDTR;
+ 
+-	pr_debug("%s: sending %i bytes\n", __FUNCTION__, packet.len);
++	pr_debug("%s: sending %i bytes\n", __func__, packet.len);
+ 	dbg_dump_hex((uint8_t*)&packet, packet.len);
+ 
+ 	wrote = hvc_put_chars(hp->vtermno, (char *)&packet, packet.len);
+@@ -790,7 +790,7 @@ static void hvsi_close_protocol(struct h
+ 	packet.len = 6;
+ 	packet.verb = VSV_CLOSE_PROTOCOL;
+ 
+-	pr_debug("%s: sending %i bytes\n", __FUNCTION__, packet.len);
++	pr_debug("%s: sending %i bytes\n", __func__, packet.len);
+ 	dbg_dump_hex((uint8_t*)&packet, packet.len);
+ 
+ 	hvc_put_chars(hp->vtermno, (char *)&packet, packet.len);
+@@ -803,7 +803,7 @@ static int hvsi_open(struct tty_struct *
+ 	int line = tty->index;
+ 	int ret;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	if (line < 0 || line >= hvsi_count)
+ 		return -ENODEV;
+@@ -868,7 +868,7 @@ static void hvsi_close(struct tty_struct
+ 	struct hvsi_struct *hp = tty->driver_data;
+ 	unsigned long flags;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	if (tty_hung_up_p(filp))
+ 		return;
+@@ -920,7 +920,7 @@ static void hvsi_hangup(struct tty_struc
+ 	struct hvsi_struct *hp = tty->driver_data;
+ 	unsigned long flags;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	spin_lock_irqsave(&hp->lock, flags);
+ 
+@@ -942,7 +942,7 @@ static void hvsi_push(struct hvsi_struct
+ 	n = hvsi_put_chars(hp, hp->outbuf, hp->n_outbuf);
+ 	if (n > 0) {
+ 		/* success */
+-		pr_debug("%s: wrote %i chars\n", __FUNCTION__, n);
++		pr_debug("%s: wrote %i chars\n", __func__, n);
+ 		hp->n_outbuf = 0;
+ 	} else if (n == -EIO) {
+ 		__set_state(hp, HVSI_FSP_DIED);
+@@ -965,7 +965,7 @@ static void hvsi_write_worker(struct wor
+ 
+ 	spin_lock_irqsave(&hp->lock, flags);
+ 
+-	pr_debug("%s: %i chars in buffer\n", __FUNCTION__, hp->n_outbuf);
++	pr_debug("%s: %i chars in buffer\n", __func__, hp->n_outbuf);
+ 
+ 	if (!is_open(hp)) {
+ 		/*
+@@ -983,7 +983,7 @@ static void hvsi_write_worker(struct wor
+ 		schedule_delayed_work(&hp->writer, 10);
+ 	else {
+ #ifdef DEBUG
+-		pr_debug("%s: outbuf emptied after %li jiffies\n", __FUNCTION__,
++		pr_debug("%s: outbuf emptied after %li jiffies\n", __func__,
+ 				jiffies - start_j);
+ 		start_j = 0;
+ #endif /* DEBUG */
+@@ -1020,11 +1020,11 @@ static int hvsi_write(struct tty_struct 
+ 
+ 	spin_lock_irqsave(&hp->lock, flags);
+ 
+-	pr_debug("%s: %i chars in buffer\n", __FUNCTION__, hp->n_outbuf);
++	pr_debug("%s: %i chars in buffer\n", __func__, hp->n_outbuf);
+ 
+ 	if (!is_open(hp)) {
+ 		/* we're either closing or not yet open; don't accept data */
+-		pr_debug("%s: not open\n", __FUNCTION__);
++		pr_debug("%s: not open\n", __func__);
+ 		goto out;
+ 	}
+ 
+@@ -1058,7 +1058,7 @@ out:
+ 	spin_unlock_irqrestore(&hp->lock, flags);
+ 
+ 	if (total != origcount)
+-		pr_debug("%s: wanted %i, only wrote %i\n", __FUNCTION__, origcount,
++		pr_debug("%s: wanted %i, only wrote %i\n", __func__, origcount,
+ 			total);
+ 
+ 	return total;
+@@ -1072,7 +1072,7 @@ static void hvsi_throttle(struct tty_str
+ {
+ 	struct hvsi_struct *hp = (struct hvsi_struct *)tty->driver_data;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	h_vio_signal(hp->vtermno, VIO_IRQ_DISABLE);
+ }
+@@ -1083,7 +1083,7 @@ static void hvsi_unthrottle(struct tty_s
+ 	unsigned long flags;
+ 	int shouldflip = 0;
+ 
+-	pr_debug("%s\n", __FUNCTION__);
++	pr_debug("%s\n", __func__);
+ 
+ 	spin_lock_irqsave(&hp->lock, flags);
+ 	if (hp->n_throttle) {
+@@ -1302,7 +1302,7 @@ static int __init hvsi_console_init(void
+ 		hp->virq = irq_create_mapping(NULL, irq[0]);
+ 		if (hp->virq == NO_IRQ) {
+ 			printk(KERN_ERR "%s: couldn't create irq mapping for 0x%x\n",
+-				__FUNCTION__, irq[0]);
++				__func__, irq[0]);
+ 			continue;
+ 		}
+ 
+diff -puN drivers/char/nozomi.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/nozomi.c
+@@ -73,7 +73,7 @@ do {								\
+ 	char tmp[P_BUF_SIZE];					\
+ 	snprintf(tmp, sizeof(tmp), ##args);			\
+ 	printk(_err_flag_ "[%d] %s(): %s\n", __LINE__,		\
+-		__FUNCTION__, tmp);				\
++		__func__, tmp);				\
+ } while (0)
+ 
+ #define DBG1(args...) D_(0x01, ##args)
+diff -puN drivers/char/pcmcia/cm4000_cs.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -53,7 +53,7 @@ module_param(pc_debug, int, 0600);
+ #define DEBUGP(n, rdr, x, args...) do { 				\
+ 	if (pc_debug >= (n))						\
+ 		dev_printk(KERN_DEBUG, reader_to_dev(rdr), "%s:" x, 	\
+-			   __FUNCTION__ , ## args);			\
++			   __func__ , ## args);			\
+ 	} while (0)
+ #else
+ #define DEBUGP(n, rdr, x, args...)
+diff -puN drivers/char/pcmcia/cm4040_cs.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/pcmcia/cm4040_cs.c
+--- a/drivers/char/pcmcia/cm4040_cs.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/pcmcia/cm4040_cs.c
+@@ -47,7 +47,7 @@ module_param(pc_debug, int, 0600);
+ #define DEBUGP(n, rdr, x, args...) do { 				\
+ 	if (pc_debug >= (n)) 						\
+ 		dev_printk(KERN_DEBUG, reader_to_dev(rdr), "%s:" x, 	\
+-			   __FUNCTION__ , ##args); 			\
++			   __func__ , ##args); 			\
+ 	} while (0)
+ #else
+ #define DEBUGP(n, rdr, x, args...)
+diff -puN drivers/char/rio/rio_linux.h~drivers-char-replace-remaining-__function__-occurrences drivers/char/rio/rio_linux.h
+--- a/drivers/char/rio/rio_linux.h~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/rio/rio_linux.h
+@@ -186,9 +186,9 @@ static inline void *rio_memcpy_fromio(vo
+ 
+ #ifdef DEBUG
+ #define rio_dprintk(f, str...) do { if (rio_debug & f) printk (str);} while (0)
+-#define func_enter() rio_dprintk (RIO_DEBUG_FLOW, "rio: enter %s\n", __FUNCTION__)
+-#define func_exit()  rio_dprintk (RIO_DEBUG_FLOW, "rio: exit  %s\n", __FUNCTION__)
+-#define func_enter2() rio_dprintk (RIO_DEBUG_FLOW, "rio: enter %s (port %d)\n",__FUNCTION__, port->line)
++#define func_enter() rio_dprintk (RIO_DEBUG_FLOW, "rio: enter %s\n", __func__)
++#define func_exit()  rio_dprintk (RIO_DEBUG_FLOW, "rio: exit  %s\n", __func__)
++#define func_enter2() rio_dprintk (RIO_DEBUG_FLOW, "rio: enter %s (port %d)\n",__func__, port->line)
+ #else
+ #define rio_dprintk(f, str...)	/* nothing */
+ #define func_enter()
+diff -puN drivers/char/riscom8.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/riscom8.c
+--- a/drivers/char/riscom8.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/riscom8.c
+@@ -1238,7 +1238,7 @@ static int rc_tiocmget(struct tty_struct
+ 	unsigned int result;
+ 	unsigned long flags;
+ 
+-	if (rc_paranoia_check(port, tty->name, __FUNCTION__))
++	if (rc_paranoia_check(port, tty->name, __func__))
+ 		return -ENODEV;
+ 
+ 	bp = port_Board(port);
+@@ -1266,7 +1266,7 @@ static int rc_tiocmset(struct tty_struct
+ 	unsigned long flags;
+ 	struct riscom_board *bp;
+ 
+-	if (rc_paranoia_check(port, tty->name, __FUNCTION__))
++	if (rc_paranoia_check(port, tty->name, __func__))
+ 		return -ENODEV;
+ 
+ 	bp = port_Board(port);
+diff -puN drivers/char/snsc.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/snsc.c
+--- a/drivers/char/snsc.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/snsc.c
+@@ -80,7 +80,7 @@ scdrv_open(struct inode *inode, struct f
+ 	sd = kzalloc(sizeof (struct subch_data_s), GFP_KERNEL);
+ 	if (sd == NULL) {
+ 		printk("%s: couldn't allocate subchannel data\n",
+-		       __FUNCTION__);
++		       __func__);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -90,7 +90,7 @@ scdrv_open(struct inode *inode, struct f
+ 
+ 	if (sd->sd_subch < 0) {
+ 		kfree(sd);
+-		printk("%s: couldn't allocate subchannel\n", __FUNCTION__);
++		printk("%s: couldn't allocate subchannel\n", __func__);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -110,7 +110,7 @@ scdrv_open(struct inode *inode, struct f
+ 	if (rv) {
+ 		ia64_sn_irtr_close(sd->sd_nasid, sd->sd_subch);
+ 		kfree(sd);
+-		printk("%s: irq request failed (%d)\n", __FUNCTION__, rv);
++		printk("%s: irq request failed (%d)\n", __func__, rv);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -215,7 +215,7 @@ scdrv_read(struct file *file, char __use
+ 		 */
+ 		if (count < len) {
+ 			pr_debug("%s: only accepting %d of %d bytes\n",
+-				 __FUNCTION__, (int) count, len);
++				 __func__, (int) count, len);
+ 		}
+ 		len = min((int) count, len);
+ 		if (copy_to_user(buf, sd->sd_rb, len))
+@@ -384,7 +384,7 @@ scdrv_init(void)
+ 	if (alloc_chrdev_region(&first_dev, 0, num_cnodes,
+ 				SYSCTL_BASENAME) < 0) {
+ 		printk("%s: failed to register SN system controller device\n",
+-		       __FUNCTION__);
++		       __func__);
+ 		return -ENODEV;
+ 	}
+ 	snsc_class = class_create(THIS_MODULE, SYSCTL_BASENAME);
+@@ -403,7 +403,7 @@ scdrv_init(void)
+ 				      GFP_KERNEL);
+ 			if (!scd) {
+ 				printk("%s: failed to allocate device info"
+-				       "for %s/%s\n", __FUNCTION__,
++				       "for %s/%s\n", __func__,
+ 				       SYSCTL_BASENAME, devname);
+ 				continue;
+ 			}
+@@ -412,7 +412,7 @@ scdrv_init(void)
+ 			scd->scd_nasid = cnodeid_to_nasid(cnode);
+ 			if (!(salbuf = kmalloc(SCDRV_BUFSZ, GFP_KERNEL))) {
+ 				printk("%s: failed to allocate driver buffer"
+-				       "(%s%s)\n", __FUNCTION__,
++				       "(%s%s)\n", __func__,
+ 				       SYSCTL_BASENAME, devname);
+ 				kfree(scd);
+ 				continue;
+@@ -424,7 +424,7 @@ scdrv_init(void)
+ 				    ("%s: failed to initialize SAL for"
+ 				     " system controller communication"
+ 				     " (%s/%s): outdated PROM?\n",
+-				     __FUNCTION__, SYSCTL_BASENAME, devname);
++				     __func__, SYSCTL_BASENAME, devname);
+ 				kfree(scd);
+ 				kfree(salbuf);
+ 				continue;
+@@ -435,7 +435,7 @@ scdrv_init(void)
+ 			if (cdev_add(&scd->scd_cdev, dev, 1)) {
+ 				printk("%s: failed to register system"
+ 				       " controller device (%s%s)\n",
+-				       __FUNCTION__, SYSCTL_BASENAME, devname);
++				       __func__, SYSCTL_BASENAME, devname);
+ 				kfree(scd);
+ 				kfree(salbuf);
+ 				continue;
+diff -puN drivers/char/snsc_event.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/snsc_event.c
+--- a/drivers/char/snsc_event.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/snsc_event.c
+@@ -275,7 +275,7 @@ scdrv_event_init(struct sysctl_data_s *s
+ 	event_sd = kzalloc(sizeof (struct subch_data_s), GFP_KERNEL);
+ 	if (event_sd == NULL) {
+ 		printk(KERN_WARNING "%s: couldn't allocate subchannel info"
+-		       " for event monitoring\n", __FUNCTION__);
++		       " for event monitoring\n", __func__);
+ 		return;
+ 	}
+ 
+@@ -289,7 +289,7 @@ scdrv_event_init(struct sysctl_data_s *s
+ 	if (event_sd->sd_subch < 0) {
+ 		kfree(event_sd);
+ 		printk(KERN_WARNING "%s: couldn't open event subchannel\n",
+-		       __FUNCTION__);
++		       __func__);
+ 		return;
+ 	}
+ 
+@@ -299,7 +299,7 @@ scdrv_event_init(struct sysctl_data_s *s
+ 			 "system controller events", event_sd);
+ 	if (rv) {
+ 		printk(KERN_WARNING "%s: irq request failed (%d)\n",
+-		       __FUNCTION__, rv);
++		       __func__, rv);
+ 		ia64_sn_irtr_close(event_sd->sd_nasid, event_sd->sd_subch);
+ 		kfree(event_sd);
+ 		return;
+diff -puN drivers/char/sonypi.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/sonypi.c
+--- a/drivers/char/sonypi.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/sonypi.c
+@@ -506,7 +506,7 @@ static struct sonypi_device {
+ 	while (--n && (command)) \
+ 		udelay(1); \
+ 	if (!n && (verbose || !quiet)) \
+-		printk(KERN_WARNING "sonypi command failed at %s : %s (line %d)\n", __FILE__, __FUNCTION__, __LINE__); \
++		printk(KERN_WARNING "sonypi command failed at %s : %s (line %d)\n", __FILE__, __func__, __LINE__); \
+ }
+ 
+ #ifdef CONFIG_ACPI
+diff -puN drivers/char/specialix.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/specialix.c
+--- a/drivers/char/specialix.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/specialix.c
+@@ -131,8 +131,8 @@ static int sx_rxfifo = SPECIALIX_RXFIFO;
+ #define SX_DEBUG_FIFO    0x0800
+ 
+ 
+-#define func_enter() dprintk (SX_DEBUG_FLOW, "io8: enter %s\n",__FUNCTION__)
+-#define func_exit()  dprintk (SX_DEBUG_FLOW, "io8: exit  %s\n", __FUNCTION__)
++#define func_enter() dprintk (SX_DEBUG_FLOW, "io8: enter %s\n",__func__)
++#define func_exit()  dprintk (SX_DEBUG_FLOW, "io8: exit  %s\n", __func__)
+ 
+ #define jiffies_from_ms(a) ((((a) * HZ)/1000)+1)
+ 
+@@ -876,7 +876,7 @@ static irqreturn_t sx_interrupt(int irq,
+ 	bp = dev_id;
+ 	spin_lock_irqsave(&bp->lock, flags);
+ 
+-	dprintk (SX_DEBUG_FLOW, "enter %s port %d room: %ld\n", __FUNCTION__, port_No(sx_get_port(bp, "INT")), SERIAL_XMIT_SIZE - sx_get_port(bp, "ITN")->xmit_cnt - 1);
++	dprintk (SX_DEBUG_FLOW, "enter %s port %d room: %ld\n", __func__, port_No(sx_get_port(bp, "INT")), SERIAL_XMIT_SIZE - sx_get_port(bp, "ITN")->xmit_cnt - 1);
+ 	if (!(bp->flags & SX_BOARD_ACTIVE)) {
+ 		dprintk (SX_DEBUG_IRQ, "sx: False interrupt. irq %d.\n", irq);
+ 		spin_unlock_irqrestore(&bp->lock, flags);
+@@ -1805,7 +1805,7 @@ static int sx_tiocmget(struct tty_struct
+ 
+ 	func_enter();
+ 
+-	if (sx_paranoia_check(port, tty->name, __FUNCTION__)) {
++	if (sx_paranoia_check(port, tty->name, __func__)) {
+ 		func_exit();
+ 		return -ENODEV;
+ 	}
+@@ -1847,7 +1847,7 @@ static int sx_tiocmset(struct tty_struct
+ 
+ 	func_enter();
+ 
+-	if (sx_paranoia_check(port, tty->name, __FUNCTION__)) {
++	if (sx_paranoia_check(port, tty->name, __func__)) {
+ 		func_exit();
+ 		return -ENODEV;
+ 	}
+diff -puN drivers/char/sx.c~drivers-char-replace-remaining-__function__-occurrences drivers/char/sx.c
+--- a/drivers/char/sx.c~drivers-char-replace-remaining-__function__-occurrences
++++ a/drivers/char/sx.c
+@@ -384,11 +384,11 @@ static struct real_driver sx_real_driver
+ #define sx_dprintk(f, str...)	/* nothing */
+ #endif
+ 
+-#define func_enter()	sx_dprintk(SX_DEBUG_FLOW, "sx: enter %s\n",__FUNCTION__)
+-#define func_exit()	sx_dprintk(SX_DEBUG_FLOW, "sx: exit  %s\n",__FUNCTION__)
++#define func_enter()	sx_dprintk(SX_DEBUG_FLOW, "sx: enter %s\n",__func__)
++#define func_exit()	sx_dprintk(SX_DEBUG_FLOW, "sx: exit  %s\n",__func__)
+ 
+ #define func_enter2()	sx_dprintk(SX_DEBUG_FLOW, "sx: enter %s (port %d)\n", \
+-				__FUNCTION__, port->line)
++				__func__, port->line)
+ 
+ /* 
+  *  Firmware loader driver specific routines
+@@ -1574,7 +1574,7 @@ static void sx_close(void *ptr)
+ 		sx_dprintk(SX_DEBUG_CLOSE, "WARNING port count:%d\n",
+ 				port->gs.count);
+ 		/*printk("%s SETTING port count to zero: %p count: %d\n",
+-				__FUNCTION__, port, port->gs.count);
++				__func__, port, port->gs.count);
+ 		port->gs.count = 0;*/
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -189,6 +949,7 @@ sound-replace-remaining-__function__-occurences.patch
 agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
 arm-replace-remaining-__function__-occurences.patch
 cifs-remove-global_extern-macro.patch
+cifs-replace-remaining-__function__-occurrences.patch
 powerpc-replace-remaining-__function__-occurences.patch
 ppc-replace-remaining-__function__-occurences.patch
 radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
@@ -204,9 +965,11 @@ jffs2-fix-sparse-warning-in-writec.patch
 jffs2-fix-sparse-warnings-in-gcc.patch
 git-ubi.patch
 blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
 git-nfsd.patch
 parisc-replace-remaining-__function__-occurences.patch
 sh-replace-remaining-__function__-occurences.patch
+xfs-replace-remaining-__function__-occurrences.patch
 xtensa-replace-remaining-__function__-occurences.patch
 remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
@@ -230,10 +993,15 @@ capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
 avm-fix-sparse-warning-using-integer-as-null-pointer.patch
 eicon-fix-sparse-integer-as-null-pointer-warnings.patch
 xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
 fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+ext2-replace-remaining-__function__-occurrences.patch
 jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
 udf-fix-sparse-warning-in-nameic.patch
 reiserfs-fix-sparse-warnings-in-fix_nodec.patch
 reiserfs-fix-sparse-warnings-in-do_balanc.patch
@@ -241,7 +1009,10 @@ reiserfs-fix-sparse-warning-in-nameic.patch
 reiserfs-fix-sparse-warnings-in-lbalancec.patch
 reiserfs-fix-sparse-warning-in-journalc.patch
 reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
 cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
 char-fix-sparse-shadowed-variable-warnings-in-espc.patch
 char-espc-fix-possible-double-unlock.patch
 char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
@@ -254,17 +1025,17 @@ mm-remove-remaining-__function__-occurances.patch
 block-remove-remaining-__function__-occurances.patch
 kernel-replace-remaining-__function__-occurances.patch
 lib-replace-remaining-__function__-occurances.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-ext4-replace-remaining-__function__-occurrences.patch
-nfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-remaining-__function__-occurrences.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cifs-replace-remaining-__function__-occurrences.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
 afs-replace-remaining-__function__-occurrences.patch
 fs-replace-remaining-__function__-occurrences.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+isdn-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+video-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
 
