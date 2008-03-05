@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-replace-remaining-__function__-occurences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:04:31 -0800
-Message-ID: <200803052204.m25M4VoT023363@imap1.linux-foundation.org>
+Subject: + security-replace-remaining-__function__-occurences-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:05:25 -0800
+Message-ID: <200803052205.m25M5QmZ023384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755128AbYCEWEv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:04:51 -0500
+	by vger.kernel.org with ESMTP id S1755737AbYCEWFk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:05:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: akpm@linux-foundation.org, harvey.harrison@gmail.com, jmorris@namei.org, sds@tycho.nsa.gov
 
 
 The patch titled
-     security: replace remaining __FUNCTION__ occurrences
+     security-replace-remaining-__function__-occurences-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     security-replace-remaining-__function__-occurences.patch
+     security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,339 +33,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: security-replace-remaining-__function__-occurences-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-__FUNCTION__ is gcc-specific, use __func__
+ERROR: "(foo*)" should be "(foo *)"
+#168: FILE: security/selinux/hooks.c:2656:
++		       "%s, rc=%d\n", __func__, (char*)value, -rc);
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+total: 1 errors, 0 warnings, 195 lines checked
+
+./patches/security-replace-remaining-__function__-occurences.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c           |    4 ++--
- security/keys/internal.h       |    8 ++++----
- security/root_plug.c           |    2 +-
- security/security.c            |    8 ++++----
- security/selinux/hooks.c       |   16 ++++++++--------
- security/selinux/netlink.c     |    2 +-
- security/selinux/selinuxfs.c   |    8 ++++----
- security/selinux/ss/services.c |    4 ++--
- 8 files changed, 26 insertions(+), 26 deletions(-)
+ security/selinux/hooks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/commoncap.c~security-replace-remaining-__function__-occurences security/commoncap.c
---- a/security/commoncap.c~security-replace-remaining-__function__-occurences
-+++ a/security/commoncap.c
-@@ -264,7 +264,7 @@ static int get_file_caps(struct linux_bi
- 	rc = cap_from_disk(&vcaps, bprm, rc);
- 	if (rc)
- 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
--			__FUNCTION__, rc, bprm->filename);
-+			__func__, rc, bprm->filename);
- 
- out:
- 	dput(dentry);
-@@ -299,7 +299,7 @@ int cap_bprm_set_security (struct linux_
- 	ret = get_file_caps(bprm);
- 	if (ret)
- 		printk(KERN_NOTICE "%s: get_file_caps returned %d for %s\n",
--			__FUNCTION__, ret, bprm->filename);
-+			__func__, ret, bprm->filename);
- 
- 	/*  To support inheritance of root-permissions and suid-root
- 	 *  executables under compatibility mode, we raise all three
-diff -puN security/keys/internal.h~security-replace-remaining-__function__-occurences security/keys/internal.h
---- a/security/keys/internal.h~security-replace-remaining-__function__-occurences
-+++ a/security/keys/internal.h
-@@ -22,16 +22,16 @@ void no_printk(const char *fmt, ...)
- 
- #ifdef __KDEBUG
- #define kenter(FMT, ...) \
--	printk(KERN_DEBUG "==> %s("FMT")\n", __FUNCTION__, ##__VA_ARGS__)
-+	printk(KERN_DEBUG "==> %s("FMT")\n", __func__, ##__VA_ARGS__)
- #define kleave(FMT, ...) \
--	printk(KERN_DEBUG "<== %s()"FMT"\n", __FUNCTION__, ##__VA_ARGS__)
-+	printk(KERN_DEBUG "<== %s()"FMT"\n", __func__, ##__VA_ARGS__)
- #define kdebug(FMT, ...) \
- 	printk(KERN_DEBUG "xxx" FMT"yyy\n", ##__VA_ARGS__)
- #else
- #define kenter(FMT, ...) \
--	no_printk(KERN_DEBUG "==> %s("FMT")\n", __FUNCTION__, ##__VA_ARGS__)
-+	no_printk(KERN_DEBUG "==> %s("FMT")\n", __func__, ##__VA_ARGS__)
- #define kleave(FMT, ...) \
--	no_printk(KERN_DEBUG "<== %s()"FMT"\n", __FUNCTION__, ##__VA_ARGS__)
-+	no_printk(KERN_DEBUG "<== %s()"FMT"\n", __func__, ##__VA_ARGS__)
- #define kdebug(FMT, ...) \
- 	no_printk(KERN_DEBUG FMT"\n", ##__VA_ARGS__)
- #endif
-diff -puN security/root_plug.c~security-replace-remaining-__function__-occurences security/root_plug.c
---- a/security/root_plug.c~security-replace-remaining-__function__-occurences
-+++ a/security/root_plug.c
-@@ -49,7 +49,7 @@ module_param(debug, bool, 0600);
- 	do {							\
- 		if (debug)					\
- 			printk(KERN_DEBUG "%s: %s: " fmt ,	\
--				MY_NAME , __FUNCTION__ , 	\
-+				MY_NAME , __func__ , 	\
- 				## arg);			\
- 	} while (0)
- 
-diff -puN security/security.c~security-replace-remaining-__function__-occurences security/security.c
---- a/security/security.c~security-replace-remaining-__function__-occurences
-+++ a/security/security.c
-@@ -57,7 +57,7 @@ int __init security_init(void)
- 
- 	if (verify(&dummy_security_ops)) {
- 		printk(KERN_ERR "%s could not verify "
--		       "dummy_security_ops structure.\n", __FUNCTION__);
-+		       "dummy_security_ops structure.\n", __func__);
- 		return -EIO;
- 	}
- 
-@@ -82,7 +82,7 @@ int register_security(struct security_op
- {
- 	if (verify(ops)) {
- 		printk(KERN_DEBUG "%s could not verify "
--		       "security_operations structure.\n", __FUNCTION__);
-+		       "security_operations structure.\n", __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -110,13 +110,13 @@ int mod_reg_security(const char *name, s
- {
- 	if (verify(ops)) {
- 		printk(KERN_INFO "%s could not verify "
--		       "security operations.\n", __FUNCTION__);
-+		       "security operations.\n", __func__);
- 		return -EINVAL;
- 	}
- 
- 	if (ops == security_ops) {
- 		printk(KERN_INFO "%s security operations "
--		       "already registered.\n", __FUNCTION__);
-+		       "already registered.\n", __func__);
- 		return -EINVAL;
- 	}
- 
-diff -puN security/selinux/hooks.c~security-replace-remaining-__function__-occurences security/selinux/hooks.c
---- a/security/selinux/hooks.c~security-replace-remaining-__function__-occurences
+diff -puN security/selinux/hooks.c~security-replace-remaining-__function__-occurences-checkpatch-fixes security/selinux/hooks.c
+--- a/security/selinux/hooks.c~security-replace-remaining-__function__-occurences-checkpatch-fixes
 +++ a/security/selinux/hooks.c
-@@ -661,7 +661,7 @@ static int selinux_set_mnt_opts(struct s
- 	rc = security_fs_use(sb->s_type->name, &sbsec->behavior, &sbsec->sid);
- 	if (rc) {
- 		printk(KERN_WARNING "%s: security_fs_use(%s) returned %d\n",
--		       __FUNCTION__, sb->s_type->name, rc);
-+		       __func__, sb->s_type->name, rc);
- 		goto out;
- 	}
- 
-@@ -1117,7 +1117,7 @@ static int inode_doinit_with_dentry(stru
- 		}
- 		if (!dentry) {
- 			printk(KERN_WARNING "%s:  no dentry for dev=%s "
--			       "ino=%ld\n", __FUNCTION__, inode->i_sb->s_id,
-+			       "ino=%ld\n", __func__, inode->i_sb->s_id,
- 			       inode->i_ino);
- 			goto out_unlock;
- 		}
-@@ -1155,7 +1155,7 @@ static int inode_doinit_with_dentry(stru
- 		if (rc < 0) {
- 			if (rc != -ENODATA) {
- 				printk(KERN_WARNING "%s:  getxattr returned "
--				       "%d for dev=%s ino=%ld\n", __FUNCTION__,
-+				       "%d for dev=%s ino=%ld\n", __func__,
- 				       -rc, inode->i_sb->s_id, inode->i_ino);
- 				kfree(context);
- 				goto out_unlock;
-@@ -1169,7 +1169,7 @@ static int inode_doinit_with_dentry(stru
- 			if (rc) {
- 				printk(KERN_WARNING "%s:  context_to_sid(%s) "
- 				       "returned %d for dev=%s ino=%ld\n",
--				       __FUNCTION__, context, -rc,
-+				       __func__, context, -rc,
- 				       inode->i_sb->s_id, inode->i_ino);
- 				kfree(context);
- 				/* Leave with the unlabeled SID */
-@@ -2419,7 +2419,7 @@ static int selinux_inode_init_security(s
- 			printk(KERN_WARNING "%s:  "
- 			       "security_transition_sid failed, rc=%d (dev=%s "
- 			       "ino=%ld)\n",
--			       __FUNCTION__,
-+			       __func__,
- 			       -rc, inode->i_sb->s_id, inode->i_ino);
- 			return rc;
- 		}
 @@ -2653,7 +2653,7 @@ static void selinux_inode_post_setxattr(
  	rc = security_context_to_sid(value, size, &newsid);
  	if (rc) {
  		printk(KERN_WARNING "%s:  unable to obtain SID for context "
--		       "%s, rc=%d\n", __FUNCTION__, (char*)value, -rc);
-+		       "%s, rc=%d\n", __func__, (char*)value, -rc);
+-		       "%s, rc=%d\n", __func__, (char*)value, -rc);
++		       "%s, rc=%d\n", __func__, (char *)value, -rc);
  		return;
  	}
  
-@@ -5010,14 +5010,14 @@ static int selinux_register_security (co
- {
- 	if (secondary_ops != original_ops) {
- 		printk(KERN_ERR "%s:  There is already a secondary security "
--		       "module registered.\n", __FUNCTION__);
-+		       "module registered.\n", __func__);
- 		return -EINVAL;
-  	}
- 
- 	secondary_ops = ops;
- 
- 	printk(KERN_INFO "%s:  Registering secondary module %s\n",
--	       __FUNCTION__,
-+	       __func__,
- 	       name);
- 
- 	return 0;
-diff -puN security/selinux/netlink.c~security-replace-remaining-__function__-occurences security/selinux/netlink.c
---- a/security/selinux/netlink.c~security-replace-remaining-__function__-occurences
-+++ a/security/selinux/netlink.c
-@@ -89,7 +89,7 @@ out:
- nlmsg_failure:
- 	kfree_skb(skb);
- oom:
--	printk(KERN_ERR "SELinux:  OOM in %s\n", __FUNCTION__);
-+	printk(KERN_ERR "SELinux:  OOM in %s\n", __func__);
- 	goto out;
- }
- 
-diff -puN security/selinux/selinuxfs.c~security-replace-remaining-__function__-occurences security/selinux/selinuxfs.c
---- a/security/selinux/selinuxfs.c~security-replace-remaining-__function__-occurences
-+++ a/security/selinux/selinuxfs.c
-@@ -391,7 +391,7 @@ static ssize_t sel_write_context(struct 
- 
- 	if (len > SIMPLE_TRANSACTION_LIMIT) {
- 		printk(KERN_ERR "%s:  context size (%u) exceeds payload "
--		       "max\n", __FUNCTION__, len);
-+		       "max\n", __func__, len);
- 		length = -ERANGE;
- 		goto out;
- 	}
-@@ -644,7 +644,7 @@ static ssize_t sel_write_create(struct f
- 
- 	if (len > SIMPLE_TRANSACTION_LIMIT) {
- 		printk(KERN_ERR "%s:  context size (%u) exceeds payload "
--		       "max\n", __FUNCTION__, len);
-+		       "max\n", __func__, len);
- 		length = -ERANGE;
- 		goto out3;
- 	}
-@@ -821,7 +821,7 @@ static ssize_t sel_write_member(struct f
- 
- 	if (len > SIMPLE_TRANSACTION_LIMIT) {
- 		printk(KERN_ERR "%s:  context size (%u) exceeds payload "
--		       "max\n", __FUNCTION__, len);
-+		       "max\n", __func__, len);
- 		length = -ERANGE;
- 		goto out3;
- 	}
-@@ -1760,7 +1760,7 @@ static int sel_fill_super(struct super_b
- out:
- 	return ret;
- err:
--	printk(KERN_ERR "%s:  failed while creating inodes\n", __FUNCTION__);
-+	printk(KERN_ERR "%s:  failed while creating inodes\n", __func__);
- 	goto out;
- }
- 
-diff -puN security/selinux/ss/services.c~security-replace-remaining-__function__-occurences security/selinux/ss/services.c
---- a/security/selinux/ss/services.c~security-replace-remaining-__function__-occurences
-+++ a/security/selinux/ss/services.c
-@@ -414,7 +414,7 @@ static int context_struct_compute_av(str
- 	return 0;
- 
- inval_class:
--	printk(KERN_ERR "%s:  unrecognized class %d\n", __FUNCTION__, tclass);
-+	printk(KERN_ERR "%s:  unrecognized class %d\n", __func__, tclass);
- 	return -EINVAL;
- }
- 
-@@ -2205,7 +2205,7 @@ int security_get_permissions(char *class
- 	match = hashtab_search(policydb.p_classes.table, class);
- 	if (!match) {
- 		printk(KERN_ERR "%s:  unrecognized class %s\n",
--			__FUNCTION__, class);
-+			__func__, class);
- 		rc = -EINVAL;
- 		goto out;
- 	}
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-alsa-fix-git-conflicts.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
 git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
+pata-i-do-not-think-it-means-what-you-think-it-means.patch
+git-md-accel.patch
+git-md-accel-fix-git-rejects.patch
 git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-sh-replace-remaining-__function__-occurences.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
+git-ocfs2.patch
+sh-export-copy-page-to-modules.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-security-replace-remaining-__function__-occurences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
