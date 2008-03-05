@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + irda-replace-__inline-with-inline.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:45:21 -0800
-Message-ID: <200803052345.m25NjLif027819@imap1.linux-foundation.org>
+Subject: + isdn-replace-__inline-with-inline.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:45:10 -0800
+Message-ID: <200803052345.m25NjAdr027802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43992 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756207AbYCEXur (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:50:47 -0500
+	by vger.kernel.org with ESMTP id S1751979AbYCEXvc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:51:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, samuel@sortiz.org
+Cc: harvey.harrison@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     irda: replace __inline with inline
+     isdn: replace __inline with inline
 has been added to the -mm tree.  Its filename is
-     irda-replace-__inline-with-inline.patch
+     isdn-replace-__inline-with-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irda: replace __inline with inline
+Subject: isdn: replace __inline with inline
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/irda/irttp.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/isdn/i4l/isdn_common.c |    4 ++--
+ drivers/isdn/i4l/isdn_v110.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/net/irda/irttp.h~irda-replace-__inline-with-inline include/net/irda/irttp.h
---- a/include/net/irda/irttp.h~irda-replace-__inline-with-inline
-+++ a/include/net/irda/irttp.h
-@@ -169,17 +169,17 @@ int irttp_disconnect_request(struct tsap
- void irttp_flow_request(struct tsap_cb *self, LOCAL_FLOW flow);
- struct tsap_cb *irttp_dup(struct tsap_cb *self, void *instance);
- 
--static __inline __u32 irttp_get_saddr(struct tsap_cb *self)
-+static inline __u32 irttp_get_saddr(struct tsap_cb *self)
- {
- 	return irlmp_get_saddr(self->lsap);
+diff -puN drivers/isdn/i4l/isdn_common.c~isdn-replace-__inline-with-inline drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~isdn-replace-__inline-with-inline
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -981,13 +981,13 @@ isdn_readbchan_tty(int di, int channel, 
  }
  
--static __inline __u32 irttp_get_daddr(struct tsap_cb *self)
-+static inline __u32 irttp_get_daddr(struct tsap_cb *self)
+ 
+-static __inline int
++static inline int
+ isdn_minor2drv(int minor)
  {
- 	return irlmp_get_daddr(self->lsap);
+ 	return (dev->drvmap[minor]);
  }
  
--static __inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
-+static inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
+-static __inline int
++static inline int
+ isdn_minor2chan(int minor)
  {
- 	return self->max_seg_size;
- }
+ 	return (dev->chanmap[minor]);
+diff -puN drivers/isdn/i4l/isdn_v110.c~isdn-replace-__inline-with-inline drivers/isdn/i4l/isdn_v110.c
+--- a/drivers/isdn/i4l/isdn_v110.c~isdn-replace-__inline-with-inline
++++ a/drivers/isdn/i4l/isdn_v110.c
+@@ -62,7 +62,7 @@ static unsigned char V110_OffMatrix_3840
+  * and to 67452301 when keylen = 2. This is necessary because ordering on
+  * the isdn line is the other way.
+  */
+-static __inline unsigned char
++static inline unsigned char
+ FlipBits(unsigned char c, int keylen)
+ {
+ 	unsigned char b = c;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
