@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:20:32 -0800
-Message-ID: <200803052220.m25MKX5g024015@imap1.linux-foundation.org>
+Subject: + afs-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:20:46 -0800
+Message-ID: <200803052220.m25MKkMg024040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764030AbYCEWVH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:21:07 -0500
+	by vger.kernel.org with ESMTP id S1754565AbYCEW2d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dgc@sgi.com, tes@sgi.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     xfs: replace remaining __FUNCTION__ occurrences
+     afs: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     xfs-replace-remaining-__function__-occurrences.patch
+     afs-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,301 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: replace remaining __FUNCTION__ occurrences
+Subject: afs: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/kmem.c      |    6 +++---
- fs/xfs/linux-2.6/xfs_buf.c   |    6 +++---
- fs/xfs/linux-2.6/xfs_super.c |    2 +-
- fs/xfs/linux-2.6/xfs_vnode.h |    4 ++--
- fs/xfs/xfs_alloc.c           |   18 +++++++++---------
- fs/xfs/xfs_bmap.c            |   18 +++++++++---------
- fs/xfs/xfs_bmap.h            |    2 +-
- fs/xfs/xfs_bmap_btree.c      |   16 ++++++++--------
- fs/xfs/xfs_filestream.c      |    2 +-
- fs/xfs/xfs_log.c             |    2 +-
- fs/xfs/xfs_log_recover.c     |    4 ++--
- fs/xfs/xfs_trans_ail.c       |    2 +-
- 12 files changed, 41 insertions(+), 41 deletions(-)
+ fs/afs/dir.c      |    4 ++--
+ fs/afs/internal.h |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/kmem.c~xfs-replace-remaining-__function__-occurrences fs/xfs/linux-2.6/kmem.c
---- a/fs/xfs/linux-2.6/kmem.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/linux-2.6/kmem.c
-@@ -37,7 +37,7 @@ kmem_alloc(size_t size, unsigned int __n
- #ifdef DEBUG
- 	if (unlikely(!(flags & KM_LARGE) && (size > PAGE_SIZE))) {
- 		printk(KERN_WARNING "Large %s attempt, size=%ld\n",
--			__FUNCTION__, (long)size);
-+			__func__, (long)size);
- 		dump_stack();
- 	}
- #endif
-@@ -52,7 +52,7 @@ kmem_alloc(size_t size, unsigned int __n
- 		if (!(++retries % 100))
- 			printk(KERN_ERR "XFS: possible memory allocation "
- 					"deadlock in %s (mode:0x%x)\n",
--					__FUNCTION__, lflags);
-+					__func__, lflags);
- 		congestion_wait(WRITE, HZ/50);
- 	} while (1);
- }
-@@ -129,7 +129,7 @@ kmem_zone_alloc(kmem_zone_t *zone, unsig
- 		if (!(++retries % 100))
- 			printk(KERN_ERR "XFS: possible memory allocation "
- 					"deadlock in %s (mode:0x%x)\n",
--					__FUNCTION__, lflags);
-+					__func__, lflags);
- 		congestion_wait(WRITE, HZ/50);
- 	} while (1);
- }
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~xfs-replace-remaining-__function__-occurrences fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -400,7 +400,7 @@ _xfs_buf_lookup_pages(
- 				printk(KERN_ERR
- 					"XFS: possible memory allocation "
- 					"deadlock in %s (mode:0x%x)\n",
--					__FUNCTION__, gfp_mask);
-+					__func__, gfp_mask);
+diff -puN fs/afs/dir.c~afs-replace-remaining-__function__-occurrences fs/afs/dir.c
+--- a/fs/afs/dir.c~afs-replace-remaining-__function__-occurrences
++++ a/fs/afs/dir.c
+@@ -140,7 +140,7 @@ static inline void afs_dir_check_page(st
  
- 			XFS_STATS_INC(xb_page_retries);
- 			xfsbufd_wakeup(0, gfp_mask);
-@@ -598,7 +598,7 @@ xfs_buf_get_flags(
- 		error = _xfs_buf_map_pages(bp, flags);
- 		if (unlikely(error)) {
- 			printk(KERN_WARNING "%s: failed to map pages\n",
--					__FUNCTION__);
-+					__func__);
- 			goto no_buffer;
+ 	if (page->index == 0 && qty != ntohs(dbuf->blocks[0].pagehdr.npages)) {
+ 		printk("kAFS: %s(%lu): wrong number of dir blocks %d!=%hu\n",
+-		       __FUNCTION__, dir->i_ino, qty,
++		       __func__, dir->i_ino, qty,
+ 		       ntohs(dbuf->blocks[0].pagehdr.npages));
+ 		goto error;
+ 	}
+@@ -159,7 +159,7 @@ static inline void afs_dir_check_page(st
+ 	for (tmp = 0; tmp < qty; tmp++) {
+ 		if (dbuf->blocks[tmp].pagehdr.magic != AFS_DIR_MAGIC) {
+ 			printk("kAFS: %s(%lu): bad magic %d/%d is %04hx\n",
+-			       __FUNCTION__, dir->i_ino, tmp, qty,
++			       __func__, dir->i_ino, tmp, qty,
+ 			       ntohs(dbuf->blocks[tmp].pagehdr.magic));
+ 			goto error;
  		}
- 	}
-@@ -778,7 +778,7 @@ xfs_buf_get_noaddr(
- 	error = _xfs_buf_map_pages(bp, XBF_MAPPED);
- 	if (unlikely(error)) {
- 		printk(KERN_WARNING "%s: failed to map pages\n",
--				__FUNCTION__);
-+				__func__);
- 		goto fail_free_mem;
- 	}
- 
-diff -puN fs/xfs/linux-2.6/xfs_super.c~xfs-replace-remaining-__function__-occurrences fs/xfs/linux-2.6/xfs_super.c
---- a/fs/xfs/linux-2.6/xfs_super.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/linux-2.6/xfs_super.c
-@@ -934,7 +934,7 @@ xfs_fs_clear_inode(
- 		xfs_inactive(ip);
- 		xfs_iflags_clear(ip, XFS_IMODIFIED);
- 		if (xfs_reclaim(ip))
--			panic("%s: cannot reclaim 0x%p\n", __FUNCTION__, inode);
-+			panic("%s: cannot reclaim 0x%p\n", __func__, inode);
- 	}
- 
- 	ASSERT(XFS_I(inode) == NULL);
-diff -puN fs/xfs/linux-2.6/xfs_vnode.h~xfs-replace-remaining-__function__-occurrences fs/xfs/linux-2.6/xfs_vnode.h
---- a/fs/xfs/linux-2.6/xfs_vnode.h~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/linux-2.6/xfs_vnode.h
-@@ -303,9 +303,9 @@ extern void xfs_itrace_hold(struct xfs_i
- extern void _xfs_itrace_ref(struct xfs_inode *, char *, int, inst_t *);
- extern void xfs_itrace_rele(struct xfs_inode *, char *, int, inst_t *);
- #define xfs_itrace_entry(ip)	\
--	_xfs_itrace_entry(ip, __FUNCTION__, (inst_t *)__return_address)
-+	_xfs_itrace_entry(ip, __func__, (inst_t *)__return_address)
- #define xfs_itrace_exit(ip)	\
--	_xfs_itrace_exit(ip, __FUNCTION__, (inst_t *)__return_address)
-+	_xfs_itrace_exit(ip, __func__, (inst_t *)__return_address)
- #define xfs_itrace_exit_tag(ip, tag)	\
- 	_xfs_itrace_exit(ip, tag, (inst_t *)__return_address)
- #define xfs_itrace_ref(ip)	\
-diff -puN fs/xfs/xfs_alloc.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_alloc.c
---- a/fs/xfs/xfs_alloc.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_alloc.c
-@@ -55,17 +55,17 @@ xfs_alloc_search_busy(xfs_trans_t *tp,
- ktrace_t *xfs_alloc_trace_buf;
- 
- #define	TRACE_ALLOC(s,a)	\
--	xfs_alloc_trace_alloc(__FUNCTION__, s, a, __LINE__)
-+	xfs_alloc_trace_alloc(__func__, s, a, __LINE__)
- #define	TRACE_FREE(s,a,b,x,f)	\
--	xfs_alloc_trace_free(__FUNCTION__, s, mp, a, b, x, f, __LINE__)
-+	xfs_alloc_trace_free(__func__, s, mp, a, b, x, f, __LINE__)
- #define	TRACE_MODAGF(s,a,f)	\
--	xfs_alloc_trace_modagf(__FUNCTION__, s, mp, a, f, __LINE__)
--#define	TRACE_BUSY(__FUNCTION__,s,ag,agb,l,sl,tp)	\
--	xfs_alloc_trace_busy(__FUNCTION__, s, mp, ag, agb, l, sl, tp, XFS_ALLOC_KTRACE_BUSY, __LINE__)
--#define	TRACE_UNBUSY(__FUNCTION__,s,ag,sl,tp)	\
--	xfs_alloc_trace_busy(__FUNCTION__, s, mp, ag, -1, -1, sl, tp, XFS_ALLOC_KTRACE_UNBUSY, __LINE__)
--#define	TRACE_BUSYSEARCH(__FUNCTION__,s,ag,agb,l,sl,tp)	\
--	xfs_alloc_trace_busy(__FUNCTION__, s, mp, ag, agb, l, sl, tp, XFS_ALLOC_KTRACE_BUSYSEARCH, __LINE__)
-+	xfs_alloc_trace_modagf(__func__, s, mp, a, f, __LINE__)
-+#define	TRACE_BUSY(__func__,s,ag,agb,l,sl,tp)	\
-+	xfs_alloc_trace_busy(__func__, s, mp, ag, agb, l, sl, tp, XFS_ALLOC_KTRACE_BUSY, __LINE__)
-+#define	TRACE_UNBUSY(__func__,s,ag,sl,tp)	\
-+	xfs_alloc_trace_busy(__func__, s, mp, ag, -1, -1, sl, tp, XFS_ALLOC_KTRACE_UNBUSY, __LINE__)
-+#define	TRACE_BUSYSEARCH(__func__,s,ag,agb,l,sl,tp)	\
-+	xfs_alloc_trace_busy(__func__, s, mp, ag, agb, l, sl, tp, XFS_ALLOC_KTRACE_BUSYSEARCH, __LINE__)
- #else
- #define	TRACE_ALLOC(s,a)
- #define	TRACE_FREE(s,a,b,x,f)
-diff -puN fs/xfs/xfs_bmap.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_bmap.c
---- a/fs/xfs/xfs_bmap.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_bmap.c
-@@ -323,13 +323,13 @@ xfs_bmap_trace_pre_update(
- 	int		whichfork);	/* data or attr fork */
- 
- #define	XFS_BMAP_TRACE_DELETE(d,ip,i,c,w)	\
--	xfs_bmap_trace_delete(__FUNCTION__,d,ip,i,c,w)
-+	xfs_bmap_trace_delete(__func__,d,ip,i,c,w)
- #define	XFS_BMAP_TRACE_INSERT(d,ip,i,c,r1,r2,w)	\
--	xfs_bmap_trace_insert(__FUNCTION__,d,ip,i,c,r1,r2,w)
-+	xfs_bmap_trace_insert(__func__,d,ip,i,c,r1,r2,w)
- #define	XFS_BMAP_TRACE_POST_UPDATE(d,ip,i,w)	\
--	xfs_bmap_trace_post_update(__FUNCTION__,d,ip,i,w)
-+	xfs_bmap_trace_post_update(__func__,d,ip,i,w)
- #define	XFS_BMAP_TRACE_PRE_UPDATE(d,ip,i,w)	\
--	xfs_bmap_trace_pre_update(__FUNCTION__,d,ip,i,w)
-+	xfs_bmap_trace_pre_update(__func__,d,ip,i,w)
- #else
- #define	XFS_BMAP_TRACE_DELETE(d,ip,i,c,w)
- #define	XFS_BMAP_TRACE_INSERT(d,ip,i,c,r1,r2,w)
-@@ -6162,10 +6162,10 @@ xfs_check_block(
- 			}
- 			if (*thispa == *pp) {
- 				cmn_err(CE_WARN, "%s: thispa(%d) == pp(%d) %Ld",
--					__FUNCTION__, j, i,
-+					__func__, j, i,
- 					(unsigned long long)be64_to_cpu(*thispa));
- 				panic("%s: ptrs are equal in node\n",
--					__FUNCTION__);
-+					__func__);
- 			}
- 		}
- 	}
-@@ -6325,13 +6325,13 @@ xfs_bmap_check_leaf_extents(
- 	return;
- 
- error0:
--	cmn_err(CE_WARN, "%s: at error0", __FUNCTION__);
-+	cmn_err(CE_WARN, "%s: at error0", __func__);
- 	if (bp_release)
- 		xfs_trans_brelse(NULL, bp);
- error_norelse:
- 	cmn_err(CE_WARN, "%s: BAD after btree leaves for %d extents",
--		__FUNCTION__, i);
--	panic("%s: CORRUPTED BTREE OR SOMETHING", __FUNCTION__);
-+		__func__, i);
-+	panic("%s: CORRUPTED BTREE OR SOMETHING", __func__);
- 	return;
- }
- #endif
-diff -puN fs/xfs/xfs_bmap.h~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_bmap.h
---- a/fs/xfs/xfs_bmap.h~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_bmap.h
-@@ -151,7 +151,7 @@ xfs_bmap_trace_exlist(
- 	xfs_extnum_t		cnt,		/* count of entries in list */
- 	int			whichfork);	/* data or attr fork */
- #define	XFS_BMAP_TRACE_EXLIST(ip,c,w)	\
--	xfs_bmap_trace_exlist(__FUNCTION__,ip,c,w)
-+	xfs_bmap_trace_exlist(__func__,ip,c,w)
- #else
- #define	XFS_BMAP_TRACE_EXLIST(ip,c,w)
- #endif
-diff -puN fs/xfs/xfs_bmap_btree.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_bmap_btree.c
---- a/fs/xfs/xfs_bmap_btree.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_bmap_btree.c
-@@ -275,21 +275,21 @@ xfs_bmbt_trace_cursor(
- }
- 
- #define	XFS_BMBT_TRACE_ARGBI(c,b,i)	\
--	xfs_bmbt_trace_argbi(__FUNCTION__, c, b, i, __LINE__)
-+	xfs_bmbt_trace_argbi(__func__, c, b, i, __LINE__)
- #define	XFS_BMBT_TRACE_ARGBII(c,b,i,j)	\
--	xfs_bmbt_trace_argbii(__FUNCTION__, c, b, i, j, __LINE__)
-+	xfs_bmbt_trace_argbii(__func__, c, b, i, j, __LINE__)
- #define	XFS_BMBT_TRACE_ARGFFFI(c,o,b,i,j)	\
--	xfs_bmbt_trace_argfffi(__FUNCTION__, c, o, b, i, j, __LINE__)
-+	xfs_bmbt_trace_argfffi(__func__, c, o, b, i, j, __LINE__)
- #define	XFS_BMBT_TRACE_ARGI(c,i)	\
--	xfs_bmbt_trace_argi(__FUNCTION__, c, i, __LINE__)
-+	xfs_bmbt_trace_argi(__func__, c, i, __LINE__)
- #define	XFS_BMBT_TRACE_ARGIFK(c,i,f,s)	\
--	xfs_bmbt_trace_argifk(__FUNCTION__, c, i, f, s, __LINE__)
-+	xfs_bmbt_trace_argifk(__func__, c, i, f, s, __LINE__)
- #define	XFS_BMBT_TRACE_ARGIFR(c,i,f,r)	\
--	xfs_bmbt_trace_argifr(__FUNCTION__, c, i, f, r, __LINE__)
-+	xfs_bmbt_trace_argifr(__func__, c, i, f, r, __LINE__)
- #define	XFS_BMBT_TRACE_ARGIK(c,i,k)	\
--	xfs_bmbt_trace_argik(__FUNCTION__, c, i, k, __LINE__)
-+	xfs_bmbt_trace_argik(__func__, c, i, k, __LINE__)
- #define	XFS_BMBT_TRACE_CURSOR(c,s)	\
--	xfs_bmbt_trace_cursor(__FUNCTION__, c, s, __LINE__)
-+	xfs_bmbt_trace_cursor(__func__, c, s, __LINE__)
- #else
- #define	XFS_BMBT_TRACE_ARGBI(c,b,i)
- #define	XFS_BMBT_TRACE_ARGBII(c,b,i,j)
-diff -puN fs/xfs/xfs_filestream.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_filestream.c
---- a/fs/xfs/xfs_filestream.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_filestream.c
-@@ -73,7 +73,7 @@ xfs_filestreams_trace(
- #define TRACE4(mp,t,a0,a1,a2,a3)	TRACE6(mp,t,a0,a1,a2,a3,0,0)
- #define TRACE5(mp,t,a0,a1,a2,a3,a4)	TRACE6(mp,t,a0,a1,a2,a3,a4,0)
- #define TRACE6(mp,t,a0,a1,a2,a3,a4,a5) \
--	xfs_filestreams_trace(mp, t, __FUNCTION__, __LINE__, \
-+	xfs_filestreams_trace(mp, t, __func__, __LINE__, \
- 				(__psunsigned_t)a0, (__psunsigned_t)a1, \
- 				(__psunsigned_t)a2, (__psunsigned_t)a3, \
- 				(__psunsigned_t)a4, (__psunsigned_t)a5)
-diff -puN fs/xfs/xfs_log.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_log.c
---- a/fs/xfs/xfs_log.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_log.c
-@@ -2241,7 +2241,7 @@ xlog_state_do_callback(
- 			repeats = 0;
- 			xfs_fs_cmn_err(CE_WARN, log->l_mp,
- 				"%s: possible infinite loop (%d iterations)",
--				__FUNCTION__, flushcnt);
-+				__func__, flushcnt);
- 		}
- 	} while (!ioerrors && loopdidcallbacks);
- 
-diff -puN fs/xfs/xfs_log_recover.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_log_recover.c
---- a/fs/xfs/xfs_log_recover.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_log_recover.c
-@@ -191,7 +191,7 @@ xlog_header_check_dump(
+diff -puN fs/afs/internal.h~afs-replace-remaining-__function__-occurrences fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-replace-remaining-__function__-occurrences
++++ a/fs/afs/internal.h
+@@ -758,8 +758,8 @@ void _dbprintk(const char *fmt, ...)
  {
- 	int			b;
+ }
  
--	cmn_err(CE_DEBUG, "%s:  SB : uuid = ", __FUNCTION__);
-+	cmn_err(CE_DEBUG, "%s:  SB : uuid = ", __func__);
- 	for (b = 0; b < 16; b++)
- 		cmn_err(CE_DEBUG, "%02x", ((uchar_t *)&mp->m_sb.sb_uuid)[b]);
- 	cmn_err(CE_DEBUG, ", fmt = %d\n", XLOG_FMT);
-@@ -3445,7 +3445,7 @@ xlog_valid_rec_header(
- 	    (!rhead->h_version ||
- 	    (be32_to_cpu(rhead->h_version) & (~XLOG_VERSION_OKBITS))))) {
- 		xlog_warn("XFS: %s: unrecognised log version (%d).",
--			__FUNCTION__, be32_to_cpu(rhead->h_version));
-+			__func__, be32_to_cpu(rhead->h_version));
- 		return XFS_ERROR(EIO);
- 	}
+-#define kenter(FMT,...)	dbgprintk("==> %s("FMT")",__FUNCTION__ ,##__VA_ARGS__)
+-#define kleave(FMT,...)	dbgprintk("<== %s()"FMT"",__FUNCTION__ ,##__VA_ARGS__)
++#define kenter(FMT,...)	dbgprintk("==> %s("FMT")",__func__ ,##__VA_ARGS__)
++#define kleave(FMT,...)	dbgprintk("<== %s()"FMT"",__func__ ,##__VA_ARGS__)
+ #define kdebug(FMT,...)	dbgprintk("    "FMT ,##__VA_ARGS__)
  
-diff -puN fs/xfs/xfs_trans_ail.c~xfs-replace-remaining-__function__-occurrences fs/xfs/xfs_trans_ail.c
---- a/fs/xfs/xfs_trans_ail.c~xfs-replace-remaining-__function__-occurrences
-+++ a/fs/xfs/xfs_trans_ail.c
-@@ -437,7 +437,7 @@ xfs_trans_delete_ail(
- 		else {
- 			xfs_cmn_err(XFS_PTAG_AILDELETE, CE_ALERT, mp,
- 		"%s: attempting to delete a log item that is not in the AIL",
--					__FUNCTION__);
-+					__func__);
- 			spin_unlock(&mp->m_ail_lock);
- 			xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_INCORE);
- 		}
+ 
+@@ -792,8 +792,8 @@ do {							\
+ } while (0)
+ 
+ #else
+-#define _enter(FMT,...)	_dbprintk("==> %s("FMT")",__FUNCTION__ ,##__VA_ARGS__)
+-#define _leave(FMT,...)	_dbprintk("<== %s()"FMT"",__FUNCTION__ ,##__VA_ARGS__)
++#define _enter(FMT,...)	_dbprintk("==> %s("FMT")",__func__ ,##__VA_ARGS__)
++#define _leave(FMT,...)	_dbprintk("<== %s()"FMT"",__func__ ,##__VA_ARGS__)
+ #define _debug(FMT,...)	_dbprintk("    "FMT ,##__VA_ARGS__)
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
