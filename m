@@ -1,220 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-rename-to-memory-resource-controller.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:44:04 -0800
-Message-ID: <200803050744.m257i4bb021477@imap1.linux-foundation.org>
+Subject: - alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:44:54 -0800
+Message-ID: <200803050744.m257isnY021544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760650AbYCEHo7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:44:59 -0500
+	by vger.kernel.org with ESMTP id S1764765AbYCEHpa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:45:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, menage@google.com, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Memory controller: rename to Memory Resource Controller
+     alpha: IOMMU had better access to the free space bitmap at only one place
 has been removed from the -mm tree.  Its filename was
-     memory-controller-rename-to-memory-resource-controller.patch
+     alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory controller: rename to Memory Resource Controller
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: alpha: IOMMU had better access to the free space bitmap at only one place
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Rename Memory Controller to Memory Resource Controller.  Reflect the same
-changes in the CONFIG definition for the Memory Resource Controller.  Group
-together the config options for Resource Counters and Memory Resource
-Controller.
+iommu_arena_find_pages duplicates the code to access to the bitmap for free
+space management.  This patch convert the IOMMU code to have only one place to
+access the bitmap, in the popular way that other IOMMUs (e.g.  POWER and
+SPARC) do.
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
+This patch is preparation for modifications to fix the IOMMU segment boundary
+problem.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |    8 +++++-
- include/linux/cgroup_subsys.h        |    2 -
- include/linux/memcontrol.h           |    4 +--
- include/linux/mm_types.h             |    4 +--
- init/Kconfig                         |   30 ++++++++++++-------------
- mm/Makefile                          |    2 -
- mm/oom_kill.c                        |    2 -
- mm/vmscan.c                          |    4 +--
- 8 files changed, 30 insertions(+), 26 deletions(-)
+ arch/alpha/kernel/pci_iommu.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/controllers/memory.txt~memory-controller-rename-to-memory-resource-controller Documentation/controllers/memory.txt
---- a/Documentation/controllers/memory.txt~memory-controller-rename-to-memory-resource-controller
-+++ a/Documentation/controllers/memory.txt
-@@ -1,4 +1,8 @@
--Memory Controller
-+Memory Resource Controller
-+
-+NOTE: The Memory Resource Controller has been generically been referred
-+to as the memory controller in this document. Do not confuse memory controller
-+used here with the memory controller that is used in hardware.
- 
- Salient features
- 
-@@ -152,7 +156,7 @@ The memory controller uses the following
- 
- a. Enable CONFIG_CGROUPS
- b. Enable CONFIG_RESOURCE_COUNTERS
--c. Enable CONFIG_CGROUP_MEM_CONT
-+c. Enable CONFIG_CGROUP_MEM_RES_CTLR
- 
- 1. Prepare the cgroups
- # mkdir -p /cgroups
-diff -puN include/linux/cgroup_subsys.h~memory-controller-rename-to-memory-resource-controller include/linux/cgroup_subsys.h
---- a/include/linux/cgroup_subsys.h~memory-controller-rename-to-memory-resource-controller
-+++ a/include/linux/cgroup_subsys.h
-@@ -37,7 +37,7 @@ SUBSYS(cpuacct)
- 
- /* */
- 
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- SUBSYS(mem_cgroup)
- #endif
- 
-diff -puN include/linux/memcontrol.h~memory-controller-rename-to-memory-resource-controller include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-rename-to-memory-resource-controller
-+++ a/include/linux/memcontrol.h
-@@ -25,7 +25,7 @@ struct page_cgroup;
- struct page;
- struct mm_struct;
- 
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- 
- extern void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p);
- extern void mm_free_cgroup(struct mm_struct *mm);
-@@ -72,7 +72,7 @@ extern long mem_cgroup_calc_reclaim_acti
- extern long mem_cgroup_calc_reclaim_inactive(struct mem_cgroup *mem,
- 				struct zone *zone, int priority);
- 
--#else /* CONFIG_CGROUP_MEM_CONT */
-+#else /* CONFIG_CGROUP_MEM_RES_CTLR */
- static inline void mm_init_cgroup(struct mm_struct *mm,
- 					struct task_struct *p)
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-iommu-had-better-access-to-the-free-space-bitmap-at-only-one-place
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -132,12 +132,15 @@ iommu_arena_find_pages(struct pci_iommu_
  {
-diff -puN include/linux/mm_types.h~memory-controller-rename-to-memory-resource-controller include/linux/mm_types.h
---- a/include/linux/mm_types.h~memory-controller-rename-to-memory-resource-controller
-+++ a/include/linux/mm_types.h
-@@ -88,7 +88,7 @@ struct page {
- 	void *virtual;			/* Kernel virtual address (NULL if
- 					   not kmapped, ie. highmem) */
- #endif /* WANT_PAGE_VIRTUAL */
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- 	unsigned long page_cgroup;
- #endif
- };
-@@ -222,7 +222,7 @@ struct mm_struct {
- 	/* aio bits */
- 	rwlock_t		ioctx_list_lock;
- 	struct kioctx		*ioctx_list;
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- 	struct mem_cgroup *mem_cgroup;
- #endif
- };
-diff -puN init/Kconfig~memory-controller-rename-to-memory-resource-controller init/Kconfig
---- a/init/Kconfig~memory-controller-rename-to-memory-resource-controller
-+++ a/init/Kconfig
-@@ -366,6 +366,21 @@ config RESOURCE_COUNTERS
-           infrastructure that works with cgroups
- 	depends on CGROUPS
+ 	unsigned long *ptes;
+ 	long i, p, nent;
++	int pass = 0;
  
-+config CGROUP_MEM_RES_CTLR
-+	bool "Memory Resource Controller for Control Groups"
-+	depends on CGROUPS && RESOURCE_COUNTERS
-+	help
-+	  Provides a memory resource controller that manages both page cache and
-+	  RSS memory.
+ 	/* Search forward for the first mask-aligned sequence of N free ptes */
+ 	ptes = arena->ptes;
+ 	nent = arena->size >> PAGE_SHIFT;
+ 	p = ALIGN(arena->next_entry, mask + 1);
+ 	i = 0;
 +
-+	  Note that setting this option increases fixed memory overhead
-+	  associated with each page of memory in the system by 4/8 bytes
-+	  and also increases cache misses because struct page on many 64bit
-+	  systems will not fit into a single cache line anymore.
-+
-+	  Only enable when you're ok with these trade offs and really
-+	  sure you need the memory resource controller.
-+
- config SYSFS_DEPRECATED
- 	bool "Create deprecated sysfs files"
- 	depends on SYSFS
-@@ -387,21 +402,6 @@ config SYSFS_DEPRECATED
- 	  If you are using a distro that was released in 2006 or later,
- 	  it should be safe to say N here.
++again:
+ 	while (i < n && p+i < nent) {
+ 		if (ptes[p+i])
+ 			p = ALIGN(p + i + 1, mask + 1), i = 0;
+@@ -146,19 +149,18 @@ iommu_arena_find_pages(struct pci_iommu_
+ 	}
  
--config CGROUP_MEM_CONT
--	bool "Memory controller for cgroups"
--	depends on CGROUPS && RESOURCE_COUNTERS
--	help
--	  Provides a memory controller that manages both page cache and
--	  RSS memory.
+ 	if (i < n) {
+-                /* Reached the end.  Flush the TLB and restart the
+-                   search from the beginning.  */
+-		alpha_mv.mv_pci_tbi(arena->hose, 0, -1);
 -
--	  Note that setting this option increases fixed memory overhead
--	  associated with each page of memory in the system by 4/8 bytes
--	  and also increases cache misses because struct page on many 64bit
--	  systems will not fit into a single cache line anymore.
--
--	  Only enable when you're ok with these trade offs and really
--	  sure you need the memory controller.
--
- config PROC_PID_CPUSET
- 	bool "Include legacy /proc/<pid>/cpuset file"
- 	depends on CPUSETS
-diff -puN mm/Makefile~memory-controller-rename-to-memory-resource-controller mm/Makefile
---- a/mm/Makefile~memory-controller-rename-to-memory-resource-controller
-+++ a/mm/Makefile
-@@ -32,5 +32,5 @@ obj-$(CONFIG_FS_XIP) += filemap_xip.o
- obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_SMP) += allocpercpu.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
--obj-$(CONFIG_CGROUP_MEM_CONT) += memcontrol.o
-+obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o
- 
-diff -puN mm/oom_kill.c~memory-controller-rename-to-memory-resource-controller mm/oom_kill.c
---- a/mm/oom_kill.c~memory-controller-rename-to-memory-resource-controller
-+++ a/mm/oom_kill.c
-@@ -412,7 +412,7 @@ static int oom_kill_process(struct task_
- 	return oom_kill_task(p);
- }
- 
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
- {
- 	unsigned long points = 0;
-diff -puN mm/vmscan.c~memory-controller-rename-to-memory-resource-controller mm/vmscan.c
---- a/mm/vmscan.c~memory-controller-rename-to-memory-resource-controller
-+++ a/mm/vmscan.c
-@@ -126,7 +126,7 @@ long vm_total_pages;	/* The total number
- static LIST_HEAD(shrinker_list);
- static DECLARE_RWSEM(shrinker_rwsem);
- 
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- #define scan_global_lru(sc)	(!(sc)->mem_cgroup)
- #else
- #define scan_global_lru(sc)	(1)
-@@ -1427,7 +1427,7 @@ unsigned long try_to_free_pages(struct z
- 	return do_try_to_free_pages(zones, gfp_mask, &sc);
- }
- 
--#ifdef CONFIG_CGROUP_MEM_CONT
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- 
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 						gfp_t gfp_mask)
-_
-
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
-
-git-kvm.patch
-
+-		p = 0, i = 0;
+-		while (i < n && p+i < nent) {
+-			if (ptes[p+i])
+-				p = ALIGN(p + i + 1, mask + 1), i = 0;
+-			else
+-				i = i + 1;
+-		}
