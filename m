@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:20:29 -0800
-Message-ID: <200803052220.m25MKUAb024012@imap1.linux-foundation.org>
+Subject: + ext4-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:20:26 -0800
+Message-ID: <200803052220.m25MKR7s024009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764669AbYCEWV0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:21:26 -0500
+	by vger.kernel.org with ESMTP id S1765040AbYCEWVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:21:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: harvey.harrison@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     nfs: replace remaining __FUNCTION__ occurrences
+     ext4: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     nfs-replace-remaining-__function__-occurrences.patch
+     ext4-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,1167 +33,861 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: replace remaining __FUNCTION__ occurrences
+Subject: ext4: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/callback.c      |    4 -
- fs/nfs/callback_proc.c |    4 -
- fs/nfs/callback_xdr.c  |   18 +++---
- fs/nfs/client.c        |    8 +-
- fs/nfs/delegation.c    |    4 -
- fs/nfs/dir.c           |   18 +++---
- fs/nfs/file.c          |    2 
- fs/nfs/inode.c         |    4 -
- fs/nfs/namespace.c     |    8 +-
- fs/nfs/nfs3proc.c      |    6 +-
- fs/nfs/nfs4namespace.c |   12 ++--
- fs/nfs/nfs4proc.c      |   32 +++++------
- fs/nfs/nfs4renewd.c    |   10 +--
- fs/nfs/nfs4state.c     |    6 +-
- fs/nfs/nfs4xdr.c       |  106 +++++++++++++++++++--------------------
- fs/nfs/proc.c          |    8 +-
- fs/nfs/read.c          |    2 
- fs/nfs/super.c         |    2 
- 18 files changed, 127 insertions(+), 127 deletions(-)
+ fs/ext4/balloc.c    |   14 ++++----
+ fs/ext4/ext4_jbd2.c |   12 +++----
+ fs/ext4/extents.c   |    2 -
+ fs/ext4/ialloc.c    |   10 +++---
+ fs/ext4/inode.c     |    8 ++--
+ fs/ext4/mballoc.c   |   20 ++++++------
+ fs/ext4/namei.c     |   26 +++++++--------
+ fs/ext4/resize.c    |   70 +++++++++++++++++++++---------------------
+ fs/ext4/super.c     |   16 ++++-----
+ fs/ext4/xattr.c     |   16 ++++-----
+ 10 files changed, 97 insertions(+), 97 deletions(-)
 
-diff -puN fs/nfs/callback.c~nfs-replace-remaining-__function__-occurrences fs/nfs/callback.c
---- a/fs/nfs/callback.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/callback.c
-@@ -87,7 +87,7 @@ static void nfs_callback_svc(struct svc_
- 		if (err < 0) {
- 			printk(KERN_WARNING
- 					"%s: terminating on error %d\n",
--					__FUNCTION__, -err);
-+					__func__, -err);
- 			break;
- 		}
- 		svc_process(rqstp);
-@@ -179,7 +179,7 @@ static int nfs_callback_authenticate(str
- 	if (clp == NULL)
- 		return SVC_DROP;
+diff -puN fs/ext4/balloc.c~ext4-replace-remaining-__function__-occurrences fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/balloc.c
+@@ -58,7 +58,7 @@ unsigned ext4_init_block_bitmap(struct s
+ 		/* If checksum is bad mark all blocks used to prevent allocation
+ 		 * essentially implementing a per-group read-only flag. */
+ 		if (!ext4_group_desc_csum_verify(sbi, block_group, gdp)) {
+-			ext4_error(sb, __FUNCTION__,
++			ext4_error(sb, __func__,
+ 				  "Checksum bad for group %lu\n", block_group);
+ 			gdp->bg_free_blocks_count = 0;
+ 			gdp->bg_free_inodes_count = 0;
+@@ -237,7 +237,7 @@ static int ext4_valid_block_bitmap(struc
+ 		return 1;
  
--	dprintk("%s: %s NFSv4 callback!\n", __FUNCTION__,
-+	dprintk("%s: %s NFSv4 callback!\n", __func__,
- 			svc_print_addr(rqstp, buf, sizeof(buf)));
- 	nfs_put_client(clp);
- 
-diff -puN fs/nfs/callback_proc.c~nfs-replace-remaining-__function__-occurrences fs/nfs/callback_proc.c
---- a/fs/nfs/callback_proc.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/callback_proc.c
-@@ -57,7 +57,7 @@ out_iput:
- out_putclient:
- 	nfs_put_client(clp);
- out:
--	dprintk("%s: exit with status = %d\n", __FUNCTION__, ntohl(res->status));
-+	dprintk("%s: exit with status = %d\n", __func__, ntohl(res->status));
- 	return res->status;
- }
- 
-@@ -98,6 +98,6 @@ __be32 nfs4_callback_recall(struct cb_re
- 		nfs_put_client(prev);
- 	} while (clp != NULL);
- out:
--	dprintk("%s: exit with status = %d\n", __FUNCTION__, ntohl(res));
-+	dprintk("%s: exit with status = %d\n", __func__, ntohl(res));
- 	return res;
- }
-diff -puN fs/nfs/callback_xdr.c~nfs-replace-remaining-__function__-occurrences fs/nfs/callback_xdr.c
---- a/fs/nfs/callback_xdr.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/callback_xdr.c
-@@ -141,7 +141,7 @@ static __be32 decode_compound_hdr_arg(st
- 	/* We do not like overly long tags! */
- 	if (hdr->taglen > CB_OP_TAGLEN_MAXSZ - 12) {
- 		printk("NFSv4 CALLBACK %s: client sent tag of length %u\n",
--				__FUNCTION__, hdr->taglen);
-+				__func__, hdr->taglen);
- 		return htonl(NFS4ERR_RESOURCE);
+ err_out:
+-	ext4_error(sb, __FUNCTION__,
++	ext4_error(sb, __func__,
+ 			"Invalid block bitmap - "
+ 			"block_group = %d, block = %llu",
+ 			block_group, bitmap_blk);
+@@ -266,7 +266,7 @@ read_block_bitmap(struct super_block *sb
+ 	bitmap_blk = ext4_block_bitmap(sb, desc);
+ 	bh = sb_getblk(sb, bitmap_blk);
+ 	if (unlikely(!bh)) {
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %llu",
+ 			    (int)block_group, (unsigned long long)bitmap_blk);
+@@ -283,7 +283,7 @@ read_block_bitmap(struct super_block *sb
  	}
- 	p = read_buf(xdr, 12);
-@@ -151,7 +151,7 @@ static __be32 decode_compound_hdr_arg(st
- 	/* Check minor version is zero. */
- 	if (minor_version != 0) {
- 		printk(KERN_WARNING "%s: NFSv4 server callback with illegal minor version %u!\n",
--				__FUNCTION__, minor_version);
-+				__func__, minor_version);
- 		return htonl(NFS4ERR_MINOR_VERS_MISMATCH);
- 	}
- 	hdr->callback_ident = ntohl(*p++);
-@@ -179,7 +179,7 @@ static __be32 decode_getattr_args(struct
- 	args->addr = svc_addr(rqstp);
- 	status = decode_bitmap(xdr, args->bitmap);
- out:
--	dprintk("%s: exit with status = %d\n", __FUNCTION__, ntohl(status));
-+	dprintk("%s: exit with status = %d\n", __func__, ntohl(status));
- 	return status;
+ 	if (bh_submit_read(bh) < 0) {
+ 		put_bh(bh);
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %llu",
+ 			    (int)block_group, (unsigned long long)bitmap_blk);
+@@ -361,7 +361,7 @@ restart:
+ 	BUG_ON(bad);
  }
- 
-@@ -200,7 +200,7 @@ static __be32 decode_recall_args(struct 
- 	args->truncate = ntohl(*p);
- 	status = decode_fh(xdr, &args->fh);
- out:
--	dprintk("%s: exit with status = %d\n", __FUNCTION__, ntohl(status));
-+	dprintk("%s: exit with status = %d\n", __func__, ntohl(status));
- 	return status;
- }
- 
-@@ -349,7 +349,7 @@ static __be32 encode_getattr_res(struct 
- 	status = encode_attr_mtime(xdr, res->bitmap, &res->mtime);
- 	*savep = htonl((unsigned int)((char *)xdr->p - (char *)(savep+1)));
- out:
--	dprintk("%s: exit with status = %d\n", __FUNCTION__, ntohl(status));
-+	dprintk("%s: exit with status = %d\n", __func__, ntohl(status));
- 	return status;
- }
- 
-@@ -363,7 +363,7 @@ static __be32 process_op(struct svc_rqst
- 	long maxlen;
- 	__be32 res;
- 
--	dprintk("%s: start\n", __FUNCTION__);
-+	dprintk("%s: start\n", __func__);
- 	status = decode_op_hdr(xdr_in, &op_nr);
- 	if (likely(status == 0)) {
- 		switch (op_nr) {
-@@ -392,7 +392,7 @@ static __be32 process_op(struct svc_rqst
- 		status = res;
- 	if (op->encode_res != NULL && status == 0)
- 		status = op->encode_res(rqstp, xdr_out, resp);
--	dprintk("%s: done, status = %d\n", __FUNCTION__, ntohl(status));
-+	dprintk("%s: done, status = %d\n", __func__, ntohl(status));
- 	return status;
- }
- 
-@@ -408,7 +408,7 @@ static __be32 nfs4_callback_compound(str
- 	__be32 status;
- 	unsigned int nops = 1;
- 
--	dprintk("%s: start\n", __FUNCTION__);
-+	dprintk("%s: start\n", __func__);
- 
- 	xdr_init_decode(&xdr_in, &rqstp->rq_arg, rqstp->rq_arg.head[0].iov_base);
- 
-@@ -431,7 +431,7 @@ static __be32 nfs4_callback_compound(str
- 	}
- 	*hdr_res.status = status;
- 	*hdr_res.nops = htonl(nops);
--	dprintk("%s: done, status = %u\n", __FUNCTION__, ntohl(status));
-+	dprintk("%s: done, status = %u\n", __func__, ntohl(status));
- 	return rpc_success;
- }
- 
-diff -puN fs/nfs/client.c~nfs-replace-remaining-__function__-occurrences fs/nfs/client.c
---- a/fs/nfs/client.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/client.c
-@@ -479,7 +479,7 @@ static int nfs_create_rpc_client(struct 
- 	clnt = rpc_create(&args);
- 	if (IS_ERR(clnt)) {
- 		dprintk("%s: cannot create RPC client. Error = %ld\n",
--				__FUNCTION__, PTR_ERR(clnt));
-+				__func__, PTR_ERR(clnt));
- 		return PTR_ERR(clnt);
- 	}
- 
-@@ -567,7 +567,7 @@ static int nfs_init_server_rpcclient(str
- 
- 	server->client = rpc_clone_client(clp->cl_rpcclient);
- 	if (IS_ERR(server->client)) {
--		dprintk("%s: couldn't create rpc_client!\n", __FUNCTION__);
-+		dprintk("%s: couldn't create rpc_client!\n", __func__);
- 		return PTR_ERR(server->client);
- 	}
- 
-@@ -581,7 +581,7 @@ static int nfs_init_server_rpcclient(str
- 
- 		auth = rpcauth_create(pseudoflavour, server->client);
- 		if (IS_ERR(auth)) {
--			dprintk("%s: couldn't create credcache!\n", __FUNCTION__);
-+			dprintk("%s: couldn't create credcache!\n", __func__);
- 			return PTR_ERR(auth);
+ #define rsv_window_dump(root, verbose) \
+-	__rsv_window_dump((root), (verbose), __FUNCTION__)
++	__rsv_window_dump((root), (verbose), __func__)
+ #else
+ #define rsv_window_dump(root, verbose) do {} while (0)
+ #endif
+@@ -741,7 +741,7 @@ do_more:
+ 		if (!ext4_clear_bit_atomic(sb_bgl_lock(sbi, block_group),
+ 						bit + i, bitmap_bh->b_data)) {
+ 			jbd_unlock_bh_state(bitmap_bh);
+-			ext4_error(sb, __FUNCTION__,
++			ext4_error(sb, __func__,
+ 				   "bit already cleared for block %llu",
+ 				   (ext4_fsblk_t)(block + i));
+ 			jbd_lock_bh_state(bitmap_bh);
+@@ -1804,7 +1804,7 @@ allocated:
+ 			if (ext4_test_bit(grp_alloc_blk+i,
+ 					bh2jh(bitmap_bh)->b_committed_data)) {
+ 				printk("%s: block was unexpectedly set in "
+-					"b_committed_data\n", __FUNCTION__);
++					"b_committed_data\n", __func__);
+ 			}
  		}
  	}
-@@ -964,7 +964,7 @@ static int nfs4_init_client(struct nfs_c
- 	error = nfs_idmap_new(clp);
- 	if (error < 0) {
- 		dprintk("%s: failed to create idmapper. Error = %d\n",
--			__FUNCTION__, error);
-+			__func__, error);
+diff -puN fs/ext4/ext4_jbd2.c~ext4-replace-remaining-__function__-occurrences fs/ext4/ext4_jbd2.c
+--- a/fs/ext4/ext4_jbd2.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/ext4_jbd2.c
+@@ -9,7 +9,7 @@ int __ext4_journal_get_undo_access(const
+ {
+ 	int err = jbd2_journal_get_undo_access(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -18,7 +18,7 @@ int __ext4_journal_get_write_access(cons
+ {
+ 	int err = jbd2_journal_get_write_access(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -27,7 +27,7 @@ int __ext4_journal_forget(const char *wh
+ {
+ 	int err = jbd2_journal_forget(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -36,7 +36,7 @@ int __ext4_journal_revoke(const char *wh
+ {
+ 	int err = jbd2_journal_revoke(handle, blocknr, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -45,7 +45,7 @@ int __ext4_journal_get_create_access(con
+ {
+ 	int err = jbd2_journal_get_create_access(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -54,6 +54,6 @@ int __ext4_journal_dirty_metadata(const 
+ {
+ 	int err = jbd2_journal_dirty_metadata(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext4_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+diff -puN fs/ext4/extents.c~ext4-replace-remaining-__function__-occurrences fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/extents.c
+@@ -314,7 +314,7 @@ corrupted:
+ }
+ 
+ #define ext4_ext_check_header(inode, eh, depth)	\
+-	__ext4_ext_check_header(__FUNCTION__, inode, eh, depth)
++	__ext4_ext_check_header(__func__, inode, eh, depth)
+ 
+ #ifdef EXT_DEBUG
+ static void ext4_ext_show_path(struct inode *inode, struct ext4_ext_path *path)
+diff -puN fs/ext4/ialloc.c~ext4-replace-remaining-__function__-occurrences fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/ialloc.c
+@@ -75,7 +75,7 @@ unsigned ext4_init_inode_bitmap(struct s
+ 	/* If checksum is bad mark all blocks and inodes use to prevent
+ 	 * allocation, essentially implementing a per-group read-only flag. */
+ 	if (!ext4_group_desc_csum_verify(sbi, block_group, gdp)) {
+-		ext4_error(sb, __FUNCTION__, "Checksum bad for group %lu\n",
++		ext4_error(sb, __func__, "Checksum bad for group %lu\n",
+ 			   block_group);
+ 		gdp->bg_free_blocks_count = 0;
+ 		gdp->bg_free_inodes_count = 0;
+@@ -675,7 +675,7 @@ got:
+ 	ino++;
+ 	if ((group == 0 && ino < EXT4_FIRST_INO(sb)) ||
+ 	    ino > EXT4_INODES_PER_GROUP(sb)) {
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			   "reserved inode or inode > inodes count - "
+ 			   "block_group = %lu, inode=%lu", group,
+ 			   ino + group * EXT4_INODES_PER_GROUP(sb));
+@@ -888,7 +888,7 @@ struct inode *ext4_orphan_get(struct sup
+ 
+ 	/* Error cases - e2fsck has already cleaned up for us */
+ 	if (ino > max_ino) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "bad orphan ino %lu!  e2fsck was run?", ino);
  		goto error;
  	}
- 	__set_bit(NFS_CS_IDMAP, &clp->cl_res_state);
-diff -puN fs/nfs/delegation.c~nfs-replace-remaining-__function__-occurrences fs/nfs/delegation.c
---- a/fs/nfs/delegation.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/delegation.c
-@@ -60,7 +60,7 @@ static int nfs_delegation_claim_locks(st
- 		switch (status) {
- 			default:
- 				printk(KERN_ERR "%s: unhandled error %d.\n",
--						__FUNCTION__, status);
-+						__func__, status);
- 			case -NFS4ERR_EXPIRED:
- 				/* kill_proc(fl->fl_pid, SIGLOST, 1); */
- 			case -NFS4ERR_STALE_CLIENTID:
-@@ -186,7 +186,7 @@ int nfs_inode_set_delegation(struct inod
- 		 */
- 		dfprintk(FILE, "%s: server %s handed out "
- 				"a duplicate delegation!\n",
--				__FUNCTION__, clp->cl_hostname);
-+				__func__, clp->cl_hostname);
- 		if (delegation->type <= nfsi->delegation->type) {
- 			freeme = delegation;
- 			delegation = NULL;
-diff -puN fs/nfs/dir.c~nfs-replace-remaining-__function__-occurrences fs/nfs/dir.c
---- a/fs/nfs/dir.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/dir.c
-@@ -180,7 +180,7 @@ int nfs_readdir_filler(nfs_readdir_descr
- 	int		error;
- 
- 	dfprintk(DIRCACHE, "NFS: %s: reading cookie %Lu into page %lu\n",
--			__FUNCTION__, (long long)desc->entry->cookie,
-+			__func__, (long long)desc->entry->cookie,
- 			page->index);
- 
-  again:
-@@ -256,7 +256,7 @@ int find_dirent(nfs_readdir_descriptor_t
- 
- 	while((status = dir_decode(desc)) == 0) {
- 		dfprintk(DIRCACHE, "NFS: %s: examining cookie %Lu\n",
--				__FUNCTION__, (unsigned long long)entry->cookie);
-+				__func__, (unsigned long long)entry->cookie);
- 		if (entry->prev_cookie == *desc->dir_cookie)
- 			break;
- 		if (loop_count++ > 200) {
-@@ -315,7 +315,7 @@ int find_dirent_page(nfs_readdir_descrip
- 	int		status;
- 
- 	dfprintk(DIRCACHE, "NFS: %s: searching page %ld for target %Lu\n",
--			__FUNCTION__, desc->page_index,
-+			__func__, desc->page_index,
- 			(long long) *desc->dir_cookie);
- 
- 	/* If we find the page in the page_cache, we cannot be sure
-@@ -339,7 +339,7 @@ int find_dirent_page(nfs_readdir_descrip
- 	if (status < 0)
- 		dir_page_release(desc);
-  out:
--	dfprintk(DIRCACHE, "NFS: %s: returns %d\n", __FUNCTION__, status);
-+	dfprintk(DIRCACHE, "NFS: %s: returns %d\n", __func__, status);
- 	return status;
- }
- 
-@@ -380,7 +380,7 @@ int readdir_search_pagecache(nfs_readdir
- 		}
+@@ -897,7 +897,7 @@ struct inode *ext4_orphan_get(struct sup
+ 	bit = (ino - 1) % EXT4_INODES_PER_GROUP(sb);
+ 	bitmap_bh = read_inode_bitmap(sb, block_group);
+ 	if (!bitmap_bh) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "inode bitmap error for orphan %lu", ino);
+ 		goto error;
  	}
- 
--	dfprintk(DIRCACHE, "NFS: %s: returns %d\n", __FUNCTION__, res);
-+	dfprintk(DIRCACHE, "NFS: %s: returns %d\n", __func__, res);
- 	return res;
- }
- 
-@@ -506,7 +506,7 @@ int uncached_readdir(nfs_readdir_descrip
- 	desc->entry->eof = 0;
-  out:
- 	dfprintk(DIRCACHE, "NFS: %s: returns %d\n",
--			__FUNCTION__, status);
-+			__func__, status);
- 	return status;
-  out_release:
- 	dir_page_release(desc);
-@@ -778,7 +778,7 @@ static int nfs_lookup_revalidate(struct 
- 
- 	if (is_bad_inode(inode)) {
- 		dfprintk(LOOKUPCACHE, "%s: %s/%s has dud inode\n",
--				__FUNCTION__, dentry->d_parent->d_name.name,
-+				__func__, dentry->d_parent->d_name.name,
- 				dentry->d_name.name);
- 		goto out_bad;
- 	}
-@@ -806,7 +806,7 @@ static int nfs_lookup_revalidate(struct 
- 	unlock_kernel();
- 	dput(parent);
- 	dfprintk(LOOKUPCACHE, "NFS: %s(%s/%s) is valid\n",
--			__FUNCTION__, dentry->d_parent->d_name.name,
-+			__func__, dentry->d_parent->d_name.name,
- 			dentry->d_name.name);
- 	return 1;
- out_zap_parent:
-@@ -825,7 +825,7 @@ out_zap_parent:
- 	unlock_kernel();
- 	dput(parent);
- 	dfprintk(LOOKUPCACHE, "NFS: %s(%s/%s) is invalid\n",
--			__FUNCTION__, dentry->d_parent->d_name.name,
-+			__func__, dentry->d_parent->d_name.name,
- 			dentry->d_name.name);
- 	return 0;
- }
-diff -puN fs/nfs/file.c~nfs-replace-remaining-__function__-occurrences fs/nfs/file.c
---- a/fs/nfs/file.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/file.c
-@@ -528,7 +528,7 @@ static int do_vfs_lock(struct file *file
- 	if (res < 0)
- 		dprintk(KERN_WARNING "%s: VFS is out of sync with lock manager"
- 			" - error %d!\n",
--				__FUNCTION__, res);
-+				__func__, res);
- 	return res;
- }
- 
-diff -puN fs/nfs/inode.c~nfs-replace-remaining-__function__-occurrences fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/inode.c
-@@ -989,7 +989,7 @@ static int nfs_update_inode(struct inode
- 	unsigned long now = jiffies;
- 
- 	dfprintk(VFS, "NFS: %s(%s/%ld ct=%d info=0x%x)\n",
--			__FUNCTION__, inode->i_sb->s_id, inode->i_ino,
-+			__func__, inode->i_sb->s_id, inode->i_ino,
- 			atomic_read(&inode->i_count), fattr->valid);
- 
- 	if (nfsi->fileid != fattr->fileid)
-@@ -1112,7 +1112,7 @@ static int nfs_update_inode(struct inode
- 	 * Big trouble! The inode has become a different object.
- 	 */
- 	printk(KERN_DEBUG "%s: inode %ld mode changed, %07o to %07o\n",
--			__FUNCTION__, inode->i_ino, inode->i_mode, fattr->mode);
-+			__func__, inode->i_ino, inode->i_mode, fattr->mode);
-  out_err:
- 	/*
- 	 * No need to worry about unhashing the dentry, as the
-diff -puN fs/nfs/namespace.c~nfs-replace-remaining-__function__-occurrences fs/nfs/namespace.c
---- a/fs/nfs/namespace.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/namespace.c
-@@ -106,7 +106,7 @@ static void * nfs_follow_mountpoint(stru
- 	dprintk("--> nfs_follow_mountpoint()\n");
- 
- 	BUG_ON(IS_ROOT(dentry));
--	dprintk("%s: enter\n", __FUNCTION__);
-+	dprintk("%s: enter\n", __func__);
- 	dput(nd->path.dentry);
- 	nd->path.dentry = dget(dentry);
- 
-@@ -143,7 +143,7 @@ static void * nfs_follow_mountpoint(stru
- 	nd->path.dentry = dget(mnt->mnt_root);
- 	schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
- out:
--	dprintk("%s: done, returned %d\n", __FUNCTION__, err);
-+	dprintk("%s: done, returned %d\n", __func__, err);
- 
- 	dprintk("<-- nfs_follow_mountpoint() = %d\n", err);
- 	return ERR_PTR(err);
-@@ -230,7 +230,7 @@ static struct vfsmount *nfs_do_submount(
- 
- 	dprintk("--> nfs_do_submount()\n");
- 
--	dprintk("%s: submounting on %s/%s\n", __FUNCTION__,
-+	dprintk("%s: submounting on %s/%s\n", __func__,
- 			dentry->d_parent->d_name.name,
- 			dentry->d_name.name);
- 	if (page == NULL)
-@@ -243,7 +243,7 @@ static struct vfsmount *nfs_do_submount(
- free_page:
- 	free_page((unsigned long)page);
- out:
--	dprintk("%s: done\n", __FUNCTION__);
-+	dprintk("%s: done\n", __func__);
- 
- 	dprintk("<-- nfs_do_submount() = %p\n", mnt);
- 	return mnt;
-diff -puN fs/nfs/nfs3proc.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs3proc.c
---- a/fs/nfs/nfs3proc.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs3proc.c
-@@ -63,15 +63,15 @@ do_proc_get_root(struct rpc_clnt *client
- 	};
- 	int	status;
- 
--	dprintk("%s: call  fsinfo\n", __FUNCTION__);
-+	dprintk("%s: call  fsinfo\n", __func__);
- 	nfs_fattr_init(info->fattr);
- 	status = rpc_call_sync(client, &msg, 0);
--	dprintk("%s: reply fsinfo: %d\n", __FUNCTION__, status);
-+	dprintk("%s: reply fsinfo: %d\n", __func__, status);
- 	if (!(info->fattr->valid & NFS_ATTR_FATTR)) {
- 		msg.rpc_proc = &nfs3_procedures[NFS3PROC_GETATTR];
- 		msg.rpc_resp = info->fattr;
- 		status = rpc_call_sync(client, &msg, 0);
--		dprintk("%s: reply getattr: %d\n", __FUNCTION__, status);
-+		dprintk("%s: reply getattr: %d\n", __func__, status);
- 	}
- 	return status;
- }
-diff -puN fs/nfs/nfs4namespace.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs4namespace.c
---- a/fs/nfs/nfs4namespace.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs4namespace.c
-@@ -86,7 +86,7 @@ static int nfs4_validate_fspath(const st
- 
- 	if (strncmp(path, fs_path, strlen(fs_path)) != 0) {
- 		dprintk("%s: path %s does not begin with fsroot %s\n",
--			__FUNCTION__, path, fs_path);
-+			__func__, path, fs_path);
- 		return -ENOENT;
- 	}
- 
-@@ -134,7 +134,7 @@ static struct vfsmount *nfs_follow_refer
- 	if (locations == NULL || locations->nlocations <= 0)
- 		goto out;
- 
--	dprintk("%s: referral at %s/%s\n", __FUNCTION__,
-+	dprintk("%s: referral at %s/%s\n", __func__,
- 		dentry->d_parent->d_name.name, dentry->d_name.name);
- 
- 	page = (char *) __get_free_page(GFP_USER);
-@@ -204,7 +204,7 @@ static struct vfsmount *nfs_follow_refer
- out:
- 	free_page((unsigned long) page);
- 	free_page((unsigned long) page2);
--	dprintk("%s: done\n", __FUNCTION__);
-+	dprintk("%s: done\n", __func__);
- 	return mnt;
- }
- 
-@@ -223,7 +223,7 @@ struct vfsmount *nfs_do_refmount(const s
- 	int err;
- 
- 	/* BUG_ON(IS_ROOT(dentry)); */
--	dprintk("%s: enter\n", __FUNCTION__);
-+	dprintk("%s: enter\n", __func__);
- 
- 	page = alloc_page(GFP_KERNEL);
- 	if (page == NULL)
-@@ -238,7 +238,7 @@ struct vfsmount *nfs_do_refmount(const s
- 
- 	parent = dget_parent(dentry);
- 	dprintk("%s: getting locations for %s/%s\n",
--		__FUNCTION__, parent->d_name.name, dentry->d_name.name);
-+		__func__, parent->d_name.name, dentry->d_name.name);
- 
- 	err = nfs4_proc_fs_locations(parent->d_inode, &dentry->d_name, fs_locations, page);
- 	dput(parent);
-@@ -252,6 +252,6 @@ out_free:
- 	__free_page(page);
- 	kfree(fs_locations);
- out:
--	dprintk("%s: done\n", __FUNCTION__);
-+	dprintk("%s: done\n", __func__);
- 	return mnt;
- }
-diff -puN fs/nfs/nfs4proc.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs4proc.c
---- a/fs/nfs/nfs4proc.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs4proc.c
-@@ -72,7 +72,7 @@ int nfs4_map_errors(int err)
- {
- 	if (err < -1000) {
- 		dprintk("%s could not handle NFSv4 error %d\n",
--				__FUNCTION__, -err);
-+				__func__, -err);
- 		return -EIO;
- 	}
+@@ -922,7 +922,7 @@ iget_failed:
+ 	err = PTR_ERR(inode);
+ 	inode = NULL;
+ bad_orphan:
+-	ext4_warning(sb, __FUNCTION__,
++	ext4_warning(sb, __func__,
+ 		     "bad orphan inode %lu!  e2fsck was run?", ino);
+ 	printk(KERN_NOTICE "ext4_test_bit(bit=%d, block=%llu) = %d\n",
+ 	       bit, (unsigned long long)bitmap_bh->b_blocknr,
+diff -puN fs/ext4/inode.c~ext4-replace-remaining-__function__-occurrences fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/inode.c
+@@ -95,7 +95,7 @@ int ext4_forget(handle_t *handle, int is
+ 	BUFFER_TRACE(bh, "call ext4_journal_revoke");
+ 	err = ext4_journal_revoke(handle, blocknr, bh);
+ 	if (err)
+-		ext4_abort(inode->i_sb, __FUNCTION__,
++		ext4_abort(inode->i_sb, __func__,
+ 			   "error %d when attempting revoke", err);
+ 	BUFFER_TRACE(bh, "exit");
  	return err;
-@@ -1577,7 +1577,7 @@ static int nfs4_get_referral(struct inod
- 		goto out;
- 	/* Make sure server returned a different fsid for the referral */
- 	if (nfs_fsid_equal(&NFS_SERVER(dir)->fsid, &locations->fattr.fsid)) {
--		dprintk("%s: server did not return a different fsid for a referral at %s\n", __FUNCTION__, name->name);
-+		dprintk("%s: server did not return a different fsid for a referral at %s\n", __func__, name->name);
- 		status = -EIO;
- 		goto out;
- 	}
-@@ -2210,7 +2210,7 @@ static int _nfs4_proc_readdir(struct den
- 	};
- 	int			status;
- 
--	dprintk("%s: dentry = %s/%s, cookie = %Lu\n", __FUNCTION__,
-+	dprintk("%s: dentry = %s/%s, cookie = %Lu\n", __func__,
- 			dentry->d_parent->d_name.name,
- 			dentry->d_name.name,
- 			(unsigned long long)cookie);
-@@ -2222,7 +2222,7 @@ static int _nfs4_proc_readdir(struct den
- 
- 	nfs_invalidate_atime(dir);
- 
--	dprintk("%s: returns %d\n", __FUNCTION__, status);
-+	dprintk("%s: returns %d\n", __func__, status);
- 	return status;
+@@ -1231,7 +1231,7 @@ int ext4_journal_dirty_data(handle_t *ha
+ {
+ 	int err = jbd2_journal_dirty_data(handle, bh);
+ 	if (err)
+-		ext4_journal_abort_handle(__FUNCTION__, __FUNCTION__,
++		ext4_journal_abort_handle(__func__, __func__,
+ 						bh, handle, err);
+ 	return err;
  }
+@@ -3519,7 +3519,7 @@ int ext4_mark_inode_dirty(handle_t *hand
+ 				EXT4_I(inode)->i_state |= EXT4_STATE_NO_EXPAND;
+ 				if (mnt_count !=
+ 					le16_to_cpu(sbi->s_es->s_mnt_count)) {
+-					ext4_warning(inode->i_sb, __FUNCTION__,
++					ext4_warning(inode->i_sb, __func__,
+ 					"Unable to expand inode %lu. Delete"
+ 					" some EAs or run e2fsck.",
+ 					inode->i_ino);
+@@ -3560,7 +3560,7 @@ void ext4_dirty_inode(struct inode *inod
+ 		current_handle->h_transaction != handle->h_transaction) {
+ 		/* This task has a transaction open against a different fs */
+ 		printk(KERN_EMERG "%s: transactions do not match!\n",
+-		       __FUNCTION__);
++		       __func__);
+ 	} else {
+ 		jbd_debug(5, "marking dirty.  outer handle=%p\n",
+ 				current_handle);
+diff -puN fs/ext4/mballoc.c~ext4-replace-remaining-__function__-occurrences fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/mballoc.c
+@@ -735,7 +735,7 @@ static void mb_free_blocks_double(struct
+ 			blocknr +=
+ 			    le32_to_cpu(EXT4_SB(sb)->s_es->s_first_data_block);
  
-@@ -3337,7 +3337,7 @@ static void nfs4_lock_prepare(struct rpc
- 	struct nfs4_lockdata *data = calldata;
- 	struct nfs4_state *state = data->lsp->ls_state;
+-			ext4_error(sb, __FUNCTION__, "double-free of inode"
++			ext4_error(sb, __func__, "double-free of inode"
+ 				   " %lu's block %llu(bit %u in group %lu)\n",
+ 				   inode ? inode->i_ino : 0, blocknr,
+ 				   first + i, e4b->bd_group);
+@@ -907,7 +907,7 @@ static int __mb_check_buddy(struct ext4_
+ }
+ #undef MB_CHECK_ASSERT
+ #define mb_check_buddy(e4b) __mb_check_buddy(e4b,	\
+-					__FILE__, __FUNCTION__, __LINE__)
++					__FILE__, __func__, __LINE__)
+ #else
+ #define mb_check_buddy(e4b)
+ #endif
+@@ -981,7 +981,7 @@ static void ext4_mb_generate_buddy(struc
+ 	grp->bb_fragments = fragments;
  
--	dprintk("%s: begin!\n", __FUNCTION__);
-+	dprintk("%s: begin!\n", __func__);
- 	if (nfs_wait_on_sequence(data->arg.lock_seqid, task) != 0)
+ 	if (free != grp->bb_free) {
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			"EXT4-fs: group %lu: %u blocks in bitmap, %u in gd\n",
+ 			group, free, grp->bb_free);
+ 		/*
+@@ -1367,7 +1367,7 @@ static int mb_free_blocks(struct inode *
+ 			blocknr +=
+ 			    le32_to_cpu(EXT4_SB(sb)->s_es->s_first_data_block);
+ 
+-			ext4_error(sb, __FUNCTION__, "double-free of inode"
++			ext4_error(sb, __func__, "double-free of inode"
+ 				   " %lu's block %llu(bit %u in group %lu)\n",
+ 				   inode ? inode->i_ino : 0, blocknr, block,
+ 				   e4b->bd_group);
+@@ -1848,7 +1848,7 @@ static void ext4_mb_complex_scan_group(s
+ 			 * free blocks even though group info says we
+ 			 * we have free blocks
+ 			 */
+-			ext4_error(sb, __FUNCTION__, "%d free blocks as per "
++			ext4_error(sb, __func__, "%d free blocks as per "
+ 					"group info. But bitmap says 0\n",
+ 					free);
+ 			break;
+@@ -1857,7 +1857,7 @@ static void ext4_mb_complex_scan_group(s
+ 		mb_find_extent(e4b, 0, i, ac->ac_g_ex.fe_len, &ex);
+ 		BUG_ON(ex.fe_len <= 0);
+ 		if (free < ex.fe_len) {
+-			ext4_error(sb, __FUNCTION__, "%d free blocks as per "
++			ext4_error(sb, __func__, "%d free blocks as per "
+ 					"group info. But got %d blocks\n",
+ 					free, ex.fe_len);
+ 			/*
+@@ -3085,7 +3085,7 @@ ext4_mb_mark_diskspace_used(struct ext4_
+ 			in_range(block, ext4_inode_table(sb, gdp),
+ 				EXT4_SB(sb)->s_itb_per_group)) {
+ 
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			   "Allocating block in system zone - block = %llu",
+ 			   block);
+ 	}
+@@ -3795,7 +3795,7 @@ static noinline int ext4_mb_release_inod
+ 			pa, (unsigned long) pa->pa_lstart,
+ 			(unsigned long) pa->pa_pstart,
+ 			(unsigned long) pa->pa_len);
+-		ext4_error(sb, __FUNCTION__, "free %u, pa_free %u\n",
++		ext4_error(sb, __func__, "free %u, pa_free %u\n",
+ 						free, pa->pa_free);
+ 		/*
+ 		 * pa is already deleted so we use the value obtained
+@@ -4498,7 +4498,7 @@ void ext4_mb_free_blocks(handle_t *handl
+ 	if (block < le32_to_cpu(es->s_first_data_block) ||
+ 	    block + count < block ||
+ 	    block + count > ext4_blocks_count(es)) {
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			    "Freeing blocks not in datazone - "
+ 			    "block = %lu, count = %lu", block, count);
+ 		goto error_return;
+@@ -4539,7 +4539,7 @@ do_more:
+ 	    in_range(block + count - 1, ext4_inode_table(sb, gdp),
+ 		      EXT4_SB(sb)->s_itb_per_group)) {
+ 
+-		ext4_error(sb, __FUNCTION__,
++		ext4_error(sb, __func__,
+ 			   "Freeing blocks in system zone - "
+ 			   "Block = %lu, count = %lu", block, count);
+ 	}
+diff -puN fs/ext4/namei.c~ext4-replace-remaining-__function__-occurrences fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/namei.c
+@@ -353,7 +353,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	if (root->info.hash_version != DX_HASH_TEA &&
+ 	    root->info.hash_version != DX_HASH_HALF_MD4 &&
+ 	    root->info.hash_version != DX_HASH_LEGACY) {
+-		ext4_warning(dir->i_sb, __FUNCTION__,
++		ext4_warning(dir->i_sb, __func__,
+ 			     "Unrecognised inode hash code %d",
+ 			     root->info.hash_version);
+ 		brelse(bh);
+@@ -367,7 +367,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	hash = hinfo->hash;
+ 
+ 	if (root->info.unused_flags & 1) {
+-		ext4_warning(dir->i_sb, __FUNCTION__,
++		ext4_warning(dir->i_sb, __func__,
+ 			     "Unimplemented inode hash flags: %#06x",
+ 			     root->info.unused_flags);
+ 		brelse(bh);
+@@ -376,7 +376,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	}
+ 
+ 	if ((indirect = root->info.indirect_levels) > 1) {
+-		ext4_warning(dir->i_sb, __FUNCTION__,
++		ext4_warning(dir->i_sb, __func__,
+ 			     "Unimplemented inode hash depth: %#06x",
+ 			     root->info.indirect_levels);
+ 		brelse(bh);
+@@ -389,7 +389,7 @@ dx_probe(struct dentry *dentry, struct i
+ 
+ 	if (dx_get_limit(entries) != dx_root_limit(dir,
+ 						   root->info.info_length)) {
+-		ext4_warning(dir->i_sb, __FUNCTION__,
++		ext4_warning(dir->i_sb, __func__,
+ 			     "dx entry: limit != root limit");
+ 		brelse(bh);
+ 		*err = ERR_BAD_DX_DIR;
+@@ -401,7 +401,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	{
+ 		count = dx_get_count(entries);
+ 		if (!count || count > dx_get_limit(entries)) {
+-			ext4_warning(dir->i_sb, __FUNCTION__,
++			ext4_warning(dir->i_sb, __func__,
+ 				     "dx entry: no count or count > limit");
+ 			brelse(bh);
+ 			*err = ERR_BAD_DX_DIR;
+@@ -446,7 +446,7 @@ dx_probe(struct dentry *dentry, struct i
+ 			goto fail2;
+ 		at = entries = ((struct dx_node *) bh->b_data)->entries;
+ 		if (dx_get_limit(entries) != dx_node_limit (dir)) {
+-			ext4_warning(dir->i_sb, __FUNCTION__,
++			ext4_warning(dir->i_sb, __func__,
+ 				     "dx entry: limit != node limit");
+ 			brelse(bh);
+ 			*err = ERR_BAD_DX_DIR;
+@@ -462,7 +462,7 @@ fail2:
+ 	}
+ fail:
+ 	if (*err == ERR_BAD_DX_DIR)
+-		ext4_warning(dir->i_sb, __FUNCTION__,
++		ext4_warning(dir->i_sb, __func__,
+ 			     "Corrupt dir inode %ld, running e2fsck is "
+ 			     "recommended.", dir->i_ino);
+ 	return NULL;
+@@ -919,7 +919,7 @@ restart:
+ 		wait_on_buffer(bh);
+ 		if (!buffer_uptodate(bh)) {
+ 			/* read error, skip block & hope for the best */
+-			ext4_error(sb, __FUNCTION__, "reading directory #%lu "
++			ext4_error(sb, __func__, "reading directory #%lu "
+ 				   "offset %lu", dir->i_ino,
+ 				   (unsigned long)block);
+ 			brelse(bh);
+@@ -1012,7 +1012,7 @@ static struct buffer_head * ext4_dx_find
+ 		retval = ext4_htree_next_block(dir, hash, frame,
+ 					       frames, NULL);
+ 		if (retval < 0) {
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 			     "error reading index page in directory #%lu",
+ 			     dir->i_ino);
+ 			*err = retval;
+@@ -1537,7 +1537,7 @@ static int ext4_dx_add_entry(handle_t *h
+ 
+ 		if (levels && (dx_get_count(frames->entries) ==
+ 			       dx_get_limit(frames->entries))) {
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 				     "Directory index full!");
+ 			err = -ENOSPC;
+ 			goto cleanup;
+@@ -1865,11 +1865,11 @@ static int empty_dir (struct inode * ino
+ 	if (inode->i_size < EXT4_DIR_REC_LEN(1) + EXT4_DIR_REC_LEN(2) ||
+ 	    !(bh = ext4_bread (NULL, inode, 0, 0, &err))) {
+ 		if (err)
+-			ext4_error(inode->i_sb, __FUNCTION__,
++			ext4_error(inode->i_sb, __func__,
+ 				   "error %d reading directory #%lu offset 0",
+ 				   err, inode->i_ino);
+ 		else
+-			ext4_warning(inode->i_sb, __FUNCTION__,
++			ext4_warning(inode->i_sb, __func__,
+ 				     "bad directory (dir #%lu) - no data block",
+ 				     inode->i_ino);
+ 		return 1;
+@@ -1898,7 +1898,7 @@ static int empty_dir (struct inode * ino
+ 				offset >> EXT4_BLOCK_SIZE_BITS(sb), 0, &err);
+ 			if (!bh) {
+ 				if (err)
+-					ext4_error(sb, __FUNCTION__,
++					ext4_error(sb, __func__,
+ 						   "error %d reading directory"
+ 						   " #%lu offset %lu",
+ 						   err, inode->i_ino, offset);
+diff -puN fs/ext4/resize.c~ext4-replace-remaining-__function__-occurrences fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/resize.c
+@@ -50,63 +50,63 @@ static int verify_group_input(struct sup
+ 
+ 	ext4_get_group_no_and_offset(sb, start, NULL, &offset);
+ 	if (group != sbi->s_groups_count)
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Cannot add at group %u (only %lu groups)",
+ 			     input->group, sbi->s_groups_count);
+ 	else if (offset != 0)
+-			ext4_warning(sb, __FUNCTION__, "Last group not full");
++			ext4_warning(sb, __func__, "Last group not full");
+ 	else if (input->reserved_blocks > input->blocks_count / 5)
+-		ext4_warning(sb, __FUNCTION__, "Reserved blocks too high (%u)",
++		ext4_warning(sb, __func__, "Reserved blocks too high (%u)",
+ 			     input->reserved_blocks);
+ 	else if (free_blocks_count < 0)
+-		ext4_warning(sb, __FUNCTION__, "Bad blocks count %u",
++		ext4_warning(sb, __func__, "Bad blocks count %u",
+ 			     input->blocks_count);
+ 	else if (!(bh = sb_bread(sb, end - 1)))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Cannot read last block (%llu)",
+ 			     end - 1);
+ 	else if (outside(input->block_bitmap, start, end))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Block bitmap not in group (block %llu)",
+ 			     (unsigned long long)input->block_bitmap);
+ 	else if (outside(input->inode_bitmap, start, end))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Inode bitmap not in group (block %llu)",
+ 			     (unsigned long long)input->inode_bitmap);
+ 	else if (outside(input->inode_table, start, end) ||
+ 	         outside(itend - 1, start, end))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Inode table not in group (blocks %llu-%llu)",
+ 			     (unsigned long long)input->inode_table, itend - 1);
+ 	else if (input->inode_bitmap == input->block_bitmap)
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Block bitmap same as inode bitmap (%llu)",
+ 			     (unsigned long long)input->block_bitmap);
+ 	else if (inside(input->block_bitmap, input->inode_table, itend))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Block bitmap (%llu) in inode table (%llu-%llu)",
+ 			     (unsigned long long)input->block_bitmap,
+ 			     (unsigned long long)input->inode_table, itend - 1);
+ 	else if (inside(input->inode_bitmap, input->inode_table, itend))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Inode bitmap (%llu) in inode table (%llu-%llu)",
+ 			     (unsigned long long)input->inode_bitmap,
+ 			     (unsigned long long)input->inode_table, itend - 1);
+ 	else if (inside(input->block_bitmap, start, metaend))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Block bitmap (%llu) in GDT table"
+ 			     " (%llu-%llu)",
+ 			     (unsigned long long)input->block_bitmap,
+ 			     start, metaend - 1);
+ 	else if (inside(input->inode_bitmap, start, metaend))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Inode bitmap (%llu) in GDT table"
+ 			     " (%llu-%llu)",
+ 			     (unsigned long long)input->inode_bitmap,
+ 			     start, metaend - 1);
+ 	else if (inside(input->inode_table, start, metaend) ||
+ 	         inside(itend - 1, start, metaend))
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Inode table (%llu-%llu) overlaps"
+ 			     "GDT table (%llu-%llu)",
+ 			     (unsigned long long)input->inode_table,
+@@ -368,7 +368,7 @@ static int verify_reserved_gdb(struct su
+ 	while ((grp = ext4_list_backups(sb, &three, &five, &seven)) < end) {
+ 		if (le32_to_cpu(*p++) !=
+ 		    grp * EXT4_BLOCKS_PER_GROUP(sb) + blk){
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 				     "reserved GDT %llu"
+ 				     " missing grp %d (%llu)",
+ 				     blk, grp,
+@@ -424,7 +424,7 @@ static int add_new_gdb(handle_t *handle,
+ 	 */
+ 	if (EXT4_SB(sb)->s_sbh->b_blocknr !=
+ 	    le32_to_cpu(EXT4_SB(sb)->s_es->s_first_data_block)) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			"won't resize using backup superblock at %llu",
+ 			(unsigned long long)EXT4_SB(sb)->s_sbh->b_blocknr);
+ 		return -EPERM;
+@@ -448,7 +448,7 @@ static int add_new_gdb(handle_t *handle,
+ 
+ 	data = (__le32 *)dind->b_data;
+ 	if (le32_to_cpu(data[gdb_num % EXT4_ADDR_PER_BLOCK(sb)]) != gdblock) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "new group %u GDT block %llu not reserved",
+ 			     input->group, gdblock);
+ 		err = -EINVAL;
+@@ -472,7 +472,7 @@ static int add_new_gdb(handle_t *handle,
+ 			GFP_KERNEL);
+ 	if (!n_group_desc) {
+ 		err = -ENOMEM;
+-		ext4_warning (sb, __FUNCTION__,
++		ext4_warning (sb, __func__,
+ 			      "not enough memory for %lu groups", gdb_num + 1);
+ 		goto exit_inode;
+ 	}
+@@ -570,7 +570,7 @@ static int reserve_backup_gdb(handle_t *
+ 	/* Get each reserved primary GDT block and verify it holds backups */
+ 	for (res = 0; res < reserved_gdb; res++, blk++) {
+ 		if (le32_to_cpu(*data) != blk) {
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 				     "reserved block %llu"
+ 				     " not at offset %ld",
+ 				     blk,
+@@ -714,7 +714,7 @@ static void update_backups(struct super_
+ 	 */
+ exit_err:
+ 	if (err) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "can't update backup for group %lu (err %d), "
+ 			     "forcing fsck on next reboot", group, err);
+ 		sbi->s_mount_state &= ~EXT4_VALID_FS;
+@@ -754,33 +754,33 @@ int ext4_group_add(struct super_block *s
+ 
+ 	if (gdb_off == 0 && !EXT4_HAS_RO_COMPAT_FEATURE(sb,
+ 					EXT4_FEATURE_RO_COMPAT_SPARSE_SUPER)) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "Can't resize non-sparse filesystem further");
+ 		return -EPERM;
+ 	}
+ 
+ 	if (ext4_blocks_count(es) + input->blocks_count <
+ 	    ext4_blocks_count(es)) {
+-		ext4_warning(sb, __FUNCTION__, "blocks_count overflow\n");
++		ext4_warning(sb, __func__, "blocks_count overflow\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (le32_to_cpu(es->s_inodes_count) + EXT4_INODES_PER_GROUP(sb) <
+ 	    le32_to_cpu(es->s_inodes_count)) {
+-		ext4_warning(sb, __FUNCTION__, "inodes_count overflow\n");
++		ext4_warning(sb, __func__, "inodes_count overflow\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (reserved_gdb || gdb_off == 0) {
+ 		if (!EXT4_HAS_COMPAT_FEATURE(sb,
+ 					     EXT4_FEATURE_COMPAT_RESIZE_INODE)){
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 				     "No reserved GDT blocks, can't resize");
+ 			return -EPERM;
+ 		}
+ 		inode = ext4_iget(sb, EXT4_RESIZE_INO);
+ 		if (IS_ERR(inode)) {
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 				     "Error opening resize inode");
+ 			return PTR_ERR(inode);
+ 		}
+@@ -809,7 +809,7 @@ int ext4_group_add(struct super_block *s
+ 
+ 	lock_super(sb);
+ 	if (input->group != sbi->s_groups_count) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "multiple resizers run on filesystem!");
+ 		err = -EBUSY;
+ 		goto exit_journal;
+@@ -975,13 +975,13 @@ int ext4_group_extend(struct super_block
+ 			" too large to resize to %llu blocks safely\n",
+ 			sb->s_id, n_blocks_count);
+ 		if (sizeof(sector_t) < 8)
+-			ext4_warning(sb, __FUNCTION__,
++			ext4_warning(sb, __func__,
+ 			"CONFIG_LBD not enabled\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (n_blocks_count < o_blocks_count) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "can't shrink FS - resize aborted");
+ 		return -EBUSY;
+ 	}
+@@ -990,7 +990,7 @@ int ext4_group_extend(struct super_block
+ 	ext4_get_group_no_and_offset(sb, o_blocks_count, NULL, &last);
+ 
+ 	if (last == 0) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "need to use ext2online to resize further");
+ 		return -EPERM;
+ 	}
+@@ -998,7 +998,7 @@ int ext4_group_extend(struct super_block
+ 	add = EXT4_BLOCKS_PER_GROUP(sb) - last;
+ 
+ 	if (o_blocks_count + add < o_blocks_count) {
+-		ext4_warning(sb, __FUNCTION__, "blocks_count overflow");
++		ext4_warning(sb, __func__, "blocks_count overflow");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1006,7 +1006,7 @@ int ext4_group_extend(struct super_block
+ 		add = n_blocks_count - o_blocks_count;
+ 
+ 	if (o_blocks_count + add < n_blocks_count)
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "will only finish group (%llu"
+ 			     " blocks, %u new)",
+ 			     o_blocks_count + add, add);
+@@ -1014,7 +1014,7 @@ int ext4_group_extend(struct super_block
+ 	/* See if the device is actually as big as what was requested */
+ 	bh = sb_bread(sb, o_blocks_count + add -1);
+ 	if (!bh) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "can't read last block, resize aborted");
+ 		return -ENOSPC;
+ 	}
+@@ -1026,13 +1026,13 @@ int ext4_group_extend(struct super_block
+ 	handle = ext4_journal_start_sb(sb, 3);
+ 	if (IS_ERR(handle)) {
+ 		err = PTR_ERR(handle);
+-		ext4_warning(sb, __FUNCTION__, "error %d on journal start",err);
++		ext4_warning(sb, __func__, "error %d on journal start",err);
+ 		goto exit_put;
+ 	}
+ 
+ 	lock_super(sb);
+ 	if (o_blocks_count != ext4_blocks_count(es)) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "multiple resizers run on filesystem!");
+ 		unlock_super(sb);
+ 		ext4_journal_stop(handle);
+@@ -1042,7 +1042,7 @@ int ext4_group_extend(struct super_block
+ 
+ 	if ((err = ext4_journal_get_write_access(handle,
+ 						 EXT4_SB(sb)->s_sbh))) {
+-		ext4_warning(sb, __FUNCTION__,
++		ext4_warning(sb, __func__,
+ 			     "error %d on journal write access", err);
+ 		unlock_super(sb);
+ 		ext4_journal_stop(handle);
+diff -puN fs/ext4/super.c~ext4-replace-remaining-__function__-occurrences fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/super.c
+@@ -135,7 +135,7 @@ handle_t *ext4_journal_start_sb(struct s
+ 	 * take the FS itself readonly cleanly. */
+ 	journal = EXT4_SB(sb)->s_journal;
+ 	if (is_journal_aborted(journal)) {
+-		ext4_abort(sb, __FUNCTION__,
++		ext4_abort(sb, __func__,
+ 			   "Detected aborted journal");
+ 		return ERR_PTR(-EROFS);
+ 	}
+@@ -355,7 +355,7 @@ void ext4_update_dynamic_rev(struct supe
+ 	if (le32_to_cpu(es->s_rev_level) > EXT4_GOOD_OLD_REV)
  		return;
- 	/* Do we need to do an open_to_lock_owner? */
-@@ -3350,14 +3350,14 @@ static void nfs4_lock_prepare(struct rpc
- 		data->arg.new_lock_owner = 0;
- 	data->timestamp = jiffies;
- 	rpc_call_start(task);
--	dprintk("%s: done!, ret = %d\n", __FUNCTION__, data->rpc_status);
-+	dprintk("%s: done!, ret = %d\n", __func__, data->rpc_status);
- }
  
- static void nfs4_lock_done(struct rpc_task *task, void *calldata)
- {
- 	struct nfs4_lockdata *data = calldata;
- 
--	dprintk("%s: begin!\n", __FUNCTION__);
-+	dprintk("%s: begin!\n", __func__);
- 
- 	data->rpc_status = task->tk_status;
- 	if (RPC_ASSASSINATED(task))
-@@ -3377,14 +3377,14 @@ static void nfs4_lock_done(struct rpc_ta
- 	}
- 	nfs_increment_lock_seqid(data->rpc_status, data->arg.lock_seqid);
- out:
--	dprintk("%s: done, ret = %d!\n", __FUNCTION__, data->rpc_status);
-+	dprintk("%s: done, ret = %d!\n", __func__, data->rpc_status);
- }
- 
- static void nfs4_lock_release(void *calldata)
- {
- 	struct nfs4_lockdata *data = calldata;
- 
--	dprintk("%s: begin!\n", __FUNCTION__);
-+	dprintk("%s: begin!\n", __func__);
- 	nfs_free_seqid(data->arg.open_seqid);
- 	if (data->cancelled != 0) {
- 		struct rpc_task *task;
-@@ -3392,13 +3392,13 @@ static void nfs4_lock_release(void *call
- 				data->arg.lock_seqid);
- 		if (!IS_ERR(task))
- 			rpc_put_task(task);
--		dprintk("%s: cancelling lock!\n", __FUNCTION__);
-+		dprintk("%s: cancelling lock!\n", __func__);
- 	} else
- 		nfs_free_seqid(data->arg.lock_seqid);
- 	nfs4_put_lock_state(data->lsp);
- 	put_nfs_open_context(data->ctx);
- 	kfree(data);
--	dprintk("%s: done!\n", __FUNCTION__);
-+	dprintk("%s: done!\n", __func__);
- }
- 
- static const struct rpc_call_ops nfs4_lock_ops = {
-@@ -3423,7 +3423,7 @@ static int _nfs4_do_setlk(struct nfs4_st
- 	};
- 	int ret;
- 
--	dprintk("%s: begin!\n", __FUNCTION__);
-+	dprintk("%s: begin!\n", __func__);
- 	data = nfs4_alloc_lockdata(fl, nfs_file_open_context(fl->fl_file),
- 			fl->fl_u.nfs4_fl.owner);
- 	if (data == NULL)
-@@ -3446,7 +3446,7 @@ static int _nfs4_do_setlk(struct nfs4_st
- 	} else
- 		data->cancelled = 1;
- 	rpc_put_task(task);
--	dprintk("%s: done, ret = %d!\n", __FUNCTION__, ret);
-+	dprintk("%s: done, ret = %d!\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -3522,7 +3522,7 @@ static int _nfs4_proc_setlk(struct nfs4_
- 	/* Note: we always want to sleep here! */
- 	request->fl_flags = fl_flags | FL_SLEEP;
- 	if (do_vfs_lock(request->fl_file, request) < 0)
--		printk(KERN_WARNING "%s: VFS is out of sync with lock manager!\n", __FUNCTION__);
-+		printk(KERN_WARNING "%s: VFS is out of sync with lock manager!\n", __func__);
- out_unlock:
- 	up_read(&clp->cl_sem);
- out:
-@@ -3660,12 +3660,12 @@ int nfs4_proc_fs_locations(struct inode 
- 	};
- 	int status;
- 
--	dprintk("%s: start\n", __FUNCTION__);
-+	dprintk("%s: start\n", __func__);
- 	nfs_fattr_init(&fs_locations->fattr);
- 	fs_locations->server = server;
- 	fs_locations->nlocations = 0;
- 	status = rpc_call_sync(server->client, &msg, 0);
--	dprintk("%s: returned status = %d\n", __FUNCTION__, status);
-+	dprintk("%s: returned status = %d\n", __func__, status);
- 	return status;
- }
- 
-diff -puN fs/nfs/nfs4renewd.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs4renewd.c
---- a/fs/nfs/nfs4renewd.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs4renewd.c
-@@ -66,7 +66,7 @@ nfs4_renew_state(struct work_struct *wor
- 	unsigned long last, now;
- 
- 	down_read(&clp->cl_sem);
--	dprintk("%s: start\n", __FUNCTION__);
-+	dprintk("%s: start\n", __func__);
- 	/* Are there any active superblocks? */
- 	if (list_empty(&clp->cl_superblocks))
- 		goto out;
-@@ -92,17 +92,17 @@ nfs4_renew_state(struct work_struct *wor
- 		spin_lock(&clp->cl_lock);
- 	} else
- 		dprintk("%s: failed to call renewd. Reason: lease not expired \n",
--				__FUNCTION__);
-+				__func__);
- 	if (timeout < 5 * HZ)    /* safeguard */
- 		timeout = 5 * HZ;
- 	dprintk("%s: requeueing work. Lease period = %ld\n",
--			__FUNCTION__, (timeout + HZ - 1) / HZ);
-+			__func__, (timeout + HZ - 1) / HZ);
- 	cancel_delayed_work(&clp->cl_renewd);
- 	schedule_delayed_work(&clp->cl_renewd, timeout);
- 	spin_unlock(&clp->cl_lock);
- out:
- 	up_read(&clp->cl_sem);
--	dprintk("%s: done\n", __FUNCTION__);
-+	dprintk("%s: done\n", __func__);
- }
- 
- /* Must be called with clp->cl_sem locked for writes */
-@@ -117,7 +117,7 @@ nfs4_schedule_state_renewal(struct nfs_c
- 	if (timeout < 5 * HZ)
- 		timeout = 5 * HZ;
- 	dprintk("%s: requeueing work. Lease period = %ld\n",
--			__FUNCTION__, (timeout + HZ - 1) / HZ);
-+			__func__, (timeout + HZ - 1) / HZ);
- 	cancel_delayed_work(&clp->cl_renewd);
- 	schedule_delayed_work(&clp->cl_renewd, timeout);
- 	set_bit(NFS_CS_RENEWD, &clp->cl_res_state);
-diff -puN fs/nfs/nfs4state.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs4state.c
---- a/fs/nfs/nfs4state.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs4state.c
-@@ -796,7 +796,7 @@ static int nfs4_reclaim_locks(struct nfs
- 		switch (status) {
- 			default:
- 				printk(KERN_ERR "%s: unhandled error %d. Zeroing state\n",
--						__FUNCTION__, status);
-+						__func__, status);
- 			case -NFS4ERR_EXPIRED:
- 			case -NFS4ERR_NO_GRACE:
- 			case -NFS4ERR_RECLAIM_BAD:
-@@ -837,14 +837,14 @@ static int nfs4_reclaim_open_state(struc
- 			list_for_each_entry(lock, &state->lock_states, ls_locks) {
- 				if (!(lock->ls_flags & NFS_LOCK_INITIALIZED))
- 					printk("%s: Lock reclaim failed!\n",
--							__FUNCTION__);
-+							__func__);
- 			}
- 			continue;
+-	ext4_warning(sb, __FUNCTION__,
++	ext4_warning(sb, __func__,
+ 		     "updating to rev %d because of new feature flag, "
+ 		     "running e2fsck is recommended",
+ 		     EXT4_DYNAMIC_REV);
+@@ -1570,7 +1570,7 @@ static int ext4_check_descriptors(struct
+ 			return 0;
  		}
- 		switch (status) {
- 			default:
- 				printk(KERN_ERR "%s: unhandled error %d. Zeroing state\n",
--						__FUNCTION__, status);
-+						__func__, status);
- 			case -ENOENT:
- 			case -NFS4ERR_RECLAIM_BAD:
- 			case -NFS4ERR_RECLAIM_CONFLICT:
-diff -puN fs/nfs/nfs4xdr.c~nfs-replace-remaining-__function__-occurrences fs/nfs/nfs4xdr.c
---- a/fs/nfs/nfs4xdr.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/nfs4xdr.c
-@@ -1192,7 +1192,7 @@ static int encode_readdir(struct xdr_str
- 	WRITE32(attrs[0] & readdir->bitmask[0]);
- 	WRITE32(attrs[1] & readdir->bitmask[1]);
- 	dprintk("%s: cookie = %Lu, verifier = 0x%x%x, bitmap = 0x%x%x\n",
--			__FUNCTION__,
-+			__func__,
- 			(unsigned long long)readdir->cookie,
- 			((u32 *)readdir->verifier.data)[0],
- 			((u32 *)readdir->verifier.data)[1],
-@@ -1831,7 +1831,7 @@ static int nfs4_xdr_enc_readdir(struct r
- 	xdr_inline_pages(&req->rq_rcv_buf, replen, args->pages,
- 			 args->pgbase, args->count);
- 	dprintk("%s: inlined page args = (%u, %p, %u, %u)\n",
--			__FUNCTION__, replen, args->pages,
-+			__func__, replen, args->pages,
- 			args->pgbase, args->count);
+ 		if (!ext4_group_desc_csum_verify(sbi, i, gdp)) {
+-			ext4_error(sb, __FUNCTION__,
++			ext4_error(sb, __func__,
+ 				   "Checksum for group %lu failed (%u!=%u)\n",
+ 				    i, le16_to_cpu(ext4_group_desc_csum(sbi, i,
+ 				    gdp)), le16_to_cpu(gdp->bg_checksum));
+@@ -1664,7 +1664,7 @@ static void ext4_orphan_cleanup (struct 
+ 		if (inode->i_nlink) {
+ 			printk(KERN_DEBUG
+ 				"%s: truncating inode %lu to %Ld bytes\n",
+-				__FUNCTION__, inode->i_ino, inode->i_size);
++				__func__, inode->i_ino, inode->i_size);
+ 			jbd_debug(2, "truncating inode %lu to %Ld bytes\n",
+ 				  inode->i_ino, inode->i_size);
+ 			ext4_truncate(inode);
+@@ -1672,7 +1672,7 @@ static void ext4_orphan_cleanup (struct 
+ 		} else {
+ 			printk(KERN_DEBUG
+ 				"%s: deleting unreferenced inode %lu\n",
+-				__FUNCTION__, inode->i_ino);
++				__func__, inode->i_ino);
+ 			jbd_debug(2, "deleting unreferenced inode %lu\n",
+ 				  inode->i_ino);
+ 			nr_orphans++;
+@@ -2774,9 +2774,9 @@ static void ext4_clear_journal_err(struc
+ 		char nbuf[16];
  
- out:
-@@ -2192,9 +2192,9 @@ out:
- 	p = xdr_inline_decode(xdr, nbytes); \
- 	if (unlikely(!p)) { \
- 		dprintk("nfs: %s: prematurely hit end of receive" \
--				" buffer\n", __FUNCTION__); \
-+				" buffer\n", __func__); \
- 		dprintk("nfs: %s: xdr->p=%p, bytes=%u, xdr->end=%p\n", \
--				__FUNCTION__, xdr->p, nbytes, xdr->end); \
-+				__func__, xdr->p, nbytes, xdr->end); \
- 		return -EIO; \
- 	} \
- } while (0)
-@@ -2291,7 +2291,7 @@ static int decode_attr_supported(struct 
- 		bitmap[0] &= ~FATTR4_WORD0_SUPPORTED_ATTRS;
- 	} else
- 		bitmask[0] = bitmask[1] = 0;
--	dprintk("%s: bitmask=0x%x%x\n", __FUNCTION__, bitmask[0], bitmask[1]);
-+	dprintk("%s: bitmask=0x%x%x\n", __func__, bitmask[0], bitmask[1]);
- 	return 0;
- }
+ 		errstr = ext4_decode_error(sb, j_errno, nbuf);
+-		ext4_warning(sb, __FUNCTION__, "Filesystem error recorded "
++		ext4_warning(sb, __func__, "Filesystem error recorded "
+ 			     "from previous mount: %s", errstr);
+-		ext4_warning(sb, __FUNCTION__, "Marking fs in need of "
++		ext4_warning(sb, __func__, "Marking fs in need of "
+ 			     "filesystem check.");
  
-@@ -2306,12 +2306,12 @@ static int decode_attr_type(struct xdr_s
- 		READ_BUF(4);
- 		READ32(*type);
- 		if (*type < NF4REG || *type > NF4NAMEDATTR) {
--			dprintk("%s: bad type %d\n", __FUNCTION__, *type);
-+			dprintk("%s: bad type %d\n", __func__, *type);
- 			return -EIO;
+ 		EXT4_SB(sb)->s_mount_state |= EXT4_ERROR_FS;
+@@ -2903,7 +2903,7 @@ static int ext4_remount (struct super_bl
+ 	}
+ 
+ 	if (sbi->s_mount_opt & EXT4_MOUNT_ABORT)
+-		ext4_abort(sb, __FUNCTION__, "Abort forced by user");
++		ext4_abort(sb, __func__, "Abort forced by user");
+ 
+ 	sb->s_flags = (sb->s_flags & ~MS_POSIXACL) |
+ 		((sbi->s_mount_opt & EXT4_MOUNT_POSIX_ACL) ? MS_POSIXACL : 0);
+diff -puN fs/ext4/xattr.c~ext4-replace-remaining-__function__-occurrences fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext4-replace-remaining-__function__-occurrences
++++ a/fs/ext4/xattr.c
+@@ -227,7 +227,7 @@ ext4_xattr_block_get(struct inode *inode
+ 	ea_bdebug(bh, "b_count=%d, refcount=%d",
+ 		atomic_read(&(bh->b_count)), le32_to_cpu(BHDR(bh)->h_refcount));
+ 	if (ext4_xattr_check_block(bh)) {
+-bad_block:	ext4_error(inode->i_sb, __FUNCTION__,
++bad_block:	ext4_error(inode->i_sb, __func__,
+ 			   "inode %lu: bad block %llu", inode->i_ino,
+ 			   EXT4_I(inode)->i_file_acl);
+ 		error = -EIO;
+@@ -369,7 +369,7 @@ ext4_xattr_block_list(struct inode *inod
+ 	ea_bdebug(bh, "b_count=%d, refcount=%d",
+ 		atomic_read(&(bh->b_count)), le32_to_cpu(BHDR(bh)->h_refcount));
+ 	if (ext4_xattr_check_block(bh)) {
+-		ext4_error(inode->i_sb, __FUNCTION__,
++		ext4_error(inode->i_sb, __func__,
+ 			   "inode %lu: bad block %llu", inode->i_ino,
+ 			   EXT4_I(inode)->i_file_acl);
+ 		error = -EIO;
+@@ -661,7 +661,7 @@ ext4_xattr_block_find(struct inode *inod
+ 			atomic_read(&(bs->bh->b_count)),
+ 			le32_to_cpu(BHDR(bs->bh)->h_refcount));
+ 		if (ext4_xattr_check_block(bs->bh)) {
+-			ext4_error(sb, __FUNCTION__,
++			ext4_error(sb, __func__,
+ 				"inode %lu: bad block %llu", inode->i_ino,
+ 				EXT4_I(inode)->i_file_acl);
+ 			error = -EIO;
+@@ -861,7 +861,7 @@ cleanup_dquot:
+ 	goto cleanup;
+ 
+ bad_block:
+-	ext4_error(inode->i_sb, __FUNCTION__,
++	ext4_error(inode->i_sb, __func__,
+ 		   "inode %lu: bad block %llu", inode->i_ino,
+ 		   EXT4_I(inode)->i_file_acl);
+ 	goto cleanup;
+@@ -1164,7 +1164,7 @@ retry:
+ 		if (!bh)
+ 			goto cleanup;
+ 		if (ext4_xattr_check_block(bh)) {
+-			ext4_error(inode->i_sb, __FUNCTION__,
++			ext4_error(inode->i_sb, __func__,
+ 				"inode %lu: bad block %llu", inode->i_ino,
+ 				EXT4_I(inode)->i_file_acl);
+ 			error = -EIO;
+@@ -1339,14 +1339,14 @@ ext4_xattr_delete_inode(handle_t *handle
+ 		goto cleanup;
+ 	bh = sb_bread(inode->i_sb, EXT4_I(inode)->i_file_acl);
+ 	if (!bh) {
+-		ext4_error(inode->i_sb, __FUNCTION__,
++		ext4_error(inode->i_sb, __func__,
+ 			"inode %lu: block %llu read error", inode->i_ino,
+ 			EXT4_I(inode)->i_file_acl);
+ 		goto cleanup;
+ 	}
+ 	if (BHDR(bh)->h_magic != cpu_to_le32(EXT4_XATTR_MAGIC) ||
+ 	    BHDR(bh)->h_blocks != cpu_to_le32(1)) {
+-		ext4_error(inode->i_sb, __FUNCTION__,
++		ext4_error(inode->i_sb, __func__,
+ 			"inode %lu: bad block %llu", inode->i_ino,
+ 			EXT4_I(inode)->i_file_acl);
+ 		goto cleanup;
+@@ -1473,7 +1473,7 @@ again:
  		}
- 		bitmap[0] &= ~FATTR4_WORD0_TYPE;
- 	}
--	dprintk("%s: type=0%o\n", __FUNCTION__, nfs_type2fmt[*type].nfs2type);
-+	dprintk("%s: type=0%o\n", __func__, nfs_type2fmt[*type].nfs2type);
- 	return 0;
- }
- 
-@@ -2327,7 +2327,7 @@ static int decode_attr_change(struct xdr
- 		READ64(*change);
- 		bitmap[0] &= ~FATTR4_WORD0_CHANGE;
- 	}
--	dprintk("%s: change attribute=%Lu\n", __FUNCTION__,
-+	dprintk("%s: change attribute=%Lu\n", __func__,
- 			(unsigned long long)*change);
- 	return 0;
- }
-@@ -2344,7 +2344,7 @@ static int decode_attr_size(struct xdr_s
- 		READ64(*size);
- 		bitmap[0] &= ~FATTR4_WORD0_SIZE;
- 	}
--	dprintk("%s: file size=%Lu\n", __FUNCTION__, (unsigned long long)*size);
-+	dprintk("%s: file size=%Lu\n", __func__, (unsigned long long)*size);
- 	return 0;
- }
- 
-@@ -2360,7 +2360,7 @@ static int decode_attr_link_support(stru
- 		READ32(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_LINK_SUPPORT;
- 	}
--	dprintk("%s: link support=%s\n", __FUNCTION__, *res == 0 ? "false" : "true");
-+	dprintk("%s: link support=%s\n", __func__, *res == 0 ? "false" : "true");
- 	return 0;
- }
- 
-@@ -2376,7 +2376,7 @@ static int decode_attr_symlink_support(s
- 		READ32(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_SYMLINK_SUPPORT;
- 	}
--	dprintk("%s: symlink support=%s\n", __FUNCTION__, *res == 0 ? "false" : "true");
-+	dprintk("%s: symlink support=%s\n", __func__, *res == 0 ? "false" : "true");
- 	return 0;
- }
- 
-@@ -2394,7 +2394,7 @@ static int decode_attr_fsid(struct xdr_s
- 		READ64(fsid->minor);
- 		bitmap[0] &= ~FATTR4_WORD0_FSID;
- 	}
--	dprintk("%s: fsid=(0x%Lx/0x%Lx)\n", __FUNCTION__,
-+	dprintk("%s: fsid=(0x%Lx/0x%Lx)\n", __func__,
- 			(unsigned long long)fsid->major,
- 			(unsigned long long)fsid->minor);
- 	return 0;
-@@ -2412,7 +2412,7 @@ static int decode_attr_lease_time(struct
- 		READ32(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_LEASE_TIME;
- 	}
--	dprintk("%s: file size=%u\n", __FUNCTION__, (unsigned int)*res);
-+	dprintk("%s: file size=%u\n", __func__, (unsigned int)*res);
- 	return 0;
- }
- 
-@@ -2428,7 +2428,7 @@ static int decode_attr_aclsupport(struct
- 		READ32(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_ACLSUPPORT;
- 	}
--	dprintk("%s: ACLs supported=%u\n", __FUNCTION__, (unsigned int)*res);
-+	dprintk("%s: ACLs supported=%u\n", __func__, (unsigned int)*res);
- 	return 0;
- }
- 
-@@ -2444,7 +2444,7 @@ static int decode_attr_fileid(struct xdr
- 		READ64(*fileid);
- 		bitmap[0] &= ~FATTR4_WORD0_FILEID;
- 	}
--	dprintk("%s: fileid=%Lu\n", __FUNCTION__, (unsigned long long)*fileid);
-+	dprintk("%s: fileid=%Lu\n", __func__, (unsigned long long)*fileid);
- 	return 0;
- }
- 
-@@ -2460,7 +2460,7 @@ static int decode_attr_mounted_on_fileid
- 		READ64(*fileid);
- 		bitmap[1] &= ~FATTR4_WORD1_MOUNTED_ON_FILEID;
- 	}
--	dprintk("%s: fileid=%Lu\n", __FUNCTION__, (unsigned long long)*fileid);
-+	dprintk("%s: fileid=%Lu\n", __func__, (unsigned long long)*fileid);
- 	return 0;
- }
- 
-@@ -2477,7 +2477,7 @@ static int decode_attr_files_avail(struc
- 		READ64(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_FILES_AVAIL;
- 	}
--	dprintk("%s: files avail=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: files avail=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2494,7 +2494,7 @@ static int decode_attr_files_free(struct
- 		READ64(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_FILES_FREE;
- 	}
--	dprintk("%s: files free=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: files free=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2511,7 +2511,7 @@ static int decode_attr_files_total(struc
- 		READ64(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_FILES_TOTAL;
- 	}
--	dprintk("%s: files total=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: files total=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2569,7 +2569,7 @@ static int decode_attr_fs_locations(stru
- 	status = 0;
- 	if (unlikely(!(bitmap[0] & FATTR4_WORD0_FS_LOCATIONS)))
- 		goto out;
--	dprintk("%s: fsroot ", __FUNCTION__);
-+	dprintk("%s: fsroot ", __func__);
- 	status = decode_pathname(xdr, &res->fs_path);
- 	if (unlikely(status != 0))
- 		goto out;
-@@ -2586,7 +2586,7 @@ static int decode_attr_fs_locations(stru
- 		READ32(m);
- 
- 		loc->nservers = 0;
--		dprintk("%s: servers ", __FUNCTION__);
-+		dprintk("%s: servers ", __func__);
- 		while (loc->nservers < m) {
- 			struct nfs4_string *server = &loc->servers[loc->nservers];
- 			status = decode_opaque_inline(xdr, &server->len, &server->data);
-@@ -2599,7 +2599,7 @@ static int decode_attr_fs_locations(stru
- 				unsigned int i;
- 				dprintk("%s: using first %u of %u servers "
- 					"returned for location %u\n",
--						__FUNCTION__,
-+						__func__,
- 						NFS4_FS_LOCATION_MAXSERVERS,
- 						m, res->nlocations);
- 				for (i = loc->nservers; i < m; i++) {
-@@ -2618,7 +2618,7 @@ static int decode_attr_fs_locations(stru
- 			res->nlocations++;
- 	}
- out:
--	dprintk("%s: fs_locations done, error = %d\n", __FUNCTION__, status);
-+	dprintk("%s: fs_locations done, error = %d\n", __func__, status);
- 	return status;
- out_eio:
- 	status = -EIO;
-@@ -2638,7 +2638,7 @@ static int decode_attr_maxfilesize(struc
- 		READ64(*res);
- 		bitmap[0] &= ~FATTR4_WORD0_MAXFILESIZE;
- 	}
--	dprintk("%s: maxfilesize=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: maxfilesize=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2655,7 +2655,7 @@ static int decode_attr_maxlink(struct xd
- 		READ32(*maxlink);
- 		bitmap[0] &= ~FATTR4_WORD0_MAXLINK;
- 	}
--	dprintk("%s: maxlink=%u\n", __FUNCTION__, *maxlink);
-+	dprintk("%s: maxlink=%u\n", __func__, *maxlink);
- 	return status;
- }
- 
-@@ -2672,7 +2672,7 @@ static int decode_attr_maxname(struct xd
- 		READ32(*maxname);
- 		bitmap[0] &= ~FATTR4_WORD0_MAXNAME;
- 	}
--	dprintk("%s: maxname=%u\n", __FUNCTION__, *maxname);
-+	dprintk("%s: maxname=%u\n", __func__, *maxname);
- 	return status;
- }
- 
-@@ -2693,7 +2693,7 @@ static int decode_attr_maxread(struct xd
- 		*res = (uint32_t)maxread;
- 		bitmap[0] &= ~FATTR4_WORD0_MAXREAD;
- 	}
--	dprintk("%s: maxread=%lu\n", __FUNCTION__, (unsigned long)*res);
-+	dprintk("%s: maxread=%lu\n", __func__, (unsigned long)*res);
- 	return status;
- }
- 
-@@ -2714,7 +2714,7 @@ static int decode_attr_maxwrite(struct x
- 		*res = (uint32_t)maxwrite;
- 		bitmap[0] &= ~FATTR4_WORD0_MAXWRITE;
- 	}
--	dprintk("%s: maxwrite=%lu\n", __FUNCTION__, (unsigned long)*res);
-+	dprintk("%s: maxwrite=%lu\n", __func__, (unsigned long)*res);
- 	return status;
- }
- 
-@@ -2731,7 +2731,7 @@ static int decode_attr_mode(struct xdr_s
- 		*mode &= ~S_IFMT;
- 		bitmap[1] &= ~FATTR4_WORD1_MODE;
- 	}
--	dprintk("%s: file mode=0%o\n", __FUNCTION__, (unsigned int)*mode);
-+	dprintk("%s: file mode=0%o\n", __func__, (unsigned int)*mode);
- 	return 0;
- }
- 
-@@ -2747,7 +2747,7 @@ static int decode_attr_nlink(struct xdr_
- 		READ32(*nlink);
- 		bitmap[1] &= ~FATTR4_WORD1_NUMLINKS;
- 	}
--	dprintk("%s: nlink=%u\n", __FUNCTION__, (unsigned int)*nlink);
-+	dprintk("%s: nlink=%u\n", __func__, (unsigned int)*nlink);
- 	return 0;
- }
- 
-@@ -2766,13 +2766,13 @@ static int decode_attr_owner(struct xdr_
- 		if (len < XDR_MAX_NETOBJ) {
- 			if (nfs_map_name_to_uid(clp, (char *)p, len, uid) != 0)
- 				dprintk("%s: nfs_map_name_to_uid failed!\n",
--						__FUNCTION__);
-+						__func__);
- 		} else
- 			dprintk("%s: name too long (%u)!\n",
--					__FUNCTION__, len);
-+					__func__, len);
- 		bitmap[1] &= ~FATTR4_WORD1_OWNER;
- 	}
--	dprintk("%s: uid=%d\n", __FUNCTION__, (int)*uid);
-+	dprintk("%s: uid=%d\n", __func__, (int)*uid);
- 	return 0;
- }
- 
-@@ -2791,13 +2791,13 @@ static int decode_attr_group(struct xdr_
- 		if (len < XDR_MAX_NETOBJ) {
- 			if (nfs_map_group_to_gid(clp, (char *)p, len, gid) != 0)
- 				dprintk("%s: nfs_map_group_to_gid failed!\n",
--						__FUNCTION__);
-+						__func__);
- 		} else
- 			dprintk("%s: name too long (%u)!\n",
--					__FUNCTION__, len);
-+					__func__, len);
- 		bitmap[1] &= ~FATTR4_WORD1_OWNER_GROUP;
- 	}
--	dprintk("%s: gid=%d\n", __FUNCTION__, (int)*gid);
-+	dprintk("%s: gid=%d\n", __func__, (int)*gid);
- 	return 0;
- }
- 
-@@ -2820,7 +2820,7 @@ static int decode_attr_rdev(struct xdr_s
- 			*rdev = tmp;
- 		bitmap[1] &= ~ FATTR4_WORD1_RAWDEV;
- 	}
--	dprintk("%s: rdev=(0x%x:0x%x)\n", __FUNCTION__, major, minor);
-+	dprintk("%s: rdev=(0x%x:0x%x)\n", __func__, major, minor);
- 	return 0;
- }
- 
-@@ -2837,7 +2837,7 @@ static int decode_attr_space_avail(struc
- 		READ64(*res);
- 		bitmap[1] &= ~FATTR4_WORD1_SPACE_AVAIL;
- 	}
--	dprintk("%s: space avail=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: space avail=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2854,7 +2854,7 @@ static int decode_attr_space_free(struct
- 		READ64(*res);
- 		bitmap[1] &= ~FATTR4_WORD1_SPACE_FREE;
- 	}
--	dprintk("%s: space free=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: space free=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2871,7 +2871,7 @@ static int decode_attr_space_total(struc
- 		READ64(*res);
- 		bitmap[1] &= ~FATTR4_WORD1_SPACE_TOTAL;
- 	}
--	dprintk("%s: space total=%Lu\n", __FUNCTION__, (unsigned long long)*res);
-+	dprintk("%s: space total=%Lu\n", __func__, (unsigned long long)*res);
- 	return status;
- }
- 
-@@ -2887,7 +2887,7 @@ static int decode_attr_space_used(struct
- 		READ64(*used);
- 		bitmap[1] &= ~FATTR4_WORD1_SPACE_USED;
- 	}
--	dprintk("%s: space used=%Lu\n", __FUNCTION__,
-+	dprintk("%s: space used=%Lu\n", __func__,
- 			(unsigned long long)*used);
- 	return 0;
- }
-@@ -2918,7 +2918,7 @@ static int decode_attr_time_access(struc
- 		status = decode_attr_time(xdr, time);
- 		bitmap[1] &= ~FATTR4_WORD1_TIME_ACCESS;
- 	}
--	dprintk("%s: atime=%ld\n", __FUNCTION__, (long)time->tv_sec);
-+	dprintk("%s: atime=%ld\n", __func__, (long)time->tv_sec);
- 	return status;
- }
- 
-@@ -2934,7 +2934,7 @@ static int decode_attr_time_metadata(str
- 		status = decode_attr_time(xdr, time);
- 		bitmap[1] &= ~FATTR4_WORD1_TIME_METADATA;
- 	}
--	dprintk("%s: ctime=%ld\n", __FUNCTION__, (long)time->tv_sec);
-+	dprintk("%s: ctime=%ld\n", __func__, (long)time->tv_sec);
- 	return status;
- }
- 
-@@ -2950,7 +2950,7 @@ static int decode_attr_time_modify(struc
- 		status = decode_attr_time(xdr, time);
- 		bitmap[1] &= ~FATTR4_WORD1_TIME_MODIFY;
- 	}
--	dprintk("%s: mtime=%ld\n", __FUNCTION__, (long)time->tv_sec);
-+	dprintk("%s: mtime=%ld\n", __func__, (long)time->tv_sec);
- 	return status;
- }
- 
-@@ -2962,7 +2962,7 @@ static int verify_attr_len(struct xdr_st
- 	if (unlikely(attrwords != nwords)) {
- 		dprintk("%s: server returned incorrect attribute length: "
- 			"%u %c %u\n",
--				__FUNCTION__,
-+				__func__,
- 				attrwords << 2,
- 				(attrwords < nwords) ? '<' : '>',
- 				nwords << 2);
-@@ -3065,7 +3065,7 @@ static int decode_server_caps(struct xdr
- 		goto xdr_error;
- 	status = verify_attr_len(xdr, savep, attrlen);
- xdr_error:
--	dprintk("%s: xdr returned %d!\n", __FUNCTION__, -status);
-+	dprintk("%s: xdr returned %d!\n", __func__, -status);
- 	return status;
- }
- 	
-@@ -3098,7 +3098,7 @@ static int decode_statfs(struct xdr_stre
- 
- 	status = verify_attr_len(xdr, savep, attrlen);
- xdr_error:
--	dprintk("%s: xdr returned %d!\n", __FUNCTION__, -status);
-+	dprintk("%s: xdr returned %d!\n", __func__, -status);
- 	return status;
- }
- 
-@@ -3123,7 +3123,7 @@ static int decode_pathconf(struct xdr_st
- 
- 	status = verify_attr_len(xdr, savep, attrlen);
- xdr_error:
--	dprintk("%s: xdr returned %d!\n", __FUNCTION__, -status);
-+	dprintk("%s: xdr returned %d!\n", __func__, -status);
- 	return status;
- }
- 
-@@ -3191,7 +3191,7 @@ static int decode_getfattr(struct xdr_st
- 	if ((status = verify_attr_len(xdr, savep, attrlen)) == 0)
- 		fattr->valid = NFS_ATTR_FATTR | NFS_ATTR_FATTR_V3 | NFS_ATTR_FATTR_V4;
- xdr_error:
--	dprintk("%s: xdr returned %d\n", __FUNCTION__, -status);
-+	dprintk("%s: xdr returned %d\n", __func__, -status);
- 	return status;
- }
- 
-@@ -3224,7 +3224,7 @@ static int decode_fsinfo(struct xdr_stre
- 
- 	status = verify_attr_len(xdr, savep, attrlen);
- xdr_error:
--	dprintk("%s: xdr returned %d!\n", __FUNCTION__, -status);
-+	dprintk("%s: xdr returned %d!\n", __func__, -status);
- 	return status;
- }
- 
-@@ -3406,7 +3406,7 @@ static int decode_open(struct xdr_stream
- 
- 	return decode_delegation(xdr, res);
- xdr_error:
--	dprintk("%s: Bitmap too large! Length = %u\n", __FUNCTION__, bmlen);
-+	dprintk("%s: Bitmap too large! Length = %u\n", __func__, bmlen);
- 	return -EIO;
- }
- 
-@@ -3490,7 +3490,7 @@ static int decode_readdir(struct xdr_str
- 	READ_BUF(8);
- 	COPYMEM(readdir->verifier.data, 8);
- 	dprintk("%s: verifier = 0x%x%x\n",
--			__FUNCTION__,
-+			__func__,
- 			((u32 *)readdir->verifier.data)[0],
- 			((u32 *)readdir->verifier.data)[1]);
- 
-@@ -3538,7 +3538,7 @@ out:	
- 	kunmap_atomic(kaddr, KM_USER0);
- 	return 0;
- short_pkt:
--	dprintk("%s: short packet at entry %d\n", __FUNCTION__, nr);
-+	dprintk("%s: short packet at entry %d\n", __func__, nr);
- 	entry[0] = entry[1] = 0;
- 	/* truncate listing ? */
- 	if (!nr) {
-diff -puN fs/nfs/proc.c~nfs-replace-remaining-__function__-occurrences fs/nfs/proc.c
---- a/fs/nfs/proc.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/proc.c
-@@ -63,17 +63,17 @@ nfs_proc_get_root(struct nfs_server *ser
- 	};
- 	int status;
- 
--	dprintk("%s: call getattr\n", __FUNCTION__);
-+	dprintk("%s: call getattr\n", __func__);
- 	nfs_fattr_init(fattr);
- 	status = rpc_call_sync(server->nfs_client->cl_rpcclient, &msg, 0);
--	dprintk("%s: reply getattr: %d\n", __FUNCTION__, status);
-+	dprintk("%s: reply getattr: %d\n", __func__, status);
- 	if (status)
- 		return status;
--	dprintk("%s: call statfs\n", __FUNCTION__);
-+	dprintk("%s: call statfs\n", __func__);
- 	msg.rpc_proc = &nfs_procedures[NFSPROC_STATFS];
- 	msg.rpc_resp = &fsinfo;
- 	status = rpc_call_sync(server->nfs_client->cl_rpcclient, &msg, 0);
--	dprintk("%s: reply statfs: %d\n", __FUNCTION__, status);
-+	dprintk("%s: reply statfs: %d\n", __func__, status);
- 	if (status)
- 		return status;
- 	info->rtmax  = NFS_MAXDATA;
-diff -puN fs/nfs/read.c~nfs-replace-remaining-__function__-occurrences fs/nfs/read.c
---- a/fs/nfs/read.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/read.c
-@@ -326,7 +326,7 @@ int nfs_readpage_result(struct rpc_task 
- {
- 	int status;
- 
--	dprintk("NFS: %s: %5u, (status %d)\n", __FUNCTION__, task->tk_pid,
-+	dprintk("NFS: %s: %5u, (status %d)\n", __func__, task->tk_pid,
- 			task->tk_status);
- 
- 	status = NFS_PROTO(data->inode)->read_done(task, data);
-diff -puN fs/nfs/super.c~nfs-replace-remaining-__function__-occurrences fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-replace-remaining-__function__-occurrences
-+++ a/fs/nfs/super.c
-@@ -405,7 +405,7 @@ static int nfs_statfs(struct dentry *den
- 	return 0;
- 
-  out_err:
--	dprintk("%s: statfs error = %d\n", __FUNCTION__, -error);
-+	dprintk("%s: statfs error = %d\n", __func__, -error);
- 	unlock_kernel();
- 	return error;
- }
+ 		bh = sb_bread(inode->i_sb, ce->e_block);
+ 		if (!bh) {
+-			ext4_error(inode->i_sb, __FUNCTION__,
++			ext4_error(inode->i_sb, __func__,
+ 				"inode %lu: block %lu read error",
+ 				inode->i_ino, (unsigned long) ce->e_block);
+ 		} else if (le32_to_cpu(BHDR(bh)->h_refcount) >=
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
