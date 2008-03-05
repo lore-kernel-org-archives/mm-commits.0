@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-replace-remaining-__function__-occurences-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:05:25 -0800
-Message-ID: <200803052205.m25M5QmZ023384@imap1.linux-foundation.org>
+Subject: + trace-sample.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:14:04 -0800
+Message-ID: <200803052214.m25ME423023712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755737AbYCEWFk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:05:40 -0500
+	by vger.kernel.org with ESMTP id S1764878AbYCEWTs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:19:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, harvey.harrison@gmail.com, jmorris@namei.org, sds@tycho.nsa.gov
+Cc: dwilder@us.ibm.com
 
 
 The patch titled
-     security-replace-remaining-__function__-occurences-checkpatch-fixes
+     Trace sample
 has been added to the -mm tree.  Its filename is
-     security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+     trace-sample.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security-replace-remaining-__function__-occurences-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Trace sample
+From: "David J. Wilder" <dwilder@us.ibm.com>
 
-ERROR: "(foo*)" should be "(foo *)"
-#168: FILE: security/selinux/hooks.c:2656:
-+		       "%s, rc=%d\n", __func__, (char*)value, -rc);
+Add the trace example to samples/.
 
-total: 1 errors, 0 warnings, 195 lines checked
-
-./patches/security-replace-remaining-__function__-occurences.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Signed-off-by: David Wilder <dwilder@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/hooks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ samples/Kconfig            |    6 +
+ samples/Makefile           |    2 
+ samples/trace/Makefile     |    4 +
+ samples/trace/fork_trace.c |  132 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 143 insertions(+), 1 deletion(-)
 
-diff -puN security/selinux/hooks.c~security-replace-remaining-__function__-occurences-checkpatch-fixes security/selinux/hooks.c
---- a/security/selinux/hooks.c~security-replace-remaining-__function__-occurences-checkpatch-fixes
-+++ a/security/selinux/hooks.c
-@@ -2653,7 +2653,7 @@ static void selinux_inode_post_setxattr(
- 	rc = security_context_to_sid(value, size, &newsid);
- 	if (rc) {
- 		printk(KERN_WARNING "%s:  unable to obtain SID for context "
--		       "%s, rc=%d\n", __func__, (char*)value, -rc);
-+		       "%s, rc=%d\n", __func__, (char *)value, -rc);
- 		return;
- 	}
+diff -puN samples/Kconfig~trace-sample samples/Kconfig
+--- a/samples/Kconfig~trace-sample
++++ a/samples/Kconfig
+@@ -33,5 +33,11 @@ config SAMPLE_KRETPROBES
+ 	default m
+ 	depends on SAMPLE_KPROBES && KRETPROBES
  
++config SAMPLE_TRACE
++	tristate "Build trace example -- loadable modules only"
++	depends on TRACE && KPROBES && m
++	help
++	  This builds a trace example module.
++
+ endif # SAMPLES
+ 
+diff -puN samples/Makefile~trace-sample samples/Makefile
+--- a/samples/Makefile~trace-sample
++++ a/samples/Makefile
+@@ -1,3 +1,3 @@
+ # Makefile for Linux samples code
+ 
+-obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/
++obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/ trace/
+diff -puN /dev/null samples/trace/Makefile
+--- /dev/null
++++ a/samples/trace/Makefile
+@@ -0,0 +1,4 @@
++# builds the trace example kernel modules;
++# then to use (as root):  insmod <fork_trace.ko>
++
++obj-$(CONFIG_SAMPLE_TRACE) := fork_trace.o
+diff -puN /dev/null samples/trace/fork_trace.c
+--- /dev/null
++++ a/samples/trace/fork_trace.c
+@@ -0,0 +1,132 @@
++/*
++ * An example of using trace in a kprobes module
++ *
++ * Copyright (C) 2007 IBM Inc.
++ *
++ * David Wilder <dwilder@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * -------
++ * This module creates a trace channel and places a kprobe
++ * on the function do_fork(). The value of current->pid is written to
++ * the trace channel each time the kprobe is hit..
++ *
++ * How to run the example:
++ * $ mount -t debugfs /debug
++ * $ insmod fork_trace.ko
++ *
++ * To view the data produced by the module:
++ * $ cat /debug/trace_example/do_fork/trace0
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++#include <linux/trace.h>
++
++#define USE_GLOBAL_BUFFERS 1
++#define USE_FLIGHT 1
++
++#define PROBE_POINT "do_fork"
++
++static struct kprobe kp;
++static struct trace_info *kprobes_trace;
++
++#ifdef USE_GLOBAL_BUFFERS
++static DEFINE_SPINLOCK(trace_lock);
++#endif
++
++/*
++ * Send formatted trace data to trace channel.
++ * @note Preemption must be disabled to use this.
++ */
++static void trace_printf(struct trace_info *trace, const char *format, ...)
++{
++	va_list ap, aq;
++	char *record;
++	unsigned long flags;
++	int len;
++
++	if (!trace)
++		return;
++
++#ifdef USE_GLOBAL_BUFFERS
++	spin_lock_irqsave(&trace_lock, flags);
++#endif
++	if (trace_running(trace)) {
++		va_start(ap, format);
++		va_copy(aq, ap);
++		len = vsnprintf(NULL, 0, format, aq);
++		va_end(aq);
++		record = relay_reserve(trace->rchan, ++len);
++		if (record)
++			vsnprintf(record, len, format, ap);
++		va_end(ap);
++	}
++#ifdef USE_GLOBAL_BUFFERS
++	spin_unlock_irqrestore(&trace_lock, flags);
++#endif
++}
++
++static int handler_pre(struct kprobe *p, struct pt_regs *regs)
++{
++	rcu_read_lock();
++	trace_printf(kprobes_trace, "%d\n", current->pid);
++	rcu_read_unlock();
++	return 0;
++}
++
++int init_module(void)
++{
++	int ret;
++	u32 flags = 0;
++
++#ifdef USE_GLOBAL_BUFFERS
++	flags |= TRACE_GLOBAL_CHANNEL;
++#endif
++
++#ifdef USE_FLIGHT
++	flags |= TRACE_FLIGHT_CHANNEL;
++#endif
++
++	/* setup the trace */
++	kprobes_trace = trace_setup("trace_example", PROBE_POINT,
++				     1024, 8, flags);
++	if (IS_ERR(kprobes_trace))
++		return PTR_ERR(kprobes_trace);
++
++	trace_start(kprobes_trace);
++
++	/* setup the kprobe */
++	kp.pre_handler = handler_pre;
++	kp.post_handler = NULL;
++	kp.fault_handler = NULL;
++	kp.symbol_name = PROBE_POINT;
++	ret = register_kprobe(&kp);
++	if (ret) {
++		printk(KERN_ERR "fork_trace: register_kprobe failed\n");
++		return ret;
++	}
++	return 0;
++}
++
++void cleanup_module(void)
++{
++	unregister_kprobe(&kp);
++	trace_stop(kprobes_trace);
++	trace_cleanup(kprobes_trace);
++}
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dwilder@us.ibm.com are
 
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-sh-export-copy-page-to-modules.patch
-scsi-aic94xx-cleanups.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-sample.patch
 
