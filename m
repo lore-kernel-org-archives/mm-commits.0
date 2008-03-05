@@ -1,64 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:00 -0800
-Message-ID: <200803050746.m257k098021638@imap1.linux-foundation.org>
+Subject: - md-guard-against-possible-bad-array-geometry-in-v1-metadata.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:25 -0800
+Message-ID: <200803050746.m257kPMC021769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764916AbYCEHqk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:40 -0500
+	by vger.kernel.org with ESMTP id S1764769AbYCEHq3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:46:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hmh@hmh.eng.br, lenb@kernel.org, rjw@sisk.pl, xhejtman@ics.muni.cz, zdenek.kabelac@gmail.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: thinkpad-acpi: fix hotkey_get_tablet_mode
+     md: guard against possible bad array geometry in v1 metadata
 has been removed from the -mm tree.  Its filename was
-     acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode.patch
+     md-guard-against-possible-bad-array-geometry-in-v1-metadata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: thinkpad-acpi: fix hotkey_get_tablet_mode
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: md: guard against possible bad array geometry in v1 metadata
+From: NeilBrown <neilb@suse.de>
 
-I used the wrong return convention on hotkey_get_tablet_mode(), breaking a lot
-of stuff.  Bad Henrique!
+Make sure the data doesn't start before the end of the superblock when the
+superblock is at the start of the device.
 
-Fix it to return the status in the parameter-by-reference, and IO status on
-the function return value.  Duh.
-
-Signed-off-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/md/md.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/thinkpad_acpi.c~acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~acpi-thinkpad-acpi-fix-hotkey_get_tablet_mode
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -1078,7 +1078,8 @@ static int hotkey_get_tablet_mode(int *s
- 	if (!acpi_evalf(hkey_handle, &s, "MHKG", "d"))
- 		return -EIO;
+diff -puN drivers/md/md.c~md-guard-against-possible-bad-array-geometry-in-v1-metadata drivers/md/md.c
+--- a/drivers/md/md.c~md-guard-against-possible-bad-array-geometry-in-v1-metadata
++++ a/drivers/md/md.c
+@@ -1105,7 +1105,11 @@ static int super_1_load(mdk_rdev_t *rdev
+ 	rdev->sb_size = le32_to_cpu(sb->max_dev) * 2 + 256;
+ 	bmask = queue_hardsect_size(rdev->bdev->bd_disk->queue)-1;
+ 	if (rdev->sb_size & bmask)
+-		rdev-> sb_size = (rdev->sb_size | bmask)+1;
++		rdev->sb_size = (rdev->sb_size | bmask) + 1;
++
++	if (minor_version
++	    && rdev->data_offset < sb_offset + (rdev->sb_size/512))
++		return -EINVAL;
  
--	return ((s & TP_HOTKEY_TABLET_MASK) != 0);
-+	*status = ((s & TP_HOTKEY_TABLET_MASK) != 0);
-+	return 0;
- }
- 
- /*
+ 	if (sb->level == cpu_to_le32(LEVEL_MULTIPATH))
+ 		rdev->desc_nr = -1;
+@@ -1137,7 +1141,7 @@ static int super_1_load(mdk_rdev_t *rdev
+ 		else
+ 			ret = 0;
+ 	}
+-	if (minor_version) 
++	if (minor_version)
+ 		rdev->size = ((rdev->bdev->bd_inode->i_size>>9) - le64_to_cpu(sb->data_offset)) / 2;
+ 	else
+ 		rdev->size = rdev->sb_offset;
 _
 
-Patches currently in -mm which might be from hmh@hmh.eng.br are
+Patches currently in -mm which might be from neilb@suse.de are
 
-miscacpibacklight-compal-laptop-extras-3rd-try.patch
+git-nfsd.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
 
