@@ -1,118 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-fix-a-null-pointer-bug-in-register_kretprobe.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:54 -0800
-Message-ID: <200803050746.m257ksZB021804@imap1.linux-foundation.org>
+Subject: - fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:58 -0800
+Message-ID: <200803050746.m257kwSU021813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764377AbYCEHsP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:48:15 -0500
+	by vger.kernel.org with ESMTP id S932432AbYCEHs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:48:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, jkenisto@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: fix a null pointer bug in register_kretprobe()
+     fs/ocfs2/dlm/dlmdomain.c: fix printk warning
 has been removed from the -mm tree.  Its filename was
-     kprobes-fix-a-null-pointer-bug-in-register_kretprobe.patch
+     fs-ocfs2-dlm-dlmdomainc-fix-printk-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: fix a null pointer bug in register_kretprobe()
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: fs/ocfs2/dlm/dlmdomain.c: fix printk warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a bug in regiseter_kretprobe() which does not check rp->kp.symbol_name ==
-NULL before calling kprobe_lookup_name.
+fs/ocfs2/dlm/dlmdomain.c: In function 'dlm_send_join_cancels':
+fs/ocfs2/dlm/dlmdomain.c:983: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'long unsigned int'
 
-For maintainability, this introduces kprobe_addr helper function which
-resolves addr field.  It is used by register_kprobe and register_kretprobe.
-
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   43 ++++++++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 17 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-fix-a-null-pointer-bug-in-register_kretprobe kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-fix-a-null-pointer-bug-in-register_kretprobe
-+++ a/kernel/kprobes.c
-@@ -498,27 +498,36 @@ static int __kprobes in_kprobes_function
- 	return 0;
- }
- 
-+/*
-+ * If we have a symbol_name argument, look it up and add the offset field
-+ * to it. This way, we can specify a relative address to a symbol.
-+ */
-+static kprobe_opcode_t __kprobes *kprobe_addr(struct kprobe *p)
-+{
-+	kprobe_opcode_t *addr = p->addr;
-+	if (p->symbol_name) {
-+		if (addr)
-+			return NULL;
-+		kprobe_lookup_name(p->symbol_name, addr);
-+	}
-+
-+	if (!addr)
-+		return NULL;
-+	return (kprobe_opcode_t *)(((char *)addr) + p->offset);
-+}
-+
- static int __kprobes __register_kprobe(struct kprobe *p,
- 	unsigned long called_from)
- {
- 	int ret = 0;
- 	struct kprobe *old_p;
- 	struct module *probed_mod;
-+	kprobe_opcode_t *addr;
- 
--	/*
--	 * If we have a symbol_name argument look it up,
--	 * and add it to the address.  That way the addr
--	 * field can either be global or relative to a symbol.
--	 */
--	if (p->symbol_name) {
--		if (p->addr)
--			return -EINVAL;
--		kprobe_lookup_name(p->symbol_name, p->addr);
--	}
--
--	if (!p->addr)
-+	addr = kprobe_addr(p);
-+	if (!addr)
+diff -puN fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~fs-ocfs2-dlm-dlmdomainc-fix-printk-warning
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -982,7 +982,7 @@ static int dlm_send_join_cancels(struct 
+ 			 sizeof(unsigned long))) {
+ 		mlog(ML_ERROR,
+ 		     "map_size %u != BITS_TO_LONGS(O2NM_MAX_NODES) %u\n",
+-		     map_size, BITS_TO_LONGS(O2NM_MAX_NODES));
++		     map_size, (unsigned)BITS_TO_LONGS(O2NM_MAX_NODES));
  		return -EINVAL;
--	p->addr = (kprobe_opcode_t *)(((char *)p->addr)+ p->offset);
-+	p->addr = addr;
+ 	}
  
- 	if (!kernel_text_address((unsigned long) p->addr) ||
- 	    in_kprobes_functions((unsigned long) p->addr))
-@@ -721,12 +730,12 @@ int __kprobes register_kretprobe(struct 
- 	int ret = 0;
- 	struct kretprobe_instance *inst;
- 	int i;
--	void *addr = rp->kp.addr;
-+	void *addr;
- 
- 	if (kretprobe_blacklist_size) {
--		if (addr == NULL)
--			kprobe_lookup_name(rp->kp.symbol_name, addr);
--		addr += rp->kp.offset;
-+		addr = kprobe_addr(&rp->kp);
-+		if (!addr)
-+			return -EINVAL;
- 
- 		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
- 			if (kretprobe_blacklist[i].addr == addr)
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+pata-i-do-not-think-it-means-what-you-think-it-means.patch
+git-md-accel.patch
+git-ubi.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-ocfs2.patch
+sh-export-copy-page-to-modules.patch
+scsi-aic94xx-cleanups.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+git-v9fs.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
