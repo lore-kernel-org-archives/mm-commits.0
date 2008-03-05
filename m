@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:20:36 -0800
-Message-ID: <200803052220.m25MKakm024022@imap1.linux-foundation.org>
+Subject: + tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:42:23 -0800
+Message-ID: <200803052242.m25MgNs2025092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753933AbYCEWkb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:40:31 -0500
+	by vger.kernel.org with ESMTP id S1763726AbYCEWml (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:42:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, sfrench@us.ibm.com
+Cc: oleg@tv-sign.ru, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     cifs: replace remaining __FUNCTION__ occurrences
+     tty_io-fix-remaining-pid-struct-locking-small-cleanup
 has been added to the -mm tree.  Its filename is
-     cifs-replace-remaining-__function__-occurrences.patch
+     tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,236 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: tty_io-fix-remaining-pid-struct-locking-small-cleanup
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-__FUNCTION__ is gcc-specific, use __func__
+do_task_stat() has a huge list of the local variables, move "struct pid *pgrp"
+under "if (sig->tty)".
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifs_dfs_ref.c |   18 +++++++++---------
- fs/cifs/cifsproto.h    |    4 ++--
- fs/cifs/dns_resolve.c  |    8 ++++----
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ fs/proc/array.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/cifs/cifs_dfs_ref.c~cifs-replace-remaining-__function__-occurrences fs/cifs/cifs_dfs_ref.c
---- a/fs/cifs/cifs_dfs_ref.c~cifs-replace-remaining-__function__-occurrences
-+++ a/fs/cifs/cifs_dfs_ref.c
-@@ -74,7 +74,7 @@ static char *cifs_get_share_name(const c
- 	pSep = memchr(UNC+2, '\\', len-2);
- 	if (!pSep) {
- 		cERROR(1, ("%s: no server name end in node name: %s",
--			__FUNCTION__, node_name));
-+			__func__, node_name));
- 		kfree(UNC);
- 		return NULL;
- 	}
-@@ -84,7 +84,7 @@ static char *cifs_get_share_name(const c
- 	pSep = memchr(UNC+(pSep-UNC), '\\', len-(pSep-UNC));
- 	if (!pSep) {
- 		cERROR(1, ("%s:2 cant find share name in node name: %s",
--			__FUNCTION__, node_name));
-+			__func__, node_name));
- 		kfree(UNC);
- 		return NULL;
- 	}
-@@ -127,7 +127,7 @@ static char *compose_mount_options(const
- 	rc = dns_resolve_server_name_to_ip(*devname, &srvIP);
- 	if (rc != 0) {
- 		cERROR(1, ("%s: Failed to resolve server part of %s to IP",
--			  __FUNCTION__, *devname));
-+			  __func__, *devname));
- 		mountdata = ERR_PTR(rc);
- 		goto compose_mount_options_out;
- 	}
-@@ -181,8 +181,8 @@ static char *compose_mount_options(const
- 		}
- 	}
+diff -puN fs/proc/array.c~tty_io-fix-remaining-pid-struct-locking-small-cleanup fs/proc/array.c
+--- a/fs/proc/array.c~tty_io-fix-remaining-pid-struct-locking-small-cleanup
++++ a/fs/proc/array.c
+@@ -408,7 +408,6 @@ static int do_task_stat(struct seq_file 
+ 	unsigned long rsslim = 0;
+ 	char tcomm[sizeof(task->comm)];
+ 	unsigned long flags;
+-	struct pid *pgrp;
  
--	/*cFYI(1,("%s: parent mountdata: %s", __FUNCTION__,sb_mountdata));*/
--	/*cFYI(1, ("%s: submount mountdata: %s", __FUNCTION__, mountdata ));*/
-+	/*cFYI(1,("%s: parent mountdata: %s", __func__,sb_mountdata));*/
-+	/*cFYI(1, ("%s: submount mountdata: %s", __func__, mountdata ));*/
+ 	state = *get_task_state(task);
+ 	vsize = eip = esp = 0;
+@@ -430,7 +429,7 @@ static int do_task_stat(struct seq_file 
+ 		struct signal_struct *sig = task->signal;
  
- compose_mount_options_out:
- 	kfree(srvIP);
-@@ -302,7 +302,7 @@ cifs_dfs_follow_mountpoint(struct dentry
- 	int rc = 0;
- 	struct vfsmount *mnt = ERR_PTR(-ENOENT);
- 
--	cFYI(1, ("in %s", __FUNCTION__));
-+	cFYI(1, ("in %s", __func__));
- 	BUG_ON(IS_ROOT(dentry));
- 
- 	xid = GetXid();
-@@ -336,7 +336,7 @@ cifs_dfs_follow_mountpoint(struct dentry
- 			len = strlen(referrals[i].node_name);
- 			if (len < 2) {
- 				cERROR(1, ("%s: Net Address path too short: %s",
--					__FUNCTION__, referrals[i].node_name));
-+					__func__, referrals[i].node_name));
- 				rc = -EINVAL;
- 				goto out_err;
- 			}
-@@ -344,7 +344,7 @@ cifs_dfs_follow_mountpoint(struct dentry
- 						nd->path.dentry,
- 						referrals[i].node_name);
- 			cFYI(1, ("%s: cifs_dfs_do_refmount:%s , mnt:%p",
--					 __FUNCTION__,
-+					 __func__,
- 					referrals[i].node_name, mnt));
- 
- 			/* complete mount procedure if we accured submount */
-@@ -365,7 +365,7 @@ out:
- 	FreeXid(xid);
- 	free_dfs_info_array(referrals, num_referrals);
- 	kfree(full_path);
--	cFYI(1, ("leaving %s" , __FUNCTION__));
-+	cFYI(1, ("leaving %s" , __func__));
- 	return ERR_PTR(rc);
- out_err:
- 	path_put(&nd->path);
-diff -puN fs/cifs/cifsproto.h~cifs-replace-remaining-__function__-occurrences fs/cifs/cifsproto.h
---- a/fs/cifs/cifsproto.h~cifs-replace-remaining-__function__-occurrences
-+++ a/fs/cifs/cifsproto.h
-@@ -39,8 +39,8 @@ extern int smb_send(struct socket *, str
- 			unsigned int /* length */ , struct sockaddr *);
- extern unsigned int _GetXid(void);
- extern void _FreeXid(unsigned int);
--#define GetXid() (int)_GetXid(); cFYI(1,("CIFS VFS: in %s as Xid: %d with uid: %d",__FUNCTION__, xid,current->fsuid));
--#define FreeXid(curr_xid) {_FreeXid(curr_xid); cFYI(1,("CIFS VFS: leaving %s (xid = %d) rc = %d",__FUNCTION__,curr_xid,(int)rc));}
-+#define GetXid() (int)_GetXid(); cFYI(1,("CIFS VFS: in %s as Xid: %d with uid: %d",__func__, xid,current->fsuid));
-+#define FreeXid(curr_xid) {_FreeXid(curr_xid); cFYI(1,("CIFS VFS: leaving %s (xid = %d) rc = %d",__func__,curr_xid,(int)rc));}
- extern char *build_path_from_dentry(struct dentry *);
- extern char *build_wildcard_path_from_dentry(struct dentry *direntry);
- /* extern void renew_parental_timestamps(struct dentry *direntry);*/
-diff -puN fs/cifs/dns_resolve.c~cifs-replace-remaining-__function__-occurrences fs/cifs/dns_resolve.c
---- a/fs/cifs/dns_resolve.c~cifs-replace-remaining-__function__-occurrences
-+++ a/fs/cifs/dns_resolve.c
-@@ -77,14 +77,14 @@ dns_resolve_server_name_to_ip(const char
- 	/* search for server name delimiter */
- 	len = strlen(unc);
- 	if (len < 3) {
--		cFYI(1, ("%s: unc is too short: %s", __FUNCTION__, unc));
-+		cFYI(1, ("%s: unc is too short: %s", __func__, unc));
- 		return -EINVAL;
- 	}
- 	len -= 2;
- 	name = memchr(unc+2, '\\', len);
- 	if (!name) {
- 		cFYI(1, ("%s: probably server name is whole unc: %s",
--					__FUNCTION__, unc));
-+					__func__, unc));
- 	} else {
- 		len = (name - unc) - 2/* leading // */;
- 	}
-@@ -104,7 +104,7 @@ dns_resolve_server_name_to_ip(const char
- 		if (*ip_addr) {
- 			memcpy(*ip_addr, rkey->payload.data, len);
- 			(*ip_addr)[len] = '\0';
--			cFYI(1, ("%s: resolved: %s to %s", __FUNCTION__,
-+			cFYI(1, ("%s: resolved: %s to %s", __func__,
- 					rkey->description,
- 					*ip_addr
- 				));
-@@ -114,7 +114,7 @@ dns_resolve_server_name_to_ip(const char
- 		}
- 		key_put(rkey);
- 	} else {
--		cERROR(1, ("%s: unable to resolve: %s", __FUNCTION__, name));
-+		cERROR(1, ("%s: unable to resolve: %s", __func__, name));
- 	}
- 
- 	kfree(name);
+ 		if (sig->tty) {
+-			pgrp = tty_get_pgrp(sig->tty);
++			struct pid *pgrp = tty_get_pgrp(sig->tty);
+ 			tty_pgrp = pid_nr_ns(pgrp, ns);
+ 			put_pid(pgrp);
+ 			tty_nr = new_encode_dev(tty_devnum(sig->tty));
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-x86.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-arm-replace-remaining-__function__-occurences.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-git-ubi.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-sh-replace-remaining-__function__-occurences.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-xen-make-blkif_getgeo-static.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-security-replace-remaining-__function__-occurences.patch
-security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-ext4-replace-remaining-__function__-occurrences.patch
-nfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-remaining-__function__-occurrences.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cifs-replace-remaining-__function__-occurrences.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
+git-hrt.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+ptrace-introduce-task_detached-helper.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
