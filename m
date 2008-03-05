@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + trace-code-and-documentation.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:14:00 -0800
-Message-ID: <200803052214.m25ME07d023701@imap1.linux-foundation.org>
+Subject: + ext3-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:20:24 -0800
+Message-ID: <200803052220.m25MKO9H024006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764269AbYCEWUh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:20:37 -0500
+	by vger.kernel.org with ESMTP id S1759515AbYCEWU5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:20:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwilder@us.ibm.com, hunt@redhat.com, zanussi@us.ibm.com
+Cc: harvey.harrison@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     Trace code and documentation
+     ext3: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     trace-code-and-documentation.patch
+     ext3-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,942 +33,783 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Trace code and documentation
-From: "David J. Wilder" <dwilder@us.ibm.com>
+Subject: ext3: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Provides tracing primitives
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Tom Zanussi <zanussi@us.ibm.com>
-Signed-off-by: Martin Hunt <hunt@redhat.com>
-Signed-off-by: David Wilder <dwilder@us.ibm.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/trace.txt |  210 ++++++++++++++
- include/linux/trace.h   |   99 ++++++
- lib/Kconfig             |    9 
- lib/Makefile            |    2 
- lib/trace.c             |  563 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 883 insertions(+)
+ fs/ext3/balloc.c   |   12 +++----
+ fs/ext3/ext3_jbd.c |   12 +++----
+ fs/ext3/ialloc.c   |    6 +--
+ fs/ext3/inode.c    |    6 +--
+ fs/ext3/namei.c    |   26 +++++++--------
+ fs/ext3/resize.c   |   70 +++++++++++++++++++++----------------------
+ fs/ext3/super.c    |   14 ++++----
+ fs/ext3/xattr.c    |   14 ++++----
+ 8 files changed, 80 insertions(+), 80 deletions(-)
 
-diff -puN /dev/null Documentation/trace.txt
---- /dev/null
-+++ a/Documentation/trace.txt
-@@ -0,0 +1,210 @@
-+Trace Setup and Control
-+=======================
-+In the kernel, the trace interface provides a simple mechanism for
-+starting and managing data channels (traces) to user space.  The
-+trace interface builds on the relay interface.  For a complete
-+description of the relay interface, please see:
-+Documentation/filesystems/relay.txt.
-+
-+The trace interface provides a single layer in a complete tracing
-+application.  Trace provides a kernel API that can be used for the setup
-+and control of tracing channels.  User of trace must provide a data layer
-+responsible for formatting and writing data into the trace channels.
-+
-+A layered approach to tracing
-+=============================
-+A complete kernel tracing application consists of a data provider and
-+a data consumer.  Both provider and consumer contain three layers; each
-+layer works in tandem with the corresponding layer in the opposite side.
-+The layers are represented in the following diagram.
-+
-+Provider Data layer
-+	Formats raw trace data and provides data-related service.
-+	For example, adding timestamps used by consumer to sort data.
-+
-+Provider Control layer
-+	Provided by the trace interface, this layer creates trace channels
-+	and informs the data layer and consumer of the current state
-+	of the trace channels.
-+
-+Provider Buffering layer
-+	Provided by relay. This layer buffers data in the
-+	kernel for consumption by the consumer's buffer
-+	layer.
-+
-+Provider (in-kernel facility)
-+-----------------------------------------------------------------------------
-+Consumer (user application)
-+
-+
-+Consumer Buffer layer
-+	Reads/consumes data from the provider's data buffers.
-+
-+Consumer Control layer
-+	Communicates to the provider's control layer to control the state
-+	of the trace channels.
-+
-+Consumer Data layer
-+	Sorts and formats data as provided by the provider's data layer.
-+
-+The provider is coded as a kernel facility.  The consumer is coded as
-+a user application.
-+
-+
-+Trace - Features
-+================
-+Trace exploits services and features provided by relay.  These features
-+are:
-+- The creation and destruction of relay channels.
-+- Buffer management.  Overwrite or non-overwrite modes can be selected
-+  as well as global or per-CPU buffering.
-+
-+Overwrite mode can be called "flight recorder mode".  Flight recorder
-+mode is selected by setting the TRACE_FLIGHT_CHANNEL flag when
-+creating trace channels.  In flight mode when a tracing buffer is
-+full, the oldest records in the buffer will be discarded to make room
-+as new records arrive. In the default non-overwrite mode, new records
-+may be written only if the buffer has room.  In either case, to
-+prevent data loss, a user space reader must keep the buffers
-+drained. Trace provides a means to detect the number of records that
-+have been dropped due to a buffer-full condition (non-overwrite mode
-+only).
-+
-+When per-CPU buffers are used, relay creates one debugfs file for each
-+running CPU.  The user-space consumer of the data is responsible for
-+reading the per-CPU buffers and collating the records presumably using
-+a time stamp or sequence number included in the trace records.  The
-+use of global buffers eliminates this extra work of sequencing
-+records; however the provider's data layer must hold a lock when
-+writing records.  The lock prevents writers running on different CPUs
-+from overwriting each other's data.  However, buffering may be slower
-+because writes to the buffer are serialized. Global buffering is
-+selected by setting the TRACE_GLOBAL_CHANNEL flag when creating trace
-+channels.
-+
-+Trace User Interface
-+===================
-+When a trace channel is created and started, the following
-+directories and files are created in the root of the mounted debugfs.
-+
-+/debug (root of the debugfs)
-+	/<trace-root-dir>
-+		/<trace-name>
-+			trace[0...N-1]     Per-CPU trace data, one
-+					   file per CPU.
-+
-+			state		   Start or stop tracing by
-+					   by writing the strings
-+					   "start" or "stop" to this
-+					   file. Read the file to get the
-+					   current state.
-+
-+			dropped		   The number of records dropped
-+					   due to a full-buffer condition,
-+					   for non-TRACE_FLIGHT_CHANNELs
-+					   only.
-+
-+			rewind		   Trigger a rewind by writing
-+					   to this file.  i.e. start
-+					   next read at the beginning
-+					   again. Only available for
-+					   TRACE_FLIGHT_CHANNELS.
-+
-+
-+			nr_sub		   Number of sub-buffers
-+					   in the channel.
-+
-+			sub_size	   Size of sub-buffers in
-+					   the channel.
-+
-+Trace data is gathered from the trace[0...N-1] files using one of the
-+available interfaces provided by relay.
-+
-+When using the read(2) interface, as data is read it is marked as
-+consumed by the relay subsystem.  Therefore, subsequent reads will
-+only return unconsumed data.
-+
-+Trace Kernel API
-+===============
-+An overview of the trace Kernel API is now given. More details of the
-+API can be found in linux/trace.h.
-+
-+The steps a kernel data provider takes to utilize the trace interface are:
-+1) Set up a trace channel - trace_setup()
-+2) Start the trace channel - trace_start()
-+3) Write one or more trace records into the channel (using the relay API).
-+
-+   Important: When writing a trace record the provider must insure that
-+   preemption is disabled and that trace state is  set to "running". A
-+   typical function used to write records into a trace channel should
-+   follow the following semantics:
-+
-+	rcu_read_lock();	    // disables preemption
-+	if (trace_running(trace)){
-+		relay_write(....); // use any available relay data
-+				   // function
-+	}
-+	rcu_read_unlock();	   // enables preemption
-+
-+4) Stop and start tracing as desired - trace_start()/trace_stop()
-+5) Destroy the trace channel and underlying relay channel -
-+   trace_cleanup().
-+
-+Kernel Configuration
-+--------------------
-+To use trace, configure your kernel with CONFIG_TRACE=y. Trace depends on
-+both CONFIG_RELAY and CONFIG_DEBUG_FS, these will be automatically configured
-+when CONFIG_TRACE is selected (if not already configured).
-+
-+Using the User Interface
-+------------------------
-+Reading trace data and controlling the trace can be done using commands such
-+as cat, echo and sort.  However, If you are logging binary trace data a
-+custom application may be required to read and process the trace data.
-+This section shows several examples of reading trace data and controling
-+the trace.  All examples assume that the "trace" directory is your current
-+working directory.
-+
-+Viewing the current trace state:
-+$cat state
-+
-+Turning the trace on and off:
-+$echo start > state
-+$echo stop > state
-+
-+Reading data when using global buffers (USE_GLOBAL_BUFFERS):
-+$echo stop > state
-+$cat  trace0
-+$echo start > state
-+
-+Reading data when using per-cpu buffers:
-+When using per-cpu buffers the tracer should add a time stamp or sequence
-+number to each trace records.  This is used by the consumer to sort the trace
-+records into chronological order.  In the following example the tracer has
-+placed a time stamp at the front of each the record.  The format of a record
-+is now shown.
-+
-+:<time stamp>:<field 1>:<field 2>:..........
-+
-+Collect the data from the per-cpu trace buffers, sorting chronologically:
-+$sort --field-separator=: --key=2.1 trace*
-+
-+Verify that no data was lost by examining the dropped file:
-+$ cat  dropped
-+
-+To collect a larger amount of data the trace buffers can be read
-+continuously using something like:
-+
-+while [ 1 ] ; do
-+	sort --field-separator=: --key=2.1   trace*
-+done
-+
-+
-+Credits
-+=======
-+Trace is adapted from blktrace authored by Jens Axboe (axboe@kernel.dk).
-+
-+Major contributions were made by:
-+Tom Zanussi <zanussi@us.ibm.com>
-+Martin Hunt <hunt@redhat.com>
-+David Wilder <dwilder@us.ibm.com>
-diff -puN /dev/null include/linux/trace.h
---- /dev/null
-+++ a/include/linux/trace.h
-@@ -0,0 +1,99 @@
-+/*
-+ * TRACE defines and function prototypes
-+ *
-+ * Copyright (C) 2007 IBM Inc.
-+ *
-+ *	Tom Zanussi <zanussi@us.ibm.com>
-+ *	Martin Hunt <hunt@redhat.com>
-+ *	David Wilder <dwilder@us.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ *
-+ */
-+#ifndef _LINUX_TRACE_H
-+#define _LINUX_TRACE_H
-+
-+#include <linux/relay.h>
-+
-+/*
-+ * TRACE channel flags
-+ */
-+#define TRACE_GLOBAL_CHANNEL	0x01
-+#define TRACE_FLIGHT_CHANNEL	0x02
-+#define TRACE_DISABLE_STATE	0x04
-+
-+enum trace_state {
-+	TRACE_SETUP,
-+	TRACE_RUNNING,
-+	TRACE_STOPPED,
-+};
-+
-+#define TRACE_ROOT_NAME_SIZE	64	/* Max root dir identifier */
-+#define TRACE_NAME_SIZE		64	/* Max trace identifier */
-+
-+/*
-+ * Global root user information
-+ */
-+struct trace_root {
-+	struct list_head list;
-+	char name[TRACE_ROOT_NAME_SIZE];
-+	struct dentry *root;
-+	unsigned int users;
-+};
-+
-+/*
-+ * Client information
-+ */
-+struct trace_info {
-+	struct mutex state_mutex; /* Used to protect state changes */
-+	enum trace_state state;
-+	struct dentry *state_file;
-+	struct rchan *rchan;
-+	struct dentry *dir;
-+	struct dentry *dropped_file;
-+	struct dentry *reset_consumed_file;
-+	struct dentry *nr_sub_file;
-+	struct dentry *sub_size_file;
-+	atomic_t dropped;
-+	struct trace_root *root;
-+	void *private_data;
-+	unsigned int flags;
-+	unsigned int buf_size;
-+	unsigned int buf_nr;
-+};
-+
-+#ifdef CONFIG_TRACE
-+static inline int trace_running(struct trace_info *trace)
-+{
-+	return trace->state == TRACE_RUNNING;
-+}
-+struct trace_info *trace_setup(const char *root, const char *name,
-+			       u32 buf_size, u32 buf_nr, u32 flags);
-+int trace_start(struct trace_info *trace);
-+int trace_stop(struct trace_info *trace);
-+void trace_cleanup(struct trace_info *trace);
-+#else
-+static inline struct trace_info *trace_setup(const char *root,
-+					     const char *name, u32 buf_size,
-+					     u32 buf_nr, u32 flags)
-+{
-+	return NULL;
-+}
-+static inline int trace_start(struct trace_info *trace) { return -EINVAL; }
-+static inline int trace_stop(struct trace_info *trace) { return -EINVAL; }
-+static inline int trace_running(struct trace_info *trace) { return 0; }
-+static inline void trace_cleanup(struct trace_info *trace) {}
-+#endif
-+
-+#endif
-diff -puN lib/Kconfig~trace-code-and-documentation lib/Kconfig
---- a/lib/Kconfig~trace-code-and-documentation
-+++ a/lib/Kconfig
-@@ -144,4 +144,13 @@ config CHECK_SIGNATURE
- config HAVE_LMB
- 	boolean
+diff -puN fs/ext3/balloc.c~ext3-replace-remaining-__function__-occurrences fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/balloc.c
+@@ -117,7 +117,7 @@ static int ext3_valid_block_bitmap(struc
+ 		return 1;
  
-+config TRACE
-+	bool "Trace setup and control"
-+	depends on RELAY && DEBUG_FS
-+	help
-+	  This option provides support for the setup, teardown and control
-+	  of tracing channels from kernel code.  It also provides trace
-+	  information and control to userspace via a set of debugfs control
-+	  files.  If unsure, say N.
-+
- endmenu
-diff -puN lib/Makefile~trace-code-and-documentation lib/Makefile
---- a/lib/Makefile~trace-code-and-documentation
-+++ a/lib/Makefile
-@@ -71,6 +71,8 @@ lib-$(CONFIG_GENERIC_BUG) += bug.o
+ err_out:
+-	ext3_error(sb, __FUNCTION__,
++	ext3_error(sb, __func__,
+ 			"Invalid block bitmap - "
+ 			"block_group = %d, block = %lu",
+ 			block_group, bitmap_blk);
+@@ -147,7 +147,7 @@ read_block_bitmap(struct super_block *sb
+ 	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
+ 	bh = sb_getblk(sb, bitmap_blk);
+ 	if (unlikely(!bh)) {
+-		ext3_error(sb, __FUNCTION__,
++		ext3_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+@@ -158,7 +158,7 @@ read_block_bitmap(struct super_block *sb
  
- obj-$(CONFIG_HAVE_LMB) += lmb.o
+ 	if (bh_submit_read(bh) < 0) {
+ 		brelse(bh);
+-		ext3_error(sb, __FUNCTION__,
++		ext3_error(sb, __func__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+@@ -235,7 +235,7 @@ restart:
+ 	BUG_ON(bad);
+ }
+ #define rsv_window_dump(root, verbose) \
+-	__rsv_window_dump((root), (verbose), __FUNCTION__)
++	__rsv_window_dump((root), (verbose), __func__)
+ #else
+ #define rsv_window_dump(root, verbose) do {} while (0)
+ #endif
+@@ -617,7 +617,7 @@ do_more:
+ 		if (!ext3_clear_bit_atomic(sb_bgl_lock(sbi, block_group),
+ 						bit + i, bitmap_bh->b_data)) {
+ 			jbd_unlock_bh_state(bitmap_bh);
+-			ext3_error(sb, __FUNCTION__,
++			ext3_error(sb, __func__,
+ 				"bit already cleared for block "E3FSBLK,
+ 				 block + i);
+ 			jbd_lock_bh_state(bitmap_bh);
+@@ -1667,7 +1667,7 @@ allocated:
+ 			if (ext3_test_bit(grp_alloc_blk+i,
+ 					bh2jh(bitmap_bh)->b_committed_data)) {
+ 				printk("%s: block was unexpectedly set in "
+-					"b_committed_data\n", __FUNCTION__);
++					"b_committed_data\n", __func__);
+ 			}
+ 		}
+ 	}
+diff -puN fs/ext3/ext3_jbd.c~ext3-replace-remaining-__function__-occurrences fs/ext3/ext3_jbd.c
+--- a/fs/ext3/ext3_jbd.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/ext3_jbd.c
+@@ -9,7 +9,7 @@ int __ext3_journal_get_undo_access(const
+ {
+ 	int err = journal_get_undo_access(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
  
-+obj-$(CONFIG_TRACE) += trace.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
+@@ -18,7 +18,7 @@ int __ext3_journal_get_write_access(cons
+ {
+ 	int err = journal_get_write_access(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
  
-diff -puN /dev/null lib/trace.c
---- /dev/null
-+++ a/lib/trace.c
-@@ -0,0 +1,563 @@
-+/*
-+ * Based on blktrace code, Copyright (C) 2006 Jens Axboe <axboe@kernel.dk>
-+ * Moved to utt.c by Tom Zanussi <zanussi@us.ibm.com>, 2006
-+ * Additional contributions by:
-+ * Martin Hunt <hunt@redhat.com>, 2007
-+ * David Wilder <dwilder@us.ibm.com>, 2007
-+ * Renamed to trace <dwilder.ibm.com>, 2007
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/mutex.h>
-+#include <linux/debugfs.h>
-+#include <linux/trace.h>
-+
-+static LIST_HEAD(trace_roots);
-+static DEFINE_MUTEX(trace_mutex);
-+
-+static int state_open(struct inode *inode, struct file *filp)
-+{
-+	filp->private_data = inode->i_private;
-+	return 0;
-+}
-+
-+static ssize_t state_read(struct file *filp, char __user *buffer,
-+			  size_t count, loff_t *ppos)
-+{
-+	struct trace_info *trace = filp->private_data;
-+	char *buf = "trace not started\n";
-+
-+	if (trace->state == TRACE_STOPPED)
-+		buf = "stopped\n";
-+	else if (trace->state == TRACE_RUNNING)
-+		buf = "running\n";
-+	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
-+}
-+
-+static ssize_t state_write(struct file *filp, const char __user *buffer,
-+			   size_t count, loff_t *ppos)
-+{
-+	struct trace_info *trace = filp->private_data;
-+	char buf[16];
-+	int ret;
-+
-+	if (trace->flags & TRACE_DISABLE_STATE)
-+		return -EINVAL;
-+
-+	if (count > sizeof(buf) - 1)
-+		return -EINVAL;
-+
-+	if (copy_from_user(buf, buffer, count))
-+		return -EFAULT;
-+
-+	buf[count-1] = '\0';
-+
-+	if (strcmp(buf, "start") == 0) {
-+		ret = trace_start(trace);
-+		if (ret)
-+			return ret;
-+	} else if (strcmp(buf, "stop") == 0)
-+		trace_stop(trace);
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static struct file_operations state_fops = {
-+	.owner	= THIS_MODULE,
-+	.open	= state_open,
-+	.read	= state_read,
-+	.write	= state_write,
-+};
-+
-+static void remove_root(struct trace_info *trace)
-+{
-+	if (trace->root->root && simple_empty(trace->root->root)) {
-+		debugfs_remove(trace->root->root);
-+		list_del(&trace->root->list);
-+		kfree(trace->root);
-+		trace->root = NULL;
-+	}
-+}
-+
-+static void remove_tree(struct trace_info *trace)
-+{
-+	mutex_lock(&trace_mutex);
-+	debugfs_remove(trace->dir);
-+
-+	if (trace->root) {
-+		if (--trace->root->users == 0)
-+			remove_root(trace);
-+	}
-+
-+	mutex_unlock(&trace_mutex);
-+}
-+
-+/*
-+ * Creates the trace_root if it's not found.
-+ */
-+static struct trace_root *lookup_root(const char *root)
-+{
-+	struct list_head *pos;
-+	struct trace_root *r;
-+
-+	list_for_each(pos, &trace_roots) {
-+		r = list_entry(pos, struct trace_root, list);
-+		if (!strcmp(r->name, root))
-+			return r;
-+	}
-+
-+	r = kzalloc(sizeof(struct trace_root), GFP_KERNEL);
-+	if (!r)
-+		return ERR_PTR(-ENOMEM);
-+
-+	strlcpy(r->name, root, sizeof(r->name));
-+
-+	r->root = debugfs_create_dir(root, NULL);
-+	if (IS_ERR(r->root))
-+		r->root = NULL;
-+	else
-+		list_add(&r->list, &trace_roots);
-+
-+	return r;
-+}
-+
-+static struct dentry *create_tree(struct trace_info *trace, const char *root,
-+				  const char *name)
-+{
-+	struct dentry *dir = NULL;
-+
-+	if (root == NULL || name == NULL)
-+		return ERR_PTR(-EINVAL);
-+
-+	mutex_lock(&trace_mutex);
-+
-+	trace->root = lookup_root(root);
-+	if (IS_ERR(trace->root)) {
-+		trace->root = NULL;
-+		goto err;
-+	}
-+
-+	dir = debugfs_create_dir(name, trace->root->root);
-+	if (IS_ERR(dir))
-+		remove_root(trace);
-+	else
-+		trace->root->users++;
-+
-+err:
-+	mutex_unlock(&trace_mutex);
-+	return dir;
-+}
-+
-+static int dropped_open(struct inode *inode, struct file *filp)
-+{
-+	filp->private_data = inode->i_private;
-+
-+	return 0;
-+}
-+
-+static ssize_t dropped_read(struct file *filp, char __user *buffer,
-+			    size_t count, loff_t *ppos)
-+{
-+	struct trace_info *trace = filp->private_data;
-+	char buf[16];
-+
-+	snprintf(buf, sizeof(buf), "%u\n", atomic_read(&trace->dropped));
-+
-+	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
-+}
-+
-+static struct file_operations dropped_fops = {
-+	.owner	= THIS_MODULE,
-+	.open	= dropped_open,
-+	.read	= dropped_read,
-+};
-+
-+static int reset_consumed_open(struct inode *inode, struct file *filp)
-+{
-+	filp->private_data = inode->i_private;
-+
-+	return 0;
-+}
-+
-+static ssize_t reset_consumed_write(struct file *filp,
-+				    const char __user *buffer,
-+				    size_t count, loff_t *ppos)
-+{
-+	int ret = count;
-+	struct trace_info *trace = filp->private_data;
-+
-+	mutex_lock(&trace->state_mutex);
-+	switch (trace->state) {
-+	case TRACE_RUNNING:
-+		trace->state = TRACE_STOPPED;
-+		synchronize_rcu();
-+		relay_flush(trace->rchan);
-+		relay_reset_consumed(trace->rchan);
-+		trace->state = TRACE_RUNNING;
-+		break;
-+	case TRACE_STOPPED:
-+		relay_reset_consumed(trace->rchan);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+	mutex_unlock(&trace->state_mutex);
-+	return ret;
-+}
-+
-+static struct file_operations reset_consumed_fops = {
-+	.owner	= THIS_MODULE,
-+	.open	= reset_consumed_open,
-+	.write	= reset_consumed_write
-+};
-+
-+static int sub_size_open(struct inode *inode, struct file *filp)
-+{
-+	filp->private_data = inode->i_private;
-+
-+	return 0;
-+}
-+
-+static ssize_t sub_size_read(struct file *filp, char __user *buffer,
-+			     size_t count, loff_t *ppos)
-+{
-+	struct trace_info *trace = filp->private_data;
-+	char buf[32];
-+
-+	snprintf(buf, sizeof(buf), "%zu\n", trace->rchan->subbuf_size);
-+
-+	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
-+}
-+
-+static struct file_operations sub_size_fops = {
-+	.owner	= THIS_MODULE,
-+	.open	= sub_size_open,
-+	.read	= sub_size_read,
-+};
-+
-+static int nr_sub_open(struct inode *inode, struct file *filp)
-+{
-+	filp->private_data = inode->i_private;
-+	return 0;
-+}
-+
-+static ssize_t nr_sub_read(struct file *filp, char __user *buffer,
-+			   size_t count, loff_t *ppos)
-+{
-+	struct trace_info *trace = filp->private_data;
-+	char buf[32];
-+
-+	snprintf(buf, sizeof(buf), "%zu\n", trace->rchan->n_subbufs);
-+
-+	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
-+}
-+
-+static struct file_operations nr_sub_fops = {
-+	.owner	= THIS_MODULE,
-+	.open	= nr_sub_open,
-+	.read	= nr_sub_read,
-+};
-+
-+/*
-+ * Keep track of how many times we encountered a full subbuffer, to aid
-+ * the user space app in telling how many lost events there were.
-+ */
-+static int subbuf_start_callback(struct rchan_buf *buf, void *subbuf,
-+				 void *prev_subbuf, size_t prev_padding)
-+{
-+	struct trace_info *trace = buf->chan->private_data;
-+
-+	if (trace->flags & TRACE_FLIGHT_CHANNEL)
-+		return 1;
-+
-+	if (!relay_buf_full(buf))
-+		return 1;
-+
-+	atomic_inc(&trace->dropped);
-+
-+	return 0;
-+}
-+
-+static int remove_buf_file_callback(struct dentry *dentry)
-+{
-+	debugfs_remove(dentry);
-+
-+	return 0;
-+}
-+
-+static struct dentry *create_buf_file_callback(const char *filename,
-+					       struct dentry *parent, int mode,
-+					       struct rchan_buf *buf,
-+					       int *is_global)
-+{
-+	return debugfs_create_file(filename, mode, parent, buf,
-+				   &relay_file_operations);
-+}
-+
-+static struct dentry *create_global_buf_file_callback(const char *filename,
-+						      struct dentry *parent,
-+						      int mode,
-+						      struct rchan_buf *buf,
-+						      int *is_global)
-+{
-+	*is_global = 1;
-+
-+	return debugfs_create_file(filename, mode, parent, buf,
-+				   &relay_file_operations);
-+}
-+
-+static struct rchan_callbacks relay_callbacks = {
-+	.subbuf_start		= subbuf_start_callback,
-+	.create_buf_file	= create_buf_file_callback,
-+	.remove_buf_file	= remove_buf_file_callback,
-+};
-+static struct rchan_callbacks relay_callbacks_global = {
-+	.subbuf_start		= subbuf_start_callback,
-+	.create_buf_file	= create_global_buf_file_callback,
-+	.remove_buf_file	= remove_buf_file_callback,
-+};
-+
-+static void remove_controls(struct trace_info *trace)
-+{
-+	debugfs_remove(trace->state_file);
-+	debugfs_remove(trace->dropped_file);
-+	debugfs_remove(trace->reset_consumed_file);
-+	debugfs_remove(trace->nr_sub_file);
-+	debugfs_remove(trace->sub_size_file);
-+	remove_tree(trace);
-+}
-+
-+/*
-+ * Setup controls for tracing.
-+ */
-+static struct trace_info *setup_controls(const char *root,
-+					 const char *name, u32 flags)
-+{
-+	struct trace_info *trace;
-+	long ret;
-+
-+	trace = kzalloc(sizeof(*trace), GFP_KERNEL);
-+	if (!trace) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	trace->dir = create_tree(trace, root, name);
-+	if (IS_ERR(trace->dir)) {
-+		ret = PTR_ERR(trace->dir);
-+		trace->dir = NULL;
-+		goto err;
-+	}
-+
-+	trace->state_file = debugfs_create_file("state", 0444, trace->dir,
-+						 trace, &state_fops);
-+	if (IS_ERR(trace->state_file)) {
-+		ret = PTR_ERR(trace->state_file);
-+		trace->state_file = NULL;
-+		goto err;
-+	}
-+
-+	if (!(flags & TRACE_FLIGHT_CHANNEL)) {
-+		trace->dropped_file = debugfs_create_file("dropped", 0444,
-+							  trace->dir, trace,
-+							  &dropped_fops);
-+		if (IS_ERR(trace->dropped_file)) {
-+			ret = PTR_ERR(trace->dropped_file);
-+			trace->dropped_file = NULL;
-+			goto err;
-+		}
-+	}
-+
-+	if (flags & TRACE_FLIGHT_CHANNEL) {
-+		trace->reset_consumed_file = debugfs_create_file("rewind", 0444,
-+							trace->dir, trace,
-+							&reset_consumed_fops);
-+		if (IS_ERR(trace->reset_consumed_file)) {
-+			ret = PTR_ERR(trace->reset_consumed_file);
-+			trace->reset_consumed_file = NULL;
-+			goto err;
-+		}
-+	}
-+
-+	trace->nr_sub_file = debugfs_create_file("nr_sub", 0444,
-+						 trace->dir, trace,
-+						 &nr_sub_fops);
-+	if (IS_ERR(trace->nr_sub_file)) {
-+		ret = PTR_ERR(trace->nr_sub_file);
-+		trace->nr_sub_file = NULL;
-+		goto err;
-+	}
-+
-+	trace->sub_size_file = debugfs_create_file("sub_size", 0444,
-+						   trace->dir, trace,
-+						   &sub_size_fops);
-+	if (IS_ERR(trace->sub_size_file)) {
-+		ret = PTR_ERR(trace->sub_size_file);
-+		trace->sub_size_file = NULL;
-+		goto err;
-+	}
-+
-+	return trace;
-+err:
-+	if (trace) {
-+		remove_controls(trace);
-+		kfree(trace);
-+	}
-+
-+	return ERR_PTR(ret);
-+}
-+
-+static int trace_setup_channel(struct trace_info *trace, u32 buf_size,
-+				u32 buf_nr, u32 flags)
-+{
-+	if (!buf_size || !buf_nr)
-+		return -EINVAL;
-+
-+	if (flags & TRACE_GLOBAL_CHANNEL)
-+		trace->rchan = relay_open("trace", trace->dir, buf_size,
-+					  buf_nr, &relay_callbacks_global,
-+					  trace);
-+	else
-+		trace->rchan = relay_open("trace", trace->dir, buf_size,
-+					  buf_nr, &relay_callbacks, trace);
-+
-+	if (!trace->rchan)
-+		return -ENOMEM;
-+
-+	trace->flags = flags;
-+	trace->state = TRACE_SETUP;
-+
-+	return 0;
-+}
-+
-+/**
-+ *	trace_setup - create a new trace trace handle
-+ *	@root: The root directory name to place trace directories.
-+ *	@name: Trace directory name, created in @root
-+ *	@buf_size: size of the relay sub-buffers
-+ *	@buf_nr: number of relay sub-buffers
-+ *	@flags: Option selection (see trace channel flags definitions)
-+ *
-+ *	returns a trace_info handle or NULL, if setup failed.
-+ *
-+ *	The @root is created (if needed) in the root of the debugfs.
-+ *	The default values when flags=0 are: use per-CPU buffering,
-+ *	use non-overwrite mode. See Documentation/trace.txt for details.
-+ */
-+struct trace_info *trace_setup(const char *root, const char *name,
-+			       u32 buf_size, u32 buf_nr, u32 flags)
-+{
-+	struct trace_info *trace;
-+
-+	trace = setup_controls(root, name, flags);
-+	if (IS_ERR(trace))
-+		return trace;
-+
-+	trace->buf_size = buf_size;
-+	trace->buf_nr = buf_nr;
-+	trace->flags = flags;
-+	mutex_init(&trace->state_mutex);
-+	trace->state = TRACE_SETUP;
-+
-+	return trace;
-+}
-+EXPORT_SYMBOL_GPL(trace_setup);
-+
-+/**
-+ *	trace_start - start tracing
-+ *	@trace: trace handle to start.
-+ *
-+ *	returns 0 if successful.
-+ */
-+int trace_start(struct trace_info *trace)
-+{
-+	/*
-+	 * For starting a trace, we can transition from a setup or stopped
-+	 * trace.
-+	 */
-+	if (trace->state == TRACE_RUNNING)
-+		return -EINVAL;
-+
-+	mutex_lock(&trace->state_mutex);
-+	if (trace->state == TRACE_SETUP) {
-+		int ret;
-+
-+		ret = trace_setup_channel(trace, trace->buf_size,
-+					  trace->buf_nr, trace->flags);
-+		if (ret) {
-+			mutex_unlock(&trace->state_mutex);
-+			return ret;
-+		}
-+	}
-+
-+	trace->state = TRACE_RUNNING;
-+	mutex_unlock(&trace->state_mutex);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(trace_start);
-+
-+/**
-+ *	trace_stop - stop tracing
-+ *	@trace: trace handle to stop.
-+ *
-+ */
-+int trace_stop(struct trace_info *trace)
-+{
-+	int ret = -EINVAL;
-+
-+	/*
-+	 * For stopping a trace, the state must be running
-+	 */
-+	mutex_lock(&trace->state_mutex);
-+	if (trace->state == TRACE_RUNNING) {
-+		trace->state = TRACE_STOPPED;
-+		/*
-+		 * wait for all cpus to see the change in
-+		 * state before continuing
-+		 */
-+		synchronize_sched();
-+		relay_flush(trace->rchan);
-+		ret = 0;
-+	}
-+	mutex_unlock(&trace->state_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(trace_stop);
-+
-+static void trace_cleanup_channel(struct trace_info *trace)
-+{
-+	trace_stop(trace);
-+	relay_close(trace->rchan);
-+	trace->rchan = NULL;
-+}
-+
-+/**
-+ *	trace_cleanup - destroys the trace channel, control files and dir
-+ *	@trace: trace handle to cleanup
-+ */
-+void trace_cleanup(struct trace_info *trace)
-+{
-+	trace_cleanup_channel(trace);
-+	remove_controls(trace);
-+	kfree(trace);
-+}
-+EXPORT_SYMBOL_GPL(trace_cleanup);
+@@ -27,7 +27,7 @@ int __ext3_journal_forget(const char *wh
+ {
+ 	int err = journal_forget(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -36,7 +36,7 @@ int __ext3_journal_revoke(const char *wh
+ {
+ 	int err = journal_revoke(handle, blocknr, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -45,7 +45,7 @@ int __ext3_journal_get_create_access(con
+ {
+ 	int err = journal_get_create_access(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+ 
+@@ -54,6 +54,6 @@ int __ext3_journal_dirty_metadata(const 
+ {
+ 	int err = journal_dirty_metadata(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(where, __FUNCTION__, bh, handle,err);
++		ext3_journal_abort_handle(where, __func__, bh, handle,err);
+ 	return err;
+ }
+diff -puN fs/ext3/ialloc.c~ext3-replace-remaining-__function__-occurrences fs/ext3/ialloc.c
+--- a/fs/ext3/ialloc.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/ialloc.c
+@@ -644,7 +644,7 @@ struct inode *ext3_orphan_get(struct sup
+ 
+ 	/* Error cases - e2fsck has already cleaned up for us */
+ 	if (ino > max_ino) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "bad orphan ino %lu!  e2fsck was run?", ino);
+ 		goto error;
+ 	}
+@@ -653,7 +653,7 @@ struct inode *ext3_orphan_get(struct sup
+ 	bit = (ino - 1) % EXT3_INODES_PER_GROUP(sb);
+ 	bitmap_bh = read_inode_bitmap(sb, block_group);
+ 	if (!bitmap_bh) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "inode bitmap error for orphan %lu", ino);
+ 		goto error;
+ 	}
+@@ -678,7 +678,7 @@ iget_failed:
+ 	err = PTR_ERR(inode);
+ 	inode = NULL;
+ bad_orphan:
+-	ext3_warning(sb, __FUNCTION__,
++	ext3_warning(sb, __func__,
+ 		     "bad orphan inode %lu!  e2fsck was run?", ino);
+ 	printk(KERN_NOTICE "ext3_test_bit(bit=%d, block=%llu) = %d\n",
+ 	       bit, (unsigned long long)bitmap_bh->b_blocknr,
+diff -puN fs/ext3/inode.c~ext3-replace-remaining-__function__-occurrences fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/inode.c
+@@ -95,7 +95,7 @@ int ext3_forget(handle_t *handle, int is
+ 	BUFFER_TRACE(bh, "call ext3_journal_revoke");
+ 	err = ext3_journal_revoke(handle, blocknr, bh);
+ 	if (err)
+-		ext3_abort(inode->i_sb, __FUNCTION__,
++		ext3_abort(inode->i_sb, __func__,
+ 			   "error %d when attempting revoke", err);
+ 	BUFFER_TRACE(bh, "exit");
+ 	return err;
+@@ -1190,7 +1190,7 @@ int ext3_journal_dirty_data(handle_t *ha
+ {
+ 	int err = journal_dirty_data(handle, bh);
+ 	if (err)
+-		ext3_journal_abort_handle(__FUNCTION__, __FUNCTION__,
++		ext3_journal_abort_handle(__func__, __func__,
+ 						bh, handle, err);
+ 	return err;
+ }
+@@ -3201,7 +3201,7 @@ void ext3_dirty_inode(struct inode *inod
+ 		current_handle->h_transaction != handle->h_transaction) {
+ 		/* This task has a transaction open against a different fs */
+ 		printk(KERN_EMERG "%s: transactions do not match!\n",
+-		       __FUNCTION__);
++		       __func__);
+ 	} else {
+ 		jbd_debug(5, "marking dirty.  outer handle=%p\n",
+ 				current_handle);
+diff -puN fs/ext3/namei.c~ext3-replace-remaining-__function__-occurrences fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/namei.c
+@@ -361,7 +361,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	if (root->info.hash_version != DX_HASH_TEA &&
+ 	    root->info.hash_version != DX_HASH_HALF_MD4 &&
+ 	    root->info.hash_version != DX_HASH_LEGACY) {
+-		ext3_warning(dir->i_sb, __FUNCTION__,
++		ext3_warning(dir->i_sb, __func__,
+ 			     "Unrecognised inode hash code %d",
+ 			     root->info.hash_version);
+ 		brelse(bh);
+@@ -375,7 +375,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	hash = hinfo->hash;
+ 
+ 	if (root->info.unused_flags & 1) {
+-		ext3_warning(dir->i_sb, __FUNCTION__,
++		ext3_warning(dir->i_sb, __func__,
+ 			     "Unimplemented inode hash flags: %#06x",
+ 			     root->info.unused_flags);
+ 		brelse(bh);
+@@ -384,7 +384,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	}
+ 
+ 	if ((indirect = root->info.indirect_levels) > 1) {
+-		ext3_warning(dir->i_sb, __FUNCTION__,
++		ext3_warning(dir->i_sb, __func__,
+ 			     "Unimplemented inode hash depth: %#06x",
+ 			     root->info.indirect_levels);
+ 		brelse(bh);
+@@ -397,7 +397,7 @@ dx_probe(struct dentry *dentry, struct i
+ 
+ 	if (dx_get_limit(entries) != dx_root_limit(dir,
+ 						   root->info.info_length)) {
+-		ext3_warning(dir->i_sb, __FUNCTION__,
++		ext3_warning(dir->i_sb, __func__,
+ 			     "dx entry: limit != root limit");
+ 		brelse(bh);
+ 		*err = ERR_BAD_DX_DIR;
+@@ -409,7 +409,7 @@ dx_probe(struct dentry *dentry, struct i
+ 	{
+ 		count = dx_get_count(entries);
+ 		if (!count || count > dx_get_limit(entries)) {
+-			ext3_warning(dir->i_sb, __FUNCTION__,
++			ext3_warning(dir->i_sb, __func__,
+ 				     "dx entry: no count or count > limit");
+ 			brelse(bh);
+ 			*err = ERR_BAD_DX_DIR;
+@@ -454,7 +454,7 @@ dx_probe(struct dentry *dentry, struct i
+ 			goto fail2;
+ 		at = entries = ((struct dx_node *) bh->b_data)->entries;
+ 		if (dx_get_limit(entries) != dx_node_limit (dir)) {
+-			ext3_warning(dir->i_sb, __FUNCTION__,
++			ext3_warning(dir->i_sb, __func__,
+ 				     "dx entry: limit != node limit");
+ 			brelse(bh);
+ 			*err = ERR_BAD_DX_DIR;
+@@ -470,7 +470,7 @@ fail2:
+ 	}
+ fail:
+ 	if (*err == ERR_BAD_DX_DIR)
+-		ext3_warning(dir->i_sb, __FUNCTION__,
++		ext3_warning(dir->i_sb, __func__,
+ 			     "Corrupt dir inode %ld, running e2fsck is "
+ 			     "recommended.", dir->i_ino);
+ 	return NULL;
+@@ -918,7 +918,7 @@ restart:
+ 		wait_on_buffer(bh);
+ 		if (!buffer_uptodate(bh)) {
+ 			/* read error, skip block & hope for the best */
+-			ext3_error(sb, __FUNCTION__, "reading directory #%lu "
++			ext3_error(sb, __func__, "reading directory #%lu "
+ 				   "offset %lu", dir->i_ino, block);
+ 			brelse(bh);
+ 			goto next;
+@@ -1010,7 +1010,7 @@ static struct buffer_head * ext3_dx_find
+ 		retval = ext3_htree_next_block(dir, hash, frame,
+ 					       frames, NULL);
+ 		if (retval < 0) {
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 			     "error reading index page in directory #%lu",
+ 			     dir->i_ino);
+ 			*err = retval;
+@@ -1535,7 +1535,7 @@ static int ext3_dx_add_entry(handle_t *h
+ 
+ 		if (levels && (dx_get_count(frames->entries) ==
+ 			       dx_get_limit(frames->entries))) {
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 				     "Directory index full!");
+ 			err = -ENOSPC;
+ 			goto cleanup;
+@@ -1837,11 +1837,11 @@ static int empty_dir (struct inode * ino
+ 	if (inode->i_size < EXT3_DIR_REC_LEN(1) + EXT3_DIR_REC_LEN(2) ||
+ 	    !(bh = ext3_bread (NULL, inode, 0, 0, &err))) {
+ 		if (err)
+-			ext3_error(inode->i_sb, __FUNCTION__,
++			ext3_error(inode->i_sb, __func__,
+ 				   "error %d reading directory #%lu offset 0",
+ 				   err, inode->i_ino);
+ 		else
+-			ext3_warning(inode->i_sb, __FUNCTION__,
++			ext3_warning(inode->i_sb, __func__,
+ 				     "bad directory (dir #%lu) - no data block",
+ 				     inode->i_ino);
+ 		return 1;
+@@ -1870,7 +1870,7 @@ static int empty_dir (struct inode * ino
+ 				offset >> EXT3_BLOCK_SIZE_BITS(sb), 0, &err);
+ 			if (!bh) {
+ 				if (err)
+-					ext3_error(sb, __FUNCTION__,
++					ext3_error(sb, __func__,
+ 						   "error %d reading directory"
+ 						   " #%lu offset %lu",
+ 						   err, inode->i_ino, offset);
+diff -puN fs/ext3/resize.c~ext3-replace-remaining-__function__-occurrences fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/resize.c
+@@ -48,60 +48,60 @@ static int verify_group_input(struct sup
+ 		       free_blocks_count, input->reserved_blocks);
+ 
+ 	if (group != sbi->s_groups_count)
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Cannot add at group %u (only %lu groups)",
+ 			     input->group, sbi->s_groups_count);
+ 	else if ((start - le32_to_cpu(es->s_first_data_block)) %
+ 		 EXT3_BLOCKS_PER_GROUP(sb))
+-		ext3_warning(sb, __FUNCTION__, "Last group not full");
++		ext3_warning(sb, __func__, "Last group not full");
+ 	else if (input->reserved_blocks > input->blocks_count / 5)
+-		ext3_warning(sb, __FUNCTION__, "Reserved blocks too high (%u)",
++		ext3_warning(sb, __func__, "Reserved blocks too high (%u)",
+ 			     input->reserved_blocks);
+ 	else if (free_blocks_count < 0)
+-		ext3_warning(sb, __FUNCTION__, "Bad blocks count %u",
++		ext3_warning(sb, __func__, "Bad blocks count %u",
+ 			     input->blocks_count);
+ 	else if (!(bh = sb_bread(sb, end - 1)))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Cannot read last block ("E3FSBLK")",
+ 			     end - 1);
+ 	else if (outside(input->block_bitmap, start, end))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Block bitmap not in group (block %u)",
+ 			     input->block_bitmap);
+ 	else if (outside(input->inode_bitmap, start, end))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Inode bitmap not in group (block %u)",
+ 			     input->inode_bitmap);
+ 	else if (outside(input->inode_table, start, end) ||
+ 	         outside(itend - 1, start, end))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Inode table not in group (blocks %u-"E3FSBLK")",
+ 			     input->inode_table, itend - 1);
+ 	else if (input->inode_bitmap == input->block_bitmap)
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Block bitmap same as inode bitmap (%u)",
+ 			     input->block_bitmap);
+ 	else if (inside(input->block_bitmap, input->inode_table, itend))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Block bitmap (%u) in inode table (%u-"E3FSBLK")",
+ 			     input->block_bitmap, input->inode_table, itend-1);
+ 	else if (inside(input->inode_bitmap, input->inode_table, itend))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Inode bitmap (%u) in inode table (%u-"E3FSBLK")",
+ 			     input->inode_bitmap, input->inode_table, itend-1);
+ 	else if (inside(input->block_bitmap, start, metaend))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Block bitmap (%u) in GDT table"
+ 			     " ("E3FSBLK"-"E3FSBLK")",
+ 			     input->block_bitmap, start, metaend - 1);
+ 	else if (inside(input->inode_bitmap, start, metaend))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Inode bitmap (%u) in GDT table"
+ 			     " ("E3FSBLK"-"E3FSBLK")",
+ 			     input->inode_bitmap, start, metaend - 1);
+ 	else if (inside(input->inode_table, start, metaend) ||
+ 	         inside(itend - 1, start, metaend))
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Inode table (%u-"E3FSBLK") overlaps"
+ 			     "GDT table ("E3FSBLK"-"E3FSBLK")",
+ 			     input->inode_table, itend - 1, start, metaend - 1);
+@@ -386,7 +386,7 @@ static int verify_reserved_gdb(struct su
+ 
+ 	while ((grp = ext3_list_backups(sb, &three, &five, &seven)) < end) {
+ 		if (le32_to_cpu(*p++) != grp * EXT3_BLOCKS_PER_GROUP(sb) + blk){
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 				     "reserved GDT "E3FSBLK
+ 				     " missing grp %d ("E3FSBLK")",
+ 				     blk, grp,
+@@ -440,7 +440,7 @@ static int add_new_gdb(handle_t *handle,
+ 	 */
+ 	if (EXT3_SB(sb)->s_sbh->b_blocknr !=
+ 	    le32_to_cpu(EXT3_SB(sb)->s_es->s_first_data_block)) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			"won't resize using backup superblock at %llu",
+ 			(unsigned long long)EXT3_SB(sb)->s_sbh->b_blocknr);
+ 		return -EPERM;
+@@ -464,7 +464,7 @@ static int add_new_gdb(handle_t *handle,
+ 
+ 	data = (__le32 *)dind->b_data;
+ 	if (le32_to_cpu(data[gdb_num % EXT3_ADDR_PER_BLOCK(sb)]) != gdblock) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "new group %u GDT block "E3FSBLK" not reserved",
+ 			     input->group, gdblock);
+ 		err = -EINVAL;
+@@ -488,7 +488,7 @@ static int add_new_gdb(handle_t *handle,
+ 			GFP_KERNEL);
+ 	if (!n_group_desc) {
+ 		err = -ENOMEM;
+-		ext3_warning (sb, __FUNCTION__,
++		ext3_warning (sb, __func__,
+ 			      "not enough memory for %lu groups", gdb_num + 1);
+ 		goto exit_inode;
+ 	}
+@@ -586,7 +586,7 @@ static int reserve_backup_gdb(handle_t *
+ 	/* Get each reserved primary GDT block and verify it holds backups */
+ 	for (res = 0; res < reserved_gdb; res++, blk++) {
+ 		if (le32_to_cpu(*data) != blk) {
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 				     "reserved block "E3FSBLK
+ 				     " not at offset %ld",
+ 				     blk,
+@@ -730,7 +730,7 @@ static void update_backups(struct super_
+ 	 */
+ exit_err:
+ 	if (err) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "can't update backup for group %d (err %d), "
+ 			     "forcing fsck on next reboot", group, err);
+ 		sbi->s_mount_state &= ~EXT3_VALID_FS;
+@@ -770,33 +770,33 @@ int ext3_group_add(struct super_block *s
+ 
+ 	if (gdb_off == 0 && !EXT3_HAS_RO_COMPAT_FEATURE(sb,
+ 					EXT3_FEATURE_RO_COMPAT_SPARSE_SUPER)) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "Can't resize non-sparse filesystem further");
+ 		return -EPERM;
+ 	}
+ 
+ 	if (le32_to_cpu(es->s_blocks_count) + input->blocks_count <
+ 	    le32_to_cpu(es->s_blocks_count)) {
+-		ext3_warning(sb, __FUNCTION__, "blocks_count overflow\n");
++		ext3_warning(sb, __func__, "blocks_count overflow\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (le32_to_cpu(es->s_inodes_count) + EXT3_INODES_PER_GROUP(sb) <
+ 	    le32_to_cpu(es->s_inodes_count)) {
+-		ext3_warning(sb, __FUNCTION__, "inodes_count overflow\n");
++		ext3_warning(sb, __func__, "inodes_count overflow\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (reserved_gdb || gdb_off == 0) {
+ 		if (!EXT3_HAS_COMPAT_FEATURE(sb,
+ 					     EXT3_FEATURE_COMPAT_RESIZE_INODE)){
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 				     "No reserved GDT blocks, can't resize");
+ 			return -EPERM;
+ 		}
+ 		inode = ext3_iget(sb, EXT3_RESIZE_INO);
+ 		if (IS_ERR(inode)) {
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 				     "Error opening resize inode");
+ 			return PTR_ERR(inode);
+ 		}
+@@ -825,7 +825,7 @@ int ext3_group_add(struct super_block *s
+ 
+ 	lock_super(sb);
+ 	if (input->group != sbi->s_groups_count) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "multiple resizers run on filesystem!");
+ 		err = -EBUSY;
+ 		goto exit_journal;
+@@ -988,13 +988,13 @@ int ext3_group_extend(struct super_block
+ 			" too large to resize to %lu blocks safely\n",
+ 			sb->s_id, n_blocks_count);
+ 		if (sizeof(sector_t) < 8)
+-			ext3_warning(sb, __FUNCTION__,
++			ext3_warning(sb, __func__,
+ 			"CONFIG_LBD not enabled\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (n_blocks_count < o_blocks_count) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "can't shrink FS - resize aborted");
+ 		return -EBUSY;
+ 	}
+@@ -1004,7 +1004,7 @@ int ext3_group_extend(struct super_block
+ 		EXT3_BLOCKS_PER_GROUP(sb);
+ 
+ 	if (last == 0) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "need to use ext2online to resize further");
+ 		return -EPERM;
+ 	}
+@@ -1012,7 +1012,7 @@ int ext3_group_extend(struct super_block
+ 	add = EXT3_BLOCKS_PER_GROUP(sb) - last;
+ 
+ 	if (o_blocks_count + add < o_blocks_count) {
+-		ext3_warning(sb, __FUNCTION__, "blocks_count overflow");
++		ext3_warning(sb, __func__, "blocks_count overflow");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1020,7 +1020,7 @@ int ext3_group_extend(struct super_block
+ 		add = n_blocks_count - o_blocks_count;
+ 
+ 	if (o_blocks_count + add < n_blocks_count)
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "will only finish group ("E3FSBLK
+ 			     " blocks, %u new)",
+ 			     o_blocks_count + add, add);
+@@ -1028,7 +1028,7 @@ int ext3_group_extend(struct super_block
+ 	/* See if the device is actually as big as what was requested */
+ 	bh = sb_bread(sb, o_blocks_count + add -1);
+ 	if (!bh) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "can't read last block, resize aborted");
+ 		return -ENOSPC;
+ 	}
+@@ -1040,13 +1040,13 @@ int ext3_group_extend(struct super_block
+ 	handle = ext3_journal_start_sb(sb, 3);
+ 	if (IS_ERR(handle)) {
+ 		err = PTR_ERR(handle);
+-		ext3_warning(sb, __FUNCTION__, "error %d on journal start",err);
++		ext3_warning(sb, __func__, "error %d on journal start",err);
+ 		goto exit_put;
+ 	}
+ 
+ 	lock_super(sb);
+ 	if (o_blocks_count != le32_to_cpu(es->s_blocks_count)) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "multiple resizers run on filesystem!");
+ 		unlock_super(sb);
+ 		ext3_journal_stop(handle);
+@@ -1056,7 +1056,7 @@ int ext3_group_extend(struct super_block
+ 
+ 	if ((err = ext3_journal_get_write_access(handle,
+ 						 EXT3_SB(sb)->s_sbh))) {
+-		ext3_warning(sb, __FUNCTION__,
++		ext3_warning(sb, __func__,
+ 			     "error %d on journal write access", err);
+ 		unlock_super(sb);
+ 		ext3_journal_stop(handle);
+diff -puN fs/ext3/super.c~ext3-replace-remaining-__function__-occurrences fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/super.c
+@@ -84,7 +84,7 @@ handle_t *ext3_journal_start_sb(struct s
+ 	 * take the FS itself readonly cleanly. */
+ 	journal = EXT3_SB(sb)->s_journal;
+ 	if (is_journal_aborted(journal)) {
+-		ext3_abort(sb, __FUNCTION__,
++		ext3_abort(sb, __func__,
+ 			   "Detected aborted journal");
+ 		return ERR_PTR(-EROFS);
+ 	}
+@@ -304,7 +304,7 @@ void ext3_update_dynamic_rev(struct supe
+ 	if (le32_to_cpu(es->s_rev_level) > EXT3_GOOD_OLD_REV)
+ 		return;
+ 
+-	ext3_warning(sb, __FUNCTION__,
++	ext3_warning(sb, __func__,
+ 		     "updating to rev %d because of new feature flag, "
+ 		     "running e2fsck is recommended",
+ 		     EXT3_DYNAMIC_REV);
+@@ -1386,7 +1386,7 @@ static void ext3_orphan_cleanup (struct 
+ 		if (inode->i_nlink) {
+ 			printk(KERN_DEBUG
+ 				"%s: truncating inode %lu to %Ld bytes\n",
+-				__FUNCTION__, inode->i_ino, inode->i_size);
++				__func__, inode->i_ino, inode->i_size);
+ 			jbd_debug(2, "truncating inode %lu to %Ld bytes\n",
+ 				  inode->i_ino, inode->i_size);
+ 			ext3_truncate(inode);
+@@ -1394,7 +1394,7 @@ static void ext3_orphan_cleanup (struct 
+ 		} else {
+ 			printk(KERN_DEBUG
+ 				"%s: deleting unreferenced inode %lu\n",
+-				__FUNCTION__, inode->i_ino);
++				__func__, inode->i_ino);
+ 			jbd_debug(2, "deleting unreferenced inode %lu\n",
+ 				  inode->i_ino);
+ 			nr_orphans++;
+@@ -2297,9 +2297,9 @@ static void ext3_clear_journal_err(struc
+ 		char nbuf[16];
+ 
+ 		errstr = ext3_decode_error(sb, j_errno, nbuf);
+-		ext3_warning(sb, __FUNCTION__, "Filesystem error recorded "
++		ext3_warning(sb, __func__, "Filesystem error recorded "
+ 			     "from previous mount: %s", errstr);
+-		ext3_warning(sb, __FUNCTION__, "Marking fs in need of "
++		ext3_warning(sb, __func__, "Marking fs in need of "
+ 			     "filesystem check.");
+ 
+ 		EXT3_SB(sb)->s_mount_state |= EXT3_ERROR_FS;
+@@ -2426,7 +2426,7 @@ static int ext3_remount (struct super_bl
+ 	}
+ 
+ 	if (sbi->s_mount_opt & EXT3_MOUNT_ABORT)
+-		ext3_abort(sb, __FUNCTION__, "Abort forced by user");
++		ext3_abort(sb, __func__, "Abort forced by user");
+ 
+ 	sb->s_flags = (sb->s_flags & ~MS_POSIXACL) |
+ 		((sbi->s_mount_opt & EXT3_MOUNT_POSIX_ACL) ? MS_POSIXACL : 0);
+diff -puN fs/ext3/xattr.c~ext3-replace-remaining-__function__-occurrences fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-replace-remaining-__function__-occurrences
++++ a/fs/ext3/xattr.c
+@@ -234,7 +234,7 @@ ext3_xattr_block_get(struct inode *inode
+ 	ea_bdebug(bh, "b_count=%d, refcount=%d",
+ 		atomic_read(&(bh->b_count)), le32_to_cpu(BHDR(bh)->h_refcount));
+ 	if (ext3_xattr_check_block(bh)) {
+-bad_block:	ext3_error(inode->i_sb, __FUNCTION__,
++bad_block:	ext3_error(inode->i_sb, __func__,
+ 			   "inode %lu: bad block "E3FSBLK, inode->i_ino,
+ 			   EXT3_I(inode)->i_file_acl);
+ 		error = -EIO;
+@@ -376,7 +376,7 @@ ext3_xattr_block_list(struct inode *inod
+ 	ea_bdebug(bh, "b_count=%d, refcount=%d",
+ 		atomic_read(&(bh->b_count)), le32_to_cpu(BHDR(bh)->h_refcount));
+ 	if (ext3_xattr_check_block(bh)) {
+-		ext3_error(inode->i_sb, __FUNCTION__,
++		ext3_error(inode->i_sb, __func__,
+ 			   "inode %lu: bad block "E3FSBLK, inode->i_ino,
+ 			   EXT3_I(inode)->i_file_acl);
+ 		error = -EIO;
+@@ -651,7 +651,7 @@ ext3_xattr_block_find(struct inode *inod
+ 			atomic_read(&(bs->bh->b_count)),
+ 			le32_to_cpu(BHDR(bs->bh)->h_refcount));
+ 		if (ext3_xattr_check_block(bs->bh)) {
+-			ext3_error(sb, __FUNCTION__,
++			ext3_error(sb, __func__,
+ 				"inode %lu: bad block "E3FSBLK, inode->i_ino,
+ 				EXT3_I(inode)->i_file_acl);
+ 			error = -EIO;
+@@ -852,7 +852,7 @@ cleanup_dquot:
+ 	goto cleanup;
+ 
+ bad_block:
+-	ext3_error(inode->i_sb, __FUNCTION__,
++	ext3_error(inode->i_sb, __func__,
+ 		   "inode %lu: bad block "E3FSBLK, inode->i_ino,
+ 		   EXT3_I(inode)->i_file_acl);
+ 	goto cleanup;
+@@ -1081,14 +1081,14 @@ ext3_xattr_delete_inode(handle_t *handle
+ 		goto cleanup;
+ 	bh = sb_bread(inode->i_sb, EXT3_I(inode)->i_file_acl);
+ 	if (!bh) {
+-		ext3_error(inode->i_sb, __FUNCTION__,
++		ext3_error(inode->i_sb, __func__,
+ 			"inode %lu: block "E3FSBLK" read error", inode->i_ino,
+ 			EXT3_I(inode)->i_file_acl);
+ 		goto cleanup;
+ 	}
+ 	if (BHDR(bh)->h_magic != cpu_to_le32(EXT3_XATTR_MAGIC) ||
+ 	    BHDR(bh)->h_blocks != cpu_to_le32(1)) {
+-		ext3_error(inode->i_sb, __FUNCTION__,
++		ext3_error(inode->i_sb, __func__,
+ 			"inode %lu: bad block "E3FSBLK, inode->i_ino,
+ 			EXT3_I(inode)->i_file_acl);
+ 		goto cleanup;
+@@ -1215,7 +1215,7 @@ again:
+ 		}
+ 		bh = sb_bread(inode->i_sb, ce->e_block);
+ 		if (!bh) {
+-			ext3_error(inode->i_sb, __FUNCTION__,
++			ext3_error(inode->i_sb, __func__,
+ 				"inode %lu: block %lu read error",
+ 				inode->i_ino, (unsigned long) ce->e_block);
+ 		} else if (le32_to_cpu(BHDR(bh)->h_refcount) >=
 _
 
-Patches currently in -mm which might be from dwilder@us.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-relay-reset-consumed.patch
-trace-code-and-documentation.patch
-trace-sample.patch
+git-x86.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+arm-replace-remaining-__function__-occurences.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+ia64-remove-remaining-__function__-occurences.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+sh-replace-remaining-__function__-occurences.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+xen-make-blkif_getgeo-static.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+security-replace-remaining-__function__-occurences.patch
+security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+ext4-replace-remaining-__function__-occurrences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-remaining-__function__-occurrences.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+cifs-replace-remaining-__function__-occurrences.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
 
