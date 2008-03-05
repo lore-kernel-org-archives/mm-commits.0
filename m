@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_tc-library-update.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:45:24 -0800
-Message-ID: <200803052245.m25MjPei025184@imap1.linux-foundation.org>
+Subject: + atmel_tc-clocksource-clockevent-code-update.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:45:28 -0800
+Message-ID: <200803052245.m25MjSw9025187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40473 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761724AbYCEWqW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:46:22 -0500
+	by vger.kernel.org with ESMTP id S1753470AbYCEWrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:47:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, linux@maxim.org.za, nicolas.ferre@rfo.atmel.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, johnstul@us.ibm.com, linux@maxim.org.za, nicolas.ferre@rfo.atmel.com, tglx@linutronix.de
 
 
 The patch titled
-     atmel_tc library (update)
+     atmel_tc clocksource/clockevent code (update)
 has been added to the -mm tree.  Its filename is
-     atmel_tc-library-update.patch
+     atmel_tc-clocksource-clockevent-code-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,274 +33,284 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_tc library (update)
+Subject: atmel_tc clocksource/clockevent code (update)
 From: David Brownell <david-b@pacbell.net>
 
-  * Drop unneeded inclusion of <linux/mutex.h>
-  * Support an arbitrary number of TC blocks
-  * Return a struct with information about a TC block from
-    atmel_tc_alloc() instead of using a combination of return values
-    and "out" parameters.
-  * ioremap() the I/O registers on allocation
-  * Look up clocks and irqs for all channels
-  * Add "name" parameter to atmel_tc_alloc() and use this when
-    requesting the iomem resource.
-  * Check if the platform provided the necessary resources at probe()
-    time instead of when the TCB is allocated.
+  * Update to use new tclib API
+  * Replace open-coded do-while loop using goto with a real do-while loop
+  * Minor irq handler optimization: Load register base address from
+    dev_id instead of a global variable.
+  * Aggressively turn off clocks when the clockevent isn't being used
+  * Include the clockevent code on AT91RM9200 as well. The rating is
+    lower than the System Timer, so the clock will usually stay off.
+  * Don't assume that the number of clocks is always equal to the
+    number of irqs.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
 Cc: Andrew Victor <linux@maxim.org.za>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/atmel_tclib.c |  144 ++++++++++++++++++++++++-----------
- include/linux/atmel_tc.h   |   37 ++++++++
- 2 files changed, 133 insertions(+), 48 deletions(-)
+ drivers/clocksource/tcb_clksrc.c |  142 ++++++++++++++---------------
+ 1 file changed, 72 insertions(+), 70 deletions(-)
 
-diff -puN drivers/misc/atmel_tclib.c~atmel_tc-library-update drivers/misc/atmel_tclib.c
---- a/drivers/misc/atmel_tclib.c~atmel_tc-library-update
-+++ a/drivers/misc/atmel_tclib.c
-@@ -1,9 +1,14 @@
-+#include <linux/atmel_tc.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
- #include <linux/init.h>
--#include <linux/kernel.h>
--#include <linux/mutex.h>
-+#include <linux/io.h>
- #include <linux/ioport.h>
-+#include <linux/kernel.h>
- #include <linux/platform_device.h>
--#include <linux/atmel_tc.h>
-+
-+/* Number of bytes to reserve for the iomem resource */
-+#define ATMEL_TC_IOMEM_SIZE	256
+diff -puN drivers/clocksource/tcb_clksrc.c~atmel_tc-clocksource-clockevent-code-update drivers/clocksource/tcb_clksrc.c
+--- a/drivers/clocksource/tcb_clksrc.c~atmel_tc-clocksource-clockevent-code-update
++++ a/drivers/clocksource/tcb_clksrc.c
+@@ -45,11 +45,10 @@ static cycle_t tc_get_cycles(void)
+ 	u32		lower, upper;
  
+ 	raw_local_irq_save(flags);
+-retry:
+-	upper = __raw_readl(tcaddr + ATMEL_TC_REG(1, CV));
+-	lower = __raw_readl(tcaddr + ATMEL_TC_REG(0, CV));
+-	if (upper != __raw_readl(tcaddr + ATMEL_TC_REG(1, CV)))
+-		goto retry;
++	do {
++		upper = __raw_readl(tcaddr + ATMEL_TC_REG(1, CV));
++		lower = __raw_readl(tcaddr + ATMEL_TC_REG(0, CV));
++	} while (upper != __raw_readl(tcaddr + ATMEL_TC_REG(1, CV)));
  
- /*
-@@ -24,75 +29,124 @@ EXPORT_SYMBOL(atmel_tc_divisors);
+ 	raw_local_irq_restore(flags);
+ 	return (upper << 16) | lower;
+@@ -65,18 +64,17 @@ static struct clocksource clksrc = {
+ };
  
- #endif
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+-#define USE_TC_CLKEVT
+-#endif
  
--/* we "know" that there will be either one or two TC blocks */
--static struct platform_device *blocks[2];
--
-+static DEFINE_SPINLOCK(tc_list_lock);
-+static LIST_HEAD(tc_list);
+-#ifdef CONFIG_ARCH_AT91RM9200
+-/* The AT91rm9200 system timer is a oneshot-capable 32k timer that's
+- * always running ... configuring a TC channel to work the same way
+- * would just waste some power.
+- */
+-#undef USE_TC_CLKEVT
+-#endif
++struct tc_clkevt_device {
++	struct clock_event_device	clkevt;
++	struct clk			*clk;
++	void __iomem			*regs;
++};
  
- /**
-  * atmel_tc_alloc - allocate a specified TC block
-  * @block: which block to allocate
-- * @iomem: used to return its IO memory resource
-+ * @name: name to be associated with the iomem resource
-  *
-- * Caller allocates a block.  If it is available, its I/O space is requested
-- * and returned through the iomem pointer, and the device node for the block
-- * is returned.  When it is not available, NULL is returned.
-- *
-- * On some platforms, each TC channel has its own clocks and IRQs.  Drivers
-- * should clk_get() and clk_enable() "t0_clk", "t1_clk, and "t2_clk".
-- * In the same vein, they should platform_get_irq() for irqs 0, 1, and 2.
-- * On other platforms, only irq 0 and "t0_clk" will be available; drivers
-- * should handle with both configurations.
-+ * Caller allocates a block.  If it is available, a pointer to a
-+ * pre-initialized struct atmel_tc is returned. The caller can access
-+ * the registers directly through the "regs" field.
-  */
--struct platform_device *atmel_tc_alloc(unsigned block, struct resource **iomem)
-+struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name)
+-#ifdef USE_TC_CLKEVT
++static struct tc_clkevt_device *to_tc_clkevt(struct clock_event_device *clkevt)
++{
++	return container_of(clkevt, struct tc_clkevt_device, clkevt);
++}
+ 
+ /* For now, we always use the 32K clock ... this optimizes for NO_HZ,
+  * because using one of the divided clocks would usually mean the
+@@ -89,8 +87,15 @@ static u32 timer_clock;
+ 
+ static void tc_mode(enum clock_event_mode m, struct clock_event_device *d)
  {
--	struct platform_device	*tc;
-+	struct atmel_tc		*tc;
-+	struct platform_device	*pdev = NULL;
- 	struct resource		*r;
+-	__raw_writel(0xff, tcaddr + ATMEL_TC_REG(2, IDR));
+-	__raw_writel(ATMEL_TC_CLKDIS, tcaddr + ATMEL_TC_REG(2, CCR));
++	struct tc_clkevt_device *tcd = to_tc_clkevt(d);
++	void __iomem		*regs = tcd->regs;
++
++	if (tcd->clkevt.mode == CLOCK_EVT_MODE_PERIODIC
++			|| tcd->clkevt.mode == CLOCK_EVT_MODE_ONESHOT) {
++		__raw_writel(0xff, regs + ATMEL_TC_REG(2, IDR));
++		__raw_writel(ATMEL_TC_CLKDIS, regs + ATMEL_TC_REG(2, CCR));
++		clk_disable(tcd->clk);
++	}
  
--	if (block >= ARRAY_SIZE(blocks) || !iomem)
--		return NULL;
--
--	tc = blocks[block];
--	if (tc) {
--		r = platform_get_resource(tc, IORESOURCE_MEM, 0);
--		if (r)
--			r = request_mem_region(r->start, 256, NULL);
--		*iomem = r;
--		if (!r)
--			tc = NULL;
-+	spin_lock(&tc_list_lock);
-+	list_for_each_entry(tc, &tc_list, node) {
-+		if (tc->pdev->id == block) {
-+			pdev = tc->pdev;
-+			break;
-+		}
- 	}
+ 	switch (m) {
  
-+	if (!pdev || tc->iomem)
-+		goto fail;
+@@ -98,26 +103,30 @@ static void tc_mode(enum clock_event_mod
+ 	 * of oneshot, we get lower overhead and improved accuracy.
+ 	 */
+ 	case CLOCK_EVT_MODE_PERIODIC:
++		clk_enable(tcd->clk);
 +
-+	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	r = request_mem_region(r->start, ATMEL_TC_IOMEM_SIZE, name);
-+	if (!r)
-+		goto fail;
-+
-+	tc->regs = ioremap(r->start, ATMEL_TC_IOMEM_SIZE);
-+	if (!tc->regs)
-+		goto fail_ioremap;
-+
-+	tc->iomem = r;
-+
-+out:
-+	spin_unlock(&tc_list_lock);
- 	return tc;
-+
-+fail_ioremap:
-+	release_resource(r);
-+fail:
-+	tc = NULL;
-+	goto out;
- }
- EXPORT_SYMBOL_GPL(atmel_tc_alloc);
+ 		/* slow clock, count up to RC, then irq and restart */
+ 		__raw_writel(timer_clock
+ 				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
+-				tcaddr + ATMEL_TC_REG(2, CMR));
++				regs + ATMEL_TC_REG(2, CMR));
+ 		__raw_writel((32768 + HZ/2) / HZ, tcaddr + ATMEL_TC_REG(2, RC));
  
- /**
-  * atmel_tc_free - release a specified TC block
-- * @block: which block to release
-+ * @tc: Timer/counter block that was returned by atmel_tc_alloc()
-  *
-- * This reverses the effect of atmel_tc_alloc(), invalidating the resource
-- * returned by that routine and making the TC available to other drivers.
-+ * This reverses the effect of atmel_tc_alloc(), unmapping the I/O
-+ * registers, invalidating the resource returned by that routine and
-+ * making the TC available to other drivers.
-  */
--void atmel_tc_free(struct platform_device *tc)
-+void atmel_tc_free(struct atmel_tc *tc)
- {
--	if (tc->id >= 0 && tc->id < ARRAY_SIZE(blocks)) {
--		struct resource		*r;
--
--		r = platform_get_resource(tc, IORESOURCE_MEM, 0);
--		release_mem_region(r->start, 256);
-+	spin_lock(&tc_list_lock);
-+	if (tc->regs) {
-+		iounmap(tc->regs);
-+		release_resource(tc->iomem);
-+		tc->regs = NULL;
-+		tc->iomem = NULL;
- 	}
-+	spin_unlock(&tc_list_lock);
- }
- EXPORT_SYMBOL_GPL(atmel_tc_free);
+ 		/* Enable clock and interrupts on RC compare */
+-		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
++		__raw_writel(ATMEL_TC_CPCS, regs + ATMEL_TC_REG(2, IER));
  
- static int __init tc_probe(struct platform_device *pdev)
- {
--	static char __initdata e2big[] =
--		KERN_ERR "tclib: can't record TC block %d\n";
--
--	if (pdev->id < 0 || pdev->id >= ARRAY_SIZE(blocks)) {
--		printk(e2big, pdev->id);
--		return -ENFILE;
-+	struct atmel_tc *tc;
-+	struct clk	*clk;
-+	int		irq;
+ 		/* go go gadget! */
+ 		__raw_writel(ATMEL_TC_CLKEN | ATMEL_TC_SWTRG,
+-				tcaddr + ATMEL_TC_REG(2, CCR));
++				regs + ATMEL_TC_REG(2, CCR));
+ 		break;
+ 
+ 	case CLOCK_EVT_MODE_ONESHOT:
++		clk_enable(tcd->clk);
 +
-+	if (!platform_get_resource(pdev, IORESOURCE_MEM, 0))
-+		return -EINVAL;
-+
-+	irq = platform_get_irq(pdev, 0);
-+	if (irq < 0)
-+		return -EINVAL;
-+
-+	tc = kzalloc(sizeof(struct atmel_tc), GFP_KERNEL);
-+	if (!tc)
-+		return -ENOMEM;
-+
-+	tc->pdev = pdev;
-+
-+	clk = clk_get(&pdev->dev, "t0_clk");
-+	if (IS_ERR(clk)) {
-+		kfree(tc);
-+		return -EINVAL;
- 	}
--	blocks[pdev->id] = pdev;
-+
-+	tc->clk[0] = clk;
-+	tc->clk[1] = clk_get(&pdev->dev, "t1_clk");
-+	if (IS_ERR(tc->clk[1]))
-+		tc->clk[1] = clk;
-+	tc->clk[2] = clk_get(&pdev->dev, "t2_clk");
-+	if (IS_ERR(tc->clk[2]))
-+		tc->clk[2] = clk;
-+
-+	tc->irq[0] = irq;
-+	tc->irq[1] = platform_get_irq(pdev, 1);
-+	if (tc->irq[1] < 0)
-+		tc->irq[1] = irq;
-+	tc->irq[2] = platform_get_irq(pdev, 2);
-+	if (tc->irq[2] < 0)
-+		tc->irq[2] = irq;
-+
-+	spin_lock(&tc_list_lock);
-+	list_add_tail(&tc->node, &tc_list);
-+	spin_unlock(&tc_list_lock);
-+
+ 		/* slow clock, count up to RC, then irq and stop */
+ 		__raw_writel(timer_clock | ATMEL_TC_CPCSTOP
+ 				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
+-				tcaddr + ATMEL_TC_REG(2, CMR));
+-		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
++				regs + ATMEL_TC_REG(2, CMR));
++		__raw_writel(ATMEL_TC_CPCS, regs + ATMEL_TC_REG(2, IER));
+ 
+ 		/* set_next_event() configures and starts the timer */
+ 		break;
+@@ -137,22 +146,28 @@ static int tc_next_event(unsigned long d
  	return 0;
  }
  
-diff -puN include/linux/atmel_tc.h~atmel_tc-library-update include/linux/atmel_tc.h
---- a/include/linux/atmel_tc.h~atmel_tc-library-update
-+++ a/include/linux/atmel_tc.h
-@@ -10,6 +10,9 @@
- #ifndef ATMEL_TC_H
- #define ATMEL_TC_H
+-static struct clock_event_device clkevt = {
+-	.name		= "tc_clkevt",
+-	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+-	.shift		= 32,
+-	.rating		= 125,
+-	.cpumask	= CPU_MASK_CPU0,
+-	.set_next_event	= tc_next_event,
+-	.set_mode	= tc_mode,
++static struct tc_clkevt_device clkevt = {
++	.clkevt	= {
++		.name		= "tc_clkevt",
++		.features	= CLOCK_EVT_FEAT_PERIODIC
++					| CLOCK_EVT_FEAT_ONESHOT,
++		.shift		= 32,
++		/* Should be lower than at91rm9200's system timer */
++		.rating		= 125,
++		.cpumask	= CPU_MASK_CPU0,
++		.set_next_event	= tc_next_event,
++		.set_mode	= tc_mode,
++	},
+ };
  
-+#include <linux/compiler.h>
-+#include <linux/list.h>
-+
- /*
-  * Many 32-bit Atmel SOCs include one or more TC blocks, each of which holds
-  * three general-purpose 16-bit timers.  These timers share one register bank.
-@@ -27,9 +30,37 @@
-  * timers.  Then they use clk_get() and platform_get_irq() to get clock and
-  * IRQ resources.
-  */
--extern struct platform_device *atmel_tc_alloc(unsigned block,
--		struct resource **iomem);
--extern void atmel_tc_free(struct platform_device *tc);
-+
-+struct clk;
-+
-+/**
-+ * struct atmel_tc - information about a Timer/Counter Block
-+ * @pdev: physical device
-+ * @iomem: resource associated with the I/O register
-+ * @regs: mapping through which the I/O registers can be accessed
-+ * @irq: irq for each of the three channels
-+ * @clk: internal clock source for each of the three channels
-+ * @node: list node, for tclib internal use
-+ *
-+ * On some platforms, each TC channel has its own clocks and IRQs,
-+ * while on others, all TC channels share the same clock and IRQ.
-+ * Drivers should clk_enable() all the clocks they need even though
-+ * all the entries in @clk may point to the same physical clock.
-+ * Likewise, drivers should request irqs independently for each
-+ * channel, but they must use IRQF_SHARED in case some of the entries
-+ * in @irq are actually the same IRQ.
-+ */
-+struct atmel_tc {
-+	struct platform_device	*pdev;
-+	struct resource		*iomem;
-+	void __iomem		*regs;
-+	int			irq[3];
-+	struct clk		*clk[3];
-+	struct list_head	node;
-+};
-+
-+extern struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name);
-+extern void atmel_tc_free(struct atmel_tc *tc);
+ static irqreturn_t ch2_irq(int irq, void *handle)
+ {
+-	unsigned int	sr = __raw_readl(tcaddr + ATMEL_TC_REG(2, SR));
++	struct tc_clkevt_device	*dev = handle;
++	unsigned int		sr;
  
- /* platform-specific ATMEL_TC_TIMER_CLOCKx divisors (0 means 32KiHz) */
- extern const u8 atmel_tc_divisors[5];
++	sr = __raw_readl(dev->regs + ATMEL_TC_REG(2, SR));
+ 	if (sr & ATMEL_TC_CPCS) {
+-		clkevt.event_handler(&clkevt);
++		dev->clkevt.event_handler(&dev->clkevt);
+ 		return IRQ_HANDLED;
+ 	}
+ 
+@@ -165,37 +180,32 @@ static struct irqaction tc_irqaction = {
+ 	.handler	= ch2_irq,
+ };
+ 
+-static void __init setup_clkevents(struct platform_device *pdev,
++static void __init setup_clkevents(struct atmel_tc *tc,
+ 		struct clk *t0_clk, int clk32k_divisor_idx)
+ {
+-	struct clk	*t2_clk = clk_get(&pdev->dev, "t2_clk");
+-	int		irq;
+-
+-	/* SOCs have either one IRQ and one clock for the whole
+-	 * TC block; or one each per channel.  We use channel 2.
+-	 */
+-	if (IS_ERR(t2_clk)) {
+-		t2_clk = t0_clk;
+-		irq = platform_get_irq(pdev, 0);
+-	} else {
+-		irq = platform_get_irq(pdev, 2);
+-		clk_enable(t2_clk);
+-	}
++	struct platform_device *pdev = tc->pdev;
++	struct clk *t2_clk = tc->clk[2];
++	int irq = tc->irq[2];
++
++	clkevt.regs = tc->regs;
++	clkevt.clk = t2_clk;
++	tc_irqaction.dev_id = &clkevt;
+ 
+ 	timer_clock = clk32k_divisor_idx;
+ 
+-	clkevt.mult = div_sc(32768, NSEC_PER_SEC, clkevt.shift);
+-	clkevt.max_delta_ns = clockevent_delta2ns(0xffff, &clkevt);
+-	clkevt.min_delta_ns = clockevent_delta2ns(1, &clkevt) + 1;
++	clkevt.clkevt.mult = div_sc(32768, NSEC_PER_SEC, clkevt.clkevt.shift);
++	clkevt.clkevt.max_delta_ns
++		= clockevent_delta2ns(0xffff, &clkevt.clkevt);
++	clkevt.clkevt.min_delta_ns = clockevent_delta2ns(1, &clkevt.clkevt) + 1;
+ 
+ 	setup_irq(irq, &tc_irqaction);
+ 
+-	clockevents_register_device(&clkevt);
++	clockevents_register_device(&clkevt.clkevt);
+ }
+ 
+-#else /* !USE_TC_CLKEVT */
++#else /* !CONFIG_GENERIC_CLOCKEVENTS */
+ 
+-static void __init setup_clkevents(struct platform_device *pdev,
++static void __init setup_clkevents(struct atmel_tc *tc,
+ 		struct clk *t0_clk, int clk32k_divisor_idx)
+ {
+ 	/* NOTHING */
+@@ -209,26 +219,22 @@ static int __init tcb_clksrc_init(void)
+ 		= KERN_DEBUG "%s: tc%d at %d.%03d MHz\n";
+ 
+ 	struct platform_device *pdev;
++	struct atmel_tc *tc;
+ 	struct clk *t0_clk, *t1_clk;
+ 	u32 rate, divided_rate = 0;
+ 	int best_divisor_idx = -1;
+ 	int clk32k_divisor_idx = -1;
+ 	int i;
+-	struct resource *iomem;
+ 
+-	pdev = atmel_tc_alloc(CONFIG_ATMEL_TCB_CLKSRC_BLOCK, &iomem);
+-	if (pdev == NULL) {
++	tc = atmel_tc_alloc(CONFIG_ATMEL_TCB_CLKSRC_BLOCK, clksrc.name);
++	if (!tc) {
+ 		pr_debug("can't alloc TC for clocksource\n");
+ 		return -ENODEV;
+ 	}
+-	rename_region(iomem, clksrc.name);
+-	tcaddr = ioremap(iomem->start, 256);
++	tcaddr = tc->regs;
++	pdev = tc->pdev;
+ 
+-	t0_clk = clk_get(&pdev->dev, "t0_clk");
+-	if (IS_ERR(t0_clk)) {
+-		atmel_tc_free(pdev);
+-		return PTR_ERR(t0_clk);
+-	}
++	t0_clk = tc->clk[0];
+ 	clk_enable(t0_clk);
+ 
+ 	/* How fast will we be counting?  Pick something over 5 MHz.  */
+@@ -259,14 +265,10 @@ static int __init tcb_clksrc_init(void)
+ 			divided_rate / 1000000,
+ 			((divided_rate + 500000) % 1000000) / 1000);
+ 
+-	/* Some platforms (like at91rm9200, at91sam9260, etc) have one clock
+-	 * (and IRQ) per timer.  Others (at91sam9263, ap700x, etc) don't.
++	/* tclib will give us three clocks no matter what the
++	 * underlying platform supports.
+ 	 */
+-	t1_clk = clk_get(&pdev->dev, "t1_clk");
+-	if (IS_ERR(t1_clk))
+-		t1_clk = t0_clk;
+-	else
+-		clk_enable(t1_clk);
++	clk_enable(tc->clk[1]);
+ 
+ 	/* channel 0:  waveform mode, input mclk/8, clock TIOA0 on overflow */
+ 	__raw_writel(best_divisor_idx			/* likely divide-by-8 */
+@@ -296,7 +298,7 @@ static int __init tcb_clksrc_init(void)
+ 	clocksource_register(&clksrc);
+ 
+ 	/* channel 2:  periodic and oneshot timer support */
+-	setup_clkevents(pdev, t0_clk, clk32k_divisor_idx);
++	setup_clkevents(tc, t0_clk, clk32k_divisor_idx);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
