@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch added to -mm tree
-Date: Wed, 05 Mar 2008 15:33:53 -0800
-Message-ID: <200803052333.m25NXrN2027367@imap1.linux-foundation.org>
+Subject: + handle_stop_signal-use-the-cached-p-signal-value.patch added to -mm tree
+Date: Wed, 05 Mar 2008 15:36:17 -0800
+Message-ID: <200803052336.m25NaHOX027435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbYCEXfS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:35:18 -0500
+	by vger.kernel.org with ESMTP id S1752465AbYCEXha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 18:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, jkosina@suse.cz, roland@redhat.com
 
 
 The patch titled
-     kill_pid_info: don't take now unneeded tasklist_lock
+     handle_stop_signal: use the cached p->signal value
 has been added to the -mm tree.  Its filename is
-     kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+     handle_stop_signal-use-the-cached-p-signal-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill_pid_info: don't take now unneeded tasklist_lock
+Subject: handle_stop_signal: use the cached p->signal value
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Previously handle_stop_signal(SIGCONT) could drop ->siglock.  That is why
-kill_pid_info(SIGCONT) takes tasklist_lock to make sure the target task can't
-go away after unlock.  Not needed now.
+Cache the value of p->signal, and change the code to use while_each_thread()
+helper.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -46,45 +45,93 @@ Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |    2 --
- kernel/signal.c        |    7 +------
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ kernel/signal.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/signal.h~kill_pid_info-dont-take-now-unneeded-tasklist_lock include/linux/signal.h
---- a/include/linux/signal.h~kill_pid_info-dont-take-now-unneeded-tasklist_lock
-+++ a/include/linux/signal.h
-@@ -362,8 +362,6 @@ int unhandled_signal(struct task_struct 
- #define sig_kernel_stop(sig) \
- 	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_STOP_MASK))
- 
--#define sig_needs_tasklist(sig)	((sig) == SIGCONT)
--
- #define sig_user_defined(t, signr) \
- 	(((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_DFL) &&	\
- 	 ((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_IGN))
-diff -puN kernel/signal.c~kill_pid_info-dont-take-now-unneeded-tasklist_lock kernel/signal.c
---- a/kernel/signal.c~kill_pid_info-dont-take-now-unneeded-tasklist_lock
+diff -puN kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value kernel/signal.c
+--- a/kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value
 +++ a/kernel/signal.c
-@@ -1039,9 +1039,6 @@ int kill_pid_info(int sig, struct siginf
- 	struct task_struct *p;
+@@ -566,9 +566,10 @@ static void do_notify_parent_cldstop(str
+  */
+ static void handle_stop_signal(int sig, struct task_struct *p)
+ {
++	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
  
- 	rcu_read_lock();
--	if (unlikely(sig_needs_tasklist(sig)))
--		read_lock(&tasklist_lock);
+-	if (p->signal->flags & SIGNAL_GROUP_EXIT)
++	if (signal->flags & SIGNAL_GROUP_EXIT)
+ 		/*
+ 		 * The process is in the middle of dying already.
+ 		 */
+@@ -578,19 +579,18 @@ static void handle_stop_signal(int sig, 
+ 		/*
+ 		 * This is a stop signal.  Remove SIGCONT from all queues.
+ 		 */
+-		rm_from_queue(sigmask(SIGCONT), &p->signal->shared_pending);
++		rm_from_queue(sigmask(SIGCONT), &signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			rm_from_queue(sigmask(SIGCONT), &t->pending);
+-			t = next_thread(t);
+-		} while (t != p);
++		} while_each_thread(p, t);
+ 	} else if (sig == SIGCONT) {
+ 		unsigned int why;
+ 		/*
+ 		 * Remove all stop signals from all queues,
+ 		 * and wake all threads.
+ 		 */
+-		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
++		rm_from_queue(SIG_KERNEL_STOP_MASK, &signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			unsigned int state;
+@@ -615,9 +615,7 @@ static void handle_stop_signal(int sig, 
+ 				state |= TASK_INTERRUPTIBLE;
+ 			}
+ 			wake_up_state(t, state);
 -
- retry:
- 	p = pid_task(pid, PIDTYPE_PID);
- 	if (p) {
-@@ -1055,10 +1052,8 @@ retry:
+-			t = next_thread(t);
+-		} while (t != p);
++		} while_each_thread(p, t);
+ 
+ 		/*
+ 		 * Notify the parent with CLD_CONTINUED if we were stopped.
+@@ -628,29 +626,29 @@ static void handle_stop_signal(int sig, 
+ 		 * CLD_CONTINUED was dropped.
+ 		 */
+ 		why = 0;
+-		if (p->signal->flags & SIGNAL_STOP_STOPPED)
++		if (signal->flags & SIGNAL_STOP_STOPPED)
+ 			why |= SIGNAL_CLD_CONTINUED;
+-		else if (p->signal->group_stop_count)
++		else if (signal->group_stop_count)
+ 			why |= SIGNAL_CLD_STOPPED;
+ 
+ 		if (why) {
+-			p->signal->flags = why | SIGNAL_STOP_CONTINUED;
+-			p->signal->group_stop_count = 0;
+-			p->signal->group_exit_code = 0;
++			signal->flags = why | SIGNAL_STOP_CONTINUED;
++			signal->group_stop_count = 0;
++			signal->group_exit_code = 0;
+ 		} else {
+ 			/*
+ 			 * We are not stopped, but there could be a stop
+ 			 * signal in the middle of being processed after
+ 			 * being removed from the queue.  Clear that too.
  			 */
- 			goto retry;
+-			p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
++			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
+ 		}
+ 	} else if (sig == SIGKILL) {
+ 		/*
+ 		 * Make sure that any pending stop signal already dequeued
+ 		 * is undone by the wakeup for SIGKILL.
+ 		 */
+-		p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
++		signal->flags &= ~SIGNAL_STOP_DEQUEUED;
  	}
--
--	if (unlikely(sig_needs_tasklist(sig)))
--		read_unlock(&tasklist_lock);
- 	rcu_read_unlock();
-+
- 	return error;
  }
  
 _
@@ -109,6 +156,9 @@ signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
 signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
 kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
 ptrace-introduce-task_detached-helper.patch
 ptrace-introduce-ptrace_reparented-helper.patch
 reparent_thread-use-same_thread_group.patch
