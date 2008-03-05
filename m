@@ -1,197 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:07 -0800
-Message-ID: <200803050746.m257k7DF021719@imap1.linux-foundation.org>
+Subject: - hugetlb-fix-pool-shrinking-while-in-restricted-cpuset.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:47 -0800
+Message-ID: <200803050746.m257klJ2021793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759562AbYCEHrW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:22 -0500
+	by vger.kernel.org with ESMTP id S1756705AbYCEHrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, bdriessen@escrypt.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: nacc@us.ibm.com, Lee.Schermerhonr@hp.com, agl@us.ibm.com, clameter@sgi.com, david@gibson.dropbear.id.au, pj@sgi.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: make ecryptfs_prepare_write decrypt the page
+     hugetlb: fix pool shrinking while in restricted cpuset
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page.patch
+     hugetlb-fix-pool-shrinking-while-in-restricted-cpuset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: make ecryptfs_prepare_write decrypt the page
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: hugetlb: fix pool shrinking while in restricted cpuset
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-When the page is not up to date, ecryptfs_prepare_write() should be
-acting much like ecryptfs_readpage(). This includes the painfully
-obvious step of actually decrypting the page contents read from the
-lower encrypted file.
+Adam Litke noticed that currently we grow the hugepage pool independent of any
+cpuset the running process may be in, but when shrinking the pool, the cpuset
+is checked.  This leads to inconsistency when shrinking the pool in a
+restricted cpuset -- an administrator may have been able to grow the pool on a
+node restricted by a containing cpuset, but they cannot shrink it there.
 
-Note that this patch resolves a bug in eCryptfs in 2.6.24 that one can
-produce with these steps:
+There are two options: either prevent growing of the pool outside of the
+cpuset or allow shrinking outside of the cpuset.  >From previous discussions
+on linux-mm, /proc/sys/vm/nr_hugepages is an administrative interface that
+should not be restricted by cpusets.  So allow shrinking the pool by removing
+pages from nodes outside of current's cpuset.
 
-# mount -t ecryptfs /secret /secret
-# echo "abc" > /secret/file.txt
-# umount /secret
-# mount -t ecryptfs /secret /secret
-# echo "def" >> /secret/file.txt
-# cat /secret/file.txt
-
-Without this patch, the resulting data returned from cat is likely to
-be something other than "abc\ndef\n".
-
-(Thanks to Benedikt Driessen for reporting this.)
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Benedikt Driessen <bdriessen@escrypt.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: William Irwin <wli@holomorphy.com>
+Cc: Lee Schermerhorn <Lee.Schermerhonr@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |  102 ++++++++++++++++++++++++++++++++-----------
- 1 file changed, 76 insertions(+), 26 deletions(-)
+ mm/hugetlb.c |   26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-make-ecryptfs_prepare_write-decrypt-the-page
-+++ a/fs/ecryptfs/mmap.c
-@@ -263,52 +263,102 @@ out:
- 	return 0;
+diff -puN mm/hugetlb.c~hugetlb-fix-pool-shrinking-while-in-restricted-cpuset mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-pool-shrinking-while-in-restricted-cpuset
++++ a/mm/hugetlb.c
+@@ -71,7 +71,25 @@ static void enqueue_huge_page(struct pag
+ 	free_huge_pages_node[nid]++;
  }
  
--/* This function must zero any hole we create */
-+/**
-+ * ecryptfs_prepare_write
-+ * @file: The eCryptfs file
-+ * @page: The eCryptfs page
-+ * @from: The start byte from which we will write
-+ * @to: The end byte to which we will write
-+ *
-+ * This function must zero any hole we create
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
- static int ecryptfs_prepare_write(struct file *file, struct page *page,
- 				  unsigned from, unsigned to)
- {
--	int rc = 0;
- 	loff_t prev_page_end_size;
-+	int rc = 0;
- 
- 	if (!PageUptodate(page)) {
--		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
--						      PAGE_CACHE_SIZE,
--						      page->mapping->host);
--		if (rc) {
--			printk(KERN_ERR "%s: Error attemping to read lower "
--			       "page segment; rc = [%d]\n", __FUNCTION__, rc);
--			ClearPageUptodate(page);
--			goto out;
--		} else
-+		struct ecryptfs_crypt_stat *crypt_stat =
-+			&ecryptfs_inode_to_private(
-+				file->f_path.dentry->d_inode)->crypt_stat;
+-static struct page *dequeue_huge_page(struct vm_area_struct *vma,
++static struct page *dequeue_huge_page(void)
++{
++	int nid;
++	struct page *page = NULL;
 +
-+		if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)
-+		    || (crypt_stat->flags & ECRYPTFS_NEW_FILE)) {
-+			rc = ecryptfs_read_lower_page_segment(
-+				page, page->index, 0, PAGE_CACHE_SIZE,
-+				page->mapping->host);
-+			if (rc) {
-+				printk(KERN_ERR "%s: Error attemping to read "
-+				       "lower page segment; rc = [%d]\n",
-+				       __FUNCTION__, rc);
-+				ClearPageUptodate(page);
-+				goto out;
-+			} else
-+				SetPageUptodate(page);
-+		} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
-+			if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
-+				rc = ecryptfs_copy_up_encrypted_with_header(
-+					page, crypt_stat);
-+				if (rc) {
-+					printk(KERN_ERR "%s: Error attempting "
-+					       "to copy the encrypted content "
-+					       "from the lower file whilst "
-+					       "inserting the metadata from "
-+					       "the xattr into the header; rc "
-+					       "= [%d]\n", __FUNCTION__, rc);
-+					ClearPageUptodate(page);
-+					goto out;
-+				}
-+				SetPageUptodate(page);
-+			} else {
-+				rc = ecryptfs_read_lower_page_segment(
-+					page, page->index, 0, PAGE_CACHE_SIZE,
-+					page->mapping->host);
-+				if (rc) {
-+					printk(KERN_ERR "%s: Error reading "
-+					       "page; rc = [%d]\n",
-+					       __FUNCTION__, rc);
-+					ClearPageUptodate(page);
-+					goto out;
-+				}
-+				SetPageUptodate(page);
-+			}
-+		} else {
-+			rc = ecryptfs_decrypt_page(page);
-+			if (rc) {
-+				printk(KERN_ERR "%s: Error decrypting page "
-+				       "at index [%ld]; rc = [%d]\n",
-+				       __FUNCTION__, page->index, rc);
-+				ClearPageUptodate(page);
-+				goto out;
-+			}
- 			SetPageUptodate(page);
++	for (nid = 0; nid < MAX_NUMNODES; ++nid) {
++		if (!list_empty(&hugepage_freelists[nid])) {
++			page = list_entry(hugepage_freelists[nid].next,
++					  struct page, lru);
++			list_del(&page->lru);
++			free_huge_pages--;
++			free_huge_pages_node[nid]--;
++			break;
 +		}
- 	}
--
- 	prev_page_end_size = ((loff_t)page->index << PAGE_CACHE_SHIFT);
--
--	/*
--	 * If creating a page or more of holes, zero them out via truncate.
--	 * Note, this will increase i_size.
--	 */
-+	/* If creating a page or more of holes, zero them out via truncate.
-+	 * Note, this will increase i_size. */
- 	if (page->index != 0) {
- 		if (prev_page_end_size > i_size_read(page->mapping->host)) {
- 			rc = ecryptfs_truncate(file->f_path.dentry,
- 					       prev_page_end_size);
- 			if (rc) {
--				printk(KERN_ERR "Error on attempt to "
-+				printk(KERN_ERR "%s: Error on attempt to "
- 				       "truncate to (higher) offset [%lld];"
--				       " rc = [%d]\n", prev_page_end_size, rc);
-+				       " rc = [%d]\n", __FUNCTION__,
-+				       prev_page_end_size, rc);
- 				goto out;
- 			}
- 		}
- 	}
--	/*
--	 * Writing to a new page, and creating a small hole from start of page?
--	 * Zero it out.
--	 */
--	if ((i_size_read(page->mapping->host) == prev_page_end_size) &&
--	    (from != 0)) {
-+	/* Writing to a new page, and creating a small hole from start
-+	 * of page?  Zero it out. */
-+	if ((i_size_read(page->mapping->host) == prev_page_end_size)
-+	    && (from != 0))
- 		zero_user(page, 0, PAGE_CACHE_SIZE);
--	}
- out:
- 	return rc;
++	}
++	return page;
++}
++
++static struct page *dequeue_huge_page_vma(struct vm_area_struct *vma,
+ 				unsigned long address)
+ {
+ 	int nid;
+@@ -410,7 +428,7 @@ static struct page *alloc_huge_page_shar
+ 	struct page *page;
+ 
+ 	spin_lock(&hugetlb_lock);
+-	page = dequeue_huge_page(vma, addr);
++	page = dequeue_huge_page_vma(vma, addr);
+ 	spin_unlock(&hugetlb_lock);
+ 	return page ? page : ERR_PTR(-VM_FAULT_OOM);
  }
+@@ -425,7 +443,7 @@ static struct page *alloc_huge_page_priv
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	if (free_huge_pages > resv_huge_pages)
+-		page = dequeue_huge_page(vma, addr);
++		page = dequeue_huge_page_vma(vma, addr);
+ 	spin_unlock(&hugetlb_lock);
+ 	if (!page) {
+ 		page = alloc_buddy_huge_page(vma, addr);
+@@ -578,7 +596,7 @@ static unsigned long set_max_huge_pages(
+ 	min_count = max(count, min_count);
+ 	try_to_free_low(min_count);
+ 	while (min_count < persistent_huge_pages) {
+-		struct page *page = dequeue_huge_page(NULL, 0);
++		struct page *page = dequeue_huge_page();
+ 		if (!page)
+ 			break;
+ 		update_and_free_page(page);
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-git-unionfs.patch
-remove-ecryptfs_header_cache_0.patch
-remove-duplicated-unlikely-in-is_err.patch
 
