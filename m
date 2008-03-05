@@ -1,110 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - mpc5200-fix-build-error-on-mpc52xx_psc_spi-device-driver.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:44:14 -0800
-Message-ID: <200803050744.m257iEBx021491@imap1.linux-foundation.org>
+Subject: - pktcdvd-reduce-stack-consumption.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:44:11 -0800
+Message-ID: <200803050744.m257iBik021488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759972AbYCEHou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:44:50 -0500
+	by vger.kernel.org with ESMTP id S1760164AbYCEHo4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:44:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, benh@kernel.crashing.org, david-b@pacbell.net, galak@gate.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: petero2@telia.com, nix@esperi.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: mpc5200: fix build error on mpc52xx_psc_spi device driver
+     pktcdvd: reduce stack consumption
 has been removed from the -mm tree.  Its filename was
-     mpc5200-fix-build-error-on-mpc52xx_psc_spi-device-driver.patch
+     pktcdvd-reduce-stack-consumption.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: mpc5200: fix build error on mpc52xx_psc_spi device driver
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: pktcdvd: reduce stack consumption
+From: Peter Osterlund <petero2@telia.com>
 
-Commit id 94f389485e27641348c1951ab8d65157122a8939 (Separate MPC52xx PSC FIOF
-regsiters from the rest of PSC) split the PSC fifo registers away from the
-core PSC regs.  Doing so broke the mpc52xx_psc_spi driver.
+On my system, pkt_open() consumes 584 bytes because the compiler decides to
+inline lots of functions that would not normally be part of long call chains. 
+The following patch fixes that problem on my system.
 
-This patch teaches the mpc52xx_psc_spi driver about the new PSC fifo
-register definitions.
-
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: Peter Osterlund <petero2@telia.com>
+Cc: Nix <nix@esperi.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/mpc52xx_psc_spi.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/block/pktcdvd.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc5200-fix-build-error-on-mpc52xx_psc_spi-device-driver drivers/spi/mpc52xx_psc_spi.c
---- a/drivers/spi/mpc52xx_psc_spi.c~mpc5200-fix-build-error-on-mpc52xx_psc_spi-device-driver
-+++ a/drivers/spi/mpc52xx_psc_spi.c
-@@ -42,6 +42,7 @@ struct mpc52xx_psc_spi {
- 
- 	/* driver internal data */
- 	struct mpc52xx_psc __iomem *psc;
-+	struct mpc52xx_psc_fifo __iomem *fifo;
- 	unsigned int irq;
- 	u8 bits_per_word;
- 	u8 busy;
-@@ -139,6 +140,7 @@ static int mpc52xx_psc_spi_transfer_rxtx
+diff -puN drivers/block/pktcdvd.c~pktcdvd-reduce-stack-consumption drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~pktcdvd-reduce-stack-consumption
++++ a/drivers/block/pktcdvd.c
+@@ -849,7 +849,8 @@ static int pkt_flush_cache(struct pktcdv
+ /*
+  * speed is given as the normal factor, e.g. 4 for 4x
+  */
+-static int pkt_set_speed(struct pktcdvd_device *pd, unsigned write_speed, unsigned read_speed)
++static noinline_for_stack int pkt_set_speed(struct pktcdvd_device *pd,
++				unsigned write_speed, unsigned read_speed)
  {
- 	struct mpc52xx_psc_spi *mps = spi_master_get_devdata(spi->master);
- 	struct mpc52xx_psc __iomem *psc = mps->psc;
-+	struct mpc52xx_psc_fifo __iomem *fifo = mps->fifo;
- 	unsigned rb = 0;	/* number of bytes receieved */
- 	unsigned sb = 0;	/* number of bytes sent */
- 	unsigned char *rx_buf = (unsigned char *)t->rx_buf;
-@@ -190,11 +192,11 @@ static int mpc52xx_psc_spi_transfer_rxtx
- 			out_8(&psc->mode, 0);
- 		} else {
- 			out_8(&psc->mode, MPC52xx_PSC_MODE_FFULL);
--			out_be16(&psc->rfalarm, rfalarm);
-+			out_be16(&fifo->rfalarm, rfalarm);
- 		}
- 		out_be16(&psc->mpc52xx_psc_imr, MPC52xx_PSC_IMR_RXRDY);
- 		wait_for_completion(&mps->done);
--		recv_at_once = in_be16(&psc->rfnum);
-+		recv_at_once = in_be16(&fifo->rfnum);
- 		dev_dbg(&spi->dev, "%d bytes received\n", recv_at_once);
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
+@@ -1776,7 +1777,8 @@ static int pkt_get_track_info(struct pkt
+ 	return pkt_generic_packet(pd, &cgc);
+ }
  
- 		send_at_once = recv_at_once;
-@@ -331,6 +333,7 @@ static void mpc52xx_psc_spi_cleanup(stru
- static int mpc52xx_psc_spi_port_config(int psc_id, struct mpc52xx_psc_spi *mps)
+-static int pkt_get_last_written(struct pktcdvd_device *pd, long *last_written)
++static noinline_for_stack int pkt_get_last_written(struct pktcdvd_device *pd,
++						long *last_written)
  {
- 	struct mpc52xx_psc __iomem *psc = mps->psc;
-+	struct mpc52xx_psc_fifo __iomem *fifo = mps->fifo;
- 	u32 mclken_div;
- 	int ret = 0;
+ 	disc_information di;
+ 	track_information ti;
+@@ -1813,7 +1815,7 @@ static int pkt_get_last_written(struct p
+ /*
+  * write mode select package based on pd->settings
+  */
+-static int pkt_set_write_settings(struct pktcdvd_device *pd)
++static noinline_for_stack int pkt_set_write_settings(struct pktcdvd_device *pd)
+ {
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
+@@ -1972,7 +1974,7 @@ static int pkt_writable_disc(struct pktc
+ 	return 1;
+ }
  
-@@ -346,7 +349,7 @@ static int mpc52xx_psc_spi_port_config(i
- 	/* Disable interrupts, interrupts are based on alarm level */
- 	out_be16(&psc->mpc52xx_psc_imr, 0);
- 	out_8(&psc->command, MPC52xx_PSC_SEL_MODE_REG_1);
--	out_8(&psc->rfcntl, 0);
-+	out_8(&fifo->rfcntl, 0);
- 	out_8(&psc->mode, MPC52xx_PSC_MODE_FFULL);
- 
- 	/* Configure 8bit codec mode as a SPI master and use EOF flags */
-@@ -419,6 +422,8 @@ static int __init mpc52xx_psc_spi_do_pro
- 		ret = -EFAULT;
- 		goto free_master;
+-static int pkt_probe_settings(struct pktcdvd_device *pd)
++static noinline_for_stack int pkt_probe_settings(struct pktcdvd_device *pd)
+ {
+ 	struct packet_command cgc;
+ 	unsigned char buf[12];
+@@ -2071,7 +2073,8 @@ static int pkt_probe_settings(struct pkt
+ /*
+  * enable/disable write caching on drive
+  */
+-static int pkt_write_caching(struct pktcdvd_device *pd, int set)
++static noinline_for_stack int pkt_write_caching(struct pktcdvd_device *pd,
++						int set)
+ {
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
+@@ -2116,7 +2119,8 @@ static int pkt_lock_door(struct pktcdvd_
+ /*
+  * Returns drive maximum write speed
+  */
+-static int pkt_get_max_speed(struct pktcdvd_device *pd, unsigned *write_speed)
++static noinline_for_stack int pkt_get_max_speed(struct pktcdvd_device *pd,
++						unsigned *write_speed)
+ {
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
+@@ -2177,7 +2181,8 @@ static char us_clv_to_speed[16] = {
+ /*
+  * reads the maximum media speed from ATIP
+  */
+-static int pkt_media_speed(struct pktcdvd_device *pd, unsigned *speed)
++static noinline_for_stack int pkt_media_speed(struct pktcdvd_device *pd,
++						unsigned *speed)
+ {
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
+@@ -2249,7 +2254,7 @@ static int pkt_media_speed(struct pktcdv
  	}
-+	/* On the 5200, fifo regs are immediately ajacent to the psc regs */
-+	mps->fifo = ((void __iomem *)mps->psc) + sizeof(struct mpc52xx_psc);
+ }
  
- 	ret = request_irq(mps->irq, mpc52xx_psc_spi_isr, 0, "mpc52xx-psc-spi",
- 				mps);
+-static int pkt_perform_opc(struct pktcdvd_device *pd)
++static noinline_for_stack int pkt_perform_opc(struct pktcdvd_device *pd)
+ {
+ 	struct packet_command cgc;
+ 	struct request_sense sense;
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from petero2@telia.com are
 
 
