@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:38:17 -0800
-Message-ID: <200803052238.m25McIu3024843@imap1.linux-foundation.org>
+Subject: + drivers-s390-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:38:13 -0800
+Message-ID: <200803052238.m25McEt1024840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755689AbYCEWjI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:39:08 -0500
+	by vger.kernel.org with ESMTP id S1755264AbYCEWjW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:39:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, kkeil@suse.de
+Cc: harvey.harrison@gmail.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     isdn: replace remaining __FUNCTION__ occurrences
+     drivers/s390: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     isdn-replace-remaining-__function__-occurrences.patch
+     drivers-s390-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,542 +33,2523 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: replace remaining __FUNCTION__ occurrences
+Subject: drivers/s390: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capidrv.c         |    4 +--
- drivers/isdn/capi/capilib.c         |    2 -
- drivers/isdn/capi/kcapi.c           |    4 +--
- drivers/isdn/capi/kcapi.h           |    2 -
- drivers/isdn/hisax/asuscom.c        |    2 -
- drivers/isdn/hisax/avm_pci.c        |    2 -
- drivers/isdn/hisax/diva.c           |    2 -
- drivers/isdn/hisax/elsa.c           |    2 -
- drivers/isdn/hisax/hfc_sx.c         |    2 -
- drivers/isdn/hisax/hfc_usb.c        |    6 ++--
- drivers/isdn/hisax/hfcscard.c       |    2 -
- drivers/isdn/hisax/hisax_debug.h    |    6 ++--
- drivers/isdn/hisax/hisax_fcpcipnp.c |    2 -
- drivers/isdn/hisax/ix1_micro.c      |    2 -
- drivers/isdn/hisax/niccy.c          |    2 -
- drivers/isdn/hisax/sedlbauer.c      |    2 -
- drivers/isdn/hisax/st5481.h         |   10 ++++----
- drivers/isdn/hisax/teles3.c         |    2 -
- drivers/isdn/i4l/isdn_common.c      |    2 -
- drivers/isdn/i4l/isdn_net.h         |    6 ++--
- drivers/isdn/i4l/isdn_ppp.c         |   32 +++++++++++++-------------
- drivers/isdn/i4l/isdn_tty.c         |    6 ++--
- 22 files changed, 51 insertions(+), 51 deletions(-)
+ drivers/s390/block/dasd.c        |    4 
+ drivers/s390/char/tape_34xx.c    |    2 
+ drivers/s390/char/vmwatchdog.c   |    4 
+ drivers/s390/char/zcore.c        |    2 
+ drivers/s390/cio/device_status.c |    2 
+ drivers/s390/crypto/zcrypt_api.h |    8 
+ drivers/s390/net/claw.c          |  344 ++++++++++++++---------------
+ drivers/s390/net/ctcmain.c       |  112 ++++-----
+ drivers/s390/net/netiucv.c       |   96 ++++----
+ drivers/s390/s390mach.c          |    8 
+ drivers/s390/scsi/zfcp_def.h     |    2 
+ 11 files changed, 292 insertions(+), 292 deletions(-)
 
-diff -puN drivers/isdn/capi/capidrv.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/capi/capidrv.c
---- a/drivers/isdn/capi/capidrv.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/capi/capidrv.c
-@@ -1388,12 +1388,12 @@ static void capidrv_recv_message(struct 
- 		_cdebbuf *cdb = capi_cmsg2str(&s_cmsg);
- 
- 		if (cdb) {
--			printk(KERN_DEBUG "%s: applid=%d %s\n", __FUNCTION__,
-+			printk(KERN_DEBUG "%s: applid=%d %s\n", __func__,
- 				ap->applid, cdb->buf);
- 			cdebbuf_free(cdb);
- 		} else
- 			printk(KERN_DEBUG "%s: applid=%d %s not traced\n",
--				__FUNCTION__, ap->applid,
-+				__func__, ap->applid,
- 				capi_cmd2str(s_cmsg.Command, s_cmsg.Subcommand));
- 	}
- 	if (s_cmsg.Command == CAPI_DATA_B3
-diff -puN drivers/isdn/capi/capilib.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/capi/capilib.c
---- a/drivers/isdn/capi/capilib.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/capi/capilib.c
-@@ -4,7 +4,7 @@
- #include <linux/isdn/capilli.h>
- 
- #define DBG(format, arg...) do { \
--printk(KERN_DEBUG "%s: " format "\n" , __FUNCTION__ , ## arg); \
-+printk(KERN_DEBUG "%s: " format "\n" , __func__ , ## arg); \
- } while (0)
- 
- struct capilib_msgidqueue {
-diff -puN drivers/isdn/capi/kcapi.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -154,7 +154,7 @@ static void register_appl(struct capi_ct
- 	if (card)
- 		card->register_appl(card, applid, rparam);
- 	else
--		printk(KERN_WARNING "%s: cannot get card resources\n", __FUNCTION__);
-+		printk(KERN_WARNING "%s: cannot get card resources\n", __func__);
- }
- 
- 
-@@ -178,7 +178,7 @@ static void notify_up(u32 contr)
- 	        printk(KERN_DEBUG "kcapi: notify up contr %d\n", contr);
- 	}
- 	if (!card) {
--		printk(KERN_WARNING "%s: invalid contr %d\n", __FUNCTION__, contr);
-+		printk(KERN_WARNING "%s: invalid contr %d\n", __func__, contr);
- 		return;
- 	}
- 	for (applid = 1; applid <= CAPI_MAXAPPL; applid++) {
-diff -puN drivers/isdn/capi/kcapi.h~isdn-replace-remaining-__function__-occurrences drivers/isdn/capi/kcapi.h
---- a/drivers/isdn/capi/kcapi.h~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/capi/kcapi.h
-@@ -17,7 +17,7 @@
- 
- #ifdef KCAPI_DEBUG
- #define DBG(format, arg...) do { \
--printk(KERN_DEBUG "%s: " format "\n" , __FUNCTION__ , ## arg); \
-+printk(KERN_DEBUG "%s: " format "\n" , __func__ , ## arg); \
- } while (0)
- #else
- #define DBG(format, arg...) /* */
-diff -puN drivers/isdn/hisax/asuscom.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/asuscom.c
---- a/drivers/isdn/hisax/asuscom.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/asuscom.c
-@@ -346,7 +346,7 @@ setup_asuscom(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/avm_pci.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/avm_pci.c
---- a/drivers/isdn/hisax/avm_pci.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/avm_pci.c
-@@ -797,7 +797,7 @@ static int __devinit avm_pnp_setup(struc
- 			err = pnp_activate_dev(pnp_avm_d);
- 			if (err<0) {
- 				printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--					__FUNCTION__, err);
-+					__func__, err);
- 				return(0);
- 			}
- 			cs->hw.avm.cfg_reg =
-diff -puN drivers/isdn/hisax/diva.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/diva.c
---- a/drivers/isdn/hisax/diva.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/diva.c
-@@ -1088,7 +1088,7 @@ static int __devinit setup_diva_isapnp(s
- 				err = pnp_activate_dev(pnp_d);
- 				if (err<0) {
- 					printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--						__FUNCTION__, err);
-+						__func__, err);
- 					return(0);
- 				}
- 				card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/elsa.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/elsa.c
---- a/drivers/isdn/hisax/elsa.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/elsa.c
-@@ -937,7 +937,7 @@ setup_elsa_isapnp(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/hfc_sx.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/hfc_sx.c
---- a/drivers/isdn/hisax/hfc_sx.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/hfc_sx.c
-@@ -1419,7 +1419,7 @@ setup_hfcsx(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/hfc_usb.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/hfc_usb.c
---- a/drivers/isdn/hisax/hfc_usb.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/hfc_usb.c
-@@ -905,7 +905,7 @@ rx_int_complete(struct urb *urb)
- 	if (status) {
- 		printk(KERN_INFO
- 		       "HFC-S USB: %s error resubmitting URB fifo(%d)\n",
--		       __FUNCTION__, fifon);
-+		       __func__, fifon);
- 	}
- }
- 
-@@ -1543,14 +1543,14 @@ hfc_usb_disconnect(struct usb_interface 
- 				stop_isoc_chain(&context->fifos[i]);
- 				DBG(HFCUSB_DBG_INIT,
- 				    "HFC-S USB: %s stopping ISOC chain Fifo(%i)",
--				    __FUNCTION__, i);
-+				    __func__, i);
- 			}
- 		} else {
- 			if (context->fifos[i].active > 0) {
- 				context->fifos[i].active = 0;
- 				DBG(HFCUSB_DBG_INIT,
- 				    "HFC-S USB: %s unlinking URB for Fifo(%i)",
--				    __FUNCTION__, i);
-+				    __func__, i);
- 			}
- 			usb_kill_urb(context->fifos[i].urb);
- 			usb_free_urb(context->fifos[i].urb);
-diff -puN drivers/isdn/hisax/hfcscard.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/hfcscard.c
---- a/drivers/isdn/hisax/hfcscard.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/hfcscard.c
-@@ -193,7 +193,7 @@ setup_hfcs(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/hisax_debug.h~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/hisax_debug.h
---- a/drivers/isdn/hisax/hisax_debug.h~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/hisax_debug.h
-@@ -27,14 +27,14 @@
- 
- #define DBG(level, format, arg...) do { \
- if (level & __debug_variable) \
--printk(KERN_DEBUG "%s: " format "\n" , __FUNCTION__ , ## arg); \
-+printk(KERN_DEBUG "%s: " format "\n" , __func__ , ## arg); \
- } while (0)
- 
- #define DBG_PACKET(level,data,count) \
--  if (level & __debug_variable) dump_packet(__FUNCTION__,data,count)
-+  if (level & __debug_variable) dump_packet(__func__,data,count)
- 
- #define DBG_SKB(level,skb) \
--  if ((level & __debug_variable) && skb) dump_packet(__FUNCTION__,skb->data,skb->len)
-+  if ((level & __debug_variable) && skb) dump_packet(__func__,skb->data,skb->len)
- 
- 
- static void __attribute__((unused))
-diff -puN drivers/isdn/hisax/hisax_fcpcipnp.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/hisax_fcpcipnp.c
---- a/drivers/isdn/hisax/hisax_fcpcipnp.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/hisax_fcpcipnp.c
-@@ -935,7 +935,7 @@ static int __devinit fcpnp_probe(struct 
- 	pnp_disable_dev(pdev);
- 	retval = pnp_activate_dev(pdev);
- 	if (retval < 0) {
--		printk(KERN_WARNING "%s: pnp_activate_dev(%s) ret(%d)\n", __FUNCTION__,
-+		printk(KERN_WARNING "%s: pnp_activate_dev(%s) ret(%d)\n", __func__,
- 			(char *)dev_id->driver_data, retval);
- 		goto err_free;
- 	}
-diff -puN drivers/isdn/hisax/ix1_micro.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/ix1_micro.c
---- a/drivers/isdn/hisax/ix1_micro.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/ix1_micro.c
-@@ -253,7 +253,7 @@ setup_ix1micro(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/niccy.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/niccy.c
---- a/drivers/isdn/hisax/niccy.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/niccy.c
-@@ -256,7 +256,7 @@ int __devinit setup_niccy(struct IsdnCar
- 			err = pnp_activate_dev(pnp_d);
- 			if (err < 0) {
- 				printk(KERN_WARNING "%s: pnp_activate_dev "
--					"ret(%d)\n", __FUNCTION__, err);
-+					"ret(%d)\n", __func__, err);
- 				return 0;
- 			}
- 			card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/sedlbauer.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/sedlbauer.c
---- a/drivers/isdn/hisax/sedlbauer.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/sedlbauer.c
-@@ -555,7 +555,7 @@ setup_sedlbauer_isapnp(struct IsdnCard *
- 				err = pnp_activate_dev(pnp_d);
- 				if (err<0) {
- 					printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--						__FUNCTION__, err);
-+						__func__, err);
- 					return(0);
- 				}
- 				card->para[1] = pnp_port_start(pnp_d, 0);
-diff -puN drivers/isdn/hisax/st5481.h~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/st5481.h
---- a/drivers/isdn/hisax/st5481.h~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/st5481.h
-@@ -218,13 +218,13 @@ enum {
- #define L1_EVENT_COUNT (EV_TIMER3 + 1)
- 
- #define ERR(format, arg...) \
--printk(KERN_ERR "%s:%s: " format "\n" , __FILE__,  __FUNCTION__ , ## arg)
-+printk(KERN_ERR "%s:%s: " format "\n" , __FILE__,  __func__ , ## arg)
- 
- #define WARN(format, arg...) \
--printk(KERN_WARNING "%s:%s: " format "\n" , __FILE__,  __FUNCTION__ , ## arg)
-+printk(KERN_WARNING "%s:%s: " format "\n" , __FILE__,  __func__ , ## arg)
- 
- #define INFO(format, arg...) \
--printk(KERN_INFO "%s:%s: " format "\n" , __FILE__,  __FUNCTION__ , ## arg)
-+printk(KERN_INFO "%s:%s: " format "\n" , __FILE__,  __func__ , ## arg)
- 
- #include "isdnhdlc.h"
- #include "fsm.h"
-@@ -406,7 +406,7 @@ struct st5481_adapter {
- 
- /*
-  * Submit an URB with error reporting. This is a macro so
-- * the __FUNCTION__ returns the caller function name.
-+ * the __func__ returns the caller function name.
-  */
- #define SUBMIT_URB(urb, mem_flags) \
- ({ \
-@@ -470,7 +470,7 @@ extern int st5481_debug;
- #ifdef CONFIG_HISAX_DEBUG
- 
- #define DBG_ISO_PACKET(level,urb) \
--  if (level & __debug_variable) dump_iso_packet(__FUNCTION__,urb)
-+  if (level & __debug_variable) dump_iso_packet(__func__,urb)
- 
- static void __attribute__((unused))
- dump_iso_packet(const char *name, struct urb *urb)
-diff -puN drivers/isdn/hisax/teles3.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/hisax/teles3.c
---- a/drivers/isdn/hisax/teles3.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/hisax/teles3.c
-@@ -301,7 +301,7 @@ setup_teles3(struct IsdnCard *card)
- 					err = pnp_activate_dev(pnp_d);
- 					if (err<0) {
- 						printk(KERN_WARNING "%s: pnp_activate_dev ret(%d)\n",
--							__FUNCTION__, err);
-+							__func__, err);
- 						return(0);
- 					}
- 					card->para[3] = pnp_port_start(pnp_d, 2);
-diff -puN drivers/isdn/i4l/isdn_common.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/i4l/isdn_common.c
---- a/drivers/isdn/i4l/isdn_common.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/i4l/isdn_common.c
-@@ -1924,7 +1924,7 @@ isdn_free_channel(int di, int ch, int us
- 
- 	if ((di < 0) || (ch < 0)) {
- 		printk(KERN_WARNING "%s: called with invalid drv(%d) or channel(%d)\n",
--			__FUNCTION__, di, ch);
-+			__func__, di, ch);
- 		return;
- 	}
- 	for (i = 0; i < ISDN_MAX_CHANNELS; i++)
-diff -puN drivers/isdn/i4l/isdn_net.h~isdn-replace-remaining-__function__-occurrences drivers/isdn/i4l/isdn_net.h
---- a/drivers/isdn/i4l/isdn_net.h~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/i4l/isdn_net.h
-@@ -108,7 +108,7 @@ static __inline__ void isdn_net_add_to_b
- 
- 	lp = nd->queue;
- //	printk(KERN_DEBUG "%s: lp:%s(%p) nlp:%s(%p) last(%p)\n",
--//		__FUNCTION__, lp->name, lp, nlp->name, nlp, lp->last);
-+//		__func__, lp->name, lp, nlp->name, nlp, lp->last);
- 	nlp->last = lp->last;
- 	lp->last->next = nlp;
- 	lp->last = nlp;
-@@ -129,7 +129,7 @@ static __inline__ void isdn_net_rm_from_
- 		master_lp = (isdn_net_local *) lp->master->priv;
- 
- //	printk(KERN_DEBUG "%s: lp:%s(%p) mlp:%s(%p) last(%p) next(%p) mndq(%p)\n",
--//		__FUNCTION__, lp->name, lp, master_lp->name, master_lp, lp->last, lp->next, master_lp->netdev->queue);
-+//		__func__, lp->name, lp, master_lp->name, master_lp, lp->last, lp->next, master_lp->netdev->queue);
- 	spin_lock_irqsave(&master_lp->netdev->queue_lock, flags);
- 	lp->last->next = lp->next;
- 	lp->next->last = lp->last;
-@@ -141,7 +141,7 @@ static __inline__ void isdn_net_rm_from_
- 	}
- 	lp->next = lp->last = lp;	/* (re)set own pointers */
- //	printk(KERN_DEBUG "%s: mndq(%p)\n",
--//		__FUNCTION__, master_lp->netdev->queue);
-+//		__func__, master_lp->netdev->queue);
- 	spin_unlock_irqrestore(&master_lp->netdev->queue_lock, flags);
- }
- 
-diff -puN drivers/isdn/i4l/isdn_ppp.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/i4l/isdn_ppp.c
---- a/drivers/isdn/i4l/isdn_ppp.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/i4l/isdn_ppp.c
-@@ -110,7 +110,7 @@ isdn_ppp_free(isdn_net_local * lp)
- 
- 	if (lp->ppp_slot < 0 || lp->ppp_slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: ppp_slot(%d) out of range\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return 0;
- 	}
- 
-@@ -127,7 +127,7 @@ isdn_ppp_free(isdn_net_local * lp)
- #endif /* CONFIG_ISDN_MPP */
- 	if (lp->ppp_slot < 0 || lp->ppp_slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: ppp_slot(%d) now invalid\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return 0;
- 	}
- 	is = ippp_table[lp->ppp_slot];
-@@ -226,7 +226,7 @@ isdn_ppp_wakeup_daemon(isdn_net_local * 
- {
- 	if (lp->ppp_slot < 0 || lp->ppp_slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: ppp_slot(%d) out of range\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return;
- 	}
- 	ippp_table[lp->ppp_slot]->state = IPPP_OPEN | IPPP_CONNECT | IPPP_NOBLOCK;
-@@ -245,7 +245,7 @@ isdn_ppp_closewait(int slot)
- 
- 	if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: slot(%d) out of range\n",
--			__FUNCTION__, slot);
-+			__func__, slot);
- 		return 0;
- 	}
- 	is = ippp_table[slot];
-@@ -343,7 +343,7 @@ isdn_ppp_release(int min, struct file *f
- 	is = file->private_data;
- 
- 	if (!is) {
--		printk(KERN_ERR "%s: no file->private_data\n", __FUNCTION__);
-+		printk(KERN_ERR "%s: no file->private_data\n", __func__);
- 		return;
- 	}
- 	if (is->debug & 0x1)
-@@ -353,7 +353,7 @@ isdn_ppp_release(int min, struct file *f
- 		isdn_net_dev *p = is->lp->netdev;
- 
- 		if (!p) {
--			printk(KERN_ERR "%s: no lp->netdev\n", __FUNCTION__);
-+			printk(KERN_ERR "%s: no lp->netdev\n", __func__);
- 			return;
+diff -puN drivers/s390/block/dasd.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/block/dasd.c
+--- a/drivers/s390/block/dasd.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/block/dasd.c
+@@ -980,12 +980,12 @@ void dasd_int_handler(struct ccw_device 
+ 			break;
+ 		case -ETIMEDOUT:
+ 			printk(KERN_WARNING"%s(%s): request timed out\n",
+-			       __FUNCTION__, cdev->dev.bus_id);
++			       __func__, cdev->dev.bus_id);
+ 			//FIXME - dasd uses own timeout interface...
+ 			break;
+ 		default:
+ 			printk(KERN_WARNING"%s(%s): unknown error %ld\n",
+-			       __FUNCTION__, cdev->dev.bus_id, PTR_ERR(irb));
++			       __func__, cdev->dev.bus_id, PTR_ERR(irb));
  		}
- 		is->state &= ~IPPP_CONNECT;	/* -> effect: no call of wakeup */
-@@ -1080,7 +1080,7 @@ isdn_ppp_push_higher(isdn_net_dev * net_
- 				printk(KERN_DEBUG "isdn_ppp: VJC_UNCOMP\n");
- 			if (net_dev->local->ppp_slot < 0) {
- 				printk(KERN_ERR "%s: net_dev->local->ppp_slot(%d) out of range\n",
--					__FUNCTION__, net_dev->local->ppp_slot);
-+					__func__, net_dev->local->ppp_slot);
- 				goto drop_packet;
- 			}
- 			if (slhc_remember(ippp_table[net_dev->local->ppp_slot]->slcomp, skb->data, skb->len) <= 0) {
-@@ -1107,7 +1107,7 @@ isdn_ppp_push_higher(isdn_net_dev * net_
- 							  skb_old->len);
- 				if (net_dev->local->ppp_slot < 0) {
- 					printk(KERN_ERR "%s: net_dev->local->ppp_slot(%d) out of range\n",
--						__FUNCTION__, net_dev->local->ppp_slot);
-+						__func__, net_dev->local->ppp_slot);
- 					goto drop_packet;
+ 		return;
+ 	}
+diff -puN drivers/s390/char/tape_34xx.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/char/tape_34xx.c
+--- a/drivers/s390/char/tape_34xx.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/char/tape_34xx.c
+@@ -394,7 +394,7 @@ tape_34xx_unit_check(struct tape_device 
+ 			return tape_34xx_erp_failed(request, -ENOSPC);
+ 		default:
+ 			PRINT_ERR("Invalid op in %s:%i\n",
+-				  __FUNCTION__, __LINE__);
++				  __func__, __LINE__);
+ 			return tape_34xx_erp_failed(request, 0);
+ 		}
+ 	}
+diff -puN drivers/s390/char/vmwatchdog.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/char/vmwatchdog.c
+--- a/drivers/s390/char/vmwatchdog.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/char/vmwatchdog.c
+@@ -96,7 +96,7 @@ static int vmwdt_keepalive(void)
+ 
+ 	if (ret) {
+ 		printk(KERN_WARNING "%s: problem setting interval %d, "
+-			"cmd %s\n", __FUNCTION__, vmwdt_interval,
++			"cmd %s\n", __func__, vmwdt_interval,
+ 			vmwdt_cmd);
+ 	}
+ 	return ret;
+@@ -107,7 +107,7 @@ static int vmwdt_disable(void)
+ 	int ret = __diag288(wdt_cancel, 0, "", 0);
+ 	if (ret) {
+ 		printk(KERN_WARNING "%s: problem disabling watchdog\n",
+-			__FUNCTION__);
++			__func__);
+ 	}
+ 	return ret;
+ }
+diff -puN drivers/s390/char/zcore.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/char/zcore.c
+--- a/drivers/s390/char/zcore.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/char/zcore.c
+@@ -224,7 +224,7 @@ static int __init init_cpu_info(enum arc
+ 
+ 	sa = kmalloc(sizeof(*sa), GFP_KERNEL);
+ 	if (!sa) {
+-		ERROR_MSG("kmalloc failed: %s: %i\n",__FUNCTION__, __LINE__);
++		ERROR_MSG("kmalloc failed: %s: %i\n",__func__, __LINE__);
+ 		return -ENOMEM;
+ 	}
+ 	if (memcpy_hsa_kernel(sa, sys_info.sa_base, sys_info.sa_size) < 0) {
+diff -puN drivers/s390/cio/device_status.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/cio/device_status.c
+--- a/drivers/s390/cio/device_status.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/cio/device_status.c
+@@ -62,7 +62,7 @@ ccw_device_path_notoper(struct ccw_devic
+ 	stsch (sch->schid, &sch->schib);
+ 
+ 	CIO_MSG_EVENT(0, "%s(0.%x.%04x) - path(s) %02x are "
+-		      "not operational \n", __FUNCTION__,
++		      "not operational \n", __func__,
+ 		      sch->schid.ssid, sch->schid.sch_no,
+ 		      sch->schib.pmcw.pnom);
+ 
+diff -puN drivers/s390/crypto/zcrypt_api.h~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/crypto/zcrypt_api.h
+--- a/drivers/s390/crypto/zcrypt_api.h~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/crypto/zcrypt_api.h
+@@ -43,17 +43,17 @@
+ #define DEV_NAME	"zcrypt"
+ 
+ #define PRINTK(fmt, args...) \
+-	printk(KERN_DEBUG DEV_NAME ": %s -> " fmt, __FUNCTION__ , ## args)
++	printk(KERN_DEBUG DEV_NAME ": %s -> " fmt, __func__ , ## args)
+ #define PRINTKN(fmt, args...) \
+ 	printk(KERN_DEBUG DEV_NAME ": " fmt, ## args)
+ #define PRINTKW(fmt, args...) \
+-	printk(KERN_WARNING DEV_NAME ": %s -> " fmt, __FUNCTION__ , ## args)
++	printk(KERN_WARNING DEV_NAME ": %s -> " fmt, __func__ , ## args)
+ #define PRINTKC(fmt, args...) \
+-	printk(KERN_CRIT DEV_NAME ": %s -> " fmt, __FUNCTION__ , ## args)
++	printk(KERN_CRIT DEV_NAME ": %s -> " fmt, __func__ , ## args)
+ 
+ #ifdef ZCRYPT_DEBUG
+ #define PDEBUG(fmt, args...) \
+-	printk(KERN_DEBUG DEV_NAME ": %s -> " fmt, __FUNCTION__ , ## args)
++	printk(KERN_DEBUG DEV_NAME ": %s -> " fmt, __func__ , ## args)
+ #else
+ #define PDEBUG(fmt, args...) do {} while (0)
+ #endif
+diff -puN drivers/s390/net/claw.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/net/claw.c
+--- a/drivers/s390/net/claw.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/net/claw.c
+@@ -299,7 +299,7 @@ claw_probe(struct ccwgroup_device *cgdev
+ 	struct claw_privbk *privptr=NULL;
+ 
+ #ifdef FUNCTRACE
+-	printk(KERN_INFO "%s Enter\n",__FUNCTION__);
++	printk(KERN_INFO "%s Enter\n",__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"probe");
+ 	if (!get_device(&cgdev->dev))
+@@ -313,7 +313,7 @@ claw_probe(struct ccwgroup_device *cgdev
+ 		probe_error(cgdev);
+ 		put_device(&cgdev->dev);
+ 		printk(KERN_WARNING "Out of memory %s %s Exit Line %d \n",
+-			cgdev->cdev[0]->dev.bus_id,__FUNCTION__,__LINE__);
++			cgdev->cdev[0]->dev.bus_id,__func__,__LINE__);
+ 		CLAW_DBF_TEXT_(2,setup,"probex%d",-ENOMEM);
+ 		return -ENOMEM;
+ 	}
+@@ -323,7 +323,7 @@ claw_probe(struct ccwgroup_device *cgdev
+                 probe_error(cgdev);
+ 		put_device(&cgdev->dev);
+ 		printk(KERN_WARNING "Out of memory %s %s Exit Line %d \n",
+-			cgdev->cdev[0]->dev.bus_id,__FUNCTION__,__LINE__);
++			cgdev->cdev[0]->dev.bus_id,__func__,__LINE__);
+ 		CLAW_DBF_TEXT_(2,setup,"probex%d",-ENOMEM);
+                 return -ENOMEM;
+         }
+@@ -340,7 +340,7 @@ claw_probe(struct ccwgroup_device *cgdev
+ 		probe_error(cgdev);
+ 		put_device(&cgdev->dev);
+ 		printk(KERN_WARNING "add_files failed %s %s Exit Line %d \n",
+-			cgdev->cdev[0]->dev.bus_id,__FUNCTION__,__LINE__);
++			cgdev->cdev[0]->dev.bus_id,__func__,__LINE__);
+ 		CLAW_DBF_TEXT_(2,setup,"probex%d",rc);
+ 		return rc;
+ 	}
+@@ -351,7 +351,7 @@ claw_probe(struct ccwgroup_device *cgdev
+ 	cgdev->dev.driver_data = privptr;
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "claw:%s exit on line %d, "
+-		"rc = 0\n",__FUNCTION__,__LINE__);
++		"rc = 0\n",__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"prbext 0");
+ 
+@@ -371,7 +371,7 @@ claw_tx(struct sk_buff *skb, struct net_
+         struct chbk *p_ch;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"claw_tx");
+         p_ch=&privptr->channel[WRITE];
+@@ -381,7 +381,7 @@ claw_tx(struct sk_buff *skb, struct net_
+                 privptr->stats.tx_dropped++;
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s: %s() exit on line %d, rc = EIO\n",
+-			dev->name,__FUNCTION__, __LINE__);
++			dev->name,__func__, __LINE__);
+ #endif
+ 		CLAW_DBF_TEXT_(2,trace,"clawtx%d",-EIO);
+                 return -EIO;
+@@ -398,7 +398,7 @@ claw_tx(struct sk_buff *skb, struct net_
+         spin_unlock_irqrestore(get_ccwdev_lock(p_ch->cdev), saveflags);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s exit on line %d, rc = %d\n",
+-		dev->name, __FUNCTION__, __LINE__, rc);
++		dev->name, __func__, __LINE__, rc);
+ #endif
+ 	CLAW_DBF_TEXT_(4,trace,"clawtx%d",rc);
+         return rc;
+@@ -460,7 +460,7 @@ claw_pack_skb(struct claw_privbk *privpt
+ #ifdef IOTRACE
+ 		printk(KERN_INFO "%s: %s() Packed %d len %d\n",
+ 			p_env->ndev->name,
+-			__FUNCTION__,pkt_cnt,new_skb->len);
++			__func__,pkt_cnt,new_skb->len);
+ #endif
+ 	}
+ 	CLAW_DBF_TEXT(4,trace,"PackSKBx");
+@@ -478,7 +478,7 @@ claw_change_mtu(struct net_device *dev, 
+ 	struct claw_privbk  *privptr=dev->priv;
+ 	int buff_size;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "variable dev =\n");
+@@ -491,14 +491,14 @@ claw_change_mtu(struct net_device *dev, 
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s:%s Exit on line %d, rc=EINVAL\n",
+ 		dev->name,
+-		__FUNCTION__, __LINE__);
++		__func__, __LINE__);
+ #endif
+                 return -EINVAL;
+         }
+         dev->mtu = new_mtu;
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d\n",dev->name,
+-	__FUNCTION__, __LINE__);
++	__func__, __LINE__);
+ #endif
+         return 0;
+ }  /*   end of claw_change_mtu */
+@@ -522,7 +522,7 @@ claw_open(struct net_device *dev)
+         struct ccwbk *p_buf;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"open");
+ 	if (!dev || (dev->name[0] == 0x00)) {
+@@ -537,7 +537,7 @@ claw_open(struct net_device *dev)
+         	if (rc) {
+                 	printk(KERN_INFO "%s:%s Exit on line %d, rc=ENOMEM\n",
+ 			dev->name,
+-			__FUNCTION__, __LINE__);
++			__func__, __LINE__);
+ 			CLAW_DBF_TEXT(2,trace,"openmem");
+                 	return -ENOMEM;
+         	}
+@@ -661,7 +661,7 @@ claw_open(struct net_device *dev)
+                 claw_clear_busy(dev);
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s:%s Exit on line %d, rc=EIO\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 		CLAW_DBF_TEXT(2,trace,"open EIO");
+                 return -EIO;
+@@ -673,7 +673,7 @@ claw_open(struct net_device *dev)
+ 
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d, rc=0\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"openok");
+         return 0;
+@@ -696,7 +696,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s enter  \n",__FUNCTION__);
++        printk(KERN_INFO "%s enter  \n",__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"clawirq");
+         /* Bypass all 'unsolicited interrupts' */
+@@ -706,7 +706,7 @@ claw_irq_handler(struct ccw_device *cdev
+                         cdev->dev.bus_id,irb->scsw.cstat, irb->scsw.dstat);
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "claw: %s() "
+-			"exit on line %d\n",__FUNCTION__,__LINE__);
++			"exit on line %d\n",__func__,__LINE__);
+ #endif
+ 		CLAW_DBF_TEXT(2,trace,"badirq");
+                 return;
+@@ -752,7 +752,7 @@ claw_irq_handler(struct ccw_device *cdev
+ #endif
+ #ifdef FUNCTRACE
+ 		printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 		CLAW_DBF_TEXT(2,trace,"chanchk");
+                 /* return; */
+@@ -777,7 +777,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 	     		(SCSW_STCTL_ALERT_STATUS | SCSW_STCTL_STATUS_PEND)))) {
+ #ifdef FUNCTRACE
+                                 printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+                                 return;
+                         }
+@@ -788,7 +788,7 @@ claw_irq_handler(struct ccw_device *cdev
+ #endif
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+ 			CLAW_DBF_TEXT(4,trace,"stop");
+                         return;
+@@ -804,7 +804,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 	     		(SCSW_STCTL_ALERT_STATUS | SCSW_STCTL_STATUS_PEND)))) {
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 				CLAW_DBF_TEXT(4,trace,"haltio");
+                                 return;
+@@ -838,7 +838,7 @@ claw_irq_handler(struct ccw_device *cdev
+ #endif
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+ 			CLAW_DBF_TEXT(4,trace,"haltio");
+                         return;
+@@ -858,7 +858,7 @@ claw_irq_handler(struct ccw_device *cdev
+                                 }
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 					CLAW_DBF_TEXT(4,trace,"notrdy");
+                                         return;
+@@ -874,7 +874,7 @@ claw_irq_handler(struct ccw_device *cdev
  				}
- 				pkt_len = slhc_uncompress(ippp_table[net_dev->local->ppp_slot]->slcomp,
-@@ -1553,7 +1553,7 @@ static int isdn_ppp_mp_init( isdn_net_lo
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 				CLAW_DBF_TEXT(4,trace,"PCI_read");
+                                 return;
+@@ -885,7 +885,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 	     		 (SCSW_STCTL_ALERT_STATUS | SCSW_STCTL_STATUS_PEND)))) {
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 				CLAW_DBF_TEXT(4,trace,"SPend_rd");
+                                 return;
+@@ -906,7 +906,7 @@ claw_irq_handler(struct ccw_device *cdev
+ #endif
+ #ifdef FUNCTRACE
+ 			printk(KERN_INFO "%s:%s Exit on line %d\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+ 			CLAW_DBF_TEXT(4,trace,"RdIRQXit");
+                         return;
+@@ -929,7 +929,7 @@ claw_irq_handler(struct ccw_device *cdev
+                                 }
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 				CLAW_DBF_TEXT(4,trace,"rstrtwrt");
+                                 return;
+@@ -946,7 +946,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 	     		(SCSW_STCTL_ALERT_STATUS | SCSW_STCTL_STATUS_PEND)))) {
+ #ifdef FUNCTRACE
+ 				printk(KERN_INFO "%s:%s Exit on line %d\n",
+-					dev->name,__FUNCTION__,__LINE__);
++					dev->name,__func__,__LINE__);
+ #endif
+ 				CLAW_DBF_TEXT(4,trace,"writeUE");
+                                 return;
+@@ -969,7 +969,7 @@ claw_irq_handler(struct ccw_device *cdev
+ #endif
+ #ifdef FUNCTRACE
+ 			printk(KERN_INFO "%s:%s Exit on line %d\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+ 			CLAW_DBF_TEXT(4,trace,"StWtExit");
+                         return;
+@@ -978,7 +978,7 @@ claw_irq_handler(struct ccw_device *cdev
+ 				"state=%d\n",dev->name,p_ch->claw_state);
+ #ifdef FUNCTRACE
+ 			printk(KERN_INFO "%s:%s Exit on line %d\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+ 			CLAW_DBF_TEXT(2,trace,"badIRQ");
+                         return;
+@@ -1001,7 +1001,7 @@ claw_irq_tasklet ( unsigned long data )
+ 	p_ch = (struct chbk *) data;
+         dev = (struct net_device *)p_ch->ndev;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: variable p_ch =\n",dev->name);
+@@ -1021,7 +1021,7 @@ claw_irq_tasklet ( unsigned long data )
+ 	CLAW_DBF_TEXT(4,trace,"TskletXt");
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+         return;
+ }       /*    end of claw_irq_bh    */
+@@ -1048,7 +1048,7 @@ claw_release(struct net_device *dev)
+         if (!privptr)
+                 return 0;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"release");
+ #ifdef DEBUGMSG
+@@ -1090,7 +1090,7 @@ claw_release(struct net_device *dev)
+ 	if(privptr->buffs_alloc != 1) {
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 		CLAW_DBF_TEXT(4,trace,"none2fre");
+ 		return 0;
+@@ -1171,7 +1171,7 @@ claw_release(struct net_device *dev)
+         }
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"rlsexit");
+         return 0;
+@@ -1192,7 +1192,7 @@ claw_write_retry ( struct chbk *p_ch )
  
- 	if (lp->ppp_slot < 0) {
- 		printk(KERN_ERR "%s: lp->ppp_slot(%d) out of range\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return(-EINVAL);
- 	}
  
-@@ -1604,7 +1604,7 @@ static void isdn_ppp_mp_receive(isdn_net
- 	slot = lp->ppp_slot;
- 	if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: lp->ppp_slot(%d)\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		stats->frame_drops++;
- 		dev_kfree_skb(skb);
- 		spin_unlock_irqrestore(&mp->lock, flags);
-@@ -1641,7 +1641,7 @@ static void isdn_ppp_mp_receive(isdn_net
- 		slot = lpq->ppp_slot;
- 		if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 			printk(KERN_ERR "%s: lpq->ppp_slot(%d)\n",
--				__FUNCTION__, lpq->ppp_slot);
-+				__func__, lpq->ppp_slot);
- 		} else {
- 			u32 lls = ippp_table[slot]->last_link_seqno;
- 			if (MP_LT(lls, minseq))
-@@ -1875,7 +1875,7 @@ void isdn_ppp_mp_reassembly( isdn_net_de
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+         printk(KERN_INFO "claw: variable p_ch =\n");
+         dumpit((char *) p_ch, sizeof(struct chbk));
+ #endif
+@@ -1200,20 +1200,20 @@ claw_write_retry ( struct chbk *p_ch )
+         if (p_ch->claw_state == CLAW_STOP) {
+ #ifdef FUNCTRACE
+ 		printk(KERN_INFO "%s:%s Exit on line %d\n",
+-			dev->name,__FUNCTION__,__LINE__);
++			dev->name,__func__,__LINE__);
+ #endif
+         	return;
+         }
+ #ifdef DEBUGMSG
+         printk( KERN_INFO "%s:%s  state-%02x\n" ,
+ 		dev->name,
+-		__FUNCTION__,
++		__func__,
+ 		p_ch->claw_state);
+ #endif
+ 	claw_strt_out_IO( dev );
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"rtry_xit");
+         return;
+@@ -1235,7 +1235,7 @@ claw_write_next ( struct chbk * p_ch )
+ 	int	rc;
  
- 	if (lp->ppp_slot < 0 || lp->ppp_slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: lp->ppp_slot(%d) out of range\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return;
- 	}
- 	if( MP_FLAGS(from) == (MP_BEGIN_FRAG | MP_END_FRAG) ) {
-@@ -2655,7 +2655,7 @@ static void isdn_ppp_receive_ccp(isdn_ne
- 		lp->ppp_slot);
- 	if (lp->ppp_slot < 0 || lp->ppp_slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: lp->ppp_slot(%d) out of range\n",
--			__FUNCTION__, lp->ppp_slot);
-+			__func__, lp->ppp_slot);
- 		return;
- 	}
- 	is = ippp_table[lp->ppp_slot];
-@@ -2665,7 +2665,7 @@ static void isdn_ppp_receive_ccp(isdn_ne
- 		int slot = ((isdn_net_local *) (lp->master->priv))->ppp_slot;
- 		if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 			printk(KERN_ERR "%s: slot(%d) out of range\n",
--				__FUNCTION__, slot);
-+				__func__, slot);
- 			return;
- 		}	
- 		mis = ippp_table[slot];
-@@ -2829,7 +2829,7 @@ static void isdn_ppp_send_ccp(isdn_net_d
- 		return;
- 	if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 		printk(KERN_ERR "%s: lp->ppp_slot(%d) out of range\n",
--			__FUNCTION__, slot);
-+			__func__, slot);
- 		return;
- 	}	
- 	is = ippp_table[slot];
-@@ -2852,7 +2852,7 @@ static void isdn_ppp_send_ccp(isdn_net_d
- 		slot = ((isdn_net_local *) (lp->master->priv))->ppp_slot;
- 		if (slot < 0 || slot >= ISDN_MAX_CHANNELS) {
- 			printk(KERN_ERR "%s: slot(%d) out of range\n",
--				__FUNCTION__, slot);
-+				__func__, slot);
- 			return;
- 		}	
- 		mis = ippp_table[slot];
-diff -puN drivers/isdn/i4l/isdn_tty.c~isdn-replace-remaining-__function__-occurrences drivers/isdn/i4l/isdn_tty.c
---- a/drivers/isdn/i4l/isdn_tty.c~isdn-replace-remaining-__function__-occurrences
-+++ a/drivers/isdn/i4l/isdn_tty.c
-@@ -1347,7 +1347,7 @@ isdn_tty_tiocmget(struct tty_struct *tty
- 	modem_info *info = (modem_info *) tty->driver_data;
- 	u_char control, status;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",p_ch->ndev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",p_ch->ndev->name,__func__);
+         printk(KERN_INFO "%s: variable p_ch =\n",p_ch->ndev->name);
+         dumpit((char *) p_ch, sizeof(struct chbk));
+ #endif
+@@ -1262,7 +1262,7 @@ claw_write_next ( struct chbk * p_ch )
  
--	if (isdn_tty_paranoia_check(info, tty->name, __FUNCTION__))
-+	if (isdn_tty_paranoia_check(info, tty->name, __func__))
- 		return -ENODEV;
- 	if (tty->flags & (1 << TTY_IO_ERROR))
- 		return -EIO;
-@@ -1374,7 +1374,7 @@ isdn_tty_tiocmset(struct tty_struct *tty
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+         return;
+ }      /* end of claw_write_next      */
+@@ -1276,7 +1276,7 @@ static void
+ claw_timer ( struct chbk * p_ch )
  {
- 	modem_info *info = (modem_info *) tty->driver_data;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Entry\n",p_ch->ndev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Entry\n",p_ch->ndev->name,__func__);
+         printk(KERN_INFO "%s: variable p_ch =\n",p_ch->ndev->name);
+         dumpit((char *) p_ch, sizeof(struct chbk));
+ #endif
+@@ -1285,7 +1285,7 @@ claw_timer ( struct chbk * p_ch )
+         wake_up(&p_ch->wait);
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		p_ch->ndev->name,__FUNCTION__,__LINE__);
++		p_ch->ndev->name,__func__,__LINE__);
+ #endif
+         return;
+ }      /* end of claw_timer  */
+@@ -1312,7 +1312,7 @@ pages_to_order_of_mag(int num_of_pages)
+ 	int	order_of_mag=1;		/* assume 2 pages */
+ 	int	nump=2;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s Enter pages = %d \n",__FUNCTION__,num_of_pages);
++        printk(KERN_INFO "%s Enter pages = %d \n",__func__,num_of_pages);
+ #endif
+ 	CLAW_DBF_TEXT_(5,trace,"pages%d",num_of_pages);
+ 	if (num_of_pages == 1)   {return 0; }  /* magnitude of 0 = 1 page */
+@@ -1327,7 +1327,7 @@ pages_to_order_of_mag(int num_of_pages)
+ 	if (order_of_mag > 9) { order_of_mag = 9; }  /* I know it's paranoid */
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s Exit on line %d, order = %d\n",
+-	__FUNCTION__,__LINE__, order_of_mag);
++	__func__,__LINE__, order_of_mag);
+ #endif
+ 	CLAW_DBF_TEXT_(5,trace,"mag%d",order_of_mag);
+ 	return order_of_mag;
+@@ -1349,7 +1349,7 @@ add_claw_reads(struct net_device *dev, s
+         struct ccwbk*  p_buf;
+ #endif
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "dev\n");
+@@ -1369,7 +1369,7 @@ add_claw_reads(struct net_device *dev, s
+         if ( p_first==NULL) {
+ #ifdef FUNCTRACE
+ 		printk(KERN_INFO "%s:%s Exit on line %d\n",
+-			dev->name,__FUNCTION__,__LINE__);
++			dev->name,__func__,__LINE__);
+ #endif
+ 		CLAW_DBF_TEXT(4,trace,"addexit");
+                 return 0;
+@@ -1400,9 +1400,9 @@ add_claw_reads(struct net_device *dev, s
+         if ( privptr-> p_read_active_first ==NULL ) {
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s:%s p_read_active_first == NULL \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+                 printk(KERN_INFO "%s:%s Read active first/last changed \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+                 privptr-> p_read_active_first= p_first;  /*    set new first */
+                 privptr-> p_read_active_last = p_last;   /*    set new last  */
+@@ -1411,7 +1411,7 @@ add_claw_reads(struct net_device *dev, s
  
--	if (isdn_tty_paranoia_check(info, tty->name, __FUNCTION__))
-+	if (isdn_tty_paranoia_check(info, tty->name, __func__))
- 		return -ENODEV;
- 	if (tty->flags & (1 << TTY_IO_ERROR))
- 		return -EIO;
-@@ -1598,7 +1598,7 @@ isdn_tty_open(struct tty_struct *tty, st
- 	if (isdn_tty_paranoia_check(info, tty->name, "isdn_tty_open"))
- 		return -ENODEV;
- 	if (!try_module_get(info->owner)) {
--		printk(KERN_WARNING "%s: cannot reserve module\n", __FUNCTION__);
-+		printk(KERN_WARNING "%s: cannot reserve module\n", __func__);
- 		return -ENODEV;
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s:%s Read in progress \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+                 /* set up TIC ccw  */
+                 temp_ccw.cda= (__u32)__pa(&p_first->read);
+@@ -1450,15 +1450,15 @@ add_claw_reads(struct net_device *dev, s
+                 privptr->p_read_active_last=p_last;
+         } /* end of if ( privptr-> p_read_active_first ==NULL)  */
+ #ifdef IOTRACE
+-        printk(KERN_INFO "%s:%s  dump p_last CCW BK \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s  dump p_last CCW BK \n",dev->name,__func__);
+         dumpit((char *)p_last, sizeof(struct ccwbk));
+-        printk(KERN_INFO "%s:%s  dump p_end CCW BK \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s  dump p_end CCW BK \n",dev->name,__func__);
+         dumpit((char *)p_end, sizeof(struct endccw));
+ 
+-        printk(KERN_INFO "%s:%s dump p_first CCW BK \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s dump p_first CCW BK \n",dev->name,__func__);
+         dumpit((char *)p_first, sizeof(struct ccwbk));
+         printk(KERN_INFO "%s:%s Dump Active CCW chain \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+         p_buf=privptr->p_read_active_first;
+         while (p_buf!=NULL) {
+                 dumpit((char *)p_buf, sizeof(struct ccwbk));
+@@ -1467,7 +1467,7 @@ add_claw_reads(struct net_device *dev, s
+ #endif
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"addexit");
+         return 0;
+@@ -1483,7 +1483,7 @@ ccw_check_return_code(struct ccw_device 
+ {
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() > enter  \n",
+-		cdev->dev.bus_id,__FUNCTION__);
++		cdev->dev.bus_id,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"ccwret");
+ #ifdef DEBUGMSG
+@@ -1516,7 +1516,7 @@ ccw_check_return_code(struct ccw_device 
+         }
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() > exit on line %d\n",
+-		cdev->dev.bus_id,__FUNCTION__,__LINE__);
++		cdev->dev.bus_id,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"ccwret");
+ }    /*    end of ccw_check_return_code   */
+@@ -1531,7 +1531,7 @@ ccw_check_unit_check(struct chbk * p_ch,
+ 	struct net_device *dev = p_ch->ndev;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s: %s() > enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s: %s() > enter\n",dev->name,__func__);
+ #endif
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: variable dev =\n",dev->name);
+@@ -1578,7 +1578,7 @@ ccw_check_unit_check(struct chbk * p_ch,
+ 
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ }   /*    end of ccw_check_unit_check    */
+ 
+@@ -1706,7 +1706,7 @@ find_link(struct net_device *dev, char *
+ 	int    rc=0;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s > enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s > enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"findlink");
+ #ifdef DEBUGMSG
+@@ -1739,7 +1739,7 @@ find_link(struct net_device *dev, char *
+ 
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+         return 0;
+ }    /*    end of find_link    */
+@@ -1773,7 +1773,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+         struct ccwbk                   *p_buf;
+ #endif
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s: %s() > enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s: %s() > enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"hw_tx");
+ #ifdef DEBUGMSG
+@@ -1787,7 +1787,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+         p_ch=(struct chbk *)&privptr->channel[WRITE];
+ 	p_env =privptr->p_env;
+ #ifdef IOTRACE
+-        printk(KERN_INFO "%s: %s() dump sk_buff  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s: %s() dump sk_buff  \n",dev->name,__func__);
+         dumpit((char *)skb ,sizeof(struct sk_buff));
+ #endif
+ 	claw_free_wrt_buf(dev);	/* Clean up free chain if posible */
+@@ -1877,7 +1877,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+         while (len_of_data > 0) {
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: %s() length-of-data is %ld \n",
+-			dev->name ,__FUNCTION__,len_of_data);
++			dev->name ,__func__,len_of_data);
+                 dumpit((char *)pDataAddress ,64);
+ #endif
+                 p_this_ccw=privptr->p_write_free_chain;  /* get a block */
+@@ -1913,7 +1913,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+                 p_last_ccw=p_this_ccw;      /* save new last block */
+ #ifdef IOTRACE
+ 		printk(KERN_INFO "%s: %s() > CCW and Buffer %ld bytes long \n",
+-			dev->name,__FUNCTION__,bytesInThisBuffer);
++			dev->name,__func__,bytesInThisBuffer);
+                 dumpit((char *)p_this_ccw, sizeof(struct ccwbk));
+                 dumpit((char *)p_this_ccw->p_buffer, 64);
+ #endif
+@@ -1998,7 +1998,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+ 
+ #ifdef IOTRACE
+         printk(KERN_INFO "%s: %s() >  Dump Active CCW chain \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+         p_buf=privptr->p_write_active_first;
+         while (p_buf!=NULL) {
+                 dumpit((char *)p_buf, sizeof(struct ccwbk));
+@@ -2018,7 +2018,7 @@ claw_hw_tx(struct sk_buff *skb, struct n
+         /*      if write free count is zero , set NOBUFFER       */
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() > free_count is %d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		(int) privptr->write_free_count );
+ #endif
+ 	if (privptr->write_free_count==0) {
+@@ -2029,7 +2029,7 @@ Done2:
+ Done:
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() > exit on line %d, rc = %d \n",
+-		dev->name,__FUNCTION__,__LINE__, rc);
++		dev->name,__func__,__LINE__, rc);
+ #endif
+ 	return(rc);
+ }    /*    end of claw_hw_tx    */
+@@ -2063,7 +2063,7 @@ init_ccw_bk(struct net_device *dev)
+         addr_t   real_TIC_address;
+         int i,j;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s: %s() enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s: %s() enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"init_ccw");
+ #ifdef DEBUGMSG
+@@ -2097,15 +2097,15 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() "
+ 		"ccw_blocks_required=%d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		ccw_blocks_required);
+         printk(KERN_INFO "%s: %s() "
+ 		"PAGE_SIZE=0x%x\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		(unsigned int)PAGE_SIZE);
+         printk(KERN_INFO "%s: %s() > "
+ 		"PAGE_MASK=0x%x\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		(unsigned int)PAGE_MASK);
+ #endif
+         /*
+@@ -2117,10 +2117,10 @@ init_ccw_bk(struct net_device *dev)
+ 
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() > ccw_blocks_perpage=%d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		ccw_blocks_perpage);
+         printk(KERN_INFO "%s: %s() > ccw_pages_required=%d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		ccw_pages_required);
+ #endif
+         /*
+@@ -2156,29 +2156,29 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef DEBUGMSG
+         if (privptr->p_env->read_size < PAGE_SIZE) {
+             printk(KERN_INFO "%s: %s() reads_perpage=%d\n",
+-	    	dev->name,__FUNCTION__,
++	    	dev->name,__func__,
+ 		claw_reads_perpage);
+         }
+         else {
+             printk(KERN_INFO "%s: %s() pages_perread=%d\n",
+-	    	dev->name,__FUNCTION__,
++	    	dev->name,__func__,
+ 		privptr->p_buff_pages_perread);
+         }
+         printk(KERN_INFO "%s: %s() read_pages=%d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		claw_read_pages);
+         if (privptr->p_env->write_size < PAGE_SIZE) {
+             printk(KERN_INFO "%s: %s() writes_perpage=%d\n",
+-	    	dev->name,__FUNCTION__,
++	    	dev->name,__func__,
+ 		claw_writes_perpage);
+         }
+         else {
+             printk(KERN_INFO "%s: %s() pages_perwrite=%d\n",
+-	    	dev->name,__FUNCTION__,
++	    	dev->name,__func__,
+ 		privptr->p_buff_pages_perwrite);
+         }
+         printk(KERN_INFO "%s: %s() write_pages=%d\n",
+-		dev->name,__FUNCTION__,
++		dev->name,__func__,
+ 		claw_write_pages);
+ #endif
+ 
+@@ -2194,12 +2194,12 @@ init_ccw_bk(struct net_device *dev)
+                         printk(KERN_INFO "%s: %s()  "
+ 				"__get_free_pages for CCWs failed : "
+ 				"pages is %d\n",
+-                                dev->name,__FUNCTION__,
++                                dev->name,__func__,
+ 				ccw_pages_required );
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s: %s() > "
+ 				"exit on line %d, rc = ENOMEM\n",
+-				dev->name,__FUNCTION__,
++				dev->name,__func__,
+ 				 __LINE__);
+ #endif
+                         return -ENOMEM;
+@@ -2218,7 +2218,7 @@ init_ccw_bk(struct net_device *dev)
+         /*                              Initialize ending CCW block       */
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() begin initialize ending CCW blocks\n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+ 
+         p_endccw=privptr->p_end_ccw;
+@@ -2276,7 +2276,7 @@ init_ccw_bk(struct net_device *dev)
+ 
+ #ifdef IOTRACE
+         printk(KERN_INFO "%s: %s() dump claw ending CCW BK \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+         dumpit((char *)p_endccw, sizeof(struct endccw));
+ #endif
+ 
+@@ -2287,7 +2287,7 @@ init_ccw_bk(struct net_device *dev)
+ 
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s()  Begin build a chain of CCW buffer \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+         p_buff=privptr->p_buff_ccw;
+ 
+@@ -2306,7 +2306,7 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() "
+ 		"End build a chain of CCW buffer \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+         p_buf=p_free_chain;
+         while (p_buf!=NULL) {
+                 dumpit((char *)p_buf, sizeof(struct ccwbk));
+@@ -2321,7 +2321,7 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() "
+ 		"Begin initialize ClawSignalBlock \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+         if (privptr->p_claw_signal_blk==NULL) {
+                 privptr->p_claw_signal_blk=p_free_chain;
+@@ -2334,7 +2334,7 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() >  End initialize "
+ 	 	"ClawSignalBlock\n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+         dumpit((char *)privptr->p_claw_signal_blk, sizeof(struct ccwbk));
+ #endif
+ 
+@@ -2349,14 +2349,14 @@ init_ccw_bk(struct net_device *dev)
+                 if (privptr->p_buff_write==NULL) {
+                         printk(KERN_INFO "%s: %s() __get_free_pages for write"
+ 				" bufs failed : get is for %d pages\n",
+-                                dev->name,__FUNCTION__,claw_write_pages );
++                                dev->name,__func__,claw_write_pages );
+                         free_pages((unsigned long)privptr->p_buff_ccw,
+ 			   (int)pages_to_order_of_mag(privptr->p_buff_ccw_num));
+                         privptr->p_buff_ccw=NULL;
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s: %s() > exit on line %d,"
+ 			 	"rc = ENOMEM\n",
+-				dev->name,__FUNCTION__,__LINE__);
++				dev->name,__func__,__LINE__);
+ #endif
+                         return -ENOMEM;
+                 }
+@@ -2369,7 +2369,7 @@ init_ccw_bk(struct net_device *dev)
+ 			ccw_pages_required * PAGE_SIZE);
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: %s() Begin build claw write free "
+-			"chain \n",dev->name,__FUNCTION__);
++			"chain \n",dev->name,__func__);
+ #endif
+                 privptr->p_write_free_chain=NULL;
+ 
+@@ -2409,14 +2409,14 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef IOTRACE
+                    printk(KERN_INFO "%s:%s __get_free_pages "
+ 		    "for writes buf: get for %d pages\n",
+-		    dev->name,__FUNCTION__,
++		    dev->name,__func__,
+ 		    privptr->p_buff_pages_perwrite);
+ #endif
+                    if (p_buff==NULL) {
+ 			printk(KERN_INFO "%s:%s __get_free_pages "
+ 			 	"for writes buf failed : get is for %d pages\n",
+ 				dev->name,
+-				__FUNCTION__,
++				__func__,
+ 				privptr->p_buff_pages_perwrite );
+                         free_pages((unsigned long)privptr->p_buff_ccw,
+ 			      (int)pages_to_order_of_mag(
+@@ -2433,7 +2433,7 @@ init_ccw_bk(struct net_device *dev)
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s: %s exit on line %d, rc = ENOMEM\n",
+ 			dev->name,
+-			__FUNCTION__,
++			__func__,
+ 			__LINE__);
+ #endif
+                         return -ENOMEM;
+@@ -2466,7 +2466,7 @@ init_ccw_bk(struct net_device *dev)
+ 
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s:%s  End build claw write free chain \n",
+-	dev->name,__FUNCTION__);
++	dev->name,__func__);
+         p_buf=privptr->p_write_free_chain;
+         while (p_buf!=NULL) {
+                 dumpit((char *)p_buf, sizeof(struct ccwbk));
+@@ -2485,7 +2485,7 @@ init_ccw_bk(struct net_device *dev)
+                         printk(KERN_INFO "%s: %s() "
+ 			 	"__get_free_pages for read buf failed : "
+ 			 	"get is for %d pages\n",
+-                                dev->name,__FUNCTION__,claw_read_pages );
++                                dev->name,__func__,claw_read_pages );
+                         free_pages((unsigned long)privptr->p_buff_ccw,
+ 				(int)pages_to_order_of_mag(
+ 					privptr->p_buff_ccw_num));
+@@ -2497,7 +2497,7 @@ init_ccw_bk(struct net_device *dev)
+                         privptr->p_buff_write=NULL;
+ #ifdef FUNCTRACE
+                         printk(KERN_INFO "%s: %s() > exit on line %d, rc ="
+-				" ENOMEM\n",dev->name,__FUNCTION__,__LINE__);
++				" ENOMEM\n",dev->name,__func__,__LINE__);
+ #endif
+                         return -ENOMEM;
+                 }
+@@ -2509,7 +2509,7 @@ init_ccw_bk(struct net_device *dev)
+                 */
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: %s() Begin build claw read free chain \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+                 p_buff=privptr->p_buff_read;
+                 for (i=0 ; i< privptr->p_env->read_buffers ; i++) {
+@@ -2590,7 +2590,7 @@ init_ccw_bk(struct net_device *dev)
+ 
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() Begin build claw read free chain \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+                 for (i=0 ; i< privptr->p_env->read_buffers ; i++) {
+                         p_buff = (void *)__get_free_pages(__GFP_DMA,
+@@ -2598,7 +2598,7 @@ init_ccw_bk(struct net_device *dev)
+                         if (p_buff==NULL) {
+                                 printk(KERN_INFO "%s: %s() __get_free_pages for read "
+ 					"buf failed : get is for %d pages\n",
+-					dev->name,__FUNCTION__,
++					dev->name,__func__,
+                                         privptr->p_buff_pages_perread );
+                                 free_pages((unsigned long)privptr->p_buff_ccw,
+ 					(int)pages_to_order_of_mag(privptr->p_buff_ccw_num));
+@@ -2622,7 +2622,7 @@ init_ccw_bk(struct net_device *dev)
+                                 privptr->p_buff_write=NULL;
+ #ifdef FUNCTRACE
+                                 printk(KERN_INFO "%s: %s() exit on line %d, rc = ENOMEM\n",
+-					dev->name,__FUNCTION__,
++					dev->name,__func__,
+ 					__LINE__);
+ #endif
+                                 return -ENOMEM;
+@@ -2695,7 +2695,7 @@ init_ccw_bk(struct net_device *dev)
+         }       /*  pBuffread = NULL */
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s: %s() >  End build claw read free chain \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+         p_buf=p_first_CCWB;
+         while (p_buf!=NULL) {
+                 dumpit((char *)p_buf, sizeof(struct ccwbk));
+@@ -2707,7 +2707,7 @@ init_ccw_bk(struct net_device *dev)
+ 	privptr->buffs_alloc = 1;
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+         return 0;
+ }    /*    end of init_ccw_bk */
+@@ -2723,11 +2723,11 @@ probe_error( struct ccwgroup_device *cgd
+ {
+   struct claw_privbk *privptr;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s enter  \n",__FUNCTION__);
++        printk(KERN_INFO "%s enter  \n",__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"proberr");
+ #ifdef DEBUGMSG
+-        printk(KERN_INFO "%s variable cgdev =\n",__FUNCTION__);
++        printk(KERN_INFO "%s variable cgdev =\n",__func__);
+         dumpit((char *) cgdev, sizeof(struct ccwgroup_device));
+ #endif
+         privptr=(struct claw_privbk *)cgdev->dev.driver_data;
+@@ -2741,7 +2741,7 @@ probe_error( struct ccwgroup_device *cgd
+         }
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s > exit on line %d\n",
+-		 __FUNCTION__,__LINE__);
++		 __func__,__LINE__);
+ #endif
+ 
+         return;
+@@ -2772,7 +2772,7 @@ claw_process_control( struct net_device 
+         struct chbk *p_ch = NULL;
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() > enter  \n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"clw_cntl");
+ #ifdef DEBUGMSG
+@@ -2794,7 +2794,7 @@ claw_process_control( struct net_device 
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s: %s() > "
+ 			"exit on line %d, rc=0\n",
+-			dev->name,__FUNCTION__,__LINE__);
++			dev->name,__func__,__LINE__);
+ #endif
+                 return 0;
+         }
+@@ -3057,7 +3057,7 @@ claw_process_control( struct net_device 
+ 
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s() exit on line %d, rc = 0\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 
+         return 0;
+@@ -3080,7 +3080,7 @@ claw_send_control(struct net_device *dev
+         struct sk_buff 			*skb;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s > enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s > enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"sndcntl");
+ #ifdef DEBUGMSG
+@@ -3143,10 +3143,10 @@ claw_send_control(struct net_device *dev
+         skb = dev_alloc_skb(sizeof(struct clawctl));
+         if (!skb) {
+                 printk(  "%s:%s low on mem, returning...\n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #ifdef DEBUG
+                 printk(KERN_INFO "%s:%s Exit, rc = ENOMEM\n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+                 return -ENOMEM;
+         }
+@@ -3162,7 +3162,7 @@ claw_send_control(struct net_device *dev
+         	claw_hw_tx(skb, dev, 0);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 
+         return 0;
+@@ -3180,7 +3180,7 @@ claw_snd_conn_req(struct net_device *dev
+         struct clawctl 	   *p_ctl;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"snd_conn");
+ #ifdef  DEBUGMSG
+@@ -3193,7 +3193,7 @@ claw_snd_conn_req(struct net_device *dev
+         if ( privptr->system_validate_comp==0x00 ) {
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s:%s Exit on line %d, rc = 1\n",
+-			dev->name,__FUNCTION__,__LINE__);
++			dev->name,__func__,__LINE__);
+ #endif
+                 return rc;
+         }
+@@ -3209,7 +3209,7 @@ claw_snd_conn_req(struct net_device *dev
+        			HOST_APPL_NAME, privptr->p_env->api_type);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d, rc = %d\n",
+-		dev->name,__FUNCTION__,__LINE__, rc);
++		dev->name,__func__,__LINE__, rc);
+ #endif
+         return rc;
+ 
+@@ -3228,7 +3228,7 @@ claw_snd_disc(struct net_device *dev, st
+         struct conncmd *  p_connect;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"snd_dsc");
+ #ifdef  DEBUGMSG
+@@ -3244,7 +3244,7 @@ claw_snd_disc(struct net_device *dev, st
+                 p_connect->host_name, p_connect->WS_name);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d, rc = %d\n",
+-		dev->name,__FUNCTION__, __LINE__, rc);
++		dev->name,__func__, __LINE__, rc);
+ #endif
+         return rc;
+ }     /*   end of claw_snd_disc    */
+@@ -3265,7 +3265,7 @@ claw_snd_sys_validate_rsp(struct net_dev
+ 
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Enter\n",
+-		dev->name,__FUNCTION__);
++		dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"chkresp");
+ #ifdef DEBUGMSG
+@@ -3285,7 +3285,7 @@ claw_snd_sys_validate_rsp(struct net_dev
+ 		p_env->adapter_name  );
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d, rc = %d\n",
+-		dev->name,__FUNCTION__,__LINE__, rc);
++		dev->name,__func__,__LINE__, rc);
+ #endif
+         return rc;
+ }     /*    end of claw_snd_sys_validate_rsp    */
+@@ -3301,7 +3301,7 @@ claw_strt_conn_req(struct net_device *de
+         int rc;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"conn_req");
+ #ifdef DEBUGMSG
+@@ -3311,7 +3311,7 @@ claw_strt_conn_req(struct net_device *de
+         rc=claw_snd_conn_req(dev, 1);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d, rc = %d\n",
+-		dev->name,__FUNCTION__,__LINE__, rc);
++		dev->name,__func__,__LINE__, rc);
+ #endif
+         return rc;
+ }    /*   end of claw_strt_conn_req   */
+@@ -3327,13 +3327,13 @@ net_device_stats *claw_stats(struct net_
+ {
+         struct claw_privbk *privptr;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"stats");
+         privptr = dev->priv;
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+         return &privptr->stats;
+ }     /*   end of claw_stats   */
+@@ -3366,7 +3366,7 @@ unpack_read(struct net_device *dev )
+ 	int     p=0;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s enter  \n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"unpkread");
+         p_first_ccw=NULL;
+@@ -3408,7 +3408,7 @@ unpack_read(struct net_device *dev )
+                 if ((p_this_ccw->header.opcode & MORE_to_COME_FLAG)!=0) {
+ #ifdef DEBUGMSG
+                         printk(KERN_INFO "%s: %s > More_to_come is ON\n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+                         mtc_this_frm=1;
+                         if (p_this_ccw->header.length!=
+@@ -3435,7 +3435,7 @@ unpack_read(struct net_device *dev )
+ #ifdef DEBUGMSG
+                         printk(KERN_INFO "%s:%s goto next "
+ 				"frame from MoretoComeSkip \n",
+-				dev->name,__FUNCTION__);
++				dev->name,__func__);
+ #endif
+                         goto NextFrame;
+                 }
+@@ -3445,7 +3445,7 @@ unpack_read(struct net_device *dev )
+ #ifdef DEBUGMSG
+                         printk(KERN_INFO "%s:%s goto next "
+ 				"frame from claw_process_control \n",
+-				dev->name,__FUNCTION__);
++				dev->name,__func__);
+ #endif
+ 			CLAW_DBF_TEXT(4,trace,"UnpkCntl");
+                         goto NextFrame;
+@@ -3468,7 +3468,7 @@ unpack_next:
+                 if (privptr->mtc_logical_link<0) {
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: %s mtc_logical_link < 0  \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+ 
+                 /*
+@@ -3487,7 +3487,7 @@ unpack_next:
+                         printk(KERN_INFO "%s: %s > goto next "
+ 				"frame from MoretoComeSkip \n",
+ 				dev->name,
+-				__FUNCTION__);
++				__func__);
+                         printk(KERN_INFO "      bytes_to_mov %d > (MAX_ENVELOPE_"
+ 				"SIZE-privptr->mtc_offset %d)\n",
+ 				bytes_to_mov,(MAX_ENVELOPE_SIZE- privptr->mtc_offset));
+@@ -3505,13 +3505,13 @@ unpack_next:
+ 		}
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: %s() received data \n",
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ 		if (p_env->packing == DO_PACKED)
+ 			dumpit((char *)p_packd+sizeof(struct clawph),32);
+ 		else
+ 	                dumpit((char *)p_this_ccw->p_buffer, 32);
+ 		printk(KERN_INFO "%s: %s() bytelength %d \n",
+-			dev->name,__FUNCTION__,bytes_to_mov);
++			dev->name,__func__,bytes_to_mov);
+ #endif
+                 if (mtc_this_frm==0) {
+                         len_of_data=privptr->mtc_offset+bytes_to_mov;
+@@ -3530,13 +3530,13 @@ unpack_next:
+ #ifdef DEBUGMSG
+                                 printk(KERN_INFO "%s: %s() netif_"
+ 					"rx(skb) completed \n",
+-					dev->name,__FUNCTION__);
++					dev->name,__func__);
+ #endif
+                         }
+                         else {
+                                 privptr->stats.rx_dropped++;
+                                 printk(KERN_WARNING "%s: %s() low on memory\n",
+-				dev->name,__FUNCTION__);
++				dev->name,__func__);
+                         }
+                         privptr->mtc_offset=0;
+                         privptr->mtc_logical_link=-1;
+@@ -3575,10 +3575,10 @@ NextFrame:
+ 
+ #ifdef IOTRACE
+         printk(KERN_INFO "%s:%s processed frame is %d \n",
+-		dev->name,__FUNCTION__,i);
++		dev->name,__func__,i);
+         printk(KERN_INFO "%s:%s  F:%lx L:%lx\n",
+ 		dev->name,
+-		__FUNCTION__,
++		__func__,
+ 		(unsigned long)p_first_ccw,
+ 		(unsigned long)p_last_ccw);
+ #endif
+@@ -3588,7 +3588,7 @@ NextFrame:
+         claw_strt_read(dev, LOCK_YES);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s: %s exit on line %d\n",
+-		dev->name, __FUNCTION__, __LINE__);
++		dev->name, __func__, __LINE__);
+ #endif
+         return;
+ }     /*  end of unpack_read   */
+@@ -3610,7 +3610,7 @@ claw_strt_read (struct net_device *dev, 
+         p_ch=&privptr->channel[READ];
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter  \n",dev->name,__func__);
+         printk(KERN_INFO "%s: variable lock = %d, dev =\n",dev->name, lock);
+         dumpit((char *) dev, sizeof(struct net_device));
+ #endif
+@@ -3626,7 +3626,7 @@ claw_strt_read (struct net_device *dev, 
+         }
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s:%s state-%02x\n" ,
+-		dev->name,__FUNCTION__, p_ch->claw_state);
++		dev->name,__func__, p_ch->claw_state);
+ #endif
+         if (lock==LOCK_YES) {
+                 spin_lock_irqsave(get_ccwdev_lock(p_ch->cdev), saveflags);
+@@ -3634,7 +3634,7 @@ claw_strt_read (struct net_device *dev, 
+         if (test_and_set_bit(0, (void *)&p_ch->IO_active) == 0) {
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s: HOT READ started in %s\n" ,
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+                 p_clawh=(struct clawh *)privptr->p_claw_signal_blk;
+                 dumpit((char *)&p_clawh->flag , 1);
+ #endif
+@@ -3650,7 +3650,7 @@ claw_strt_read (struct net_device *dev, 
+ 	else {
+ #ifdef DEBUGMSG
+ 		printk(KERN_INFO "%s: No READ started by %s() In progress\n" ,
+-			dev->name,__FUNCTION__);
++			dev->name,__func__);
+ #endif
+ 		CLAW_DBF_TEXT(2,trace,"ReadAct");
  	}
- #ifdef ISDN_DEBUG_MODEM_OPEN
+@@ -3660,7 +3660,7 @@ claw_strt_read (struct net_device *dev, 
+         }
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 	CLAW_DBF_TEXT(4,trace,"StRdExit");
+         return;
+@@ -3681,7 +3681,7 @@ claw_strt_out_IO( struct net_device *dev
+         struct ccwbk   	*p_first_ccw;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	if (!dev) {
+ 		return;
+@@ -3691,7 +3691,7 @@ claw_strt_out_IO( struct net_device *dev
+ 
+ #ifdef DEBUGMSG
+         printk(KERN_INFO "%s:%s state-%02x\n" ,
+-		dev->name,__FUNCTION__,p_ch->claw_state);
++		dev->name,__func__,p_ch->claw_state);
+ #endif
+         CLAW_DBF_TEXT(4,trace,"strt_io");
+         p_first_ccw=privptr->p_write_active_first;
+@@ -3701,14 +3701,14 @@ claw_strt_out_IO( struct net_device *dev
+         if (p_first_ccw == NULL) {
+ #ifdef FUNCTRACE
+                 printk(KERN_INFO "%s:%s Exit on line %d\n",
+-			dev->name,__FUNCTION__,__LINE__);
++			dev->name,__func__,__LINE__);
+ #endif
+                 return;
+         }
+         if (test_and_set_bit(0, (void *)&p_ch->IO_active) == 0) {
+                 parm = (unsigned long) p_ch;
+ #ifdef DEBUGMSG
+-                printk(KERN_INFO "%s:%s do_io \n" ,dev->name,__FUNCTION__);
++                printk(KERN_INFO "%s:%s do_io \n" ,dev->name,__func__);
+                 dumpit((char *)p_first_ccw, sizeof(struct ccwbk));
+ #endif
+ 		CLAW_DBF_TEXT(2,trace,"StWrtIO");
+@@ -3721,7 +3721,7 @@ claw_strt_out_IO( struct net_device *dev
+         dev->trans_start = jiffies;
+ #ifdef FUNCTRACE
+ 	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-		dev->name,__FUNCTION__,__LINE__);
++		dev->name,__func__,__LINE__);
+ #endif
+ 
+         return;
+@@ -3745,7 +3745,7 @@ claw_free_wrt_buf( struct net_device *de
+         struct ccwbk*p_buf;
+ #endif
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+         printk(KERN_INFO "%s: free count = %d  variable dev =\n",
+ 		dev->name,privptr->write_free_count);
+ #endif
+@@ -3798,7 +3798,7 @@ claw_free_wrt_buf( struct net_device *de
+                 privptr->p_write_active_last=NULL;
+ #ifdef DEBUGMSG
+                 printk(KERN_INFO "%s:%s p_write_"
+-			"active_first==NULL\n",dev->name,__FUNCTION__);
++			"active_first==NULL\n",dev->name,__func__);
+ #endif
+         }
+ #ifdef IOTRACE
+@@ -3819,7 +3819,7 @@ claw_free_wrt_buf( struct net_device *de
+ 	CLAW_DBF_TEXT_(4,trace,"FWC=%d",privptr->write_free_count);
+ #ifdef FUNCTRACE
+         printk(KERN_INFO "%s:%s Exit on line %d free_count =%d\n",
+-		dev->name,__FUNCTION__, __LINE__,privptr->write_free_count);
++		dev->name,__func__, __LINE__,privptr->write_free_count);
+ #endif
+         return;
+ }
+@@ -3833,7 +3833,7 @@ claw_free_netdevice(struct net_device * 
+ {
+ 	struct claw_privbk *privptr;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"free_dev");
+ 
+@@ -3854,7 +3854,7 @@ claw_free_netdevice(struct net_device * 
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"feee_ok");
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Exit\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Exit\n",dev->name,__func__);
+ #endif
+ }
+ 
+@@ -3867,13 +3867,13 @@ static void
+ claw_init_netdevice(struct net_device * dev)
+ {
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"init_dev");
+ 	CLAW_DBF_TEXT_(2,setup,"%s",dev->name);
+ 	if (!dev) {
+         printk(KERN_WARNING "claw:%s BAD Device exit line %d\n",
+-		__FUNCTION__,__LINE__);
++		__func__,__LINE__);
+ 		CLAW_DBF_TEXT(2,setup,"baddev");
+ 		return;
+ 	}
+@@ -3889,7 +3889,7 @@ claw_init_netdevice(struct net_device * 
+ 	dev->tx_queue_len = 1300;
+ 	dev->flags = IFF_POINTOPOINT | IFF_NOARP;
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Exit\n",dev->name,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Exit\n",dev->name,__func__);
+ #endif
+ 	CLAW_DBF_TEXT(2,setup,"initok");
+ 	return;
+@@ -3909,7 +3909,7 @@ add_channel(struct ccw_device *cdev,int 
+ 	struct ccw_dev_id dev_id;
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "%s:%s Enter\n",cdev->dev.bus_id,__FUNCTION__);
++        printk(KERN_INFO "%s:%s Enter\n",cdev->dev.bus_id,__func__);
+ #endif
+ 	CLAW_DBF_TEXT_(2,setup,"%s",cdev->dev.bus_id);
+ 	privptr->channel[i].flag  = i+1;   /* Read is 1 Write is 2 */
+@@ -3920,16 +3920,16 @@ add_channel(struct ccw_device *cdev,int 
+ 	p_ch->devno = dev_id.devno;
+ 	if ((p_ch->irb = kzalloc(sizeof (struct irb),GFP_KERNEL)) == NULL) {
+ 		printk(KERN_WARNING "%s Out of memory in %s for irb\n",
+-			p_ch->id,__FUNCTION__);
++			p_ch->id,__func__);
+ #ifdef FUNCTRACE
+         	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-			p_ch->id,__FUNCTION__,__LINE__);
++			p_ch->id,__func__,__LINE__);
+ #endif
+ 		return -ENOMEM;
+ 	}
+ #ifdef FUNCTRACE
+         	printk(KERN_INFO "%s:%s Exit on line %d\n",
+-			cdev->dev.bus_id,__FUNCTION__,__LINE__);
++			cdev->dev.bus_id,__func__,__LINE__);
+ #endif
+ 	return 0;
+ }
+@@ -3952,7 +3952,7 @@ claw_new_device(struct ccwgroup_device *
+ 	int ret;
+ 	struct ccw_dev_id dev_id;
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 	printk(KERN_INFO "claw: add for %s\n",cgdev->cdev[READ]->dev.bus_id);
+ 	CLAW_DBF_TEXT(2,setup,"new_dev");
+ 	privptr = cgdev->dev.driver_data;
+@@ -3990,7 +3990,7 @@ claw_new_device(struct ccwgroup_device *
+ 	}
+ 	dev = alloc_netdev(0,"claw%d",claw_init_netdevice);
+ 	if (!dev) {
+-		printk(KERN_WARNING "%s:alloc_netdev failed\n",__FUNCTION__);
++		printk(KERN_WARNING "%s:alloc_netdev failed\n",__func__);
+ 		goto out;
+ 	}
+ 	dev->priv = privptr;
+@@ -4065,7 +4065,7 @@ claw_shutdown_device(struct ccwgroup_dev
+ 	struct net_device *ndev;
+ 	int	ret;
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 	CLAW_DBF_TEXT_(2,setup,"%s",cgdev->dev.bus_id);
+ 	priv = cgdev->dev.driver_data;
+ 	if (!priv)
+@@ -4095,15 +4095,15 @@ claw_remove_device(struct ccwgroup_devic
+ {
+ 	struct claw_privbk *priv;
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 	CLAW_DBF_TEXT_(2,setup,"%s",cgdev->dev.bus_id);
+ 	priv = cgdev->dev.driver_data;
+ 	if (!priv) {
+-		printk(KERN_WARNING "claw: %s() no Priv exiting\n",__FUNCTION__);
++		printk(KERN_WARNING "claw: %s() no Priv exiting\n",__func__);
+ 		return;
+ 	}
+ 	printk(KERN_INFO "claw: %s() called %s will be removed.\n",
+-			__FUNCTION__,cgdev->cdev[0]->dev.bus_id);
++			__func__,cgdev->cdev[0]->dev.bus_id);
+ 	if (cgdev->state == CCWGROUP_ONLINE)
+ 		claw_shutdown_device(cgdev);
+ 	claw_remove_files(&cgdev->dev);
+@@ -4346,7 +4346,7 @@ static struct attribute_group claw_attr_
+ static int
+ claw_add_files(struct device *dev)
+ {
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 	CLAW_DBF_TEXT(2,setup,"add_file");
+ 	return sysfs_create_group(&dev->kobj, &claw_attr_group);
+ }
+@@ -4354,7 +4354,7 @@ claw_add_files(struct device *dev)
+ static void
+ claw_remove_files(struct device *dev)
+ {
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 	CLAW_DBF_TEXT(2,setup,"rem_file");
+ 	sysfs_remove_group(&dev->kobj, &claw_attr_group);
+ }
+@@ -4385,12 +4385,12 @@ claw_init(void)
+ 	printk(KERN_INFO "claw: starting driver\n");
+ 
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "claw: %s() enter \n",__FUNCTION__);
++        printk(KERN_INFO "claw: %s() enter \n",__func__);
+ #endif
+ 	ret = claw_register_debug_facility();
+ 	if (ret) {
+ 		printk(KERN_WARNING "claw: %s() debug_register failed %d\n",
+-			__FUNCTION__,ret);
++			__func__,ret);
+ 		return ret;
+ 	}
+ 	CLAW_DBF_TEXT(2,setup,"init_mod");
+@@ -4398,10 +4398,10 @@ claw_init(void)
+ 	if (ret) {
+ 		claw_unregister_debug_facility();
+ 		printk(KERN_WARNING "claw; %s() cu3088 register failed %d\n",
+-			__FUNCTION__,ret);
++			__func__,ret);
+ 	}
+ #ifdef FUNCTRACE
+-        printk(KERN_INFO "claw: %s() exit \n",__FUNCTION__);
++        printk(KERN_INFO "claw: %s() exit \n",__func__);
+ #endif
+ 	return ret;
+ }
+diff -puN drivers/s390/net/ctcmain.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/net/ctcmain.c
+--- a/drivers/s390/net/ctcmain.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/net/ctcmain.c
+@@ -375,7 +375,7 @@ ctc_unpack_skb(struct channel *ch, struc
+ 	struct ctc_priv *privptr = (struct ctc_priv *) dev->priv;
+ 	__u16 len = *((__u16 *) pskb->data);
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	skb_put(pskb, 2 + LL_HEADER_LENGTH);
+ 	skb_pull(pskb, 2);
+ 	pskb->dev = dev;
+@@ -515,7 +515,7 @@ ctc_unpack_skb(struct channel *ch, struc
+ static void
+ ccw_check_return_code(struct channel *ch, int return_code, char *msg)
+ {
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	switch (return_code) {
+ 		case 0:
+ 			fsm_event(ch->fsm, CH_EVENT_IO_SUCCESS, ch);
+@@ -550,7 +550,7 @@ ccw_check_return_code(struct channel *ch
+ static void
+ ccw_unit_check(struct channel *ch, unsigned char sense)
+ {
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	if (sense & SNS0_INTERVENTION_REQ) {
+ 		if (sense & 0x01) {
+ 			ctc_pr_debug("%s: Interface disc. or Sel. reset "
+@@ -595,7 +595,7 @@ ctc_purge_skb_queue(struct sk_buff_head 
+ {
+ 	struct sk_buff *skb;
+ 
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 
+ 	while ((skb = skb_dequeue(q))) {
+ 		atomic_dec(&skb->users);
+@@ -606,7 +606,7 @@ ctc_purge_skb_queue(struct sk_buff_head 
+ static int
+ ctc_checkalloc_buffer(struct channel *ch, int warn)
+ {
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	if ((ch->trans_skb == NULL) ||
+ 	    (ch->flags & CHANNEL_FLAGS_BUFSIZE_CHANGED)) {
+ 		if (ch->trans_skb != NULL)
+@@ -676,7 +676,7 @@ ch_action_txdone(fsm_instance * fi, int 
+ 	unsigned long duration;
+ 	struct timespec done_stamp = current_kernel_time();
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 
+ 	duration =
+ 	    (done_stamp.tv_sec - ch->prof.send_stamp.tv_sec) * 1000000 +
+@@ -761,7 +761,7 @@ ch_action_txidle(fsm_instance * fi, int 
+ {
+ 	struct channel *ch = (struct channel *) arg;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	fsm_newstate(fi, CH_STATE_TXIDLE);
+ 	fsm_event(((struct ctc_priv *) ch->netdev->priv)->fsm, DEV_EVENT_TXUP,
+@@ -788,7 +788,7 @@ ch_action_rx(fsm_instance * fi, int even
+ 	int check_len;
+ 	int rc;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	if (len < 8) {
+ 		ctc_pr_debug("%s: got packet with length %d < 8\n",
+@@ -860,7 +860,7 @@ ch_action_firstio(fsm_instance * fi, int
+ 	struct channel *ch = (struct channel *) arg;
+ 	int rc;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 
+ 	if (fsm_getstate(fi) == CH_STATE_TXIDLE)
+ 		ctc_pr_debug("%s: remote side issued READ?, init ...\n", ch->id);
+@@ -936,7 +936,7 @@ ch_action_rxidle(fsm_instance * fi, int 
+ 	__u16 buflen;
+ 	int rc;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	buflen = *((__u16 *) ch->trans_skb->data);
+ #ifdef DEBUG
+@@ -976,7 +976,7 @@ ch_action_setmode(fsm_instance * fi, int
+ 	int rc;
+ 	unsigned long saveflags;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	fsm_addtimer(&ch->timer, CTC_TIMEOUT_5SEC, CH_EVENT_TIMER, ch);
+ 	fsm_newstate(fi, CH_STATE_SETUPWAIT);
+@@ -1010,7 +1010,7 @@ ch_action_start(fsm_instance * fi, int e
+ 	int rc;
+ 	struct net_device *dev;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	if (ch == NULL) {
+ 		ctc_pr_warn("ch_action_start ch=NULL\n");
+ 		return;
+@@ -1090,7 +1090,7 @@ ch_action_haltio(fsm_instance * fi, int 
+ 	int rc;
+ 	int oldstate;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	fsm_addtimer(&ch->timer, CTC_TIMEOUT_5SEC, CH_EVENT_TIMER, ch);
+ 	saveflags = 0;	/* avoids comp warning with
+@@ -1125,7 +1125,7 @@ ch_action_stopped(fsm_instance * fi, int
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	fsm_newstate(fi, CH_STATE_STOPPED);
+ 	if (ch->trans_skb != NULL) {
+@@ -1177,7 +1177,7 @@ ch_action_fail(fsm_instance * fi, int ev
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	fsm_newstate(fi, CH_STATE_NOTOP);
+ 	if (CHANNEL_DIRECTION(ch->flags) == READ) {
+@@ -1208,7 +1208,7 @@ ch_action_setuperr(fsm_instance * fi, in
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 	/**
+ 	 * Special case: Got UC_RCRESET on setmode.
+ 	 * This means that remote side isn't setup. In this case
+@@ -1261,7 +1261,7 @@ ch_action_restart(fsm_instance * fi, int
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	ctc_pr_debug("%s: %s channel restart\n", dev->name,
+ 		     (CHANNEL_DIRECTION(ch->flags) == READ) ? "RX" : "TX");
+@@ -1298,7 +1298,7 @@ ch_action_rxiniterr(fsm_instance * fi, i
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 	if (event == CH_EVENT_TIMER) {
+ 		fsm_deltimer(&ch->timer);
+ 		ctc_pr_debug("%s: Timeout during RX init handshake\n", dev->name);
+@@ -1327,7 +1327,7 @@ ch_action_rxinitfail(fsm_instance * fi, 
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 	fsm_newstate(fi, CH_STATE_RXERR);
+ 	ctc_pr_warn("%s: RX initialization failed\n", dev->name);
+ 	ctc_pr_warn("%s: RX <-> RX connection detected\n", dev->name);
+@@ -1348,7 +1348,7 @@ ch_action_rxdisc(fsm_instance * fi, int 
+ 	struct channel *ch2;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	ctc_pr_debug("%s: Got remote disconnect, re-initializing ...\n",
+ 		     dev->name);
+@@ -1380,7 +1380,7 @@ ch_action_txiniterr(fsm_instance * fi, i
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(setup, 2, __FUNCTION__);
++	DBF_TEXT(setup, 2, __func__);
+ 	if (event == CH_EVENT_TIMER) {
+ 		fsm_deltimer(&ch->timer);
+ 		ctc_pr_debug("%s: Timeout during TX init handshake\n", dev->name);
+@@ -1409,7 +1409,7 @@ ch_action_txretry(fsm_instance * fi, int
+ 	struct net_device *dev = ch->netdev;
+ 	unsigned long saveflags;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	if (ch->retry++ > 3) {
+ 		ctc_pr_debug("%s: TX retry failed, restarting channel\n",
+@@ -1469,7 +1469,7 @@ ch_action_iofatal(fsm_instance * fi, int
+ 	struct channel *ch = (struct channel *) arg;
+ 	struct net_device *dev = ch->netdev;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&ch->timer);
+ 	if (CHANNEL_DIRECTION(ch->flags) == READ) {
+ 		ctc_pr_debug("%s: RX I/O error\n", dev->name);
+@@ -1491,7 +1491,7 @@ ch_action_reinit(fsm_instance *fi, int e
+  	struct net_device *dev = ch->netdev;
+  	struct ctc_priv *privptr = dev->priv;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+  	ch_action_iofatal(fi, event, arg);
+  	fsm_addtimer(&privptr->restart_timer, 1000, DEV_EVENT_RESTART, dev);
+ }
+@@ -1641,7 +1641,7 @@ add_channel(struct ccw_device *cdev, enu
+ 	struct channel **c = &channels;
+ 	struct channel *ch;
+ 
+-	DBF_TEXT(trace, 2, __FUNCTION__);
++	DBF_TEXT(trace, 2, __func__);
+ 	ch = kzalloc(sizeof(struct channel), GFP_KERNEL);
+ 	if (!ch) {
+ 		ctc_pr_warn("ctc: Out of memory in add_channel\n");
+@@ -1747,7 +1747,7 @@ channel_remove(struct channel *ch)
+ {
+ 	struct channel **c = &channels;
+ 
+-	DBF_TEXT(trace, 2, __FUNCTION__);
++	DBF_TEXT(trace, 2, __func__);
+ 	if (ch == NULL)
+ 		return;
+ 
+@@ -1786,7 +1786,7 @@ channel_get(enum channel_types type, cha
+ {
+ 	struct channel *ch = channels;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ #ifdef DEBUG
+ 	ctc_pr_debug("ctc: %s(): searching for ch with id %s and type %d\n",
+ 		     __func__, id, type);
+@@ -1882,7 +1882,7 @@ ctc_irq_handler(struct ccw_device *cdev,
+ 	struct net_device *dev;
+ 	struct ctc_priv *priv;
+ 
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	if (__ctc_check_irb_error(cdev, irb))
+ 		return;
+ 
+@@ -1976,7 +1976,7 @@ dev_action_start(fsm_instance * fi, int 
+ 	struct ctc_priv *privptr = dev->priv;
+ 	int direction;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 	fsm_deltimer(&privptr->restart_timer);
+ 	fsm_newstate(fi, DEV_STATE_STARTWAIT_RXTX);
+ 	for (direction = READ; direction <= WRITE; direction++) {
+@@ -1999,7 +1999,7 @@ dev_action_stop(fsm_instance * fi, int e
+ 	struct ctc_priv *privptr = dev->priv;
+ 	int direction;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	fsm_newstate(fi, DEV_STATE_STOPWAIT_RXTX);
+ 	for (direction = READ; direction <= WRITE; direction++) {
+ 		struct channel *ch = privptr->channel[direction];
+@@ -2012,7 +2012,7 @@ dev_action_restart(fsm_instance *fi, int
+ 	struct net_device *dev = (struct net_device *)arg;
+ 	struct ctc_priv *privptr = dev->priv;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	ctc_pr_debug("%s: Restarting\n", dev->name);
+ 	dev_action_stop(fi, event, arg);
+ 	fsm_event(privptr->fsm, DEV_EVENT_STOP, dev);
+@@ -2033,7 +2033,7 @@ dev_action_chup(fsm_instance * fi, int e
+ {
+ 	struct net_device *dev = (struct net_device *) arg;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	switch (fsm_getstate(fi)) {
+ 		case DEV_STATE_STARTWAIT_RXTX:
+ 			if (event == DEV_EVENT_RXUP)
+@@ -2080,7 +2080,7 @@ static void
+ dev_action_chdown(fsm_instance * fi, int event, void *arg)
+ {
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	switch (fsm_getstate(fi)) {
+ 		case DEV_STATE_RUNNING:
+ 			if (event == DEV_EVENT_TXDOWN)
+@@ -2180,7 +2180,7 @@ transmit_skb(struct channel *ch, struct 
+ 	struct ll_header header;
+ 	int rc = 0;
+ 
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	/* we need to acquire the lock for testing the state
+ 	 * otherwise we can have an IRQ changing the state to
+ 	 * TXIDLE after the test but before acquiring the lock.
+@@ -2327,7 +2327,7 @@ transmit_skb(struct channel *ch, struct 
+ static int
+ ctc_open(struct net_device * dev)
+ {
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	fsm_event(((struct ctc_priv *) dev->priv)->fsm, DEV_EVENT_START, dev);
+ 	return 0;
+ }
+@@ -2343,7 +2343,7 @@ ctc_open(struct net_device * dev)
+ static int
+ ctc_close(struct net_device * dev)
+ {
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	fsm_event(((struct ctc_priv *) dev->priv)->fsm, DEV_EVENT_STOP, dev);
+ 	return 0;
+ }
+@@ -2365,7 +2365,7 @@ ctc_tx(struct sk_buff *skb, struct net_d
+ 	int rc = 0;
+ 	struct ctc_priv *privptr = (struct ctc_priv *) dev->priv;
+ 
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	/**
+ 	 * Some sanity checks ...
+ 	 */
+@@ -2420,7 +2420,7 @@ ctc_change_mtu(struct net_device * dev, 
+ {
+ 	struct ctc_priv *privptr = (struct ctc_priv *) dev->priv;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	if ((new_mtu < 576) || (new_mtu > 65527) ||
+ 	    (new_mtu > (privptr->channel[READ]->max_bufsize -
+ 			LL_HEADER_LENGTH - 2)))
+@@ -2467,7 +2467,7 @@ buffer_write(struct device *dev, struct 
+ 	int bs1;
+ 	char buffer[16];
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
+ 	DBF_TEXT(trace, 3, buf);
+ 	priv = dev->driver_data;
+ 	if (!priv) {
+@@ -2519,7 +2519,7 @@ loglevel_write(struct device *dev, struc
+ {
+ 	int ll1;
+ 
+-	DBF_TEXT(trace, 5, __FUNCTION__);
++	DBF_TEXT(trace, 5, __func__);
+ 	sscanf(buf, "%i", &ll1);
+ 
+ 	if ((ll1 > CTC_LOGLEVEL_MAX) || (ll1 < 0))
+@@ -2534,7 +2534,7 @@ ctc_print_statistics(struct ctc_priv *pr
+ 	char *sbuf;
+ 	char *p;
+ 
+-	DBF_TEXT(trace, 4, __FUNCTION__);
++	DBF_TEXT(trace, 4, __func__);
+ 	if (!priv)
+ 		return;
+ 	sbuf = kmalloc(2048, GFP_KERNEL);
+@@ -2642,8 +2642,8 @@ ctc_proto_store(struct device *dev, stru
+ 	struct ctc_priv *priv;
+ 	int value;
+ 
+-	DBF_TEXT(trace, 3, __FUNCTION__);
+-	pr_debug("%s() called\n", __FUNCTION__);
++	DBF_TEXT(trace, 3, __func__);
++	pr_debug("%s() called\n", __func__);
+ 
+ 	priv = dev->driver_data;
+ 	if (!priv)
+@@ -2714,7 +2714,7 @@ ctc_remove_attributes(struct device *dev
+ static int
+ ctc_add_files(struct device *dev)
+ {
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 
+ 	return sysfs_create_group(&dev->kobj, &ctc_attr_group);
+ }
+@@ -2722,7 +2722,7 @@ ctc_add_files(struct device *dev)
+ static void
+ ctc_remove_files(struct device *dev)
+ {
+-	pr_debug("%s() called\n", __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
+ 
+ 	sysfs_remove_group(&dev->kobj, &ctc_attr_group);
+ }
+@@ -2742,8 +2742,8 @@ ctc_probe_device(struct ccwgroup_device 
+ 	int rc;
+ 	char buffer[16];
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
++	DBF_TEXT(setup, 3, __func__);
+ 
+ 	if (!get_device(&cgdev->dev))
+ 		return -ENODEV;
+@@ -2788,7 +2788,7 @@ ctc_probe_device(struct ccwgroup_device 
+  */
+ void ctc_init_netdevice(struct net_device * dev)
+ {
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 
+ 	if (dev->mtu == 0)
+ 		dev->mtu = CTC_BUFSIZE_DEFAULT - LL_HEADER_LENGTH - 2;
+@@ -2825,8 +2825,8 @@ ctc_new_device(struct ccwgroup_device *c
+ 	int ret;
+ 	char buffer[16];
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
++	DBF_TEXT(setup, 3, __func__);
+ 
+ 	privptr = cgdev->dev.driver_data;
+ 	if (!privptr)
+@@ -2933,8 +2933,8 @@ ctc_shutdown_device(struct ccwgroup_devi
+ 	struct ctc_priv *priv;
+ 	struct net_device *ndev;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
+-	pr_debug("%s() called\n", __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
++	pr_debug("%s() called\n", __func__);
+ 
+ 
+ 	priv = cgdev->dev.driver_data;
+@@ -2983,8 +2983,8 @@ ctc_remove_device(struct ccwgroup_device
+ {
+ 	struct ctc_priv *priv;
+ 
+-	pr_debug("%s() called\n", __FUNCTION__);
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	pr_debug("%s() called\n", __func__);
++	DBF_TEXT(setup, 3, __func__);
+ 
+ 	priv = cgdev->dev.driver_data;
+ 	if (!priv)
+@@ -3021,7 +3021,7 @@ static struct ccwgroup_driver ctc_group_
+ static void __exit
+ ctc_exit(void)
+ {
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 	unregister_cu3088_discipline(&ctc_group_driver);
+ 	ctc_unregister_dbf_views();
+ 	ctc_pr_info("CTC driver unloaded\n");
+@@ -3040,7 +3040,7 @@ ctc_init(void)
+ 
+ 	loglevel = CTC_LOGLEVEL_DEFAULT;
+ 
+-	DBF_TEXT(setup, 3, __FUNCTION__);
++	DBF_TEXT(setup, 3, __func__);
+ 
+ 	print_banner();
+ 
+diff -puN drivers/s390/net/netiucv.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/net/netiucv.c
+--- a/drivers/s390/net/netiucv.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/net/netiucv.c
+@@ -670,7 +670,7 @@ static void conn_action_rx(fsm_instance 
+ 	struct netiucv_priv *privptr = netdev_priv(conn->netdev);
+ 	int rc;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 
+ 	if (!conn->netdev) {
+ 		iucv_message_reject(conn->path, msg);
+@@ -718,7 +718,7 @@ static void conn_action_txdone(fsm_insta
+ 	struct ll_header header;
+ 	int rc;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 
+ 	if (conn && conn->netdev)
+ 		privptr = netdev_priv(conn->netdev);
+@@ -799,7 +799,7 @@ static void conn_action_connaccept(fsm_i
+ 	struct netiucv_priv *privptr = netdev_priv(netdev);
+ 	int rc;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	conn->path = path;
+ 	path->msglim = NETIUCV_QUEUELEN_DEFAULT;
+@@ -821,7 +821,7 @@ static void conn_action_connreject(fsm_i
+ 	struct iucv_event *ev = arg;
+ 	struct iucv_path *path = ev->data;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	iucv_path_sever(path, NULL);
+ }
+ 
+@@ -831,7 +831,7 @@ static void conn_action_connack(fsm_inst
+ 	struct net_device *netdev = conn->netdev;
+ 	struct netiucv_priv *privptr = netdev_priv(netdev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&conn->timer);
+ 	fsm_newstate(fi, CONN_STATE_IDLE);
+ 	netdev->tx_queue_len = conn->path->msglim;
+@@ -842,7 +842,7 @@ static void conn_action_conntimsev(fsm_i
+ {
+ 	struct iucv_connection *conn = arg;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	fsm_deltimer(&conn->timer);
+ 	iucv_path_sever(conn->path, NULL);
+ 	fsm_newstate(fi, CONN_STATE_STARTWAIT);
+@@ -854,7 +854,7 @@ static void conn_action_connsever(fsm_in
+ 	struct net_device *netdev = conn->netdev;
+ 	struct netiucv_priv *privptr = netdev_priv(netdev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	fsm_deltimer(&conn->timer);
+ 	iucv_path_sever(conn->path, NULL);
+@@ -870,7 +870,7 @@ static void conn_action_start(fsm_instan
+ 	struct iucv_connection *conn = arg;
+ 	int rc;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	fsm_newstate(fi, CONN_STATE_STARTWAIT);
+ 	PRINT_DEBUG("%s('%s'): connecting ...\n",
+@@ -948,7 +948,7 @@ static void conn_action_stop(fsm_instanc
+ 	struct net_device *netdev = conn->netdev;
+ 	struct netiucv_priv *privptr = netdev_priv(netdev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	fsm_deltimer(&conn->timer);
+ 	fsm_newstate(fi, CONN_STATE_STOPPED);
+@@ -1024,7 +1024,7 @@ static void dev_action_start(fsm_instanc
+ 	struct net_device   *dev = arg;
+ 	struct netiucv_priv *privptr = netdev_priv(dev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	fsm_newstate(fi, DEV_STATE_STARTWAIT);
+ 	fsm_event(privptr->conn->fsm, CONN_EVENT_START, privptr->conn);
+@@ -1044,7 +1044,7 @@ dev_action_stop(fsm_instance *fi, int ev
+ 	struct netiucv_priv *privptr = netdev_priv(dev);
+ 	struct iucv_event   ev;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	ev.conn = privptr->conn;
+ 
+@@ -1066,7 +1066,7 @@ dev_action_connup(fsm_instance *fi, int 
+ 	struct net_device   *dev = arg;
+ 	struct netiucv_priv *privptr = netdev_priv(dev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	switch (fsm_getstate(fi)) {
+ 		case DEV_STATE_STARTWAIT:
+@@ -1097,7 +1097,7 @@ dev_action_connup(fsm_instance *fi, int 
+ static void
+ dev_action_conndown(fsm_instance *fi, int event, void *arg)
+ {
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	switch (fsm_getstate(fi)) {
+ 		case DEV_STATE_RUNNING:
+@@ -1288,7 +1288,7 @@ static int netiucv_tx(struct sk_buff *sk
+ 	struct netiucv_priv *privptr = netdev_priv(dev);
+ 	int rc;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	/**
+ 	 * Some sanity checks ...
+ 	 */
+@@ -1344,7 +1344,7 @@ static struct net_device_stats *netiucv_
+ {
+ 	struct netiucv_priv *priv = netdev_priv(dev);
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return &priv->stats;
+ }
+ 
+@@ -1360,7 +1360,7 @@ static struct net_device_stats *netiucv_
+  */
+ static int netiucv_change_mtu(struct net_device * dev, int new_mtu)
+ {
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	if (new_mtu < 576 || new_mtu > NETIUCV_MTU_MAX) {
+ 		IUCV_DBF_TEXT(setup, 2, "given MTU out of valid range\n");
+ 		return -EINVAL;
+@@ -1378,7 +1378,7 @@ static ssize_t user_show(struct device *
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%s\n", netiucv_printname(priv->conn->userid));
+ }
+ 
+@@ -1393,7 +1393,7 @@ static ssize_t user_write(struct device 
+ 	int 	i;
+ 	struct iucv_connection *cp;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	if (count > 9) {
+ 		PRINT_WARN("netiucv: username too long (%d)!\n", (int) count);
+ 		IUCV_DBF_TEXT_(setup, 2,
+@@ -1449,7 +1449,7 @@ static ssize_t buffer_show (struct devic
+ 			    char *buf)
+ {	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%d\n", priv->conn->max_buffsize);
+ }
+ 
+@@ -1461,7 +1461,7 @@ static ssize_t buffer_write (struct devi
+ 	char         *e;
+ 	int          bs1;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	if (count >= 39)
+ 		return -EINVAL;
+ 
+@@ -1513,7 +1513,7 @@ static ssize_t dev_fsm_show (struct devi
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%s\n", fsm_getstate_str(priv->fsm));
+ }
+ 
+@@ -1524,7 +1524,7 @@ static ssize_t conn_fsm_show (struct dev
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%s\n", fsm_getstate_str(priv->conn->fsm));
+ }
+ 
+@@ -1535,7 +1535,7 @@ static ssize_t maxmulti_show (struct dev
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.maxmulti);
+ }
+ 
+@@ -1545,7 +1545,7 @@ static ssize_t maxmulti_write (struct de
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.maxmulti = 0;
+ 	return count;
+ }
+@@ -1557,7 +1557,7 @@ static ssize_t maxcq_show (struct device
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.maxcqueue);
+ }
+ 
+@@ -1566,7 +1566,7 @@ static ssize_t maxcq_write (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.maxcqueue = 0;
+ 	return count;
+ }
+@@ -1578,7 +1578,7 @@ static ssize_t sdoio_show (struct device
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.doios_single);
+ }
+ 
+@@ -1587,7 +1587,7 @@ static ssize_t sdoio_write (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.doios_single = 0;
+ 	return count;
+ }
+@@ -1599,7 +1599,7 @@ static ssize_t mdoio_show (struct device
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.doios_multi);
+ }
+ 
+@@ -1608,7 +1608,7 @@ static ssize_t mdoio_write (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	priv->conn->prof.doios_multi = 0;
+ 	return count;
+ }
+@@ -1620,7 +1620,7 @@ static ssize_t txlen_show (struct device
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.txlen);
+ }
+ 
+@@ -1629,7 +1629,7 @@ static ssize_t txlen_write (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.txlen = 0;
+ 	return count;
+ }
+@@ -1641,7 +1641,7 @@ static ssize_t txtime_show (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.tx_time);
+ }
+ 
+@@ -1650,7 +1650,7 @@ static ssize_t txtime_write (struct devi
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.tx_time = 0;
+ 	return count;
+ }
+@@ -1662,7 +1662,7 @@ static ssize_t txpend_show (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.tx_pending);
+ }
+ 
+@@ -1671,7 +1671,7 @@ static ssize_t txpend_write (struct devi
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.tx_pending = 0;
+ 	return count;
+ }
+@@ -1683,7 +1683,7 @@ static ssize_t txmpnd_show (struct devic
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 5, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 5, __func__);
+ 	return sprintf(buf, "%ld\n", priv->conn->prof.tx_max_pending);
+ }
+ 
+@@ -1692,7 +1692,7 @@ static ssize_t txmpnd_write (struct devi
+ {
+ 	struct netiucv_priv *priv = dev->driver_data;
+ 
+-	IUCV_DBF_TEXT(trace, 4, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 4, __func__);
+ 	priv->conn->prof.tx_max_pending = 0;
+ 	return count;
+ }
+@@ -1732,7 +1732,7 @@ static int netiucv_add_files(struct devi
+ {
+ 	int ret;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	ret = sysfs_create_group(&dev->kobj, &netiucv_attr_group);
+ 	if (ret)
+ 		return ret;
+@@ -1744,7 +1744,7 @@ static int netiucv_add_files(struct devi
+ 
+ static void netiucv_remove_files(struct device *dev)
+ {
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	sysfs_remove_group(&dev->kobj, &netiucv_stat_attr_group);
+ 	sysfs_remove_group(&dev->kobj, &netiucv_attr_group);
+ }
+@@ -1756,7 +1756,7 @@ static int netiucv_register_device(struc
+ 	int ret;
+ 
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	if (dev) {
+ 		snprintf(dev->bus_id, BUS_ID_SIZE, "net%s", ndev->name);
+@@ -1792,7 +1792,7 @@ out_unreg:
+ 
+ static void netiucv_unregister_device(struct device *dev)
+ {
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	netiucv_remove_files(dev);
+ 	device_unregister(dev);
+ }
+@@ -1857,7 +1857,7 @@ out:
+  */
+ static void netiucv_remove_connection(struct iucv_connection *conn)
+ {
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	write_lock_bh(&iucv_connection_rwlock);
+ 	list_del_init(&conn->list);
+ 	write_unlock_bh(&iucv_connection_rwlock);
+@@ -1881,7 +1881,7 @@ static void netiucv_free_netdevice(struc
+ {
+ 	struct netiucv_priv *privptr = netdev_priv(dev);
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+ 	if (!dev)
+ 		return;
+@@ -1963,7 +1963,7 @@ static ssize_t conn_write(struct device_
+ 	struct netiucv_priv *priv;
+ 	struct iucv_connection *cp;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	if (count>9) {
+ 		PRINT_WARN("netiucv: username too long (%d)!\n", (int)count);
+ 		IUCV_DBF_TEXT(setup, 2, "conn_write: too long\n");
+@@ -2048,7 +2048,7 @@ static ssize_t remove_write (struct devi
+ 	const char *p;
+         int i;
+ 
+-        IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++        IUCV_DBF_TEXT(trace, 3, __func__);
+ 
+         if (count >= IFNAMSIZ)
+                 count = IFNAMSIZ - 1;;
+@@ -2116,7 +2116,7 @@ static void __exit netiucv_exit(void)
+ 	struct netiucv_priv *priv;
+ 	struct device *dev;
+ 
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	while (!list_empty(&iucv_connection_list)) {
+ 		cp = list_entry(iucv_connection_list.next,
+ 				struct iucv_connection, list);
+@@ -2146,7 +2146,7 @@ static int __init netiucv_init(void)
+ 	rc = iucv_register(&netiucv_handler, 1);
+ 	if (rc)
+ 		goto out_dbf;
+-	IUCV_DBF_TEXT(trace, 3, __FUNCTION__);
++	IUCV_DBF_TEXT(trace, 3, __func__);
+ 	netiucv_driver.groups = netiucv_drv_attr_groups;
+ 	rc = driver_register(&netiucv_driver);
+ 	if (rc) {
+diff -puN drivers/s390/s390mach.c~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/s390mach.c
+--- a/drivers/s390/s390mach.c~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/s390mach.c
+@@ -59,15 +59,15 @@ repeat:
+ 
+ 			printk(KERN_WARNING"%s: Code does not support more "
+ 			       "than two chained crws; please report to "
+-			       "linux390@de.ibm.com!\n", __FUNCTION__);
++			       "linux390@de.ibm.com!\n", __func__);
+ 			ccode = stcrw(&tmp_crw);
+ 			printk(KERN_WARNING"%s: crw reports slct=%d, oflw=%d, "
+ 			       "chn=%d, rsc=%X, anc=%d, erc=%X, rsid=%X\n",
+-			       __FUNCTION__, tmp_crw.slct, tmp_crw.oflw,
++			       __func__, tmp_crw.slct, tmp_crw.oflw,
+ 			       tmp_crw.chn, tmp_crw.rsc, tmp_crw.anc,
+ 			       tmp_crw.erc, tmp_crw.rsid);
+ 			printk(KERN_WARNING"%s: This was crw number %x in the "
+-			       "chain\n", __FUNCTION__, chain);
++			       "chain\n", __func__, chain);
+ 			if (ccode != 0)
+ 				break;
+ 			chain = tmp_crw.chn ? chain + 1 : 0;
+@@ -83,7 +83,7 @@ repeat:
+ 		       crw[chain].rsid);
+ 		/* Check for overflows. */
+ 		if (crw[chain].oflw) {
+-			pr_debug("%s: crw overflow detected!\n", __FUNCTION__);
++			pr_debug("%s: crw overflow detected!\n", __func__);
+ 			css_schedule_eval_all();
+ 			chain = 0;
+ 			continue;
+diff -puN drivers/s390/scsi/zfcp_def.h~drivers-s390-replace-remaining-__function__-occurrences drivers/s390/scsi/zfcp_def.h
+--- a/drivers/s390/scsi/zfcp_def.h~drivers-s390-replace-remaining-__function__-occurrences
++++ a/drivers/s390/scsi/zfcp_def.h
+@@ -539,7 +539,7 @@ struct zfcp_rc_entry {
+ 
+ /* logging routine for zfcp */
+ #define _ZFCP_LOG(fmt, args...) \
+-	printk(KERN_ERR ZFCP_NAME": %s(%d): " fmt, __FUNCTION__, \
++	printk(KERN_ERR ZFCP_NAME": %s(%d): " fmt, __func__, \
+ 	       __LINE__ , ##args)
+ 
+ #define ZFCP_LOG(level, fmt, args...) \
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
