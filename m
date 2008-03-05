@@ -1,63 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-mount-option-parsing.patch removed from -mm tree
-Date: Tue, 04 Mar 2008 23:46:50 -0800
-Message-ID: <200803050746.m257koHd021796@imap1.linux-foundation.org>
+Subject: - input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls.patch removed from -mm tree
+Date: Tue, 04 Mar 2008 23:46:52 -0800
+Message-ID: <200803050746.m257kqp0021800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760356AbYCEHr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:29 -0500
+	by vger.kernel.org with ESMTP id S1764071AbYCEHrc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 02:47:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix mount option parsing
+     input: add I2C to config since the driver makes several i2c*() calls
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-mount-option-parsing.patch
+     input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix mount option parsing
-From: Josef Bacik <jbacik@redhat.com>
+Subject: input: add I2C to config since the driver makes several i2c*() calls
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The "resize" option won't be noticed as it comes after the NULL option, so if
-you try to mount (or in this case remount) with that option it won't be
-recognized.
+Add to help text that the Intel I2C ICH (i801) driver is also needed
+for this kernel.
 
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Add LEDS_CLASS to config since the driver makes les_classdev_*() calls:
+ERROR: "led_classdev_register" [drivers/input/misc/apanel.ko] undefined!
+ERROR: "__led_classdev_unregister" [drivers/input/misc/apanel.ko]
+undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/misc/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-fix-mount-option-parsing fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fix-mount-option-parsing
-+++ a/fs/ext3/super.c
-@@ -806,8 +806,8 @@ static match_table_t tokens = {
- 	{Opt_quota, "quota"},
- 	{Opt_usrquota, "usrquota"},
- 	{Opt_barrier, "barrier=%u"},
--	{Opt_err, NULL},
- 	{Opt_resize, "resize"},
-+	{Opt_err, NULL},
- };
+diff -puN drivers/input/misc/Kconfig~input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~input-add-i2c-to-config-since-the-driver-makes-several-i2c-calls
++++ a/drivers/input/misc/Kconfig
+@@ -42,14 +42,14 @@ config INPUT_M68K_BEEP
  
- static ext3_fsblk_t get_sb_block(void **data)
+ config INPUT_APANEL
+ 	tristate "Fujitsu Lifebook Application Panel buttons"
+-	depends on X86
+-	select I2C_I801
++	depends on X86 && I2C && LEDS_CLASS
+ 	select INPUT_POLLDEV
+ 	select CHECK_SIGNATURE
+ 	help
+ 	 Say Y here for support of the Application Panel buttons, used on
+ 	 Fujitsu Lifebook. These are attached to the mainboard through
+-	 an SMBus interface managed by the I2C Intel ICH (i801) driver.
++	 an SMBus interface managed by the I2C Intel ICH (i801) driver,
++	 which you should also build for this kernel.
+ 
+ 	 To compile this driver as a module, choose M here: the module will
+ 	 be called apanel.
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
-jbd-fix-possible-journal-overflow-issues.patch
-jbd2-fix-the-way-the-b_modified-flag-is-cleared.patch
-jbd2-fix-possible-journal-overflow-issues.patch
-ext4-fix-mount-option-parsing.patch
+git-acpi.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-visws-fix-printk-format-warnings.patch
+let-log_buf_shift-default-to-17.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+profile-likely-unlikely-macros.patch
 
