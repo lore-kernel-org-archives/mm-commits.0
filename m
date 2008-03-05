@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 14:20:40 -0800
-Message-ID: <200803052220.m25MKeKm024030@imap1.linux-foundation.org>
+Subject: + reiserfs-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 14:20:38 -0800
+Message-ID: <200803052220.m25MKcaE024025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41043 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753694AbYCEW3z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:29:55 -0500
+	by vger.kernel.org with ESMTP id S1758535AbYCEWah (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 17:30:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jengelh@linux01.gwdg.de
+Cc: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com
 
 
 The patch titled
-     ufs: replace remaining __FUNCTION__ occurrences
+     reiserfs: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     ufs-replace-remaining-__function__-occurrences.patch
+     reiserfs-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,133 +33,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: replace remaining __FUNCTION__ occurrences
+Subject: reiserfs: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/balloc.c |    4 ++--
- fs/ufs/dir.c    |   14 +++++++-------
- fs/ufs/inode.c  |    2 +-
- fs/ufs/ufs.h    |    2 +-
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ fs/reiserfs/bitmap.c   |    8 ++++----
+ fs/reiserfs/journal.c  |    8 ++++----
+ fs/reiserfs/namei.c    |    8 ++++----
+ fs/reiserfs/objectid.c |    2 +-
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN fs/ufs/balloc.c~ufs-replace-remaining-__function__-occurrences fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~ufs-replace-remaining-__function__-occurrences
-+++ a/fs/ufs/balloc.c
-@@ -277,7 +277,7 @@ static void ufs_change_blocknr(struct in
- 			if (!page)/* it was truncated */
- 				continue;
- 			if (IS_ERR(page)) {/* or EIO */
--				ufs_error(inode->i_sb, __FUNCTION__,
-+				ufs_error(inode->i_sb, __func__,
- 					  "read of page %llu failed\n",
- 					  (unsigned long long)index);
- 				continue;
-@@ -308,7 +308,7 @@ static void ufs_change_blocknr(struct in
- 				ll_rw_block(READ, 1, &bh);
- 				wait_on_buffer(bh);
- 				if (!buffer_uptodate(bh)) {
--					ufs_error(inode->i_sb, __FUNCTION__,
-+					ufs_error(inode->i_sb, __func__,
- 						  "read of block failed\n");
- 					break;
- 				}
-diff -puN fs/ufs/dir.c~ufs-replace-remaining-__function__-occurrences fs/ufs/dir.c
---- a/fs/ufs/dir.c~ufs-replace-remaining-__function__-occurrences
-+++ a/fs/ufs/dir.c
-@@ -179,7 +179,7 @@ bad_entry:
- 	goto fail;
- Eend:
- 	p = (struct ufs_dir_entry *)(kaddr + offs);
--	ufs_error(sb, __FUNCTION__,
-+	ufs_error(sb, __func__,
- 		   "entry in directory #%lu spans the page boundary"
- 		   "offset=%lu",
- 		   dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs);
-@@ -284,7 +284,7 @@ struct ufs_dir_entry *ufs_find_entry(str
- 			kaddr += ufs_last_byte(dir, n) - reclen;
- 			while ((char *) de <= kaddr) {
- 				if (de->d_reclen == 0) {
--					ufs_error(dir->i_sb, __FUNCTION__,
-+					ufs_error(dir->i_sb, __func__,
- 						  "zero-length directory entry");
- 					ufs_put_page(page);
- 					goto out;
-@@ -356,7 +356,7 @@ int ufs_add_link(struct dentry *dentry, 
- 				goto got_it;
- 			}
- 			if (de->d_reclen == 0) {
--				ufs_error(dir->i_sb, __FUNCTION__,
-+				ufs_error(dir->i_sb, __func__,
- 					  "zero-length directory entry");
- 				err = -EIO;
- 				goto out_unlock;
-@@ -456,7 +456,7 @@ ufs_readdir(struct file *filp, void *dir
- 		struct page *page = ufs_get_page(inode, n);
+diff -puN fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences
++++ a/fs/reiserfs/bitmap.c
+@@ -479,7 +479,7 @@ static void __discard_prealloc(struct re
+ 	if (ei->i_prealloc_count < 0)
+ 		reiserfs_warning(th->t_super,
+ 				 "zam-4001:%s: inode has negative prealloc blocks count.",
+-				 __FUNCTION__);
++				 __func__);
+ #endif
+ 	while (ei->i_prealloc_count > 0) {
+ 		reiserfs_free_prealloc_block(th, inode, ei->i_prealloc_block);
+@@ -517,7 +517,7 @@ void reiserfs_discard_all_prealloc(struc
+ 		if (!ei->i_prealloc_count) {
+ 			reiserfs_warning(th->t_super,
+ 					 "zam-4001:%s: inode is in prealloc list but has no preallocated blocks.",
+-					 __FUNCTION__);
++					 __func__);
+ 		}
+ #endif
+ 		__discard_prealloc(th, ei);
+@@ -632,7 +632,7 @@ int reiserfs_parse_alloc_options(struct 
+ 		}
  
- 		if (IS_ERR(page)) {
--			ufs_error(sb, __FUNCTION__,
-+			ufs_error(sb, __func__,
- 				  "bad page in #%lu",
- 				  inode->i_ino);
- 			filp->f_pos += PAGE_CACHE_SIZE - offset;
-@@ -475,7 +475,7 @@ ufs_readdir(struct file *filp, void *dir
- 		limit = kaddr + ufs_last_byte(inode, n) - UFS_DIR_REC_LEN(1);
- 		for ( ;(char*)de <= limit; de = ufs_next_entry(sb, de)) {
- 			if (de->d_reclen == 0) {
--				ufs_error(sb, __FUNCTION__,
-+				ufs_error(sb, __func__,
- 					"zero-length directory entry");
- 				ufs_put_page(page);
- 				return -EIO;
-@@ -536,7 +536,7 @@ int ufs_delete_entry(struct inode *inode
- 
- 	while ((char*)de < (char*)dir) {
- 		if (de->d_reclen == 0) {
--			ufs_error(inode->i_sb, __FUNCTION__,
-+			ufs_error(inode->i_sb, __func__,
- 				  "zero-length directory entry");
- 			err = -EIO;
- 			goto out;
-@@ -633,7 +633,7 @@ int ufs_empty_dir(struct inode * inode)
- 
- 		while ((char *)de <= kaddr) {
- 			if (de->d_reclen == 0) {
--				ufs_error(inode->i_sb, __FUNCTION__,
-+				ufs_error(inode->i_sb, __func__,
- 					"zero-length directory entry: "
- 					"kaddr=%p, de=%p\n", kaddr, de);
- 				goto not_empty;
-diff -puN fs/ufs/inode.c~ufs-replace-remaining-__function__-occurrences fs/ufs/inode.c
---- a/fs/ufs/inode.c~ufs-replace-remaining-__function__-occurrences
-+++ a/fs/ufs/inode.c
-@@ -929,7 +929,7 @@ void ufs_delete_inode (struct inode * in
- 	old_i_size = inode->i_size;
- 	inode->i_size = 0;
- 	if (inode->i_blocks && ufs_truncate(inode, old_i_size))
--		ufs_warning(inode->i_sb, __FUNCTION__, "ufs_truncate failed\n");
-+		ufs_warning(inode->i_sb, __func__, "ufs_truncate failed\n");
- 	ufs_free_inode (inode);
- 	unlock_kernel();
- 	return;
-diff -puN fs/ufs/ufs.h~ufs-replace-remaining-__function__-occurrences fs/ufs/ufs.h
---- a/fs/ufs/ufs.h~ufs-replace-remaining-__function__-occurrences
-+++ a/fs/ufs/ufs.h
-@@ -66,7 +66,7 @@ struct ufs_inode_info {
- #ifdef CONFIG_UFS_DEBUG
- #	define UFSD(f, a...)	{					\
- 		printk ("UFSD (%s, %d): %s:",				\
--			__FILE__, __LINE__, __FUNCTION__);		\
-+			__FILE__, __LINE__, __func__);		\
- 		printk (f, ## a);					\
+ 		reiserfs_warning(s, "zam-4001: %s : unknown option - %s",
+-				 __FUNCTION__, this_char);
++				 __func__, this_char);
+ 		return 1;
  	}
- #else
+ 
+@@ -1254,7 +1254,7 @@ struct buffer_head *reiserfs_read_bitmap
+ 	bh = sb_bread(sb, block);
+ 	if (bh == NULL)
+ 		reiserfs_warning(sb, "sh-2029: %s: bitmap block (#%u) "
+-		                 "reading failed", __FUNCTION__, block);
++		                 "reading failed", __func__, block);
+ 	else {
+ 		if (buffer_locked(bh)) {
+ 			PROC_INFO_INC(sb, scan_bitmap.wait);
+diff -puN fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences
++++ a/fs/reiserfs/journal.c
+@@ -1187,7 +1187,7 @@ static int flush_commit_list(struct supe
+ 
+ 	if (retval)
+ 		reiserfs_abort(s, retval, "Journal write error in %s",
+-			       __FUNCTION__);
++			       __func__);
+ 	put_fs_excl();
+ 	return retval;
+ }
+@@ -1534,7 +1534,7 @@ static int flush_journal_list(struct sup
+ 			reiserfs_warning(s,
+ 					 "clm-2082: Unable to flush buffer %llu in %s",
+ 					 (unsigned long long)saved_bh->
+-					 b_blocknr, __FUNCTION__);
++					 b_blocknr, __func__);
+ 		}
+ 	      free_cnode:
+ 		last = cn;
+@@ -1586,7 +1586,7 @@ static int flush_journal_list(struct sup
+ 	if (err)
+ 		reiserfs_abort(s, -EIO,
+ 			       "Write error while pushing transaction to disk in %s",
+-			       __FUNCTION__);
++			       __func__);
+       flush_older_and_return:
+ 
+ 	/* before we can update the journal header block, we _must_ flush all 
+@@ -1616,7 +1616,7 @@ static int flush_journal_list(struct sup
+ 		if (err)
+ 			reiserfs_abort(s, -EIO,
+ 				       "Write error while updating journal header in %s",
+-				       __FUNCTION__);
++				       __func__);
+ 	}
+ 	remove_all_from_journal_list(s, jl, 0);
+ 	list_del_init(&jl->j_list);
+diff -puN fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/namei.c
+--- a/fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences
++++ a/fs/reiserfs/namei.c
+@@ -301,7 +301,7 @@ static int reiserfs_find_entry(struct in
+ 					path_to_entry, de);
+ 		if (retval == IO_ERROR) {
+ 			reiserfs_warning(dir->i_sb, "zam-7001: io error in %s",
+-					 __FUNCTION__);
++					 __func__);
+ 			return IO_ERROR;
+ 		}
+ 
+@@ -496,7 +496,7 @@ static int reiserfs_add_entry(struct rei
+ 			reiserfs_warning(dir->i_sb,
+ 					 "zam-7002:%s: \"reiserfs_find_entry\" "
+ 					 "has returned unexpected value (%d)",
+-					 __FUNCTION__, retval);
++					 __func__, retval);
+ 		}
+ 
+ 		return -EEXIST;
+@@ -907,7 +907,7 @@ static int reiserfs_rmdir(struct inode *
+ 
+ 	if (inode->i_nlink != 2 && inode->i_nlink != 1)
+ 		reiserfs_warning(inode->i_sb, "%s: empty directory has nlink "
+-				 "!= 2 (%d)", __FUNCTION__, inode->i_nlink);
++				 "!= 2 (%d)", __func__, inode->i_nlink);
+ 
+ 	clear_nlink(inode);
+ 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME_SEC;
+@@ -984,7 +984,7 @@ static int reiserfs_unlink(struct inode 
+ 
+ 	if (!inode->i_nlink) {
+ 		reiserfs_warning(inode->i_sb, "%s: deleting nonexistent file "
+-				 "(%s:%lu), %d", __FUNCTION__,
++				 "(%s:%lu), %d", __func__,
+ 				 reiserfs_bdevname(inode->i_sb), inode->i_ino,
+ 				 inode->i_nlink);
+ 		inode->i_nlink = 1;
+diff -puN fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/objectid.c
+--- a/fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences
++++ a/fs/reiserfs/objectid.c
+@@ -61,7 +61,7 @@ __u32 reiserfs_get_unused_objectid(struc
+ 	/* comment needed -Hans */
+ 	unused_objectid = le32_to_cpu(map[1]);
+ 	if (unused_objectid == U32_MAX) {
+-		reiserfs_warning(s, "%s: no more object ids", __FUNCTION__);
++		reiserfs_warning(s, "%s: no more object ids", __func__);
+ 		reiserfs_restore_prepared_buffer(s, SB_BUFFER_WITH_SB(s));
+ 		return 0;
+ 	}
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
