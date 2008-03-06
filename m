@@ -1,60 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-fix-mount-option-parsing.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:23:43 -0800
-Message-ID: <200803062223.m26MNhSv020910@imap1.linux-foundation.org>
+Subject: - jfs-replace-__inline-with-inline.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:21:37 -0800
+Message-ID: <200803062221.m26MLb0j020732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756714AbYCFWaO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:14 -0500
+	by vger.kernel.org with ESMTP id S1765391AbYCFWak (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: fix mount option parsing
+     jfs: replace __inline with inline
 has been removed from the -mm tree.  Its filename was
-     ext4-fix-mount-option-parsing.patch
+     jfs-replace-__inline-with-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fix mount option parsing
-From: Josef Bacik <jbacik@redhat.com>
+Subject: jfs: replace __inline with inline
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-The "resize" option won't be noticed as it comes after the NULL option, so if
-you try to mount (or in this case remount) with that option it won't be
-recognized.
-
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    2 +-
+ fs/jfs/jfs_dmap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~ext4-fix-mount-option-parsing fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-fix-mount-option-parsing
-+++ a/fs/ext4/super.c
-@@ -950,8 +950,8 @@ static match_table_t tokens = {
- 	{Opt_stripe, "stripe=%u"},
- 	{Opt_delalloc, "delalloc"},
- 	{Opt_nodelalloc, "nodelalloc"},
--	{Opt_err, NULL},
- 	{Opt_resize, "resize"},
-+	{Opt_err, NULL},
- };
+diff -puN fs/jfs/jfs_dmap.h~jfs-replace-__inline-with-inline fs/jfs/jfs_dmap.h
+--- a/fs/jfs/jfs_dmap.h~jfs-replace-__inline-with-inline
++++ a/fs/jfs/jfs_dmap.h
+@@ -61,7 +61,7 @@
+  * determine the maximum free string for four (lower level) nodes
+  * of the tree.
+  */
+-static __inline signed char TREEMAX(signed char *cp)
++static inline signed char TREEMAX(signed char *cp)
+ {
+ 	signed char tmp1, tmp2;
  
- static ext4_fsblk_t get_sb_block(void **data)
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
-jbd-fix-possible-journal-overflow-issues.patch
+origin.patch
+git-x86.patch
+acpi-replace-remaining-__function__-occurrences.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-arm-master.patch
+cifs-remove-global_extern-macro.patch
+cifs-replace-remaining-__function__-occurrences.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+ia64-remove-remaining-__function__-occurences.patch
+ieee1394-replace-remaining-__function__-occurrences.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+ata-replace-remaining-__function__-occurrences.patch
+pata_amd-fix-sparse-warning.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+git-sh.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-stc-make-class-attributes-static.patch
+scsi-osstc-make-class-attributes-static.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+iop-admac-replace-remaining-__function__-occurrences.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
