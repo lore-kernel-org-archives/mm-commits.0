@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uart_get_baud_rate-stop-mangling-termios-fix.patch added to -mm tree
-Date: Wed, 05 Mar 2008 16:25:34 -0800
-Message-ID: <200803060025.m260PYnj031251@imap1.linux-foundation.org>
+Subject: + mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch added to -mm tree
+Date: Wed, 05 Mar 2008 16:40:05 -0800
+Message-ID: <200803060040.m260e5kF032685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42136 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754732AbYCFA0P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:26:15 -0500
+	by vger.kernel.org with ESMTP id S1763126AbYCFAlG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:41:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com
+Cc: Lee.Schermerhorn@hp.com, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, nickpiggin@yahoo.com.au, rientjes@google.com
 
 
 The patch titled
-     uart_get_baud_rate-stop-mangling-termios-fix
+     Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask
 has been added to the -mm tree.  Its filename is
-     uart_get_baud_rate-stop-mangling-termios-fix.patch
+     mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uart_get_baud_rate-stop-mangling-termios-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Cc: Alan Cox <alan@redhat.com>
+dequeue_huge_page_vma() is not obeying the MPOL_BIND nodemask with the
+zonelist rework.  It needs to search only zones in the mempolicy nodemask for
+hugepages.
+
+Use for_each_zone_zonelist_nodemask() instead of for_each_zone_zonelist().
+
+Note: this will bloat mm/hugetlb.o a bit until Mel reworks the inlining of the
+for_each_zone...  macros and helpers.
+
+Added mempolicy helper function mpol_bind_nodemask() to hide the details of
+mempolicy from hugetlb and to avoid #ifdef CONFIG_NUMA in
+dequeue_huge_page_vma().
+
+Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mempolicy.h |   13 +++++++++++++
+ mm/hugetlb.c              |    4 +++-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios-fix
-+++ a/drivers/serial/serial_core.c
-@@ -337,7 +337,7 @@ uart_get_baud_rate(struct uart_port *por
- 		   struct ktermios *old, unsigned int min, unsigned int max)
- {
- 	unsigned int try, baud, altbaud = 38400;
--	int hung_up;
-+	int hung_up = 0;
- 	upf_t flags = port->flags & UPF_SPD_MASK;
+diff -puN include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask
++++ a/include/linux/mempolicy.h
+@@ -163,6 +163,14 @@ static inline void check_highest_zone(en
+ 		policy_zone = k;
+ }
  
- 	if (flags == UPF_SPD_HI)
++static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
++{
++	if (mpol->policy == MPOL_BIND)
++		return &mpol->v.nodes;
++	else
++		return NULL;
++}
++
+ int do_migrate_pages(struct mm_struct *mm,
+ 	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags);
+ 
+@@ -255,6 +263,11 @@ static inline int do_migrate_pages(struc
+ static inline void check_highest_zone(int k)
+ {
+ }
++
++static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
++{
++	return NULL;
++}
+ #endif /* CONFIG_NUMA */
+ #endif /* __KERNEL__ */
+ 
+diff -puN mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask
++++ a/mm/hugetlb.c
+@@ -99,8 +99,10 @@ static struct page *dequeue_huge_page_vm
+ 					htlb_alloc_mask, &mpol);
+ 	struct zone *zone;
+ 	struct zoneref *z;
++	nodemask_t *nodemask = mpol_bind_nodemask(mpol);
+ 
+-	for_each_zone_zonelist(zone, z, zonelist, MAX_NR_ZONES - 1) {
++	for_each_zone_zonelist_nodemask(zone, z, zonelist,
++						MAX_NR_ZONES - 1, nodemask) {
+ 		nid = zone_to_nid(zone);
+ 		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask) &&
+ 		    !list_empty(&hugepage_freelists[nid])) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-sh-export-copy-page-to-modules.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+fix-mempolicy-reference-counting-bugs.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
 
