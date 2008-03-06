@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-support-optional-mode-flags.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:26:26 -0800
-Message-ID: <200803060126.m261QQVm002031@imap1.linux-foundation.org>
+Subject: + mempolicy-add-mpol_f_relative_nodes-flag.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:26:37 -0800
+Message-ID: <200803060126.m261Qbmp002040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761447AbYCFB1O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:27:14 -0500
+	by vger.kernel.org with ESMTP id S1761308AbYCFB1X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:27:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, 
 
 
 The patch titled
-     mempolicy: support optional mode flags
+     mempolicy: add MPOL_F_RELATIVE_NODES flag
 has been added to the -mm tree.  Its filename is
-     mempolicy-support-optional-mode-flags.patch
+     mempolicy-add-mpol_f_relative_nodes-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: support optional mode flags
+Subject: mempolicy: add MPOL_F_RELATIVE_NODES flag
 From: David Rientjes <rientjes@google.com>
 
-With the evolution of mempolicies, it is necessary to support mempolicy mode
-flags that specify how the policy shall behave in certain circumstances.  The
-most immediate need for mode flag support is to suppress remapping the
-nodemask of a policy at the time of rebind.
+Adds another optional mode flag, MPOL_F_RELATIVE_NODES, that specifies
+nodemasks passed via set_mempolicy() or mbind() should be considered relative
+to the current task's mems_allowed.
 
-Both the mempolicy mode and flags are passed by the user in the 'int policy'
-formal of either the set_mempolicy() or mbind() syscall.  A new constant,
-MPOL_MODE_FLAGS, represents the union of legal optional flags that may be
-passed as part of this int.  Mempolicies that include illegal flags as part of
-their policy are rejected as invalid.
+When the mempolicy is created, the passed nodemask is folded and mapped onto
+the current task's mems_allowed.  For example, consider a task using
+set_mempolicy() to pass MPOL_INTERLEAVE | MPOL_F_RELATIVE_NODES with a
+nodemask of 1-3.  If current's mems_allowed is 4-7, the effected nodemask is
+5-7 (the second, third, and fourth node of mems_allowed).
 
-An additional member to struct mempolicy is added to support the mode flags:
+If the same task is attached to a cpuset, the mempolicy nodemask is rebound
+each time the mems are changed.  Some possible rebinds and results are:
 
-	struct mempolicy {
-		...
-		unsigned short policy;
-		unsigned short flags;
-	}
+	mems			result
+	1-3			1-3
+	1-7			2-4
+	1,5-6			1,5-6
+	1,5-7			5-7
 
-The splitting of the 'int' actual passed by the user is done in
-sys_set_mempolicy() and sys_mbind() for their respective syscalls.  This is
-done by intersecting the actual with MPOL_MODE_FLAGS, rejecting the syscall of
-there are additional flags, and storing it in the new 'flags' member of struct
-mempolicy.  The intersection of the actual with ~MPOL_MODE_FLAGS is stored in
-the 'policy' member of the struct and all current users of pol->policy remain
-unchanged.
+Likewise, the zonelist built for MPOL_BIND acts on the set of zones assigned
+to the resultant nodemask from the relative remap.
 
-The union of the policy mode and optional mode flags is passed back to the
-user in get_mempolicy().
+In the MPOL_PREFERRED case, the preferred node is remapped from the currently
+effected nodemask to the relative nodemask.
 
-This combination of mode and flags within the same actual does not break
-userspace code that relies on get_mempolicy(&policy, ...) and either
-
-	switch (policy) {
-	case MPOL_BIND:
-		...
-	case MPOL_INTERLEAVE:
-		...
-	};
-
-statements or
-
-	if (policy == MPOL_INTERLEAVE) {
-		...
-	}
-
-statements.  Such applications would need to use optional mode flags when
-calling set_mempolicy() or mbind() for these previously implemented statements
-to stop working.  If an application does start using optional mode flags, it
-will need to mask the optional flags off the policy in switch and conditional
-statements that only test mode.
-
-An additional member is also added to struct shmem_sb_info to store the
-optional mode flags.
+This mempolicy mode flag was conceived of by Paul Jackson <pj@sgi.com>.
 
 Cc: Paul Jackson <pj@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -99,376 +71,141 @@ Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c      |    2 -
- include/linux/mempolicy.h |   20 ++++++++++++--
- include/linux/shmem_fs.h  |    1 
- mm/mempolicy.c            |   51 +++++++++++++++++++++---------------
- mm/shmem.c                |   24 +++++++++++-----
- 5 files changed, 66 insertions(+), 32 deletions(-)
+ include/linux/mempolicy.h |    3 ++-
+ mm/mempolicy.c            |   33 +++++++++++++++++++++++++++++++--
+ mm/shmem.c                |    6 ++++++
+ 3 files changed, 39 insertions(+), 3 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mempolicy-support-optional-mode-flags fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mempolicy-support-optional-mode-flags
-+++ a/fs/hugetlbfs/inode.c
-@@ -504,7 +504,7 @@ static struct inode *hugetlbfs_get_inode
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
- 		INIT_LIST_HEAD(&inode->i_mapping->private_list);
- 		info = HUGETLBFS_I(inode);
--		mpol_shared_policy_init(&info->policy, MPOL_DEFAULT, NULL);
-+		mpol_shared_policy_init(&info->policy, MPOL_DEFAULT, 0, NULL);
- 		switch (mode & S_IFMT) {
- 		default:
- 			init_special_inode(inode, mode, dev);
-diff -puN include/linux/mempolicy.h~mempolicy-support-optional-mode-flags include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-support-optional-mode-flags
+diff -puN include/linux/mempolicy.h~mempolicy-add-mpol_f_relative_nodes-flag include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-add-mpol_f_relative_nodes-flag
 +++ a/include/linux/mempolicy.h
-@@ -8,6 +8,12 @@
-  * Copyright 2003,2004 Andi Kleen SuSE Labs
+@@ -25,12 +25,13 @@ enum {
+ 
+ /* Flags for set_mempolicy */
+ #define MPOL_F_STATIC_NODES	(1 << 15)
++#define MPOL_F_RELATIVE_NODES	(1 << 14)
+ 
+ /*
+  * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
+  * either set_mempolicy() or mbind().
   */
+-#define MPOL_MODE_FLAGS	(MPOL_F_STATIC_NODES)
++#define MPOL_MODE_FLAGS	(MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
  
-+/*
-+ * Both the MPOL_* mempolicy mode and the MPOL_F_* optional mode flags are
-+ * passed by the user to either set_mempolicy() or mbind() in an 'int' actual.
-+ * The MPOL_MODE_FLAGS macro determines the legal set of optional mode flags.
-+ */
-+
- /* Policies */
- enum {
- 	MPOL_DEFAULT,
-@@ -17,7 +23,14 @@ enum {
- 	MPOL_MAX,	/* always last member of enum */
- };
- 
--/* Flags for get_mem_policy */
-+/* Flags for set_mempolicy */
-+/*
-+ * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
-+ * either set_mempolicy() or mbind().
-+ */
-+#define MPOL_MODE_FLAGS	(0)
-+
-+/* Flags for get_mempolicy */
+ /* Flags for get_mempolicy */
  #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
- #define MPOL_F_ADDR	(1<<1)	/* look up vma using address */
- #define MPOL_F_MEMS_ALLOWED (1<<2) /* return allowed memories */
-@@ -66,6 +79,7 @@ struct mm_struct;
- struct mempolicy {
- 	atomic_t refcnt;
- 	unsigned short policy; 	/* See MPOL_* above */
-+	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
- 	union {
- 		short 		 preferred_node; /* preferred */
- 		nodemask_t	 nodes;		/* interleave/bind */
-@@ -136,7 +150,7 @@ struct shared_policy {
- };
- 
- void mpol_shared_policy_init(struct shared_policy *info, unsigned short policy,
--				nodemask_t *nodes);
-+				unsigned short flags, nodemask_t *nodes);
- int mpol_set_shared_policy(struct shared_policy *info,
- 				struct vm_area_struct *vma,
- 				struct mempolicy *new);
-@@ -210,7 +224,7 @@ static inline int mpol_set_shared_policy
- }
- 
- static inline void mpol_shared_policy_init(struct shared_policy *info,
--				unsigned short policy, nodemask_t *nodes)
-+		unsigned short policy, unsigned short flags, nodemask_t *nodes)
- {
- }
- 
-diff -puN include/linux/shmem_fs.h~mempolicy-support-optional-mode-flags include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~mempolicy-support-optional-mode-flags
-+++ a/include/linux/shmem_fs.h
-@@ -35,6 +35,7 @@ struct shmem_sb_info {
- 	gid_t gid;		    /* Mount gid for root directory */
- 	mode_t mode;		    /* Mount mode for root directory */
- 	unsigned short policy;	    /* Default NUMA memory alloc policy */
-+	unsigned short flags;	    /* Optional mempolicy flags */
- 	nodemask_t policy_nodes;    /* nodemask for preferred and bind */
- };
- 
-diff -puN mm/mempolicy.c~mempolicy-support-optional-mode-flags mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-support-optional-mode-flags
+diff -puN mm/mempolicy.c~mempolicy-add-mpol_f_relative_nodes-flag mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-add-mpol_f_relative_nodes-flag
 +++ a/mm/mempolicy.c
-@@ -187,12 +187,13 @@ static int is_valid_nodemask(nodemask_t 
+@@ -136,7 +136,15 @@ static int is_valid_nodemask(nodemask_t 
+ 
+ static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
+ {
+-	return pol->flags & MPOL_F_STATIC_NODES;
++	return pol->flags & (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES);
++}
++
++static void mpol_relative_nodemask(nodemask_t *ret, const nodemask_t *orig,
++				   const nodemask_t *rel)
++{
++	nodemask_t tmp;
++	nodes_fold(tmp, *orig, nodes_weight(*rel));
++	nodes_onto(*ret, tmp, *rel);
  }
  
  /* Create a new policy */
--static struct mempolicy *mpol_new(unsigned short mode, nodemask_t *nodes)
-+static struct mempolicy *mpol_new(unsigned short mode, unsigned short flags,
-+				  nodemask_t *nodes)
- {
- 	struct mempolicy *policy;
- 
--	pr_debug("setting mode %d nodes[0] %lx\n",
--		 mode, nodes ? nodes_addr(*nodes)[0] : -1);
-+	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
-+		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
- 
- 	if (mode == MPOL_DEFAULT)
- 		return NULL;
-@@ -224,6 +225,7 @@ static struct mempolicy *mpol_new(unsign
- 		BUG();
- 	}
- 	policy->policy = mode;
-+	policy->flags = flags;
- 	policy->cpuset_mems_allowed = cpuset_mems_allowed(current);
- 	return policy;
- }
-@@ -466,13 +468,14 @@ static void mpol_set_task_struct_flag(vo
- }
- 
- /* Set the process memory policy */
--static long do_set_mempolicy(unsigned short mode, nodemask_t *nodes)
-+static long do_set_mempolicy(unsigned short mode, unsigned short flags,
-+			     nodemask_t *nodes)
- {
- 	struct mempolicy *new;
- 
- 	if (mpol_check_policy(mode, nodes))
- 		return -EINVAL;
--	new = mpol_new(mode, nodes);
-+	new = mpol_new(mode, flags, nodes);
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
- 	mpol_free(current->mempolicy);
-@@ -573,7 +576,7 @@ static long do_get_mempolicy(int *policy
- 			goto out;
- 		}
- 	} else
--		*policy = pol->policy;
-+		*policy = pol->policy | pol->flags;
- 
- 	if (vma) {
- 		up_read(&current->mm->mmap_sem);
-@@ -763,8 +766,8 @@ static struct page *new_vma_page(struct 
- #endif
- 
- static long do_mbind(unsigned long start, unsigned long len,
--		     unsigned short mode, nodemask_t *nmask,
--		     unsigned long flags)
-+		     unsigned short mode, unsigned short mode_flags,
-+		     nodemask_t *nmask, unsigned long flags)
- {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
-@@ -796,7 +799,7 @@ static long do_mbind(unsigned long start
- 	if (mpol_check_policy(mode, nmask))
- 		return -EINVAL;
- 
--	new = mpol_new(mode, nmask);
-+	new = mpol_new(mode, mode_flags, nmask);
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
- 
-@@ -807,8 +810,9 @@ static long do_mbind(unsigned long start
- 	if (!new)
- 		flags |= MPOL_MF_DISCONTIG_OK;
- 
--	pr_debug("mbind %lx-%lx mode:%d nodes:%lx\n", start, start + len,
--		 mode, nmask ? nodes_addr(*nmask)[0] : -1);
-+	pr_debug("mbind %lx-%lx mode:%d flags:%d nodes:%lx\n",
-+		 start, start + len, mode, mode_flags,
-+		 nmask ? nodes_addr(*nmask)[0] : -1);
- 
- 	down_write(&mm->mmap_sem);
- 	vma = check_range(mm, start, end, nmask,
-@@ -907,13 +911,16 @@ asmlinkage long sys_mbind(unsigned long 
- {
- 	nodemask_t nodes;
- 	int err;
-+	unsigned short mode_flags;
- 
-+	mode_flags = mode & MPOL_MODE_FLAGS;
-+	mode &= ~MPOL_MODE_FLAGS;
+@@ -157,7 +165,12 @@ static struct mempolicy *mpol_new(unsign
+ 		return ERR_PTR(-ENOMEM);
+ 	atomic_set(&policy->refcnt, 1);
+ 	cpuset_update_task_memory_state();
+-	nodes_and(cpuset_context_nmask, *nodes, cpuset_current_mems_allowed);
++	if (flags & MPOL_F_RELATIVE_NODES)
++		mpol_relative_nodemask(&cpuset_context_nmask, nodes,
++				       &cpuset_current_mems_allowed);
++	else
++		nodes_and(cpuset_context_nmask, *nodes,
++			  cpuset_current_mems_allowed);
+ 	switch (mode) {
+ 	case MPOL_INTERLEAVE:
+ 		if (nodes_empty(*nodes) || nodes_empty(cpuset_context_nmask))
+@@ -873,6 +886,9 @@ asmlinkage long sys_mbind(unsigned long 
+ 	mode &= ~MPOL_MODE_FLAGS;
  	if (mode >= MPOL_MAX)
  		return -EINVAL;
++	if ((mode_flags & MPOL_F_STATIC_NODES) &&
++	    (mode_flags & MPOL_F_RELATIVE_NODES))
++		return -EINVAL;
  	err = get_nodes(&nodes, nmask, maxnode);
  	if (err)
  		return err;
--	return do_mbind(start, len, mode, &nodes, flags);
-+	return do_mbind(start, len, mode, mode_flags, &nodes, flags);
- }
- 
- /* Set the process memory policy */
-@@ -922,13 +929,16 @@ asmlinkage long sys_set_mempolicy(int mo
- {
- 	int err;
- 	nodemask_t nodes;
-+	unsigned short flags;
- 
--	if (mode < 0 || mode >= MPOL_MAX)
-+	flags = mode & MPOL_MODE_FLAGS;
-+	mode &= ~MPOL_MODE_FLAGS;
-+	if ((unsigned int)mode >= MPOL_MAX)
+@@ -891,6 +907,8 @@ asmlinkage long sys_set_mempolicy(int mo
+ 	mode &= ~MPOL_MODE_FLAGS;
+ 	if ((unsigned int)mode >= MPOL_MAX)
  		return -EINVAL;
++	if ((flags & MPOL_F_STATIC_NODES) && (flags & MPOL_F_RELATIVE_NODES))
++		return -EINVAL;
  	err = get_nodes(&nodes, nmask, maxnode);
  	if (err)
  		return err;
--	return do_set_mempolicy(mode, &nodes);
-+	return do_set_mempolicy(mode, flags, &nodes);
- }
- 
- asmlinkage long sys_migrate_pages(pid_t pid, unsigned long maxnode,
-@@ -1634,7 +1644,7 @@ restart:
- }
- 
- void mpol_shared_policy_init(struct shared_policy *info, unsigned short policy,
--				nodemask_t *policy_nodes)
-+			unsigned short flags, nodemask_t *policy_nodes)
+@@ -1738,10 +1756,12 @@ static void mpol_rebind_policy(struct me
  {
- 	info->root = RB_ROOT;
- 	spin_lock_init(&info->lock);
-@@ -1643,7 +1653,7 @@ void mpol_shared_policy_init(struct shar
- 		struct mempolicy *newpol;
+ 	nodemask_t tmp;
+ 	int static_nodes;
++	int relative_nodes;
  
- 		/* Falls back to MPOL_DEFAULT on any error */
--		newpol = mpol_new(policy, policy_nodes);
-+		newpol = mpol_new(policy, flags, policy_nodes);
- 		if (!IS_ERR(newpol)) {
- 			/* Create pseudo-vma that contains just the policy */
- 			struct vm_area_struct pvma;
-@@ -1664,9 +1674,10 @@ int mpol_set_shared_policy(struct shared
- 	struct sp_node *new = NULL;
- 	unsigned long sz = vma_pages(vma);
+ 	if (!pol)
+ 		return;
+ 	static_nodes = pol->flags & MPOL_F_STATIC_NODES;
++	relative_nodes = pol->flags & MPOL_F_RELATIVE_NODES;
+ 	if (!mpol_store_user_nodemask(pol) &&
+ 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
+ 		return;
+@@ -1754,6 +1774,9 @@ static void mpol_rebind_policy(struct me
+ 	case MPOL_INTERLEAVE:
+ 		if (static_nodes)
+ 			nodes_and(tmp, pol->w.user_nodemask, *newmask);
++		else if (relative_nodes)
++			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
++					       newmask);
+ 		else {
+ 			nodes_remap(tmp, pol->v.nodes,
+ 				    pol->w.cpuset_mems_allowed, *newmask);
+@@ -1776,6 +1799,10 @@ static void mpol_rebind_policy(struct me
+ 				pol->v.preferred_node = node;
+ 			else
+ 				pol->v.preferred_node = -1;
++		} else if (relative_nodes) {
++			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
++					       newmask);
++			pol->v.preferred_node = first_node(tmp);
+ 		} else {
+ 			pol->v.preferred_node = node_remap(pol->v.preferred_node,
+ 					pol->w.cpuset_mems_allowed, *newmask);
+@@ -1871,6 +1898,8 @@ static inline int mpol_to_str(char *buff
  
--	pr_debug("set_shared_policy %lx sz %lu %d %lx\n",
-+	pr_debug("set_shared_policy %lx sz %lu %d %d %lx\n",
- 		 vma->vm_pgoff,
--		 sz, npol? npol->policy : -1,
-+		 sz, npol ? npol->policy : -1,
-+		 npol ? npol->flags : -1,
- 		 npol ? nodes_addr(npol->v.nodes)[0] : -1);
+ 		if (flags & MPOL_F_STATIC_NODES)
+ 			p += sprintf(p, "%sstatic", need_bar++ ? "|" : "");
++		if (flags & MPOL_F_RELATIVE_NODES)
++			p += sprintf(p, "%srelative", need_bar++ ? "|" : "");
+ 	}
  
- 	if (npol) {
-@@ -1739,14 +1750,14 @@ void __init numa_policy_init(void)
- 	if (unlikely(nodes_empty(interleave_nodes)))
- 		node_set(prefer, interleave_nodes);
- 
--	if (do_set_mempolicy(MPOL_INTERLEAVE, &interleave_nodes))
-+	if (do_set_mempolicy(MPOL_INTERLEAVE, 0, &interleave_nodes))
- 		printk("numa_policy_init: interleaving failed\n");
- }
- 
- /* Reset policy of current process to default */
- void numa_default_policy(void)
- {
--	do_set_mempolicy(MPOL_DEFAULT, NULL);
-+	do_set_mempolicy(MPOL_DEFAULT, 0, NULL);
- }
- 
- /* Migrate a policy to a different set of nodes */
-diff -puN mm/shmem.c~mempolicy-support-optional-mode-flags mm/shmem.c
---- a/mm/shmem.c~mempolicy-support-optional-mode-flags
+ 	if (!nodes_empty(nodes)) {
+diff -puN mm/shmem.c~mempolicy-add-mpol_f_relative_nodes-flag mm/shmem.c
+--- a/mm/shmem.c~mempolicy-add-mpol_f_relative_nodes-flag
 +++ a/mm/shmem.c
-@@ -1083,9 +1083,10 @@ redirty:
- #ifdef CONFIG_NUMA
- #ifdef CONFIG_TMPFS
- static int shmem_parse_mpol(char *value, unsigned short *policy,
--			    nodemask_t *policy_nodes)
-+			unsigned short *mode_flags, nodemask_t *policy_nodes)
- {
- 	char *nodelist = strchr(value, ':');
-+	char *flags = strchr(value, '=');
- 	int err = 1;
- 
- 	if (nodelist) {
-@@ -1096,6 +1097,8 @@ static int shmem_parse_mpol(char *value,
- 		if (!nodes_subset(*policy_nodes, node_states[N_HIGH_MEMORY]))
- 			goto out;
+@@ -1131,6 +1131,12 @@ static int shmem_parse_mpol(char *value,
+ 	if (flags) {
+ 		if (!strcmp(flags, "static"))
+ 			*mode_flags |= MPOL_F_STATIC_NODES;
++		if (!strcmp(flags, "relative"))
++			*mode_flags |= MPOL_F_RELATIVE_NODES;
++
++		if ((*mode_flags & MPOL_F_STATIC_NODES) &&
++		    (*mode_flags & MPOL_F_RELATIVE_NODES))
++			err = 1;
  	}
-+	if (flags)
-+		*flags++ = '\0';
- 	if (!strcmp(value, "default")) {
- 		*policy = MPOL_DEFAULT;
- 		/* Don't allow a nodelist */
-@@ -1125,6 +1128,8 @@ static int shmem_parse_mpol(char *value,
- 			*policy_nodes = node_states[N_HIGH_MEMORY];
- 		err = 0;
- 	}
-+	if (flags) {
-+	}
  out:
  	/* Restore string for error message */
- 	if (nodelist)
-@@ -1133,7 +1138,7 @@ out:
- }
- 
- static void shmem_show_mpol(struct seq_file *seq, unsigned short policy,
--			    const nodemask_t policy_nodes)
-+			unsigned short flags, const nodemask_t policy_nodes)
- {
- 	char *policy_string;
- 
-@@ -1202,13 +1207,13 @@ static struct page *shmem_alloc_page(gfp
- #else /* !CONFIG_NUMA */
- #ifdef CONFIG_TMPFS
- static inline int shmem_parse_mpol(char *value, unsigned short *policy,
--						nodemask_t *policy_nodes)
-+				unsigned short flags, nodemask_t *policy_nodes)
- {
- 	return 1;
- }
- 
- static inline void shmem_show_mpol(struct seq_file *seq, unsigned short policy,
--			    const nodemask_t policy_nodes)
-+			unsigned short flags, const nodemask_t policy_nodes)
- {
- }
- #endif /* CONFIG_TMPFS */
-@@ -1581,7 +1586,7 @@ shmem_get_inode(struct super_block *sb, 
- 			inode->i_op = &shmem_inode_operations;
- 			inode->i_fop = &shmem_file_operations;
- 			mpol_shared_policy_init(&info->policy, sbinfo->policy,
--							&sbinfo->policy_nodes);
-+					sbinfo->flags, &sbinfo->policy_nodes);
- 			break;
- 		case S_IFDIR:
- 			inc_nlink(inode);
-@@ -1595,7 +1600,7 @@ shmem_get_inode(struct super_block *sb, 
- 			 * Must not load anything in the rbtree,
- 			 * mpol_free_shared_policy will not be called.
- 			 */
--			mpol_shared_policy_init(&info->policy, MPOL_DEFAULT,
-+			mpol_shared_policy_init(&info->policy, MPOL_DEFAULT, 0,
- 						NULL);
- 			break;
- 		}
-@@ -2212,7 +2217,7 @@ static int shmem_parse_options(char *opt
- 				goto bad_val;
- 		} else if (!strcmp(this_char,"mpol")) {
- 			if (shmem_parse_mpol(value, &sbinfo->policy,
--					     &sbinfo->policy_nodes))
-+				&sbinfo->flags, &sbinfo->policy_nodes))
- 				goto bad_val;
- 		} else {
- 			printk(KERN_ERR "tmpfs: Bad mount option %s\n",
-@@ -2264,6 +2269,7 @@ static int shmem_remount_fs(struct super
- 	sbinfo->max_inodes  = config.max_inodes;
- 	sbinfo->free_inodes = config.max_inodes - inodes;
- 	sbinfo->policy      = config.policy;
-+	sbinfo->flags	    = config.flags;
- 	sbinfo->policy_nodes = config.policy_nodes;
- out:
- 	spin_unlock(&sbinfo->stat_lock);
-@@ -2285,7 +2291,8 @@ static int shmem_show_options(struct seq
- 		seq_printf(seq, ",uid=%u", sbinfo->uid);
- 	if (sbinfo->gid != 0)
- 		seq_printf(seq, ",gid=%u", sbinfo->gid);
--	shmem_show_mpol(seq, sbinfo->policy, sbinfo->policy_nodes);
-+	shmem_show_mpol(seq, sbinfo->policy, sbinfo->flags,
-+			sbinfo->policy_nodes);
- 	return 0;
- }
- #endif /* CONFIG_TMPFS */
-@@ -2316,6 +2323,7 @@ static int shmem_fill_super(struct super
- 	sbinfo->uid = current->fsuid;
- 	sbinfo->gid = current->fsgid;
- 	sbinfo->policy = MPOL_DEFAULT;
-+	sbinfo->flags = 0;
- 	sbinfo->policy_nodes = node_states[N_HIGH_MEMORY];
- 	sb->s_fs_info = sbinfo;
- 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
