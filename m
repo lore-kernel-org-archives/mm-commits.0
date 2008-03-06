@@ -1,136 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - sh-superh-keysc-keypad-data-for-solution-engine-7722.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:10 -0800
-Message-ID: <200803062222.m26MMAxK020788@imap1.linux-foundation.org>
+Subject: - embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:28:27 -0800
+Message-ID: <200803062228.m26MSRwa021182__13320.0088087053$1204843167$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757436AbYCFWh3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:37:29 -0500
+	by vger.kernel.org with ESMTP id S1757812AbYCFWi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:38:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: jblunck@suse.de, agruen@suse.de, hch@lst.de, linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: SuperH KEYSC keypad data for Solution Engine 7722
+     Embed a struct path into struct nameidata instead of nd->{dentry,mnt}
 has been removed from the -mm tree.  Its filename was
-     sh-superh-keysc-keypad-data-for-solution-engine-7722.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: SuperH KEYSC keypad data for Solution Engine 7722
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Embed a struct path into struct nameidata instead of nd->{dentry,mnt}
+From: Jan Blunck <jblunck@suse.de>
 
-Add KEYSC platform data for the Solution Engine 7722 board.
+Switch from nd->{dentry,mnt} to nd->path.{dentry,mnt} everywhere.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+CC: <linux-fsdevel@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/se/7722/setup.c |   41 +++++++++++++++++++++++++++++++
- include/asm-sh/se7722.h        |    2 +
- 2 files changed, 43 insertions(+)
+ fs/unionfs/main.c  |    9 ++++-----
+ fs/unionfs/super.c |   17 ++++++++---------
+ 2 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN arch/sh/boards/se/7722/setup.c~sh-superh-keysc-keypad-data-for-solution-engine-7722 arch/sh/boards/se/7722/setup.c
---- a/arch/sh/boards/se/7722/setup.c~sh-superh-keysc-keypad-data-for-solution-engine-7722
-+++ a/arch/sh/boards/se/7722/setup.c
-@@ -13,10 +13,12 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/ata_platform.h>
-+#include <linux/input.h>
- #include <asm/machvec.h>
- #include <asm/se7722.h>
- #include <asm/io.h>
- #include <asm/heartbeat.h>
-+#include <asm/sh_keysc.h>
- 
- /* Heartbeat */
- static struct heartbeat_data heartbeat_data = {
-@@ -92,10 +94,47 @@ static struct platform_device cf_ide_dev
- 	.resource       = cf_ide_resources,
- };
- 
-+static struct sh_keysc_info sh_keysc_info = {
-+	.mode = SH_KEYSC_MODE_1, /* KEYOUT0->5, KEYIN0->4 */
-+	.scan_timing = 3,
-+	.delay = 5,
-+	.keycodes = { /* SW1 -> SW30 */
-+		KEY_A, KEY_B, KEY_C, KEY_D, KEY_E,
-+		KEY_F, KEY_G, KEY_H, KEY_I, KEY_J,
-+		KEY_K, KEY_L, KEY_M, KEY_N, KEY_O,
-+		KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T,
-+		KEY_U, KEY_V, KEY_W, KEY_X, KEY_Y,
-+		KEY_Z,
-+		KEY_HOME, KEY_SLEEP, KEY_WAKEUP, KEY_COFFEE, /* life */
-+	},
-+};
-+
-+static struct resource sh_keysc_resources[] = {
-+	[0] = {
-+		.start  = 0x044b0000,
-+		.end    = 0x044b000f,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = 79,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device sh_keysc_device = {
-+	.name           = "sh_keysc",
-+	.num_resources  = ARRAY_SIZE(sh_keysc_resources),
-+	.resource       = sh_keysc_resources,
-+	.dev	= {
-+		.platform_data	= &sh_keysc_info,
-+	},
-+};
-+
- static struct platform_device *se7722_devices[] __initdata = {
- 	&heartbeat_device,
- 	&smc91x_eth_device,
- 	&cf_ide_device,
-+	&sh_keysc_device,
- };
- 
- static int __init se7722_devices_setup(void)
-@@ -136,6 +175,8 @@ static void __init se7722_setup(char **c
- 	ctrl_outw(0x0A10, PORT_PSELA); /* BS,SHHID2 */
- 	ctrl_outw(0x0000, PORT_PYCR);
- 	ctrl_outw(0x0000, PORT_PZCR);
-+	ctrl_outw(ctrl_inw(PORT_HIZCRA) & ~0x4000, PORT_HIZCRA);
-+	ctrl_outw(ctrl_inw(PORT_HIZCRC) & ~0xc000, PORT_HIZCRC);
+diff -puN fs/unionfs/inode.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs fs/unionfs/inode.c
+diff -puN fs/unionfs/main.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs fs/unionfs/main.c
+--- a/fs/unionfs/main.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs
++++ a/fs/unionfs/main.c
+@@ -230,11 +230,11 @@ void unionfs_reinterpose(struct dentry *
+ int check_branch(struct nameidata *nd)
+ {
+ 	/* XXX: remove in ODF code -- stacking unions allowed there */
+-	if (!strcmp(nd->dentry->d_sb->s_type->name, UNIONFS_NAME))
++	if (!strcmp(nd->path.dentry->d_sb->s_type->name, UNIONFS_NAME))
+ 		return -EINVAL;
+-	if (!nd->dentry->d_inode)
++	if (!nd->path.dentry->d_inode)
+ 		return -ENOENT;
+-	if (!S_ISDIR(nd->dentry->d_inode->i_mode))
++	if (!S_ISDIR(nd->path.dentry->d_inode->i_mode))
+ 		return -ENOTDIR;
+ 	return 0;
  }
+@@ -375,8 +375,7 @@ static int parse_dirs_option(struct supe
+ 			goto out;
+ 		}
  
- /*
-diff -puN include/asm-sh/se7722.h~sh-superh-keysc-keypad-data-for-solution-engine-7722 include/asm-sh/se7722.h
---- a/include/asm-sh/se7722.h~sh-superh-keysc-keypad-data-for-solution-engine-7722
-+++ a/include/asm-sh/se7722.h
-@@ -77,6 +77,8 @@
- #define PORT_PSELA      0xA405014EUL
- #define PORT_PYCR       0xA405014AUL
- #define PORT_PZCR       0xA405014CUL
-+#define PORT_HIZCRA     0xA4050158UL
-+#define PORT_HIZCRC     0xA405015CUL
+-		lower_root_info->lower_paths[bindex].dentry = nd.dentry;
+-		lower_root_info->lower_paths[bindex].mnt = nd.mnt;
++		lower_root_info->lower_paths[bindex] = nd.path;
  
- /* IRQ */
- #define IRQ0_IRQ        32
+ 		set_branchperms(sb, bindex, perms);
+ 		set_branch_count(sb, bindex, 0);
+diff -puN fs/unionfs/super.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs fs/unionfs/super.c
+--- a/fs/unionfs/super.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs
++++ a/fs/unionfs/super.c
+@@ -223,8 +223,8 @@ static noinline int do_remount_mode_opti
+ 		goto out;
+ 	}
+ 	for (idx = 0; idx < cur_branches; idx++)
+-		if (nd.mnt == new_lower_paths[idx].mnt &&
+-		    nd.dentry == new_lower_paths[idx].dentry)
++		if (nd.path.mnt == new_lower_paths[idx].mnt &&
++		    nd.path.dentry == new_lower_paths[idx].dentry)
+ 			break;
+ 	path_release(&nd);	/* no longer needed */
+ 	if (idx == cur_branches) {
+@@ -266,8 +266,8 @@ static noinline int do_remount_del_optio
+ 		goto out;
+ 	}
+ 	for (idx = 0; idx < cur_branches; idx++)
+-		if (nd.mnt == new_lower_paths[idx].mnt &&
+-		    nd.dentry == new_lower_paths[idx].dentry)
++		if (nd.path.mnt == new_lower_paths[idx].mnt &&
++		    nd.path.dentry == new_lower_paths[idx].dentry)
+ 			break;
+ 	path_release(&nd);	/* no longer needed */
+ 	if (idx == cur_branches) {
+@@ -350,8 +350,8 @@ static noinline int do_remount_add_optio
+ 		goto out;
+ 	}
+ 	for (idx = 0; idx < cur_branches; idx++)
+-		if (nd.mnt == new_lower_paths[idx].mnt &&
+-		    nd.dentry == new_lower_paths[idx].dentry)
++		if (nd.path.mnt == new_lower_paths[idx].mnt &&
++		    nd.path.dentry == new_lower_paths[idx].dentry)
+ 			break;
+ 	path_release(&nd);	/* no longer needed */
+ 	if (idx == cur_branches) {
+@@ -417,10 +417,9 @@ found_insertion_point:
+ 		memmove(&new_lower_paths[idx+1], &new_lower_paths[idx],
+ 			(cur_branches - idx) * sizeof(struct path));
+ 	}
+-	new_lower_paths[idx].dentry = nd.dentry;
+-	new_lower_paths[idx].mnt = nd.mnt;
++	new_lower_paths[idx] = nd.path;
+ 
+-	new_data[idx].sb = nd.dentry->d_sb;
++	new_data[idx].sb = nd.path.dentry->d_sb;
+ 	atomic_set(&new_data[idx].open_files, 0);
+ 	new_data[idx].branchperms = perms;
+ 	new_data[idx].branch_id = ++*high_branch_id; /* assign new branch ID */
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-smc91x-pass-along-private-data-v2.patch
-smc91x-introduce-platform-data-flags-v2.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-smc91x-make-superh-use-default-config-v2.patch
-git-sh.patch
-sm501-add-uart-support.patch
+git-unionfs.patch
 
