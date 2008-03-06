@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:05 -0800
-Message-ID: <200803060350.m263o5XD007326@imap1.linux-foundation.org>
+Subject: + acpi-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:49:55 -0800
+Message-ID: <200803060349.m263ntrH007302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37487 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756723AbYCFDup (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:45 -0500
+	by vger.kernel.org with ESMTP id S1756422AbYCFDum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, Douglas_Warzecha@dell.com, Matt_Domsch@dell.com
+Cc: harvey.harrison@gmail.com, lenb@kernel.org
 
 
 The patch titled
-     firmware: replace remaining __FUNCTION__ occurrences
+     acpi: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     firmware-replace-remaining-__function__-occurrences.patch
+     acpi-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,151 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware: replace remaining __FUNCTION__ occurrences
+Subject: acpi: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Doug Warzecha <Douglas_Warzecha@dell.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dcdbas.c   |   16 ++++++++--------
- drivers/firmware/dell_rbu.c |   12 ++++++------
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/acpi/bus.c               |    2 +-
+ drivers/acpi/scan.c              |    2 +-
+ drivers/acpi/sleep/main.c        |    2 +-
+ drivers/acpi/utilities/utdebug.c |    2 +-
+ drivers/acpi/video.c             |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/firmware/dcdbas.c~firmware-replace-remaining-__function__-occurrences drivers/firmware/dcdbas.c
---- a/drivers/firmware/dcdbas.c~firmware-replace-remaining-__function__-occurrences
-+++ a/drivers/firmware/dcdbas.c
-@@ -63,7 +63,7 @@ static void smi_data_buf_free(void)
- 		return;
+diff -puN drivers/acpi/bus.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~acpi-replace-remaining-__function__-occurrences
++++ a/drivers/acpi/bus.c
+@@ -776,7 +776,7 @@ static int __init acpi_init(void)
  
- 	dev_dbg(&dcdbas_pdev->dev, "%s: phys: %x size: %lu\n",
--		__FUNCTION__, smi_data_buf_phys_addr, smi_data_buf_size);
-+		__func__, smi_data_buf_phys_addr, smi_data_buf_size);
- 
- 	dma_free_coherent(&dcdbas_pdev->dev, smi_data_buf_size, smi_data_buf,
- 			  smi_data_buf_handle);
-@@ -92,7 +92,7 @@ static int smi_data_buf_realloc(unsigned
- 	if (!buf) {
- 		dev_dbg(&dcdbas_pdev->dev,
- 			"%s: failed to allocate memory size %lu\n",
--			__FUNCTION__, size);
-+			__func__, size);
- 		return -ENOMEM;
- 	}
- 	/* memory zeroed by dma_alloc_coherent */
-@@ -110,7 +110,7 @@ static int smi_data_buf_realloc(unsigned
- 	smi_data_buf_size = size;
- 
- 	dev_dbg(&dcdbas_pdev->dev, "%s: phys: %x size: %lu\n",
--		__FUNCTION__, smi_data_buf_phys_addr, smi_data_buf_size);
-+		__func__, smi_data_buf_phys_addr, smi_data_buf_size);
- 
- 	return 0;
- }
-@@ -258,7 +258,7 @@ static int smi_request(struct smi_cmd *s
- 
- 	if (smi_cmd->magic != SMI_CMD_MAGIC) {
- 		dev_info(&dcdbas_pdev->dev, "%s: invalid magic value\n",
--			 __FUNCTION__);
-+			 __func__);
- 		return -EBADR;
+ 	acpi_kobj = kobject_create_and_add("acpi", firmware_kobj);
+ 	if (!acpi_kobj) {
+-		printk(KERN_WARNING "%s: kset create error\n", __FUNCTION__);
++		printk(KERN_WARNING "%s: kset create error\n", __func__);
+ 		acpi_kobj = NULL;
  	}
  
-@@ -267,7 +267,7 @@ static int smi_request(struct smi_cmd *s
- 	set_cpus_allowed(current, cpumask_of_cpu(0));
- 	if (smp_processor_id() != 0) {
- 		dev_dbg(&dcdbas_pdev->dev, "%s: failed to get CPU 0\n",
--			__FUNCTION__);
-+			__func__);
- 		ret = -EBUSY;
- 		goto out;
- 	}
-@@ -428,7 +428,7 @@ static int host_control_smi(void)
- 
- 	default:
- 		dev_dbg(&dcdbas_pdev->dev, "%s: invalid SMI type %u\n",
--			__FUNCTION__, host_control_smi_type);
-+			__func__, host_control_smi_type);
- 		return -ENOSYS;
- 	}
- 
-@@ -456,13 +456,13 @@ static void dcdbas_host_control(void)
- 	host_control_action = HC_ACTION_NONE;
- 
- 	if (!smi_data_buf) {
--		dev_dbg(&dcdbas_pdev->dev, "%s: no SMI buffer\n", __FUNCTION__);
-+		dev_dbg(&dcdbas_pdev->dev, "%s: no SMI buffer\n", __func__);
- 		return;
- 	}
- 
- 	if (smi_data_buf_size < sizeof(struct apm_cmd)) {
- 		dev_dbg(&dcdbas_pdev->dev, "%s: SMI buffer too small\n",
--			__FUNCTION__);
-+			__func__);
- 		return;
- 	}
- 
-diff -puN drivers/firmware/dell_rbu.c~firmware-replace-remaining-__function__-occurrences drivers/firmware/dell_rbu.c
---- a/drivers/firmware/dell_rbu.c~firmware-replace-remaining-__function__-occurrences
-+++ a/drivers/firmware/dell_rbu.c
-@@ -123,7 +123,7 @@ static int create_packet(void *data, siz
- 	if (!newpacket) {
- 		printk(KERN_WARNING
- 			"dell_rbu:%s: failed to allocate new "
--			"packet\n", __FUNCTION__);
-+			"packet\n", __func__);
- 		retval = -ENOMEM;
- 		spin_lock(&rbu_data.lock);
- 		goto out_noalloc;
-@@ -152,7 +152,7 @@ static int create_packet(void *data, siz
- 		printk(KERN_WARNING
- 			"dell_rbu:%s: failed to allocate "
- 			"invalid_addr_packet_array \n",
--			__FUNCTION__);
-+			__func__);
- 		retval = -ENOMEM;
- 		spin_lock(&rbu_data.lock);
- 		goto out_alloc_packet;
-@@ -164,7 +164,7 @@ static int create_packet(void *data, siz
- 		if (!packet_data_temp_buf) {
- 			printk(KERN_WARNING
- 				"dell_rbu:%s: failed to allocate new "
--				"packet\n", __FUNCTION__);
-+				"packet\n", __func__);
- 			retval = -ENOMEM;
- 			spin_lock(&rbu_data.lock);
- 			goto out_alloc_packet_array;
-@@ -416,7 +416,7 @@ static int img_update_realloc(unsigned l
- 		 */
- 		if ((size != 0) && (rbu_data.image_update_buffer == NULL)) {
- 			printk(KERN_ERR "dell_rbu:%s: corruption "
--				"check failed\n", __FUNCTION__);
-+				"check failed\n", __func__);
- 			return -EINVAL;
+diff -puN drivers/acpi/scan.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c~acpi-replace-remaining-__function__-occurrences
++++ a/drivers/acpi/scan.c
+@@ -967,7 +967,7 @@ static void acpi_device_set_id(struct ac
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		status = acpi_get_object_info(handle, &buffer);
+ 		if (ACPI_FAILURE(status)) {
+-			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __FUNCTION__);
++			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __func__);
+ 			return;
  		}
- 		/*
-@@ -642,7 +642,7 @@ static ssize_t write_rbu_image_type(stru
- 			if (req_firm_rc) {
- 				printk(KERN_ERR
- 					"dell_rbu:%s request_firmware_nowait"
--					" failed %d\n", __FUNCTION__, rc);
-+					" failed %d\n", __func__, rc);
- 				rc = -EIO;
- 			} else
- 				rbu_data.entry_created = 1;
-@@ -718,7 +718,7 @@ static int __init dcdrbu_init(void)
- 	if (IS_ERR(rbu_device)) {
- 		printk(KERN_ERR
- 			"dell_rbu:%s:platform_device_register_simple "
--			"failed\n", __FUNCTION__);
-+			"failed\n", __func__);
- 		return PTR_ERR(rbu_device);
- 	}
  
+diff -puN drivers/acpi/sleep/main.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-replace-remaining-__function__-occurrences
++++ a/drivers/acpi/sleep/main.c
+@@ -504,7 +504,7 @@ static void acpi_power_off_prepare(void)
+ static void acpi_power_off(void)
+ {
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+-	printk("%s called\n", __FUNCTION__);
++	printk("%s called\n", __func__);
+ 	local_irq_disable();
+ 	acpi_enable_wakeup_device(ACPI_STATE_S5);
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+diff -puN drivers/acpi/utilities/utdebug.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/utilities/utdebug.c
+--- a/drivers/acpi/utilities/utdebug.c~acpi-replace-remaining-__function__-occurrences
++++ a/drivers/acpi/utilities/utdebug.c
+@@ -109,7 +109,7 @@ void acpi_ut_track_stack_ptr(void)
+  * RETURN:      Updated pointer to the function name
+  *
+  * DESCRIPTION: Remove the "Acpi" prefix from the function name, if present.
+- *              This allows compiler macros such as __FUNCTION__ to be used
++ *              This allows compiler macros such as __func__ to be used
+  *              with no change to the debug output.
+  *
+  ******************************************************************************/
+diff -puN drivers/acpi/video.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/video.c
+--- a/drivers/acpi/video.c~acpi-replace-remaining-__function__-occurrences
++++ a/drivers/acpi/video.c
+@@ -1201,7 +1201,7 @@ static int acpi_video_bus_ROM_seq_show(s
+ 	if (!video)
+ 		goto end;
+ 
+-	printk(KERN_INFO PREFIX "Please implement %s\n", __FUNCTION__);
++	printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
+ 	seq_printf(seq, "<TODO>\n");
+ 
+       end:
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
