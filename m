@@ -1,159 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - usb-use-div_round_up.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:20 -0800
-Message-ID: <200803062222.m26MMKcl020803@imap1.linux-foundation.org>
+Subject: - drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:16 -0800
+Message-ID: <200803062222.m26MMGlZ020797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34448 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755595AbYCFWW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:22:56 -0500
+	by vger.kernel.org with ESMTP id S1751648AbYCFWWr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: use DIV_ROUND_UP
+     drivers/usb/storage/sddr55.c: fix uninitialized var warnings
 has been removed from the -mm tree.  Its filename was
-     usb-use-div_round_up.patch
+     drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: drivers/usb/storage/sddr55.c: fix uninitialized var warnings
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+drivers/usb/storage/sddr55.c: In function 'sddr55_transport':
+drivers/usb/storage/sddr55.c:526: warning: 'deviceID' may be used uninitialized in this function
+drivers/usb/storage/sddr55.c:525: warning: 'manufacturerID' may be used uninitialized in this function
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/r8a66597-hcd.c |    6 +++---
- drivers/usb/misc/usbtest.c      |    2 +-
- drivers/usb/serial/ftdi_sio.c   |    4 ++--
- drivers/usb/serial/io_ti.c      |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/usb/storage/sddr55.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up drivers/usb/host/r8a66597-hcd.c
---- a/drivers/usb/host/r8a66597-hcd.c~usb-use-div_round_up
-+++ a/drivers/usb/host/r8a66597-hcd.c
-@@ -959,9 +959,9 @@ static void prepare_packet_read(struct r
- 				r8a66597_write(r8a66597, TRCLR,
- 						td->pipe->pipetre);
- 				r8a66597_write(r8a66597,
--						(urb->transfer_buffer_length
--						+ td->maxpacket - 1)
--						/ td->maxpacket,
-+						DIV_ROUND_UP
-+						  (urb->transfer_buffer_length,
-+						   td->maxpacket),
- 						td->pipe->pipetrn);
- 				r8a66597_bset(r8a66597, TRENB,
- 						td->pipe->pipetre);
-diff -puN drivers/usb/misc/usbtest.c~usb-use-div_round_up drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~usb-use-div_round_up
-+++ a/drivers/usb/misc/usbtest.c
-@@ -1403,7 +1403,7 @@ static struct urb *iso_alloc_urb (
- 		return NULL;
- 	maxp = 0x7ff & le16_to_cpu(desc->wMaxPacketSize);
- 	maxp *= 1 + (0x3 & (le16_to_cpu(desc->wMaxPacketSize) >> 11));
--	packets = (bytes + maxp - 1) / maxp;
-+	packets = DIV_ROUND_UP(bytes, maxp);
+diff -puN drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings drivers/usb/storage/sddr55.c
+--- a/drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings
++++ a/drivers/usb/storage/sddr55.c
+@@ -522,8 +522,8 @@ int sddr55_reset(struct us_data *us) {
  
- 	urb = usb_alloc_urb (packets, GFP_KERNEL);
- 	if (!urb)
-diff -puN drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~usb-use-div_round_up
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -1380,7 +1380,7 @@ static void ftdi_write_bulk_callback (st
- 	data_offset = priv->write_offset;
- 	if (data_offset > 0) {
- 		/* Subtract the control bytes */
--		countback -= (data_offset * ((countback + (PKTSZ - 1)) / PKTSZ));
-+		countback -= (data_offset * DIV_ROUND_UP(countback, PKTSZ));
- 	}
- 	spin_lock_irqsave(&priv->tx_lock, flags);
- 	--priv->tx_outstanding_urbs;
-@@ -1480,7 +1480,7 @@ static void ftdi_read_bulk_callback (str
+ static unsigned long sddr55_get_capacity(struct us_data *us) {
  
- 	/* count data bytes, but not status bytes */
- 	countread = urb->actual_length;
--	countread -= 2 * ((countread + (PKTSZ - 1)) / PKTSZ);
-+	countread -= 2 * DIV_ROUND_UP(countread, PKTSZ);
- 	spin_lock_irqsave(&priv->rx_lock, flags);
- 	priv->rx_bytes += countread;
- 	spin_unlock_irqrestore(&priv->rx_lock, flags);
-diff -puN drivers/usb/serial/io_ti.c~usb-use-div_round_up drivers/usb/serial/io_ti.c
---- a/drivers/usb/serial/io_ti.c~usb-use-div_round_up
-+++ a/drivers/usb/serial/io_ti.c
-@@ -655,7 +655,7 @@ static void TIChasePort(struct edgeport_
- 	/* (TIIsTxActive doesn't seem to wait for the last byte) */
- 	if ((baud_rate=port->baud_rate) == 0)
- 		baud_rate = 50;
--	msleep(max(1,(10000+baud_rate-1)/baud_rate));
-+	msleep(max(1, DIV_ROUND_UP(10000, baud_rate)));
- }
+-	unsigned char manufacturerID;
+-	unsigned char deviceID;
++	unsigned char uninitialized_var(manufacturerID);
++	unsigned char uninitialized_var(deviceID);
+ 	int result;
+ 	struct sddr55_card_info *info = (struct sddr55_card_info *)us->extra;
  
- static int TIChooseConfiguration (struct usb_device *dev)
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sound-use-bug_on.patch
-git-powerpc.patch
-drivers-block-viodasdc-use-field_sizeof.patch
+origin.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-arm-master.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
 git-dvb.patch
-git-hid.patch
-git-udf.patch
-drivers-net-mv643xx_ethc-use-field_sizeof.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
+git-kvm.patch
+git-md-accel.patch
+git-md-accel-fix-git-rejects.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
 git-ocfs2.patch
-drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
-drivers-acpi-asus_acpic-correct-use-of-and.patch
-fs-affs-filec-use-bug_on.patch
-fbdev-use-div_round_up-or-roundup.patch
-fs-ext2-use-bug_on.patch
-fs-ext3-use-bug_on.patch
-fs-ext4-use-bug_on.patch
+git-selinux.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
