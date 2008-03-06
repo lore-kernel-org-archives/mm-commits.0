@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:49:55 -0800
-Message-ID: <200803060349.m263ntrH007302@imap1.linux-foundation.org>
+Subject: + mtd-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:07 -0800
+Message-ID: <200803060350.m263o7PZ007329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756422AbYCFDum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:42 -0500
+	by vger.kernel.org with ESMTP id S1756714AbYCFDuo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, lenb@kernel.org
+Cc: harvey.harrison@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     acpi: replace remaining __FUNCTION__ occurrences
+     mtd: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     acpi-replace-remaining-__function__-occurrences.patch
+     mtd-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,345 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: replace remaining __FUNCTION__ occurrences
+Subject: mtd: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/bus.c               |    2 +-
- drivers/acpi/scan.c              |    2 +-
- drivers/acpi/sleep/main.c        |    2 +-
- drivers/acpi/utilities/utdebug.c |    2 +-
- drivers/acpi/video.c             |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   12 ++++++------
+ drivers/mtd/chips/cfi_cmdset_0020.c |   12 ++++++------
+ drivers/mtd/devices/lart.c          |   16 ++++++++--------
+ drivers/mtd/devices/m25p80.c        |    8 ++++----
+ drivers/mtd/maps/bast-flash.c       |    4 ++--
+ drivers/mtd/maps/pcmciamtd.c        |    2 +-
+ drivers/mtd/maps/pmcmsp-flash.c     |    2 +-
+ drivers/mtd/maps/tqm8xxl.c          |    6 +++---
+ drivers/mtd/ubi/debug.h             |    2 +-
+ drivers/mtd/ubi/ubi.h               |    4 ++--
+ 10 files changed, 34 insertions(+), 34 deletions(-)
 
-diff -puN drivers/acpi/bus.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/bus.c
---- a/drivers/acpi/bus.c~acpi-replace-remaining-__function__-occurrences
-+++ a/drivers/acpi/bus.c
-@@ -776,7 +776,7 @@ static int __init acpi_init(void)
- 
- 	acpi_kobj = kobject_create_and_add("acpi", firmware_kobj);
- 	if (!acpi_kobj) {
--		printk(KERN_WARNING "%s: kset create error\n", __FUNCTION__);
-+		printk(KERN_WARNING "%s: kset create error\n", __func__);
- 		acpi_kobj = NULL;
- 	}
- 
-diff -puN drivers/acpi/scan.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/scan.c
---- a/drivers/acpi/scan.c~acpi-replace-remaining-__function__-occurrences
-+++ a/drivers/acpi/scan.c
-@@ -967,7 +967,7 @@ static void acpi_device_set_id(struct ac
- 	case ACPI_BUS_TYPE_DEVICE:
- 		status = acpi_get_object_info(handle, &buffer);
- 		if (ACPI_FAILURE(status)) {
--			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __FUNCTION__);
-+			printk(KERN_ERR PREFIX "%s: Error reading device info\n", __func__);
- 			return;
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -384,7 +384,7 @@ read_pri_intelext(struct map_info *map, 
+ 			if (extp_size > 4096) {
+ 				printk(KERN_ERR
+ 					"%s: cfi_pri_intelext is too fat\n",
+-					__FUNCTION__);
++					__func__);
+ 				return NULL;
+ 			}
+ 			goto again;
+@@ -641,7 +641,7 @@ static int cfi_intelext_partition_fixup(
+ 		if ((1 << partshift) < mtd->erasesize) {
+ 			printk( KERN_ERR
+ 				"%s: bad number of hw partitions (%d)\n",
+-				__FUNCTION__, numparts);
++				__func__, numparts);
+ 			return -EINVAL;
  		}
  
-diff -puN drivers/acpi/sleep/main.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi-replace-remaining-__function__-occurrences
-+++ a/drivers/acpi/sleep/main.c
-@@ -504,7 +504,7 @@ static void acpi_power_off_prepare(void)
- static void acpi_power_off(void)
+@@ -2013,7 +2013,7 @@ static int cfi_intelext_lock(struct mtd_
+ 
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
+-	       __FUNCTION__, ofs, len);
++	       __func__, ofs, len);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2023,7 +2023,7 @@ static int cfi_intelext_lock(struct mtd_
+ 
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
+-	       __FUNCTION__, ret);
++	       __func__, ret);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2037,7 +2037,7 @@ static int cfi_intelext_unlock(struct mt
+ 
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
+-	       __FUNCTION__, ofs, len);
++	       __func__, ofs, len);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2047,7 +2047,7 @@ static int cfi_intelext_unlock(struct mt
+ 
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
+-	       __FUNCTION__, ret);
++	       __func__, ret);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+diff -puN drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0020.c
+--- a/drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/chips/cfi_cmdset_0020.c
+@@ -445,7 +445,7 @@ static inline int do_write_buffer(struct
+  retry:
+ 
+ #ifdef DEBUG_CFI_FEATURES
+-       printk("%s: chip->state[%d]\n", __FUNCTION__, chip->state);
++       printk("%s: chip->state[%d]\n", __func__, chip->state);
+ #endif
+ 	spin_lock_bh(chip->mutex);
+ 
+@@ -463,7 +463,7 @@ static inline int do_write_buffer(struct
+ 		map_write(map, CMD(0x70), cmd_adr);
+                 chip->state = FL_STATUS;
+ #ifdef DEBUG_CFI_FEATURES
+-        printk("%s: 1 status[%x]\n", __FUNCTION__, map_read(map, cmd_adr));
++	printk("%s: 1 status[%x]\n", __func__, map_read(map, cmd_adr));
+ #endif
+ 
+ 	case FL_STATUS:
+@@ -591,7 +591,7 @@ static inline int do_write_buffer(struct
+         /* check for errors: 'lock bit', 'VPP', 'dead cell'/'unerased cell' or 'incorrect cmd' -- saw */
+         if (map_word_bitsset(map, status, CMD(0x3a))) {
+ #ifdef DEBUG_CFI_FEATURES
+-		printk("%s: 2 status[%lx]\n", __FUNCTION__, status.x[0]);
++		printk("%s: 2 status[%lx]\n", __func__, status.x[0]);
+ #endif
+ 		/* clear status */
+ 		map_write(map, CMD(0x50), cmd_adr);
+@@ -625,9 +625,9 @@ static int cfi_staa_write_buffers (struc
+ 	ofs = to  - (chipnum << cfi->chipshift);
+ 
+ #ifdef DEBUG_CFI_FEATURES
+-        printk("%s: map_bankwidth(map)[%x]\n", __FUNCTION__, map_bankwidth(map));
+-        printk("%s: chipnum[%x] wbufsize[%x]\n", __FUNCTION__, chipnum, wbufsize);
+-        printk("%s: ofs[%x] len[%x]\n", __FUNCTION__, ofs, len);
++	printk("%s: map_bankwidth(map)[%x]\n", __func__, map_bankwidth(map));
++	printk("%s: chipnum[%x] wbufsize[%x]\n", __func__, chipnum, wbufsize);
++	printk("%s: ofs[%x] len[%x]\n", __func__, ofs, len);
+ #endif
+ 
+         /* Write buffer is worth it only if more than one word to write... */
+diff -puN drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/lart.c
+--- a/drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/devices/lart.c
+@@ -275,7 +275,7 @@ static __u8 read8 (__u32 offset)
  {
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
--	printk("%s called\n", __FUNCTION__);
-+	printk("%s called\n", __func__);
- 	local_irq_disable();
- 	acpi_enable_wakeup_device(ACPI_STATE_S5);
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
-diff -puN drivers/acpi/utilities/utdebug.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/utilities/utdebug.c
---- a/drivers/acpi/utilities/utdebug.c~acpi-replace-remaining-__function__-occurrences
-+++ a/drivers/acpi/utilities/utdebug.c
-@@ -109,7 +109,7 @@ void acpi_ut_track_stack_ptr(void)
-  * RETURN:      Updated pointer to the function name
-  *
-  * DESCRIPTION: Remove the "Acpi" prefix from the function name, if present.
-- *              This allows compiler macros such as __FUNCTION__ to be used
-+ *              This allows compiler macros such as __func__ to be used
-  *              with no change to the debug output.
-  *
-  ******************************************************************************/
-diff -puN drivers/acpi/video.c~acpi-replace-remaining-__function__-occurrences drivers/acpi/video.c
---- a/drivers/acpi/video.c~acpi-replace-remaining-__function__-occurrences
-+++ a/drivers/acpi/video.c
-@@ -1201,7 +1201,7 @@ static int acpi_video_bus_ROM_seq_show(s
- 	if (!video)
- 		goto end;
+    volatile __u8 *data = (__u8 *) (FLASH_OFFSET + offset);
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n", __func__, offset, *data);
+ #endif
+    return (*data);
+ }
+@@ -284,7 +284,7 @@ static __u32 read32 (__u32 offset)
+ {
+    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n", __func__, offset, *data);
+ #endif
+    return (*data);
+ }
+@@ -294,7 +294,7 @@ static void write32 (__u32 x,__u32 offse
+    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
+    *data = x;
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, *data);
+ #endif
+ }
  
--	printk(KERN_INFO PREFIX "Please implement %s\n", __FUNCTION__);
-+	printk(KERN_INFO PREFIX "Please implement %s\n", __func__);
- 	seq_printf(seq, "<TODO>\n");
+@@ -337,7 +337,7 @@ static inline int erase_block (__u32 off
+    __u32 status;
  
-       end:
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x\n",__FUNCTION__,offset);
++   printk (KERN_DEBUG "%s(): 0x%.8x\n", __func__, offset);
+ #endif
+ 
+    /* erase and confirm */
+@@ -371,7 +371,7 @@ static int flash_erase (struct mtd_info 
+    int i,first;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n",__FUNCTION__,instr->addr,instr->len);
++   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n", __func__, instr->addr, instr->len);
+ #endif
+ 
+    /* sanity checks */
+@@ -442,7 +442,7 @@ static int flash_erase (struct mtd_info 
+ static int flash_read (struct mtd_info *mtd,loff_t from,size_t len,size_t *retlen,u_char *buf)
+ {
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) from,len);
++   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n", __func__, (__u32)from, len);
+ #endif
+ 
+    /* sanity checks */
+@@ -488,7 +488,7 @@ static inline int write_dword (__u32 off
+    __u32 status;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,x);
++   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, x);
+ #endif
+ 
+    /* setup writing */
+@@ -524,7 +524,7 @@ static int flash_write (struct mtd_info 
+    int i,n;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) to,len);
++   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n", __func__, (__u32)to, len);
+ #endif
+ 
+    *retlen = 0;
+diff -puN drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/devices/m25p80.c
+@@ -151,7 +151,7 @@ static int wait_till_ready(struct m25p *
+ static int erase_sector(struct m25p *flash, u32 offset)
+ {
+ 	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %dKiB at 0x%08x\n",
+-			flash->spi->dev.bus_id, __FUNCTION__,
++			flash->spi->dev.bus_id, __func__,
+ 			flash->mtd.erasesize / 1024, offset);
+ 
+ 	/* Wait until finished previous write command. */
+@@ -188,7 +188,7 @@ static int m25p80_erase(struct mtd_info 
+ 	u32 addr,len;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %d\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "at",
++			flash->spi->dev.bus_id, __func__, "at",
+ 			(u32)instr->addr, instr->len);
+ 
+ 	/* sanity checks */
+@@ -240,7 +240,7 @@ static int m25p80_read(struct mtd_info *
+ 	struct spi_message m;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "from",
++			flash->spi->dev.bus_id, __func__, "from",
+ 			(u32)from, len);
+ 
+ 	/* sanity checks */
+@@ -308,7 +308,7 @@ static int m25p80_write(struct mtd_info 
+ 	struct spi_message m;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "to",
++			flash->spi->dev.bus_id, __func__, "to",
+ 			(u32)to, len);
+ 
+ 	if (retlen)
+diff -puN drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/bast-flash.c
+--- a/drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/bast-flash.c
+@@ -137,7 +137,7 @@ static int bast_flash_probe(struct platf
+ 	if (info->map.size > AREA_MAXSIZE)
+ 		info->map.size = AREA_MAXSIZE;
+ 
+-	pr_debug("%s: area %08lx, size %ld\n", __FUNCTION__,
++	pr_debug("%s: area %08lx, size %ld\n", __func__,
+ 		 info->map.phys, info->map.size);
+ 
+ 	info->area = request_mem_region(res->start, info->map.size,
+@@ -149,7 +149,7 @@ static int bast_flash_probe(struct platf
+ 	}
+ 
+ 	info->map.virt = ioremap(res->start, info->map.size);
+-	pr_debug("%s: virt at %08x\n", __FUNCTION__, (int)info->map.virt);
++	pr_debug("%s: virt at %08x\n", __func__, (int)info->map.virt);
+ 
+ 	if (info->map.virt == 0) {
+ 		printk(KERN_ERR PFX "failed to ioremap() region\n");
+diff -puN drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pcmciamtd.c
+--- a/drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/pcmciamtd.c
+@@ -33,7 +33,7 @@ MODULE_PARM_DESC(debug, "Set Debug Level
+ #undef DEBUG
+ #define DEBUG(n, format, arg...) \
+ 	if (n <= debug) {	 \
+-		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __FUNCTION__ , ## arg); \
++		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __func__ , ## arg); \
+ 	}
+ 
+ #else
+diff -puN drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pmcmsp-flash.c
+--- a/drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/pmcmsp-flash.c
+@@ -46,7 +46,7 @@ static struct mtd_partition **msp_parts;
+ static struct map_info *msp_maps;
+ static int fcnt;
+ 
+-#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n",__FUNCTION__,__LINE__)
++#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n", __func__, __LINE__)
+ 
+ int __init init_msp_flash(void)
+ {
+diff -puN drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/tqm8xxl.c
+--- a/drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/tqm8xxl.c
+@@ -124,7 +124,7 @@ int __init init_tqm_mtd(void)
+ 	//request maximum flash size address space
+ 	start_scan_addr = ioremap(flash_addr, flash_size);
+ 	if (!start_scan_addr) {
+-		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __FUNCTION__, flash_addr);
++		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __func__, flash_addr);
+ 		return -EIO;
+ 	}
+ 
+@@ -132,7 +132,7 @@ int __init init_tqm_mtd(void)
+ 		if(mtd_size >= flash_size)
+ 			break;
+ 
+-		printk(KERN_INFO "%s: chip probing count %d\n", __FUNCTION__, idx);
++		printk(KERN_INFO "%s: chip probing count %d\n", __func__, idx);
+ 
+ 		map_banks[idx] = kzalloc(sizeof(struct map_info), GFP_KERNEL);
+ 		if(map_banks[idx] == NULL) {
+@@ -178,7 +178,7 @@ int __init init_tqm_mtd(void)
+ 			mtd_size += mtd_banks[idx]->size;
+ 			num_banks++;
+ 
+-			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __FUNCTION__, num_banks,
++			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __func__, num_banks,
+ 			mtd_banks[idx]->name, mtd_banks[idx]->size);
+ 		}
+ 	}
+diff -puN drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/debug.h
+--- a/drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/ubi/debug.h
+@@ -41,7 +41,7 @@
+ /* Generic debugging message */
+ #define dbg_msg(fmt, ...)                                    \
+ 	printk(KERN_DEBUG "UBI DBG (pid %d): %s: " fmt "\n", \
+-	       current->pid, __FUNCTION__, ##__VA_ARGS__)
++	       current->pid, __func__, ##__VA_ARGS__)
+ 
+ #define ubi_dbg_dump_stack() dump_stack()
+ 
+diff -puN drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/ubi.h
+--- a/drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/ubi/ubi.h
+@@ -53,10 +53,10 @@
+ #define ubi_msg(fmt, ...) printk(KERN_NOTICE "UBI: " fmt "\n", ##__VA_ARGS__)
+ /* UBI warning messages */
+ #define ubi_warn(fmt, ...) printk(KERN_WARNING "UBI warning: %s: " fmt "\n", \
+-				  __FUNCTION__, ##__VA_ARGS__)
++				  __func__, ##__VA_ARGS__)
+ /* UBI error messages */
+ #define ubi_err(fmt, ...) printk(KERN_ERR "UBI error: %s: " fmt "\n", \
+-				 __FUNCTION__, ##__VA_ARGS__)
++				 __func__, ##__VA_ARGS__)
+ 
+ /* Lowest number PEBs reserved for bad PEB handling */
+ #define MIN_RESEVED_PEBS 2
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
