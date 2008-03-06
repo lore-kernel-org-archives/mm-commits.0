@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + spi-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:18 -0800
-Message-ID: <200803060350.m263oI7j007347@imap1.linux-foundation.org>
+Subject: + drivers-misc-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:11 -0800
+Message-ID: <200803060350.m263oBkZ007335@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751329AbYCFD6Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:58:24 -0500
+	by vger.kernel.org with ESMTP id S1751039AbYCFD6R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:58:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     spi: replace remaining __FUNCTION__ occurrences
+     drivers/misc: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     spi-replace-remaining-__function__-occurrences.patch
+     drivers-misc-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,189 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: replace remaining __FUNCTION__ occurrences
+Subject: drivers/misc: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap_uwire.c  |    4 ++--
- drivers/spi/spi_bitbang.c |    2 +-
- drivers/spi/spi_mpc83xx.c |    2 +-
- drivers/spi/spi_s3c24xx.c |    2 +-
- drivers/spi/xilinx_spi.c  |    8 ++++----
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/misc/ibmasm/command.c   |    6 +++---
+ drivers/misc/ibmasm/heartbeat.c |    6 +++---
+ drivers/misc/ioc4.c             |   20 ++++++++++----------
+ drivers/misc/sony-laptop.c      |    4 ++--
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences drivers/spi/omap_uwire.c
---- a/drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/omap_uwire.c
-@@ -151,7 +151,7 @@ static int wait_uwire_csr_flag(u16 mask,
- 		if (time_after(jiffies, max_jiffies)) {
- 			printk(KERN_ERR "%s: timeout. reg=%#06x "
- 					"mask=%#06x val=%#06x\n",
--			       __FUNCTION__, w, mask, val);
-+			       __func__, w, mask, val);
- 			return -1;
- 		}
- 		c++;
-@@ -437,7 +437,7 @@ static int uwire_setup_transfer(struct s
- 	}
- 	omap_uwire_configure_mode(spi->chip_select, flags);
- 	pr_debug("%s: uwire flags %02x, armxor %lu KHz, SCK %lu KHz\n",
--			__FUNCTION__, flags,
-+			__func__, flags,
- 			clk_get_rate(uwire->ck) / 1000,
- 			rate / 1000);
- 	status = 0;
-diff -puN drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_bitbang.c
-@@ -214,7 +214,7 @@ int spi_bitbang_setup(struct spi_device 
- 		return retval;
+diff -puN drivers/misc/ibmasm/command.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ibmasm/command.c
+--- a/drivers/misc/ibmasm/command.c~drivers-misc-replace-remaining-__function__-occurrences
++++ a/drivers/misc/ibmasm/command.c
+@@ -96,7 +96,7 @@ static inline void do_exec_command(struc
+ {
+ 	char tsbuf[32];
  
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
--			__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
-+			__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
- 			spi->bits_per_word, 2 * cs->nsecs);
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
  
- 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
-diff -puN drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -310,7 +310,7 @@ static int mpc83xx_spi_setup(struct spi_
- 		return retval;
+ 	if (ibmasm_send_i2o_message(sp)) {
+ 		sp->current_command->status = IBMASM_CMD_FAILED;
+@@ -119,7 +119,7 @@ void ibmasm_exec_command(struct service_
+ 	unsigned long flags;
+ 	char tsbuf[32];
  
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec\n",
--		__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
-+		__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
- 		spi->bits_per_word, 2 * mpc83xx_spi->nsecs);
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
  
- 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
-diff -puN drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -169,7 +169,7 @@ static int s3c24xx_spi_setup(struct spi_
- 	}
+ 	spin_lock_irqsave(&sp->lock, flags);
  
- 	dev_dbg(&spi->dev, "%s: mode %d, %u bpw, %d hz\n",
--		__FUNCTION__, spi->mode, spi->bits_per_word,
-+		__func__, spi->mode, spi->bits_per_word,
- 		spi->max_speed_hz);
+@@ -139,7 +139,7 @@ static void exec_next_command(struct ser
+ 	unsigned long flags;
+ 	char tsbuf[32];
  
- 	return 0;
-diff -puN drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences drivers/spi/xilinx_spi.c
---- a/drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/xilinx_spi.c
-@@ -151,13 +151,13 @@ static int xilinx_spi_setup_transfer(str
- 	hz = (t) ? t->speed_hz : spi->max_speed_hz;
- 	if (bits_per_word != 8) {
- 		dev_err(&spi->dev, "%s, unsupported bits_per_word=%d\n",
--			__FUNCTION__, bits_per_word);
-+			__func__, bits_per_word);
- 		return -EINVAL;
- 	}
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
  
- 	if (hz && xspi->speed_hz > hz) {
- 		dev_err(&spi->dev, "%s, unsupported clock rate %uHz\n",
--			__FUNCTION__, hz);
-+			__func__, hz);
- 		return -EINVAL;
- 	}
+ 	spin_lock_irqsave(&sp->lock, flags);
+ 	sp->current_command = dequeue_command(sp);
+diff -puN drivers/misc/ibmasm/heartbeat.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ibmasm/heartbeat.c
+--- a/drivers/misc/ibmasm/heartbeat.c~drivers-misc-replace-remaining-__function__-occurrences
++++ a/drivers/misc/ibmasm/heartbeat.c
+@@ -75,9 +75,9 @@ void ibmasm_heartbeat_exit(struct servic
+ {
+ 	char tsbuf[32];
  
-@@ -181,7 +181,7 @@ static int xilinx_spi_setup(struct spi_d
- 
- 	if (spi->mode & ~MODEBITS) {
- 		dev_err(&spi->dev, "%s, unsupported mode bits %x\n",
--			__FUNCTION__, spi->mode & ~MODEBITS);
-+			__func__, spi->mode & ~MODEBITS);
- 		return -EINVAL;
- 	}
- 
-@@ -190,7 +190,7 @@ static int xilinx_spi_setup(struct spi_d
- 		return retval;
- 
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
--		__FUNCTION__, spi->mode & MODEBITS, spi->bits_per_word, 0);
-+		__func__, spi->mode & MODEBITS, spi->bits_per_word, 0);
- 
- 	return 0;
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+ 	ibmasm_wait_for_response(sp->heartbeat, IBMASM_CMD_TIMEOUT_NORMAL);
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+ 	suspend_heartbeats = 1;
+ 	command_put(sp->heartbeat);
  }
+@@ -88,7 +88,7 @@ void ibmasm_receive_heartbeat(struct ser
+ 	struct dot_command_header *header = (struct dot_command_header *)cmd->buffer;
+ 	char tsbuf[32];
+ 
+-	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
++	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+ 	if (suspend_heartbeats)
+ 		return;
+ 
+diff -puN drivers/misc/ioc4.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ioc4.c
+--- a/drivers/misc/ioc4.c~drivers-misc-replace-remaining-__function__-occurrences
++++ a/drivers/misc/ioc4.c
+@@ -75,7 +75,7 @@ ioc4_register_submodule(struct ioc4_subm
+ 			printk(KERN_WARNING
+ 			       "%s: IOC4 submodule %s probe failed "
+ 			       "for pci_dev %s",
+-			       __FUNCTION__, module_name(is->is_owner),
++			       __func__, module_name(is->is_owner),
+ 			       pci_name(idd->idd_pdev));
+ 		}
+ 	}
+@@ -102,7 +102,7 @@ ioc4_unregister_submodule(struct ioc4_su
+ 			printk(KERN_WARNING
+ 			       "%s: IOC4 submodule %s remove failed "
+ 			       "for pci_dev %s.\n",
+-			       __FUNCTION__, module_name(is->is_owner),
++			       __func__, module_name(is->is_owner),
+ 			       pci_name(idd->idd_pdev));
+ 		}
+ 	}
+@@ -282,7 +282,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 	if ((ret = pci_enable_device(pdev))) {
+ 		printk(KERN_WARNING
+ 		       "%s: Failed to enable IOC4 device for pci_dev %s.\n",
+-		       __FUNCTION__, pci_name(pdev));
++		       __func__, pci_name(pdev));
+ 		goto out;
+ 	}
+ 	pci_set_master(pdev);
+@@ -292,7 +292,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 	if (!idd) {
+ 		printk(KERN_WARNING
+ 		       "%s: Failed to allocate IOC4 data for pci_dev %s.\n",
+-		       __FUNCTION__, pci_name(pdev));
++		       __func__, pci_name(pdev));
+ 		ret = -ENODEV;
+ 		goto out_idd;
+ 	}
+@@ -307,7 +307,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to find IOC4 misc resource "
+ 		       "for pci_dev %s.\n",
+-		       __FUNCTION__, pci_name(idd->idd_pdev));
++		       __func__, pci_name(idd->idd_pdev));
+ 		ret = -ENODEV;
+ 		goto out_pci;
+ 	}
+@@ -316,7 +316,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to request IOC4 misc region "
+ 		       "for pci_dev %s.\n",
+-		       __FUNCTION__, pci_name(idd->idd_pdev));
++		       __func__, pci_name(idd->idd_pdev));
+ 		ret = -ENODEV;
+ 		goto out_pci;
+ 	}
+@@ -326,7 +326,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to remap IOC4 misc region "
+ 		       "for pci_dev %s.\n",
+-		       __FUNCTION__, pci_name(idd->idd_pdev));
++		       __func__, pci_name(idd->idd_pdev));
+ 		ret = -ENODEV;
+ 		goto out_misc_region;
+ 	}
+@@ -372,7 +372,7 @@ ioc4_probe(struct pci_dev *pdev, const s
+ 			printk(KERN_WARNING
+ 			       "%s: IOC4 submodule 0x%s probe failed "
+ 			       "for pci_dev %s.\n",
+-			       __FUNCTION__, module_name(is->is_owner),
++			       __func__, module_name(is->is_owner),
+ 			       pci_name(idd->idd_pdev));
+ 		}
+ 	}
+@@ -406,7 +406,7 @@ ioc4_remove(struct pci_dev *pdev)
+ 			printk(KERN_WARNING
+ 			       "%s: IOC4 submodule 0x%s remove failed "
+ 			       "for pci_dev %s.\n",
+-			       __FUNCTION__, module_name(is->is_owner),
++			       __func__, module_name(is->is_owner),
+ 			       pci_name(idd->idd_pdev));
+ 		}
+ 	}
+@@ -418,7 +418,7 @@ ioc4_remove(struct pci_dev *pdev)
+ 		printk(KERN_WARNING
+ 		       "%s: Unable to get IOC4 misc mapping for pci_dev %s. "
+ 		       "Device removal may be incomplete.\n",
+-		       __FUNCTION__, pci_name(idd->idd_pdev));
++		       __func__, pci_name(idd->idd_pdev));
+ 	}
+ 	release_mem_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
+ 
+diff -puN drivers/misc/sony-laptop.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/sony-laptop.c
+--- a/drivers/misc/sony-laptop.c~drivers-misc-replace-remaining-__function__-occurrences
++++ a/drivers/misc/sony-laptop.c
+@@ -961,7 +961,7 @@ static int sony_nc_resume(struct acpi_de
+ 		ret = acpi_callsetfunc(sony_nc_acpi_handle, *item->acpiset,
+ 				       item->value, NULL);
+ 		if (ret < 0) {
+-			printk("%s: %d\n", __FUNCTION__, ret);
++			printk("%s: %d\n", __func__, ret);
+ 			break;
+ 		}
+ 	}
+@@ -1453,7 +1453,7 @@ static struct sonypi_eventtypes type4_ev
+ 		udelay(1);						\
+ 	if (!n)								\
+ 		dprintk("command failed at %s : %s (line %d)\n",	\
+-				__FILE__, __FUNCTION__, __LINE__);	\
++				__FILE__, __func__, __LINE__);	\
+ }
+ 
+ static u8 sony_pic_call1(u8 dev)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
