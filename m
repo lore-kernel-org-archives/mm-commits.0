@@ -1,155 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - pata-i-do-not-think-it-means-what-you-think-it-means.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:21:39 -0800
-Message-ID: <200803062221.m26MLdxt020735@imap1.linux-foundation.org>
+Subject: - lsm-audit-introduce-generic-audit-lsm-hooks.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:21 -0800
+Message-ID: <200803062223.m26MNLRr020886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758160AbYCFWjq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:39:46 -0500
+	by vger.kernel.org with ESMTP id S1758168AbYCFWjz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:39:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com, jeff@garzik.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@infradead.org, eparis@parisplace.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, viro@zeniv.linux
 
 
 The patch titled
-     pata: "I do not think it means, what you think it means."
+     LSM/Audit: Introduce generic Audit LSM hooks
 has been removed from the -mm tree.  Its filename was
-     pata-i-do-not-think-it-means-what-you-think-it-means.patch
+     lsm-audit-introduce-generic-audit-lsm-hooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata: "I do not think it means, what you think it means."
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: LSM/Audit: Introduce generic Audit LSM hooks
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-When masking mask out the modes that are unsupported not the ones that are
-supported.  This makes life happier.
+Introduce a generic Audit interface for security modules by adding the
+following new LSM hooks:
 
-Bart says: "This patch fixes data corruption for libata PATA ServerWorks and
-HPT drivers".
+audit_rule_init(field, op, rulestr, lsmrule)
+audit_rule_known(krule)
+audit_rule_match(secid, field, op, rule, actx)
+audit_rule_free(rule)
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Acked-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: <stable@kernel.org>
+Those hooks are only available if CONFIG_AUDIT is enabled.
+
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Acked-by: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Reviewed-by: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt366.c      |    6 +++---
- drivers/ata/pata_hpt37x.c      |    6 +++---
- drivers/ata/pata_serverworks.c |    2 +-
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/security.h |   72 +++++++++++++++++++++++++++++++++++++
+ security/dummy.c         |   31 +++++++++++++++
+ security/security.c      |   25 ++++++++++++
+ 3 files changed, 127 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_hpt366.c~pata-i-do-not-think-it-means-what-you-think-it-means drivers/ata/pata_hpt366.c
---- a/drivers/ata/pata_hpt366.c~pata-i-do-not-think-it-means-what-you-think-it-means
-+++ a/drivers/ata/pata_hpt366.c
-@@ -27,7 +27,7 @@
- #include <linux/libata.h>
+diff -puN include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks include/linux/security.h
+--- a/include/linux/security.h~lsm-audit-introduce-generic-audit-lsm-hooks
++++ a/include/linux/security.h
+@@ -41,6 +41,7 @@
+ #define DEFCONTEXT_MNT		0x08
  
- #define DRV_NAME	"pata_hpt366"
--#define DRV_VERSION	"0.6.1"
-+#define DRV_VERSION	"0.6.2"
+ struct ctl_table;
++struct audit_krule;
  
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -180,9 +180,9 @@ static unsigned long hpt366_filter(struc
- 		if (hpt_dma_blacklisted(adev, "UDMA",  bad_ata33))
- 			mask &= ~ATA_MASK_UDMA;
- 		if (hpt_dma_blacklisted(adev, "UDMA3", bad_ata66_3))
--			mask &= ~(0x07 << ATA_SHIFT_UDMA);
-+			mask &= ~(0xF8 << ATA_SHIFT_UDMA);
- 		if (hpt_dma_blacklisted(adev, "UDMA4", bad_ata66_4))
--			mask &= ~(0x0F << ATA_SHIFT_UDMA);
-+			mask &= ~(0xF0 << ATA_SHIFT_UDMA);
- 	}
- 	return ata_pci_default_filter(adev, mask);
+ /*
+  * These functions are in security/capability.c and are used
+@@ -1218,6 +1219,37 @@ struct request_sock;
+  *	@secdata contains the security context.
+  *	@seclen contains the length of the security context.
+  *
++ * Security hooks for Audit
++ *
++ * @audit_rule_init:
++ *	Allocate and initialize an LSM audit rule structure.
++ *	@field contains the required Audit action. Fields flags are defined in include/linux/audit.h
++ *	@op contains the operator the rule uses.
++ *	@rulestr contains the context where the rule will be applied to.
++ *	@lsmrule contains a pointer to receive the result.
++ *	Return 0 if @lsmrule has been successfully set,
++ *	-EINVAL in case of an invalid rule.
++ *
++ * @audit_rule_known:
++ *	Specifies whether given @rule contains any fields related to current LSM.
++ *	@rule contains the audit rule of interest.
++ *	Return 1 in case of relation found, 0 otherwise.
++ *
++ * @audit_rule_match:
++ *	Determine if given @secid matches a rule previously approved
++ *	by @audit_rule_known.
++ *	@secid contains the security id in question.
++ *	@field contains the field which relates to current LSM.
++ *	@op contains the operator that will be used for matching.
++ *	@rule points to the audit rule that will be checked against.
++ *	@actx points to the audit context associated with the check.
++ *	Return 1 if secid matches the rule, 0 if it does not, -ERRNO on failure.
++ *
++ * @audit_rule_free:
++ *	Deallocate the LSM audit rule structure previously allocated by
++ *	audit_rule_init.
++ *	@rule contains the allocated rule
++ *
+  * This is the main security structure.
+  */
+ struct security_operations {
+@@ -1478,6 +1510,13 @@ struct security_operations {
+ 
+ #endif	/* CONFIG_KEYS */
+ 
++#ifdef CONFIG_AUDIT
++	int (*audit_rule_init)(u32 field, u32 op, char *rulestr, void **lsmrule);
++	int (*audit_rule_known)(struct audit_krule *krule);
++	int (*audit_rule_match)(u32 secid, u32 field, u32 op, void *lsmrule,
++				struct audit_context *actx);
++	void (*audit_rule_free)(void *lsmrule);
++#endif /* CONFIG_AUDIT */
+ };
+ 
+ /* prototypes */
+@@ -2655,5 +2694,38 @@ static inline int security_key_permissio
+ #endif
+ #endif /* CONFIG_KEYS */
+ 
++#ifdef CONFIG_AUDIT
++#ifdef CONFIG_SECURITY
++int security_audit_rule_init(u32 field, u32 op, char *rulestr, void **lsmrule);
++int security_audit_rule_known(struct audit_krule *krule);
++int security_audit_rule_match(u32 secid, u32 field, u32 op, void *lsmrule,
++			      struct audit_context *actx);
++void security_audit_rule_free(void *lsmrule);
++
++#else
++
++static inline int security_audit_rule_init(u32 field, u32 op, char *rulestr,
++					   void **lsmrule)
++{
++	return 0;
++}
++
++static inline int security_audit_rule_known(struct audit_krule *krule)
++{
++	return 0;
++}
++
++static inline int security_audit_rule_match(u32 secid, u32 field, u32 op,
++				   void *lsmrule, struct audit_context *actx)
++{
++	return 0;
++}
++
++static inline void security_audit_rule_free(void *lsmrule)
++{ }
++
++#endif /* CONFIG_SECURITY */
++#endif /* CONFIG_AUDIT */
++
+ #endif /* ! __LINUX_SECURITY_H */
+ 
+diff -puN security/dummy.c~lsm-audit-introduce-generic-audit-lsm-hooks security/dummy.c
+--- a/security/dummy.c~lsm-audit-introduce-generic-audit-lsm-hooks
++++ a/security/dummy.c
+@@ -991,6 +991,30 @@ static inline int dummy_key_permission(k
  }
-diff -puN drivers/ata/pata_hpt37x.c~pata-i-do-not-think-it-means-what-you-think-it-means drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata-i-do-not-think-it-means-what-you-think-it-means
-+++ a/drivers/ata/pata_hpt37x.c
-@@ -24,7 +24,7 @@
- #include <linux/libata.h>
+ #endif /* CONFIG_KEYS */
  
- #define DRV_NAME	"pata_hpt37x"
--#define DRV_VERSION	"0.6.9"
-+#define DRV_VERSION	"0.6.11"
++#ifdef CONFIG_AUDIT
++static inline int dummy_audit_rule_init(u32 field, u32 op, char *rulestr,
++					void **lsmrule)
++{
++	return 0;
++}
++
++static inline int dummy_audit_rule_known(struct audit_krule *krule)
++{
++	return 0;
++}
++
++static inline int dummy_audit_rule_match(u32 secid, u32 field, u32 op,
++					 void *lsmrule,
++					 struct audit_context *actx)
++{
++	return 0;
++}
++
++static inline void dummy_audit_rule_free(void *lsmrule)
++{ }
++
++#endif /* CONFIG_AUDIT */
++
+ struct security_operations dummy_security_ops;
  
- struct hpt_clock {
- 	u8	xfer_speed;
-@@ -281,7 +281,7 @@ static unsigned long hpt370_filter(struc
- 		if (hpt_dma_blacklisted(adev, "UDMA", bad_ata33))
- 			mask &= ~ATA_MASK_UDMA;
- 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
--			mask &= ~(0x1F << ATA_SHIFT_UDMA);
-+			mask &= ~(0xE0 << ATA_SHIFT_UDMA);
- 	}
- 	return ata_pci_default_filter(adev, mask);
+ #define set_to_dummy_if_null(ops, function)				\
+@@ -1179,6 +1203,11 @@ void security_fixup_ops (struct security
+ 	set_to_dummy_if_null(ops, key_free);
+ 	set_to_dummy_if_null(ops, key_permission);
+ #endif	/* CONFIG_KEYS */
+-
++#ifdef CONFIG_AUDIT
++	set_to_dummy_if_null(ops, audit_rule_init);
++	set_to_dummy_if_null(ops, audit_rule_known);
++	set_to_dummy_if_null(ops, audit_rule_match);
++	set_to_dummy_if_null(ops, audit_rule_free);
++#endif
  }
-@@ -297,7 +297,7 @@ static unsigned long hpt370a_filter(stru
- {
- 	if (adev->class == ATA_DEV_ATA) {
- 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
--			mask &= ~ (0x1F << ATA_SHIFT_UDMA);
-+			mask &= ~(0xE0 << ATA_SHIFT_UDMA);
- 	}
- 	return ata_pci_default_filter(adev, mask);
- }
-diff -puN drivers/ata/pata_serverworks.c~pata-i-do-not-think-it-means-what-you-think-it-means drivers/ata/pata_serverworks.c
---- a/drivers/ata/pata_serverworks.c~pata-i-do-not-think-it-means-what-you-think-it-means
-+++ a/drivers/ata/pata_serverworks.c
-@@ -226,7 +226,7 @@ static unsigned long serverworks_csb_fil
  
- 	for (i = 0; (p = csb_bad_ata100[i]) != NULL; i++) {
- 		if (!strcmp(p, model_num))
--			mask &= ~(0x1F << ATA_SHIFT_UDMA);
-+			mask &= ~(0xE0 << ATA_SHIFT_UDMA);
- 	}
- 	return ata_pci_default_filter(adev, mask);
+diff -puN security/security.c~lsm-audit-introduce-generic-audit-lsm-hooks security/security.c
+--- a/security/security.c~lsm-audit-introduce-generic-audit-lsm-hooks
++++ a/security/security.c
+@@ -1113,3 +1113,28 @@ int security_key_permission(key_ref_t ke
  }
+ 
+ #endif	/* CONFIG_KEYS */
++
++#ifdef CONFIG_AUDIT
++
++int security_audit_rule_init(u32 field, u32 op, char *rulestr, void **lsmrule)
++{
++	return security_ops->audit_rule_init(field, op, rulestr, lsmrule);
++}
++
++int security_audit_rule_known(struct audit_krule *krule)
++{
++	return security_ops->audit_rule_known(krule);
++}
++
++void security_audit_rule_free(void *lsmrule)
++{
++	security_ops->audit_rule_free(lsmrule);
++}
++
++int security_audit_rule_match(u32 secid, u32 field, u32 op, void *lsmrule,
++			      struct audit_context *actx)
++{
++	return security_ops->audit_rule_match(secid, field, op, lsmrule, actx);
++}
++
++#endif /* CONFIG_AUDIT */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-drivers-net-8390c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-kvm.patch
+git-security-testing.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 
