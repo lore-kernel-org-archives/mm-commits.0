@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + signals-__group_complete_signal-cache-the-value-of-p-signal.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:32:37 -0800
-Message-ID: <200803060132.m261Wb3I002318@imap1.linux-foundation.org>
+Subject: + signals-send_group_sigqueue-dont-take-tasklist_lock.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:33:29 -0800
+Message-ID: <200803060133.m261XTum002332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765776AbYCFBdt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:33:49 -0500
+	by vger.kernel.org with ESMTP id S1754188AbYCFBej (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:34:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: __group_complete_signal: cache the value of p->signal
+     signals: send_group_sigqueue: don't take tasklist_lock
 has been added to the -mm tree.  Its filename is
-     signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+     signals-send_group_sigqueue-dont-take-tasklist_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: __group_complete_signal: cache the value of p->signal
+Subject: signals: send_group_sigqueue: don't take tasklist_lock
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cosmetic, cache p->signal to make the code a bit more readable.
+handle_stop_signal() was changed, now send_group_sigqueue() doesn't need
+tasklist_lock.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ kernel/signal.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signals-__group_complete_signal-cache-the-value-of-p-signal kernel/signal.c
---- a/kernel/signal.c~signals-__group_complete_signal-cache-the-value-of-p-signal
+diff -puN kernel/signal.c~signals-send_group_sigqueue-dont-take-tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~signals-send_group_sigqueue-dont-take-tasklist_lock
 +++ a/kernel/signal.c
-@@ -842,6 +842,7 @@ static inline int wants_signal(int sig, 
- static void
- __group_complete_signal(int sig, struct task_struct *p)
- {
-+	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
+@@ -1335,7 +1335,6 @@ send_group_sigqueue(int sig, struct sigq
  
- 	/*
-@@ -862,14 +863,14 @@ __group_complete_signal(int sig, struct 
- 		/*
- 		 * Otherwise try to find a suitable thread.
- 		 */
--		t = p->signal->curr_target;
-+		t = signal->curr_target;
- 		if (t == NULL)
- 			/* restart balancing at this thread */
--			t = p->signal->curr_target = p;
-+			t = signal->curr_target = p;
+ 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
  
- 		while (!wants_signal(sig, t)) {
- 			t = next_thread(t);
--			if (t == p->signal->curr_target)
-+			if (t == signal->curr_target)
- 				/*
- 				 * No thread needs to be woken.
- 				 * Any eligible threads will see
-@@ -877,14 +878,14 @@ __group_complete_signal(int sig, struct 
- 				 */
- 				return;
- 		}
--		p->signal->curr_target = t;
-+		signal->curr_target = t;
- 	}
+-	read_lock(&tasklist_lock);
+ 	/* Since it_lock is held, p->sighand cannot be NULL. */
+ 	spin_lock_irqsave(&p->sighand->siglock, flags);
  
- 	/*
- 	 * Found a killable thread.  If the signal will be fatal,
- 	 * then start taking the whole group down immediately.
- 	 */
--	if (sig_fatal(p, sig) && !(p->signal->flags & SIGNAL_GROUP_EXIT) &&
-+	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
- 	    !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
- 		/*
-@@ -897,9 +898,9 @@ __group_complete_signal(int sig, struct 
- 			 * running and doing things after a slower
- 			 * thread has the fatal signal pending.
- 			 */
--			p->signal->flags = SIGNAL_GROUP_EXIT;
--			p->signal->group_exit_code = sig;
--			p->signal->group_stop_count = 0;
-+			signal->flags = SIGNAL_GROUP_EXIT;
-+			signal->group_exit_code = sig;
-+			signal->group_stop_count = 0;
- 			t = p;
- 			do {
- 				sigaddset(&t->pending.signal, SIGKILL);
+@@ -1344,7 +1343,7 @@ send_group_sigqueue(int sig, struct sigq
+ 	__group_complete_signal(sig, p);
+ 
+ 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
+-	read_unlock(&tasklist_lock);
++
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -133,6 +95,7 @@ get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
 signals-send_sigqueue-dont-take-rcu-lock.patch
 signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
 signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
 ptrace-introduce-task_detached-helper.patch
 reparent_thread-use-same_thread_group.patch
 document-de_thread-with-exit_notify-connection.patch
