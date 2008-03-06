@@ -1,51 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - jfs-replace-__inline-with-inline.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:21:37 -0800
-Message-ID: <200803062221.m26MLb0j020732@imap1.linux-foundation.org>
+Subject: - irda-replace-__inline-with-inline.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:21:53 -0800
+Message-ID: <200803062221.m26MLrRC020751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765391AbYCFWak (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:40 -0500
+	by vger.kernel.org with ESMTP id S1757956AbYCFWax (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: replace __inline with inline
+     irda: replace __inline with inline
 has been removed from the -mm tree.  Its filename was
-     jfs-replace-__inline-with-inline.patch
+     irda-replace-__inline-with-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jfs: replace __inline with inline
+Subject: irda: replace __inline with inline
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_dmap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/irda/irttp.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/jfs/jfs_dmap.h~jfs-replace-__inline-with-inline fs/jfs/jfs_dmap.h
---- a/fs/jfs/jfs_dmap.h~jfs-replace-__inline-with-inline
-+++ a/fs/jfs/jfs_dmap.h
-@@ -61,7 +61,7 @@
-  * determine the maximum free string for four (lower level) nodes
-  * of the tree.
-  */
--static __inline signed char TREEMAX(signed char *cp)
-+static inline signed char TREEMAX(signed char *cp)
- {
- 	signed char tmp1, tmp2;
+diff -puN include/net/irda/irttp.h~irda-replace-__inline-with-inline include/net/irda/irttp.h
+--- a/include/net/irda/irttp.h~irda-replace-__inline-with-inline
++++ a/include/net/irda/irttp.h
+@@ -169,17 +169,17 @@ int irttp_disconnect_request(struct tsap
+ void irttp_flow_request(struct tsap_cb *self, LOCAL_FLOW flow);
+ struct tsap_cb *irttp_dup(struct tsap_cb *self, void *instance);
  
+-static __inline __u32 irttp_get_saddr(struct tsap_cb *self)
++static inline __u32 irttp_get_saddr(struct tsap_cb *self)
+ {
+ 	return irlmp_get_saddr(self->lsap);
+ }
+ 
+-static __inline __u32 irttp_get_daddr(struct tsap_cb *self)
++static inline __u32 irttp_get_daddr(struct tsap_cb *self)
+ {
+ 	return irlmp_get_daddr(self->lsap);
+ }
+ 
+-static __inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
++static inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
+ {
+ 	return self->max_seg_size;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
