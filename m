@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful.patch added to -mm tree
-Date: Wed, 05 Mar 2008 20:31:55 -0800
-Message-ID: <200803060431.m264Vtsf008689@imap1.linux-foundation.org>
+Subject: + netfilter-replace-horrible-hack-with-ksize.patch added to -mm tree
+Date: Wed, 05 Mar 2008 21:51:57 -0800
+Message-ID: <200803060551.m265pvcW011414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755723AbYCFEb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 23:31:59 -0500
+	by vger.kernel.org with ESMTP id S1751419AbYCFFwM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 00:52:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: duaneg@dghda.com
+Cc: penberg@cs.helsinki.fi, clameter@sgi.com, kaber@trash.net
 
 
 The patch titled
-     jbd: only create debugfs entries if cache initialisation is successful
+     netfilter: replace horrible hack with ksize()
 has been added to the -mm tree.  Its filename is
-     jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful.patch
+     netfilter-replace-horrible-hack-with-ksize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: only create debugfs entries if cache initialisation is successful
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: netfilter: replace horrible hack with ksize()
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-JBD debugfs entries should only be created if cache initialisation is
-successful.  At the moment they are being created unconditionally which will
-leave them dangling if cache (and hence module) initialisation fails.
+There's a horrible slab abuse in net/netfilter/nf_conntrack_extend.c that can
+be replaced with a call to ksize().
 
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h |    1 
+ net/netfilter/nf_conntrack_extend.c         |   19 ++----------------
+ 2 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN fs/jbd/journal.c~jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful
-+++ a/fs/jbd/journal.c
-@@ -1942,9 +1942,10 @@ static int __init journal_init(void)
- 	BUILD_BUG_ON(sizeof(struct journal_superblock_s) != 1024);
+diff -puN include/net/netfilter/nf_conntrack_extend.h~netfilter-replace-horrible-hack-with-ksize include/net/netfilter/nf_conntrack_extend.h
+--- a/include/net/netfilter/nf_conntrack_extend.h~netfilter-replace-horrible-hack-with-ksize
++++ a/include/net/netfilter/nf_conntrack_extend.h
+@@ -17,7 +17,6 @@ enum nf_ct_ext_id
+ struct nf_ct_ext {
+ 	u8 offset[NF_CT_EXT_NUM];
+ 	u8 len;
+-	u8 real_len;
+ 	char data[0];
+ };
  
- 	ret = journal_init_caches();
--	if (ret != 0)
-+	if (ret == 0)
-+		jbd_create_debugfs_entry();
-+	else
- 		journal_destroy_caches();
--	jbd_create_debugfs_entry();
- 	return ret;
+diff -puN net/netfilter/nf_conntrack_extend.c~netfilter-replace-horrible-hack-with-ksize net/netfilter/nf_conntrack_extend.c
+--- a/net/netfilter/nf_conntrack_extend.c~netfilter-replace-horrible-hack-with-ksize
++++ a/net/netfilter/nf_conntrack_extend.c
+@@ -19,14 +19,6 @@
+ static struct nf_ct_ext_type *nf_ct_ext_types[NF_CT_EXT_NUM];
+ static DEFINE_MUTEX(nf_ct_ext_type_mutex);
+ 
+-/* Horrible trick to figure out smallest amount worth kmallocing. */
+-#define CACHE(x) (x) + 0 *
+-enum {
+-	NF_CT_EXT_MIN_SIZE =
+-#include <linux/kmalloc_sizes.h>
+-	1 };
+-#undef CACHE
+-
+ void __nf_ct_ext_destroy(struct nf_conn *ct)
+ {
+ 	unsigned int i;
+@@ -53,7 +45,7 @@ EXPORT_SYMBOL(__nf_ct_ext_destroy);
+ static void *
+ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+-	unsigned int off, len, real_len;
++	unsigned int off, len;
+ 	struct nf_ct_ext_type *t;
+ 
+ 	rcu_read_lock();
+@@ -61,16 +53,14 @@ nf_ct_ext_create(struct nf_ct_ext **ext,
+ 	BUG_ON(t == NULL);
+ 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
+ 	len = off + t->len;
+-	real_len = t->alloc_size;
+ 	rcu_read_unlock();
+ 
+-	*ext = kzalloc(real_len, gfp);
++	*ext = kzalloc(t->alloc_size, gfp);
+ 	if (!*ext)
+ 		return NULL;
+ 
+ 	(*ext)->offset[id] = off;
+ 	(*ext)->len = len;
+-	(*ext)->real_len = real_len;
+ 
+ 	return (void *)(*ext) + off;
+ }
+@@ -95,7 +85,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct
+ 	newlen = newoff + t->len;
+ 	rcu_read_unlock();
+ 
+-	if (newlen >= ct->ext->real_len) {
++	if (newlen >= ksize(ct->ext)) {
+ 		new = kmalloc(newlen, gfp);
+ 		if (!new)
+ 			return NULL;
+@@ -114,7 +104,6 @@ void *__nf_ct_ext_add(struct nf_conn *ct
+ 			rcu_read_unlock();
+ 		}
+ 		kfree(ct->ext);
+-		new->real_len = newlen;
+ 		ct->ext = new;
+ 	}
+ 
+@@ -156,8 +145,6 @@ static void update_alloc_size(struct nf_
+ 			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
+ 					 + t2->len;
+ 		}
+-		if (t1->alloc_size < NF_CT_EXT_MIN_SIZE)
+-			t1->alloc_size = NF_CT_EXT_MIN_SIZE;
+ 	}
  }
  
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
-jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
-jbd-replace-potentially-false-assertion-with-if-block.patch
-jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful.patch
+netfilter-replace-horrible-hack-with-ksize.patch
+git-unionfs.patch
+git-slub.patch
+slab-pass-correct-flags-to-kmem_getpages.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+fs-coda-remove-static-inline-forward-declarations.patch
+documentation-patch-tags-one-more-time.patch
+slab-leaks3-default-y.patch
 
