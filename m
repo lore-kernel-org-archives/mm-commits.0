@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:11 -0800
-Message-ID: <200803060350.m263oBkZ007335@imap1.linux-foundation.org>
+Subject: + power-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:20 -0800
+Message-ID: <200803060350.m263oKnV007350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751039AbYCFD6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:58:17 -0500
+	by vger.kernel.org with ESMTP id S1752020AbYCFD6t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:58:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com, greg@kroah.com, lenb@kernel.org, rjw@sisk.pl
 
 
 The patch titled
-     drivers/misc: replace remaining __FUNCTION__ occurrences
+     power: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     drivers-misc-replace-remaining-__function__-occurrences.patch
+     power-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,189 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc: replace remaining __FUNCTION__ occurrences
+Subject: power: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ibmasm/command.c   |    6 +++---
- drivers/misc/ibmasm/heartbeat.c |    6 +++---
- drivers/misc/ioc4.c             |   20 ++++++++++----------
- drivers/misc/sony-laptop.c      |    4 ++--
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/power/ds2760_battery.c    |    4 ++--
+ drivers/power/power_supply_core.c |    6 +++---
+ drivers/power/power_supply_leds.c |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/misc/ibmasm/command.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ibmasm/command.c
---- a/drivers/misc/ibmasm/command.c~drivers-misc-replace-remaining-__function__-occurrences
-+++ a/drivers/misc/ibmasm/command.c
-@@ -96,7 +96,7 @@ static inline void do_exec_command(struc
+diff -puN drivers/power/ds2760_battery.c~power-replace-remaining-__function__-occurrences drivers/power/ds2760_battery.c
+--- a/drivers/power/ds2760_battery.c~power-replace-remaining-__function__-occurrences
++++ a/drivers/power/ds2760_battery.c
+@@ -262,7 +262,7 @@ static void ds2760_battery_work(struct w
+ 		struct ds2760_device_info, monitor_work.work);
+ 	const int interval = HZ * 60;
+ 
+-	dev_dbg(di->dev, "%s\n", __FUNCTION__);
++	dev_dbg(di->dev, "%s\n", __func__);
+ 
+ 	ds2760_battery_update_status(di);
+ 	queue_delayed_work(di->monitor_wqueue, &di->monitor_work, interval);
+@@ -275,7 +275,7 @@ static void ds2760_battery_external_powe
  {
- 	char tsbuf[32];
+ 	struct ds2760_device_info *di = to_ds2760_device_info(psy);
  
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+-	dev_dbg(di->dev, "%s\n", __FUNCTION__);
++	dev_dbg(di->dev, "%s\n", __func__);
  
- 	if (ibmasm_send_i2o_message(sp)) {
- 		sp->current_command->status = IBMASM_CMD_FAILED;
-@@ -119,7 +119,7 @@ void ibmasm_exec_command(struct service_
- 	unsigned long flags;
- 	char tsbuf[32];
+ 	cancel_delayed_work(&di->monitor_work);
+ 	queue_delayed_work(di->monitor_wqueue, &di->monitor_work, HZ/10);
+diff -puN drivers/power/power_supply_core.c~power-replace-remaining-__function__-occurrences drivers/power/power_supply_core.c
+--- a/drivers/power/power_supply_core.c~power-replace-remaining-__function__-occurrences
++++ a/drivers/power/power_supply_core.c
+@@ -39,7 +39,7 @@ static void power_supply_changed_work(st
+ 	struct power_supply *psy = container_of(work, struct power_supply,
+ 						changed_work);
  
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+-	dev_dbg(psy->dev, "%s\n", __FUNCTION__);
++	dev_dbg(psy->dev, "%s\n", __func__);
  
- 	spin_lock_irqsave(&sp->lock, flags);
+ 	class_for_each_device(power_supply_class, psy,
+ 			      __power_supply_changed_work);
+@@ -51,7 +51,7 @@ static void power_supply_changed_work(st
  
-@@ -139,7 +139,7 @@ static void exec_next_command(struct ser
- 	unsigned long flags;
- 	char tsbuf[32];
- 
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
- 
- 	spin_lock_irqsave(&sp->lock, flags);
- 	sp->current_command = dequeue_command(sp);
-diff -puN drivers/misc/ibmasm/heartbeat.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ibmasm/heartbeat.c
---- a/drivers/misc/ibmasm/heartbeat.c~drivers-misc-replace-remaining-__function__-occurrences
-+++ a/drivers/misc/ibmasm/heartbeat.c
-@@ -75,9 +75,9 @@ void ibmasm_heartbeat_exit(struct servic
+ void power_supply_changed(struct power_supply *psy)
  {
- 	char tsbuf[32];
+-	dev_dbg(psy->dev, "%s\n", __FUNCTION__);
++	dev_dbg(psy->dev, "%s\n", __func__);
  
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
- 	ibmasm_wait_for_response(sp->heartbeat, IBMASM_CMD_TIMEOUT_NORMAL);
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
- 	suspend_heartbeats = 1;
- 	command_put(sp->heartbeat);
+ 	schedule_work(&psy->changed_work);
  }
-@@ -88,7 +88,7 @@ void ibmasm_receive_heartbeat(struct ser
- 	struct dot_command_header *header = (struct dot_command_header *)cmd->buffer;
- 	char tsbuf[32];
+@@ -82,7 +82,7 @@ int power_supply_am_i_supplied(struct po
+ 	error = class_for_each_device(power_supply_class, psy,
+ 				      __power_supply_am_i_supplied);
  
--	dbg("%s:%d at %s\n", __FUNCTION__, __LINE__, get_timestamp(tsbuf));
-+	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
- 	if (suspend_heartbeats)
+-	dev_dbg(psy->dev, "%s %d\n", __FUNCTION__, error);
++	dev_dbg(psy->dev, "%s %d\n", __func__, error);
+ 
+ 	return error;
+ }
+diff -puN drivers/power/power_supply_leds.c~power-replace-remaining-__function__-occurrences drivers/power/power_supply_leds.c
+--- a/drivers/power/power_supply_leds.c~power-replace-remaining-__function__-occurrences
++++ a/drivers/power/power_supply_leds.c
+@@ -24,7 +24,7 @@ static void power_supply_update_bat_leds
+ 	if (psy->get_property(psy, POWER_SUPPLY_PROP_STATUS, &status))
  		return;
  
-diff -puN drivers/misc/ioc4.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~drivers-misc-replace-remaining-__function__-occurrences
-+++ a/drivers/misc/ioc4.c
-@@ -75,7 +75,7 @@ ioc4_register_submodule(struct ioc4_subm
- 			printk(KERN_WARNING
- 			       "%s: IOC4 submodule %s probe failed "
- 			       "for pci_dev %s",
--			       __FUNCTION__, module_name(is->is_owner),
-+			       __func__, module_name(is->is_owner),
- 			       pci_name(idd->idd_pdev));
- 		}
- 	}
-@@ -102,7 +102,7 @@ ioc4_unregister_submodule(struct ioc4_su
- 			printk(KERN_WARNING
- 			       "%s: IOC4 submodule %s remove failed "
- 			       "for pci_dev %s.\n",
--			       __FUNCTION__, module_name(is->is_owner),
-+			       __func__, module_name(is->is_owner),
- 			       pci_name(idd->idd_pdev));
- 		}
- 	}
-@@ -282,7 +282,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 	if ((ret = pci_enable_device(pdev))) {
- 		printk(KERN_WARNING
- 		       "%s: Failed to enable IOC4 device for pci_dev %s.\n",
--		       __FUNCTION__, pci_name(pdev));
-+		       __func__, pci_name(pdev));
- 		goto out;
- 	}
- 	pci_set_master(pdev);
-@@ -292,7 +292,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 	if (!idd) {
- 		printk(KERN_WARNING
- 		       "%s: Failed to allocate IOC4 data for pci_dev %s.\n",
--		       __FUNCTION__, pci_name(pdev));
-+		       __func__, pci_name(pdev));
- 		ret = -ENODEV;
- 		goto out_idd;
- 	}
-@@ -307,7 +307,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 		printk(KERN_WARNING
- 		       "%s: Unable to find IOC4 misc resource "
- 		       "for pci_dev %s.\n",
--		       __FUNCTION__, pci_name(idd->idd_pdev));
-+		       __func__, pci_name(idd->idd_pdev));
- 		ret = -ENODEV;
- 		goto out_pci;
- 	}
-@@ -316,7 +316,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 		printk(KERN_WARNING
- 		       "%s: Unable to request IOC4 misc region "
- 		       "for pci_dev %s.\n",
--		       __FUNCTION__, pci_name(idd->idd_pdev));
-+		       __func__, pci_name(idd->idd_pdev));
- 		ret = -ENODEV;
- 		goto out_pci;
- 	}
-@@ -326,7 +326,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 		printk(KERN_WARNING
- 		       "%s: Unable to remap IOC4 misc region "
- 		       "for pci_dev %s.\n",
--		       __FUNCTION__, pci_name(idd->idd_pdev));
-+		       __func__, pci_name(idd->idd_pdev));
- 		ret = -ENODEV;
- 		goto out_misc_region;
- 	}
-@@ -372,7 +372,7 @@ ioc4_probe(struct pci_dev *pdev, const s
- 			printk(KERN_WARNING
- 			       "%s: IOC4 submodule 0x%s probe failed "
- 			       "for pci_dev %s.\n",
--			       __FUNCTION__, module_name(is->is_owner),
-+			       __func__, module_name(is->is_owner),
- 			       pci_name(idd->idd_pdev));
- 		}
- 	}
-@@ -406,7 +406,7 @@ ioc4_remove(struct pci_dev *pdev)
- 			printk(KERN_WARNING
- 			       "%s: IOC4 submodule 0x%s remove failed "
- 			       "for pci_dev %s.\n",
--			       __FUNCTION__, module_name(is->is_owner),
-+			       __func__, module_name(is->is_owner),
- 			       pci_name(idd->idd_pdev));
- 		}
- 	}
-@@ -418,7 +418,7 @@ ioc4_remove(struct pci_dev *pdev)
- 		printk(KERN_WARNING
- 		       "%s: Unable to get IOC4 misc mapping for pci_dev %s. "
- 		       "Device removal may be incomplete.\n",
--		       __FUNCTION__, pci_name(idd->idd_pdev));
-+		       __func__, pci_name(idd->idd_pdev));
- 	}
- 	release_mem_region(idd->idd_bar0, sizeof(struct ioc4_misc_regs));
+-	dev_dbg(psy->dev, "%s %d\n", __FUNCTION__, status.intval);
++	dev_dbg(psy->dev, "%s %d\n", __func__, status.intval);
  
-diff -puN drivers/misc/sony-laptop.c~drivers-misc-replace-remaining-__function__-occurrences drivers/misc/sony-laptop.c
---- a/drivers/misc/sony-laptop.c~drivers-misc-replace-remaining-__function__-occurrences
-+++ a/drivers/misc/sony-laptop.c
-@@ -961,7 +961,7 @@ static int sony_nc_resume(struct acpi_de
- 		ret = acpi_callsetfunc(sony_nc_acpi_handle, *item->acpiset,
- 				       item->value, NULL);
- 		if (ret < 0) {
--			printk("%s: %d\n", __FUNCTION__, ret);
-+			printk("%s: %d\n", __func__, ret);
- 			break;
- 		}
- 	}
-@@ -1453,7 +1453,7 @@ static struct sonypi_eventtypes type4_ev
- 		udelay(1);						\
- 	if (!n)								\
- 		dprintk("command failed at %s : %s (line %d)\n",	\
--				__FILE__, __FUNCTION__, __LINE__);	\
-+				__FILE__, __func__, __LINE__);	\
- }
+ 	switch (status.intval) {
+ 	case POWER_SUPPLY_STATUS_FULL:
+@@ -101,7 +101,7 @@ static void power_supply_update_gen_leds
+ 	if (psy->get_property(psy, POWER_SUPPLY_PROP_ONLINE, &online))
+ 		return;
  
- static u8 sony_pic_call1(u8 dev)
+-	dev_dbg(psy->dev, "%s %d\n", __FUNCTION__, online.intval);
++	dev_dbg(psy->dev, "%s %d\n", __func__, online.intval);
+ 
+ 	if (online.intval)
+ 		led_trigger_event(psy->online_trig, LED_FULL);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
