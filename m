@@ -1,193 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-replace-__inline-with-inline.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:23:33 -0800
-Message-ID: <200803062223.m26MNXlg020898@imap1.linux-foundation.org>
+Subject: - selinux-remove-redundant-exports.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:18 -0800
+Message-ID: <200803062223.m26MNI4m020883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757766AbYCFWY0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:26 -0500
+	by vger.kernel.org with ESMTP id S1756899AbYCFWYZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@infradead.org, eparis@parisplace.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, viro@zeniv.linux
 
 
 The patch titled
-     isdn: replace __inline with inline
+     SELinux: remove redundant exports
 has been removed from the -mm tree.  Its filename was
-     isdn-replace-__inline-with-inline.patch
+     selinux-remove-redundant-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: replace __inline with inline
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: SELinux: remove redundant exports
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Remove the following exported SELinux interfaces:
+selinux_get_inode_sid(inode, sid)
+selinux_get_ipc_sid(ipcp, sid)
+selinux_get_task_sid(tsk, sid)
+selinux_sid_to_string(sid, ctx, len)
+
+They can be substitued with the following generic equivalents
+respectively:
+new LSM hook, inode_getsecid(inode, secid)
+new LSM hook, ipc_getsecid*(ipcp, secid)
+LSM hook, task_getsecid(tsk, secid)
+LSM hook, sid_to_secctx(sid, ctx, len)
+
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Acked-by: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Reviewed-by: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_common.c |    4 ++--
- drivers/isdn/i4l/isdn_v110.c   |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/selinux.h    |   62 -----------------------------------
+ security/selinux/exports.c |   42 -----------------------
+ 2 files changed, 104 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_common.c~isdn-replace-__inline-with-inline drivers/isdn/i4l/isdn_common.c
---- a/drivers/isdn/i4l/isdn_common.c~isdn-replace-__inline-with-inline
-+++ a/drivers/isdn/i4l/isdn_common.c
-@@ -981,13 +981,13 @@ isdn_readbchan_tty(int di, int channel, 
+diff -puN include/linux/selinux.h~selinux-remove-redundant-exports include/linux/selinux.h
+--- a/include/linux/selinux.h~selinux-remove-redundant-exports
++++ a/include/linux/selinux.h
+@@ -16,7 +16,6 @@
+ 
+ struct selinux_audit_rule;
+ struct audit_context;
+-struct inode;
+ struct kern_ipc_perm;
+ 
+ #ifdef CONFIG_SECURITY_SELINUX
+@@ -70,45 +69,6 @@ int selinux_audit_rule_match(u32 sid, u3
+ void selinux_audit_set_callback(int (*callback)(void));
+ 
+ /**
+- *     selinux_sid_to_string - map a security context ID to a string
+- *     @sid: security context ID to be converted.
+- *     @ctx: address of context string to be returned
+- *     @ctxlen: length of returned context string.
+- *
+- *     Returns 0 if successful, -errno if not.  On success, the context
+- *     string will be allocated internally, and the caller must call
+- *     kfree() on it after use.
+- */
+-int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen);
+-
+-/**
+- *     selinux_get_inode_sid - get the inode's security context ID
+- *     @inode: inode structure to get the sid from.
+- *     @sid: pointer to security context ID to be filled in.
+- *
+- *     Returns nothing
+- */
+-void selinux_get_inode_sid(const struct inode *inode, u32 *sid);
+-
+-/**
+- *     selinux_get_ipc_sid - get the ipc security context ID
+- *     @ipcp: ipc structure to get the sid from.
+- *     @sid: pointer to security context ID to be filled in.
+- *
+- *     Returns nothing
+- */
+-void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid);
+-
+-/**
+- *     selinux_get_task_sid - return the SID of task
+- *     @tsk: the task whose SID will be returned
+- *     @sid: pointer to security context ID to be filled in.
+- *
+- *     Returns nothing
+- */
+-void selinux_get_task_sid(struct task_struct *tsk, u32 *sid);
+-
+-/**
+  *     selinux_string_to_sid - map a security context string to a security ID
+  *     @str: the security context string to be mapped
+  *     @sid: ID value returned via this.
+@@ -175,28 +135,6 @@ static inline void selinux_audit_set_cal
+ 	return;
  }
  
+-static inline int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen)
+-{
+-       *ctx = NULL;
+-       *ctxlen = 0;
+-       return 0;
+-}
+-
+-static inline void selinux_get_inode_sid(const struct inode *inode, u32 *sid)
+-{
+-	*sid = 0;
+-}
+-
+-static inline void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid)
+-{
+-	*sid = 0;
+-}
+-
+-static inline void selinux_get_task_sid(struct task_struct *tsk, u32 *sid)
+-{
+-	*sid = 0;
+-}
+-
+ static inline int selinux_string_to_sid(const char *str, u32 *sid)
+ {
+        *sid = 0;
+diff -puN security/selinux/exports.c~selinux-remove-redundant-exports security/selinux/exports.c
+--- a/security/selinux/exports.c~selinux-remove-redundant-exports
++++ a/security/selinux/exports.c
+@@ -25,48 +25,6 @@
+ /* SECMARK reference count */
+ extern atomic_t selinux_secmark_refcount;
  
--static __inline int
-+static inline int
- isdn_minor2drv(int minor)
- {
- 	return (dev->drvmap[minor]);
- }
- 
--static __inline int
-+static inline int
- isdn_minor2chan(int minor)
- {
- 	return (dev->chanmap[minor]);
-diff -puN drivers/isdn/i4l/isdn_v110.c~isdn-replace-__inline-with-inline drivers/isdn/i4l/isdn_v110.c
---- a/drivers/isdn/i4l/isdn_v110.c~isdn-replace-__inline-with-inline
-+++ a/drivers/isdn/i4l/isdn_v110.c
-@@ -62,7 +62,7 @@ static unsigned char V110_OffMatrix_3840
-  * and to 67452301 when keylen = 2. This is necessary because ordering on
-  * the isdn line is the other way.
-  */
--static __inline unsigned char
-+static inline unsigned char
- FlipBits(unsigned char c, int keylen)
- {
- 	unsigned char b = c;
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-git-x86.patch
-acpi-replace-remaining-__function__-occurrences.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-git-arm-master.patch
-cifs-remove-global_extern-macro.patch
-cifs-replace-remaining-__function__-occurrences.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-ieee1394-replace-remaining-__function__-occurrences.patch
-infiniband-replace-remaining-__function__-occurrences.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
-git-kvm.patch
-ata-replace-remaining-__function__-occurrences.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-nfs-replace-remaining-__function__-occurrences.patch
-git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-git-sh.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-stc-make-class-attributes-static.patch
-scsi-osstc-make-class-attributes-static.patch
-scsi-chc-fix-shadowed-variable-warnings.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-power-replace-remaining-__function__-occurrences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-iop-admac-replace-remaining-__function__-occurrences.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ioc3c-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
-
+-int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen)
+-{
+-	if (selinux_enabled)
+-		return security_sid_to_context(sid, ctx, ctxlen);
+-	else {
+-		*ctx = NULL;
+-		*ctxlen = 0;
+-	}
+-
+-	return 0;
+-}
+-
+-void selinux_get_inode_sid(const struct inode *inode, u32 *sid)
+-{
+-	if (selinux_enabled) {
+-		struct inode_security_struct *isec = inode->i_security;
+-		*sid = isec->sid;
+-		return;
+-	}
+-	*sid = 0;
+-}
+-
+-void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid)
+-{
+-	if (selinux_enabled) {
+-		struct ipc_security_struct *isec = ipcp->security;
+-		*sid = isec->sid;
+-		return;
+-	}
+-	*sid = 0;
+-}
+-
+-void selinux_get_task_sid(struct task_struct *tsk, u32 *sid)
+-{
+-	if (selinux_enabled) {
+-		struct task_security_struct *tsec = tsk->security;
+-		*sid = tsec->sid;
+-		return;
+-	}
+-	*sid = 0;
+-}
