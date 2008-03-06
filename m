@@ -1,285 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-hpwdt-use-dmi_walk-instead-of-own-copy.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:32 -0800
-Message-ID: <200803062222.m26MMW7M020815@imap1.linux-foundation.org>
+Subject: - make-s2iocinit_tti-static.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:21:55 -0800
+Message-ID: <200803062221.m26MLt81020756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49707 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759653AbYCFWXL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:11 -0500
+	by vger.kernel.org with ESMTP id S1760130AbYCFWXN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdreier@cisco.com, Thomas.Mingarelli@hp.com, rolandd@cisco.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: bunk@kernel.org, Ramkrishna.Vepa@neterion.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: hpwdt: use dmi_walk() instead of own copy
+     make s2io.c:init_tti() static
 has been removed from the -mm tree.  Its filename was
-     watchdog-hpwdt-use-dmi_walk-instead-of-own-copy.patch
+     make-s2iocinit_tti-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: hpwdt: use dmi_walk() instead of own copy
-From: Roland Dreier <rdreier@cisco.com>
+Subject: make s2io.c:init_tti() static
+From: Adrian Bunk <bunk@kernel.org>
 
-On my HP DL380 G5 system running a 64-bit kernel, loading the hpwdt driver
-causes a crash because the driver attempts to ioremap an invalid physical
-address.  This is because the driver has an incorrect definition of the SMBIOS
-table entry point structure: the table address is only a 32-bit quantity, and
-making it a u64 means that the high-order 32 bits end up containing garbage.
+Make the needlessly global init_tti() static.
 
-We can fix this by simply deleting all of the duplicated DMI table walking
-code and using the kernel's existing dmi_walk() interface to find the DMI
-entry the driver is looking for.
-
-Tested on an HP DL380 G5 running a 64-bit kernel.
-
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
-Acked-by: Thomas Mingarelli <Thomas.Mingarelli@hp.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: "Ramkrishna Vepa" <Ramkrishna.Vepa@neterion.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/hpwdt.c |  203 +++----------------------------------
- 1 file changed, 20 insertions(+), 183 deletions(-)
+ drivers/net/s2io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/hpwdt.c~watchdog-hpwdt-use-dmi_walk-instead-of-own-copy drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~watchdog-hpwdt-use-dmi_walk-instead-of-own-copy
-+++ a/drivers/watchdog/hpwdt.c
-@@ -58,41 +58,6 @@ struct bios32_service_dir {
- 	u8 reserved[5];
- };
- 
--/*
-- * smbios_entry_point     - defines SMBIOS entry point structure
-- *
-- * anchor[4]              - anchor string (_SM_)
-- * checksum               - checksum of the entry point structure
-- * length                 - length of the entry point structure
-- * major_ver              - major version (02h for revision 2.1)
-- * minor_ver              - minor version (01h for revision 2.1)
-- * max_struct_size        - size of the largest SMBIOS structure
-- * revision               - entry point structure revision implemented
-- * formatted_area[5]      - reserved
-- * intermediate_anchor[5] - intermediate anchor string (_DMI_)
-- * intermediate_checksum  - intermediate checksum
-- * table_length           - structure table length
-- * table_address          - structure table address
-- * table_num_structs      - number of SMBIOS structures present
-- * bcd_revision           - BCD revision
-- */
--struct smbios_entry_point {
--	u8 anchor[4];
--	u8 checksum;
--	u8 length;
--	u8 major_ver;
--	u8 minor_ver;
--	u16 max_struct_size;
--	u8 revision;
--	u8 formatted_area[5];
--	u8 intermediate_anchor[5];
--	u8 intermediate_checksum;
--	u16 table_length;
--	u32 table_address;
--	u16 table_num_structs;
--	u8 bcd_revision;
--};
--
- /* type 212 */
- struct smbios_cru64_info {
- 	u8 type;
-@@ -175,24 +140,6 @@ static struct pci_device_id hpwdt_device
- };
- MODULE_DEVICE_TABLE(pci, hpwdt_devices);
- 
--/*
-- *	bios_checksum
-- */
--static int __devinit bios_checksum(const char __iomem *ptr, int len)
--{
--	char sum = 0;
--	int i;
--
--	/*
--	 * calculate checksum of size bytes. This should add up
--	 * to zero if we have a valid header.
--	 */
--	for (i = 0; i < len; i++)
--		sum += ptr[i];
--
--	return ((sum == 0) && (len > 0));
--}
--
- #ifndef CONFIG_X86_64
- /* --32 Bit Bios------------------------------------------------------------ */
- 
-@@ -303,6 +250,24 @@ static int __devinit cru_detect(unsigned
- }
- 
- /*
-+ *	bios_checksum
-+ */
-+static int __devinit bios_checksum(const char __iomem *ptr, int len)
-+{
-+	char sum = 0;
-+	int i;
-+
-+	/*
-+	 * calculate checksum of size bytes. This should add up
-+	 * to zero if we have a valid header.
-+	 */
-+	for (i = 0; i < len; i++)
-+		sum += ptr[i];
-+
-+	return ((sum == 0) && (len > 0));
-+}
-+
-+/*
-  *	bios32_present
-  *
-  *	Routine Description:
-@@ -410,12 +375,8 @@ asmlinkage void asminline_call(struct cm
-  *	dmi_find_cru
-  *
-  *	Routine Description:
-- *	This function checks wether or not a SMBIOS/DMI record is
-+ *	This function checks whether or not a SMBIOS/DMI record is
-  *	the 64bit CRU info or not
-- *
-- *	Return Value:
-- *	0        :  SUCCESS - if record found
-- *	<0       :  FAILURE - if record not found
+diff -puN drivers/net/s2io.c~make-s2iocinit_tti-static drivers/net/s2io.c
+--- a/drivers/net/s2io.c~make-s2iocinit_tti-static
++++ a/drivers/net/s2io.c
+@@ -1088,7 +1088,7 @@ static int s2io_print_pci_mode(struct s2
+  *  '-1' on failure
   */
- static void __devinit dmi_find_cru(const struct dmi_header *dm)
- {
-@@ -434,135 +395,11 @@ static void __devinit dmi_find_cru(const
- 	}
- }
  
--/*
-- *	dmi_table
-- *
-- *	Routine Description:
-- *	Decode the SMBIOS/DMI table and check if we have a 64bit CRU record
-- *	or not.
-- *
-- *	We have to be cautious here. We have seen BIOSes with DMI pointers
-- *	pointing to completely the wrong place for example
-- */
--static void __devinit dmi_table(u8 *buf, int len, int num,
--		      void (*decode)(const struct dmi_header *))
--{
--	u8 *data = buf;
--	int i = 0;
--
--	/*
--	 *	Stop when we see all the items the table claimed to have
--	 *	OR we run off the end of the table (also happens)
--	 */
--	while ((i < num) && (data - buf + sizeof(struct dmi_header)) <= len) {
--		const struct dmi_header *dm = (const struct dmi_header *)data;
--
--		/*
--		 *  We want to know the total length (formated area and strings)
--		 *  before decoding to make sure we won't run off the table in
--		 *  dmi_decode or dmi_string
--		 */
--		data += dm->length;
--		while ((data - buf < len - 1) && (data[0] || data[1]))
--			data++;
--		if (data - buf < len - 1)
--			decode(dm);
--		data += 2;
--		i++;
--	}
--}
--
--/*
-- *	smbios_present
-- *
-- *	Routine Description:
-- *	This function parses the SMBIOS entry point table to retrieve
-- *	the 64 bit CRU Service.
-- *
-- *	Return Value:
-- *	0        :  SUCCESS
-- *	<0       :  FAILURE
-- */
--static int __devinit smbios_present(const char __iomem *p)
--{
--	struct smbios_entry_point *eps =
--		(struct smbios_entry_point *) p;
--	int length;
--	u8 *buf;
--
--	/* check if we have indeed the SMBIOS table entry point */
--	if ((strncmp((char *)eps->anchor, "_SM_",
--			     sizeof(eps->anchor))) == 0) {
--		length = eps->length;
--
--		/* SMBIOS v2.1 implementation might use 0x1e */
--		if ((length == 0x1e) &&
--		    (eps->major_ver == 2) &&
--		    (eps->minor_ver == 1))
--			length = 0x1f;
--
--		/*
--		 * Now we will check:
--		 * - SMBIOS checksum must be 0
--		 * - intermediate anchor should be _DMI_
--		 * - intermediate checksum should be 0
--		 */
--		if ((bios_checksum(p, length)) &&
--		    (strncmp((char *)eps->intermediate_anchor, "_DMI_",
--		             sizeof(eps->intermediate_anchor)) == 0) &&
--		    (bios_checksum(p+0x10, 15))) {
--			buf = ioremap(eps->table_address, eps->table_length);
--			if (buf == NULL)
--				return -ENODEV;
--
--
--			/* Scan the DMI table for the 64 bit CRU service */
--			dmi_table(buf, eps->table_length,
--			          eps->table_num_structs, dmi_find_cru);
--
--			iounmap(buf);
--			return 0;
--		}
--	}
--
--	return -ENODEV;
--}
--
--static void __devinit smbios_scan_machine(void)
--{
--	char __iomem *p, *q;
--
--	if (efi_enabled) {
--		if (efi.smbios == EFI_INVALID_TABLE_ADDR)
--			return;
--
--		p = ioremap(efi.smbios, 32);
--		if (p == NULL)
--			return;
--
--		smbios_present(p);
--		iounmap(p);
--	} else {
--		/*
--		 * Search from 0x0f0000 through 0x0fffff, inclusive.
--		 */
--		p = ioremap(PCI_ROM_BASE1, ROM_SIZE);
--		if (p == NULL)
--			return;
--
--		for (q = p; q < p + ROM_SIZE; q += 16)
--			if (!smbios_present(q))
--				break;
--
--		iounmap(p);
--	}
--}
+-int init_tti(struct s2io_nic *nic, int link)
++static int init_tti(struct s2io_nic *nic, int link)
+ {
+ 	struct XENA_dev_config __iomem *bar0 = nic->bar0;
+ 	register u64 val64 = 0;
+_
+
+Patches currently in -mm which might be from bunk@kernel.org are
+
+origin.patch
+git-acpi.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-dlm.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+git-udf.patch
+git-net.patch
+git-nfsd.patch
+git-parisc.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-selinux.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+if-0-ses_match_host.patch
+remove-ps2esdi.patch
+git-watchdog.patch
+make-b43_mac_enablesuspend-static.patch
+the-scheduled-bcm43xx-removal.patch
+the-scheduled-ieee80211-softmac-removal.patch
+the-scheduled-rc80211-simplec-removal.patch
+git-cryptodev.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+proper-__do_softirq-prototype.patch
+proper-extern-for-late_time_init.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+kernel-cpusetc-make-3-functions-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
+reiser4.patch
+
