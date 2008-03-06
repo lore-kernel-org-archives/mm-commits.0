@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-stc-make-class-attributes-static.patch added to -mm tree
-Date: Wed, 05 Mar 2008 16:15:48 -0800
-Message-ID: <200803060015.m260FmKL029232@imap1.linux-foundation.org>
+Subject: + scsi-osstc-make-class-attributes-static.patch added to -mm tree
+Date: Wed, 05 Mar 2008 16:15:50 -0800
+Message-ID: <200803060015.m260FpT3029243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759488AbYCFAQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:16:37 -0500
+	by vger.kernel.org with ESMTP id S1758937AbYCFAQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:16:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, Kai.Makisara@kolumbus.fi
+Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, osst@riede.org
 
 
 The patch titled
-     scsi: st.c make class attributes static
+     scsi: osst.c make class attributes static
 has been added to the -mm tree.  Its filename is
-     scsi-stc-make-class-attributes-static.patch
+     scsi-osstc-make-class-attributes-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: st.c make class attributes static
+Subject: scsi: osst.c make class attributes static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Fixes sparse warnings:
-drivers/scsi/st.c:4299:1: warning: symbol 'class_device_attr_defined' was not declared. Should it be static?
-drivers/scsi/st.c:4310:1: warning: symbol 'class_device_attr_default_blksize' was not declared. Should it be static?
-drivers/scsi/st.c:4323:1: warning: symbol 'class_device_attr_default_density' was not declared. Should it be static?
-drivers/scsi/st.c:4334:1: warning: symbol 'class_device_attr_default_compression' was not declared. Should it be static?
+drivers/scsi/osst.c:5604:1: warning: symbol 'class_device_attr_ADR_rev' was not declared. Should it be static?
+drivers/scsi/osst.c:5616:1: warning: symbol 'class_device_attr_media_version' was not declared. Should it be static?
+drivers/scsi/osst.c:5628:1: warning: symbol 'class_device_attr_capacity' was not declared. Should it be static?
+drivers/scsi/osst.c:5640:1: warning: symbol 'class_device_attr_BOT_frame' was not declared. Should it be static?
+drivers/scsi/osst.c:5652:1: warning: symbol 'class_device_attr_EOD_frame' was not declared. Should it be static?
+drivers/scsi/osst.c:5664:1: warning: symbol 'class_device_attr_file_count' was not declared. Should it be static?
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Kai Makisara <Kai.Makisara@kolumbus.fi>
+Cc: Willem Riede <osst@riede.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/st.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/osst.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/st.c~scsi-stc-make-class-attributes-static drivers/scsi/st.c
---- a/drivers/scsi/st.c~scsi-stc-make-class-attributes-static
-+++ a/drivers/scsi/st.c
-@@ -4328,7 +4328,7 @@ static ssize_t st_defined_show(struct cl
+diff -puN drivers/scsi/osst.c~scsi-osstc-make-class-attributes-static drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~scsi-osstc-make-class-attributes-static
++++ a/drivers/scsi/osst.c
+@@ -5601,7 +5601,7 @@ static ssize_t osst_adr_rev_show(struct 
  	return l;
  }
  
--CLASS_DEVICE_ATTR(defined, S_IRUGO, st_defined_show, NULL);
-+static CLASS_DEVICE_ATTR(defined, S_IRUGO, st_defined_show, NULL);
+-CLASS_DEVICE_ATTR(ADR_rev, S_IRUGO, osst_adr_rev_show, NULL);
++static CLASS_DEVICE_ATTR(ADR_rev, S_IRUGO, osst_adr_rev_show, NULL);
  
- static ssize_t st_defblk_show(struct class_device *class_dev, char *buf)
+ static ssize_t osst_linux_media_version_show(struct class_device *class_dev, char *buf)
  {
-@@ -4339,7 +4339,7 @@ static ssize_t st_defblk_show(struct cla
+@@ -5613,7 +5613,7 @@ static ssize_t osst_linux_media_version_
  	return l;
  }
  
--CLASS_DEVICE_ATTR(default_blksize, S_IRUGO, st_defblk_show, NULL);
-+static CLASS_DEVICE_ATTR(default_blksize, S_IRUGO, st_defblk_show, NULL);
+-CLASS_DEVICE_ATTR(media_version, S_IRUGO, osst_linux_media_version_show, NULL);
++static CLASS_DEVICE_ATTR(media_version, S_IRUGO, osst_linux_media_version_show, NULL);
  
- static ssize_t st_defdensity_show(struct class_device *class_dev, char *buf)
+ static ssize_t osst_capacity_show(struct class_device *class_dev, char *buf)
  {
-@@ -4352,7 +4352,7 @@ static ssize_t st_defdensity_show(struct
+@@ -5625,7 +5625,7 @@ static ssize_t osst_capacity_show(struct
  	return l;
  }
  
--CLASS_DEVICE_ATTR(default_density, S_IRUGO, st_defdensity_show, NULL);
-+static CLASS_DEVICE_ATTR(default_density, S_IRUGO, st_defdensity_show, NULL);
+-CLASS_DEVICE_ATTR(capacity, S_IRUGO, osst_capacity_show, NULL);
++static CLASS_DEVICE_ATTR(capacity, S_IRUGO, osst_capacity_show, NULL);
  
- static ssize_t st_defcompression_show(struct class_device *class_dev, char *buf)
+ static ssize_t osst_first_data_ppos_show(struct class_device *class_dev, char *buf)
  {
-@@ -4363,7 +4363,7 @@ static ssize_t st_defcompression_show(st
+@@ -5637,7 +5637,7 @@ static ssize_t osst_first_data_ppos_show
  	return l;
  }
  
--CLASS_DEVICE_ATTR(default_compression, S_IRUGO, st_defcompression_show, NULL);
-+static CLASS_DEVICE_ATTR(default_compression, S_IRUGO, st_defcompression_show, NULL);
+-CLASS_DEVICE_ATTR(BOT_frame, S_IRUGO, osst_first_data_ppos_show, NULL);
++static CLASS_DEVICE_ATTR(BOT_frame, S_IRUGO, osst_first_data_ppos_show, NULL);
  
- static ssize_t st_options_show(struct class_device *class_dev, char *buf)
+ static ssize_t osst_eod_frame_ppos_show(struct class_device *class_dev, char *buf)
  {
+@@ -5649,7 +5649,7 @@ static ssize_t osst_eod_frame_ppos_show(
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(EOD_frame, S_IRUGO, osst_eod_frame_ppos_show, NULL);
++static CLASS_DEVICE_ATTR(EOD_frame, S_IRUGO, osst_eod_frame_ppos_show, NULL);
+ 
+ static ssize_t osst_filemark_cnt_show(struct class_device *class_dev, char *buf)
+ {
+@@ -5661,7 +5661,7 @@ static ssize_t osst_filemark_cnt_show(st
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(file_count, S_IRUGO, osst_filemark_cnt_show, NULL);
++static CLASS_DEVICE_ATTR(file_count, S_IRUGO, osst_filemark_cnt_show, NULL);
+ 
+ static struct class *osst_sysfs_class;
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
