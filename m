@@ -1,91 +1,316 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-hci_core-defer-hci_unregister_sysfs.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:51 -0800
-Message-ID: <200803062222.m26MMpnX020840@imap1.linux-foundation.org>
+Subject: - atmel_tc-library-update.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:48 -0800
+Message-ID: <200803062223.m26MNn1t020916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753703AbYCFWjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:39:16 -0500
+	by vger.kernel.org with ESMTP id S1755211AbYCFWja (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:39:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, alon.barlev@gmail.com, davem@davemloft.net, marcel@holtmann.org, seife@suse.de, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, linux@maxim.org.za, nicolas.ferre@rfo.atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: hci_core: defer hci_unregister_sysfs()
+     atmel_tc library (update)
 has been removed from the -mm tree.  Its filename was
-     bluetooth-hci_core-defer-hci_unregister_sysfs.patch
+     atmel_tc-library-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: hci_core: defer hci_unregister_sysfs()
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: atmel_tc library (update)
+From: David Brownell <david-b@pacbell.net>
 
-Alon Bar-Lev reports:
+  * Drop unneeded inclusion of <linux/mutex.h>
+  * Support an arbitrary number of TC blocks
+  * Return a struct with information about a TC block from
+    atmel_tc_alloc() instead of using a combination of return values
+    and "out" parameters.
+  * ioremap() the I/O registers on allocation
+  * Look up clocks and irqs for all channels
+  * Add "name" parameter to atmel_tc_alloc() and use this when
+    requesting the iomem resource.
+  * Check if the platform provided the necessary resources at probe()
+    time instead of when the TCB is allocated.
 
-> Feb 16 23:41:33 alon1 usb 3-1: configuration #1 chosen from 1 choice
-Feb 16 23:41:33 alon1 BUG: unable to handle kernel NULL pointer dereference at virtual address 00000008
-Feb 16 23:41:33 alon1 printing eip: c01b2db6 *pde = 00000000
-Feb 16 23:41:33 alon1 Oops: 0000 [#1] PREEMPT
-Feb 16 23:41:33 alon1 Modules linked in: ppp_deflate zlib_deflate zlib_inflate bsd_comp ppp_async rfcomm l2cap hci_usb vmnet(P) vmmon(P) tun radeon drm autofs4 ipv6 aes_generic crypto_algapi ieee80211_crypt_ccmp nf_nat_irc nf_nat_ftp nf_conntrack_irc nf_conntrack_ftp ipt_MASQUERADE iptable_nat nf_nat ipt_REJECT xt_tcpudp ipt_LOG xt_limit xt_state nf_conntrack_ipv4 nf_conntrack iptable_filter ip_tables x_tables snd_pcm_oss snd_mixer_oss snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device bluetooth ppp_generic slhc ioatdma dca cfq_iosched cpufreq_powersave cpufreq_ondemand cpufreq_conservative acpi_cpufreq freq_table uinput fan af_packet nls_cp1255 nls_iso8859_1 nls_utf8 nls_base pcmcia snd_intel8x0 snd_ac97_codec ac97_bus snd_pcm nsc_ircc snd_timer ipw2200 thinkpad_acpi irda
-  snd ehci_hcd yenta_socket uhci_hcd psmouse ieee80211 soundcore intel_agp hwmon rsrc_nonstatic pcspkr e1000 crc_ccitt snd_page_alloc i2c_i801 ieee80211_crypt pcmcia_core agpgart thermal bat!
- tery nvram rtc sr_mod ac sg firmware_class button processor cdrom unix usbcore evdev ext3 jbd ext2 mbcache loop ata_piix libata sd_mod scsi_mod
-Feb 16 23:41:33 alon1
-Feb 16 23:41:33 alon1 Pid: 4, comm: events/0 Tainted: P        (2.6.24-gentoo-r2 #1)
-Feb 16 23:41:33 alon1 EIP: 0060:[<c01b2db6>] EFLAGS: 00010282 CPU: 0
-Feb 16 23:41:33 alon1 EIP is at sysfs_get_dentry+0x26/0x80
-Feb 16 23:41:33 alon1 EAX: 00000000 EBX: 00000000 ECX: 00000000 EDX: f48a2210
-Feb 16 23:41:33 alon1 ESI: f72eb900 EDI: f4803ae0 EBP: f4803ae0 ESP: f7c49efc
-Feb 16 23:41:33 alon1 hcid[7004]: HCI dev 0 registered
-Feb 16 23:41:33 alon1 DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
-Feb 16 23:41:33 alon1 Process events/0 (pid: 4, ti=f7c48000 task=f7c3efc0 task.ti=f7c48000)
-Feb 16 23:41:33 alon1 Stack: f7cb6140 f4822668 f7e71e10 c01b304d ffffffff ffffffff fffffffe c030ba9c
-Feb 16 23:41:33 alon1 f7cb6140 f4822668 f6da6720 f7cb6140 f4822668 f6da6720 c030ba8e c01ce20b
-Feb 16 23:41:33 alon1 f6e9dd00 c030ba8e f6da6720 f6e9dd00 f6e9dd00 00000000 f4822600 00000000
-Feb 16 23:41:33 alon1 Call Trace:
-Feb 16 23:41:33 alon1 [<c01b304d>] sysfs_move_dir+0x3d/0x1f0
-Feb 16 23:41:33 alon1 [<c01ce20b>] kobject_move+0x9b/0x120
-Feb 16 23:41:33 alon1 [<c0241711>] device_move+0x51/0x110
-Feb 16 23:41:33 alon1 [<f9aaed80>] del_conn+0x0/0x70 [bluetooth]
-Feb 16 23:41:33 alon1 [<f9aaed99>] del_conn+0x19/0x70 [bluetooth]
-Feb 16 23:41:33 alon1 [<c012c1a1>] run_workqueue+0x81/0x140
-Feb 16 23:41:33 alon1 [<c02c0c88>] schedule+0x168/0x2e0
-Feb 16 23:41:33 alon1 [<c012fc70>] autoremove_wake_function+0x0/0x50
-Feb 16 23:41:33 alon1 [<c012c9cb>] worker_thread+0x9b/0xf0
-Feb 16 23:41:33 alon1 [<c012fc70>] autoremove_wake_function+0x0/0x50
-Feb 16 23:41:33 alon1 [<c012c930>] worker_thread+0x0/0xf0
-Feb 16 23:41:33 alon1 [<c012f962>] kthread+0x42/0x70
-Feb 16 23:41:33 alon1 [<c012f920>] kthread+0x0/0x70
-Feb 16 23:41:33 alon1 [<c0104c2f>] kernel_thread_helper+0x7/0x18
-Feb 16 23:41:33 alon1 =======================
-Feb 16 23:41:33 alon1 Code: 26 00 00 00 00 57 89 c7 a1 50 1b 3a c0 56 53 8b 70 38 85 f6 74 08 8b 0e 85 c9 74 58 ff 06 8b 56 50 39 fa 74 47 89 fb eb 02 89 c3 <8b> 43 08 39 c2 75 f7 8b 46 08 83 c0 68 e8 98 e7 10 00 8b 43 10
-Feb 16 23:41:33 alon1 EIP: [<c01b2db6>] sysfs_get_dentry+0x26/0x80 SS:ESP 0068:f7c49efc
-Feb 16 23:41:33 alon1 ---[ end trace aae864e9592acc1d ]---
-
-Defer hci_unregister_sysfs because hci device could be destructed
-while hci conn devices still there.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Tested-by: Stefan Seyfried <seife@suse.de>
-Acked-by: Alon Bar-Lev <alon.barlev@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Cc: Andrew Victor <linux@maxim.org.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/atmel_tclib.c |  144 ++++++++++++++++++++++++-----------
+ include/linux/atmel_tc.h   |   37 ++++++++
+ 2 files changed, 133 insertions(+), 48 deletions(-)
 
-diff -puN net/bluetooth/hci_core.c~bluetooth-hci_core-defer-hci_unregister_sysfs net/bluetooth/hci_core.c
---- a/net/bluetooth/hci_core.c~bluetooth-hci_core-defer-hci_unregister_sysfs
-+++ a/net/bluetooth/hci_core.c
-@@ -902,8 +902,6 @@ int hci_unregister_dev(struct hci_dev *h
+diff -puN drivers/misc/atmel_tclib.c~atmel_tc-library-update drivers/misc/atmel_tclib.c
+--- a/drivers/misc/atmel_tclib.c~atmel_tc-library-update
++++ a/drivers/misc/atmel_tclib.c
+@@ -1,9 +1,14 @@
++#include <linux/atmel_tc.h>
++#include <linux/clk.h>
++#include <linux/err.h>
+ #include <linux/init.h>
+-#include <linux/kernel.h>
+-#include <linux/mutex.h>
++#include <linux/io.h>
+ #include <linux/ioport.h>
++#include <linux/kernel.h>
+ #include <linux/platform_device.h>
+-#include <linux/atmel_tc.h>
++
++/* Number of bytes to reserve for the iomem resource */
++#define ATMEL_TC_IOMEM_SIZE	256
  
- 	BT_DBG("%p name %s type %d", hdev, hdev->name, hdev->type);
  
--	hci_unregister_sysfs(hdev);
+ /*
+@@ -24,75 +29,124 @@ EXPORT_SYMBOL(atmel_tc_divisors);
+ 
+ #endif
+ 
+-/* we "know" that there will be either one or two TC blocks */
+-static struct platform_device *blocks[2];
+-
++static DEFINE_SPINLOCK(tc_list_lock);
++static LIST_HEAD(tc_list);
+ 
+ /**
+  * atmel_tc_alloc - allocate a specified TC block
+  * @block: which block to allocate
+- * @iomem: used to return its IO memory resource
++ * @name: name to be associated with the iomem resource
+  *
+- * Caller allocates a block.  If it is available, its I/O space is requested
+- * and returned through the iomem pointer, and the device node for the block
+- * is returned.  When it is not available, NULL is returned.
+- *
+- * On some platforms, each TC channel has its own clocks and IRQs.  Drivers
+- * should clk_get() and clk_enable() "t0_clk", "t1_clk, and "t2_clk".
+- * In the same vein, they should platform_get_irq() for irqs 0, 1, and 2.
+- * On other platforms, only irq 0 and "t0_clk" will be available; drivers
+- * should handle with both configurations.
++ * Caller allocates a block.  If it is available, a pointer to a
++ * pre-initialized struct atmel_tc is returned. The caller can access
++ * the registers directly through the "regs" field.
+  */
+-struct platform_device *atmel_tc_alloc(unsigned block, struct resource **iomem)
++struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name)
+ {
+-	struct platform_device	*tc;
++	struct atmel_tc		*tc;
++	struct platform_device	*pdev = NULL;
+ 	struct resource		*r;
+ 
+-	if (block >= ARRAY_SIZE(blocks) || !iomem)
+-		return NULL;
+-
+-	tc = blocks[block];
+-	if (tc) {
+-		r = platform_get_resource(tc, IORESOURCE_MEM, 0);
+-		if (r)
+-			r = request_mem_region(r->start, 256, NULL);
+-		*iomem = r;
+-		if (!r)
+-			tc = NULL;
++	spin_lock(&tc_list_lock);
++	list_for_each_entry(tc, &tc_list, node) {
++		if (tc->pdev->id == block) {
++			pdev = tc->pdev;
++			break;
++		}
+ 	}
+ 
++	if (!pdev || tc->iomem)
++		goto fail;
++
++	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	r = request_mem_region(r->start, ATMEL_TC_IOMEM_SIZE, name);
++	if (!r)
++		goto fail;
++
++	tc->regs = ioremap(r->start, ATMEL_TC_IOMEM_SIZE);
++	if (!tc->regs)
++		goto fail_ioremap;
++
++	tc->iomem = r;
++
++out:
++	spin_unlock(&tc_list_lock);
+ 	return tc;
++
++fail_ioremap:
++	release_resource(r);
++fail:
++	tc = NULL;
++	goto out;
+ }
+ EXPORT_SYMBOL_GPL(atmel_tc_alloc);
+ 
+ /**
+  * atmel_tc_free - release a specified TC block
+- * @block: which block to release
++ * @tc: Timer/counter block that was returned by atmel_tc_alloc()
+  *
+- * This reverses the effect of atmel_tc_alloc(), invalidating the resource
+- * returned by that routine and making the TC available to other drivers.
++ * This reverses the effect of atmel_tc_alloc(), unmapping the I/O
++ * registers, invalidating the resource returned by that routine and
++ * making the TC available to other drivers.
+  */
+-void atmel_tc_free(struct platform_device *tc)
++void atmel_tc_free(struct atmel_tc *tc)
+ {
+-	if (tc->id >= 0 && tc->id < ARRAY_SIZE(blocks)) {
+-		struct resource		*r;
+-
+-		r = platform_get_resource(tc, IORESOURCE_MEM, 0);
+-		release_mem_region(r->start, 256);
++	spin_lock(&tc_list_lock);
++	if (tc->regs) {
++		iounmap(tc->regs);
++		release_resource(tc->iomem);
++		tc->regs = NULL;
++		tc->iomem = NULL;
+ 	}
++	spin_unlock(&tc_list_lock);
+ }
+ EXPORT_SYMBOL_GPL(atmel_tc_free);
+ 
+ static int __init tc_probe(struct platform_device *pdev)
+ {
+-	static char __initdata e2big[] =
+-		KERN_ERR "tclib: can't record TC block %d\n";
+-
+-	if (pdev->id < 0 || pdev->id >= ARRAY_SIZE(blocks)) {
+-		printk(e2big, pdev->id);
+-		return -ENFILE;
++	struct atmel_tc *tc;
++	struct clk	*clk;
++	int		irq;
++
++	if (!platform_get_resource(pdev, IORESOURCE_MEM, 0))
++		return -EINVAL;
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0)
++		return -EINVAL;
++
++	tc = kzalloc(sizeof(struct atmel_tc), GFP_KERNEL);
++	if (!tc)
++		return -ENOMEM;
++
++	tc->pdev = pdev;
++
++	clk = clk_get(&pdev->dev, "t0_clk");
++	if (IS_ERR(clk)) {
++		kfree(tc);
++		return -EINVAL;
+ 	}
+-	blocks[pdev->id] = pdev;
++
++	tc->clk[0] = clk;
++	tc->clk[1] = clk_get(&pdev->dev, "t1_clk");
++	if (IS_ERR(tc->clk[1]))
++		tc->clk[1] = clk;
++	tc->clk[2] = clk_get(&pdev->dev, "t2_clk");
++	if (IS_ERR(tc->clk[2]))
++		tc->clk[2] = clk;
++
++	tc->irq[0] = irq;
++	tc->irq[1] = platform_get_irq(pdev, 1);
++	if (tc->irq[1] < 0)
++		tc->irq[1] = irq;
++	tc->irq[2] = platform_get_irq(pdev, 2);
++	if (tc->irq[2] < 0)
++		tc->irq[2] = irq;
++
++	spin_lock(&tc_list_lock);
++	list_add_tail(&tc->node, &tc_list);
++	spin_unlock(&tc_list_lock);
++
+ 	return 0;
+ }
+ 
+diff -puN include/linux/atmel_tc.h~atmel_tc-library-update include/linux/atmel_tc.h
+--- a/include/linux/atmel_tc.h~atmel_tc-library-update
++++ a/include/linux/atmel_tc.h
+@@ -10,6 +10,9 @@
+ #ifndef ATMEL_TC_H
+ #define ATMEL_TC_H
+ 
++#include <linux/compiler.h>
++#include <linux/list.h>
++
+ /*
+  * Many 32-bit Atmel SOCs include one or more TC blocks, each of which holds
+  * three general-purpose 16-bit timers.  These timers share one register bank.
+@@ -27,9 +30,37 @@
+  * timers.  Then they use clk_get() and platform_get_irq() to get clock and
+  * IRQ resources.
+  */
+-extern struct platform_device *atmel_tc_alloc(unsigned block,
+-		struct resource **iomem);
+-extern void atmel_tc_free(struct platform_device *tc);
++
++struct clk;
++
++/**
++ * struct atmel_tc - information about a Timer/Counter Block
++ * @pdev: physical device
++ * @iomem: resource associated with the I/O register
++ * @regs: mapping through which the I/O registers can be accessed
++ * @irq: irq for each of the three channels
++ * @clk: internal clock source for each of the three channels
++ * @node: list node, for tclib internal use
++ *
++ * On some platforms, each TC channel has its own clocks and IRQs,
++ * while on others, all TC channels share the same clock and IRQ.
++ * Drivers should clk_enable() all the clocks they need even though
++ * all the entries in @clk may point to the same physical clock.
++ * Likewise, drivers should request irqs independently for each
++ * channel, but they must use IRQF_SHARED in case some of the entries
++ * in @irq are actually the same IRQ.
++ */
++struct atmel_tc {
++	struct platform_device	*pdev;
++	struct resource		*iomem;
++	void __iomem		*regs;
++	int			irq[3];
++	struct clk		*clk[3];
++	struct list_head	node;
++};
++
++extern struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name);
++extern void atmel_tc_free(struct atmel_tc *tc);
+ 
+ /* platform-specific ATMEL_TC_TIMER_CLOCKx divisors (0 means 32KiHz) */
+ extern const u8 atmel_tc_divisors[5];
+_
+
+Patches currently in -mm which might be from david-b@pacbell.net are
+
+git-acpi.patch
+git-arm-master.patch
+git-avr32.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+usb-net-asix-does-not-really-need-10-100mbit.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
+make-ds1511_rtc_readset_time-static.patch
+rtc-replace-remaining-__function__-occurrences.patch
+remove-duplicated-unlikely-in-is_err.patch
+
