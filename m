@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sparsemem-vmemmap-does-not-need-section-bits.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:31:05 -0800
-Message-ID: <200803060131.m261V6x5002186@imap1.linux-foundation.org>
+Subject: + kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:31:08 -0800
+Message-ID: <200803060131.m261V9NU002189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753921AbYCFBcf (ORCPT
+	by vger.kernel.org with ESMTP id S1756504AbYCFBcf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com, sam@ravnborg.org
 
 
 The patch titled
-     sparsemem: vmemmap does not need section bits
+     kbuild: create a way to create preprocessor constants from C expressions
 has been added to the -mm tree.  Its filename is
-     sparsemem-vmemmap-does-not-need-section-bits.patch
+     kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparsemem: vmemmap does not need section bits
+Subject: kbuild: create a way to create preprocessor constants from C expressions
 From: Christoph Lameter <clameter@sgi.com>
 
-Sparsemem vmemmap does not need any section bits.  This patch has the effect
-of reducing the number of bits used in page->flags by at least 6.
+The use of enums create constants that are not available to the preprocessor
+when building the kernel (f.e.  MAX_NR_ZONES).
 
+Arch code already has a way to export constants calculated to the preprocessor
+through the asm-offsets.c file.  Generate something similar for the core
+kernel through kbuild.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Andi Kleen <ak@suse.de>
@@ -49,51 +54,101 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ Kbuild                 |   31 +++++++++++++++++++++++++++++--
+ include/linux/bounds.h |   10 ++++++++++
+ kernel/bounds.c        |   16 ++++++++++++++++
+ 3 files changed, 55 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
---- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
-+++ a/include/linux/mm.h
-@@ -386,11 +386,11 @@ static inline void set_compound_order(st
-  * we have run out of space and have to fall back to an
-  * alternate (slower) way of determining the node.
-  *
-- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
-- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
-- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
-+ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
-+ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
-+ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
-  */
--#ifdef CONFIG_SPARSEMEM
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTIONS_WIDTH		SECTIONS_SHIFT
- #else
- #define SECTIONS_WIDTH		0
-@@ -401,6 +401,9 @@ static inline void set_compound_order(st
- #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
- #define NODES_WIDTH		NODES_SHIFT
- #else
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#error "Vmemmap: No space for nodes field in page flags"
+diff -puN Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions Kbuild
+--- a/Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions
++++ a/Kbuild
+@@ -9,9 +9,10 @@
+ #
+ 
+ offsets-file := include/asm-$(SRCARCH)/asm-offsets.h
++bounds := include/linux/bounds.h
+ 
+-always  := $(offsets-file)
+-targets := $(offsets-file)
++always  := $(offsets-file) $(bounds)
++targets := $(offsets-file) $(bounds)
+ targets += arch/$(SRCARCH)/kernel/asm-offsets.s
+ clean-files := $(addprefix $(objtree)/,$(targets))
+ 
+@@ -39,6 +40,23 @@ define cmd_offsets
+ 	 echo "#endif" ) > $@
+ endef
+ 
++quiet_cmd_bounds = GEN     $@
++define cmd_bounds
++	(set -e; \
++	 echo "#ifndef __LINUX_BOUNDS_H__"; \
++	 echo "#define __LINUX_BOUNDS_H__"; \
++	 echo "/*"; \
++	 echo " * DO NOT MODIFY."; \
++	 echo " *"; \
++	 echo " * This file was generated by Kbuild"; \
++	 echo " *"; \
++	 echo " */"; \
++	 echo ""; \
++	 sed -ne $(sed-y) $<; \
++	 echo ""; \
++	 echo "#endif" ) > $@
++endef
++
+ # We use internal kbuild rules to avoid the "is up to date" message from make
+ arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c FORCE
+ 	$(Q)mkdir -p $(dir $@)
+@@ -48,6 +66,15 @@ $(obj)/$(offsets-file): arch/$(SRCARCH)/
+ 	$(Q)mkdir -p $(dir $@)
+ 	$(call cmd,offsets)
+ 
++# We use internal kbuild rules to avoid the "is up to date" message from make
++kernel/bounds.s: kernel/bounds.c FORCE
++	$(Q)mkdir -p $(dir $@)
++	$(call if_changed_dep,cc_s_c)
++
++$(obj)/$(bounds): kernel/bounds.s Kbuild
++	$(Q)mkdir -p $(dir $@)
++	$(call cmd,bounds)
++
+ #####
+ # 2) Check for missing system calls
+ #
+diff -puN /dev/null include/linux/bounds.h
+--- /dev/null
++++ a/include/linux/bounds.h
+@@ -0,0 +1,10 @@
++#ifndef __LINUX_BOUNDS_H__
++#define __LINUX_BOUNDS_H__
++/*
++ * DO NOT MODIFY.
++ *
++ * This file was generated by Kbuild
++ *
++ */
++
 +#endif
- #define NODES_WIDTH		0
- #endif
- 
-@@ -493,10 +496,12 @@ static inline struct zone *page_zone(str
- 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
- }
- 
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- static inline unsigned long page_to_section(struct page *page)
- {
- 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
- }
-+#endif
- 
- static inline void set_page_zone(struct page *page, enum zone_type zone)
- {
+diff -puN /dev/null kernel/bounds.c
+--- /dev/null
++++ a/kernel/bounds.c
+@@ -0,0 +1,16 @@
++/*
++ * Generate definitions needed by the preprocessor.
++ * This code generates raw asm output which is post-processed
++ * to extract and format the required data.
++ */
++
++#include <linux/mm.h>
++
++#define DEFINE(sym, val) \
++        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++
++#define BLANK() asm volatile("\n->" : : )
++
++void foo(void)
++{
++}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
