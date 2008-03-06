@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_group_sigqueue-dont-take-tasklist_lock.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:33:29 -0800
-Message-ID: <200803060133.m261XTum002332@imap1.linux-foundation.org>
+Subject: + ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:34:21 -0800
+Message-ID: <200803060134.m261YMsm002364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754188AbYCFBej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:34:39 -0500
+	by vger.kernel.org with ESMTP id S1760066AbYCFBfN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:35:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: send_group_sigqueue: don't take tasklist_lock
+     ptrace: __ptrace_unlink: use the ptrace_reparented() helper
 has been added to the -mm tree.  Its filename is
-     signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+     ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_group_sigqueue: don't take tasklist_lock
+Subject: ptrace: __ptrace_unlink: use the ptrace_reparented() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-handle_stop_signal() was changed, now send_group_sigqueue() doesn't need
-tasklist_lock.
+Currently __ptrace_unlink() checks list_empty(->ptrace_list) to figure out
+whether the child was reparented.  Change the code to use ptrace_reparented()
+to make this check more explicit and consistent.
+
+No functional changes.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~signals-send_group_sigqueue-dont-take-tasklist_lock kernel/signal.c
---- a/kernel/signal.c~signals-send_group_sigqueue-dont-take-tasklist_lock
-+++ a/kernel/signal.c
-@@ -1335,7 +1335,6 @@ send_group_sigqueue(int sig, struct sigq
+diff -puN kernel/ptrace.c~ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper
++++ a/kernel/ptrace.c
+@@ -73,7 +73,7 @@ void __ptrace_unlink(struct task_struct 
+ 	BUG_ON(!child->ptrace);
  
- 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
- 
--	read_lock(&tasklist_lock);
- 	/* Since it_lock is held, p->sighand cannot be NULL. */
- 	spin_lock_irqsave(&p->sighand->siglock, flags);
- 
-@@ -1344,7 +1343,7 @@ send_group_sigqueue(int sig, struct sigq
- 	__group_complete_signal(sig, p);
- 
- 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
--	read_unlock(&tasklist_lock);
-+
- 	return ret;
- }
- 
+ 	child->ptrace = 0;
+-	if (!list_empty(&child->ptrace_list)) {
++	if (ptrace_reparented(child)) {
+ 		list_del_init(&child->ptrace_list);
+ 		remove_parent(child);
+ 		child->parent = child->real_parent;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
