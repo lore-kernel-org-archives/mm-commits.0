@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-vt8623fb-better-resume-from-str.patch added to -mm tree
-Date: Wed, 05 Mar 2008 23:07:55 -0800
-Message-ID: <200803060707.m2677tWl014053@imap1.linux-foundation.org>
+Subject: + fbdev-framebuffer_alloc-fixes.patch added to -mm tree
+Date: Wed, 05 Mar 2008 23:10:19 -0800
+Message-ID: <200803060710.m267AJpb014104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758019AbYCFHIE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 02:08:04 -0500
+	by vger.kernel.org with ESMTP id S1758288AbYCFHLY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 02:11:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: santiago@crfreenet.org, adaplas@pol.net
 
 
 The patch titled
-     fbdev: vt8623fb: better resume from STR
+     fbdev: framebuffer_alloc() fixes
 has been added to the -mm tree.  Its filename is
-     fbdev-vt8623fb-better-resume-from-str.patch
+     fbdev-framebuffer_alloc-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,293 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: vt8623fb: better resume from STR
+Subject: fbdev: framebuffer_alloc() fixes
 From: Ondrej Zajicek <santiago@crfreenet.org>
 
-After resume from STR, image is shifted by 8 pixels to the left.  This patch
-fixes it.
+Correct the dev arg of framebuffer_alloc() in arkfb, s3fb and vt8623fb.
 
 Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vt8623fb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/video/arkfb.c    |   20 ++++++++++----------
+ drivers/video/s3fb.c     |   20 ++++++++++----------
+ drivers/video/vt8623fb.c |   22 +++++++++++-----------
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/vt8623fb.c~fbdev-vt8623fb-better-resume-from-str drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~fbdev-vt8623fb-better-resume-from-str
-+++ a/drivers/video/vt8623fb.c
-@@ -436,6 +436,10 @@ static int vt8623fb_set_par(struct fb_in
- 	svga_wcrt_multi(vt8623_offset_regs, offset_value);
- 	svga_wseq_multi(vt8623_fetch_count_regs, fetch_value);
+diff -puN drivers/video/arkfb.c~fbdev-framebuffer_alloc-fixes drivers/video/arkfb.c
+--- a/drivers/video/arkfb.c~fbdev-framebuffer_alloc-fixes
++++ a/drivers/video/arkfb.c
+@@ -943,7 +943,7 @@ static int __devinit ark_pci_probe(struc
+ 	}
  
-+	/* Clear H/V Skew */
-+	svga_wcrt_mask(0x03, 0x00, 0x60);
-+	svga_wcrt_mask(0x05, 0x00, 0x60);
-+
- 	if (info->var.vmode & FB_VMODE_DOUBLE)
- 		svga_wcrt_mask(0x09, 0x80, 0x80);
- 	else
+ 	/* Allocate and fill driver data structure */
+-	info = framebuffer_alloc(sizeof(struct arkfb_info), NULL);
++	info = framebuffer_alloc(sizeof(struct arkfb_info), &(dev->dev));
+ 	if (! info) {
+ 		dev_err(&(dev->dev), "cannot allocate memory\n");
+ 		return -ENOMEM;
+@@ -958,20 +958,20 @@ static int __devinit ark_pci_probe(struc
+ 	/* Prepare PCI device */
+ 	rc = pci_enable_device(dev);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot enable PCI device\n");
++		dev_err(info->dev, "cannot enable PCI device\n");
+ 		goto err_enable_device;
+ 	}
+ 
+ 	rc = pci_request_regions(dev, "arkfb");
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
++		dev_err(info->dev, "cannot reserve framebuffer region\n");
+ 		goto err_request_regions;
+ 	}
+ 
+ 	par->dac = ics5342_init(ark_dac_read_regs, ark_dac_write_regs, info);
+ 	if (! par->dac) {
+ 		rc = -ENOMEM;
+-		dev_err(&(dev->dev), "RAMDAC initialization failed\n");
++		dev_err(info->dev, "RAMDAC initialization failed\n");
+ 		goto err_dac;
+ 	}
+ 
+@@ -982,7 +982,7 @@ static int __devinit ark_pci_probe(struc
+ 	info->screen_base = pci_iomap(dev, 0, 0);
+ 	if (! info->screen_base) {
+ 		rc = -ENOMEM;
+-		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
++		dev_err(info->dev, "iomap for framebuffer failed\n");
+ 		goto err_iomap;
+ 	}
+ 
+@@ -1004,19 +1004,19 @@ static int __devinit ark_pci_probe(struc
+ 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
+ 	if (! ((rc == 1) || (rc == 2))) {
+ 		rc = -EINVAL;
+-		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
++		dev_err(info->dev, "mode %s not found\n", mode_option);
+ 		goto err_find_mode;
+ 	}
+ 
+ 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot allocate colormap\n");
++		dev_err(info->dev, "cannot allocate colormap\n");
+ 		goto err_alloc_cmap;
+ 	}
+ 
+ 	rc = register_framebuffer(info);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot register framebugger\n");
++		dev_err(info->dev, "cannot register framebugger\n");
+ 		goto err_reg_fb;
+ 	}
+ 
+@@ -1090,7 +1090,7 @@ static int ark_pci_suspend (struct pci_d
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct arkfb_info *par = info->par;
+ 
+-	dev_info(&(dev->dev), "suspend\n");
++	dev_info(info->dev, "suspend\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
+@@ -1121,7 +1121,7 @@ static int ark_pci_resume (struct pci_de
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct arkfb_info *par = info->par;
+ 
+-	dev_info(&(dev->dev), "resume\n");
++	dev_info(info->dev, "resume\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
+diff -puN drivers/video/s3fb.c~fbdev-framebuffer_alloc-fixes drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~fbdev-framebuffer_alloc-fixes
++++ a/drivers/video/s3fb.c
+@@ -888,7 +888,7 @@ static int __devinit s3_pci_probe(struct
+ 	}
+ 
+ 	/* Allocate and fill driver data structure */
+-	info = framebuffer_alloc(sizeof(struct s3fb_info), NULL);
++	info = framebuffer_alloc(sizeof(struct s3fb_info), &(dev->dev));
+ 	if (!info) {
+ 		dev_err(&(dev->dev), "cannot allocate memory\n");
+ 		return -ENOMEM;
+@@ -903,13 +903,13 @@ static int __devinit s3_pci_probe(struct
+ 	/* Prepare PCI device */
+ 	rc = pci_enable_device(dev);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot enable PCI device\n");
++		dev_err(info->dev, "cannot enable PCI device\n");
+ 		goto err_enable_device;
+ 	}
+ 
+ 	rc = pci_request_regions(dev, "s3fb");
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
++		dev_err(info->dev, "cannot reserve framebuffer region\n");
+ 		goto err_request_regions;
+ 	}
+ 
+@@ -921,7 +921,7 @@ static int __devinit s3_pci_probe(struct
+ 	info->screen_base = pci_iomap(dev, 0, 0);
+ 	if (! info->screen_base) {
+ 		rc = -ENOMEM;
+-		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
++		dev_err(info->dev, "iomap for framebuffer failed\n");
+ 		goto err_iomap;
+ 	}
+ 
+@@ -965,19 +965,19 @@ static int __devinit s3_pci_probe(struct
+ 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
+ 	if (! ((rc == 1) || (rc == 2))) {
+ 		rc = -EINVAL;
+-		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
++		dev_err(info->dev, "mode %s not found\n", mode_option);
+ 		goto err_find_mode;
+ 	}
+ 
+ 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot allocate colormap\n");
++		dev_err(info->dev, "cannot allocate colormap\n");
+ 		goto err_alloc_cmap;
+ 	}
+ 
+ 	rc = register_framebuffer(info);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot register framebuffer\n");
++		dev_err(info->dev, "cannot register framebuffer\n");
+ 		goto err_reg_fb;
+ 	}
+ 
+@@ -1053,7 +1053,7 @@ static int s3_pci_suspend(struct pci_dev
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct s3fb_info *par = info->par;
+ 
+-	dev_info(&(dev->dev), "suspend\n");
++	dev_info(info->dev, "suspend\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
+@@ -1085,7 +1085,7 @@ static int s3_pci_resume(struct pci_dev*
+ 	struct s3fb_info *par = info->par;
+ 	int err;
+ 
+-	dev_info(&(dev->dev), "resume\n");
++	dev_info(info->dev, "resume\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
+@@ -1102,7 +1102,7 @@ static int s3_pci_resume(struct pci_dev*
+ 	if (err) {
+ 		mutex_unlock(&(par->open_lock));
+ 		release_console_sem();
+-		dev_err(&(dev->dev), "error %d enabling device for resume\n", err);
++		dev_err(info->dev, "error %d enabling device for resume\n", err);
+ 		return err;
+ 	}
+ 	pci_set_master(dev);
+diff -puN drivers/video/vt8623fb.c~fbdev-framebuffer_alloc-fixes drivers/video/vt8623fb.c
+--- a/drivers/video/vt8623fb.c~fbdev-framebuffer_alloc-fixes
++++ a/drivers/video/vt8623fb.c
+@@ -661,7 +661,7 @@ static int __devinit vt8623_pci_probe(st
+ 	}
+ 
+ 	/* Allocate and fill driver data structure */
+-	info = framebuffer_alloc(sizeof(struct vt8623fb_info), NULL);
++	info = framebuffer_alloc(sizeof(struct vt8623fb_info), &(dev->dev));
+ 	if (! info) {
+ 		dev_err(&(dev->dev), "cannot allocate memory\n");
+ 		return -ENOMEM;
+@@ -677,13 +677,13 @@ static int __devinit vt8623_pci_probe(st
+ 
+ 	rc = pci_enable_device(dev);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot enable PCI device\n");
++		dev_err(info->dev, "cannot enable PCI device\n");
+ 		goto err_enable_device;
+ 	}
+ 
+ 	rc = pci_request_regions(dev, "vt8623fb");
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
++		dev_err(info->dev, "cannot reserve framebuffer region\n");
+ 		goto err_request_regions;
+ 	}
+ 
+@@ -696,14 +696,14 @@ static int __devinit vt8623_pci_probe(st
+ 	info->screen_base = pci_iomap(dev, 0, 0);
+ 	if (! info->screen_base) {
+ 		rc = -ENOMEM;
+-		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
++		dev_err(info->dev, "iomap for framebuffer failed\n");
+ 		goto err_iomap_1;
+ 	}
+ 
+ 	par->mmio_base = pci_iomap(dev, 1, 0);
+ 	if (! par->mmio_base) {
+ 		rc = -ENOMEM;
+-		dev_err(&(dev->dev), "iomap for MMIO failed\n");
++		dev_err(info->dev, "iomap for MMIO failed\n");
+ 		goto err_iomap_2;
+ 	}
+ 
+@@ -714,7 +714,7 @@ static int __devinit vt8623_pci_probe(st
+ 	if ((16 <= memsize1) && (memsize1 <= 64) && (memsize1 == memsize2))
+ 		info->screen_size = memsize1 << 20;
+ 	else {
+-		dev_err(&(dev->dev), "memory size detection failed (%x %x), suppose 16 MB\n", memsize1, memsize2);
++		dev_err(info->dev, "memory size detection failed (%x %x), suppose 16 MB\n", memsize1, memsize2);
+ 		info->screen_size = 16 << 20;
+ 	}
+ 
+@@ -731,19 +731,19 @@ static int __devinit vt8623_pci_probe(st
+ 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
+ 	if (! ((rc == 1) || (rc == 2))) {
+ 		rc = -EINVAL;
+-		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
++		dev_err(info->dev, "mode %s not found\n", mode_option);
+ 		goto err_find_mode;
+ 	}
+ 
+ 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot allocate colormap\n");
++		dev_err(info->dev, "cannot allocate colormap\n");
+ 		goto err_alloc_cmap;
+ 	}
+ 
+ 	rc = register_framebuffer(info);
+ 	if (rc < 0) {
+-		dev_err(&(dev->dev), "cannot register framebugger\n");
++		dev_err(info->dev, "cannot register framebugger\n");
+ 		goto err_reg_fb;
+ 	}
+ 
+@@ -817,7 +817,7 @@ static int vt8623_pci_suspend(struct pci
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct vt8623fb_info *par = info->par;
+ 
+-	dev_info(&(dev->dev), "suspend\n");
++	dev_info(info->dev, "suspend\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
+@@ -848,7 +848,7 @@ static int vt8623_pci_resume(struct pci_
+ 	struct fb_info *info = pci_get_drvdata(dev);
+ 	struct vt8623fb_info *par = info->par;
+ 
+-	dev_info(&(dev->dev), "resume\n");
++	dev_info(info->dev, "resume\n");
+ 
+ 	acquire_console_sem();
+ 	mutex_lock(&(par->open_lock));
 _
 
 Patches currently in -mm which might be from santiago@crfreenet.org are
 
 fbdev-vt8623fb-better-resume-from-str.patch
+fbdev-framebuffer_alloc-fixes.patch
 
