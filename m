@@ -1,53 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:28:23 -0800
-Message-ID: <200803062228.m26MSNkV021176@imap1.linux-foundation.org>
+Subject: - drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:28:25 -0800
+Message-ID: <200803062228.m26MSPU8021179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758215AbYCFWbn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:43 -0500
+	by vger.kernel.org with ESMTP id S1761351AbYCFWcB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:32:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ide/ide-acpi.c: fix uninitialized var warning
+     drivers/ide/legacy/hd.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
+     drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ide/ide-acpi.c: fix uninitialized var warning
+Subject: drivers/ide/legacy/hd.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/ide-acpi.c: In function 'ide_acpi_init':
-drivers/ide/ide-acpi.c:175: warning: 'dev_handle' may be used uninitialized in this function
+drivers/ide/legacy/hd.c: In function 'hd_request':
+drivers/ide/legacy/hd.c:424: warning: 'stat' may be used uninitialized in this function
+
+gcc is being stupid.
 
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/legacy/hd.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning drivers/ide/ide-acpi.c
---- a/drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning
-+++ a/drivers/ide/ide-acpi.c
-@@ -171,7 +171,7 @@ err:
- static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
+diff -puN drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning drivers/ide/legacy/hd.c
+--- a/drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning
++++ a/drivers/ide/legacy/hd.c
+@@ -421,11 +421,14 @@ static void bad_rw_intr(void)
+ 
+ static inline int wait_DRQ(void)
  {
- 	struct device		*dev = hwif->gendev.parent;
--	acpi_handle		dev_handle;
-+	acpi_handle		uninitialized_var(dev_handle);
- 	acpi_integer		pcidevfn;
- 	acpi_handle		chan_handle;
- 	int			err;
+-	int retries = 100000, stat;
++	int retries;
++	int stat;
+ 
+-	while (--retries > 0)
+-		if ((stat = inb_p(HD_STATUS)) & DRQ_STAT)
++	for (retries = 0; retries < 100000; retries++) {
++		stat = inb_p(HD_STATUS);
++		if (stat & DRQ_STAT)
+ 			return 0;
++	}
+ 	dump_status("wait_DRQ", stat);
+ 	return -1;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
