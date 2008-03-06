@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iov_iter_advance-fix.patch added to -mm tree
-Date: Wed, 05 Mar 2008 21:58:16 -0800
-Message-ID: <200803060558.m265wG8O011665@imap1.linux-foundation.org>
+Subject: + mbxfb-fix-incorrect-argument-type.patch added to -mm tree
+Date: Wed, 05 Mar 2008 22:21:52 -0800
+Message-ID: <200803060621.m266Lq8X012421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751147AbYCFF7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 00:59:14 -0500
+	by vger.kernel.org with ESMTP id S1751431AbYCFGWd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 01:22:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, adobriyan@gmail.com, kwc@citi.umich.edu, stable@kernel.org
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net, mike@compulab.co.il
 
 
 The patch titled
-     iov_iter_advance() fix
+     mbxfb: fix incorrect argument type
 has been added to the -mm tree.  Its filename is
-     iov_iter_advance-fix.patch
+     mbxfb-fix-incorrect-argument-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iov_iter_advance() fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: mbxfb: fix incorrect argument type
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-iov_iter_advance() skips over zero-length iovecs, however it does not properly
-terminate at the end of the iovec array.  Fix this by checking against
-i->count before we skip a zero-length iov.
+Fix wrong pointer type passed into the dev_dbg() function.
 
-The bug was reproduced with a test program that continually randomly creates
-iovs to writev.  The fix was also verified with the same program and also it
-could verify that the correct data was contained in the file after each
-writev.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "Kevin Coffman" <kwc@citi.umich.edu>
-Cc: "Alexey Dobriyan" <adobriyan@gmail.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-by: Mike Rapoport <mike@compulab.co.il>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/video/mbx/mbxfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~iov_iter_advance-fix mm/filemap.c
---- a/mm/filemap.c~iov_iter_advance-fix
-+++ a/mm/filemap.c
-@@ -1743,21 +1743,27 @@ size_t iov_iter_copy_from_user(struct pa
- }
- EXPORT_SYMBOL(iov_iter_copy_from_user);
+diff -puN drivers/video/mbx/mbxfb.c~mbxfb-fix-incorrect-argument-type drivers/video/mbx/mbxfb.c
+--- a/drivers/video/mbx/mbxfb.c~mbxfb-fix-incorrect-argument-type
++++ a/drivers/video/mbx/mbxfb.c
+@@ -889,7 +889,7 @@ static int __devinit mbxfb_probe(struct 
+ 	struct mbxfb_info *mfbi;
+ 	struct mbxfb_platform_data *pdata;
  
--static void __iov_iter_advance_iov(struct iov_iter *i, size_t bytes)
-+void iov_iter_advance(struct iov_iter *i, size_t bytes)
- {
-+	BUG_ON(i->count < bytes);
-+
- 	if (likely(i->nr_segs == 1)) {
- 		i->iov_offset += bytes;
-+		i->count -= bytes;
- 	} else {
- 		const struct iovec *iov = i->iov;
- 		size_t base = i->iov_offset;
+-	dev_dbg(dev, "mbxfb_probe\n");
++	dev_dbg(&dev->dev, "mbxfb_probe\n");
  
- 		/*
- 		 * The !iov->iov_len check ensures we skip over unlikely
--		 * zero-length segments.
-+		 * zero-length segments (without overruning the iovec).
- 		 */
--		while (bytes || !iov->iov_len) {
--			int copy = min(bytes, iov->iov_len - base);
-+		while (bytes || unlikely(!iov->iov_len && i->count)) {
-+			int copy;
- 
-+			copy = min(bytes, iov->iov_len - base);
-+			BUG_ON(!i->count || i->count < copy);
-+			i->count -= copy;
- 			bytes -= copy;
- 			base += copy;
- 			if (iov->iov_len == base) {
-@@ -1769,14 +1775,6 @@ static void __iov_iter_advance_iov(struc
- 		i->iov_offset = base;
- 	}
- }
--
--void iov_iter_advance(struct iov_iter *i, size_t bytes)
--{
--	BUG_ON(i->count < bytes);
+ 	pdata = dev->dev.platform_data;
+ 	if (!pdata) {
+_
+
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+
+tridentfb-register-should-be-left-in-non-locked-state.patch
+tridentfb-fix-memory-size-detection.patch
+pm2fb-correct-error-values-returned-from-probe-function.patch
+pm2fb-change-option-mode-to-mode_option.patch
+tridentfb-change-option-mode-to-mode_option.patch
+pm3fb-change-option-mode-to-mode_option.patch
+update-modedbtxt-documentation-about-mode_option-parameter-change.patch
+vt8623fb-change-option-mode-to-mode_option.patch
+arkfb-add-option-mode_option.patch
+s3fb-add-option-mode_option.patch
+fbdev-add-removed-option-mode-to-keep-compatibility.patch
+mbxfb-fix-incorrect-argument-type.patch
+
