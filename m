@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-introduce-macros-to-generate-page-flag-functions.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:31:15 -0800
-Message-ID: <200803060131.m261VGRx002224@imap1.linux-foundation.org>
+Subject: + pageflags-get-rid-of-flags_reserved.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:31:13 -0800
+Message-ID: <200803060131.m261VEeh002215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758265AbYCFBcj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:39 -0500
+	by vger.kernel.org with ESMTP id S1758265AbYCFBcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.c
 
 
 The patch titled
-     pageflags: introduce macros to generate page flag functions
+     pageflags: get rid of FLAGS_RESERVED
 has been added to the -mm tree.  Its filename is
-     pageflags-introduce-macros-to-generate-page-flag-functions.patch
+     pageflags-get-rid-of-flags_reserved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: introduce macros to generate page flag functions
+Subject: pageflags: get rid of FLAGS_RESERVED
 From: Christoph Lameter <clameter@sgi.com>
 
-Introduce a set of macros that generate functions to handle page flags.
+NR_PAGEFLAGS specifies the number of page flags we are using.  >From that we
+can calculate the number of bits leftover that can be used for zone, node (and
+maybe the sections id).  There is no need anymore for FLAGS_RESERVED if we use
+NR_PAGEFLAGS.
 
-A page flag function group typically starts with either
-
-	SETPAGEFLAG(<part of function name>,<part of PG_ flagname>)
-
-to create a set of page flag operations that are atomic. Or
-
-	__SETPAGEFLAG(<part of function name>,<part of PG_ flagname)
-
-to create a set of page flag operations that are not atomic.
-
-Then additional operations can be added using the following macros
-
-TESTSCFLAG		Create additional atomic test-and-set and
-			test-and-clear functions
-
-TESTSETFLAG		Create additional test and set function
-TESTCLEARFLAG		Create additional test and clear function
-SETPAGEFLAG		Create additional atomic set function
-CLEARPAGEFLAG		Create additional atomic clear function
-__TESTPAGEFLAG		Create additional non atomic set function
-__SETPAGEFLAG		Create additional non atomic clear function
+Use the new methods to make NR_PAGEFLAGS available via the preprocessor. 
+NR_PAGEFLAGS is used to calculate field boundaries in the page flags fields. 
+These field widths have to be available to the preprocessor.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -70,60 +55,123 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ include/linux/bounds.h     |    2 ++
+ include/linux/mm.h         |    6 +++---
+ include/linux/mmzone.h     |   19 -------------------
+ include/linux/page-flags.h |   14 +++++++-------
+ kernel/bounds.c            |    1 +
+ 5 files changed, 13 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions
+diff -puN include/linux/bounds.h~pageflags-get-rid-of-flags_reserved include/linux/bounds.h
+--- a/include/linux/bounds.h~pageflags-get-rid-of-flags_reserved
++++ a/include/linux/bounds.h
+@@ -7,4 +7,6 @@
+  *
+  */
+ 
++#define NR_PAGEFLAGS 32 /* __NR_PAGEFLAGS	# */
++
+ #endif
+diff -puN include/linux/mm.h~pageflags-get-rid-of-flags_reserved include/linux/mm.h
+--- a/include/linux/mm.h~pageflags-get-rid-of-flags_reserved
++++ a/include/linux/mm.h
+@@ -398,7 +398,7 @@ static inline void set_compound_order(st
+ 
+ #define ZONES_WIDTH		ZONES_SHIFT
+ 
+-#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
++#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
+ #define NODES_WIDTH		NODES_SHIFT
+ #else
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+@@ -446,8 +446,8 @@ static inline void set_compound_order(st
+ 
+ #define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
+ 
+-#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
+-#error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
++#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
++#error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
+ #endif
+ 
+ #define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
+diff -puN include/linux/mmzone.h~pageflags-get-rid-of-flags_reserved include/linux/mmzone.h
+--- a/include/linux/mmzone.h~pageflags-get-rid-of-flags_reserved
++++ a/include/linux/mmzone.h
+@@ -839,25 +839,6 @@ static inline struct zoneref *next_zones
+ #include <asm/sparsemem.h>
+ #endif
+ 
+-#if BITS_PER_LONG == 32
+-/*
+- * with 32 bit page->flags field, we reserve 9 bits for node/zone info.
+- * there are 4 zones (3 bits) and this leaves 9-3=6 bits for nodes.
+- */
+-#define FLAGS_RESERVED		9
+-
+-#elif BITS_PER_LONG == 64
+-/*
+- * with 64 bit flags field, there's plenty of room.
+- */
+-#define FLAGS_RESERVED		32
+-
+-#else
+-
+-#error BITS_PER_LONG not defined
+-
+-#endif
+-
+ #if !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) && \
+ 	!defined(CONFIG_ARCH_POPULATES_NODE_MAP)
+ #define early_pfn_to_nid(nid)  (0UL)
+diff -puN include/linux/page-flags.h~pageflags-get-rid-of-flags_reserved include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-get-rid-of-flags_reserved
 +++ a/include/linux/page-flags.h
-@@ -105,6 +105,47 @@ enum pageflags {
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/mm_types.h>
++#include <linux/bounds.h>
+ 
+ /*
+  * Various page->flags bits:
+@@ -59,13 +60,12 @@
+  * extends from the high bits downwards.
+  *
+  *  | FIELD | ... | FLAGS |
+- *  N-1     ^             0
+- *          (N-FLAGS_RESERVED)
++ *  N-1           ^       0
++ *               (NR_PAGEFLAGS)
+  *
+- * The fields area is reserved for fields mapping zone, node and SPARSEMEM
+- * section.  The boundry between these two areas is defined by
+- * FLAGS_RESERVED which defines the width of the fields section
+- * (see linux/mmzone.h).  New flags must _not_ overlap with this area.
++ * The fields area is reserved for fields mapping zone, node (for NUMA) and
++ * SPARSEMEM section (for variants of SPARSEMEM that require section ids like
++ * SPARSEMEM_EXTREME with !SPARSEMEM_VMEMMAP).
+  */
+ enum pageflags {
+ 	PG_locked,		/* Page is locked. Don't touch. */
+@@ -101,7 +101,7 @@ enum pageflags {
+  */
+ 	PG_uncached = 31,		/* Page has been mapped as uncached */
+ #endif
+-	NR_PAGEFLAGS
++	__NR_PAGEFLAGS
  };
  
  /*
-+ * Macros to create function definitions for page flags
-+ */
-+#define TESTPAGEFLAG(uname, lname)					\
-+static inline int Page##uname(struct page *page) 			\
-+			{ return test_bit(PG_##lname, page); }
-+
-+#define SETPAGEFLAG(uname, lname)					\
-+static inline void SetPage##uname(struct page *page)			\
-+			{ set_bit(PG_##lname, page); }
-+
-+#define CLEARPAGEFLAG(uname, lname)					\
-+static inline void ClearPage##uname(struct page *page)			\
-+			{ clear_bit(PG_##lname, page); }
-+
-+#define __SETPAGEFLAG(uname, lname)					\
-+static inline void __SetPage##uname(struct page *page)			\
-+			{ __set_bit(PG_##lname, page); }
-+
-+#define __CLEARPAGEFLAG(uname, lname)					\
-+static inline void __ClearPage##uname(struct page *page)		\
-+			{ __clear_bit(PG_##lname, page); }
-+
-+#define TESTSETFLAG(uname, lname)					\
-+static inline int TestSetPage##uname(struct page *page)			\
-+		{ return test_and_set_bit(PG_##lname, &page->flags); }
-+
-+#define TESTCLEARFLAG(uname, lname)					\
-+static inline int TestClearPage##uname(struct page *page)		\
-+		{ return test_and_clear_bit(PG_##lname, &page->flags); }
-+
-+
-+#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
-+	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
-+
-+#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
-+	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
-+
-+#define TESTSCFLAG(uname, lname)					\
-+	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
-+
-+/*
-  * Manipulation of page state flags
-  */
- #define PageLocked(page)		\
+diff -puN kernel/bounds.c~pageflags-get-rid-of-flags_reserved kernel/bounds.c
+--- a/kernel/bounds.c~pageflags-get-rid-of-flags_reserved
++++ a/kernel/bounds.c
+@@ -13,4 +13,5 @@
+ 
+ void foo(void)
+ {
++	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
+ }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
