@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + iop-admac-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:01 -0800
-Message-ID: <200803060350.m263o1sq007313@imap1.linux-foundation.org>
+Subject: + block-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:49:59 -0800
+Message-ID: <200803060350.m263nxTw007309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756410AbYCFDuf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:35 -0500
+	by vger.kernel.org with ESMTP id S1756418AbYCFDul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dan.j.williams@intel.com, shannon.nelson@intel.com
+Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     iop-adma.c: replace remaining __FUNCTION__ occurrences
+     block: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     iop-admac-replace-remaining-__function__-occurrences.patch
+     block-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iop-adma.c: replace remaining __FUNCTION__ occurrences
+Subject: block: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Nelson, Shannon" <shannon.nelson@intel.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/iop-adma.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ drivers/block/sx8.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/dma/iop-adma.c~iop-admac-replace-remaining-__function__-occurrences drivers/dma/iop-adma.c
---- a/drivers/dma/iop-adma.c~iop-admac-replace-remaining-__function__-occurrences
-+++ a/drivers/dma/iop-adma.c
-@@ -138,7 +138,7 @@ static void __iop_adma_slot_cleanup(stru
- 	int busy = iop_chan_is_busy(iop_chan);
- 	int seen_current = 0, slot_cnt = 0, slots_per_op = 0;
+diff -puN drivers/block/sx8.c~block-replace-remaining-__function__-occurrences drivers/block/sx8.c
+--- a/drivers/block/sx8.c~block-replace-remaining-__function__-occurrences
++++ a/drivers/block/sx8.c
+@@ -79,9 +79,9 @@ MODULE_PARM_DESC(max_queue, "Maximum num
  
--	dev_dbg(iop_chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(iop_chan->device->common.dev, "%s\n", __func__);
- 	/* free completed slots from the chain starting with
- 	 * the oldest descriptor
- 	 */
-@@ -437,7 +437,7 @@ iop_adma_tx_submit(struct dma_async_tx_d
- 	spin_unlock_bh(&iop_chan->lock);
+ /* note: prints function name for you */
+ #ifdef CARM_DEBUG
+-#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #ifdef CARM_VERBOSE_DEBUG
+-#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #else
+ #define VPRINTK(fmt, args...)
+ #endif	/* CARM_VERBOSE_DEBUG */
+@@ -96,7 +96,7 @@ MODULE_PARM_DESC(max_queue, "Maximum num
+ #define assert(expr) \
+         if(unlikely(!(expr))) {                                   \
+         printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", \
+-        #expr,__FILE__,__FUNCTION__,__LINE__);          \
++	#expr, __FILE__, __func__, __LINE__);          \
+         }
+ #endif
  
- 	dev_dbg(iop_chan->device->common.dev, "%s cookie: %d slot: %d\n",
--		__FUNCTION__, sw_desc->async_tx.cookie, sw_desc->idx);
-+		__func__, sw_desc->async_tx.cookie, sw_desc->idx);
- 
- 	return cookie;
- }
-@@ -519,7 +519,7 @@ iop_adma_prep_dma_interrupt(struct dma_c
- 	struct iop_adma_desc_slot *sw_desc, *grp_start;
- 	int slot_cnt, slots_per_op;
- 
--	dev_dbg(iop_chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(iop_chan->device->common.dev, "%s\n", __func__);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_interrupt_slot_count(&slots_per_op, iop_chan);
-@@ -547,7 +547,7 @@ iop_adma_prep_dma_memcpy(struct dma_chan
- 	BUG_ON(unlikely(len > IOP_ADMA_MAX_BYTE_COUNT));
- 
- 	dev_dbg(iop_chan->device->common.dev, "%s len: %u\n",
--		__FUNCTION__, len);
-+		__func__, len);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_memcpy_slot_count(len, &slots_per_op);
-@@ -579,7 +579,7 @@ iop_adma_prep_dma_memset(struct dma_chan
- 	BUG_ON(unlikely(len > IOP_ADMA_MAX_BYTE_COUNT));
- 
- 	dev_dbg(iop_chan->device->common.dev, "%s len: %u\n",
--		__FUNCTION__, len);
-+		__func__, len);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_memset_slot_count(len, &slots_per_op);
-@@ -613,7 +613,7 @@ iop_adma_prep_dma_xor(struct dma_chan *c
- 
- 	dev_dbg(iop_chan->device->common.dev,
- 		"%s src_cnt: %d len: %u flags: %lx\n",
--		__FUNCTION__, src_cnt, len, flags);
-+		__func__, src_cnt, len, flags);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_xor_slot_count(len, src_cnt, &slots_per_op);
-@@ -647,7 +647,7 @@ iop_adma_prep_dma_zero_sum(struct dma_ch
- 		return NULL;
- 
- 	dev_dbg(iop_chan->device->common.dev, "%s src_cnt: %d len: %u\n",
--		__FUNCTION__, src_cnt, len);
-+		__func__, src_cnt, len);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_zero_sum_slot_count(len, src_cnt, &slots_per_op);
-@@ -658,7 +658,7 @@ iop_adma_prep_dma_zero_sum(struct dma_ch
- 		iop_desc_set_zero_sum_byte_count(grp_start, len);
- 		grp_start->xor_check_result = result;
- 		pr_debug("\t%s: grp_start->xor_check_result: %p\n",
--			__FUNCTION__, grp_start->xor_check_result);
-+			__func__, grp_start->xor_check_result);
- 		sw_desc->unmap_src_cnt = src_cnt;
- 		sw_desc->unmap_len = len;
- 		while (src_cnt--)
-@@ -693,7 +693,7 @@ static void iop_adma_free_chan_resources
- 	iop_chan->last_used = NULL;
- 
- 	dev_dbg(iop_chan->device->common.dev, "%s slots_allocated %d\n",
--		__FUNCTION__, iop_chan->slots_allocated);
-+		__func__, iop_chan->slots_allocated);
- 	spin_unlock_bh(&iop_chan->lock);
- 
- 	/* one is ok since we left it on there on purpose */
-@@ -746,7 +746,7 @@ static irqreturn_t iop_adma_eot_handler(
- {
- 	struct iop_adma_chan *chan = data;
- 
--	dev_dbg(chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(chan->device->common.dev, "%s\n", __func__);
- 
- 	tasklet_schedule(&chan->irq_tasklet);
- 
-@@ -759,7 +759,7 @@ static irqreturn_t iop_adma_eoc_handler(
- {
- 	struct iop_adma_chan *chan = data;
- 
--	dev_dbg(chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(chan->device->common.dev, "%s\n", __func__);
- 
- 	tasklet_schedule(&chan->irq_tasklet);
- 
-@@ -816,7 +816,7 @@ static int __devinit iop_adma_memcpy_sel
- 	int err = 0;
- 	struct iop_adma_chan *iop_chan;
- 
--	dev_dbg(device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(device->common.dev, "%s\n", __func__);
- 
- 	src = kzalloc(sizeof(u8) * IOP_ADMA_TEST_SIZE, GFP_KERNEL);
- 	if (!src)
-@@ -899,7 +899,7 @@ iop_adma_xor_zero_sum_self_test(struct i
- 	int err = 0;
- 	struct iop_adma_chan *iop_chan;
- 
--	dev_dbg(device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(device->common.dev, "%s\n", __func__);
- 
- 	for (src_idx = 0; src_idx < IOP_ADMA_NUM_SRC_TEST; src_idx++) {
- 		xor_srcs[src_idx] = alloc_page(GFP_KERNEL);
-@@ -1152,7 +1152,7 @@ static int __devinit iop_adma_probe(stru
- 	}
- 
- 	dev_dbg(&pdev->dev, "%s: allocted descriptor pool virt %p phys %p\n",
--		__FUNCTION__, adev->dma_desc_pool_virt,
-+		__func__, adev->dma_desc_pool_virt,
- 		(void *) adev->dma_desc_pool);
- 
- 	adev->id = plat_data->hw_id;
-@@ -1278,7 +1278,7 @@ static void iop_chan_start_null_memcpy(s
- 	dma_cookie_t cookie;
- 	int slot_cnt, slots_per_op;
- 
--	dev_dbg(iop_chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(iop_chan->device->common.dev, "%s\n", __func__);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_memcpy_slot_count(0, &slots_per_op);
-@@ -1335,7 +1335,7 @@ static void iop_chan_start_null_xor(stru
- 	dma_cookie_t cookie;
- 	int slot_cnt, slots_per_op;
- 
--	dev_dbg(iop_chan->device->common.dev, "%s\n", __FUNCTION__);
-+	dev_dbg(iop_chan->device->common.dev, "%s\n", __func__);
- 
- 	spin_lock_bh(&iop_chan->lock);
- 	slot_cnt = iop_chan_xor_slot_count(0, 2, &slots_per_op);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
