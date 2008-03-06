@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 05 Mar 2008 16:16:43 -0800
-Message-ID: <200803060016.m260Giml029428@imap1.linux-foundation.org>
+Subject: + drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch added to -mm tree
+Date: Wed, 05 Mar 2008 16:12:41 -0800
+Message-ID: <200803060012.m260CfAs029039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759788AbYCFAQs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:16:48 -0500
+	by vger.kernel.org with ESMTP id S1751446AbYCFASQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:18:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, harvey.harrison@gmail.com
+Cc: jkschind@gmail.com
 
 
 The patch titled
-     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
+     drivers/net/3c527.c: replace init_module&cleanup_module with module_init&module_exit
 has been added to the -mm tree.  Its filename is
-     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+     drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/3c527.c: replace init_module&cleanup_module with module_init&module_exit
+From: Jon Schindler <jkschind@gmail.com>
 
-ERROR: need space after that ',' (ctx:VxV)
-#66: FILE: drivers/scsi/ch.c:742:
-+		memset(ch_cmd,0,sizeof(ch_cmd));
- 		             ^
+Replace init_module and cleanup_module with static functions and
+module_init/module_exit.
 
-ERROR: need space after that ',' (ctx:VxV)
-#66: FILE: drivers/scsi/ch.c:742:
-+		memset(ch_cmd,0,sizeof(ch_cmd));
- 		               ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#70: FILE: drivers/scsi/ch.c:746:
-+			    ch_elem_to_typecode(ch,elem);
- 			                          ^
-
-total: 3 errors, 0 warnings, 55 lines checked
-
-./patches/scsi-chc-fix-shadowed-variable-warnings.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Jon Schindler <jkschind@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ch.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/3c527.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes drivers/scsi/ch.c
---- a/drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
-+++ a/drivers/scsi/ch.c
-@@ -739,11 +739,11 @@ static long ch_ioctl(struct file *file,
- 		mutex_lock(&ch->lock);
+diff -puN drivers/net/3c527.c~drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit drivers/net/3c527.c
+--- a/drivers/net/3c527.c~drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit
++++ a/drivers/net/3c527.c
+@@ -1631,23 +1631,24 @@ static const struct ethtool_ops netdev_e
+ static struct net_device *this_device;
  
- 	voltag_retry:
--		memset(ch_cmd,0,sizeof(ch_cmd));
-+		memset(ch_cmd, 0, sizeof(ch_cmd));
- 		ch_cmd[0] = READ_ELEMENT_STATUS;
- 		ch_cmd[1] = (ch->device->lun << 5) |
- 			    (ch->voltags ? 0x10 : 0) |
--			    ch_elem_to_typecode(ch,elem);
-+			    ch_elem_to_typecode(ch, elem);
- 		ch_cmd[2] = (elem >> 8) & 0xff;
- 		ch_cmd[3] = elem        & 0xff;
- 		ch_cmd[5] = 1;
+ /**
+- *	init_module		-	entry point
++ *	tc527_module_init	-	entry point
+  *
+  *	Probe and locate a 3c527 card. This really should probe and locate
+  *	all the 3c527 cards in the machine not just one of them. Yes you can
+  *	insmod multiple modules for now but it's a hack.
+  */
+ 
+-int __init init_module(void)
++static int __init tc527_module_init(void)
+ {
+ 	this_device = mc32_probe(-1);
+ 	if (IS_ERR(this_device))
+ 		return PTR_ERR(this_device);
+ 	return 0;
+ }
++module_init(tc527_module_init);
+ 
+ /**
+- *	cleanup_module	-	free resources for an unload
++ *	tc527_module_exit	-	free resources for an unload
+  *
+  *	Unloading time. We release the MCA bus resources and the interrupt
+  *	at which point everything is ready to unload. The card must be stopped
+@@ -1657,11 +1658,12 @@ int __init init_module(void)
+  *	transmit operations are allowed to start scribbling into memory.
+  */
+ 
+-void __exit cleanup_module(void)
++static void __exit tc527_module_exit(void)
+ {
+ 	unregister_netdev(this_device);
+ 	cleanup_card(this_device);
+ 	free_netdev(this_device);
+ }
++module_exit(tc527_module_exit);
+ 
+ #endif /* MODULE */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jkschind@gmail.com are
 
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-pata-i-do-not-think-it-means-what-you-think-it-means.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-ubi.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-sh-export-copy-page-to-modules.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
-git-v9fs.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+drivers-net-apnec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-appletalk-copsc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-appletalk-ltpcc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-arcnet-capmodec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-arcnet-com20020c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-at1700c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-atarilancec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-8390c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-ac3200c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-block-floppyc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-char-ip2-ip2mainc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c501c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c505c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c507c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c515c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c523c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-82596c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
