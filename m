@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-introduce-ptrace_reparented-helper.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:18:28 -0800
-Message-ID: <200803060118.m261IS7X001682@imap1.linux-foundation.org>
+Subject: + v4l1-fix-v4l_compat_translate_ioctl-possible-null-deref.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:21:52 -0800
+Message-ID: <200803060121.m261Lqn9001823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933215AbYCFBTT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:19:19 -0500
+	by vger.kernel.org with ESMTP id S933277AbYCFBV7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:21:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: gorcunov@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     ptrace: introduce ptrace_reparented() helper
+     V4L1: fix v4l_compat_translate_ioctl possible NULL deref
 has been added to the -mm tree.  Its filename is
-     ptrace-introduce-ptrace_reparented-helper.patch
+     v4l1-fix-v4l_compat_translate_ioctl-possible-null-deref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: introduce ptrace_reparented() helper
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: V4L1: fix v4l_compat_translate_ioctl possible NULL deref
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Add another trivial helper for the sake of grep.  It also auto-documents the
-fact that ->parent != real_parent implies ->ptrace.
+There are possible NULL pointer derefs in case of kzalloc fails so fix them.
 
-No functional changes.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    4 ++++
- kernel/exit.c          |    9 ++++-----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/media/video/v4l1-compat.c |   50 ++++++++++++++++++++++------
+ 1 file changed, 41 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper
-+++ a/include/linux/ptrace.h
-@@ -98,6 +98,10 @@ extern void ptrace_untrace(struct task_s
- extern int ptrace_may_attach(struct task_struct *task);
- extern int __ptrace_may_attach(struct task_struct *task);
+diff -puN drivers/media/video/v4l1-compat.c~v4l1-fix-v4l_compat_translate_ioctl-possible-null-deref drivers/media/video/v4l1-compat.c
+--- a/drivers/media/video/v4l1-compat.c~v4l1-fix-v4l_compat_translate_ioctl-possible-null-deref
++++ a/drivers/media/video/v4l1-compat.c
+@@ -303,7 +303,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 	{
+ 		struct video_capability *cap = arg;
  
-+static inline int ptrace_reparented(struct task_struct *child)
-+{
-+	return child->real_parent != child->parent;
-+}
- static inline void ptrace_link(struct task_struct *child,
- 			       struct task_struct *new_parent)
- {
-diff -puN kernel/exit.c~ptrace-introduce-ptrace_reparented-helper kernel/exit.c
---- a/kernel/exit.c~ptrace-introduce-ptrace_reparented-helper
-+++ a/kernel/exit.c
-@@ -632,7 +632,7 @@ reparent_thread(struct task_struct *p, s
- 	if (unlikely(traced)) {
- 		/* Preserve ptrace links if someone else is tracing this child.  */
- 		list_del_init(&p->ptrace_list);
--		if (p->parent != p->real_parent)
-+		if (ptrace_reparented(p))
- 			list_add(&p->ptrace_list, &p->real_parent->ptrace_children);
- 	} else {
- 		/* If this child is being traced, then we're the one tracing it
-@@ -799,8 +799,8 @@ static void exit_notify(struct task_stru
- 	 * only has special meaning to our real parent.
- 	 */
- 	if (!task_detached(tsk) && thread_group_empty(tsk)) {
--		int signal = (tsk->parent == tsk->real_parent)
--				? tsk->exit_signal : SIGCHLD;
-+		int signal = ptrace_reparented(tsk) ?
-+				SIGCHLD : tsk->exit_signal;
- 		do_notify_parent(tsk, signal);
- 	} else if (tsk->ptrace) {
- 		do_notify_parent(tsk, SIGCHLD);
-@@ -1203,8 +1203,7 @@ static int wait_task_zombie(struct task_
- 		return 0;
- 	}
+-		cap2 = kzalloc(sizeof(*cap2),GFP_KERNEL);
++		cap2 = kzalloc(sizeof(*cap2), GFP_KERNEL);
++		if (!cap2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		memset(cap, 0, sizeof(*cap));
+ 		memset(&fbuf2, 0, sizeof(fbuf2));
  
--	/* traced means p->ptrace, but not vice versa */
--	traced = (p->real_parent != p->parent);
-+	traced = ptrace_reparented(p);
+@@ -426,7 +430,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 	{
+ 		struct video_window	*win = arg;
  
- 	if (likely(!traced)) {
- 		struct signal_struct *psig;
-_
-
-Patches currently in -mm which might be from oleg@tv-sign.ru are
-
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
-
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		memset(win,0,sizeof(*win));
+ 
+ 		fmt2->type = V4L2_BUF_TYPE_VIDEO_OVERLAY;
+@@ -464,7 +472,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 		struct video_window	*win = arg;
+ 		int err1,err2;
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		fmt2->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		drv(inode, file, VIDIOC_STREAMOFF, &fmt2->type);
+ 		err1 = drv(inode, file, VIDIOC_G_FMT, fmt2);
+@@ -586,6 +598,12 @@ v4l_compat_translate_ioctl(struct inode 
+ 	{
+ 		struct video_picture	*pict = arg;
+ 
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
++
+ 		pict->brightness = get_v4l_control(inode, file,
+ 						   V4L2_CID_BRIGHTNESS,drv);
+ 		pict->hue = get_v4l_control(inode, file,
+@@ -597,7 +615,6 @@ v4l_compat_translate_ioctl(struct inode 
+ 		pict->whiteness = get_v4l_control(inode, file,
+ 						  V4L2_CID_WHITENESS, drv);
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
+ 		fmt2->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		err = drv(inode, file, VIDIOC_G_FMT, fmt2);
+ 		if (err < 0) {
+@@ -617,6 +634,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 		struct video_picture	*pict = arg;
+ 		int mem_err = 0, ovl_err = 0;
+ 
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		memset(&fbuf2, 0, sizeof(fbuf2));
+ 
+ 		set_v4l_control(inode, file,
+@@ -636,7 +658,6 @@ v4l_compat_translate_ioctl(struct inode 
+ 		 * different pixel formats for memory vs overlay.
+ 		 */
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
+ 		fmt2->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 		err = drv(inode, file, VIDIOC_G_FMT, fmt2);
+ 		/* If VIDIOC_G_FMT failed, then the driver likely doesn't
+@@ -890,7 +911,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 	{
+ 		struct video_mmap	*mm = arg;
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		memset(&buf2,0,sizeof(buf2));
+ 
+ 		fmt2->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+@@ -986,7 +1011,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 	{
+ 		struct vbi_format      *fmt = arg;
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
++		fmt2 = kzalloc(sizeof(*fmt2), GFP_KERNEL);
++		if (!fmt2) {
++			err = -ENOMEM;
++			break;
++		}
+ 		fmt2->type = V4L2_BUF_TYPE_VBI_CAPTURE;
+ 
+ 		err = drv(inode, file, VIDIOC_G_FMT, fmt2);
+@@ -1018,8 +1047,11 @@ v4l_compat_translate_ioctl(struct inode 
+ 			break;
+ 		}
+ 
+-		fmt2 = kzalloc(sizeof(*fmt2),GFP_KERNEL);
