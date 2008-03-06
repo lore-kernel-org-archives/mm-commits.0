@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-introduce-ptrace_reparented-helper.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:34:18 -0800
-Message-ID: <200803060134.m261YIpt002360@imap1.linux-foundation.org>
+Subject: + pageflags-eliminate-pg_xxx-aliases.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:31:21 -0800
+Message-ID: <200803060131.m261VMxx002236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753563AbYCFBjC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:39:02 -0500
+	by vger.kernel.org with ESMTP id S1760344AbYCFBjH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:39:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com
 
 
 The patch titled
-     ptrace: introduce ptrace_reparented() helper
+     pageflags: eliminate PG_xxx aliases
 has been added to the -mm tree.  Its filename is
-     ptrace-introduce-ptrace_reparented-helper.patch
+     pageflags-eliminate-pg_xxx-aliases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: introduce ptrace_reparented() helper
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: pageflags: eliminate PG_xxx aliases
+From: Christoph Lameter <clameter@sgi.com>
 
-Add another trivial helper for the sake of grep.  It also auto-documents the
-fact that ->parent != real_parent implies ->ptrace.
+Remove aliases of PG_xxx.  We can easily drop those now and alias by
+specifying the PG_xxx flag in the macro that generates the functions.
 
-No functional changes.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    4 ++++
- kernel/exit.c          |    9 ++++-----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |   10 +++-------
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper
-+++ a/include/linux/ptrace.h
-@@ -98,6 +98,10 @@ extern void ptrace_untrace(struct task_s
- extern int ptrace_may_attach(struct task_struct *task);
- extern int __ptrace_may_attach(struct task_struct *task);
+diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
++++ a/include/linux/page-flags.h
+@@ -77,8 +77,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+-	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
+-	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+@@ -87,8 +85,6 @@ enum pageflags {
+ 	PG_swapcache,		/* Swap page: swp_entry_t in private */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+-	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
+ 	PG_buddy,		/* Page is free, on buddy lists */
  
-+static inline int ptrace_reparented(struct task_struct *child)
-+{
-+	return child->real_parent != child->parent;
-+}
- static inline void ptrace_link(struct task_struct *child,
- 			       struct task_struct *new_parent)
+ #if (BITS_PER_LONG > 32)
+@@ -154,8 +150,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
+ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
++PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
++PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
+@@ -170,7 +166,7 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
+ 
+ /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
+ 
+ static inline int PageHighMem(struct page *page)
  {
-diff -puN kernel/exit.c~ptrace-introduce-ptrace_reparented-helper kernel/exit.c
---- a/kernel/exit.c~ptrace-introduce-ptrace_reparented-helper
-+++ a/kernel/exit.c
-@@ -632,7 +632,7 @@ reparent_thread(struct task_struct *p, s
- 	if (unlikely(traced)) {
- 		/* Preserve ptrace links if someone else is tracing this child.  */
- 		list_del_init(&p->ptrace_list);
--		if (p->parent != p->real_parent)
-+		if (ptrace_reparented(p))
- 			list_add(&p->ptrace_list, &p->real_parent->ptrace_children);
- 	} else {
- 		/* If this child is being traced, then we're the one tracing it
-@@ -799,8 +799,8 @@ static void exit_notify(struct task_stru
- 	 * only has special meaning to our real parent.
- 	 */
- 	if (!task_detached(tsk) && thread_group_empty(tsk)) {
--		int signal = (tsk->parent == tsk->real_parent)
--				? tsk->exit_signal : SIGCHLD;
-+		int signal = ptrace_reparented(tsk) ?
-+				SIGCHLD : tsk->exit_signal;
- 		do_notify_parent(tsk, signal);
- 	} else if (tsk->ptrace) {
- 		do_notify_parent(tsk, SIGCHLD);
-@@ -1203,8 +1203,7 @@ static int wait_task_zombie(struct task_
- 		return 0;
- 	}
+diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
+--- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
++++ a/mm/page_alloc.c
+@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
  
--	/* traced means p->ptrace, but not vice versa */
--	traced = (p->real_parent != p->parent);
-+	traced = ptrace_reparented(p);
- 
- 	if (likely(!traced)) {
- 		struct signal_struct *psig;
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+fix-mempolicy-reference-counting-bugs.patch
+git-unionfs.patch
+git-slub.patch
+slab-pass-correct-flags-to-kmem_getpages.patch
+ntfs-fix-nommu-build.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
