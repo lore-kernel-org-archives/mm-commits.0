@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-update-numa-memory-policy-documentation.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:26:39 -0800
-Message-ID: <200803060126.m261Qdm3002047@imap1.linux-foundation.org>
+Subject: + pageflags-use-an-enum-for-the-flags.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:31:11 -0800
+Message-ID: <200803060131.m261VBqw002192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760670AbYCFB1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:27:37 -0500
+	by vger.kernel.org with ESMTP id S1753837AbYCFBcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, pj@sgi.com, randy.dunlap@oracle.com
+Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com
 
 
 The patch titled
-     mempolicy: update NUMA memory policy documentation
+     pageflags: use an enum for the flags
 has been added to the -mm tree.  Its filename is
-     mempolicy-update-numa-memory-policy-documentation.patch
+     pageflags-use-an-enum-for-the-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,225 +33,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: update NUMA memory policy documentation
-From: David Rientjes <rientjes@google.com>
+Subject: pageflags: use an enum for the flags
+From: Christoph Lameter <clameter@sgi.com>
 
-Updates Documentation/vm/numa_memory_policy.txt and
-Documentation/filesystems/tmpfs.txt to describe optional mempolicy mode flags.
+Use an enum to ease the maintenance of page flags.  This is going to change
+the numbering from 0 to 18.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Paul Jackson <pj@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt     |   12 ++
- Documentation/vm/numa_memory_policy.txt |  131 ++++++++++++++++------
- 2 files changed, 112 insertions(+), 31 deletions(-)
+ include/linux/page-flags.h |   56 ++++++++++++++++-------------------
+ 1 file changed, 26 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -92,6 +92,18 @@ NodeList format is a comma-separated lis
- a range being two hyphen-separated decimal numbers, the smallest and
- largest node numbers in the range.  For example, mpol=bind:0-3,5,7,9-15
- 
-+NUMA memory allocation policies have optional flags that can be used in
-+conjunction with their modes.  These optional flags can be specified
-+when tmpfs is mounted by appending them to the mode before the NodeList.
-+See Documentation/vm/numa_memory_policy.txt for a list of all available
-+memory allocation policy mode flags.
-+
-+	=static		is equivalent to	MPOL_F_STATIC_NODES
-+	=relative	is equivalent to	MPOL_F_RELATIVE_NODES
-+
-+For example, mpol=bind=static:NodeList, is the equivalent of an
-+allocation policy of MPOL_BIND | MPOL_F_STATIC_NODES.
-+
- Note that trying to mount a tmpfs with an mpol option will fail if the
- running kernel does not support NUMA; and will fail if its nodelist
- specifies a node which is not online.  If your system relies on that
-diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation
-+++ a/Documentation/vm/numa_memory_policy.txt
-@@ -135,9 +135,11 @@ most general to most specific:
- 
- Components of Memory Policies
- 
--    A Linux memory policy is a tuple consisting of a "mode" and an optional set
--    of nodes.  The mode determine the behavior of the policy, while the
--    optional set of nodes can be viewed as the arguments to the behavior.
-+    A Linux memory policy consists of a "mode", optional mode flags, and an
-+    optional set of nodes.  The mode determines the behavior of the policy,
-+    the optional mode flags determine the behavior of the mode, and the
-+    optional set of nodes can be viewed as the arguments to the policy
-+    behavior.
- 
-    Internally, memory policies are implemented by a reference counted
-    structure, struct mempolicy.  Details of this structure will be discussed
-@@ -179,7 +181,8 @@ Components of Memory Policies
- 	    on a non-shared region of the address space.  However, see
- 	    MPOL_PREFERRED below.
- 
--	    The Default mode does not use the optional set of nodes.
-+	    It is an error for the set of nodes specified for this policy to
-+	    be non-empty.
- 
- 	MPOL_BIND:  This mode specifies that memory must come from the
- 	set of nodes specified by the policy.  Memory will be allocated from
-@@ -226,6 +229,80 @@ Components of Memory Policies
- 	    the temporary interleaved system default policy works in this
- 	    mode.
- 
-+   Linux memory policy supports the following optional mode flags:
-+
-+	MPOL_F_STATIC_NODES:  This flag specifies that the nodemask passed by
-+	the user should not be remapped if the task or VMA's set of allowed
-+	nodes changes after the memory policy has been defined.
-+
-+	    Without this flag, anytime a mempolicy is rebound because of a
-+	    change in the set of allowed nodes, the node (Preferred) or
-+	    nodemask (Bind, Interleave) is remapped to the new set of
-+	    allowed nodes.  This may result in nodes being used that were
-+	    previously undesired.
-+
-+	    With this flag, if the user-specified nodes overlap with the
-+	    nodes allowed by the task's cpuset, then the memory policy is
-+	    applied to their intersection.  If the two sets of nodes do not
-+	    overlap, the Default policy is used.
-+
-+	    For example, consider a task that is attached to a cpuset with
-+	    mems 1-3 that sets an Interleave policy over the same set.  If
-+	    the cpuset's mems change to 3-5, the Interleave will now occur
-+	    over nodes 3, 4, and 5.  With this flag, however, since only node
-+	    3 is allowed from the user's nodemask, the "interleave" only
-+	    occurs over that node.  If no nodes from the user's nodemask are
-+	    now allowed, the Default behavior is used.
-+
-+	    MPOL_F_STATIC_NODES cannot be used with MPOL_F_RELATIVE_NODES.
-+
-+	MPOL_F_RELATIVE_NODES:  This flag specifies that the nodemask passed
-+	by the user will be mapped relative to the set of the task or VMA's
-+	set of allowed nodes.  The kernel stores the user-passed nodemask,
-+	and if the allowed nodes changes, then that original nodemask will
-+	be remapped relative to the new set of allowed nodes.
-+
-+	    Without this flag (and without MPOL_F_STATIC_NODES), anytime a
-+	    mempolicy is rebound because of a change in the set of allowed
-+	    nodes, the node (Preferred) or nodemask (Bind, Interleave) is
-+	    remapped to the new set of allowed nodes.  That remap may not
-+	    preserve the relative nature of the user's passed nodemask to its
-+	    set of allowed nodes upon successive rebinds: a nodemask of
-+	    1,3,5 may be remapped to 7-9 and then to 1-3 if the set of
-+	    allowed nodes is restored to its original state.
-+
-+	    With this flag, the remap is done so that the node numbers from
-+	    the user's passed nodemask are relative to the set of allowed
-+	    nodes.  In other words, if nodes 0, 2, and 4 are set in the user's
-+	    nodemask, the policy will be effected over the first (and in the
-+	    Bind or Interleave case, the third and fifth) nodes in the set of
-+	    allowed nodes.  The nodemask passed by the user represents nodes
-+	    relative to task or VMA's set of allowed nodes.
-+
-+	    If the user's nodemask includes nodes that are outside the range
-+	    of the new set of allowed nodes (for example, node 5 is set in
-+	    the user's nodemask when the set of allowed nodes is only 0-3),
-+	    then the remap wraps around to the beginning of the nodemask and,
-+	    if not already set, sets the node in the mempolicy nodemask.
-+
-+	    For example, consider a task that is attached to a cpuset with
-+	    mems 2-5 that sets an Interleave policy over the same set with
-+	    MPOL_F_RELATIVE_NODES.  If the cpuset's mems change to 3-7, the
-+	    interleave now occurs over nodes 3,5-6.  If the cpuset's mems
-+	    then change to 0,2-3,5, then the interleave occurs over nodes
-+	    0,3,5.
-+
-+	    Thanks to the consistent remapping, applications preparing
-+	    nodemasks to specify memory policies using this flag should
-+	    disregard their current, actual cpuset imposed memory placement
-+	    and prepare the nodemask as if they were always located on
-+	    memory nodes 0 to N-1, where N is the number of memory nodes the
-+	    policy is intended to manage.  Let the kernel then remap to the
-+	    set of memory nodes allowed by the task's cpuset, as that may
-+	    change over time.
-+
-+	    MPOL_F_RELATIVE_NODES cannot be used with MPOL_F_STATIC_NODES.
-+
- MEMORY POLICY APIs
- 
- Linux supports 3 system calls for controlling memory policy.  These APIS
-@@ -246,7 +323,9 @@ Set [Task] Memory Policy:
- 	Set's the calling task's "task/process memory policy" to mode
- 	specified by the 'mode' argument and the set of nodes defined
- 	by 'nmask'.  'nmask' points to a bit mask of node ids containing
--	at least 'maxnode' ids.
-+	at least 'maxnode' ids.  Optional mode flags may be passed by
-+	combining the 'mode' argument with the flag (for example:
-+	MPOL_INTERLEAVE | MPOL_F_STATIC_NODES).
- 
- 	See the set_mempolicy(2) man page for more details
- 
-@@ -298,29 +377,19 @@ MEMORY POLICIES AND CPUSETS
- Memory policies work within cpusets as described above.  For memory policies
- that require a node or set of nodes, the nodes are restricted to the set of
- nodes whose memories are allowed by the cpuset constraints.  If the nodemask
--specified for the policy contains nodes that are not allowed by the cpuset, or
--the intersection of the set of nodes specified for the policy and the set of
--nodes with memory is the empty set, the policy is considered invalid
--and cannot be installed.
+diff -puN include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags
++++ a/include/linux/page-flags.h
+@@ -67,35 +67,29 @@
+  * FLAGS_RESERVED which defines the width of the fields section
+  * (see linux/mmzone.h).  New flags must _not_ overlap with this area.
+  */
+-#define PG_locked	 	 0	/* Page is locked. Don't touch. */
+-#define PG_error		 1
+-#define PG_referenced		 2
+-#define PG_uptodate		 3
 -
--The interaction of memory policies and cpusets can be problematic for a
--couple of reasons:
+-#define PG_dirty	 	 4
+-#define PG_lru			 5
+-#define PG_active		 6
+-#define PG_slab			 7	/* slab debug (Suparna wants this) */
 -
--1) the memory policy APIs take physical node id's as arguments.  As mentioned
--   above, it is illegal to specify nodes that are not allowed in the cpuset.
--   The application must query the allowed nodes using the get_mempolicy()
--   API with the MPOL_F_MEMS_ALLOWED flag to determine the allowed nodes and
--   restrict itself to those nodes.  However, the resources available to a
--   cpuset can be changed by the system administrator, or a workload manager
--   application, at any time.  So, a task may still get errors attempting to
--   specify policy nodes, and must query the allowed memories again.
+-#define PG_owner_priv_1		 8	/* Owner use. If pagecache, fs may use*/
+-#define PG_arch_1		 9
+-#define PG_reserved		10
+-#define PG_private		11	/* If pagecache, has fs-private data */
 -
--2) when tasks in two cpusets share access to a memory region, such as shared
--   memory segments created by shmget() of mmap() with the MAP_ANONYMOUS and
--   MAP_SHARED flags, and any of the tasks install shared policy on the region,
--   only nodes whose memories are allowed in both cpusets may be used in the
--   policies.  Obtaining this information requires "stepping outside" the
--   memory policy APIs to use the cpuset information and requires that one
--   know in what cpusets other task might be attaching to the shared region.
--   Furthermore, if the cpusets' allowed memory sets are disjoint, "local"
--   allocation is the only valid policy.
-+specified for the policy contains nodes that are not allowed by the cpuset and
-+MPOL_F_RELATIVE_NODES is not used, the intersection of the set of nodes
-+specified for the policy and the set of nodes with memory is used.  If the
-+result is the empty set, the policy is considered invalid and cannot be
-+installed.  If MPOL_F_RELATIVE_NODES is used, the policy's nodes are mapped
-+onto and folded into the task's set of allowed nodes as previously described.
-+
-+The interaction of memory policies and cpusets can be problematic when tasks
-+in two cpusets share access to a memory region, such as shared memory segments
-+created by shmget() of mmap() with the MAP_ANONYMOUS and MAP_SHARED flags, and
-+any of the tasks install shared policy on the region, only nodes whose
-+memories are allowed in both cpusets may be used in the policies.  Obtaining
-+this information requires "stepping outside" the memory policy APIs to use the
-+cpuset information and requires that one know in what cpusets other task might
-+be attaching to the shared region.  Furthermore, if the cpusets' allowed
-+memory sets are disjoint, "local" allocation is the only valid policy.
+-#define PG_writeback		12	/* Page is under writeback */
+-#define PG_compound		14	/* Part of a compound page */
+-#define PG_swapcache		15	/* Swap page: swp_entry_t in private */
+-
+-#define PG_mappedtodisk		16	/* Has blocks allocated on-disk */
+-#define PG_reclaim		17	/* To be reclaimed asap */
+-#define PG_buddy		19	/* Page is free, on buddy lists */
+-
+-/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-#define PG_readahead		PG_reclaim /* Reminder to do async read-ahead */
+-
+-/* PG_owner_priv_1 users should have descriptive aliases */
+-#define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+-#define PG_pinned		PG_owner_priv_1	/* Xen pinned pagetable */
++enum pageflags {
++	PG_locked,		/* Page is locked. Don't touch. */
++	PG_error,
++	PG_referenced,
++	PG_uptodate,
++	PG_dirty,
++	PG_lru,
++	PG_active,
++	PG_slab,
++	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
++	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
++	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
++	PG_arch_1,
++	PG_reserved,
++	PG_private,		/* If pagecache, has fs-private data */
++	PG_writeback,		/* Page is under writeback */
++	PG_compound,		/* A compound page */
++	PG_swapcache,		/* Swap page: swp_entry_t in private */
++	PG_mappedtodisk,	/* Has blocks allocated on-disk */
++	PG_reclaim,		/* To be reclaimed asap */
++	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
++	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
++	PG_buddy,		/* Page is free, on buddy lists */
+ 
+ #if (BITS_PER_LONG > 32)
+ /*
+@@ -105,8 +99,10 @@
+  * 64 bit  |           FIELDS             | ??????         FLAGS         |
+  *         63                            32                              0
+  */
+-#define PG_uncached		31	/* Page has been mapped as uncached */
++	PG_uncached = 31,		/* Page has been mapped as uncached */
+ #endif
++	NR_PAGEFLAGS
++};
+ 
+ /*
+  * Manipulation of page state flags
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 fix-mempolicy-reference-counting-bugs.patch
+git-unionfs.patch
+git-slub.patch
+slab-pass-correct-flags-to-kmem_getpages.patch
+ntfs-fix-nommu-build.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
 mempolicy-convert-mpol-constants-to-enum.patch
 mempolicy-support-optional-mode-flags.patch
 mempolicy-add-mpol_f_static_nodes-flag.patch
 mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
 mempolicy-add-mpol_f_relative_nodes-flag.patch
 mempolicy-update-numa-memory-policy-documentation.patch
-make-cgroup_enable_task_cg_lists-static.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
