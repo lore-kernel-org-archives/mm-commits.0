@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer.patch added to -mm tree
-Date: Wed, 05 Mar 2008 22:40:01 -0800
-Message-ID: <200803060640.m266e1kY013056@imap1.linux-foundation.org>
+Subject: + uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch added to -mm tree
+Date: Wed, 05 Mar 2008 22:52:56 -0800
+Message-ID: <200803060652.m266qulw013522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59105 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757519AbYCFGki (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 01:40:38 -0500
+	by vger.kernel.org with ESMTP id S1758831AbYCFGx3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 01:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, adaplas@pol.net
+Cc: spock@gentoo.org, adaplas@pol.net
 
 
 The patch titled
-     atmel_lcdfb: don't initialize a pre-allocated framebuffer
+     uvesafb: don't treat valid modes returned byfb_find_mode() as errors
 has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer.patch
+     uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,131 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: don't initialize a pre-allocated framebuffer
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: uvesafb: don't treat valid modes returned byfb_find_mode() as errors
+From: Michal Januszewski <spock@gentoo.org>
 
-If the user specified a fixed framebuffer address on the command line, it may
-have been initialized already with a splash image or something, so we
-shouldn't clear it.
+Don't treat valid modes returned by fb_find_mode() (best-fit modes,
+default modes or the first valid mode) as errors.
 
-Therefore, we should only initialize the framebuffer if we allocated it
-ourselves.  This patch also updates the AVR32 setup code to clear the
-framebuffer if it allocated it itself, i.e.  the user didn't provide a fixed
-address or the reservation failed.
-
-I've updated the at91 platform code as well so that it initializes the
-framebuffer if it is located in SRAM, but I haven't tested that it actually
-works.
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/at91sam9261_devices.c |   11 +++++++++++
- arch/arm/mach-at91/at91sam9rl_devices.c  |   14 ++++++++++++++
- arch/avr32/kernel/setup.c                |    2 ++
- drivers/video/atmel_lcdfb.c              |    8 +++++++-
- 4 files changed, 34 insertions(+), 1 deletion(-)
+ drivers/video/uvesafb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9261_devices.c
---- a/arch/arm/mach-at91/at91sam9261_devices.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer
-+++ a/arch/arm/mach-at91/at91sam9261_devices.c
-@@ -539,6 +539,17 @@ void __init at91_add_device_lcdc(struct 
- 	at91_set_B_periph(AT91_PIN_PB28, 0);	/* LCDD23 */
- #endif
- 
-+	if (ARRAY_SIZE(lcdc_resources) > 2) {
-+		void __iomem *fb;
-+		struct resource *fb_res = &lcdc_resources[2];
-+		size_t fb_len = fb_res->end - fb_res->start + 1;
-+
-+		fb = ioremap_writecombine(fb_res->start, fb_len);
-+		if (fb) {
-+			memset(fb, 0, fb_len);
-+			iounmap(fb, fb_len);
-+		}
-+	}
- 	lcdc_data = *data;
- 	platform_device_register(&at91_lcdc_device);
- }
-diff -puN arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer arch/arm/mach-at91/at91sam9rl_devices.c
---- a/arch/arm/mach-at91/at91sam9rl_devices.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer
-+++ a/arch/arm/mach-at91/at91sam9rl_devices.c
-@@ -376,6 +376,20 @@ void __init at91_add_device_lcdc(struct 
- 	at91_set_B_periph(AT91_PIN_PC24, 0);	/* LCDD22 */
- 	at91_set_B_periph(AT91_PIN_PC25, 0);	/* LCDD23 */
- 
-+#ifdef CONFIG_FB_INTSRAM
-+	{
-+		void __iomem *fb;
-+		struct resource *fb_res = &lcdc_resources[2];
-+		size_t fb_len = fb_res->end - fb_res->start + 1;
-+
-+		fb = ioremap_writecombine(fb_res->start, fb_len);
-+		if (fb) {
-+			memset(fb, 0, fb_len);
-+			iounmap(fb, fb_len);
-+		}
-+	}
-+#endif
-+
- 	lcdc_data = *data;
- 	platform_device_register(&at91_lcdc_device);
- }
-diff -puN arch/avr32/kernel/setup.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer arch/avr32/kernel/setup.c
---- a/arch/avr32/kernel/setup.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer
-+++ a/arch/avr32/kernel/setup.c
-@@ -273,6 +273,8 @@ static int __init early_parse_fbmem(char
- 			printk(KERN_WARNING
- 			       "Failed to allocate framebuffer memory\n");
- 			fbmem_size = 0;
-+		} else {
-+			memset(__va(fbmem_start), 0, fbmem_size);
- 		}
+diff -puN drivers/video/uvesafb.c~uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors
++++ a/drivers/video/uvesafb.c
+@@ -885,7 +885,7 @@ static int __devinit uvesafb_vbe_init_mo
  	}
  
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -250,6 +250,8 @@ static int atmel_lcdfb_alloc_video_memor
- 		return -ENOMEM;
- 	}
- 
-+	memset(info->screen_base, 0, info->fix.smem_len);
-+
- 	return 0;
- }
- 
-@@ -634,7 +636,6 @@ static int __init atmel_lcdfb_init_fbinf
- 	struct fb_info *info = sinfo->info;
- 	int ret = 0;
- 
--	memset_io(info->screen_base, 0, info->fix.smem_len);
- 	info->var.activate |= FB_ACTIVATE_FORCE | FB_ACTIVATE_NOW;
- 
- 	dev_info(info->device,
-@@ -764,6 +765,11 @@ static int __init atmel_lcdfb_probe(stru
- 		info->screen_base = ioremap(info->fix.smem_start, info->fix.smem_len);
- 		if (!info->screen_base)
- 			goto release_intmem;
-+
-+		/*
-+		 * Don't clear the framebuffer -- someone may have set
-+		 * up a splash image.
-+		 */
- 	} else {
- 		/* alocate memory buffer */
- 		ret = atmel_lcdfb_alloc_video_memory(sinfo);
+ 	/* fb_find_mode() failed */
+-	if (i == 0 || i >= 3) {
++	if (i == 0) {
+ 		info->var.xres = 640;
+ 		info->var.yres = 480;
+ 		mode = (struct fb_videomode *)
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-git-avr32.patch
-taint-kernel-after-warn_oncondition.patch
-atmel_lcdfb-dont-initialize-a-pre-allocated-framebuffer.patch
-atmel_tc-library.patch
-atmel_tc-library-update.patch
-atmel_tc-clocksource-clockevent-code.patch
-atmel_tc-clocksource-clockevent-code-update.patch
+fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
+uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch
 
