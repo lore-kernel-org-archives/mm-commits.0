@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-chc-fix-shadowed-variable-warnings.patch added to -mm tree
-Date: Wed, 05 Mar 2008 16:15:53 -0800
-Message-ID: <200803060015.m260Frgh029253@imap1.linux-foundation.org>
+Subject: + scsi-stc-make-class-attributes-static.patch added to -mm tree
+Date: Wed, 05 Mar 2008 16:15:48 -0800
+Message-ID: <200803060015.m260FmKL029232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755544AbYCFAQZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:16:25 -0500
+	by vger.kernel.org with ESMTP id S1759488AbYCFAQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:16:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com
+Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, Kai.Makisara@kolumbus.fi
 
 
 The patch titled
-     scsi: ch.c fix shadowed variable warnings
+     scsi: st.c make class attributes static
 has been added to the -mm tree.  Its filename is
-     scsi-chc-fix-shadowed-variable-warnings.patch
+     scsi-stc-make-class-attributes-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: ch.c fix shadowed variable warnings
+Subject: scsi: st.c make class attributes static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-err shadows the array of errors in this driver, switch to ch_err
-drivers/scsi/ch.c:271:6: warning: symbol 'err' shadows an earlier one
-drivers/scsi/ch.c:116:3: originally declared here
-
-cmd shadows the argument to this function, switch to ch_cmd
-drivers/scsi/ch.c:724:11: warning: symbol 'cmd' shadows an earlier one
-drivers/scsi/ch.c:596:20: originally declared here
-
-Small code cleanup as well in if() statement.
+Fixes sparse warnings:
+drivers/scsi/st.c:4299:1: warning: symbol 'class_device_attr_defined' was not declared. Should it be static?
+drivers/scsi/st.c:4310:1: warning: symbol 'class_device_attr_default_blksize' was not declared. Should it be static?
+drivers/scsi/st.c:4323:1: warning: symbol 'class_device_attr_default_density' was not declared. Should it be static?
+drivers/scsi/st.c:4334:1: warning: symbol 'class_device_attr_default_compression' was not declared. Should it be static?
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Kai Makisara <Kai.Makisara@kolumbus.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ch.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/scsi/st.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings drivers/scsi/ch.c
---- a/drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings
-+++ a/drivers/scsi/ch.c
-@@ -268,16 +268,16 @@ ch_read_element_status(scsi_changer *ch,
- static int
- ch_init_elem(scsi_changer *ch)
- {
--	int err;
-+	int ch_err;
- 	u_char cmd[6];
- 
- 	vprintk("INITIALIZE ELEMENT STATUS, may take some time ...\n");
- 	memset(cmd,0,sizeof(cmd));
- 	cmd[0] = INITIALIZE_ELEMENT_STATUS;
- 	cmd[1] = ch->device->lun << 5;
--	err = ch_do_scsi(ch, cmd, NULL, 0, DMA_NONE);
-+	ch_err = ch_do_scsi(ch, cmd, NULL, 0, DMA_NONE);
- 	vprintk("... finished\n");
--	return err;
-+	return ch_err;
+diff -puN drivers/scsi/st.c~scsi-stc-make-class-attributes-static drivers/scsi/st.c
+--- a/drivers/scsi/st.c~scsi-stc-make-class-attributes-static
++++ a/drivers/scsi/st.c
+@@ -4328,7 +4328,7 @@ static ssize_t st_defined_show(struct cl
+ 	return l;
  }
  
- static int
-@@ -721,7 +721,7 @@ static long ch_ioctl(struct file *file,
- 	case CHIOGELEM:
- 	{
- 		struct changer_get_element cge;
--		u_char  cmd[12];
-+		u_char  ch_cmd[12];
- 		u_char  *buffer;
- 		unsigned int elem;
- 		int     result,i;
-@@ -739,17 +739,18 @@ static long ch_ioctl(struct file *file,
- 		mutex_lock(&ch->lock);
+-CLASS_DEVICE_ATTR(defined, S_IRUGO, st_defined_show, NULL);
++static CLASS_DEVICE_ATTR(defined, S_IRUGO, st_defined_show, NULL);
  
- 	voltag_retry:
--		memset(cmd,0,sizeof(cmd));
--		cmd[0] = READ_ELEMENT_STATUS;
--		cmd[1] = (ch->device->lun << 5) |
--			(ch->voltags ? 0x10 : 0) |
--			ch_elem_to_typecode(ch,elem);
--		cmd[2] = (elem >> 8) & 0xff;
--		cmd[3] = elem        & 0xff;
--		cmd[5] = 1;
--		cmd[9] = 255;
-+		memset(ch_cmd,0,sizeof(ch_cmd));
-+		ch_cmd[0] = READ_ELEMENT_STATUS;
-+		ch_cmd[1] = (ch->device->lun << 5) |
-+			    (ch->voltags ? 0x10 : 0) |
-+			    ch_elem_to_typecode(ch,elem);
-+		ch_cmd[2] = (elem >> 8) & 0xff;
-+		ch_cmd[3] = elem        & 0xff;
-+		ch_cmd[5] = 1;
-+		ch_cmd[9] = 255;
+ static ssize_t st_defblk_show(struct class_device *class_dev, char *buf)
+ {
+@@ -4339,7 +4339,7 @@ static ssize_t st_defblk_show(struct cla
+ 	return l;
+ }
  
--		if (0 == (result = ch_do_scsi(ch, cmd, buffer, 256, DMA_FROM_DEVICE))) {
-+		result = ch_do_scsi(ch, ch_cmd, buffer, 256, DMA_FROM_DEVICE);
-+		if (!result) {
- 			cge.cge_status = buffer[18];
- 			cge.cge_flags = 0;
- 			if (buffer[18] & CESTATUS_EXCEPT) {
+-CLASS_DEVICE_ATTR(default_blksize, S_IRUGO, st_defblk_show, NULL);
++static CLASS_DEVICE_ATTR(default_blksize, S_IRUGO, st_defblk_show, NULL);
+ 
+ static ssize_t st_defdensity_show(struct class_device *class_dev, char *buf)
+ {
+@@ -4352,7 +4352,7 @@ static ssize_t st_defdensity_show(struct
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(default_density, S_IRUGO, st_defdensity_show, NULL);
++static CLASS_DEVICE_ATTR(default_density, S_IRUGO, st_defdensity_show, NULL);
+ 
+ static ssize_t st_defcompression_show(struct class_device *class_dev, char *buf)
+ {
+@@ -4363,7 +4363,7 @@ static ssize_t st_defcompression_show(st
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(default_compression, S_IRUGO, st_defcompression_show, NULL);
++static CLASS_DEVICE_ATTR(default_compression, S_IRUGO, st_defcompression_show, NULL);
+ 
+ static ssize_t st_options_show(struct class_device *class_dev, char *buf)
+ {
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
