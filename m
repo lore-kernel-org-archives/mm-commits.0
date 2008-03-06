@@ -1,81 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-check-for-return-value-from-sb_set_blocksize.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:28:29 -0800
-Message-ID: <200803062228.m26MSTO0021188@imap1.linux-foundation.org>
+Subject: - ext4-fix-mount-option-parsing.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:43 -0800
+Message-ID: <200803062223.m26MNhSv020910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751419AbYCFW3h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:29:37 -0500
+	by vger.kernel.org with ESMTP id S1756714AbYCFWaO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: jbacik@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: check for return value from sb_set_blocksize
+     ext4: fix mount option parsing
 has been removed from the -mm tree.  Its filename was
-     ext4-check-for-return-value-from-sb_set_blocksize.patch
+     ext4-fix-mount-option-parsing.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: check for return value from sb_set_blocksize
-From: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Subject: ext4: fix mount option parsing
+From: Josef Bacik <jbacik@redhat.com>
 
-sb_set_blocksize validates whether the specfied block size can be used by
-the file system.  Make sure we fail mounting the file system if the
-blocksize specfied cannot be used.
+The "resize" option won't be noticed as it comes after the NULL option, so if
+you try to mount (or in this case remount) with that option it won't be
+recognized.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ fs/ext4/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~ext4-check-for-return-value-from-sb_set_blocksize fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-check-for-return-value-from-sb_set_blocksize
+diff -puN fs/ext4/super.c~ext4-fix-mount-option-parsing fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-mount-option-parsing
 +++ a/fs/ext4/super.c
-@@ -1793,7 +1793,6 @@ static int ext4_fill_super (struct super
- 	unsigned long def_mount_opts;
- 	struct inode *root;
- 	int blocksize;
--	int hblock;
- 	int db_count;
- 	int i;
- 	int needs_recovery;
-@@ -1947,20 +1946,16 @@ static int ext4_fill_super (struct super
- 		goto failed_mount;
- 	}
+@@ -950,8 +950,8 @@ static match_table_t tokens = {
+ 	{Opt_stripe, "stripe=%u"},
+ 	{Opt_delalloc, "delalloc"},
+ 	{Opt_nodelalloc, "nodelalloc"},
+-	{Opt_err, NULL},
+ 	{Opt_resize, "resize"},
++	{Opt_err, NULL},
+ };
  
--	hblock = bdev_hardsect_size(sb->s_bdev);
- 	if (sb->s_blocksize != blocksize) {
--		/*
--		 * Make sure the blocksize for the filesystem is larger
--		 * than the hardware sectorsize for the machine.
--		 */
--		if (blocksize < hblock) {
--			printk(KERN_ERR "EXT4-fs: blocksize %d too small for "
--			       "device blocksize %d.\n", blocksize, hblock);
-+
-+		/* Validate the filesystem blocksize */
-+		if (!sb_set_blocksize(sb, blocksize)) {
-+			printk(KERN_ERR "EXT4-fs: bad block size %d.\n",
-+					blocksize);
- 			goto failed_mount;
- 		}
- 
- 		brelse (bh);
--		sb_set_blocksize(sb, blocksize);
- 		logical_sb_block = sb_block * EXT4_MIN_BLOCK_SIZE;
- 		offset = do_div(logical_sb_block, blocksize);
- 		bh = sb_bread(sb, logical_sb_block);
+ static ext4_fsblk_t get_sb_block(void **data)
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
+jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd-fix-possible-journal-overflow-issues.patch
 
