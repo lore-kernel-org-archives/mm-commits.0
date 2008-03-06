@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-use-proper-page-flag-functions-in-xen.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:31:19 -0800
-Message-ID: <200803060131.m261VJi2002232@imap1.linux-foundation.org>
+Subject: + pageflags-introduce-macros-to-generate-page-flag-functions.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:31:15 -0800
+Message-ID: <200803060131.m261VGRx002224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43792 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756930AbYCFBcl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:41 -0500
+	by vger.kernel.org with ESMTP id S1758265AbYCFBcj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:32:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.c
 
 
 The patch titled
-     pageflags: use proper page flag functions in Xen
+     pageflags: introduce macros to generate page flag functions
 has been added to the -mm tree.  Its filename is
-     pageflags-use-proper-page-flag-functions-in-xen.patch
+     pageflags-introduce-macros-to-generate-page-flag-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: use proper page flag functions in Xen
+Subject: pageflags: introduce macros to generate page flag functions
 From: Christoph Lameter <clameter@sgi.com>
 
-Xen uses bitops to manipulate page flags.  Make it use proper page flag
-functions.
+Introduce a set of macros that generate functions to handle page flags.
+
+A page flag function group typically starts with either
+
+	SETPAGEFLAG(<part of function name>,<part of PG_ flagname>)
+
+to create a set of page flag operations that are atomic. Or
+
+	__SETPAGEFLAG(<part of function name>,<part of PG_ flagname)
+
+to create a set of page flag operations that are not atomic.
+
+Then additional operations can be added using the following macros
+
+TESTSCFLAG		Create additional atomic test-and-set and
+			test-and-clear functions
+
+TESTSETFLAG		Create additional test and set function
+TESTCLEARFLAG		Create additional test and clear function
+SETPAGEFLAG		Create additional atomic set function
+CLEARPAGEFLAG		Create additional atomic clear function
+__TESTPAGEFLAG		Create additional non atomic set function
+__SETPAGEFLAG		Create additional non atomic clear function
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
@@ -49,43 +70,60 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu.c         |    4 ++--
- include/linux/page-flags.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |   41 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff -puN arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/arch/x86/xen/mmu.c
-@@ -425,7 +425,7 @@ static void xen_do_pin(unsigned level, u
- 
- static int pin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_set_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestSetPagePinned(page);
- 	int flush;
- 
- 	if (pgfl)
-@@ -506,7 +506,7 @@ void __init xen_mark_init_mm_pinned(void
- 
- static int unpin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_clear_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestClearPagePinned(page);
- 
- 	if (pgfl && !PageHighMem(page)) {
- 		void *pt = lowmem_page_address(page);
-diff -puN include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen
+diff -puN include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions
 +++ a/include/linux/page-flags.h
-@@ -155,7 +155,7 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
- PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
-+PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
- PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
- PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
- 	__SETPAGEFLAG(Private, private)
+@@ -105,6 +105,47 @@ enum pageflags {
+ };
+ 
+ /*
++ * Macros to create function definitions for page flags
++ */
++#define TESTPAGEFLAG(uname, lname)					\
++static inline int Page##uname(struct page *page) 			\
++			{ return test_bit(PG_##lname, page); }
++
++#define SETPAGEFLAG(uname, lname)					\
++static inline void SetPage##uname(struct page *page)			\
++			{ set_bit(PG_##lname, page); }
++
++#define CLEARPAGEFLAG(uname, lname)					\
++static inline void ClearPage##uname(struct page *page)			\
++			{ clear_bit(PG_##lname, page); }
++
++#define __SETPAGEFLAG(uname, lname)					\
++static inline void __SetPage##uname(struct page *page)			\
++			{ __set_bit(PG_##lname, page); }
++
++#define __CLEARPAGEFLAG(uname, lname)					\
++static inline void __ClearPage##uname(struct page *page)		\
++			{ __clear_bit(PG_##lname, page); }
++
++#define TESTSETFLAG(uname, lname)					\
++static inline int TestSetPage##uname(struct page *page)			\
++		{ return test_and_set_bit(PG_##lname, &page->flags); }
++
++#define TESTCLEARFLAG(uname, lname)					\
++static inline int TestClearPage##uname(struct page *page)		\
++		{ return test_and_clear_bit(PG_##lname, &page->flags); }
++
++
++#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
++
++#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
++
++#define TESTSCFLAG(uname, lname)					\
++	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
++
++/*
+  * Manipulation of page state flags
+  */
+ #define PageLocked(page)		\
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
