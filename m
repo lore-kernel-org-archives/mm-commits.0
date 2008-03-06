@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:07 -0800
-Message-ID: <200803060350.m263o7PZ007329@imap1.linux-foundation.org>
+Subject: + md-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:09 -0800
+Message-ID: <200803060350.m263o9ku007332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756714AbYCFDuo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:44 -0500
+	by vger.kernel.org with ESMTP id S1756604AbYCFDun (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dwmw2@infradead.org
+Cc: harvey.harrison@gmail.com, neilb@suse.de
 
 
 The patch titled
-     mtd: replace remaining __FUNCTION__ occurrences
+     md: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     mtd-replace-remaining-__function__-occurrences.patch
+     md-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,345 +33,238 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: replace remaining __FUNCTION__ occurrences
+Subject: md: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |   12 ++++++------
- drivers/mtd/chips/cfi_cmdset_0020.c |   12 ++++++------
- drivers/mtd/devices/lart.c          |   16 ++++++++--------
- drivers/mtd/devices/m25p80.c        |    8 ++++----
- drivers/mtd/maps/bast-flash.c       |    4 ++--
- drivers/mtd/maps/pcmciamtd.c        |    2 +-
- drivers/mtd/maps/pmcmsp-flash.c     |    2 +-
- drivers/mtd/maps/tqm8xxl.c          |    6 +++---
- drivers/mtd/ubi/debug.h             |    2 +-
- drivers/mtd/ubi/ubi.h               |    4 ++--
- 10 files changed, 34 insertions(+), 34 deletions(-)
+ drivers/md/dm-uevent.c |   22 +++++++++++-----------
+ drivers/md/raid5.c     |   28 ++++++++++++++--------------
+ 2 files changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -384,7 +384,7 @@ read_pri_intelext(struct map_info *map, 
- 			if (extp_size > 4096) {
- 				printk(KERN_ERR
- 					"%s: cfi_pri_intelext is too fat\n",
--					__FUNCTION__);
-+					__func__);
- 				return NULL;
- 			}
- 			goto again;
-@@ -641,7 +641,7 @@ static int cfi_intelext_partition_fixup(
- 		if ((1 << partshift) < mtd->erasesize) {
- 			printk( KERN_ERR
- 				"%s: bad number of hw partitions (%d)\n",
--				__FUNCTION__, numparts);
-+				__func__, numparts);
- 			return -EINVAL;
+diff -puN drivers/md/dm-uevent.c~md-replace-remaining-__function__-occurrences drivers/md/dm-uevent.c
+--- a/drivers/md/dm-uevent.c~md-replace-remaining-__function__-occurrences
++++ a/drivers/md/dm-uevent.c
+@@ -78,7 +78,7 @@ static struct dm_uevent *dm_build_path_u
+ 
+ 	event = dm_uevent_alloc(md);
+ 	if (!event) {
+-		DMERR("%s: dm_uevent_alloc() failed", __FUNCTION__);
++		DMERR("%s: dm_uevent_alloc() failed", __func__);
+ 		goto err_nomem;
+ 	}
+ 
+@@ -86,32 +86,32 @@ static struct dm_uevent *dm_build_path_u
+ 
+ 	if (add_uevent_var(&event->ku_env, "DM_TARGET=%s", ti->type->name)) {
+ 		DMERR("%s: add_uevent_var() for DM_TARGET failed",
+-		      __FUNCTION__);
++		      __func__);
+ 		goto err_add;
+ 	}
+ 
+ 	if (add_uevent_var(&event->ku_env, "DM_ACTION=%s", dm_action)) {
+ 		DMERR("%s: add_uevent_var() for DM_ACTION failed",
+-		      __FUNCTION__);
++		      __func__);
+ 		goto err_add;
+ 	}
+ 
+ 	if (add_uevent_var(&event->ku_env, "DM_SEQNUM=%u",
+ 			   dm_next_uevent_seq(md))) {
+ 		DMERR("%s: add_uevent_var() for DM_SEQNUM failed",
+-		      __FUNCTION__);
++		      __func__);
+ 		goto err_add;
+ 	}
+ 
+ 	if (add_uevent_var(&event->ku_env, "DM_PATH=%s", path)) {
+-		DMERR("%s: add_uevent_var() for DM_PATH failed", __FUNCTION__);
++		DMERR("%s: add_uevent_var() for DM_PATH failed", __func__);
+ 		goto err_add;
+ 	}
+ 
+ 	if (add_uevent_var(&event->ku_env, "DM_NR_VALID_PATHS=%d",
+ 			   nr_valid_paths)) {
+ 		DMERR("%s: add_uevent_var() for DM_NR_VALID_PATHS failed",
+-		      __FUNCTION__);
++		      __func__);
+ 		goto err_add;
+ 	}
+ 
+@@ -146,25 +146,25 @@ void dm_send_uevents(struct list_head *e
+ 		if (dm_copy_name_and_uuid(event->md, event->name,
+ 					  event->uuid)) {
+ 			DMERR("%s: dm_copy_name_and_uuid() failed",
+-			      __FUNCTION__);
++			      __func__);
+ 			goto uevent_free;
  		}
  
-@@ -2013,7 +2013,7 @@ static int cfi_intelext_lock(struct mtd_
- 
- #ifdef DEBUG_LOCK_BITS
- 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
--	       __FUNCTION__, ofs, len);
-+	       __func__, ofs, len);
- 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
- 		ofs, len, NULL);
- #endif
-@@ -2023,7 +2023,7 @@ static int cfi_intelext_lock(struct mtd_
- 
- #ifdef DEBUG_LOCK_BITS
- 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
--	       __FUNCTION__, ret);
-+	       __func__, ret);
- 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
- 		ofs, len, NULL);
- #endif
-@@ -2037,7 +2037,7 @@ static int cfi_intelext_unlock(struct mt
- 
- #ifdef DEBUG_LOCK_BITS
- 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
--	       __FUNCTION__, ofs, len);
-+	       __func__, ofs, len);
- 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
- 		ofs, len, NULL);
- #endif
-@@ -2047,7 +2047,7 @@ static int cfi_intelext_unlock(struct mt
- 
- #ifdef DEBUG_LOCK_BITS
- 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
--	       __FUNCTION__, ret);
-+	       __func__, ret);
- 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
- 		ofs, len, NULL);
- #endif
-diff -puN drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0020.c
---- a/drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/chips/cfi_cmdset_0020.c
-@@ -445,7 +445,7 @@ static inline int do_write_buffer(struct
-  retry:
- 
- #ifdef DEBUG_CFI_FEATURES
--       printk("%s: chip->state[%d]\n", __FUNCTION__, chip->state);
-+       printk("%s: chip->state[%d]\n", __func__, chip->state);
- #endif
- 	spin_lock_bh(chip->mutex);
- 
-@@ -463,7 +463,7 @@ static inline int do_write_buffer(struct
- 		map_write(map, CMD(0x70), cmd_adr);
-                 chip->state = FL_STATUS;
- #ifdef DEBUG_CFI_FEATURES
--        printk("%s: 1 status[%x]\n", __FUNCTION__, map_read(map, cmd_adr));
-+	printk("%s: 1 status[%x]\n", __func__, map_read(map, cmd_adr));
- #endif
- 
- 	case FL_STATUS:
-@@ -591,7 +591,7 @@ static inline int do_write_buffer(struct
-         /* check for errors: 'lock bit', 'VPP', 'dead cell'/'unerased cell' or 'incorrect cmd' -- saw */
-         if (map_word_bitsset(map, status, CMD(0x3a))) {
- #ifdef DEBUG_CFI_FEATURES
--		printk("%s: 2 status[%lx]\n", __FUNCTION__, status.x[0]);
-+		printk("%s: 2 status[%lx]\n", __func__, status.x[0]);
- #endif
- 		/* clear status */
- 		map_write(map, CMD(0x50), cmd_adr);
-@@ -625,9 +625,9 @@ static int cfi_staa_write_buffers (struc
- 	ofs = to  - (chipnum << cfi->chipshift);
- 
- #ifdef DEBUG_CFI_FEATURES
--        printk("%s: map_bankwidth(map)[%x]\n", __FUNCTION__, map_bankwidth(map));
--        printk("%s: chipnum[%x] wbufsize[%x]\n", __FUNCTION__, chipnum, wbufsize);
--        printk("%s: ofs[%x] len[%x]\n", __FUNCTION__, ofs, len);
-+	printk("%s: map_bankwidth(map)[%x]\n", __func__, map_bankwidth(map));
-+	printk("%s: chipnum[%x] wbufsize[%x]\n", __func__, chipnum, wbufsize);
-+	printk("%s: ofs[%x] len[%x]\n", __func__, ofs, len);
- #endif
- 
-         /* Write buffer is worth it only if more than one word to write... */
-diff -puN drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/lart.c
---- a/drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/devices/lart.c
-@@ -275,7 +275,7 @@ static __u8 read8 (__u32 offset)
- {
-    volatile __u8 *data = (__u8 *) (FLASH_OFFSET + offset);
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n",__FUNCTION__,offset,*data);
-+   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n", __func__, offset, *data);
- #endif
-    return (*data);
- }
-@@ -284,7 +284,7 @@ static __u32 read32 (__u32 offset)
- {
-    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n",__FUNCTION__,offset,*data);
-+   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n", __func__, offset, *data);
- #endif
-    return (*data);
- }
-@@ -294,7 +294,7 @@ static void write32 (__u32 x,__u32 offse
-    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
-    *data = x;
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,*data);
-+   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, *data);
- #endif
- }
- 
-@@ -337,7 +337,7 @@ static inline int erase_block (__u32 off
-    __u32 status;
- 
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(): 0x%.8x\n",__FUNCTION__,offset);
-+   printk (KERN_DEBUG "%s(): 0x%.8x\n", __func__, offset);
- #endif
- 
-    /* erase and confirm */
-@@ -371,7 +371,7 @@ static int flash_erase (struct mtd_info 
-    int i,first;
- 
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n",__FUNCTION__,instr->addr,instr->len);
-+   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n", __func__, instr->addr, instr->len);
- #endif
- 
-    /* sanity checks */
-@@ -442,7 +442,7 @@ static int flash_erase (struct mtd_info 
- static int flash_read (struct mtd_info *mtd,loff_t from,size_t len,size_t *retlen,u_char *buf)
- {
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) from,len);
-+   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n", __func__, (__u32)from, len);
- #endif
- 
-    /* sanity checks */
-@@ -488,7 +488,7 @@ static inline int write_dword (__u32 off
-    __u32 status;
- 
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,x);
-+   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, x);
- #endif
- 
-    /* setup writing */
-@@ -524,7 +524,7 @@ static int flash_write (struct mtd_info 
-    int i,n;
- 
- #ifdef LART_DEBUG
--   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) to,len);
-+   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n", __func__, (__u32)to, len);
- #endif
- 
-    *retlen = 0;
-diff -puN drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/m25p80.c
---- a/drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/devices/m25p80.c
-@@ -151,7 +151,7 @@ static int wait_till_ready(struct m25p *
- static int erase_sector(struct m25p *flash, u32 offset)
- {
- 	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %dKiB at 0x%08x\n",
--			flash->spi->dev.bus_id, __FUNCTION__,
-+			flash->spi->dev.bus_id, __func__,
- 			flash->mtd.erasesize / 1024, offset);
- 
- 	/* Wait until finished previous write command. */
-@@ -188,7 +188,7 @@ static int m25p80_erase(struct mtd_info 
- 	u32 addr,len;
- 
- 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %d\n",
--			flash->spi->dev.bus_id, __FUNCTION__, "at",
-+			flash->spi->dev.bus_id, __func__, "at",
- 			(u32)instr->addr, instr->len);
- 
- 	/* sanity checks */
-@@ -240,7 +240,7 @@ static int m25p80_read(struct mtd_info *
- 	struct spi_message m;
- 
- 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
--			flash->spi->dev.bus_id, __FUNCTION__, "from",
-+			flash->spi->dev.bus_id, __func__, "from",
- 			(u32)from, len);
- 
- 	/* sanity checks */
-@@ -308,7 +308,7 @@ static int m25p80_write(struct mtd_info 
- 	struct spi_message m;
- 
- 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
--			flash->spi->dev.bus_id, __FUNCTION__, "to",
-+			flash->spi->dev.bus_id, __func__, "to",
- 			(u32)to, len);
- 
- 	if (retlen)
-diff -puN drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/bast-flash.c
---- a/drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/maps/bast-flash.c
-@@ -137,7 +137,7 @@ static int bast_flash_probe(struct platf
- 	if (info->map.size > AREA_MAXSIZE)
- 		info->map.size = AREA_MAXSIZE;
- 
--	pr_debug("%s: area %08lx, size %ld\n", __FUNCTION__,
-+	pr_debug("%s: area %08lx, size %ld\n", __func__,
- 		 info->map.phys, info->map.size);
- 
- 	info->area = request_mem_region(res->start, info->map.size,
-@@ -149,7 +149,7 @@ static int bast_flash_probe(struct platf
- 	}
- 
- 	info->map.virt = ioremap(res->start, info->map.size);
--	pr_debug("%s: virt at %08x\n", __FUNCTION__, (int)info->map.virt);
-+	pr_debug("%s: virt at %08x\n", __func__, (int)info->map.virt);
- 
- 	if (info->map.virt == 0) {
- 		printk(KERN_ERR PFX "failed to ioremap() region\n");
-diff -puN drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pcmciamtd.c
---- a/drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/maps/pcmciamtd.c
-@@ -33,7 +33,7 @@ MODULE_PARM_DESC(debug, "Set Debug Level
- #undef DEBUG
- #define DEBUG(n, format, arg...) \
- 	if (n <= debug) {	 \
--		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __FUNCTION__ , ## arg); \
-+		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __func__ , ## arg); \
- 	}
- 
- #else
-diff -puN drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pmcmsp-flash.c
---- a/drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/maps/pmcmsp-flash.c
-@@ -46,7 +46,7 @@ static struct mtd_partition **msp_parts;
- static struct map_info *msp_maps;
- static int fcnt;
- 
--#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n",__FUNCTION__,__LINE__)
-+#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n", __func__, __LINE__)
- 
- int __init init_msp_flash(void)
- {
-diff -puN drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/tqm8xxl.c
---- a/drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/maps/tqm8xxl.c
-@@ -124,7 +124,7 @@ int __init init_tqm_mtd(void)
- 	//request maximum flash size address space
- 	start_scan_addr = ioremap(flash_addr, flash_size);
- 	if (!start_scan_addr) {
--		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __FUNCTION__, flash_addr);
-+		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __func__, flash_addr);
- 		return -EIO;
- 	}
- 
-@@ -132,7 +132,7 @@ int __init init_tqm_mtd(void)
- 		if(mtd_size >= flash_size)
- 			break;
- 
--		printk(KERN_INFO "%s: chip probing count %d\n", __FUNCTION__, idx);
-+		printk(KERN_INFO "%s: chip probing count %d\n", __func__, idx);
- 
- 		map_banks[idx] = kzalloc(sizeof(struct map_info), GFP_KERNEL);
- 		if(map_banks[idx] == NULL) {
-@@ -178,7 +178,7 @@ int __init init_tqm_mtd(void)
- 			mtd_size += mtd_banks[idx]->size;
- 			num_banks++;
- 
--			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __FUNCTION__, num_banks,
-+			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __func__, num_banks,
- 			mtd_banks[idx]->name, mtd_banks[idx]->size);
+ 		if (add_uevent_var(&event->ku_env, "DM_NAME=%s", event->name)) {
+ 			DMERR("%s: add_uevent_var() for DM_NAME failed",
+-			      __FUNCTION__);
++			      __func__);
+ 			goto uevent_free;
  		}
+ 
+ 		if (add_uevent_var(&event->ku_env, "DM_UUID=%s", event->uuid)) {
+ 			DMERR("%s: add_uevent_var() for DM_UUID failed",
+-			      __FUNCTION__);
++			      __func__);
+ 			goto uevent_free;
+ 		}
+ 
+ 		r = kobject_uevent_env(kobj, event->action, event->ku_env.envp);
+ 		if (r)
+-			DMERR("%s: kobject_uevent_env failed", __FUNCTION__);
++			DMERR("%s: kobject_uevent_env failed", __func__);
+ uevent_free:
+ 		dm_uevent_free(event);
  	}
-diff -puN drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/debug.h
---- a/drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/ubi/debug.h
-@@ -41,7 +41,7 @@
- /* Generic debugging message */
- #define dbg_msg(fmt, ...)                                    \
- 	printk(KERN_DEBUG "UBI DBG (pid %d): %s: " fmt "\n", \
--	       current->pid, __FUNCTION__, ##__VA_ARGS__)
-+	       current->pid, __func__, ##__VA_ARGS__)
+@@ -187,7 +187,7 @@ void dm_path_uevent(enum dm_uevent_type 
+ 	struct dm_uevent *event;
  
- #define ubi_dbg_dump_stack() dump_stack()
+ 	if (event_type >= ARRAY_SIZE(_dm_uevent_type_names)) {
+-		DMERR("%s: Invalid event_type %d", __FUNCTION__, event_type);
++		DMERR("%s: Invalid event_type %d", __func__, event_type);
+ 		goto out;
+ 	}
  
-diff -puN drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/ubi.h
---- a/drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences
-+++ a/drivers/mtd/ubi/ubi.h
-@@ -53,10 +53,10 @@
- #define ubi_msg(fmt, ...) printk(KERN_NOTICE "UBI: " fmt "\n", ##__VA_ARGS__)
- /* UBI warning messages */
- #define ubi_warn(fmt, ...) printk(KERN_WARNING "UBI warning: %s: " fmt "\n", \
--				  __FUNCTION__, ##__VA_ARGS__)
-+				  __func__, ##__VA_ARGS__)
- /* UBI error messages */
- #define ubi_err(fmt, ...) printk(KERN_ERR "UBI error: %s: " fmt "\n", \
--				 __FUNCTION__, ##__VA_ARGS__)
-+				 __func__, ##__VA_ARGS__)
+diff -puN drivers/md/raid5.c~md-replace-remaining-__function__-occurrences drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-replace-remaining-__function__-occurrences
++++ a/drivers/md/raid5.c
+@@ -433,7 +433,7 @@ static void ops_run_io(struct stripe_hea
  
- /* Lowest number PEBs reserved for bad PEB handling */
- #define MIN_RESEVED_PEBS 2
+ 			bi->bi_bdev = rdev->bdev;
+ 			pr_debug("%s: for %llu schedule op %ld on disc %d\n",
+-				__FUNCTION__, (unsigned long long)sh->sector,
++				__func__, (unsigned long long)sh->sector,
+ 				bi->bi_rw, i);
+ 			atomic_inc(&sh->count);
+ 			bi->bi_sector = sh->sector + rdev->data_offset;
+@@ -520,7 +520,7 @@ static void ops_complete_biofill(void *s
+ 	raid5_conf_t *conf = sh->raid_conf;
+ 	int i;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	/* clear completed biofills */
+@@ -569,7 +569,7 @@ static void ops_run_biofill(struct strip
+ 	raid5_conf_t *conf = sh->raid_conf;
+ 	int i;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	for (i = sh->disks; i--; ) {
+@@ -600,7 +600,7 @@ static void ops_complete_compute5(void *
+ 	int target = sh->ops.target;
+ 	struct r5dev *tgt = &sh->dev[target];
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	set_bit(R5_UPTODATE, &tgt->flags);
+@@ -625,7 +625,7 @@ ops_run_compute5(struct stripe_head *sh,
+ 	int i;
+ 
+ 	pr_debug("%s: stripe %llu block: %d\n",
+-		__FUNCTION__, (unsigned long long)sh->sector, target);
++		__func__, (unsigned long long)sh->sector, target);
+ 	BUG_ON(!test_bit(R5_Wantcompute, &tgt->flags));
+ 
+ 	for (i = disks; i--; )
+@@ -653,7 +653,7 @@ static void ops_complete_prexor(void *st
+ {
+ 	struct stripe_head *sh = stripe_head_ref;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	set_bit(STRIPE_OP_PREXOR, &sh->ops.complete);
+@@ -670,7 +670,7 @@ ops_run_prexor(struct stripe_head *sh, s
+ 	/* existing parity data subtracted */
+ 	struct page *xor_dest = xor_srcs[count++] = sh->dev[pd_idx].page;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	for (i = disks; i--; ) {
+@@ -699,7 +699,7 @@ ops_run_biodrain(struct stripe_head *sh,
+ 	 */
+ 	int prexor = test_bit(STRIPE_OP_PREXOR, &pending);
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	for (i = disks; i--; ) {
+@@ -744,7 +744,7 @@ static void ops_complete_postxor(void *s
+ {
+ 	struct stripe_head *sh = stripe_head_ref;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	set_bit(STRIPE_OP_POSTXOR, &sh->ops.complete);
+@@ -757,7 +757,7 @@ static void ops_complete_write(void *str
+ 	struct stripe_head *sh = stripe_head_ref;
+ 	int disks = sh->disks, i, pd_idx = sh->pd_idx;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	for (i = disks; i--; ) {
+@@ -787,7 +787,7 @@ ops_run_postxor(struct stripe_head *sh, 
+ 	unsigned long flags;
+ 	dma_async_tx_callback callback;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	/* check if prexor is active which means only process blocks
+@@ -837,7 +837,7 @@ static void ops_complete_check(void *str
+ 	struct stripe_head *sh = stripe_head_ref;
+ 	int pd_idx = sh->pd_idx;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	if (test_and_clear_bit(STRIPE_OP_MOD_DMA_CHECK, &sh->ops.pending) &&
+@@ -859,7 +859,7 @@ static void ops_run_check(struct stripe_
+ 	int count = 0, pd_idx = sh->pd_idx, i;
+ 	struct page *xor_dest = xor_srcs[count++] = sh->dev[pd_idx].page;
+ 
+-	pr_debug("%s: stripe %llu\n", __FUNCTION__,
++	pr_debug("%s: stripe %llu\n", __func__,
+ 		(unsigned long long)sh->sector);
+ 
+ 	for (i = disks; i--; ) {
+@@ -1759,7 +1759,7 @@ handle_write_operations5(struct stripe_h
+ 	locked++;
+ 
+ 	pr_debug("%s: stripe %llu locked: %d pending: %lx\n",
+-		__FUNCTION__, (unsigned long long)sh->sector,
++		__func__, (unsigned long long)sh->sector,
+ 		locked, sh->ops.pending);
+ 
+ 	return locked;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
