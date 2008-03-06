@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:16:35 -0800
-Message-ID: <200803060116.m261Ga4c001544@imap1.linux-foundation.org>
+Subject: + devscontrol-provide-functions-to-manipulate-char-device-mappings.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:39 -0800
+Message-ID: <200803060116.m261GeSg001553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765886AbYCFBRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:17:13 -0500
+	by vger.kernel.org with ESMTP id S1765733AbYCFBRL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:17:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, s
 
 
 The patch titled
-     devscontrol: make use of permissions, returned by kobj_lookup
+     devscontrol: provide functions to manipulate char device mappings
 has been added to the -mm tree.  Its filename is
-     devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
+     devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,17 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: make use of permissions, returned by kobj_lookup
+Subject: devscontrol: provide functions to manipulate char device mappings
 From: Pavel Emelyanov <xemul@openvz.org>
 
-Now check the requesting permissions against the granted (with the
-dev_t-to-kobj map) ones.
+The character devices currently have a global map for devices and their own
+locks and callbacks for device probing.  So here are the functions that
+provide the way to play with character devices maps.
 
-The tricky place is chrdev_open - it caches the struct cdev on inode and thus,
-we have to perform lookup each time if we are in a restricted mapping.
-
-The task_cdev_map and task_bdev_map provide the map which the current task is
-in, but now they just return NULL, which means, that the task is not in any.
+They are cdev_map_init/cdev_map_fini to create/destroy one,
+cdev_add_to_map/cdev_del_from_map to map/unmap devices, and cdev_iterate_map
+for uniformity.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -54,120 +53,99 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c               |    8 +++++++-
- fs/block_dev.c              |    8 ++++++++
- fs/char_dev.c               |   18 ++++++++++++++++--
- include/linux/devscontrol.h |   12 ++++++++++++
- 4 files changed, 43 insertions(+), 3 deletions(-)
+ fs/char_dev.c        |   63 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/cdev.h |    7 ++++
+ 2 files changed, 70 insertions(+)
 
-diff -puN block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup block/genhd.c
---- a/block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/block/genhd.c
-@@ -8,6 +8,7 @@
- #include <linux/kdev_t.h>
- #include <linux/kernel.h>
- #include <linux/blkdev.h>
-+#include <linux/devscontrol.h>
- #include <linux/init.h>
- #include <linux/spinlock.h>
- #include <linux/seq_file.h>
-@@ -208,10 +209,15 @@ void unlink_gendisk(struct gendisk *disk
-  */
- struct gendisk *get_gendisk(dev_t devt, mode_t *mode, int *part)
- {
-+	struct kobj_map *map;
- 	struct kobject *kobj;
- 	struct device *dev;
+diff -puN fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings fs/char_dev.c
+--- a/fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings
++++ a/fs/char_dev.c
+@@ -476,6 +476,69 @@ int cdev_add(struct cdev *p, dev_t dev, 
+ 	return kobj_map(cdev_map, dev, count, NULL, exact_match, exact_lock, p);
+ }
  
--	kobj = kobj_lookup(bdev_map, devt, mode, part);
-+	map = task_bdev_map(current);
-+	if (map == NULL)
-+		map = bdev_map;
++#ifdef CONFIG_CGROUP_DEVS
++int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
++{
++	int tmp;
++	struct kobject *k;
++	struct cdev *c;
 +
-+	kobj = kobj_lookup(map, devt, mode, part);
- 	if (kobj == NULL)
- 		return NULL;
- 
-diff -puN fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/block_dev.c
---- a/fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/fs/block_dev.c
-@@ -940,6 +940,14 @@ static int do_open(struct block_device *
- 		bdput(bdev);
- 		return ret;
- 	}
++	k = kobj_lookup(cdev_map, dev, NULL, &tmp);
++	if (k == NULL)
++		return -ENODEV;
 +
-+	if ((file->f_mode & mode) != file->f_mode) {
-+		unlock_kernel();
-+		bdput(bdev);
-+		put_disk(disk);
-+		return -EACCES;
++	c = container_of(k, struct cdev, kobj);
++	tmp = kobj_remap(map, dev, mode, all ? MINORMASK : 1, NULL,
++			exact_match, exact_lock, c);
++	if (tmp < 0) {
++		cdev_put(c);
++		return tmp;
 +	}
 +
- 	owner = disk->fops->owner;
- 
- 	mutex_lock_nested(&bdev->bd_mutex, for_part);
-diff -puN fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/char_dev.c
---- a/fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/fs/char_dev.c
-@@ -22,6 +22,8 @@
- #include <linux/mutex.h>
- #include <linux/backing-dev.h>
- 
-+#include <linux/devscontrol.h>
-+
- #ifdef CONFIG_KMOD
- #include <linux/kmod.h>
- #endif
-@@ -361,19 +363,31 @@ static int chrdev_open(struct inode *ino
- 	struct cdev *p;
- 	struct cdev *new = NULL;
- 	int ret = 0;
-+	struct kobj_map *map;
-+
-+	map = task_cdev_map(current);
-+	if (map == NULL)
-+		map = cdev_map;
- 
- 	spin_lock(&cdev_lock);
- 	p = inode->i_cdev;
--	if (!p) {
-+	if (!p || map != cdev_map) {
- 		struct kobject *kobj;
- 		int idx;
- 		mode_t mode;
- 
- 		spin_unlock(&cdev_lock);
--		kobj = kobj_lookup(cdev_map, inode->i_rdev, &mode, &idx);
-+		kobj = kobj_lookup(map, inode->i_rdev, &mode, &idx);
- 		if (!kobj)
- 			return -ENXIO;
- 		new = container_of(kobj, struct cdev, kobj);
-+		BUG_ON(p != NULL && p != new);
-+
-+		if ((filp->f_mode & mode) != filp->f_mode) {
-+			cdev_put(new);
-+			return -EACCES;
-+		}
-+
- 		spin_lock(&cdev_lock);
- 		p = inode->i_cdev;
- 		if (!p) {
-diff -puN /dev/null include/linux/devscontrol.h
---- /dev/null
-+++ a/include/linux/devscontrol.h
-@@ -0,0 +1,12 @@
-+#ifndef __DEVS_CONTROL_H__
-+#define __DEVS_CONTROL_H__
-+static inline struct kobj_map *task_cdev_map(struct task_struct *tsk)
-+{
-+	return NULL;
++	return 0;
 +}
 +
-+static inline struct kobj_map *task_bdev_map(struct task_struct *tsk)
++int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
 +{
-+	return NULL;
++	int tmp;
++	struct kobject *k;
++	struct cdev *c;
++
++	k = kobj_lookup(map, dev, NULL, &tmp);
++	if (k == NULL)
++		return -ENODEV;
++
++	c = container_of(k, struct cdev, kobj);
++	kobj_unmap(map, dev, all ? MINORMASK : 1);
++
++	/*
++	 * one put for the kobj_lookup above and one for
++	 * the kobj_lookup in cdev_add_to_map
++	 */
++	cdev_put(c);
++	cdev_put(c);
++	return 0;
++}
++
++void cdev_iterate_map(struct kobj_map *map,
++		int (*fn)(dev_t, int, mode_t, void *), void *x)
++{
++	kobj_map_iterate(map, fn, x);
++}
++
++static struct kobject *base_probe(dev_t dev, int *part, void *data);
++
++struct kobj_map *cdev_map_init(void)
++{
++	return kobj_map_init(base_probe, &chrdevs_lock);
++}
++
++void cdev_map_fini(struct kobj_map *map)
++{
++	kobj_map_fini(map);
 +}
 +#endif
++
+ static void cdev_unmap(dev_t dev, unsigned count)
+ {
+ 	kobj_unmap(cdev_map, dev, count);
+diff -puN include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings include/linux/cdev.h
+--- a/include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings
++++ a/include/linux/cdev.h
+@@ -33,5 +33,12 @@ void cd_forget(struct inode *);
+ 
+ extern struct backing_dev_info directly_mappable_cdev_bdi;
+ 
++struct kobj_map;
++int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode);
++int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
++struct kobj_map *cdev_map_init(void);
++void cdev_map_fini(struct kobj_map *map);
++void cdev_iterate_map(struct kobj_map *,
++		int (*fn)(dev_t, int, mode_t, void *), void *);
+ #endif
+ #endif
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
