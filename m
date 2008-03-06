@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ieee1394-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:03 -0800
-Message-ID: <200803060350.m263o3vR007321@imap1.linux-foundation.org>
+Subject: + drivers-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:22 -0800
+Message-ID: <200803060350.m263oMjf007353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756631AbYCFDux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:53 -0500
+	by vger.kernel.org with ESMTP id S1756723AbYCFDvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, stefanr@s5r6.in-berlin.de
+Cc: harvey.harrison@gmail.com, ben-linux@fluff.org
 
 
 The patch titled
-     ieee1394: replace remaining __FUNCTION__ occurrences
+     drivers: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     ieee1394-replace-remaining-__function__-occurrences.patch
+     drivers-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,205 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ieee1394: replace remaining __FUNCTION__ occurrences
+Subject: drivers: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ieee1394/highlevel.c     |    6 +++---
- drivers/ieee1394/ieee1394_core.c |    2 +-
- drivers/ieee1394/ohci1394.c      |    2 +-
- drivers/ieee1394/pcilynx.c       |   12 ++++++------
- drivers/ieee1394/sbp2.c          |    4 ++--
- 5 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/gpio/gpiolib.c         |    4 ++--
+ drivers/hwmon/ads7828.c        |    2 +-
+ drivers/mfd/asic3.c            |    6 +++---
+ drivers/mfd/sm501.c            |    4 ++--
+ drivers/parport/parport_gsc.c  |    4 ++--
+ drivers/parport/parport_pc.c   |    8 ++++----
+ drivers/sbus/char/cpwatchdog.c |    2 +-
+ drivers/sbus/char/uctrl.c      |    4 ++--
+ drivers/w1/w1_log.h            |    2 +-
+ 9 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/highlevel.c
---- a/drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences
-+++ a/drivers/ieee1394/highlevel.c
-@@ -339,7 +339,7 @@ u64 hpsb_allocate_and_register_addrspace
- 	if ((alignment & 3) || (alignment > 0x800000000000ULL) ||
- 	    (hweight64(alignment) != 1)) {
- 		HPSB_ERR("%s called with invalid alignment: 0x%048llx",
--			 __FUNCTION__, (unsigned long long)alignment);
-+			 __func__, (unsigned long long)alignment);
- 		return retval;
+diff -puN drivers/gpio/gpiolib.c~drivers-replace-remaining-__function__-occurrences drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/gpio/gpiolib.c
+@@ -300,7 +300,7 @@ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+ 	if (status)
+ 		pr_debug("%s: gpio-%d status %d\n",
+-			__FUNCTION__, gpio, status);
++			__func__, gpio, status);
+ 	return status;
+ }
+ EXPORT_SYMBOL_GPL(gpio_direction_input);
+@@ -338,7 +338,7 @@ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+ 	if (status)
+ 		pr_debug("%s: gpio-%d status %d\n",
+-			__FUNCTION__, gpio, status);
++			__func__, gpio, status);
+ 	return status;
+ }
+ EXPORT_SYMBOL_GPL(gpio_direction_output);
+diff -puN drivers/hwmon/ads7828.c~drivers-replace-remaining-__function__-occurrences drivers/hwmon/ads7828.c
+--- a/drivers/hwmon/ads7828.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/hwmon/ads7828.c
+@@ -224,7 +224,7 @@ static int ads7828_detect(struct i2c_ada
+ 			if (in_data & 0xF000) {
+ 				printk(KERN_DEBUG
+ 				"%s : Doesn't look like an ads7828 device\n",
+-				__FUNCTION__);
++				__func__);
+ 				goto exit_free;
+ 			}
+ 		}
+diff -puN drivers/mfd/asic3.c~drivers-replace-remaining-__function__-occurrences drivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/mfd/asic3.c
+@@ -132,7 +132,7 @@ static void asic3_irq_demux(unsigned int
+ 
+ 	if (iter >= MAX_ASIC_ISR_LOOPS)
+ 		printk(KERN_ERR "%s: interrupt processing overrun\n",
+-		       __FUNCTION__);
++		       __func__);
+ }
+ 
+ static inline int asic3_irq_to_bank(struct asic3 *asic, int irq)
+@@ -409,7 +409,7 @@ int asic3_gpio_get_value(struct asic3 *a
+ 		return asic3_get_gpio_d(asic, Status) & mask;
+ 	default:
+ 		printk(KERN_ERR "%s: invalid GPIO value 0x%x",
+-		       __FUNCTION__, gpio);
++		       __func__, gpio);
+ 		return -EINVAL;
+ 	}
+ }
+@@ -437,7 +437,7 @@ void asic3_gpio_set_value(struct asic3 *
+ 		return;
+ 	default:
+ 		printk(KERN_ERR "%s: invalid GPIO value 0x%x",
+-		       __FUNCTION__, gpio);
++		       __func__, gpio);
+ 		return;
+ 	}
+ }
+diff -puN drivers/mfd/sm501.c~drivers-replace-remaining-__function__-occurrences drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/mfd/sm501.c
+@@ -349,11 +349,11 @@ int sm501_unit_power(struct device *dev,
+ 	mode &= 3;		/* get current power mode */
+ 
+ 	if (unit >= ARRAY_SIZE(sm->unit_power)) {
+-		dev_err(dev, "%s: bad unit %d\n", __FUNCTION__, unit);
++		dev_err(dev, "%s: bad unit %d\n", __func__, unit);
+ 		goto already;
  	}
  
-@@ -354,7 +354,7 @@ u64 hpsb_allocate_and_register_addrspace
- 	if (((start|end) & ~align_mask) || (start >= end) ||
- 	    (end > CSR1212_ALL_SPACE_END)) {
- 		HPSB_ERR("%s called with invalid addresses "
--			 "(start = %012Lx  end = %012Lx)", __FUNCTION__,
-+			 "(start = %012Lx  end = %012Lx)", __func__,
- 			 (unsigned long long)start,(unsigned long long)end);
- 		return retval;
- 	}
-@@ -422,7 +422,7 @@ int hpsb_register_addrspace(struct hpsb_
+-	dev_dbg(sm->dev, "%s: unit %d, cur %d, to %d\n", __FUNCTION__, unit,
++	dev_dbg(sm->dev, "%s: unit %d, cur %d, to %d\n", __func__, unit,
+ 		sm->unit_power[unit], to);
  
- 	if (((start|end) & 3) || (start >= end) ||
- 	    (end > CSR1212_ALL_SPACE_END)) {
--		HPSB_ERR("%s called with invalid addresses", __FUNCTION__);
-+		HPSB_ERR("%s called with invalid addresses", __func__);
- 		return 0;
- 	}
+ 	if (to == 0 && sm->unit_power[unit] == 0) {
+diff -puN drivers/parport/parport_gsc.c~drivers-replace-remaining-__function__-occurrences drivers/parport/parport_gsc.c
+--- a/drivers/parport/parport_gsc.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/parport/parport_gsc.c
+@@ -365,11 +365,11 @@ static int __devinit parport_init_chip(s
+ 	if (boot_cpu_data.cpu_type > pcxt && !pdc_add_valid(port+4)) {
  
-diff -puN drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ieee1394_core.c
---- a/drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences
-+++ a/drivers/ieee1394/ieee1394_core.c
-@@ -242,7 +242,7 @@ int hpsb_bus_reset(struct hpsb_host *hos
+ 		/* Initialize bidirectional-mode (0x10) & data-tranfer-mode #1 (0x20) */
+-		printk("%s: initialize bidirectional-mode.\n", __FUNCTION__);
++		printk("%s: initialize bidirectional-mode.\n", __func__);
+ 		parport_writeb ( (0x10 + 0x20), port + 4);
+ 
+ 	} else {
+-		printk("%s: enhanced parport-modes not supported.\n", __FUNCTION__);
++		printk("%s: enhanced parport-modes not supported.\n", __func__);
+ 	}
+ 	
+ 	p = parport_gsc_probe_port(port, 0, dev->irq,
+diff -puN drivers/parport/parport_pc.c~drivers-replace-remaining-__function__-occurrences drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/parport/parport_pc.c
+@@ -1415,7 +1415,7 @@ static void __devinit winbond_check(int 
  {
- 	if (host->in_bus_reset) {
- 		HPSB_NOTICE("%s called while bus reset already in progress",
--			    __FUNCTION__);
-+			    __func__);
- 		return 1;
+ 	int devid,devrev,oldid,x_devid,x_devrev,x_oldid;
+ 
+-	if (!request_region(io, 3, __FUNCTION__))
++	if (!request_region(io, 3, __func__))
+ 		return;
+ 
+ 	/* First probe without key */
+@@ -1449,7 +1449,7 @@ static void __devinit winbond_check2(int
+ {
+         int devid,devrev,oldid,x_devid,x_devrev,x_oldid;
+ 
+-	if (!request_region(io, 3, __FUNCTION__))
++	if (!request_region(io, 3, __func__))
+ 		return;
+ 
+ 	/* First probe without the key */
+@@ -1482,7 +1482,7 @@ static void __devinit smsc_check(int io,
+ {
+         int id,rev,oldid,oldrev,x_id,x_rev,x_oldid,x_oldrev;
+ 
+-	if (!request_region(io, 3, __FUNCTION__))
++	if (!request_region(io, 3, __func__))
+ 		return;
+ 
+ 	/* First probe without the key */
+@@ -1547,7 +1547,7 @@ static void __devinit detect_and_report_
+ 	u8 r;
+ 	if (verbose_probing)
+ 		printk(KERN_DEBUG "IT8705 Super-IO detection, now testing port 2E ...\n");
+-	if (!request_region(0x2e, 1, __FUNCTION__))
++	if (!request_region(0x2e, 1, __func__))
+ 		return;
+ 	outb(0x87, 0x2e);
+ 	outb(0x01, 0x2e);
+diff -puN drivers/sbus/char/cpwatchdog.c~drivers-replace-remaining-__function__-occurrences drivers/sbus/char/cpwatchdog.c
+--- a/drivers/sbus/char/cpwatchdog.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/sbus/char/cpwatchdog.c
+@@ -637,7 +637,7 @@ static int wd_inittimer(int whichdog)
+ 			break;
+ 		default:
+ 			printk("%s: %s: invalid watchdog id: %i\n",
+-				WD_OBPNAME, __FUNCTION__, whichdog);
++				WD_OBPNAME, __func__, whichdog);
+ 			return(1);
+ 	}
+ 	if(0 != misc_register(whichmisc))
+diff -puN drivers/sbus/char/uctrl.c~drivers-replace-remaining-__function__-occurrences drivers/sbus/char/uctrl.c
+--- a/drivers/sbus/char/uctrl.c~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/sbus/char/uctrl.c
+@@ -393,13 +393,13 @@ static int __init ts102_uctrl_init(void)
+ 	err = request_irq(driver->irq, uctrl_interrupt, 0, "uctrl", driver);
+ 	if (err) {
+ 		printk("%s: unable to register irq %d\n",
+-		       __FUNCTION__, driver->irq);
++		       __func__, driver->irq);
+ 		return err;
  	}
  
-diff -puN drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ohci1394.c
---- a/drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences
-+++ a/drivers/ieee1394/ohci1394.c
-@@ -708,7 +708,7 @@ static void insert_packet(struct ti_ohci
-                                 /* FIXME: do something about it */
-                                 PRINT(KERN_ERR,
-                                       "%s: packet data addr: %p size %Zd bytes "
--                                      "cross page boundary", __FUNCTION__,
-+				      "cross page boundary", __func__,
-                                       packet->data, packet->data_size);
-                         }
+ 	if (misc_register(&uctrl_dev)) {
+ 		printk("%s: unable to get misc minor %d\n",
+-		       __FUNCTION__, uctrl_dev.minor);
++		       __func__, uctrl_dev.minor);
+ 		free_irq(driver->irq, driver);
+ 		return -ENODEV;
+ 	}
+diff -puN drivers/w1/w1_log.h~drivers-replace-remaining-__function__-occurrences drivers/w1/w1_log.h
+--- a/drivers/w1/w1_log.h~drivers-replace-remaining-__function__-occurrences
++++ a/drivers/w1/w1_log.h
+@@ -30,7 +30,7 @@
+ #  define assert(expr) \
+         if(unlikely(!(expr))) {				        \
+         printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n",	\
+-        #expr,__FILE__,__FUNCTION__,__LINE__);		        \
++	#expr, __FILE__, __func__, __LINE__);		        \
+         }
  #endif
-diff -puN drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/pcilynx.c
---- a/drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences
-+++ a/drivers/ieee1394/pcilynx.c
-@@ -226,7 +226,7 @@ static int get_phy_reg(struct ti_lynx *l
-         if (addr > 15) {
-                 PRINT(KERN_ERR, lynx->id,
-                       "%s: PHY register address %d out of range",
--		      __FUNCTION__, addr);
-+		      __func__, addr);
-                 return -1;
-         }
- 
-@@ -238,7 +238,7 @@ static int get_phy_reg(struct ti_lynx *l
- 
-                 if (i > 10000) {
-                         PRINT(KERN_ERR, lynx->id, "%s: runaway loop, aborting",
--			      __FUNCTION__);
-+			      __func__);
-                         retval = -1;
-                         break;
-                 }
-@@ -261,13 +261,13 @@ static int set_phy_reg(struct ti_lynx *l
- 
-         if (addr > 15) {
-                 PRINT(KERN_ERR, lynx->id,
--                      "%s: PHY register address %d out of range", __FUNCTION__, addr);
-+		      "%s: PHY register address %d out of range", __func__, addr);
-                 return -1;
-         }
- 
-         if (val > 0xff) {
-                 PRINT(KERN_ERR, lynx->id,
--                      "%s: PHY register value %d out of range", __FUNCTION__, val);
-+		      "%s: PHY register value %d out of range", __func__, val);
-                 return -1;
-         }
- 
-@@ -287,7 +287,7 @@ static int sel_phy_reg_page(struct ti_ly
- 
-         if (page > 7) {
-                 PRINT(KERN_ERR, lynx->id,
--                      "%s: PHY page %d out of range", __FUNCTION__, page);
-+		      "%s: PHY page %d out of range", __func__, page);
-                 return -1;
-         }
- 
-@@ -309,7 +309,7 @@ static int sel_phy_reg_port(struct ti_ly
- 
-         if (port > 15) {
-                 PRINT(KERN_ERR, lynx->id,
--                      "%s: PHY port %d out of range", __FUNCTION__, port);
-+		      "%s: PHY port %d out of range", __func__, port);
-                 return -1;
-         }
- 
-diff -puN drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/sbp2.c
---- a/drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences
-+++ a/drivers/ieee1394/sbp2.c
-@@ -610,7 +610,7 @@ static struct sbp2_command_info *sbp2uti
- 		cmd->Current_SCpnt = Current_SCpnt;
- 		list_add_tail(&cmd->list, &lu->cmd_orb_inuse);
- 	} else
--		SBP2_ERR("%s: no orbs available", __FUNCTION__);
-+		SBP2_ERR("%s: no orbs available", __func__);
- 	spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
- 	return cmd;
- }
-@@ -1289,7 +1289,7 @@ static int sbp2_set_busy_timeout(struct 
- 
- 	data = cpu_to_be32(SBP2_BUSY_TIMEOUT_VALUE);
- 	if (hpsb_node_write(lu->ne, SBP2_BUSY_TIMEOUT_ADDRESS, &data, 4))
--		SBP2_ERR("%s error", __FUNCTION__);
-+		SBP2_ERR("%s error", __func__);
- 	return 0;
- }
  
 _
 
