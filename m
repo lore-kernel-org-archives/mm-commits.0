@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:16:33 -0800
-Message-ID: <200803060116.m261GX9W001541@imap1.linux-foundation.org>
+Subject: + devscontrol-provide-functions-to-manipulate-block-device-mappings.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:41 -0800
+Message-ID: <200803060116.m261GgbF001556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764947AbYCFBQw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:52 -0500
+	by vger.kernel.org with ESMTP id S1765326AbYCFBQ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, s
 
 
 The patch titled
-     devscontrol: make kobj_lookup() return the mapping's permissions
+     devscontrol: provide functions to manipulate block device mappings
 has been added to the -mm tree.  Its filename is
-     devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
+     devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: make kobj_lookup() return the mapping's permissions
+Subject: devscontrol: provide functions to manipulate block device mappings
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The kobj_lookup() searches the kobject by its dev_t.  Since this mapping is
-going to be restricted with permissions, make the kobj_lookup() return the
-mapping's permissions.
-
-Currently the mode returned is unused.
+This routines were already done for char devices, these ones are for block
+devices.  Everything is the same, but the locks, probe and match callbacks and
+kobj-to-device conversions.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -51,114 +49,105 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c            |    4 ++--
- drivers/base/map.c       |    8 ++++++--
- fs/block_dev.c           |    3 ++-
- fs/char_dev.c            |    4 +++-
- include/linux/genhd.h    |    2 +-
- include/linux/kobj_map.h |    2 +-
- 6 files changed, 15 insertions(+), 8 deletions(-)
+ block/genhd.c         |   67 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/genhd.h |    8 ++++
+ 2 files changed, 75 insertions(+)
 
-diff -puN block/genhd.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions block/genhd.c
---- a/block/genhd.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
+diff -puN block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings block/genhd.c
+--- a/block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings
 +++ a/block/genhd.c
-@@ -206,12 +206,12 @@ void unlink_gendisk(struct gendisk *disk
-  * This function gets the structure containing partitioning
-  * information for the given device @dev.
-  */
--struct gendisk *get_gendisk(dev_t devt, int *part)
-+struct gendisk *get_gendisk(dev_t devt, mode_t *mode, int *part)
- {
- 	struct kobject *kobj;
- 	struct device *dev;
- 
--	kobj = kobj_lookup(bdev_map, devt, part);
-+	kobj = kobj_lookup(bdev_map, devt, mode, part);
- 	if (kobj == NULL)
- 		return NULL;
- 
-diff -puN drivers/base/map.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions drivers/base/map.c
---- a/drivers/base/map.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
-+++ a/drivers/base/map.c
-@@ -117,7 +117,8 @@ void kobj_unmap(struct kobj_map *domain,
- 	kfree(found);
+@@ -200,6 +200,73 @@ void unlink_gendisk(struct gendisk *disk
+ 			      disk->minors);
  }
  
--struct kobject *kobj_lookup(struct kobj_map *domain, dev_t dev, int *index)
-+struct kobject *kobj_lookup(struct kobj_map *domain, dev_t dev, mode_t *mode,
-+		int *index)
- {
- 	struct kobject *kobj;
- 	struct probe *p;
-@@ -149,8 +150,11 @@ retry:
- 		kobj = probe(dev, index, data);
- 		/* Currently ->owner protects _only_ ->probe() itself. */
- 		module_put(owner);
--		if (kobj)
-+		if (kobj) {
-+			if (mode)
-+				*mode = p->mode;
- 			return kobj;
-+		}
- 		goto retry;
- 	}
- 	mutex_unlock(domain->lock);
-diff -puN fs/block_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions fs/block_dev.c
---- a/fs/block_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
-+++ a/fs/block_dev.c
-@@ -929,11 +929,12 @@ static int do_open(struct block_device *
- 	struct module *owner = NULL;
- 	struct gendisk *disk;
- 	int ret = -ENXIO;
-+	mode_t mode;
- 	int part;
- 
- 	file->f_mapping = bdev->bd_inode->i_mapping;
- 	lock_kernel();
--	disk = get_gendisk(bdev->bd_dev, &part);
-+	disk = get_gendisk(bdev->bd_dev, &mode, &part);
- 	if (!disk) {
- 		unlock_kernel();
- 		bdput(bdev);
-diff -puN fs/char_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions fs/char_dev.c
---- a/fs/char_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
-+++ a/fs/char_dev.c
-@@ -367,8 +367,10 @@ static int chrdev_open(struct inode *ino
- 	if (!p) {
- 		struct kobject *kobj;
- 		int idx;
-+		mode_t mode;
++#ifdef CONFIG_CGROUP_DEVS
++int bdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
++{
++	int tmp;
++	struct kobject *kobj;
++	struct device *d;
++	struct gendisk *disk;
 +
- 		spin_unlock(&cdev_lock);
--		kobj = kobj_lookup(cdev_map, inode->i_rdev, &idx);
-+		kobj = kobj_lookup(cdev_map, inode->i_rdev, &mode, &idx);
- 		if (!kobj)
- 			return -ENXIO;
- 		new = container_of(kobj, struct cdev, kobj);
-diff -puN include/linux/genhd.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions include/linux/genhd.h
---- a/include/linux/genhd.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++	kobj = kobj_lookup(bdev_map, dev, NULL, &tmp);
++	if (kobj == NULL)
++		return -ENODEV;
++
++	d = kobj_to_dev(kobj);
++	disk = dev_to_disk(d);
++	tmp = kobj_remap(map, dev, mode, all ? MINORBITS : 1, NULL,
++			exact_match, exact_lock, disk);
++	if (tmp < 0) {
++		put_disk(disk);
++		return tmp;
++	}
++
++	return 0;
++}
++
++int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
++{
++	int tmp;
++	struct kobject *kobj;
++	struct device *d;
++	struct gendisk *disk;
++
++	kobj = kobj_lookup(map, dev, NULL, &tmp);
++	if (kobj == NULL)
++		return -ENODEV;
++
++	d = kobj_to_dev(kobj);
++	disk = dev_to_disk(d);
++	kobj_unmap(map, dev, all ? MINORBITS : 1);
++
++	/*
++	 * one put for the kobj_lookup above and one for
++	 * the kobj_lookup in bdev_add_to_map
++	 */
++	put_disk(disk);
++	put_disk(disk);
++	return 0;
++}
++
++void bdev_iterate_map(struct kobj_map *map,
++		int (*fn)(dev_t, int, mode_t, void *), void *x)
++{
++	kobj_map_iterate(map, fn, x);
++}
++
++static struct kobject *base_probe(dev_t devt, int *part, void *data);
++
++struct kobj_map *bdev_map_init(void)
++{
++	return kobj_map_init(base_probe, &block_class_lock);
++}
++
++void bdev_map_fini(struct kobj_map *map)
++{
++	kobj_map_fini(map);
++}
++#endif
++
+ /**
+  * get_gendisk - get partitioning information for a given device
+  * @dev: device to get partitioning information for
+diff -puN include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings include/linux/genhd.h
+--- a/include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings
 +++ a/include/linux/genhd.h
-@@ -373,7 +373,7 @@ extern int get_blkdev_list(char *, int);
- extern void add_disk(struct gendisk *disk);
- extern void del_gendisk(struct gendisk *gp);
+@@ -375,6 +375,14 @@ extern void del_gendisk(struct gendisk *
  extern void unlink_gendisk(struct gendisk *gp);
--extern struct gendisk *get_gendisk(dev_t dev, int *part);
-+extern struct gendisk *get_gendisk(dev_t dev, mode_t *mode, int *part);
+ extern struct gendisk *get_gendisk(dev_t dev, mode_t *mode, int *part);
  
++struct kobj_map;
++extern int bdev_add_to_map(struct kobj_map *, dev_t dev, int all, mode_t mode);
++extern int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
++extern void bdev_iterate_map(struct kobj_map *map,
++		int (*fn)(dev_t, int, mode_t, void *), void *x);
++extern struct kobj_map *bdev_map_init(void);
++extern void bdev_map_fini(struct kobj_map *map);
++
  extern void set_device_ro(struct block_device *bdev, int flag);
  extern void set_disk_ro(struct gendisk *disk, int flag);
-diff -puN include/linux/kobj_map.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions include/linux/kobj_map.h
---- a/include/linux/kobj_map.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions
-+++ a/include/linux/kobj_map.h
-@@ -8,7 +8,7 @@ struct kobj_map;
- int kobj_map(struct kobj_map *, dev_t, unsigned long, struct module *,
- 	     kobj_probe_t *, int (*)(dev_t, void *), void *);
- void kobj_unmap(struct kobj_map *, dev_t, unsigned long);
--struct kobject *kobj_lookup(struct kobj_map *, dev_t, int *);
-+struct kobject *kobj_lookup(struct kobj_map *, dev_t, mode_t *, int *);
- struct kobj_map *kobj_map_init(kobj_probe_t *, struct mutex *);
  
- #endif
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
