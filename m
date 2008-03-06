@@ -1,63 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - mpt-fusion-dont-oops-if-numphys==0.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:41 -0800
-Message-ID: <200803062222.m26MMf2t020827@imap1.linux-foundation.org>
+Subject: - e100-do-suspend-shutdown-like-e1000.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:55 -0800
+Message-ID: <200803062222.m26MMt0E020846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43156 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764080AbYCFWXf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:35 -0500
+	by vger.kernel.org with ESMTP id S933084AbYCFWXx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olel@ans.pl, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp, ole@ans.pl, sathya.prakash@lsi.com, mm-commits@vger.kernel.org
+To: auke-jan.h.kok@intel.com, arvidjaar@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mpt fusion: don't oops if NumPhys==0
+     e100: do suspend/shutdown like e1000
 has been removed from the -mm tree.  Its filename was
-     mpt-fusion-dont-oops-if-numphys==0.patch
+     e100-do-suspend-shutdown-like-e1000.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpt fusion: don't oops if NumPhys==0
-From: Krzysztof Oledzki <olel@ans.pl>
+Subject: e100: do suspend/shutdown like e1000
+From: "Kok, Auke" <auke-jan.h.kok@intel.com>
 
-Don't oops if NumPhys==0, instead return -ENODEV.
-This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=9909
+This fixes a "trying to free already free IRQ" message and simplifies the
+shutdown/suspend code by re-using already existing code when going to
+suspend.  The code is now symmetric with e100_resume.
 
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Eric Moore <Eric.Moore@lsi.com>
-Cc: Sathya Prakash <sathya.prakash@lsi.com>
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Tested-by: Andrey Borzenkov <arvidjaar@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptsas.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/e100.c |   29 +++--------------------------
+ 1 file changed, 3 insertions(+), 26 deletions(-)
 
-diff -puN drivers/message/fusion/mptsas.c~mpt-fusion-dont-oops-if-numphys==0 drivers/message/fusion/mptsas.c
---- a/drivers/message/fusion/mptsas.c~mpt-fusion-dont-oops-if-numphys==0
-+++ a/drivers/message/fusion/mptsas.c
-@@ -1701,6 +1701,11 @@ mptsas_sas_expander_pg0(MPT_ADAPTER *ioc
- 	if (error)
- 		goto out_free_consistent;
+diff -puN drivers/net/e100.c~e100-do-suspend-shutdown-like-e1000 drivers/net/e100.c
+--- a/drivers/net/e100.c~e100-do-suspend-shutdown-like-e1000
++++ a/drivers/net/e100.c
+@@ -2782,16 +2782,13 @@ static void __devexit e100_remove(struct
+ 	}
+ }
  
-+	if (!buffer->NumPhys) {
-+		error = -ENODEV;
-+		goto out_free_consistent;
-+	}
-+
- 	/* save config data */
- 	port_info->num_phys = buffer->NumPhys;
- 	port_info->phy_info = kcalloc(port_info->num_phys,
-_
-
-Patches currently in -mm which might be from olel@ans.pl are
-
-origin.patch
-
+-#ifdef CONFIG_PM
+ static int e100_suspend(struct pci_dev *pdev, pm_message_t state)
+ {
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+ 	struct nic *nic = netdev_priv(netdev);
+ 
+ 	if (netif_running(netdev))
+-		napi_disable(&nic->napi);
+-	del_timer_sync(&nic->watchdog);
+-	netif_carrier_off(nic->netdev);
++		e100_down(nic);
+ 	netif_device_detach(netdev);
+ 
+ 	pci_save_state(pdev);
+@@ -2804,14 +2801,13 @@ static int e100_suspend(struct pci_dev *
+ 		pci_enable_wake(pdev, PCI_D3cold, 0);
+ 	}
+ 
+-	free_irq(pdev->irq, netdev);
+-
+ 	pci_disable_device(pdev);
+ 	pci_set_power_state(pdev, PCI_D3hot);
+ 
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
+ static int e100_resume(struct pci_dev *pdev)
+ {
+ 	struct net_device *netdev = pci_get_drvdata(pdev);
+@@ -2832,26 +2828,7 @@ static int e100_resume(struct pci_dev *p
+ 
+ static void e100_shutdown(struct pci_dev *pdev)
+ {
+-	struct net_device *netdev = pci_get_drvdata(pdev);
+-	struct nic *nic = netdev_priv(netdev);
+-
+-	if (netif_running(netdev))
+-		napi_disable(&nic->napi);
+-	del_timer_sync(&nic->watchdog);
+-	netif_carrier_off(nic->netdev);
+-
+-	if ((nic->flags & wol_magic) | e100_asf(nic)) {
+-		pci_enable_wake(pdev, PCI_D3hot, 1);
+-		pci_enable_wake(pdev, PCI_D3cold, 1);
+-	} else {
+-		pci_enable_wake(pdev, PCI_D3hot, 0);
+-		pci_enable_wake(pdev, PCI_D3cold, 0);
+-	}
+-
+-	free_irq(pdev->irq, netdev);
