@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-appletalk-ltpcc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:21:59 -0800
-Message-ID: <200803062221.m26MLxE3020762@imap1.linux-foundation.org>
+Subject: - drivers-net-ac3200c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:03 -0800
+Message-ID: <200803062222.m26MM3eO020774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbYCFWWf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:22:35 -0500
+	by vger.kernel.org with ESMTP id S1751867AbYCFWWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:22:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkschind@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: jkschind@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/appletalk/ltpc.c: replace init_module&cleanup_module with module_init&module_exit
+     drivers/net/ac3200.c: replace init_module&cleanup_module with module_init&module_exit
 has been removed from the -mm tree.  Its filename was
-     drivers-net-appletalk-ltpcc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+     drivers-net-ac3200c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/appletalk/ltpc.c: replace init_module&cleanup_module with module_init&module_exit
+Subject: drivers/net/ac3200.c: replace init_module&cleanup_module with module_init&module_exit
 From: Jon Schindler <jkschind@gmail.com>
 
-Replaced init_module and cleanup_module with static functions and
+Replace init_module and cleanup_module with static functions and
 module_init/module_exit.
 
 Signed-off-by: Jon Schindler <jkschind@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/appletalk/ltpc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/ac3200.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/appletalk/ltpc.c~drivers-net-appletalk-ltpcc-replace-init_modulecleanup_module-with-module_initmodule_exit drivers/net/appletalk/ltpc.c
---- a/drivers/net/appletalk/ltpc.c~drivers-net-appletalk-ltpcc-replace-init_modulecleanup_module-with-module_initmodule_exit
-+++ a/drivers/net/appletalk/ltpc.c
-@@ -1252,7 +1252,7 @@ module_param(irq, int, 0);
- module_param(dma, int, 0);
- 
+diff -puN drivers/net/ac3200.c~drivers-net-ac3200c-replace-init_modulecleanup_module-with-module_initmodule_exit drivers/net/ac3200.c
+--- a/drivers/net/ac3200.c~drivers-net-ac3200c-replace-init_modulecleanup_module-with-module_initmodule_exit
++++ a/drivers/net/ac3200.c
+@@ -369,7 +369,7 @@ MODULE_PARM_DESC(mem, "Memory base addre
+ MODULE_DESCRIPTION("Ansel AC3200 EISA ethernet driver");
+ MODULE_LICENSE("GPL");
  
 -int __init init_module(void)
-+static int __init ltpc_module_init(void)
++static int __init ac3200_module_init(void)
  {
-         if(io == 0)
- 		printk(KERN_NOTICE
-@@ -1263,6 +1263,7 @@ int __init init_module(void)
- 		return PTR_ERR(dev_ltpc);
- 	return 0;
+ 	struct net_device *dev;
+ 	int this_dev, found = 0;
+@@ -404,8 +404,7 @@ static void cleanup_card(struct net_devi
+ 	iounmap(ei_status.mem);
  }
-+module_init(ltpc_module_init);
- #endif
  
- static void __exit ltpc_cleanup(void)
+-void __exit
+-cleanup_module(void)
++static void __exit ac3200_module_exit(void)
+ {
+ 	int this_dev;
+ 
+@@ -418,4 +417,6 @@ cleanup_module(void)
+ 		}
+ 	}
+ }
++module_init(ac3200_module_init);
++module_exit(ac3200_module_exit);
+ #endif /* MODULE */
 _
 
 Patches currently in -mm which might be from jkschind@gmail.com are
