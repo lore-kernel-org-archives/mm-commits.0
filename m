@@ -1,246 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-replace-remaining-__function__-occurrences.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:36 -0800
-Message-ID: <200803062222.m26MMa4f020821@imap1.linux-foundation.org>
+Subject: - scsi-arcmsr-update-driver-version.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:45 -0800
+Message-ID: <200803062222.m26MMj3g020834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758035AbYCFWXP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:15 -0500
+	by vger.kernel.org with ESMTP id S1762948AbYCFWX2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: nick.cheng@areca.com.tw, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: replace remaining __FUNCTION__ occurrences
+     scsi: arcmsr: update driver version
 has been removed from the -mm tree.  Its filename was
-     watchdog-replace-remaining-__function__-occurrences.patch
+     scsi-arcmsr-update-driver-version.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: scsi: arcmsr: update driver version
+From: Nick Cheng <nick.cheng@areca.com.tw>
 
-__FUNCTION__ is gcc-specific, use __func__
+Update the driver version of arcmsr and ChangeLog.arcmsr.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Nick Cheng <nick.cheng@areca.com.tw>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/machzwd.c     |    2 +-
- drivers/watchdog/pcwd_usb.c    |    4 ++--
- drivers/watchdog/s3c2410_wdt.c |    8 ++++----
- drivers/watchdog/shwdt.c       |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/scsi/ChangeLog.arcmsr |    6 ++++++
+ drivers/scsi/arcmsr/arcmsr.h        |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/machzwd.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/machzwd.c
---- a/drivers/watchdog/machzwd.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/machzwd.c
-@@ -141,7 +141,7 @@ static unsigned long next_heartbeat = 0;
- #ifndef ZF_DEBUG
- #	define dprintk(format, args...)
- #else
--#	define dprintk(format, args...) printk(KERN_DEBUG PFX ":%s:%d: " format, __FUNCTION__, __LINE__ , ## args)
-+#	define dprintk(format, args...) printk(KERN_DEBUG PFX ":%s:%d: " format, __func__, __LINE__ , ## args)
- #endif
- 
- 
-diff -puN drivers/watchdog/pcwd_usb.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/pcwd_usb.c
---- a/drivers/watchdog/pcwd_usb.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/pcwd_usb.c
-@@ -179,11 +179,11 @@ static void usb_pcwd_intr_done(struct ur
- 	case -ENOENT:
- 	case -ESHUTDOWN:
- 		/* this urb is terminated, clean up */
--		dbg("%s - urb shutting down with status: %d", __FUNCTION__, urb->status);
-+		dbg("%s - urb shutting down with status: %d", __func__, urb->status);
- 		return;
- 	/* -EPIPE:  should clear the halt */
- 	default:		/* error */
--		dbg("%s - nonzero urb status received: %d", __FUNCTION__, urb->status);
-+		dbg("%s - nonzero urb status received: %d", __func__, urb->status);
- 		goto resubmit;
- 	}
- 
-diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -144,7 +144,7 @@ static int s3c2410wdt_start(void)
- 	}
- 
- 	DBG("%s: wdt_count=0x%08x, wtcon=%08lx\n",
--	    __FUNCTION__, wdt_count, wtcon);
-+	    __func__, wdt_count, wtcon);
- 
- 	writel(wdt_count, wdt_base + S3C2410_WTDAT);
- 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
-@@ -167,7 +167,7 @@ static int s3c2410wdt_set_heartbeat(int 
- 	count = timeout * freq;
- 
- 	DBG("%s: count=%d, timeout=%d, freq=%d\n",
--	    __FUNCTION__, count, timeout, freq);
-+	    __func__, count, timeout, freq);
- 
- 	/* if the count is bigger than the watchdog register,
- 	   then work out what we need to do (and if) we can
-@@ -189,7 +189,7 @@ static int s3c2410wdt_set_heartbeat(int 
- 	tmr_margin = timeout;
- 
- 	DBG("%s: timeout=%d, divisor=%d, count=%d (%08x)\n",
--	    __FUNCTION__, timeout, divisor, count, count/divisor);
-+	    __func__, timeout, divisor, count, count/divisor);
- 
- 	count /= divisor;
- 	wdt_count = count;
-@@ -355,7 +355,7 @@ static int s3c2410wdt_probe(struct platf
- 	int ret;
- 	int size;
- 
--	DBG("%s: probe=%p\n", __FUNCTION__, pdev);
-+	DBG("%s: probe=%p\n", __func__, pdev);
- 
- 	dev = &pdev->dev;
- 	wdt_dev = &pdev->dev;
-diff -puN drivers/watchdog/shwdt.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/shwdt.c
---- a/drivers/watchdog/shwdt.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/shwdt.c
-@@ -298,7 +298,7 @@ static int sh_wdt_mmap(struct file *file
- 	if (io_remap_pfn_range(vma, vma->vm_start, addr >> PAGE_SHIFT,
- 			       PAGE_SIZE, vma->vm_page_prot)) {
- 		printk(KERN_ERR PFX "%s: io_remap_pfn_range failed\n",
--		       __FUNCTION__);
-+		       __func__);
- 		return -EAGAIN;
- 	}
- 
+diff -puN Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-update-driver-version Documentation/scsi/ChangeLog.arcmsr
+--- a/Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-update-driver-version
++++ a/Documentation/scsi/ChangeLog.arcmsr
+@@ -109,4 +109,10 @@
+ **						8.replace pci_alloc_consistent()/pci_free_consistent() with kmalloc()/kfree() in arcmsr_iop_message_xfer()
+ **						9. fix the release of dma memory for type B in arcmsr_free_ccb_pool()
+ **						10.fix the arcmsr_polling_hbb_ccbdone()
++** 1.20.00.15	02/27/2008	Erich Chen & Nick Cheng
++**						1.arcmsr_iop_message_xfer() is called from atomic context under the
++**						queuecommand scsi_host_template handler. James Bottomley pointed out
++**						that the current GFP_KERNEL|GFP_DMA flags are wrong: firstly we are in
++**						atomic context, secondly this memory is not used for DMA.
++**						Also removed some unneeded casts. Thanks to Daniel Drake <dsd@gentoo.org>
+ **************************************************************************
+diff -puN drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-update-driver-version drivers/scsi/arcmsr/arcmsr.h
+--- a/drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-update-driver-version
++++ a/drivers/scsi/arcmsr/arcmsr.h
+@@ -48,7 +48,7 @@ struct class_device_attribute;
+ /*The limit of outstanding scsi command that firmware can handle*/
+ #define ARCMSR_MAX_OUTSTANDING_CMD						256
+ #define ARCMSR_MAX_FREECCB_NUM							320
+-#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2007/12/24"
++#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2008/02/27"
+ #define ARCMSR_SCSI_INITIATOR_ID						255
+ #define ARCMSR_MAX_XFER_SECTORS							512
+ #define ARCMSR_MAX_XFER_SECTORS_B						4096
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from nick.cheng@areca.com.tw are
 
 origin.patch
-git-x86.patch
-acpi-replace-remaining-__function__-occurrences.patch
-git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-git-arm-master.patch
-cifs-remove-global_extern-macro.patch
-cifs-replace-remaining-__function__-occurrences.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
-git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-ieee1394-replace-remaining-__function__-occurrences.patch
-infiniband-replace-remaining-__function__-occurrences.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
-git-kvm.patch
-ata-replace-remaining-__function__-occurrences.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-nfs-replace-remaining-__function__-occurrences.patch
-git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-git-sh.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-stc-make-class-attributes-static.patch
-scsi-osstc-make-class-attributes-static.patch
-scsi-chc-fix-shadowed-variable-warnings.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-power-replace-remaining-__function__-occurrences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-iop-admac-replace-remaining-__function__-occurrences.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ioc3c-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+arcmsr-modify-the-type-of-element-of-messageunit_b.patch
 
