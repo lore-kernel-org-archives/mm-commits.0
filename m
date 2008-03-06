@@ -1,154 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:16 -0800
-Message-ID: <200803062222.m26MMGlZ020797@imap1.linux-foundation.org>
+Subject: - parisc-fix-a-overflow-bug-on-32bit-architectures.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:21:20 -0800
+Message-ID: <200803062221.m26MLLKl020712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751648AbYCFWWr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:22:47 -0500
+	by vger.kernel.org with ESMTP id S1759549AbYCFWXJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: fujita.tomonori@lab.ntt.co.jp, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/storage/sddr55.c: fix uninitialized var warnings
+     parisc: fix a overflow bug on 32bit architectures
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings.patch
+     parisc-fix-a-overflow-bug-on-32bit-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/storage/sddr55.c: fix uninitialized var warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: parisc: fix a overflow bug on 32bit architectures
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-drivers/usb/storage/sddr55.c: In function 'sddr55_transport':
-drivers/usb/storage/sddr55.c:526: warning: 'deviceID' may be used uninitialized in this function
-drivers/usb/storage/sddr55.c:525: warning: 'manufacturerID' may be used uninitialized in this function
+On 32bit2 boxes, boundary_size becomes zero due to a overflow and we
+hit BUG_ON in iommu_is_span_boundary.
 
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/sddr55.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/parisc/ccio-dma.c  |    4 ++--
+ drivers/parisc/sba_iommu.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings drivers/usb/storage/sddr55.c
---- a/drivers/usb/storage/sddr55.c~drivers-usb-storage-sddr55c-fix-uninitialized-var-warnings
-+++ a/drivers/usb/storage/sddr55.c
-@@ -522,8 +522,8 @@ int sddr55_reset(struct us_data *us) {
+diff -puN drivers/parisc/ccio-dma.c~parisc-fix-a-overflow-bug-on-32bit-architectures drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~parisc-fix-a-overflow-bug-on-32bit-architectures
++++ a/drivers/parisc/ccio-dma.c
+@@ -366,8 +366,8 @@ ccio_alloc_range(struct ioc *ioc, struct
+ 	** ggg sacrifices another 710 to the computer gods.
+ 	*/
  
- static unsigned long sddr55_get_capacity(struct us_data *us) {
+-	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
+-	boundary_size >>= IOVP_SHIFT;
++	boundary_size = ALIGN((unsigned long long)dma_get_seg_boundary(dev) + 1,
++			      1ULL << IOVP_SHIFT) >> IOVP_SHIFT;
  
--	unsigned char manufacturerID;
--	unsigned char deviceID;
-+	unsigned char uninitialized_var(manufacturerID);
-+	unsigned char uninitialized_var(deviceID);
- 	int result;
- 	struct sddr55_card_info *info = (struct sddr55_card_info *)us->extra;
+ 	if (pages_needed <= 8) {
+ 		/*
+diff -puN drivers/parisc/sba_iommu.c~parisc-fix-a-overflow-bug-on-32bit-architectures drivers/parisc/sba_iommu.c
+--- a/drivers/parisc/sba_iommu.c~parisc-fix-a-overflow-bug-on-32bit-architectures
++++ a/drivers/parisc/sba_iommu.c
+@@ -341,8 +341,8 @@ sba_search_bitmap(struct ioc *ioc, struc
+ 	unsigned long shift;
+ 	int ret;
  
+-	boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1, 1 << IOVP_SHIFT);
+-	boundary_size >>= IOVP_SHIFT;
++	boundary_size = ALIGN((unsigned long long)dma_get_seg_boundary(dev) + 1,
++			      1ULL << IOVP_SHIFT) >> IOVP_SHIFT;
+ 
+ #if defined(ZX1_SUPPORT)
+ 	BUG_ON(ioc->ibase & ~IOVP_MASK);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
 origin.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+git-scsi-misc.patch
 
