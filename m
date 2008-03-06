@@ -1,65 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:29 -0800
-Message-ID: <200803062222.m26MMTKR020812@imap1.linux-foundation.org>
+Subject: - rxrpc-fix-rxrpc_recvmsgs-returning-of-msg_name.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:48 -0800
+Message-ID: <200803062222.m26MMm4H020837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757146AbYCFWYX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:23 -0500
+	by vger.kernel.org with ESMTP id S1753989AbYCFWYE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdreier@cisco.com, Thomas.Mingarelli@hp.com, rolandd@cisco.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: hpwdt: fix declaration of struct smbios_entry_point()
+     RxRPC: fix rxrpc_recvmsg()'s returning of msg_name
 has been removed from the -mm tree.  Its filename was
-     watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point.patch
+     rxrpc-fix-rxrpc_recvmsgs-returning-of-msg_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: hpwdt: fix declaration of struct smbios_entry_point()
-From: Roland Dreier <rdreier@cisco.com>
+Subject: RxRPC: fix rxrpc_recvmsg()'s returning of msg_name
+From: David Howells <dhowells@redhat.com>
 
-On my HP DL380 G5 system running a 64-bit kernel, loading the hpwdt driver
-causes a crash because the driver attempts to ioremap an invalid physical
-address.  This is because the driver has an incorrect definition of the SMBIOS
-table entry point structure: the table address is only a 32-bit quantity, and
-making it a u64 means that the high-order 32 bits end up containing garbage.
+Fix rxrpc_recvmsg() to return msg_name correctly.  We shouldn't overwrite the
+*msg struct, but should rather write into msg->msg_name (there's a '&' unary
+operator that shouldn't be there).
 
-Correcting the structure definition fixes the driver so that it loads without
-any problems on my system.
-
-Signed-off-by: Roland Dreier <rolandd@cisco.com>
-Acked-by: Thomas Mingarelli <Thomas.Mingarelli@hp.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/hpwdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rxrpc/ar-recvmsg.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/hpwdt.c~watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point drivers/watchdog/hpwdt.c
---- a/drivers/watchdog/hpwdt.c~watchdog-hpwdt-fix-declaration-of-struct-smbios_entry_point
-+++ a/drivers/watchdog/hpwdt.c
-@@ -88,7 +88,7 @@ struct smbios_entry_point {
- 	u8 intermediate_anchor[5];
- 	u8 intermediate_checksum;
- 	u16 table_length;
--	u64 table_address;
-+	u32 table_address;
- 	u16 table_num_structs;
- 	u8 bcd_revision;
- };
+diff -puN net/rxrpc/ar-recvmsg.c~rxrpc-fix-rxrpc_recvmsgs-returning-of-msg_name net/rxrpc/ar-recvmsg.c
+--- a/net/rxrpc/ar-recvmsg.c~rxrpc-fix-rxrpc_recvmsgs-returning-of-msg_name
++++ a/net/rxrpc/ar-recvmsg.c
+@@ -143,7 +143,8 @@ int rxrpc_recvmsg(struct kiocb *iocb, st
+ 		/* copy the peer address and timestamp */
+ 		if (!continue_call) {
+ 			if (msg->msg_name && msg->msg_namelen > 0)
+-				memcpy(&msg->msg_name, &call->conn->trans->peer->srx,
++				memcpy(msg->msg_name,
++				       &call->conn->trans->peer->srx,
+ 				       sizeof(call->conn->trans->peer->srx));
+ 			sock_recv_timestamp(msg, &rx->sk, skb);
+ 		}
 _
 
-Patches currently in -mm which might be from rdreier@cisco.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-input-i8042-fix-warning-on-non-x86-builds.patch
-git-watchdog.patch
+git-hrt.patch
+git-net.patch
+git-unionfs.patch
+romfs-prevent-romfs_lookup-from-always-failing.patch
+remove-the-macro-get_personality.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
 
