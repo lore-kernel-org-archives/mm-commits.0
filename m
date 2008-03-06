@@ -1,426 +1,417 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_tc-clocksource-clockevent-code.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:23:51 -0800
-Message-ID: <200803062223.m26MNphD020925@imap1.linux-foundation.org>
+Subject: - selinux-use-new-audit-hooks-remove-redundant-exports.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:27 -0800
+Message-ID: <200803062223.m26MNRuC020892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbYCFWZH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:25:07 -0500
+	by vger.kernel.org with ESMTP id S1754998AbYCFW0f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:26:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, johnstul@us.ibm.com, linux@maxim.org.za, nicolas.ferre@rfo.atmel.com, tglx@linutronix.de, mm-commits@vger.
+To: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@infradead.org, eparis@parisplace.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, viro@zeniv.linux
 
 
 The patch titled
-     atmel_tc clocksource/clockevent code
+     SELinux: use new audit hooks, remove redundant exports
 has been removed from the -mm tree.  Its filename was
-     atmel_tc-clocksource-clockevent-code.patch
+     selinux-use-new-audit-hooks-remove-redundant-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_tc clocksource/clockevent code
-From: David Brownell <david-b@pacbell.net>
+Subject: SELinux: use new audit hooks, remove redundant exports
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Clocksource and clockevent device based on the Atmel TC blocks.
+Setup the new Audit LSM hooks for SELinux.  Remove the now redundant exported
+SELinux Audit interface.
 
-The clockevent device handles both periodic and oneshot modes, so this enables
-NO_HZ and high res timers on some platforms that previously couldn't use those
-mechanisms.
+Audit: Export 'audit_krule' and 'audit_field' to the public
+since their internals are needed by the implementation of the
+new LSM hook 'audit_rule_known'.
 
-This works on both AVR32 and AT91 chips, given relevant patches for tclib
-support (always) and clockevents (or else this will only look like a higher
-precision clocksource).  It's an updated and modularized version of an
-AT91-only patch that has circulated for some time now.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Andrew Victor <linux@maxim.org.za>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Acked-by: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Paul Moore <paul.moore@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/Makefile     |    1 
- drivers/clocksource/tcb_clksrc.c |  303 +++++++++++++++++++++++++++++
- drivers/misc/Kconfig             |   25 ++
- 3 files changed, 329 insertions(+)
+ include/linux/audit.h            |   29 +++++++++++
+ include/linux/selinux.h          |   72 -----------------------------
+ kernel/audit.h                   |   25 ----------
+ security/selinux/hooks.c         |    8 +++
+ security/selinux/include/audit.h |   65 ++++++++++++++++++++++++++
+ security/selinux/ss/services.c   |   45 +++++++++++++-----
+ 6 files changed, 136 insertions(+), 108 deletions(-)
 
-diff -puN drivers/clocksource/Makefile~atmel_tc-clocksource-clockevent-code drivers/clocksource/Makefile
---- a/drivers/clocksource/Makefile~atmel_tc-clocksource-clockevent-code
-+++ a/drivers/clocksource/Makefile
-@@ -1,3 +1,4 @@
-+obj-$(CONFIG_ATMEL_TCB_CLKSRC)	+= tcb_clksrc.o
- obj-$(CONFIG_X86_CYCLONE_TIMER)	+= cyclone.o
- obj-$(CONFIG_X86_PM_TIMER)	+= acpi_pm.o
- obj-$(CONFIG_SCx200HR_TIMER)	+= scx200_hrt.o
-diff -puN /dev/null drivers/clocksource/tcb_clksrc.c
---- /dev/null
-+++ a/drivers/clocksource/tcb_clksrc.c
-@@ -0,0 +1,303 @@
-+#include <linux/init.h>
-+#include <linux/clocksource.h>
-+#include <linux/clockchips.h>
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
+diff -puN include/linux/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports include/linux/audit.h
+--- a/include/linux/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports
++++ a/include/linux/audit.h
+@@ -353,6 +353,33 @@ struct netlink_skb_parms;
+ struct linux_binprm;
+ struct mq_attr;
+ struct mqstat;
++struct audit_watch;
++struct audit_tree;
 +
-+#include <linux/clk.h>
-+#include <linux/err.h>
-+#include <linux/ioport.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+#include <linux/atmel_tc.h>
-+
-+
-+/*
-+ * We're configured to use a specific TC block, one that's not hooked
-+ * up to external hardware, to provide a time solution:
-+ *
-+ *   - Two channels combine to create a free-running 32 bit counter
-+ *     with a base rate of 5+ MHz, packaged as a clocksource (with
-+ *     resolution better than 200 nsec).
-+ *
-+ *   - The third channel may be used to provide a 16-bit clockevent
-+ *     source, used in either periodic or oneshot mode.  This runs
-+ *     at 32 KiHZ, and can handle delays of up to two seconds.
-+ *
-+ * A boot clocksource and clockevent source are also currently needed,
-+ * unless the relevant platforms (ARM/AT91, AVR32/AT32) are changed so
-+ * this code can be used when init_timers() is called, well before most
-+ * devices are set up.  (Some low end AT91 parts, which can run uClinux,
-+ * have only the timers in one TC block... they currently don't support
-+ * the tclib code, because of that initialization issue.)
-+ *
-+ * REVISIT behavior during system suspend states... we should disable
-+ * all clocks and save the power.  Easily done for clockevent devices,
-+ * but clocksources won't necessarily get the needed notifications.
-+ * For deeper system sleep states, this will be mandatory...
-+ */
-+
-+static void __iomem *tcaddr;
-+
-+static cycle_t tc_get_cycles(void)
-+{
-+	unsigned long	flags;
-+	u32		lower, upper;
-+
-+	raw_local_irq_save(flags);
-+retry:
-+	upper = __raw_readl(tcaddr + ATMEL_TC_REG(1, CV));
-+	lower = __raw_readl(tcaddr + ATMEL_TC_REG(0, CV));
-+	if (upper != __raw_readl(tcaddr + ATMEL_TC_REG(1, CV)))
-+		goto retry;
-+
-+	raw_local_irq_restore(flags);
-+	return (upper << 16) | lower;
-+}
-+
-+static struct clocksource clksrc = {
-+	.name           = "tcb_clksrc",
-+	.rating         = 200,
-+	.read           = tc_get_cycles,
-+	.mask           = CLOCKSOURCE_MASK(32),
-+	.shift          = 18,
-+	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++struct audit_krule {
++	int			vers_ops;
++	u32			flags;
++	u32			listnr;
++	u32			action;
++	u32			mask[AUDIT_BITMASK_SIZE];
++	u32			buflen; /* for data alloc on list rules */
++	u32			field_count;
++	char			*filterkey; /* ties events to rules */
++	struct audit_field	*fields;
++	struct audit_field	*arch_f; /* quick access to arch field */
++	struct audit_field	*inode_f; /* quick access to an inode field */
++	struct audit_watch	*watch;	/* associated watch */
++	struct audit_tree	*tree;	/* associated watched tree */
++	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
 +};
 +
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+#define USE_TC_CLKEVT
-+#endif
-+
-+#ifdef CONFIG_ARCH_AT91RM9200
-+/* The AT91rm9200 system timer is a oneshot-capable 32k timer that's
-+ * always running ... configuring a TC channel to work the same way
-+ * would just waste some power.
-+ */
-+#undef USE_TC_CLKEVT
-+#endif
-+
-+#ifdef USE_TC_CLKEVT
-+
-+/* For now, we always use the 32K clock ... this optimizes for NO_HZ,
-+ * because using one of the divided clocks would usually mean the
-+ * tick rate can never be less than several dozen Hz (vs 0.5 Hz).
-+ *
-+ * A divided clock could be good for high resolution timers, since
-+ * 30.5 usec resolution can seem "low".
-+ */
-+static u32 timer_clock;
-+
-+static void tc_mode(enum clock_event_mode m, struct clock_event_device *d)
-+{
-+	__raw_writel(0xff, tcaddr + ATMEL_TC_REG(2, IDR));
-+	__raw_writel(ATMEL_TC_CLKDIS, tcaddr + ATMEL_TC_REG(2, CCR));
-+
-+	switch (m) {
-+
-+	/* By not making the gentime core emulate periodic mode on top
-+	 * of oneshot, we get lower overhead and improved accuracy.
-+	 */
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		/* slow clock, count up to RC, then irq and restart */
-+		__raw_writel(timer_clock
-+				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
-+				tcaddr + ATMEL_TC_REG(2, CMR));
-+		__raw_writel((32768 + HZ/2) / HZ, tcaddr + ATMEL_TC_REG(2, RC));
-+
-+		/* Enable clock and interrupts on RC compare */
-+		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
-+
-+		/* go go gadget! */
-+		__raw_writel(ATMEL_TC_CLKEN | ATMEL_TC_SWTRG,
-+				tcaddr + ATMEL_TC_REG(2, CCR));
-+		break;
-+
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		/* slow clock, count up to RC, then irq and stop */
-+		__raw_writel(timer_clock | ATMEL_TC_CPCSTOP
-+				| ATMEL_TC_WAVE | ATMEL_TC_WAVESEL_UP_AUTO,
-+				tcaddr + ATMEL_TC_REG(2, CMR));
-+		__raw_writel(ATMEL_TC_CPCS, tcaddr + ATMEL_TC_REG(2, IER));
-+
-+		/* set_next_event() configures and starts the timer */
-+		break;
-+
-+	default:
-+		break;
-+	}
-+}
-+
-+static int tc_next_event(unsigned long delta, struct clock_event_device *d)
-+{
-+	__raw_writel(delta, tcaddr + ATMEL_TC_REG(2, RC));
-+
-+	/* go go gadget! */
-+	__raw_writel(ATMEL_TC_CLKEN | ATMEL_TC_SWTRG,
-+			tcaddr + ATMEL_TC_REG(2, CCR));
-+	return 0;
-+}
-+
-+static struct clock_event_device clkevt = {
-+	.name		= "tc_clkevt",
-+	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
-+	.shift		= 32,
-+	.rating		= 125,
-+	.cpumask	= CPU_MASK_CPU0,
-+	.set_next_event	= tc_next_event,
-+	.set_mode	= tc_mode,
++struct audit_field {
++	u32				type;
++	u32				val;
++	u32				op;
++	char				*se_str;
++	void				*se_rule;
 +};
-+
-+static irqreturn_t ch2_irq(int irq, void *handle)
-+{
-+	unsigned int	sr = __raw_readl(tcaddr + ATMEL_TC_REG(2, SR));
-+
-+	if (sr & ATMEL_TC_CPCS) {
-+		clkevt.event_handler(&clkevt);
-+		return IRQ_HANDLED;
-+	}
-+
-+	return IRQ_NONE;
-+}
-+
-+static struct irqaction tc_irqaction = {
-+	.name		= "tc_clkevt",
-+	.flags		= IRQF_TIMER | IRQF_DISABLED,
-+	.handler	= ch2_irq,
-+};
-+
-+static void __init setup_clkevents(struct platform_device *pdev,
-+		struct clk *t0_clk, int clk32k_divisor_idx)
-+{
-+	struct clk	*t2_clk = clk_get(&pdev->dev, "t2_clk");
-+	int		irq;
-+
-+	/* SOCs have either one IRQ and one clock for the whole
-+	 * TC block; or one each per channel.  We use channel 2.
-+	 */
-+	if (IS_ERR(t2_clk)) {
-+		t2_clk = t0_clk;
-+		irq = platform_get_irq(pdev, 0);
-+	} else {
-+		irq = platform_get_irq(pdev, 2);
-+		clk_enable(t2_clk);
-+	}
-+
-+	timer_clock = clk32k_divisor_idx;
-+
-+	clkevt.mult = div_sc(32768, NSEC_PER_SEC, clkevt.shift);
-+	clkevt.max_delta_ns = clockevent_delta2ns(0xffff, &clkevt);
-+	clkevt.min_delta_ns = clockevent_delta2ns(1, &clkevt) + 1;
-+
-+	setup_irq(irq, &tc_irqaction);
-+
-+	clockevents_register_device(&clkevt);
-+}
-+
-+#else /* !USE_TC_CLKEVT */
-+
-+static void __init setup_clkevents(struct platform_device *pdev,
-+		struct clk *t0_clk, int clk32k_divisor_idx)
-+{
-+	/* NOTHING */
-+}
-+
-+#endif
-+
-+static int __init tcb_clksrc_init(void)
-+{
-+	static char bootinfo[] __initdata
-+		= KERN_DEBUG "%s: tc%d at %d.%03d MHz\n";
-+
-+	struct platform_device *pdev;
-+	struct clk *t0_clk, *t1_clk;
-+	u32 rate, divided_rate = 0;
-+	int best_divisor_idx = -1;
-+	int clk32k_divisor_idx = -1;
-+	int i;
-+	struct resource *iomem;
-+
-+	pdev = atmel_tc_alloc(CONFIG_ATMEL_TCB_CLKSRC_BLOCK, &iomem);
-+	if (pdev == NULL) {
-+		pr_debug("can't alloc TC for clocksource\n");
-+		return -ENODEV;
-+	}
-+	rename_region(iomem, clksrc.name);
-+	tcaddr = ioremap(iomem->start, 256);
-+
-+	t0_clk = clk_get(&pdev->dev, "t0_clk");
-+	if (IS_ERR(t0_clk)) {
-+		atmel_tc_free(pdev);
-+		return PTR_ERR(t0_clk);
-+	}
-+	clk_enable(t0_clk);
-+
-+	/* How fast will we be counting?  Pick something over 5 MHz.  */
-+	rate = (u32) clk_get_rate(t0_clk);
-+	for (i = 0; i < 5; i++) {
-+		unsigned divisor = atmel_tc_divisors[i];
-+		unsigned tmp;
-+
-+		/* remember 32 KiHz clock for later */
-+		if (!divisor) {
-+			clk32k_divisor_idx = i;
-+			continue;
-+		}
-+
-+		tmp = rate / divisor;
-+		pr_debug("TC: %u / %-3u [%d] --> %u\n", rate, divisor, i, tmp);
-+		if (best_divisor_idx > 0) {
-+			if (tmp < 5 * 1000 * 1000)
-+				continue;
-+		}
-+		divided_rate = tmp;
-+		best_divisor_idx = i;
-+	}
-+
-+	clksrc.mult = clocksource_hz2mult(divided_rate, clksrc.shift);
-+
-+	printk(bootinfo, clksrc.name, CONFIG_ATMEL_TCB_CLKSRC_BLOCK,
-+			divided_rate / 1000000,
-+			((divided_rate + 500000) % 1000000) / 1000);
-+
-+	/* Some platforms (like at91rm9200, at91sam9260, etc) have one clock
-+	 * (and IRQ) per timer.  Others (at91sam9263, ap700x, etc) don't.
-+	 */
-+	t1_clk = clk_get(&pdev->dev, "t1_clk");
-+	if (IS_ERR(t1_clk))
-+		t1_clk = t0_clk;
-+	else
-+		clk_enable(t1_clk);
-+
-+	/* channel 0:  waveform mode, input mclk/8, clock TIOA0 on overflow */
-+	__raw_writel(best_divisor_idx			/* likely divide-by-8 */
-+			| ATMEL_TC_WAVE
-+			| ATMEL_TC_WAVESEL_UP		/* free-run */
-+			| ATMEL_TC_ACPA_SET		/* TIOA0 rises at 0 */
-+			| ATMEL_TC_ACPC_CLEAR,		/* (duty cycle 50%) */
-+			tcaddr + ATMEL_TC_REG(0, CMR));
-+	__raw_writel(0x0000, tcaddr + ATMEL_TC_REG(0, RA));
-+	__raw_writel(0x8000, tcaddr + ATMEL_TC_REG(0, RC));
-+	__raw_writel(0xff, tcaddr + ATMEL_TC_REG(0, IDR));	/* no irqs */
-+	__raw_writel(ATMEL_TC_CLKEN, tcaddr + ATMEL_TC_REG(0, CCR));
-+
-+	/* channel 1:  waveform mode, input TIOA0 */
-+	__raw_writel(ATMEL_TC_XC1			/* input: TIOA0 */
-+			| ATMEL_TC_WAVE
-+			| ATMEL_TC_WAVESEL_UP,		/* free-run */
-+			tcaddr + ATMEL_TC_REG(1, CMR));
-+	__raw_writel(0xff, tcaddr + ATMEL_TC_REG(1, IDR));	/* no irqs */
-+	__raw_writel(ATMEL_TC_CLKEN, tcaddr + ATMEL_TC_REG(1, CCR));
-+
-+	/* chain channel 0 to channel 1, then reset all the timers */
-+	__raw_writel(ATMEL_TC_TC1XC1S_TIOA0, tcaddr + ATMEL_TC_BMR);
-+	__raw_writel(ATMEL_TC_SYNC, tcaddr + ATMEL_TC_BCR);
-+
-+	/* and away we go! */
-+	clocksource_register(&clksrc);
-+
-+	/* channel 2:  periodic and oneshot timer support */
-+	setup_clkevents(pdev, t0_clk, clk32k_divisor_idx);
-+
-+	return 0;
-+}
-+arch_initcall(tcb_clksrc_init);
-diff -puN drivers/misc/Kconfig~atmel_tc-clocksource-clockevent-code drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~atmel_tc-clocksource-clockevent-code
-+++ a/drivers/misc/Kconfig
-@@ -30,6 +30,31 @@ config ATMEL_TCLIB
- 	  blocks found on many Atmel processors.  This facilitates using
- 	  these blocks by different drivers despite processor differences.
  
-+config ATMEL_TCB_CLKSRC
-+	bool "TC Block Clocksource"
-+	depends on ATMEL_TCLIB && GENERIC_TIME
-+	default y
-+	help
-+	  Select this to get a high precision clocksource based on a
-+	  TC block with a 5+ MHz base clock rate.  Two timer channels
-+	  are combined to make a single 32-bit timer.
+ #define AUDITSC_INVALID 0
+ #define AUDITSC_SUCCESS 1
+@@ -536,6 +563,8 @@ extern void		    audit_log_d_path(struct
+ 					     const char *prefix,
+ 					     struct path *path);
+ extern void		    audit_log_lost(const char *message);
++extern int		    audit_update_lsm_rules(void);
 +
-+	  When GENERIC_CLOCKEVENTS is defined, the third timer channel
-+	  may be used as a clock event device supporting oneshot mode
-+	  (delays of up to two seconds) based on the 32 KiHz clock.
+ 				/* Private API (for audit.c only) */
+ extern int audit_filter_user(struct netlink_skb_parms *cb, int type);
+ extern int audit_filter_type(int type);
+diff -puN include/linux/selinux.h~selinux-use-new-audit-hooks-remove-redundant-exports include/linux/selinux.h
+--- a/include/linux/selinux.h~selinux-use-new-audit-hooks-remove-redundant-exports
++++ a/include/linux/selinux.h
+@@ -21,54 +21,6 @@ struct kern_ipc_perm;
+ #ifdef CONFIG_SECURITY_SELINUX
+ 
+ /**
+- *	selinux_audit_rule_init - alloc/init an selinux audit rule structure.
+- *	@field: the field this rule refers to
+- *	@op: the operater the rule uses
+- *	@rulestr: the text "target" of the rule
+- *	@rule: pointer to the new rule structure returned via this
+- *
+- *	Returns 0 if successful, -errno if not.  On success, the rule structure
+- *	will be allocated internally.  The caller must free this structure with
+- *	selinux_audit_rule_free() after use.
+- */
+-int selinux_audit_rule_init(u32 field, u32 op, char *rulestr,
+-                            struct selinux_audit_rule **rule);
+-
+-/**
+- *	selinux_audit_rule_free - free an selinux audit rule structure.
+- *	@rule: pointer to the audit rule to be freed
+- *
+- *	This will free all memory associated with the given rule.
+- *	If @rule is NULL, no operation is performed.
+- */
+-void selinux_audit_rule_free(struct selinux_audit_rule *rule);
+-
+-/**
+- *	selinux_audit_rule_match - determine if a context ID matches a rule.
+- *	@sid: the context ID to check
+- *	@field: the field this rule refers to
+- *	@op: the operater the rule uses
+- *	@rule: pointer to the audit rule to check against
+- *	@actx: the audit context (can be NULL) associated with the check
+- *
+- *	Returns 1 if the context id matches the rule, 0 if it does not, and
+- *	-errno on failure.
+- */
+-int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
+-                             struct selinux_audit_rule *rule,
+-                             struct audit_context *actx);
+-
+-/**
+- *	selinux_audit_set_callback - set the callback for policy reloads.
+- *	@callback: the function to call when the policy is reloaded
+- *
+- *	This sets the function callback function that will update the rules
+- *	upon policy reloads.  This callback should rebuild all existing rules
+- *	using selinux_audit_rule_init().
+- */
+-void selinux_audit_set_callback(int (*callback)(void));
+-
+-/**
+  *     selinux_string_to_sid - map a security context string to a security ID
+  *     @str: the security context string to be mapped
+  *     @sid: ID value returned via this.
+@@ -111,30 +63,6 @@ void selinux_secmark_refcount_inc(void);
+ void selinux_secmark_refcount_dec(void);
+ #else
+ 
+-static inline int selinux_audit_rule_init(u32 field, u32 op,
+-                                          char *rulestr,
+-                                          struct selinux_audit_rule **rule)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-static inline void selinux_audit_rule_free(struct selinux_audit_rule *rule)
+-{
+-	return;
+-}
+-
+-static inline int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
+-                                           struct selinux_audit_rule *rule,
+-                                           struct audit_context *actx)
+-{
+-	return 0;
+-}
+-
+-static inline void selinux_audit_set_callback(int (*callback)(void))
+-{
+-	return;
+-}
+-
+ static inline int selinux_string_to_sid(const char *str, u32 *sid)
+ {
+        *sid = 0;
+diff -puN kernel/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports kernel/audit.h
+--- a/kernel/audit.h~selinux-use-new-audit-hooks-remove-redundant-exports
++++ a/kernel/audit.h
+@@ -65,34 +65,9 @@ struct audit_watch {
+ 	struct list_head	rules;	/* associated rules */
+ };
+ 
+-struct audit_field {
+-	u32				type;
+-	u32				val;
+-	u32				op;
+-	char				*se_str;
+-	struct selinux_audit_rule	*se_rule;
+-};
+-
+ struct audit_tree;
+ struct audit_chunk;
+ 
+-struct audit_krule {
+-	int			vers_ops;
+-	u32			flags;
+-	u32			listnr;
+-	u32			action;
+-	u32			mask[AUDIT_BITMASK_SIZE];
+-	u32			buflen; /* for data alloc on list rules */
+-	u32			field_count;
+-	char			*filterkey; /* ties events to rules */
+-	struct audit_field	*fields;
+-	struct audit_field	*arch_f; /* quick access to arch field */
+-	struct audit_field	*inode_f; /* quick access to an inode field */
+-	struct audit_watch	*watch;	/* associated watch */
+-	struct audit_tree	*tree;	/* associated watched tree */
+-	struct list_head	rlist;	/* entry in audit_{watch,tree}.rules list */
+-};
+-
+ struct audit_entry {
+ 	struct list_head	list;
+ 	struct rcu_head		rcu;
+diff -puN security/selinux/hooks.c~selinux-use-new-audit-hooks-remove-redundant-exports security/selinux/hooks.c
+--- a/security/selinux/hooks.c~selinux-use-new-audit-hooks-remove-redundant-exports
++++ a/security/selinux/hooks.c
+@@ -82,6 +82,7 @@
+ #include "netnode.h"
+ #include "xfrm.h"
+ #include "netlabel.h"
++#include "audit.h"
+ 
+ #define XATTR_SELINUX_SUFFIX "selinux"
+ #define XATTR_NAME_SELINUX XATTR_SECURITY_PREFIX XATTR_SELINUX_SUFFIX
+@@ -5437,6 +5438,13 @@ static struct security_operations selinu
+ 	.key_free =                     selinux_key_free,
+ 	.key_permission =               selinux_key_permission,
+ #endif
 +
-+config ATMEL_TCB_CLKSRC_BLOCK
-+	int
-+	depends on ATMEL_TCB_CLKSRC
-+	prompt "TC Block" if ARCH_AT91RM9200 || ARCH_AT91SAM9260 || CPU_AT32AP700X
-+	default 0
-+	range 0 1
-+	help
-+	  Some chips provide more than one TC block, so you have the
-+	  choice of which one to use for the clock framework.  The other
-+	  TC can be used for other purposes, such as PWM generation and
-+	  interval timing.
++#ifdef CONFIG_AUDIT
++	.audit_rule_init =		selinux_audit_rule_init,
++	.audit_rule_known =		selinux_audit_rule_known,
++	.audit_rule_match =		selinux_audit_rule_match,
++	.audit_rule_free =		selinux_audit_rule_free,
++#endif
+ };
+ 
+ static __init int selinux_init(void)
+diff -puN /dev/null security/selinux/include/audit.h
+--- /dev/null
++++ a/security/selinux/include/audit.h
+@@ -0,0 +1,65 @@
++/*
++ * SELinux support for the Audit LSM hooks
++ *
++ * Most of below header was moved from include/linux/selinux.h which
++ * is released under below copyrights:
++ *
++ * Author: James Morris <jmorris@redhat.com>
++ *
++ * Copyright (C) 2005 Red Hat, Inc., James Morris <jmorris@redhat.com>
++ * Copyright (C) 2006 Trusted Computer Solutions, Inc. <dgoeddel@trustedcs.com>
++ * Copyright (C) 2006 IBM Corporation, Timothy R. Chavez <tinytim@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2,
++ * as published by the Free Software Foundation.
++ */
 +
- config IBM_ASM
- 	tristate "Device driver for IBM RSA service processor"
- 	depends on X86 && PCI && INPUT && EXPERIMENTAL
-_
-
-Patches currently in -mm which might be from david-b@pacbell.net are
-
-git-acpi.patch
-git-arm-master.patch
-git-avr32.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-usb-net-asix-does-not-really-need-10-100mbit.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-rtc-replace-remaining-__function__-occurrences.patch
-remove-duplicated-unlikely-in-is_err.patch
-
++#ifndef _SELINUX_AUDIT_H
++#define _SELINUX_AUDIT_H
++
++/**
++ *	selinux_audit_rule_init - alloc/init an selinux audit rule structure.
++ *	@field: the field this rule refers to
++ *	@op: the operater the rule uses
++ *	@rulestr: the text "target" of the rule
++ *	@rule: pointer to the new rule structure returned via this
++ *
++ *	Returns 0 if successful, -errno if not.  On success, the rule structure
++ *	will be allocated internally.  The caller must free this structure with
++ *	selinux_audit_rule_free() after use.
++ */
++int selinux_audit_rule_init(u32 field, u32 op, char *rulestr, void **rule);
++
++/**
++ *	selinux_audit_rule_free - free an selinux audit rule structure.
++ *	@rule: pointer to the audit rule to be freed
++ *
++ *	This will free all memory associated with the given rule.
++ *	If @rule is NULL, no operation is performed.
++ */
++void selinux_audit_rule_free(void *rule);
++
++/**
++ *	selinux_audit_rule_match - determine if a context ID matches a rule.
++ *	@sid: the context ID to check
++ *	@field: the field this rule refers to
++ *	@op: the operater the rule uses
++ *	@rule: pointer to the audit rule to check against
++ *	@actx: the audit context (can be NULL) associated with the check
++ *
++ *	Returns 1 if the context id matches the rule, 0 if it does not, and
++ *	-errno on failure.
++ */
++int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *rule,
++                             struct audit_context *actx);
++
++/**
++ *	selinux_audit_rule_known - check to see if rule contains selinux fields.
++ *	@rule: rule to be checked
++ *	Returns 1 if there are selinux fields specified in the rule, 0 otherwise.
++ */
++int selinux_audit_rule_known(struct audit_krule *krule);
++
++#endif /* _SELINUX_AUDIT_H */
++
+diff -puN security/selinux/ss/services.c~selinux-use-new-audit-hooks-remove-redundant-exports security/selinux/ss/services.c
+--- a/security/selinux/ss/services.c~selinux-use-new-audit-hooks-remove-redundant-exports
++++ a/security/selinux/ss/services.c
+@@ -56,6 +56,7 @@
+ #include "netlabel.h"
+ #include "xfrm.h"
+ #include "ebitmap.h"
++#include "audit.h"
+ 
+ extern void selnl_notify_policyload(u32 seqno);
+ unsigned int policydb_loaded_version;
+@@ -2274,21 +2275,23 @@ struct selinux_audit_rule {
+ 	struct context au_ctxt;
+ };
+ 
+-void selinux_audit_rule_free(struct selinux_audit_rule *rule)
++void selinux_audit_rule_free(void *vrule)
+ {
++	struct selinux_audit_rule *rule = vrule;
++
+ 	if (rule) {
+ 		context_destroy(&rule->au_ctxt);
+ 		kfree(rule);
+ 	}
+ }
+ 
+-int selinux_audit_rule_init(u32 field, u32 op, char *rulestr,
+-                            struct selinux_audit_rule **rule)
++int selinux_audit_rule_init(u32 field, u32 op, char *rulestr, void **vrule)
+ {
+ 	struct selinux_audit_rule *tmprule;
+ 	struct role_datum *roledatum;
+ 	struct type_datum *typedatum;
+ 	struct user_datum *userdatum;
++	struct selinux_audit_rule **rule = (struct selinux_audit_rule **)vrule;
+ 	int rc = 0;
+ 
+ 	*rule = NULL;
+@@ -2375,12 +2378,37 @@ int selinux_audit_rule_init(u32 field, u
+ 	return rc;
+ }
+ 
+-int selinux_audit_rule_match(u32 sid, u32 field, u32 op,
+-                             struct selinux_audit_rule *rule,
++/* Check to see if the rule contains any selinux fields */
++int selinux_audit_rule_known(struct audit_krule *rule)
++{
++	int i;
++
++	for (i = 0; i < rule->field_count; i++) {
++		struct audit_field *f = &rule->fields[i];
++		switch (f->type) {
++		case AUDIT_SUBJ_USER:
++		case AUDIT_SUBJ_ROLE:
++		case AUDIT_SUBJ_TYPE:
++		case AUDIT_SUBJ_SEN:
++		case AUDIT_SUBJ_CLR:
++		case AUDIT_OBJ_USER:
++		case AUDIT_OBJ_ROLE:
++		case AUDIT_OBJ_TYPE:
++		case AUDIT_OBJ_LEV_LOW:
++		case AUDIT_OBJ_LEV_HIGH:
++			return 1;
++		}
++	}
++
++	return 0;
++}
++
++int selinux_audit_rule_match(u32 sid, u32 field, u32 op, void *vrule,
+                              struct audit_context *actx)
+ {
+ 	struct context *ctxt;
+ 	struct mls_level *level;
++	struct selinux_audit_rule *rule = vrule;
+ 	int match = 0;
+ 
+ 	if (!rule) {
+@@ -2487,7 +2515,7 @@ out:
+ 	return match;
+ }
+ 
+-static int (*aurule_callback)(void) = NULL;
++static int (*aurule_callback)(void) = audit_update_lsm_rules;
+ 
+ static int aurule_avc_callback(u32 event, u32 ssid, u32 tsid,
+                                u16 class, u32 perms, u32 *retained)
+@@ -2512,11 +2540,6 @@ static int __init aurule_init(void)
+ }
+ __initcall(aurule_init);
+ 
+-void selinux_audit_set_callback(int (*callback)(void))
+-{
+-	aurule_callback = callback;
+-}
