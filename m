@@ -1,52 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - fix-jdelvare-i2c-i2c-constify-client-address-data.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:30:49 -0800
-Message-ID: <200803062230.m26MUndW021684@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:30:42 -0800
+Message-ID: <200803062230.m26MUgaL021675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205AbYCFWlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:41:17 -0500
+	by vger.kernel.org with ESMTP id S1756592AbYCFWlZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:41:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-jdelvare-i2c-i2c-constify-client-address-data
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been removed from the -mm tree.  Its filename was
-     fix-jdelvare-i2c-i2c-constify-client-address-data.patch
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-jdelvare-i2c-i2c-constify-client-address-data
+Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/tvaudio.c:147: error: conflicting type qualifiers for 'addr_data'
-include/media/v4l2-i2c-drv-legacy.h:37: error: previous declaration of 'addr_data' was here
+drivers/firewire/fw-device.c: In function 'fw_unit_uevent':
+drivers/firewire/fw-device.c:138: warning: unused variable 'i'
+drivers/firewire/fw-device.c:137: warning: unused variable 'length'
 
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/media/v4l2-i2c-drv-legacy.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firewire/fw-device.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data include/media/v4l2-i2c-drv-legacy.h
---- a/include/media/v4l2-i2c-drv-legacy.h~fix-jdelvare-i2c-i2c-constify-client-address-data
-+++ a/include/media/v4l2-i2c-drv-legacy.h
-@@ -34,7 +34,7 @@ struct v4l2_i2c_driver_data {
- };
+diff -puN drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/firewire/fw-device.c
+--- a/drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/firewire/fw-device.c
+@@ -134,8 +134,6 @@ fw_unit_uevent(struct device *dev, struc
+ {
+ 	struct fw_unit *unit = fw_unit(dev);
+ 	char modalias[64];
+-	int length = 0;
+-	int i = 0;
  
- static struct v4l2_i2c_driver_data v4l2_i2c_data;
--static struct i2c_client_address_data addr_data;
-+static const struct i2c_client_address_data addr_data;
- static struct i2c_driver v4l2_i2c_driver_legacy;
- static char v4l2_i2c_drv_name_legacy[32];
+ 	get_modalias(unit, modalias, sizeof(modalias));
  
 _
 
