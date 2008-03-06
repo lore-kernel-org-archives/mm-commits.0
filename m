@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-eliminate-pg_xxx-aliases.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:31:21 -0800
-Message-ID: <200803060131.m261VMxx002236@imap1.linux-foundation.org>
+Subject: + ata-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:49:57 -0800
+Message-ID: <200803060349.m263nvZw007305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760344AbYCFBjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:39:07 -0500
+	by vger.kernel.org with ESMTP id S1755648AbYCFDud (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, riel@redhat.com
+Cc: harvey.harrison@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     pageflags: eliminate PG_xxx aliases
+     ata: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     pageflags-eliminate-pg_xxx-aliases.patch
+     ata-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,259 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: eliminate PG_xxx aliases
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ata: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Remove aliases of PG_xxx.  We can easily drop those now and alias by
-specifying the PG_xxx flag in the macro that generates the functions.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   10 +++-------
- mm/page_alloc.c            |    2 +-
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/ata/libata-acpi.c   |    8 ++++----
+ drivers/ata/libata-core.c   |   14 +++++++-------
+ drivers/ata/pata_pdc2027x.c |    2 +-
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
-+++ a/include/linux/page-flags.h
-@@ -77,8 +77,6 @@ enum pageflags {
- 	PG_active,
- 	PG_slab,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
--	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
--	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
- 	PG_arch_1,
- 	PG_reserved,
- 	PG_private,		/* If pagecache, has fs-private data */
-@@ -87,8 +85,6 @@ enum pageflags {
- 	PG_swapcache,		/* Swap page: swp_entry_t in private */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
--	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
--	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
- 	PG_buddy,		/* Page is free, on buddy lists */
+diff -puN drivers/ata/libata-acpi.c~ata-replace-remaining-__function__-occurrences drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~ata-replace-remaining-__function__-occurrences
++++ a/drivers/ata/libata-acpi.c
+@@ -382,7 +382,7 @@ static int ata_dev_get_GTF(struct ata_de
  
- #if (BITS_PER_LONG > 32)
-@@ -154,8 +150,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
- PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
--PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
-+PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
-+PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
- PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
- PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
- 	__SETPAGEFLAG(Private, private)
-@@ -170,7 +166,7 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(dev, KERN_DEBUG, "%s: ENTER: port#: %d\n",
+-			       __FUNCTION__, ap->port_no);
++			       __func__, ap->port_no);
  
- /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
- PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
--PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
-+PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
+ 	/* _GTF has no input parameters */
+ 	status = acpi_evaluate_object(dev->acpi_handle, "_GTF", NULL, &output);
+@@ -402,7 +402,7 @@ static int ata_dev_get_GTF(struct ata_de
+ 		if (ata_msg_probe(ap))
+ 			ata_dev_printk(dev, KERN_DEBUG, "%s: Run _GTF: "
+ 				"length or ptr is NULL (0x%llx, 0x%p)\n",
+-				__FUNCTION__,
++				__func__,
+ 				(unsigned long long)output.length,
+ 				output.pointer);
+ 		rc = -EINVAL;
+@@ -432,7 +432,7 @@ static int ata_dev_get_GTF(struct ata_de
+ 		if (ata_msg_probe(ap))
+ 			ata_dev_printk(dev, KERN_DEBUG,
+ 				       "%s: returning gtf=%p, gtf_count=%d\n",
+-				       __FUNCTION__, *gtf, rc);
++				       __func__, *gtf, rc);
+ 	}
+ 	return rc;
  
- static inline int PageHighMem(struct page *page)
- {
-diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
---- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
-+++ a/mm/page_alloc.c
-@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
- 	if (PageReserved(page))
- 		return 1;
+@@ -725,7 +725,7 @@ static int ata_acpi_push_id(struct ata_d
  
--	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
-+	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
- 			1 << PG_referenced | 1 << PG_arch_1 |
- 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
- 	set_page_private(page, 0);
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(dev, KERN_DEBUG, "%s: ix = %d, port#: %d\n",
+-			       __FUNCTION__, dev->devno, ap->port_no);
++			       __func__, dev->devno, ap->port_no);
+ 
+ 	/* Give the drive Identify data to the drive via the _SDD method */
+ 	/* _SDD: set up input parameters */
+diff -puN drivers/ata/libata-core.c~ata-replace-remaining-__function__-occurrences drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~ata-replace-remaining-__function__-occurrences
++++ a/drivers/ata/libata-core.c
+@@ -1718,7 +1718,7 @@ void ata_port_flush_task(struct ata_port
+ 	cancel_rearming_delayed_work(&ap->port_task);
+ 
+ 	if (ata_msg_ctl(ap))
+-		ata_port_printk(ap, KERN_DEBUG, "%s: EXIT\n", __FUNCTION__);
++		ata_port_printk(ap, KERN_DEBUG, "%s: EXIT\n", __func__);
+ }
+ 
+ static void ata_qc_complete_internal(struct ata_queued_cmd *qc)
+@@ -2055,7 +2055,7 @@ int ata_dev_read_id(struct ata_device *d
+ 	int rc;
+ 
+ 	if (ata_msg_ctl(ap))
+-		ata_dev_printk(dev, KERN_DEBUG, "%s: ENTER\n", __FUNCTION__);
++		ata_dev_printk(dev, KERN_DEBUG, "%s: ENTER\n", __func__);
+ 
+ 	ata_dev_select(ap, dev->devno, 1, 1); /* select device 0/1 */
+  retry:
+@@ -2252,12 +2252,12 @@ int ata_dev_configure(struct ata_device 
+ 
+ 	if (!ata_dev_enabled(dev) && ata_msg_info(ap)) {
+ 		ata_dev_printk(dev, KERN_INFO, "%s: ENTER/EXIT -- nodev\n",
+-			       __FUNCTION__);
++			       __func__);
+ 		return 0;
+ 	}
+ 
+ 	if (ata_msg_probe(ap))
+-		ata_dev_printk(dev, KERN_DEBUG, "%s: ENTER\n", __FUNCTION__);
++		ata_dev_printk(dev, KERN_DEBUG, "%s: ENTER\n", __func__);
+ 
+ 	/* set horkage */
+ 	dev->horkage |= ata_dev_blacklisted(dev);
+@@ -2278,7 +2278,7 @@ int ata_dev_configure(struct ata_device 
+ 		ata_dev_printk(dev, KERN_DEBUG,
+ 			       "%s: cfg 49:%04x 82:%04x 83:%04x 84:%04x "
+ 			       "85:%04x 86:%04x 87:%04x 88:%04x\n",
+-			       __FUNCTION__,
++			       __func__,
+ 			       id[49], id[82], id[83], id[84],
+ 			       id[85], id[86], id[87], id[88]);
+ 
+@@ -2510,13 +2510,13 @@ int ata_dev_configure(struct ata_device 
+ 
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(dev, KERN_DEBUG, "%s: EXIT, drv_stat = 0x%x\n",
+-			__FUNCTION__, ata_chk_status(ap));
++			__func__, ata_chk_status(ap));
+ 	return 0;
+ 
+ err_out_nosup:
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(dev, KERN_DEBUG,
+-			       "%s: EXIT, err\n", __FUNCTION__);
++			       "%s: EXIT, err\n", __func__);
+ 	return rc;
+ }
+ 
+diff -puN drivers/ata/pata_pdc2027x.c~ata-replace-remaining-__function__-occurrences drivers/ata/pata_pdc2027x.c
+--- a/drivers/ata/pata_pdc2027x.c~ata-replace-remaining-__function__-occurrences
++++ a/drivers/ata/pata_pdc2027x.c
+@@ -39,7 +39,7 @@
+ #undef PDC_DEBUG
+ 
+ #ifdef PDC_DEBUG
+-#define PDPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define PDPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #else
+ #define PDPRINTK(fmt, args...)
+ #endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-fix-mempolicy-reference-counting-bugs.patch
-git-unionfs.patch
-git-slub.patch
-slab-pass-correct-flags-to-kmem_getpages.patch
-ntfs-fix-nommu-build.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-x86.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+arm-replace-remaining-__function__-occurences.patch
+cifs-remove-global_extern-macro.patch
+cifs-replace-remaining-__function__-occurrences.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+drivers-base-replace-remaining-__function__-occurrences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+ia64-remove-remaining-__function__-occurences.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+jfs-replace-__inline-with-inline.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+mips-replace-remaining-__function__-occurences.patch
+mips-replace-__inline-with-inline.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+git-ubi.patch
+net-replace-__inline-with-inline.patch
+irda-replace-__inline-with-inline.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+sh-replace-remaining-__function__-occurences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-stc-make-class-attributes-static.patch
+scsi-osstc-make-class-attributes-static.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+isdn-replace-__inline-with-inline.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+security-replace-remaining-__function__-occurences.patch
+security-replace-remaining-__function__-occurences-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
+acpi-replace-remaining-__function__-occurrences.patch
+ata-replace-remaining-__function__-occurrences.patch
+block-replace-remaining-__function__-occurrences.patch
+iop-admac-replace-remaining-__function__-occurrences.patch
+ieee1394-replace-remaining-__function__-occurrences.patch
+firmware-replace-remaining-__function__-occurrences.patch
+mtd-replace-remaining-__function__-occurrences.patch
+md-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+watchdog-replace-remaining-__function__-occurrences.patch
+spi-replace-remaining-__function__-occurrences.patch
+power-replace-remaining-__function__-occurrences.patch
+drivers-replace-remaining-__function__-occurrences.patch
 
