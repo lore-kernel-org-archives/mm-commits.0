@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devscontrol-extend-the-drivers-base-mapc-functionality.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:16:37 -0800
-Message-ID: <200803060116.m261GcwR001547@imap1.linux-foundation.org>
+Subject: + devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:35 -0800
+Message-ID: <200803060116.m261Ga4c001544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764933AbYCFBQv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:51 -0500
+	by vger.kernel.org with ESMTP id S1765886AbYCFBRN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:17:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, s
 
 
 The patch titled
-     devscontrol: extend the drivers/base/map.c functionality
+     devscontrol: make use of permissions, returned by kobj_lookup
 has been added to the -mm tree.  Its filename is
-     devscontrol-extend-the-drivers-base-mapc-functionality.patch
+     devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: extend the drivers/base/map.c functionality
+Subject: devscontrol: make use of permissions, returned by kobj_lookup
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This includes the following functions:
+Now check the requesting permissions against the granted (with the
+dev_t-to-kobj map) ones.
 
-1. kobj_remap - this one will change the mapping's permissions
-   or add a new one if required.
+The tricky place is chrdev_open - it caches the struct cdev on inode and thus,
+we have to perform lookup each time if we are in a restricted mapping.
 
-2. kobj_map_iterate will walk the map, calling the callback
-   on each element.
-
-3. kobj_map_fini is a rollback for kobj_map_finid - cleans all
-   the mappings.
+The task_cdev_map and task_bdev_map provide the map which the current task is
+in, but now they just return NULL, which means, that the task is not in any.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -56,115 +54,120 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/map.c       |   84 +++++++++++++++++++++++++++++++++++++
- include/linux/kobj_map.h |    6 ++
- 2 files changed, 90 insertions(+)
+ block/genhd.c               |    8 +++++++-
+ fs/block_dev.c              |    8 ++++++++
+ fs/char_dev.c               |   18 ++++++++++++++++--
+ include/linux/devscontrol.h |   12 ++++++++++++
+ 4 files changed, 43 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality drivers/base/map.c
---- a/drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality
-+++ a/drivers/base/map.c
-@@ -181,3 +181,87 @@ struct kobj_map *kobj_map_init(kobj_prob
- 	p->lock = lock;
- 	return p;
- }
+diff -puN block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup block/genhd.c
+--- a/block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
++++ a/block/genhd.c
+@@ -8,6 +8,7 @@
+ #include <linux/kdev_t.h>
+ #include <linux/kernel.h>
+ #include <linux/blkdev.h>
++#include <linux/devscontrol.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+ #include <linux/seq_file.h>
+@@ -208,10 +209,15 @@ void unlink_gendisk(struct gendisk *disk
+  */
+ struct gendisk *get_gendisk(dev_t devt, mode_t *mode, int *part)
+ {
++	struct kobj_map *map;
+ 	struct kobject *kobj;
+ 	struct device *dev;
+ 
+-	kobj = kobj_lookup(bdev_map, devt, mode, part);
++	map = task_bdev_map(current);
++	if (map == NULL)
++		map = bdev_map;
 +
-+#ifdef CONFIG_CGROUP_DEVS
-+int kobj_remap(struct kobj_map *domain, dev_t dev, mode_t mode,
-+		unsigned long range, struct module *module,
-+		kobj_probe_t *probe, int (*lock)(dev_t, void *), void *data)
-+{
-+	unsigned n = MAJOR(dev + range - 1) - MAJOR(dev) + 1;
-+	unsigned index = MAJOR(dev);
-+	unsigned i;
-+	int err = -ESRCH;
++	kobj = kobj_lookup(map, devt, mode, part);
+ 	if (kobj == NULL)
+ 		return NULL;
+ 
+diff -puN fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/block_dev.c
+--- a/fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
++++ a/fs/block_dev.c
+@@ -940,6 +940,14 @@ static int do_open(struct block_device *
+ 		bdput(bdev);
+ 		return ret;
+ 	}
 +
-+	if (n > KOBJ_MAP_PROBES)
-+		n = KOBJ_MAP_PROBES;
-+
-+	mutex_lock(domain->lock);
-+	for (i = 0; i < n; i++, index++) {
-+		struct probe **s;
-+		for (s = &domain->probes[index % KOBJ_MAP_PROBES];
-+				*s; s = &(*s)->next) {
-+			struct probe *p = *s;
-+			if (p->dev == dev) {
-+				p->mode = mode | FMODE_LSEEK |
-+					FMODE_PREAD | FMODE_PWRITE;
-+				err = 0;
-+				break;
-+			}
-+		}
++	if ((file->f_mode & mode) != file->f_mode) {
++		unlock_kernel();
++		bdput(bdev);
++		put_disk(disk);
++		return -EACCES;
 +	}
 +
-+	if (err)
-+		err = __kobj_map(domain, dev, mode, range, module,
-+				probe, lock, data);
-+	mutex_unlock(domain->lock);
-+	return err;
+ 	owner = disk->fops->owner;
+ 
+ 	mutex_lock_nested(&bdev->bd_mutex, for_part);
+diff -puN fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/char_dev.c
+--- a/fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
++++ a/fs/char_dev.c
+@@ -22,6 +22,8 @@
+ #include <linux/mutex.h>
+ #include <linux/backing-dev.h>
+ 
++#include <linux/devscontrol.h>
++
+ #ifdef CONFIG_KMOD
+ #include <linux/kmod.h>
+ #endif
+@@ -361,19 +363,31 @@ static int chrdev_open(struct inode *ino
+ 	struct cdev *p;
+ 	struct cdev *new = NULL;
+ 	int ret = 0;
++	struct kobj_map *map;
++
++	map = task_cdev_map(current);
++	if (map == NULL)
++		map = cdev_map;
+ 
+ 	spin_lock(&cdev_lock);
+ 	p = inode->i_cdev;
+-	if (!p) {
++	if (!p || map != cdev_map) {
+ 		struct kobject *kobj;
+ 		int idx;
+ 		mode_t mode;
+ 
+ 		spin_unlock(&cdev_lock);
+-		kobj = kobj_lookup(cdev_map, inode->i_rdev, &mode, &idx);
++		kobj = kobj_lookup(map, inode->i_rdev, &mode, &idx);
+ 		if (!kobj)
+ 			return -ENXIO;
+ 		new = container_of(kobj, struct cdev, kobj);
++		BUG_ON(p != NULL && p != new);
++
++		if ((filp->f_mode & mode) != filp->f_mode) {
++			cdev_put(new);
++			return -EACCES;
++		}
++
+ 		spin_lock(&cdev_lock);
+ 		p = inode->i_cdev;
+ 		if (!p) {
+diff -puN /dev/null include/linux/devscontrol.h
+--- /dev/null
++++ a/include/linux/devscontrol.h
+@@ -0,0 +1,12 @@
++#ifndef __DEVS_CONTROL_H__
++#define __DEVS_CONTROL_H__
++static inline struct kobj_map *task_cdev_map(struct task_struct *tsk)
++{
++	return NULL;
 +}
 +
-+void kobj_map_iterate(struct kobj_map *domain,
-+		int (*fn)(dev_t, int, mode_t, void *), void *arg)
++static inline struct kobj_map *task_bdev_map(struct task_struct *tsk)
 +{
-+	int i;
-+	struct probe *p;
-+	dev_t skip = MKDEV(0, 0);
-+
-+	mutex_lock(domain->lock);
-+	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
-+		p = domain->probes[i];
-+		while (p != NULL) {
-+			if (p->dev == skip)
-+				goto next;
-+			/*
-+			 * this 'device' is special - see the kobj_map_init why
-+			 */
-+			if (p->dev == 1)
-+				goto next;
-+
-+			skip = p->dev;
-+			if (fn(p->dev, p->range, p->mode, arg))
-+				goto done;
-+next:
-+			p = p->next;
-+		}
-+	}
-+done:
-+	mutex_unlock(domain->lock);
-+}
-+
-+void kobj_map_fini(struct kobj_map *map)
-+{
-+	int i;
-+	struct probe *p, *next;
-+
-+	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
-+		p = map->probes[i];
-+		while (p->next != NULL) {
-+			next = p->next;
-+			kfree(p);
-+			p = next;
-+		}
-+	}
-+
-+	kfree(p);
-+	kfree(map);
++	return NULL;
 +}
 +#endif
-diff -puN include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality include/linux/kobj_map.h
---- a/include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality
-+++ a/include/linux/kobj_map.h
-@@ -11,4 +11,10 @@ void kobj_unmap(struct kobj_map *, dev_t
- struct kobject *kobj_lookup(struct kobj_map *, dev_t, mode_t *, int *);
- struct kobj_map *kobj_map_init(kobj_probe_t *, struct mutex *);
- 
-+void kobj_map_iterate(struct kobj_map *, int (*fn)(dev_t, int, mode_t, void *),
-+		void *);
-+int kobj_remap(struct kobj_map *, dev_t, mode_t, unsigned long, struct module *,
-+	     kobj_probe_t *, int (*)(dev_t, void *), void *);
-+void kobj_map_fini(struct kobj_map *);
-+
- #endif
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
