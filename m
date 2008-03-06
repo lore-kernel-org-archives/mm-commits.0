@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:34:21 -0800
-Message-ID: <200803060134.m261YMsm002364@imap1.linux-foundation.org>
+Subject: + ptrace-introduce-ptrace_reparented-helper.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:34:18 -0800
+Message-ID: <200803060134.m261YIpt002360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47160 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760066AbYCFBfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:35:13 -0500
+	by vger.kernel.org with ESMTP id S1753563AbYCFBjC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:39:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     ptrace: __ptrace_unlink: use the ptrace_reparented() helper
+     ptrace: introduce ptrace_reparented() helper
 has been added to the -mm tree.  Its filename is
-     ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+     ptrace-introduce-ptrace_reparented-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: __ptrace_unlink: use the ptrace_reparented() helper
+Subject: ptrace: introduce ptrace_reparented() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Currently __ptrace_unlink() checks list_empty(->ptrace_list) to figure out
-whether the child was reparented.  Change the code to use ptrace_reparented()
-to make this check more explicit and consistent.
+Add another trivial helper for the sake of grep.  It also auto-documents the
+fact that ->parent != real_parent implies ->ptrace.
 
 No functional changes.
 
@@ -47,21 +46,57 @@ Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/ptrace.h |    4 ++++
+ kernel/exit.c          |    9 ++++-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper
-+++ a/kernel/ptrace.c
-@@ -73,7 +73,7 @@ void __ptrace_unlink(struct task_struct 
- 	BUG_ON(!child->ptrace);
+diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper
++++ a/include/linux/ptrace.h
+@@ -98,6 +98,10 @@ extern void ptrace_untrace(struct task_s
+ extern int ptrace_may_attach(struct task_struct *task);
+ extern int __ptrace_may_attach(struct task_struct *task);
  
- 	child->ptrace = 0;
--	if (!list_empty(&child->ptrace_list)) {
-+	if (ptrace_reparented(child)) {
- 		list_del_init(&child->ptrace_list);
- 		remove_parent(child);
- 		child->parent = child->real_parent;
++static inline int ptrace_reparented(struct task_struct *child)
++{
++	return child->real_parent != child->parent;
++}
+ static inline void ptrace_link(struct task_struct *child,
+ 			       struct task_struct *new_parent)
+ {
+diff -puN kernel/exit.c~ptrace-introduce-ptrace_reparented-helper kernel/exit.c
+--- a/kernel/exit.c~ptrace-introduce-ptrace_reparented-helper
++++ a/kernel/exit.c
+@@ -632,7 +632,7 @@ reparent_thread(struct task_struct *p, s
+ 	if (unlikely(traced)) {
+ 		/* Preserve ptrace links if someone else is tracing this child.  */
+ 		list_del_init(&p->ptrace_list);
+-		if (p->parent != p->real_parent)
++		if (ptrace_reparented(p))
+ 			list_add(&p->ptrace_list, &p->real_parent->ptrace_children);
+ 	} else {
+ 		/* If this child is being traced, then we're the one tracing it
+@@ -799,8 +799,8 @@ static void exit_notify(struct task_stru
+ 	 * only has special meaning to our real parent.
+ 	 */
+ 	if (!task_detached(tsk) && thread_group_empty(tsk)) {
+-		int signal = (tsk->parent == tsk->real_parent)
+-				? tsk->exit_signal : SIGCHLD;
++		int signal = ptrace_reparented(tsk) ?
++				SIGCHLD : tsk->exit_signal;
+ 		do_notify_parent(tsk, signal);
+ 	} else if (tsk->ptrace) {
+ 		do_notify_parent(tsk, SIGCHLD);
+@@ -1203,8 +1203,7 @@ static int wait_task_zombie(struct task_
+ 		return 0;
+ 	}
+ 
+-	/* traced means p->ptrace, but not vice versa */
+-	traced = (p->real_parent != p->parent);
++	traced = ptrace_reparented(p);
+ 
+ 	if (likely(!traced)) {
+ 		struct signal_struct *psig;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
