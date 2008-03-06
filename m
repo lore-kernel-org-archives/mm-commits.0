@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + md-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:09 -0800
-Message-ID: <200803060350.m263o9ku007332@imap1.linux-foundation.org>
+Subject: + ieee1394-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:03 -0800
+Message-ID: <200803060350.m263o3vR007321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756604AbYCFDun (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:43 -0500
+	by vger.kernel.org with ESMTP id S1756631AbYCFDux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, neilb@suse.de
+Cc: harvey.harrison@gmail.com, stefanr@s5r6.in-berlin.de
 
 
 The patch titled
-     md: replace remaining __FUNCTION__ occurrences
+     ieee1394: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     md-replace-remaining-__function__-occurrences.patch
+     ieee1394-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,238 +33,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: replace remaining __FUNCTION__ occurrences
+Subject: ieee1394: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-uevent.c |   22 +++++++++++-----------
- drivers/md/raid5.c     |   28 ++++++++++++++--------------
- 2 files changed, 25 insertions(+), 25 deletions(-)
+ drivers/ieee1394/highlevel.c     |    6 +++---
+ drivers/ieee1394/ieee1394_core.c |    2 +-
+ drivers/ieee1394/ohci1394.c      |    2 +-
+ drivers/ieee1394/pcilynx.c       |   12 ++++++------
+ drivers/ieee1394/sbp2.c          |    4 ++--
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/md/dm-uevent.c~md-replace-remaining-__function__-occurrences drivers/md/dm-uevent.c
---- a/drivers/md/dm-uevent.c~md-replace-remaining-__function__-occurrences
-+++ a/drivers/md/dm-uevent.c
-@@ -78,7 +78,7 @@ static struct dm_uevent *dm_build_path_u
- 
- 	event = dm_uevent_alloc(md);
- 	if (!event) {
--		DMERR("%s: dm_uevent_alloc() failed", __FUNCTION__);
-+		DMERR("%s: dm_uevent_alloc() failed", __func__);
- 		goto err_nomem;
+diff -puN drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/highlevel.c
+--- a/drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/highlevel.c
+@@ -339,7 +339,7 @@ u64 hpsb_allocate_and_register_addrspace
+ 	if ((alignment & 3) || (alignment > 0x800000000000ULL) ||
+ 	    (hweight64(alignment) != 1)) {
+ 		HPSB_ERR("%s called with invalid alignment: 0x%048llx",
+-			 __FUNCTION__, (unsigned long long)alignment);
++			 __func__, (unsigned long long)alignment);
+ 		return retval;
  	}
  
-@@ -86,32 +86,32 @@ static struct dm_uevent *dm_build_path_u
+@@ -354,7 +354,7 @@ u64 hpsb_allocate_and_register_addrspace
+ 	if (((start|end) & ~align_mask) || (start >= end) ||
+ 	    (end > CSR1212_ALL_SPACE_END)) {
+ 		HPSB_ERR("%s called with invalid addresses "
+-			 "(start = %012Lx  end = %012Lx)", __FUNCTION__,
++			 "(start = %012Lx  end = %012Lx)", __func__,
+ 			 (unsigned long long)start,(unsigned long long)end);
+ 		return retval;
+ 	}
+@@ -422,7 +422,7 @@ int hpsb_register_addrspace(struct hpsb_
  
- 	if (add_uevent_var(&event->ku_env, "DM_TARGET=%s", ti->type->name)) {
- 		DMERR("%s: add_uevent_var() for DM_TARGET failed",
--		      __FUNCTION__);
-+		      __func__);
- 		goto err_add;
+ 	if (((start|end) & 3) || (start >= end) ||
+ 	    (end > CSR1212_ALL_SPACE_END)) {
+-		HPSB_ERR("%s called with invalid addresses", __FUNCTION__);
++		HPSB_ERR("%s called with invalid addresses", __func__);
+ 		return 0;
  	}
  
- 	if (add_uevent_var(&event->ku_env, "DM_ACTION=%s", dm_action)) {
- 		DMERR("%s: add_uevent_var() for DM_ACTION failed",
--		      __FUNCTION__);
-+		      __func__);
- 		goto err_add;
- 	}
- 
- 	if (add_uevent_var(&event->ku_env, "DM_SEQNUM=%u",
- 			   dm_next_uevent_seq(md))) {
- 		DMERR("%s: add_uevent_var() for DM_SEQNUM failed",
--		      __FUNCTION__);
-+		      __func__);
- 		goto err_add;
- 	}
- 
- 	if (add_uevent_var(&event->ku_env, "DM_PATH=%s", path)) {
--		DMERR("%s: add_uevent_var() for DM_PATH failed", __FUNCTION__);
-+		DMERR("%s: add_uevent_var() for DM_PATH failed", __func__);
- 		goto err_add;
- 	}
- 
- 	if (add_uevent_var(&event->ku_env, "DM_NR_VALID_PATHS=%d",
- 			   nr_valid_paths)) {
- 		DMERR("%s: add_uevent_var() for DM_NR_VALID_PATHS failed",
--		      __FUNCTION__);
-+		      __func__);
- 		goto err_add;
- 	}
- 
-@@ -146,25 +146,25 @@ void dm_send_uevents(struct list_head *e
- 		if (dm_copy_name_and_uuid(event->md, event->name,
- 					  event->uuid)) {
- 			DMERR("%s: dm_copy_name_and_uuid() failed",
--			      __FUNCTION__);
-+			      __func__);
- 			goto uevent_free;
- 		}
- 
- 		if (add_uevent_var(&event->ku_env, "DM_NAME=%s", event->name)) {
- 			DMERR("%s: add_uevent_var() for DM_NAME failed",
--			      __FUNCTION__);
-+			      __func__);
- 			goto uevent_free;
- 		}
- 
- 		if (add_uevent_var(&event->ku_env, "DM_UUID=%s", event->uuid)) {
- 			DMERR("%s: add_uevent_var() for DM_UUID failed",
--			      __FUNCTION__);
-+			      __func__);
- 			goto uevent_free;
- 		}
- 
- 		r = kobject_uevent_env(kobj, event->action, event->ku_env.envp);
- 		if (r)
--			DMERR("%s: kobject_uevent_env failed", __FUNCTION__);
-+			DMERR("%s: kobject_uevent_env failed", __func__);
- uevent_free:
- 		dm_uevent_free(event);
- 	}
-@@ -187,7 +187,7 @@ void dm_path_uevent(enum dm_uevent_type 
- 	struct dm_uevent *event;
- 
- 	if (event_type >= ARRAY_SIZE(_dm_uevent_type_names)) {
--		DMERR("%s: Invalid event_type %d", __FUNCTION__, event_type);
-+		DMERR("%s: Invalid event_type %d", __func__, event_type);
- 		goto out;
- 	}
- 
-diff -puN drivers/md/raid5.c~md-replace-remaining-__function__-occurrences drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-replace-remaining-__function__-occurrences
-+++ a/drivers/md/raid5.c
-@@ -433,7 +433,7 @@ static void ops_run_io(struct stripe_hea
- 
- 			bi->bi_bdev = rdev->bdev;
- 			pr_debug("%s: for %llu schedule op %ld on disc %d\n",
--				__FUNCTION__, (unsigned long long)sh->sector,
-+				__func__, (unsigned long long)sh->sector,
- 				bi->bi_rw, i);
- 			atomic_inc(&sh->count);
- 			bi->bi_sector = sh->sector + rdev->data_offset;
-@@ -520,7 +520,7 @@ static void ops_complete_biofill(void *s
- 	raid5_conf_t *conf = sh->raid_conf;
- 	int i;
- 
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
- 
- 	/* clear completed biofills */
-@@ -569,7 +569,7 @@ static void ops_run_biofill(struct strip
- 	raid5_conf_t *conf = sh->raid_conf;
- 	int i;
- 
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
- 
- 	for (i = sh->disks; i--; ) {
-@@ -600,7 +600,7 @@ static void ops_complete_compute5(void *
- 	int target = sh->ops.target;
- 	struct r5dev *tgt = &sh->dev[target];
- 
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
- 
- 	set_bit(R5_UPTODATE, &tgt->flags);
-@@ -625,7 +625,7 @@ ops_run_compute5(struct stripe_head *sh,
- 	int i;
- 
- 	pr_debug("%s: stripe %llu block: %d\n",
--		__FUNCTION__, (unsigned long long)sh->sector, target);
-+		__func__, (unsigned long long)sh->sector, target);
- 	BUG_ON(!test_bit(R5_Wantcompute, &tgt->flags));
- 
- 	for (i = disks; i--; )
-@@ -653,7 +653,7 @@ static void ops_complete_prexor(void *st
+diff -puN drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -242,7 +242,7 @@ int hpsb_bus_reset(struct hpsb_host *hos
  {
- 	struct stripe_head *sh = stripe_head_ref;
+ 	if (host->in_bus_reset) {
+ 		HPSB_NOTICE("%s called while bus reset already in progress",
+-			    __FUNCTION__);
++			    __func__);
+ 		return 1;
+ 	}
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+diff -puN drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ohci1394.c
+--- a/drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/ohci1394.c
+@@ -708,7 +708,7 @@ static void insert_packet(struct ti_ohci
+                                 /* FIXME: do something about it */
+                                 PRINT(KERN_ERR,
+                                       "%s: packet data addr: %p size %Zd bytes "
+-                                      "cross page boundary", __FUNCTION__,
++				      "cross page boundary", __func__,
+                                       packet->data, packet->data_size);
+                         }
+ #endif
+diff -puN drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/pcilynx.c
+--- a/drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/pcilynx.c
+@@ -226,7 +226,7 @@ static int get_phy_reg(struct ti_lynx *l
+         if (addr > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+                       "%s: PHY register address %d out of range",
+-		      __FUNCTION__, addr);
++		      __func__, addr);
+                 return -1;
+         }
  
- 	set_bit(STRIPE_OP_PREXOR, &sh->ops.complete);
-@@ -670,7 +670,7 @@ ops_run_prexor(struct stripe_head *sh, s
- 	/* existing parity data subtracted */
- 	struct page *xor_dest = xor_srcs[count++] = sh->dev[pd_idx].page;
+@@ -238,7 +238,7 @@ static int get_phy_reg(struct ti_lynx *l
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+                 if (i > 10000) {
+                         PRINT(KERN_ERR, lynx->id, "%s: runaway loop, aborting",
+-			      __FUNCTION__);
++			      __func__);
+                         retval = -1;
+                         break;
+                 }
+@@ -261,13 +261,13 @@ static int set_phy_reg(struct ti_lynx *l
  
- 	for (i = disks; i--; ) {
-@@ -699,7 +699,7 @@ ops_run_biodrain(struct stripe_head *sh,
- 	 */
- 	int prexor = test_bit(STRIPE_OP_PREXOR, &pending);
+         if (addr > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY register address %d out of range", __FUNCTION__, addr);
++		      "%s: PHY register address %d out of range", __func__, addr);
+                 return -1;
+         }
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+         if (val > 0xff) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY register value %d out of range", __FUNCTION__, val);
++		      "%s: PHY register value %d out of range", __func__, val);
+                 return -1;
+         }
  
- 	for (i = disks; i--; ) {
-@@ -744,7 +744,7 @@ static void ops_complete_postxor(void *s
- {
- 	struct stripe_head *sh = stripe_head_ref;
+@@ -287,7 +287,7 @@ static int sel_phy_reg_page(struct ti_ly
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+         if (page > 7) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY page %d out of range", __FUNCTION__, page);
++		      "%s: PHY page %d out of range", __func__, page);
+                 return -1;
+         }
  
- 	set_bit(STRIPE_OP_POSTXOR, &sh->ops.complete);
-@@ -757,7 +757,7 @@ static void ops_complete_write(void *str
- 	struct stripe_head *sh = stripe_head_ref;
- 	int disks = sh->disks, i, pd_idx = sh->pd_idx;
+@@ -309,7 +309,7 @@ static int sel_phy_reg_port(struct ti_ly
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+         if (port > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY port %d out of range", __FUNCTION__, port);
++		      "%s: PHY port %d out of range", __func__, port);
+                 return -1;
+         }
  
- 	for (i = disks; i--; ) {
-@@ -787,7 +787,7 @@ ops_run_postxor(struct stripe_head *sh, 
- 	unsigned long flags;
- 	dma_async_tx_callback callback;
+diff -puN drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/sbp2.c
+--- a/drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/sbp2.c
+@@ -610,7 +610,7 @@ static struct sbp2_command_info *sbp2uti
+ 		cmd->Current_SCpnt = Current_SCpnt;
+ 		list_add_tail(&cmd->list, &lu->cmd_orb_inuse);
+ 	} else
+-		SBP2_ERR("%s: no orbs available", __FUNCTION__);
++		SBP2_ERR("%s: no orbs available", __func__);
+ 	spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
+ 	return cmd;
+ }
+@@ -1289,7 +1289,7 @@ static int sbp2_set_busy_timeout(struct 
  
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
+ 	data = cpu_to_be32(SBP2_BUSY_TIMEOUT_VALUE);
+ 	if (hpsb_node_write(lu->ne, SBP2_BUSY_TIMEOUT_ADDRESS, &data, 4))
+-		SBP2_ERR("%s error", __FUNCTION__);
++		SBP2_ERR("%s error", __func__);
+ 	return 0;
+ }
  
- 	/* check if prexor is active which means only process blocks
-@@ -837,7 +837,7 @@ static void ops_complete_check(void *str
- 	struct stripe_head *sh = stripe_head_ref;
- 	int pd_idx = sh->pd_idx;
- 
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
- 
- 	if (test_and_clear_bit(STRIPE_OP_MOD_DMA_CHECK, &sh->ops.pending) &&
-@@ -859,7 +859,7 @@ static void ops_run_check(struct stripe_
- 	int count = 0, pd_idx = sh->pd_idx, i;
- 	struct page *xor_dest = xor_srcs[count++] = sh->dev[pd_idx].page;
- 
--	pr_debug("%s: stripe %llu\n", __FUNCTION__,
-+	pr_debug("%s: stripe %llu\n", __func__,
- 		(unsigned long long)sh->sector);
- 
- 	for (i = disks; i--; ) {
-@@ -1759,7 +1759,7 @@ handle_write_operations5(struct stripe_h
- 	locked++;
- 
- 	pr_debug("%s: stripe %llu locked: %d pending: %lx\n",
--		__FUNCTION__, (unsigned long long)sh->sector,
-+		__func__, (unsigned long long)sh->sector,
- 		locked, sh->ops.pending);
- 
- 	return locked;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
