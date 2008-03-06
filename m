@@ -1,185 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - irda-replace-__inline-with-inline.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:21:53 -0800
-Message-ID: <200803062221.m26MLrRC020751@imap1.linux-foundation.org>
+Subject: - fix-gregkh-pci-pci-pcie-aspm-support.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:30:47 -0800
+Message-ID: <200803062230.m26MUlR0021681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757956AbYCFWax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:30:53 -0500
+	by vger.kernel.org with ESMTP id S1757146AbYCFWbS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     irda: replace __inline with inline
+     fix gregkh-pci-pci-pcie-aspm-support
 has been removed from the -mm tree.  Its filename was
-     irda-replace-__inline-with-inline.patch
+     fix-gregkh-pci-pci-pcie-aspm-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irda: replace __inline with inline
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: fix gregkh-pci-pci-pcie-aspm-support
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+drivers/built-in.o: In function `pci_scan_slot':
+drivers/pci/probe.c:1016: undefined reference to `pcie_aspm_init_link_state'
+drivers/built-in.o: In function `pci_stop_dev':
+drivers/pci/remove.c:36: undefined reference to `pcie_aspm_exit_link_state'
+drivers/built-in.o: In function `pci_set_power_state':
+drivers/pci/pci.c:524: undefined reference to `pcie_aspm_pm_state_change'
+
+It needs PCIE.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/irda/irttp.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/pcie/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/net/irda/irttp.h~irda-replace-__inline-with-inline include/net/irda/irttp.h
---- a/include/net/irda/irttp.h~irda-replace-__inline-with-inline
-+++ a/include/net/irda/irttp.h
-@@ -169,17 +169,17 @@ int irttp_disconnect_request(struct tsap
- void irttp_flow_request(struct tsap_cb *self, LOCAL_FLOW flow);
- struct tsap_cb *irttp_dup(struct tsap_cb *self, void *instance);
- 
--static __inline __u32 irttp_get_saddr(struct tsap_cb *self)
-+static inline __u32 irttp_get_saddr(struct tsap_cb *self)
- {
- 	return irlmp_get_saddr(self->lsap);
- }
- 
--static __inline __u32 irttp_get_daddr(struct tsap_cb *self)
-+static inline __u32 irttp_get_daddr(struct tsap_cb *self)
- {
- 	return irlmp_get_daddr(self->lsap);
- }
- 
--static __inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
-+static inline __u32 irttp_get_max_seg_size(struct tsap_cb *self)
- {
- 	return self->max_seg_size;
- }
+diff -puN drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support drivers/pci/pcie/Kconfig
+--- a/drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support
++++ a/drivers/pci/pcie/Kconfig
+@@ -32,7 +32,7 @@ source "drivers/pci/pcie/aer/Kconfig"
+ #
+ config PCIEASPM
+ 	bool "PCI Express ASPM support(Experimental)"
+-	depends on PCI && EXPERIMENTAL
++	depends on PCI && EXPERIMENTAL && PCIEPORTBUS
+ 	default y
+ 	help
+ 	  This enables PCI Express ASPM (Active State Power Management) and
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 git-x86.patch
-acpi-replace-remaining-__function__-occurrences.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa.patch
-sound-replace-remaining-__function__-occurences.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-alsa-fix-git-conflicts.patch
 git-arm-master.patch
-cifs-remove-global_extern-macro.patch
-cifs-replace-remaining-__function__-occurrences.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
 git-dvb.patch
-git-dlm.patch
-ia64-remove-remaining-__function__-occurences.patch
-ieee1394-replace-remaining-__function__-occurrences.patch
-infiniband-replace-remaining-__function__-occurrences.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
-ata-replace-remaining-__function__-occurrences.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-mips-replace-remaining-__function__-occurences.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
+git-md-accel.patch
+git-md-accel-fix-git-rejects.patch
 git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-nfs-replace-remaining-__function__-occurrences.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
+git-ocfs2.patch
 git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
 git-sh.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-stc-make-class-attributes-static.patch
-scsi-osstc-make-class-attributes-static.patch
-scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-aic94xx-cleanups.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-block-replace-remaining-__function__-occurrences.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
 git-watchdog.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
+git-semaphore-git-rejects.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-power-replace-remaining-__function__-occurrences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
-iop-admac-replace-remaining-__function__-occurrences.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ioc3c-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-serial-remove-double-initializer.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-jbd-sparse-warnings-in-revokec-journalc.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-fix_nodec.patch
-reiserfs-fix-sparse-warnings-in-do_balanc.patch
-reiserfs-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warnings-in-lbalancec.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
