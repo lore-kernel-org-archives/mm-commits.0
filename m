@@ -1,191 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - selinux-remove-redundant-exports.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:23:18 -0800
-Message-ID: <200803062223.m26MNI4m020883@imap1.linux-foundation.org>
+Subject: - jbd2-fix-possible-journal-overflow-issues.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:40 -0800
+Message-ID: <200803062223.m26MNeL9020907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55369 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756899AbYCFWYZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:25 -0500
+	by vger.kernel.org with ESMTP id S1756422AbYCFWYt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:24:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, casey@schaufler-ca.com, chrisw@sous-sol.org, dwmw2@infradead.org, eparis@parisplace.org, jmorris@namei.org, paul.moore@hp.com, sds@tycho.nsa.gov, viro@zeniv.linux
+To: jbacik@redhat.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SELinux: remove redundant exports
+     jbd2: fix possible journal overflow issues
 has been removed from the -mm tree.  Its filename was
-     selinux-remove-redundant-exports.patch
+     jbd2-fix-possible-journal-overflow-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: SELinux: remove redundant exports
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: jbd2: fix possible journal overflow issues
+From: Josef Bacik <jbacik@redhat.com>
 
-Remove the following exported SELinux interfaces:
-selinux_get_inode_sid(inode, sid)
-selinux_get_ipc_sid(ipcp, sid)
-selinux_get_task_sid(tsk, sid)
-selinux_sid_to_string(sid, ctx, len)
+There are several cases where the running transaction can get buffers added to
+its BJ_Metadata list which it never dirtied, which makes its t_nr_buffers
+counter end up larger than its t_outstanding_credits counter.
 
-They can be substitued with the following generic equivalents
-respectively:
-new LSM hook, inode_getsecid(inode, secid)
-new LSM hook, ipc_getsecid*(ipcp, secid)
-LSM hook, task_getsecid(tsk, secid)
-LSM hook, sid_to_secctx(sid, ctx, len)
+This will cause issues when starting new transactions as while we are logging
+buffers we decrement t_outstanding_buffers, so when t_outstanding_buffers goes
+negative, we will report that we need less space in the journal than we
+actually need, so transactions will be started even though there may not be
+enough room for them.  In the worst case scenario (which admittedly is almost
+impossible to reproduce) this will result in the journal running out of space.
 
-Signed-off-by: Casey Schaufler <casey@schaufler-ca.com>
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Acked-by: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Reviewed-by: Paul Moore <paul.moore@hp.com>
+The fix is to only
+refile buffers from the committing transaction to the running transactions
+BJ_Modified list when b_modified is set on that journal, which is the only way
+to be sure if the running transaction has modified that buffer.
+
+This patch also fixes an accounting error in journal_forget, it is possible
+that we can call journal_forget on a buffer without having modified it, only
+gotten write access to it, so instead of freeing a credit, we only do so if
+the buffer was modified.  The assert will help catch if this problem occurs. 
+Without these two patches I could hit this assert within minutes of running
+postmark, with them this issue no longer arises.  Thank you,
+
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/selinux.h    |   62 -----------------------------------
- security/selinux/exports.c |   42 -----------------------
- 2 files changed, 104 deletions(-)
+ fs/jbd2/commit.c      |    3 +++
+ fs/jbd2/transaction.c |   21 ++++++++++++++++++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/selinux.h~selinux-remove-redundant-exports include/linux/selinux.h
---- a/include/linux/selinux.h~selinux-remove-redundant-exports
-+++ a/include/linux/selinux.h
-@@ -16,7 +16,6 @@
+diff -puN fs/jbd2/commit.c~jbd2-fix-possible-journal-overflow-issues fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~jbd2-fix-possible-journal-overflow-issues
++++ a/fs/jbd2/commit.c
+@@ -568,6 +568,9 @@ void jbd2_journal_commit_transaction(jou
+ 	stats.u.run.rs_blocks = commit_transaction->t_outstanding_credits;
+ 	stats.u.run.rs_blocks_logged = 0;
  
- struct selinux_audit_rule;
- struct audit_context;
--struct inode;
- struct kern_ipc_perm;
++	J_ASSERT(commit_transaction->t_nr_buffers <=
++		 commit_transaction->t_outstanding_credits);
++
+ 	descriptor = NULL;
+ 	bufs = 0;
+ 	while (commit_transaction->t_buffers) {
+diff -puN fs/jbd2/transaction.c~jbd2-fix-possible-journal-overflow-issues fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~jbd2-fix-possible-journal-overflow-issues
++++ a/fs/jbd2/transaction.c
+@@ -1243,6 +1243,7 @@ int jbd2_journal_forget (handle_t *handl
+ 	struct journal_head *jh;
+ 	int drop_reserve = 0;
+ 	int err = 0;
++	int was_modified = 0;
  
- #ifdef CONFIG_SECURITY_SELINUX
-@@ -70,45 +69,6 @@ int selinux_audit_rule_match(u32 sid, u3
- void selinux_audit_set_callback(int (*callback)(void));
+ 	BUFFER_TRACE(bh, "entry");
  
- /**
-- *     selinux_sid_to_string - map a security context ID to a string
-- *     @sid: security context ID to be converted.
-- *     @ctx: address of context string to be returned
-- *     @ctxlen: length of returned context string.
-- *
-- *     Returns 0 if successful, -errno if not.  On success, the context
-- *     string will be allocated internally, and the caller must call
-- *     kfree() on it after use.
-- */
--int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen);
--
--/**
-- *     selinux_get_inode_sid - get the inode's security context ID
-- *     @inode: inode structure to get the sid from.
-- *     @sid: pointer to security context ID to be filled in.
-- *
-- *     Returns nothing
-- */
--void selinux_get_inode_sid(const struct inode *inode, u32 *sid);
--
--/**
-- *     selinux_get_ipc_sid - get the ipc security context ID
-- *     @ipcp: ipc structure to get the sid from.
-- *     @sid: pointer to security context ID to be filled in.
-- *
-- *     Returns nothing
-- */
--void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid);
--
--/**
-- *     selinux_get_task_sid - return the SID of task
-- *     @tsk: the task whose SID will be returned
-- *     @sid: pointer to security context ID to be filled in.
-- *
-- *     Returns nothing
-- */
--void selinux_get_task_sid(struct task_struct *tsk, u32 *sid);
--
--/**
-  *     selinux_string_to_sid - map a security context string to a security ID
-  *     @str: the security context string to be mapped
-  *     @sid: ID value returned via this.
-@@ -175,28 +135,6 @@ static inline void selinux_audit_set_cal
- 	return;
- }
+@@ -1261,6 +1262,9 @@ int jbd2_journal_forget (handle_t *handl
+ 		goto not_jbd;
+ 	}
  
--static inline int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen)
--{
--       *ctx = NULL;
--       *ctxlen = 0;
--       return 0;
--}
--
--static inline void selinux_get_inode_sid(const struct inode *inode, u32 *sid)
--{
--	*sid = 0;
--}
--
--static inline void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid)
--{
--	*sid = 0;
--}
--
--static inline void selinux_get_task_sid(struct task_struct *tsk, u32 *sid)
--{
--	*sid = 0;
--}
--
- static inline int selinux_string_to_sid(const char *str, u32 *sid)
- {
-        *sid = 0;
-diff -puN security/selinux/exports.c~selinux-remove-redundant-exports security/selinux/exports.c
---- a/security/selinux/exports.c~selinux-remove-redundant-exports
-+++ a/security/selinux/exports.c
-@@ -25,48 +25,6 @@
- /* SECMARK reference count */
- extern atomic_t selinux_secmark_refcount;
++	/* keep track of wether or not this transaction modified us */
++	was_modified = jh->b_modified;
++
+ 	/*
+ 	 * The buffer's going from the transaction, we must drop
+ 	 * all references -bzzz
+@@ -1278,7 +1282,12 @@ int jbd2_journal_forget (handle_t *handl
  
--int selinux_sid_to_string(u32 sid, char **ctx, u32 *ctxlen)
--{
--	if (selinux_enabled)
--		return security_sid_to_context(sid, ctx, ctxlen);
--	else {
--		*ctx = NULL;
--		*ctxlen = 0;
--	}
--
--	return 0;
--}
--
--void selinux_get_inode_sid(const struct inode *inode, u32 *sid)
--{
--	if (selinux_enabled) {
--		struct inode_security_struct *isec = inode->i_security;
--		*sid = isec->sid;
--		return;
--	}
--	*sid = 0;
--}
--
--void selinux_get_ipc_sid(const struct kern_ipc_perm *ipcp, u32 *sid)
--{
--	if (selinux_enabled) {
--		struct ipc_security_struct *isec = ipcp->security;
--		*sid = isec->sid;
--		return;
--	}
--	*sid = 0;
--}
--
--void selinux_get_task_sid(struct task_struct *tsk, u32 *sid)
--{
--	if (selinux_enabled) {
--		struct task_security_struct *tsec = tsk->security;
--		*sid = tsec->sid;
--		return;
--	}
--	*sid = 0;
--}
+ 		JBUFFER_TRACE(jh, "belongs to current transaction: unfile");
+ 
+-		drop_reserve = 1;
++		/*
++		 * we only want to drop a reference if this transaction
++		 * modified the buffer
++		 */
++		if (was_modified)
++			drop_reserve = 1;
+ 
+ 		/*
+ 		 * We are no longer going to journal this buffer.
+@@ -1318,7 +1327,13 @@ int jbd2_journal_forget (handle_t *handl
+ 		if (jh->b_next_transaction) {
+ 			J_ASSERT(jh->b_next_transaction == transaction);
+ 			jh->b_next_transaction = NULL;
+-			drop_reserve = 1;
++
++			/*
++			 * only drop a reference if this transaction modified
++			 * the buffer
++			 */
++			if (was_modified)
++				drop_reserve = 1;
+ 		}
+ 	}
+ 
+@@ -2090,7 +2105,7 @@ void __jbd2_journal_refile_buffer(struct
+ 	jh->b_transaction = jh->b_next_transaction;
+ 	jh->b_next_transaction = NULL;
+ 	__jbd2_journal_file_buffer(jh, jh->b_transaction,
+-				was_dirty ? BJ_Metadata : BJ_Reserved);
++				jh->b_modified ? BJ_Metadata : BJ_Reserved);
+ 	J_ASSERT_JH(jh, jh->b_transaction->t_state == T_RUNNING);
+ 
+ 	if (was_dirty)
+_
+
+Patches currently in -mm which might be from jbacik@redhat.com are
+
+jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd-fix-possible-journal-overflow-issues.patch
+
