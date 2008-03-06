@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-add-mpol_f_static_nodes-flag.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:26:29 -0800
-Message-ID: <200803060126.m261QT5t002034@imap1.linux-foundation.org>
+Subject: + mempolicy-update-numa-memory-policy-documentation.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:26:39 -0800
+Message-ID: <200803060126.m261Qdm3002047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762973AbYCFB1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:27:20 -0500
+	by vger.kernel.org with ESMTP id S1760670AbYCFB1h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:27:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, pj@sgi.com
+Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, pj@sgi.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     mempolicy: add MPOL_F_STATIC_NODES flag
+     mempolicy: update NUMA memory policy documentation
 has been added to the -mm tree.  Its filename is
-     mempolicy-add-mpol_f_static_nodes-flag.patch
+     mempolicy-update-numa-memory-policy-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,423 +33,213 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: add MPOL_F_STATIC_NODES flag
+Subject: mempolicy: update NUMA memory policy documentation
 From: David Rientjes <rientjes@google.com>
 
-Add an optional mempolicy mode flag, MPOL_F_STATIC_NODES, that suppresses the
-node remap when the policy is rebound.
+Updates Documentation/vm/numa_memory_policy.txt and
+Documentation/filesystems/tmpfs.txt to describe optional mempolicy mode flags.
 
-Adds another member to struct mempolicy, nodemask_t user_nodemask, as part of
-a union with cpuset_mems_allowed:
-
-	struct mempolicy {
-		...
-		union {
-			nodemask_t cpuset_mems_allowed;
-			nodemask_t user_nodemask;
-		} w;
-	}
-
-that stores the the nodemask that the user passed when he or she created the
-mempolicy via set_mempolicy() or mbind().  When using MPOL_F_STATIC_NODES,
-which is passed with any mempolicy mode, the user's passed nodemask
-intersected with the VMA or task's allowed nodes is always used when
-determining the preferred node, setting the MPOL_BIND zonelist, or creating
-the interleave nodemask.  This happens whenever the policy is rebound,
-including when a task's cpuset assignment changes or the cpuset's mems are
-changed.
-
-This creates an interesting side-effect in that it allows the mempolicy
-"intent" to lie dormant and uneffected until it has access to the node(s) that
-it desires.  For example, if you currently ask for an interleaved policy over
-a set of nodes that you do not have access to, the mempolicy is not created
-and the task continues to use the previous policy.  With this change, however,
-it is possible to create the same mempolicy; it is only effected when access
-to nodes in the nodemask is acquired.
-
-It is also possible to mount tmpfs with the static nodemask behavior when
-specifying a node or nodemask.  To do this, simply add "=static" immediately
-following the mempolicy mode at mount time:
-
-	mount -o remount mpol=interleave=static:1-3
-
-Also removes mpol_check_policy() and folds its logic into mpol_new() since it
-is now obsoleted.  The unused vma_mpol_equal() is also removed.
-
-Cc: Paul Jackson <pj@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   11 +-
- mm/mempolicy.c            |  172 ++++++++++++++++++------------------
- mm/shmem.c                |    2 
- 3 files changed, 97 insertions(+), 88 deletions(-)
+ Documentation/filesystems/tmpfs.txt     |   12 ++
+ Documentation/vm/numa_memory_policy.txt |  131 ++++++++++++++++------
+ 2 files changed, 112 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mempolicy-add-mpol_f_static_nodes-flag include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-add-mpol_f_static_nodes-flag
-+++ a/include/linux/mempolicy.h
-@@ -24,11 +24,13 @@ enum {
- };
+diff -puN Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -92,6 +92,18 @@ NodeList format is a comma-separated lis
+ a range being two hyphen-separated decimal numbers, the smallest and
+ largest node numbers in the range.  For example, mpol=bind:0-3,5,7,9-15
  
- /* Flags for set_mempolicy */
-+#define MPOL_F_STATIC_NODES	(1 << 15)
++NUMA memory allocation policies have optional flags that can be used in
++conjunction with their modes.  These optional flags can be specified
++when tmpfs is mounted by appending them to the mode before the NodeList.
++See Documentation/vm/numa_memory_policy.txt for a list of all available
++memory allocation policy mode flags.
 +
- /*
-  * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
-  * either set_mempolicy() or mbind().
-  */
--#define MPOL_MODE_FLAGS	(0)
-+#define MPOL_MODE_FLAGS	(MPOL_F_STATIC_NODES)
++	=static		is equivalent to	MPOL_F_STATIC_NODES
++	=relative	is equivalent to	MPOL_F_RELATIVE_NODES
++
++For example, mpol=bind=static:NodeList, is the equivalent of an
++allocation policy of MPOL_BIND | MPOL_F_STATIC_NODES.
++
+ Note that trying to mount a tmpfs with an mpol option will fail if the
+ running kernel does not support NUMA; and will fail if its nodelist
+ specifies a node which is not online.  If your system relies on that
+diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation Documentation/vm/numa_memory_policy.txt
+--- a/Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation
++++ a/Documentation/vm/numa_memory_policy.txt
+@@ -135,9 +135,11 @@ most general to most specific:
  
- /* Flags for get_mempolicy */
- #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
-@@ -85,7 +87,10 @@ struct mempolicy {
- 		nodemask_t	 nodes;		/* interleave/bind */
- 		/* undefined for default */
- 	} v;
--	nodemask_t cpuset_mems_allowed;	/* mempolicy relative to these nodes */
-+	union {
-+		nodemask_t cpuset_mems_allowed;	/* relative to these nodes */
-+		nodemask_t user_nodemask;	/* nodemask passed by user */
-+	} w;
- };
+ Components of Memory Policies
  
- /*
-@@ -124,7 +129,6 @@ static inline int mpol_equal(struct memp
- 		return 1;
- 	return __mpol_equal(a, b);
- }
--#define vma_mpol_equal(a,b) mpol_equal(vma_policy(a), vma_policy(b))
+-    A Linux memory policy is a tuple consisting of a "mode" and an optional set
+-    of nodes.  The mode determine the behavior of the policy, while the
+-    optional set of nodes can be viewed as the arguments to the behavior.
++    A Linux memory policy consists of a "mode", optional mode flags, and an
++    optional set of nodes.  The mode determines the behavior of the policy,
++    the optional mode flags determine the behavior of the mode, and the
++    optional set of nodes can be viewed as the arguments to the policy
++    behavior.
  
- /* Could later add inheritance of the process policy here. */
+    Internally, memory policies are implemented by a reference counted
+    structure, struct mempolicy.  Details of this structure will be discussed
+@@ -179,7 +181,8 @@ Components of Memory Policies
+ 	    on a non-shared region of the address space.  However, see
+ 	    MPOL_PREFERRED below.
  
-@@ -197,7 +201,6 @@ static inline int mpol_equal(struct memp
- {
- 	return 1;
- }
--#define vma_mpol_equal(a,b) 1
+-	    The Default mode does not use the optional set of nodes.
++	    It is an error for the set of nodes specified for this policy to
++	    be non-empty.
  
- #define mpol_set_vma_default(vma) do {} while(0)
+ 	MPOL_BIND:  This mode specifies that memory must come from the
+ 	set of nodes specified by the policy.  Memory will be allocated from
+@@ -226,6 +229,80 @@ Components of Memory Policies
+ 	    the temporary interleaved system default policy works in this
+ 	    mode.
  
-diff -puN mm/mempolicy.c~mempolicy-add-mpol_f_static_nodes-flag mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-add-mpol_f_static_nodes-flag
-+++ a/mm/mempolicy.c
-@@ -113,58 +113,6 @@ struct mempolicy default_policy = {
- static void mpol_rebind_policy(struct mempolicy *pol,
-                                const nodemask_t *newmask);
++   Linux memory policy supports the following optional mode flags:
++
++	MPOL_F_STATIC_NODES:  This flag specifies that the nodemask passed by
++	the user should not be remapped if the task or VMA's set of allowed
++	nodes changes after the memory policy has been defined.
++
++	    Without this flag, anytime a mempolicy is rebound because of a
++	    change in the set of allowed nodes, the node (Preferred) or
++	    nodemask (Bind, Interleave) is remapped to the new set of
++	    allowed nodes.  This may result in nodes being used that were
++	    previously undesired.
++
++	    With this flag, if the user-specified nodes overlap with the
++	    nodes allowed by the task's cpuset, then the memory policy is
++	    applied to their intersection.  If the two sets of nodes do not
++	    overlap, the Default policy is used.
++
++	    For example, consider a task that is attached to a cpuset with
++	    mems 1-3 that sets an Interleave policy over the same set.  If
++	    the cpuset's mems change to 3-5, the Interleave will now occur
++	    over nodes 3, 4, and 5.  With this flag, however, since only node
++	    3 is allowed from the user's nodemask, the "interleave" only
++	    occurs over that node.  If no nodes from the user's nodemask are
++	    now allowed, the Default behavior is used.
++
++	    MPOL_F_STATIC_NODES cannot be used with MPOL_F_RELATIVE_NODES.
++
++	MPOL_F_RELATIVE_NODES:  This flag specifies that the nodemask passed
++	by the user will be mapped relative to the set of the task or VMA's
++	set of allowed nodes.  The kernel stores the user-passed nodemask,
++	and if the allowed nodes changes, then that original nodemask will
++	be remapped relative to the new set of allowed nodes.
++
++	    Without this flag (and without MPOL_F_STATIC_NODES), anytime a
++	    mempolicy is rebound because of a change in the set of allowed
++	    nodes, the node (Preferred) or nodemask (Bind, Interleave) is
++	    remapped to the new set of allowed nodes.  That remap may not
++	    preserve the relative nature of the user's passed nodemask to its
++	    set of allowed nodes upon successive rebinds: a nodemask of
++	    1,3,5 may be remapped to 7-9 and then to 1-3 if the set of
++	    allowed nodes is restored to its original state.
++
++	    With this flag, the remap is done so that the node numbers from
++	    the user's passed nodemask are relative to the set of allowed
++	    nodes.  In other words, if nodes 0, 2, and 4 are set in the user's
++	    nodemask, the policy will be effected over the first (and in the
++	    Bind or Interleave case, the third and fifth) nodes in the set of
++	    allowed nodes.  The nodemask passed by the user represents nodes
++	    relative to task or VMA's set of allowed nodes.
++
++	    If the user's nodemask includes nodes that are outside the range
++	    of the new set of allowed nodes (for example, node 5 is set in
++	    the user's nodemask when the set of allowed nodes is only 0-3),
++	    then the remap wraps around to the beginning of the nodemask and,
++	    if not already set, sets the node in the mempolicy nodemask.
++
++	    For example, consider a task that is attached to a cpuset with
++	    mems 2-5 that sets an Interleave policy over the same set with
++	    MPOL_F_RELATIVE_NODES.  If the cpuset's mems change to 3-7, the
++	    interleave now occurs over nodes 3,5-6.  If the cpuset's mems
++	    then change to 0,2-3,5, then the interleave occurs over nodes
++	    0,3,5.
++
++	    Thanks to the consistent remapping, applications preparing
++	    nodemasks to specify memory policies using this flag should
++	    disregard their current, actual cpuset imposed memory placement
++	    and prepare the nodemask as if they were always located on
++	    memory nodes 0 to N-1, where N is the number of memory nodes the
++	    policy is intended to manage.  Let the kernel then remap to the
++	    set of memory nodes allowed by the task's cpuset, as that may
++	    change over time.
++
++	    MPOL_F_RELATIVE_NODES cannot be used with MPOL_F_STATIC_NODES.
++
+ MEMORY POLICY APIs
  
--/* Do sanity checking on a policy */
--static int mpol_check_policy(unsigned short mode, nodemask_t *nodes)
--{
--	int was_empty, is_empty;
+ Linux supports 3 system calls for controlling memory policy.  These APIS
+@@ -246,7 +323,9 @@ Set [Task] Memory Policy:
+ 	Set's the calling task's "task/process memory policy" to mode
+ 	specified by the 'mode' argument and the set of nodes defined
+ 	by 'nmask'.  'nmask' points to a bit mask of node ids containing
+-	at least 'maxnode' ids.
++	at least 'maxnode' ids.  Optional mode flags may be passed by
++	combining the 'mode' argument with the flag (for example:
++	MPOL_INTERLEAVE | MPOL_F_STATIC_NODES).
+ 
+ 	See the set_mempolicy(2) man page for more details
+ 
+@@ -298,29 +377,19 @@ MEMORY POLICIES AND CPUSETS
+ Memory policies work within cpusets as described above.  For memory policies
+ that require a node or set of nodes, the nodes are restricted to the set of
+ nodes whose memories are allowed by the cpuset constraints.  If the nodemask
+-specified for the policy contains nodes that are not allowed by the cpuset, or
+-the intersection of the set of nodes specified for the policy and the set of
+-nodes with memory is the empty set, the policy is considered invalid
+-and cannot be installed.
 -
--	if (!nodes)
--		return 0;
+-The interaction of memory policies and cpusets can be problematic for a
+-couple of reasons:
 -
--	/*
--	 * "Contextualize" the in-coming nodemast for cpusets:
--	 * Remember whether in-coming nodemask was empty,  If not,
--	 * restrict the nodes to the allowed nodes in the cpuset.
--	 * This is guaranteed to be a subset of nodes with memory.
--	 */
--	cpuset_update_task_memory_state();
--	is_empty = was_empty = nodes_empty(*nodes);
--	if (!was_empty) {
--		nodes_and(*nodes, *nodes, cpuset_current_mems_allowed);
--		is_empty = nodes_empty(*nodes);	/* after "contextualization" */
--	}
+-1) the memory policy APIs take physical node id's as arguments.  As mentioned
+-   above, it is illegal to specify nodes that are not allowed in the cpuset.
+-   The application must query the allowed nodes using the get_mempolicy()
+-   API with the MPOL_F_MEMS_ALLOWED flag to determine the allowed nodes and
+-   restrict itself to those nodes.  However, the resources available to a
+-   cpuset can be changed by the system administrator, or a workload manager
+-   application, at any time.  So, a task may still get errors attempting to
+-   specify policy nodes, and must query the allowed memories again.
 -
--	switch (mode) {
--	case MPOL_DEFAULT:
--		/*
--		 * require caller to specify an empty nodemask
--		 * before "contextualization"
--		 */
--		if (!was_empty)
--			return -EINVAL;
--		break;
--	case MPOL_BIND:
--	case MPOL_INTERLEAVE:
--		/*
--		 * require at least 1 valid node after "contextualization"
--		 */
--		if (is_empty)
--			return -EINVAL;
--		break;
--	case MPOL_PREFERRED:
--		/*
--		 * Did caller specify invalid nodes?
--		 * Don't silently accept this as "local allocation".
--		 */
--		if (!was_empty && is_empty)
--			return -EINVAL;
--		break;
--	default:
--		BUG();
--	}
--	return 0;
--}
--
- /* Check that the nodemask contains at least one populated zone */
- static int is_valid_nodemask(nodemask_t *nodemask)
- {
-@@ -186,48 +134,60 @@ static int is_valid_nodemask(nodemask_t 
- 	return 0;
- }
- 
-+static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
-+{
-+	return pol->flags & MPOL_F_STATIC_NODES;
-+}
+-2) when tasks in two cpusets share access to a memory region, such as shared
+-   memory segments created by shmget() of mmap() with the MAP_ANONYMOUS and
+-   MAP_SHARED flags, and any of the tasks install shared policy on the region,
+-   only nodes whose memories are allowed in both cpusets may be used in the
+-   policies.  Obtaining this information requires "stepping outside" the
+-   memory policy APIs to use the cpuset information and requires that one
+-   know in what cpusets other task might be attaching to the shared region.
+-   Furthermore, if the cpusets' allowed memory sets are disjoint, "local"
+-   allocation is the only valid policy.
++specified for the policy contains nodes that are not allowed by the cpuset and
++MPOL_F_RELATIVE_NODES is not used, the intersection of the set of nodes
++specified for the policy and the set of nodes with memory is used.  If the
++result is the empty set, the policy is considered invalid and cannot be
++installed.  If MPOL_F_RELATIVE_NODES is used, the policy's nodes are mapped
++onto and folded into the task's set of allowed nodes as previously described.
 +
- /* Create a new policy */
- static struct mempolicy *mpol_new(unsigned short mode, unsigned short flags,
- 				  nodemask_t *nodes)
- {
- 	struct mempolicy *policy;
-+	nodemask_t cpuset_context_nmask;
- 
- 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
- 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
- 
- 	if (mode == MPOL_DEFAULT)
--		return NULL;
-+		return (nodes && nodes_weight(*nodes)) ? ERR_PTR(-EINVAL) :
-+							 NULL;
- 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
- 	if (!policy)
- 		return ERR_PTR(-ENOMEM);
- 	atomic_set(&policy->refcnt, 1);
-+	cpuset_update_task_memory_state();
-+	nodes_and(cpuset_context_nmask, *nodes, cpuset_current_mems_allowed);
- 	switch (mode) {
- 	case MPOL_INTERLEAVE:
--		policy->v.nodes = *nodes;
--		if (nodes_weight(policy->v.nodes) == 0) {
--			kmem_cache_free(policy_cache, policy);
--			return ERR_PTR(-EINVAL);
--		}
-+		if (nodes_empty(*nodes) || nodes_empty(cpuset_context_nmask))
-+			goto free;
-+		policy->v.nodes = cpuset_context_nmask;
- 		break;
- 	case MPOL_PREFERRED:
--		policy->v.preferred_node = first_node(*nodes);
-+		policy->v.preferred_node = first_node(cpuset_context_nmask);
- 		if (policy->v.preferred_node >= MAX_NUMNODES)
--			policy->v.preferred_node = -1;
-+			goto free;
- 		break;
- 	case MPOL_BIND:
--		if (!is_valid_nodemask(nodes)) {
--			kmem_cache_free(policy_cache, policy);
--			return ERR_PTR(-EINVAL);
--		}
--		policy->v.nodes = *nodes;
-+		if (!is_valid_nodemask(&cpuset_context_nmask))
-+			goto free;
-+		policy->v.nodes = cpuset_context_nmask;
- 		break;
- 	default:
- 		BUG();
- 	}
- 	policy->policy = mode;
- 	policy->flags = flags;
--	policy->cpuset_mems_allowed = cpuset_mems_allowed(current);
-+	if (mpol_store_user_nodemask(policy))
-+		policy->w.user_nodemask = *nodes;
-+	else
-+		policy->w.cpuset_mems_allowed = cpuset_mems_allowed(current);
- 	return policy;
-+
-+free:
-+	kmem_cache_free(policy_cache, policy);
-+	return ERR_PTR(-EINVAL);
- }
- 
- static void gather_stats(struct page *, void *, int pte_dirty);
-@@ -473,15 +433,14 @@ static long do_set_mempolicy(unsigned sh
- {
- 	struct mempolicy *new;
- 
--	if (mpol_check_policy(mode, nodes))
--		return -EINVAL;
- 	new = mpol_new(mode, flags, nodes);
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
- 	mpol_free(current->mempolicy);
- 	current->mempolicy = new;
- 	mpol_set_task_struct_flag();
--	if (new && new->policy == MPOL_INTERLEAVE)
-+	if (new && new->policy == MPOL_INTERLEAVE &&
-+	    nodes_weight(new->v.nodes))
- 		current->il_next = first_node(new->v.nodes);
- 	return 0;
- }
-@@ -796,9 +755,6 @@ static long do_mbind(unsigned long start
- 	if (end == start)
- 		return 0;
- 
--	if (mpol_check_policy(mode, nmask))
--		return -EINVAL;
--
- 	new = mpol_new(mode, mode_flags, nmask);
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
-@@ -1206,7 +1162,8 @@ static unsigned interleave_nodes(struct 
- 	next = next_node(nid, policy->v.nodes);
- 	if (next >= MAX_NUMNODES)
- 		next = first_node(policy->v.nodes);
--	me->il_next = next;
-+	if (next < MAX_NUMNODES)
-+		me->il_next = next;
- 	return nid;
- }
- 
-@@ -1251,10 +1208,13 @@ static unsigned offset_il_node(struct me
- 		struct vm_area_struct *vma, unsigned long off)
- {
- 	unsigned nnodes = nodes_weight(pol->v.nodes);
--	unsigned target = (unsigned)off % nnodes;
-+	unsigned target;
- 	int c;
- 	int nid = -1;
- 
-+	if (!nnodes)
-+		return numa_node_id();
-+	target = (unsigned int)off % nnodes;
- 	c = 0;
- 	do {
- 		nid = next_node(nid, pol->v.nodes);
-@@ -1458,6 +1418,16 @@ struct mempolicy *__mpol_copy(struct mem
- 	return new;
- }
- 
-+static int mpol_match_intent(const struct mempolicy *a,
-+			     const struct mempolicy *b)
-+{
-+	if (a->flags != b->flags)
-+		return 0;
-+	if (!mpol_store_user_nodemask(a))
-+		return 1;
-+	return nodes_equal(a->w.user_nodemask, b->w.user_nodemask);
-+}
-+
- /* Slow path of a mempolicy comparison */
- int __mpol_equal(struct mempolicy *a, struct mempolicy *b)
- {
-@@ -1465,6 +1435,8 @@ int __mpol_equal(struct mempolicy *a, st
- 		return 0;
- 	if (a->policy != b->policy)
- 		return 0;
-+	if (a->policy != MPOL_DEFAULT && !mpol_match_intent(a, b))
-+		return 0;
- 	switch (a->policy) {
- 	case MPOL_DEFAULT:
- 		return 1;
-@@ -1764,13 +1736,14 @@ void numa_default_policy(void)
- static void mpol_rebind_policy(struct mempolicy *pol,
- 			       const nodemask_t *newmask)
- {
--	nodemask_t *mpolmask;
- 	nodemask_t tmp;
-+	int static_nodes;
- 
- 	if (!pol)
- 		return;
--	mpolmask = &pol->cpuset_mems_allowed;
--	if (nodes_equal(*mpolmask, *newmask))
-+	static_nodes = pol->flags & MPOL_F_STATIC_NODES;
-+	if (!mpol_store_user_nodemask(pol) &&
-+	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
- 		return;
- 
- 	switch (pol->policy) {
-@@ -1779,16 +1752,35 @@ static void mpol_rebind_policy(struct me
- 	case MPOL_BIND:
- 		/* Fall through */
- 	case MPOL_INTERLEAVE:
--		nodes_remap(tmp, pol->v.nodes, *mpolmask, *newmask);
-+		if (static_nodes)
-+			nodes_and(tmp, pol->w.user_nodemask, *newmask);
-+		else {
-+			nodes_remap(tmp, pol->v.nodes,
-+				    pol->w.cpuset_mems_allowed, *newmask);
-+			pol->w.cpuset_mems_allowed = *newmask;
-+		}
- 		pol->v.nodes = tmp;
--		*mpolmask = *newmask;
--		current->il_next = node_remap(current->il_next,
--						*mpolmask, *newmask);
-+		if (!node_isset(current->il_next, tmp)) {
-+			current->il_next = next_node(current->il_next, tmp);
-+			if (current->il_next >= MAX_NUMNODES)
-+				current->il_next = first_node(tmp);
-+			if (current->il_next >= MAX_NUMNODES)
-+				current->il_next = numa_node_id();
-+		}
- 		break;
- 	case MPOL_PREFERRED:
--		pol->v.preferred_node = node_remap(pol->v.preferred_node,
--						*mpolmask, *newmask);
--		*mpolmask = *newmask;
-+		if (static_nodes) {
-+			int node = first_node(pol->w.user_nodemask);
-+
-+			if (node_isset(node, *newmask))
-+				pol->v.preferred_node = node;
-+			else
-+				pol->v.preferred_node = -1;
-+		} else {
-+			pol->v.preferred_node = node_remap(pol->v.preferred_node,
-+					pol->w.cpuset_mems_allowed, *newmask);
-+			pol->w.cpuset_mems_allowed = *newmask;
-+		}
- 		break;
- 	default:
- 		BUG();
-@@ -1840,6 +1832,7 @@ static inline int mpol_to_str(char *buff
- 	int l;
- 	nodemask_t nodes;
- 	unsigned short mode = pol ? pol->policy : MPOL_DEFAULT;
-+	unsigned short flags = pol ? pol->flags : 0;
- 
- 	switch (mode) {
- 	case MPOL_DEFAULT:
-@@ -1869,6 +1862,17 @@ static inline int mpol_to_str(char *buff
- 	strcpy(p, policy_types[mode]);
- 	p += l;
- 
-+	if (flags) {
-+		int need_bar = 0;
-+
-+		if (buffer + maxlen < p + 2)
-+			return -ENOSPC;
-+		*p++ = '=';
-+
-+		if (flags & MPOL_F_STATIC_NODES)
-+			p += sprintf(p, "%sstatic", need_bar++ ? "|" : "");
-+	}
-+
- 	if (!nodes_empty(nodes)) {
- 		if (buffer + maxlen < p + 2)
- 			return -ENOSPC;
-diff -puN mm/shmem.c~mempolicy-add-mpol_f_static_nodes-flag mm/shmem.c
---- a/mm/shmem.c~mempolicy-add-mpol_f_static_nodes-flag
-+++ a/mm/shmem.c
-@@ -1129,6 +1129,8 @@ static int shmem_parse_mpol(char *value,
- 		err = 0;
- 	}
- 	if (flags) {
-+		if (!strcmp(flags, "static"))
-+			*mode_flags |= MPOL_F_STATIC_NODES;
- 	}
- out:
- 	/* Restore string for error message */
++The interaction of memory policies and cpusets can be problematic when tasks
++in two cpusets share access to a memory region, such as shared memory segments
++created by shmget() of mmap() with the MAP_ANONYMOUS and MAP_SHARED flags, and
++any of the tasks install shared policy on the region, only nodes whose
++memories are allowed in both cpusets may be used in the policies.  Obtaining
++this information requires "stepping outside" the memory policy APIs to use the
++cpuset information and requires that one know in what cpusets other task might
++be attaching to the shared region.  Furthermore, if the cpusets' allowed
++memory sets are disjoint, "local" allocation is the only valid policy.
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
