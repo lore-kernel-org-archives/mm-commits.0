@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devscontrol-provide-functions-to-manipulate-char-device-mappings.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:16:39 -0800
-Message-ID: <200803060116.m261GeSg001553@imap1.linux-foundation.org>
+Subject: + devscontrol-add-a-mode-on-the-struct-probe.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:31 -0800
+Message-ID: <200803060116.m261GWg6001537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765733AbYCFBRL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:17:11 -0500
+	by vger.kernel.org with ESMTP id S932168AbYCFBRW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, s
 
 
 The patch titled
-     devscontrol: provide functions to manipulate char device mappings
+     devscontrol: add a mode on the struct probe
 has been added to the -mm tree.  Its filename is
-     devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
+     devscontrol-add-a-mode-on-the-struct-probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: provide functions to manipulate char device mappings
+Subject: devscontrol: add a mode on the struct probe
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The character devices currently have a global map for devices and their own
-locks and callbacks for device probing.  So here are the functions that
-provide the way to play with character devices maps.
+The idea of the patchset is to make the dev_t to struct kobj mapping be
+per-cgroup, and to provide a permission for this mapping.  This mode mask will
+operate with FMODE_xxx modes.
 
-They are cdev_map_init/cdev_map_fini to create/destroy one,
-cdev_add_to_map/cdev_del_from_map to map/unmap devices, and cdev_iterate_map
-for uniformity.
+To achieve this, I add the mode_t mode on the struct probe, which sets this
+mapping, and move the locked part of the kobj_map() into a separate function,
+which also accepts the mode to be set on the probe.
+
+By default all the modes are provided for a map.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -53,99 +55,82 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c        |   63 +++++++++++++++++++++++++++++++++++++++++
- include/linux/cdev.h |    7 ++++
- 2 files changed, 70 insertions(+)
+ drivers/base/map.c |   31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-diff -puN fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings fs/char_dev.c
---- a/fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings
-+++ a/fs/char_dev.c
-@@ -476,6 +476,69 @@ int cdev_add(struct cdev *p, dev_t dev, 
- 	return kobj_map(cdev_map, dev, count, NULL, exact_match, exact_lock, p);
+diff -puN drivers/base/map.c~devscontrol-add-a-mode-on-the-struct-probe drivers/base/map.c
+--- a/drivers/base/map.c~devscontrol-add-a-mode-on-the-struct-probe
++++ a/drivers/base/map.c
+@@ -15,6 +15,7 @@
+ #include <linux/kdev_t.h>
+ #include <linux/kobject.h>
+ #include <linux/kobj_map.h>
++#include <linux/fs.h>
+ 
+ #define KOBJ_MAP_PROBES	255
+ 
+@@ -22,6 +23,7 @@ struct kobj_map {
+ 	struct probe {
+ 		struct probe *next;
+ 		dev_t dev;
++		mode_t mode;
+ 		unsigned long range;
+ 		struct module *owner;
+ 		kobj_probe_t *get;
+@@ -31,9 +33,9 @@ struct kobj_map {
+ 	struct mutex *lock;
+ };
+ 
+-int kobj_map(struct kobj_map *domain, dev_t dev, unsigned long range,
+-	     struct module *module, kobj_probe_t *probe,
+-	     int (*lock)(dev_t, void *), void *data)
++static int __kobj_map(struct kobj_map *domain, dev_t dev, mode_t mode,
++		unsigned long range, struct module *module,
++		kobj_probe_t *probe, int (*lock)(dev_t, void *), void *data)
+ {
+ 	unsigned n = MAJOR(dev + range - 1) - MAJOR(dev) + 1;
+ 	unsigned index = MAJOR(dev);
+@@ -55,8 +57,15 @@ int kobj_map(struct kobj_map *domain, de
+ 		p->dev = dev;
+ 		p->range = range;
+ 		p->data = data;
++		/*
++		 * When opening a device we want to (dis)allow only
++		 * read or write. But sys_open() can provide more
++		 * modes like lseek or pread. So, these FMODE-s are
++		 * always 'on'.
++		 */
++		p->mode = mode | FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE;
+ 	}
+-	mutex_lock(domain->lock);
++
+ 	for (i = 0, p -= n; i < n; i++, p++, index++) {
+ 		struct probe **s = &domain->probes[index % KOBJ_MAP_PROBES];
+ 		while (*s && (*s)->range < range)
+@@ -64,10 +73,22 @@ int kobj_map(struct kobj_map *domain, de
+ 		p->next = *s;
+ 		*s = p;
+ 	}
+-	mutex_unlock(domain->lock);
+ 	return 0;
  }
  
-+#ifdef CONFIG_CGROUP_DEVS
-+int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
++int kobj_map(struct kobj_map *domain, dev_t dev, unsigned long range,
++	     struct module *module, kobj_probe_t *probe,
++	     int (*lock)(dev_t, void *), void *data)
 +{
-+	int tmp;
-+	struct kobject *k;
-+	struct cdev *c;
++	int err;
 +
-+	k = kobj_lookup(cdev_map, dev, NULL, &tmp);
-+	if (k == NULL)
-+		return -ENODEV;
-+
-+	c = container_of(k, struct cdev, kobj);
-+	tmp = kobj_remap(map, dev, mode, all ? MINORMASK : 1, NULL,
-+			exact_match, exact_lock, c);
-+	if (tmp < 0) {
-+		cdev_put(c);
-+		return tmp;
-+	}
-+
-+	return 0;
++	mutex_lock(domain->lock);
++	err = __kobj_map(domain, dev, FMODE_READ | FMODE_WRITE, range,
++			module, probe, lock, data);
++	mutex_unlock(domain->lock);
++	return err;
 +}
 +
-+int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
-+{
-+	int tmp;
-+	struct kobject *k;
-+	struct cdev *c;
-+
-+	k = kobj_lookup(map, dev, NULL, &tmp);
-+	if (k == NULL)
-+		return -ENODEV;
-+
-+	c = container_of(k, struct cdev, kobj);
-+	kobj_unmap(map, dev, all ? MINORMASK : 1);
-+
-+	/*
-+	 * one put for the kobj_lookup above and one for
-+	 * the kobj_lookup in cdev_add_to_map
-+	 */
-+	cdev_put(c);
-+	cdev_put(c);
-+	return 0;
-+}
-+
-+void cdev_iterate_map(struct kobj_map *map,
-+		int (*fn)(dev_t, int, mode_t, void *), void *x)
-+{
-+	kobj_map_iterate(map, fn, x);
-+}
-+
-+static struct kobject *base_probe(dev_t dev, int *part, void *data);
-+
-+struct kobj_map *cdev_map_init(void)
-+{
-+	return kobj_map_init(base_probe, &chrdevs_lock);
-+}
-+
-+void cdev_map_fini(struct kobj_map *map)
-+{
-+	kobj_map_fini(map);
-+}
-+#endif
-+
- static void cdev_unmap(dev_t dev, unsigned count)
+ void kobj_unmap(struct kobj_map *domain, dev_t dev, unsigned long range)
  {
- 	kobj_unmap(cdev_map, dev, count);
-diff -puN include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings include/linux/cdev.h
---- a/include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings
-+++ a/include/linux/cdev.h
-@@ -33,5 +33,12 @@ void cd_forget(struct inode *);
- 
- extern struct backing_dev_info directly_mappable_cdev_bdi;
- 
-+struct kobj_map;
-+int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode);
-+int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
-+struct kobj_map *cdev_map_init(void);
-+void cdev_map_fini(struct kobj_map *map);
-+void cdev_iterate_map(struct kobj_map *,
-+		int (*fn)(dev_t, int, mode_t, void *), void *);
- #endif
- #endif
+ 	unsigned n = MAJOR(dev + range - 1) - MAJOR(dev) + 1;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
