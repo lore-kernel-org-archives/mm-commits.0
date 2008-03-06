@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch added to -mm tree
-Date: Wed, 05 Mar 2008 16:40:05 -0800
-Message-ID: <200803060040.m260e5kF032685@imap1.linux-foundation.org>
+Subject: + devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:33 -0800
+Message-ID: <200803060116.m261GX9W001541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763126AbYCFAlG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 19:41:06 -0500
+	by vger.kernel.org with ESMTP id S1764947AbYCFBQw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, nickpiggin@yahoo.com.au, rientjes@google.com
+Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, serue@us.ibm.com, sukadev@us.ibm.com
 
 
 The patch titled
-     Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask
+     devscontrol: make kobj_lookup() return the mapping's permissions
 has been added to the -mm tree.  Its filename is
-     mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+     devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,175 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: devscontrol: make kobj_lookup() return the mapping's permissions
+From: Pavel Emelyanov <xemul@openvz.org>
 
-dequeue_huge_page_vma() is not obeying the MPOL_BIND nodemask with the
-zonelist rework.  It needs to search only zones in the mempolicy nodemask for
-hugepages.
+The kobj_lookup() searches the kobject by its dev_t.  Since this mapping is
+going to be restricted with permissions, make the kobj_lookup() return the
+mapping's permissions.
 
-Use for_each_zone_zonelist_nodemask() instead of for_each_zone_zonelist().
+Currently the mode returned is unused.
 
-Note: this will bloat mm/hugetlb.o a bit until Mel reworks the inlining of the
-for_each_zone...  macros and helpers.
-
-Added mempolicy helper function mpol_bind_nodemask() to hide the details of
-mempolicy from hugetlb and to avoid #ifdef CONFIG_NUMA in
-dequeue_huge_page_vma().
-
-Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   13 +++++++++++++
- mm/hugetlb.c              |    4 +++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ block/genhd.c            |    4 ++--
+ drivers/base/map.c       |    8 ++++++--
+ fs/block_dev.c           |    3 ++-
+ fs/char_dev.c            |    4 +++-
+ include/linux/genhd.h    |    2 +-
+ include/linux/kobj_map.h |    2 +-
+ 6 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask
-+++ a/include/linux/mempolicy.h
-@@ -163,6 +163,14 @@ static inline void check_highest_zone(en
- 		policy_zone = k;
- }
- 
-+static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
-+{
-+	if (mpol->policy == MPOL_BIND)
-+		return &mpol->v.nodes;
-+	else
-+		return NULL;
-+}
-+
- int do_migrate_pages(struct mm_struct *mm,
- 	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags);
- 
-@@ -255,6 +263,11 @@ static inline int do_migrate_pages(struc
- static inline void check_highest_zone(int k)
+diff -puN block/genhd.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions block/genhd.c
+--- a/block/genhd.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/block/genhd.c
+@@ -206,12 +206,12 @@ void unlink_gendisk(struct gendisk *disk
+  * This function gets the structure containing partitioning
+  * information for the given device @dev.
+  */
+-struct gendisk *get_gendisk(dev_t devt, int *part)
++struct gendisk *get_gendisk(dev_t devt, mode_t *mode, int *part)
  {
+ 	struct kobject *kobj;
+ 	struct device *dev;
+ 
+-	kobj = kobj_lookup(bdev_map, devt, part);
++	kobj = kobj_lookup(bdev_map, devt, mode, part);
+ 	if (kobj == NULL)
+ 		return NULL;
+ 
+diff -puN drivers/base/map.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions drivers/base/map.c
+--- a/drivers/base/map.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/drivers/base/map.c
+@@ -117,7 +117,8 @@ void kobj_unmap(struct kobj_map *domain,
+ 	kfree(found);
  }
+ 
+-struct kobject *kobj_lookup(struct kobj_map *domain, dev_t dev, int *index)
++struct kobject *kobj_lookup(struct kobj_map *domain, dev_t dev, mode_t *mode,
++		int *index)
+ {
+ 	struct kobject *kobj;
+ 	struct probe *p;
+@@ -149,8 +150,11 @@ retry:
+ 		kobj = probe(dev, index, data);
+ 		/* Currently ->owner protects _only_ ->probe() itself. */
+ 		module_put(owner);
+-		if (kobj)
++		if (kobj) {
++			if (mode)
++				*mode = p->mode;
+ 			return kobj;
++		}
+ 		goto retry;
+ 	}
+ 	mutex_unlock(domain->lock);
+diff -puN fs/block_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions fs/block_dev.c
+--- a/fs/block_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/fs/block_dev.c
+@@ -929,11 +929,12 @@ static int do_open(struct block_device *
+ 	struct module *owner = NULL;
+ 	struct gendisk *disk;
+ 	int ret = -ENXIO;
++	mode_t mode;
+ 	int part;
+ 
+ 	file->f_mapping = bdev->bd_inode->i_mapping;
+ 	lock_kernel();
+-	disk = get_gendisk(bdev->bd_dev, &part);
++	disk = get_gendisk(bdev->bd_dev, &mode, &part);
+ 	if (!disk) {
+ 		unlock_kernel();
+ 		bdput(bdev);
+diff -puN fs/char_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions fs/char_dev.c
+--- a/fs/char_dev.c~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/fs/char_dev.c
+@@ -367,8 +367,10 @@ static int chrdev_open(struct inode *ino
+ 	if (!p) {
+ 		struct kobject *kobj;
+ 		int idx;
++		mode_t mode;
 +
-+static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
-+{
-+	return NULL;
-+}
- #endif /* CONFIG_NUMA */
- #endif /* __KERNEL__ */
+ 		spin_unlock(&cdev_lock);
+-		kobj = kobj_lookup(cdev_map, inode->i_rdev, &idx);
++		kobj = kobj_lookup(cdev_map, inode->i_rdev, &mode, &idx);
+ 		if (!kobj)
+ 			return -ENXIO;
+ 		new = container_of(kobj, struct cdev, kobj);
+diff -puN include/linux/genhd.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions include/linux/genhd.h
+--- a/include/linux/genhd.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/include/linux/genhd.h
+@@ -373,7 +373,7 @@ extern int get_blkdev_list(char *, int);
+ extern void add_disk(struct gendisk *disk);
+ extern void del_gendisk(struct gendisk *gp);
+ extern void unlink_gendisk(struct gendisk *gp);
+-extern struct gendisk *get_gendisk(dev_t dev, int *part);
++extern struct gendisk *get_gendisk(dev_t dev, mode_t *mode, int *part);
  
-diff -puN mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask mm/hugetlb.c
---- a/mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask
-+++ a/mm/hugetlb.c
-@@ -99,8 +99,10 @@ static struct page *dequeue_huge_page_vm
- 					htlb_alloc_mask, &mpol);
- 	struct zone *zone;
- 	struct zoneref *z;
-+	nodemask_t *nodemask = mpol_bind_nodemask(mpol);
+ extern void set_device_ro(struct block_device *bdev, int flag);
+ extern void set_disk_ro(struct gendisk *disk, int flag);
+diff -puN include/linux/kobj_map.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions include/linux/kobj_map.h
+--- a/include/linux/kobj_map.h~devscontrol-make-kobj_lookup-return-the-mappings-permissions
++++ a/include/linux/kobj_map.h
+@@ -8,7 +8,7 @@ struct kobj_map;
+ int kobj_map(struct kobj_map *, dev_t, unsigned long, struct module *,
+ 	     kobj_probe_t *, int (*)(dev_t, void *), void *);
+ void kobj_unmap(struct kobj_map *, dev_t, unsigned long);
+-struct kobject *kobj_lookup(struct kobj_map *, dev_t, int *);
++struct kobject *kobj_lookup(struct kobj_map *, dev_t, mode_t *, int *);
+ struct kobj_map *kobj_map_init(kobj_probe_t *, struct mutex *);
  
--	for_each_zone_zonelist(zone, z, zonelist, MAX_NR_ZONES - 1) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-+						MAX_NR_ZONES - 1, nodemask) {
- 		nid = zone_to_nid(zone);
- 		if (cpuset_zone_allowed_softwall(zone, htlb_alloc_mask) &&
- 		    !list_empty(&hugepage_freelists[nid])) {
+ #endif
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-fix-mempolicy-reference-counting-bugs.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+git-udf.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+devscontrol-avoid-magic-constants-in-drivers-base-mapc.patch
+devscontrol-clean-up-get_gendisk-a-bit.patch
+devscontrol-add-a-mode-on-the-struct-probe.patch
+devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
+devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
+devscontrol-extend-the-drivers-base-mapc-functionality.patch
+devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
+devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
+devscontrol-devices-accessibility-control-group-itself.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
