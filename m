@@ -1,157 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-pci-pci-pcie-aspm-support.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:30:47 -0800
-Message-ID: <200803062230.m26MUlR0021681@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:30:44 -0800
+Message-ID: <200803062230.m26MUiAo021678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757146AbYCFWbS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:18 -0500
+	by vger.kernel.org with ESMTP id S1758311AbYCFWb0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: kamalesh@linux.vnet.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-pci-pci-pcie-aspm-support
+     fix gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-pci-pci-pcie-aspm-support.patch
+     fix-gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse.pat=
+ch
 
 This patch was dropped because it is obsolete
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fix gregkh-pci-pci-pcie-aspm-support
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse
+=46rom: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-drivers/built-in.o: In function `pci_scan_slot':
-drivers/pci/probe.c:1016: undefined reference to `pcie_aspm_init_link_state'
-drivers/built-in.o: In function `pci_stop_dev':
-drivers/pci/remove.c:36: undefined reference to `pcie_aspm_exit_link_state'
-drivers/built-in.o: In function `pci_set_power_state':
-drivers/pci/pci.c:524: undefined reference to `pcie_aspm_pm_state_change'
+The build fails, with the build error
 
-It needs PCIE.
+drivers/pci/hotplug/rpadlpar_sysfs.c:28: warning: =CB=9Cstruct kobjet d=
+eclared inside parameter list
+drivers/pci/hotplug/rpadlpar_sysfs.c:28: warning: its scope is only thi=
+s definition or declaration, which is probably not what you want
+drivers/pci/hotplug/rpadlpar_sysfs.c:59: warning: =CB=9Cstruct kobjet d=
+eclared inside parameter list
+drivers/pci/hotplug/rpadlpar_sysfs.c: In function =CB=9Cremove_slot_sto=
+re:
+drivers/pci/hotplug/rpadlpar_sysfs.c:79: error: expected =CB=9C; before=
+ =CB=9Creturn
+drivers/pci/hotplug/rpadlpar_sysfs.c: At top level:
+drivers/pci/hotplug/rpadlpar_sysfs.c:89: warning: initialization from i=
+ncompatible pointer type
+drivers/pci/hotplug/rpadlpar_sysfs.c:92: warning: initialization from i=
+ncompatible pointer type
+drivers/pci/hotplug/rpadlpar_sysfs.c: In function =CB=9Cremove_slot_sto=
+re:
+drivers/pci/hotplug/rpadlpar_sysfs.c:80: warning: control reaches end o=
+f
+non-void function
+make[3]: *** [drivers/pci/hotplug/rpadlpar_sysfs.o] Error 1
+make[2]: *** [drivers/pci/hotplug] Error 2
+make[1]: *** [drivers/pci] Error 2
+make: *** [drivers] Error 2
 
+This is caused by the patch gregkh-driver-kobject-clean-up-rpadlpar-hor=
+rid-sysfs-abuse.patch.
+
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/rpadlpar_sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support drivers/pci/pcie/Kconfig
---- a/drivers/pci/pcie/Kconfig~fix-gregkh-pci-pci-pcie-aspm-support
-+++ a/drivers/pci/pcie/Kconfig
-@@ -32,7 +32,7 @@ source "drivers/pci/pcie/aer/Kconfig"
- #
- config PCIEASPM
- 	bool "PCI Express ASPM support(Experimental)"
--	depends on PCI && EXPERIMENTAL
-+	depends on PCI && EXPERIMENTAL && PCIEPORTBUS
- 	default y
- 	help
- 	  This enables PCI Express ASPM (Active State Power Management) and
+diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~fix-gregkh-driver-kobjec=
+t-clean-up-rpadlpar-horrid-sysfs-abuse drivers/pci/hotplug/rpadlpar_sys=
+fs.c
+--- a/drivers/pci/hotplug/rpadlpar_sysfs.c~fix-gregkh-driver-kobject-cl=
+ean-up-rpadlpar-horrid-sysfs-abuse
++++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
+@@ -54,7 +54,7 @@ static ssize_t add_slot_show(struct kobj
+ 	return sprintf(buf, "0\n");
+ }
+=20
+-static ssize_t remove_slot_store(struct kobjet *kobj,
++static ssize_t remove_slot_store(struct kobject *kobj,
+ 				 struct kobj_attribute *attr,
+ 				 const char *buf, size_t nbytes)
+ {
+@@ -74,7 +74,7 @@ static ssize_t remove_slot_store(struct=20
+=20
+ 	rc =3D dlpar_remove_slot(drc_name);
+ 	if (rc)
+-		return rc
++		return rc;
+=20
+ 	return nbytes;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.co=
+m are
 
-origin.patch
 git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
 git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+hugetlb-correct-page-count-for-surplus-huge-pages-fix.patch
+slab-pass-correct-flags-to-kmem_getpages.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
