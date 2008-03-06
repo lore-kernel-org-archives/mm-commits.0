@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + devscontrol-provide-functions-to-manipulate-block-device-mappings.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:16:41 -0800
-Message-ID: <200803060116.m261GgbF001556@imap1.linux-foundation.org>
+Subject: + devscontrol-extend-the-drivers-base-mapc-functionality.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:16:37 -0800
+Message-ID: <200803060116.m261GcwR001547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765326AbYCFBQ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:58 -0500
+	by vger.kernel.org with ESMTP id S1764933AbYCFBQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:16:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, s
 
 
 The patch titled
-     devscontrol: provide functions to manipulate block device mappings
+     devscontrol: extend the drivers/base/map.c functionality
 has been added to the -mm tree.  Its filename is
-     devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
+     devscontrol-extend-the-drivers-base-mapc-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: provide functions to manipulate block device mappings
+Subject: devscontrol: extend the drivers/base/map.c functionality
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This routines were already done for char devices, these ones are for block
-devices.  Everything is the same, but the locks, probe and match callbacks and
-kobj-to-device conversions.
+This includes the following functions:
+
+1. kobj_remap - this one will change the mapping's permissions
+   or add a new one if required.
+
+2. kobj_map_iterate will walk the map, calling the callback
+   on each element.
+
+3. kobj_map_fini is a rollback for kobj_map_finid - cleans all
+   the mappings.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -49,105 +56,115 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c         |   67 ++++++++++++++++++++++++++++++++++++++++
- include/linux/genhd.h |    8 ++++
- 2 files changed, 75 insertions(+)
+ drivers/base/map.c       |   84 +++++++++++++++++++++++++++++++++++++
+ include/linux/kobj_map.h |    6 ++
+ 2 files changed, 90 insertions(+)
 
-diff -puN block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings block/genhd.c
---- a/block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings
-+++ a/block/genhd.c
-@@ -200,6 +200,73 @@ void unlink_gendisk(struct gendisk *disk
- 			      disk->minors);
+diff -puN drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality drivers/base/map.c
+--- a/drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality
++++ a/drivers/base/map.c
+@@ -181,3 +181,87 @@ struct kobj_map *kobj_map_init(kobj_prob
+ 	p->lock = lock;
+ 	return p;
  }
- 
++
 +#ifdef CONFIG_CGROUP_DEVS
-+int bdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
++int kobj_remap(struct kobj_map *domain, dev_t dev, mode_t mode,
++		unsigned long range, struct module *module,
++		kobj_probe_t *probe, int (*lock)(dev_t, void *), void *data)
 +{
-+	int tmp;
-+	struct kobject *kobj;
-+	struct device *d;
-+	struct gendisk *disk;
++	unsigned n = MAJOR(dev + range - 1) - MAJOR(dev) + 1;
++	unsigned index = MAJOR(dev);
++	unsigned i;
++	int err = -ESRCH;
 +
-+	kobj = kobj_lookup(bdev_map, dev, NULL, &tmp);
-+	if (kobj == NULL)
-+		return -ENODEV;
++	if (n > KOBJ_MAP_PROBES)
++		n = KOBJ_MAP_PROBES;
 +
-+	d = kobj_to_dev(kobj);
-+	disk = dev_to_disk(d);
-+	tmp = kobj_remap(map, dev, mode, all ? MINORBITS : 1, NULL,
-+			exact_match, exact_lock, disk);
-+	if (tmp < 0) {
-+		put_disk(disk);
-+		return tmp;
++	mutex_lock(domain->lock);
++	for (i = 0; i < n; i++, index++) {
++		struct probe **s;
++		for (s = &domain->probes[index % KOBJ_MAP_PROBES];
++				*s; s = &(*s)->next) {
++			struct probe *p = *s;
++			if (p->dev == dev) {
++				p->mode = mode | FMODE_LSEEK |
++					FMODE_PREAD | FMODE_PWRITE;
++				err = 0;
++				break;
++			}
++		}
 +	}
 +
-+	return 0;
++	if (err)
++		err = __kobj_map(domain, dev, mode, range, module,
++				probe, lock, data);
++	mutex_unlock(domain->lock);
++	return err;
 +}
 +
-+int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
++void kobj_map_iterate(struct kobj_map *domain,
++		int (*fn)(dev_t, int, mode_t, void *), void *arg)
 +{
-+	int tmp;
-+	struct kobject *kobj;
-+	struct device *d;
-+	struct gendisk *disk;
++	int i;
++	struct probe *p;
++	dev_t skip = MKDEV(0, 0);
 +
-+	kobj = kobj_lookup(map, dev, NULL, &tmp);
-+	if (kobj == NULL)
-+		return -ENODEV;
++	mutex_lock(domain->lock);
++	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
++		p = domain->probes[i];
++		while (p != NULL) {
++			if (p->dev == skip)
++				goto next;
++			/*
++			 * this 'device' is special - see the kobj_map_init why
++			 */
++			if (p->dev == 1)
++				goto next;
 +
-+	d = kobj_to_dev(kobj);
-+	disk = dev_to_disk(d);
-+	kobj_unmap(map, dev, all ? MINORBITS : 1);
-+
-+	/*
-+	 * one put for the kobj_lookup above and one for
-+	 * the kobj_lookup in bdev_add_to_map
-+	 */
-+	put_disk(disk);
-+	put_disk(disk);
-+	return 0;
++			skip = p->dev;
++			if (fn(p->dev, p->range, p->mode, arg))
++				goto done;
++next:
++			p = p->next;
++		}
++	}
++done:
++	mutex_unlock(domain->lock);
 +}
 +
-+void bdev_iterate_map(struct kobj_map *map,
-+		int (*fn)(dev_t, int, mode_t, void *), void *x)
++void kobj_map_fini(struct kobj_map *map)
 +{
-+	kobj_map_iterate(map, fn, x);
-+}
++	int i;
++	struct probe *p, *next;
 +
-+static struct kobject *base_probe(dev_t devt, int *part, void *data);
++	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
++		p = map->probes[i];
++		while (p->next != NULL) {
++			next = p->next;
++			kfree(p);
++			p = next;
++		}
++	}
 +
-+struct kobj_map *bdev_map_init(void)
-+{
-+	return kobj_map_init(base_probe, &block_class_lock);
-+}
-+
-+void bdev_map_fini(struct kobj_map *map)
-+{
-+	kobj_map_fini(map);
++	kfree(p);
++	kfree(map);
 +}
 +#endif
-+
- /**
-  * get_gendisk - get partitioning information for a given device
-  * @dev: device to get partitioning information for
-diff -puN include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings include/linux/genhd.h
---- a/include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings
-+++ a/include/linux/genhd.h
-@@ -375,6 +375,14 @@ extern void del_gendisk(struct gendisk *
- extern void unlink_gendisk(struct gendisk *gp);
- extern struct gendisk *get_gendisk(dev_t dev, mode_t *mode, int *part);
+diff -puN include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality include/linux/kobj_map.h
+--- a/include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality
++++ a/include/linux/kobj_map.h
+@@ -11,4 +11,10 @@ void kobj_unmap(struct kobj_map *, dev_t
+ struct kobject *kobj_lookup(struct kobj_map *, dev_t, mode_t *, int *);
+ struct kobj_map *kobj_map_init(kobj_probe_t *, struct mutex *);
  
-+struct kobj_map;
-+extern int bdev_add_to_map(struct kobj_map *, dev_t dev, int all, mode_t mode);
-+extern int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
-+extern void bdev_iterate_map(struct kobj_map *map,
-+		int (*fn)(dev_t, int, mode_t, void *), void *x);
-+extern struct kobj_map *bdev_map_init(void);
-+extern void bdev_map_fini(struct kobj_map *map);
++void kobj_map_iterate(struct kobj_map *, int (*fn)(dev_t, int, mode_t, void *),
++		void *);
++int kobj_remap(struct kobj_map *, dev_t, mode_t, unsigned long, struct module *,
++	     kobj_probe_t *, int (*)(dev_t, void *), void *);
++void kobj_map_fini(struct kobj_map *);
 +
- extern void set_device_ro(struct block_device *bdev, int flag);
- extern void set_disk_ro(struct gendisk *disk, int flag);
- 
+ #endif
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
