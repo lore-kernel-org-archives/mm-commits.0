@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - dm-persistent_read_metadata-warning-fix.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:28:19 -0800
-Message-ID: <200803062228.m26MSJGl021173@imap1.linux-foundation.org>
+Subject: - drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:28:23 -0800
+Message-ID: <200803062228.m26MSNkV021176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758468AbYCFWbk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:40 -0500
+	by vger.kernel.org with ESMTP id S1758215AbYCFWbn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:31:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agk@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm: persistent_read_metadata() warning fix
+     drivers/ide/ide-acpi.c: fix uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     dm-persistent_read_metadata-warning-fix.patch
+     drivers-ide-ide-acpic-fix-uninitialized-var-warning.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm: persistent_read_metadata() warning fix
+Subject: drivers/ide/ide-acpi.c: fix uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/md/dm-exception-store.c: In function 'persistent_read_metadata':
-drivers/md/dm-exception-store.c:452: warning: 'new_snapshot' may be used uninitialized in this function
+drivers/ide/ide-acpi.c: In function 'ide_acpi_init':
+drivers/ide/ide-acpi.c:175: warning: 'dev_handle' may be used uninitialized in this function
 
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-exception-store.c |    2 +-
+ drivers/ide/ide-acpi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-exception-store.c~dm-persistent_read_metadata-warning-fix drivers/md/dm-exception-store.c
---- a/drivers/md/dm-exception-store.c~dm-persistent_read_metadata-warning-fix
-+++ a/drivers/md/dm-exception-store.c
-@@ -449,7 +449,7 @@ static void persistent_destroy(struct ex
- 
- static int persistent_read_metadata(struct exception_store *store)
+diff -puN drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning drivers/ide/ide-acpi.c
+--- a/drivers/ide/ide-acpi.c~drivers-ide-ide-acpic-fix-uninitialized-var-warning
++++ a/drivers/ide/ide-acpi.c
+@@ -171,7 +171,7 @@ err:
+ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
  {
--	int r, new_snapshot;
-+	int r, uninitialized_var(new_snapshot);
- 	struct pstore *ps = get_info(store);
- 
- 	/*
+ 	struct device		*dev = hwif->gendev.parent;
+-	acpi_handle		dev_handle;
++	acpi_handle		uninitialized_var(dev_handle);
+ 	acpi_integer		pcidevfn;
+ 	acpi_handle		chan_handle;
+ 	int			err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
