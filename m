@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + block-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:49:59 -0800
-Message-ID: <200803060350.m263nxTw007309@imap1.linux-foundation.org>
+Subject: + firmware-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:05 -0800
+Message-ID: <200803060350.m263o5XD007326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756418AbYCFDul (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:41 -0500
+	by vger.kernel.org with ESMTP id S1756723AbYCFDup (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:50:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
+Cc: harvey.harrison@gmail.com, Douglas_Warzecha@dell.com, Matt_Domsch@dell.com
 
 
 The patch titled
-     block: replace remaining __FUNCTION__ occurrences
+     firmware: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     block-replace-remaining-__function__-occurrences.patch
+     firmware-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: replace remaining __FUNCTION__ occurrences
+Subject: firmware: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Doug Warzecha <Douglas_Warzecha@dell.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/sx8.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/firmware/dcdbas.c   |   16 ++++++++--------
+ drivers/firmware/dell_rbu.c |   12 ++++++------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/block/sx8.c~block-replace-remaining-__function__-occurrences drivers/block/sx8.c
---- a/drivers/block/sx8.c~block-replace-remaining-__function__-occurrences
-+++ a/drivers/block/sx8.c
-@@ -79,9 +79,9 @@ MODULE_PARM_DESC(max_queue, "Maximum num
+diff -puN drivers/firmware/dcdbas.c~firmware-replace-remaining-__function__-occurrences drivers/firmware/dcdbas.c
+--- a/drivers/firmware/dcdbas.c~firmware-replace-remaining-__function__-occurrences
++++ a/drivers/firmware/dcdbas.c
+@@ -63,7 +63,7 @@ static void smi_data_buf_free(void)
+ 		return;
  
- /* note: prints function name for you */
- #ifdef CARM_DEBUG
--#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
-+#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
- #ifdef CARM_VERBOSE_DEBUG
--#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
-+#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
- #else
- #define VPRINTK(fmt, args...)
- #endif	/* CARM_VERBOSE_DEBUG */
-@@ -96,7 +96,7 @@ MODULE_PARM_DESC(max_queue, "Maximum num
- #define assert(expr) \
-         if(unlikely(!(expr))) {                                   \
-         printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", \
--        #expr,__FILE__,__FUNCTION__,__LINE__);          \
-+	#expr, __FILE__, __func__, __LINE__);          \
-         }
- #endif
+ 	dev_dbg(&dcdbas_pdev->dev, "%s: phys: %x size: %lu\n",
+-		__FUNCTION__, smi_data_buf_phys_addr, smi_data_buf_size);
++		__func__, smi_data_buf_phys_addr, smi_data_buf_size);
+ 
+ 	dma_free_coherent(&dcdbas_pdev->dev, smi_data_buf_size, smi_data_buf,
+ 			  smi_data_buf_handle);
+@@ -92,7 +92,7 @@ static int smi_data_buf_realloc(unsigned
+ 	if (!buf) {
+ 		dev_dbg(&dcdbas_pdev->dev,
+ 			"%s: failed to allocate memory size %lu\n",
+-			__FUNCTION__, size);
++			__func__, size);
+ 		return -ENOMEM;
+ 	}
+ 	/* memory zeroed by dma_alloc_coherent */
+@@ -110,7 +110,7 @@ static int smi_data_buf_realloc(unsigned
+ 	smi_data_buf_size = size;
+ 
+ 	dev_dbg(&dcdbas_pdev->dev, "%s: phys: %x size: %lu\n",
+-		__FUNCTION__, smi_data_buf_phys_addr, smi_data_buf_size);
++		__func__, smi_data_buf_phys_addr, smi_data_buf_size);
+ 
+ 	return 0;
+ }
+@@ -258,7 +258,7 @@ static int smi_request(struct smi_cmd *s
+ 
+ 	if (smi_cmd->magic != SMI_CMD_MAGIC) {
+ 		dev_info(&dcdbas_pdev->dev, "%s: invalid magic value\n",
+-			 __FUNCTION__);
++			 __func__);
+ 		return -EBADR;
+ 	}
+ 
+@@ -267,7 +267,7 @@ static int smi_request(struct smi_cmd *s
+ 	set_cpus_allowed(current, cpumask_of_cpu(0));
+ 	if (smp_processor_id() != 0) {
+ 		dev_dbg(&dcdbas_pdev->dev, "%s: failed to get CPU 0\n",
+-			__FUNCTION__);
++			__func__);
+ 		ret = -EBUSY;
+ 		goto out;
+ 	}
+@@ -428,7 +428,7 @@ static int host_control_smi(void)
+ 
+ 	default:
+ 		dev_dbg(&dcdbas_pdev->dev, "%s: invalid SMI type %u\n",
+-			__FUNCTION__, host_control_smi_type);
++			__func__, host_control_smi_type);
+ 		return -ENOSYS;
+ 	}
+ 
+@@ -456,13 +456,13 @@ static void dcdbas_host_control(void)
+ 	host_control_action = HC_ACTION_NONE;
+ 
+ 	if (!smi_data_buf) {
+-		dev_dbg(&dcdbas_pdev->dev, "%s: no SMI buffer\n", __FUNCTION__);
++		dev_dbg(&dcdbas_pdev->dev, "%s: no SMI buffer\n", __func__);
+ 		return;
+ 	}
+ 
+ 	if (smi_data_buf_size < sizeof(struct apm_cmd)) {
+ 		dev_dbg(&dcdbas_pdev->dev, "%s: SMI buffer too small\n",
+-			__FUNCTION__);
++			__func__);
+ 		return;
+ 	}
+ 
+diff -puN drivers/firmware/dell_rbu.c~firmware-replace-remaining-__function__-occurrences drivers/firmware/dell_rbu.c
+--- a/drivers/firmware/dell_rbu.c~firmware-replace-remaining-__function__-occurrences
++++ a/drivers/firmware/dell_rbu.c
+@@ -123,7 +123,7 @@ static int create_packet(void *data, siz
+ 	if (!newpacket) {
+ 		printk(KERN_WARNING
+ 			"dell_rbu:%s: failed to allocate new "
+-			"packet\n", __FUNCTION__);
++			"packet\n", __func__);
+ 		retval = -ENOMEM;
+ 		spin_lock(&rbu_data.lock);
+ 		goto out_noalloc;
+@@ -152,7 +152,7 @@ static int create_packet(void *data, siz
+ 		printk(KERN_WARNING
+ 			"dell_rbu:%s: failed to allocate "
+ 			"invalid_addr_packet_array \n",
+-			__FUNCTION__);
++			__func__);
+ 		retval = -ENOMEM;
+ 		spin_lock(&rbu_data.lock);
+ 		goto out_alloc_packet;
+@@ -164,7 +164,7 @@ static int create_packet(void *data, siz
+ 		if (!packet_data_temp_buf) {
+ 			printk(KERN_WARNING
+ 				"dell_rbu:%s: failed to allocate new "
+-				"packet\n", __FUNCTION__);
++				"packet\n", __func__);
+ 			retval = -ENOMEM;
+ 			spin_lock(&rbu_data.lock);
+ 			goto out_alloc_packet_array;
+@@ -416,7 +416,7 @@ static int img_update_realloc(unsigned l
+ 		 */
+ 		if ((size != 0) && (rbu_data.image_update_buffer == NULL)) {
+ 			printk(KERN_ERR "dell_rbu:%s: corruption "
+-				"check failed\n", __FUNCTION__);
++				"check failed\n", __func__);
+ 			return -EINVAL;
+ 		}
+ 		/*
+@@ -642,7 +642,7 @@ static ssize_t write_rbu_image_type(stru
+ 			if (req_firm_rc) {
+ 				printk(KERN_ERR
+ 					"dell_rbu:%s request_firmware_nowait"
+-					" failed %d\n", __FUNCTION__, rc);
++					" failed %d\n", __func__, rc);
+ 				rc = -EIO;
+ 			} else
+ 				rbu_data.entry_created = 1;
+@@ -718,7 +718,7 @@ static int __init dcdrbu_init(void)
+ 	if (IS_ERR(rbu_device)) {
+ 		printk(KERN_ERR
+ 			"dell_rbu:%s:platform_device_register_simple "
+-			"failed\n", __FUNCTION__);
++			"failed\n", __func__);
+ 		return PTR_ERR(rbu_device);
+ 	}
  
 _
 
