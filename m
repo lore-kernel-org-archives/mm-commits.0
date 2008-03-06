@@ -1,136 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - sh-superh-keysc-keypad-data-for-migor.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:08 -0800
-Message-ID: <200803062222.m26MM83V020780@imap1.linux-foundation.org>
+Subject: - bluetooth-hci_core-defer-hci_unregister_sysfs.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:51 -0800
+Message-ID: <200803062222.m26MMpnX020840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757966AbYCFWip (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:38:45 -0500
+	by vger.kernel.org with ESMTP id S1753703AbYCFWjQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:39:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, alon.barlev@gmail.com, davem@davemloft.net, marcel@holtmann.org, seife@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: SuperH KEYSC keypad data for MigoR
+     bluetooth: hci_core: defer hci_unregister_sysfs()
 has been removed from the -mm tree.  Its filename was
-     sh-superh-keysc-keypad-data-for-migor.patch
+     bluetooth-hci_core-defer-hci_unregister_sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: SuperH KEYSC keypad data for MigoR
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: bluetooth: hci_core: defer hci_unregister_sysfs()
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Add KEYSC platform data for the sh7722 MigoR board.
+Alon Bar-Lev reports:
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+> Feb 16 23:41:33 alon1 usb 3-1: configuration #1 chosen from 1 choice
+Feb 16 23:41:33 alon1 BUG: unable to handle kernel NULL pointer dereference at virtual address 00000008
+Feb 16 23:41:33 alon1 printing eip: c01b2db6 *pde = 00000000
+Feb 16 23:41:33 alon1 Oops: 0000 [#1] PREEMPT
+Feb 16 23:41:33 alon1 Modules linked in: ppp_deflate zlib_deflate zlib_inflate bsd_comp ppp_async rfcomm l2cap hci_usb vmnet(P) vmmon(P) tun radeon drm autofs4 ipv6 aes_generic crypto_algapi ieee80211_crypt_ccmp nf_nat_irc nf_nat_ftp nf_conntrack_irc nf_conntrack_ftp ipt_MASQUERADE iptable_nat nf_nat ipt_REJECT xt_tcpudp ipt_LOG xt_limit xt_state nf_conntrack_ipv4 nf_conntrack iptable_filter ip_tables x_tables snd_pcm_oss snd_mixer_oss snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device bluetooth ppp_generic slhc ioatdma dca cfq_iosched cpufreq_powersave cpufreq_ondemand cpufreq_conservative acpi_cpufreq freq_table uinput fan af_packet nls_cp1255 nls_iso8859_1 nls_utf8 nls_base pcmcia snd_intel8x0 snd_ac97_codec ac97_bus snd_pcm nsc_ircc snd_timer ipw2200 thinkpad_acpi irda
+  snd ehci_hcd yenta_socket uhci_hcd psmouse ieee80211 soundcore intel_agp hwmon rsrc_nonstatic pcspkr e1000 crc_ccitt snd_page_alloc i2c_i801 ieee80211_crypt pcmcia_core agpgart thermal bat!
+ tery nvram rtc sr_mod ac sg firmware_class button processor cdrom unix usbcore evdev ext3 jbd ext2 mbcache loop ata_piix libata sd_mod scsi_mod
+Feb 16 23:41:33 alon1
+Feb 16 23:41:33 alon1 Pid: 4, comm: events/0 Tainted: P        (2.6.24-gentoo-r2 #1)
+Feb 16 23:41:33 alon1 EIP: 0060:[<c01b2db6>] EFLAGS: 00010282 CPU: 0
+Feb 16 23:41:33 alon1 EIP is at sysfs_get_dentry+0x26/0x80
+Feb 16 23:41:33 alon1 EAX: 00000000 EBX: 00000000 ECX: 00000000 EDX: f48a2210
+Feb 16 23:41:33 alon1 ESI: f72eb900 EDI: f4803ae0 EBP: f4803ae0 ESP: f7c49efc
+Feb 16 23:41:33 alon1 hcid[7004]: HCI dev 0 registered
+Feb 16 23:41:33 alon1 DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068
+Feb 16 23:41:33 alon1 Process events/0 (pid: 4, ti=f7c48000 task=f7c3efc0 task.ti=f7c48000)
+Feb 16 23:41:33 alon1 Stack: f7cb6140 f4822668 f7e71e10 c01b304d ffffffff ffffffff fffffffe c030ba9c
+Feb 16 23:41:33 alon1 f7cb6140 f4822668 f6da6720 f7cb6140 f4822668 f6da6720 c030ba8e c01ce20b
+Feb 16 23:41:33 alon1 f6e9dd00 c030ba8e f6da6720 f6e9dd00 f6e9dd00 00000000 f4822600 00000000
+Feb 16 23:41:33 alon1 Call Trace:
+Feb 16 23:41:33 alon1 [<c01b304d>] sysfs_move_dir+0x3d/0x1f0
+Feb 16 23:41:33 alon1 [<c01ce20b>] kobject_move+0x9b/0x120
+Feb 16 23:41:33 alon1 [<c0241711>] device_move+0x51/0x110
+Feb 16 23:41:33 alon1 [<f9aaed80>] del_conn+0x0/0x70 [bluetooth]
+Feb 16 23:41:33 alon1 [<f9aaed99>] del_conn+0x19/0x70 [bluetooth]
+Feb 16 23:41:33 alon1 [<c012c1a1>] run_workqueue+0x81/0x140
+Feb 16 23:41:33 alon1 [<c02c0c88>] schedule+0x168/0x2e0
+Feb 16 23:41:33 alon1 [<c012fc70>] autoremove_wake_function+0x0/0x50
+Feb 16 23:41:33 alon1 [<c012c9cb>] worker_thread+0x9b/0xf0
+Feb 16 23:41:33 alon1 [<c012fc70>] autoremove_wake_function+0x0/0x50
+Feb 16 23:41:33 alon1 [<c012c930>] worker_thread+0x0/0xf0
+Feb 16 23:41:33 alon1 [<c012f962>] kthread+0x42/0x70
+Feb 16 23:41:33 alon1 [<c012f920>] kthread+0x0/0x70
+Feb 16 23:41:33 alon1 [<c0104c2f>] kernel_thread_helper+0x7/0x18
+Feb 16 23:41:33 alon1 =======================
+Feb 16 23:41:33 alon1 Code: 26 00 00 00 00 57 89 c7 a1 50 1b 3a c0 56 53 8b 70 38 85 f6 74 08 8b 0e 85 c9 74 58 ff 06 8b 56 50 39 fa 74 47 89 fb eb 02 89 c3 <8b> 43 08 39 c2 75 f7 8b 46 08 83 c0 68 e8 98 e7 10 00 8b 43 10
+Feb 16 23:41:33 alon1 EIP: [<c01b2db6>] sysfs_get_dentry+0x26/0x80 SS:ESP 0068:f7c49efc
+Feb 16 23:41:33 alon1 ---[ end trace aae864e9592acc1d ]---
+
+Defer hci_unregister_sysfs because hci device could be destructed
+while hci conn devices still there.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Tested-by: Stefan Seyfried <seife@suse.de>
+Acked-by: Alon Bar-Lev <alon.barlev@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/renesas/migor/setup.c |   56 ++++++++++++++++++++++++-
- 1 file changed, 55 insertions(+), 1 deletion(-)
+ net/bluetooth/hci_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/boards/renesas/migor/setup.c~sh-superh-keysc-keypad-data-for-migor arch/sh/boards/renesas/migor/setup.c
---- a/arch/sh/boards/renesas/migor/setup.c~sh-superh-keysc-keypad-data-for-migor
-+++ a/arch/sh/boards/renesas/migor/setup.c
-@@ -10,8 +10,10 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
-+#include <linux/input.h>
- #include <asm/machvec.h>
- #include <asm/io.h>
-+#include <asm/sh_keysc.h>
+diff -puN net/bluetooth/hci_core.c~bluetooth-hci_core-defer-hci_unregister_sysfs net/bluetooth/hci_core.c
+--- a/net/bluetooth/hci_core.c~bluetooth-hci_core-defer-hci_unregister_sysfs
++++ a/net/bluetooth/hci_core.c
+@@ -902,8 +902,6 @@ int hci_unregister_dev(struct hci_dev *h
  
- /* Address     IRQ  Size  Bus  Description
-  * 0x00000000       64MB  16   NOR Flash (SP29PL256N)
-@@ -40,8 +42,43 @@ static struct platform_device smc91x_eth
- 	.resource       = smc91x_eth_resources,
- };
+ 	BT_DBG("%p name %s type %d", hdev, hdev->name, hdev->type);
  
-+static struct sh_keysc_info sh_keysc_info = {
-+	.mode = SH_KEYSC_MODE_2, /* KEYOUT0->4, KEYIN1->5 */
-+	.scan_timing = 3,
-+	.delay = 5,
-+	.keycodes = {
-+		0, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_ENTER,
-+		0, KEY_F, KEY_C, KEY_D,	KEY_H, KEY_1,
-+		0, KEY_2, KEY_3, KEY_4,	KEY_5, KEY_6,
-+		0, KEY_7, KEY_8, KEY_9, KEY_S, KEY_0,
-+		0, KEY_P, KEY_STOP, KEY_REWIND, KEY_PLAY, KEY_FASTFORWARD,
-+	},
-+};
-+
-+static struct resource sh_keysc_resources[] = {
-+	[0] = {
-+		.start  = 0x044b0000,
-+		.end    = 0x044b000f,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = 79,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device sh_keysc_device = {
-+	.name           = "sh_keysc",
-+	.num_resources  = ARRAY_SIZE(sh_keysc_resources),
-+	.resource       = sh_keysc_resources,
-+	.dev	= {
-+		.platform_data	= &sh_keysc_info,
-+	},
-+};
-+
- static struct platform_device *migor_devices[] __initdata = {
- 	&smc91x_eth_device,
-+	&sh_keysc_device,
- };
- 
- static int __init migor_devices_setup(void)
-@@ -50,9 +87,26 @@ static int __init migor_devices_setup(vo
- }
- __initcall(migor_devices_setup);
- 
-+#define PORT_PJCR       0xA4050110UL
-+#define PORT_PSELA      0xA405014EUL
-+#define PORT_PYCR       0xA405014AUL
-+#define PORT_PZCR       0xA405014CUL
-+#define PORT_HIZCRA     0xA4050158UL
-+#define PORT_HIZCRC     0xA405015CUL
-+#define MSTPCR2         0xA4150038UL
-+
- static void __init migor_setup(char **cmdline_p)
- {
--	ctrl_outw(0x1000, 0xa4050110); /* Enable IRQ0 in PJCR */
-+	/* SMC91C111 - Enable IRQ0 */
-+	ctrl_outw(ctrl_inw(PORT_PJCR) & ~0x0003, PORT_PJCR);
-+
-+	/* KEYSC */
-+	ctrl_outw(ctrl_inw(PORT_PYCR) & ~0x0fff, PORT_PYCR);
-+	ctrl_outw(ctrl_inw(PORT_PZCR) & ~0x0ff0, PORT_PZCR);
-+	ctrl_outw(ctrl_inw(PORT_PSELA) & ~0x4100, PORT_PSELA);
-+	ctrl_outw(ctrl_inw(PORT_HIZCRA) & ~0x4000, PORT_HIZCRA);
-+	ctrl_outw(ctrl_inw(PORT_HIZCRC) & ~0xc000, PORT_HIZCRC);
-+	ctrl_outl(ctrl_inl(MSTPCR2) & ~0x00004000, MSTPCR2);
- }
- 
- static struct sh_machine_vector mv_migor __initmv = {
-_
-
-Patches currently in -mm which might be from magnus.damm@gmail.com are
-
-smc91x-pass-along-private-data-v2.patch
-smc91x-introduce-platform-data-flags-v2.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-smc91x-make-superh-use-default-config-v2.patch
-git-sh.patch
-sm501-add-uart-support.patch
-
+-	hci_unregister_sysfs(hdev);
