@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-replace-remaining-__function__-occurrences.patch added to -mm tree
-Date: Wed, 05 Mar 2008 19:50:16 -0800
-Message-ID: <200803060350.m263oGlC007344@imap1.linux-foundation.org>
+Subject: + spi-replace-remaining-__function__-occurrences.patch added to -mm tree
+Date: Wed, 05 Mar 2008 19:50:18 -0800
+Message-ID: <200803060350.m263oI7j007347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbYCFD6Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751329AbYCFD6Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 22:58:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, wim@iguana.be
+Cc: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     watchdog: replace remaining __FUNCTION__ occurrences
+     spi: replace remaining __FUNCTION__ occurrences
 has been added to the -mm tree.  Its filename is
-     watchdog-replace-remaining-__function__-occurrences.patch
+     spi-replace-remaining-__function__-occurrences.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: replace remaining __FUNCTION__ occurrences
+Subject: spi: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/machzwd.c     |    2 +-
- drivers/watchdog/pcwd_usb.c    |    4 ++--
- drivers/watchdog/s3c2410_wdt.c |    8 ++++----
- drivers/watchdog/shwdt.c       |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/spi/omap_uwire.c  |    4 ++--
+ drivers/spi/spi_bitbang.c |    2 +-
+ drivers/spi/spi_mpc83xx.c |    2 +-
+ drivers/spi/spi_s3c24xx.c |    2 +-
+ drivers/spi/xilinx_spi.c  |    8 ++++----
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/watchdog/machzwd.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/machzwd.c
---- a/drivers/watchdog/machzwd.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/machzwd.c
-@@ -141,7 +141,7 @@ static unsigned long next_heartbeat = 0;
- #ifndef ZF_DEBUG
- #	define dprintk(format, args...)
- #else
--#	define dprintk(format, args...) printk(KERN_DEBUG PFX ":%s:%d: " format, __FUNCTION__, __LINE__ , ## args)
-+#	define dprintk(format, args...) printk(KERN_DEBUG PFX ":%s:%d: " format, __func__, __LINE__ , ## args)
- #endif
+diff -puN drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences drivers/spi/omap_uwire.c
+--- a/drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences
++++ a/drivers/spi/omap_uwire.c
+@@ -151,7 +151,7 @@ static int wait_uwire_csr_flag(u16 mask,
+ 		if (time_after(jiffies, max_jiffies)) {
+ 			printk(KERN_ERR "%s: timeout. reg=%#06x "
+ 					"mask=%#06x val=%#06x\n",
+-			       __FUNCTION__, w, mask, val);
++			       __func__, w, mask, val);
+ 			return -1;
+ 		}
+ 		c++;
+@@ -437,7 +437,7 @@ static int uwire_setup_transfer(struct s
+ 	}
+ 	omap_uwire_configure_mode(spi->chip_select, flags);
+ 	pr_debug("%s: uwire flags %02x, armxor %lu KHz, SCK %lu KHz\n",
+-			__FUNCTION__, flags,
++			__func__, flags,
+ 			clk_get_rate(uwire->ck) / 1000,
+ 			rate / 1000);
+ 	status = 0;
+diff -puN drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_bitbang.c
+--- a/drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences
++++ a/drivers/spi/spi_bitbang.c
+@@ -214,7 +214,7 @@ int spi_bitbang_setup(struct spi_device 
+ 		return retval;
  
+ 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
+-			__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
++			__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
+ 			spi->bits_per_word, 2 * cs->nsecs);
  
-diff -puN drivers/watchdog/pcwd_usb.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/pcwd_usb.c
---- a/drivers/watchdog/pcwd_usb.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/pcwd_usb.c
-@@ -179,11 +179,11 @@ static void usb_pcwd_intr_done(struct ur
- 	case -ENOENT:
- 	case -ESHUTDOWN:
- 		/* this urb is terminated, clean up */
--		dbg("%s - urb shutting down with status: %d", __FUNCTION__, urb->status);
-+		dbg("%s - urb shutting down with status: %d", __func__, urb->status);
- 		return;
- 	/* -EPIPE:  should clear the halt */
- 	default:		/* error */
--		dbg("%s - nonzero urb status received: %d", __FUNCTION__, urb->status);
-+		dbg("%s - nonzero urb status received: %d", __func__, urb->status);
- 		goto resubmit;
+ 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
+diff -puN drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -310,7 +310,7 @@ static int mpc83xx_spi_setup(struct spi_
+ 		return retval;
+ 
+ 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec\n",
+-		__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
++		__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
+ 		spi->bits_per_word, 2 * mpc83xx_spi->nsecs);
+ 
+ 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
+diff -puN drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -169,7 +169,7 @@ static int s3c24xx_spi_setup(struct spi_
  	}
  
-diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -144,7 +144,7 @@ static int s3c2410wdt_start(void)
+ 	dev_dbg(&spi->dev, "%s: mode %d, %u bpw, %d hz\n",
+-		__FUNCTION__, spi->mode, spi->bits_per_word,
++		__func__, spi->mode, spi->bits_per_word,
+ 		spi->max_speed_hz);
+ 
+ 	return 0;
+diff -puN drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences drivers/spi/xilinx_spi.c
+--- a/drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences
++++ a/drivers/spi/xilinx_spi.c
+@@ -151,13 +151,13 @@ static int xilinx_spi_setup_transfer(str
+ 	hz = (t) ? t->speed_hz : spi->max_speed_hz;
+ 	if (bits_per_word != 8) {
+ 		dev_err(&spi->dev, "%s, unsupported bits_per_word=%d\n",
+-			__FUNCTION__, bits_per_word);
++			__func__, bits_per_word);
+ 		return -EINVAL;
  	}
  
- 	DBG("%s: wdt_count=0x%08x, wtcon=%08lx\n",
--	    __FUNCTION__, wdt_count, wtcon);
-+	    __func__, wdt_count, wtcon);
- 
- 	writel(wdt_count, wdt_base + S3C2410_WTDAT);
- 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
-@@ -167,7 +167,7 @@ static int s3c2410wdt_set_heartbeat(int 
- 	count = timeout * freq;
- 
- 	DBG("%s: count=%d, timeout=%d, freq=%d\n",
--	    __FUNCTION__, count, timeout, freq);
-+	    __func__, count, timeout, freq);
- 
- 	/* if the count is bigger than the watchdog register,
- 	   then work out what we need to do (and if) we can
-@@ -189,7 +189,7 @@ static int s3c2410wdt_set_heartbeat(int 
- 	tmr_margin = timeout;
- 
- 	DBG("%s: timeout=%d, divisor=%d, count=%d (%08x)\n",
--	    __FUNCTION__, timeout, divisor, count, count/divisor);
-+	    __func__, timeout, divisor, count, count/divisor);
- 
- 	count /= divisor;
- 	wdt_count = count;
-@@ -355,7 +355,7 @@ static int s3c2410wdt_probe(struct platf
- 	int ret;
- 	int size;
- 
--	DBG("%s: probe=%p\n", __FUNCTION__, pdev);
-+	DBG("%s: probe=%p\n", __func__, pdev);
- 
- 	dev = &pdev->dev;
- 	wdt_dev = &pdev->dev;
-diff -puN drivers/watchdog/shwdt.c~watchdog-replace-remaining-__function__-occurrences drivers/watchdog/shwdt.c
---- a/drivers/watchdog/shwdt.c~watchdog-replace-remaining-__function__-occurrences
-+++ a/drivers/watchdog/shwdt.c
-@@ -298,7 +298,7 @@ static int sh_wdt_mmap(struct file *file
- 	if (io_remap_pfn_range(vma, vma->vm_start, addr >> PAGE_SHIFT,
- 			       PAGE_SIZE, vma->vm_page_prot)) {
- 		printk(KERN_ERR PFX "%s: io_remap_pfn_range failed\n",
--		       __FUNCTION__);
-+		       __func__);
- 		return -EAGAIN;
+ 	if (hz && xspi->speed_hz > hz) {
+ 		dev_err(&spi->dev, "%s, unsupported clock rate %uHz\n",
+-			__FUNCTION__, hz);
++			__func__, hz);
+ 		return -EINVAL;
  	}
  
+@@ -181,7 +181,7 @@ static int xilinx_spi_setup(struct spi_d
+ 
+ 	if (spi->mode & ~MODEBITS) {
+ 		dev_err(&spi->dev, "%s, unsupported mode bits %x\n",
+-			__FUNCTION__, spi->mode & ~MODEBITS);
++			__func__, spi->mode & ~MODEBITS);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -190,7 +190,7 @@ static int xilinx_spi_setup(struct spi_d
+ 		return retval;
+ 
+ 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
+-		__FUNCTION__, spi->mode & MODEBITS, spi->bits_per_word, 0);
++		__func__, spi->mode & MODEBITS, spi->bits_per_word, 0);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
