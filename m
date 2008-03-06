@@ -1,64 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:28:25 -0800
-Message-ID: <200803062228.m26MSPU8021179@imap1.linux-foundation.org>
+Subject: - gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:31:20 -0800
+Message-ID: <200803062231.m26MVK0b021700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761351AbYCFWcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:32:01 -0500
+	by vger.kernel.org with ESMTP id S1758844AbYCFWca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:32:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/ide/legacy/hd.c: fix uninitialized var warning
+     gregkh-driver-kset-convert-to-kobj_sysfs_ops vs git-acpi
 has been removed from the -mm tree.  Its filename was
-     drivers-ide-legacy-hdc-fix-uninitialized-var-warning.patch
+     gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ide/legacy/hd.c: fix uninitialized var warning
+Subject: gregkh-driver-kset-convert-to-kobj_sysfs_ops vs git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ide/legacy/hd.c: In function 'hd_request':
-drivers/ide/legacy/hd.c:424: warning: 'stat' may be used uninitialized in this function
+kernel/power/main.c:123: warning: initialization from incompatible pointer type
+kernel/power/main.c:123: warning: initialization from incompatible pointer type
 
-gcc is being stupid.
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/legacy/hd.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/power/main.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning drivers/ide/legacy/hd.c
---- a/drivers/ide/legacy/hd.c~drivers-ide-legacy-hdc-fix-uninitialized-var-warning
-+++ a/drivers/ide/legacy/hd.c
-@@ -421,11 +421,14 @@ static void bad_rw_intr(void)
+diff -puN kernel/power/main.c~gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi kernel/power/main.c
+--- a/kernel/power/main.c~gregkh-driver-kset-convert-to-kobj_sysfs_ops-vs-git-acpi
++++ a/kernel/power/main.c
+@@ -75,7 +75,8 @@ static const char * const pm_tests[__TES
+ 	[TEST_FREEZER] = "freezer",
+ };
  
- static inline int wait_DRQ(void)
+-static ssize_t pm_test_show(struct kset *kset, char *buf)
++static ssize_t pm_test_show(struct kobject *kobj, struct kobj_attribute *attr,
++				char *buf)
  {
--	int retries = 100000, stat;
-+	int retries;
-+	int stat;
- 
--	while (--retries > 0)
--		if ((stat = inb_p(HD_STATUS)) & DRQ_STAT)
-+	for (retries = 0; retries < 100000; retries++) {
-+		stat = inb_p(HD_STATUS);
-+		if (stat & DRQ_STAT)
- 			return 0;
-+	}
- 	dump_status("wait_DRQ", stat);
- 	return -1;
+ 	char *s = buf;
+ 	int level;
+@@ -95,7 +96,8 @@ static ssize_t pm_test_show(struct kset 
+ 	return (s - buf);
  }
+ 
+-static ssize_t pm_test_store(struct kset *kset, const char *buf, size_t n)
++static ssize_t pm_test_store(struct kobject *kobj, struct kobj_attribute *attr,
++				const char *buf, size_t n)
+ {
+ 	const char * const *s;
+ 	int level;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
