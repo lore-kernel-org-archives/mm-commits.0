@@ -1,62 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:28:12 -0800
-Message-ID: <200803062228.m26MSCbs021163@imap1.linux-foundation.org>
+Subject: - sh-export-copy-page-to-modules.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:22:14 -0800
+Message-ID: <200803062222.m26MMEQg020794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756498AbYCFW2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:28:47 -0500
+	by vger.kernel.org with ESMTP id S1756813AbYCFW2u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:28:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
+     sh: export copy-page() to modules
 has been removed from the -mm tree.  Its filename was
-     cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+     sh-export-copy-page-to-modules.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
+Subject: sh: export copy-page() to modules
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#42: FILE: arch/cris/kernel/time.c:211:
-+        profile_tick(CPU_PROFILING);$
+ERROR: "copy_page" [fs/unionfs/unionfs.ko] undefined!
 
-total: 1 errors, 0 warnings, 25 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+like all the other architectures.
 
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/kernel/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sh/kernel/sh_ksyms_32.c |    1 +
+ arch/sh/kernel/sh_ksyms_64.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes arch/cris/kernel/time.c
---- a/arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
-+++ a/arch/cris/kernel/time.c
-@@ -212,7 +212,7 @@ cris_do_profile(struct pt_regs* regs)
+diff -puN arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_32.c
+--- a/arch/sh/kernel/sh_ksyms_32.c~sh-export-copy-page-to-modules
++++ a/arch/sh/kernel/sh_ksyms_32.c
+@@ -139,5 +139,6 @@ EXPORT_SYMBOL(csum_partial_copy_generic)
+ EXPORT_SYMBOL(csum_ipv6_magic);
  #endif
+ EXPORT_SYMBOL(clear_page);
++EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__clear_user);
+ EXPORT_SYMBOL(_ebss);
+diff -puN arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules arch/sh/kernel/sh_ksyms_64.c
+--- a/arch/sh/kernel/sh_ksyms_64.c~sh-export-copy-page-to-modules
++++ a/arch/sh/kernel/sh_ksyms_64.c
+@@ -38,6 +38,7 @@ EXPORT_SYMBOL(screen_info);
  
- #if CONFIG_PROFILING
--        profile_tick(CPU_PROFILING, regs);
-+	profile_tick(CPU_PROFILING, regs);
- #endif
- }
- 
+ EXPORT_SYMBOL(__put_user_asm_l);
+ EXPORT_SYMBOL(__get_user_asm_l);
++EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__copy_user);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__udelay);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
