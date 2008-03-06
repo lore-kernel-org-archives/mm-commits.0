@@ -1,72 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-arcmsr-update-driver-version.patch removed from -mm tree
-Date: Thu, 06 Mar 2008 14:22:45 -0800
-Message-ID: <200803062222.m26MMj3g020834@imap1.linux-foundation.org>
+Subject: - ehea-fix-missing-kconfig-dependency.patch removed from -mm tree
+Date: Thu, 06 Mar 2008 14:23:03 -0800
+Message-ID: <200803062223.m26MN3jJ020868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762948AbYCFWX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:28 -0500
+	by vger.kernel.org with ESMTP id S1762990AbYCFWXf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Mar 2008 17:23:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nick.cheng@areca.com.tw, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: osstklei@de.ibm.com, jeff@garzik.org, raisch@de.ibm.com, stefan.roscher@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: arcmsr: update driver version
+     ehea: fix missing Kconfig dependency
 has been removed from the -mm tree.  Its filename was
-     scsi-arcmsr-update-driver-version.patch
+     ehea-fix-missing-kconfig-dependency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: arcmsr: update driver version
-From: Nick Cheng <nick.cheng@areca.com.tw>
+Subject: ehea: fix missing Kconfig dependency
+From: Thomas Klein <osstklei@de.ibm.com>
 
-Update the driver version of arcmsr and ChangeLog.arcmsr.
+Fixed Kconfig: ehea driver requires sparse mem
 
-Signed-off-by: Nick Cheng <nick.cheng@areca.com.tw>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Thomas Klein <tklein@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: "Jan-Bernd Themann" <themann@de.ibm.com>
+Cc: Stefan Roscher <stefan.roscher@de.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/ChangeLog.arcmsr |    6 ++++++
- drivers/scsi/arcmsr/arcmsr.h        |    2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/net/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-update-driver-version Documentation/scsi/ChangeLog.arcmsr
---- a/Documentation/scsi/ChangeLog.arcmsr~scsi-arcmsr-update-driver-version
-+++ a/Documentation/scsi/ChangeLog.arcmsr
-@@ -109,4 +109,10 @@
- **						8.replace pci_alloc_consistent()/pci_free_consistent() with kmalloc()/kfree() in arcmsr_iop_message_xfer()
- **						9. fix the release of dma memory for type B in arcmsr_free_ccb_pool()
- **						10.fix the arcmsr_polling_hbb_ccbdone()
-+** 1.20.00.15	02/27/2008	Erich Chen & Nick Cheng
-+**						1.arcmsr_iop_message_xfer() is called from atomic context under the
-+**						queuecommand scsi_host_template handler. James Bottomley pointed out
-+**						that the current GFP_KERNEL|GFP_DMA flags are wrong: firstly we are in
-+**						atomic context, secondly this memory is not used for DMA.
-+**						Also removed some unneeded casts. Thanks to Daniel Drake <dsd@gentoo.org>
- **************************************************************************
-diff -puN drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-update-driver-version drivers/scsi/arcmsr/arcmsr.h
---- a/drivers/scsi/arcmsr/arcmsr.h~scsi-arcmsr-update-driver-version
-+++ a/drivers/scsi/arcmsr/arcmsr.h
-@@ -48,7 +48,7 @@ struct class_device_attribute;
- /*The limit of outstanding scsi command that firmware can handle*/
- #define ARCMSR_MAX_OUTSTANDING_CMD						256
- #define ARCMSR_MAX_FREECCB_NUM							320
--#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2007/12/24"
-+#define ARCMSR_DRIVER_VERSION		     "Driver Version 1.20.00.15 2008/02/27"
- #define ARCMSR_SCSI_INITIATOR_ID						255
- #define ARCMSR_MAX_XFER_SECTORS							512
- #define ARCMSR_MAX_XFER_SECTORS_B						4096
+diff -puN drivers/net/Kconfig~ehea-fix-missing-kconfig-dependency drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ehea-fix-missing-kconfig-dependency
++++ a/drivers/net/Kconfig
+@@ -2520,7 +2520,7 @@ config CHELSIO_T3
+ 
+ config EHEA
+ 	tristate "eHEA Ethernet support"
+-	depends on IBMEBUS && INET
++	depends on IBMEBUS && INET && SPARSEMEM
+ 	select INET_LRO
+ 	---help---
+ 	  This driver supports the IBM pSeries eHEA ethernet adapter.
 _
 
-Patches currently in -mm which might be from nick.cheng@areca.com.tw are
+Patches currently in -mm which might be from osstklei@de.ibm.com are
 
-origin.patch
-arcmsr-modify-the-type-of-element-of-messageunit_b.patch
+git-net.patch
 
