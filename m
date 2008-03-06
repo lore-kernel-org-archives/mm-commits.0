@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch added to -mm tree
-Date: Wed, 05 Mar 2008 17:23:29 -0800
-Message-ID: <200803060123.m261NTMf001925@imap1.linux-foundation.org>
+Subject: + signals-send_sigqueue-dont-take-rcu-lock.patch added to -mm tree
+Date: Wed, 05 Mar 2008 17:23:27 -0800
+Message-ID: <200803060123.m261NRGx001920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38730 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933373AbYCFBYL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:24:11 -0500
+	by vger.kernel.org with ESMTP id S1761210AbYCFBYJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Mar 2008 20:24:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: send_sigqueue: don't forget about handle_stop_signal()
+     signals: send_sigqueue: don't take rcu lock
 has been added to the -mm tree.  Its filename is
-     signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+     signals-send_sigqueue-dont-take-rcu-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_sigqueue: don't forget about handle_stop_signal()
+Subject: signals: send_sigqueue: don't take rcu lock
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-send_group_sigqueue() calls handle_stop_signal(), send_sigqueue() doesn't. 
-This is not consistent and in fact I'd say this is (minor) bug.
-
-Move handle_stop_signal() from send_group_sigqueue() to do_send_sigqueue(),
-the latter is called by send_sigqueue() too.
+lock_task_sighand() was changed, send_sigqueue() doesn't need rcu_read_lock()
+any longer.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/signal.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/signal.c~signals-send_sigqueue-dont-forget-about-handle_stop_signal kernel/signal.c
---- a/kernel/signal.c~signals-send_sigqueue-dont-forget-about-handle_stop_signal
+diff -puN kernel/signal.c~signals-send_sigqueue-dont-take-rcu-lock kernel/signal.c
+--- a/kernel/signal.c~signals-send_sigqueue-dont-take-rcu-lock
 +++ a/kernel/signal.c
-@@ -1274,8 +1274,10 @@ void sigqueue_free(struct sigqueue *q)
+@@ -1311,8 +1311,6 @@ int send_sigqueue(int sig, struct sigque
+ 	 * We return -1, when the task is marked exiting, so
+ 	 * posix_timer_event can redirect it to the group leader
+ 	 */
+-	rcu_read_lock();
+-
+ 	if (!likely(lock_task_sighand(p, &flags)))
+ 		goto out_err;
+ 
+@@ -1323,8 +1321,6 @@ int send_sigqueue(int sig, struct sigque
+ 
+ 	unlock_task_sighand(p, &flags);
+ out_err:
+-	rcu_read_unlock();
+-
+ 	return ret;
  }
- 
- static int do_send_sigqueue(int sig, struct sigqueue *q, struct task_struct *t,
--		struct sigpending *pending)
-+				struct sigpending *pending)
- {
-+	handle_stop_signal(sig, t);
-+
- 	if (unlikely(!list_empty(&q->list))) {
- 		/*
- 		 * If an SI_TIMER entry is already queue just increment
-@@ -1335,7 +1337,6 @@ send_group_sigqueue(int sig, struct sigq
- 	read_lock(&tasklist_lock);
- 	/* Since it_lock is held, p->sighand cannot be NULL. */
- 	spin_lock_irqsave(&p->sighand->siglock, flags);
--	handle_stop_signal(sig, p);
- 
- 	ret = do_send_sigqueue(sig, q, p, &p->signal->shared_pending);
  
 _
 
