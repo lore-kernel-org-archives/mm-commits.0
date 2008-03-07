@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + poweroff-workaround.patch added to -mm tree
-Date: Fri, 07 Mar 2008 12:27:38 -0800
-Message-ID: <200803072037.m27KbAvo016122@imap1.linux-foundation.org>
+Subject: + at73c213-fix-error-checking-for-clk-api.patch added to -mm tree
+Date: Fri, 07 Mar 2008 12:43:36 -0800
+Message-ID: <200803072043.m27KhcEa016343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932188AbYCGUiA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:38:00 -0500
+	by vger.kernel.org with ESMTP id S1765296AbYCGUoc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:44:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, ego@in.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: anemo@mba.ocn.ne.jp, avictor.za@gmail.com, hcegtvedt@atmel.com, hskinnemoen@atmel.com, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     poweroff workaround
+     at73c213: fix error checking for clk API
 has been added to the -mm tree.  Its filename is
-     poweroff-workaround.patch
+     at73c213-fix-error-checking-for-clk-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,134 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poweroff workaround
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: at73c213: fix error checking for clk API
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Cc: "Dmitry Adamushko" <dmitry.adamushko@gmail.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The clk_round_rate() and clk_set_rate() will return int, so not store thier
+return value to unsigned long variable.  This bug hides real error on these
+API.
+
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <avictor.za@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/spi/at73c213.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/softlockup.c~poweroff-workaround kernel/softlockup.c
---- a/kernel/softlockup.c~poweroff-workaround
-+++ a/kernel/softlockup.c
-@@ -211,7 +211,7 @@ static int watchdog(void *__bind_cpu)
- 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
- 	int this_cpu = (long)__bind_cpu;
+diff -puN sound/spi/at73c213.c~at73c213-fix-error-checking-for-clk-api sound/spi/at73c213.c
+--- a/sound/spi/at73c213.c~at73c213-fix-error-checking-for-clk-api
++++ a/sound/spi/at73c213.c
+@@ -133,7 +133,8 @@ static struct snd_pcm_hardware snd_at73c
+ static int snd_at73c213_set_bitrate(struct snd_at73c213 *chip)
+ {
+ 	unsigned long ssc_rate = clk_get_rate(chip->ssc->clk);
+-	unsigned long dac_rate_new, ssc_div, status;
++	unsigned long dac_rate_new, ssc_div;
++	int status;
+ 	unsigned long ssc_div_max, ssc_div_min;
+ 	int max_tries;
  
--	sched_setscheduler(current, SCHED_FIFO, &param);
-+//	sched_setscheduler(current, SCHED_FIFO, &param);
- 
- 	/* initialize timestamp */
- 	touch_softlockup_watchdog();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-poweroff-workaround.patch
-rename-declare_pci_device_table-to-define_pci_device_table.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-prevent-kconfig-explosion.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+at73c213-fix-error-checking-for-clk-api.patch
+at73c213-monaural-support.patch
 
