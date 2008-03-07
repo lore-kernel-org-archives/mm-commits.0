@@ -1,102 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - nozomi-prepare-for-bkl-pushdown.patch removed from -mm tree
-Date: Fri, 07 Mar 2008 15:00:17 -0800
-Message-ID: <200803072300.m27N0Hg1021680@imap1.linux-foundation.org>
+Subject: - 9p-handle-kstrdup-and-match_strdup-failure.patch removed from -mm tree
+Date: Fri, 07 Mar 2008 15:00:49 -0800
+Message-ID: <200803072300.m27N0nQf021723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757123AbYCGXBy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 18:01:54 -0500
+	by vger.kernel.org with ESMTP id S1757613AbYCGXC1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 18:02:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: jim@meyering.net, ericvh@gmail.com, lucho@ionkov.net, meyering@redhat.com, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nozomi: Prepare for BKL pushdown
+     9p: handle kstrdup and match_strdup failure
 has been removed from the -mm tree.  Its filename was
-     nozomi-prepare-for-bkl-pushdown.patch
+     9p-handle-kstrdup-and-match_strdup-failure.patch
 
-This patch was dropped because of rejects agaisnt Greg's tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nozomi: Prepare for BKL pushdown
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: 9p: handle kstrdup and match_strdup failure
+From: Jim Meyering <jim@meyering.net>
 
-We leave the BKL around the rts/dtr handler because there is *no* locking
-of any kind on this in the driver. It's not "right" with this change but
-it's the same wrong as before..
+fs/9p/v9fs.c (v9fs_parse_options): Handle kstrdup and match_strdup failure. 
+Now that this function can fail, return an int, diagnose other option-parsing
+failures, and adjust the sole caller: (v9fs_session_init): Handle kstrdup
+failure.  Propagate any new v9fs_parse_options failure "up".
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jim Meyering <meyering@redhat.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/9p/v9fs.c |   40 ++++++++++++++++++++++++++++++++++------
+ 1 file changed, 34 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/nozomi.c~nozomi-prepare-for-bkl-pushdown drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~nozomi-prepare-for-bkl-pushdown
-+++ a/drivers/char/nozomi.c
-@@ -1716,6 +1716,7 @@ static int ntty_tiocmget(struct tty_stru
- static int ntty_tiocmset(struct tty_struct *tty, struct file *file,
- 	unsigned int set, unsigned int clear)
+diff -puN fs/9p/v9fs.c~9p-handle-kstrdup-and-match_strdup-failure fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~9p-handle-kstrdup-and-match_strdup-failure
++++ a/fs/9p/v9fs.c
+@@ -74,16 +74,17 @@ static match_table_t tokens = {
+  * @options: options string passed from mount
+  * @v9ses: existing v9fs session information
+  *
++ * Return 0 upon success, -ERRNO upon failure.
+  */
+ 
+-static void v9fs_parse_options(struct v9fs_session_info *v9ses)
++static int v9fs_parse_options(struct v9fs_session_info *v9ses)
  {
-+	lock_kernel();		/* FIXME: Add internal locking */
- 	if (set & TIOCM_RTS)
- 		set_rts(tty, 1);
- 	else if (clear & TIOCM_RTS)
-@@ -1725,7 +1726,7 @@ static int ntty_tiocmset(struct tty_stru
- 		set_dtr(tty, 1);
- 	else if (clear & TIOCM_DTR)
- 		set_dtr(tty, 0);
--
-+	unlock_kernel();
- 	return 0;
+ 	char *options;
+ 	substring_t args[MAX_OPT_ARGS];
+ 	char *p;
+ 	int option = 0;
+ 	char *s, *e;
+-	int ret;
++	int ret = 0;
+ 
+ 	/* setup defaults */
+ 	v9ses->afid = ~0;
+@@ -91,19 +92,26 @@ static void v9fs_parse_options(struct v9
+ 	v9ses->cache = 0;
+ 
+ 	if (!v9ses->options)
+-		return;
++		return 0;
+ 
+ 	options = kstrdup(v9ses->options, GFP_KERNEL);
++	if (!options) {
++		P9_DPRINTK(P9_DEBUG_ERROR,
++			   "failed to allocate copy of option string\n");
++		return -ENOMEM;
++	}
++
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		int token;
+ 		if (!*p)
+ 			continue;
+ 		token = match_token(p, tokens, args);
+ 		if (token < Opt_uname) {
+-			ret = match_int(&args[0], &option);
+-			if (ret < 0) {
++			int r = match_int(&args[0], &option);
++			if (r < 0) {
+ 				P9_DPRINTK(P9_DEBUG_ERROR,
+ 					"integer field, but no integer?\n");
++				ret = r;
+ 				continue;
+ 			}
+ 		}
+@@ -139,6 +147,13 @@ static void v9fs_parse_options(struct v9
+ 
+ 		case Opt_access:
+ 			s = match_strdup(&args[0]);
++			if (!s) {
++				P9_DPRINTK(P9_DEBUG_ERROR,
++					   "failed to allocate copy"
++					   " of option argument\n");
++				ret = -ENOMEM;
++				break;
++			}
+ 			v9ses->flags &= ~V9FS_ACCESS_MASK;
+ 			if (strcmp(s, "user") == 0)
+ 				v9ses->flags |= V9FS_ACCESS_USER;
+@@ -158,6 +173,7 @@ static void v9fs_parse_options(struct v9
+ 		}
+ 	}
+ 	kfree(options);
++	return ret;
  }
+ 
+ /**
+@@ -173,6 +189,7 @@ struct p9_fid *v9fs_session_init(struct 
+ {
+ 	int retval = -EINVAL;
+ 	struct p9_fid *fid;
++	int rc;
+ 
+ 	v9ses->uname = __getname();
+ 	if (!v9ses->uname)
+@@ -191,7 +208,18 @@ struct p9_fid *v9fs_session_init(struct 
+ 	v9ses->dfltuid = V9FS_DEFUID;
+ 	v9ses->dfltgid = V9FS_DEFGID;
+ 	v9ses->options = kstrdup(data, GFP_KERNEL);
+-	v9fs_parse_options(v9ses);
++	if (!v9ses->options) {
++		P9_DPRINTK(P9_DEBUG_ERROR,
++			   "failed to allocate copy of option string\n");
++		retval = -ENOMEM;
++		goto error;
++	}
++
++	rc = v9fs_parse_options(v9ses);
++	if (rc < 0) {
++		retval = rc;
++		goto error;
++	}
+ 
+ 	v9ses->clnt = p9_client_create(dev_name, v9ses->options);
  
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jim@meyering.net are
 
-origin.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-drivers-net-8390c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-nozomi-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-v9fs.patch
+alpha-handle-kcalloc-failure.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+lib-inflatec-handle-failed-malloc.patch
 
