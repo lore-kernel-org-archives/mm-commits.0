@@ -1,149 +1,295 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-remove-unnecessary-nfs-includes-from-sys_ia32c.patch removed from -mm tree
-Date: Fri, 07 Mar 2008 15:00:40 -0800
-Message-ID: <200803072300.m27N0ecq021714@imap1.linux-foundation.org>
+Subject: - ieee1394-replace-remaining-__function__-occurrences.patch removed from -mm tree
+Date: Fri, 07 Mar 2008 15:00:46 -0800
+Message-ID: <200803072300.m27N0kpf021720@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756856AbYCGXBs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 18:01:48 -0500
+	by vger.kernel.org with ESMTP id S1756912AbYCGXBt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 18:01:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, bfields@citi.umich.edu, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, stefanr@s5r6.in-berlin.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: remove unnecessary nfs includes from sys_ia32.c
+     ieee1394: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     ia64-remove-unnecessary-nfs-includes-from-sys_ia32c.patch
+     ieee1394-replace-remaining-__function__-occurrences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: remove unnecessary nfs includes from sys_ia32.c
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: ieee1394: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cinpilation of 2.6.25-rc2-mm1 on ia64 generates many warnings.
+__FUNCTION__ is gcc-specific, use __func__
 
-----------------------------------------------------------------
-% LANG=C make arch/ia64/ia32/sys_ia32.o
-<-mm1% LANG=C make arch/ia64/ia32/sys_ia32.o
-  CHK     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-  CC      arch/ia64/ia32/sys_ia32.o
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:297:1: warning: "elf_check_arch" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:19:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:302:1: warning: "ELF_CLASS" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:24:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:304:1: warning: "ELF_ARCH" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:26:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:318:1: warning: "ELF_EXEC_PAGESIZE" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:34:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:327:1: warning: "ELF_ET_DYN_BASE" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:43:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:330:1: warning: "ELF_PLAT_INIT" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:140:1: warning: this is the location of the previous definition
-In file included from arch/ia64/ia32/sys_ia32.c:59:
-arch/ia64/ia32/ia32priv.h:342:1: warning: "SET_PERSONALITY" redefined
-In file included from include/linux/elf.h:7,
-                 from include/linux/module.h:14,
-                 from include/linux/device.h:21,
-                 from include/linux/backing-dev.h:15,
-                 from include/linux/nfs_fs_sb.h:5,
-                 from include/linux/nfs_fs.h:50,
-                 from arch/ia64/ia32/sys_ia32.c:35:
-include/asm/elf.h:180:1: warning: this is the location of the previous definition
-------------------------------------------------------------------------
-
-IA64 support 2 ELF format (IA64 binary and IA32 binary),
-thus if 2 elf related header included, cause many warning or error.
-
-about 2 week ago, J. Bruce Fields proposed this problem fixed patch.
-(http://marc.info/?l=linux-ia64&m=120329313305695&w=2)
-
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/sys_ia32.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/ieee1394/highlevel.c     |    6 +++---
+ drivers/ieee1394/ieee1394_core.c |    2 +-
+ drivers/ieee1394/ohci1394.c      |    2 +-
+ drivers/ieee1394/pcilynx.c       |   12 ++++++------
+ drivers/ieee1394/sbp2.c          |    4 ++--
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/ia64/ia32/sys_ia32.c~ia64-remove-unnecessary-nfs-includes-from-sys_ia32c arch/ia64/ia32/sys_ia32.c
---- a/arch/ia64/ia32/sys_ia32.c~ia64-remove-unnecessary-nfs-includes-from-sys_ia32c
-+++ a/arch/ia64/ia32/sys_ia32.c
-@@ -32,13 +32,8 @@
- #include <linux/shm.h>
- #include <linux/slab.h>
- #include <linux/uio.h>
--#include <linux/nfs_fs.h>
-+#include <linux/socket.h>
- #include <linux/quota.h>
--#include <linux/sunrpc/svc.h>
--#include <linux/nfsd/nfsd.h>
--#include <linux/nfsd/cache.h>
--#include <linux/nfsd/xdr.h>
--#include <linux/nfsd/syscall.h>
- #include <linux/poll.h>
- #include <linux/eventpoll.h>
- #include <linux/personality.h>
+diff -puN drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/highlevel.c
+--- a/drivers/ieee1394/highlevel.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/highlevel.c
+@@ -339,7 +339,7 @@ u64 hpsb_allocate_and_register_addrspace
+ 	if ((alignment & 3) || (alignment > 0x800000000000ULL) ||
+ 	    (hweight64(alignment) != 1)) {
+ 		HPSB_ERR("%s called with invalid alignment: 0x%048llx",
+-			 __FUNCTION__, (unsigned long long)alignment);
++			 __func__, (unsigned long long)alignment);
+ 		return retval;
+ 	}
+ 
+@@ -354,7 +354,7 @@ u64 hpsb_allocate_and_register_addrspace
+ 	if (((start|end) & ~align_mask) || (start >= end) ||
+ 	    (end > CSR1212_ALL_SPACE_END)) {
+ 		HPSB_ERR("%s called with invalid addresses "
+-			 "(start = %012Lx  end = %012Lx)", __FUNCTION__,
++			 "(start = %012Lx  end = %012Lx)", __func__,
+ 			 (unsigned long long)start,(unsigned long long)end);
+ 		return retval;
+ 	}
+@@ -422,7 +422,7 @@ int hpsb_register_addrspace(struct hpsb_
+ 
+ 	if (((start|end) & 3) || (start >= end) ||
+ 	    (end > CSR1212_ALL_SPACE_END)) {
+-		HPSB_ERR("%s called with invalid addresses", __FUNCTION__);
++		HPSB_ERR("%s called with invalid addresses", __func__);
+ 		return 0;
+ 	}
+ 
+diff -puN drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -242,7 +242,7 @@ int hpsb_bus_reset(struct hpsb_host *hos
+ {
+ 	if (host->in_bus_reset) {
+ 		HPSB_NOTICE("%s called while bus reset already in progress",
+-			    __FUNCTION__);
++			    __func__);
+ 		return 1;
+ 	}
+ 
+diff -puN drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/ohci1394.c
+--- a/drivers/ieee1394/ohci1394.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/ohci1394.c
+@@ -708,7 +708,7 @@ static void insert_packet(struct ti_ohci
+                                 /* FIXME: do something about it */
+                                 PRINT(KERN_ERR,
+                                       "%s: packet data addr: %p size %Zd bytes "
+-                                      "cross page boundary", __FUNCTION__,
++				      "cross page boundary", __func__,
+                                       packet->data, packet->data_size);
+                         }
+ #endif
+diff -puN drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/pcilynx.c
+--- a/drivers/ieee1394/pcilynx.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/pcilynx.c
+@@ -226,7 +226,7 @@ static int get_phy_reg(struct ti_lynx *l
+         if (addr > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+                       "%s: PHY register address %d out of range",
+-		      __FUNCTION__, addr);
++		      __func__, addr);
+                 return -1;
+         }
+ 
+@@ -238,7 +238,7 @@ static int get_phy_reg(struct ti_lynx *l
+ 
+                 if (i > 10000) {
+                         PRINT(KERN_ERR, lynx->id, "%s: runaway loop, aborting",
+-			      __FUNCTION__);
++			      __func__);
+                         retval = -1;
+                         break;
+                 }
+@@ -261,13 +261,13 @@ static int set_phy_reg(struct ti_lynx *l
+ 
+         if (addr > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY register address %d out of range", __FUNCTION__, addr);
++		      "%s: PHY register address %d out of range", __func__, addr);
+                 return -1;
+         }
+ 
+         if (val > 0xff) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY register value %d out of range", __FUNCTION__, val);
++		      "%s: PHY register value %d out of range", __func__, val);
+                 return -1;
+         }
+ 
+@@ -287,7 +287,7 @@ static int sel_phy_reg_page(struct ti_ly
+ 
+         if (page > 7) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY page %d out of range", __FUNCTION__, page);
++		      "%s: PHY page %d out of range", __func__, page);
+                 return -1;
+         }
+ 
+@@ -309,7 +309,7 @@ static int sel_phy_reg_port(struct ti_ly
+ 
+         if (port > 15) {
+                 PRINT(KERN_ERR, lynx->id,
+-                      "%s: PHY port %d out of range", __FUNCTION__, port);
++		      "%s: PHY port %d out of range", __func__, port);
+                 return -1;
+         }
+ 
+diff -puN drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences drivers/ieee1394/sbp2.c
+--- a/drivers/ieee1394/sbp2.c~ieee1394-replace-remaining-__function__-occurrences
++++ a/drivers/ieee1394/sbp2.c
+@@ -610,7 +610,7 @@ static struct sbp2_command_info *sbp2uti
+ 		cmd->Current_SCpnt = Current_SCpnt;
+ 		list_add_tail(&cmd->list, &lu->cmd_orb_inuse);
+ 	} else
+-		SBP2_ERR("%s: no orbs available", __FUNCTION__);
++		SBP2_ERR("%s: no orbs available", __func__);
+ 	spin_unlock_irqrestore(&lu->cmd_orb_lock, flags);
+ 	return cmd;
+ }
+@@ -1289,7 +1289,7 @@ static int sbp2_set_busy_timeout(struct 
+ 
+ 	data = cpu_to_be32(SBP2_BUSY_TIMEOUT_VALUE);
+ 	if (hpsb_node_write(lu->ne, SBP2_BUSY_TIMEOUT_ADDRESS, &data, 4))
+-		SBP2_ERR("%s error", __FUNCTION__);
++		SBP2_ERR("%s error", __func__);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+git-x86.patch
+acpi-replace-remaining-__function__-occurrences.patch
+git-alsa.patch
+sound-replace-remaining-__function__-occurences.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-arm-master.patch
+cifs-remove-global_extern-macro.patch
+cifs-replace-remaining-__function__-occurrences.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+ata-replace-remaining-__function__-occurrences.patch
+pata_amd-fix-sparse-warning.patch
+git-md-accel.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-stc-make-class-attributes-static.patch
+scsi-osstc-make-class-attributes-static.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
