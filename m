@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-avoid-stopping-pdc-during-transmission.patch added to -mm tree
-Date: Thu, 06 Mar 2008 23:56:31 -0800
-Message-ID: <200803070756.m277uVUd011872@imap1.linux-foundation.org>
+Subject: + pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters.patch added to -mm tree
+Date: Thu, 06 Mar 2008 23:59:13 -0800
+Message-ID: <200803070759.m277xDro012020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755632AbYCGH4n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 02:56:43 -0500
+	by vger.kernel.org with ESMTP id S1760749AbYCGH7R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 02:59:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trimarchimichael@yahoo.it, hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it
+Cc: eric.miao@marvell.com, adaplas@pol.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     atmel_serial: Avoid stopping pdc during transmission
+     pxafb: sanitize the usage of #ifdef .. processing pxafb parameters
 has been added to the -mm tree.  Its filename is
-     atmel_serial-avoid-stopping-pdc-during-transmission.patch
+     pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: Avoid stopping pdc during transmission
-From: Michael Trimarchi <trimarchimichael@yahoo.it>
+Subject: pxafb: sanitize the usage of #ifdef .. processing pxafb parameters
+From: eric miao <eric.miao@marvell.com>
 
-I found a problem related to loosing data during pdc trasmission in the
-atmel_serial.  For now this patch seems to work for me, but I think that is
-not the better solution.  I do this test:
+So to get a better coding style and centralize the pxafb parameters
+handling code.
 
-- connect ttyS1 with ttyS2 using a loopback cable, send 30 byte of packet from
-one to the other and waiting for 30 byte.  On the other side just read and
-echo the data received.
-
-Signed-off-by: michael <trimarchi@gandalf.sssup.it>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/video/pxafb.c |   57 +++++++++++++++++++---------------------
+ 1 file changed, 28 insertions(+), 29 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission
-+++ a/drivers/serial/atmel_serial.c
-@@ -568,11 +568,16 @@ static void atmel_tx_dma(struct uart_por
- 	port->icount.tx += pdc->ofs;
- 	pdc->ofs = 0;
+diff -puN drivers/video/pxafb.c~pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters
++++ a/drivers/video/pxafb.c
+@@ -70,11 +70,6 @@ static int pxafb_activate_var(struct fb_
+ 				struct pxafb_info *);
+ static void set_ctrlr_state(struct pxafb_info *fbi, u_int state);
  
--	if (!uart_circ_empty(xmit)) {
--		/* more to transmit - setup next transfer */
-+	/* more to transmit - setup next transfer */
+-#ifdef CONFIG_FB_PXA_PARAMETERS
+-#define PXAFB_OPTIONS_SIZE 256
+-static char g_options[PXAFB_OPTIONS_SIZE] __devinitdata = "";
+-#endif
+-
+ static inline void pxafb_schedule_work(struct pxafb_info *fbi, u_int state)
+ {
+ 	unsigned long flags;
+@@ -1315,6 +1310,32 @@ static int __init pxafb_parse_options(st
+ 	}
+ 	return 0;
+ }
 +
-+	/* nothing left to transmit? */
-+	while (UART_GET_TCR(port))
-+		cpu_relax();
++static char g_options[256] __devinitdata = "";
 +
-+	/* disable PDC transmit */
-+	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++#ifndef CONFIG_MODULES
++static int __devinit pxafb_setup_options(void)
++{
++	char *options = NULL;
++
++	if (fb_get_options("pxafb", &options))
++		return -ENODEV;
++
++	if (options)
++		strlcpy(g_options, options, sizeof(g_options));
++
++	return 0;
++}
++#else
++#define pxafb_setup_options()		(0)
++
++module_param_string(options, g_options, sizeof(g_options), 0);
++MODULE_PARM_DESC(options, "LCD parameters (see Documentation/fb/pxafb.txt)");
++#endif
++
++#else
++#define pxafb_parse_options(...)	(0)
++#define pxafb_setup_options()		(0)
+ #endif
  
--		/* disable PDC transmit */
--		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+	if (!uart_circ_empty(xmit)) {
- 		dma_sync_single_for_device(port->dev,
- 					   pdc->dma_addr,
- 					   pdc->dma_size,
-@@ -586,11 +591,6 @@ static void atmel_tx_dma(struct uart_por
- 		/* re-enable PDC transmit and interrupts */
- 		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
- 		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
--	} else {
--		/* nothing left to transmit - disable the transmitter */
+ static int __init pxafb_probe(struct platform_device *dev)
+@@ -1331,11 +1352,9 @@ static int __init pxafb_probe(struct pla
+ 	if (!inf)
+ 		goto failed;
+ 
+-#ifdef CONFIG_FB_PXA_PARAMETERS
+ 	ret = pxafb_parse_options(&dev->dev, g_options);
+ 	if (ret < 0)
+ 		goto failed;
+-#endif
+ 
+ #ifdef DEBUG_VAR
+ 	/* Check for various illegal bit-combinations. Currently only
+@@ -1448,31 +1467,11 @@ static struct platform_driver pxafb_driv
+ 	},
+ };
+ 
+-#ifndef MODULE
+-static int __devinit pxafb_setup(char *options)
+-{
+-# ifdef CONFIG_FB_PXA_PARAMETERS
+-	if (options)
+-		strlcpy(g_options, options, sizeof(g_options));
+-# endif
+-	return 0;
+-}
+-#else
+-# ifdef CONFIG_FB_PXA_PARAMETERS
+-module_param_string(options, g_options, sizeof(g_options), 0);
+-MODULE_PARM_DESC(options, "LCD parameters (see Documentation/fb/pxafb.txt)");
+-# endif
+-#endif
+-
+ static int __devinit pxafb_init(void)
+ {
+-#ifndef MODULE
+-	char *option = NULL;
++	if (pxafb_setup_options())
++		return -EINVAL;
+ 
+-	if (fb_get_options("pxafb", &option))
+-		return -ENODEV;
+-	pxafb_setup(option);
+-#endif
+ 	return platform_driver_register(&pxafb_driver);
+ }
+ 
+_
+
+Patches currently in -mm which might be from eric.miao@marvell.com are
+
+git-arm.patch
+pxafb-un-nest-pxafb_parse_options-to-cleanup-the-coding-style-issue.patch
+pxafb-fix-various-coding-style-issues-for-pxafb.patch
+pxafb-purge-unnecessary-pr_debug-and-comments-from-pxafb.patch
+pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters.patch
+pxafb-convert-fb-driver-to-use-ioremap-and-__raw_readl-writel.patch
+pxafb-introduce-struct-pxafb_dma_buff-for-palette-and-dma-descriptors.patch
+pxafb-introduce-register-independent-lcd-connection-type-for-pxafb.patch
+pxafb-make-lubbock-mainstone-zylonite-littleton-to-use-new-lcd-connection-type.patch
+
