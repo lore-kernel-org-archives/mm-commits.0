@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch added to -mm tree
-Date: Fri, 07 Mar 2008 13:06:12 -0800
-Message-ID: <200803072106.m27L6DY7017327@imap1.linux-foundation.org>
+Subject: + kprobes-kprobe-booster-for-ia64.patch added to -mm tree
+Date: Fri, 07 Mar 2008 13:09:05 -0800
+Message-ID: <200803072109.m27L95Kw017411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933110AbYCGVGm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 16:06:42 -0500
+	by vger.kernel.org with ESMTP id S1759685AbYCGVKB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 16:10:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, amy.griffis@hp.com, davidm@hpl.hp.com, fenghua.yu@intel.com, seto.hidetoshi@jp.fujitsu.com, tony.luck@intel.com
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, bibo.mao@intel.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, rusty.lynch@intel.com, shaohua.li@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     ia64: fix getpid and set_tid_address fast system calls for pid namespaces
+     kprobes: kprobe-booster for ia64
 has been added to the -mm tree.  Its filename is
-     ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+     kprobes-kprobe-booster-for-ia64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,200 +33,269 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix getpid and set_tid_address fast system calls for pid namespaces
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: kprobes: kprobe-booster for ia64
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-The sys_getpid() and sys_set_tid_address() behavior changed from
+Add kprobe-booster support on ia64.
 
-	return current->tgid
+Kprobe-booster improves the performance of kprobes by eliminating single-step,
+where possible.  Currently, kprobe-booster is implemented on x86 and x86-64. 
+This is an ia64 port.
 
-to
+On ia64, kprobe-booster executes a copied bundle directly, instead of single
+stepping.  Bundles which have B or X unit and which may cause an exception
+(including break) are not executed directly.  And also, to prevent hitting
+break exceptions on the copied bundle, only the hindmost kprobe is executed
+directly if several kprobes share a bundle and are placed in different slots. 
+Note: set_brl_inst() is used for preparing an instruction buffer(it does not
+modify any active code), so it does not need any atomic operation.
 
-	struct pid *pid;
-	pid = current->pids[PIDTYPE_PID].pid;
-	return pid->numbers[pid->level].nr;
-
-But the fast system calls on ia64 still operate the old way.  Patch them
-appropriately to let ia64 work with pid namespaces.  Besides, this is one more
-step in deprecating of pid and tgid on task_struct.
-
-The fsys_getppid() is to be patched as well, but its logic is much
-more complex now, so I will make it later.
-
-One thing I'm not 100% sure is the trick with the IA64_UPID_SHIFT.  On order
-to access the pid->level's element of an array I have to perform the following
-calculations
-
-	pid + sizeof(struct upid) * pid->level
-
-The problem is that ia64 can only multiply float point registers, while all
-the offsets I have in code are in rXX ones.  Fortunately, the sizeof(struct
-upid) is 32 bytes on ia64 (and is very unlikely to ever change), so the
-calculations get simpler:
-
-	pid + pid->level << 5
-
-So, I introduce the IA64_UPID_SHIFT and use the shl instruction.  I also
-looked at how gcc compiles the similar place and found that it makes it with
-shift as well.  Is this OK to do so?
-
-Tested with ski emulator with 2.6.24 kernel, but fits 2.6.25-rc4 and
-2.6.25-rc4-mm1 as well.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Cc: Tony Luck <tony.luck@intel.com>
-Cc: David Mosberger-Tang <davidm@hpl.hp.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Amy Griffis <amy.griffis@hp.com>
+Cc: bibo,mao <bibo.mao@intel.com>
+Cc: Rusty Lynch <rusty.lynch@intel.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/asm-offsets.c |    7 ++++++
- arch/ia64/kernel/fsys.S        |   34 +++++++++++++++++++++++++++----
- 2 files changed, 37 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/kprobes.c |  133 ++++++++++++++++++++++++++++-------
+ include/asm-ia64/kprobes.h |    7 +
+ 2 files changed, 113 insertions(+), 27 deletions(-)
 
-diff -puN arch/ia64/kernel/asm-offsets.c~ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces arch/ia64/kernel/asm-offsets.c
---- a/arch/ia64/kernel/asm-offsets.c~ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces
-+++ a/arch/ia64/kernel/asm-offsets.c
-@@ -7,6 +7,7 @@
- #define ASM_OFFSETS_C 1
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64 arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64
++++ a/arch/ia64/kernel/kprobes.c
+@@ -78,6 +78,20 @@ static enum instruction_type bundle_enco
+   { u, u, u },  			/* 1F */
+ };
  
- #include <linux/sched.h>
-+#include <linux/pid.h>
- #include <linux/clocksource.h>
- 
- #include <asm-ia64/processor.h>
-@@ -34,6 +35,9 @@ void foo(void)
- 	DEFINE(SIGFRAME_SIZE, sizeof (struct sigframe));
- 	DEFINE(UNW_FRAME_INFO_SIZE, sizeof (struct unw_frame_info));
- 
-+	BUILD_BUG_ON(sizeof(struct upid) != 32);
-+	DEFINE(IA64_UPID_SHIFT, 5);
++/* Insert a long branch code */
++static void __kprobes set_brl_inst(void *from, void *to)
++{
++	s64 rel = ((s64) to - (s64) from) >> 4;
++	bundle_t *brl;
++	brl = (bundle_t *) ((u64) from & ~0xf);
++	brl->quad0.template = 0x05;	/* [MLX](stop) */
++	brl->quad0.slot0 = NOP_M_INST;	/* nop.m 0x0 */
++	brl->quad0.slot1_p0 = ((rel >> 20) & 0x7fffffffff) << 2;
++	brl->quad1.slot1_p1 = (((rel >> 20) & 0x7fffffffff) << 2) >> (64 - 46);
++	/* brl.cond.sptk.many.clr rel<<4 (qp=0) */
++	brl->quad1.slot2 = BRL_INST(rel >> 59, rel & 0xfffff);
++}
 +
- 	BLANK();
+ /*
+  * In this function we check to see if the instruction
+  * is IP relative instruction and update the kprobe
+@@ -496,6 +510,77 @@ void __kprobes arch_prepare_kretprobe(st
+ 	regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
+ }
  
- 	DEFINE(TI_FLAGS, offsetof(struct thread_info, flags));
-@@ -51,6 +55,9 @@ void foo(void)
- 	DEFINE(IA64_TASK_BLOCKED_OFFSET,offsetof (struct task_struct, blocked));
- 	DEFINE(IA64_TASK_CLEAR_CHILD_TID_OFFSET,offsetof (struct task_struct, clear_child_tid));
- 	DEFINE(IA64_TASK_GROUP_LEADER_OFFSET, offsetof (struct task_struct, group_leader));
-+	DEFINE(IA64_TASK_TGIDLINK_OFFSET, offsetof (struct task_struct, pids[PIDTYPE_PID].pid));
-+	DEFINE(IA64_PID_LEVEL_OFFSET, offsetof (struct pid, level));
-+	DEFINE(IA64_PID_UPID_OFFSET, offsetof (struct pid, numbers[0]));
- 	DEFINE(IA64_TASK_PENDING_OFFSET,offsetof (struct task_struct, pending));
- 	DEFINE(IA64_TASK_PID_OFFSET, offsetof (struct task_struct, pid));
- 	DEFINE(IA64_TASK_REAL_PARENT_OFFSET, offsetof (struct task_struct, real_parent));
-diff -puN arch/ia64/kernel/fsys.S~ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces arch/ia64/kernel/fsys.S
---- a/arch/ia64/kernel/fsys.S~ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces
-+++ a/arch/ia64/kernel/fsys.S
-@@ -61,13 +61,29 @@ ENTRY(fsys_getpid)
- 	.prologue
- 	.altrp b6
- 	.body
-+	add r17=IA64_TASK_GROUP_LEADER_OFFSET,r16
-+	;;
-+	ld8 r17=[r17]				// r17 = current->group_leader
- 	add r9=TI_FLAGS+IA64_TASK_SIZE,r16
- 	;;
- 	ld4 r9=[r9]
--	add r8=IA64_TASK_TGID_OFFSET,r16
-+	add r17=IA64_TASK_TGIDLINK_OFFSET,r17
- 	;;
- 	and r9=TIF_ALLWORK_MASK,r9
--	ld4 r8=[r8]				// r8 = current->tgid
-+	ld8 r17=[r17]				// r17 = current->group_leader->pids[PIDTYPE_PID].pid
-+	;;
-+	add r8=IA64_PID_LEVEL_OFFSET,r17
-+	;;
-+	ld4 r8=[r8]				// r8 = pid->level
-+	add r17=IA64_PID_UPID_OFFSET,r17	// r17 = &pid->numbers[0]
-+	;;
-+	shl r8=r8,IA64_UPID_SHIFT
-+	;;
-+	add r17=r17,r8				// r17 = &pid->numbers[pid->level]
-+	;;
-+	ld4 r8=[r17]				// r8 = pid->numbers[pid->level].nr
-+	;;
-+	mov r17=0
- 	;;
- 	cmp.ne p8,p0=0,r9
- (p8)	br.spnt.many fsys_fallback_syscall
-@@ -126,15 +142,25 @@ ENTRY(fsys_set_tid_address)
- 	.altrp b6
- 	.body
- 	add r9=TI_FLAGS+IA64_TASK_SIZE,r16
-+	add r17=IA64_TASK_TGIDLINK_OFFSET,r16
- 	;;
- 	ld4 r9=[r9]
- 	tnat.z p6,p7=r32		// check argument register for being NaT
-+	ld8 r17=[r17]				// r17 = current->pids[PIDTYPE_PID].pid
- 	;;
- 	and r9=TIF_ALLWORK_MASK,r9
--	add r8=IA64_TASK_PID_OFFSET,r16
-+	add r8=IA64_PID_LEVEL_OFFSET,r17
- 	add r18=IA64_TASK_CLEAR_CHILD_TID_OFFSET,r16
- 	;;
--	ld4 r8=[r8]
-+	ld4 r8=[r8]				// r8 = pid->level
-+	add r17=IA64_PID_UPID_OFFSET,r17	// r17 = &pid->numbers[0]
-+	;;
-+	shl r8=r8,IA64_UPID_SHIFT
-+	;;
-+	add r17=r17,r8				// r17 = &pid->numbers[pid->level]
-+	;;
-+	ld4 r8=[r17]				// r8 = pid->numbers[pid->level].nr
-+	;;
- 	cmp.ne p8,p0=0,r9
- 	mov r17=-1
- 	;;
++/* Check the instruction in the slot is break */
++static int __kprobes __is_ia64_break_inst(bundle_t *bundle, uint slot)
++{
++	unsigned int major_opcode;
++	unsigned int template = bundle->quad0.template;
++	unsigned long kprobe_inst;
++
++	/* Move to slot 2, if bundle is MLX type and kprobe slot is 1 */
++	if (slot == 1 && bundle_encoding[template][1] == L)
++		slot++;
++
++	/* Get Kprobe probe instruction at given slot*/
++	get_kprobe_inst(bundle, slot, &kprobe_inst, &major_opcode);
++
++	/* For break instruction,
++	 * Bits 37:40 Major opcode to be zero
++	 * Bits 27:32 X6 to be zero
++	 * Bits 32:35 X3 to be zero
++	 */
++	if (major_opcode || ((kprobe_inst >> 27) & 0x1FF)) {
++		/* Not a break instruction */
++		return 0;
++	}
++
++	/* Is a break instruction */
++	return 1;
++}
++
++/*
++ * In this function, we check whether the target bundle modifies IP or
++ * it triggers an exception. If so, it cannot be boostable.
++ */
++static int __kprobes can_boost(bundle_t *bundle, uint slot,
++			       unsigned long bundle_addr)
++{
++	unsigned int template = bundle->quad0.template;
++
++	do {
++		if (search_exception_tables(bundle_addr + slot) ||
++		    __is_ia64_break_inst(bundle, slot))
++			return 0;	/* exception may occur in this bundle*/
++	} while ((++slot) < 3);
++	template &= 0x1e;
++	if (template >= 0x10 /* including B unit */ ||
++	    template == 0x04 /* including X unit */ ||
++	    template == 0x06) /* undefined */
++		return 0;
++
++	return 1;
++}
++
++/* Prepare long jump bundle and disables other boosters if need */
++static void __kprobes prepare_booster(struct kprobe *p)
++{
++	unsigned long addr = (unsigned long)p->addr & ~0xFULL;
++	unsigned int slot = addr & 0xf;
++	struct kprobe *other_kp;
++
++	if (can_boost(&p->ainsn.insn[0].bundle, slot, addr)) {
++		set_brl_inst(&p->ainsn.insn[1].bundle, (bundle_t *)addr + 1);
++		p->ainsn.inst_flag |= INST_FLAG_BOOSTABLE;
++	}
++
++	/* disables boosters in previous slots */
++	for (; addr < (unsigned long)p->addr; addr++) {
++		other_kp = get_kprobe((void *)addr);
++		if (other_kp)
++			other_kp->ainsn.inst_flag &= ~INST_FLAG_BOOSTABLE;
++	}
++}
++
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+ {
+ 	unsigned long addr = (unsigned long) p->addr;
+@@ -530,6 +615,8 @@ int __kprobes arch_prepare_kprobe(struct
+ 
+ 	prepare_break_inst(template, slot, major_opcode, kprobe_inst, p, qp);
+ 
++	prepare_booster(p);
++
+ 	return 0;
+ }
+ 
+@@ -543,7 +630,9 @@ void __kprobes arch_arm_kprobe(struct kp
+ 	src = &p->opcode.bundle;
+ 
+ 	flush_icache_range((unsigned long)p->ainsn.insn,
+-			(unsigned long)p->ainsn.insn + sizeof(kprobe_opcode_t));
++			   (unsigned long)p->ainsn.insn +
++			   sizeof(kprobe_opcode_t) * MAX_INSN_SIZE);
++
+ 	switch (p->ainsn.slot) {
+ 		case 0:
+ 			dest->quad0.slot0 = src->quad0.slot0;
+@@ -584,13 +673,13 @@ void __kprobes arch_disarm_kprobe(struct
+ void __kprobes arch_remove_kprobe(struct kprobe *p)
+ {
+ 	mutex_lock(&kprobe_mutex);
+-	free_insn_slot(p->ainsn.insn, 0);
++	free_insn_slot(p->ainsn.insn, p->ainsn.inst_flag & INST_FLAG_BOOSTABLE);
+ 	mutex_unlock(&kprobe_mutex);
+ }
+ /*
+  * We are resuming execution after a single step fault, so the pt_regs
+  * structure reflects the register state after we executed the instruction
+- * located in the kprobe (p->ainsn.insn.bundle).  We still need to adjust
++ * located in the kprobe (p->ainsn.insn->bundle).  We still need to adjust
+  * the ip to point back to the original stack address. To set the IP address
+  * to original stack address, handle the case where we need to fixup the
+  * relative IP address and/or fixup branch register.
+@@ -607,7 +696,7 @@ static void __kprobes resume_execution(s
+ 	if (slot == 1 && bundle_encoding[template][1] == L)
+ 		slot = 2;
+ 
+-	if (p->ainsn.inst_flag) {
++	if (p->ainsn.inst_flag & ~INST_FLAG_BOOSTABLE) {
+ 
+ 		if (p->ainsn.inst_flag & INST_FLAG_FIX_RELATIVE_IP_ADDR) {
+ 			/* Fix relative IP address */
+@@ -686,33 +775,12 @@ static void __kprobes prepare_ss(struct 
+ static int __kprobes is_ia64_break_inst(struct pt_regs *regs)
+ {
+ 	unsigned int slot = ia64_psr(regs)->ri;
+-	unsigned int template, major_opcode;
+-	unsigned long kprobe_inst;
+ 	unsigned long *kprobe_addr = (unsigned long *)regs->cr_iip;
+ 	bundle_t bundle;
+ 
+ 	memcpy(&bundle, kprobe_addr, sizeof(bundle_t));
+-	template = bundle.quad0.template;
+-
+-	/* Move to slot 2, if bundle is MLX type and kprobe slot is 1 */
+-	if (slot == 1 && bundle_encoding[template][1] == L)
+-		slot++;
+-
+-	/* Get Kprobe probe instruction at given slot*/
+-	get_kprobe_inst(&bundle, slot, &kprobe_inst, &major_opcode);
+-
+-	/* For break instruction,
+-	 * Bits 37:40 Major opcode to be zero
+-	 * Bits 27:32 X6 to be zero
+-	 * Bits 32:35 X3 to be zero
+-	 */
+-	if (major_opcode || ((kprobe_inst >> 27) & 0x1FF) ) {
+-		/* Not a break instruction */
+-		return 0;
+-	}
+ 
+-	/* Is a break instruction */
+-	return 1;
++	return __is_ia64_break_inst(&bundle, slot);
+ }
+ 
+ static int __kprobes pre_kprobes_handler(struct die_args *args)
+@@ -802,6 +870,19 @@ static int __kprobes pre_kprobes_handler
+ 		return 1;
+ 
+ ss_probe:
++#if !defined(CONFIG_PREEMPT) || defined(CONFIG_PM)
++	if (p->ainsn.inst_flag == INST_FLAG_BOOSTABLE && !p->post_handler) {
++		/* Boost up -- we can execute copied instructions directly */
++		ia64_psr(regs)->ri = p->ainsn.slot;
++		regs->cr_iip = (unsigned long)&p->ainsn.insn->bundle & ~0xFULL;
++		/* turn single stepping off */
++		ia64_psr(regs)->ss = 0;
++
++		reset_current_kprobe();
++		preempt_enable_no_resched();
++		return 1;
++	}
++#endif
+ 	prepare_ss(p, regs);
+ 	kcb->kprobe_status = KPROBE_HIT_SS;
+ 	return 1;
+diff -puN include/asm-ia64/kprobes.h~kprobes-kprobe-booster-for-ia64 include/asm-ia64/kprobes.h
+--- a/include/asm-ia64/kprobes.h~kprobes-kprobe-booster-for-ia64
++++ a/include/asm-ia64/kprobes.h
+@@ -30,8 +30,12 @@
+ #include <asm/break.h>
+ 
+ #define __ARCH_WANT_KPROBES_INSN_SLOT
+-#define MAX_INSN_SIZE   1
++#define MAX_INSN_SIZE   2	/* last half is for kprobe-booster */
+ #define BREAK_INST	(long)(__IA64_BREAK_KPROBE << 6)
++#define NOP_M_INST	(long)(1<<27)
++#define BRL_INST(i1, i2) ((long)((0xcL << 37) |	/* brl */ \
++				(0x1L << 12) |	/* many */ \
++				(((i1) & 1) << 36) | ((i2) << 13))) /* imm */
+ 
+ typedef union cmp_inst {
+ 	struct {
+@@ -112,6 +116,7 @@ struct arch_specific_insn {
+  #define INST_FLAG_FIX_RELATIVE_IP_ADDR		1
+  #define INST_FLAG_FIX_BRANCH_REG		2
+  #define INST_FLAG_BREAK_INST			4
++ #define INST_FLAG_BOOSTABLE			8
+  	unsigned long inst_flag;
+  	unsigned short target_br_reg;
+ 	unsigned short slot;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-ptrace-inside-a-namespace.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-devscontrol-avoid-magic-constants-in-drivers-base-mapc.patch
-devscontrol-clean-up-get_gendisk-a-bit.patch
-devscontrol-add-a-mode-on-the-struct-probe.patch
-devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
-devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
-devscontrol-extend-the-drivers-base-mapc-functionality.patch
-devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
-devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
-devscontrol-devices-accessibility-control-group-itself.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+kprobes-kprobe-booster-for-ia64.patch
 
