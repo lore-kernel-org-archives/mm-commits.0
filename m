@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-avoid-stopping-pdc-during-transmission.patch added to -mm tree
-Date: Fri, 07 Mar 2008 01:30:07 -0800
-Message-ID: <200803070930.m279U7Ko015574@imap1.linux-foundation.org>
+Subject: + signals-do_tkill-dont-use-tasklist_lock.patch added to -mm tree
+Date: Fri, 07 Mar 2008 02:24:32 -0800
+Message-ID: <200803071024.m27AOWel017449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933283AbYCGJaU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 04:30:20 -0500
+	by vger.kernel.org with ESMTP id S1751386AbYCGKZ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 05:25:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trimarchimichael@yahoo.it, hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     atmel_serial: Avoid stopping pdc during transmission
+     signals: do_tkill: don't use tasklist_lock
 has been added to the -mm tree.  Its filename is
-     atmel_serial-avoid-stopping-pdc-during-transmission.patch
+     signals-do_tkill-dont-use-tasklist_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: Avoid stopping pdc during transmission
-From: Michael Trimarchi <trimarchimichael@yahoo.it>
+Subject: signals: do_tkill: don't use tasklist_lock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-I found a problem related to loosing data during pdc trasmission in the
-atmel_serial.  For now this patch seems to work for me, but I think that is
-not the better solution.  I do this test:
+Convert do_tkill() to use rcu_read_lock() + lock_task_sighand() to avoid
+taking tasklist lock.
 
-- connect ttyS1 with ttyS2 using a loopback cable, send 30 byte of packet from
-one to the other and waiting for 30 byte.  On the other side just read and
-echo the data received.
+Note that we don't return an error if lock_task_sighand() fails, we pretend
+the task dies after receiving the signal.  Otherwise, we should fight with the
+nasty races with mt-exec without having any advantage.
 
-Signed-off-by: michael <trimarchi@gandalf.sssup.it>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ kernel/signal.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission
-+++ a/drivers/serial/atmel_serial.c
-@@ -96,6 +96,7 @@
+diff -puN kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock
++++ a/kernel/signal.c
+@@ -2206,6 +2206,7 @@ static int do_tkill(int tgid, int pid, i
+ 	int error;
+ 	struct siginfo info;
+ 	struct task_struct *p;
++	unsigned long flags;
  
-  /* PDC registers */
- #define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
-+#define UART_GET_TCR(port)      __raw_readl((port)->membase + ATMEL_PDC_TCR)
- #define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
+ 	error = -ESRCH;
+ 	info.si_signo = sig;
+@@ -2214,7 +2215,7 @@ static int do_tkill(int tgid, int pid, i
+ 	info.si_pid = task_tgid_vnr(current);
+ 	info.si_uid = current->uid;
  
- #define UART_PUT_RPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RPR)
-@@ -568,11 +569,16 @@ static void atmel_tx_dma(struct uart_por
- 	port->icount.tx += pdc->ofs;
- 	pdc->ofs = 0;
+-	read_lock(&tasklist_lock);
++	rcu_read_lock();
+ 	p = find_task_by_vpid(pid);
+ 	if (p && (tgid <= 0 || task_tgid_vnr(p) == tgid)) {
+ 		error = check_kill_permission(sig, &info, p);
+@@ -2222,13 +2223,12 @@ static int do_tkill(int tgid, int pid, i
+ 		 * The null signal is a permissions and process existence
+ 		 * probe.  No signal is actually delivered.
+ 		 */
+-		if (!error && sig && p->sighand) {
+-			spin_lock_irq(&p->sighand->siglock);
++		if (!error && sig && lock_task_sighand(p, &flags)) {
+ 			error = specific_send_sig_info(sig, &info, p);
+-			spin_unlock_irq(&p->sighand->siglock);
++			unlock_task_sighand(p, &flags);
+ 		}
+ 	}
+-	read_unlock(&tasklist_lock);
++	rcu_read_unlock();
  
--	if (!uart_circ_empty(xmit)) {
--		/* more to transmit - setup next transfer */
-+	/* more to transmit - setup next transfer */
- 
--		/* disable PDC transmit */
--		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+	/* nothing left to transmit? */
-+	while (UART_GET_TCR(port))
-+		cpu_relax();
-+
-+	/* disable PDC transmit */
-+	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+
-+	if (!uart_circ_empty(xmit)) {
- 		dma_sync_single_for_device(port->dev,
- 					   pdc->dma_addr,
- 					   pdc->dma_size,
-@@ -586,11 +592,6 @@ static void atmel_tx_dma(struct uart_por
- 		/* re-enable PDC transmit and interrupts */
- 		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
- 		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
--	} else {
--		/* nothing left to transmit - disable the transmitter */
+ 	return error;
+ }
+_
+
+Patches currently in -mm which might be from oleg@tv-sign.ru are
+
+git-hrt.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
+
