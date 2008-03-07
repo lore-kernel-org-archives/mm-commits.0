@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-small-header-file-cleanup.patch added to -mm tree
-Date: Fri, 07 Mar 2008 00:44:06 -0800
-Message-ID: <200803070844.m278i6rh013643@imap1.linux-foundation.org>
+Subject: + mempolicy-move-rebind-functions.patch added to -mm tree
+Date: Fri, 07 Mar 2008 00:44:02 -0800
+Message-ID: <200803070844.m278i2W3013637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753128AbYCGIoU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:44:20 -0500
+	by vger.kernel.org with ESMTP id S1753362AbYCGIoX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:44:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, 
 
 
 The patch titled
-     mempolicy: small header file cleanup
+     mempolicy: move rebind functions
 has been added to the -mm tree.  Its filename is
-     mempolicy-small-header-file-cleanup.patch
+     mempolicy-move-rebind-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: small header file cleanup
+Subject: mempolicy: move rebind functions
 From: David Rientjes <rientjes@google.com>
 
-Removes forward definition of vm_area_struct in linux/mempolicy.h.  We already
-get it from the linux/slab.h -> linux/gfp.h include.
-
-Removes the unused mpol_set_vma_default() macro from linux/mempolicy.h.
-
-Removes the extern definition of default_policy since it is only referenced,
-as it should be, in mm/mempolicy.c.
+Move the mpol_rebind_{policy,task,mm}() functions after mpol_new() to avoid
+having to declare function prototypes.
 
 Cc: Paul Jackson <pj@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -52,41 +47,211 @@ Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/mempolicy.c |  185 +++++++++++++++++++++++------------------------
+ 1 file changed, 91 insertions(+), 94 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mempolicy-small-header-file-cleanup include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-small-header-file-cleanup
-+++ a/include/linux/mempolicy.h
-@@ -52,7 +52,6 @@ enum {
- #include <linux/spinlock.h>
- #include <linux/nodemask.h>
+diff -puN mm/mempolicy.c~mempolicy-move-rebind-functions mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-move-rebind-functions
++++ a/mm/mempolicy.c
+@@ -110,9 +110,6 @@ struct mempolicy default_policy = {
+ 	.policy = MPOL_DEFAULT,
+ };
  
--struct vm_area_struct;
- struct mm_struct;
- 
- #ifdef CONFIG_NUMA
-@@ -131,10 +130,6 @@ static inline int mpol_equal(struct memp
- 	return __mpol_equal(a, b);
+-static void mpol_rebind_policy(struct mempolicy *pol,
+-                               const nodemask_t *newmask);
+-
+ /* Check that the nodemask contains at least one populated zone */
+ static int is_valid_nodemask(nodemask_t *nodemask)
+ {
+@@ -203,6 +200,97 @@ free:
+ 	return ERR_PTR(-EINVAL);
  }
  
--/* Could later add inheritance of the process policy here. */
--
--#define mpol_set_vma_default(vma) ((vma)->vm_policy = NULL)
--
- /*
-  * Tree of shared policies for a shared memory region.
-  * Maintain the policies in a pseudo mm that contains vmas. The vmas
-@@ -170,7 +165,6 @@ extern void mpol_rebind_task(struct task
- extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
- extern void mpol_fix_fork_child_flag(struct task_struct *p);
- 
--extern struct mempolicy default_policy;
- extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
- 		unsigned long addr, gfp_t gfp_flags, struct mempolicy **mpol);
- extern unsigned slab_node(struct mempolicy *policy);
-@@ -203,8 +197,6 @@ static inline int mpol_equal(struct memp
- 	return 1;
++/* Migrate a policy to a different set of nodes */
++static void mpol_rebind_policy(struct mempolicy *pol,
++			       const nodemask_t *newmask)
++{
++	nodemask_t tmp;
++	int static_nodes;
++	int relative_nodes;
++
++	if (!pol)
++		return;
++	static_nodes = pol->flags & MPOL_F_STATIC_NODES;
++	relative_nodes = pol->flags & MPOL_F_RELATIVE_NODES;
++	if (!mpol_store_user_nodemask(pol) &&
++	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
++		return;
++
++	switch (pol->policy) {
++	case MPOL_DEFAULT:
++		break;
++	case MPOL_BIND:
++		/* Fall through */
++	case MPOL_INTERLEAVE:
++		if (static_nodes)
++			nodes_and(tmp, pol->w.user_nodemask, *newmask);
++		else if (relative_nodes)
++			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
++					       newmask);
++		else {
++			nodes_remap(tmp, pol->v.nodes,
++				    pol->w.cpuset_mems_allowed, *newmask);
++			pol->w.cpuset_mems_allowed = *newmask;
++		}
++		pol->v.nodes = tmp;
++		if (!node_isset(current->il_next, tmp)) {
++			current->il_next = next_node(current->il_next, tmp);
++			if (current->il_next >= MAX_NUMNODES)
++				current->il_next = first_node(tmp);
++			if (current->il_next >= MAX_NUMNODES)
++				current->il_next = numa_node_id();
++		}
++		break;
++	case MPOL_PREFERRED:
++		if (static_nodes) {
++			int node = first_node(pol->w.user_nodemask);
++
++			if (node_isset(node, *newmask))
++				pol->v.preferred_node = node;
++			else
++				pol->v.preferred_node = -1;
++		} else if (relative_nodes) {
++			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
++					       newmask);
++			pol->v.preferred_node = first_node(tmp);
++		} else {
++			pol->v.preferred_node = node_remap(pol->v.preferred_node,
++					pol->w.cpuset_mems_allowed, *newmask);
++			pol->w.cpuset_mems_allowed = *newmask;
++		}
++		break;
++	default:
++		BUG();
++		break;
++	}
++}
++
++/*
++ * Wrapper for mpol_rebind_policy() that just requires task
++ * pointer, and updates task mempolicy.
++ */
++
++void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new)
++{
++	mpol_rebind_policy(tsk->mempolicy, new);
++}
++
++/*
++ * Rebind each vma in mm to new nodemask.
++ *
++ * Call holding a reference to mm.  Takes mm->mmap_sem during call.
++ */
++
++void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new)
++{
++	struct vm_area_struct *vma;
++
++	down_write(&mm->mmap_sem);
++	for (vma = mm->mmap; vma; vma = vma->vm_next)
++		mpol_rebind_policy(vma->vm_policy, new);
++	up_write(&mm->mmap_sem);
++}
++
+ static void gather_stats(struct page *, void *, int pte_dirty);
+ static void migrate_page_add(struct page *page, struct list_head *pagelist,
+ 				unsigned long flags);
+@@ -1750,97 +1838,6 @@ void numa_default_policy(void)
+ 	do_set_mempolicy(MPOL_DEFAULT, 0, NULL);
  }
  
--#define mpol_set_vma_default(vma) do {} while(0)
+-/* Migrate a policy to a different set of nodes */
+-static void mpol_rebind_policy(struct mempolicy *pol,
+-			       const nodemask_t *newmask)
+-{
+-	nodemask_t tmp;
+-	int static_nodes;
+-	int relative_nodes;
+-
+-	if (!pol)
+-		return;
+-	static_nodes = pol->flags & MPOL_F_STATIC_NODES;
+-	relative_nodes = pol->flags & MPOL_F_RELATIVE_NODES;
+-	if (!mpol_store_user_nodemask(pol) &&
+-	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
+-		return;
+-
+-	switch (pol->policy) {
+-	case MPOL_DEFAULT:
+-		break;
+-	case MPOL_BIND:
+-		/* Fall through */
+-	case MPOL_INTERLEAVE:
+-		if (static_nodes)
+-			nodes_and(tmp, pol->w.user_nodemask, *newmask);
+-		else if (relative_nodes)
+-			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
+-					       newmask);
+-		else {
+-			nodes_remap(tmp, pol->v.nodes,
+-				    pol->w.cpuset_mems_allowed, *newmask);
+-			pol->w.cpuset_mems_allowed = *newmask;
+-		}
+-		pol->v.nodes = tmp;
+-		if (!node_isset(current->il_next, tmp)) {
+-			current->il_next = next_node(current->il_next, tmp);
+-			if (current->il_next >= MAX_NUMNODES)
+-				current->il_next = first_node(tmp);
+-			if (current->il_next >= MAX_NUMNODES)
+-				current->il_next = numa_node_id();
+-		}
+-		break;
+-	case MPOL_PREFERRED:
+-		if (static_nodes) {
+-			int node = first_node(pol->w.user_nodemask);
+-
+-			if (node_isset(node, *newmask))
+-				pol->v.preferred_node = node;
+-			else
+-				pol->v.preferred_node = -1;
+-		} else if (relative_nodes) {
+-			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
+-					       newmask);
+-			pol->v.preferred_node = first_node(tmp);
+-		} else {
+-			pol->v.preferred_node = node_remap(pol->v.preferred_node,
+-					pol->w.cpuset_mems_allowed, *newmask);
+-			pol->w.cpuset_mems_allowed = *newmask;
+-		}
+-		break;
+-	default:
+-		BUG();
+-		break;
+-	}
+-}
+-
+-/*
+- * Wrapper for mpol_rebind_policy() that just requires task
+- * pointer, and updates task mempolicy.
+- */
+-
+-void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new)
+-{
+-	mpol_rebind_policy(tsk->mempolicy, new);
+-}
+-
+-/*
+- * Rebind each vma in mm to new nodemask.
+- *
+- * Call holding a reference to mm.  Takes mm->mmap_sem during call.
+- */
+-
+-void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new)
+-{
+-	struct vm_area_struct *vma;
+-
+-	down_write(&mm->mmap_sem);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next)
+-		mpol_rebind_policy(vma->vm_policy, new);
+-	up_write(&mm->mmap_sem);
+-}
