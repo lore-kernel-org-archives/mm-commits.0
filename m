@@ -1,131 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + signals-microoptimize-the-usage-of-curr_target.patch added to -mm tree
-Date: Fri, 07 Mar 2008 12:46:59 -0800
-Message-ID: <200803072046.m27KkxRR016528@imap1.linux-foundation.org>
+Subject: - ipc-fix-a-kernel-doc-warning.patch removed from -mm tree
+Date: Fri, 07 Mar 2008 12:48:39 -0800
+Message-ID: <200803072048.m27KmdIr016560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754191AbYCGUsS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:48:18 -0500
+	by vger.kernel.org with ESMTP id S1758996AbYCGUtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:49:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+To: peifferp@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: microoptimize the usage of ->curr_target
-has been added to the -mm tree.  Its filename is
-     signals-microoptimize-the-usage-of-curr_target.patch
+     ipc: fix a kernel-doc warning
+has been removed from the -mm tree.  Its filename was
+     ipc-fix-a-kernel-doc-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: microoptimize the usage of ->curr_target
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ipc: fix a kernel-doc warning
+From: "Pierre Peiffer" <peifferp@gmail.com>
+Return-Path: <peifferp@gmail.com>
+X-Spam-Checker-Version: SpamAssassin 3.2.0 (2007-05-01) on y
+X-Spam-Level: 
+X-Spam-Status: No, score=0.0 required=5.0 tests=none autolearn=no version=3.2.0
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by y (8.14.1/8.14.1) with ESMTP id m27Keole004321
+	for <akpm@localhost>; Fri, 7 Mar 2008 12:40:50 -0800
+Received: from imap1.linux-foundation.org [140.211.169.55]
+	by localhost.localdomain with POP3 (fetchmail-6.3.8)
+	for <akpm@localhost> (single-drop); Fri, 07 Mar 2008 12:40:50 -0800 (PST)
+Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org [140.211.169.13])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m27Kaucw016110
+	for <akpm@imap1.linux-foundation.org>; Fri, 7 Mar 2008 12:36:56 -0800
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.189])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m27KbFce008765
+	for <akpm@linux-foundation.org>; Fri, 7 Mar 2008 12:37:17 -0800
+Received: by rn-out-0910.google.com with SMTP id e11so863392rng.17
+        for <akpm@linux-foundation.org>; Fri, 07 Mar 2008 12:36:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=domainkey-signature:received:received:message-id:date:from:to:subject:cc:mime-version:content-type:content-transfer-encoding:content-disposition;
+        bh=VxD/rrrXvzb1dLrVjBD2wwwxD/E9yjszonUUlYR90bo=;
+        b=TQKfTECvC1gTOEY5QeAe6ItXel4PGIv+jVcj9qrLUx7sCMP6jlXMXQ/gckHpVcq3TGvRUn5p310d4x9WcOsK2kGEXbopTM2JY0w45jUuWJkY0NkEyvDdrAZC4M4e7dzLaryI6X2crmAGUTVeBLymc0gqm34ZHiUAXSl/frUuAEs=
+DomainKey-Signature: a=rsa-sha1; c=nofws;
+        d=gmail.com; s=gamma;
+        h=message-id:date:from:to:subject:cc:mime-version:content-type:content-transfer-encoding:content-disposition;
+        b=Hesg/vHw1GS6pnpU1p1Wq1sD1A9IMp4MBMm8kkqxUbM7jdueEk4WvrCWK8kf5DnlYJBdD/X6A6yZy/Ihk/F6l/q9tnFZxWLENxKlnO9EXpl4LK3wiqt01CTNzbJ9j+sjebNdrVMfCHBOg2BW7LLWfkixXH24EJ05SC1hdd5a8bA=
+Received: by 10.140.125.4 with SMTP id x4mr944798rvc.229.1204922208066;
+        Fri, 07 Mar 2008 12:36:48 -0800 (PST)
+Received: by 10.141.35.15 with HTTP; Fri, 7 Mar 2008 12:36:48 -0800 (PST)
+Message-ID: <878847400803071236w47178fa4r79f50d537b383843@mail.gmail.com>
+Date: Fri, 7 Mar 2008 21:36:48 +0100
+To: akpm@linux-foundation.org, "Randy Dunlap" <randy.dunlap@oracle.com>
+Subject: [PATCH 2.6.25-rc3-mm1] IPC: fix a kernel-doc warning
+Cc: linux-kernel@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Received-SPF: pass (domain of peifferp@gmail.com designates 64.233.170.189 as permitted sender)
+X-MIMEDefang-Filter: lf$Revision: 1.188 $
+X-Scanned-By: MIMEDefang 2.63 on 140.211.169.13
 
-Suggested by Roland McGrath.
+Hi,
 
-Initialize signal->curr_target in copy_signal().  This way ->curr_target is
-never == NULL, we can kill the check in __group_complete_signal's hot path.
+This patch fixes this warning produced by kernel-doc (thanks Randy Dunlap):
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Warning(linux-2.6.25-rc3-mm1//ipc/util.c:845):
+No description found for parameter 'extrat_perm'
+
+It is due to an inconsistency in a variable name between the C-code and
+the associated comment.
+
+Signed-off-by: Pierre Peiffer <peifferp@gmail.com>
 ---
+ ipc/util.c |    4 ++--
+ ipc/util.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
- kernel/fork.c   |    2 +-
- kernel/signal.c |    4 ----
- 2 files changed, 1 insertion(+), 5 deletions(-)
+Index: b/ipc/util.c
+===================================================================
+--- a/ipc/util.c
++++ b/ipc/util.c
+@@ -841,7 +841,7 @@
+  *    or an err-code without any lock held otherwise.
+  */
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
+-				      struct ipc64_perm *perm, int extrat_perm)
++				      struct ipc64_perm *perm, int extra_perm)
+ {
+ 	struct kern_ipc_perm *ipcp;
+ 	int err;
+@@ -858,7 +858,7 @@
+ 		goto out_unlock;
 
-diff -puN kernel/fork.c~signals-microoptimize-the-usage-of-curr_target kernel/fork.c
---- a/kernel/fork.c~signals-microoptimize-the-usage-of-curr_target
-+++ a/kernel/fork.c
-@@ -902,7 +902,7 @@ static int copy_signal(unsigned long clo
- 	sig->group_exit_code = 0;
- 	sig->group_exit_task = NULL;
- 	sig->group_stop_count = 0;
--	sig->curr_target = NULL;
-+	sig->curr_target = tsk;
- 	init_sigpending(&sig->shared_pending);
- 	INIT_LIST_HEAD(&sig->posix_timers);
- 
-diff -puN kernel/signal.c~signals-microoptimize-the-usage-of-curr_target kernel/signal.c
---- a/kernel/signal.c~signals-microoptimize-the-usage-of-curr_target
-+++ a/kernel/signal.c
-@@ -863,10 +863,6 @@ __group_complete_signal(int sig, struct 
- 		 * Otherwise try to find a suitable thread.
- 		 */
- 		t = signal->curr_target;
--		if (t == NULL)
--			/* restart balancing at this thread */
--			t = signal->curr_target = p;
--
- 		while (!wants_signal(sig, t)) {
- 			t = next_thread(t);
- 			if (t == signal->curr_target)
-_
+ 	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(extrat_perm, perm->uid,
++		err = audit_ipc_set_perm(extra_perm, perm->uid,
+ 					 perm->gid, perm->mode);
+ 		if (err)
+ 			goto out_unlock;
+Index: b/ipc/util.h
+===================================================================
+--- a/ipc/util.h
++++ b/ipc/util.h
+@@ -114,7 +114,7 @@
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
+-				      struct ipc64_perm *perm, int extrat_perm);
++				      struct ipc64_perm *perm, int extra_perm);
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) ||
+defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */
 
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+-- 
+Pierre
+
+Patches currently in -mm which might be from peifferp@gmail.com are
+
+ipc-fix-a-kernel-doc-warning.patch
 
