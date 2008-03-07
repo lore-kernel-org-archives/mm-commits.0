@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 07 Mar 2008 00:24:00 -0800
-Message-ID: <200803070824.m278O00I012909@imap1.linux-foundation.org>
+Subject: + regulator-consumer-interface.patch added to -mm tree
+Date: Fri, 07 Mar 2008 00:40:12 -0800
+Message-ID: <200803070840.m278eClh013440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750923AbYCGIYJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:24:09 -0500
+	by vger.kernel.org with ESMTP id S1755419AbYCGIlA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:41:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org, pterjan@mandriva.com
+Cc: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com
 
 
 The patch titled
-     usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes
+     regulator: consumer interface
 has been added to the -mm tree.  Its filename is
-     usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes.patch
+     regulator-consumer-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,365 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: regulator: consumer interface
+From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-WARNING: __func__ should be used instead of gcc specific __FUNCTION__
-#19: FILE: drivers/media/video/usbvideo/usbvideo.c:1038:
-+		err("%s: uvd->dev == NULL", __FUNCTION__);
+This patch series provides a generic framework to allow device drivers to
+control voltage and current regulators on SoC based devices (e.g.  phones,
+gps, media players).
 
-ERROR: need spaces around that '=' (ctx:VxO)
-#22: FILE: drivers/media/video/usbvideo/usbvideo.c:1041:
-+	uvd->vdev.dev=&(uvd->dev->dev);
- 	             ^
+The intention is to allow systems to dynamically control regulator output in
+order to save power and prolong battery life.  This applies to both voltage
+regulators (where voltage output is controllable) and current sinks (where
+current output is controllable).
 
-ERROR: need space before that '&' (ctx:OxV)
-#22: FILE: drivers/media/video/usbvideo/usbvideo.c:1041:
-+	uvd->vdev.dev=&(uvd->dev->dev);
- 	              ^
+The framework is designed around SoC based devices but may also be relevant to
+non SoC devices.  It's also been designed against two Power Management ICs
+(PMICs) currently on the market - namely the Freescale MC13783 and the Wolfson
+WM8350.  However it is quite generic and should apply to all PMICs.  
 
-total: 2 errors, 1 warnings, 21 lines checked
+The framework provides several interfaces :-
 
-./patches/usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+ 1. Client or Consumer driver API.
 
-Please run checkpatch prior to sending patches
+  This uses a similar API to the kernel clock interface in that client or
+  consumer drivers can get and put a regulator (like they can with clocks atm)
+  and get/set voltage, current, mode, enable and disable.  This should allow
+  clients complete control over their supply voltage and current.  This API
+  also compiles out if not in use so drivers can be reused in systems with no
+  PMIC power control.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pascal Terjan <pterjan@mandriva.com>
+ 2. Regulator driver API.
+
+  This allows regulator drivers to register their regulators and provide
+  operations to the core.  It also has a notifier call chain for propagating
+  regulator events to clients.
+
+ 3. Platform API.
+
+  This API is for platform/device specific code and allows the creation of
+  voltage/current domains (with constraints) for each regulator.  It can
+  provide regulator constraints that will prevent device damage through over
+  voltage or over current caused by buggy client drivers.  It also allows the
+  creation of a regulator tree whereby some regulators are supplied by others
+  (similar to a clock tree).
+
+ 4. Userspace.
+
+  The framework also exports a lot of useful voltage/current data to
+  userspace via sysfs.  This could be used to monitor device and regulator
+  power and status.
+
+Fwiw, there is a project page here :-
+
+http://opensource.wolfsonmicro.com/node/15
+
+and code in our public git tree that currently shows this API in use:-
+
+http://opensource.wolfsonmicro.com/cgi-bin/gitweb.cgi?p=linux-2.6-audioplus.git;a=shortlog;h=imx31
+
+
+This patch:
+
+The regulator framework provides voltage and current power control to consumer
+drivers.  This allows consumers to control their supply voltages and current
+levels.
+
+The framework is similar to the kernel clock interface in that client or
+consumer drivers can get() and put() a regulator (like they can with clocks
+atm).
+
+Consumers can also get() or set() :- voltage, current, operating mode. 
+Consumers can also enable and disable regulators.
+
+The framework also compiles out if not in use so drivers can be reused in
+systems with no software PMIC power control.
+
+Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/usbvideo/usbvideo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/regulator/regulator.h |  264 ++++++++++++++++++++++++++
+ 1 file changed, 264 insertions(+)
 
-diff -puN drivers/media/video/usbvideo/usbvideo.c~usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes drivers/media/video/usbvideo/usbvideo.c
---- a/drivers/media/video/usbvideo/usbvideo.c~usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes
-+++ a/drivers/media/video/usbvideo/usbvideo.c
-@@ -1035,10 +1035,10 @@ int usbvideo_RegisterVideoDevice(struct 
- 		     __FUNCTION__, uvd->iface, uvd->video_endp, uvd->paletteBits);
- 	}
- 	if (uvd->dev == NULL) {
--		err("%s: uvd->dev == NULL", __FUNCTION__);
-+		err("%s: uvd->dev == NULL", __func__);
- 		return -EINVAL;
- 	}
--	uvd->vdev.dev=&(uvd->dev->dev);
-+	uvd->vdev.dev = &uvd->dev->dev;
- 	if (video_register_device(&uvd->vdev, VFL_TYPE_GRABBER, video_nr) == -1) {
- 		err("%s: video_register_device failed", __FUNCTION__);
- 		return -EPIPE;
+diff -puN /dev/null include/linux/regulator/regulator.h
+--- /dev/null
++++ a/include/linux/regulator/regulator.h
+@@ -0,0 +1,264 @@
++/*
++ * regulator.h -- SoC Regulator support.
++ *
++ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
++ *
++ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Regulator Client Interface.
++ *
++ * A Power Management Regulator framework for SoC based devices.
++ * Features:-
++ *   o Voltage and current level control.
++ *   o Operating mode control.
++ *   o Regulator status.
++ *   o sysfs entries for showing client devices and status
++ *
++ * EXPERIMENTAL FEATURES:
++ *   Dynamic Regulator operating Mode Switching (DRMS) - allows regulators
++ *   to use most efficient operating mode depending upon voltage and load and
++ *   is transparent to client drivers.
++ *
++ *   e.g. Devices x,y,z share regulator r. Device x and y draw 20mA each during
++ *   IO and 1mA at idle. Device z draws 100mA when under load and 5mA when
++ *   idling. Regulator r has > 90% efficiency in NORMAL mode at loads > 100mA
++ *   but this drops rapidly to 60% when below 100mA. Regulator r has > 90%
++ *   efficiency in IDLE mode at loads < 10mA. Thus regulator r will operate
++ *   in normal mode for loads > 10mA and in IDLE mode for load <= 10mA.
++ *
++ *   Dynamic Regulator Voltage Selection (DRVS). Selects the lowest voltage
++ *   output (within system constraints) for a regulator shared between several
++ *   devices. This allows all devices to operate within their voltage range and
++ *   will dynamically change the voltage when devices disable() their supply
++ *   to the next best level (thus saving power). This is based on an idea
++ *   by Amit Kucheria in an RFC to lakml.
++ *
++ *   e.g. devices x,y,z share regulator r. device x and y can operate between
++ *   1800mV and 1900mV, whilst device z can only operate at 1900mV. Regulator
++ *   r will output 1900mV when all devices are in use and 1800mV when devices
++ *   x and y are in use and device z is disabled.
++ */
++
++#ifndef __LINUX_REGULATOR_H_
++#define __LINUX_REGULATOR_H_
++
++/*
++ * Regulator operating modes.
++ *
++ * Regulators can run in a variety of different operating modes depending on
++ * output load. This allows further system power savings by selecting the
++ * best (and most efficient) regulator mode for a desired load.
++ *
++ * Most drivers will only care about NORMAL. The modes below are generic and
++ * will probably not match the naming convention of your regulator data sheet
++ * but should match the use cases in the datasheet.
++ *
++ * In order of power efficiency (least efficient at top).
++ *
++ *  Mode       Description
++ *  FAST       Regulator can handle fast changes in it's load.
++ *             e.g. useful in CPU voltage & frequency scaling where
++ *             load can quickly increase with CPU frequency increases.
++ *
++ *  NORMAL     Normal regulator power supply mode. Most drivers will
++ *             use this mode.
++ *
++ *  IDLE       Regulator runs in a more efficient mode for light
++ *             loads. Can be used for devices that have a low power
++ *             requirement during periods of inactivity. This mode
++ *             may be more noisy than NORMAL and may not be able
++ *             to handle fast load switching.
++ *
++ *  STANDBY    Regulator runs in the most efficient mode for very
++ *             light loads. Can be used by devices when they are
++ *             in a sleep/standby state. This mode is likely to be
++ *             the most noisy and may not be able to handle fast load
++ *             switching.
++ *
++ * NOTE: Most regulators will only support a subset of these modes. Some
++ * will only just support NORMAL.
++ *
++ * These modes can be OR'ed together to make up a mask of valid register modes.
++ */
++
++#define REGULATOR_MODE_FAST			0x1
++#define REGULATOR_MODE_NORMAL			0x2
++#define REGULATOR_MODE_IDLE			0x4
++#define REGULATOR_MODE_STANDBY			0x8
++
++/*
++ * Regulator notifier events.
++ *
++ * UNDER_VOLTAGE  Regulator output is under voltage.
++ * OVER_CURRENT   Regulator output current is too high.
++ * POWER_ON       Regulator power ON event.
++ * POWER_OFF      Regulator power OFF event.
++ * REGULATION_OUT Regulator output is out of regulation.
++ * FAIL           Regulator output has failed.
++ * OVER_TEMP      Regulator over temp.
++ *
++ * NOTE: These events can be OR'ed together when passed into handler.
++ */
++
++#define REGULATOR_EVENT_UNDER_VOLTAGE		0x1
++#define REGULATOR_EVENT_OVER_CURRENT		0x2
++#define REGULATOR_EVENT_POWER_ON		0x4
++#define REGULATOR_EVENT_POWER_OFF		0x8
++#define REGULATOR_EVENT_REGULATION_OUT		0x10
++#define REGULATOR_EVENT_FAIL			0x20
++#define REGULATOR_EVENT_OVER_TEMP		0x40
++
++/*
++ * Convenience conversion.
++ * Here atm, maybe there is somewhere better for this.
++ */
++static inline int mV_to_uV(int mV) { return mV * 1000; }
++static inline int uV_to_mV(int uV) { return uV / 1000; }
++static inline int V_to_uV(int V) { return V * 1000000; }
++static inline int uV_to_V(int uV) { return uV / 1000000; }
++static inline int mA_to_uA(int mA) { return mA * 1000; }
++static inline int uA_to_mA(int uA)  {return uA / 1000; }
++static inline int A_to_uA(int A) { return A * 1000000; }
++static inline int uA_to_A(int uA) { return uA / 1000000; }
++
++struct regulator;
++
++#if defined(CONFIG_REGULATOR)
++
++/* regulator get and put */
++struct regulator *__must_check regulator_get(struct device *dev,
++					     const char *id);
++void regulator_put(struct regulator *regulator);
++
++/* regulator output control and status */
++int regulator_enable(struct regulator *regulator);
++int regulator_disable(struct regulator *regulator);
++int regulator_is_enabled(struct regulator *regulator);
++
++int regulator_set_voltage(struct regulator *regulator, int uV);
++int regulator_get_voltage(struct regulator *regulator);
++int regulator_set_current(struct regulator *regulator, int uA);
++int regulator_get_current(struct regulator *regulator);
++
++int regulator_set_mode(struct regulator *regulator, unsigned int mode);
++unsigned int regulator_get_mode(struct regulator *regulator);
++unsigned int regulator_get_optimum_mode(struct regulator *regulator,
++					int input_uV, int output_uV,
++					int load_uA);
++
++/* regulator notifier block */
++int regulator_register_client(struct regulator *regulator,
++			      struct notifier_block *nb);
++int regulator_unregister_client(struct regulator *regulator,
++				struct notifier_block *nb);
++
++/* notify core of likely current draw */
++void regulator_drms_notify_load(struct regulator *regulator, int uA);
++
++/* driver data - core doesn't touch */
++void *regulator_get_drvdata(struct regulator *regulator);
++void regulator_set_drvdata(struct regulator *regulator, void *data);
++
++#else
++
++/*
++ * Make sure client drivers will still build on systems with no software
++ * controllable voltage or current regulators.
++ */
++static inline struct regulator *__must_check regulator_get(struct device *dev,
++	const char *id)
++{
++	return NULL;
++}
++static inline void regulator_put(struct regulator *regulator)
++{
++}
++
++static inline int regulator_enable(struct regulator *regulator)
++{
++	return 0;
++}
++
++static inline int regulator_disable(struct regulator *regulator)
++{
++	return 0;
++}
++
++static inline int regulator_is_enabled(struct regulator *regulator)
++{
++	return 1;
++}
++
++static inline int regulator_set_voltage(struct regulator *regulator, int uV)
++{
++	return 0;
++}
++
++static inline int regulator_get_voltage(struct regulator *regulator)
++{
++	return 0;
++}
++
++static inline int regulator_set_current(struct regulator *regulator, int uA)
++{
++	return 0;
++}
++
++static inline int regulator_get_current(struct regulator *regulator)
++{
++	return 0;
++}
++
++static inline int regulator_set_mode(struct regulator *regulator,
++	unsigned int mode)
++{
++	return 0;
++}
++
++static inline unsigned int regulator_get_mode(struct regulator *regulator)
++{
++	return REGULATOR_MODE_NORMAL;
++}
++
++static inline unsigned int regulator_get_optimum_mode(
++					struct regulator *regulator,
++					int input_uV, int output_uV,
++					int load_uA)
++{
++	return REGULATOR_MODE_NORMAL;
++}
++
++static inline int regulator_register_client(struct regulator *regulator,
++			      struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline int regulator_unregister_client(struct regulator *regulator,
++				struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline void regulator_drms_notify_load(struct regulator *regulator,
++	int uA)
++{
++}
++
++static inline void *regulator_get_drvdata(struct regulator *regulator)
++{
++	return NULL;
++}
++
++static inline void regulator_set_drvdata(struct regulator *regulator,
++	void *data)
++{
++}
++
++#endif
++
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
 
-origin.patch
-rename-declare_pci_device_table-to-define_pci_device_table.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
-git-kvm.patch
-git-md-accel.patch
-git-md-accel-fix-git-rejects.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-prevent-kconfig-explosion.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+regulator-consumer-interface.patch
+regulator-regulator-driver-interface.patch
+regulator-platform-interface.patch
+regulator-framework-core.patch
+regulator-sysfs-abi.patch
+regulator-kbuild.patch
+regulator-maintainers.patch
 
