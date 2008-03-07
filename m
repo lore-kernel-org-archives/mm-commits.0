@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + md-reduce-cpu-wastage-on-idle-md-array-with-a-write-intent-bitmap-fix.patch added to -mm tree
-Date: Thu, 06 Mar 2008 22:18:10 -0800
-Message-ID: <200803070618.m276IAIP008559@imap1.linux-foundation.org>
+Subject: + alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch added to -mm tree
+Date: Thu, 06 Mar 2008 23:38:10 -0800
+Message-ID: <200803070738.m277cAik011290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39742 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754865AbYCGGSQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 01:18:16 -0500
+	by vger.kernel.org with ESMTP id S1751196AbYCGHiv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 02:38:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de
+Cc: matthias@kaehlcke.net, ralf@linux-mips.org
 
 
 The patch titled
-     md: reduce CPU wastage on idle md array with a write-intent bitmap. fi
+     Alchemy Semi Au1000 pcmcia driver: convert pcmcia_sockets_lock in a mutex
 has been added to the -mm tree.  Its filename is
-     md-reduce-cpu-wastage-on-idle-md-array-with-a-write-intent-bitmap-fix.patch
+     alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: reduce CPU wastage on idle md array with a write-intent bitmap. fi
-From: NeilBrown <neilb@suse.de>
+Subject: Alchemy Semi Au1000 pcmcia driver: convert pcmcia_sockets_lock in a mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-Recent patch titled
-  Reduce CPU wastage on idle md array with a write-intent bitmap.
+Alchemy Semi Au1000 pcmcia driver: The semaphore pcmcia_sockets_lock
+is used as a mutex, convert it to the mutex API
 
-would sometimes leave the array with dirty bitmap bits that stay dirty.  A
-subsequent write would sort things out so it isn't a big problem, but should
-be fixed nonetheless.
+(akpm: make it static too)
 
-We need to make sure that when the bitmap becomes not "allclean", the
-daemon_sleep really does get set to a sensible value.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bitmap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pcmcia/au1000_generic.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/bitmap.c~md-reduce-cpu-wastage-on-idle-md-array-with-a-write-intent-bitmap-fix drivers/md/bitmap.c
---- a/drivers/md/bitmap.c~md-reduce-cpu-wastage-on-idle-md-array-with-a-write-intent-bitmap-fix
-+++ a/drivers/md/bitmap.c
-@@ -1045,7 +1045,8 @@ void bitmap_daemon_work(struct bitmap *b
- 	if (bitmap == NULL)
- 		return;
- 	if (time_before(jiffies, bitmap->daemon_lastrun + bitmap->daemon_sleep*HZ))
--		return;
-+		goto done;
-+
- 	bitmap->daemon_lastrun = jiffies;
- 	if (bitmap->allclean) {
- 		bitmap->mddev->thread->timeout = MAX_SCHEDULE_TIMEOUT;
-@@ -1142,6 +1143,7 @@ void bitmap_daemon_work(struct bitmap *b
- 		}
+diff -puN drivers/pcmcia/au1000_generic.c~alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex drivers/pcmcia/au1000_generic.c
+--- a/drivers/pcmcia/au1000_generic.c~alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex
++++ a/drivers/pcmcia/au1000_generic.c
+@@ -41,6 +41,7 @@
+ #include <linux/notifier.h>
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
++#include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+@@ -71,7 +72,7 @@ extern struct au1000_pcmcia_socket au100
+ u32 *pcmcia_base_vaddrs[2];
+ extern const unsigned long mips_io_port_base;
+ 
+-DECLARE_MUTEX(pcmcia_sockets_lock);
++static DEFINE_MUTEX(pcmcia_sockets_lock);
+ 
+ static int (*au1x00_pcmcia_hw_init[])(struct device *dev) = {
+ 	au1x_board_init,
+@@ -472,7 +473,7 @@ int au1x00_drv_pcmcia_remove(struct devi
+ 	struct skt_dev_info *sinfo = dev_get_drvdata(dev);
+ 	int i;
+ 
+-	down(&pcmcia_sockets_lock);
++	mutex_lock(&pcmcia_sockets_lock);
+ 	dev_set_drvdata(dev, NULL);
+ 
+ 	for (i = 0; i < sinfo->nskt; i++) {
+@@ -488,7 +489,7 @@ int au1x00_drv_pcmcia_remove(struct devi
  	}
  
-+ done:
- 	if (bitmap->allclean == 0)
- 		bitmap->mddev->thread->timeout = bitmap->daemon_sleep * HZ;
+ 	kfree(sinfo);
+-	up(&pcmcia_sockets_lock);
++	mutex_unlock(&pcmcia_sockets_lock);
+ 	return 0;
  }
+ 
+@@ -501,13 +502,13 @@ static int au1x00_drv_pcmcia_probe(struc
+ {
+ 	int i, ret = -ENODEV;
+ 
+-	down(&pcmcia_sockets_lock);
++	mutex_lock(&pcmcia_sockets_lock);
+ 	for (i=0; i < ARRAY_SIZE(au1x00_pcmcia_hw_init); i++) {
+ 		ret = au1x00_pcmcia_hw_init[i](dev);
+ 		if (ret == 0)
+ 			break;
+ 	}
+-	up(&pcmcia_sockets_lock);
++	mutex_unlock(&pcmcia_sockets_lock);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-md-fix-formatting-error-in-proc-mdstat.patch
-md-reduce-cpu-wastage-on-idle-md-array-with-a-write-intent-bitmap-fix.patch
-git-nfsd.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
+cosa-srp-convert-channel_datarsem-to-mutex.patch
+convert-acl-sem-in-a-mutex.patch
+convert-stats_sem-in-a-mutex.patch
+convert-wpa_sem-in-a-mutex.patch
+fs-inodec-use-hlist_for_each_entry.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
 
