@@ -1,97 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - my-halt-pfn-regression.patch removed from -mm tree
-Date: Fri, 07 Mar 2008 12:49:02 -0800
-Message-ID: <200803072049.m27Kn3PH016569@imap1.linux-foundation.org>
+Subject: + ipc-consolidate-all-xxxctl_down-functions-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 12:51:48 -0800
+Message-ID: <200803072051.m27KpmF2016727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51975 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932132AbYCGUth (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:49:37 -0500
+	by vger.kernel.org with ESMTP id S1759283AbYCGUvu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:51:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: peifferp@gmail.com, rdunlap@xenotime.net
 
 
 The patch titled
-     my `halt -pfn' regression
-has been removed from the -mm tree.  Its filename was
-     my-halt-pfn-regression.patch
+     IPC: fix a kernel-doc warning
+has been added to the -mm tree.  Its filename is
+     ipc-consolidate-all-xxxctl_down-functions-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: my `halt -pfn' regression
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: IPC: fix a kernel-doc warning
+From: "Pierre Peiffer" <peifferp@gmail.com>
 
-On Wednesday, 5 of March 2008, Andrew Morton wrote:
-> On Wed, 5 Mar 2008 01:14:20 +0100
-> "Rafael J. Wysocki" <rjw@sisk.pl> wrote:
->
-> > On Tuesday, 4 of March 2008, Andrew Morton wrote:
-> > >
-> > > The 8-way x86_64 box still won't poweroff in -rc3.  Disabling
-> > > CONFIG_DETECT_SOFTLOCKUP "fixes" it.
-> >
-> > Well, we have bug #9960 with similar symptoms, but that's supposed to be
-> > fixed in -rc3.
-> >
-> > There also is bug #10169 that may be related.
-> >
-> > > With the full -mm lineup, the machine won't power off during `halt -p' even
-> > > with CONFIG_DETECT_SOFTLOCKUP=n, so we're going backwards.
-> >
-> > I'd bet on the CPU hotplug ...
-> >
-> > Please try to remove the disable_nonboot_cpus() from the power off code path.
->
-> Like this?
->
-> --- a/kernel/power/main.c~a
-> +++ a/kernel/power/main.c
-> @@ -282,7 +282,7 @@ int suspend_devices_and_enter(suspend_st
->  	if (suspend_test(TEST_PLATFORM))
->  		goto Finish;
->
-> -	error = disable_nonboot_cpus();
-> +	error = 0;
->  	if (!error && !suspend_test(TEST_CPUS))
->  		suspend_enter(state);
+This patch fixes this warning produced by kernel-doc (thanks Randy Dunlap):
 
-No, I meant this one:
+Warning(linux-2.6.25-rc3-mm1//ipc/util.c:845):
+No description found for parameter 'extrat_perm'
 
----
- 1 file changed, 1 deletion(-)
+It is due to an inconsistency in a variable name between the C-code and
+the associated comment.
 
-Index: linux-2.6/kernel/sys.c
-===================================================================
-
+Signed-off-by: Pierre Peiffer <peifferp@gmail.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 -
- 1 file changed, 1 deletion(-)
+ ipc/util.c |    4 ++--
+ ipc/util.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sys.c~my-halt-pfn-regression kernel/sys.c
---- a/kernel/sys.c~my-halt-pfn-regression
-+++ a/kernel/sys.c
-@@ -347,7 +347,6 @@ void kernel_power_off(void)
- 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
- 	if (pm_power_off_prepare)
- 		pm_power_off_prepare();
--	disable_nonboot_cpus();
- 	sysdev_shutdown();
- 	printk(KERN_EMERG "Power down.\n");
- 	machine_power_off();
+diff -puN ipc/util.c~ipc-consolidate-all-xxxctl_down-functions-fix ipc/util.c
+--- a/ipc/util.c~ipc-consolidate-all-xxxctl_down-functions-fix
++++ a/ipc/util.c
+@@ -841,7 +841,7 @@ void ipc_update_perm(struct ipc64_perm *
+  *    or an err-code without any lock held otherwise.
+  */
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
+-				      struct ipc64_perm *perm, int extrat_perm)
++				      struct ipc64_perm *perm, int extra_perm)
+ {
+ 	struct kern_ipc_perm *ipcp;
+ 	int err;
+@@ -858,7 +858,7 @@ struct kern_ipc_perm *ipcctl_pre_down(st
+ 		goto out_unlock;
+ 
+ 	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(extrat_perm, perm->uid,
++		err = audit_ipc_set_perm(extra_perm, perm->uid,
+ 					 perm->gid, perm->mode);
+ 		if (err)
+ 			goto out_unlock;
+diff -puN ipc/util.h~ipc-consolidate-all-xxxctl_down-functions-fix ipc/util.h
+--- a/ipc/util.h~ipc-consolidate-all-xxxctl_down-functions-fix
++++ a/ipc/util.h
+@@ -114,7 +114,7 @@ void kernel_to_ipc64_perm(struct kern_ip
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
+ struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
+-				      struct ipc64_perm *perm, int extrat_perm);
++				      struct ipc64_perm *perm, int extra_perm);
+ 
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from peifferp@gmail.com are
 
-my-halt-pfn-regression.patch
-git-acpi.patch
-time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
-power-replace-remaining-__function__-occurrences.patch
-shrink_slab-handle-bad-shrinkers.patch
+ipc-consolidate-all-xxxctl_down-functions-fix.patch
 
