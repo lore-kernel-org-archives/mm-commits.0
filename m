@@ -1,77 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch added to -mm tree
-Date: Fri, 07 Mar 2008 13:25:58 -0800
-Message-ID: <200803072125.m27LPwwX018148@imap1.linux-foundation.org>
+Subject: - ia64-fix-ptrace-inside-a-namespace.patch removed from -mm tree
+Date: Fri, 07 Mar 2008 14:54:21 -0800
+Message-ID: <200803072254.m27MsLKb021371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34160 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932142AbYCGV10 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 16:27:26 -0500
+	by vger.kernel.org with ESMTP id S1751270AbYCGWyy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 17:54:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: cooloney@kernel.org, dsaxena@plexity.net, jeff@garzik.org, lethal@linux-sh.org, nico@cam.org, rmk+kernel@arm.linux.org.uk
+To: xemul@openvz.org, ebiederm@xmission.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smc91x: fix build breakage from the SMC_GET_MAC_ADDR API upgrade
-has been added to the -mm tree.  Its filename is
-     smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
+     ia64: fix ptrace inside a namespace
+has been removed from the -mm tree.  Its filename was
+     ia64-fix-ptrace-inside-a-namespace.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc91x: fix build breakage from the SMC_GET_MAC_ADDR API upgrade
-From: Bryan Wu <cooloney@kernel.org>
+Subject: ia64: fix ptrace inside a namespace
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Deepak Saxena <dsaxena@plexity.net>
-Cc: Nicolas Pitre <nico@cam.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
+The ia64 has its own sys_ptrace implementation and it was overlooked when the
+pid namespaces patches were sent.
+
+Use find_task_by_vpid() in it.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/ptrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/smc91x.h~smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade drivers/net/smc91x.h
---- a/drivers/net/smc91x.h~smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade
-+++ a/drivers/net/smc91x.h
-@@ -93,14 +93,14 @@
- #define SMC_insw(a, r, p, l) 	insw ((unsigned long *)((a) + (r)), p, l)
- # endif
- /* check if the mac in reg is valid */
--#define SMC_GET_MAC_ADDR(addr)					\
-+#define SMC_GET_MAC_ADDR(lp, addr)				\
- 	do {							\
- 		unsigned int __v;				\
--		__v = SMC_inw(ioaddr, ADDR0_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR0_REG(lp));		\
- 		addr[0] = __v; addr[1] = __v >> 8;		\
--		__v = SMC_inw(ioaddr, ADDR1_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR1_REG(lp));		\
- 		addr[2] = __v; addr[3] = __v >> 8;		\
--		__v = SMC_inw(ioaddr, ADDR2_REG);		\
-+		__v = SMC_inw(ioaddr, ADDR2_REG(lp));		\
- 		addr[4] = __v; addr[5] = __v >> 8;		\
- 		if (*(u32 *)(&addr[0]) == 0xFFFFFFFF) {		\
- 			random_ether_addr(addr);		\
+diff -puN arch/ia64/kernel/ptrace.c~ia64-fix-ptrace-inside-a-namespace arch/ia64/kernel/ptrace.c
+--- a/arch/ia64/kernel/ptrace.c~ia64-fix-ptrace-inside-a-namespace
++++ a/arch/ia64/kernel/ptrace.c
+@@ -1561,7 +1561,7 @@ sys_ptrace (long request, pid_t pid, uns
+ 	ret = -ESRCH;
+ 	read_lock(&tasklist_lock);
+ 	{
+-		child = find_task_by_pid(pid);
++		child = find_task_by_vpid(pid);
+ 		if (child) {
+ 			if (peek_or_poke)
+ 				child = find_thread_for_addr(child, addr);
 _
 
-Patches currently in -mm which might be from cooloney@kernel.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
+git-kgdb-light.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-ptrace-inside-a-namespace.patch
+ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+git-udf.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+devscontrol-avoid-magic-constants-in-drivers-base-mapc.patch
+devscontrol-clean-up-get_gendisk-a-bit.patch
+devscontrol-add-a-mode-on-the-struct-probe.patch
+devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
+devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
+devscontrol-extend-the-drivers-base-mapc-functionality.patch
+devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
+devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
+devscontrol-devices-accessibility-control-group-itself.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
