@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-consolidate-all-xxxctl_down-functions-fix.patch added to -mm tree
-Date: Fri, 07 Mar 2008 12:51:48 -0800
-Message-ID: <200803072051.m27KpmF2016727@imap1.linux-foundation.org>
+Subject: + mempolicy-create-mempolicy_operations-structure-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 12:55:01 -0800
+Message-ID: <200803072055.m27Kt230016862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759283AbYCGUvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:51:50 -0500
+	by vger.kernel.org with ESMTP id S1757689AbYCGUzP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 15:55:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peifferp@gmail.com, rdunlap@xenotime.net
+Cc: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, pj@sgi.com
 
 
 The patch titled
-     IPC: fix a kernel-doc warning
+     mempolicy-create-mempolicy_operations-structure fix
 has been added to the -mm tree.  Its filename is
-     ipc-consolidate-all-xxxctl_down-functions-fix.patch
+     mempolicy-create-mempolicy_operations-structure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,169 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPC: fix a kernel-doc warning
-From: "Pierre Peiffer" <peifferp@gmail.com>
+Subject: mempolicy-create-mempolicy_operations-structure fix
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-This patch fixes this warning produced by kernel-doc (thanks Randy Dunlap):
+The subject patch causes a regression in the numactl package mempolicy
+regression tests.
 
-Warning(linux-2.6.25-rc3-mm1//ipc/util.c:845):
-No description found for parameter 'extrat_perm'
+I'm using the numactl-1.0.2 package with the patches available at:
 
-It is due to an inconsistency in a variable name between the C-code and
-the associated comment.
+http://free.linux.hp.com/~lts/Patches/Numactl/numactl-1.0.2-patches-080226.tar.gz
 
-Signed-off-by: Pierre Peiffer <peifferp@gmail.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+The numastat and regress patches in that tarball are necessary for
+recent kernels, else the tests will report false failures.
+
+The following patch fixes the regression.
+
+
+
+Specifically this patch fixes problems introduced by the rework of mpol_new()
+in patch 2/4 in the second series.  As a result, we're no longer accepting
+NULL/empty nodemask with MPOL_PREFERRED as "local" allocation.  This breaks
+the numactl regression tests.
+
+"numactl --localalloc" <some command>" fails with invalid argument.
+
+This patch fixes the regression by again treating NULL/empty nodemask with
+MPOL_PREFERRED as "local allocation", and special casing this condition, as
+needed, in mpol_new(), mpol_new_preferred() and mpol_rebind_preferred().
+
+It also appears that the patch series listed above required a non-empty
+nodemask with MPOL_DEFAULT.  However, I didn't test that.  With this
+patch, MPOL_DEFAULT effectively ignores the nodemask--empty or not.
+This is a change in behavior that I have argued against, but the
+regression tests don't test this, so I'm not going to attempt to address
+it with this patch.
+
+Note:  I have no tests to test the 'STATIC_NODES and 'RELATIVE_NODES
+behavior to ensure that this patch doesn't regress those.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    4 ++--
- ipc/util.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |   54 +++++++++++++++++++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 18 deletions(-)
 
-diff -puN ipc/util.c~ipc-consolidate-all-xxxctl_down-functions-fix ipc/util.c
---- a/ipc/util.c~ipc-consolidate-all-xxxctl_down-functions-fix
-+++ a/ipc/util.c
-@@ -841,7 +841,7 @@ void ipc_update_perm(struct ipc64_perm *
-  *    or an err-code without any lock held otherwise.
-  */
- struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
--				      struct ipc64_perm *perm, int extrat_perm)
-+				      struct ipc64_perm *perm, int extra_perm)
+diff -puN mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure-fix
++++ a/mm/mempolicy.c
+@@ -158,9 +158,12 @@ static int mpol_new_interleave(struct me
+ 
+ static int mpol_new_preferred(struct mempolicy *pol, const nodemask_t *nodes)
  {
- 	struct kern_ipc_perm *ipcp;
- 	int err;
-@@ -858,7 +858,7 @@ struct kern_ipc_perm *ipcctl_pre_down(st
- 		goto out_unlock;
+-	if (nodes_empty(*nodes))
+-		return -EINVAL;
+-	pol->v.preferred_node = first_node(*nodes);
++	if (!nodes)
++		pol->v.preferred_node = -1;	/* local allocation */
++	else if (nodes_empty(*nodes))
++		return -EINVAL;			/*  no allowed nodes */
++	else
++		pol->v.preferred_node = first_node(*nodes);
+ 	return 0;
+ }
  
- 	if (cmd == IPC_SET) {
--		err = audit_ipc_set_perm(extrat_perm, perm->uid,
-+		err = audit_ipc_set_perm(extra_perm, perm->uid,
- 					 perm->gid, perm->mode);
- 		if (err)
- 			goto out_unlock;
-diff -puN ipc/util.h~ipc-consolidate-all-xxxctl_down-functions-fix ipc/util.h
---- a/ipc/util.h~ipc-consolidate-all-xxxctl_down-functions-fix
-+++ a/ipc/util.h
-@@ -114,7 +114,7 @@ void kernel_to_ipc64_perm(struct kern_ip
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
- void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
- struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
--				      struct ipc64_perm *perm, int extrat_perm);
-+				      struct ipc64_perm *perm, int extra_perm);
+@@ -178,34 +181,43 @@ static struct mempolicy *mpol_new(unsign
+ {
+ 	struct mempolicy *policy;
+ 	nodemask_t cpuset_context_nmask;
++	int localalloc = 0;
+ 	int ret;
  
- #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
-   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
+ 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
+ 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
+ 
+-	if (nodes && nodes_empty(*nodes) && mode != MPOL_PREFERRED)
+-		return ERR_PTR(-EINVAL);
+ 	if (mode == MPOL_DEFAULT)
+ 		return NULL;
++	if (!nodes || nodes_empty(*nodes)) {
++		if (mode != MPOL_PREFERRED)
++			return ERR_PTR(-EINVAL);
++		localalloc = 1;	/* special case:  no mode flags */
++	}
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!policy)
+ 		return ERR_PTR(-ENOMEM);
+ 	atomic_set(&policy->refcnt, 1);
+-	cpuset_update_task_memory_state();
+-	if (flags & MPOL_F_RELATIVE_NODES)
+-		mpol_relative_nodemask(&cpuset_context_nmask, nodes,
+-				       &cpuset_current_mems_allowed);
+-	else
+-		nodes_and(cpuset_context_nmask, *nodes,
+-			  cpuset_current_mems_allowed);
+ 	policy->policy = mode;
+-	policy->flags = flags;
+-	if (mpol_store_user_nodemask(policy))
+-		policy->w.user_nodemask = *nodes;
+-	else
+-		policy->w.cpuset_mems_allowed = cpuset_mems_allowed(current);
+ 
+-	ret = mpol_ops[mode].create(policy, &cpuset_context_nmask);
++	if (!localalloc) {
++		policy->flags = flags;
++		cpuset_update_task_memory_state();
++		if (flags & MPOL_F_RELATIVE_NODES)
++			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
++					       &cpuset_current_mems_allowed);
++		else
++			nodes_and(cpuset_context_nmask, *nodes,
++				  cpuset_current_mems_allowed);
++		if (mpol_store_user_nodemask(policy))
++			policy->w.user_nodemask = *nodes;
++		else
++			policy->w.cpuset_mems_allowed =
++						cpuset_mems_allowed(current);
++	}
++
++	ret = mpol_ops[mode].create(policy,
++				localalloc ? NULL : &cpuset_context_nmask);
+ 	if (ret < 0) {
+ 		kmem_cache_free(policy_cache, policy);
+ 		return ERR_PTR(ret);
+@@ -247,6 +259,10 @@ static void mpol_rebind_preferred(struct
+ {
+ 	nodemask_t tmp;
+ 
++	/*
++	 * check 'STATIC_NODES first, as preferred_node == -1 may be
++	 * a temporary, "fallback" state for this policy.
++	 */
+ 	if (pol->flags & MPOL_F_STATIC_NODES) {
+ 		int node = first_node(pol->w.user_nodemask);
+ 
+@@ -254,6 +270,8 @@ static void mpol_rebind_preferred(struct
+ 			pol->v.preferred_node = node;
+ 		else
+ 			pol->v.preferred_node = -1;
++	} else if (pol->v.preferred_node == -1) {
++		return;	/* no remap required for explicit local alloc */
+ 	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
+ 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
+ 		pol->v.preferred_node = first_node(tmp);
 _
 
-Patches currently in -mm which might be from peifferp@gmail.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-ipc-consolidate-all-xxxctl_down-functions-fix.patch
+fix-mempolicy-reference-counting-bugs.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
 
