@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-xt_time_match-never-matches-on-sundays.patch added to -mm tree
-Date: Fri, 07 Mar 2008 00:11:51 -0800
-Message-ID: <200803070811.m278BpTp012426@imap1.linux-foundation.org>
+Subject: + keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch added to -mm tree
+Date: Fri, 07 Mar 2008 00:14:24 -0800
+Message-ID: <200803070814.m278EO0A012538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753453AbYCGIMd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:12:33 -0500
+	by vger.kernel.org with ESMTP id S1753700AbYCGIPm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 03:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrex@alumni.utexas.net, kaber@trash.net
+Cc: arunsr@cse.iitk.ac.in, dhowells@redhat.com
 
 
 The patch titled
-     netfilter: xt_time_match() never matches on Sundays
+     keys: allow clients to set key perms in key_create_or_update()
 has been added to the -mm tree.  Its filename is
-     fix-xt_time_match-never-matches-on-sundays.patch
+     keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netfilter: xt_time_match() never matches on Sundays
-From: Andrew Schulman <andrex@alumni.utexas.net>
+Subject: keys: allow clients to set key perms in key_create_or_update()
+From: Arun Raghavan <arunsr@cse.iitk.ac.in>
 
-xt_time_match() in net/netfilter/xt_time.c in kernel 2.6.24 never matches on
-Sundays.  On my host I have a rule like
+The key_create_or_update() function provided by the keyring code has a=20
+default set of permissions that are always applied to the key when=20 created.
+ This might not be desirable to all clients.
 
-    iptables -A OUTPUT -m time --weekdays Sun -j REJECT
+Here's a patch that adds a "perm" parameter to the function to address=20
+this, which can be set to KEY_PERM_UNDEF to revert to the current behavio= ur.
 
-and it never matches.  The problem is in localtime_2(), which uses
-
-    r->weekday = (4 + r->dse) % 7;
-
-to map the epoch day onto a weekday in {0,...,6}.  In particular this gives 0
-for Sundays.  But 0 has to be wrong; a weekday of 0 can never match.
-xt_time_match() has
-
-    if (!(info->weekdays_match & (1 << current_time.weekday)))
-        return false;
-
-and when current_time.weekday = 0, the result of the & is always zero, even when
-info->weekdays_match = XT_TIME_ALL_WEEKDAYS = 0xFE.
-
-The solution is to map Sunday onto 7, not 0.
-
-Cc: Patrick McHardy <kaber@trash.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/xt_time.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/key.h    |    3 +++
+ security/keys/key.c    |   18 ++++++++++--------
+ security/keys/keyctl.c |    3 ++-
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN net/netfilter/xt_time.c~fix-xt_time_match-never-matches-on-sundays net/netfilter/xt_time.c
---- a/net/netfilter/xt_time.c~fix-xt_time_match-never-matches-on-sundays
-+++ a/net/netfilter/xt_time.c
-@@ -97,6 +97,9 @@ static inline void localtime_2(struct xt
+diff -puN include/linux/key.h~keys-allow-clients-to-set-key-perms-in-key_create_or_update include/linux/key.h
+--- a/include/linux/key.h~keys-allow-clients-to-set-key-perms-in-key_create_or_update
++++ a/include/linux/key.h
+@@ -67,6 +67,8 @@ struct key;
+ #define KEY_OTH_SETATTR	0x00000020
+ #define KEY_OTH_ALL	0x0000003f
  
- 	/* 1970-01-01 (w=0) was a Thursday (4). */
- 	r->weekday = (4 + r->dse) % 7;
-+	/* Map Sunday onto 7, not 0. */
-+	if (r->weekday == 0)
-+		r->weekday = 7;
- }
++#define KEY_PERM_UNDEF	0xffffffff
++
+ struct seq_file;
+ struct user_struct;
+ struct signal_struct;
+@@ -232,6 +234,7 @@ extern key_ref_t key_create_or_update(ke
+ 				      const char *description,
+ 				      const void *payload,
+ 				      size_t plen,
++				      key_perm_t perm,
+ 				      unsigned long flags);
  
- static void localtime_3(struct xtm *r, time_t time)
+ extern int key_update(key_ref_t key,
+diff -puN security/keys/key.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update security/keys/key.c
+--- a/security/keys/key.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update
++++ a/security/keys/key.c
+@@ -757,11 +757,11 @@ key_ref_t key_create_or_update(key_ref_t
+ 			       const char *description,
+ 			       const void *payload,
+ 			       size_t plen,
++			       key_perm_t perm,
+ 			       unsigned long flags)
+ {
+ 	struct key_type *ktype;
+ 	struct key *keyring, *key = NULL;
+-	key_perm_t perm;
+ 	key_ref_t key_ref;
+ 	int ret;
+ 
+@@ -806,15 +806,17 @@ key_ref_t key_create_or_update(key_ref_t
+ 			goto found_matching_key;
+ 	}
+ 
+-	/* decide on the permissions we want */
+-	perm = KEY_POS_VIEW | KEY_POS_SEARCH | KEY_POS_LINK | KEY_POS_SETATTR;
+-	perm |= KEY_USR_VIEW | KEY_USR_SEARCH | KEY_USR_LINK | KEY_USR_SETATTR;
++	/* if the client doesn't provide, decide on the permissions we want */
++	if (perm == KEY_PERM_UNDEF) {
++		perm = KEY_POS_VIEW | KEY_POS_SEARCH | KEY_POS_LINK | KEY_POS_SETATTR;
++		perm |= KEY_USR_VIEW | KEY_USR_SEARCH | KEY_USR_LINK | KEY_USR_SETATTR;
+ 
+-	if (ktype->read)
+-		perm |= KEY_POS_READ | KEY_USR_READ;
++		if (ktype->read)
++			perm |= KEY_POS_READ | KEY_USR_READ;
+ 
+-	if (ktype == &key_type_keyring || ktype->update)
+-		perm |= KEY_USR_WRITE;
++		if (ktype == &key_type_keyring || ktype->update)
++			perm |= KEY_USR_WRITE;
++	}
+ 
+ 	/* allocate a new key */
+ 	key = key_alloc(ktype, description, current->fsuid, current->fsgid,
+diff -puN security/keys/keyctl.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update security/keys/keyctl.c
+--- a/security/keys/keyctl.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update
++++ a/security/keys/keyctl.c
+@@ -112,7 +112,8 @@ asmlinkage long sys_add_key(const char _
+ 	/* create or update the requested key and add it to the target
+ 	 * keyring */
+ 	key_ref = key_create_or_update(keyring_ref, type, description,
+-				       payload, plen, KEY_ALLOC_IN_QUOTA);
++				       payload, plen, KEY_PERM_UNDEF,
++				       KEY_ALLOC_IN_QUOTA);
+ 	if (!IS_ERR(key_ref)) {
+ 		ret = key_ref_to_ptr(key_ref)->serial;
+ 		key_ref_put(key_ref);
 _
 
-Patches currently in -mm which might be from andrex@alumni.utexas.net are
+Patches currently in -mm which might be from arunsr@cse.iitk.ac.in are
 
-fix-xt_time_match-never-matches-on-sundays.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
 
