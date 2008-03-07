@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_sig_info-dont-take-tasklist_lock.patch added to -mm tree
-Date: Fri, 07 Mar 2008 03:14:22 -0800
-Message-ID: <200803071114.m27BEMgG019240@imap1.linux-foundation.org>
+Subject: + signals-do_tkill-dont-use-tasklist_lock-comment.patch added to -mm tree
+Date: Fri, 07 Mar 2008 03:14:45 -0800
+Message-ID: <200803071114.m27BEjx2019248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757359AbYCGLPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 06:15:53 -0500
+	by vger.kernel.org with ESMTP id S1757239AbYCGLQK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 06:16:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: oleg@tv-sign.ru, hch@lst.de, roland@redhat.com
 
 
 The patch titled
-     signals: send_sig_info: don't take tasklist_lock
+     signals-do_tkill-dont-use-tasklist_lock-comment
 has been added to the -mm tree.  Its filename is
-     signals-send_sig_info-dont-take-tasklist_lock.patch
+     signals-do_tkill-dont-use-tasklist_lock-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_sig_info: don't take tasklist_lock
+Subject: signals-do_tkill-dont-use-tasklist_lock-comment
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The comment in send_sig_info() is wrong, tasklist_lock can't help.
-
-The caller must ensure the task can't go away, otherwise ->sighand can be NULL
-even before we take the lock.
-
-p->sighand could be changed by exec(), but I can't imagine how it is possible
-to prevent exit(), but not exec().
-
-Since the things seem to work, I assume all callers are correct.  However,
-drm_vbl_send_signals() looks broken.  block_all_signals() which is solely used
-by drm is definitely broken.
+On 03/07, Christoph Hellwig wrote:
+>
+> On Fri, Mar 07, 2008 at 12:58:13PM +0300, Oleg Nesterov wrote:
+> > Note that we don't return an error if lock_task_sighand() fails, we pretend the
+> > task dies after receiving the signal. Otherwise, we should fight with the nasty
+> > races with mt-exec without having any advantage.
+>
+> This should be mentioned in a comment in the code.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ kernel/signal.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/signal.c~signals-send_sig_info-dont-take-tasklist_lock kernel/signal.c
---- a/kernel/signal.c~signals-send_sig_info-dont-take-tasklist_lock
+diff -puN kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock-comment kernel/signal.c
+--- a/kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock-comment
 +++ a/kernel/signal.c
-@@ -1138,8 +1138,7 @@ static int kill_something_info(int sig, 
-  */
- 
- /*
-- * These two are the most common entry points.  They send a signal
-- * just to the specific thread.
-+ * The caller must ensure the task can't exit.
-  */
- int
- send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
-@@ -1154,17 +1153,9 @@ send_sig_info(int sig, struct siginfo *i
- 	if (!valid_signal(sig))
- 		return -EINVAL;
- 
--	/*
--	 * We need the tasklist lock even for the specific
--	 * thread case (when we don't need to follow the group
--	 * lists) in order to avoid races with "p->sighand"
--	 * going away or changing from under us.
--	 */
--	read_lock(&tasklist_lock);  
- 	spin_lock_irqsave(&p->sighand->siglock, flags);
- 	ret = specific_send_sig_info(sig, info, p);
- 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
--	read_unlock(&tasklist_lock);
- 	return ret;
- }
- 
+@@ -2222,6 +2222,10 @@ static int do_tkill(int tgid, int pid, i
+ 		/*
+ 		 * The null signal is a permissions and process existence
+ 		 * probe.  No signal is actually delivered.
++		 *
++		 * If lock_task_sighand() fails we pretend the task dies
++		 * after receiving the signal. The window is tiny, and the
++		 * signal is private anyway.
+ 		 */
+ 		if (!error && sig && lock_task_sighand(p, &flags)) {
+ 			error = specific_send_sig_info(sig, &info, p);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
