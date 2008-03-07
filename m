@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch added to -mm tree
-Date: Fri, 07 Mar 2008 15:35:30 -0800
-Message-ID: <200803072345.m27Nj0MC023270@imap1.linux-foundation.org>
+Subject: + git-kgdb-light-kconfig-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 15:51:16 -0800
+Message-ID: <200803080000.m2800kq3023930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51380 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370AbYCGXqC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 18:46:02 -0500
+	by vger.kernel.org with ESMTP id S1752148AbYCHABJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, isely@pobox.com, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com, mingo@elte.hu
 
 
 The patch titled
-     drivers/media/video/pvrusb2/pvrusb2-sysfs.c: fix printk warnings
+     git-kgdb-light-kconfig-fix
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+     git-kgdb-light-kconfig-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/pvrusb2/pvrusb2-sysfs.c: fix printk warnings
+Subject: git-kgdb-light-kconfig-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/pvrusb2/pvrusb2-sysfs.c: In function 'store_val_norm':
-drivers/media/video/pvrusb2/pvrusb2-sysfs.c:290: warning: field precision should have type 'int', but argument 4 has type 'size_t'
-drivers/media/video/pvrusb2/pvrusb2-sysfs.c: In function 'store_val_custom':
-drivers/media/video/pvrusb2/pvrusb2-sysfs.c:303: warning: field precision should have type 'int', but argument 4 has type 'size_t'
+ERROR: "uart_set_options" [drivers/serial/serial_core.ko] undefined!
+ERROR: "uart_parse_options" [drivers/serial/serial_core.ko] undefined!
 
-Also attempt to repair coding-style.  Please always use checkpatch - it is
-quite simple.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Mike Isely <isely@pobox.com>
-
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/serial/serial_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -288,9 +288,10 @@ static ssize_t store_val_norm(int id,str
- 	int ret;
- 	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
- 	pvr2_sysfs_trace("pvr2_sysfs(%p) store_val_norm(cid=%d) \"%.*s\"",
--			 sfp,id,count,buf);
--	ret = store_val_any(id,0,sfp,buf,count);
--	if (!ret) ret = count;
-+			 sfp, id, (int)count, buf);
-+	ret = store_val_any(id, 0, sfp, buf, count);
-+	if (!ret)
-+		ret = count;
- 	return ret;
+diff -puN drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix
++++ a/drivers/serial/serial_core.c
+@@ -1780,7 +1780,7 @@ static int uart_read_proc(char *page, ch
  }
+ #endif
  
-@@ -301,9 +302,10 @@ static ssize_t store_val_custom(int id,s
- 	int ret;
- 	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
- 	pvr2_sysfs_trace("pvr2_sysfs(%p) store_val_custom(cid=%d) \"%.*s\"",
--			 sfp,id,count,buf);
--	ret = store_val_any(id,1,sfp,buf,count);
--	if (!ret) ret = count;
-+			 sfp, id, (int)count, buf);
-+	ret = store_val_any(id, 1, sfp, buf, count);
-+	if (!ret)
-+		ret = count;
- 	return ret;
- }
- 
+-#ifdef CONFIG_SERIAL_CORE_CONSOLE
++#if defined(CONFIG_SERIAL_CORE_CONSOLE) || defined(CONFIG_CONSOLE_POLL)
+ /*
+  *	uart_console_write - write a console message to a serial port
+  *	@port: the port to write the message
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +80,7 @@ driver-core-debug-for-bad-dev_attr_show-return-value.patch
 git-drm.patch
 git-dvb.patch
 usb-video-add-a-device-link-to-usbvideo-devices-else-hal-will-ignore-them-checkpatch-fixes.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 oz99x-i2c-button-and-led-support-driver.patch
 git-hwmon.patch
 git-hrt.patch
@@ -188,5 +164,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-kgdb-light-kconfig-fix.patch
 
