@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-consumer-interface-fix.patch added to -mm tree
-Date: Fri, 07 Mar 2008 16:12:38 -0800
-Message-ID: <200803080022.m280M7xQ024725@imap1.linux-foundation.org>
+Subject: + regulator-regulator-driver-interface-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 16:12:40 -0800
+Message-ID: <200803080022.m280M9l0024728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755040AbYCHAWN (ORCPT
+	by vger.kernel.org with ESMTP id S1755305AbYCHAWN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, lg@opensourc
 
 
 The patch titled
-     regulator-consumer-interface-fix
+     regulator-regulator-driver-interface-fix
 has been added to the -mm tree.  Its filename is
-     regulator-consumer-interface-fix.patch
+     regulator-regulator-driver-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator-consumer-interface-fix
+Subject: regulator-regulator-driver-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
@@ -47,30 +47,21 @@ Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/regulator.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/regulator/regulator-drv.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/regulator/regulator.h~regulator-consumer-interface-fix include/linux/regulator/regulator.h
---- a/include/linux/regulator/regulator.h~regulator-consumer-interface-fix
-+++ a/include/linux/regulator/regulator.h
-@@ -142,7 +142,7 @@ int regulator_is_enabled(struct regulato
- int regulator_set_voltage(struct regulator *regulator, int uV);
- int regulator_get_voltage(struct regulator *regulator);
- int regulator_set_current(struct regulator *regulator, int uA);
--int regulator_get_current(struct regulator *regulator);
-+int regulator_read_current(struct regulator *regulator);
+diff -puN include/linux/regulator/regulator-drv.h~regulator-regulator-driver-interface-fix include/linux/regulator/regulator-drv.h
+--- a/include/linux/regulator/regulator-drv.h~regulator-regulator-driver-interface-fix
++++ a/include/linux/regulator/regulator-drv.h
+@@ -34,7 +34,7 @@ struct regulator_ops {
  
- int regulator_set_mode(struct regulator *regulator, unsigned int mode);
- unsigned int regulator_get_mode(struct regulator *regulator);
-@@ -208,7 +208,7 @@ static inline int regulator_set_current(
- 	return 0;
- }
+ 	/* get/set regulator current  */
+ 	int (*set_current) (struct regulator_cdev *, int uA);
+-	int (*get_current) (struct regulator_cdev *);
++	int (*read_current) (struct regulator_cdev *);
  
--static inline int regulator_get_current(struct regulator *regulator)
-+static inline int regulator_read_current(struct regulator *regulator)
- {
- 	return 0;
- }
+ 	/* enable/disable regulator */
+ 	int (*enable) (struct regulator_cdev *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
