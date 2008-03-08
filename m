@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-light-kconfig-fix.patch added to -mm tree
-Date: Fri, 07 Mar 2008 15:51:16 -0800
-Message-ID: <200803080000.m2800kq3023930@imap1.linux-foundation.org>
+Subject: + regulator-consumer-interface-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 16:12:38 -0800
+Message-ID: <200803080022.m280M7xQ024725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbYCHABJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:01:09 -0500
+	by vger.kernel.org with ESMTP id S1755040AbYCHAWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, lg@opensource.wolfsonmicro.com
 
 
 The patch titled
-     git-kgdb-light-kconfig-fix
+     regulator-consumer-interface-fix
 has been added to the -mm tree.  Its filename is
-     git-kgdb-light-kconfig-fix.patch
+     regulator-consumer-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-kgdb-light-kconfig-fix
+Subject: regulator-consumer-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "uart_set_options" [drivers/serial/serial_core.ko] undefined!
-ERROR: "uart_parse_options" [drivers/serial/serial_core.ko] undefined!
+alpha:
 
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/regulator/reg-core.c:857:43: error: macro "get_current" passed 1 arguments, but takes just 0
+drivers/regulator/reg-core.c: In function '_regulator_get_current':
+drivers/regulator/reg-core.c:857: warning: assignment makes integer from pointer without a cast
+
+Cc: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/regulator/regulator.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix
-+++ a/drivers/serial/serial_core.c
-@@ -1780,7 +1780,7 @@ static int uart_read_proc(char *page, ch
- }
- #endif
+diff -puN include/linux/regulator/regulator.h~regulator-consumer-interface-fix include/linux/regulator/regulator.h
+--- a/include/linux/regulator/regulator.h~regulator-consumer-interface-fix
++++ a/include/linux/regulator/regulator.h
+@@ -142,7 +142,7 @@ int regulator_is_enabled(struct regulato
+ int regulator_set_voltage(struct regulator *regulator, int uV);
+ int regulator_get_voltage(struct regulator *regulator);
+ int regulator_set_current(struct regulator *regulator, int uA);
+-int regulator_get_current(struct regulator *regulator);
++int regulator_read_current(struct regulator *regulator);
  
--#ifdef CONFIG_SERIAL_CORE_CONSOLE
-+#if defined(CONFIG_SERIAL_CORE_CONSOLE) || defined(CONFIG_CONSOLE_POLL)
- /*
-  *	uart_console_write - write a console message to a serial port
-  *	@port: the port to write the message
+ int regulator_set_mode(struct regulator *regulator, unsigned int mode);
+ unsigned int regulator_get_mode(struct regulator *regulator);
+@@ -208,7 +208,7 @@ static inline int regulator_set_current(
+ 	return 0;
+ }
+ 
+-static inline int regulator_get_current(struct regulator *regulator)
++static inline int regulator_read_current(struct regulator *regulator)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +80,7 @@ poweroff-workaround.patch
 rename-declare_pci_device_table-to-define_pci_device_table.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light-kconfig-fix.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa.patch
@@ -151,6 +164,9 @@ procfs-task-exe-symlink-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 basic-braille-screen-reader-support-ppc-fix.patch
+regulator-consumer-interface-fix.patch
+regulator-regulator-driver-interface-fix.patch
+regulator-framework-core-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -164,5 +180,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-kgdb-light-kconfig-fix.patch
 
