@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-regulator-driver-interface-fix.patch added to -mm tree
-Date: Fri, 07 Mar 2008 16:12:40 -0800
-Message-ID: <200803080022.m280M9l0024728@imap1.linux-foundation.org>
+Subject: + regulator-framework-core-fix.patch added to -mm tree
+Date: Fri, 07 Mar 2008 16:12:44 -0800
+Message-ID: <200803080022.m280MDv6024736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755305AbYCHAWN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:22:13 -0500
+	by vger.kernel.org with ESMTP id S1755400AbYCHAWS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:22:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, lg@opensourc
 
 
 The patch titled
-     regulator-regulator-driver-interface-fix
+     regulator-framework-core-fix
 has been added to the -mm tree.  Its filename is
-     regulator-regulator-driver-interface-fix.patch
+     regulator-framework-core-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator-regulator-driver-interface-fix
+Subject: regulator-framework-core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
@@ -47,21 +47,76 @@ Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/regulator-drv.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/regulator/reg-core.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/regulator/regulator-drv.h~regulator-regulator-driver-interface-fix include/linux/regulator/regulator-drv.h
---- a/include/linux/regulator/regulator-drv.h~regulator-regulator-driver-interface-fix
-+++ a/include/linux/regulator/regulator-drv.h
-@@ -34,7 +34,7 @@ struct regulator_ops {
+diff -puN drivers/regulator/reg-core.c~regulator-framework-core-fix drivers/regulator/reg-core.c
+--- a/drivers/regulator/reg-core.c~regulator-framework-core-fix
++++ a/drivers/regulator/reg-core.c
+@@ -70,7 +70,7 @@ struct regulator {
+ static int _regulator_is_enabled(struct regulator_cdev *rcdev);
+ static int _regulator_disable(struct regulator_cdev *rcdev);
+ static int _regulator_get_voltage(struct regulator_cdev *rcdev);
+-static int _regulator_get_current(struct regulator_cdev *rcdev);
++static int _regulator_read_current(struct regulator_cdev *rcdev);
+ static unsigned int _regulator_get_mode(struct regulator_cdev *rcdev);
  
- 	/* get/set regulator current  */
- 	int (*set_current) (struct regulator_cdev *, int uA);
--	int (*get_current) (struct regulator_cdev *);
-+	int (*read_current) (struct regulator_cdev *);
+ /* gets the regulator for a given consumer device */
+@@ -198,7 +198,7 @@ static ssize_t regulator_uA_show(struct 
+ {
+ 	struct regulator_cdev *rcdev = to_rcdev(cdev);
  
- 	/* enable/disable regulator */
- 	int (*enable) (struct regulator_cdev *);
+-	return sprintf(buf, "%d\n", _regulator_get_current(rcdev));
++	return sprintf(buf, "%d\n", _regulator_read_current(rcdev));
+ }
+ 
+ static ssize_t regulator_opmode_show(struct class_device *cdev, char *buf)
+@@ -842,26 +842,26 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(regulator_set_current);
+ 
+-static int _regulator_get_current(struct regulator_cdev *rcdev)
++static int _regulator_read_current(struct regulator_cdev *rcdev)
+ {
+ 	int ret;
+ 
+ 	mutex_lock(&rcdev->mutex);
+ 
+ 	/* sanity check */
+-	if (!rcdev->desc->ops->get_current) {
++	if (!rcdev->desc->ops->read_current) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	ret = rcdev->desc->ops->get_current(rcdev);
++	ret = rcdev->desc->ops->read_current(rcdev);
+ out:
+ 	mutex_unlock(&rcdev->mutex);
+ 	return ret;
+ }
+ 
+ /**
+- * regulator_get_current - get regulator output current
++ * regulator_read_current - get regulator output current
+  * @regulator: regulator source
+  *
+  * This returns the current supplied by the specified current sink in uA.
+@@ -869,11 +869,11 @@ out:
+  * NOTE: If the regulator is disabled it will return the current value. This
+  * function should not be used to determine regulator state.
+  */
+-int regulator_get_current(struct regulator *regulator)
++int regulator_read_current(struct regulator *regulator)
+ {
+-	return _regulator_get_current(regulator->rcdev);
++	return _regulator_read_current(regulator->rcdev);
+ }
+-EXPORT_SYMBOL_GPL(regulator_get_current);
++EXPORT_SYMBOL_GPL(regulator_read_current);
+ 
+ /**
+  * regulator_set_mode - set regulator operating mode
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
