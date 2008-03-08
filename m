@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch added to -mm tree
-Date: Sat, 08 Mar 2008 00:26:36 -0800
-Message-ID: <200803080826.m288QaDr008245@imap1.linux-foundation.org>
+Subject: + revert-dcdbas-add-dmi-based-module-autloading.patch added to -mm tree
+Date: Sat, 08 Mar 2008 00:58:47 -0800
+Message-ID: <200803080858.m288wlQv009218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753321AbYCHI1E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 8 Mar 2008 03:27:04 -0500
+	by vger.kernel.org with ESMTP id S1750870AbYCHI7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 8 Mar 2008 03:59:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ghaskins@novell.com, mingo@elte.hu, suresh.b.siddha@intel.com
+Cc: mingo@elte.hu, Matt_Domsch@dell.com, frank@tuxrocks.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     cpu hotplug: adjust root-domain->online span in response to hotplug event
+     revert "dcdbas: add DMI-based module autloading"
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch
+     revert-dcdbas-add-dmi-based-module-autloading.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu hotplug: adjust root-domain->online span in response to hotplug event
-From: Gregory Haskins <ghaskins@novell.com>
+Subject: revert "dcdbas: add DMI-based module autloading"
+From: Ingo Molnar <mingo@elte.hu>
 
-We currently set the root-domain online span automatically when the domain is
-added to the cpu if the cpu is already a member of cpu_online_map.  This was
-done as a hack/bug-fix for s2ram, but it also causes a problem with hotplug
-CPU_DOWN transitioning.  The right way to fix the original problem is to
-actually respond to CPU_UP events, instead of CPU_ONLINE, which is already too
-late.
+Frank Sorenson reported that 2.6.25-rc OOMs on his box and
+tracked it down to commit 8f47f0b688bba7642dac4e979896e4692177670b,
+"dcdbas: add DMI-based module autloading". Frank says:
 
-Signed-off-by: Gregory Haskins <ghaskins@novell.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+> What actually happens is that when udev loads the dcdbas module at
+> startup, modprobe apparently calls "modprobe dcdbas" itself, repeating
+> until the system runs out of resources (in this case, it OOMs).
+
+revert the commit.
+
+Bisected-by: Frank Sorenson <frank@tuxrocks.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/firmware/dcdbas.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event kernel/sched.c
---- a/kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event
-+++ a/kernel/sched.c
-@@ -5890,6 +5890,13 @@ migration_call(struct notifier_block *nf
- 		/* Must be high prio: stop_machine expects to yield to it. */
- 		rq = task_rq_lock(p, &flags);
- 		__setscheduler(rq, p, SCHED_FIFO, MAX_RT_PRIO-1);
+diff -puN drivers/firmware/dcdbas.c~revert-dcdbas-add-dmi-based-module-autloading drivers/firmware/dcdbas.c
+--- a/drivers/firmware/dcdbas.c~revert-dcdbas-add-dmi-based-module-autloading
++++ a/drivers/firmware/dcdbas.c
+@@ -658,5 +658,4 @@ MODULE_DESCRIPTION(DRIVER_DESCRIPTION " 
+ MODULE_VERSION(DRIVER_VERSION);
+ MODULE_AUTHOR("Dell Inc.");
+ MODULE_LICENSE("GPL");
+-/* Any System or BIOS claiming to be by Dell */
+-MODULE_ALIAS("dmi:*:[bs]vnD[Ee][Ll][Ll]*:*");
 +
-+		/* Update our root-domain */
-+		if (rq->rd) {
-+			BUG_ON(!cpu_isset(cpu, rq->rd->span));
-+			cpu_set(cpu, rq->rd->online);
-+		}
-+
- 		task_rq_unlock(rq, &flags);
- 		cpu_rq(cpu)->migration_thread = p;
- 		break;
-@@ -5898,15 +5905,6 @@ migration_call(struct notifier_block *nf
- 	case CPU_ONLINE_FROZEN:
- 		/* Strictly unnecessary, as first user will wake it. */
- 		wake_up_process(cpu_rq(cpu)->migration_thread);
--
--		/* Update our root-domain */
--		rq = cpu_rq(cpu);
--		spin_lock_irqsave(&rq->lock, flags);
--		if (rq->rd) {
--			BUG_ON(!cpu_isset(cpu, rq->rd->span));
--			cpu_set(cpu, rq->rd->online);
--		}
--		spin_unlock_irqrestore(&rq->lock, flags);
- 		break;
- 
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -6182,8 +6180,6 @@ static void rq_attach_root(struct rq *rq
- 	rq->rd = rd;
- 
- 	cpu_set(rq->cpu, rd->span);
--	if (cpu_isset(rq->cpu, cpu_online_map))
--		cpu_set(rq->cpu, rd->online);
- 
- 	for (class = sched_class_highest; class; class = class->next) {
- 		if (class->join_domain)
 _
 
-Patches currently in -mm which might be from ghaskins@novell.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
+origin.patch
+poweroff-workaround.patch
+typo-in-documentation-scheduler-sched-statstxt.patch
+alpha-fix-iommu-related-boot-panic.patch
+revert-dcdbas-add-dmi-based-module-autloading.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+documentation-i386-io-apictxt-fix-description.patch
+add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
+git-kgdb-light.patch
+git-kgdb-light-kconfig-fix.patch
+git-acpi-fixup.patch
+git-hrt.patch
 git-kvm.patch
+git-sched.patch
+execute-tasklets-in-the-same-order-they-were-queued.patch
+git-semaphore.patch
+git-semaphore-git-rejects.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+rcu-move-preempt_rcu-config-option-back-under-preempt.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+x86-fix-clearcopy_user_page-declarations-in-pageh.patch
+x86-visws-fix-printk-format-warnings.patch
 cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch
+time-prevent-the-loop-in-timespec_add_ns-from-being-optimised-away.patch
+time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
+taint-kernel-after-warn_oncondition.patch
+add-rusage_thread.patch
+proper-__do_softirq-prototype.patch
+proper-extern-for-late_time_init.patch
+x86-configurable-dmi-scanning-code.patch
+cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
+cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+asm-futexh-should-include-linux-uaccessh.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
 
