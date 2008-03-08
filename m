@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-build-fix.patch added to -mm tree
-Date: Fri, 07 Mar 2008 16:44:07 -0800
-Message-ID: <200803080053.m280ra1e025769@imap1.linux-foundation.org>
+Subject: + git-mips-wtf.patch added to -mm tree
+Date: Fri, 07 Mar 2008 16:46:32 -0800
+Message-ID: <200803080056.m280u1Cn025820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52296 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59397 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751541AbYCHAxq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:53:46 -0500
+	by vger.kernel.org with ESMTP id S1753760AbYCHA4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Mar 2008 19:56:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-mips build fix
+     git-mips-wtf
 has been added to the -mm tree.  Its filename is
-     git-mips-build-fix.patch
+     git-mips-wtf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-mips build fix
+Subject: git-mips-wtf
 From: Andrew Morton <akpm@linux-foundation.org>
-
-In file included from arch/mips/kernel/irq-gic.c:7:
-include/asm/gic.h:481: error: syntax error before "gic_intr_map_t"
-include/asm/gic.h:482: warning: function declaration isn't a prototype
 
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/gic.h |    2 +-
+ arch/mips/kernel/traps.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-mips/gic.h~git-mips-build-fix include/asm-mips/gic.h
---- a/include/asm-mips/gic.h~git-mips-build-fix
-+++ a/include/asm-mips/gic.h
-@@ -478,7 +478,7 @@ struct gic_intr_map {
- };
+diff -puN arch/mips/kernel/traps.c~git-mips-wtf arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~git-mips-wtf
++++ a/arch/mips/kernel/traps.c
+@@ -328,7 +328,7 @@ void show_registers(const struct pt_regs
+ 	if (cpu_has_userlocal) {
+ 		unsigned long tls;
  
- extern void gic_init(unsigned long gic_base_addr,
--	unsigned long gic_addrspace_size, gic_intr_map_t *intrmap,
-+	unsigned long gic_addrspace_size, struct gic_intr_map *intrmap,
- 	unsigned int intrmap_size, unsigned int irqbase);
- 
- extern unsigned int gic_get_int(void);
+-		tls = read_c0_userlocal());
++		tls = read_c0_userlocal();
+ 		if (tls != current_thread_info()->tp_value)
+ 			printk("*HwTLS: %0*lx\n", field, tls);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +85,8 @@ git-ieee1394.patch
 drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 maple-add-driver-for-sega-dreamcast-controller-update-checkpatch-fixes.patch
 git-kvm.patch
+git-mips-build-fix.patch
+git-mips-wtf.patch
 git-net.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
@@ -168,5 +166,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-git-mips-build-fix.patch
 
