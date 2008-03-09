@@ -1,102 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - revert-dcdbas-add-dmi-based-module-autloading.patch removed from -mm tree
-Date: Sat, 08 Mar 2008 11:02:56 -0800
-Message-ID: <200803081902.m28J2v5f029879@imap1.linux-foundation.org>
+Subject: + alpha-fix-iommu-related-boot-panic.patch added to -mm tree
+Date: Sun, 09 Mar 2008 11:51:33 -0700
+Message-ID: <200803091851.m29IpYrv013090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756786AbYCHTEO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 8 Mar 2008 14:04:14 -0500
+	by vger.kernel.org with ESMTP id S1750967AbYCISwA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Mar 2008 14:52:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, Matt_Domsch@dell.com, frank@tuxrocks.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ink@jurassic.park.msu.ru, mingo@elte.hu, rct@frus.com, rth@twiddle.net, tomof@acm.org
 
 
 The patch titled
-     revert "dcdbas: add DMI-based module autloading"
-has been removed from the -mm tree.  Its filename was
-     revert-dcdbas-add-dmi-based-module-autloading.patch
+     alpha: fix iommu-related boot panic
+has been added to the -mm tree.  Its filename is
+     alpha-fix-iommu-related-boot-panic.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "dcdbas: add DMI-based module autloading"
-From: Ingo Molnar <mingo@elte.hu>
+Subject: alpha: fix iommu-related boot panic
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Frank Sorenson reported that 2.6.25-rc OOMs on his box and
-tracked it down to commit 8f47f0b688bba7642dac4e979896e4692177670b,
-"dcdbas: add DMI-based module autloading". Frank says:
+Fix boot panic due to a typo in the recent iommu patchset from FUJITA Tomonori
+<tomof@acm.org> - dma_get_max_seg_size() instead of dma_get_seg_boundary(). 
+This also removes a couple of unnecessary BUG_ON() and ALIGN() macros.
 
-> What actually happens is that when udev loads the dcdbas module at
-> startup, modprobe apparently calls "modprobe dcdbas" itself, repeating
-> until the system runs out of resources (in this case, it OOMs).
-
-revert the commit.
-
-Bisected-by: Frank Sorenson <frank@tuxrocks.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Reported-by: Bob Tracy <rct@frus.com>
+Tested-by: Bob Tracy <rct@frus.com>
+Acked-by: FUJITA Tomonori <tomof@acm.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dcdbas.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/alpha/kernel/pci_iommu.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/firmware/dcdbas.c~revert-dcdbas-add-dmi-based-module-autloading drivers/firmware/dcdbas.c
---- a/drivers/firmware/dcdbas.c~revert-dcdbas-add-dmi-based-module-autloading
-+++ a/drivers/firmware/dcdbas.c
-@@ -658,5 +658,4 @@ MODULE_DESCRIPTION(DRIVER_DESCRIPTION " 
- MODULE_VERSION(DRIVER_VERSION);
- MODULE_AUTHOR("Dell Inc.");
- MODULE_LICENSE("GPL");
--/* Any System or BIOS claiming to be by Dell */
--MODULE_ALIAS("dmi:*:[bs]vnD[Ee][Ll][Ll]*:*");
-+
-_
-
-Patches currently in -mm which might be from mingo@elte.hu are
-
-origin.patch
-poweroff-workaround.patch
-typo-in-documentation-scheduler-sched-statstxt.patch
-alpha-fix-iommu-related-boot-panic.patch
-revert-dcdbas-add-dmi-based-module-autloading.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-documentation-i386-io-apictxt-fix-description.patch
-add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
-git-kgdb-light.patch
-git-kgdb-light-kconfig-fix.patch
-git-acpi-fixup.patch
-git-hrt.patch
-git-kvm.patch
-git-sched.patch
-execute-tasklets-in-the-same-order-they-were-queued.patch
-git-semaphore.patch
-git-semaphore-git-rejects.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-rcu-move-preempt_rcu-config-option-back-under-preempt.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-x86-fix-clearcopy_user_page-declarations-in-pageh.patch
-x86-visws-fix-printk-format-warnings.patch
-cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch
-time-prevent-the-loop-in-timespec_add_ns-from-being-optimised-away.patch
-time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
-taint-kernel-after-warn_oncondition.patch
-add-rusage_thread.patch
-proper-__do_softirq-prototype.patch
-proper-extern-for-late_time_init.patch
-x86-configurable-dmi-scanning-code.patch
-cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
-cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-asm-futexh-should-include-linux-uaccessh.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -144,15 +144,14 @@ iommu_arena_find_pages(struct device *de
+ 	unsigned long base;
+ 	unsigned long boundary_size;
+ 
+-	BUG_ON(arena->dma_base & ~PAGE_MASK);
+ 	base = arena->dma_base >> PAGE_SHIFT;
+-	if (dev)
+-		boundary_size = ALIGN(dma_get_max_seg_size(dev) + 1, PAGE_SIZE)
+-			>> PAGE_SHIFT;
+-	else
+-		boundary_size = ALIGN(1UL << 32, PAGE_SIZE) >> PAGE_SHIFT;
