@@ -1,59 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-iommu-related-boot-panic.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:14 -0700
-Message-ID: <200803101805.m2AI5EI0030053@imap1.linux-foundation.org>
+Subject: - time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:44 -0700
+Message-ID: <200803101805.m2AI5i5v030127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbYCJSGU (ORCPT
+	by vger.kernel.org with ESMTP id S1754400AbYCJSHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:06:20 -0400
+	Mon, 10 Mar 2008 14:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, mingo@elte.hu, rct@frus.com, rth@twiddle.net, tomof@acm.org, mm-commits@vger.kernel.org
+To: fzu@wemgehoertderstaat.de, mingo@elte.hu, paulmck@us.ibm.com, rjw@sisk.pl, rostedt@goodmis.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix iommu-related boot panic
+     time: don't touch an offlined CPU's ts->tick_stopped in tick_cancel_sched_timer()
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-iommu-related-boot-panic.patch
+     time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix iommu-related boot panic
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: time: don't touch an offlined CPU's ts->tick_stopped in tick_cancel_sched_timer()
+From: Karsten Wiese <fzu@wemgehoertderstaat.de>
 
-Fix boot panic due to a typo in the recent iommu patchset from FUJITA Tomonori
-<tomof@acm.org> - dma_get_max_seg_size() instead of dma_get_seg_boundary(). 
-This also removes a couple of unnecessary BUG_ON() and ALIGN() macros.
+Silences WARN_ONs in rcu_enter_nohz() and rcu_exit_nohz(), which appeared
+before caused by (repeated) calls to:
+        $ echo 0 > /sys/devices/system/cpu/cpu1/online
+        $ echo 1 > /sys/devices/system/cpu/cpu1/online
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Reported-by: Bob Tracy <rct@frus.com>
-Tested-by: Bob Tracy <rct@frus.com>
-Acked-by: FUJITA Tomonori <tomof@acm.org>
+Signed-off-by: Karsten Wiese <fzu@wemgehoertderstaat.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Rafael Wysocki <rjw@sisk.pl>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci_iommu.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ kernel/time/tick-sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -144,15 +144,14 @@ iommu_arena_find_pages(struct device *de
- 	unsigned long base;
- 	unsigned long boundary_size;
+diff -puN kernel/time/tick-sched.c~time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-dont-touch-an-offlined-cpus-ts-tick_stopped-in-tick_cancel_sched_timer
++++ a/kernel/time/tick-sched.c
+@@ -633,7 +633,7 @@ void tick_cancel_sched_timer(int cpu)
  
--	BUG_ON(arena->dma_base & ~PAGE_MASK);
- 	base = arena->dma_base >> PAGE_SHIFT;
--	if (dev)
--		boundary_size = ALIGN(dma_get_max_seg_size(dev) + 1, PAGE_SIZE)
--			>> PAGE_SHIFT;
--	else
--		boundary_size = ALIGN(1UL << 32, PAGE_SIZE) >> PAGE_SHIFT;
+ 	if (ts->sched_timer.base)
+ 		hrtimer_cancel(&ts->sched_timer);
+-	ts->tick_stopped = 0;
++
+ 	ts->nohz_mode = NOHZ_MODE_INACTIVE;
+ }
+ #endif /* HIGH_RES_TIMERS */
+_
+
+Patches currently in -mm which might be from fzu@wemgehoertderstaat.de are
+
+git-hrt.patch
+
