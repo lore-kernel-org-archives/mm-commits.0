@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:46:53 -0700
-Message-ID: <200803102046.m2AKkr13004746@imap1.linux-foundation.org>
+Subject: + sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:47:44 -0700
+Message-ID: <200803102047.m2AKli5X004771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47578 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750874AbYCJUsR (ORCPT
+	by vger.kernel.org with ESMTP id S1750874AbYCJUtH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:48:17 -0400
+	Mon, 10 Mar 2008 16:49:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, lwoodman@redhat.com, mingo@elte.hu, riel@redhat.c
 
 
 The patch titled
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
+     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
 has been added to the -mm tree.  Its filename is
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
+Subject: sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: printk() should include KERN_ facility level
-#53: FILE: drivers/char/sysrq.c:210:
-+	printk("CPU%d:\n", smp_processor_id());
-
-WARNING: printk() should include KERN_ facility level
-#67: FILE: drivers/char/sysrq.c:224:
-+		printk("CPU%d:\n", smp_processor_id());
-
-total: 0 errors, 2 warnings, 63 lines checked
-
-./patches/sysrq-add-show-backtrace-on-all-cpus-function.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+be conventional about code layout.
 
 Cc: <lwoodman@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -59,30 +45,41 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/sysrq.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
+diff -puN drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
 +++ a/drivers/char/sysrq.c
-@@ -207,7 +207,7 @@ static void showacpu(void *dummy)
- 		return;
+@@ -198,6 +198,7 @@ static struct sysrq_key_op sysrq_showloc
  
- 	spin_lock_irqsave(&show_lock, flags);
--	printk("CPU%d:\n", smp_processor_id());
-+	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
+ #ifdef CONFIG_SMP
+ static DEFINE_SPINLOCK(show_lock);
++
+ static void showacpu(void *dummy)
+ {
+ 	unsigned long flags;
+@@ -211,10 +212,12 @@ static void showacpu(void *dummy)
  	show_stack(NULL, NULL);
  	spin_unlock_irqrestore(&show_lock, flags);
  }
-@@ -221,7 +221,7 @@ static void sysrq_handle_showallcpus(int
++
+ static void sysrq_showregs_othercpus(struct work_struct *dummy)
  {
- 	struct pt_regs *regs = get_irq_regs();
- 	if (regs) {
--		printk("CPU%d:\n", smp_processor_id());
-+		printk(KERN_INFO "CPU%d:\n", smp_processor_id());
- 		show_regs(regs);
+ 	smp_call_function(showacpu, NULL, 0, 0);
+ }
++
+ static DECLARE_WORK(sysrq_showallcpus, sysrq_showregs_othercpus);
+ 
+ static void sysrq_handle_showallcpus(int key, struct tty_struct *tty)
+@@ -226,6 +229,7 @@ static void sysrq_handle_showallcpus(int
  	}
  	schedule_work(&sysrq_showallcpus);
+ }
++
+ static struct sysrq_key_op sysrq_showallcpus_op = {
+ 	.handler	= sysrq_handle_showallcpus,
+ 	.help_msg	= "aLlcpus",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +138,7 @@ misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
 r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
