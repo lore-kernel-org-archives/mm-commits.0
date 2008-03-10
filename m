@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-use-proper-page-flag-functions-in-xen.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:17 -0700
-Message-ID: <200803101901.m2AJ1HQK000448@imap1.linux-foundation.org>
+Subject: + pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:59 -0700
+Message-ID: <200803101901.m2AJ1xh9000475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751851AbYCJTBV (ORCPT
+	by vger.kernel.org with ESMTP id S1751999AbYCJTCG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:21 -0400
+	Mon, 10 Mar 2008 15:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, jeremy@goop.org
+Cc: jesper.juhl@gmail.com, greg@kroah.com, kristen.c.accardi@intel.com
 
 
 The patch titled
-     pageflags: use proper page flag functions in Xen
+     pci: fix small mem leak in IBM Hot Plug Controller Driver
 has been added to the -mm tree.  Its filename is
-     pageflags-use-proper-page-flag-functions-in-xen.patch
+     pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: use proper page flag functions in Xen
-From: Christoph Lameter <clameter@sgi.com>
+Subject: pci: fix small mem leak in IBM Hot Plug Controller Driver
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Xen uses bitops to manipulate page flags.  Make it use proper page flag
-functions.
+In drivers/pci/hotplug/ibmphp_ebda.c::ebda_rsrc_controller(), storage is
+allocated with kzalloc() and assigned to 'tmp_slot'.  Then lots of stuff, like
+->flag, ->supported_speed etc is set in tmp_slot.  A bit further down there's
+then this test :
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+  if (!bus_info_ptr1) {
+    rc = -ENODEV;
+    goto error;
+  }
+
+At this point, tmp_slot has not been assigned to anything, so when
+erroring-out we want to free it, but nothing at the 'error:' label free's
+'tmp_slot' - and we can't really free 'tmp_slot' at 'error:' since we may jump
+to that label later when 'tmp_slot' *has* been used and we do not want it
+freed.  So, the only sane option left seems to be to kfree(tmp_slot) just
+before jumping to the 'error:' label in the one place where this is what
+actually makes sense.  The following patch does just that and thus kills off a
+tiny potential memory leak.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu.c         |    4 ++--
- include/linux/page-flags.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/ibmphp_ebda.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/arch/x86/xen/mmu.c
-@@ -425,7 +425,7 @@ static void xen_do_pin(unsigned level, u
+diff -puN drivers/pci/hotplug/ibmphp_ebda.c~pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver drivers/pci/hotplug/ibmphp_ebda.c
+--- a/drivers/pci/hotplug/ibmphp_ebda.c~pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver
++++ a/drivers/pci/hotplug/ibmphp_ebda.c
+@@ -963,6 +963,7 @@ static int __init ebda_rsrc_controller (
  
- static int pin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_set_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestSetPagePinned(page);
- 	int flush;
- 
- 	if (pgfl)
-@@ -506,7 +506,7 @@ void __init xen_mark_init_mm_pinned(void
- 
- static int unpin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_clear_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestClearPagePinned(page);
- 
- 	if (pgfl && !PageHighMem(page)) {
- 		void *pt = lowmem_page_address(page);
-diff -puN include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/include/linux/page-flags.h
-@@ -161,7 +161,7 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
- PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
-+PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
- PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
- PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
- 	__SETPAGEFLAG(Private, private)
+ 			bus_info_ptr1 = ibmphp_find_same_bus_num (hpc_ptr->slots[index].slot_bus_num);
+ 			if (!bus_info_ptr1) {
++				kfree(tmp_slot);
+ 				rc = -ENODEV;
+ 				goto error;
+ 			}
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-fix-mempolicy-reference-counting-bugs.patch
-ntfs-fix-nommu-build.patch
-git-unionfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-get-rid-of-__zone_count.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver.patch
 
