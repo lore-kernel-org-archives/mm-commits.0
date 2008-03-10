@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sparsemem-vmemmap-does-not-need-section-bits.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:05 -0700
-Message-ID: <200803101901.m2AJ15IH000428@imap1.linux-foundation.org>
+Subject: + pageflags-introduce-macros-to-generate-page-flag-functions.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:13 -0700
+Message-ID: <200803101901.m2AJ1EVV000442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60162 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751256AbYCJTBI (ORCPT
+	by vger.kernel.org with ESMTP id S1752039AbYCJTBQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:08 -0400
+	Mon, 10 Mar 2008 15:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     sparsemem: vmemmap does not need section bits
+     pageflags: introduce macros to generate page flag functions
 has been added to the -mm tree.  Its filename is
-     sparsemem-vmemmap-does-not-need-section-bits.patch
+     pageflags-introduce-macros-to-generate-page-flag-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparsemem: vmemmap does not need section bits
+Subject: pageflags: introduce macros to generate page flag functions
 From: Christoph Lameter <clameter@sgi.com>
 
-Sparsemem vmemmap does not need any section bits.  This patch has the effect
-of reducing the number of bits used in page->flags by at least 6.
+Introduce a set of macros that generate functions to handle page flags.
+
+A page flag function group typically starts with either
+
+	SETPAGEFLAG(<part of function name>,<part of PG_ flagname>)
+
+to create a set of page flag operations that are atomic. Or
+
+	__SETPAGEFLAG(<part of function name>,<part of PG_ flagname)
+
+to create a set of page flag operations that are not atomic.
+
+Then additional operations can be added using the following macros
+
+TESTSCFLAG		Create additional atomic test-and-set and
+			test-and-clear functions
+
+TESTSETFLAG		Create additional test and set function
+TESTCLEARFLAG		Create additional test and clear function
+SETPAGEFLAG		Create additional atomic set function
+CLEARPAGEFLAG		Create additional atomic clear function
+__TESTPAGEFLAG		Create additional non atomic set function
+__SETPAGEFLAG		Create additional non atomic clear function
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |   41 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
---- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
-+++ a/include/linux/mm.h
-@@ -386,11 +386,11 @@ static inline void set_compound_order(st
-  * we have run out of space and have to fall back to an
-  * alternate (slower) way of determining the node.
-  *
-- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
-- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
-- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
-+ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
-+ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
-+ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
-  */
--#ifdef CONFIG_SPARSEMEM
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTIONS_WIDTH		SECTIONS_SHIFT
- #else
- #define SECTIONS_WIDTH		0
-@@ -401,6 +401,9 @@ static inline void set_compound_order(st
- #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
- #define NODES_WIDTH		NODES_SHIFT
- #else
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#error "Vmemmap: No space for nodes field in page flags"
-+#endif
- #define NODES_WIDTH		0
+diff -puN include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions
++++ a/include/linux/page-flags.h
+@@ -111,6 +111,47 @@ enum pageflags {
  #endif
  
-@@ -493,10 +496,12 @@ static inline struct zone *page_zone(str
- 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
- }
- 
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- static inline unsigned long page_to_section(struct page *page)
- {
- 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
- }
-+#endif
- 
- static inline void set_page_zone(struct page *page, enum zone_type zone)
- {
+ /*
++ * Macros to create function definitions for page flags
++ */
++#define TESTPAGEFLAG(uname, lname)					\
++static inline int Page##uname(struct page *page) 			\
++			{ return test_bit(PG_##lname, page); }
++
++#define SETPAGEFLAG(uname, lname)					\
++static inline void SetPage##uname(struct page *page)			\
++			{ set_bit(PG_##lname, page); }
++
++#define CLEARPAGEFLAG(uname, lname)					\
++static inline void ClearPage##uname(struct page *page)			\
++			{ clear_bit(PG_##lname, page); }
++
++#define __SETPAGEFLAG(uname, lname)					\
++static inline void __SetPage##uname(struct page *page)			\
++			{ __set_bit(PG_##lname, page); }
++
++#define __CLEARPAGEFLAG(uname, lname)					\
++static inline void __ClearPage##uname(struct page *page)		\
++			{ __clear_bit(PG_##lname, page); }
++
++#define TESTSETFLAG(uname, lname)					\
++static inline int TestSetPage##uname(struct page *page)			\
++		{ return test_and_set_bit(PG_##lname, &page->flags); }
++
++#define TESTCLEARFLAG(uname, lname)					\
++static inline int TestClearPage##uname(struct page *page)		\
++		{ return test_and_clear_bit(PG_##lname, &page->flags); }
++
++
++#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
++
++#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
++
++#define TESTSCFLAG(uname, lname)					\
++	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
++
++/*
+  * Manipulation of page state flags
+  */
+ #define PageLocked(page)		\
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
