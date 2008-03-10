@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:58:44 -0700
-Message-ID: <200803102058.m2AKwiTp005168@imap1.linux-foundation.org>
+Subject: + h8300-fix-recent-uaccess-breakage.patch added to -mm tree
+Date: Mon, 10 Mar 2008 14:28:28 -0700
+Message-ID: <200803102128.m2ALSSO9006551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751323AbYCJU74 (ORCPT
+	by vger.kernel.org with ESMTP id S1750924AbYCJV2q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:59:56 -0400
+	Mon, 10 Mar 2008 17:28:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ego@in.ibm.com, ghaskins@novell.com, mingo@elte.hu, rjw@sisk.pl, suresh.b.siddha@intel.com
+Cc: ysato@users.sourceforge.jp, viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     cpu-hotplug: register update_sched_domains() notifier with higher prio
+     h8300: fix recent uaccess breakage
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch
+     h8300-fix-recent-uaccess-breakage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu-hotplug: register update_sched_domains() notifier with higher prio
-From: Gautham R Shenoy <ego@in.ibm.com>
+Subject: h8300: fix recent uaccess breakage
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-The current -rt wake_up logic uses the rq->rd->online_map which is updated on
-cpu-hotplug events by update_sched_domains().  Currently
-update_sched_domains() is registered with a priority 0.  It is preferable that
-update_sched_domains() be the first notifier called on a CPU_DEAD or
-CPU_ONLINE events inorder to ensure that the rq->rd->online_map is in sync
-with the cpu_online_map.
+Al Viro wrote:
+>
+> 	After that commit in asm-h8300/uaccess.h we have
+>
+> #define get_user(x, ptr)                                        \
+> ({                                                              \
+>     int __gu_err = 0;                                           \
+>     uint32_t __gu_val = 0;                              \
+>     ^^^^^^^^^^^^^^^^^
+>     switch (sizeof(*(ptr))) {                                   \
+>     case 1:                                                     \
+>     case 2:                                                     \
+>     case 4:                                                     \
+>         __gu_val = *(ptr);                                      \
+>         break;                                                  \
+>     case 8:                                                     \
+>         memcpy(&__gu_val, ptr, sizeof (*(ptr)));                \
+>                                ^^^^^^^^^^^^^^^^
+>
+> which, of course, is FUBAR whenever we actually hit that case - memcpy of
+> 8 bytes into uint32_t is obviously wrong.  Why don't we simply do
 
-This way on a CPU_DOWN_PREPARE, we would destroy the sched_domains and
-reattach all the rq's to the def_root_domain.  This will be followed by a
-CPU_DOWN_PREPARE in migration_call() which will clear the bit of the cpu going
-offline from the corresponding rq.  This will ensure that no task will be
-woken up on the cpu which is going to be offlined between CPU_DOWN_PREPARE and
-CPU_DEAD.
-
-Ditto for the CPU_ONLINE path.
-
-Tested on a 4-way Intel Xeon Box with cpu-hotplug tests running in parallel
-with kernbench.
-
-(akpm: might fix my poweroff-doesnt-work regression)
-
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Gregory Haskins <ghaskins@novell.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/asm-h8300/uaccess.h |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sched.c~cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio kernel/sched.c
---- a/kernel/sched.c~cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio
-+++ a/kernel/sched.c
-@@ -7095,8 +7095,16 @@ void __init sched_init_smp(void)
- 	if (cpus_empty(non_isolated_cpus))
- 		cpu_set(smp_processor_id(), non_isolated_cpus);
- 	put_online_cpus();
--	/* XXX: Theoretical race here - CPU may be hotplugged now */
--	hotcpu_notifier(update_sched_domains, 0);
-+	/*
-+	 * XXX: Theoretical race here - CPU may be hotplugged now
-+	 *
-+	 * We register the notifier with priority 11, which means that
-+	 * update_sched_domains() will be called just before migration_call().
-+	 *
-+	 * This is necessary to ensure that the rt wake up logic works fine
-+	 * and the rq->rd->online_map remains in sync with the cpu_online_map.
-+	 */
-+	hotcpu_notifier(update_sched_domains, 11);
- 
- 	/* Move init over to a non-isolated CPU */
- 	if (set_cpus_allowed(current, non_isolated_cpus) < 0)
+diff -puN include/asm-h8300/uaccess.h~h8300-fix-recent-uaccess-breakage include/asm-h8300/uaccess.h
+--- a/include/asm-h8300/uaccess.h~h8300-fix-recent-uaccess-breakage
++++ a/include/asm-h8300/uaccess.h
+@@ -91,22 +91,19 @@ extern int __put_user_bad(void);
+ #define get_user(x, ptr)					\
+ ({								\
+     int __gu_err = 0;						\
+-    uint32_t __gu_val = 0;				\
++    typeof(*(ptr)) __gu_val = *ptr;				\
+     switch (sizeof(*(ptr))) {					\
+     case 1:							\
+     case 2:							\
+     case 4:							\
+-	__gu_val = *(ptr);	                		\
+-	break;							\
+-    case 8:							\
+-	memcpy(&__gu_val, ptr, sizeof (*(ptr))); 		\
++    case 8: 							\
+ 	break;							\
+     default:							\
+-	__gu_val = 0;						\
+ 	__gu_err = __get_user_bad();				\
++	__gu_val = 0;						\
+ 	break;							\
+     }								\
+-    (x) = (typeof(*(ptr)))__gu_val;				\
++    (x) = __gu_val;						\
+     __gu_err;							\
+ })
+ #define __get_user(x, ptr) get_user(x, ptr)
 _
 
-Patches currently in -mm which might be from ego@in.ibm.com are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-poweroff-workaround.patch
-cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
-cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
-cpu-fix-section-mismatch-warnings-in-cpu_down.patch
-cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+h8300-fix-recent-uaccess-breakage.patch
 
