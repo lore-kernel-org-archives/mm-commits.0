@@ -1,93 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:39 -0700
-Message-ID: <200803101805.m2AI5d1w030117@imap1.linux-foundation.org>
+Subject: - time-remove-obsolete-clock_tick_adjust.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:27 -0700
+Message-ID: <200803101805.m2AI5RaB030095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751085AbYCJSLs (ORCPT
+	by vger.kernel.org with ESMTP id S1751304AbYCJSLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:11:48 -0400
+	Mon, 10 Mar 2008 14:11:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghaskins@novell.com, mingo@elte.hu, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, johnstul@us.ibm.com, mattilinnanvuori@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu hotplug: adjust root-domain->online span in response to hotplug event
+     time: remove obsolete CLOCK_TICK_ADJUST
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch
+     time-remove-obsolete-clock_tick_adjust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpu hotplug: adjust root-domain->online span in response to hotplug event
-From: Gregory Haskins <ghaskins@novell.com>
+Subject: time: remove obsolete CLOCK_TICK_ADJUST
+From: Roman Zippel <zippel@linux-m68k.org>
 
-We currently set the root-domain online span automatically when the domain is
-added to the cpu if the cpu is already a member of cpu_online_map.  This was
-done as a hack/bug-fix for s2ram, but it also causes a problem with hotplug
-CPU_DOWN transitioning.  The right way to fix the original problem is to
-actually respond to CPU_UP events, instead of CPU_ONLINE, which is already too
-late.
+The first version of the ntp_interval/tick_length inconsistent usage patch was
+recently merged as bbe4d18ac2e058c56adb0cd71f49d9ed3216a405
 
-Signed-off-by: Gregory Haskins <ghaskins@novell.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+http://git.kernel.org/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=bbe4d18ac2e058c56adb0cd71f49d9ed3216a405
+
+While the fix did greatly improve the situation, it was correctly pointed out
+by Roman that it does have a small bug: If the users change clocksources after
+the system has been running and NTP has made corrections, the correctoins made
+against the old clocksource will be applied against the new clocksource,
+causing error.
+
+The second attempt, which corrects the issue in the NTP_INTERVAL_LENGTH
+definition has also made it up-stream as commit
+e13a2e61dd5152f5499d2003470acf9c838eab84
+
+http://git.kernel.org/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=e13a2e61dd5152f5499d2003470acf9c838eab84
+
+Roman has correctly pointed out that CLOCK_TICK_ADJUST is calculated
+based on the PIT's frequency, and isn't really relevant to non-PIT
+driven clocksources (that is, clocksources other then jiffies and pit).
+
+This patch reverts both of those changes, and simply removes
+CLOCK_TICK_ADJUST.
+
+This does remove the granularity error correction for users of PIT and Jiffies
+clocksource users, but the granularity error but for the majority of users, it
+should be within the 500ppm range NTP can accommodate for.
+
+For systems that have granularity errors greater then 500ppm, the
+"ntp_tick_adj=" boot option can be used to compensate.
+
+[johnstul@us.ibm.com: provided changelog]
+[mattilinnanvuori@yahoo.com: maek ntp_tick_adj static]
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Acked-by: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ include/linux/timex.h     |    9 +--------
+ kernel/time/ntp.c         |   11 ++++++++++-
+ kernel/time/timekeeping.c |    6 ++----
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event kernel/sched.c
---- a/kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event
-+++ a/kernel/sched.c
-@@ -5890,6 +5890,13 @@ migration_call(struct notifier_block *nf
- 		/* Must be high prio: stop_machine expects to yield to it. */
- 		rq = task_rq_lock(p, &flags);
- 		__setscheduler(rq, p, SCHED_FIFO, MAX_RT_PRIO-1);
-+
-+		/* Update our root-domain */
-+		if (rq->rd) {
-+			BUG_ON(!cpu_isset(cpu, rq->rd->span));
-+			cpu_set(cpu, rq->rd->online);
-+		}
-+
- 		task_rq_unlock(rq, &flags);
- 		cpu_rq(cpu)->migration_thread = p;
- 		break;
-@@ -5898,15 +5905,6 @@ migration_call(struct notifier_block *nf
- 	case CPU_ONLINE_FROZEN:
- 		/* Strictly unnecessary, as first user will wake it. */
- 		wake_up_process(cpu_rq(cpu)->migration_thread);
+diff -puN include/linux/timex.h~time-remove-obsolete-clock_tick_adjust include/linux/timex.h
+--- a/include/linux/timex.h~time-remove-obsolete-clock_tick_adjust
++++ a/include/linux/timex.h
+@@ -232,14 +232,7 @@ static inline int ntp_synced(void)
+ #else
+ #define NTP_INTERVAL_FREQ  (HZ)
+ #endif
 -
--		/* Update our root-domain */
--		rq = cpu_rq(cpu);
--		spin_lock_irqsave(&rq->lock, flags);
--		if (rq->rd) {
--			BUG_ON(!cpu_isset(cpu, rq->rd->span));
--			cpu_set(cpu, rq->rd->online);
--		}
--		spin_unlock_irqrestore(&rq->lock, flags);
- 		break;
+-#define CLOCK_TICK_OVERFLOW	(LATCH * HZ - CLOCK_TICK_RATE)
+-#define CLOCK_TICK_ADJUST	(((s64)CLOCK_TICK_OVERFLOW * NSEC_PER_SEC) / \
+-					(s64)CLOCK_TICK_RATE)
+-
+-/* Because using NSEC_PER_SEC would be too easy */
+-#define NTP_INTERVAL_LENGTH ((((s64)TICK_USEC * NSEC_PER_USEC * USER_HZ) + \
+-			      CLOCK_TICK_ADJUST) / NTP_INTERVAL_FREQ)
++#define NTP_INTERVAL_LENGTH (NSEC_PER_SEC/NTP_INTERVAL_FREQ)
  
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -6182,8 +6180,6 @@ static void rq_attach_root(struct rq *rq
- 	rq->rd = rd;
+ /* Returns how long ticks are at present, in ns / 2^(SHIFT_SCALE-10). */
+ extern u64 current_tick_length(void);
+diff -puN kernel/time/ntp.c~time-remove-obsolete-clock_tick_adjust kernel/time/ntp.c
+--- a/kernel/time/ntp.c~time-remove-obsolete-clock_tick_adjust
++++ a/kernel/time/ntp.c
+@@ -42,12 +42,13 @@ long time_esterror = NTP_PHASE_LIMIT;	/*
+ long time_freq;				/* frequency offset (scaled ppm)*/
+ static long time_reftime;		/* time at last adjustment (s)	*/
+ long time_adjust;
++static long ntp_tick_adj;
  
- 	cpu_set(rq->cpu, rd->span);
--	if (cpu_isset(rq->cpu, cpu_online_map))
--		cpu_set(rq->cpu, rd->online);
+ static void ntp_update_frequency(void)
+ {
+ 	u64 second_length = (u64)(tick_usec * NSEC_PER_USEC * USER_HZ)
+ 				<< TICK_LENGTH_SHIFT;
+-	second_length += (s64)CLOCK_TICK_ADJUST << TICK_LENGTH_SHIFT;
++	second_length += (s64)ntp_tick_adj << TICK_LENGTH_SHIFT;
+ 	second_length += (s64)time_freq << (TICK_LENGTH_SHIFT - SHIFT_NSEC);
  
- 	for (class = sched_class_highest; class; class = class->next) {
- 		if (class->join_domain)
+ 	tick_length_base = second_length;
+@@ -402,3 +403,11 @@ leave:	if ((time_status & (STA_UNSYNC|ST
+ 	notify_cmos_timer();
+ 	return(result);
+ }
++
++static int __init ntp_tick_adj_setup(char *str)
++{
++	ntp_tick_adj = simple_strtol(str, NULL, 0);
++	return 1;
++}
++
++__setup("ntp_tick_adj=", ntp_tick_adj_setup);
+diff -puN kernel/time/timekeeping.c~time-remove-obsolete-clock_tick_adjust kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~time-remove-obsolete-clock_tick_adjust
++++ a/kernel/time/timekeeping.c
+@@ -187,8 +187,7 @@ static void change_clocksource(void)
+ 
+ 	clock->error = 0;
+ 	clock->xtime_nsec = 0;
+-	clocksource_calculate_interval(clock,
+-		(unsigned long)(current_tick_length()>>TICK_LENGTH_SHIFT));
++	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+ 
+ 	tick_clock_notify();
+ 
+@@ -245,8 +244,7 @@ void __init timekeeping_init(void)
+ 	ntp_clear();
+ 
+ 	clock = clocksource_get_next();
+-	clocksource_calculate_interval(clock,
+-		(unsigned long)(current_tick_length()>>TICK_LENGTH_SHIFT));
++	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+ 	clock->cycle_last = clocksource_read(clock);
+ 
+ 	xtime.tv_sec = sec;
 _
 
-Patches currently in -mm which might be from ghaskins@novell.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
-git-kvm.patch
+git-x86.patch
+git-watchdog.patch
+rcu-move-preempt_rcu-config-option-back-under-preempt.patch
+m68k-replace-remaining-__function__-occurences.patch
+fs-hfsplus-proper-externs.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+fs-affs-filec-use-bug_on.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
 
