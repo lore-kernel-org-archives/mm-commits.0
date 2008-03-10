@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-get-rid-of-flags_reserved.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:11 -0700
-Message-ID: <200803101901.m2AJ1Br1000438@imap1.linux-foundation.org>
+Subject: + pageflags-use-an-enum-for-the-flags.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:09 -0700
+Message-ID: <200803101901.m2AJ19Bi000435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752002AbYCJTBO (ORCPT
+	by vger.kernel.org with ESMTP id S1751285AbYCJTBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:14 -0400
+	Mon, 10 Mar 2008 15:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     pageflags: get rid of FLAGS_RESERVED
+     pageflags: use an enum for the flags
 has been added to the -mm tree.  Its filename is
-     pageflags-get-rid-of-flags_reserved.patch
+     pageflags-use-an-enum-for-the-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: get rid of FLAGS_RESERVED
+Subject: pageflags: use an enum for the flags
 From: Christoph Lameter <clameter@sgi.com>
 
-NR_PAGEFLAGS specifies the number of page flags we are using.  >From that we
-can calculate the number of bits leftover that can be used for zone, node (and
-maybe the sections id).  There is no need anymore for FLAGS_RESERVED if we use
-NR_PAGEFLAGS.
-
-Use the new methods to make NR_PAGEFLAGS available via the preprocessor. 
-NR_PAGEFLAGS is used to calculate field boundaries in the page flags fields. 
-These field widths have to be available to the preprocessor.
+Use an enum to ease the maintenance of page flags.  This is going to change
+the numbering from 0 to 18.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    6 +++---
- include/linux/mmzone.h     |   19 -------------------
- include/linux/page-flags.h |   20 +++++++++++++-------
- kernel/bounds.c            |    1 +
- 4 files changed, 17 insertions(+), 29 deletions(-)
+ include/linux/page-flags.h |   56 ++++++++++++++++-------------------
+ 1 file changed, 26 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/mm.h~pageflags-get-rid-of-flags_reserved include/linux/mm.h
---- a/include/linux/mm.h~pageflags-get-rid-of-flags_reserved
-+++ a/include/linux/mm.h
-@@ -398,7 +398,7 @@ static inline void set_compound_order(st
- 
- #define ZONES_WIDTH		ZONES_SHIFT
- 
--#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
-+#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
- #define NODES_WIDTH		NODES_SHIFT
- #else
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
-@@ -446,8 +446,8 @@ static inline void set_compound_order(st
- 
- #define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
- 
--#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
--#error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > FLAGS_RESERVED
-+#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
-+#error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
- #endif
- 
- #define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
-diff -puN include/linux/mmzone.h~pageflags-get-rid-of-flags_reserved include/linux/mmzone.h
---- a/include/linux/mmzone.h~pageflags-get-rid-of-flags_reserved
-+++ a/include/linux/mmzone.h
-@@ -839,25 +839,6 @@ static inline struct zoneref *next_zones
- #include <asm/sparsemem.h>
- #endif
- 
--#if BITS_PER_LONG == 32
--/*
-- * with 32 bit page->flags field, we reserve 9 bits for node/zone info.
-- * there are 4 zones (3 bits) and this leaves 9-3=6 bits for nodes.
-- */
--#define FLAGS_RESERVED		9
--
--#elif BITS_PER_LONG == 64
--/*
-- * with 64 bit flags field, there's plenty of room.
-- */
--#define FLAGS_RESERVED		32
--
--#else
--
--#error BITS_PER_LONG not defined
--
--#endif
--
- #if !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) && \
- 	!defined(CONFIG_ARCH_POPULATES_NODE_MAP)
- #define early_pfn_to_nid(nid)  (0UL)
-diff -puN include/linux/page-flags.h~pageflags-get-rid-of-flags_reserved include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-get-rid-of-flags_reserved
+diff -puN include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags
 +++ a/include/linux/page-flags.h
-@@ -59,13 +59,12 @@
-  * extends from the high bits downwards.
-  *
-  *  | FIELD | ... | FLAGS |
-- *  N-1     ^             0
-- *          (N-FLAGS_RESERVED)
-+ *  N-1           ^       0
-+ *               (NR_PAGEFLAGS)
-  *
-- * The fields area is reserved for fields mapping zone, node and SPARSEMEM
-- * section.  The boundry between these two areas is defined by
-- * FLAGS_RESERVED which defines the width of the fields section
-- * (see linux/mmzone.h).  New flags must _not_ overlap with this area.
-+ * The fields area is reserved for fields mapping zone, node (for NUMA) and
-+ * SPARSEMEM section (for variants of SPARSEMEM that require section ids like
-+ * SPARSEMEM_EXTREME with !SPARSEMEM_VMEMMAP).
+@@ -67,35 +67,29 @@
+  * FLAGS_RESERVED which defines the width of the fields section
+  * (see linux/mmzone.h).  New flags must _not_ overlap with this area.
   */
- enum pageflags {
- 	PG_locked,		/* Page is locked. Don't touch. */
-@@ -101,9 +100,16 @@ enum pageflags {
-  */
- 	PG_uncached = 31,		/* Page has been mapped as uncached */
- #endif
--	NR_PAGEFLAGS
-+	__NR_PAGEFLAGS
- };
+-#define PG_locked	 	 0	/* Page is locked. Don't touch. */
+-#define PG_error		 1
+-#define PG_referenced		 2
+-#define PG_uptodate		 3
+-
+-#define PG_dirty	 	 4
+-#define PG_lru			 5
+-#define PG_active		 6
+-#define PG_slab			 7	/* slab debug (Suparna wants this) */
+-
+-#define PG_owner_priv_1		 8	/* Owner use. If pagecache, fs may use*/
+-#define PG_arch_1		 9
+-#define PG_reserved		10
+-#define PG_private		11	/* If pagecache, has fs-private data */
+-
+-#define PG_writeback		12	/* Page is under writeback */
+-#define PG_compound		14	/* Part of a compound page */
+-#define PG_swapcache		15	/* Swap page: swp_entry_t in private */
+-
+-#define PG_mappedtodisk		16	/* Has blocks allocated on-disk */
+-#define PG_reclaim		17	/* To be reclaimed asap */
+-#define PG_buddy		19	/* Page is free, on buddy lists */
+-
+-/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-#define PG_readahead		PG_reclaim /* Reminder to do async read-ahead */
+-
+-/* PG_owner_priv_1 users should have descriptive aliases */
+-#define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
+-#define PG_pinned		PG_owner_priv_1	/* Xen pinned pagetable */
++enum pageflags {
++	PG_locked,		/* Page is locked. Don't touch. */
++	PG_error,
++	PG_referenced,
++	PG_uptodate,
++	PG_dirty,
++	PG_lru,
++	PG_active,
++	PG_slab,
++	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
++	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
++	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
++	PG_arch_1,
++	PG_reserved,
++	PG_private,		/* If pagecache, has fs-private data */
++	PG_writeback,		/* Page is under writeback */
++	PG_compound,		/* A compound page */
++	PG_swapcache,		/* Swap page: swp_entry_t in private */
++	PG_mappedtodisk,	/* Has blocks allocated on-disk */
++	PG_reclaim,		/* To be reclaimed asap */
++	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
++	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
++	PG_buddy,		/* Page is free, on buddy lists */
  
-+#ifndef __GENERATING_BOUNDS_H
-+#include <linux/bounds.h>
-+#else
-+/* Dummy for use during bounds.h generation */
-+#define NR_PAGEFLAGS 1
-+#endif
-+
+ #if (BITS_PER_LONG > 32)
+ /*
+@@ -105,8 +99,10 @@
+  * 64 bit  |           FIELDS             | ??????         FLAGS         |
+  *         63                            32                              0
+  */
+-#define PG_uncached		31	/* Page has been mapped as uncached */
++	PG_uncached = 31,		/* Page has been mapped as uncached */
+ #endif
++	NR_PAGEFLAGS
++};
+ 
  /*
   * Manipulation of page state flags
-  */
-diff -puN kernel/bounds.c~pageflags-get-rid-of-flags_reserved kernel/bounds.c
---- a/kernel/bounds.c~pageflags-get-rid-of-flags_reserved
-+++ a/kernel/bounds.c
-@@ -15,5 +15,6 @@
- void foo(void)
- {
- 	/* The enum constants to put into include/linux/bounds.h */
-+	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
- 	/* End of constants */
- }
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
