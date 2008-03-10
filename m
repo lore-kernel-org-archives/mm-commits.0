@@ -1,83 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch added to -mm tree
-Date: Mon, 10 Mar 2008 14:45:32 -0700
-Message-ID: <200803102145.m2ALjWF5007277@imap1.linux-foundation.org>
+Subject: - oz99x-i2c-button-and-led-support-driver-update.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 14:46:19 -0700
+Message-ID: <200803102146.m2ALkJJW007359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751736AbYCJVqv (ORCPT
+	by vger.kernel.org with ESMTP id S1751736AbYCJVrI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 17:46:51 -0400
+	Mon, 10 Mar 2008 17:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, benh@kernel.crashing.org, colin@colino.net, djwong@us.ibm.com, mhoffman@lightlink.com, segher@kernel.crashing.org
+To: post@hendrik-sattler.de, khali@linux-fr.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ADT746X: logical-bitwise & confusion in set_max_duty_at_crit()
-has been added to the -mm tree.  Its filename is
-     adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+     OZ99x I2C button and led support driver update
+has been removed from the -mm tree.  Its filename was
+     oz99x-i2c-button-and-led-support-driver-update.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ADT746X: logical-bitwise & confusion in set_max_duty_at_crit()
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: OZ99x I2C button and led support driver update
+From: Hendrik Sattler <post@hendrik-sattler.de>
 
-logical-bitwise & confusion
+> (akpm: now needs s/simple_strtol/strict_strtol/g)
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Acked-by: Colin Leroy <colin@colino.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Below does that change.
+
+Signed-off-by: Hendrik Sattler <post@hendrik-sattler.de>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adt7473.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/i2c/chips/oz99x.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/hwmon/adt7473.c~adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit drivers/hwmon/adt7473.c
---- a/drivers/hwmon/adt7473.c~adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit
-+++ a/drivers/hwmon/adt7473.c
-@@ -566,11 +566,11 @@ static ssize_t set_max_duty_at_crit(stru
- 				    const char *buf,
- 				    size_t count)
+diff -puN drivers/i2c/chips/oz99x.c~oz99x-i2c-button-and-led-support-driver-update drivers/i2c/chips/oz99x.c
+--- a/drivers/i2c/chips/oz99x.c~oz99x-i2c-button-and-led-support-driver-update
++++ a/drivers/i2c/chips/oz99x.c
+@@ -63,11 +63,12 @@ ssize_t reg_minmax_store(const char *buf
+ 			 size_t count,
+ 			 u8 *minmax)
  {
--	u8 reg;
-+	u8 reg, temp;
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adt7473_data *data = i2c_get_clientdata(client);
--	int temp = simple_strtol(buf, NULL, 10);
--	temp = temp && 0xFF;
-+
-+	temp = simple_strtol(buf, NULL, 10) & 0xFF;
- 
- 	mutex_lock(&data->lock);
- 	data->max_duty_at_overheat = temp;
+-	long val = simple_strtol(buf, NULL, 16);
++	unsigned long val;
++	int err = strict_strtoul(buf, 16, &val);
++	if (err)
++		return err;
+ 	if (val > 0xFF)
+-		val = 0xFF;
+-	else if (val < 0x00)
+-		val = 0x00;
++		return -EINVAL;
+ 	*minmax = val & 0xFF;
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from post@hendrik-sattler.de are
 
-git-alsa.patch
-git-dvb.patch
-drivers-media-video-tvp5150c-logical-bitwise-and-confusion.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
-drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
-drivers-video-imsttfbc-add-missing-curly-brackets.patch
+oz99x-i2c-button-and-led-support-driver-update.patch
+fjkeyinf-driver-for-fsc-lifebook-laptops.patch
 
