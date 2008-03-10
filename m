@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + get-rid-of-__zone_count.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:21 -0700
-Message-ID: <200803101901.m2AJ1Lt3000456@imap1.linux-foundation.org>
+Subject: + pageflags-eliminate-pg_xxx-aliases.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:19 -0700
+Message-ID: <200803101901.m2AJ1JE2000453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54376 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752112AbYCJTBY (ORCPT
+	by vger.kernel.org with ESMTP id S1752065AbYCJTBW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:24 -0400
+	Mon, 10 Mar 2008 15:01:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     get rid of __ZONE_COUNT
+     pageflags: eliminate PG_xxx aliases
 has been added to the -mm tree.  Its filename is
-     get-rid-of-__zone_count.patch
+     pageflags-eliminate-pg_xxx-aliases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: get rid of __ZONE_COUNT
+Subject: pageflags: eliminate PG_xxx aliases
 From: Christoph Lameter <clameter@sgi.com>
 
-It was used to compensate because MAX_NR_ZONES was not available to the
-#ifdefs.  Export MAX_NR_ZONES via the new mechanism and get rid of
-__ZONE_COUNT.
+Remove aliases of PG_xxx.  We can easily drop those now and alias by
+specifying the PG_xxx flag in the macro that generates the functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   28 +++++++++++-----------------
- kernel/bounds.c        |    1 +
- 2 files changed, 12 insertions(+), 17 deletions(-)
+ include/linux/page-flags.h |   10 +++-------
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~get-rid-of-__zone_count include/linux/mmzone.h
---- a/include/linux/mmzone.h~get-rid-of-__zone_count
-+++ a/include/linux/mmzone.h
-@@ -177,9 +177,16 @@ enum zone_type {
- 	ZONE_HIGHMEM,
- #endif
- 	ZONE_MOVABLE,
--	MAX_NR_ZONES
-+	__MAX_NR_ZONES
- };
+diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
++++ a/include/linux/page-flags.h
+@@ -76,8 +76,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+-	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
+-	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+@@ -86,8 +84,6 @@ enum pageflags {
+ 	PG_swapcache,		/* Swap page: swp_entry_t in private */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+-	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
+ 	PG_buddy,		/* Page is free, on buddy lists */
  
-+#ifndef __GENERATING_BOUNDS_H
-+#include <linux/bounds.h>
-+#else
-+/* Dummy value to allow bounds.h creation to succeed */
-+#define MAX_NR_ZONES 1
-+#endif
-+
- /*
-  * When a memory allocation must conform to specific limitations (such
-  * as being suitable for DMA) the caller will pass in hints to the
-@@ -188,28 +195,15 @@ enum zone_type {
-  * match the requested limits. See gfp_zone() in include/linux/gfp.h
-  */
+ #if (BITS_PER_LONG > 32)
+@@ -160,8 +156,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
+ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
++PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
++PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
+@@ -176,7 +172,7 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
  
--/*
-- * Count the active zones.  Note that the use of defined(X) outside
-- * #if and family is not necessarily defined so ensure we cannot use
-- * it later.  Use __ZONE_COUNT to work out how many shift bits we need.
-- */
--#define __ZONE_COUNT (			\
--	  defined(CONFIG_ZONE_DMA)	\
--	+ defined(CONFIG_ZONE_DMA32)	\
--	+ 1				\
--	+ defined(CONFIG_HIGHMEM)	\
--	+ 1				\
--)
--#if __ZONE_COUNT < 2
-+#if MAX_NR_ZONES < 2
- #define ZONES_SHIFT 0
--#elif __ZONE_COUNT <= 2
-+#elif MAX_NR_ZONES <= 2
- #define ZONES_SHIFT 1
--#elif __ZONE_COUNT <= 4
-+#elif MAX_NR_ZONES <= 4
- #define ZONES_SHIFT 2
- #else
- #error ZONES_SHIFT -- too many zones configured adjust calculation
- #endif
--#undef __ZONE_COUNT
+ /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
  
- struct zone {
- 	/* Fields commonly accessed by the page allocator */
-diff -puN kernel/bounds.c~get-rid-of-__zone_count kernel/bounds.c
---- a/kernel/bounds.c~get-rid-of-__zone_count
-+++ a/kernel/bounds.c
-@@ -16,5 +16,6 @@ void foo(void)
+ static inline int PageHighMem(struct page *page)
  {
- 	/* The enum constants to put into include/linux/bounds.h */
- 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
-+	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
- 	/* End of constants */
- }
+diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
+--- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
++++ a/mm/page_alloc.c
+@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
+ 
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
