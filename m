@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_signal-factor-out-signal_group_exit-checks.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:38:35 -0700
-Message-ID: <200803102038.m2AKcZE4004383@imap1.linux-foundation.org>
+Subject: + signals-fold-sig_ignored-into-prepare_signal.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:39:02 -0700
+Message-ID: <200803102039.m2AKd2vT004392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751274AbYCJUjb (ORCPT
+	by vger.kernel.org with ESMTP id S1751464AbYCJUjq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:39:31 -0400
+	Mon, 10 Mar 2008 16:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: send_signal: factor out SIGNAL_GROUP_EXIT checks
+     signals: fold sig_ignored() into prepare_signal()
 has been added to the -mm tree.  Its filename is
-     signals-send_signal-factor-out-signal_group_exit-checks.patch
+     signals-fold-sig_ignored-into-prepare_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_signal: factor out SIGNAL_GROUP_EXIT checks
+Subject: signals: fold sig_ignored() into prepare_signal()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The signal has no effect (but can provoke the unnecessary wakeup) if the
-thread group is dying.  Let's make this explicit and check SIGNAL_GROUP_EXIT
-only once in handle_stop_signal() renamed to prepare_signal().
-
-From now the actual signal-delivery path doesn't need to take the special
-SIGNAL_GROUP_EXIT case into account.
+Now that prepare_signal() returns int it can absorb the sig_ignored() check to
+avoid the code duplication.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ kernel/signal.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~signals-send_signal-factor-out-signal_group_exit-checks kernel/signal.c
---- a/kernel/signal.c~signals-send_signal-factor-out-signal_group_exit-checks
+diff -puN kernel/signal.c~signals-fold-sig_ignored-into-prepare_signal kernel/signal.c
+--- a/kernel/signal.c~signals-fold-sig_ignored-into-prepare_signal
 +++ a/kernel/signal.c
-@@ -564,16 +564,16 @@ static void do_notify_parent_cldstop(str
-  * actual continuing for SIGCONT, but not the actual stopping for stop
-  * signals.  The process stop is done as a signal action for SIG_DFL.
-  */
--static void handle_stop_signal(int sig, struct task_struct *p)
-+static int prepare_signal(int sig, struct task_struct *p)
- {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
- 
--	if (signal->flags & SIGNAL_GROUP_EXIT)
-+	if (unlikely(signal->flags & SIGNAL_GROUP_EXIT))
- 		/*
- 		 * The process is in the middle of dying already.
- 		 */
--		return;
-+		return 0;
- 
- 	if (sig_kernel_stop(sig)) {
- 		/*
-@@ -644,6 +644,8 @@ static void handle_stop_signal(int sig, 
- 			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
+@@ -645,7 +645,7 @@ static int prepare_signal(int sig, struc
  		}
  	}
-+
-+	return 1;
+ 
+-	return 1;
++	return !sig_ignored(p, sig);
  }
  
  /*
-@@ -708,8 +710,7 @@ static void complete_signal(int sig, str
- 	 * Found a killable thread.  If the signal will be fatal,
- 	 * then start taking the whole group down immediately.
+@@ -763,7 +763,7 @@ static int send_signal(int sig, struct s
+ 	 * exactly one non-rt signal, so that we can get more
+ 	 * detailed information about the cause of the signal.
  	 */
--	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
--	    !sigismember(&t->real_blocked, sig) &&
-+	if (sig_fatal(p, sig) && !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
- 		/*
- 		 * This signal will be fatal to the whole group.
-@@ -753,7 +754,8 @@ static int send_signal(int sig, struct s
- 	struct sigqueue *q;
+-	if (sig_ignored(t, sig) || legacy_queue(pending, sig))
++	if (legacy_queue(pending, sig))
+ 		return 0;
  
- 	assert_spin_locked(&t->sighand->siglock);
--	handle_stop_signal(sig, t);
-+	if (!likely(prepare_signal(sig, t)))
-+		return 0;
- 
- 	pending = group ? &t->signal->shared_pending : &t->pending;
  	/*
-@@ -1247,9 +1249,10 @@ int send_sigqueue(struct sigqueue *q, st
- 	if (!likely(lock_task_sighand(t, &flags)))
- 		goto ret;
- 
--	handle_stop_signal(sig, t);
--
- 	ret = 1;
-+	if (!likely(prepare_signal(sig, t)))
-+		goto out;
-+
- 	if (sig_ignored(t, sig))
+@@ -1253,9 +1253,6 @@ int send_sigqueue(struct sigqueue *q, st
+ 	if (!likely(prepare_signal(sig, t)))
  		goto out;
  
+-	if (sig_ignored(t, sig))
+-		goto out;
+-
+ 	ret = 0;
+ 	if (unlikely(!list_empty(&q->list))) {
+ 		/*
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -159,6 +121,7 @@ signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
 signals-join-send_sigqueue-with-send_group_sigqueue.patch
 signals-handle_stop_signal-dont-worry-about-sigkill.patch
 signals-send_signal-factor-out-signal_group_exit-checks.patch
+signals-fold-sig_ignored-into-prepare_signal.patch
 ptrace-introduce-task_detached-helper.patch
 reparent_thread-use-same_thread_group.patch
 document-de_thread-with-exit_notify-connection.patch
