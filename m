@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-eliminate-pg_xxx-aliases.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:19 -0700
-Message-ID: <200803101901.m2AJ1JE2000453@imap1.linux-foundation.org>
+Subject: + kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:07 -0700
+Message-ID: <200803101901.m2AJ17XX000431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752065AbYCJTBW (ORCPT
+	by vger.kernel.org with ESMTP id S1751353AbYCJTBM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:22 -0400
+	Mon, 10 Mar 2008 15:01:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, sam@ravnborg.org
 
 
 The patch titled
-     pageflags: eliminate PG_xxx aliases
+     kbuild: create a way to create preprocessor constants from C expressions
 has been added to the -mm tree.  Its filename is
-     pageflags-eliminate-pg_xxx-aliases.patch
+     kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: eliminate PG_xxx aliases
+Subject: kbuild: create a way to create preprocessor constants from C expressions
 From: Christoph Lameter <clameter@sgi.com>
 
-Remove aliases of PG_xxx.  We can easily drop those now and alias by
-specifying the PG_xxx flag in the macro that generates the functions.
+The use of enums create constants that are not available to the preprocessor
+when building the kernel (f.e.  MAX_NR_ZONES).
 
+Arch code already has a way to export constants calculated to the preprocessor
+through the asm-offsets.c file.  Generate something similar for the core
+kernel through kbuild.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   10 +++-------
- mm/page_alloc.c            |    2 +-
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ Kbuild          |   56 +++++++++++++++++++++++++++++++++++++++-------
+ kernel/bounds.c |   19 +++++++++++++++
+ 2 files changed, 67 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
-+++ a/include/linux/page-flags.h
-@@ -76,8 +76,6 @@ enum pageflags {
- 	PG_active,
- 	PG_slab,
- 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
--	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
--	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
- 	PG_arch_1,
- 	PG_reserved,
- 	PG_private,		/* If pagecache, has fs-private data */
-@@ -86,8 +84,6 @@ enum pageflags {
- 	PG_swapcache,		/* Swap page: swp_entry_t in private */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
--	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
--	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
- 	PG_buddy,		/* Page is free, on buddy lists */
+diff -puN Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions Kbuild
+--- a/Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions
++++ a/Kbuild
+@@ -1,19 +1,54 @@
+ #
+ # Kbuild for top-level directory of the kernel
+ # This file takes care of the following:
+-# 1) Generate asm-offsets.h
+-# 2) Check for missing system calls
++# 1) Generate bounds.h
++# 2) Generate asm-offsets.h (may need bounds.h)
++# 3) Check for missing system calls
  
- #if (BITS_PER_LONG > 32)
-@@ -160,8 +156,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
- PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
--PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
-+PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
-+PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
- PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
- PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
- 	__SETPAGEFLAG(Private, private)
-@@ -176,7 +172,7 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
+ #####
+-# 1) Generate asm-offsets.h
++# 1) Generate bounds.h
++
++bounds-file := include/linux/bounds.h
++
++always  := $(bounds-file)
++targets := $(bounds-file) kernel/bounds.s
++
++quiet_cmd_bounds = GEN     $@
++define cmd_bounds
++	(set -e; \
++	 echo "#ifndef __LINUX_BOUNDS_H__"; \
++	 echo "#define __LINUX_BOUNDS_H__"; \
++	 echo "/*"; \
++	 echo " * DO NOT MODIFY."; \
++	 echo " *"; \
++	 echo " * This file was generated by Kbuild"; \
++	 echo " *"; \
++	 echo " */"; \
++	 echo ""; \
++	 sed -ne $(sed-y) $<; \
++	 echo ""; \
++	 echo "#endif" ) > $@
++endef
++
++# We use internal kbuild rules to avoid the "is up to date" message from make
++kernel/bounds.s: kernel/bounds.c FORCE
++	$(Q)mkdir -p $(dir $@)
++	$(call if_changed_dep,cc_s_c)
++
++$(obj)/$(bounds-file): kernel/bounds.s Kbuild
++	$(Q)mkdir -p $(dir $@)
++	$(call cmd,bounds)
++
++#####
++# 2) Generate asm-offsets.h
+ #
  
- /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
- PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
--PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
-+PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
+ offsets-file := include/asm-$(SRCARCH)/asm-offsets.h
  
- static inline int PageHighMem(struct page *page)
- {
-diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
---- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
-+++ a/mm/page_alloc.c
-@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
- 	if (PageReserved(page))
- 		return 1;
+-always  := $(offsets-file)
+-targets := $(offsets-file)
++always  += $(offsets-file)
++targets += $(offsets-file)
+ targets += arch/$(SRCARCH)/kernel/asm-offsets.s
+-clean-files := $(addprefix $(objtree)/,$(targets))
++
  
--	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
-+	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
- 			1 << PG_referenced | 1 << PG_arch_1 |
- 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
- 	set_page_private(page, 0);
+ # Default sed regexp - multiline due to syntax constraints
+ define sed-y
+@@ -40,7 +75,8 @@ define cmd_offsets
+ endef
+ 
+ # We use internal kbuild rules to avoid the "is up to date" message from make
+-arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c FORCE
++arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c \
++                                      $(obj)/$(bounds-file) FORCE
+ 	$(Q)mkdir -p $(dir $@)
+ 	$(call if_changed_dep,cc_s_c)
+ 
+@@ -49,7 +85,7 @@ $(obj)/$(offsets-file): arch/$(SRCARCH)/
+ 	$(call cmd,offsets)
+ 
+ #####
+-# 2) Check for missing system calls
++# 3) Check for missing system calls
+ #
+ 
+ quiet_cmd_syscalls = CALL    $<
+@@ -58,3 +94,7 @@ quiet_cmd_syscalls = CALL    $<
+ PHONY += missing-syscalls
+ missing-syscalls: scripts/checksyscalls.sh FORCE
+ 	$(call cmd,syscalls)
++
++# Delete all targets during make clean
++clean-files := $(addprefix $(objtree)/,$(targets))
++
+diff -puN /dev/null kernel/bounds.c
+--- /dev/null
++++ a/kernel/bounds.c
+@@ -0,0 +1,19 @@
++/*
++ * Generate definitions needed by the preprocessor.
++ * This code generates raw asm output which is post-processed
++ * to extract and format the required data.
++ */
++
++#define __GENERATING_BOUNDS_H
++#include <linux/mm.h>
++
++#define DEFINE(sym, val) \
++        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++
++#define BLANK() asm volatile("\n->" : : )
++
++void foo(void)
++{
++	/* The enum constants to put into include/linux/bounds.h */
++	/* End of constants */
++}
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
