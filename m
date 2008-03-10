@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isolate-ratelimit-from-printkc-for-other-use.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:52:03 -0700
-Message-ID: <200803102052.m2AKq4x2004931@imap1.linux-foundation.org>
+Subject: + cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:58:44 -0700
+Message-ID: <200803102058.m2AKwiTp005168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40944 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751382AbYCJU5q (ORCPT
+	by vger.kernel.org with ESMTP id S1751323AbYCJU74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:57:46 -0400
+	Mon, 10 Mar 2008 16:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com
+Cc: ego@in.ibm.com, ghaskins@novell.com, mingo@elte.hu, rjw@sisk.pl, suresh.b.siddha@intel.com
 
 
 The patch titled
-     isolate ratelimit from printk.c for other use
+     cpu-hotplug: register update_sched_domains() notifier with higher prio
 has been added to the -mm tree.  Its filename is
-     isolate-ratelimit-from-printkc-for-other-use.patch
+     cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isolate ratelimit from printk.c for other use
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: cpu-hotplug: register update_sched_domains() notifier with higher prio
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-Due to the rcupreempt.h WARN_ON trigged, I got 2G syslog file.  For some
-serious complaining of kernel, we need repeat the warnings, so here I isolate
-the ratelimit part of printk.c to a standalone file.
+The current -rt wake_up logic uses the rq->rd->online_map which is updated on
+cpu-hotplug events by update_sched_domains().  Currently
+update_sched_domains() is registered with a priority 0.  It is preferable that
+update_sched_domains() be the first notifier called on a CPU_DEAD or
+CPU_ONLINE events inorder to ensure that the rq->rd->online_map is in sync
+with the cpu_online_map.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+This way on a CPU_DOWN_PREPARE, we would destroy the sched_domains and
+reattach all the rq's to the def_root_domain.  This will be followed by a
+CPU_DOWN_PREPARE in migration_call() which will clear the bit of the cpu going
+offline from the corresponding rq.  This will ensure that no task will be
+woken up on the cpu which is going to be offlined between CPU_DOWN_PREPARE and
+CPU_DEAD.
+
+Ditto for the CPU_ONLINE path.
+
+Tested on a 4-way Intel Xeon Box with cpu-hotplug tests running in parallel
+with kernbench.
+
+(akpm: might fix my poweroff-doesnt-work regression)
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Gregory Haskins <ghaskins@novell.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    1 
- kernel/printk.c        |   26 -------------------
- lib/Makefile           |    2 -
- lib/ratelimit.c        |   51 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 54 insertions(+), 26 deletions(-)
+ kernel/sched.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~isolate-ratelimit-from-printkc-for-other-use include/linux/kernel.h
---- a/include/linux/kernel.h~isolate-ratelimit-from-printkc-for-other-use
-+++ a/include/linux/kernel.h
-@@ -188,6 +188,7 @@ extern int log_buf_copy(char *dest, int 
- extern int printk_ratelimit_jiffies;
- extern int printk_ratelimit_burst;
- extern int printk_ratelimit(void);
-+extern int __ratelimit(int ratelimit_jiffies, int ratelimit_burst);
- extern int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst);
- extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
- 				   unsigned int interval_msec);
-diff -puN kernel/printk.c~isolate-ratelimit-from-printkc-for-other-use kernel/printk.c
---- a/kernel/printk.c~isolate-ratelimit-from-printkc-for-other-use
-+++ a/kernel/printk.c
-@@ -1261,31 +1261,7 @@ void tty_write_message(struct tty_struct
-  */
- int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst)
- {
--	static DEFINE_SPINLOCK(ratelimit_lock);
--	static unsigned toks = 10 * 5 * HZ;
--	static unsigned long last_msg;
--	static int missed;
--	unsigned long flags;
--	unsigned long now = jiffies;
--
--	spin_lock_irqsave(&ratelimit_lock, flags);
--	toks += now - last_msg;
--	last_msg = now;
--	if (toks > (ratelimit_burst * ratelimit_jiffies))
--		toks = ratelimit_burst * ratelimit_jiffies;
--	if (toks >= ratelimit_jiffies) {
--		int lost = missed;
--
--		missed = 0;
--		toks -= ratelimit_jiffies;
--		spin_unlock_irqrestore(&ratelimit_lock, flags);
--		if (lost)
--			printk(KERN_WARNING "printk: %d messages suppressed.\n", lost);
--		return 1;
--	}
--	missed++;
--	spin_unlock_irqrestore(&ratelimit_lock, flags);
--	return 0;
-+	return __ratelimit(ratelimit_jiffies, ratelimit_burst);
- }
- EXPORT_SYMBOL(__printk_ratelimit);
+diff -puN kernel/sched.c~cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio kernel/sched.c
+--- a/kernel/sched.c~cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio
++++ a/kernel/sched.c
+@@ -7095,8 +7095,16 @@ void __init sched_init_smp(void)
+ 	if (cpus_empty(non_isolated_cpus))
+ 		cpu_set(smp_processor_id(), non_isolated_cpus);
+ 	put_online_cpus();
+-	/* XXX: Theoretical race here - CPU may be hotplugged now */
+-	hotcpu_notifier(update_sched_domains, 0);
++	/*
++	 * XXX: Theoretical race here - CPU may be hotplugged now
++	 *
++	 * We register the notifier with priority 11, which means that
++	 * update_sched_domains() will be called just before migration_call().
++	 *
++	 * This is necessary to ensure that the rt wake up logic works fine
++	 * and the rq->rd->online_map remains in sync with the cpu_online_map.
++	 */
++	hotcpu_notifier(update_sched_domains, 11);
  
-diff -puN lib/Makefile~isolate-ratelimit-from-printkc-for-other-use lib/Makefile
---- a/lib/Makefile~isolate-ratelimit-from-printkc-for-other-use
-+++ a/lib/Makefile
-@@ -6,7 +6,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 rbtree.o radix-tree.o dump_stack.o \
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
--	 proportions.o prio_heap.o
-+	 proportions.o prio_heap.o ratelimit.o
- 
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-diff -puN /dev/null lib/ratelimit.c
---- /dev/null
-+++ a/lib/ratelimit.c
-@@ -0,0 +1,51 @@
-+/*
-+ * ratelimit.c - Do something with rate limit.
-+ *
-+ * Isolated from kernel/printk.c by Dave Young <hidave.darkstar@gmail.com>
-+ *
-+ * This file is released under the GPLv2.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/jiffies.h>
-+#include <linux/module.h>
-+
-+/*
-+ * __ratelimit - rate limiting
-+ * @ratelimit_jiffies: minimum time in jiffies between too callbacks
-+ * @ratelimit_burst: number of callbacks we do before ratelimiting
-+ *
-+ * This enforces a rate limit: not more than @ratelimit_burst callbacks
-+ * in every ratelimit_jiffies
-+ */
-+int __ratelimit(int ratelimit_jiffies, int ratelimit_burst)
-+{
-+	static DEFINE_SPINLOCK(ratelimit_lock);
-+	static unsigned toks = 10 * 5 * HZ;
-+	static unsigned long last_msg;
-+	static int missed;
-+	unsigned long flags;
-+	unsigned long now = jiffies;
-+
-+	spin_lock_irqsave(&ratelimit_lock, flags);
-+	toks += now - last_msg;
-+	last_msg = now;
-+	if (toks > (ratelimit_burst * ratelimit_jiffies))
-+		toks = ratelimit_burst * ratelimit_jiffies;
-+	if (toks >= ratelimit_jiffies) {
-+		int lost = missed;
-+
-+		missed = 0;
-+		toks -= ratelimit_jiffies;
-+		spin_unlock_irqrestore(&ratelimit_lock, flags);
-+		if (lost)
-+			printk(KERN_WARNING "__ratelimit: %d messages"
-+				" suppressed.\n", lost);
-+		return 1;
-+	}
-+	missed++;
-+	spin_unlock_irqrestore(&ratelimit_lock, flags);
-+	return 0;
-+}
-+EXPORT_SYMBOL(__ratelimit);
+ 	/* Move init over to a non-isolated CPU */
+ 	if (set_cpus_allowed(current, non_isolated_cpus) < 0)
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-git-net.patch
-isolate-ratelimit-from-printkc-for-other-use.patch
-add-warn_on_secs-macro.patch
-use-warn_on_secs-in-rcupreempth.patch
+poweroff-workaround.patch
+cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
+cpu-fix-section-mismatch-warning-in-unregister_cpu_notifier.patch
+cpu-fix-section-mismatch-warnings-in-cpu_down.patch
+cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+cpu-hotplug-register-update_sched_domains-notifier-with-higher-prio.patch
 
