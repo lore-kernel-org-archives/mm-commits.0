@@ -1,103 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - leds-add-mail-led-support-for-clevo-d400p.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:30 -0700
-Message-ID: <200803101805.m2AI5Ul7030099@imap1.linux-foundation.org>
+Subject: - cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:39 -0700
+Message-ID: <200803101805.m2AI5d1w030117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751259AbYCJSLd (ORCPT
+	by vger.kernel.org with ESMTP id S1751085AbYCJSLs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:11:33 -0400
+	Mon, 10 Mar 2008 14:11:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nm127@freemail.hu, akamenov@users.sourceforge.net, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: ghaskins@novell.com, mingo@elte.hu, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: add mail LED support for "Clevo D400P"
+     cpu hotplug: adjust root-domain->online span in response to hotplug event
 has been removed from the -mm tree.  Its filename was
-     leds-add-mail-led-support-for-clevo-d400p.patch
+     cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add mail LED support for "Clevo D400P"
-=46rom: M=E1rton N=E9meth <nm127@freemail.hu>
+Subject: cpu hotplug: adjust root-domain->online span in response to hotplug event
+From: Gregory Haskins <ghaskins@novell.com>
 
-The leds-clevo-mail module also works with model "Clevo D400P",
-add this model to the white list.
+We currently set the root-domain online span automatically when the domain is
+added to the cpu if the cpu is already a member of cpu_online_map.  This was
+done as a hack/bug-fix for s2ram, but it also causes a problem with hotplug
+CPU_DOWN transitioning.  The right way to fix the original problem is to
+actually respond to CPU_UP events, instead of CPU_ONLINE, which is already too
+late.
 
-Signed-off-by: M=E1rton N=E9meth <nm127@freemail.hu>
-Cc: Andrey Kamenov <akamenov@users.sourceforge.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Gregory Haskins <ghaskins@novell.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig           |    4 ++++
- drivers/leds/leds-clevo-mail.c |   10 ++++++++++
- 2 files changed, 14 insertions(+)
+ kernel/sched.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-add-mail-led-support-for-clevo-d400=
-p drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-add-mail-led-support-for-clevo-d400p
-+++ a/drivers/leds/Kconfig
-@@ -135,6 +135,7 @@ config LEDS_CLEVO_MAIL
-=20
- 	  This module can drive the mail LED for the following notebooks:
-=20
-+	  	Clevo D400P
- 	  	Clevo D410J
- 	  	Clevo D410V
- 	  	Clevo D400V/D470V (not tested, but might work)
-@@ -142,6 +143,9 @@ config LEDS_CLEVO_MAIL
- 	  	Clevo M5x0N (not tested, but might work)
- 	  	Positivo Mobile (Clevo M5x0V)
-=20
-+	  If your model is not listed here you can try the "nodetect"
-+	  module paramter.
+diff -puN kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event kernel/sched.c
+--- a/kernel/sched.c~cpu-hotplug-adjust-root-domain-online-span-in-response-to-hotplug-event
++++ a/kernel/sched.c
+@@ -5890,6 +5890,13 @@ migration_call(struct notifier_block *nf
+ 		/* Must be high prio: stop_machine expects to yield to it. */
+ 		rq = task_rq_lock(p, &flags);
+ 		__setscheduler(rq, p, SCHED_FIFO, MAX_RT_PRIO-1);
 +
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called leds-clevo-mail.
-=20
-diff -puN drivers/leds/leds-clevo-mail.c~leds-add-mail-led-support-for-=
-clevo-d400p drivers/leds/leds-clevo-mail.c
---- a/drivers/leds/leds-clevo-mail.c~leds-add-mail-led-support-for-clev=
-o-d400p
-+++ a/drivers/leds/leds-clevo-mail.c
-@@ -69,6 +69,16 @@ static struct dmi_system_id __initdata m
- 	},
- 	{
- 		.callback =3D clevo_mail_led_dmi_callback,
-+		.ident =3D "Clevo D400P",
-+		.matches =3D {
-+			DMI_MATCH(DMI_BOARD_VENDOR, "Clevo"),
-+			DMI_MATCH(DMI_BOARD_NAME, "D400P"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "Rev.A"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "0106")
++		/* Update our root-domain */
++		if (rq->rd) {
++			BUG_ON(!cpu_isset(cpu, rq->rd->span));
++			cpu_set(cpu, rq->rd->online);
 +		}
-+	},
-+	{
-+		.callback =3D clevo_mail_led_dmi_callback,
- 		.ident =3D "Clevo D410V",
- 		.matches =3D {
- 			DMI_MATCH(DMI_BOARD_VENDOR, "Clevo, Co."),
++
+ 		task_rq_unlock(rq, &flags);
+ 		cpu_rq(cpu)->migration_thread = p;
+ 		break;
+@@ -5898,15 +5905,6 @@ migration_call(struct notifier_block *nf
+ 	case CPU_ONLINE_FROZEN:
+ 		/* Strictly unnecessary, as first user will wake it. */
+ 		wake_up_process(cpu_rq(cpu)->migration_thread);
+-
+-		/* Update our root-domain */
+-		rq = cpu_rq(cpu);
+-		spin_lock_irqsave(&rq->lock, flags);
+-		if (rq->rd) {
+-			BUG_ON(!cpu_isset(cpu, rq->rd->span));
+-			cpu_set(cpu, rq->rd->online);
+-		}
+-		spin_unlock_irqrestore(&rq->lock, flags);
+ 		break;
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -6182,8 +6180,6 @@ static void rq_attach_root(struct rq *rq
+ 	rq->rd = rd;
+ 
+ 	cpu_set(rq->cpu, rd->span);
+-	if (cpu_isset(rq->cpu, cpu_online_map))
+-		cpu_set(rq->cpu, rd->online);
+ 
+ 	for (class = sched_class_highest; class; class = class->next) {
+ 		if (class->join_domain)
 _
 
-Patches currently in -mm which might be from nm127@freemail.hu are
+Patches currently in -mm which might be from ghaskins@novell.com are
 
-git-drm.patch
-git-leds.patch
+git-kvm.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
