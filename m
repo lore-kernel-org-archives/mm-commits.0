@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smackfs-do-not-trust-count-in-inodes-writes.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:49:26 -0700
-Message-ID: <200803101949.m2AJnQXU002413@imap1.linux-foundation.org>
+Subject: + pagemap-proper-read-error-handling.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:51:36 -0700
+Message-ID: <200803101951.m2AJpakF002555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752745AbYCJTtm (ORCPT
+	by vger.kernel.org with ESMTP id S1751528AbYCJTwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:49:42 -0400
+	Mon, 10 Mar 2008 15:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, casey@schaufler-ca.com
+Cc: marcelo@kvack.org, mpm@selenic.com, mtosatti@redhat.com
 
 
 The patch titled
-     smackfs: do not trust `count' in inodes write()s
+     pagemap: proper read error handling
 has been added to the -mm tree.  Its filename is
-     smackfs-do-not-trust-count-in-inodes-writes.patch
+     pagemap-proper-read-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smackfs: do not trust `count' in inodes write()s
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: pagemap: proper read error handling
+From: Marcelo Tosatti <marcelo@kvack.org>
 
-Smackfs write() implementation does not put a higher bound on the number of
-bytes to copy from user-space.  This may lead to a DOS attack if a malicious
-`count' field is given.
+Fix pagemap_read() error handling by releasing acquired resources and checking
+for get_user_pages() partial failure.
 
-Assure that given `count' is exactly the length needed for a /smack/load rule.
- In case of /smack/cipso where the length is relative, assure that `count'
-does not exceed the size needed for a buffer representing maximum possible
-number of CIPSO 2.2 categories.
-
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack.h   |    8 --------
- security/smack/smackfs.c |   31 ++++++++++++++++++++-----------
- 2 files changed, 20 insertions(+), 19 deletions(-)
+ fs/proc/task_mmu.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes security/smack/smack.h
---- a/security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes
-+++ a/security/smack/smack.h
-@@ -27,14 +27,6 @@
- #define SMK_MAXLEN	23
- #define SMK_LABELLEN	(SMK_MAXLEN+1)
+diff -puN fs/proc/task_mmu.c~pagemap-proper-read-error-handling fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-proper-read-error-handling
++++ a/fs/proc/task_mmu.c
+@@ -640,17 +640,17 @@ static ssize_t pagemap_read(struct file 
  
--/*
-- * How many kinds of access are there?
-- * Here's your answer.
-- */
--#define SMK_ACCESSDASH	'-'
--#define SMK_ACCESSLOW	"rwxa"
--#define SMK_ACCESSKINDS	(sizeof(SMK_ACCESSLOW) - 1)
--
- struct superblock_smack {
- 	char		*smk_root;
- 	char		*smk_floor;
-diff -puN security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes security/smack/smackfs.c
---- a/security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes
-+++ a/security/smack/smackfs.c
-@@ -81,10 +81,23 @@ static struct semaphore smack_write_sem;
- /*
-  * Values for parsing cipso rules
-  * SMK_DIGITLEN: Length of a digit field in a rule.
-- * SMK_CIPSOMEN: Minimum possible cipso rule length.
-+ * SMK_CIPSOMIN: Minimum possible cipso rule length.
-+ * SMK_CIPSOMAX: Maximum possible cipso rule length.
-  */
- #define SMK_DIGITLEN 4
--#define SMK_CIPSOMIN (SMK_MAXLEN + 2 * SMK_DIGITLEN)
-+#define SMK_CIPSOMIN (SMK_LABELLEN + 2 * SMK_DIGITLEN)
-+#define SMK_CIPSOMAX (SMK_CIPSOMIN + SMACK_CIPSO_MAXCATNUM * SMK_DIGITLEN)
+ 	ret = -EACCES;
+ 	if (!ptrace_may_attach(task))
+-		goto out;
++		goto out_task;
+ 
+ 	ret = -EINVAL;
+ 	/* file position must be aligned */
+ 	if (*ppos % PM_ENTRY_BYTES)
+-		goto out;
++		goto out_task;
+ 
+ 	ret = 0;
+ 	mm = get_task_mm(task);
+ 	if (!mm)
+-		goto out;
++		goto out_task;
+ 
+ 	ret = -ENOMEM;
+ 	uaddr = (unsigned long)buf & PAGE_MASK;
+@@ -658,7 +658,7 @@ static ssize_t pagemap_read(struct file 
+ 	pagecount = (PAGE_ALIGN(uend) - uaddr) / PAGE_SIZE;
+ 	pages = kmalloc(pagecount * sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+-		goto out_task;
++		goto out_mm;
+ 
+ 	down_read(&current->mm->mmap_sem);
+ 	ret = get_user_pages(current, current->mm, uaddr, pagecount,
+@@ -668,6 +668,12 @@ static ssize_t pagemap_read(struct file 
+ 	if (ret < 0)
+ 		goto out_free;
+ 
++	if (ret != pagecount) {
++		pagecount = ret;
++		ret = -EFAULT;
++		goto out_pages;
++	}
 +
-+/*
-+ * Values for parsing MAC rules
-+ * SMK_ACCESS: Maximum possible combination of access permissions
-+ * SMK_ACCESSLEN: Maximum length for a rule access field
-+ * SMK_LOADLEN: Smack rule length
-+ */
-+#define SMK_ACCESS    "rwxa"
-+#define SMK_ACCESSLEN (sizeof(SMK_ACCESS) - 1)
-+#define SMK_LOADLEN   (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSLEN)
-+
+ 	pm.out = buf;
+ 	pm.end = buf + count;
  
- /*
-  * Seq_file read operations for /smack/load
-@@ -229,14 +242,10 @@ static void smk_set_access(struct smack_
-  * The format is exactly:
-  *     char subject[SMK_LABELLEN]
-  *     char object[SMK_LABELLEN]
-- *     char access[SMK_ACCESSKINDS]
-+ *     char access[SMK_ACCESSLEN]
-  *
-- *     Anything following is commentary and ignored.
-- *
-- * writes must be SMK_LABELLEN+SMK_LABELLEN+4 bytes.
-+ * writes must be SMK_LABELLEN+SMK_LABELLEN+SMK_ACCESSLEN bytes.
-  */
--#define MINIMUM_LOAD (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSKINDS)
--
- static ssize_t smk_write_load(struct file *file, const char __user *buf,
- 			      size_t count, loff_t *ppos)
- {
-@@ -253,7 +262,7 @@ static ssize_t smk_write_load(struct fil
- 		return -EPERM;
- 	if (*ppos != 0)
- 		return -EINVAL;
--	if (count < MINIMUM_LOAD)
-+	if (count != SMK_LOADLEN)
- 		return -EINVAL;
+@@ -699,15 +705,17 @@ static ssize_t pagemap_read(struct file 
+ 			ret = pm.out - buf;
+ 	}
  
- 	data = kzalloc(count, GFP_KERNEL);
-@@ -513,7 +522,7 @@ static ssize_t smk_write_cipso(struct fi
- 		return -EPERM;
- 	if (*ppos != 0)
- 		return -EINVAL;
--	if (count <= SMK_CIPSOMIN)
-+	if (count < SMK_CIPSOMIN || count > SMK_CIPSOMAX)
- 		return -EINVAL;
- 
- 	data = kzalloc(count + 1, GFP_KERNEL);
-@@ -547,7 +556,7 @@ static ssize_t smk_write_cipso(struct fi
- 	if (ret != 1 || catlen > SMACK_CIPSO_MAXCATNUM)
- 		goto out;
- 
--	if (count <= (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
-+	if (count != (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
- 		goto out;
- 
- 	memset(mapcatset, 0, sizeof(mapcatset));
++out_pages:
+ 	for (; pagecount; pagecount--) {
+ 		page = pages[pagecount-1];
+ 		if (!PageReserved(page))
+ 			SetPageDirty(page);
+ 		page_cache_release(page);
+ 	}
+-	mmput(mm);
+ out_free:
+ 	kfree(pages);
++out_mm:
++	mmput(mm);
+ out_task:
+ 	put_task_struct(task);
+ out:
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from marcelo@kvack.org are
 
+pagemap-proper-read-error-handling.patch
 git-kvm.patch
-git-security-testing.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-smackfs-do-not-trust-count-in-inodes-writes.patch
 
