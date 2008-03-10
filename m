@@ -1,79 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - input-put-ledstate-in-the-keyboard-notifier-fix.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 03:05:32 -0700
-Message-ID: <200803101005.m2AA5WXN011167@imap1.linux-foundation.org>
+Subject: - ps-2-serio-driver-for-avr32-devices-fix.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 03:07:20 -0700
+Message-ID: <200803101007.m2AA7KRT011203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751267AbYCJKHS (ORCPT
+	by vger.kernel.org with ESMTP id S1751368AbYCJKIG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 06:07:18 -0400
+	Mon, 10 Mar 2008 06:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, dtor@mail.ru, eklhad@comcast.net, jikos@jikos.cz, mm-commits@vger.kernel.org
+To: hcegtvedt@atmel.com, dtor@mail.ru, hskinnemoen@atmel.com, jikos@jikos.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Keyboard notification ledstate fixes.
+     ps-2-serio-driver-for-avr32-devices-fix
 has been removed from the -mm tree.  Its filename was
-     input-put-ledstate-in-the-keyboard-notifier-fix.patch
+     ps-2-serio-driver-for-avr32-devices-fix.patch
 
-This patch was dropped because it was folded into input-put-ledstate-in-the-keyboard-notifier.patch
+This patch was dropped because it was folded into ps-2-serio-driver-for-avr32-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Keyboard notification ledstate fixes.
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: ps-2-serio-driver-for-avr32-devices-fix
+From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 
-In keyboard notifications, use kbd->ledflagstate instead of
-getledstate() since that's what the keyboard layer is supposed to use.
-
-Update param.ledstate again between key handler call and notifying
-KBD_POST_KEYSYM, since key handlers may update the led state.
-
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Karl Dahlke <eklhad@comcast.net>
 Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/input/serio/at32psif.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier-fix drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier-fix
-+++ a/drivers/char/keyboard.c
-@@ -1238,7 +1238,7 @@ static void kbd_keycode(unsigned int key
- 	}
+diff -puN drivers/input/serio/at32psif.c~ps-2-serio-driver-for-avr32-devices-fix drivers/input/serio/at32psif.c
+--- a/drivers/input/serio/at32psif.c~ps-2-serio-driver-for-avr32-devices-fix
++++ a/drivers/input/serio/at32psif.c
+@@ -23,10 +23,6 @@
  
- 	param.shift = shift_final = (shift_state | kbd->slockstate) ^ kbd->lockstate;
--	param.ledstate = getledstate();
-+	param.ledstate = kbd->ledflagstate;
- 	key_map = key_maps[shift_final];
+ #define PSIF_BUF_SIZE		16
  
- 	if (atomic_notifier_call_chain(&keyboard_notifier_list, KBD_KEYCODE, &param) == NOTIFY_STOP || !key_map) {
-@@ -1287,6 +1287,7 @@ static void kbd_keycode(unsigned int key
+-#define ring_is_empty(_psif)	(_psif->head == _psif->tail)
+-#define ring_next_head(_psif)	((_psif->head + 1) & (PSIF_BUF_SIZE - 1))
+-#define ring_next_tail(_psif)	((_psif->tail + 1) & (PSIF_BUF_SIZE - 1))
+-
+ struct psif {
+ 	struct platform_device	*pdev;
+ 	struct clk		*pclk;
+@@ -42,6 +38,21 @@ struct psif {
+ 	unsigned char		buffer[PSIF_BUF_SIZE];
+ };
  
- 	(*k_handler[type])(vc, keysym & 0xff, !down);
++static int ring_is_empty(struct psif *psif)
++{
++	return (psif->head == psif->tail);
++}
++
++static unsigned int ring_next_head(struct psif *psif)
++{
++	return ((psif->head + 1) & (PSIF_BUF_SIZE - 1));
++}
++
++static unsigned int ring_next_tail(struct psif *psif)
++{
++	return ((psif->tail + 1) & (PSIF_BUF_SIZE - 1));
++}
++
+ static irqreturn_t psif_interrupt(int irq, void *_ptr)
+ {
+ 	struct psif *psif = _ptr;
+@@ -151,6 +162,11 @@ static void psif_close(struct serio *io)
+ 	psif_writel(psif, IDR, ~0UL);
+ 	psif_writel(psif, CR, PSIF_BIT(CR_TXDIS) | PSIF_BIT(CR_RXDIS));
  
-+	param.ledstate = kbd->ledflagstate;
- 	atomic_notifier_call_chain(&keyboard_notifier_list, KBD_POST_KEYSYM, &param);
++	del_timer_sync(&psif->tx_timer);
++
++	/* Reset circular buffer. */
++	psif->tail = psif->head;
++
+ 	clk_disable(psif->pclk);
+ }
  
- 	if (type != KT_SLOCK)
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from hcegtvedt@atmel.com are
 
-keyboard-notifier-documentation.patch
-input-put-ledstate-in-the-keyboard-notifier.patch
-input-put-ledstate-in-the-keyboard-notifier-fix.patch
-vt-notifier-extension-for-accessibility.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-basic-braille-screen-reader-support.patch
-basic-braille-screen-reader-support-fixes.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-basic-braille-screen-reader-support-doc.patch
+git-alsa.patch
+git-avr32.patch
+input-core-driver-for-wm97xx-touchscreens.patch
+ps-2-serio-driver-for-avr32-devices.patch
+ps-2-serio-driver-for-avr32-devices-fix.patch
+at73c213-fix-error-checking-for-clk-api.patch
+at73c213-monaural-support.patch
 
