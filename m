@@ -1,139 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-platform-interface.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:37:43 -0700
-Message-ID: <200803101937.m2AJbhNR001904@imap1.linux-foundation.org>
+Subject: - jbd2-replace-potentially-false-assertion-with-if-block.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:43:52 -0700
+Message-ID: <200803101943.m2AJhqT6002206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59513 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752114AbYCJTlT (ORCPT
+	by vger.kernel.org with ESMTP id S1752165AbYCJTn5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:41:19 -0400
+	Mon, 10 Mar 2008 15:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: platform interface
+     jbd2: replace potentially false assertion with if block
 has been removed from the -mm tree.  Its filename was
-     regulator-platform-interface.patch
+     jbd2-replace-potentially-false-assertion-with-if-block.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: platform interface
-From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Subject: jbd2: replace potentially false assertion with if block
+From: "Duane Griffin" <duaneg@dghda.com>
 
-This interface configures a regulator for use within a specific device.  It
-allows for the creation of voltage and current domains (with constraints) for
-each regulator.  Regulator constraints help prevent device damage by providing
-protection for over voltage or over current events caused by buggy client
-drivers.
+If an error occurs during jbd2 cache initialisation it is possible for the
+journal_head_cache to be NULL when jbd2_journal_destroy_journal_head_cache is
+called.  Replace the J_ASSERT with an if block to handle the situation
+correctly.
 
-This interface also allows the creation of a regulator tree whereby some
-regulators are supplied by others (similar to a clock tree).  This means a
-parent regulator will be enabled before it's children are enabled and disabled
-after it's children have all been disabled.
+Note that even with this fix things will break badly if jbd2 is statically
+compiled in and cache initialisation fails.
 
-Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/regulator-platform.h |   76 +++++++++++++++++
- 1 file changed, 76 insertions(+)
+ fs/jbd2/journal.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null include/linux/regulator/regulator-platform.h
---- /dev/null
-+++ a/include/linux/regulator/regulator-platform.h
-@@ -0,0 +1,76 @@
-+/*
-+ * regulator-platform.h -- SoC Regulator support, platform driver API.
-+ *
-+ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
-+ *
-+ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Regulator Platform Interface.
-+ */
-+
-+#ifndef __LINUX_REGULATOR_PLATFORM_H_
-+#define __LINUX_REGULATOR_PLATFORM_H_
-+
-+#include <linux/regulator/regulator.h>
-+
-+struct regulator;
-+
-+/*
-+ * Regulator operation constraint flags. These flags are used to enable
-+ * certain regulator operations and can be OR'ed together.
-+ *
-+ * VOLTAGE:  Regulator output voltage can be changed by software on this
-+ *           board/machine.
-+ * CURRENT:  Regulator output current can be changed by software on this
-+ *           board machine.
-+ * MODE:     Regulator operating mode can be changed by software on this
-+ *           board machine.
-+ * STATUS:   Regulator can be enabled and disabled.
-+ * DRMS:     Dynamic Regulator Mode Switching is enabled for this regulator.
-+ */
-+
-+#define REGULATOR_CHANGE_VOLTAGE	0x1
-+#define REGULATOR_CHANGE_CURRENT	0x2
-+#define REGULATOR_CHANGE_MODE		0x4
-+#define REGULATOR_CHANGE_STATUS		0x8
-+#define REGULATOR_CHANGE_DRMS		0x10
-+
-+/**
-+ * struct regulation_constraints - regulator operating constraints.
-+ *
-+ * This struct describes regulator and board/machine specific constraints.
-+ */
-+struct regulation_constraints {
-+
-+	char *name;
-+
-+	/* voltage output range (inclusive) - for voltage control */
-+	int min_uV;
-+	int max_uV;
-+
-+	/* current output range (inclusive) - for current control */
-+	int min_uA;
-+	int max_uA;
-+
-+	/* valid regulator operating modes for this machine */
-+	unsigned int valid_modes_mask;
-+
-+	/* valid operations for regulator on this machine */
-+	unsigned int valid_ops_mask;
-+
-+	/* regulator input voltage - only if supply is another regulator */
-+	int input_uV;
-+};
-+
-+int regulator_set_parent(const char *regulator, const char *regulator_parent);
-+
-+const char *regulator_get_parent(const char *regulator);
-+
-+int regulator_set_platform_constraints(const char *regulator,
-+	struct regulation_constraints *constraints);
-+
-+#endif
+diff -puN fs/jbd2/journal.c~jbd2-replace-potentially-false-assertion-with-if-block fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-replace-potentially-false-assertion-with-if-block
++++ a/fs/jbd2/journal.c
+@@ -1991,9 +1991,10 @@ static int journal_init_jbd2_journal_hea
+ 
+ static void jbd2_journal_destroy_jbd2_journal_head_cache(void)
+ {
+-	J_ASSERT(jbd2_journal_head_cache != NULL);
+-	kmem_cache_destroy(jbd2_journal_head_cache);
+-	jbd2_journal_head_cache = NULL;
++	if (jbd2_journal_head_cache) {
++		kmem_cache_destroy(jbd2_journal_head_cache);
++		jbd2_journal_head_cache = NULL;
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
-regulator-platform-interface.patch
-regulator-framework-core.patch
-regulator-framework-core-fix.patch
-regulator-sysfs-abi.patch
-regulator-kbuild.patch
-regulator-maintainers.patch
+jbd-only-create-debugfs-entries-if-cache-initialisation-is-successful.patch
+jbd2-replace-potentially-false-assertion-with-if-block.patch
+jbd2-only-create-debugfs-and-stats-entries-if-cache-initialisation-is-successful.patch
 
