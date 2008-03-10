@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-join-send_sigqueue-with-send_group_sigqueue.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:34:05 -0700
-Message-ID: <200803101934.m2AJY6Io001755@imap1.linux-foundation.org>
+Subject: + ioc3-fix-section-missmatch.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:34:54 -0700
+Message-ID: <200803101934.m2AJYs2q001758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751544AbYCJTfP (ORCPT
+	by vger.kernel.org with ESMTP id S1751241AbYCJTfw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:35:15 -0400
+	Mon, 10 Mar 2008 15:35:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     signals: join send_sigqueue() with send_group_sigqueue()
+     ioc3: fix section missmatch
 has been added to the -mm tree.  Its filename is
-     signals-join-send_sigqueue-with-send_group_sigqueue.patch
+     ioc3-fix-section-missmatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,157 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: join send_sigqueue() with send_group_sigqueue()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ioc3: fix section missmatch
+From: Ralf Baechle <ralf@linux-mips.org>
 
-We export send_sigqueue() and send_group_sigqueue() for the only user,
-posix_timer_event().  This is a bit silly, because both are just trivial
-helpers on top of do_send_sigqueue() and because the we pass the unused
-.si_signo parameter.
+  LD      drivers/net/built-in.o
+WARNING: drivers/net/built-in.o(.text+0x3468): Section mismatch in reference fro
+m the function ioc3_probe() to the function .devinit.text:ioc3_serial_probe()
+The function ioc3_probe() references
+the function __devinit ioc3_serial_probe().
+This is often because ioc3_probe lacks a __devinit
+annotation or the annotation of ioc3_serial_probe is wrong.
 
-Kill them both, rename do_send_sigqueue() to send_sigqueue(), and export it.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 +--
- kernel/posix-timers.c |    6 ++----
- kernel/signal.c       |   15 +--------------
- 3 files changed, 4 insertions(+), 20 deletions(-)
+ drivers/net/ioc3-eth.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~signals-join-send_sigqueue-with-send_group_sigqueue include/linux/sched.h
---- a/include/linux/sched.h~signals-join-send_sigqueue-with-send_group_sigqueue
-+++ a/include/linux/sched.h
-@@ -1707,8 +1707,7 @@ extern void zap_other_threads(struct tas
- extern int kill_proc(pid_t, int, int);
- extern struct sigqueue *sigqueue_alloc(void);
- extern void sigqueue_free(struct sigqueue *);
--extern int send_sigqueue(int, struct sigqueue *,  struct task_struct *);
--extern int send_group_sigqueue(int, struct sigqueue *,  struct task_struct *);
-+extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
- extern int do_sigaction(int, struct k_sigaction *, struct k_sigaction *);
- extern int do_sigaltstack(const stack_t __user *, stack_t __user *, unsigned long);
- 
-diff -puN kernel/posix-timers.c~signals-join-send_sigqueue-with-send_group_sigqueue kernel/posix-timers.c
---- a/kernel/posix-timers.c~signals-join-send_sigqueue-with-send_group_sigqueue
-+++ a/kernel/posix-timers.c
-@@ -310,8 +310,7 @@ int posix_timer_event(struct k_itimer *t
- 
- 	if (timr->it_sigev_notify & SIGEV_THREAD_ID) {
- 		struct task_struct *leader;
--		int ret = send_sigqueue(timr->it_sigev_signo, timr->sigq,
--					timr->it_process);
-+		int ret = send_sigqueue(timr->sigq, timr->it_process, 0);
- 
- 		if (likely(ret >= 0))
- 			return ret;
-@@ -322,8 +321,7 @@ int posix_timer_event(struct k_itimer *t
- 		timr->it_process = leader;
- 	}
- 
--	return send_group_sigqueue(timr->it_sigev_signo, timr->sigq,
--				   timr->it_process);
-+	return send_sigqueue(timr->sigq, timr->it_process, 1);
+diff -puN drivers/net/ioc3-eth.c~ioc3-fix-section-missmatch drivers/net/ioc3-eth.c
+--- a/drivers/net/ioc3-eth.c~ioc3-fix-section-missmatch
++++ a/drivers/net/ioc3-eth.c
+@@ -1221,7 +1221,8 @@ static void __devinit ioc3_serial_probe(
  }
- EXPORT_SYMBOL_GPL(posix_timer_event);
+ #endif
  
-diff -puN kernel/signal.c~signals-join-send_sigqueue-with-send_group_sigqueue kernel/signal.c
---- a/kernel/signal.c~signals-join-send_sigqueue-with-send_group_sigqueue
-+++ a/kernel/signal.c
-@@ -1240,8 +1240,7 @@ void sigqueue_free(struct sigqueue *q)
- 	__sigqueue_free(q);
- }
- 
--static int do_send_sigqueue(struct sigqueue *q, struct task_struct *t,
--				int group)
-+int send_sigqueue(struct sigqueue *q, struct task_struct *t, int group)
+-static int ioc3_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int __devinit ioc3_probe(struct pci_dev *pdev,
++	const struct pci_device_id *ent)
  {
- 	int sig = q->info.si_signo;
- 	struct sigpending *pending;
-@@ -1266,7 +1265,6 @@ static int do_send_sigqueue(struct sigqu
- 		 * If an SI_TIMER entry is already queue just increment
- 		 * the overrun count.
- 		 */
--
- 		BUG_ON(q->info.si_code != SI_TIMER);
- 		q->info.si_overrun++;
- 		goto out;
-@@ -1283,17 +1281,6 @@ ret:
- 	return ret;
- }
- 
--int send_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
--{
--	return do_send_sigqueue(q, p, 0);
--}
--
--int
--send_group_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
--{
--	return do_send_sigqueue(q, p, 1);
--}
--
- /*
-  * Wake up any threads in the parent blocked in wait* syscalls.
-  */
+ 	unsigned int sw_physid1, sw_physid2;
+ 	struct net_device *dev = NULL;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+ioc3-fix-section-missmatch.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+asm-futexh-should-include-linux-uaccessh.patch
 
