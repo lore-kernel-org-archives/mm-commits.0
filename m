@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:34:02 -0700
-Message-ID: <200803101934.m2AJY2qa001745@imap1.linux-foundation.org>
+Subject: + signals-move-the-definition-of-__group_complete_signal-up.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:33:54 -0700
+Message-ID: <200803101933.m2AJXsoP001730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37524 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751543AbYCJTfP (ORCPT
+	by vger.kernel.org with ESMTP id S1751725AbYCJTfW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:35:15 -0400
+	Mon, 10 Mar 2008 15:35:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: fold complete_signal() into send_signal/do_send_sigqueue
+     signals: move the definition of __group_complete_signal() up
 has been added to the -mm tree.  Its filename is
-     signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+     signals-move-the-definition-of-__group_complete_signal-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,183 +34,285 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: fold complete_signal() into send_signal/do_send_sigqueue
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: signals: move the definition of __group_complete_signal() up
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Factor out complete_signal() callsites.  This change completely unifies the
-helpers sending the specific/group signals.
+Move the unchanged definition of __group_complete_signal() so that send_signal
+can see it.  To simplify the reading of the next patches.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   46 +++++++++++-----------------------------------
- 1 file changed, 11 insertions(+), 35 deletions(-)
+ kernel/signal.c |  192 +++++++++++++++++++++++-----------------------
+ 1 file changed, 96 insertions(+), 96 deletions(-)
 
-diff -puN kernel/signal.c~signals-fold-complete_signal-into-send_signal-do_send_sigqueue kernel/signal.c
---- a/kernel/signal.c~signals-fold-complete_signal-into-send_signal-do_send_sigqueue
+diff -puN kernel/signal.c~signals-move-the-definition-of-__group_complete_signal-up kernel/signal.c
+--- a/kernel/signal.c~signals-move-the-definition-of-__group_complete_signal-up
 +++ a/kernel/signal.c
-@@ -826,7 +826,8 @@ static int send_signal(int sig, struct s
- 
- out_set:
- 	sigaddset(&pending->signal, sig);
--	return 1;
-+	complete_signal(sig, t, group);
-+	return 0;
+@@ -652,6 +652,102 @@ static void handle_stop_signal(int sig, 
+ 	}
  }
  
- int print_fatal_signals;
-@@ -861,17 +862,16 @@ static int __init setup_print_fatal_sign
- 
- __setup("print-fatal-signals=", setup_print_fatal_signals);
- 
-+int
-+__group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
++/*
++ * Test if P wants to take SIG.  After we've checked all threads with this,
++ * it's equivalent to finding no threads not blocking SIG.  Any threads not
++ * blocking SIG were ruled out because they are not running and already
++ * have pending signals.  Such threads will dequeue from the shared queue
++ * as soon as they're available, so putting the signal on the shared queue
++ * will be equivalent to sending it to one such thread.
++ */
++static inline int wants_signal(int sig, struct task_struct *p)
 +{
-+	return send_signal(sig, info, p, 1);
++	if (sigismember(&p->blocked, sig))
++		return 0;
++	if (p->flags & PF_EXITING)
++		return 0;
++	if (sig == SIGKILL)
++		return 1;
++	if (task_is_stopped_or_traced(p))
++		return 0;
++	return task_curr(p) || !signal_pending(p);
 +}
 +
- static int
- specific_send_sig_info(int sig, struct siginfo *info, struct task_struct *t)
++static void
++__group_complete_signal(int sig, struct task_struct *p)
++{
++	struct signal_struct *signal = p->signal;
++	struct task_struct *t;
++
++	/*
++	 * Now find a thread we can wake up to take the signal off the queue.
++	 *
++	 * If the main thread wants the signal, it gets first crack.
++	 * Probably the least surprising to the average bear.
++	 */
++	if (wants_signal(sig, p))
++		t = p;
++	else if (thread_group_empty(p))
++		/*
++		 * There is just one thread and it does not need to be woken.
++		 * It will dequeue unblocked signals before it runs again.
++		 */
++		return;
++	else {
++		/*
++		 * Otherwise try to find a suitable thread.
++		 */
++		t = signal->curr_target;
++		while (!wants_signal(sig, t)) {
++			t = next_thread(t);
++			if (t == signal->curr_target)
++				/*
++				 * No thread needs to be woken.
++				 * Any eligible threads will see
++				 * the signal in the queue soon.
++				 */
++				return;
++		}
++		signal->curr_target = t;
++	}
++
++	/*
++	 * Found a killable thread.  If the signal will be fatal,
++	 * then start taking the whole group down immediately.
++	 */
++	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
++	    !sigismember(&t->real_blocked, sig) &&
++	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
++		/*
++		 * This signal will be fatal to the whole group.
++		 */
++		if (!sig_kernel_coredump(sig)) {
++			/*
++			 * Start a group exit and wake everybody up.
++			 * This way we don't have other threads
++			 * running and doing things after a slower
++			 * thread has the fatal signal pending.
++			 */
++			signal->flags = SIGNAL_GROUP_EXIT;
++			signal->group_exit_code = sig;
++			signal->group_stop_count = 0;
++			t = p;
++			do {
++				sigaddset(&t->pending.signal, SIGKILL);
++				signal_wake_up(t, 1);
++			} while_each_thread(p, t);
++			return;
++		}
++	}
++
++	/*
++	 * The signal is already in the shared-pending queue.
++	 * Tell the chosen thread to wake up and dequeue it.
++	 */
++	signal_wake_up(t, sig == SIGKILL);
++	return;
++}
++
+ static inline int legacy_queue(struct sigpending *signals, int sig)
  {
--	int ret;
--
--	ret = send_signal(sig, info, t, 0);
--	if (ret <= 0)
--		return ret;
--
--	complete_signal(sig, t, 0);
--	return 0;
-+	return send_signal(sig, info, t, 0);
- }
- 
- /*
-@@ -914,24 +914,6 @@ force_sig_specific(int sig, struct task_
+ 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
+@@ -817,102 +913,6 @@ force_sig_specific(int sig, struct task_
  	force_sig_info(sig, SEND_SIG_FORCED, t);
  }
  
--int
--__group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
+-/*
+- * Test if P wants to take SIG.  After we've checked all threads with this,
+- * it's equivalent to finding no threads not blocking SIG.  Any threads not
+- * blocking SIG were ruled out because they are not running and already
+- * have pending signals.  Such threads will dequeue from the shared queue
+- * as soon as they're available, so putting the signal on the shared queue
+- * will be equivalent to sending it to one such thread.
+- */
+-static inline int wants_signal(int sig, struct task_struct *p)
 -{
--	int ret;
--
--	/*
--	 * Put this signal on the shared-pending queue, or fail with EAGAIN.
--	 * We always use the shared queue for process-wide signals,
--	 * to avoid several races.
--	 */
--	ret = send_signal(sig, info, p, 1);
--	if (ret <= 0)
--		return ret;
--
--	complete_signal(sig, p, 1);
--	return 0;
+-	if (sigismember(&p->blocked, sig))
+-		return 0;
+-	if (p->flags & PF_EXITING)
+-		return 0;
+-	if (sig == SIGKILL)
+-		return 1;
+-	if (task_is_stopped_or_traced(p))
+-		return 0;
+-	return task_curr(p) || !signal_pending(p);
 -}
 -
- /*
-  * Nuke all other threads in the group.
-  */
-@@ -1263,6 +1245,7 @@ static int do_send_sigqueue(int sig, str
+-static void
+-__group_complete_signal(int sig, struct task_struct *p)
+-{
+-	struct signal_struct *signal = p->signal;
+-	struct task_struct *t;
+-
+-	/*
+-	 * Now find a thread we can wake up to take the signal off the queue.
+-	 *
+-	 * If the main thread wants the signal, it gets first crack.
+-	 * Probably the least surprising to the average bear.
+-	 */
+-	if (wants_signal(sig, p))
+-		t = p;
+-	else if (thread_group_empty(p))
+-		/*
+-		 * There is just one thread and it does not need to be woken.
+-		 * It will dequeue unblocked signals before it runs again.
+-		 */
+-		return;
+-	else {
+-		/*
+-		 * Otherwise try to find a suitable thread.
+-		 */
+-		t = signal->curr_target;
+-		while (!wants_signal(sig, t)) {
+-			t = next_thread(t);
+-			if (t == signal->curr_target)
+-				/*
+-				 * No thread needs to be woken.
+-				 * Any eligible threads will see
+-				 * the signal in the queue soon.
+-				 */
+-				return;
+-		}
+-		signal->curr_target = t;
+-	}
+-
+-	/*
+-	 * Found a killable thread.  If the signal will be fatal,
+-	 * then start taking the whole group down immediately.
+-	 */
+-	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
+-	    !sigismember(&t->real_blocked, sig) &&
+-	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
+-		/*
+-		 * This signal will be fatal to the whole group.
+-		 */
+-		if (!sig_kernel_coredump(sig)) {
+-			/*
+-			 * Start a group exit and wake everybody up.
+-			 * This way we don't have other threads
+-			 * running and doing things after a slower
+-			 * thread has the fatal signal pending.
+-			 */
+-			signal->flags = SIGNAL_GROUP_EXIT;
+-			signal->group_exit_code = sig;
+-			signal->group_stop_count = 0;
+-			t = p;
+-			do {
+-				sigaddset(&t->pending.signal, SIGKILL);
+-				signal_wake_up(t, 1);
+-			} while_each_thread(p, t);
+-			return;
+-		}
+-	}
+-
+-	/*
+-	 * The signal is already in the shared-pending queue.
+-	 * Tell the chosen thread to wake up and dequeue it.
+-	 */
+-	signal_wake_up(t, sig == SIGKILL);
+-	return;
+-}
+-
+ int
+ __group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
  {
- 	struct sigpending *pending;
- 
-+	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
- 	handle_stop_signal(sig, t);
- 
- 	if (unlikely(!list_empty(&q->list))) {
-@@ -1283,6 +1266,7 @@ static int do_send_sigqueue(int sig, str
- 	pending = group ? &t->signal->shared_pending : &t->pending;
- 	list_add_tail(&q->list, &pending->list);
- 	sigaddset(&pending->signal, sig);
-+	complete_signal(sig, t, group);
- 
- 	return 0;
- }
-@@ -1292,8 +1276,6 @@ int send_sigqueue(int sig, struct sigque
- 	unsigned long flags;
- 	int ret = -1;
- 
--	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
--
- 	/*
- 	 * The rcu based delayed sighand destroy makes it possible to
- 	 * run this without tasklist lock held. The task struct itself
-@@ -1307,8 +1289,6 @@ int send_sigqueue(int sig, struct sigque
- 
- 	ret = do_send_sigqueue(sig, q, p, 0);
- 
--	complete_signal(sig, p, 0);
--
- 	unlock_task_sighand(p, &flags);
- out_err:
- 	return ret;
-@@ -1320,15 +1300,11 @@ send_group_sigqueue(int sig, struct sigq
- 	unsigned long flags;
- 	int ret;
- 
--	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
--
- 	/* Since it_lock is held, p->sighand cannot be NULL. */
- 	spin_lock_irqsave(&p->sighand->siglock, flags);
- 
- 	ret = do_send_sigqueue(sig, q, p, 1);
- 
--	complete_signal(sig, p, 1);
--
- 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
- 
- 	return ret;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-devscontrol-avoid-magic-constants-in-drivers-base-mapc.patch
-devscontrol-clean-up-get_gendisk-a-bit.patch
-devscontrol-add-a-mode-on-the-struct-probe.patch
-devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
-devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
-devscontrol-extend-the-drivers-base-mapc-functionality.patch
-devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
-devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
-devscontrol-devices-accessibility-control-group-itself.patch
+git-hrt.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
 remove-unused-variable-from-send_signal.patch
 turn-legacy_queue-macro-into-static-inline-function.patch
 consolidate-checking-for-ignored-legacy-signals.patch
 consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
 signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
 signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
 signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
 signals-use-__group_complete_signal-for-the-specific-signals-too.patch
 signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
 signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
 free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
