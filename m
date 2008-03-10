@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:40:03 -0700
-Message-ID: <200803101940.m2AJe33w002034__3273.70970412648$1205178097$gmane$org@imap1.linux-foundation.org>
+Subject: - jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:39:57 -0700
+Message-ID: <200803101939.m2AJdvDo002007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33760 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbYCJTkY (ORCPT
+	by vger.kernel.org with ESMTP id S1752292AbYCJTkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 10 Mar 2008 15:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2: eliminate duplicated code in revocation table init/destroy functions
+     jbd: eliminate duplicated code in revocation table init/destroy functions
 has been removed from the -mm tree.  Its filename was
-     jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
+     jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2: eliminate duplicated code in revocation table init/destroy functions
+Subject: jbd: eliminate duplicated code in revocation table init/destroy functions
 From: "Duane Griffin" <duaneg@dghda.com>
 
 The revocation table initialisation/destruction code is repeated for each of
@@ -35,38 +35,36 @@ particular, and slightly reduces the code size.
 There should not be any functional change.
 
 Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/revoke.c |  127 +++++++++++++++++++--------------------------
- 1 file changed, 54 insertions(+), 73 deletions(-)
+ fs/jbd/revoke.c |  128 +++++++++++++++++++---------------------------
+ 1 file changed, 53 insertions(+), 75 deletions(-)
 
-diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions fs/jbd2/revoke.c
---- a/fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions
-+++ a/fs/jbd2/revoke.c
-@@ -196,108 +196,89 @@ void jbd2_journal_destroy_revoke_caches(
- 	jbd2_revoke_table_cache = NULL;
+diff -puN fs/jbd/revoke.c~jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~jbd-eliminate-duplicated-code-in-revocation-table-init-destroy-functions
++++ a/fs/jbd/revoke.c
+@@ -195,108 +195,86 @@ void journal_destroy_revoke_caches(void)
+ 	revoke_table_cache = NULL;
  }
  
 -/* Initialise the revoke table for a given journal to a given size. */
 -
--int jbd2_journal_init_revoke(journal_t *journal, int hash_size)
-+static int jbd2_journal_init_revoke_table(struct jbd2_revoke_table_s *table,
-+					  int size)
+-int journal_init_revoke(journal_t *journal, int hash_size)
++static int journal_init_revoke_table(struct jbd_revoke_table_s *table, int size)
  {
 -	int shift, tmp;
-+	int shift = 0;
-+	int tmp = size;
- 
+-
 -	J_ASSERT (journal->j_revoke_table[0] == NULL);
 -
 -	shift = 0;
 -	tmp = hash_size;
++	int shift = 0;
++	int tmp = size;
  	while((tmp >>= 1UL) != 0UL)
  		shift++;
  
--	journal->j_revoke_table[0] = kmem_cache_alloc(jbd2_revoke_table_cache, GFP_KERNEL);
+-	journal->j_revoke_table[0] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
 -	if (!journal->j_revoke_table[0])
 -		return -ENOMEM;
 -	journal->j_revoke = journal->j_revoke_table[0];
@@ -81,7 +79,7 @@ diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-in
 -	journal->j_revoke->hash_table =
 -		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
 -	if (!journal->j_revoke->hash_table) {
--		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
+-		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
 -		journal->j_revoke = NULL;
 +	table->hash_size = size;
 +	table->hash_shift = shift;
@@ -90,26 +88,26 @@ diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-in
 +	if (!table->hash_table)
  		return -ENOMEM;
 -	}
- 
+-
 -	for (tmp = 0; tmp < hash_size; tmp++)
 -		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
+ 
+-	journal->j_revoke_table[1] = kmem_cache_alloc(revoke_table_cache, GFP_KERNEL);
+-	if (!journal->j_revoke_table[1]) {
+-		kfree(journal->j_revoke_table[0]->hash_table);
+-		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
+-		return -ENOMEM;
+-	}
 +	for (tmp = 0; tmp < size; tmp++)
 +		INIT_LIST_HEAD(&table->hash_table[tmp]);
  
--	journal->j_revoke_table[1] = kmem_cache_alloc(jbd2_revoke_table_cache, GFP_KERNEL);
--	if (!journal->j_revoke_table[1]) {
--		kfree(journal->j_revoke_table[0]->hash_table);
--		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
--		return -ENOMEM;
--	}
--
 -	journal->j_revoke = journal->j_revoke_table[1];
 +	return 0;
 +}
  
 -	/* Check that the hash_size is a power of two */
 +/* Initialise the revoke table for a given journal to a given size. */
-+int jbd2_journal_init_revoke(journal_t *journal, int hash_size)
++int journal_init_revoke(journal_t *journal, int hash_size)
 +{
 +	J_ASSERT(journal->j_revoke_table[0] == NULL);
  	J_ASSERT(is_power_of_2(hash_size));
@@ -122,23 +120,23 @@ diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-in
 -		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
 -	if (!journal->j_revoke->hash_table) {
 -		kfree(journal->j_revoke_table[0]->hash_table);
--		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
--		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[1]);
+-		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
+-		kmem_cache_free(revoke_table_cache, journal->j_revoke_table[1]);
 -		journal->j_revoke = NULL;
 -		return -ENOMEM;
 -	}
 +	journal->j_revoke_table[0] = kmem_cache_alloc(
-+		jbd2_revoke_table_cache, GFP_KERNEL);
++		revoke_table_cache, GFP_KERNEL);
 +	if (!journal->j_revoke_table[0])
 +		goto failed_alloc1;
-+	if (jbd2_journal_init_revoke_table(journal->j_revoke_table[0], hash_size))
++	if (journal_init_revoke_table(journal->j_revoke_table[0], hash_size))
 +		goto failed_init1;
 +
 +	journal->j_revoke_table[1] = kmem_cache_alloc(
-+		jbd2_revoke_table_cache, GFP_KERNEL);
++		revoke_table_cache, GFP_KERNEL);
 +	if (!journal->j_revoke_table[1])
 +		goto failed_alloc2;
-+	if (jbd2_journal_init_revoke_table(journal->j_revoke_table[1], hash_size))
++	if (journal_init_revoke_table(journal->j_revoke_table[1], hash_size))
 +		goto failed_init2;
  
 -	for (tmp = 0; tmp < hash_size; tmp++)
@@ -152,28 +150,28 @@ diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-in
  
 -/* Destoy a journal's revoke table.  The table must already be empty! */
 +failed_init2:
-+	kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[1]);
++	kmem_cache_free(revoke_table_cache, journal->j_revoke_table[1]);
 +failed_alloc2:
 +	kfree(journal->j_revoke_table[0]->hash_table);
 +failed_init1:
-+	kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
++	kmem_cache_free(revoke_table_cache, journal->j_revoke_table[0]);
 +failed_alloc1:
 +	return -ENOMEM;
 +}
  
--void jbd2_journal_destroy_revoke(journal_t *journal)
-+static void jbd2_journal_destroy_revoke_table(struct jbd2_revoke_table_s *table)
+-void journal_destroy_revoke(journal_t *journal)
++static void journal_destroy_revoke_table(struct jbd_revoke_table_s *table)
  {
--	struct jbd2_revoke_table_s *table;
+-	struct jbd_revoke_table_s *table;
 -	struct list_head *hash_list;
  	int i;
-+	struct list_head *hash_list;
- 
+-
 -	table = journal->j_revoke_table[0];
 -	if (!table)
 -		return;
 -
 -	for (i=0; i<table->hash_size; i++) {
++	struct list_head *hash_list;
 +	for (i = 0; i < table->hash_size; i++) {
  		hash_list = &table->hash_table[i];
 -		J_ASSERT (list_empty(hash_list));
@@ -181,18 +179,18 @@ diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-in
  	}
  
  	kfree(table->hash_table);
- 	kmem_cache_free(jbd2_revoke_table_cache, table);
+ 	kmem_cache_free(revoke_table_cache, table);
 -	journal->j_revoke = NULL;
 +}
  
 -	table = journal->j_revoke_table[1];
 -	if (!table)
 +/* Destroy a journal's revoke table.  The table must already be empty! */
-+void jbd2_journal_destroy_revoke(journal_t *journal)
++void journal_destroy_revoke(journal_t *journal)
 +{
 +	if (!journal->j_revoke_table[0])
  		return;
-+	jbd2_journal_destroy_revoke_table(journal->j_revoke_table[0]);
++	journal_destroy_revoke_table(journal->j_revoke_table[0]);
 +	journal->j_revoke = NULL;
  
 -	for (i=0; i<table->hash_size; i++) {
