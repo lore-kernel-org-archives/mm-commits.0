@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-use-an-enum-for-the-flags.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:01:09 -0700
-Message-ID: <200803101901.m2AJ19Bi000435@imap1.linux-foundation.org>
+Subject: + sparsemem-vmemmap-does-not-need-section-bits.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:01:05 -0700
+Message-ID: <200803101901.m2AJ15IH000428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751285AbYCJTBL (ORCPT
+	by vger.kernel.org with ESMTP id S1751256AbYCJTBI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:01:11 -0400
+	Mon, 10 Mar 2008 15:01:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     pageflags: use an enum for the flags
+     sparsemem: vmemmap does not need section bits
 has been added to the -mm tree.  Its filename is
-     pageflags-use-an-enum-for-the-flags.patch
+     sparsemem-vmemmap-does-not-need-section-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: use an enum for the flags
+Subject: sparsemem: vmemmap does not need section bits
 From: Christoph Lameter <clameter@sgi.com>
 
-Use an enum to ease the maintenance of page flags.  This is going to change
-the numbering from 0 to 18.
+Sparsemem vmemmap does not need any section bits.  This patch has the effect
+of reducing the number of bits used in page->flags by at least 6.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   56 ++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 30 deletions(-)
+ include/linux/mm.h |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-use-an-enum-for-the-flags
-+++ a/include/linux/page-flags.h
-@@ -67,35 +67,29 @@
-  * FLAGS_RESERVED which defines the width of the fields section
-  * (see linux/mmzone.h).  New flags must _not_ overlap with this area.
+diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
+--- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
++++ a/include/linux/mm.h
+@@ -386,11 +386,11 @@ static inline void set_compound_order(st
+  * we have run out of space and have to fall back to an
+  * alternate (slower) way of determining the node.
+  *
+- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
+- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
+- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
++ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
++ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
++ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
   */
--#define PG_locked	 	 0	/* Page is locked. Don't touch. */
--#define PG_error		 1
--#define PG_referenced		 2
--#define PG_uptodate		 3
--
--#define PG_dirty	 	 4
--#define PG_lru			 5
--#define PG_active		 6
--#define PG_slab			 7	/* slab debug (Suparna wants this) */
--
--#define PG_owner_priv_1		 8	/* Owner use. If pagecache, fs may use*/
--#define PG_arch_1		 9
--#define PG_reserved		10
--#define PG_private		11	/* If pagecache, has fs-private data */
--
--#define PG_writeback		12	/* Page is under writeback */
--#define PG_compound		14	/* Part of a compound page */
--#define PG_swapcache		15	/* Swap page: swp_entry_t in private */
--
--#define PG_mappedtodisk		16	/* Has blocks allocated on-disk */
--#define PG_reclaim		17	/* To be reclaimed asap */
--#define PG_buddy		19	/* Page is free, on buddy lists */
--
--/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
--#define PG_readahead		PG_reclaim /* Reminder to do async read-ahead */
--
--/* PG_owner_priv_1 users should have descriptive aliases */
--#define PG_checked		PG_owner_priv_1 /* Used by some filesystems */
--#define PG_pinned		PG_owner_priv_1	/* Xen pinned pagetable */
-+enum pageflags {
-+	PG_locked,		/* Page is locked. Don't touch. */
-+	PG_error,
-+	PG_referenced,
-+	PG_uptodate,
-+	PG_dirty,
-+	PG_lru,
-+	PG_active,
-+	PG_slab,
-+	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
-+	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
-+	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
-+	PG_arch_1,
-+	PG_reserved,
-+	PG_private,		/* If pagecache, has fs-private data */
-+	PG_writeback,		/* Page is under writeback */
-+	PG_compound,		/* A compound page */
-+	PG_swapcache,		/* Swap page: swp_entry_t in private */
-+	PG_mappedtodisk,	/* Has blocks allocated on-disk */
-+	PG_reclaim,		/* To be reclaimed asap */
-+	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
-+	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
-+	PG_buddy,		/* Page is free, on buddy lists */
- 
- #if (BITS_PER_LONG > 32)
- /*
-@@ -105,8 +99,10 @@
-  * 64 bit  |           FIELDS             | ??????         FLAGS         |
-  *         63                            32                              0
-  */
--#define PG_uncached		31	/* Page has been mapped as uncached */
-+	PG_uncached = 31,		/* Page has been mapped as uncached */
+-#ifdef CONFIG_SPARSEMEM
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTIONS_WIDTH		SECTIONS_SHIFT
+ #else
+ #define SECTIONS_WIDTH		0
+@@ -401,6 +401,9 @@ static inline void set_compound_order(st
+ #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
+ #define NODES_WIDTH		NODES_SHIFT
+ #else
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#error "Vmemmap: No space for nodes field in page flags"
++#endif
+ #define NODES_WIDTH		0
  #endif
-+	NR_PAGEFLAGS
-+};
  
- /*
-  * Manipulation of page state flags
+@@ -493,10 +496,12 @@ static inline struct zone *page_zone(str
+ 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
+ }
+ 
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ static inline unsigned long page_to_section(struct page *page)
+ {
+ 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
+ }
++#endif
+ 
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
