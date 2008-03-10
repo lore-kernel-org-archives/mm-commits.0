@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - leds-call-gpio_cansleep-only-after-gpio_request-succeeded.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:47 -0700
-Message-ID: <200803101805.m2AI5l8i030130@imap1.linux-foundation.org>
+Subject: - bluetooth-add-another-broadcom-device.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:33 -0700
+Message-ID: <200803101805.m2AI5XPX030109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753802AbYCJSHM (ORCPT
+	by vger.kernel.org with ESMTP id S1751283AbYCJSGO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:07:12 -0400
+	Mon, 10 Mar 2008 14:06:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Uwe.Kleine-Koenig@digi.com, dbrownell@users.sourceforge.net, raph@8d.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: kkeil@suse.de, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: call gpio_cansleep only after gpio_request succeeded
+     bluetooth: add another Broadcom device
 has been removed from the -mm tree.  Its filename was
-     leds-call-gpio_cansleep-only-after-gpio_request-succeeded.patch
+     bluetooth-add-another-broadcom-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: call gpio_cansleep only after gpio_request succeeded
-From: Uwe Kleine-Koeni <Uwe.Kleine-Koenig@digi.com>
+Subject: bluetooth: add another Broadcom device
+From: Karsten Keil <kkeil@suse.de>
 
-If you have GPIO_LIB gpio_cansleep oopses on an invalid gpio.  So better
-gpio_request your pin first.
+Add another Broadcom BCM2045 based device to the blacklist, with these
+settings the micro dongle works on my system.
 
-Signed-off-by: Uwe Kleine-Koeni <Uwe.Kleine-Koenig@digi.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Raphael Assenat <raph@8d.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Karsten Keil <kkeil@suse.de>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-gpio.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/bluetooth/hci_usb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-gpio.c~leds-call-gpio_cansleep-only-after-gpio_request-succeeded drivers/leds/leds-gpio.c
---- a/drivers/leds/leds-gpio.c~leds-call-gpio_cansleep-only-after-gpio_request-succeeded
-+++ a/drivers/leds/leds-gpio.c
-@@ -79,6 +79,10 @@ static int gpio_led_probe(struct platfor
- 		cur_led = &pdata->leds[i];
- 		led_dat = &leds_data[i];
+diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-another-broadcom-device drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~bluetooth-add-another-broadcom-device
++++ a/drivers/bluetooth/hci_usb.c
+@@ -116,6 +116,7 @@ static struct usb_device_id blacklist_id
+ 	{ USB_DEVICE(0x0a5c, 0x2009), .driver_info = HCI_BCM92035 },
  
-+		ret = gpio_request(cur_led->gpio, cur_led->name);
-+		if (ret < 0)
-+			goto err;
-+
- 		led_dat->cdev.name = cur_led->name;
- 		led_dat->cdev.default_trigger = cur_led->default_trigger;
- 		led_dat->gpio = cur_led->gpio;
-@@ -87,10 +91,6 @@ static int gpio_led_probe(struct platfor
- 		led_dat->cdev.brightness_set = gpio_led_set;
- 		led_dat->cdev.brightness = LED_OFF;
+ 	/* Broadcom BCM2045 */
++	{ USB_DEVICE(0x0a5c, 0x2039), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
+ 	{ USB_DEVICE(0x0a5c, 0x2101), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
  
--		ret = gpio_request(led_dat->gpio, led_dat->cdev.name);
--		if (ret < 0)
--			goto err;
+ 	/* IBM/Lenovo ThinkPad with Broadcom chip */
+_
+
+Patches currently in -mm which might be from kkeil@suse.de are
+
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+
