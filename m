@@ -1,62 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-prevent-kconfig-explosion.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:36 -0700
-Message-ID: <200803101805.m2AI5aji030112@imap1.linux-foundation.org>
+Subject: - git-kgdb-light-kconfig-fix.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:17 -0700
+Message-ID: <200803101805.m2AI5HKh030057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751310AbYCJSGZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751148AbYCJSF5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:06:25 -0400
+	Mon, 10 Mar 2008 14:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sam@ravnborg.org, wim@iguana.be, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog: prevent kconfig explosion
+     git-kgdb-light-kconfig-fix
 has been removed from the -mm tree.  Its filename was
-     git-watchdog-prevent-kconfig-explosion.patch
+     git-kgdb-light-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog: prevent kconfig explosion
+Subject: git-kgdb-light-kconfig-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/watchdog/Kconfig:305: unknown option "CS5535"
-drivers/watchdog/Kconfig:306: unknown option "processors"
-drivers/watchdog/Kconfig:307: unknown option "it"
-drivers/watchdog/Kconfig:308: unknown option "a"
-drivers/watchdog/Kconfig:310: unknown option "You"
-drivers/watchdog/Kconfig:311: unknown option "it"
+ERROR: "uart_set_options" [drivers/serial/serial_core.ko] undefined!
+ERROR: "uart_parse_options" [drivers/serial/serial_core.ko] undefined!
 
-That seems rather severe treatment for just an extra leading space?
-
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig |    2 +-
+ drivers/serial/serial_core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/Kconfig~git-watchdog-prevent-kconfig-explosion drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~git-watchdog-prevent-kconfig-explosion
-+++ a/drivers/watchdog/Kconfig
-@@ -301,7 +301,7 @@ config GEODE_WDT
- 	tristate "AMD Geode CS5535/CS5536 Watchdog"
- 	depends on MGEODE_LX
- 	help
--	  This driver enables a watchdog capability built into the
-+	 This driver enables a watchdog capability built into the
- 	 CS5535/CS5536 companion chips for the AMD Geode GX and LX
- 	 processors.  This watchdog watches your kernel to make sure
- 	 it doesn't freeze, and if it does, it reboots your computer after
+diff -puN drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~git-kgdb-light-kconfig-fix
++++ a/drivers/serial/serial_core.c
+@@ -1780,7 +1780,7 @@ static int uart_read_proc(char *page, ch
+ }
+ #endif
+ 
+-#ifdef CONFIG_SERIAL_CORE_CONSOLE
++#if defined(CONFIG_SERIAL_CORE_CONSOLE) || defined(CONFIG_CONSOLE_POLL)
+ /*
+  *	uart_console_write - write a console message to a serial port
+  *	@port: the port to write the message
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
