@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-unify-send_sigqueue-send_group_sigqueue-completely.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:34:03 -0700
-Message-ID: <200803101934.m2AJY3re001748@imap1.linux-foundation.org>
+Subject: + signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:34:02 -0700
+Message-ID: <200803101934.m2AJY2qa001745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751717AbYCJTfR (ORCPT
+	by vger.kernel.org with ESMTP id S1751543AbYCJTfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:35:17 -0400
+	Mon, 10 Mar 2008 15:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com, xemul@openvz.org
+Cc: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: unify send_sigqueue/send_group_sigqueue completely
+     signals: fold complete_signal() into send_signal/do_send_sigqueue
 has been added to the -mm tree.  Its filename is
-     signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+     signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: unify send_sigqueue/send_group_sigqueue completely
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: signals: fold complete_signal() into send_signal/do_send_sigqueue
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Suggested by Pavel Emelyanov.
-
-send_sigqueue/send_group_sigqueue are only differ in how they lock ->siglock. 
-Unify them.  send_group_sigqueue() uses spin_lock() because it knows the task
-can't exit, but in that case lock_task_sighand() can't fail and doesn't hurt.
-
-Note that the "sig" argument is ignored, it is always equal to ->si_signo.
+Factor out complete_signal() callsites.  This change completely unifies the
+helpers sending the specific/group signals.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
@@ -51,163 +46,171 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   58 ++++++++++++++++------------------------------
- 1 file changed, 21 insertions(+), 37 deletions(-)
+ kernel/signal.c |   46 +++++++++++-----------------------------------
+ 1 file changed, 11 insertions(+), 35 deletions(-)
 
-diff -puN kernel/signal.c~signals-unify-send_sigqueue-send_group_sigqueue-completely kernel/signal.c
---- a/kernel/signal.c~signals-unify-send_sigqueue-send_group_sigqueue-completely
+diff -puN kernel/signal.c~signals-fold-complete_signal-into-send_signal-do_send_sigqueue kernel/signal.c
+--- a/kernel/signal.c~signals-fold-complete_signal-into-send_signal-do_send_sigqueue
 +++ a/kernel/signal.c
-@@ -1240,14 +1240,27 @@ void sigqueue_free(struct sigqueue *q)
- 	__sigqueue_free(q);
- }
+@@ -826,7 +826,8 @@ static int send_signal(int sig, struct s
  
--static int do_send_sigqueue(int sig, struct sigqueue *q, struct task_struct *t,
-+static int do_send_sigqueue(struct sigqueue *q, struct task_struct *t,
- 				int group)
- {
-+	int sig = q->info.si_signo;
- 	struct sigpending *pending;
-+	unsigned long flags;
-+	int ret;
- 
- 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
-+
-+	ret = -1;
-+	if (!likely(lock_task_sighand(t, &flags)))
-+		goto ret;
-+
- 	handle_stop_signal(sig, t);
- 
-+	ret = 1;
-+	if (sig_ignored(t, sig))
-+		goto out;
-+
-+	ret = 0;
- 	if (unlikely(!list_empty(&q->list))) {
- 		/*
- 		 * If an SI_TIMER entry is already queue just increment
-@@ -1256,58 +1269,29 @@ static int do_send_sigqueue(int sig, str
- 
- 		BUG_ON(q->info.si_code != SI_TIMER);
- 		q->info.si_overrun++;
--		return 0;
-+		goto out;
- 	}
- 
--	if (sig_ignored(t, sig))
--		return 1;
--
- 	signalfd_notify(t, sig);
- 	pending = group ? &t->signal->shared_pending : &t->pending;
- 	list_add_tail(&q->list, &pending->list);
+ out_set:
  	sigaddset(&pending->signal, sig);
- 	complete_signal(sig, t, group);
--
--	return 0;
-+out:
-+	unlock_task_sighand(t, &flags);
-+ret:
-+	return ret;
+-	return 1;
++	complete_signal(sig, t, group);
++	return 0;
  }
  
- int send_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
- {
--	unsigned long flags;
--	int ret = -1;
--
--	/*
--	 * The rcu based delayed sighand destroy makes it possible to
--	 * run this without tasklist lock held. The task struct itself
--	 * cannot go away as create_timer did get_task_struct().
--	 *
--	 * We return -1, when the task is marked exiting, so
--	 * posix_timer_event can redirect it to the group leader
--	 */
--	if (!likely(lock_task_sighand(p, &flags)))
--		goto out_err;
--
--	ret = do_send_sigqueue(sig, q, p, 0);
--
--	unlock_task_sighand(p, &flags);
--out_err:
--	return ret;
-+	return do_send_sigqueue(q, p, 0);
- }
+ int print_fatal_signals;
+@@ -861,17 +862,16 @@ static int __init setup_print_fatal_sign
  
- int
- send_group_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
+ __setup("print-fatal-signals=", setup_print_fatal_signals);
+ 
++int
++__group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
++{
++	return send_signal(sig, info, p, 1);
++}
++
+ static int
+ specific_send_sig_info(int sig, struct siginfo *info, struct task_struct *t)
  {
--	unsigned long flags;
 -	int ret;
 -
--	/* Since it_lock is held, p->sighand cannot be NULL. */
--	spin_lock_irqsave(&p->sighand->siglock, flags);
+-	ret = send_signal(sig, info, t, 0);
+-	if (ret <= 0)
+-		return ret;
 -
--	ret = do_send_sigqueue(sig, q, p, 1);
--
--	spin_unlock_irqrestore(&p->sighand->siglock, flags);
--
--	return ret;
-+	return do_send_sigqueue(q, p, 1);
+-	complete_signal(sig, t, 0);
+-	return 0;
++	return send_signal(sig, info, t, 0);
  }
  
  /*
+@@ -914,24 +914,6 @@ force_sig_specific(int sig, struct task_
+ 	force_sig_info(sig, SEND_SIG_FORCED, t);
+ }
+ 
+-int
+-__group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
+-{
+-	int ret;
+-
+-	/*
+-	 * Put this signal on the shared-pending queue, or fail with EAGAIN.
+-	 * We always use the shared queue for process-wide signals,
+-	 * to avoid several races.
+-	 */
+-	ret = send_signal(sig, info, p, 1);
+-	if (ret <= 0)
+-		return ret;
+-
+-	complete_signal(sig, p, 1);
+-	return 0;
+-}
+-
+ /*
+  * Nuke all other threads in the group.
+  */
+@@ -1263,6 +1245,7 @@ static int do_send_sigqueue(int sig, str
+ {
+ 	struct sigpending *pending;
+ 
++	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+ 	handle_stop_signal(sig, t);
+ 
+ 	if (unlikely(!list_empty(&q->list))) {
+@@ -1283,6 +1266,7 @@ static int do_send_sigqueue(int sig, str
+ 	pending = group ? &t->signal->shared_pending : &t->pending;
+ 	list_add_tail(&q->list, &pending->list);
+ 	sigaddset(&pending->signal, sig);
++	complete_signal(sig, t, group);
+ 
+ 	return 0;
+ }
+@@ -1292,8 +1276,6 @@ int send_sigqueue(int sig, struct sigque
+ 	unsigned long flags;
+ 	int ret = -1;
+ 
+-	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+-
+ 	/*
+ 	 * The rcu based delayed sighand destroy makes it possible to
+ 	 * run this without tasklist lock held. The task struct itself
+@@ -1307,8 +1289,6 @@ int send_sigqueue(int sig, struct sigque
+ 
+ 	ret = do_send_sigqueue(sig, q, p, 0);
+ 
+-	complete_signal(sig, p, 0);
+-
+ 	unlock_task_sighand(p, &flags);
+ out_err:
+ 	return ret;
+@@ -1320,15 +1300,11 @@ send_group_sigqueue(int sig, struct sigq
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+-
+ 	/* Since it_lock is held, p->sighand cannot be NULL. */
+ 	spin_lock_irqsave(&p->sighand->siglock, flags);
+ 
+ 	ret = do_send_sigqueue(sig, q, p, 1);
+ 
+-	complete_signal(sig, p, 1);
+-
+ 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
+git-kgdb-light.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+git-udf.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+devscontrol-avoid-magic-constants-in-drivers-base-mapc.patch
+devscontrol-clean-up-get_gendisk-a-bit.patch
+devscontrol-add-a-mode-on-the-struct-probe.patch
+devscontrol-make-kobj_lookup-return-the-mappings-permissions.patch
+devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
+devscontrol-extend-the-drivers-base-mapc-functionality.patch
+devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
+devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
+devscontrol-devices-accessibility-control-group-itself.patch
 remove-unused-variable-from-send_signal.patch
 turn-legacy_queue-macro-into-static-inline-function.patch
 consolidate-checking-for-ignored-legacy-signals.patch
 consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
 signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
 signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
 signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
 signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
 signals-use-__group_complete_signal-for-the-specific-signals-too.patch
 signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
 signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
 free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
