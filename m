@@ -1,209 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:38:32 -0700
-Message-ID: <200803101938.m2AJcWkl001958@imap1.linux-foundation.org>
+Subject: + smackfs-do-not-trust-count-in-inodes-writes.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:49:26 -0700
+Message-ID: <200803101949.m2AJnQXU002413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755859AbYCJTt0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752745AbYCJTtm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:49:26 -0400
+	Mon, 10 Mar 2008 15:49:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: darwish.07@gmail.com, casey@schaufler-ca.com
 
 
 The patch titled
-     devscontrol: make use of permissions, returned by kobj_lookup
-has been removed from the -mm tree.  Its filename was
-     devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
+     smackfs: do not trust `count' in inodes write()s
+has been added to the -mm tree.  Its filename is
+     smackfs-do-not-trust-count-in-inodes-writes.patch
 
-This patch was dropped because of bunfight
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: make use of permissions, returned by kobj_lookup
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: smackfs: do not trust `count' in inodes write()s
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Now check the requesting permissions against the granted (with the
-dev_t-to-kobj map) ones.
+Smackfs write() implementation does not put a higher bound on the number of
+bytes to copy from user-space.  This may lead to a DOS attack if a malicious
+`count' field is given.
 
-The tricky place is chrdev_open - it caches the struct cdev on inode and thus,
-we have to perform lookup each time if we are in a restricted mapping.
+Assure that given `count' is exactly the length needed for a /smack/load rule.
+ In case of /smack/cipso where the length is relative, assure that `count'
+does not exceed the size needed for a buffer representing maximum possible
+number of CIPSO 2.2 categories.
 
-The task_cdev_map and task_bdev_map provide the map which the current task is
-in, but now they just return NULL, which means, that the task is not in any.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c               |    8 +++++++-
- fs/block_dev.c              |    8 ++++++++
- fs/char_dev.c               |   18 ++++++++++++++++--
- include/linux/devscontrol.h |   12 ++++++++++++
- 4 files changed, 43 insertions(+), 3 deletions(-)
+ security/smack/smack.h   |    8 --------
+ security/smack/smackfs.c |   31 ++++++++++++++++++++-----------
+ 2 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup block/genhd.c
---- a/block/genhd.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/block/genhd.c
-@@ -8,6 +8,7 @@
- #include <linux/kdev_t.h>
- #include <linux/kernel.h>
- #include <linux/blkdev.h>
-+#include <linux/devscontrol.h>
- #include <linux/init.h>
- #include <linux/spinlock.h>
- #include <linux/seq_file.h>
-@@ -208,10 +209,15 @@ void unlink_gendisk(struct gendisk *disk
+diff -puN security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes security/smack/smack.h
+--- a/security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes
++++ a/security/smack/smack.h
+@@ -27,14 +27,6 @@
+ #define SMK_MAXLEN	23
+ #define SMK_LABELLEN	(SMK_MAXLEN+1)
+ 
+-/*
+- * How many kinds of access are there?
+- * Here's your answer.
+- */
+-#define SMK_ACCESSDASH	'-'
+-#define SMK_ACCESSLOW	"rwxa"
+-#define SMK_ACCESSKINDS	(sizeof(SMK_ACCESSLOW) - 1)
+-
+ struct superblock_smack {
+ 	char		*smk_root;
+ 	char		*smk_floor;
+diff -puN security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes security/smack/smackfs.c
+--- a/security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes
++++ a/security/smack/smackfs.c
+@@ -81,10 +81,23 @@ static struct semaphore smack_write_sem;
+ /*
+  * Values for parsing cipso rules
+  * SMK_DIGITLEN: Length of a digit field in a rule.
+- * SMK_CIPSOMEN: Minimum possible cipso rule length.
++ * SMK_CIPSOMIN: Minimum possible cipso rule length.
++ * SMK_CIPSOMAX: Maximum possible cipso rule length.
   */
- struct gendisk *get_gendisk(dev_t devt, mode_t *mode, int *part)
+ #define SMK_DIGITLEN 4
+-#define SMK_CIPSOMIN (SMK_MAXLEN + 2 * SMK_DIGITLEN)
++#define SMK_CIPSOMIN (SMK_LABELLEN + 2 * SMK_DIGITLEN)
++#define SMK_CIPSOMAX (SMK_CIPSOMIN + SMACK_CIPSO_MAXCATNUM * SMK_DIGITLEN)
++
++/*
++ * Values for parsing MAC rules
++ * SMK_ACCESS: Maximum possible combination of access permissions
++ * SMK_ACCESSLEN: Maximum length for a rule access field
++ * SMK_LOADLEN: Smack rule length
++ */
++#define SMK_ACCESS    "rwxa"
++#define SMK_ACCESSLEN (sizeof(SMK_ACCESS) - 1)
++#define SMK_LOADLEN   (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSLEN)
++
+ 
+ /*
+  * Seq_file read operations for /smack/load
+@@ -229,14 +242,10 @@ static void smk_set_access(struct smack_
+  * The format is exactly:
+  *     char subject[SMK_LABELLEN]
+  *     char object[SMK_LABELLEN]
+- *     char access[SMK_ACCESSKINDS]
++ *     char access[SMK_ACCESSLEN]
+  *
+- *     Anything following is commentary and ignored.
+- *
+- * writes must be SMK_LABELLEN+SMK_LABELLEN+4 bytes.
++ * writes must be SMK_LABELLEN+SMK_LABELLEN+SMK_ACCESSLEN bytes.
+  */
+-#define MINIMUM_LOAD (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSKINDS)
+-
+ static ssize_t smk_write_load(struct file *file, const char __user *buf,
+ 			      size_t count, loff_t *ppos)
  {
-+	struct kobj_map *map;
- 	struct kobject *kobj;
- 	struct device *dev;
+@@ -253,7 +262,7 @@ static ssize_t smk_write_load(struct fil
+ 		return -EPERM;
+ 	if (*ppos != 0)
+ 		return -EINVAL;
+-	if (count < MINIMUM_LOAD)
++	if (count != SMK_LOADLEN)
+ 		return -EINVAL;
  
--	kobj = kobj_lookup(bdev_map, devt, mode, part);
-+	map = task_bdev_map(current);
-+	if (map == NULL)
-+		map = bdev_map;
-+
-+	kobj = kobj_lookup(map, devt, mode, part);
- 	if (kobj == NULL)
- 		return NULL;
+ 	data = kzalloc(count, GFP_KERNEL);
+@@ -513,7 +522,7 @@ static ssize_t smk_write_cipso(struct fi
+ 		return -EPERM;
+ 	if (*ppos != 0)
+ 		return -EINVAL;
+-	if (count <= SMK_CIPSOMIN)
++	if (count < SMK_CIPSOMIN || count > SMK_CIPSOMAX)
+ 		return -EINVAL;
  
-diff -puN fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/block_dev.c
---- a/fs/block_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/fs/block_dev.c
-@@ -940,6 +940,14 @@ static int do_open(struct block_device *
- 		bdput(bdev);
- 		return ret;
- 	}
-+
-+	if ((file->f_mode & mode) != file->f_mode) {
-+		unlock_kernel();
-+		bdput(bdev);
-+		put_disk(disk);
-+		return -EACCES;
-+	}
-+
- 	owner = disk->fops->owner;
+ 	data = kzalloc(count + 1, GFP_KERNEL);
+@@ -547,7 +556,7 @@ static ssize_t smk_write_cipso(struct fi
+ 	if (ret != 1 || catlen > SMACK_CIPSO_MAXCATNUM)
+ 		goto out;
  
- 	mutex_lock_nested(&bdev->bd_mutex, for_part);
-diff -puN fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup fs/char_dev.c
---- a/fs/char_dev.c~devscontrol-make-use-of-permissions-returned-by-kobj_lookup
-+++ a/fs/char_dev.c
-@@ -22,6 +22,8 @@
- #include <linux/mutex.h>
- #include <linux/backing-dev.h>
+-	if (count <= (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
++	if (count != (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
+ 		goto out;
  
-+#include <linux/devscontrol.h>
-+
- #ifdef CONFIG_KMOD
- #include <linux/kmod.h>
- #endif
-@@ -361,19 +363,31 @@ static int chrdev_open(struct inode *ino
- 	struct cdev *p;
- 	struct cdev *new = NULL;
- 	int ret = 0;
-+	struct kobj_map *map;
-+
-+	map = task_cdev_map(current);
-+	if (map == NULL)
-+		map = cdev_map;
- 
- 	spin_lock(&cdev_lock);
- 	p = inode->i_cdev;
--	if (!p) {
-+	if (!p || map != cdev_map) {
- 		struct kobject *kobj;
- 		int idx;
- 		mode_t mode;
- 
- 		spin_unlock(&cdev_lock);
--		kobj = kobj_lookup(cdev_map, inode->i_rdev, &mode, &idx);
-+		kobj = kobj_lookup(map, inode->i_rdev, &mode, &idx);
- 		if (!kobj)
- 			return -ENXIO;
- 		new = container_of(kobj, struct cdev, kobj);
-+		BUG_ON(p != NULL && p != new);
-+
-+		if ((filp->f_mode & mode) != filp->f_mode) {
-+			cdev_put(new);
-+			return -EACCES;
-+		}
-+
- 		spin_lock(&cdev_lock);
- 		p = inode->i_cdev;
- 		if (!p) {
-diff -puN /dev/null include/linux/devscontrol.h
---- /dev/null
-+++ a/include/linux/devscontrol.h
-@@ -0,0 +1,12 @@
-+#ifndef __DEVS_CONTROL_H__
-+#define __DEVS_CONTROL_H__
-+static inline struct kobj_map *task_cdev_map(struct task_struct *tsk)
-+{
-+	return NULL;
-+}
-+
-+static inline struct kobj_map *task_bdev_map(struct task_struct *tsk)
-+{
-+	return NULL;
-+}
-+#endif
+ 	memset(mapcatset, 0, sizeof(mapcatset));
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-devscontrol-make-use-of-permissions-returned-by-kobj_lookup.patch
-devscontrol-extend-the-drivers-base-mapc-functionality.patch
-devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
-devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
-devscontrol-devices-accessibility-control-group-itself.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-kvm.patch
+git-security-testing.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+smackfs-do-not-trust-count-in-inodes-writes.patch
 
