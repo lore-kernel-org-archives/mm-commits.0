@@ -1,62 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-add-another-broadcom-device.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 11:05:33 -0700
-Message-ID: <200803101805.m2AI5XPX030109@imap1.linux-foundation.org>
+Subject: - alpha-fix-iommu-related-boot-panic.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 11:05:14 -0700
+Message-ID: <200803101805.m2AI5EI0030053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751283AbYCJSGO (ORCPT
+	by vger.kernel.org with ESMTP id S1751013AbYCJSGU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 14:06:14 -0400
+	Mon, 10 Mar 2008 14:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kkeil@suse.de, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, mingo@elte.hu, rct@frus.com, rth@twiddle.net, tomof@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: add another Broadcom device
+     alpha: fix iommu-related boot panic
 has been removed from the -mm tree.  Its filename was
-     bluetooth-add-another-broadcom-device.patch
+     alpha-fix-iommu-related-boot-panic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: add another Broadcom device
-From: Karsten Keil <kkeil@suse.de>
+Subject: alpha: fix iommu-related boot panic
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Add another Broadcom BCM2045 based device to the blacklist, with these
-settings the micro dongle works on my system.
+Fix boot panic due to a typo in the recent iommu patchset from FUJITA Tomonori
+<tomof@acm.org> - dma_get_max_seg_size() instead of dma_get_seg_boundary(). 
+This also removes a couple of unnecessary BUG_ON() and ALIGN() macros.
 
-Signed-off-by: Karsten Keil <kkeil@suse.de>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Reported-by: Bob Tracy <rct@frus.com>
+Tested-by: Bob Tracy <rct@frus.com>
+Acked-by: FUJITA Tomonori <tomof@acm.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/kernel/pci_iommu.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-another-broadcom-device drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~bluetooth-add-another-broadcom-device
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -116,6 +116,7 @@ static struct usb_device_id blacklist_id
- 	{ USB_DEVICE(0x0a5c, 0x2009), .driver_info = HCI_BCM92035 },
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-fix-iommu-related-boot-panic
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -144,15 +144,14 @@ iommu_arena_find_pages(struct device *de
+ 	unsigned long base;
+ 	unsigned long boundary_size;
  
- 	/* Broadcom BCM2045 */
-+	{ USB_DEVICE(0x0a5c, 0x2039), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
- 	{ USB_DEVICE(0x0a5c, 0x2101), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
- 
- 	/* IBM/Lenovo ThinkPad with Broadcom chip */
-_
-
-Patches currently in -mm which might be from kkeil@suse.de are
-
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-
+-	BUG_ON(arena->dma_base & ~PAGE_MASK);
+ 	base = arena->dma_base >> PAGE_SHIFT;
+-	if (dev)
+-		boundary_size = ALIGN(dma_get_max_seg_size(dev) + 1, PAGE_SIZE)
+-			>> PAGE_SHIFT;
+-	else
+-		boundary_size = ALIGN(1UL << 32, PAGE_SIZE) >> PAGE_SHIFT;
