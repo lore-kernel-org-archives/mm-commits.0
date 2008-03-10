@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fusion-mpt-convert-inactive_list_mutex-in-a-mutex.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:24:36 -0700
-Message-ID: <200803102024.m2AKOawl003802@imap1.linux-foundation.org>
+Subject: + input-fix-cobalt_btns-loadable-keymap-support.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:23:51 -0700
+Message-ID: <200803102023.m2AKNp2h003776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757034AbYCJUZb (ORCPT
+	by vger.kernel.org with ESMTP id S1756966AbYCJUZZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:25:31 -0400
+	Mon, 10 Mar 2008 16:25:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias@kaehlcke.net, Eric.Moore@lsil.com
+Cc: yoichi_yuasa@tripeaks.co.jp, dtor@mail.ru, jkosina@suse.cz, ralf@linux-mips.org
 
 
 The patch titled
-     Fusion MPT: convert inactive_list_mutex in a mutex
+     input: fix cobalt_btns loadable keymap support
 has been added to the -mm tree.  Its filename is
-     fusion-mpt-convert-inactive_list_mutex-in-a-mutex.patch
+     input-fix-cobalt_btns-loadable-keymap-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fusion MPT: convert inactive_list_mutex in a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: input: fix cobalt_btns loadable keymap support
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-Fusion MPT driver: the semaphore inactive_list_mutex is used as a
-mutex, convert it to the mutex API
+Without this patch the Cobalt defconfig won't build.
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c  |   10 +++++-----
- drivers/message/fusion/mptbase.h  |    3 ++-
- drivers/message/fusion/mptscsih.c |    8 ++++----
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/input/misc/cobalt_btns.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/message/fusion/mptbase.c~fusion-mpt-convert-inactive_list_mutex-in-a-mutex drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~fusion-mpt-convert-inactive_list_mutex-in-a-mutex
-+++ a/drivers/message/fusion/mptbase.c
-@@ -2143,7 +2143,7 @@ mpt_do_ioc_recovery(MPT_ADAPTER *ioc, u3
- 		/*
- 		 * Initalize link list for inactive raid volumes.
- 		 */
--		init_MUTEX(&ioc->raid_data.inactive_list_mutex);
-+		mutex_init(&ioc->raid_data.inactive_list_mutex);
- 		INIT_LIST_HEAD(&ioc->raid_data.inactive_list);
+diff -puN drivers/input/misc/cobalt_btns.c~input-fix-cobalt_btns-loadable-keymap-support drivers/input/misc/cobalt_btns.c
+--- a/drivers/input/misc/cobalt_btns.c~input-fix-cobalt_btns-loadable-keymap-support
++++ a/drivers/input/misc/cobalt_btns.c
+@@ -1,7 +1,7 @@
+ /*
+  *  Cobalt button interface driver.
+  *
+- *  Copyright (C) 2007  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
++ *  Copyright (C) 2007-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+@@ -15,7 +15,7 @@
+  *
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ #include <linux/init.h>
+ #include <linux/input-polldev.h>
+@@ -55,7 +55,7 @@ static void handle_buttons(struct input_
+ 	status = ~readl(bdev->reg) >> 24;
  
- 		if (ioc->bus_type == SAS) {
-@@ -5129,13 +5129,13 @@ mpt_inactive_raid_list_free(MPT_ADAPTER 
- 	if (list_empty(&ioc->raid_data.inactive_list))
- 		return;
+ 	for (i = 0; i < ARRAY_SIZE(bdev->keymap); i++) {
+-		if (status & (1UL << i)) {
++		if (status & (1U << i)) {
+ 			if (++bdev->count[i] == BUTTONS_COUNT_THRESHOLD) {
+ 				input_event(input, EV_MSC, MSC_SCAN, i);
+ 				input_report_key(input, bdev->keymap[i], 1);
+@@ -97,16 +97,16 @@ static int __devinit cobalt_buttons_prob
+ 	input->name = "Cobalt buttons";
+ 	input->phys = "cobalt/input0";
+ 	input->id.bustype = BUS_HOST;
+-	input->cdev.dev = &pdev->dev;
++	input->dev.parent = &pdev->dev;
  
--	down(&ioc->raid_data.inactive_list_mutex);
-+	mutex_lock(&ioc->raid_data.inactive_list_mutex);
- 	list_for_each_entry_safe(component_info, pNext,
- 	    &ioc->raid_data.inactive_list, list) {
- 		list_del(&component_info->list);
- 		kfree(component_info);
- 	}
--	up(&ioc->raid_data.inactive_list_mutex);
-+	mutex_unlock(&ioc->raid_data.inactive_list_mutex);
- }
+-	input->keycode = pdev->keymap;
+-	input->keycodemax = ARRAY_SIZE(pdev->keymap);
++	input->keycode = bdev->keymap;
++	input->keycodemax = ARRAY_SIZE(bdev->keymap);
+ 	input->keycodesize = sizeof(unsigned short);
  
- /**
-@@ -5194,7 +5194,7 @@ mpt_inactive_raid_volumes(MPT_ADAPTER *i
- 	if (!handle_inactive_volumes)
- 		goto out;
+ 	input_set_capability(input, EV_MSC, MSC_SCAN);
+ 	__set_bit(EV_KEY, input->evbit);
+-	for (i = 0; i < ARRAY_SIZE(buttons_map); i++)
+-		__set_bit(input->keycode[i], input->keybit);
++	for (i = 0; i < ARRAY_SIZE(cobalt_map); i++)
++		__set_bit(bdev->keymap[i], input->keybit);
+ 	__clear_bit(KEY_RESERVED, input->keybit);
  
--	down(&ioc->raid_data.inactive_list_mutex);
-+	mutex_lock(&ioc->raid_data.inactive_list_mutex);
- 	for (i = 0; i < buffer->NumPhysDisks; i++) {
- 		if(mpt_raid_phys_disk_pg0(ioc,
- 		    buffer->PhysDisk[i].PhysDiskNum, &phys_disk) != 0)
-@@ -5214,7 +5214,7 @@ mpt_inactive_raid_volumes(MPT_ADAPTER *i
- 		list_add_tail(&component_info->list,
- 		    &ioc->raid_data.inactive_list);
- 	}
--	up(&ioc->raid_data.inactive_list_mutex);
-+	mutex_unlock(&ioc->raid_data.inactive_list_mutex);
- 
-  out:
- 	if (buffer)
-diff -puN drivers/message/fusion/mptbase.h~fusion-mpt-convert-inactive_list_mutex-in-a-mutex drivers/message/fusion/mptbase.h
---- a/drivers/message/fusion/mptbase.h~fusion-mpt-convert-inactive_list_mutex-in-a-mutex
-+++ a/drivers/message/fusion/mptbase.h
-@@ -51,6 +51,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/pci.h>
-+#include <linux/mutex.h>
- 
- #include "lsi/mpi_type.h"
- #include "lsi/mpi.h"		/* Fusion MPI(nterface) basic defs */
-@@ -531,7 +532,7 @@ struct inactive_raid_component_info {
- typedef	struct _RaidCfgData {
- 	IOCPage2_t	*pIocPg2;		/* table of Raid Volumes */
- 	IOCPage3_t	*pIocPg3;		/* table of physical disks */
--	struct semaphore	inactive_list_mutex;
-+	struct mutex	inactive_list_mutex;
- 	struct list_head	inactive_list; /* link list for physical
- 						disk that belong in
- 						inactive volumes */
-diff -puN drivers/message/fusion/mptscsih.c~fusion-mpt-convert-inactive_list_mutex-in-a-mutex drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~fusion-mpt-convert-inactive_list_mutex-in-a-mutex
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -2295,14 +2295,14 @@ mptscsih_is_phys_disk(MPT_ADAPTER *ioc, 
- 	if (list_empty(&ioc->raid_data.inactive_list))
- 		goto out;
- 
--	down(&ioc->raid_data.inactive_list_mutex);
-+	mutex_lock(&ioc->raid_data.inactive_list_mutex);
- 	list_for_each_entry(component_info, &ioc->raid_data.inactive_list,
- 	    list) {
- 		if ((component_info->d.PhysDiskID == id) &&
- 		    (component_info->d.PhysDiskBus == channel))
- 			rc = 1;
- 	}
--	up(&ioc->raid_data.inactive_list_mutex);
-+	mutex_unlock(&ioc->raid_data.inactive_list_mutex);
- 
-  out:
- 	return rc;
-@@ -2332,14 +2332,14 @@ mptscsih_raid_id_to_num(MPT_ADAPTER *ioc
- 	if (list_empty(&ioc->raid_data.inactive_list))
- 		goto out;
- 
--	down(&ioc->raid_data.inactive_list_mutex);
-+	mutex_lock(&ioc->raid_data.inactive_list_mutex);
- 	list_for_each_entry(component_info, &ioc->raid_data.inactive_list,
- 	    list) {
- 		if ((component_info->d.PhysDiskID == id) &&
- 		    (component_info->d.PhysDiskBus == channel))
- 			rc = component_info->d.PhysDiskNum;
- 	}
--	up(&ioc->raid_data.inactive_list_mutex);
-+	mutex_unlock(&ioc->raid_data.inactive_list_mutex);
- 
-  out:
- 	return rc;
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
-cosa-srp-convert-channel_datarsem-to-mutex.patch
-alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
-fusion-mpt-convert-inactive_list_mutex-in-a-mutex.patch
-convert-acl-sem-in-a-mutex.patch
-convert-stats_sem-in-a-mutex.patch
-convert-wpa_sem-in-a-mutex.patch
-fs-inodec-use-hlist_for_each_entry.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+input-fix-cobalt_btns-loadable-keymap-support.patch
 
