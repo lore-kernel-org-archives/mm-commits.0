@@ -1,66 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - input-core-driver-for-wm97xx-touchscreens-update-fix-typo.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 03:06:25 -0700
-Message-ID: <200803101006.m2AA6PxH011183@imap1.linux-foundation.org>
+Subject: - input-put-ledstate-in-the-keyboard-notifier-fix.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 03:05:32 -0700
+Message-ID: <200803101005.m2AA5WXN011167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751327AbYCJKHH (ORCPT
+	by vger.kernel.org with ESMTP id S1751267AbYCJKHS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 06:07:07 -0400
+	Mon, 10 Mar 2008 06:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hcegtvedt@atmel.com, broonie@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, dtor@mail.ru, eklhad@comcast.net, jikos@jikos.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wm97xx: fix logic typo when clearing GPIO function
+     Keyboard notification ledstate fixes.
 has been removed from the -mm tree.  Its filename was
-     input-core-driver-for-wm97xx-touchscreens-update-fix-typo.patch
+     input-put-ledstate-in-the-keyboard-notifier-fix.patch
 
-This patch was dropped because it was folded into input-core-driver-for-wm97xx-touchscreens.patch
+This patch was dropped because it was folded into input-put-ledstate-in-the-keyboard-notifier.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wm97xx: fix logic typo when clearing GPIO function
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: Keyboard notification ledstate fixes.
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Fix a typo when the core part of the wm97xx touch driver tries to clear the
-GPIO functionality for a GPIO line.
+In keyboard notifications, use kbd->ledflagstate instead of
+getledstate() since that's what the keyboard layer is supposed to use.
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Update param.ledstate again between key handler call and notifying
+KBD_POST_KEYSYM, since key handlers may update the led state.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Karl Dahlke <eklhad@comcast.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/wm97xx-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/keyboard.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/wm97xx-core.c~input-core-driver-for-wm97xx-touchscreens-update-fix-typo drivers/input/touchscreen/wm97xx-core.c
---- a/drivers/input/touchscreen/wm97xx-core.c~input-core-driver-for-wm97xx-touchscreens-update-fix-typo
-+++ a/drivers/input/touchscreen/wm97xx-core.c
-@@ -358,7 +358,7 @@ static int wm97xx_init_pen_irq(struct wm
- 		BUG_ON(!wm->mach_ops->irq_gpio);
- 		reg = wm97xx_reg_read(wm, AC97_MISC_AFE);
- 		wm97xx_reg_write(wm, AC97_MISC_AFE,
--				 reg ^ wm->mach_ops->irq_gpio);
-+				reg & ~(wm->mach_ops->irq_gpio));
- 		reg = wm97xx_reg_read(wm, 0x5a);
- 		wm97xx_reg_write(wm, 0x5a, reg & ~0x0001);
+diff -puN drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier-fix drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier-fix
++++ a/drivers/char/keyboard.c
+@@ -1238,7 +1238,7 @@ static void kbd_keycode(unsigned int key
  	}
+ 
+ 	param.shift = shift_final = (shift_state | kbd->slockstate) ^ kbd->lockstate;
+-	param.ledstate = getledstate();
++	param.ledstate = kbd->ledflagstate;
+ 	key_map = key_maps[shift_final];
+ 
+ 	if (atomic_notifier_call_chain(&keyboard_notifier_list, KBD_KEYCODE, &param) == NOTIFY_STOP || !key_map) {
+@@ -1287,6 +1287,7 @@ static void kbd_keycode(unsigned int key
+ 
+ 	(*k_handler[type])(vc, keysym & 0xff, !down);
+ 
++	param.ledstate = kbd->ledflagstate;
+ 	atomic_notifier_call_chain(&keyboard_notifier_list, KBD_POST_KEYSYM, &param);
+ 
+ 	if (type != KT_SLOCK)
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
-git-alsa.patch
-git-avr32.patch
-input-core-driver-for-wm97xx-touchscreens.patch
-input-core-driver-for-wm97xx-touchscreens-update-fix-typo.patch
-input-driver-for-wm97xx-touchscreens-in-streaming-mode-on-mainstone-update.patch
-ps-2-serio-driver-for-avr32-devices.patch
-ps-2-serio-driver-for-avr32-devices-fix.patch
-at73c213-fix-error-checking-for-clk-api.patch
-at73c213-monaural-support.patch
+keyboard-notifier-documentation.patch
+input-put-ledstate-in-the-keyboard-notifier.patch
+input-put-ledstate-in-the-keyboard-notifier-fix.patch
+vt-notifier-extension-for-accessibility.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+basic-braille-screen-reader-support.patch
+basic-braille-screen-reader-support-fixes.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+basic-braille-screen-reader-support-doc.patch
 
