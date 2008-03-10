@@ -1,39 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - devscontrol-provide-functions-to-manipulate-char-device-mappings.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:38:38 -0700
-Message-ID: <200803101938.m2AJccAN001965@imap1.linux-foundation.org>
+Subject: - devscontrol-provide-functions-to-manipulate-block-device-mappings.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:38:41 -0700
+Message-ID: <200803101938.m2AJcfpa001968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752229AbYCJTjW (ORCPT
+	by vger.kernel.org with ESMTP id S1752303AbYCJTjw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:39:22 -0400
+	Mon, 10 Mar 2008 15:39:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devscontrol: provide functions to manipulate char device mappings
+     devscontrol: provide functions to manipulate block device mappings
 has been removed from the -mm tree.  Its filename was
-     devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
+     devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
 
 This patch was dropped because of bunfight
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: provide functions to manipulate char device mappings
+Subject: devscontrol: provide functions to manipulate block device mappings
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The character devices currently have a global map for devices and their own
-locks and callbacks for device probing.  So here are the functions that
-provide the way to play with character devices maps.
-
-They are cdev_map_init/cdev_map_fini to create/destroy one,
-cdev_add_to_map/cdev_del_from_map to map/unmap devices, and cdev_iterate_map
-for uniformity.
+This routines were already done for char devices, these ones are for block
+devices.  Everything is the same, but the locks, probe and match callbacks and
+kobj-to-device conversions.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
@@ -44,99 +40,105 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c        |   63 +++++++++++++++++++++++++++++++++++++++++
- include/linux/cdev.h |    7 ++++
- 2 files changed, 70 insertions(+)
+ block/genhd.c         |   67 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/genhd.h |    8 ++++
+ 2 files changed, 75 insertions(+)
 
-diff -puN fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings fs/char_dev.c
---- a/fs/char_dev.c~devscontrol-provide-functions-to-manipulate-char-device-mappings
-+++ a/fs/char_dev.c
-@@ -476,6 +476,69 @@ int cdev_add(struct cdev *p, dev_t dev, 
- 	return kobj_map(cdev_map, dev, count, NULL, exact_match, exact_lock, p);
+diff -puN block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings block/genhd.c
+--- a/block/genhd.c~devscontrol-provide-functions-to-manipulate-block-device-mappings
++++ a/block/genhd.c
+@@ -200,6 +200,73 @@ void unlink_gendisk(struct gendisk *disk
+ 			      disk->minors);
  }
  
 +#ifdef CONFIG_CGROUP_DEVS
-+int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
++int bdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode)
 +{
 +	int tmp;
-+	struct kobject *k;
-+	struct cdev *c;
++	struct kobject *kobj;
++	struct device *d;
++	struct gendisk *disk;
 +
-+	k = kobj_lookup(cdev_map, dev, NULL, &tmp);
-+	if (k == NULL)
++	kobj = kobj_lookup(bdev_map, dev, NULL, &tmp);
++	if (kobj == NULL)
 +		return -ENODEV;
 +
-+	c = container_of(k, struct cdev, kobj);
-+	tmp = kobj_remap(map, dev, mode, all ? MINORMASK : 1, NULL,
-+			exact_match, exact_lock, c);
++	d = kobj_to_dev(kobj);
++	disk = dev_to_disk(d);
++	tmp = kobj_remap(map, dev, mode, all ? MINORBITS : 1, NULL,
++			exact_match, exact_lock, disk);
 +	if (tmp < 0) {
-+		cdev_put(c);
++		put_disk(disk);
 +		return tmp;
 +	}
 +
 +	return 0;
 +}
 +
-+int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
++int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all)
 +{
 +	int tmp;
-+	struct kobject *k;
-+	struct cdev *c;
++	struct kobject *kobj;
++	struct device *d;
++	struct gendisk *disk;
 +
-+	k = kobj_lookup(map, dev, NULL, &tmp);
-+	if (k == NULL)
++	kobj = kobj_lookup(map, dev, NULL, &tmp);
++	if (kobj == NULL)
 +		return -ENODEV;
 +
-+	c = container_of(k, struct cdev, kobj);
-+	kobj_unmap(map, dev, all ? MINORMASK : 1);
++	d = kobj_to_dev(kobj);
++	disk = dev_to_disk(d);
++	kobj_unmap(map, dev, all ? MINORBITS : 1);
 +
 +	/*
 +	 * one put for the kobj_lookup above and one for
-+	 * the kobj_lookup in cdev_add_to_map
++	 * the kobj_lookup in bdev_add_to_map
 +	 */
-+	cdev_put(c);
-+	cdev_put(c);
++	put_disk(disk);
++	put_disk(disk);
 +	return 0;
 +}
 +
-+void cdev_iterate_map(struct kobj_map *map,
++void bdev_iterate_map(struct kobj_map *map,
 +		int (*fn)(dev_t, int, mode_t, void *), void *x)
 +{
 +	kobj_map_iterate(map, fn, x);
 +}
 +
-+static struct kobject *base_probe(dev_t dev, int *part, void *data);
++static struct kobject *base_probe(dev_t devt, int *part, void *data);
 +
-+struct kobj_map *cdev_map_init(void)
++struct kobj_map *bdev_map_init(void)
 +{
-+	return kobj_map_init(base_probe, &chrdevs_lock);
++	return kobj_map_init(base_probe, &block_class_lock);
 +}
 +
-+void cdev_map_fini(struct kobj_map *map)
++void bdev_map_fini(struct kobj_map *map)
 +{
 +	kobj_map_fini(map);
 +}
 +#endif
 +
- static void cdev_unmap(dev_t dev, unsigned count)
- {
- 	kobj_unmap(cdev_map, dev, count);
-diff -puN include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings include/linux/cdev.h
---- a/include/linux/cdev.h~devscontrol-provide-functions-to-manipulate-char-device-mappings
-+++ a/include/linux/cdev.h
-@@ -33,5 +33,12 @@ void cd_forget(struct inode *);
- 
- extern struct backing_dev_info directly_mappable_cdev_bdi;
+ /**
+  * get_gendisk - get partitioning information for a given device
+  * @dev: device to get partitioning information for
+diff -puN include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings include/linux/genhd.h
+--- a/include/linux/genhd.h~devscontrol-provide-functions-to-manipulate-block-device-mappings
++++ a/include/linux/genhd.h
+@@ -375,6 +375,14 @@ extern void del_gendisk(struct gendisk *
+ extern void unlink_gendisk(struct gendisk *gp);
+ extern struct gendisk *get_gendisk(dev_t dev, mode_t *mode, int *part);
  
 +struct kobj_map;
-+int cdev_add_to_map(struct kobj_map *map, dev_t dev, int all, mode_t mode);
-+int cdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
-+struct kobj_map *cdev_map_init(void);
-+void cdev_map_fini(struct kobj_map *map);
-+void cdev_iterate_map(struct kobj_map *,
-+		int (*fn)(dev_t, int, mode_t, void *), void *);
- #endif
- #endif
++extern int bdev_add_to_map(struct kobj_map *, dev_t dev, int all, mode_t mode);
++extern int bdev_del_from_map(struct kobj_map *map, dev_t dev, int all);
++extern void bdev_iterate_map(struct kobj_map *map,
++		int (*fn)(dev_t, int, mode_t, void *), void *x);
++extern struct kobj_map *bdev_map_init(void);
++extern void bdev_map_fini(struct kobj_map *map);
++
+ extern void set_device_ro(struct block_device *bdev, int flag);
+ extern void set_disk_ro(struct gendisk *disk, int flag);
+ 
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -158,7 +160,6 @@ cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
 cgroup-api-files-make-cgroup_debug-default-to-off.patch
 cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
 memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
 devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
 devscontrol-devices-accessibility-control-group-itself.patch
 remove-unused-variable-from-send_signal.patch
