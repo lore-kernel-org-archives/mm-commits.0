@@ -1,217 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-framework-core-fix.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:37:48 -0700
-Message-ID: <200803101937.m2AJbm9P001913@imap1.linux-foundation.org>
+Subject: - regulator-platform-interface.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:37:43 -0700
+Message-ID: <200803101937.m2AJbhNR001904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751761AbYCJTlL (ORCPT
+	by vger.kernel.org with ESMTP id S1752114AbYCJTlT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:41:11 -0400
+	Mon, 10 Mar 2008 15:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, lg@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
+To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator-framework-core-fix
+     regulator: platform interface
 has been removed from the -mm tree.  Its filename was
-     regulator-framework-core-fix.patch
+     regulator-platform-interface.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator-framework-core-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: regulator: platform interface
+From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-alpha:
+This interface configures a regulator for use within a specific device.  It
+allows for the creation of voltage and current domains (with constraints) for
+each regulator.  Regulator constraints help prevent device damage by providing
+protection for over voltage or over current events caused by buggy client
+drivers.
 
-drivers/regulator/reg-core.c:857:43: error: macro "get_current" passed 1 arguments, but takes just 0
-drivers/regulator/reg-core.c: In function '_regulator_get_current':
-drivers/regulator/reg-core.c:857: warning: assignment makes integer from pointer without a cast
+This interface also allows the creation of a regulator tree whereby some
+regulators are supplied by others (similar to a clock tree).  This means a
+parent regulator will be enabled before it's children are enabled and disabled
+after it's children have all been disabled.
 
-Cc: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/reg-core.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/regulator/regulator-platform.h |   76 +++++++++++++++++
+ 1 file changed, 76 insertions(+)
 
-diff -puN drivers/regulator/reg-core.c~regulator-framework-core-fix drivers/regulator/reg-core.c
---- a/drivers/regulator/reg-core.c~regulator-framework-core-fix
-+++ a/drivers/regulator/reg-core.c
-@@ -70,7 +70,7 @@ struct regulator {
- static int _regulator_is_enabled(struct regulator_cdev *rcdev);
- static int _regulator_disable(struct regulator_cdev *rcdev);
- static int _regulator_get_voltage(struct regulator_cdev *rcdev);
--static int _regulator_get_current(struct regulator_cdev *rcdev);
-+static int _regulator_read_current(struct regulator_cdev *rcdev);
- static unsigned int _regulator_get_mode(struct regulator_cdev *rcdev);
- 
- /* gets the regulator for a given consumer device */
-@@ -198,7 +198,7 @@ static ssize_t regulator_uA_show(struct 
- {
- 	struct regulator_cdev *rcdev = to_rcdev(cdev);
- 
--	return sprintf(buf, "%d\n", _regulator_get_current(rcdev));
-+	return sprintf(buf, "%d\n", _regulator_read_current(rcdev));
- }
- 
- static ssize_t regulator_opmode_show(struct class_device *cdev, char *buf)
-@@ -842,26 +842,26 @@ out:
- }
- EXPORT_SYMBOL_GPL(regulator_set_current);
- 
--static int _regulator_get_current(struct regulator_cdev *rcdev)
-+static int _regulator_read_current(struct regulator_cdev *rcdev)
- {
- 	int ret;
- 
- 	mutex_lock(&rcdev->mutex);
- 
- 	/* sanity check */
--	if (!rcdev->desc->ops->get_current) {
-+	if (!rcdev->desc->ops->read_current) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	ret = rcdev->desc->ops->get_current(rcdev);
-+	ret = rcdev->desc->ops->read_current(rcdev);
- out:
- 	mutex_unlock(&rcdev->mutex);
- 	return ret;
- }
- 
- /**
-- * regulator_get_current - get regulator output current
-+ * regulator_read_current - get regulator output current
-  * @regulator: regulator source
-  *
-  * This returns the current supplied by the specified current sink in uA.
-@@ -869,11 +869,11 @@ out:
-  * NOTE: If the regulator is disabled it will return the current value. This
-  * function should not be used to determine regulator state.
-  */
--int regulator_get_current(struct regulator *regulator)
-+int regulator_read_current(struct regulator *regulator)
- {
--	return _regulator_get_current(regulator->rcdev);
-+	return _regulator_read_current(regulator->rcdev);
- }
--EXPORT_SYMBOL_GPL(regulator_get_current);
-+EXPORT_SYMBOL_GPL(regulator_read_current);
- 
- /**
-  * regulator_set_mode - set regulator operating mode
+diff -puN /dev/null include/linux/regulator/regulator-platform.h
+--- /dev/null
++++ a/include/linux/regulator/regulator-platform.h
+@@ -0,0 +1,76 @@
++/*
++ * regulator-platform.h -- SoC Regulator support, platform driver API.
++ *
++ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
++ *
++ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Regulator Platform Interface.
++ */
++
++#ifndef __LINUX_REGULATOR_PLATFORM_H_
++#define __LINUX_REGULATOR_PLATFORM_H_
++
++#include <linux/regulator/regulator.h>
++
++struct regulator;
++
++/*
++ * Regulator operation constraint flags. These flags are used to enable
++ * certain regulator operations and can be OR'ed together.
++ *
++ * VOLTAGE:  Regulator output voltage can be changed by software on this
++ *           board/machine.
++ * CURRENT:  Regulator output current can be changed by software on this
++ *           board machine.
++ * MODE:     Regulator operating mode can be changed by software on this
++ *           board machine.
++ * STATUS:   Regulator can be enabled and disabled.
++ * DRMS:     Dynamic Regulator Mode Switching is enabled for this regulator.
++ */
++
++#define REGULATOR_CHANGE_VOLTAGE	0x1
++#define REGULATOR_CHANGE_CURRENT	0x2
++#define REGULATOR_CHANGE_MODE		0x4
++#define REGULATOR_CHANGE_STATUS		0x8
++#define REGULATOR_CHANGE_DRMS		0x10
++
++/**
++ * struct regulation_constraints - regulator operating constraints.
++ *
++ * This struct describes regulator and board/machine specific constraints.
++ */
++struct regulation_constraints {
++
++	char *name;
++
++	/* voltage output range (inclusive) - for voltage control */
++	int min_uV;
++	int max_uV;
++
++	/* current output range (inclusive) - for current control */
++	int min_uA;
++	int max_uA;
++
++	/* valid regulator operating modes for this machine */
++	unsigned int valid_modes_mask;
++
++	/* valid operations for regulator on this machine */
++	unsigned int valid_ops_mask;
++
++	/* regulator input voltage - only if supply is another regulator */
++	int input_uV;
++};
++
++int regulator_set_parent(const char *regulator, const char *regulator_parent);
++
++const char *regulator_get_parent(const char *regulator);
++
++int regulator_set_platform_constraints(const char *regulator,
++	struct regulation_constraints *constraints);
++
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
 
-rename-declare_pci_device_table-to-define_pci_device_table.patch
-poweroff-workaround.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa.patch
-git-alsa-fix-git-conflicts.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-oz99x-i2c-button-and-led-support-driver.patch
-git-hwmon.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-git-net.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
+regulator-platform-interface.patch
+regulator-framework-core.patch
 regulator-framework-core-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+regulator-sysfs-abi.patch
+regulator-kbuild.patch
+regulator-maintainers.patch
 
