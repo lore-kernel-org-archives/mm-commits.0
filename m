@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-use-__group_complete_signal-for-the-specific-signals-too.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:33:59 -0700
-Message-ID: <200803101934.m2AJY0qX001736@imap1.linux-foundation.org>
+Subject: + signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:33:57 -0700
+Message-ID: <200803101933.m2AJXvgg001733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbYCJTfU (ORCPT
+	by vger.kernel.org with ESMTP id S1751524AbYCJTfH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:35:20 -0400
+	Mon, 10 Mar 2008 15:35:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com, xemul@openvz.org
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: use __group_complete_signal() for the specific signals too
+     signals: change send_signal/do_send_sigqueue to take "boolean group" parameter
 has been added to the -mm tree.  Its filename is
-     signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+     signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: use __group_complete_signal() for the specific signals too
+Subject: signals: change send_signal/do_send_sigqueue to take "boolean group" parameter
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Based on Pavel Emelyanov's suggestion.
+send_signal() is used either with ->pending or with ->signal->shared_pending. 
+Change it to take "int group" instead, this argument will be re-used later.
 
-Rename __group_complete_signal() to complete_signal() and use it to process
-the specific signals too.  To do this we simply add the "int group" argument.
-
-This allows us to greatly simply the signal-sending code and adds a useful
-behaviour change.  We can avoid the unneeded wakeups for the private signals
-because wants_signal() is more clever than sigismember(blocked), but more
-importantly we now take into account the fatal specific signals too.
-
-The latter allows us to kill some subtle checks in handle_stop_signal() and
-makes the specific/group signal's behaviour more consistent.  For example,
-currently sigtimedwait(FATAL_SIGNAL) behaves differently depending on was the
-signal sent by kill() or tkill() if the signal was not blocked.
-
-And.  This allows us to tweak/fix the behaviour when the specific signal is
-sent to the dying/dead ->group_leader.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ kernel/signal.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN kernel/signal.c~signals-use-__group_complete_signal-for-the-specific-signals-too kernel/signal.c
---- a/kernel/signal.c~signals-use-__group_complete_signal-for-the-specific-signals-too
+diff -puN kernel/signal.c~signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter kernel/signal.c
+--- a/kernel/signal.c~signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter
 +++ a/kernel/signal.c
-@@ -673,8 +673,7 @@ static inline int wants_signal(int sig, 
- 	return task_curr(p) || !signal_pending(p);
+@@ -754,18 +754,21 @@ static inline int legacy_queue(struct si
  }
  
--static void
--__group_complete_signal(int sig, struct task_struct *p)
-+static void complete_signal(int sig, struct task_struct *p, int group)
+ static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
+-			struct sigpending *signals)
++			int group)
  {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
-@@ -687,7 +686,7 @@ __group_complete_signal(int sig, struct 
++	struct sigpending *pending;
+ 	struct sigqueue *q;
+ 
+ 	assert_spin_locked(&t->sighand->siglock);
+ 	handle_stop_signal(sig, t);
++
++	pending = group ? &t->signal->shared_pending : &t->pending;
+ 	/*
+ 	 * Short-circuit ignored signals and support queuing
+ 	 * exactly one non-rt signal, so that we can get more
+ 	 * detailed information about the cause of the signal.
  	 */
- 	if (wants_signal(sig, p))
- 		t = p;
--	else if (thread_group_empty(p))
-+	else if (!group || thread_group_empty(p))
- 		/*
- 		 * There is just one thread and it does not need to be woken.
- 		 * It will dequeue unblocked signals before it runs again.
-@@ -871,8 +870,7 @@ specific_send_sig_info(int sig, struct s
+-	if (sig_ignored(t, sig) || legacy_queue(signals, sig))
++	if (sig_ignored(t, sig) || legacy_queue(pending, sig))
+ 		return 0;
+ 
+ 	/*
+@@ -793,7 +796,7 @@ static int send_signal(int sig, struct s
+ 					     (is_si_special(info) ||
+ 					      info->si_code >= 0)));
+ 	if (q) {
+-		list_add_tail(&q->list, &signals->list);
++		list_add_tail(&q->list, &pending->list);
+ 		switch ((unsigned long) info) {
+ 		case (unsigned long) SEND_SIG_NOINFO:
+ 			q->info.si_signo = sig;
+@@ -823,7 +826,7 @@ static int send_signal(int sig, struct s
+ 	}
+ 
+ out_set:
+-	sigaddset(&signals->signal, sig);
++	sigaddset(&pending->signal, sig);
+ 	return 1;
+ }
+ 
+@@ -864,7 +867,7 @@ specific_send_sig_info(int sig, struct s
+ {
+ 	int ret;
+ 
+-	ret = send_signal(sig, info, t, &t->pending);
++	ret = send_signal(sig, info, t, 0);
  	if (ret <= 0)
  		return ret;
  
--	if (!sigismember(&t->blocked, sig))
--		signal_wake_up(t, sig == SIGKILL);
-+	complete_signal(sig, t, 0);
- 	return 0;
- }
- 
-@@ -930,7 +928,7 @@ __group_send_sig_info(int sig, struct si
+@@ -923,7 +926,7 @@ __group_send_sig_info(int sig, struct si
+ 	 * We always use the shared queue for process-wide signals,
+ 	 * to avoid several races.
+ 	 */
+-	ret = send_signal(sig, info, p, &p->signal->shared_pending);
++	ret = send_signal(sig, info, p, 1);
  	if (ret <= 0)
  		return ret;
  
--	__group_complete_signal(sig, p);
-+	complete_signal(sig, p, 1);
+@@ -1258,8 +1261,10 @@ void sigqueue_free(struct sigqueue *q)
+ }
+ 
+ static int do_send_sigqueue(int sig, struct sigqueue *q, struct task_struct *t,
+-				struct sigpending *pending)
++				int group)
+ {
++	struct sigpending *pending;
++
+ 	handle_stop_signal(sig, t);
+ 
+ 	if (unlikely(!list_empty(&q->list))) {
+@@ -1277,8 +1282,10 @@ static int do_send_sigqueue(int sig, str
+ 		return 1;
+ 
+ 	signalfd_notify(t, sig);
++	pending = group ? &t->signal->shared_pending : &t->pending;
+ 	list_add_tail(&q->list, &pending->list);
+ 	sigaddset(&pending->signal, sig);
++
  	return 0;
  }
  
-@@ -1309,8 +1307,7 @@ int send_sigqueue(int sig, struct sigque
+@@ -1300,7 +1307,7 @@ int send_sigqueue(int sig, struct sigque
+ 	if (!likely(lock_task_sighand(p, &flags)))
+ 		goto out_err;
  
- 	ret = do_send_sigqueue(sig, q, p, 0);
+-	ret = do_send_sigqueue(sig, q, p, &p->pending);
++	ret = do_send_sigqueue(sig, q, p, 0);
  
--	if (!sigismember(&p->blocked, sig))
--		signal_wake_up(p, sig == SIGKILL);
-+	complete_signal(sig, p, 0);
+ 	if (!sigismember(&p->blocked, sig))
+ 		signal_wake_up(p, sig == SIGKILL);
+@@ -1321,7 +1328,7 @@ send_group_sigqueue(int sig, struct sigq
+ 	/* Since it_lock is held, p->sighand cannot be NULL. */
+ 	spin_lock_irqsave(&p->sighand->siglock, flags);
  
- 	unlock_task_sighand(p, &flags);
- out_err:
-@@ -1330,7 +1327,7 @@ send_group_sigqueue(int sig, struct sigq
+-	ret = do_send_sigqueue(sig, q, p, &p->signal->shared_pending);
++	ret = do_send_sigqueue(sig, q, p, 1);
  
- 	ret = do_send_sigqueue(sig, q, p, 1);
- 
--	__group_complete_signal(sig, p);
-+	complete_signal(sig, p, 1);
- 
- 	spin_unlock_irqrestore(&p->sighand->siglock, flags);
+ 	__group_complete_signal(sig, p);
  
 _
 
