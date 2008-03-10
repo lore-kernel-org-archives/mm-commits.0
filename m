@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-annotate-cgroup_init_subsys-with-__init.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:53:12 -0700
-Message-ID: <200803102053.m2AKrCGl004976@imap1.linux-foundation.org>
+Subject: + at73c213-remove-redundant-private_free-routine.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:55:57 -0700
+Message-ID: <200803102055.m2AKtv6U005038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37183 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751369AbYCJUxY (ORCPT
+	by vger.kernel.org with ESMTP id S1751053AbYCJU4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:53:24 -0400
+	Mon, 10 Mar 2008 16:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: anemo@mba.ocn.ne.jp, hcegtvedt@atmel.com, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     cgroup: annotate cgroup_init_subsys with __init
+     at73c213: remove redundant private_free routine
 has been added to the -mm tree.  Its filename is
-     cgroup-annotate-cgroup_init_subsys-with-__init.patch
+     at73c213-remove-redundant-private_free-routine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: annotate cgroup_init_subsys with __init
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: at73c213: remove redundant private_free routine
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-It is called by cgroup_init() and cgroup_init_early() only, which are
-annotated with __init.
+snd_pcm_lib_preallocate_free_for_all() is called from snd_pcm_free() just
+after calling the private_free routine.  So there should be no need to call
+it in driver's private_free routine.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/spi/at73c213.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-annotate-cgroup_init_subsys-with-__init kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-annotate-cgroup_init_subsys-with-__init
-+++ a/kernel/cgroup.c
-@@ -2439,7 +2439,7 @@ static int cgroup_rmdir(struct inode *un
- 	return 0;
- }
+diff -puN sound/spi/at73c213.c~at73c213-remove-redundant-private_free-routine sound/spi/at73c213.c
+--- a/sound/spi/at73c213.c~at73c213-remove-redundant-private_free-routine
++++ a/sound/spi/at73c213.c
+@@ -314,15 +314,6 @@ static struct snd_pcm_ops at73c213_playb
+ 	.pointer	= snd_at73c213_pcm_pointer,
+ };
  
--static void cgroup_init_subsys(struct cgroup_subsys *ss)
-+static void __init cgroup_init_subsys(struct cgroup_subsys *ss)
- {
- 	struct cgroup_subsys_state *css;
- 	struct list_head *l;
-_
-
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
-
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
-
+-static void snd_at73c213_pcm_free(struct snd_pcm *pcm)
+-{
+-	struct snd_at73c213 *chip = snd_pcm_chip(pcm);
+-	if (chip->pcm) {
+-		snd_pcm_lib_preallocate_free_for_all(chip->pcm);
+-		chip->pcm = NULL;
+-	}
+-}
