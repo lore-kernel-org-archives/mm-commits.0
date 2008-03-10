@@ -1,143 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - regulator-regulator-driver-interface.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:37:39 -0700
-Message-ID: <200803101937.m2AJbd8R001896@imap1.linux-foundation.org>
+Subject: - regulator-kbuild.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:37:52 -0700
+Message-ID: <200803101937.m2AJbqLi001926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751861AbYCJTiA (ORCPT
+	by vger.kernel.org with ESMTP id S1752077AbYCJTiP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:38:00 -0400
+	Mon, 10 Mar 2008 15:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: regulator driver interface
+     regulator: kbuild
 has been removed from the -mm tree.  Its filename was
-     regulator-regulator-driver-interface.patch
+     regulator-kbuild.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: regulator driver interface
+Subject: regulator: kbuild
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-This interface allows regulator drivers to register their voltage and current
-regulators with the core.  It also has a notifier call chain for propagating
-regulator events to clients.
+This patch adds Makefile and Kconfig for regulator core.
 
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/regulator/regulator-drv.h |   85 ++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
+ drivers/Kconfig            |    2 ++
+ drivers/Makefile           |    1 +
+ drivers/regulator/Kconfig  |   32 ++++++++++++++++++++++++++++++++
+ drivers/regulator/Makefile |    7 +++++++
+ 4 files changed, 42 insertions(+)
 
-diff -puN /dev/null include/linux/regulator/regulator-drv.h
+diff -puN drivers/Kconfig~regulator-kbuild drivers/Kconfig
+--- a/drivers/Kconfig~regulator-kbuild
++++ a/drivers/Kconfig
+@@ -92,6 +92,8 @@ source "drivers/edac/Kconfig"
+ 
+ source "drivers/rtc/Kconfig"
+ 
++source "drivers/regulator/Kconfig"
++
+ source "drivers/dma/Kconfig"
+ 
+ source "drivers/dca/Kconfig"
+diff -puN drivers/Makefile~regulator-kbuild drivers/Makefile
+--- a/drivers/Makefile~regulator-kbuild
++++ a/drivers/Makefile
+@@ -87,6 +87,7 @@ obj-y				+= firmware/
+ obj-$(CONFIG_CRYPTO)		+= crypto/
+ obj-$(CONFIG_SUPERH)		+= sh/
+ obj-$(CONFIG_GENERIC_TIME)	+= clocksource/
++obj-$(CONFIG_REGULATOR)	+= regulator/
+ obj-$(CONFIG_DMA_ENGINE)	+= dma/
+ obj-$(CONFIG_DCA)		+= dca/
+ obj-$(CONFIG_HID)		+= hid/
+diff -puN /dev/null drivers/regulator/Kconfig
 --- /dev/null
-+++ a/include/linux/regulator/regulator-drv.h
-@@ -0,0 +1,85 @@
-+/*
-+ * regulator-drv.h -- SoC Regulator support.
-+ *
-+ * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
-+ *
-+ * Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Regulator Driver Interface.
-+ */
++++ a/drivers/regulator/Kconfig
+@@ -0,0 +1,32 @@
++menu "Voltage and Current regulators"
 +
-+#ifndef __LINUX_REGULATOR_DRV_H_
-+#define __LINUX_REGULATOR_DRV_H_
++config REGULATOR
++	bool "Voltage and Current Regulator Support"
++	default n
++	help
++	  Generic Voltage and Current Regulator support.
 +
-+#include <linux/device.h>
-+#include <linux/regulator/regulator.h>
++	  This framework is designed to provide a generic interface to voltage
++	  and current regulators within the Linux kernel. It's intended to
++	  provide voltage and current control to client or consumer drivers and
++	  also provide status information to user space applications through a
++	  sysfs interface.
 +
-+struct regulator_constraints;
-+struct regulator_cdev;
++	  The intention is to allow systems to dynamically control regulator
++	  output in order to save power and prolong battery life. This applies
++	  to both voltage regulators (where voltage output is controllable) and
++	  current sinks (where current output is controllable).
 +
-+/**
-+ * struct regulator_ops - regulator operations.
-+ *
-+ * This struct describes regulator operations.
-+ */
-+struct regulator_ops {
++	  This framework safely compiles out if not selected so that client
++	  drivers can still be used in systems with no software controllable
++	  regulators.
 +
-+	/* get/set regulator voltage */
-+	int (*set_voltage) (struct regulator_cdev *, int uV);
-+	int (*get_voltage) (struct regulator_cdev *);
++	  If unsure, say no.
 +
-+	/* get/set regulator current  */
-+	int (*set_current) (struct regulator_cdev *, int uA);
-+	int (*get_current) (struct regulator_cdev *);
++config REGULATOR_DEBUG
++	bool "Regulator debug support"
++	depends on REGULATOR
++	help
++	  Say yes here to enable debugging support.
 +
-+	/* enable/disable regulator */
-+	int (*enable) (struct regulator_cdev *);
-+	int (*disable) (struct regulator_cdev *);
-+	int (*is_enabled) (struct regulator_cdev *);
++endmenu
+diff -puN /dev/null drivers/regulator/Makefile
+--- /dev/null
++++ a/drivers/regulator/Makefile
+@@ -0,0 +1,7 @@
++#
++# Makefile for regulator drivers.
++#
 +
-+	/* get/set regulator operating mode (defined in regulator.h) */
-+	int (*set_mode) (struct regulator_cdev *, unsigned int mode);
-+	unsigned int (*get_mode) (struct regulator_cdev *);
++obj-$(CONFIG_REGULATOR) += reg-core.o
 +
-+	/* get most efficient regulator operating mode for load */
-+	unsigned int (*get_optimum_mode) (struct regulator_cdev *, int input_uV,
-+					  int output_uV, int load_uA);
-+};
-+
-+/*
-+ * Regulators can either control voltage or current.
-+ */
-+enum regulator_type {
-+	REGULATOR_VOLTAGE,
-+	REGULATOR_CURRENT,
-+};
-+
-+/**
-+ * struct regulator_desc - Regulator descriptor
-+ *
-+ */
-+struct regulator_desc {
-+	const char *name;
-+	int id;
-+	struct regulator_ops *ops;
-+	int irq;
-+	enum regulator_type type;
-+	struct module *owner;
-+};
-+
-+
-+struct regulator_cdev *regulator_register(struct regulator_desc *regulator_desc,
-+					  void *reg_data);
-+void regulator_unregister(struct regulator_cdev *rcdev);
-+
-+int regulator_notifier_call_chain(struct regulator_cdev *rcdev,
-+				  unsigned long event, void *data);
-+
-+void *rcdev_get_drvdata(struct regulator_cdev *rcdev);
-+int rcdev_get_id(struct regulator_cdev *rcdev);
-+
-+#endif
++ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
 
-regulator-regulator-driver-interface.patch
-regulator-regulator-driver-interface-fix.patch
-regulator-platform-interface.patch
-regulator-framework-core.patch
-regulator-framework-core-fix.patch
-regulator-sysfs-abi.patch
 regulator-kbuild.patch
 regulator-maintainers.patch
 
