@@ -1,17 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + nbd-allow-nbd-to-be-used-locally.patch added to -mm tree
-Date: Sun, 09 Mar 2008 15:57:46 -0700
-Message-ID: <200803092257.m29Mvkdr021610@imap1.linux-foundation.org>
+Date: Sun, 09 Mar 2008 22:45:11 -0700
+Message-ID: <200803100545.m2A5jBaa002440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753671AbYCIW7M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 9 Mar 2008 18:59:12 -0400
+	by vger.kernel.org with ESMTP id S1751385AbYCJFqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 10 Mar 2008 01:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paul.clements@steeleye.com, Laurent.Vivier@bull.net
+Cc: Laurent.Vivier@bull.net, paul.clements@steeleye.com
 
 
 The patch titled
@@ -34,7 +35,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: NBD: allow nbd to be used locally
-From: Paul Clements <paul.clements@steeleye.com>
+From: Laurent Vivier <Laurent.Vivier@bull.net>
 
 This patch allows Network Block Device to be mounted locally (nbd-client to
 nbd-server over 127.0.0.1).
@@ -280,8 +281,8 @@ diff -puN include/linux/nbd.h~nbd-allow-nbd-to-be-used-locally include/linux/nbd
  	struct gendisk *disk;
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from Laurent.Vivier@bull.net are
 
+git-kvm.patch
 nbd-allow-nbd-to-be-used-locally.patch
-remove-duplicated-unlikely-in-is_err.patch
 
