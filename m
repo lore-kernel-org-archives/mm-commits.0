@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-new-export_ops-fixup.patch added to -mm tree
-Date: Mon, 10 Mar 2008 12:17:55 -0700
-Message-ID: <200803101917.m2AJHtC7001130@imap1.linux-foundation.org>
+Subject: + revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized.patch added to -mm tree
+Date: Mon, 10 Mar 2008 12:20:45 -0700
+Message-ID: <200803101920.m2AJKj2Y001226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39371 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751109AbYCJTSa (ORCPT
+	by vger.kernel.org with ESMTP id S1751109AbYCJTVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:18:30 -0400
+	Mon, 10 Mar 2008 15:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: edward.shishkin@gmail.com, musv@gmx.de
+Cc: akpm@linux-foundation.org, balajirrao@gmail.com, gregkh@suse.de, kay.sievers@vrfy.org, laurent.riffard@free.fr
 
 
 The patch titled
-     reiser4: new export_ops fixup
+     revert gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized
 has been added to the -mm tree.  Its filename is
-     reiser4-new-export_ops-fixup.patch
+     revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4: new export_ops fixup
-From: Edward Shishkin <edward.shishkin@gmail.com>
+Subject: revert gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Added missed reiser4_{init, exit}_context()
-
-Cc: Sven Muller <musv@gmx.de>
+Cc: Balaji Rao <balajirrao@gmail.com>
+Cc: Laurent Riffard <laurent.riffard@free.fr>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/export_ops.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ lib/kobject.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/reiser4/export_ops.c~reiser4-new-export_ops-fixup fs/reiser4/export_ops.c
---- a/fs/reiser4/export_ops.c~reiser4-new-export_ops-fixup
-+++ a/fs/reiser4/export_ops.c
-@@ -257,19 +257,28 @@ static struct dentry *reiser4_get_dentry
- {
- 	struct inode *dir;
- 	dir_plugin *dplug;
-+	struct dentry *result;
-+	reiser4_context *ctx;
+diff -puN lib/kobject.c~revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized lib/kobject.c
+--- a/lib/kobject.c~revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized
++++ a/lib/kobject.c
+@@ -618,13 +618,6 @@ static void kobject_cleanup(struct kobje
+ 		kobject_del(kobj);
+ 	}
  
- 	assert("nikita-3527", child != NULL);
--	/* see comment in reiser4_get_dentry() about following assertion */
--	assert("nikita-3528", is_in_reiser4_context());
- 
- 	dir = child->d_inode;
- 	assert("nikita-3529", dir != NULL);
-+
-+	ctx = reiser4_init_context(dir->i_sb);
-+	if (IS_ERR(ctx))
-+		return (void *)ctx;
-+
- 	dplug = inode_dir_plugin(dir);
- 	assert("nikita-3531", ergo(dplug != NULL, dplug->get_parent != NULL));
--	if (dplug != NULL)
--		return dplug->get_parent(dir);
--	else
-+
-+	if (unlikely(dplug == NULL)) {
-+		reiser4_exit_context(ctx);
- 		return ERR_PTR(RETERR(-ENOTDIR));
-+	}
-+	result = dplug->get_parent(dir);
-+	reiser4_exit_context(ctx);
-+	return result;
- }
- 
- /**
+-	/* set the states incase someone tries to use this object again */
+-	kobj->state_initialized = 0;
+-	kobj->state_in_sysfs = 0;
+-	kobj->state_add_uevent_sent = 0;
+-	kobj->state_remove_uevent_sent = 0;
+-	kobj->state_initialized = 0;
+-
+ 	if (t && t->release) {
+ 		pr_debug("kobject: '%s' (%p): calling ktype release\n",
+ 			 kobject_name(kobj), kobj);
 _
 
-Patches currently in -mm which might be from edward.shishkin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-reiser4-replace-uid==0-check-with-capability.patch
-reiser4-new-export_ops-fixup.patch
-reiser4-specify-splice-file-operations.patch
-reiser4-fix-dummy-ioctl_cryptcompress.patch
-reiser4-granulate-rw-serialization-when-accessing-file-conversion-set.patch
-reiser4-fix-disk-cluster-synchronization.patch
-reiser4-use-balance_dirty_pages_ratelimited_nr.patch
-reiser4-correct-references-to-filemap_nopage.patch
-reiser4-fix-null-pointer-dereference-in-reiser4_write_extent.patch
-reiser4-code-cleanups.patch
+rename-declare_pci_device_table-to-define_pci_device_table.patch
+poweroff-workaround.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-arm-master.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-kobjects-mark-cleaned-up-kobjects-as-unitialized.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+oz99x-i2c-button-and-led-support-driver.patch
+git-hwmon.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+git-net.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+regulator-consumer-interface-fix.patch
+regulator-regulator-driver-interface-fix.patch
+regulator-framework-core-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
