@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-warn_on_secs-macro.patch added to -mm tree
-Date: Mon, 10 Mar 2008 13:52:06 -0700
-Message-ID: <200803102052.m2AKq7sw004934@imap1.linux-foundation.org>
+Subject: + cgroup-switch-to-proc_create.patch added to -mm tree
+Date: Mon, 10 Mar 2008 13:53:14 -0700
+Message-ID: <200803102053.m2AKrEOH004980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbYCJUwQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751369AbYCJUxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 16:52:16 -0400
+	Mon, 10 Mar 2008 16:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com
+Cc: lizf@cn.fujitsu.com, menage@google.com
 
 
 The patch titled
-     add WARN_ON_SECS macro
+     cgroup: switch to proc_create()
 has been added to the -mm tree.  Its filename is
-     add-warn_on_secs-macro.patch
+     cgroup-switch-to-proc_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add WARN_ON_SECS macro
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: cgroup: switch to proc_create()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Add WARN_ON_SECS macro for some serious cases which need to repeat the
-warnings, but with some ratelimiting.
+There is a race between create_proc_entry() and the assignment of file ops. 
+proc_create() is invented to fix it.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/cgroup.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-warn_on_secs-macro
-+++ a/include/asm-generic/bug.h
-@@ -3,6 +3,7 @@
+diff -puN kernel/cgroup.c~cgroup-switch-to-proc_create kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-switch-to-proc_create
++++ a/kernel/cgroup.c
+@@ -2540,7 +2540,6 @@ int __init cgroup_init(void)
+ {
+ 	int err;
+ 	int i;
+-	struct proc_dir_entry *entry;
  
- #include <linux/compiler.h>
+ 	err = bdi_init(&cgroup_backing_dev_info);
+ 	if (err)
+@@ -2556,9 +2555,7 @@ int __init cgroup_init(void)
+ 	if (err < 0)
+ 		goto out;
  
-+
- #ifdef CONFIG_BUG
+-	entry = create_proc_entry("cgroups", 0, NULL);
+-	if (entry)
+-		entry->proc_fops = &proc_cgroupstats_operations;
++	proc_create("cgroups", 0, NULL, &proc_cgroupstats_operations);
  
- #ifdef CONFIG_GENERIC_BUG
-@@ -75,6 +76,13 @@ extern void warn_on_slowpath(const char 
- 	unlikely(__ret_warn_once);				\
- })
- 
-+#define WARN_ON_SECS(condition, secs) ({			\
-+	int __ret_warn_on = !!(condition);			\
-+	if (unlikely(__ret_warn_on))				\
-+		if (__ratelimit(secs * HZ, 1))			\
-+			WARN_ON(condition);			\
-+})
-+
- #ifdef CONFIG_SMP
- # define WARN_ON_SMP(x)			WARN_ON(x)
- #else
+ out:
+ 	if (err)
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-git-net.patch
-isolate-ratelimit-from-printkc-for-other-use.patch
-add-warn_on_secs-macro.patch
-use-warn_on_secs-in-rcupreempth.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
