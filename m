@@ -1,205 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - devscontrol-extend-the-drivers-base-mapc-functionality.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 12:38:35 -0700
-Message-ID: <200803101938.m2AJcZ1B001961@imap1.linux-foundation.org>
+Subject: - jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 12:40:03 -0700
+Message-ID: <200803101940.m2AJe33w002034__3273.70970412648$1205178097$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752241AbYCJTjk (ORCPT
+	by vger.kernel.org with ESMTP id S1752506AbYCJTkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 15:39:40 -0400
+	Mon, 10 Mar 2008 15:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, menage@google.com, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devscontrol: extend the drivers/base/map.c functionality
+     jbd2: eliminate duplicated code in revocation table init/destroy functions
 has been removed from the -mm tree.  Its filename was
-     devscontrol-extend-the-drivers-base-mapc-functionality.patch
+     jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions.patch
 
-This patch was dropped because of bunfight
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devscontrol: extend the drivers/base/map.c functionality
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: jbd2: eliminate duplicated code in revocation table init/destroy functions
+From: "Duane Griffin" <duaneg@dghda.com>
 
-This includes the following functions:
+The revocation table initialisation/destruction code is repeated for each of
+the two revocation tables stored in the journal.  Refactoring the duplicated
+code into functions is tidier, simplifies the logic in initialisation in
+particular, and slightly reduces the code size.
 
-1. kobj_remap - this one will change the mapping's permissions
-   or add a new one if required.
+There should not be any functional change.
 
-2. kobj_map_iterate will walk the map, calling the callback
-   on each element.
-
-3. kobj_map_fini is a rollback for kobj_map_finid - cleans all
-   the mappings.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/map.c       |   84 +++++++++++++++++++++++++++++++++++++
- include/linux/kobj_map.h |    6 ++
- 2 files changed, 90 insertions(+)
+ fs/jbd2/revoke.c |  127 +++++++++++++++++++--------------------------
+ 1 file changed, 54 insertions(+), 73 deletions(-)
 
-diff -puN drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality drivers/base/map.c
---- a/drivers/base/map.c~devscontrol-extend-the-drivers-base-mapc-functionality
-+++ a/drivers/base/map.c
-@@ -181,3 +181,87 @@ struct kobj_map *kobj_map_init(kobj_prob
- 	p->lock = lock;
- 	return p;
+diff -puN fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions fs/jbd2/revoke.c
+--- a/fs/jbd2/revoke.c~jbd2-eliminate-duplicated-code-in-revocation-table-init-destroy-functions
++++ a/fs/jbd2/revoke.c
+@@ -196,108 +196,89 @@ void jbd2_journal_destroy_revoke_caches(
+ 	jbd2_revoke_table_cache = NULL;
  }
-+
-+#ifdef CONFIG_CGROUP_DEVS
-+int kobj_remap(struct kobj_map *domain, dev_t dev, mode_t mode,
-+		unsigned long range, struct module *module,
-+		kobj_probe_t *probe, int (*lock)(dev_t, void *), void *data)
-+{
-+	unsigned n = MAJOR(dev + range - 1) - MAJOR(dev) + 1;
-+	unsigned index = MAJOR(dev);
-+	unsigned i;
-+	int err = -ESRCH;
-+
-+	if (n > KOBJ_MAP_PROBES)
-+		n = KOBJ_MAP_PROBES;
-+
-+	mutex_lock(domain->lock);
-+	for (i = 0; i < n; i++, index++) {
-+		struct probe **s;
-+		for (s = &domain->probes[index % KOBJ_MAP_PROBES];
-+				*s; s = &(*s)->next) {
-+			struct probe *p = *s;
-+			if (p->dev == dev) {
-+				p->mode = mode | FMODE_LSEEK |
-+					FMODE_PREAD | FMODE_PWRITE;
-+				err = 0;
-+				break;
-+			}
-+		}
-+	}
-+
-+	if (err)
-+		err = __kobj_map(domain, dev, mode, range, module,
-+				probe, lock, data);
-+	mutex_unlock(domain->lock);
-+	return err;
-+}
-+
-+void kobj_map_iterate(struct kobj_map *domain,
-+		int (*fn)(dev_t, int, mode_t, void *), void *arg)
-+{
-+	int i;
-+	struct probe *p;
-+	dev_t skip = MKDEV(0, 0);
-+
-+	mutex_lock(domain->lock);
-+	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
-+		p = domain->probes[i];
-+		while (p != NULL) {
-+			if (p->dev == skip)
-+				goto next;
-+			/*
-+			 * this 'device' is special - see the kobj_map_init why
-+			 */
-+			if (p->dev == 1)
-+				goto next;
-+
-+			skip = p->dev;
-+			if (fn(p->dev, p->range, p->mode, arg))
-+				goto done;
-+next:
-+			p = p->next;
-+		}
-+	}
-+done:
-+	mutex_unlock(domain->lock);
-+}
-+
-+void kobj_map_fini(struct kobj_map *map)
-+{
-+	int i;
-+	struct probe *p, *next;
-+
-+	for (i = 0; i < KOBJ_MAP_PROBES; i++) {
-+		p = map->probes[i];
-+		while (p->next != NULL) {
-+			next = p->next;
-+			kfree(p);
-+			p = next;
-+		}
-+	}
-+
-+	kfree(p);
-+	kfree(map);
-+}
-+#endif
-diff -puN include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality include/linux/kobj_map.h
---- a/include/linux/kobj_map.h~devscontrol-extend-the-drivers-base-mapc-functionality
-+++ a/include/linux/kobj_map.h
-@@ -11,4 +11,10 @@ void kobj_unmap(struct kobj_map *, dev_t
- struct kobject *kobj_lookup(struct kobj_map *, dev_t, mode_t *, int *);
- struct kobj_map *kobj_map_init(kobj_probe_t *, struct mutex *);
  
-+void kobj_map_iterate(struct kobj_map *, int (*fn)(dev_t, int, mode_t, void *),
-+		void *);
-+int kobj_remap(struct kobj_map *, dev_t, mode_t, unsigned long, struct module *,
-+	     kobj_probe_t *, int (*)(dev_t, void *), void *);
-+void kobj_map_fini(struct kobj_map *);
+-/* Initialise the revoke table for a given journal to a given size. */
+-
+-int jbd2_journal_init_revoke(journal_t *journal, int hash_size)
++static int jbd2_journal_init_revoke_table(struct jbd2_revoke_table_s *table,
++					  int size)
+ {
+-	int shift, tmp;
++	int shift = 0;
++	int tmp = size;
+ 
+-	J_ASSERT (journal->j_revoke_table[0] == NULL);
+-
+-	shift = 0;
+-	tmp = hash_size;
+ 	while((tmp >>= 1UL) != 0UL)
+ 		shift++;
+ 
+-	journal->j_revoke_table[0] = kmem_cache_alloc(jbd2_revoke_table_cache, GFP_KERNEL);
+-	if (!journal->j_revoke_table[0])
+-		return -ENOMEM;
+-	journal->j_revoke = journal->j_revoke_table[0];
+-
+-	/* Check that the hash_size is a power of two */
+-	J_ASSERT(is_power_of_2(hash_size));
+-
+-	journal->j_revoke->hash_size = hash_size;
+-
+-	journal->j_revoke->hash_shift = shift;
+-
+-	journal->j_revoke->hash_table =
+-		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
+-	if (!journal->j_revoke->hash_table) {
+-		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
+-		journal->j_revoke = NULL;
++	table->hash_size = size;
++	table->hash_shift = shift;
++	table->hash_table = kmalloc(
++		size * sizeof(struct list_head), GFP_KERNEL);
++	if (!table->hash_table)
+ 		return -ENOMEM;
+-	}
+ 
+-	for (tmp = 0; tmp < hash_size; tmp++)
+-		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
++	for (tmp = 0; tmp < size; tmp++)
++		INIT_LIST_HEAD(&table->hash_table[tmp]);
+ 
+-	journal->j_revoke_table[1] = kmem_cache_alloc(jbd2_revoke_table_cache, GFP_KERNEL);
+-	if (!journal->j_revoke_table[1]) {
+-		kfree(journal->j_revoke_table[0]->hash_table);
+-		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
+-		return -ENOMEM;
+-	}
+-
+-	journal->j_revoke = journal->j_revoke_table[1];
++	return 0;
++}
+ 
+-	/* Check that the hash_size is a power of two */
++/* Initialise the revoke table for a given journal to a given size. */
++int jbd2_journal_init_revoke(journal_t *journal, int hash_size)
++{
++	J_ASSERT(journal->j_revoke_table[0] == NULL);
+ 	J_ASSERT(is_power_of_2(hash_size));
+ 
+-	journal->j_revoke->hash_size = hash_size;
+-
+-	journal->j_revoke->hash_shift = shift;
+-
+-	journal->j_revoke->hash_table =
+-		kmalloc(hash_size * sizeof(struct list_head), GFP_KERNEL);
+-	if (!journal->j_revoke->hash_table) {
+-		kfree(journal->j_revoke_table[0]->hash_table);
+-		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
+-		kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[1]);
+-		journal->j_revoke = NULL;
+-		return -ENOMEM;
+-	}
++	journal->j_revoke_table[0] = kmem_cache_alloc(
++		jbd2_revoke_table_cache, GFP_KERNEL);
++	if (!journal->j_revoke_table[0])
++		goto failed_alloc1;
++	if (jbd2_journal_init_revoke_table(journal->j_revoke_table[0], hash_size))
++		goto failed_init1;
 +
- #endif
-_
-
-Patches currently in -mm which might be from xemul@openvz.org are
-
-git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-devscontrol-extend-the-drivers-base-mapc-functionality.patch
-devscontrol-provide-functions-to-manipulate-char-device-mappings.patch
-devscontrol-provide-functions-to-manipulate-block-device-mappings.patch
-devscontrol-devices-accessibility-control-group-itself.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
-
++	journal->j_revoke_table[1] = kmem_cache_alloc(
++		jbd2_revoke_table_cache, GFP_KERNEL);
++	if (!journal->j_revoke_table[1])
++		goto failed_alloc2;
++	if (jbd2_journal_init_revoke_table(journal->j_revoke_table[1], hash_size))
++		goto failed_init2;
+ 
+-	for (tmp = 0; tmp < hash_size; tmp++)
+-		INIT_LIST_HEAD(&journal->j_revoke->hash_table[tmp]);
++	journal->j_revoke = journal->j_revoke_table[1];
+ 
+ 	spin_lock_init(&journal->j_revoke_lock);
+ 
+ 	return 0;
+-}
+ 
+-/* Destoy a journal's revoke table.  The table must already be empty! */
++failed_init2:
++	kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[1]);
++failed_alloc2:
++	kfree(journal->j_revoke_table[0]->hash_table);
++failed_init1:
++	kmem_cache_free(jbd2_revoke_table_cache, journal->j_revoke_table[0]);
++failed_alloc1:
++	return -ENOMEM;
++}
+ 
+-void jbd2_journal_destroy_revoke(journal_t *journal)
++static void jbd2_journal_destroy_revoke_table(struct jbd2_revoke_table_s *table)
+ {
+-	struct jbd2_revoke_table_s *table;
+-	struct list_head *hash_list;
+ 	int i;
++	struct list_head *hash_list;
+ 
+-	table = journal->j_revoke_table[0];
+-	if (!table)
+-		return;
+-
+-	for (i=0; i<table->hash_size; i++) {
++	for (i = 0; i < table->hash_size; i++) {
+ 		hash_list = &table->hash_table[i];
+-		J_ASSERT (list_empty(hash_list));
++		J_ASSERT(list_empty(hash_list));
+ 	}
+ 
+ 	kfree(table->hash_table);
+ 	kmem_cache_free(jbd2_revoke_table_cache, table);
+-	journal->j_revoke = NULL;
++}
+ 
+-	table = journal->j_revoke_table[1];
+-	if (!table)
++/* Destroy a journal's revoke table.  The table must already be empty! */
++void jbd2_journal_destroy_revoke(journal_t *journal)
++{
++	if (!journal->j_revoke_table[0])
+ 		return;
++	jbd2_journal_destroy_revoke_table(journal->j_revoke_table[0]);
++	journal->j_revoke = NULL;
+ 
+-	for (i=0; i<table->hash_size; i++) {
+-		hash_list = &table->hash_table[i];
+-		J_ASSERT (list_empty(hash_list));
+-	}
