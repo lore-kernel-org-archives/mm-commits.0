@@ -1,77 +1,63 @@
-From: akpm@linux-foundation.org
-Subject: + parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch added to -mm tree
-Date: Mon, 10 Mar 2008 22:54:44 -0700
-Message-ID: <200803110554.m2B5siUY025166@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] kvm: provide kvm.h for all architecture: fixes
+ headers_install
+Date: Mon, 10 Mar 2008 23:20:39 -0700
+Message-ID: <20080310232039.d2a34f5a.akpm__2698.31691771305$1205216612$gmane$org@linux-foundation.org>
+References: <200803071326.06682.borntraeger@de.ibm.com>
+	<1204933418.2495.14.camel@shinybook.infradead.org>
+	<200803101411.04175.borntraeger@de.ibm.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbYCKFze (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 01:55:34 -0400
+	by vger.kernel.org with ESMTP id S1750699AbYCKGW3 convert rfc822-to-8bit
+	(ORCPT <rfc822;mm-commits@vger.kernel.org>);
+	Tue, 11 Mar 2008 02:22:29 -0400
+In-Reply-To: <200803101411.04175.borntraeger@de.ibm.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx
+To: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, Avi Kivity <avi@qumranet.com>, Sam Ravnborg <sam@ravnborg.org>, kvm-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
+On Mon, 10 Mar 2008 14:11:04 +0100 Christian Borntraeger <borntraeger@d=
+e.ibm.com> wrote:
 
-The patch titled
-     parisc: remove redundant display of free swap space in show_mem()
-has been added to the -mm tree.  Its filename is
-     parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+> [PATCH v2] kvm: provide kvm.h for all architecture: fixes headers_ins=
+tall
+>=20
+> Currently include/linux/kvm.h is not considered by make headers_insta=
+ll,=20
+> because Kbuild cannot handle " unifdef-$(CONFIG_FOO) +=3D foo.h.=20
+> This problem was introduced by 040922c04cf2c8ac70be2e88a8a9614ecdb41d=
+2e,=20
+> which makes this an 2.6.25 regression.
+>=20
+> One way of solving the issue is to enhance Kbuild, but Avi Kivity and=
+ David
+> Woodhouse conviced me, that changing headers_install is not the way t=
+o go.=20
+> This patch changes the definition for linux/kvm.h to unifdef-y.
+>=20
+> If =A0unifdef-y is used for linux/kvm.h "make headers_check" will fai=
+l on all
+> architectures without asm/kvm.h. Therefore, this patch also provides=20
+> asm/kvm.h on all architectures.
+>=20
+> Changes since v1:
+> o use asm-generic/Kbuild.asm (Arnd Bergmann)
+> o fix comment in asm-frv (David Howells)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+err, this doesn't work.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+alpha and m68k (at least) fail make headers_check
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: parisc: remove redundant display of free swap space in show_mem()
-From: Johannes Weiner <hannes@saeurebad.de>
-
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/parisc/mm/init.c |    2 --
- 1 file changed, 2 deletions(-)
-
-diff -puN arch/parisc/mm/init.c~parisc-remove-redundant-display-of-free-swap-space-in-show_mem arch/parisc/mm/init.c
---- a/arch/parisc/mm/init.c~parisc-remove-redundant-display-of-free-swap-space-in-show_mem
-+++ a/arch/parisc/mm/init.c
-@@ -555,8 +555,6 @@ void show_mem(void)
- 
- 	printk(KERN_INFO "Mem-info:\n");
- 	show_free_areas();
--	printk(KERN_INFO "Free swap:	 %6ldkB\n",
--				nr_swap_pages<<(PAGE_SHIFT-10));
- #ifndef CONFIG_DISCONTIGMEM
- 	i = max_mapnr;
- 	while (i-- > 0) {
-_
-
-Patches currently in -mm which might be from hannes@saeurebad.de are
-
-arm-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-powerpc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-ppc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-s390-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-x86-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-xtensa-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-ia64-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-
+/usr/src/devel/usr/include/linux/kvm.h requires asm/kvm.h, which does n=
+ot exist in exported headers
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
