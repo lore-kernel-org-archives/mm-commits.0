@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + au1550_spi-fix-prototype-of-irq-handler.patch added to -mm tree
-Date: Tue, 11 Mar 2008 10:56:33 -0700
-Message-ID: <200803111756.m2BHuXW8019628@imap1.linux-foundation.org>
+Subject: + spi_bitbang-short-transfer-status-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 10:58:15 -0700
+Message-ID: <200803111758.m2BHwFvh019672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753415AbYCKR4l (ORCPT
+	by vger.kernel.org with ESMTP id S1752373AbYCKR6Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 13:56:41 -0400
+	Tue, 11 Mar 2008 13:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jan.nikitenko@gmail.com, david-b@pacbell.net
+Cc: jan.nikitenko@gmail.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     au1550_spi: fix prototype of irq handler
+     spi_bitbang: short transfer status fix
 has been added to the -mm tree.  Its filename is
-     au1550_spi-fix-prototype-of-irq-handler.patch
+     spi_bitbang-short-transfer-status-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: au1550_spi: fix prototype of irq handler
+Subject: spi_bitbang: short transfer status fix
 From: Jan Nikitenko <jan.nikitenko@gmail.com>
 
-Remove struct pt_regs *regs from prototype of au1550_spi_irq handler to avoid
-warning in request_irq().  Also fix comment type leadin.
+SPI controller drivers return number of bytes actually transfered from
+bitbang->txrx_bufs() method.  This updates handling of short transfers (where
+the transfer size is less than requested):
 
+ - Even zero byte short transfers should report errors;
+ - Include short transfers in the total of transferred bytes;
+ - Use EREMOTEIO (like USB) not EMSGSIZE to report short transfers
+
+Short transfers don't normally mean invalid message sizes, but if the
+underlying controller driver needs to use EMSGSIZE it can still do so.
+
+[db: fix two more minor issues]
 Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
-Signed-off-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/spi_bitbang.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/spi/au1550_spi.c~au1550_spi-fix-prototype-of-irq-handler drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~au1550_spi-fix-prototype-of-irq-handler
-+++ a/drivers/spi/au1550_spi.c
-@@ -99,7 +99,7 @@ static dbdev_tab_t au1550_spi_mem_dbdev 
- static void au1550_spi_bits_handlers_set(struct au1550_spi *hw, int bpw);
+diff -puN drivers/spi/spi_bitbang.c~spi_bitbang-short-transfer-status-fix drivers/spi/spi_bitbang.c
+--- a/drivers/spi/spi_bitbang.c~spi_bitbang-short-transfer-status-fix
++++ a/drivers/spi/spi_bitbang.c
+@@ -344,12 +344,14 @@ static void bitbang_work(struct work_str
+ 					t->rx_dma = t->tx_dma = 0;
+ 				status = bitbang->txrx_bufs(spi, t);
+ 			}
++			if (status > 0)
++				m->actual_length += status;
+ 			if (status != t->len) {
+-				if (status > 0)
+-					status = -EMSGSIZE;
++				/* always report some kind of error */
++				if (status >= 0)
++					status = -EREMOTEIO;
+ 				break;
+ 			}
+-			m->actual_length += status;
+ 			status = 0;
  
- 
--/**
-+/*
-  *  compute BRG and DIV bits to setup spi clock based on main input clock rate
-  *  that was specified in platform data structure
-  *  according to au1550 datasheet:
-@@ -650,7 +650,7 @@ static int au1550_spi_txrx_bufs(struct s
- 	return hw->txrx_bufs(spi, t);
- }
- 
--static irqreturn_t au1550_spi_irq(int irq, void *dev, struct pt_regs *regs)
-+static irqreturn_t au1550_spi_irq(int irq, void *dev)
- {
- 	struct au1550_spi *hw = dev;
- 	return hw->irq_callback(hw);
+ 			/* protocol tweaks before next transfer */
 _
 
 Patches currently in -mm which might be from jan.nikitenko@gmail.com are
 
 au1550_spi-fix-prototype-of-irq-handler.patch
+spi_bitbang-short-transfer-status-fix.patch
 
