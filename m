@@ -1,108 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: - tifm-fix-memorystick-host-initialization-code.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 20:21:53 -0700
-Message-ID: <200803110321.m2B3LrcF019755@imap1.linux-foundation.org>
+Subject: + ia64-make-iommu-respect-the-segment-boundary-limits.patch added to -mm tree
+Date: Mon, 10 Mar 2008 20:34:40 -0700
+Message-ID: <200803110334.m2B3YePa020213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753539AbYCKDbI (ORCPT
+	by vger.kernel.org with ESMTP id S1753350AbYCKDfF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:31:08 -0400
+	Mon, 10 Mar 2008 23:35:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oakad@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, tony.luck@intel.com
 
 
 The patch titled
-     tifm: fix memorystick host initialization code
-has been removed from the -mm tree.  Its filename was
-     tifm-fix-memorystick-host-initialization-code.patch
+     ia64: make IOMMU respect the segment boundary limits
+has been added to the -mm tree.  Its filename is
+     ia64-make-iommu-respect-the-segment-boundary-limits.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tifm: fix memorystick host initialization code
-From: Alex Dubov <oakad@yahoo.com>
+Subject: ia64: make IOMMU respect the segment boundary limits
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Instead of assuming that host is powered on only once at card insertion, allow
-for the possibility that memstick layer may need to cycle card's power to get
-it out from some unhealthy states.
+This makes IA64's IOMMU implementation not allocate a memory area spanning
+LLD's segment boundary.
 
-Signed-off-by: Alex Dubov <oakad@yahoo.com>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/tifm_ms.c |   40 +++++++++++-------------------
- 1 file changed, 15 insertions(+), 25 deletions(-)
+ arch/ia64/Kconfig               |    3 +
+ arch/ia64/hp/common/sba_iommu.c |   56 ++++++++++++++++++++----------
+ 2 files changed, 42 insertions(+), 17 deletions(-)
 
-diff -puN drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code
-+++ a/drivers/memstick/host/tifm_ms.c
-@@ -496,7 +496,18 @@ static void tifm_ms_set_param(struct mem
+diff -puN arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits
++++ a/arch/ia64/Kconfig
+@@ -622,6 +622,9 @@ config IRQ_PER_CPU
+ 	bool
+ 	default y
  
- 	switch (param) {
- 	case MEMSTICK_POWER:
--		/* this is set by card detection mechanism */
-+		/* also affected by media detection mechanism */
-+		if (value == MEMSTICK_POWER_ON) {
-+			host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
-+			writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
-+			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
-+			       sock->addr + SOCK_MS_SYSTEM);
-+			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
-+		} else if (value == MEMSTICK_POWER_OFF) {
-+			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
-+			       sock->addr + SOCK_MS_SYSTEM);
-+			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
-+		}
- 		break;
- 	case MEMSTICK_INTERFACE:
- 		if (value == MEMSTICK_SERIAL) {
-@@ -531,22 +542,6 @@ static void tifm_ms_abort(unsigned long 
- 	tifm_eject(host->dev);
++config IOMMU_HELPER
++	def_bool (IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB || IA64_GENERIC)
++
+ source "arch/ia64/hp/sim/Kconfig"
+ 
+ source "arch/ia64/Kconfig.debug"
+diff -puN arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/hp/common/sba_iommu.c
+--- a/arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits
++++ a/arch/ia64/hp/common/sba_iommu.c
+@@ -35,6 +35,7 @@
+ #include <linux/nodemask.h>
+ #include <linux/bitops.h>         /* hweight64() */
+ #include <linux/crash_dump.h>
++#include <linux/iommu-helper.h>
+ 
+ #include <asm/delay.h>		/* ia64_get_itc() */
+ #include <asm/io.h>
+@@ -460,6 +461,13 @@ get_iovp_order (unsigned long size)
+ 	return order;
  }
  
--static int tifm_ms_initialize_host(struct tifm_ms *host)
--{
--	struct tifm_dev *sock = host->dev;
--	struct memstick_host *msh = tifm_get_drvdata(sock);
--
--	host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
--	writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
--	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
--	       sock->addr + SOCK_MS_SYSTEM);
--	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
--	if (tifm_has_ms_pif(sock))
--		msh->caps |= MEMSTICK_CAP_PAR4;
--
--	return 0;
--}
--
- static int tifm_ms_probe(struct tifm_dev *sock)
++static unsigned long ptr_to_pide(struct ioc *ioc, unsigned long *res_ptr,
++				 unsigned int bitshiftcnt)
++{
++	return (((unsigned long)res_ptr - (unsigned long)ioc->res_map) << 3)
++		+ bitshiftcnt;
++}
++
+ /**
+  * sba_search_bitmap - find free space in IO PDIR resource bitmap
+  * @ioc: IO MMU structure which owns the pdir we are interested in.
+@@ -471,15 +479,25 @@ get_iovp_order (unsigned long size)
+  * Cool perf optimization: search for log2(size) bits at a time.
+  */
+ static SBA_INLINE unsigned long
+-sba_search_bitmap(struct ioc *ioc, unsigned long bits_wanted, int use_hint)
++sba_search_bitmap(struct ioc *ioc, struct device *dev,
++		  unsigned long bits_wanted, int use_hint)
  {
- 	struct memstick_host *msh;
-@@ -575,10 +570,10 @@ static int tifm_ms_probe(struct tifm_dev
- 	msh->set_param = tifm_ms_set_param;
- 	sock->card_event = tifm_ms_card_event;
- 	sock->data_event = tifm_ms_data_event;
--	rc = tifm_ms_initialize_host(host);
-+	if (tifm_has_ms_pif(sock))
-+		msh->caps |= MEMSTICK_CAP_PAR4;
+ 	unsigned long *res_ptr;
+ 	unsigned long *res_end = (unsigned long *) &(ioc->res_map[ioc->res_size]);
+-	unsigned long flags, pide = ~0UL;
++	unsigned long flags, pide = ~0UL, tpide;
++	unsigned long boundary_size;
++	unsigned long shift;
++	int ret;
  
--	if (!rc)
--		rc = memstick_add_host(msh);
-+	rc = memstick_add_host(msh);
- 	if (!rc)
- 		return 0;
+ 	ASSERT(((unsigned long) ioc->res_hint & (sizeof(unsigned long) - 1UL)) == 0);
+ 	ASSERT(res_ptr < res_end);
  
-@@ -616,11 +611,6 @@ static void tifm_ms_remove(struct tifm_d
- 	spin_unlock_irqrestore(&sock->lock, flags);
++	boundary_size = (unsigned long long)dma_get_seg_boundary(dev) + 1;
++	boundary_size = ALIGN(boundary_size, 1ULL << iovp_shift) >> iovp_shift;
++
++	BUG_ON(ioc->ibase & ~iovp_mask);
++	shift = ioc->ibase >> iovp_shift;
++
+ 	spin_lock_irqsave(&ioc->res_lock, flags);
  
- 	memstick_remove_host(msh);
--
--	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
--	       sock->addr + SOCK_MS_SYSTEM);
--	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
+ 	/* Allow caller to force a search through the entire resource space */
+@@ -504,9 +522,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 			if (likely(*res_ptr != ~0UL)) {
+ 				bitshiftcnt = ffz(*res_ptr);
+ 				*res_ptr |= (1UL << bitshiftcnt);
+-				pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-				pide <<= 3;	/* convert to bit address */
+-				pide += bitshiftcnt;
++				pide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
+ 				ioc->res_bitshift = bitshiftcnt + bits_wanted;
+ 				goto found_it;
+ 			}
+@@ -535,11 +551,13 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 			DBG_RES("    %p %lx %lx\n", res_ptr, mask, *res_ptr);
+ 			ASSERT(0 != mask);
+ 			for (; mask ; mask <<= o, bitshiftcnt += o) {
+-				if(0 == ((*res_ptr) & mask)) {
++				tpide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
++				ret = iommu_is_span_boundary(tpide, bits_wanted,
++							     shift,
++							     boundary_size);
++				if ((0 == ((*res_ptr) & mask)) && !ret) {
+ 					*res_ptr |= mask;     /* mark resources busy! */
+-					pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-					pide <<= 3;	/* convert to bit address */
+-					pide += bitshiftcnt;
++					pide = tpide;
+ 					ioc->res_bitshift = bitshiftcnt + bits_wanted;
+ 					goto found_it;
+ 				}
+@@ -560,6 +578,11 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 		end = res_end - qwords;
+ 
+ 		for (; res_ptr < end; res_ptr++) {
++			tpide = ptr_to_pide(ioc, res_ptr, 0);
++			ret = iommu_is_span_boundary(tpide, bits_wanted,
++						     shift, boundary_size);
++			if (ret)
++				goto next_ptr;
+ 			for (i = 0 ; i < qwords ; i++) {
+ 				if (res_ptr[i] != 0)
+ 					goto next_ptr;
+@@ -572,8 +595,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 				res_ptr[i] = ~0UL;
+ 			res_ptr[i] |= RESMAP_MASK(bits);
+ 
+-			pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-			pide <<= 3;	/* convert to bit address */
++			pide = tpide;
+ 			res_ptr += qwords;
+ 			ioc->res_bitshift = bits;
+ 			goto found_it;
+@@ -605,7 +627,7 @@ found_it:
+  * resource bit map.
+  */
+ static int
+-sba_alloc_range(struct ioc *ioc, size_t size)
++sba_alloc_range(struct ioc *ioc, struct device *dev, size_t size)
+ {
+ 	unsigned int pages_needed = size >> iovp_shift;
+ #ifdef PDIR_SEARCH_TIMING
+@@ -622,9 +644,9 @@ sba_alloc_range(struct ioc *ioc, size_t 
+ 	/*
+ 	** "seek and ye shall find"...praying never hurts either...
+ 	*/
+-	pide = sba_search_bitmap(ioc, pages_needed, 1);
++	pide = sba_search_bitmap(ioc, dev, pages_needed, 1);
+ 	if (unlikely(pide >= (ioc->res_size << 3))) {
+-		pide = sba_search_bitmap(ioc, pages_needed, 0);
++		pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
+ 		if (unlikely(pide >= (ioc->res_size << 3))) {
+ #if DELAYED_RESOURCE_CNT > 0
+ 			unsigned long flags;
+@@ -653,7 +675,7 @@ sba_alloc_range(struct ioc *ioc, size_t 
+ 			}
+ 			spin_unlock_irqrestore(&ioc->saved_lock, flags);
+ 
+-			pide = sba_search_bitmap(ioc, pages_needed, 0);
++			pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
+ 			if (unlikely(pide >= (ioc->res_size << 3)))
+ 				panic(__FILE__ ": I/O MMU @ %p is out of mapping resources\n",
+ 				      ioc->ioc_hpa);
+@@ -936,7 +958,7 @@ sba_map_single(struct device *dev, void 
+ 	spin_unlock_irqrestore(&ioc->res_lock, flags);
+ #endif
+ 
+-	pide = sba_alloc_range(ioc, size);
++	pide = sba_alloc_range(ioc, dev, size);
+ 
+ 	iovp = (dma_addr_t) pide << iovp_shift;
+ 
+@@ -1373,7 +1395,7 @@ sba_coalesce_chunks(struct ioc *ioc, str
+ 		dma_len = (dma_len + dma_offset + ~iovp_mask) & iovp_mask;
+ 		ASSERT(dma_len <= DMA_CHUNK_SIZE);
+ 		dma_sg->dma_address = (dma_addr_t) (PIDE_FLAG
+-			| (sba_alloc_range(ioc, dma_len) << iovp_shift)
++			| (sba_alloc_range(ioc, dev, dma_len) << iovp_shift)
+ 			| dma_offset);
+ 		n_mappings++;
+ 	}
+_
+
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+
+git-scsi-misc.patch
+ia64-make-iommu-respect-the-segment-boundary-limits.patch
+
