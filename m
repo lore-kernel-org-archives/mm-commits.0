@@ -1,84 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - sparsemem-vmemmap-does-not-need-section-bits.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 21:41:12 -0700
-Message-ID: <200803110450.m2B4ok6g022942@imap1.linux-foundation.org>
+Subject: - pageflags-use-proper-page-flag-functions-in-xen.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 21:41:33 -0700
+Message-ID: <200803110451.m2B4p6Jp023033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750959AbYCKEvZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750967AbYCKEv1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:51:25 -0400
+	Tue, 11 Mar 2008 00:51:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparsemem: vmemmap does not need section bits
+     pageflags: use proper page flag functions in Xen
 has been removed from the -mm tree.  Its filename was
-     sparsemem-vmemmap-does-not-need-section-bits.patch
+     pageflags-use-proper-page-flag-functions-in-xen.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparsemem: vmemmap does not need section bits
+Subject: pageflags: use proper page flag functions in Xen
 From: Christoph Lameter <clameter@sgi.com>
 
-Sparsemem vmemmap does not need any section bits.  This patch has the effect
-of reducing the number of bits used in page->flags by at least 6.
+Xen uses bitops to manipulate page flags.  Make it use proper page flag
+functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/x86/xen/mmu.c         |    4 ++--
+ include/linux/page-flags.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
---- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
-+++ a/include/linux/mm.h
-@@ -386,11 +386,11 @@ static inline void set_compound_order(st
-  * we have run out of space and have to fall back to an
-  * alternate (slower) way of determining the node.
-  *
-- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
-- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
-- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
-+ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
-+ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
-+ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
-  */
--#ifdef CONFIG_SPARSEMEM
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTIONS_WIDTH		SECTIONS_SHIFT
- #else
- #define SECTIONS_WIDTH		0
-@@ -401,6 +401,9 @@ static inline void set_compound_order(st
- #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
- #define NODES_WIDTH		NODES_SHIFT
- #else
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+#error "Vmemmap: No space for nodes field in page flags"
-+#endif
- #define NODES_WIDTH		0
- #endif
+diff -puN arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen
++++ a/arch/x86/xen/mmu.c
+@@ -425,7 +425,7 @@ static void xen_do_pin(unsigned level, u
  
-@@ -493,10 +496,12 @@ static inline struct zone *page_zone(str
- 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
- }
- 
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- static inline unsigned long page_to_section(struct page *page)
+ static int pin_page(struct page *page, enum pt_level level)
  {
- 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
- }
-+#endif
+-	unsigned pgfl = test_and_set_bit(PG_pinned, &page->flags);
++	unsigned pgfl = TestSetPagePinned(page);
+ 	int flush;
  
- static inline void set_page_zone(struct page *page, enum zone_type zone)
+ 	if (pgfl)
+@@ -506,7 +506,7 @@ void __init xen_mark_init_mm_pinned(void
+ 
+ static int unpin_page(struct page *page, enum pt_level level)
  {
+-	unsigned pgfl = test_and_clear_bit(PG_pinned, &page->flags);
++	unsigned pgfl = TestClearPagePinned(page);
+ 
+ 	if (pgfl && !PageHighMem(page)) {
+ 		void *pt = lowmem_page_address(page);
+diff -puN include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen
++++ a/include/linux/page-flags.h
+@@ -161,7 +161,7 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+ PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
++PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -110,12 +103,6 @@ mempolicy-move-rebind-functions.patch
 mempolicy-create-mempolicy_operations-structure.patch
 mempolicy-create-mempolicy_operations-structure-fix.patch
 mempolicy-small-header-file-cleanup.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
 pageflags-use-proper-page-flag-functions-in-xen.patch
 pageflags-eliminate-pg_xxx-aliases.patch
 get-rid-of-__zone_count.patch
