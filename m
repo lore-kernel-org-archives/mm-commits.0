@@ -1,149 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: + tty_ioctl-soft-carrier-handling.patch added to -mm tree
-Date: Mon, 10 Mar 2008 21:26:51 -0700
-Message-ID: <200803110426.m2B4QpTk022080@imap1.linux-foundation.org>
+Subject: - sparsemem-vmemmap-does-not-need-section-bits.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 21:41:12 -0700
+Message-ID: <200803110450.m2B4ok6g022942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752222AbYCKE1i (ORCPT
+	by vger.kernel.org with ESMTP id S1750959AbYCKEvZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:27:38 -0400
+	Tue, 11 Mar 2008 00:51:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty_ioctl: soft carrier handling
-has been added to the -mm tree.  Its filename is
-     tty_ioctl-soft-carrier-handling.patch
+     sparsemem: vmemmap does not need section bits
+has been removed from the -mm tree.  Its filename was
+     sparsemem-vmemmap-does-not-need-section-bits.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty_ioctl: soft carrier handling
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: sparsemem: vmemmap does not need section bits
+From: Christoph Lameter <clameter@sgi.com>
 
-First cut at moving the soft carrier handling knowledge entirely into the core
-code.  One or two drivers still needed to snoop these functions to track
-CLOCAL internally.  Instead make TIOCSSOFTCAR generate the same driver calls
-as other termios ioctls changing the clocal flag.  This allows us to remove
-any driver knowledge and special casing.  Also while we are at it we can fix
-the error handling.
+Sparsemem vmemmap does not need any section bits.  This patch has the effect
+of reducing the number of bits used in page->flags by at least 6.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   33 +++++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ include/linux/mm.h |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty_ioctl-soft-carrier-handling drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty_ioctl-soft-carrier-handling
-+++ a/drivers/char/tty_ioctl.c
-@@ -756,6 +756,32 @@ static int send_prio_char(struct tty_str
+diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
+--- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
++++ a/include/linux/mm.h
+@@ -386,11 +386,11 @@ static inline void set_compound_order(st
+  * we have run out of space and have to fall back to an
+  * alternate (slower) way of determining the node.
+  *
+- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
+- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
+- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
++ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
++ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
++ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
+  */
+-#ifdef CONFIG_SPARSEMEM
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTIONS_WIDTH		SECTIONS_SHIFT
+ #else
+ #define SECTIONS_WIDTH		0
+@@ -401,6 +401,9 @@ static inline void set_compound_order(st
+ #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
+ #define NODES_WIDTH		NODES_SHIFT
+ #else
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#error "Vmemmap: No space for nodes field in page flags"
++#endif
+ #define NODES_WIDTH		0
+ #endif
+ 
+@@ -493,10 +496,12 @@ static inline struct zone *page_zone(str
+ 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
  }
  
- /**
-+ *	tty_change_softcar	-	carrier change ioctl helper
-+ *	@tty: tty to update
-+ *	@arg: enable/disable CLOCAL
-+ *
-+ *	Perform a change to the CLOCAL state and call into the driver
-+ *	layer to make it visible. All done with the termios mutex
-+ */
-+
-+static int tty_change_softcar(struct tty_struct *tty, int arg)
-+{
-+	int ret = 0;
-+	int bit = arg ? CLOCAL : 0;
-+	struct ktermios old = *tty->termios;
-+
-+	mutex_lock(&tty->termios_mutex);
-+	tty->termios->c_cflag &= ~CLOCAL;
-+	tty->termios->c_cflag |= bit;
-+	if (tty->driver->set_termios)
-+		tty->driver->set_termios(tty, &old);
-+	if ((tty->termios->c_cflag & CLOCAL) != bit)
-+		ret = -EINVAL;
-+	mutex_unlock(&tty->termios_mutex);
-+	return ret;
-+}
-+
-+/**
-  *	tty_mode_ioctl		-	mode related ioctls
-  *	@tty: tty for the ioctl
-  *	@file: file pointer for the tty
-@@ -865,12 +891,7 @@ int tty_mode_ioctl(struct tty_struct *tt
- 	case TIOCSSOFTCAR:
- 		if (get_user(arg, (unsigned int __user *) arg))
- 			return -EFAULT;
--		mutex_lock(&tty->termios_mutex);
--		tty->termios->c_cflag =
--			((tty->termios->c_cflag & ~CLOCAL) |
--			 (arg ? CLOCAL : 0));
--		mutex_unlock(&tty->termios_mutex);
--		return 0;
-+		return tty_change_softcar(tty, arg);
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ static inline unsigned long page_to_section(struct page *page)
+ {
+ 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
+ }
++#endif
+ 
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+ {
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-libata-isolate-and-rework-cable-logic.patch
-pata_amd-fix-sparse-warning.patch
-3c501-further-coding-style-fixes.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-char-riscom-fix-rc_board-indexing.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-tty_ioctl-locking-for-tty_wait_until_sent.patch
-tty_ioctl-soft-carrier-handling.patch
-istallion-tiocg-ssoftcar-handling-removal.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+ntfs-fix-nommu-build.patch
+git-net.patch
+git-unionfs.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+get-rid-of-__zone_count.patch
+dmapool-enable-debugging-for-config_slub_debug_on-too.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
