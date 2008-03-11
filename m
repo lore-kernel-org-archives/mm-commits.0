@@ -1,54 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - poweroff-workaround.patch removed from -mm tree
-Date: Tue, 11 Mar 2008 10:24:28 -0700
-Message-ID: <200803111724.m2BHOSPF018156@imap1.linux-foundation.org>
+Subject: + revert-acpi-thermal-fixup.patch added to -mm tree
+Date: Tue, 11 Mar 2008 10:50:32 -0700
+Message-ID: <200803111750.m2BHoWEs019405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753386AbYCKRcN (ORCPT
+	by vger.kernel.org with ESMTP id S1752610AbYCKRwO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 13:32:13 -0400
+	Tue, 11 Mar 2008 13:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.adamushko@gmail.com, ego@in.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrea@qumranet.com, clameter@sgi.com, len.brown@intel.com, npiggin@suse.de, rjw@sisk.pl, rui.zhang@intel.com, sujith.thomas@intel.com
 
 
 The patch titled
-     poweroff workaround
-has been removed from the -mm tree.  Its filename was
-     poweroff-workaround.patch
+     revert "ACPI: thermal fixup"
+has been added to the -mm tree.  Its filename is
+     revert-acpi-thermal-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: poweroff workaround
+Subject: revert "ACPI: thermal fixup"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Dmitry Adamushko" <dmitry.adamushko@gmail.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Revert
+
+commit 653a00c9662304ef72a3eb4e681c91720960e0b4
+Author: Zhang Rui <rui.zhang@intel.com>
+Date:   Thu Jan 17 15:51:18 2008 +0800
+
+Andrea reports
+
+  this changeset prevents my SVM test system from booting with
+  CONFIG_ACPI_THERMAL=y, so I set CONFIG_ACPI_THERMAL=n for now.
+
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Thomas Sujith <sujith.thomas@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/thermal.c |   42 ++++++++++++++++-----------------------
+ 1 file changed, 18 insertions(+), 24 deletions(-)
 
-diff -puN kernel/softlockup.c~poweroff-workaround kernel/softlockup.c
---- a/kernel/softlockup.c~poweroff-workaround
-+++ a/kernel/softlockup.c
-@@ -211,7 +211,7 @@ static int watchdog(void *__bind_cpu)
- 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
- 	int this_cpu = (long)__bind_cpu;
+diff -puN drivers/acpi/thermal.c~revert-acpi-thermal-fixup drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c~revert-acpi-thermal-fixup
++++ a/drivers/acpi/thermal.c
+@@ -1018,9 +1018,7 @@ static int acpi_thermal_cooling_device_c
+ {
+ 	struct acpi_device *device = cdev->devdata;
+ 	struct acpi_thermal *tz = thermal->devdata;
+-	struct acpi_device *dev;
+-	acpi_status status;
+-	acpi_handle handle;
++	acpi_handle handle = device->handle;
+ 	int i;
+ 	int j;
+ 	int trip = -1;
+@@ -1036,13 +1034,12 @@ static int acpi_thermal_cooling_device_c
+ 		trip++;
+ 		for (i = 0; i < tz->trips.passive.devices.count;
+ 		    i++) {
+-			handle = tz->trips.passive.devices.handles[i];
+-			status = acpi_bus_get_device(handle, &dev);
+-			if (ACPI_SUCCESS(status) && (dev == device)) {
+-				result = action(thermal, trip, cdev);
+-				if (result)
+-					goto failed;
+-			}
++			if (tz->trips.passive.devices.handles[i] !=
++				handle)
++				continue;
++			result = action(thermal, trip, cdev);
++			if (result)
++				goto failed;
+ 		}
+ 	}
  
--	sched_setscheduler(current, SCHED_FIFO, &param);
-+//	sched_setscheduler(current, SCHED_FIFO, &param);
+@@ -1053,24 +1050,21 @@ static int acpi_thermal_cooling_device_c
+ 		for (j = 0;
+ 		    j < tz->trips.active[i].devices.count;
+ 		    j++) {
+-			handle = tz->trips.active[i].devices.handles[j];
+-			status = acpi_bus_get_device(handle, &dev);
+-			if (ACPI_SUCCESS(status) && (dev == device)) {
+-				result = action(thermal, trip, cdev);
+-				if (result)
+-					goto failed;
+-			}
++			if (tz->trips.active[i].devices.
++						handles[j] != handle)
++				continue;
++			result = action(thermal, trip, cdev);
++			if (result)
++				goto failed;
+ 		}
+ 	}
  
- 	/* initialize timestamp */
- 	touch_softlockup_watchdog();
+ 	for (i = 0; i < tz->devices.count; i++) {
+-		handle = tz->devices.handles[i];
+-		status = acpi_bus_get_device(handle, &dev);
+-		if (ACPI_SUCCESS(status) && (dev == device)) {
+-			result = action(thermal, -1, cdev);
+-			if (result)
+-				goto failed;
+-		}
++		if (tz->devices.handles[i] != handle)
++			continue;
++		result = action(thermal, -1, cdev);
++		if (result)
++			goto failed;
+ 	}
+ 
+ failed:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +175,7 @@ git-unionfs.patch
 git-v9fs.patch
 git-watchdog.patch
 git-semaphore-git-rejects.patch
+revert-acpi-thermal-fixup.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
