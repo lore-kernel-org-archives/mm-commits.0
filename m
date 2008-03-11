@@ -1,74 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 20:22:59 -0700
-Message-ID: <200803110322.m2B3Mxfh019863@imap1.linux-foundation.org>
+Subject: - rcu-move-preempt_rcu-config-option-back-under-preempt.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 20:22:33 -0700
+Message-ID: <200803110322.m2B3MXSK019822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752702AbYCKDXC (ORCPT
+	by vger.kernel.org with ESMTP id S1753925AbYCKDXZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:23:02 -0400
+	Mon, 10 Mar 2008 23:23:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dipankar@in.ibm.com, josh@freedesktop.org, mingo@elte.hu, rostedt@goodmis.org, sam@ravnborg.org, tglx@linutronix.de, zippel@linux-m
 
 
 The patch titled
-     pci: fix small mem leak in IBM Hot Plug Controller Driver
+     rcu: move PREEMPT_RCU config option back under PREEMPT
 has been removed from the -mm tree.  Its filename was
-     pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver.patch
+     rcu-move-preempt_rcu-config-option-back-under-preempt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: fix small mem leak in IBM Hot Plug Controller Driver
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: rcu: move PREEMPT_RCU config option back under PREEMPT
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-In drivers/pci/hotplug/ibmphp_ebda.c::ebda_rsrc_controller(), storage is
-allocated with kzalloc() and assigned to 'tmp_slot'.  Then lots of stuff, like
-->flag, ->supported_speed etc is set in tmp_slot.  A bit further down there's
-then this test :
+The original preemptible-RCU patch put the choice between classic and
+preemptible RCU into kernel/Kconfig.preempt, which resulted in build failures
+on machines not supporting CONFIG_PREEMPT.  This choice was therefore moved to
+init/Kconfig, which worked, but placed the choice between classic and
+preemptible RCU at the top level, a very obtuse choice indeed.
 
-  if (!bus_info_ptr1) {
-    rc = -ENODEV;
-    goto error;
-  }
+This patch changes from the Kconfig "choice" mechanism to a pair of booleans,
+only one of which (CONFIG_PREEMPT_RCU) is user-visible, and is located in
+kernel/Kconfig.preempt, where one would expect it to be.  The other
+(CONFIG_CLASSIC_RCU) is in init/Kconfig so that it is available to all
+architectures, hopefully avoiding build breakage.  Thanks to Roman Zippel for
+suggesting this approach.
 
-At this point, tmp_slot has not been assigned to anything, so when
-erroring-out we want to free it, but nothing at the 'error:' label free's
-'tmp_slot' - and we can't really free 'tmp_slot' at 'error:' since we may jump
-to that label later when 'tmp_slot' *has* been used and we do not want it
-freed.  So, the only sane option left seems to be to kfree(tmp_slot) just
-before jumping to the 'error:' label in the one place where this is what
-actually makes sense.  The following patch does just that and thus kills off a
-tiny potential memory leak.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Cc: Josh Triplett <josh@freedesktop.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/ibmphp_ebda.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/Kconfig           |   34 +++-------------------------------
+ kernel/Kconfig.preempt |   15 +++++++++++++++
+ 2 files changed, 18 insertions(+), 31 deletions(-)
 
-diff -puN drivers/pci/hotplug/ibmphp_ebda.c~pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver drivers/pci/hotplug/ibmphp_ebda.c
---- a/drivers/pci/hotplug/ibmphp_ebda.c~pci-fix-small-mem-leak-in-ibm-hot-plug-controller-driver
-+++ a/drivers/pci/hotplug/ibmphp_ebda.c
-@@ -963,6 +963,7 @@ static int __init ebda_rsrc_controller (
+diff -puN init/Kconfig~rcu-move-preempt_rcu-config-option-back-under-preempt init/Kconfig
+--- a/init/Kconfig~rcu-move-preempt_rcu-config-option-back-under-preempt
++++ a/init/Kconfig
+@@ -865,38 +865,10 @@ source "block/Kconfig"
+ config PREEMPT_NOTIFIERS
+ 	bool
  
- 			bus_info_ptr1 = ibmphp_find_same_bus_num (hpc_ptr->slots[index].slot_bus_num);
- 			if (!bus_info_ptr1) {
-+				kfree(tmp_slot);
- 				rc = -ENODEV;
- 				goto error;
- 			}
+-choice
+-	prompt "RCU implementation type:"
+-	default CLASSIC_RCU
+-	help
+-	  This allows you to choose either the classic RCU implementation
+-	  that is designed for best read-side performance on non-realtime
+-	  systems, or the preemptible RCU implementation for best latency
+-	  on realtime systems.  Note that some kernel preemption modes
+-	  will restrict your choice.
+-
+-	  Select the default if you are unsure.
+-
+ config CLASSIC_RCU
+-	bool "Classic RCU"
++	def_bool !PREEMPT_RCU
+ 	help
+ 	  This option selects the classic RCU implementation that is
+ 	  designed for best read-side performance on non-realtime
+-	  systems.
+-
+-	  Say Y if you are unsure.
+-
+-config PREEMPT_RCU
+-	bool "Preemptible RCU"
+-	depends on PREEMPT
+-	help
+-	  This option reduces the latency of the kernel by making certain
+-	  RCU sections preemptible. Normally RCU code is non-preemptible, if
+-	  this option is selected then read-only RCU sections become
+-	  preemptible. This helps latency, but may expose bugs due to
+-	  now-naive assumptions about each RCU read-side critical section
+-	  remaining on a given CPU through its execution.
+-
+-	  Say N if you are unsure.
+-
+-endchoice
++	  systems.  Classic RCU is the default.  Note that the
++	  PREEMPT_RCU symbol is used to select/deselect this option.
+diff -puN kernel/Kconfig.preempt~rcu-move-preempt_rcu-config-option-back-under-preempt kernel/Kconfig.preempt
+--- a/kernel/Kconfig.preempt~rcu-move-preempt_rcu-config-option-back-under-preempt
++++ a/kernel/Kconfig.preempt
+@@ -52,8 +52,23 @@ config PREEMPT
+ 
+ endchoice
+ 
++config PREEMPT_RCU
++	bool "Preemptible RCU"
++	depends on PREEMPT
++	default n
++	help
++	  This option reduces the latency of the kernel by making certain
++	  RCU sections preemptible. Normally RCU code is non-preemptible, if
++	  this option is selected then read-only RCU sections become
++	  preemptible. This helps latency, but may expose bugs due to
++	  now-naive assumptions about each RCU read-side critical section
++	  remaining on a given CPU through its execution.
++
++	  Say N if you are unsure.
++
+ config RCU_TRACE
+ 	bool "Enable tracing for RCU - currently stats in debugfs"
++	depends on PREEMPT_RCU
+ 	select DEBUG_FS
+ 	default y
+ 	help
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+add-rcu_assign_index-if-ever-needed.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+rcu-split-listh-and-move-rcu-protected-lists-into-rculisth.patch
+isolate-ratelimit-from-printkc-for-other-use.patch
+add-warn_on_secs-macro.patch
+use-warn_on_secs-in-rcupreempth.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
 
