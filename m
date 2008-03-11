@@ -1,303 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-provide-kvmh-for-all-architecture-fixes-headers_install.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 23:12:46 -0700
-Message-ID: <200803110622.m2B6MJRi026108__33193.401390645$1205216695$gmane$org@imap1.linux-foundation.org>
+Subject: + cifs-hack-around-biuld-error.patch added to -mm tree
+Date: Tue, 11 Mar 2008 00:00:10 -0700
+Message-ID: <200803110700.m2B70A2w027396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757541AbYCKGXp (ORCPT
+	by vger.kernel.org with ESMTP id S1751192AbYCKHBM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 02:23:45 -0400
+	Tue, 11 Mar 2008 03:01:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, avi@qumranet.com, dwmw2@infradead.org, linux-arch@vger.kernel.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     kvm: provide kvm.h for all architecture: fixes headers_install
-has been removed from the -mm tree.  Its filename was
-     kvm-provide-kvmh-for-all-architecture-fixes-headers_install.patch
+     cifs: hack around biuld error
+has been added to the -mm tree.  Its filename is
+     cifs-hack-around-biuld-error.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm: provide kvm.h for all architecture: fixes headers_install
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: cifs: hack around biuld error
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently include/linux/kvm.h is not considered by make headers_install,
-because Kbuild cannot handle " unifdef-$(CONFIG_FOO) += foo.h.  This problem
-was introduced by 040922c04cf2c8ac70be2e88a8a9614ecdb41d2e, which makes this
-an 2.6.25 regression.
+ERROR: "cifs_dfs_referral_inode_operations" [fs/cifs/cifs.ko] undefined!
 
-One way of solving the issue is to enhance Kbuild, but Avi and David conviced
-me, that changing headers_install is not the way to go.  This patch changes
-the definition for linux/kvm.h to unifdef-y.
-
-If unifdef-y is used for linux/kvm.h "make headers_check" will fail on all
-architectures without asm/kvm.h.  Therefore, this patch also provides
-asm/kvm.h on all architectures.
-
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Avi Kivity <avi@qumranet.com>
-Cc: Sam Ravnborg <sam@ravnborg.org
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <linux-arch@vger.kernel.org>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/kvm.h     |    6 ++++++
- include/asm-arm/kvm.h       |    6 ++++++
- include/asm-avr32/kvm.h     |    6 ++++++
- include/asm-blackfin/kvm.h  |    6 ++++++
- include/asm-cris/kvm.h      |    6 ++++++
- include/asm-frv/kvm.h       |    6 ++++++
- include/asm-h8300/kvm.h     |    6 ++++++
- include/asm-ia64/kvm.h      |    6 ++++++
- include/asm-m32r/kvm.h      |    6 ++++++
- include/asm-m68k/kvm.h      |    6 ++++++
- include/asm-m68knommu/kvm.h |    6 ++++++
- include/asm-mips/kvm.h      |    6 ++++++
- include/asm-mn10300/kvm.h   |    6 ++++++
- include/asm-parisc/kvm.h    |    6 ++++++
- include/asm-powerpc/kvm.h   |    6 ++++++
- include/asm-s390/kvm.h      |    6 ++++++
- include/asm-sh/kvm.h        |    6 ++++++
- include/asm-sparc/kvm.h     |    6 ++++++
- include/asm-sparc64/kvm.h   |    6 ++++++
- include/asm-v850/kvm.h      |    6 ++++++
- include/asm-xtensa/kvm.h    |    6 ++++++
- include/linux/Kbuild        |    2 +-
- 22 files changed, 127 insertions(+), 1 deletion(-)
+ fs/cifs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN /dev/null include/asm-alpha/kvm.h
---- /dev/null
-+++ a/include/asm-alpha/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_ALPHA_H
-+#define __LINUX_KVM_ALPHA_H
-+
-+/* alpha does not support KVM */
-+
+diff -puN fs/cifs/inode.c~cifs-hack-around-biuld-error fs/cifs/inode.c
+--- a/fs/cifs/inode.c~cifs-hack-around-biuld-error
++++ a/fs/cifs/inode.c
+@@ -58,7 +58,9 @@ static void cifs_set_ops(struct inode *i
+ 		break;
+ 	case S_IFDIR:
+ 		if (is_dfs_referral) {
++#ifdef CONFIG_CIFS_DFS_UPCALL
+ 			inode->i_op = &cifs_dfs_referral_inode_operations;
 +#endif
-diff -puN /dev/null include/asm-arm/kvm.h
---- /dev/null
-+++ a/include/asm-arm/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_ARM_H
-+#define __LINUX_KVM_ARM_H
-+
-+/* arm does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-avr32/kvm.h
---- /dev/null
-+++ a/include/asm-avr32/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_AVR32_H
-+#define __LINUX_KVM_AVR32_H
-+
-+/* avr32 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-blackfin/kvm.h
---- /dev/null
-+++ a/include/asm-blackfin/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_BLACKFIN_H
-+#define __LINUX_KVM_BLACKFIN_H
-+
-+/* blackfin does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-cris/kvm.h
---- /dev/null
-+++ a/include/asm-cris/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_CRIS_H
-+#define __LINUX_KVM_CRIS_H
-+
-+/* cris does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-frv/kvm.h
---- /dev/null
-+++ a/include/asm-frv/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_FRV_H
-+#define __LINUX_KVM_FRV_H
-+
-+/* frv does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-h8300/kvm.h
---- /dev/null
-+++ a/include/asm-h8300/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_H8300_H
-+#define __LINUX_KVM_H8300_H
-+
-+/* h8300 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-ia64/kvm.h
---- /dev/null
-+++ a/include/asm-ia64/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_IA64_H
-+#define __LINUX_KVM_IA64_H
-+
-+/* ia64 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-m32r/kvm.h
---- /dev/null
-+++ a/include/asm-m32r/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_M32R_H
-+#define __LINUX_KVM_M32R_H
-+
-+/* m32r does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-m68k/kvm.h
---- /dev/null
-+++ a/include/asm-m68k/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_M68K_H
-+#define __LINUX_KVM_M68K_H
-+
-+/* m68k does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-m68knommu/kvm.h
---- /dev/null
-+++ a/include/asm-m68knommu/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_M68KNOMMU_H
-+#define __LINUX_KVM_M68KNOMMU_H
-+
-+/* m68knommu does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-mips/kvm.h
---- /dev/null
-+++ a/include/asm-mips/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_MIPS_H
-+#define __LINUX_KVM_MIPS_H
-+
-+/* mips does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-mn10300/kvm.h
---- /dev/null
-+++ a/include/asm-mn10300/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_MN10300_H
-+#define __LINUX_KVM_MN10300_H
-+
-+/* mn10300 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-parisc/kvm.h
---- /dev/null
-+++ a/include/asm-parisc/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_PARISC_H
-+#define __LINUX_KVM_PARISC_H
-+
-+/* parisc does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-powerpc/kvm.h
---- /dev/null
-+++ a/include/asm-powerpc/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_POWERPC_H
-+#define __LINUX_KVM_POWERPC_H
-+
-+/* powerpc does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-s390/kvm.h
---- /dev/null
-+++ a/include/asm-s390/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_S390_H
-+#define __LINUX_KVM_S390_H
-+
-+/* s390 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-sh/kvm.h
---- /dev/null
-+++ a/include/asm-sh/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_SH_H
-+#define __LINUX_KVM_SH_H
-+
-+/* sh does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-sparc/kvm.h
---- /dev/null
-+++ a/include/asm-sparc/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_SPARC_H
-+#define __LINUX_KVM_SPARC_H
-+
-+/* sparc does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-sparc64/kvm.h
---- /dev/null
-+++ a/include/asm-sparc64/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_SPARC64_H
-+#define __LINUX_KVM_SPARC64_H
-+
-+/* sparc64 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-v850/kvm.h
---- /dev/null
-+++ a/include/asm-v850/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_V850_H
-+#define __LINUX_KVM_V850_H
-+
-+/* v850 does not support KVM */
-+
-+#endif
-diff -puN /dev/null include/asm-xtensa/kvm.h
---- /dev/null
-+++ a/include/asm-xtensa/kvm.h
-@@ -0,0 +1,6 @@
-+#ifndef __LINUX_KVM_XTENSA_H
-+#define __LINUX_KVM_XTENSA_H
-+
-+/* xtensa does not support KVM */
-+
-+#endif
-diff -puN include/linux/Kbuild~kvm-provide-kvmh-for-all-architecture-fixes-headers_install include/linux/Kbuild
---- a/include/linux/Kbuild~kvm-provide-kvmh-for-all-architecture-fixes-headers_install
-+++ a/include/linux/Kbuild
-@@ -257,7 +257,7 @@ unifdef-y += kd.h
- unifdef-y += kernelcapi.h
- unifdef-y += kernel.h
- unifdef-y += keyboard.h
--unifdef-$(CONFIG_HAVE_KVM) += kvm.h
-+unifdef-y += kvm.h
- unifdef-y += llc.h
- unifdef-y += loop.h
- unifdef-y += lp.h
+ 		} else {
+ 			inode->i_op = &cifs_dir_inode_ops;
+ 			inode->i_fop = &cifs_dir_ops;
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kvm-provide-kvmh-for-all-architecture-fixes-headers_install.patch
+origin.patch
+poweroff-workaround.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa.patch
+git-alsa-fix-git-conflicts.patch
+git-arm-master.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
+git-leds.patch
+git-net.patch
+git-net-fix-build-with-config_net=n.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+cifs-hack-around-biuld-error.patch
 
