@@ -1,76 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - fix-xt_time_match-never-matches-on-sundays.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 20:22:56 -0700
-Message-ID: <200803110322.m2B3Mu2Q019859@imap1.linux-foundation.org>
+Subject: - drivers-fix-dma_get_required_mask.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 20:23:02 -0700
+Message-ID: <200803110323.m2B3N2UQ019872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59779 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753717AbYCKDXD (ORCPT
+	by vger.kernel.org with ESMTP id S1753629AbYCKDXT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:23:03 -0400
+	Mon, 10 Mar 2008 23:23:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrex@alumni.utexas.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: James.Bottomley@HansenPartnership.com, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter: xt_time_match() never matches on Sundays
+     drivers: fix dma_get_required_mask
 has been removed from the -mm tree.  Its filename was
-     fix-xt_time_match-never-matches-on-sundays.patch
+     drivers-fix-dma_get_required_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netfilter: xt_time_match() never matches on Sundays
-From: Andrew Schulman <andrex@alumni.utexas.net>
+Subject: drivers: fix dma_get_required_mask
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
 
-xt_time_match() in net/netfilter/xt_time.c in kernel 2.6.24 never matches on
-Sundays.  On my host I have a rule like
+There's a bug in the current implementation of dma_get_required_mask() where
+it ands the returned mask with the current device mask.  This rather defeats
+the purpose if you're using the call to determine what your mask should be
+(since you will at that time have the default DMA_32BIT_MASK).  This bug
+results in any driver that uses this function *always* getting a 32 bit mask,
+which is wrong.
 
-    iptables -A OUTPUT -m time --weekdays Sun -j REJECT
+Fix by removing the and with dev->dma_mask.
 
-and it never matches.  The problem is in localtime_2(), which uses
+This is a pretty nasty bug which can cause mysterious slow downs and panics on
+>4GB machines (we've just had one on an aic79xx production system).
 
-    r->weekday = (4 + r->dse) % 7;
+It probably also needs to be backported as far as it will go.
 
-to map the epoch day onto a weekday in {0,...,6}.  In particular this gives 0
-for Sundays.  But 0 has to be wrong; a weekday of 0 can never match.
-xt_time_match() has
-
-    if (!(info->weekdays_match & (1 << current_time.weekday)))
-        return false;
-
-and when current_time.weekday = 0, the result of the & is always zero, even when
-info->weekdays_match = XT_TIME_ALL_WEEKDAYS = 0xFE.
-
-The solution is to map Sunday onto 7, not 0.
-
-Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/xt_time.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/base/platform.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/netfilter/xt_time.c~fix-xt_time_match-never-matches-on-sundays net/netfilter/xt_time.c
---- a/net/netfilter/xt_time.c~fix-xt_time_match-never-matches-on-sundays
-+++ a/net/netfilter/xt_time.c
-@@ -97,6 +97,9 @@ static inline void localtime_2(struct xt
- 
- 	/* 1970-01-01 (w=0) was a Thursday (4). */
- 	r->weekday = (4 + r->dse) % 7;
-+	/* Map Sunday onto 7, not 0. */
-+	if (r->weekday == 0)
-+		r->weekday = 7;
+diff -puN drivers/base/platform.c~drivers-fix-dma_get_required_mask drivers/base/platform.c
+--- a/drivers/base/platform.c~drivers-fix-dma_get_required_mask
++++ a/drivers/base/platform.c
+@@ -648,7 +648,7 @@ u64 dma_get_required_mask(struct device 
+ 		high_totalram += high_totalram - 1;
+ 		mask = (((u64)high_totalram) << 32) + 0xffffffff;
+ 	}
+-	return mask & *dev->dma_mask;
++	return mask;
  }
- 
- static void localtime_3(struct xtm *r, time_t time)
+ EXPORT_SYMBOL_GPL(dma_get_required_mask);
+ #endif
 _
 
-Patches currently in -mm which might be from andrex@alumni.utexas.net are
+Patches currently in -mm which might be from James.Bottomley@HansenPartnership.com are
 
-git-net.patch
+origin.patch
+git-parisc.patch
+git-scsi-misc.patch
+git-scsi-rc-fixes.patch
+scsi-le_add_cpu-conversion.patch
+arcmsr-modify-the-type-of-element-of-messageunit_b.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-stc-make-class-attributes-static.patch
+scsi-osstc-make-class-attributes-static.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+gdth-allocate-sense_buffer-to-prevent-null-pointer-dereference.patch
+remove-duplicated-unlikely-in-is_err.patch
 
