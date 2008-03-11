@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + root_plug-use-cap_task_prctl.patch added to -mm tree
-Date: Mon, 10 Mar 2008 22:30:46 -0700
-Message-ID: <200803110530.m2B5UkAE024334@imap1.linux-foundation.org>
+Subject: + block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch added to -mm tree
+Date: Mon, 10 Mar 2008 22:38:18 -0700
+Message-ID: <200803110538.m2B5cIPB024602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751435AbYCKFbD (ORCPT
+	by vger.kernel.org with ESMTP id S1751368AbYCKFiW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 01:31:03 -0400
+	Tue, 11 Mar 2008 01:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, gregkh@suse.de
+Cc: 12o3l@tiscali.nl
 
 
 The patch titled
-     root_plug: use cap_task_prctl
+     block/blk-merge.c: inverted likeliness in ll_back_merge_fn()
 has been added to the -mm tree.  Its filename is
-     root_plug-use-cap_task_prctl.patch
+     block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: root_plug: use cap_task_prctl
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: block/blk-merge.c: inverted likeliness in ll_back_merge_fn()
+From: Roel Kluin <12o3l@tiscali.nl>
 
-With the introduction of per-process securebits, the capabilities-related
-prctl callbacks were moved into cap_task_prctl().  Have root_plug use
-cap_task_prctl() so that PR_SET_KEEPCAPS is defined.
+In my likely profile it appears this one is inverted.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/root_plug.c |    1 +
- 1 file changed, 1 insertion(+)
+ block/blk-merge.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/root_plug.c~root_plug-use-cap_task_prctl security/root_plug.c
---- a/security/root_plug.c~root_plug-use-cap_task_prctl
-+++ a/security/root_plug.c
-@@ -86,6 +86,7 @@ static struct security_operations rootpl
- 
- 	.task_post_setuid =		cap_task_post_setuid,
- 	.task_reparent_to_init =	cap_task_reparent_to_init,
-+	.task_prctl =			cap_task_prctl,
- 
- 	.bprm_check_security =		rootplug_bprm_check_security,
- };
+diff -puN block/blk-merge.c~block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn block/blk-merge.c
+--- a/block/blk-merge.c~block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn
++++ a/block/blk-merge.c
+@@ -305,7 +305,7 @@ int ll_back_merge_fn(struct request_queu
+ 	}
+ 	if (unlikely(!bio_flagged(req->biotail, BIO_SEG_VALID)))
+ 		blk_recount_segments(q, req->biotail);
+-	if (unlikely(!bio_flagged(bio, BIO_SEG_VALID)))
++	if (likely(!bio_flagged(bio, BIO_SEG_VALID)))
+ 		blk_recount_segments(q, bio);
+ 	len = req->biotail->bi_hw_back_size + bio->bi_hw_front_size;
+ 	if (BIOVEC_VIRT_MERGEABLE(__BVEC_END(req->biotail), __BVEC_START(bio))
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-git-unionfs.patch
-capabilities-implement-per-process-securebits.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-capabilities-implement-per-process-securebits-fix.patch
-root_plug-use-cap_task_prctl.patch
-smack-use-cap_task_prctl.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-for-vfs_rmdir.patch
-cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-ipc-semaphores-code-factorisation.patch
-ipc-shared-memory-introduce-shmctl_down.patch
-ipc-message-queues-introduce-msgctl_down.patch
-ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
-ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
-ipc-get-rid-of-the-use-_setbuf-structure.patch
-ipc-introduce-ipc_update_perm.patch
-ipc-consolidate-all-xxxctl_down-functions.patch
-reiser4-replace-uid==0-check-with-capability.patch
+origin.patch
+git-alsa.patch
+git-dvb.patch
+drivers-media-video-tvp5150c-logical-bitwise-and-confusion.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
+drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
 
