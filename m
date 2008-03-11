@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kerneldoc-for-linux-clkh.patch added to -mm tree
-Date: Mon, 10 Mar 2008 21:19:03 -0700
-Message-ID: <200803110419.m2B4J3kX021766@imap1.linux-foundation.org>
+Subject: + tty_ioctl-soft-carrier-handling.patch added to -mm tree
+Date: Mon, 10 Mar 2008 21:26:51 -0700
+Message-ID: <200803110426.m2B4QpTk022080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751519AbYCKET6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752222AbYCKE1i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:19:58 -0400
+	Tue, 11 Mar 2008 00:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rdunlap@xenotime.net, rmk@arm.linux.org.uk
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     kerneldoc for <linux/clk.h>
+     tty_ioctl: soft carrier handling
 has been added to the -mm tree.  Its filename is
-     kerneldoc-for-linux-clkh.patch
+     tty_ioctl-soft-carrier-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kerneldoc for <linux/clk.h>
-From: David Brownell <david-b@pacbell.net>
+Subject: tty_ioctl: soft carrier handling
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add <linux/clk.h> to the generated kerneldoc, with some overview
-to go along with those per-function descriptions.
+First cut at moving the soft carrier handling knowledge entirely into the core
+code.  One or two drivers still needed to snoop these functions to track
+CLOCAL internally.  Instead make TIOCSSOFTCAR generate the same driver calls
+as other termios ioctls changing the clocal flag.  This allows us to remove
+any driver knowledge and special casing.  Also while we are at it we can fix
+the error handling.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |   55 ++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ drivers/char/tty_ioctl.c |   33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~kerneldoc-for-linux-clkh Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~kerneldoc-for-linux-clkh
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -650,4 +650,59 @@ X!Idrivers/video/console/fonts.c
- !Edrivers/i2c/i2c-core.c
-   </chapter>
+diff -puN drivers/char/tty_ioctl.c~tty_ioctl-soft-carrier-handling drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty_ioctl-soft-carrier-handling
++++ a/drivers/char/tty_ioctl.c
+@@ -756,6 +756,32 @@ static int send_prio_char(struct tty_str
+ }
  
-+  <chapter id="clk">
-+     <title>Clock Framework</title>
+ /**
++ *	tty_change_softcar	-	carrier change ioctl helper
++ *	@tty: tty to update
++ *	@arg: enable/disable CLOCAL
++ *
++ *	Perform a change to the CLOCAL state and call into the driver
++ *	layer to make it visible. All done with the termios mutex
++ */
 +
-+     <para>
-+	The clock framework defines programming interfaces to support
-+	software management of the system clock tree.
-+	This framework is widely used with System-On-Chip (SOC) platforms
-+	to support power management and various devices which may need
-+	custom clock rates.
-+	Note that these "clocks" don't relate to timekeeping or real
-+	time clocks (RTCs), each of which have separate frameworks.
-+	These <structname>struct clk</structname> instances may be used
-+	to manage for example a 96 MHz signal that is used to shift bits
-+	into and out of peripherals or busses, or otherwise trigger
-+	synchronous state machine transitions in system hardware.
-+     </para>
++static int tty_change_softcar(struct tty_struct *tty, int arg)
++{
++	int ret = 0;
++	int bit = arg ? CLOCAL : 0;
++	struct ktermios old = *tty->termios;
 +
-+     <para>
-+	Power management is supported by explicit software clock gating:
-+	unused clocks are disabled, so the system doesn't waste power
-+	changing the state of transistors that aren't in active use.
-+	On some systems this may be backed by hardware clock gating.
-+	Circuits will still have leakage current to be managed, which
-+	costs more with finer cicuit geometries, but for CMOS circuits
-+	power is mostly spent by clocked state changes.
-+	Sections of chips that are powered but not clocked may be able
-+	to retain their last state.
-+	This low power state is often called a <emphasis>retention
-+	mode</emphasis>, in contrast to <emphasis>off</emphasis> where
-+	power is cut and no state is retained but where leakage currents
-+	may have a significant impact on battery life.
-+     </para>
++	mutex_lock(&tty->termios_mutex);
++	tty->termios->c_cflag &= ~CLOCAL;
++	tty->termios->c_cflag |= bit;
++	if (tty->driver->set_termios)
++		tty->driver->set_termios(tty, &old);
++	if ((tty->termios->c_cflag & CLOCAL) != bit)
++		ret = -EINVAL;
++	mutex_unlock(&tty->termios_mutex);
++	return ret;
++}
 +
-+     <para>
-+	Power-aware drivers only enable their clocks when the device
-+	they manage is in active use.  Also, system sleep states often
-+	differ according to which clock domains are active:  while a
-+	"standby" state may allow wakeup from several active domains, a
-+	"mem" (suspend-to-RAM) state may require a more wholesale shutdown
-+	of clocks derived from higher speed PLLs and oscillators, limiting
-+	the number of possible wakeup event sources.  A driver's suspend
-+	method may need to be aware of system-specific clock constraints
-+	on the target sleep state.
-+     </para>
-+
-+     <para>
-+        Some platforms support programmable clock generators.  These
-+	can be used by external chips of various kinds, such as other
-+	CPUs, multimedia codecs, and devices with strict requirements
-+	for interface clocking.
-+     </para>
-+
-+!Iinclude/linux/clk.h
-+  </chapter>
-+
- </book>
++/**
+  *	tty_mode_ioctl		-	mode related ioctls
+  *	@tty: tty for the ioctl
+  *	@file: file pointer for the tty
+@@ -865,12 +891,7 @@ int tty_mode_ioctl(struct tty_struct *tt
+ 	case TIOCSSOFTCAR:
+ 		if (get_user(arg, (unsigned int __user *) arg))
+ 			return -EFAULT;
+-		mutex_lock(&tty->termios_mutex);
+-		tty->termios->c_cflag =
+-			((tty->termios->c_cflag & ~CLOCAL) |
+-			 (arg ? CLOCAL : 0));
+-		mutex_unlock(&tty->termios_mutex);
+-		return 0;
++		return tty_change_softcar(tty, arg);
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-acpi.patch
-git-arm-master.patch
-git-avr32.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-usb-net-asix-does-not-really-need-10-100mbit.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-avoid-legacy-drivers-with-generic-framework-update.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-kerneldoc-for-linux-clkh.patch
-rtc-replace-remaining-__function__-occurrences.patch
-remove-duplicated-unlikely-in-is_err.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+libata-isolate-and-rework-cable-logic.patch
+pata_amd-fix-sparse-warning.patch
+3c501-further-coding-style-fixes.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+char-riscom-fix-rc_board-indexing.patch
+crisv10-prepare-for-bkl-push-down.patch
+fix-tty-speed-handling-on-8250.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+tty_ioctl-locking-for-tty_wait_until_sent.patch
+tty_ioctl-soft-carrier-handling.patch
+istallion-tiocg-ssoftcar-handling-removal.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
