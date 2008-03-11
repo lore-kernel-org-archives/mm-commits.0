@@ -1,309 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - pageflags-convert-to-the-use-of-new-macros.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 21:41:31 -0700
-Message-ID: <200803110451.m2B4p4E9023030@imap1.linux-foundation.org>
+Subject: + ia64-make-iommu-respect-the-segment-boundary-limits.patch added to -mm tree
+Date: Mon, 10 Mar 2008 21:42:43 -0700
+Message-ID: <200803110452.m2B4qGgT023057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33967 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756829AbYCKEvw (ORCPT
+	by vger.kernel.org with ESMTP id S1752276AbYCKEwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:51:52 -0400
+	Tue, 11 Mar 2008 00:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fujita.tomonori@lab.ntt.co.jp, tony.luck@intel.com
 
 
 The patch titled
-     pageflags: convert to the use of new macros
-has been removed from the -mm tree.  Its filename was
-     pageflags-convert-to-the-use-of-new-macros.patch
+     ia64: make IOMMU respect the segment boundary limits
+has been added to the -mm tree.  Its filename is
+     ia64-make-iommu-respect-the-segment-boundary-limits.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: convert to the use of new macros
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ia64: make IOMMU respect the segment boundary limits
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 
-Replace explicit definitions of page flags through the use of macros. 
-Significantly reduces the size of the definitions and removes a lot of
-opportunity for errors.  Additonal page flags can typically be generated with
-a single line.
+IA64's IOMMU implementation allocates memory areas spanning LLD's segment
+boundary limit.  It forces low level drivers to have a workaround to adjust
+scatter lists that the IOMMU builds.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+We are in the process of making all the IOMMUs respect the segment boundary
+limits to remove such work around in LLDs.  This patch is for IA64's IOMMU.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |  191 +++++++++++------------------------
- 1 file changed, 64 insertions(+), 127 deletions(-)
+ arch/ia64/Kconfig               |    3 +
+ arch/ia64/hp/common/sba_iommu.c |   56 ++++++++++++++++++++----------
+ 2 files changed, 42 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-convert-to-the-use-of-new-macros include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-convert-to-the-use-of-new-macros
-+++ a/include/linux/page-flags.h
-@@ -151,28 +151,54 @@ static inline int TestClearPage##uname(s
- #define TESTSCFLAG(uname, lname)					\
- 	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
+diff -puN arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits
++++ a/arch/ia64/Kconfig
+@@ -622,6 +622,9 @@ config IRQ_PER_CPU
+ 	bool
+ 	default y
  
-+struct page;	/* forward declaration */
++config IOMMU_HELPER
++	def_bool (IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB || IA64_GENERIC)
 +
-+PAGEFLAG(Locked, locked) TESTSCFLAG(Locked, locked)
-+PAGEFLAG(Error, error)
-+PAGEFLAG(Referenced, referenced) TESTCLEARFLAG(Referenced, referenced)
-+PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty, dirty)
-+PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
-+PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
-+__PAGEFLAG(Slab, slab)
-+PAGEFLAG(Checked, checked)		/* Used by some filesystems */
-+PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
-+PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
-+PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
-+	__SETPAGEFLAG(Private, private)
+ source "arch/ia64/hp/sim/Kconfig"
+ 
+ source "arch/ia64/Kconfig.debug"
+diff -puN arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/hp/common/sba_iommu.c
+--- a/arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits
++++ a/arch/ia64/hp/common/sba_iommu.c
+@@ -35,6 +35,7 @@
+ #include <linux/nodemask.h>
+ #include <linux/bitops.h>         /* hweight64() */
+ #include <linux/crash_dump.h>
++#include <linux/iommu-helper.h>
+ 
+ #include <asm/delay.h>		/* ia64_get_itc() */
+ #include <asm/io.h>
+@@ -460,6 +461,13 @@ get_iovp_order (unsigned long size)
+ 	return order;
+ }
+ 
++static unsigned long ptr_to_pide(struct ioc *ioc, unsigned long *res_ptr,
++				 unsigned int bitshiftcnt)
++{
++	return (((unsigned long)res_ptr - (unsigned long)ioc->res_map) << 3)
++		+ bitshiftcnt;
++}
 +
- /*
-- * Manipulation of page state flags
-+ * Only test-and-set exist for PG_writeback.  The unconditional operators are
-+ * risky: they bypass page accounting.
+ /**
+  * sba_search_bitmap - find free space in IO PDIR resource bitmap
+  * @ioc: IO MMU structure which owns the pdir we are interested in.
+@@ -471,15 +479,25 @@ get_iovp_order (unsigned long size)
+  * Cool perf optimization: search for log2(size) bits at a time.
   */
--#define PageLocked(page)		\
--		test_bit(PG_locked, &(page)->flags)
--#define SetPageLocked(page)		\
--		set_bit(PG_locked, &(page)->flags)
--#define TestSetPageLocked(page)		\
--		test_and_set_bit(PG_locked, &(page)->flags)
--#define ClearPageLocked(page)		\
--		clear_bit(PG_locked, &(page)->flags)
--#define TestClearPageLocked(page)	\
--		test_and_clear_bit(PG_locked, &(page)->flags)
--
--#define PageError(page)		test_bit(PG_error, &(page)->flags)
--#define SetPageError(page)	set_bit(PG_error, &(page)->flags)
--#define ClearPageError(page)	clear_bit(PG_error, &(page)->flags)
--
--#define PageReferenced(page)	test_bit(PG_referenced, &(page)->flags)
--#define SetPageReferenced(page)	set_bit(PG_referenced, &(page)->flags)
--#define ClearPageReferenced(page)	clear_bit(PG_referenced, &(page)->flags)
--#define TestClearPageReferenced(page) test_and_clear_bit(PG_referenced, &(page)->flags)
-+TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
-+__PAGEFLAG(Buddy, buddy)
-+PAGEFLAG(MappedToDisk, mappedtodisk)
-+
-+/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
-+PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
-+PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
-+
-+static inline int PageHighMem(struct page *page)
-+{
-+#ifdef CONFIG_HIGHMEM
-+	return is_highmem(page_zone(page);
-+#else
-+	return 0; /* needed to optimize away at compile time */
-+#endif
-+}
-+
-+#ifdef CONFIG_SWAP
-+PAGEFLAG(SwapCache, swapcache)
-+#else
-+static inline int PageSwapCache(struct page *page)
-+{
-+	return 0;
-+}
-+#endif
-+
-+#if (BITS_PER_LONG > 32)
-+PAGEFLAG(Uncached, uncached)
-+#endif
- 
- static inline int PageUptodate(struct page *page)
+ static SBA_INLINE unsigned long
+-sba_search_bitmap(struct ioc *ioc, unsigned long bits_wanted, int use_hint)
++sba_search_bitmap(struct ioc *ioc, struct device *dev,
++		  unsigned long bits_wanted, int use_hint)
  {
-@@ -220,97 +246,37 @@ static inline void SetPageUptodate(struc
+ 	unsigned long *res_ptr;
+ 	unsigned long *res_end = (unsigned long *) &(ioc->res_map[ioc->res_size]);
+-	unsigned long flags, pide = ~0UL;
++	unsigned long flags, pide = ~0UL, tpide;
++	unsigned long boundary_size;
++	unsigned long shift;
++	int ret;
+ 
+ 	ASSERT(((unsigned long) ioc->res_hint & (sizeof(unsigned long) - 1UL)) == 0);
+ 	ASSERT(res_ptr < res_end);
+ 
++	boundary_size = (unsigned long long)dma_get_seg_boundary(dev) + 1;
++	boundary_size = ALIGN(boundary_size, 1ULL << iovp_shift) >> iovp_shift;
++
++	BUG_ON(ioc->ibase & ~iovp_mask);
++	shift = ioc->ibase >> iovp_shift;
++
+ 	spin_lock_irqsave(&ioc->res_lock, flags);
+ 
+ 	/* Allow caller to force a search through the entire resource space */
+@@ -504,9 +522,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 			if (likely(*res_ptr != ~0UL)) {
+ 				bitshiftcnt = ffz(*res_ptr);
+ 				*res_ptr |= (1UL << bitshiftcnt);
+-				pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-				pide <<= 3;	/* convert to bit address */
+-				pide += bitshiftcnt;
++				pide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
+ 				ioc->res_bitshift = bitshiftcnt + bits_wanted;
+ 				goto found_it;
+ 			}
+@@ -535,11 +551,13 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 			DBG_RES("    %p %lx %lx\n", res_ptr, mask, *res_ptr);
+ 			ASSERT(0 != mask);
+ 			for (; mask ; mask <<= o, bitshiftcnt += o) {
+-				if(0 == ((*res_ptr) & mask)) {
++				tpide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
++				ret = iommu_is_span_boundary(tpide, bits_wanted,
++							     shift,
++							     boundary_size);
++				if ((0 == ((*res_ptr) & mask)) && !ret) {
+ 					*res_ptr |= mask;     /* mark resources busy! */
+-					pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-					pide <<= 3;	/* convert to bit address */
+-					pide += bitshiftcnt;
++					pide = tpide;
+ 					ioc->res_bitshift = bitshiftcnt + bits_wanted;
+ 					goto found_it;
+ 				}
+@@ -560,6 +578,11 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 		end = res_end - qwords;
+ 
+ 		for (; res_ptr < end; res_ptr++) {
++			tpide = ptr_to_pide(ioc, res_ptr, 0);
++			ret = iommu_is_span_boundary(tpide, bits_wanted,
++						     shift, boundary_size);
++			if (ret)
++				goto next_ptr;
+ 			for (i = 0 ; i < qwords ; i++) {
+ 				if (res_ptr[i] != 0)
+ 					goto next_ptr;
+@@ -572,8 +595,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
+ 				res_ptr[i] = ~0UL;
+ 			res_ptr[i] |= RESMAP_MASK(bits);
+ 
+-			pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
+-			pide <<= 3;	/* convert to bit address */
++			pide = tpide;
+ 			res_ptr += qwords;
+ 			ioc->res_bitshift = bits;
+ 			goto found_it;
+@@ -605,7 +627,7 @@ found_it:
+  * resource bit map.
+  */
+ static int
+-sba_alloc_range(struct ioc *ioc, size_t size)
++sba_alloc_range(struct ioc *ioc, struct device *dev, size_t size)
+ {
+ 	unsigned int pages_needed = size >> iovp_shift;
+ #ifdef PDIR_SEARCH_TIMING
+@@ -622,9 +644,9 @@ sba_alloc_range(struct ioc *ioc, size_t 
+ 	/*
+ 	** "seek and ye shall find"...praying never hurts either...
+ 	*/
+-	pide = sba_search_bitmap(ioc, pages_needed, 1);
++	pide = sba_search_bitmap(ioc, dev, pages_needed, 1);
+ 	if (unlikely(pide >= (ioc->res_size << 3))) {
+-		pide = sba_search_bitmap(ioc, pages_needed, 0);
++		pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
+ 		if (unlikely(pide >= (ioc->res_size << 3))) {
+ #if DELAYED_RESOURCE_CNT > 0
+ 			unsigned long flags;
+@@ -653,7 +675,7 @@ sba_alloc_range(struct ioc *ioc, size_t 
+ 			}
+ 			spin_unlock_irqrestore(&ioc->saved_lock, flags);
+ 
+-			pide = sba_search_bitmap(ioc, pages_needed, 0);
++			pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
+ 			if (unlikely(pide >= (ioc->res_size << 3)))
+ 				panic(__FILE__ ": I/O MMU @ %p is out of mapping resources\n",
+ 				      ioc->ioc_hpa);
+@@ -936,7 +958,7 @@ sba_map_single(struct device *dev, void 
+ 	spin_unlock_irqrestore(&ioc->res_lock, flags);
  #endif
- }
  
--#define ClearPageUptodate(page)	clear_bit(PG_uptodate, &(page)->flags)
-+CLEARPAGEFLAG(Uptodate, uptodate)
+-	pide = sba_alloc_range(ioc, size);
++	pide = sba_alloc_range(ioc, dev, size);
  
--#define PageDirty(page)		test_bit(PG_dirty, &(page)->flags)
--#define SetPageDirty(page)	set_bit(PG_dirty, &(page)->flags)
--#define TestSetPageDirty(page)	test_and_set_bit(PG_dirty, &(page)->flags)
--#define ClearPageDirty(page)	clear_bit(PG_dirty, &(page)->flags)
--#define __ClearPageDirty(page)	__clear_bit(PG_dirty, &(page)->flags)
--#define TestClearPageDirty(page) test_and_clear_bit(PG_dirty, &(page)->flags)
--
--#define PageLRU(page)		test_bit(PG_lru, &(page)->flags)
--#define SetPageLRU(page)	set_bit(PG_lru, &(page)->flags)
--#define ClearPageLRU(page)	clear_bit(PG_lru, &(page)->flags)
--#define __ClearPageLRU(page)	__clear_bit(PG_lru, &(page)->flags)
--
--#define PageActive(page)	test_bit(PG_active, &(page)->flags)
--#define SetPageActive(page)	set_bit(PG_active, &(page)->flags)
--#define ClearPageActive(page)	clear_bit(PG_active, &(page)->flags)
--#define __ClearPageActive(page)	__clear_bit(PG_active, &(page)->flags)
--
--#define PageSlab(page)		test_bit(PG_slab, &(page)->flags)
--#define __SetPageSlab(page)	__set_bit(PG_slab, &(page)->flags)
--#define __ClearPageSlab(page)	__clear_bit(PG_slab, &(page)->flags)
-+extern void cancel_dirty_page(struct page *page, unsigned int account_size);
+ 	iovp = (dma_addr_t) pide << iovp_shift;
  
--#ifdef CONFIG_HIGHMEM
--#define PageHighMem(page)	is_highmem(page_zone(page))
--#else
--#define PageHighMem(page)	0 /* needed to optimize away at compile time */
--#endif
-+int test_clear_page_writeback(struct page *page);
-+int test_set_page_writeback(struct page *page);
- 
--#define PageChecked(page)	test_bit(PG_checked, &(page)->flags)
--#define SetPageChecked(page)	set_bit(PG_checked, &(page)->flags)
--#define ClearPageChecked(page)	clear_bit(PG_checked, &(page)->flags)
--
--#define PagePinned(page)	test_bit(PG_pinned, &(page)->flags)
--#define SetPagePinned(page)	set_bit(PG_pinned, &(page)->flags)
--#define ClearPagePinned(page)	clear_bit(PG_pinned, &(page)->flags)
--
--#define PageReserved(page)	test_bit(PG_reserved, &(page)->flags)
--#define SetPageReserved(page)	set_bit(PG_reserved, &(page)->flags)
--#define ClearPageReserved(page)	clear_bit(PG_reserved, &(page)->flags)
--#define __ClearPageReserved(page)	__clear_bit(PG_reserved, &(page)->flags)
--
--#define SetPagePrivate(page)	set_bit(PG_private, &(page)->flags)
--#define ClearPagePrivate(page)	clear_bit(PG_private, &(page)->flags)
--#define PagePrivate(page)	test_bit(PG_private, &(page)->flags)
--#define __SetPagePrivate(page)  __set_bit(PG_private, &(page)->flags)
--#define __ClearPagePrivate(page) __clear_bit(PG_private, &(page)->flags)
-+static inline void set_page_writeback(struct page *page)
-+{
-+	test_set_page_writeback(page);
-+}
- 
--/*
-- * Only test-and-set exist for PG_writeback.  The unconditional operators are
-- * risky: they bypass page accounting.
-- */
--#define PageWriteback(page)	test_bit(PG_writeback, &(page)->flags)
--#define TestSetPageWriteback(page) test_and_set_bit(PG_writeback,	\
--							&(page)->flags)
--#define TestClearPageWriteback(page) test_and_clear_bit(PG_writeback,	\
--							&(page)->flags)
--
--#define PageBuddy(page)		test_bit(PG_buddy, &(page)->flags)
--#define __SetPageBuddy(page)	__set_bit(PG_buddy, &(page)->flags)
--#define __ClearPageBuddy(page)	__clear_bit(PG_buddy, &(page)->flags)
--
--#define PageMappedToDisk(page)	test_bit(PG_mappedtodisk, &(page)->flags)
--#define SetPageMappedToDisk(page) set_bit(PG_mappedtodisk, &(page)->flags)
--#define ClearPageMappedToDisk(page) clear_bit(PG_mappedtodisk, &(page)->flags)
--
--#define PageReadahead(page)	test_bit(PG_readahead, &(page)->flags)
--#define SetPageReadahead(page)	set_bit(PG_readahead, &(page)->flags)
--#define ClearPageReadahead(page) clear_bit(PG_readahead, &(page)->flags)
--
--#define PageReclaim(page)	test_bit(PG_reclaim, &(page)->flags)
--#define SetPageReclaim(page)	set_bit(PG_reclaim, &(page)->flags)
--#define ClearPageReclaim(page)	clear_bit(PG_reclaim, &(page)->flags)
--#define TestClearPageReclaim(page) test_and_clear_bit(PG_reclaim, &(page)->flags)
--
--#define PageCompound(page)	test_bit(PG_compound, &(page)->flags)
--#define __SetPageCompound(page)	__set_bit(PG_compound, &(page)->flags)
--#define __ClearPageCompound(page) __clear_bit(PG_compound, &(page)->flags)
-+TESTPAGEFLAG(Compound, compound)
-+__PAGEFLAG(Head, compound)
- 
- /*
-  * PG_reclaim is used in combination with PG_compound to mark the
-- * head and tail of a compound page
-+ * head and tail of a compound page. This saves one page flag
-+ * but makes it impossible to use compound pages for the page cache.
-+ * The PG_reclaim bit would have to be used for reclaim or readahead
-+ * if compound pages enter the page cache.
-  *
-  * PG_compound & PG_reclaim	=> Tail page
-  * PG_compound & ~PG_reclaim	=> Head page
-  */
--
- #define PG_head_tail_mask ((1L << PG_compound) | (1L << PG_reclaim))
- 
--#define PageTail(page)	(((page)->flags & PG_head_tail_mask)	\
--				== PG_head_tail_mask)
-+static inline int PageTail(struct page *page)
-+{
-+	return ((page->flags & PG_head_tail_mask) == PG_head_tail_mask);
-+}
- 
- static inline void __SetPageTail(struct page *page)
- {
-@@ -322,33 +288,4 @@ static inline void __ClearPageTail(struc
- 	page->flags &= ~PG_head_tail_mask;
- }
- 
--#define PageHead(page)	(((page)->flags & PG_head_tail_mask)	\
--				== (1L << PG_compound))
--#define __SetPageHead(page)	__SetPageCompound(page)
--#define __ClearPageHead(page)	__ClearPageCompound(page)
--
--#ifdef CONFIG_SWAP
--#define PageSwapCache(page)	test_bit(PG_swapcache, &(page)->flags)
--#define SetPageSwapCache(page)	set_bit(PG_swapcache, &(page)->flags)
--#define ClearPageSwapCache(page) clear_bit(PG_swapcache, &(page)->flags)
--#else
--#define PageSwapCache(page)	0
--#endif
--
--#define PageUncached(page)	test_bit(PG_uncached, &(page)->flags)
--#define SetPageUncached(page)	set_bit(PG_uncached, &(page)->flags)
--#define ClearPageUncached(page)	clear_bit(PG_uncached, &(page)->flags)
--
--struct page;	/* forward declaration */
--
--extern void cancel_dirty_page(struct page *page, unsigned int account_size);
--
--int test_clear_page_writeback(struct page *page);
--int test_set_page_writeback(struct page *page);
--
--static inline void set_page_writeback(struct page *page)
--{
--	test_set_page_writeback(page);
--}
--
- #endif	/* PAGE_FLAGS_H */
+@@ -1373,7 +1395,7 @@ sba_coalesce_chunks(struct ioc *ioc, str
+ 		dma_len = (dma_len + dma_offset + ~iovp_mask) & iovp_mask;
+ 		ASSERT(dma_len <= DMA_CHUNK_SIZE);
+ 		dma_sg->dma_address = (dma_addr_t) (PIDE_FLAG
+-			| (sba_alloc_range(ioc, dma_len) << iovp_shift)
++			| (sba_alloc_range(ioc, dev, dma_len) << iovp_shift)
+ 			| dma_offset);
+ 		n_mappings++;
+ 	}
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
 
-origin.patch
-ntfs-fix-nommu-build.patch
-git-net.patch
-git-unionfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-get-rid-of-__zone_count.patch
-dmapool-enable-debugging-for-config_slub_debug_on-too.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+ia64-make-iommu-respect-the-segment-boundary-limits.patch
+git-scsi-misc.patch
+alpha-use-iommu_is_span_boundary-helper-function.patch
 
