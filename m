@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_serial-avoid-stopping-pdc-during-transmission-update.patch added to -mm tree
-Date: Mon, 10 Mar 2008 20:36:55 -0700
-Message-ID: <200803110336.m2B3atiD020331@imap1.linux-foundation.org>
+Subject: + char-riscom-fix-rc_board-indexing.patch added to -mm tree
+Date: Mon, 10 Mar 2008 20:38:06 -0700
+Message-ID: <200803110338.m2B3c6xN020369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59138 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751283AbYCKDhC (ORCPT
+	by vger.kernel.org with ESMTP id S1751310AbYCKDiP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:37:02 -0400
+	Mon, 10 Mar 2008 23:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trimarchimichael@yahoo.it, hskinnemoen@atmel.com
+Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     atmel_serial-avoid-stopping-pdc-during-transmission update
+     char: riscom, fix rc_board indexing
 has been added to the -mm tree.  Its filename is
-     atmel_serial-avoid-stopping-pdc-during-transmission-update.patch
+     char-riscom-fix-rc_board-indexing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial-avoid-stopping-pdc-during-transmission update
-From: Michael Trimarchi <trimarchimichael@yahoo.it>
+Subject: char: riscom, fix rc_board indexing
+From: Jiri Slaby <jirislaby@gmail.com>
 
-I try to do more tests to the serial driver and I adjust my patch, because it has problem when the pending dma
-transfer contain a lot of bytes ( I can't wait a lot ).
-When we have pending trasmission and we are in the tasklet, we wait for long time (9600 bps
-and and xmit size equal to a XMIT_SIZE for example ) but the wakeup event of the tasklet happen for a "receive event" 
-so we first receive the bytes in the pdc buffer. The driver wiil receive an interrupt later at the end of pdc transmission.
-The same things happen when we are in interrupt mode. So I suppose that with the latest patch we have:
+In riscom8_init_module, rc_board should be indexed by i, not by 0, otherwise
+the loop is useless.
 
-- tx_dma & rx_dma works on heavy load, slow rate and high rate
-- interrupt tx & rx_dma does't work on heavy load because it spend a lot of time for trasmission
-- interrupt tx & interrupt tx does't work on heavy load
-
-Possible solutions when using interrupt tx can be:
-- increase the buffering ( I don't like it )
-- avoid long transmit phase
-
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/riscom8.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission-update drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission-update
-+++ a/drivers/serial/atmel_serial.c
-@@ -563,6 +563,10 @@ static void atmel_tx_dma(struct uart_por
- 	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
- 	int count;
+diff -puN drivers/char/riscom8.c~char-riscom-fix-rc_board-indexing drivers/char/riscom8.c
+--- a/drivers/char/riscom8.c~char-riscom-fix-rc_board-indexing
++++ a/drivers/char/riscom8.c
+@@ -1709,7 +1709,7 @@ static int __init riscom8_init_module (v
  
-+	/* nothing left to transmit? */
-+	if (UART_GET_TCR(port))
-+		return;
-+
- 	xmit->tail += pdc->ofs;
- 	xmit->tail &= UART_XMIT_SIZE - 1;
+ 	if (iobase || iobase1 || iobase2 || iobase3) {
+ 		for(i = 0; i < RC_NBOARD; i++)
+-			rc_board[0].base = 0;
++			rc_board[i].base = 0;
+ 	}
  
-@@ -571,10 +575,6 @@ static void atmel_tx_dma(struct uart_por
- 
- 	/* more to transmit - setup next transfer */
- 
--	/* nothing left to transmit? */
--	while (UART_GET_TCR(port))
--		cpu_relax();
+ 	if (iobase)
+_
+
+Patches currently in -mm which might be from jirislaby@gmail.com are
+
+git-drm.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+wdev-ath5k-typecheck-on-nondebug.patch
+char-riscom-fix-rc_board-indexing.patch
+capabilities-implement-per-process-securebits-fix.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+misc-phantom-consistent-whitespace.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
+
