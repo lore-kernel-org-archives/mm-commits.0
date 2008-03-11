@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isolate-ratelimit-from-printkc-for-other-use-update.patch added to -mm tree
-Date: Mon, 10 Mar 2008 21:16:17 -0700
-Message-ID: <200803110416.m2B4GHGu021697@imap1.linux-foundation.org>
+Subject: + dmapool-enable-debugging-for-config_slub_debug_on-too.patch added to -mm tree
+Date: Mon, 10 Mar 2008 21:17:55 -0700
+Message-ID: <200803110417.m2B4HtUu021738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756428AbYCKEQ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751264AbYCKESI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:16:56 -0400
+	Tue, 11 Mar 2008 00:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, randy.dunlap@oracle.com
+Cc: andi@firstfloor.org, ak@suse.de, clameter@sgi.com, matthew@wil.cx
 
 
 The patch titled
-     isolate-ratelimit-from-printkc-for-other-use update
+     dmapool: enable debugging for CONFIG_SLUB_DEBUG_ON too
 has been added to the -mm tree.  Its filename is
-     isolate-ratelimit-from-printkc-for-other-use-update.patch
+     dmapool-enable-debugging-for-config_slub_debug_on-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isolate-ratelimit-from-printkc-for-other-use update
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: dmapool: enable debugging for CONFIG_SLUB_DEBUG_ON too
+From: Andi Kleen <andi@firstfloor.org>
 
-On Mon, Mar 10, 2008 at 08:51:32AM -0700, Randy Dunlap wrote:
-[snip]
-> > +/*
-> > + * __ratelimit - rate limiting
-> > + * @ratelimit_jiffies: minimum time in jiffies between too callbacks
->
-> s/too/two/
+Previously it was only enabled for CONFIG_SLAB_DEBUG.
 
-will fix
+Not hooked into the slub runtime debug configuration, so you currently only
+get it with CONFIG_SLUB_DEBUG_ON, not plain CONFIG_SLUB_DEBUG
 
-[snip]
-> > +		if (lost)
-> > +			printk(KERN_WARNING "__ratelimit: %d messages"
-> > +				" suppressed.\n", lost);
->
-> Would be better not to split the string, e.g.:
->
-> 			printk(KERN_WARNING "%s: %d messages suppressed\n",
-> 				__func__, lost);
->
-
-Yes, it's better to use __func__
-
-Thanks randy.
-
-Andrew, Could you use the following update? I don't want to bother you,
-but...
-
-Thanks.
----
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/dmapool.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN lib/ratelimit.c~isolate-ratelimit-from-printkc-for-other-use-update lib/ratelimit.c
---- a/lib/ratelimit.c~isolate-ratelimit-from-printkc-for-other-use-update
-+++ a/lib/ratelimit.c
-@@ -13,7 +13,7 @@
+diff -puN mm/dmapool.c~dmapool-enable-debugging-for-config_slub_debug_on-too mm/dmapool.c
+--- a/mm/dmapool.c~dmapool-enable-debugging-for-config_slub_debug_on-too
++++ a/mm/dmapool.c
+@@ -37,6 +37,10 @@
+ #include <linux/types.h>
+ #include <linux/wait.h>
  
- /*
-  * __ratelimit - rate limiting
-- * @ratelimit_jiffies: minimum time in jiffies between too callbacks
-+ * @ratelimit_jiffies: minimum time in jiffies between two callbacks
-  * @ratelimit_burst: number of callbacks we do before ratelimiting
-  *
-  * This enforces a rate limit: not more than @ratelimit_burst callbacks
-@@ -40,8 +40,8 @@ int __ratelimit(int ratelimit_jiffies, i
- 		toks -= ratelimit_jiffies;
- 		spin_unlock_irqrestore(&ratelimit_lock, flags);
- 		if (lost)
--			printk(KERN_WARNING "__ratelimit: %d messages"
--				" suppressed.\n", lost);
-+			printk(KERN_WARNING "%s: %d messages suppressed\n",
-+				__func__, lost);
- 		return 1;
++#if defined(CONFIG_SLAB_DEBUG) || defined(CONFIG_SLUB_DEBUG_ON)
++#define DMAPOOL_DEBUG 1
++#endif
++
+ struct dma_pool {		/* the pool */
+ 	struct list_head page_list;
+ 	spinlock_t lock;
+@@ -216,7 +220,7 @@ static struct dma_page *pool_alloc_page(
+ 	page->vaddr = dma_alloc_coherent(pool->dev, pool->allocation,
+ 					 &page->dma, mem_flags);
+ 	if (page->vaddr) {
+-#ifdef	CONFIG_DEBUG_SLAB
++#ifdef	DMAPOOL_DEBUG
+ 		memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+ #endif
+ 		pool_initialise_page(pool, page);
+@@ -239,7 +243,7 @@ static void pool_free_page(struct dma_po
+ {
+ 	dma_addr_t dma = page->dma;
+ 
+-#ifdef	CONFIG_DEBUG_SLAB
++#ifdef	DMAPOOL_DEBUG
+ 	memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+ #endif
+ 	dma_free_coherent(pool->dev, pool->allocation, page->vaddr, dma);
+@@ -336,7 +340,7 @@ void *dma_pool_alloc(struct dma_pool *po
+ 	page->offset = *(int *)(page->vaddr + offset);
+ 	retval = offset + page->vaddr;
+ 	*handle = offset + page->dma;
+-#ifdef	CONFIG_DEBUG_SLAB
++#ifdef	DMAPOOL_DEBUG
+ 	memset(retval, POOL_POISON_ALLOCATED, pool->size);
+ #endif
+  done:
+@@ -391,7 +395,7 @@ void dma_pool_free(struct dma_pool *pool
  	}
- 	missed++;
+ 
+ 	offset = vaddr - page->vaddr;
+-#ifdef	CONFIG_DEBUG_SLAB
++#ifdef	DMAPOOL_DEBUG
+ 	if ((dma - page->dma) != offset) {
+ 		if (pool->dev)
+ 			dev_err(pool->dev,
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-git-net.patch
-isolate-ratelimit-from-printkc-for-other-use.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-add-warn_on_secs-macro.patch
-use-warn_on_secs-in-rcupreempth.patch
+git-x86.patch
+git-scsi-misc.patch
+block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
+dmapool-enable-debugging-for-config_slub_debug_on-too.patch
 
