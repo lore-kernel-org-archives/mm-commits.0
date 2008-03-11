@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch added to -mm tree
-Date: Mon, 10 Mar 2008 22:54:29 -0700
-Message-ID: <200803110554.m2B5sTRn025145@imap1.linux-foundation.org>
+Subject: + mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch added to -mm tree
+Date: Mon, 10 Mar 2008 22:54:31 -0700
+Message-ID: <200803110554.m2B5sVGq025148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753475AbYCKFym (ORCPT
+	by vger.kernel.org with ESMTP id S1753433AbYCKFyp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 01:54:42 -0400
+	Tue, 11 Mar 2008 01:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, geert@linux-m68k.org
+Cc: hannes@saeurebad.de, ralf@linux-mips.org
 
 
 The patch titled
-     m68k: remove redundant display of free swap space in show_mem()
+     mips: remove redundant display of free swap space in show_mem()
 has been added to the -mm tree.  Its filename is
-     m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+     mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: remove redundant display of free swap space in show_mem()
+Subject: mips: remove redundant display of free swap space in show_mem()
 From: Johannes Weiner <hannes@saeurebad.de>
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/init.c |    1 -
+ arch/mips/mm/pgtable.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN arch/m68k/mm/init.c~m68k-remove-redundant-display-of-free-swap-space-in-show_mem arch/m68k/mm/init.c
---- a/arch/m68k/mm/init.c~m68k-remove-redundant-display-of-free-swap-space-in-show_mem
-+++ a/arch/m68k/mm/init.c
-@@ -79,7 +79,6 @@ void show_mem(void)
+diff -puN arch/mips/mm/pgtable.c~mips-remove-redundant-display-of-free-swap-space-in-show_mem arch/mips/mm/pgtable.c
+--- a/arch/mips/mm/pgtable.c~mips-remove-redundant-display-of-free-swap-space-in-show_mem
++++ a/arch/mips/mm/pgtable.c
+@@ -12,7 +12,6 @@ void show_mem(void)
  
- 	printk("\nMem-info:\n");
+ 	printk("Mem-info:\n");
  	show_free_areas();
 -	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
- 	for_each_online_pgdat(pgdat) {
- 		for (i = 0; i < pgdat->node_spanned_pages; i++) {
- 			struct page *page = pgdat->node_mem_map + i;
+ 	pfn = max_mapnr;
+ 	while (pfn-- > 0) {
+ 		if (!pfn_valid(pfn))
 _
 
 Patches currently in -mm which might be from hannes@saeurebad.de are
