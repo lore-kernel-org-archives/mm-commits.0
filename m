@@ -1,80 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - modules-fix-module-waiting-for-dependent-modules-init.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 20:22:24 -0700
-Message-ID: <200803110322.m2B3MOB9019813@imap1.linux-foundation.org>
+Subject: - tifm-fix-memorystick-host-initialization-code.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 20:21:53 -0700
+Message-ID: <200803110321.m2B3LrcF019755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756126AbYCKD1r (ORCPT
+	by vger.kernel.org with ESMTP id S1753539AbYCKDbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:27:47 -0400
+	Mon, 10 Mar 2008 23:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, jang@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modules: fix module waiting for dependent modules' init
+     tifm: fix memorystick host initialization code
 has been removed from the -mm tree.  Its filename was
-     modules-fix-module-waiting-for-dependent-modules-init.patch
+     tifm-fix-memorystick-host-initialization-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: fix module waiting for dependent modules' init
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: tifm: fix memorystick host initialization code
+From: Alex Dubov <oakad@yahoo.com>
 
-Commit c9a3ba55 (module: wait for dependent modules doing init.) didn't quite
-work because the waiter holds the module lock, meaning that the state of the
-module it's waiting for cannot change.
+Instead of assuming that host is powered on only once at card insertion, allow
+for the possibility that memstick layer may need to cycle card's power to get
+it out from some unhealthy states.
 
-Fortunately, it's fairly simple to update the state outside the lock and do
-the wakeup.
-
-Thanks to Jan Glauber for tracking this down and testing (qdio and qeth).
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jan Glauber <jang@linux.vnet.ibm.com>
+Signed-off-by: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/memstick/host/tifm_ms.c |   40 +++++++++++-------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
-diff -puN kernel/module.c~modules-fix-module-waiting-for-dependent-modules-init kernel/module.c
---- a/kernel/module.c~modules-fix-module-waiting-for-dependent-modules-init
-+++ a/kernel/module.c
-@@ -2179,9 +2179,11 @@ sys_init_module(void __user *umod,
- 		return ret;
- 	}
+diff -puN drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~tifm-fix-memorystick-host-initialization-code
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -496,7 +496,18 @@ static void tifm_ms_set_param(struct mem
  
--	/* Now it's a first class citizen! */
--	mutex_lock(&module_mutex);
-+	/* Now it's a first class citizen!  Wake up anyone waiting for it. */
- 	mod->state = MODULE_STATE_LIVE;
-+	wake_up(&module_wq);
-+
-+	mutex_lock(&module_mutex);
- 	/* Drop initial reference. */
- 	module_put(mod);
- 	unwind_remove_table(mod->unwind_info, 1);
-@@ -2190,7 +2192,6 @@ sys_init_module(void __user *umod,
- 	mod->init_size = 0;
- 	mod->init_text_size = 0;
- 	mutex_unlock(&module_mutex);
--	wake_up(&module_wq);
- 
- 	return 0;
+ 	switch (param) {
+ 	case MEMSTICK_POWER:
+-		/* this is set by card detection mechanism */
++		/* also affected by media detection mechanism */
++		if (value == MEMSTICK_POWER_ON) {
++			host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
++			writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
++			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
++			       sock->addr + SOCK_MS_SYSTEM);
++			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
++		} else if (value == MEMSTICK_POWER_OFF) {
++			writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
++			       sock->addr + SOCK_MS_SYSTEM);
++			writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
++		}
+ 		break;
+ 	case MEMSTICK_INTERFACE:
+ 		if (value == MEMSTICK_SERIAL) {
+@@ -531,22 +542,6 @@ static void tifm_ms_abort(unsigned long 
+ 	tifm_eject(host->dev);
  }
-_
-
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
-
-origin.patch
-git-kvm.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-reiser4.patch
-
+ 
+-static int tifm_ms_initialize_host(struct tifm_ms *host)
+-{
+-	struct tifm_dev *sock = host->dev;
+-	struct memstick_host *msh = tifm_get_drvdata(sock);
+-
+-	host->mode_mask = TIFM_MS_SYS_SRAC | TIFM_MS_SYS_REI;
+-	writel(TIFM_MS_SYS_RESET, sock->addr + SOCK_MS_SYSTEM);
+-	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
+-	       sock->addr + SOCK_MS_SYSTEM);
+-	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
+-	if (tifm_has_ms_pif(sock))
+-		msh->caps |= MEMSTICK_CAP_PAR4;
+-
+-	return 0;
+-}
+-
+ static int tifm_ms_probe(struct tifm_dev *sock)
+ {
+ 	struct memstick_host *msh;
+@@ -575,10 +570,10 @@ static int tifm_ms_probe(struct tifm_dev
+ 	msh->set_param = tifm_ms_set_param;
+ 	sock->card_event = tifm_ms_card_event;
+ 	sock->data_event = tifm_ms_data_event;
+-	rc = tifm_ms_initialize_host(host);
++	if (tifm_has_ms_pif(sock))
++		msh->caps |= MEMSTICK_CAP_PAR4;
+ 
+-	if (!rc)
+-		rc = memstick_add_host(msh);
++	rc = memstick_add_host(msh);
+ 	if (!rc)
+ 		return 0;
+ 
+@@ -616,11 +611,6 @@ static void tifm_ms_remove(struct tifm_d
+ 	spin_unlock_irqrestore(&sock->lock, flags);
+ 
+ 	memstick_remove_host(msh);
+-
+-	writel(TIFM_MS_SYS_FCLR | TIFM_MS_SYS_INTCLR,
+-	       sock->addr + SOCK_MS_SYSTEM);
+-	writel(0xffffffff, sock->addr + SOCK_MS_STATUS);
