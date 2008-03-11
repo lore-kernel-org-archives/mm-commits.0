@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + at73c213-fix-dma-size-at-the-end-of-dma-buffer.patch added to -mm tree
-Date: Mon, 10 Mar 2008 22:48:20 -0700
-Message-ID: <200803110548.m2B5mK8I024953@imap1.linux-foundation.org>
+Subject: + atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch added to -mm tree
+Date: Mon, 10 Mar 2008 22:50:25 -0700
+Message-ID: <200803110550.m2B5oPgl025001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224AbYCKFtL (ORCPT
+	by vger.kernel.org with ESMTP id S1753336AbYCKFwW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 01:49:11 -0400
+	Tue, 11 Mar 2008 01:52:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, avictor.za@gmail.com, hcegtvedt@atmel.com, hskinnemoen@atmel.com, perex@perex.cz, tiwai@suse.de
+Cc: nicolas.ferre@atmel.com, adaplas@pol.net, andrew@sanpeople.com, nicolas.ferre@rfo.atmel.com
 
 
 The patch titled
-     at73c213: fix DMA size at the end of DMA buffer
+     atmel_lcdfb: adjust fifo size for at91sam9rl
 has been added to the -mm tree.  Its filename is
-     at73c213-fix-dma-size-at-the-end-of-dma-buffer.patch
+     atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: at73c213: fix DMA size at the end of DMA buffer
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: atmel_lcdfb: adjust fifo size for at91sam9rl
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 
-The interrupt handler always provide runtime->period_size data, but it should
-provide additional residual data when the pointer back to zero.
+AT91SAM9RL soc has a 2048 bytes deep FIFO, like AT91SAM9263.
 
-This patch fixes periodic click noise when runtime->buffer_size was not
-multiple of runtime->period_size.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <avictor.za@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Nicolas FERRE <nicolas.ferre@rfo.atmel.com>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/spi/at73c213.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/video/atmel_lcdfb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/spi/at73c213.c~at73c213-fix-dma-size-at-the-end-of-dma-buffer sound/spi/at73c213.c
---- a/sound/spi/at73c213.c~at73c213-fix-dma-size-at-the-end-of-dma-buffer
-+++ a/sound/spi/at73c213.c
-@@ -356,6 +356,7 @@ static irqreturn_t snd_at73c213_interrup
- 	u32 status;
- 	int offset;
- 	int block_size;
-+	int size;
- 	int next_period;
- 	int retval = IRQ_NONE;
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-adjust-fifo-size-for-at91sam9rl drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-adjust-fifo-size-for-at91sam9rl
++++ a/drivers/video/atmel_lcdfb.c
+@@ -31,7 +31,8 @@
+ #define ATMEL_LCDC_CVAL_DEFAULT		0xc8
+ #define ATMEL_LCDC_DMA_BURST_LEN	8
  
-@@ -373,11 +374,14 @@ static irqreturn_t snd_at73c213_interrup
- 			next_period = 0;
- 
- 		offset = block_size * next_period;
-+		size = runtime->period_size * runtime->channels;
-+		if (next_period == runtime->periods - 1)
-+			size += (runtime->buffer_size % runtime->period_size)
-+				* runtime->channels;
- 
- 		ssc_writel(chip->ssc->regs, PDC_TNPR,
- 				(long)runtime->dma_addr + offset);
--		ssc_writel(chip->ssc->regs, PDC_TNCR,
--				runtime->period_size * runtime->channels);
-+		ssc_writel(chip->ssc->regs, PDC_TNCR, size);
- 		retval = IRQ_HANDLED;
- 	}
- 
+-#if defined(CONFIG_ARCH_AT91SAM9263) || defined(CONFIG_ARCH_AT91CAP9)
++#if defined(CONFIG_ARCH_AT91SAM9263) || defined(CONFIG_ARCH_AT91CAP9) || |
++	defined(CONFIG_ARCH_AT91SAM9RL)
+ #define ATMEL_LCDC_FIFO_SIZE		2048
+ #else
+ #define ATMEL_LCDC_FIFO_SIZE		512
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from nicolas.ferre@atmel.com are
 
-at73c213-remove-redundant-private_free-routine.patch
-at73c213-fix-error-checking-for-clk-api.patch
-at73c213-monaural-support.patch
-at73c213-fix-dma-size-at-the-end-of-dma-buffer.patch
+git-arm-master.patch
+atmel_lcdfb-suspend-resume-support.patch
+atmel_lcdfb-wiring-bgr-to-rgb-color-mode.patch
+atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch
 
