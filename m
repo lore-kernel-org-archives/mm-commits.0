@@ -1,67 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - tridentfb-fix-memory-size-detection.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 20:21:41 -0700
-Message-ID: <200803110321.m2B3Lf6d019736@imap1.linux-foundation.org>
+Subject: - memstick-try-harder-to-recover-from-unsuccessful-interface-mode-switch.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 20:22:01 -0700
+Message-ID: <200803110322.m2B3M1i6019769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbYCKDWM (ORCPT
+	by vger.kernel.org with ESMTP id S1751382AbYCKDWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:22:12 -0400
+	Mon, 10 Mar 2008 23:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tridentfb: fix memory size detection
+     memstick: try harder to recover from unsuccessful interface mode switch
 has been removed from the -mm tree.  Its filename was
-     tridentfb-fix-memory-size-detection.patch
+     memstick-try-harder-to-recover-from-unsuccessful-interface-mode-switch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: fix memory size detection
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: memstick: try harder to recover from unsuccessful interface mode switch
+From: Alex Dubov <oakad@yahoo.com>
 
-Fix memory size multiplier during detection.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memstick/core/mspro_block.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-fix-memory-size-detection drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-fix-memory-size-detection
-+++ a/drivers/video/tridentfb.c
-@@ -745,7 +745,7 @@ static unsigned int __devinit get_memsiz
- 			switch (tmp) {
+diff -puN drivers/memstick/core/mspro_block.c~memstick-try-harder-to-recover-from-unsuccessful-interface-mode-switch drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~memstick-try-harder-to-recover-from-unsuccessful-interface-mode-switch
++++ a/drivers/memstick/core/mspro_block.c
+@@ -16,6 +16,7 @@
+ #include <linux/idr.h>
+ #include <linux/hdreg.h>
+ #include <linux/kthread.h>
++#include <linux/delay.h>
+ #include <linux/memstick.h>
  
- 			case 0x01:
--				k = 512;
-+				k = 512 * Kb;
- 				break;
- 			case 0x02:
- 				k = 6 * Mb;	/* XP */
+ #define DRIVER_NAME "mspro_block"
+@@ -820,7 +821,7 @@ static int mspro_block_switch_to_paralle
+ 	struct memstick_host *host = card->host;
+ 	struct mspro_block_data *msb = memstick_get_drvdata(card);
+ 	struct mspro_param_register param = {
+-		.system = 0,
++		.system = MEMSTICK_SYS_PAR4,
+ 		.data_count = 0,
+ 		.data_address = 0,
+ 		.tpc_param = 0
+@@ -845,8 +846,24 @@ static int mspro_block_switch_to_paralle
+ 	wait_for_completion(&card->mrq_complete);
+ 
+ 	if (card->current_mrq.error) {
+-		msb->system = 0x80;
++		msb->system = MEMSTICK_SYS_SERIAL;
++		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
++		msleep(1000);
++		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
+ 		host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_SERIAL);
++
++		if (memstick_set_rw_addr(card))
++			return card->current_mrq.error;
++
++		param.system = msb->system;
++
++		card->next_request = h_mspro_block_req_init;
++		msb->mrq_handler = h_mspro_block_default;
++		memstick_init_req(&card->current_mrq, MS_TPC_WRITE_REG, &param,
++				  sizeof(param));
++		memstick_new_req(host);
++		wait_for_completion(&card->mrq_complete);
++
+ 		return -EFAULT;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from oakad@yahoo.com are
 
 origin.patch
-pm2fb-correct-error-values-returned-from-probe-function.patch
-pm2fb-change-option-mode-to-mode_option.patch
-tridentfb-change-option-mode-to-mode_option.patch
-pm3fb-change-option-mode-to-mode_option.patch
-update-modedbtxt-documentation-about-mode_option-parameter-change.patch
-vt8623fb-change-option-mode-to-mode_option.patch
-arkfb-add-option-mode_option.patch
-s3fb-add-option-mode_option.patch
-fbdev-add-removed-option-mode-to-keep-compatibility.patch
-video-replace-remaining-__function__-occurrences.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
 
