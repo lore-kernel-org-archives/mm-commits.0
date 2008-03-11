@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gxfb-replace-fbsize-config-option-with-a-module-parameter.patch added to -mm tree
-Date: Tue, 11 Mar 2008 13:29:27 -0700
-Message-ID: <200803112029.m2BKTRPf025360@imap1.linux-foundation.org>
+Subject: + mempolicy-support-optional-mode-flags-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 14:15:58 -0700
+Message-ID: <200803112115.m2BLFw0l027108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148AbYCKUaG (ORCPT
+	by vger.kernel.org with ESMTP id S1756863AbYCKVQV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 16:30:06 -0400
+	Tue, 11 Mar 2008 17:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
+Cc: hugh@veritas.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, pj@sgi.com, rientjes@google.com
 
 
 The patch titled
-     gxfb: replace FBSIZE config option with a module parameter
+     shmem mpol: fix build warning
 has been added to the -mm tree.  Its filename is
-     gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+     mempolicy-support-optional-mode-flags-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,195 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gxfb: replace FBSIZE config option with a module parameter
-From: Andres Salomon <dilinger@queued.net>
+Subject: shmem mpol: fix build warning
+From: Hugh Dickins <hugh@veritas.com>
 
-Use a command line option (vram) rather than hardcoding the vram size.  LxFB
-already does this; it's useful for machines that can't query the BIOS for fb
-size.  This patch originated from David Woodhouse, was modified by Jordan
-Crouse, and was then modified further by me.
+Fix #ifndef CONFIG_NUMA build warning on shmem_parse_mpol arising from
+mempolicy-support-optional-mode-flags.patch
 
-This also adds some gxfb documentation in Documentation/fb.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/gxfb.txt        |   51 +++++++++++++++++++++++++++++
- drivers/video/geode/Kconfig      |   20 -----------
- drivers/video/geode/display_gx.c |    7 ---
- drivers/video/geode/gxfb_core.c  |   14 ++++---
- 4 files changed, 59 insertions(+), 33 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/fb/gxfb.txt
---- /dev/null
-+++ a/Documentation/fb/gxfb.txt
-@@ -0,0 +1,51 @@
-+[This file is cloned from VesaFB/aty128fb]
-+
-+What is gxfb?
-+=================
-+
-+This is a graphics framebuffer driver for AMD Geode GX2 based processors.
-+
-+Advantages:
-+
-+ * No need to use AMD's VSA code (or other VESA emulation layer) in the
-+   BIOS.
-+ * It provides a nice large console (128 cols + 48 lines with 1024x768)
-+   without using tiny, unreadable fonts.
-+ * You can run XF68_FBDev on top of /dev/fb0
-+ * Most important: boot logo :-)
-+
-+Disadvantages:
-+
-+ * graphic mode is slower than text mode...
-+
-+
-+How to use it?
-+==============
-+
-+Switching modes is done using  gxfb.mode_option=<resolution>... boot
-+parameter or using `fbset' program.
-+
-+See Documentation/fb/modedb.txt for more information on modedb
-+resolutions.
-+
-+
-+X11
-+===
-+
-+XF68_FBDev should generally work fine, but it is non-accelerated.
-+
-+
-+Configuration
-+=============
-+
-+You can pass kernel command line options to gxfb with gxfb.<option>.
-+For example, gxfb.mode_option=800x600@75.
-+Accepted options:
-+
-+mode_option	- specify the video mode.  Of the form
-+		  <x>x<y>[-<bpp>][@<refresh>]
-+vram		- size of video ram (normally auto-detected)
-+
-+
-+--
-+Andres Salomon <dilinger@debian.org>
-diff -puN drivers/video/geode/Kconfig~gxfb-replace-fbsize-config-option-with-a-module-parameter drivers/video/geode/Kconfig
---- a/drivers/video/geode/Kconfig~gxfb-replace-fbsize-config-option-with-a-module-parameter
-+++ a/drivers/video/geode/Kconfig
-@@ -38,26 +38,6 @@ config FB_GEODE_GX
- 
- 	  If unsure, say N.
- 
--config FB_GEODE_GX_SET_FBSIZE
--	bool "Manually specify the Geode GX framebuffer size"
--	depends on FB_GEODE_GX
--	default n
--	---help---
--	  If you want to manually specify the size of your GX framebuffer,
--	  say Y here, otherwise say N to dynamically probe it.
--
--	  Say N unless you know what you are doing.
--
--config FB_GEODE_GX_FBSIZE
--	hex "Size of the GX framebuffer, in bytes"
--	depends on FB_GEODE_GX_SET_FBSIZE
--	default "0x1600000"
--	---help---
--	  Specify the size of the GX framebuffer.  Normally, you will
--	  want this to be MB aligned.  Common values are 0x80000 (8MB)
--	  and 0x1600000 (16MB).  Don't change this unless you know what
--	  you are doing
--
- config FB_GEODE_GX1
- 	tristate "AMD Geode GX1 framebuffer support (EXPERIMENTAL)"
- 	depends on FB && FB_GEODE && EXPERIMENTAL
-diff -puN drivers/video/geode/display_gx.c~gxfb-replace-fbsize-config-option-with-a-module-parameter drivers/video/geode/display_gx.c
---- a/drivers/video/geode/display_gx.c~gxfb-replace-fbsize-config-option-with-a-module-parameter
-+++ a/drivers/video/geode/display_gx.c
-@@ -21,12 +21,6 @@
- #include "geodefb.h"
- #include "display_gx.h"
- 
--#ifdef CONFIG_FB_GEODE_GX_SET_FBSIZE
--unsigned int gx_frame_buffer_size(void)
--{
--	return CONFIG_FB_GEODE_GX_FBSIZE;
--}
--#else
- unsigned int gx_frame_buffer_size(void)
+diff -puN mm/shmem.c~mempolicy-support-optional-mode-flags-fix mm/shmem.c
+--- a/mm/shmem.c~mempolicy-support-optional-mode-flags-fix
++++ a/mm/shmem.c
+@@ -1207,7 +1207,7 @@ static struct page *shmem_alloc_page(gfp
+ #else /* !CONFIG_NUMA */
+ #ifdef CONFIG_TMPFS
+ static inline int shmem_parse_mpol(char *value, unsigned short *policy,
+-				unsigned short flags, nodemask_t *policy_nodes)
++			unsigned short *mode_flags, nodemask_t *policy_nodes)
  {
- 	unsigned int val;
-@@ -41,7 +35,6 @@ unsigned int gx_frame_buffer_size(void)
- 	val = (unsigned int)(inw(0xAC1E)) & 0xFFl;
- 	return (val << 19);
+ 	return 1;
  }
--#endif
- 
- int gx_line_delta(int xres, int bpp)
- {
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-replace-fbsize-config-option-with-a-module-parameter drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-replace-fbsize-config-option-with-a-module-parameter
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -36,6 +36,7 @@
- #include "video_gx.h"
- 
- static char *mode_option;
-+static int vram;
- 
- /* Modes relevant to the GX (taken from modedb.c) */
- static const struct fb_videomode gx_modedb[] __initdata = {
-@@ -207,7 +208,6 @@ static int gxfb_blank(int blank_mode, st
- static int __init gxfb_map_video_memory(struct fb_info *info, struct pci_dev *dev)
- {
- 	struct geodefb_par *par = info->par;
--	int fb_len;
- 	int ret;
- 
- 	ret = pci_enable_device(dev);
-@@ -232,21 +232,20 @@ static int __init gxfb_map_video_memory(
- 	ret = pci_request_region(dev, 0, "gxfb (framebuffer)");
- 	if (ret < 0)
- 		return ret;
--	if ((fb_len = gx_frame_buffer_size()) < 0)
--		return -ENOMEM;
-+
- 	info->fix.smem_start = pci_resource_start(dev, 0);
--	info->fix.smem_len = fb_len;
-+	info->fix.smem_len = vram ? vram : gx_frame_buffer_size();
- 	info->screen_base = ioremap(info->fix.smem_start, info->fix.smem_len);
- 	if (!info->screen_base)
- 		return -ENOMEM;
- 
--	/* Set the 16MB aligned base address of the graphics memory region
-+	/* Set the 16MiB aligned base address of the graphics memory region
- 	 * in the display controller */
- 
- 	writel(info->fix.smem_start & 0xFF000000,
- 			par->dc_regs + DC_GLIU0_MEM_OFFSET);
- 
--	dev_info(&dev->dev, "%d Kibyte of video memory at 0x%lx\n",
-+	dev_info(&dev->dev, "%d KiB of video memory at 0x%lx\n",
- 		 info->fix.smem_len / 1024, info->fix.smem_start);
- 
- 	return 0;
-@@ -454,5 +453,8 @@ module_exit(gxfb_cleanup);
- module_param(mode_option, charp, 0);
- MODULE_PARM_DESC(mode_option, "video mode (<x>x<y>[-<bpp>][@<refr>])");
- 
-+module_param(vram, int, 0);
-+MODULE_PARM_DESC(vram, "video memory size");
-+
- MODULE_DESCRIPTION("Framebuffer driver for the AMD Geode GX");
- MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
-gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+git-unionfs.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+mempolicy-support-optional-mode-flags-fix.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+prio_tree-debugging-patch.patch
 
