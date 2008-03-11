@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty_ioctl-locking-for-tty_wait_until_sent.patch added to -mm tree
-Date: Mon, 10 Mar 2008 20:56:45 -0700
-Message-ID: <200803110356.m2B3ujd8021018@imap1.linux-foundation.org>
+Subject: + 3c501-further-coding-style-fixes.patch added to -mm tree
+Date: Mon, 10 Mar 2008 21:03:36 -0700
+Message-ID: <200803110403.m2B43a9D021244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbYCKD6E (ORCPT
+	by vger.kernel.org with ESMTP id S1750786AbYCKEEe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Mar 2008 23:58:04 -0400
+	Tue, 11 Mar 2008 00:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, ak@suse.de, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     tty_ioctl: locking for tty_wait_until_sent
+     3c501: further coding style fixes
 has been added to the -mm tree.  Its filename is
-     tty_ioctl-locking-for-tty_wait_until_sent.patch
+     3c501-further-coding-style-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty_ioctl: locking for tty_wait_until_sent
+Subject: 3c501: further coding style fixes
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This function still depends on the big kernel lock in some cases.  Push
-locking into the function ready for removal of the BKL from ioctl call paths.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/net/3c501.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty_ioctl-locking-for-tty_wait_until_sent drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty_ioctl-locking-for-tty_wait_until_sent
-+++ a/drivers/char/tty_ioctl.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/bitops.h>
- #include <linux/mutex.h>
-+#include <linux/smp_lock.h>
- 
- #include <asm/io.h>
- #include <asm/uaccess.h>
-@@ -61,11 +62,13 @@ void tty_wait_until_sent(struct tty_stru
- 		return;
- 	if (!timeout)
- 		timeout = MAX_SCHEDULE_TIMEOUT;
-+	lock_kernel();
- 	if (wait_event_interruptible_timeout(tty->write_wait,
--			!tty->driver->chars_in_buffer(tty), timeout) < 0)
--		return;
--	if (tty->driver->wait_until_sent)
--		tty->driver->wait_until_sent(tty, timeout);
-+			!tty->driver->chars_in_buffer(tty), timeout) >= 0) {
-+		if (tty->driver->wait_until_sent)
-+			tty->driver->wait_until_sent(tty, timeout);
-+	}
-+	unlock_kernel();
+diff -puN drivers/net/3c501.c~3c501-further-coding-style-fixes drivers/net/3c501.c
+--- a/drivers/net/3c501.c~3c501-further-coding-style-fixes
++++ a/drivers/net/3c501.c
+@@ -485,9 +485,7 @@ static int el_start_xmit(struct sk_buff 
+ 			printk(KERN_DEBUG "%s: burped during tx load.\n",
+ 				dev->name);
+ 		spin_lock_irqsave(&lp->lock, flags);
+-	}
+-	while (1);
+-
++	} while (1);
  }
- EXPORT_SYMBOL(tty_wait_until_sent);
  
+ /**
+@@ -612,7 +610,8 @@ static irqreturn_t el_interrupt(int irq,
+ 			dev->stats.tx_packets++;
+ 			if (el_debug > 6)
+ 				printk(KERN_DEBUG " Tx succeeded %s\n",
+-					(txsr & TX_RDY) ? "." : "but tx is busy!");
++					(txsr & TX_RDY) ? "." :
++							"but tx is busy!");
+ 			/*
+ 			 *	This is safe the interrupt is atomic WRT itself.
+ 			 */
+@@ -693,7 +692,8 @@ static void el_receive(struct net_device
+ 
+ 	if (pkt_len < 60 || pkt_len > 1536) {
+ 		if (el_debug)
+-			printk(KERN_DEBUG "%s: bogus packet, length=%d\n", dev->name, pkt_len);
++			printk(KERN_DEBUG "%s: bogus packet, length=%d\n",
++						dev->name, pkt_len);
+ 		dev->stats.rx_over_errors++;
+ 		return;
+ 	}
+@@ -711,7 +711,8 @@ static void el_receive(struct net_device
+ 
+ 	outw(0x00, GP_LOW);
+ 	if (skb == NULL) {
+-		printk(KERN_INFO "%s: Memory squeeze, dropping packet.\n", dev->name);
++		printk(KERN_INFO "%s: Memory squeeze, dropping packet.\n",
++								dev->name);
+ 		dev->stats.rx_dropped++;
+ 		return;
+ 	} else {
+@@ -748,7 +749,8 @@ static void  el_reset(struct net_device 
+ 	if (el_debug > 2)
+ 		printk(KERN_INFO "3c501 reset...");
+ 	outb(AX_RESET, AX_CMD);		/* Reset the chip */
+-	outb(AX_LOOP, AX_CMD);		/* Aux control, irq and loopback enabled */
++	/* Aux control, irq and loopback enabled */
++	outb(AX_LOOP, AX_CMD);
+ 	{
+ 		int i;
+ 		for (i = 0; i < 6; i++)	/* Set the station address. */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -85,6 +106,7 @@ origin.patch
 add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
 libata-isolate-and-rework-cable-logic.patch
 pata_amd-fix-sparse-warning.patch
+3c501-further-coding-style-fixes.patch
 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
 parisc-new-termios-definitions.patch
 char-riscom-fix-rc_board-indexing.patch
@@ -118,6 +140,7 @@ resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
 tty_io-fix-remaining-pid-struct-locking.patch
 tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
 tty_ioctl-locking-for-tty_wait_until_sent.patch
+tty_ioctl-soft-carrier-handling.patch
 istallion-tiocg-ssoftcar-handling-removal.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
