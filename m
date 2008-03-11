@@ -1,77 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - pageflags-use-proper-page-flag-functions-in-xen.patch removed from -mm tree
-Date: Mon, 10 Mar 2008 21:41:33 -0700
-Message-ID: <200803110451.m2B4p6Jp023033@imap1.linux-foundation.org>
+Subject: - pageflags-eliminate-pg_xxx-aliases.patch removed from -mm tree
+Date: Mon, 10 Mar 2008 21:41:35 -0700
+Message-ID: <200803110451.m2B4p8at023037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750967AbYCKEv1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751157AbYCKEv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 00:51:27 -0400
+	Tue, 11 Mar 2008 00:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, jeremy@goop.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pageflags: use proper page flag functions in Xen
+     pageflags: eliminate PG_xxx aliases
 has been removed from the -mm tree.  Its filename was
-     pageflags-use-proper-page-flag-functions-in-xen.patch
+     pageflags-eliminate-pg_xxx-aliases.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: use proper page flag functions in Xen
+Subject: pageflags: eliminate PG_xxx aliases
 From: Christoph Lameter <clameter@sgi.com>
 
-Xen uses bitops to manipulate page flags.  Make it use proper page flag
-functions.
+Remove aliases of PG_xxx.  We can easily drop those now and alias by
+specifying the PG_xxx flag in the macro that generates the functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu.c         |    4 ++--
- include/linux/page-flags.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |   10 +++-------
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/arch/x86/xen/mmu.c
-@@ -425,7 +425,7 @@ static void xen_do_pin(unsigned level, u
- 
- static int pin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_set_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestSetPagePinned(page);
- 	int flush;
- 
- 	if (pgfl)
-@@ -506,7 +506,7 @@ void __init xen_mark_init_mm_pinned(void
- 
- static int unpin_page(struct page *page, enum pt_level level)
- {
--	unsigned pgfl = test_and_clear_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestClearPagePinned(page);
- 
- 	if (pgfl && !PageHighMem(page)) {
- 		void *pt = lowmem_page_address(page);
-diff -puN include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen
+diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
 +++ a/include/linux/page-flags.h
-@@ -161,7 +161,7 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
+@@ -76,8 +76,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+-	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
+-	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+@@ -86,8 +84,6 @@ enum pageflags {
+ 	PG_swapcache,		/* Swap page: swp_entry_t in private */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+-	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
+ 	PG_buddy,		/* Page is free, on buddy lists */
+ 
+ #if (BITS_PER_LONG > 32)
+@@ -160,8 +156,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
+ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
  PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
  __PAGEFLAG(Slab, slab)
- PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
-+PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
++PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
++PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
  PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
  PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
  	__SETPAGEFLAG(Private, private)
+@@ -176,7 +172,7 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
+ 
+ /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
+ 
+ static inline int PageHighMem(struct page *page)
+ {
+diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
+--- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
++++ a/mm/page_alloc.c
+@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
+ 
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -103,7 +122,6 @@ mempolicy-move-rebind-functions.patch
 mempolicy-create-mempolicy_operations-structure.patch
 mempolicy-create-mempolicy_operations-structure-fix.patch
 mempolicy-small-header-file-cleanup.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
 pageflags-eliminate-pg_xxx-aliases.patch
 get-rid-of-__zone_count.patch
 dmapool-enable-debugging-for-config_slub_debug_on-too.patch
