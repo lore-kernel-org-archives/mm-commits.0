@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-section-mismatch-in-aic94xx-fix.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:26:41 -0700
-Message-ID: <200803122036.m2CKaG55012102@imap1.linux-foundation.org>
+Subject: + drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:32:24 -0700
+Message-ID: <200803122041.m2CKfxNN012309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752112AbYCLUg0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751488AbYCLUng (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:36:26 -0400
+	Wed, 12 Mar 2008 16:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, gregkh@suse.de, oliver@neukum.org, stern@rowland.harvard.edu, zaitcev@redhat.com
 
 
 The patch titled
-     scsi-fix-section-mismatch-in-aic94xx-fix
+     drivers/usb/core/devio.c: suppress warning with 64k PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     scsi-fix-section-mismatch-in-aic94xx-fix.patch
+     drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-section-mismatch-in-aic94xx-fix
+Subject: drivers/usb/core/devio.c: suppress warning with 64k PAGE_SIZE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/aic94xx/aic94xx_init.c: In function 'asd_pci_probe':
-drivers/scsi/aic94xx/aic94xx_init.c:762: warning: assignment discards qualifiers from pointer target type
+drivers/usb/core/devio.c: In function 'proc_control':
+drivers/usb/core/devio.c:657: warning: comparison is always false due to limited range of data type
 
-Cc: Gilbert Wu <gilbert_wu@adaptec.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Oliver Neukum <oliver@neukum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/devio.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix drivers/scsi/aic94xx/aic94xx_init.c
---- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix
-+++ a/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -735,7 +735,7 @@ static int asd_unregister_sas_ha(struct 
- static int __devinit asd_pci_probe(struct pci_dev *dev,
- 				   const struct pci_device_id *id)
- {
--	struct asd_pcidev_struct *asd_dev;
-+	const struct asd_pcidev_struct *asd_dev;
- 	unsigned asd_id = (unsigned) id->driver_data;
- 	struct asd_ha_struct *asd_ha;
- 	struct Scsi_Host *shost;
+diff -puN drivers/usb/core/devio.c~drivers-usb-core-devioc-suppress-warning-with-64k-page_size drivers/usb/core/devio.c
+--- a/drivers/usb/core/devio.c~drivers-usb-core-devioc-suppress-warning-with-64k-page_size
++++ a/drivers/usb/core/devio.c
+@@ -647,6 +647,7 @@ static int proc_control(struct dev_state
+ 	struct usbdevfs_ctrltransfer ctrl;
+ 	unsigned int tmo;
+ 	unsigned char *tbuf;
++	unsigned wLength;
+ 	int i, j, ret;
+ 
+ 	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
+@@ -654,7 +655,8 @@ static int proc_control(struct dev_state
+ 	ret = check_ctrlrecip(ps, ctrl.bRequestType, ctrl.wIndex);
+ 	if (ret)
+ 		return ret;
+-	if (ctrl.wLength > PAGE_SIZE)
++	wLength = ctrl.wLength;		/* To suppress 64k PAGE_SIZE warning */
++	if (wLength > PAGE_SIZE)
+ 		return -EINVAL;
+ 	tbuf = (unsigned char *)__get_free_page(GFP_KERNEL);
+ 	if (!tbuf)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,4 +188,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
 
