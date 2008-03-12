@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-the-memory-mapping-support-in-rionet-driver.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:24:28 -0700
-Message-ID: <200803120424.m2C4OSjN009867@imap1.linux-foundation.org>
+Subject: + rapidio-add-of-tree-support-to-rapidio-controller-driver.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:24:09 -0700
+Message-ID: <200803120424.m2C4O9DZ009825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751752AbYCLEYp (ORCPT
+	by vger.kernel.org with ESMTP id S1751437AbYCLEYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:24:45 -0400
+	Wed, 12 Mar 2008 00:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wei.zhang@freescale.com
 
 
 The patch titled
-     rapidio: add the memory mapping support in rionet driver
+     rapidio: add OF-tree support to RapidIO controller driver
 has been added to the -mm tree.  Its filename is
-     rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
+     rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,531 +34,271 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add the memory mapping support in rionet driver
+Subject: rapidio: add OF-tree support to RapidIO controller driver
 From: Zhang Wei <wei.zhang@freescale.com>
-
-The user can select memory mapping mode or message mode in CONFIG.  It is also
-an example to how-to use memory mapping driver for RapidIO.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig  |   10 +
- drivers/net/rionet.c |  324 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 334 insertions(+)
+ arch/powerpc/kernel/Makefile  |    1 
+ arch/powerpc/kernel/rio.c     |   52 ---------------
+ arch/powerpc/sysdev/fsl_rio.c |  110 +++++++++++++++++++++++++++++---
+ arch/powerpc/sysdev/fsl_rio.h |   20 -----
+ 4 files changed, 102 insertions(+), 81 deletions(-)
 
-diff -puN drivers/net/Kconfig~rapidio-add-the-memory-mapping-support-in-rionet-driver drivers/net/Kconfig
---- a/drivers/net/Kconfig~rapidio-add-the-memory-mapping-support-in-rionet-driver
-+++ a/drivers/net/Kconfig
-@@ -2719,6 +2719,16 @@ config RIONET_RX_SIZE
- 	depends on RIONET
- 	default "128"
+diff -puN arch/powerpc/kernel/Makefile~rapidio-add-of-tree-support-to-rapidio-controller-driver arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~rapidio-add-of-tree-support-to-rapidio-controller-driver
++++ a/arch/powerpc/kernel/Makefile
+@@ -72,7 +72,6 @@ pci64-$(CONFIG_PPC64)		+= pci_dn.o isa-b
+ obj-$(CONFIG_PCI)		+= pci_$(CONFIG_WORD_SIZE).o $(pci64-y) \
+ 				   pci-common.o
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+-obj-$(CONFIG_RAPIDIO)		+= rio.o
+ obj-$(CONFIG_KEXEC)		+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(CONFIG_WORD_SIZE).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+diff -puN arch/powerpc/kernel/rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver /dev/null
+--- a/arch/powerpc/kernel/rio.c
++++ /dev/null
+@@ -1,52 +0,0 @@
+-/*
+- * RapidIO PPC32 support
+- *
+- * Copyright 2005 MontaVista Software, Inc.
+- * Matt Porter <mporter@kernel.crashing.org>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- */
+-
+-#include <linux/init.h>
+-#include <linux/kernel.h>
+-#include <linux/rio.h>
+-
+-#include <asm/rio.h>
+-
+-/**
+- * platform_rio_init - Do platform specific RIO init
+- *
+- * Any platform specific initialization of RapdIO
+- * hardware is done here as well as registration
+- * of any active master ports in the system.
+- */
+-void __attribute__ ((weak))
+-    platform_rio_init(void)
+-{
+-	printk(KERN_WARNING "RIO: No platform_rio_init() present\n");
+-}
+-
+-/**
+- * ppc_rio_init - Do PPC32 RIO init
+- *
+- * Calls platform-specific RIO init code and then calls
+- * rio_init_mports() to initialize any master ports that
+- * have been registered with the RIO subsystem.
+- */
+-static int __init ppc_rio_init(void)
+-{
+-	printk(KERN_INFO "RIO: RapidIO init\n");
+-
+-	/* Platform specific initialization */
+-	platform_rio_init();
+-
+-	/* Enumerate all registered ports */
+-	rio_init_mports();
+-
+-	return 0;
+-}
+-
+-subsys_initcall(ppc_rio_init);
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/rio.h>
+ #include <linux/rio_drv.h>
++#include <linux/of_platform.h>
  
-+config RIONET_MEMMAP
-+	bool "Use memory map instead of message"
-+	depends on RIONET
-+	default n
-+
-+config RIONET_DMA
-+	bool "Use DMA for memory mapping data transfer"
-+	depends on RIONET_MEMMAP && FSL_DMA
-+	default y
-+
- config FDDI
- 	bool "FDDI driver support"
- 	depends on (PCI || EISA || TC)
-diff -puN drivers/net/rionet.c~rapidio-add-the-memory-mapping-support-in-rionet-driver drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-add-the-memory-mapping-support-in-rionet-driver
-+++ a/drivers/net/rionet.c
-@@ -1,6 +1,13 @@
- /*
-  * rionet - Ethernet driver over RapidIO messaging services
+ #include <asm/io.h>
+ 
+@@ -28,7 +29,6 @@
+ #define IRQ_RIO_TX(m)		(((struct rio_priv *)(m->priv))->txirq)
+ #define IRQ_RIO_RX(m)		(((struct rio_priv *)(m->priv))->rxirq)
+ 
+-#define RIO_REGS_BASE		(CCSRBAR + 0xc0000)
+ #define RIO_ATMU_REGS_OFFSET	0x10c00
+ #define RIO_MSG_REGS_OFFSET	0x11000
+ #define RIO_MAINT_WIN_SIZE	0x400000
+@@ -905,19 +905,66 @@ __setup("riohdid=", fsl_rio_get_cmdline)
+ 
+ /**
+  * fsl_rio_setup - Setup MPC85xx RapidIO interface
+- * @law_start: Starting physical address of RapidIO LAW
+- * @law_size: Size of RapidIO LAW
++ * @fsl_rio_setup - Setup Freescale PowerPC RapidIO interface
   *
-+ * Copyright (C) 2007 Freescale Semiconductor, Inc. All rights reserved.
-+ * Author: Zhang Wei, wei.zhang@freescale.com, Jun 2007
-+ *
-+ * Changelog:
-+ * Jun 2007 Zhang Wei <wei.zhang@freescale.com>
-+ * - Added the support to RapidIO memory driver. 2007.
-+ *
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-@@ -8,6 +15,7 @@
-  * under  the terms of  the GNU General  Public License as published by the
-  * Free Software Foundation;  either version 2 of the  License, or (at your
-  * option) any later version.
-+ *
+  * Initializes MPC85xx RapidIO hardware interface, configures
+  * master port with system-specific info, and registers the
+  * master port with the RapidIO subsystem.
   */
- 
- #include <linux/module.h>
-@@ -23,6 +31,7 @@
- #include <linux/skbuff.h>
- #include <linux/crc32.h>
- #include <linux/ethtool.h>
-+#include <linux/dmaengine.h>
- 
- #define DRV_NAME        "rionet"
- #define DRV_VERSION     "0.2"
-@@ -40,13 +49,47 @@ MODULE_LICENSE("GPL");
- 			 NETIF_MSG_TX_ERR)
- 
- #define RIONET_DOORBELL_JOIN	0x1000
-+#ifdef CONFIG_RIONET_MEMMAP
-+#define RIONET_DOORBELL_SEND	0x1001
-+#define RIONET_DOORBELL_LEAVE	0x1002
-+#else
- #define RIONET_DOORBELL_LEAVE	0x1001
-+#endif
- 
- #define RIONET_MAILBOX		0
- 
- #define RIONET_TX_RING_SIZE	CONFIG_RIONET_TX_SIZE
- #define RIONET_RX_RING_SIZE	CONFIG_RIONET_RX_SIZE
- 
-+#define ERR(fmt, arg...) \
-+	printk(KERN_ERR "ERROR %s - %s: " fmt,  __FILE__, __func__, ## arg)
-+
-+#ifdef CONFIG_RIONET_MEMMAP
-+/* Definitions for rionet memory map driver */
-+#define RIONET_DRVID		0x101
-+#define RIONET_MAX_SK_DATA_SIZE	0x1000
-+#define RIONET_TX_RX_BUFF_SIZE	(0x1000 * (128 + 128))
-+#define RIONET_QUEUE_NEXT(x)	(((x) < 127) ? ((x) + 1) : 0)
-+#define RIONET_QUEUE_INC(x)	(x = RIONET_QUEUE_NEXT(x))
-+
-+struct sk_data {
-+	u8	data[0x1000];
-+};
-+
-+#define RIONET_SKDATA_EN	0x80000000
-+struct rionet_tx_rx_buff {
-+	int		enqueue;		/* enqueue point */
-+	int		dequeue;		/* dequeue point */
-+	u32		size[128];		/* size[i] is skdata[i] size
-+						 * the most high bit [31] is
-+						 * enable bit. The
-+						 * max size is 4096.
-+						 */
-+	u8		rev1[3576];
-+	struct sk_data	skdata[128];		/* all size are 0x1000 * 128 */
-+};
-+#endif /* CONFIG_RIONET_MEMMAP */
-+
- static LIST_HEAD(rionet_peers);
- 
- struct rionet_private {
-@@ -60,6 +103,18 @@ struct rionet_private {
- 	spinlock_t lock;
- 	spinlock_t tx_lock;
- 	u32 msg_enable;
-+#ifdef CONFIG_RIONET_MEMMAP
-+	struct rionet_tx_rx_buff *rxbuff;
-+	struct rionet_tx_rx_buff __iomem *txbuff;
-+	struct rio_mem *rxmem;
-+	struct rio_mem *txmem;
-+#ifdef CONFIG_RIONET_DMA
-+	struct dma_chan *txdmachan;
-+	struct dma_chan *rxdmachan;
-+	struct dma_client rio_dma_client;
-+	spinlock_t rio_dma_event_lock;
-+#endif
-+#endif
- };
- 
- struct rionet_peer {
-@@ -90,6 +145,7 @@ static struct rio_dev **rionet_active;
- #define RIONET_MAC_MATCH(x)	(*(u32 *)x == 0x00010001)
- #define RIONET_GET_DESTID(x)	(*(u16 *)(x + 4))
- 
-+#ifndef CONFIG_RIONET_MEMMAP
- static int rionet_rx_clean(struct net_device *ndev)
+-void fsl_rio_setup(int law_start, int law_size)
++int fsl_rio_setup(struct of_device *dev)
  {
- 	int i;
-@@ -108,9 +164,11 @@ static int rionet_rx_clean(struct net_de
- 
- 		rnet->rx_skb[i]->data = data;
- 		skb_put(rnet->rx_skb[i], RIO_MAX_MSG_SIZE);
-+		rnet->rx_skb[i]->dev = ndev;
- 		rnet->rx_skb[i]->protocol =
- 		    eth_type_trans(rnet->rx_skb[i], ndev);
- 		error = netif_rx(rnet->rx_skb[i]);
-+		rnet->rx_skb[i] = NULL;
- 
- 		if (error == NET_RX_DROP) {
- 			ndev->stats.rx_dropped++;
-@@ -128,6 +186,7 @@ static int rionet_rx_clean(struct net_de
- 
- 	return i;
- }
-+#endif
- 
- static void rionet_rx_fill(struct net_device *ndev, int end)
- {
-@@ -141,19 +200,94 @@ static void rionet_rx_fill(struct net_de
- 		if (!rnet->rx_skb[i])
- 			break;
- 
-+#ifndef CONFIG_RIONET_MEMMAP
- 		rio_add_inb_buffer(rnet->mport, RIONET_MAILBOX,
- 				   rnet->rx_skb[i]->data);
-+#endif
- 	} while ((i = (i + 1) % RIONET_RX_RING_SIZE) != end);
- 
- 	rnet->rx_slot = i;
- }
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+static int rio_send_mem(struct sk_buff *skb,
-+				struct net_device *ndev, struct rio_dev *rdev)
-+{
-+	struct rionet_private *rnet = ndev->priv;
-+	int enqueue, dequeue;
-+	int err;
-+
-+	if (!rdev)
-+		return -EFAULT;
-+
-+	if (skb->len > RIONET_MAX_SK_DATA_SIZE) {
-+		printk(KERN_ERR "Frame len is more than RIONET max sk_data!\n");
-+		return -EINVAL;
-+	}
-+
-+	err = rio_space_find_mem(rnet->mport, rdev->destid, RIONET_DRVID,
-+					&rnet->txmem->riores);
-+	if (err) {
-+		ndev->stats.tx_dropped++;
-+		printk(KERN_ERR "Rio find mem err %d\n", err);
-+		return -EBUSY;
-+	}
-+	rio_map_outb_region(rnet->mport, rdev->destid, rnet->txmem, 0);
-+
-+	enqueue = in_be32(&rnet->txbuff->enqueue);
-+	dequeue = in_be32(&rnet->txbuff->dequeue);
-+
-+	if (!(in_be32(&rnet->txbuff->size[enqueue]) & RIONET_SKDATA_EN)
-+			&& (RIONET_QUEUE_NEXT(enqueue) != dequeue)) {
-+#ifdef CONFIG_RIONET_DMA
-+		struct dma_device *dmadev;
-+		struct dma_async_tx_descriptor *tx;
-+		dma_cookie_t tx_cookie = 0;
-+
-+		dmadev = rnet->txdmachan->device;
-+		tx = dmadev->device_prep_dma_memcpy(rnet->txdmachan,
-+			(void *)rnet->txbuff->skdata[enqueue].data
-+			  - (void *)rnet->txbuff + rnet->txmem->iores.start,
-+			dma_map_single(&ndev->dev, skb->data, skb->len,
-+			  DMA_TO_DEVICE), skb->len, 0);
-+		if (!tx)
-+			return -EFAULT;
-+		tx->ack = 1;
-+		tx_cookie = tx->tx_submit(tx);
-+
-+		dma_async_memcpy_issue_pending(rnet->txdmachan);
-+		while (dma_async_memcpy_complete(rnet->txdmachan,
-+				tx_cookie, NULL, NULL) == DMA_IN_PROGRESS) ;
-+#else
-+		memcpy(rnet->txbuff->skdata[enqueue].data, skb->data, skb->len);
-+#endif /* CONFIG_RIONET_DMA */
-+		out_be32(&rnet->txbuff->size[enqueue],
-+						RIONET_SKDATA_EN | skb->len);
-+		out_be32(&rnet->txbuff->enqueue,
-+						RIONET_QUEUE_NEXT(enqueue));
-+		in_be32(&rnet->txbuff->enqueue);	/* verify read */
-+	} else if (netif_msg_tx_err(rnet))
-+		printk(KERN_ERR "rionmet(memmap): txbuff is busy!\n");
-+
-+	rio_unmap_outb_region(rnet->mport, rnet->txmem);
-+	rio_send_doorbell(rdev, RIONET_DOORBELL_SEND);
-+	return 0;
-+}
-+#endif
-+
- static int rionet_queue_tx_msg(struct sk_buff *skb, struct net_device *ndev,
- 			       struct rio_dev *rdev)
- {
- 	struct rionet_private *rnet = ndev->priv;
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	int ret = 0;
-+	ret = rio_send_mem(skb, ndev, rdev);
-+	if (ret)
-+		return ret;
-+#else
- 	rio_add_outb_message(rnet->mport, rdev, 0, skb->data, skb->len);
-+#endif
- 	rnet->tx_skb[rnet->tx_slot] = skb;
- 
- 	ndev->stats.tx_packets++;
-@@ -165,6 +299,19 @@ static int rionet_queue_tx_msg(struct sk
- 	++rnet->tx_slot;
- 	rnet->tx_slot &= (RIONET_TX_RING_SIZE - 1);
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	while (rnet->tx_cnt && (rnet->ack_slot != rnet->tx_slot)) {
-+		/* dma unmap single */
-+		dev_kfree_skb_any(rnet->tx_skb[rnet->ack_slot]);
-+		rnet->tx_skb[rnet->ack_slot] = NULL;
-+		++rnet->ack_slot;
-+		rnet->ack_slot &= (RIONET_TX_RING_SIZE - 1);
-+		rnet->tx_cnt--;
-+	}
-+
-+	if (rnet->tx_cnt < RIONET_TX_RING_SIZE)
-+		netif_wake_queue(ndev);
-+#endif
- 	if (netif_msg_tx_queued(rnet))
- 		printk(KERN_INFO "%s: queued skb %8.8x len %8.8x\n", DRV_NAME,
- 		       (u32) skb, skb->len);
-@@ -211,6 +358,93 @@ static int rionet_start_xmit(struct sk_b
- 	return 0;
- }
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+static void rio_recv_mem(struct net_device *ndev)
-+{
-+	struct rionet_private *rnet = (struct rionet_private *)ndev->priv;
-+	struct sk_buff *skb;
-+	u32 enqueue, dequeue, size;
-+	int error = 0;
-+#ifdef CONFIG_RIONET_DMA
-+	dma_cookie_t rx_cookie = 0;
-+	struct dma_device *dmadev;
-+	struct dma_async_tx_descriptor *tx;
-+#endif
-+
-+	dequeue = rnet->rxbuff->dequeue;
-+	enqueue = rnet->rxbuff->enqueue;
-+
-+	while (enqueue != dequeue) {
-+		size = rnet->rxbuff->size[dequeue];
-+		if (!(size & RIONET_SKDATA_EN))
-+			return;
-+		size &= ~RIONET_SKDATA_EN;
-+
-+		skb = dev_alloc_skb(size + 2);
-+		if (!skb)
-+			return;
-+
-+#ifdef CONFIG_RIONET_DMA
-+		dmadev = rnet->rxdmachan->device;
-+		tx = dmadev->device_prep_dma_memcpy(rnet->rxdmachan,
-+			dma_map_single(&ndev->dev, skb_put(skb, size),
-+			  size, DMA_FROM_DEVICE),
-+			(void *)rnet->rxbuff->skdata[dequeue].data
-+			  - (void *)rnet->rxbuff + rnet->rxmem->iores.start,
-+			size, 0);
-+		if (!tx)
-+			return;
-+		tx->ack = 1;
-+		rx_cookie = tx->tx_submit(tx);
-+		dma_async_memcpy_issue_pending(rnet->rxdmachan);
-+		while (dma_async_memcpy_complete(rnet->rxdmachan,
-+				rx_cookie, NULL, NULL) == DMA_IN_PROGRESS) ;
-+#else
-+		memcpy(skb_put(skb, size),
-+				rnet->rxbuff->skdata[dequeue].data,
-+				size);
-+#endif /* CONFIG_RIONET_DMA */
-+		skb->dev = ndev;
-+		skb->protocol = eth_type_trans(skb, ndev);
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
-+
-+		error = netif_rx(skb);
-+
-+		rnet->rxbuff->size[dequeue] &= ~RIONET_SKDATA_EN;
-+		rnet->rxbuff->dequeue = RIONET_QUEUE_NEXT(dequeue);
-+		dequeue = RIONET_QUEUE_NEXT(dequeue);
-+
-+		if (error == NET_RX_DROP) {
-+			ndev->stats.rx_dropped++;
-+		} else if (error == NET_RX_BAD) {
-+			if (netif_msg_rx_err(rnet))
-+				printk(KERN_WARNING "%s: bad rx packet\n",
-+				       DRV_NAME);
-+			ndev->stats.rx_errors++;
-+		} else {
-+			ndev->stats.rx_packets++;
-+			ndev->stats.rx_bytes += RIO_MAX_MSG_SIZE;
-+		}
-+	}
-+}
-+
-+static void rionet_inb_recv_event(struct rio_mport *mport, void *dev_id)
-+{
-+	struct net_device *ndev = dev_id;
-+	struct rionet_private *rnet = (struct rionet_private *)ndev->priv;
-+	unsigned long flags;
-+
-+	if (netif_msg_intr(rnet))
-+		printk(KERN_INFO "%s: inbound memory data receive event\n",
-+		       DRV_NAME);
-+
-+	spin_lock_irqsave(&rnet->lock, flags);
-+	rio_recv_mem(ndev);
-+	spin_unlock_irqrestore(&rnet->lock, flags);
-+}
-+#endif
-+
-+
- static void rionet_dbell_event(struct rio_mport *mport, void *dev_id, u16 sid, u16 tid,
- 			       u16 info)
- {
-@@ -232,6 +466,10 @@ static void rionet_dbell_event(struct ri
- 		}
- 	} else if (info == RIONET_DOORBELL_LEAVE) {
- 		rionet_active[sid] = NULL;
-+#ifdef CONFIG_RIONET_MEMMAP
-+	} else if (info == RIONET_DOORBELL_SEND) {
-+		rionet_inb_recv_event(mport, ndev);
-+#endif
- 	} else {
- 		if (netif_msg_intr(rnet))
- 			printk(KERN_WARNING "%s: unhandled doorbell\n",
-@@ -239,6 +477,7 @@ static void rionet_dbell_event(struct ri
- 	}
- }
- 
-+#ifndef CONFIG_RIONET_MEMMAP
- static void rionet_inb_msg_event(struct rio_mport *mport, void *dev_id, int mbox, int slot)
- {
- 	int n;
-@@ -281,6 +520,58 @@ static void rionet_outb_msg_event(struct
- 
- 	spin_unlock(&rnet->lock);
- }
-+#endif
-+
-+#ifdef CONFIG_RIONET_DMA
-+static enum dma_state_client rionet_dma_event(struct dma_client *client,
-+		struct dma_chan *chan, enum dma_state state)
-+{
-+	struct rionet_private *rnet = container_of(client,
-+			struct rionet_private, rio_dma_client);
-+	enum dma_state_client ack = DMA_DUP;
-+
-+	spin_lock(&rnet->lock);
-+	switch (state) {
-+	case DMA_RESOURCE_AVAILABLE:
-+		if (!rnet->txdmachan) {
-+			ack = DMA_ACK;
-+			rnet->txdmachan = chan;
-+		} else if (!rnet->rxdmachan) {
-+			ack = DMA_ACK;
-+			rnet->rxdmachan = chan;
-+		}
-+		break;
-+	case DMA_RESOURCE_REMOVED:
-+		if (rnet->txdmachan == chan) {
-+			ack = DMA_ACK;
-+			rnet->txdmachan = NULL;
-+		} else if (rnet->rxdmachan == chan) {
-+			ack = DMA_ACK;
-+			rnet->rxdmachan = NULL;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+	spin_unlock(&rnet->lock);
-+	return ack;
-+}
-+
-+static int rionet_dma_register(struct rionet_private *rnet)
-+{
+ 	struct rio_ops *ops;
+ 	struct rio_mport *port;
+-	struct rio_priv *priv = NULL;
+-	int rc;
++	struct rio_priv *priv;
 +	int rc = 0;
-+	spin_lock_init(&rnet->rio_dma_event_lock);
-+	rnet->rio_dma_client.event_callback = rionet_dma_event;
-+	dma_cap_set(DMA_MEMCPY, rnet->rio_dma_client.cap_mask);
-+	dma_async_client_register(&rnet->rio_dma_client);
-+	dma_async_client_chan_request(&rnet->rio_dma_client);
++	const u32 *dt_range, *cell;
++	struct resource regs;
++	int rlen;
++	u64 law_start, law_size;
++	int paw, aw, sw;
 +
-+	if (!rnet->txdmachan || !rnet->rxdmachan)
-+		rc = -ENODEV;
++	if (!dev->node) {
++		dev_err(&dev->dev, "Device OF-Node is NULL");
++		return -EFAULT;
++	}
 +
++	rc = of_address_to_resource(dev->node, 0, &regs);
++	if (rc) {
++		dev_err(&dev->dev, "Can't get %s property 'reg'\n",
++				dev->node->full_name);
++		return -EFAULT;
++	}
++	dev_info(&dev->dev, "Of-device full name %s\n", dev->node->full_name);
++	dev_info(&dev->dev, "Regs start 0x%08x size 0x%08x\n",	regs.start,
++						regs.end - regs.start + 1);
++
++	dt_range = of_get_property(dev->node, "ranges", &rlen);
++	if (!dt_range) {
++		dev_err(&dev->dev, "Can't get %s property 'ranges'\n",
++				dev->node->full_name);
++		return -EFAULT;
++	}
++
++	/* Get node address wide */
++	cell = of_get_property(dev->node, "#address-cells", NULL);
++	if (cell)
++		aw = *cell;
++	else
++		aw = of_n_addr_cells(dev->node);
++	/* Get node size wide */
++	cell = of_get_property(dev->node, "#size-cells", NULL);
++	if (cell)
++		sw = *cell;
++	else
++		sw = of_n_size_cells(dev->node);
++	/* Get parent address wide wide */
++	paw = of_n_addr_cells(dev->node);
++
++	law_start = of_read_number(dt_range + aw, paw);
++	law_size = of_read_number(dt_range + aw + paw, sw);
++
++	dev_info(&dev->dev, "LAW start 0x%016llx, size 0x%016llx.\n",
++			law_start, law_size);
+ 
+ 	ops = kmalloc(sizeof(struct rio_ops), GFP_KERNEL);
+ 	ops->lcread = fsl_local_config_read;
+@@ -942,6 +989,12 @@ void fsl_rio_setup(int law_start, int la
+ 	port->iores.end = law_start + law_size;
+ 	port->iores.flags = IORESOURCE_MEM;
+ 
++	priv->bellirq = irq_of_parse_and_map(dev->node, 2);
++	priv->txirq = irq_of_parse_and_map(dev->node, 3);
++	priv->rxirq = irq_of_parse_and_map(dev->node, 4);
++	dev_info(&dev->dev, "bellirq: %d, txirq: %d, rxirq %d\n", priv->bellirq,
++				priv->txirq, priv->rxirq);
++
+ 	rio_init_dbell_res(&port->riores[RIO_DOORBELL_RESOURCE], 0, 0xffff);
+ 	rio_init_mbox_res(&port->riores[RIO_INB_MBOX_RESOURCE], 0, 0);
+ 	rio_init_mbox_res(&port->riores[RIO_OUTB_MBOX_RESOURCE], 0, 0);
+@@ -953,7 +1006,7 @@ void fsl_rio_setup(int law_start, int la
+ 	port->priv = priv;
+ 	rio_register_mport(port);
+ 
+-	priv->regs_win = ioremap(RIO_REGS_BASE, 0x20000);
++	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
+ 	priv->atmu_regs = (struct rio_atmu_regs *)(priv->regs_win
+ 					+ RIO_ATMU_REGS_OFFSET);
+ 	priv->maint_atmu_regs = priv->atmu_regs + 1;
+@@ -972,10 +1025,51 @@ void fsl_rio_setup(int law_start, int la
+ 	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);
+ 	fsl_rio_doorbell_init(port);
+ 
+-	return;
++	return 0;
+ err:
+ 	if (priv)
+ 		iounmap(priv->regs_win);
++	kfree(ops);
+ 	kfree(priv);
+ 	kfree(port);
 +	return rc;
 +}
-+#endif
- 
- static int rionet_open(struct net_device *ndev)
- {
-@@ -299,6 +590,28 @@ static int rionet_open(struct net_device
- 					rionet_dbell_event)) < 0)
- 		goto out;
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	rnet->rxmem = rio_request_inb_region(rnet->mport, NULL,
-+		  RIONET_TX_RX_BUFF_SIZE, "rionet_rx_buff", RIONET_DRVID);
-+	if (!rnet->rxmem) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	rnet->rxbuff = rnet->rxmem->virt;
 +
-+	rnet->txmem = rio_prepare_io_mem(rnet->mport, NULL,
-+				RIONET_TX_RX_BUFF_SIZE, "rionet_tx_buff");
-+	if (!rnet->txmem) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	rnet->txbuff = rnet->txmem->virt;
-+#ifdef CONFIG_RIONET_DMA
-+	rc = rionet_dma_register(rnet);
++/* The probe function for RapidIO peer-to-peer network.
++ */
++static int __devinit fsl_of_rio_rpn_probe(struct of_device *dev,
++				     const struct of_device_id *match)
++{
++	int rc;
++	printk(KERN_INFO "Setting up RapidIO peer-to-peer network %s\n",
++			dev->node->full_name);
++
++	rc = fsl_rio_setup(dev);
 +	if (rc)
 +		goto out;
-+#endif /* CONFIG_RIONET_DMA */
-+#else
- 	if ((rc = rio_request_inb_mbox(rnet->mport,
- 				       (void *)ndev,
- 				       RIONET_MAILBOX,
-@@ -312,6 +625,7 @@ static int rionet_open(struct net_device
- 					RIONET_TX_RING_SIZE,
- 					rionet_outb_msg_event)) < 0)
- 		goto out;
-+#endif
- 
- 	/* Initialize inbound message ring */
- 	for (i = 0; i < RIONET_RX_RING_SIZE; i++)
-@@ -375,8 +689,18 @@ static int rionet_close(struct net_devic
- 
- 	rio_release_inb_dbell(rnet->mport, RIONET_DOORBELL_JOIN,
- 			      RIONET_DOORBELL_LEAVE);
-+#ifdef CONFIG_RIONET_MEMMAP
-+	rio_release_inb_region(rnet->mport, rnet->rxmem);
-+	rio_release_outb_region(rnet->mport, rnet->txmem);
-+	rnet->rxbuff = NULL;
-+	rnet->txbuff = NULL;
-+#ifdef CONFIG_RIONET_DMA
-+	dma_async_client_unregister(&rnet->rio_dma_client);
-+#endif
-+#else
- 	rio_release_inb_mbox(rnet->mport, RIONET_MAILBOX);
- 	rio_release_outb_mbox(rnet->mport, RIONET_MAILBOX);
-+#endif
- 
- 	return 0;
++
++	/* Enumerate all registered ports */
++	rc = rio_init_mports();
++out:
++	return rc;
++};
++
++static const struct of_device_id fsl_of_rio_rpn_ids[] = {
++	{
++		.compatible = "fsl,rapidio-delta",
++	},
++	{},
++};
++
++static struct of_platform_driver fsl_of_rio_rpn_driver = {
++	.name = "fsl-of-rio",
++	.match_table = fsl_of_rio_rpn_ids,
++	.probe = fsl_of_rio_rpn_probe,
++};
++
++static __init int fsl_of_rio_rpn_init(void)
++{
++	return of_register_platform_driver(&fsl_of_rio_rpn_driver);
  }
-_
-
-Patches currently in -mm which might be from wei.zhang@freescale.com are
-
-rapidio-change-rio-function-mpc85xx_-to-fsl_.patch
-rapidio-add-rapidio-option-to-kernel-configuration.patch
-rapidio-move-include-asm-ppc-rioh-to-include-asm-powerpc-rioh.patch
-rapidio-add-rapidio-multi-mport-support.patch
-rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
-rapidio-change-the-kernel-configurated-rapidio-system-size-to-auto-probing.patch
-rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch
-rapidio-add-rapidio-node-probing-into-mpc86xx_hpcn-board-id-table.patch
-rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
-rapidio-add-rapidio-connection-info-print-out-and-re-training-for-break-connection.patch
-rapidio-add-memory-mapping-driver-to-rapidio.patch
-rapidio-add-rapidio-space-allocation-bitmap-arithmetic.patch
-rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
-rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
-rapidio-add-rapidio-proc-fs-for-memory-mapping-debugging.patch
-rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch
-rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
-git-async-tx.patch
-
++
++subsys_initcall(fsl_of_rio_rpn_init);
+diff -puN arch/powerpc/sysdev/fsl_rio.h~rapidio-add-of-tree-support-to-rapidio-controller-driver /dev/null
+--- a/arch/powerpc/sysdev/fsl_rio.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * MPC85xx RapidIO definitions
+- *
+- * Copyright 2005 MontaVista Software, Inc.
+- * Matt Porter <mporter@kernel.crashing.org>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- */
+-
+-#ifndef __PPC_SYSLIB_PPC85XX_RIO_H
+-#define __PPC_SYSLIB_PPC85XX_RIO_H
+-
+-#include <linux/init.h>
+-
+-extern void mpc85xx_rio_setup(int law_start, int law_size);
