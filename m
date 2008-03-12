@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:59:19 -0700
-Message-ID: <200803120459.m2C4xJr1011025@imap1.linux-foundation.org>
+Subject: + mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:00:36 -0700
+Message-ID: <200803120500.m2C50a3j011081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174AbYCLE7y (ORCPT
+	by vger.kernel.org with ESMTP id S1751153AbYCLFBF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:59:54 -0400
+	Wed, 12 Mar 2008 01:01:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bharrosh@panasas.com, gregkh@suse.de, mdharm-usb@one-eyed-alien.net, oliver@neukum.org, stern@rowland.harvard.edu
+Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, pj@sgi.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     isd200: Fix memory leak in isd200_get_inquiry_data
+     mempolicy: disallow static or relative flags for local preferred mode
 has been added to the -mm tree.  Its filename is
-     isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
+     mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isd200: Fix memory leak in isd200_get_inquiry_data
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: mempolicy: disallow static or relative flags for local preferred mode
+From: David Rientjes <rientjes@google.com>
 
-If the inquiry fails then the call to us->extra_destructor() is assumed to
-also free the info structure.  So make that so in isd200_free_info_ptrs()
+MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES don't mean anything for
+MPOL_PREFERRED policies that were created with an empty nodemask (for purely
+local allocations).  They'll never be invalidated because the allowed mems of
+a task changes or need to be rebound relative to a cpuset's placement.
 
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Also fixes a bug identified by Lee Schermerhorn that disallowed empty
+nodemasks to be passed to MPOL_PREFERRED to specify local allocations.  [A
+different, somewhat incomplete, patch already existed in 25-rc5-mm1.]
+
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/isd200.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/vm/numa_memory_policy.txt |   16 +++++++-
+ mm/mempolicy.c                          |   42 +++++++++++++---------
+ 2 files changed, 40 insertions(+), 18 deletions(-)
 
-diff -puN drivers/usb/storage/isd200.c~isd200-fix-memory-leak-in-isd200_get_inquiry_data drivers/usb/storage/isd200.c
---- a/drivers/usb/storage/isd200.c~isd200-fix-memory-leak-in-isd200_get_inquiry_data
-+++ a/drivers/usb/storage/isd200.c
-@@ -1471,6 +1471,9 @@ static void isd200_free_info_ptrs(void *
- 		kfree(info->id);
- 		kfree(info->RegsBuf);
- 		kfree(info->sense_buffer);
-+		kfree(info);
-+		us->extra = NULL;
-+		us->extra_destructor = NULL;
- 	}
- }
+diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode Documentation/vm/numa_memory_policy.txt
+--- a/Documentation/vm/numa_memory_policy.txt~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode
++++ a/Documentation/vm/numa_memory_policy.txt
+@@ -205,6 +205,12 @@ Components of Memory Policies
+ 	    local allocation for a specific range of addresses--i.e. for
+ 	    VMA policies.
  
++	    It is possible for the user to specify that local allocation is
++	    always preferred by passing an empty nodemask with this mode.
++	    If an empty nodemask is passed, the policy cannot use the
++	    MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES flags described
++	    below.
++
+ 	MPOL_INTERLEAVED:  This mode specifies that page allocations be
+ 	interleaved, on a page granularity, across the nodes specified in
+ 	the policy.  This mode also behaves slightly differently, based on
+@@ -254,7 +260,10 @@ Components of Memory Policies
+ 	    occurs over that node.  If no nodes from the user's nodemask are
+ 	    now allowed, the Default behavior is used.
+ 
+-	    MPOL_F_STATIC_NODES cannot be used with MPOL_F_RELATIVE_NODES.
++	    MPOL_F_STATIC_NODES cannot be combined with the
++	    MPOL_F_RELATIVE_NODES flag.  It also cannot be used for
++	    MPOL_PREFERRED policies that were created with an empty nodemask
++	    (local allocation).
+ 
+ 	MPOL_F_RELATIVE_NODES:  This flag specifies that the nodemask passed
+ 	by the user will be mapped relative to the set of the task or VMA's
+@@ -301,7 +310,10 @@ Components of Memory Policies
+ 	    set of memory nodes allowed by the task's cpuset, as that may
+ 	    change over time.
+ 
+-	    MPOL_F_RELATIVE_NODES cannot be used with MPOL_F_STATIC_NODES.
++	    MPOL_F_RELATIVE_NODES cannot be combined with the
++	    MPOL_F_STATIC_NODES flag.  It also cannot be used for
++	    MPOL_PREFERRED policies that were created with an empty nodemask
++	    (local allocation).
+ 
+ MEMORY POLICY APIs
+ 
+diff -puN mm/mempolicy.c~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode
++++ a/mm/mempolicy.c
+@@ -181,27 +181,43 @@ static struct mempolicy *mpol_new(unsign
+ {
+ 	struct mempolicy *policy;
+ 	nodemask_t cpuset_context_nmask;
+-	int localalloc = 0;
+ 	int ret;
+ 
+ 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
+ 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
+ 
+-	if (mode == MPOL_DEFAULT)
+-		return NULL;
+-	if (!nodes || nodes_empty(*nodes)) {
+-		if (mode != MPOL_PREFERRED)
++	if (mode == MPOL_DEFAULT) {
++		if (nodes && !nodes_empty(*nodes))
+ 			return ERR_PTR(-EINVAL);
+-		localalloc = 1;	/* special case:  no mode flags */
++		return NULL;
+ 	}
++	VM_BUG_ON(!nodes);
++
++	/*
++	 * MPOL_PREFERRED cannot be used with MPOL_F_STATIC_NODES or
++	 * MPOL_F_RELATIVE_NODES if the nodemask is empty (local allocation).
++	 * All other modes require a valid pointer to a non-empty nodemask.
++	 */
++	if (mode == MPOL_PREFERRED) {
++		if (nodes_empty(*nodes)) {
++			if (((flags & MPOL_F_STATIC_NODES) ||
++			     (flags & MPOL_F_RELATIVE_NODES)))
++				return ERR_PTR(-EINVAL);
++			nodes = NULL;	/* flag local alloc */
++		}
++	} else if (nodes_empty(*nodes))
++		return ERR_PTR(-EINVAL);
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!policy)
+ 		return ERR_PTR(-ENOMEM);
+ 	atomic_set(&policy->refcnt, 1);
+ 	policy->policy = mode;
++	policy->flags = flags;
+ 
+-	if (!localalloc) {
+-		policy->flags = flags;
++	if (nodes) {
++		/*
++		 * cpuset related setup doesn't apply to local allocation
++		 */
+ 		cpuset_update_task_memory_state();
+ 		if (flags & MPOL_F_RELATIVE_NODES)
+ 			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
+@@ -217,7 +233,7 @@ static struct mempolicy *mpol_new(unsign
+ 	}
+ 
+ 	ret = mpol_ops[mode].create(policy,
+-				localalloc ? NULL : &cpuset_context_nmask);
++				nodes ? &cpuset_context_nmask : NULL);
+ 	if (ret < 0) {
+ 		kmem_cache_free(policy_cache, policy);
+ 		return ERR_PTR(ret);
+@@ -259,10 +275,6 @@ static void mpol_rebind_preferred(struct
+ {
+ 	nodemask_t tmp;
+ 
+-	/*
+-	 * check 'STATIC_NODES first, as preferred_node == -1 may be
+-	 * a temporary, "fallback" state for this policy.
+-	 */
+ 	if (pol->flags & MPOL_F_STATIC_NODES) {
+ 		int node = first_node(pol->w.user_nodemask);
+ 
+@@ -270,12 +282,10 @@ static void mpol_rebind_preferred(struct
+ 			pol->v.preferred_node = node;
+ 		else
+ 			pol->v.preferred_node = -1;
+-	} else if (pol->v.preferred_node == -1) {
+-		return;	/* no remap required for explicit local alloc */
+ 	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
+ 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
+ 		pol->v.preferred_node = first_node(tmp);
+-	} else {
++	} else if (pol->v.preferred_node != -1) {
+ 		pol->v.preferred_node = node_remap(pol->v.preferred_node,
+ 						   pol->w.cpuset_mems_allowed,
+ 						   *nodes);
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-git-scsi-misc.patch
-gdth-allocate-sense_buffer-to-prevent-null-pointer-dereference.patch
-isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch
-isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch
-isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
+origin.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
 
