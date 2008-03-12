@@ -1,87 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - n_tty-loss-of-sync-following-a-buffer-overflow.patch removed from -mm tree
-Date: Wed, 12 Mar 2008 11:12:37 -0700
-Message-ID: <200803121812.m2CICbhZ006763@imap1.linux-foundation.org>
+Subject: - isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch removed from -mm tree
+Date: Wed, 12 Mar 2008 13:00:49 -0700
+Message-ID: <200803122010.m2CKAOAg011088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751270AbYCLSNK (ORCPT
+	by vger.kernel.org with ESMTP id S1753067AbYCLUKm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 14:13:10 -0400
+	Wed, 12 Mar 2008 16:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Rupesh.Sugathan@gmail.com, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: bharrosh@panasas.com, gregkh@suse.de, mdharm-usb@one-eyed-alien.net, oliver@neukum.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     n_tty: loss of sync following a buffer overflow
+     isd200: Fix memory leak in isd200_get_inquiry_data
 has been removed from the -mm tree.  Its filename was
-     n_tty-loss-of-sync-following-a-buffer-overflow.patch
+     isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because akpm confusion
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: n_tty: loss of sync following a buffer overflow
-From: Rupesh Sugathan <Rupesh.Sugathan@gmail.com>
+Subject: isd200: Fix memory leak in isd200_get_inquiry_data
+From: Boaz Harrosh <bharrosh@panasas.com>
 
-There seems to be a synchronization issue with the n_tty.c driver when working
-in canonical mode.
+If the inquiry fails then the call to us->extra_destructor() is assumed to
+also free the info structure.  So make that so in isd200_free_info_ptrs()
 
-The n_tty rightly discards data received following a buffer overflow and hence
-the tty->read_cnt is not updated.  However, the newline characters received
-following a buffer overflow seems to increment the tty->canon_data index. 
-This may result in a loss of sync between the tty->canon_data & tty->read_cnt
-while processing read in the read_chan().  This loss of sync might be
-irrecoverable even when the data is later received at a slower rate.
-
-I am not very sure if there is any deliberate rationale to process the
-newlines even when the buffer has overflown.
-
-Signed-off-by: Rupesh Sugathan <Rupesh.Sugathan@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ drivers/usb/storage/isd200.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/char/n_tty.c~n_tty-loss-of-sync-following-a-buffer-overflow drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~n_tty-loss-of-sync-following-a-buffer-overflow
-+++ a/drivers/char/n_tty.c
-@@ -850,15 +850,17 @@ send_signal:
- 				put_tty_queue(c, tty);
- 
- handle_newline:
--			spin_lock_irqsave(&tty->read_lock, flags);
--			set_bit(tty->read_head, tty->read_flags);
--			put_tty_queue_nolock(c, tty);
--			tty->canon_head = tty->read_head;
--			tty->canon_data++;
--			spin_unlock_irqrestore(&tty->read_lock, flags);
--			kill_fasync(&tty->fasync, SIGIO, POLL_IN);
--			if (waitqueue_active(&tty->read_wait))
--				wake_up_interruptible(&tty->read_wait);
-+			if (tty->read_cnt < N_TTY_BUF_SIZE) {
-+				spin_lock_irqsave(&tty->read_lock, flags);
-+				set_bit(tty->read_head, tty->read_flags);
-+				put_tty_queue_nolock(c, tty);
-+				tty->canon_head = tty->read_head;
-+				tty->canon_data++;
-+				spin_unlock_irqrestore(&tty->read_lock, flags);
-+				kill_fasync(&tty->fasync, SIGIO, POLL_IN);
-+				if (waitqueue_active(&tty->read_wait))
-+					wake_up_interruptible(&tty->read_wait);
-+			}
- 			return;
- 		}
+diff -puN drivers/usb/storage/isd200.c~isd200-fix-memory-leak-in-isd200_get_inquiry_data drivers/usb/storage/isd200.c
+--- a/drivers/usb/storage/isd200.c~isd200-fix-memory-leak-in-isd200_get_inquiry_data
++++ a/drivers/usb/storage/isd200.c
+@@ -1471,6 +1471,9 @@ static void isd200_free_info_ptrs(void *
+ 		kfree(info->id);
+ 		kfree(info->RegsBuf);
+ 		kfree(info->sense_buffer);
++		kfree(info);
++		us->extra = NULL;
++		us->extra_destructor = NULL;
  	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from Rupesh.Sugathan@gmail.com are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
-n_tty-loss-of-sync-following-a-buffer-overflow.patch
+git-scsi-misc.patch
+gdth-allocate-sense_buffer-to-prevent-null-pointer-dereference.patch
+isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
 
