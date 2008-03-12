@@ -1,141 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch added to -mm tree
-Date: Tue, 11 Mar 2008 15:23:03 -0700
-Message-ID: <200803112223.m2BMN3BV029680@imap1.linux-foundation.org>
+Subject: - cifs-hack-around-biuld-error.patch removed from -mm tree
+Date: Tue, 11 Mar 2008 17:06:03 -0700
+Message-ID: <200803120006.m2C063mc000972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750982AbYCKWYU (ORCPT
+	by vger.kernel.org with ESMTP id S1751413AbYCLAHA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 18:24:20 -0400
+	Tue, 11 Mar 2008 20:07:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, hpa@zytor.com, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, pageexec@freemail.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "x86 - Enhance DEBUG_RODATA support for hotplug and kprobes"
-has been added to the -mm tree.  Its filename is
-     revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
+     cifs: hack around biuld error
+has been removed from the -mm tree.  Its filename was
+     cifs-hack-around-biuld-error.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "x86 - Enhance DEBUG_RODATA support for hotplug and kprobes"
+Subject: cifs: hack around biuld error
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+ERROR: "cifs_dfs_referral_inode_operations" [fs/cifs/cifs.ko] undefined!
 
-commit 6058550ae95c3700fd9c2f869076d711689eb954
-Author: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Date:   Sat Feb 2 15:42:20 2008 -0500
-
-as it caused suspend-to-disk failures on my t61p.
-
-It should never have been merged with such a ridiculously bad changelog
-anyway.  It is completely useless and this *greatly* decreases my ability to
-work out why the patch is broken.
-
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <pageexec@freemail.hu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_32.c |   24 ++++++++++++++++--------
- arch/x86/mm/init_64.c |   20 ++++++++++++++++++--
- 2 files changed, 34 insertions(+), 10 deletions(-)
+ fs/cifs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/mm/init_32.c~revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes
-+++ a/arch/x86/mm/init_32.c
-@@ -723,17 +723,25 @@ void mark_rodata_ro(void)
- 	unsigned long start = PFN_ALIGN(_text);
- 	unsigned long size = PFN_ALIGN(_etext) - start;
- 
--	set_pages_ro(virt_to_page(start), size >> PAGE_SHIFT);
--	printk(KERN_INFO "Write protecting the kernel text: %luk\n",
--		size >> 10);
-+#ifndef CONFIG_KPROBES
-+#ifdef CONFIG_HOTPLUG_CPU
-+	/* It must still be possible to apply SMP alternatives. */
-+	if (num_possible_cpus() <= 1)
+diff -puN fs/cifs/inode.c~cifs-hack-around-biuld-error fs/cifs/inode.c
+--- a/fs/cifs/inode.c~cifs-hack-around-biuld-error
++++ a/fs/cifs/inode.c
+@@ -58,7 +58,9 @@ static void cifs_set_ops(struct inode *i
+ 		break;
+ 	case S_IFDIR:
+ 		if (is_dfs_referral) {
++#ifdef CONFIG_CIFS_DFS_UPCALL
+ 			inode->i_op = &cifs_dfs_referral_inode_operations;
 +#endif
-+	{
-+		set_pages_ro(virt_to_page(start), size >> PAGE_SHIFT);
-+		printk(KERN_INFO "Write protecting the kernel text: %luk\n",
-+			size >> 10);
- 
- #ifdef CONFIG_CPA_DEBUG
--	printk(KERN_INFO "Testing CPA: Reverting %lx-%lx\n",
--		start, start+size);
--	set_pages_rw(virt_to_page(start), size>>PAGE_SHIFT);
-+		printk(KERN_INFO "Testing CPA: Reverting %lx-%lx\n",
-+			start, start+size);
-+		set_pages_rw(virt_to_page(start), size>>PAGE_SHIFT);
- 
--	printk(KERN_INFO "Testing CPA: write protecting again\n");
--	set_pages_ro(virt_to_page(start), size>>PAGE_SHIFT);
-+		printk(KERN_INFO "Testing CPA: write protecting again\n");
-+		set_pages_ro(virt_to_page(start), size>>PAGE_SHIFT);
-+#endif
-+	}
- #endif
- 	start += size;
- 	size = (unsigned long)__end_rodata - start;
-diff -puN arch/x86/mm/init_64.c~revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes
-+++ a/arch/x86/mm/init_64.c
-@@ -632,7 +632,24 @@ EXPORT_SYMBOL_GPL(rodata_test_data);
- 
- void mark_rodata_ro(void)
- {
--	unsigned long start = PFN_ALIGN(_stext), end = PFN_ALIGN(__end_rodata);
-+	unsigned long start = (unsigned long)_stext, end;
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+	/* It must still be possible to apply SMP alternatives. */
-+	if (num_possible_cpus() > 1)
-+		start = (unsigned long)_etext;
-+#endif
-+
-+#ifdef CONFIG_KPROBES
-+	start = (unsigned long)__start_rodata;
-+#endif
-+
-+	end = (unsigned long)__end_rodata;
-+	start = (start + PAGE_SIZE - 1) & PAGE_MASK;
-+	end &= PAGE_MASK;
-+	if (end <= start)
-+		return;
-+
- 
- 	printk(KERN_INFO "Write protecting the kernel read-only data: %luk\n",
- 	       (end - start) >> 10);
-@@ -655,7 +672,6 @@ void mark_rodata_ro(void)
- 	set_memory_ro(start, (end-start) >> PAGE_SHIFT);
- #endif
- }
--
- #endif
- 
- #ifdef CONFIG_BLK_DEV_INITRD
+ 		} else {
+ 			inode->i_op = &cifs_dir_inode_ops;
+ 			inode->i_fop = &cifs_dir_ops;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
