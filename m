@@ -1,80 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - ntfs-fix-nommu-build.patch removed from -mm tree
-Date: Wed, 12 Mar 2008 00:59:44 -0700
-Message-ID: <200803120759.m2C7xirl017009@imap1.linux-foundation.org>
+Subject: + nommu-provide-is_vmalloc_addr-stub.patch added to -mm tree
+Date: Wed, 12 Mar 2008 00:59:42 -0700
+Message-ID: <200803120759.m2C7xg6T017004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbYCLH74 (ORCPT
+	by vger.kernel.org with ESMTP id S1750788AbYCLIAo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 03:59:56 -0400
+	Wed, 12 Mar 2008 04:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, aia21@cantab.net, clameter@sgi.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lethal@linux-sh.org, clameter@sgi.com, dhowells@redhat.com, gerg@snapgear.com
 
 
 The patch titled
-     ntfs: fix nommu build
-has been removed from the -mm tree.  Its filename was
-     ntfs-fix-nommu-build.patch
+     nommu: provide is_vmalloc_addr() stub
+has been added to the -mm tree.  Its filename is
+     nommu-provide-is_vmalloc_addr-stub.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntfs: fix nommu build
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: nommu: provide is_vmalloc_addr() stub
+From: Paul Mundt <lethal@linux-sh.org>
 
-In file included from fs/ntfs/attrib.c:32:
-fs/ntfs/malloc.h: In function 'ntfs_free':
-fs/ntfs/malloc.h:88: error: implicit declaration of function
-'is_vmalloc_addr' make[2]: *** [fs/ntfs/attrib.o] Error 1
+Introduced in commit-id 9e2779fa281cfda13ac060753d674bbcaa23367e and ifdef'ed
+out for nommu in 8ca3ed87db062201e1fa15b64a9214e193fc3a8a, both approaches end
+up breaking the nommu build in different ways.  An impressive feat for a
+2-liner.
 
-commit 9e2779fa281cfda13ac060753d674bbcaa23367e ("is_vmalloc_addr(): Check if
-an address is within the vmalloc boundaries") changed fs/ntfs/malloc.h from
-using VMALLOC_* defines to is_vmalloc_addr() (which makes sense), but Blackfin
-was defining VMALLOC_* (to basically the range of all memory addresses like
-most no-mmu ports)
+Current is_vmalloc_addr() users fall in to two camps:
 
-so we can drop CONFIG_MMU around is_vmalloc_addr() in include/linux/mm.h, or
-we can just make it return 1 all the time for no-mmu.  the former sounds
-easier.
+	- Determining whether to use vfree()/kfree()
+	- Whether to do vmlist traversal (only /proc/kcore).
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Since we don't support /proc/kcore on nommu, that leaves the vfree()/kfree()
+determination use cases.  nommu vfree() happens to be a wrapper to kfree()
+anyways, so is_vmalloc_addr() can always return 0 and end up with the right
+behaviour.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/mm.h |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~ntfs-fix-nommu-build include/linux/mm.h
---- a/include/linux/mm.h~ntfs-fix-nommu-build
+diff -puN include/linux/mm.h~nommu-provide-is_vmalloc_addr-stub include/linux/mm.h
+--- a/include/linux/mm.h~nommu-provide-is_vmalloc_addr-stub
 +++ a/include/linux/mm.h
-@@ -235,7 +235,6 @@ static inline int get_page_unless_zero(s
+@@ -235,15 +235,22 @@ static inline int get_page_unless_zero(s
  struct page *vmalloc_to_page(const void *addr);
  unsigned long vmalloc_to_pfn(const void *addr);
  
 -#ifdef CONFIG_MMU
- /* Determine if an address is within the vmalloc range */
+-/* Determine if an address is within the vmalloc range */
++/*
++ * Determine if an address is within the vmalloc range
++ *
++ * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
++ * is no special casing required.
++ */
  static inline int is_vmalloc_addr(const void *x)
  {
-@@ -243,7 +242,6 @@ static inline int is_vmalloc_addr(const 
++#ifdef CONFIG_MMU
+ 	unsigned long addr = (unsigned long)x;
  
  	return addr >= VMALLOC_START && addr < VMALLOC_END;
- }
--#endif
+-}
++#else
++	return 0;
+ #endif
++}
  
  static inline struct page *compound_head(struct page *page)
  {
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-ntfs-fix-nommu-build.patch
-blackfin-replace-remaining-__function__-occurences.patch
-procfs-task-exe-symlink-fix-2.patch
+nommu-provide-is_vmalloc_addr-stub.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+smc91x-pass-along-private-data-v2.patch
+smc91x-introduce-platform-data-flags-v2.patch
+smc91x-add-insw-outsw-to-default-config-v2.patch
+smc91x-make-superh-use-default-config-v2.patch
+git-sh.patch
+smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
+taint-kernel-after-warn_oncondition.patch
+sm501-add-uart-support.patch
+asm-futexh-should-include-linux-uaccessh.patch
+remove-duplicated-unlikely-in-is_err.patch
 
