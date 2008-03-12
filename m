@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-initioc-suppress-compile-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:41:11 -0700
-Message-ID: <200803122050.m2CKok60012571@imap1.linux-foundation.org>
+Subject: + drivers-scsi-hptiopc-fix-build-warning.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:43:27 -0700
+Message-ID: <200803122053.m2CKr2Ii012685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51682 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32809 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750924AbYCLUuv (ORCPT
+	by vger.kernel.org with ESMTP id S1751659AbYCLUxI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:50:51 -0400
+	Wed, 12 Mar 2008 16:53:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp, linux@highpoint-tech.com
 
 
 The patch titled
-     drivers/scsi/initio.c: suppress compile warning
+     drivers/scsi/hptiop.c: fix build warning
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-initioc-suppress-compile-warning.patch
+     drivers-scsi-hptiopc-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/initio.c: suppress compile warning
+Subject: drivers/scsi/hptiop.c: fix build warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
 powerpc:
 
-drivers/scsi/initio.c: In function 'initio_build_scb':
-drivers/scsi/initio.c:2585: warning: large integer implicitly truncated to unsigned type
+drivers/scsi/hptiop.c: In function 'iop_set_config_mv':
+drivers/scsi/hptiop.c:395: warning: large integer implicitly truncated to unsigned type
 
+This field is only 32-bit, so cpu_to_le64() seems wrong.
+
+Cc: HighPoint Linux Team <linux@highpoint-tech.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/initio.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/scsi/hptiop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/initio.c~drivers-scsi-initioc-suppress-compile-warning drivers/scsi/initio.c
---- a/drivers/scsi/initio.c~drivers-scsi-initioc-suppress-compile-warning
-+++ a/drivers/scsi/initio.c
-@@ -2582,7 +2582,11 @@ static void initio_build_scb(struct init
- 	dma_addr = dma_map_single(&host->pci_dev->dev, cmnd->sense_buffer,
- 				  SENSE_SIZE, DMA_FROM_DEVICE);
- 	cblk->senseptr = cpu_to_le32((u32)dma_addr);
--	cblk->senselen = cpu_to_le32(SENSE_SIZE);
-+	/*
-+	 * The below needs casting to avoid a "large integer implicitly
-+	 * truncated to unsigned type" warning on powerpc
-+	 */
-+	cblk->senselen = (u8)cpu_to_le32(SENSE_SIZE);
- 	cmnd->SCp.ptr = (char *)(unsigned long)dma_addr;
- 	cblk->cdblen = cmnd->cmd_len;
+diff -puN drivers/scsi/hptiop.c~drivers-scsi-hptiopc-fix-build-warning drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~drivers-scsi-hptiopc-fix-build-warning
++++ a/drivers/scsi/hptiop.c
+@@ -392,7 +392,7 @@ static int iop_set_config_mv(struct hpti
+ 	req->header.size =
+ 		cpu_to_le32(sizeof(struct hpt_iop_request_set_config));
+ 	req->header.result = cpu_to_le32(IOP_RESULT_PENDING);
+-	req->header.context = cpu_to_le64(IOP_REQUEST_TYPE_SET_CONFIG<<5);
++	req->header.context = cpu_to_le32(IOP_REQUEST_TYPE_SET_CONFIG<<5);
  
+ 	if (iop_send_sync_request_mv(hba, 0, 20000)) {
+ 		dprintk("Set config send cmd failed\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +110,7 @@ scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
 git-block-git-rejects.patch
 git-unionfs.patch
 drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
@@ -186,5 +186,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
 
