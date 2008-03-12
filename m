@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 14:07:27 -0700
-Message-ID: <200803122117.m2CLH2W1013548@imap1.linux-foundation.org>
+Subject: + pnp-use-dev_printk-for-quirk-messages-fix.patch added to -mm tree
+Date: Wed, 12 Mar 2008 14:13:45 -0700
+Message-ID: <200803122123.m2CLNKW2013806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751710AbYCLVSR (ORCPT
+	by vger.kernel.org with ESMTP id S1753180AbYCLVXa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 17:18:17 -0400
+	Wed, 12 Mar 2008 17:23:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, jeff@garzik.org
+Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     drivers/atm/firestream.c: suppress uninitialized var warning
+     pnp-use-dev_printk-for-quirk-messages-fix
 has been added to the -mm tree.  Its filename is
-     drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+     pnp-use-dev_printk-for-quirk-messages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/atm/firestream.c: suppress uninitialized var warning
+Subject: pnp-use-dev_printk-for-quirk-messages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/atm/firestream.c: In function 'fs_open':
-drivers/atm/firestream.c:870: warning: 'tmc0' may be used uninitialized in this function
+Fix this:
 
-I have confirmed that this is a false positive.
+drivers/pnp/quirks.c: In function 'quirk_awe32_resources':
+drivers/pnp/quirks.c:25: warning: 'port3' may be used uninitialized in this function
+drivers/pnp/quirks.c:25: warning: 'port2' may be used uninitialized in this function
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: chas williams <chas@cmf.nrl.navy.mil>
+and make the output more accurate.
+
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/firestream.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/quirks.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/atm/firestream.c~drivers-atm-firestreamc-suppress-uninitialized-var-warning drivers/atm/firestream.c
---- a/drivers/atm/firestream.c~drivers-atm-firestreamc-suppress-uninitialized-var-warning
-+++ a/drivers/atm/firestream.c
-@@ -867,7 +867,7 @@ static int fs_open(struct atm_vcc *atm_v
- 	int error;
- 	int bfp;
- 	int to;
--	unsigned short tmc0;
-+	unsigned short uninitialized_var(tmc0);
- 	short vpi = atm_vcc->vpi;
- 	int vci = atm_vcc->vci;
+diff -puN drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix
++++ a/drivers/pnp/quirks.c
+@@ -49,9 +49,11 @@ static void quirk_awe32_resources(struct
+ 		port2->max += 0x400;
+ 		port3->min += 0x800;
+ 		port3->max += 0x800;
++		dev_info(&dev->dev,
++			"AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
++			(unsigned long)port2->min,
++			(unsigned long)port3->min);
+ 	}
+-	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
+-		(unsigned long) port2->min, (unsigned long) port3->min);
+ }
  
+ static void quirk_cmi8330_resources(struct pnp_dev *dev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +105,7 @@ devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
 git-net-fix-build-with-config_net=n.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 net-sunrpc-svcc-suppress-unintialized-var-warning.patch
@@ -157,6 +165,7 @@ rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
 fat_valid_media-remove-pointless-test.patch
 fatfs-fix-build-warning-with-64k-page_size.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
@@ -189,5 +198,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+a.patch
 
