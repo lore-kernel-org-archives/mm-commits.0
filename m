@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-hptiopc-fix-build-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:43:27 -0700
-Message-ID: <200803122053.m2CKr2Ii012685@imap1.linux-foundation.org>
+Subject: + drivers-scsi-mvsasc-fix-build-warnings.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:45:18 -0700
+Message-ID: <200803122054.m2CKsrje012706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659AbYCLUxI (ORCPT
+	by vger.kernel.org with ESMTP id S1751665AbYCLUzc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:53:08 -0400
+	Wed, 12 Mar 2008 16:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp, linux@highpoint-tech.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jeff@garzik.org, kewei@marvell.com, oliver.pntr@gmail.com
 
 
 The patch titled
-     drivers/scsi/hptiop.c: fix build warning
+     drivers/scsi/mvsas.c: fix build warnings
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-hptiopc-fix-build-warning.patch
+     drivers-scsi-mvsasc-fix-build-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/hptiop.c: fix build warning
+Subject: drivers/scsi/mvsas.c: fix build warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
 powerpc:
 
-drivers/scsi/hptiop.c: In function 'iop_set_config_mv':
-drivers/scsi/hptiop.c:395: warning: large integer implicitly truncated to unsigned type
+drivers/scsi/mvsas.c: In function 'mvs_update_phyinfo':
+drivers/scsi/mvsas.c:2536: warning: format '%llX' expects type 'long long unsigned int', but argument 5 has type 'u64'
+drivers/scsi/mvsas.c:2536: warning: format '%llX' expects type 'long long unsigned int', but argument 6 has type 'u64'
 
-This field is only 32-bit, so cpu_to_le64() seems wrong.
+we do not know what type the architecture uses to implement u64 hence we
+cannot print them directly.
 
-Cc: HighPoint Linux Team <linux@highpoint-tech.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Oliver Pinter <oliver.pntr@gmail.com>
+Cc: Ke Wei <kewei@marvell.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/mvsas.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hptiop.c~drivers-scsi-hptiopc-fix-build-warning drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~drivers-scsi-hptiopc-fix-build-warning
-+++ a/drivers/scsi/hptiop.c
-@@ -392,7 +392,7 @@ static int iop_set_config_mv(struct hpti
- 	req->header.size =
- 		cpu_to_le32(sizeof(struct hpt_iop_request_set_config));
- 	req->header.result = cpu_to_le32(IOP_RESULT_PENDING);
--	req->header.context = cpu_to_le64(IOP_REQUEST_TYPE_SET_CONFIG<<5);
-+	req->header.context = cpu_to_le32(IOP_REQUEST_TYPE_SET_CONFIG<<5);
- 
- 	if (iop_send_sync_request_mv(hba, 0, 20000)) {
- 		dprintk("Set config send cmd failed\n");
+diff -puN drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-build-warnings drivers/scsi/mvsas.c
+--- a/drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-build-warnings
++++ a/drivers/scsi/mvsas.c
+@@ -2536,7 +2536,9 @@ static void mvs_update_phyinfo(struct mv
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"phy[%d] Get Attached Address 0x%llX ,"
+ 			" SAS Address 0x%llX\n",
+-			i, phy->att_dev_sas_addr, phy->dev_sas_addr);
++			i,
++			(unsigned long long)phy->att_dev_sas_addr,
++			(unsigned long long)phy->dev_sas_addr);
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"Rate = %x , type = %d\n",
+ 			sas_phy->linkrate, phy->phy_type);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +116,7 @@ scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
 drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
 git-block-git-rejects.patch
 git-unionfs.patch
 drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
@@ -186,5 +192,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
 
