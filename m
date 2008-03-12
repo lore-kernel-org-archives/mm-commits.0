@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:19:13 -0700
-Message-ID: <200803120519.m2C5JDfB011710@imap1.linux-foundation.org>
+Subject: + mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:20:35 -0700
+Message-ID: <200803120520.m2C5KZkB011757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751196AbYCLFTt (ORCPT
+	by vger.kernel.org with ESMTP id S1750965AbYCLFVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:19:49 -0400
+	Wed, 12 Mar 2008 01:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, balbir@in.ibm.com, clameter@sgi.com, kamezawa.hiroyu@jp.fu
 
 
 The patch titled
-     just return do_try_to_free_pages
+     do_try_to_free_pages gfp_mask redundant
 has been added to the -mm tree.  Its filename is
-     mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+     mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: just return do_try_to_free_pages
+Subject: do_try_to_free_pages gfp_mask redundant
 From: Hugh Dickins <hugh@veritas.com>
 
-do_try_to_free_pages returns 0 or 1, and try_to_free_mem_cgroup_pages returns
-0 or 1 accordingly: let's accomplish that in the obvious way.
+do_try_to_free_pages is taking both a gfp_mask and an sc->gfp_mask, sometimes
+one used and sometimes the other; at present they're always identical, but
+such duplication begs for trouble: remove gfp_mask arg.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -52,20 +53,54 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/vmscan.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages
+diff -puN mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant mm/vmscan.c
+--- a/mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant
 +++ a/mm/vmscan.c
-@@ -1447,9 +1447,7 @@ unsigned long try_to_free_mem_cgroup_pag
+@@ -1314,7 +1314,7 @@ static unsigned long shrink_zones(int pr
+  * allocation attempt will fail.
+  */
+ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+-					gfp_t gfp_mask, struct scan_control *sc)
++					struct scan_control *sc)
+ {
+ 	int priority;
+ 	int ret = 0;
+@@ -1324,7 +1324,7 @@ static unsigned long do_try_to_free_page
+ 	unsigned long lru_pages = 0;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+-	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
++	enum zone_type high_zoneidx = gfp_zone(sc->gfp_mask);
+ 
+ 	if (scan_global_lru(sc))
+ 		count_vm_event(ALLOCSTALL);
+@@ -1353,7 +1353,7 @@ static unsigned long do_try_to_free_page
+ 		 * over limit cgroups
+ 		 */
+ 		if (scan_global_lru(sc)) {
+-			shrink_slab(sc->nr_scanned, gfp_mask, lru_pages);
++			shrink_slab(sc->nr_scanned, sc->gfp_mask, lru_pages);
+ 			if (reclaim_state) {
+ 				nr_reclaimed += reclaim_state->reclaimed_slab;
+ 				reclaim_state->reclaimed_slab = 0;
+@@ -1425,7 +1425,7 @@ unsigned long try_to_free_pages(struct z
+ 		.isolate_pages = isolate_pages_global,
+ 	};
+ 
+-	return do_try_to_free_pages(zonelist, gfp_mask, &sc);
++	return do_try_to_free_pages(zonelist, &sc);
+ }
+ 
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+@@ -1447,7 +1447,7 @@ unsigned long try_to_free_mem_cgroup_pag
  	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
  			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
  	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
--	if (do_try_to_free_pages(zonelist, sc.gfp_mask, &sc))
--		return 1;
--	return 0;
-+	return do_try_to_free_pages(zonelist, sc.gfp_mask, &sc);
+-	return do_try_to_free_pages(zonelist, sc.gfp_mask, &sc);
++	return do_try_to_free_pages(zonelist, &sc);
  }
  #endif
  
@@ -82,6 +117,7 @@ mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
 mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
