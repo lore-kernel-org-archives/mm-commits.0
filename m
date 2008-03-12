@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:27:48 -0700
-Message-ID: <200803120527.m2C5RmWl011967@imap1.linux-foundation.org>
+Subject: + pm-handle-device-registrations-during-suspend-resume.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:30:45 -0700
+Message-ID: <200803120530.m2C5UjRH012094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751519AbYCLF2l (ORCPT
+	by vger.kernel.org with ESMTP id S1751644AbYCLFa5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:28:41 -0400
+	Wed, 12 Mar 2008 01:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com, pavel@ucw.cz, rjw@sisk.pl
+Cc: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, pavel@ucw.cz, stern@rowland.harvard.edu
 
 
 The patch titled
-     PM/gxfb: add hook to PM console layer that allows disabling of suspend VT switch
+     PM: Handle device registrations during suspend/resume
 has been added to the -mm tree.  Its filename is
-     pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+     pm-handle-device-registrations-during-suspend-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,167 +34,267 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM/gxfb: add hook to PM console layer that allows disabling of suspend VT switch
-From: Andres Salomon <dilinger@queued.net>
+Subject: PM: Handle device registrations during suspend/resume
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Prior to suspend, we allocate and switch to a new VT; after suspend, we switch
-back to the original VT.  This can be slow, and is completely unnecessary if
-the framebuffer we're using can restore video properly.
+Modify the PM core to protect its data structures, specifically the dpm_active
+list, from being corrupted if a child of the currently suspending device is
+registered concurrently with its ->suspend() callback.  In that case, since
+the new device (the child) is added to dpm_active after its parent, the PM
+core will attempt to suspend it after the parent, which is wrong.
 
-This adds a hook that allows drivers to select whether or not to do this vt
-switch, and changes the gxfb driver to call this hook.  It also adds a module
-param to gxfb to allow controlling of the vt switch (defaulting to no switch).
+Introduce a new member of struct dev_pm_info, called 'sleeping', and use it to
+check if the parent of the device being added to dpm_active has been
+suspended, in which case the device registration fails.  Also, use 'sleeping'
+for checking if the ordering of devices on dpm_active is correct.
 
-(Note: I'm not convinced that console_sem is the best way to protect this, but
-we should probably have some form of locking..)
+Introduce variable 'all_sleeping' that will be set to 'true' once all devices
+have been suspended and make new device registrations fail until
+'all_sleeping' is reset to 'false', in order to avoid having unsuspended
+devices around while the system is going into a sleep state.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Remove pm_sleep_rwsem which is not necessary any more.
+
+Special thanks to Alan Stern for discussions and suggestions that lead to the
+creation of this patch.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>
 Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/gxfb.txt       |    3 ++-
- drivers/video/geode/gxfb_core.c |    7 +++++++
- include/linux/suspend.h         |    2 ++
- kernel/power/console.c          |   27 ++++++++++++++++++++++++++-
- 4 files changed, 37 insertions(+), 2 deletions(-)
+ Documentation/power/devices.txt |    5 ++
+ drivers/base/core.c             |    6 ++-
+ drivers/base/power/main.c       |   57 +++++++++++++-----------------
+ drivers/base/power/power.h      |   23 +-----------
+ include/linux/pm.h              |    1 
+ 5 files changed, 40 insertions(+), 52 deletions(-)
 
-diff -puN Documentation/fb/gxfb.txt~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch Documentation/fb/gxfb.txt
---- a/Documentation/fb/gxfb.txt~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch
-+++ a/Documentation/fb/gxfb.txt
-@@ -45,7 +45,8 @@ Accepted options:
- mode_option	- specify the video mode.  Of the form
- 		  <x>x<y>[-<bpp>][@<refresh>]
- vram		- size of video ram (normally auto-detected)
--
-+vt_switch	- enable vt switching during suspend/resume.  The vt
-+		  switch is slow, but harmless.
+diff -puN Documentation/power/devices.txt~pm-handle-device-registrations-during-suspend-resume Documentation/power/devices.txt
+--- a/Documentation/power/devices.txt~pm-handle-device-registrations-during-suspend-resume
++++ a/Documentation/power/devices.txt
+@@ -196,6 +196,11 @@ its parent; and can't be removed or susp
  
- --
- Andres Salomon <dilinger@debian.org>
-diff -puN drivers/video/geode/gxfb_core.c~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -29,6 +29,7 @@
- #include <linux/delay.h>
- #include <linux/fb.h>
- #include <linux/console.h>
-+#include <linux/suspend.h>
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/geode.h>
-@@ -37,6 +38,7 @@
+ The policy is that the device tree should match hardware bus topology.
+ (Or at least the control bus, for devices which use multiple busses.)
++In particular, this means that a device registration may fail if the parent of
++the device is suspending (ie. has been chosen by the PM core as the next
++device to suspend) or has already suspended, as well as after all of the other
++devices have been suspended.  Device drivers must be prepared to cope with such
++situations.
  
- static char *mode_option;
- static int vram;
-+static int vt_switch;
  
- /* Modes relevant to the GX (taken from modedb.c) */
- static const struct fb_videomode gx_modedb[] __initdata = {
-@@ -388,6 +390,8 @@ static int __init gxfb_probe(struct pci_
- 	gxfb_check_var(&info->var, info);
- 	gxfb_set_par(info);
- 
-+	pm_set_vt_switch(vt_switch);
-+
- 	if (register_framebuffer(info) < 0) {
- 		ret = -EINVAL;
- 		goto err;
-@@ -508,5 +512,8 @@ MODULE_PARM_DESC(mode_option, "video mod
- module_param(vram, int, 0);
- MODULE_PARM_DESC(vram, "video memory size");
- 
-+module_param(vt_switch, int, 0);
-+MODULE_PARM_DESC(vt_switch, "enable VT switch during suspend/resume");
-+
- MODULE_DESCRIPTION("Framebuffer driver for the AMD Geode GX");
- MODULE_LICENSE("GPL");
-diff -puN include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch include/linux/suspend.h
---- a/include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch
-+++ a/include/linux/suspend.h
-@@ -12,9 +12,11 @@
- #include <asm/errno.h>
- 
- #if defined(CONFIG_PM_SLEEP) && defined(CONFIG_VT) && defined(CONFIG_VT_CONSOLE)
-+extern void pm_set_vt_switch(int);
- extern int pm_prepare_console(void);
- extern void pm_restore_console(void);
- #else
-+static inline void pm_set_vt_switch(int) {}
- static inline int pm_prepare_console(void) { return 0; }
- static inline void pm_restore_console(void) {}
- #endif
-diff -puN kernel/power/console.c~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch kernel/power/console.c
---- a/kernel/power/console.c~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch
-+++ a/kernel/power/console.c
-@@ -7,17 +7,39 @@
- #include <linux/vt_kern.h>
- #include <linux/kbd_kern.h>
- #include <linux/console.h>
-+#include <linux/module.h>
- #include "power.h"
- 
- #if defined(CONFIG_VT) && defined(CONFIG_VT_CONSOLE)
- #define SUSPEND_CONSOLE	(MAX_NR_CONSOLES-1)
- 
- static int orig_fgconsole, orig_kmsg;
-+static int disable_vt_switch;
-+
-+/*
-+ * Normally during a suspend, we allocate a new console and switch to it.
-+ * When we resume, we switch back to the original console.  This switch
-+ * can be slow, so on systems where the framebuffer can handle restoration
-+ * of video registers anyways, there's little point in doing the console
-+ * switch.  This function allows you to disable it by passing it '0'.
-+ */
-+void pm_set_vt_switch(int do_switch)
-+{
-+	acquire_console_sem();
-+	disable_vt_switch = !do_switch;
-+	release_console_sem();
-+}
-+EXPORT_SYMBOL(pm_set_vt_switch);
- 
- int pm_prepare_console(void)
- {
- 	acquire_console_sem();
- 
-+	if (disable_vt_switch) {
-+		release_console_sem();
-+		return 0;
+ Suspending Devices
+diff -puN drivers/base/core.c~pm-handle-device-registrations-during-suspend-resume drivers/base/core.c
+--- a/drivers/base/core.c~pm-handle-device-registrations-during-suspend-resume
++++ a/drivers/base/core.c
+@@ -821,7 +821,11 @@ int device_add(struct device *dev)
+ 	error = dpm_sysfs_add(dev);
+ 	if (error)
+ 		goto PMError;
+-	device_pm_add(dev);
++	error = device_pm_add(dev);
++	if (error) {
++		dpm_sysfs_remove(dev);
++		goto PMError;
 +	}
-+
- 	orig_fgconsole = fg_console;
+ 	error = bus_add_device(dev);
+ 	if (error)
+ 		goto BusError;
+diff -puN drivers/base/power/main.c~pm-handle-device-registrations-during-suspend-resume drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-handle-device-registrations-during-suspend-resume
++++ a/drivers/base/power/main.c
+@@ -54,7 +54,8 @@ static LIST_HEAD(dpm_destroy);
  
- 	if (vc_allocate(SUSPEND_CONSOLE)) {
-@@ -50,9 +72,12 @@ int pm_prepare_console(void)
- void pm_restore_console(void)
+ static DEFINE_MUTEX(dpm_list_mtx);
+ 
+-static DECLARE_RWSEM(pm_sleep_rwsem);
++/* 'true' if all devices have been suspended, protected by dpm_list_mtx */
++static bool all_sleeping;
+ 
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
+ 
+@@ -62,14 +63,28 @@ int (*platform_enable_wakeup)(struct dev
+  *	device_pm_add - add a device to the list of active devices
+  *	@dev:	Device to be added to the list
+  */
+-void device_pm_add(struct device *dev)
++int device_pm_add(struct device *dev)
  {
- 	acquire_console_sem();
-+	if (disable_vt_switch) {
-+		release_console_sem();
-+		return;
++	int error = 0;
++
+ 	pr_debug("PM: Adding info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+ 	mutex_lock(&dpm_list_mtx);
+-	list_add_tail(&dev->power.entry, &dpm_active);
++	if ((dev->parent && dev->parent->power.sleeping) || all_sleeping) {
++		if (dev->parent->power.sleeping)
++			dev_warn(dev,
++				"parent %s is sleeping, will not add\n",
++				dev->parent->bus_id);
++		else
++			dev_warn(dev, "devices are sleeping, will not add\n");
++		WARN_ON(true);
++		error = -EBUSY;
++	} else {
++		list_add_tail(&dev->power.entry, &dpm_active);
 +	}
- 	set_console(orig_fgconsole);
- 	release_console_sem();
- 	kmsg_redirect = orig_kmsg;
--	return;
+ 	mutex_unlock(&dpm_list_mtx);
++	return error;
  }
+ 
+ /**
+@@ -107,32 +122,6 @@ void device_pm_schedule_removal(struct d
+ }
+ EXPORT_SYMBOL_GPL(device_pm_schedule_removal);
+ 
+-/**
+- *	pm_sleep_lock - mutual exclusion for registration and suspend
+- *
+- *	Returns 0 if no suspend is underway and device registration
+- *	may proceed, otherwise -EBUSY.
+- */
+-int pm_sleep_lock(void)
+-{
+-	if (down_read_trylock(&pm_sleep_rwsem))
+-		return 0;
+-
+-	return -EBUSY;
+-}
+-
+-/**
+- *	pm_sleep_unlock - mutual exclusion for registration and suspend
+- *
+- *	This routine undoes the effect of device_pm_add_lock
+- *	when a device's registration is complete.
+- */
+-void pm_sleep_unlock(void)
+-{
+-	up_read(&pm_sleep_rwsem);
+-}
+-
+-
+ /*------------------------- Resume routines -------------------------*/
+ 
+ /**
+@@ -242,11 +231,13 @@ static int resume_device(struct device *
+ static void dpm_resume(void)
+ {
+ 	mutex_lock(&dpm_list_mtx);
++	all_sleeping = false;
+ 	while(!list_empty(&dpm_off)) {
+ 		struct list_head *entry = dpm_off.next;
+ 		struct device *dev = to_device(entry);
+ 
+ 		list_move_tail(entry, &dpm_active);
++		dev->power.sleeping = false;
+ 		mutex_unlock(&dpm_list_mtx);
+ 		resume_device(dev);
+ 		mutex_lock(&dpm_list_mtx);
+@@ -285,7 +276,6 @@ void device_resume(void)
+ 	might_sleep();
+ 	dpm_resume();
+ 	unregister_dropped_devices();
+-	up_write(&pm_sleep_rwsem);
+ }
+ EXPORT_SYMBOL_GPL(device_resume);
+ 
+@@ -421,6 +411,9 @@ static int dpm_suspend(pm_message_t stat
+ 		struct list_head *entry = dpm_active.prev;
+ 		struct device *dev = to_device(entry);
+ 
++		WARN_ON(dev->parent && dev->parent->power.sleeping);
++
++		dev->power.sleeping = true;
+ 		mutex_unlock(&dpm_list_mtx);
+ 		error = suspend_device(dev, state);
+ 		mutex_lock(&dpm_list_mtx);
+@@ -432,11 +425,14 @@ static int dpm_suspend(pm_message_t stat
+ 					(error == -EAGAIN ?
+ 					" (please convert to suspend_late)" :
+ 					""));
++			dev->power.sleeping = false;
+ 			break;
+ 		}
+ 		if (!list_empty(&dev->power.entry))
+ 			list_move(&dev->power.entry, &dpm_off);
+ 	}
++	if (!error)
++		all_sleeping = true;
+ 	mutex_unlock(&dpm_list_mtx);
+ 
+ 	return error;
+@@ -454,7 +450,6 @@ int device_suspend(pm_message_t state)
+ 	int error;
+ 
+ 	might_sleep();
+-	down_write(&pm_sleep_rwsem);
+ 	error = dpm_suspend(state);
+ 	if (error)
+ 		device_resume();
+diff -puN drivers/base/power/power.h~pm-handle-device-registrations-during-suspend-resume drivers/base/power/power.h
+--- a/drivers/base/power/power.h~pm-handle-device-registrations-during-suspend-resume
++++ a/drivers/base/power/power.h
+@@ -11,30 +11,13 @@ static inline struct device *to_device(s
+ 	return container_of(entry, struct device, power.entry);
+ }
+ 
+-extern void device_pm_add(struct device *);
++extern int device_pm_add(struct device *);
+ extern void device_pm_remove(struct device *);
+-extern int pm_sleep_lock(void);
+-extern void pm_sleep_unlock(void);
+ 
+ #else /* CONFIG_PM_SLEEP */
+ 
+-
+-static inline void device_pm_add(struct device *dev)
+-{
+-}
+-
+-static inline void device_pm_remove(struct device *dev)
+-{
+-}
+-
+-static inline int pm_sleep_lock(void)
+-{
+-	return 0;
+-}
+-
+-static inline void pm_sleep_unlock(void)
+-{
+-}
++static inline int device_pm_add(struct device *dev) { return 0; }
++static inline void device_pm_remove(struct device *dev) {}
+ 
  #endif
+ 
+diff -puN include/linux/pm.h~pm-handle-device-registrations-during-suspend-resume include/linux/pm.h
+--- a/include/linux/pm.h~pm-handle-device-registrations-during-suspend-resume
++++ a/include/linux/pm.h
+@@ -183,6 +183,7 @@ typedef struct pm_message {
+ struct dev_pm_info {
+ 	pm_message_t		power_state;
+ 	unsigned		can_wakeup:1;
++	bool			sleeping:1;	/* Owned by the PM core */
+ #ifdef	CONFIG_PM_SLEEP
+ 	unsigned		should_wakeup:1;
+ 	struct list_head	entry;
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-x86-geode-msr-cleanup.patch
-gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
-gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
-gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-gxfb-clean-up-register-definitions.patch
-gxfb-move-msr-bit-fields-into-gxfbh.patch
-gxfb-stop-sharing-code-with-gx1fb.patch
-gxfb-add-power-management-functionality.patch
+origin.patch
+git-acpi.patch
+pm-handle-device-registrations-during-suspend-resume.patch
+driver-core-call-device_pm_add-after-bus_add_device-in-device_add.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+revert-acpi-thermal-fixup.patch
+power-replace-remaining-__function__-occurrences.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+shrink_slab-handle-bad-shrinkers.patch
 
