@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-mvsasc-fix-build-warnings.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:45:18 -0700
-Message-ID: <200803122054.m2CKsrje012706@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:48:30 -0700
+Message-ID: <200803122058.m2CKw5L9012880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665AbYCLUzc (ORCPT
+	by vger.kernel.org with ESMTP id S1751029AbYCLU6m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:55:32 -0400
+	Wed, 12 Mar 2008 16:58:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, jeff@garzik.org, kewei@marvell.com, oliver.pntr@gmail.com
+Cc: akpm@linux-foundation.org, gregkh@suse.de, hari@vt100.at, xubin.lin@worldplus.com.cn
 
 
 The patch titled
-     drivers/scsi/mvsas.c: fix build warnings
+     fix gregkh-usb-usb-add-usb-serial-spcp8x5-driver
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-mvsasc-fix-build-warnings.patch
+     fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/mvsas.c: fix build warnings
+Subject: fix gregkh-usb-usb-add-usb-serial-spcp8x5-driver
 From: Andrew Morton <akpm@linux-foundation.org>
 
 powerpc:
 
-drivers/scsi/mvsas.c: In function 'mvs_update_phyinfo':
-drivers/scsi/mvsas.c:2536: warning: format '%llX' expects type 'long long unsigned int', but argument 5 has type 'u64'
-drivers/scsi/mvsas.c:2536: warning: format '%llX' expects type 'long long unsigned int', but argument 6 has type 'u64'
+drivers/usb/serial/spcp8x5.c: In function 'spcp8x5_get_msr':
+drivers/usb/serial/spcp8x5.c:417: warning: cast from pointer to integer of different size
+drivers/usb/serial/spcp8x5.c:420: warning: cast from pointer to integer of different size
 
-we do not know what type the architecture uses to implement u64 hence we
-cannot print them directly.
-
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Oliver Pinter <oliver.pntr@gmail.com>
-Cc: Ke Wei <kewei@marvell.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Linxb <xubin.lin@worldplus.com.cn>
+Cc: Harald Klein <hari@vt100.at>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mvsas.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/usb/serial/spcp8x5.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-build-warnings drivers/scsi/mvsas.c
---- a/drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-build-warnings
-+++ a/drivers/scsi/mvsas.c
-@@ -2536,7 +2536,9 @@ static void mvs_update_phyinfo(struct mv
- 		dev_printk(KERN_DEBUG, &pdev->dev,
- 			"phy[%d] Get Attached Address 0x%llX ,"
- 			" SAS Address 0x%llX\n",
--			i, phy->att_dev_sas_addr, phy->dev_sas_addr);
-+			i,
-+			(unsigned long long)phy->att_dev_sas_addr,
-+			(unsigned long long)phy->dev_sas_addr);
- 		dev_printk(KERN_DEBUG, &pdev->dev,
- 			"Rate = %x , type = %d\n",
- 			sas_phy->linkrate, phy->phy_type);
+diff -puN drivers/usb/serial/spcp8x5.c~fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver drivers/usb/serial/spcp8x5.c
+--- a/drivers/usb/serial/spcp8x5.c~fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver
++++ a/drivers/usb/serial/spcp8x5.c
+@@ -414,11 +414,10 @@ static int spcp8x5_get_msr(struct usb_de
+ 			      GET_UART_STATUS, GET_UART_STATUS_TYPE,
+ 			      0, GET_UART_STATUS_MSR, status_buffer, 1, 100);
+ 	if (ret < 0)
+-		dev_dbg(&dev->dev, "Get MSR = %#x failed (error = %d)",
+-			(int)status_buffer, (int)ret);
++		dev_dbg(&dev->dev, "Get MSR = 0x%p failed (error = %d)",
++			status_buffer, ret);
+ 
+-	dev_dbg(&dev->dev, "0xc0:0x22:0:6  %d - %x ", (int)ret,
+-		(int)status_buffer);
++	dev_dbg(&dev->dev, "0xc0:0x22:0:6  %d - 0x%p ", ret, status_buffer);
+ 	status[0] = status_buffer[0];
+ 	kfree(status_buffer);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,8 +117,10 @@ scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
 drivers-scsi-initioc-suppress-compile-warning.patch
 drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
 drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
 git-v9fs.patch
 git-watchdog.patch
@@ -192,5 +194,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
 
