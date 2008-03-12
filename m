@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:24:24 -0700
-Message-ID: <200803120424.m2C4OOo5009854@imap1.linux-foundation.org>
+Subject: + rapidio-add-rapidio-option-to-kernel-configuration.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:24:05 -0700
+Message-ID: <200803120424.m2C4O5Pp009816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751593AbYCLEYl (ORCPT
+	by vger.kernel.org with ESMTP id S1751355AbYCLEYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:24:41 -0400
+	Wed, 12 Mar 2008 00:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wei.zhang@freescale.com
 
 
 The patch titled
-     rapidio: add the RapidIO master port maintance and doorbell window to space resources
+     rapidio: add RapidIO option to kernel configuration
 has been added to the -mm tree.  Its filename is
-     rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
+     rapidio-add-rapidio-option-to-kernel-configuration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add the RapidIO master port maintance and doorbell window to space resources
+Subject: rapidio: add RapidIO option to kernel configuration
 From: Zhang Wei <wei.zhang@freescale.com>
-
-Add the RapidIO master port maintance and doorbell IO windows to RIO space
-resources.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   26 +++++++++++++++++++++-----
- include/linux/rio.h           |    1 +
- 2 files changed, 22 insertions(+), 5 deletions(-)
+ arch/powerpc/Kconfig                |   13 +++++++++++++
+ arch/powerpc/platforms/86xx/Kconfig |    1 +
+ 2 files changed, 14 insertions(+)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -192,6 +192,8 @@ struct rio_priv {
- 	int bellirq;
- 	int txirq;
- 	int rxirq;
-+	struct resource maint_res;
-+	struct resource dbell_res;
- };
+diff -puN arch/powerpc/Kconfig~rapidio-add-rapidio-option-to-kernel-configuration arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~rapidio-add-rapidio-option-to-kernel-configuration
++++ a/arch/powerpc/Kconfig
+@@ -561,6 +561,19 @@ source "drivers/pcmcia/Kconfig"
  
- /**
-@@ -1362,15 +1364,29 @@ int fsl_rio_setup(struct of_device *dev)
- 		out_be32((priv->regs_win + RIO_ISR_AACR), RIO_ISR_AACR_AA);
+ source "drivers/pci/hotplug/Kconfig"
  
- 	/* Configure maintenance transaction window */
--	out_be32(&priv->maint_atmu_regs->rowbar, 0x000c0000);
--	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);
-+	rio_init_io_res(&priv->maint_res, law_start, RIO_MAINT_WIN_SIZE,
-+			"maint_win", RIO_RESOURCE_MAINT);
-+	rc = rio_request_io_region(port, &priv->maint_res);
-+	if (rc) {
-+		dev_err(&dev->dev, "request maint window error!\n");
-+		goto err;
-+	}
-+	out_be32(&priv->maint_atmu_regs->rowbar, (law_start >> 12) & 0xffffff);
-+	out_be32(&priv->maint_atmu_regs->rowar, 0x80077000
-+					| (__ilog2(RIO_MAINT_WIN_SIZE) - 1));
++config HAS_RAPIDIO
++	bool
++	default n
++
++config RAPIDIO
++	bool "RapidIO support"
++	depends on HAS_RAPIDIO
++	help
++	  If you say Y here, the kernel will include drivers and
++	  infrastructure code to support RapidIO interconnect devices.
++
++source "drivers/rapidio/Kconfig"
++
+ endmenu
  
- 	priv->maint_win = ioremap(law_start, RIO_MAINT_WIN_SIZE);
+ menu "Advanced setup"
+diff -puN arch/powerpc/platforms/86xx/Kconfig~rapidio-add-rapidio-option-to-kernel-configuration arch/powerpc/platforms/86xx/Kconfig
+--- a/arch/powerpc/platforms/86xx/Kconfig~rapidio-add-rapidio-option-to-kernel-configuration
++++ a/arch/powerpc/platforms/86xx/Kconfig
+@@ -8,6 +8,7 @@ config MPC8641_HPCN
+ 	select PPC_I8259
+ 	select DEFAULT_UIMAGE
+ 	select FSL_ULI1575
++	select HAS_RAPIDIO
+ 	help
+ 	  This option enables support for the MPC8641 HPCN board.
  
- 	/* Configure outbound doorbell window */
--	out_be32(&priv->dbell_atmu_regs->rowbar, 0x000c0400);
--	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);
--	fsl_rio_doorbell_init(port);
-+	rio_init_io_res(&priv->dbell_res, law_start + RIO_MAINT_WIN_SIZE,
-+			RIO_DBELL_WIN_SIZE, "dbell_win", RIO_RESOURCE_DOORBELL);
-+	out_be32(&priv->dbell_atmu_regs->rowbar, (priv->dbell_res.start >> 12)
-+							& 0xffffff);
-+	out_be32(&priv->dbell_atmu_regs->rowar, 0x80042000
-+					| (__ilog2(RIO_DBELL_WIN_SIZE) - 1));
-+	rc = fsl_rio_doorbell_init(port);
-+	if (rc)
-+		goto err;
- 
- 	return 0;
- err:
-diff -puN include/linux/rio.h~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources
-+++ a/include/linux/rio.h
-@@ -257,6 +257,7 @@ struct rio_ops {
- #define RIO_RESOURCE_MEM	0x00000100
- #define RIO_RESOURCE_DOORBELL	0x00000200
- #define RIO_RESOURCE_MAILBOX	0x00000400
-+#define RIO_RESOURCE_MAINT	0x00000800
- 
- #define RIO_RESOURCE_CACHEABLE	0x00010000
- #define RIO_RESOURCE_PCI	0x00020000
 _
 
 Patches currently in -mm which might be from wei.zhang@freescale.com are
