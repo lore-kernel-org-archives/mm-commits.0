@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:24:13 -0700
-Message-ID: <200803120424.m2C4ODE6009831@imap1.linux-foundation.org>
+Subject: + rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:24:27 -0700
+Message-ID: <200803120424.m2C4ORIi009860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751753AbYCLEYp (ORCPT
+	by vger.kernel.org with ESMTP id S1751740AbYCLEYq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:24:45 -0400
+	Wed, 12 Mar 2008 00:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wei.zhang@freescale.com
 
 
 The patch titled
-     rapidio: add RapidIO node into MPC8641HPCN dts file
+     rapidio: change RapidIO doorbell source and target ID field to 16-bit
 has been added to the -mm tree.  Its filename is
-     rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch
+     rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add RapidIO node into MPC8641HPCN dts file
+Subject: rapidio: change RapidIO doorbell source and target ID field to 16-bit
 From: Zhang Wei <wei.zhang@freescale.com>
+
+Change RapidIO doorbell source and target ID field to 16-bit for
+support large system size, which max rio devid is 65535.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/boot/dts/mpc8641_hpcn.dts |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/powerpc/sysdev/fsl_rio.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/boot/dts/mpc8641_hpcn.dts~rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file arch/powerpc/boot/dts/mpc8641_hpcn.dts
---- a/arch/powerpc/boot/dts/mpc8641_hpcn.dts~rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file
-+++ a/arch/powerpc/boot/dts/mpc8641_hpcn.dts
-@@ -26,6 +26,7 @@
- 		serial1 = &serial1;
- 		pci0 = &pci0;
- 		pci1 = &pci1;
-+		rapidio0 = &rapidio0;
- 	};
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -75,13 +75,13 @@
+ #define DOORBELL_DSR_TE		0x00000080
+ #define DOORBELL_DSR_QFI	0x00000010
+ #define DOORBELL_DSR_DIQI	0x00000001
+-#define DOORBELL_TID_OFFSET	0x03
+-#define DOORBELL_SID_OFFSET	0x05
++#define DOORBELL_TID_OFFSET	0x02
++#define DOORBELL_SID_OFFSET	0x04
+ #define DOORBELL_INFO_OFFSET	0x06
  
- 	cpus {
-@@ -500,4 +501,15 @@
- 				  0x0 0x00100000>;
- 		};
- 	};
-+	rapidio0: rapidio@f80c0000 {
-+		#address-cells = <2>;
-+		#size-cells = <2>;
-+		compatible = "fsl,rapidio-delta";
-+		reg = <0xf80c0000 0x20000>;
-+		ranges = <0 0 0xc0000000 0 0x20000000>;
-+		interrupt-parent = <&mpic>;
-+		/* err_irq bell_outb_irq bell_inb_irq
-+			msg1_tx_irq msg1_rx_irq	msg2_tx_irq msg2_rx_irq */
-+		interrupts = <48 2 49 2 50 2 53 2 54 2 55 2 56 2>;
-+	};
- };
+ #define DOORBELL_MESSAGE_SIZE	0x08
+-#define DBELL_SID(x)		(*(u8 *)(x + DOORBELL_SID_OFFSET))
+-#define DBELL_TID(x)		(*(u8 *)(x + DOORBELL_TID_OFFSET))
++#define DBELL_SID(x)		(*(u16 *)(x + DOORBELL_SID_OFFSET))
++#define DBELL_TID(x)		(*(u16 *)(x + DOORBELL_TID_OFFSET))
+ #define DBELL_INF(x)		(*(u16 *)(x + DOORBELL_INFO_OFFSET))
+ 
+ struct rio_atmu_regs {
 _
 
 Patches currently in -mm which might be from wei.zhang@freescale.com are
