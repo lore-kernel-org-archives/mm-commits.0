@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-mem_map-allocation-continuous.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:06:58 -0700
-Message-ID: <200803120406.m2C46w1M009172@imap1.linux-foundation.org>
+Subject: + mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:10:51 -0700
+Message-ID: <200803120410.m2C4ApFx009334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753AbYCLEHi (ORCPT
+	by vger.kernel.org with ESMTP id S1750788AbYCLELk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:07:38 -0400
+	Wed, 12 Mar 2008 00:11:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel@gmail.com, apw@shadowen.org, bob.picco@hp.com, clameter@sgi.com, haveblue@us.ibm.com, mingo@elte.hu, y-goto@jp.fujitsu.com
+Cc: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     mm: make mem_map allocation continuous
+     mm: fix alloc_bootmem_core to use fast searching for all nodes
 has been added to the -mm tree.  Its filename is
-     mm-make-mem_map-allocation-continuous.patch
+     mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make mem_map allocation continuous
+Subject: mm: fix alloc_bootmem_core to use fast searching for all nodes
 From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 
-vmemmap allocation current got
- [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001400000 on node 0
- [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001800000 on node 0
- [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001c00000 on node 0
- [ffffe20000600000-ffffe200007fffff] PMD ->ffff810002000000 on node 0
- [ffffe20000800000-ffffe200009fffff] PMD ->ffff810002400000 on node 0
-...
+Make the nodes other than node 0 could use bdata->last_success for fast search
+too.
 
-there is 2M hole between them.
+We need to use __alloc_bootmem_core for vmemmap allocation for other nodes
+when numa and sparsemem/vmemmap are enabled.
 
-the rootcause is that usemap (24 bytes) will be allocated after every 2M
-mem_map. and it will push next vmemmap (2M) to next align (2M).
-
-solution:
-try to allocate mem_map continously.
-
-after patch, will get
- [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001400000 on node 0
- [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001600000 on node 0
- [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001800000 on node 0
- [ffffe20000600000-ffffe200007fffff] PMD ->ffff810001a00000 on node 0
- [ffffe20000800000-ffffe200009fffff] PMD ->ffff810001c00000 on node 0
-...
-and usemap will share in page because of they are allocated continuously too.
-sparse_early_usemap_alloc: usemap = ffff810024e00000 size = 24
-sparse_early_usemap_alloc: usemap = ffff810024e00080 size = 24
-sparse_early_usemap_alloc: usemap = ffff810024e00100 size = 24
-sparse_early_usemap_alloc: usemap = ffff810024e00180 size = 24
-...
-
-so we make the bootmem allocation more compact and use less memory for usemap.
+Also make fail_block path increase i with incr only needed after ALIGN to
+avoid extra increase when size is large than align.
 
 Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ mm/bootmem.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN mm/sparse.c~mm-make-mem_map-allocation-continuous mm/sparse.c
---- a/mm/sparse.c~mm-make-mem_map-allocation-continuous
-+++ a/mm/sparse.c
-@@ -244,6 +244,7 @@ static unsigned long *__init sparse_earl
- 	int nid = sparse_early_nid(ms);
+diff -puN mm/bootmem.c~mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes mm/bootmem.c
+--- a/mm/bootmem.c~mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes
++++ a/mm/bootmem.c
+@@ -227,28 +227,32 @@ __alloc_bootmem_core(struct bootmem_data
+ 	 * We try to allocate bootmem pages above 'goal'
+ 	 * first, then we try to allocate lower pages.
+ 	 */
+-	if (goal && goal >= bdata->node_boot_start && PFN_DOWN(goal) < end_pfn) {
+-		preferred = goal - bdata->node_boot_start;
++	preferred = 0;
++	if (goal && PFN_DOWN(goal) < end_pfn) {
++		if (goal > bdata->node_boot_start)
++			preferred = goal - bdata->node_boot_start;
  
- 	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
-+	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
- 	if (usemap)
- 		return usemap;
- 
-@@ -285,6 +286,8 @@ struct page __init *sparse_early_mem_map
- 	return NULL;
- }
- 
-+/* section_map pointer array is 64k */
-+static __initdata struct page *section_map[NR_MEM_SECTIONS];
- /*
-  * Allocate the accumulated non-linear sections, allocate a mem_map
-  * for each and record the physical to section mapping.
-@@ -295,14 +298,29 @@ void __init sparse_init(void)
- 	struct page *map;
- 	unsigned long *usemap;
- 
-+	/*
-+	 * map is using big page (aka 2M in x86 64 bit)
-+	 * usemap is less one page (aka 24 bytes)
-+	 * so alloc 2M (with 2M align) and 24 bytes in turn will
-+	 * make next 2M slip to one more 2M later.
-+	 * then in big system, the memmory will have a lot hole...
-+	 * here try to allocate 2M pages continously.
-+	 */
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
- 		if (!present_section_nr(pnum))
- 			continue;
-+		section_map[pnum] = sparse_early_mem_map_alloc(pnum);
+ 		if (bdata->last_success >= preferred)
+ 			if (!limit || (limit && limit > bdata->last_success))
+ 				preferred = bdata->last_success;
+-	} else
+-		preferred = 0;
 +	}
  
--		map = sparse_early_mem_map_alloc(pnum);
--		if (!map)
-+
-+	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
-+		if (!present_section_nr(pnum))
- 			continue;
+ 	preferred = PFN_DOWN(ALIGN(preferred, align)) + offset;
+ 	areasize = (size + PAGE_SIZE-1) / PAGE_SIZE;
+ 	incr = align >> PAGE_SHIFT ? : 1;
  
-+		map = section_map[pnum];
-+		if (!map)
-+			 continue;
+ restart_scan:
+-	for (i = preferred; i < eidx; i += incr) {
++	for (i = preferred; i < eidx;) {
+ 		unsigned long j;
 +
- 		usemap = sparse_early_usemap_alloc(pnum);
- 		if (!usemap)
+ 		i = find_next_zero_bit(bdata->node_bootmem_map, eidx, i);
+ 		i = ALIGN(i, incr);
+ 		if (i >= eidx)
+ 			break;
+-		if (test_bit(i, bdata->node_bootmem_map))
++		if (test_bit(i, bdata->node_bootmem_map)) {
++			i += incr;
  			continue;
++		}
+ 		for (j = i + 1; j < i + areasize; ++j) {
+ 			if (j >= eidx)
+ 				goto fail_block;
+@@ -259,6 +263,8 @@ restart_scan:
+ 		goto found;
+ 	fail_block:
+ 		i = ALIGN(j, incr);
++		if (i == j)
++			i += incr;
+ 	}
+ 
+ 	if (preferred > offset) {
 _
 
 Patches currently in -mm which might be from yhlu.kernel@gmail.com are
 
 git-x86.patch
 mm-make-mem_map-allocation-continuous.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
 
