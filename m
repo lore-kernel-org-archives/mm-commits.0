@@ -1,214 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:00:36 -0700
-Message-ID: <200803120500.m2C50a3j011081@imap1.linux-foundation.org>
+Subject: - kernel-add-clamp-and-clamp_t-macros-fix.patch removed from -mm tree
+Date: Tue, 11 Mar 2008 22:03:06 -0700
+Message-ID: <200803120503.m2C536Sm011131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751153AbYCLFBF (ORCPT
+	by vger.kernel.org with ESMTP id S1751410AbYCLFDO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:01:05 -0400
+	Wed, 12 Mar 2008 01:03:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, pj@sgi.com, randy.dunlap@oracle.com
+To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mempolicy: disallow static or relative flags for local preferred mode
-has been added to the -mm tree.  Its filename is
-     mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+     kernel-add-clamp-and-clamp_t-macros-fix
+has been removed from the -mm tree.  Its filename was
+     kernel-add-clamp-and-clamp_t-macros-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into kernel-add-clamp-and-clamp_t-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: disallow static or relative flags for local preferred mode
-From: David Rientjes <rientjes@google.com>
+Subject: kernel-add-clamp-and-clamp_t-macros-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES don't mean anything for
-MPOL_PREFERRED policies that were created with an empty nodemask (for purely
-local allocations).  They'll never be invalidated because the allowed mems of
-a task changes or need to be rebound relative to a cpuset's placement.
-
-Also fixes a bug identified by Lee Schermerhorn that disallowed empty
-nodemasks to be passed to MPOL_PREFERRED to specify local allocations.  [A
-different, somewhat incomplete, patch already existed in 25-rc5-mm1.]
-
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa_memory_policy.txt |   16 +++++++-
- mm/mempolicy.c                          |   42 +++++++++++++---------
- 2 files changed, 40 insertions(+), 18 deletions(-)
+ drivers/media/video/bt8xx/bttvp.h    |    2 --
+ drivers/media/video/usbvideo/vicam.c |    6 ------
+ 2 files changed, 8 deletions(-)
 
-diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode
-+++ a/Documentation/vm/numa_memory_policy.txt
-@@ -205,6 +205,12 @@ Components of Memory Policies
- 	    local allocation for a specific range of addresses--i.e. for
- 	    VMA policies.
+diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros-fix include/linux/kernel.h
+diff -puN drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/bt8xx/bttvp.h
+--- a/drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix
++++ a/drivers/media/video/bt8xx/bttvp.h
+@@ -82,8 +82,6 @@
+ /* Limits scaled width, which must be a multiple of 4. */
+ #define MAX_HACTIVE (0x3FF & -4)
  
-+	    It is possible for the user to specify that local allocation is
-+	    always preferred by passing an empty nodemask with this mode.
-+	    If an empty nodemask is passed, the policy cannot use the
-+	    MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES flags described
-+	    below.
-+
- 	MPOL_INTERLEAVED:  This mode specifies that page allocations be
- 	interleaved, on a page granularity, across the nodes specified in
- 	the policy.  This mode also behaves slightly differently, based on
-@@ -254,7 +260,10 @@ Components of Memory Policies
- 	    occurs over that node.  If no nodes from the user's nodemask are
- 	    now allowed, the Default behavior is used.
+-#define clamp(x, low, high) min (max (low, x), high)
+-
+ #define BTTV_NORMS    (\
+ 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+ 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+diff -puN drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/usbvideo/vicam.c
+--- a/drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix
++++ a/drivers/media/video/usbvideo/vicam.c
+@@ -70,12 +70,6 @@
  
--	    MPOL_F_STATIC_NODES cannot be used with MPOL_F_RELATIVE_NODES.
-+	    MPOL_F_STATIC_NODES cannot be combined with the
-+	    MPOL_F_RELATIVE_NODES flag.  It also cannot be used for
-+	    MPOL_PREFERRED policies that were created with an empty nodemask
-+	    (local allocation).
+ #define VICAM_HEADER_SIZE       64
  
- 	MPOL_F_RELATIVE_NODES:  This flag specifies that the nodemask passed
- 	by the user will be mapped relative to the set of the task or VMA's
-@@ -301,7 +310,10 @@ Components of Memory Policies
- 	    set of memory nodes allowed by the task's cpuset, as that may
- 	    change over time.
- 
--	    MPOL_F_RELATIVE_NODES cannot be used with MPOL_F_STATIC_NODES.
-+	    MPOL_F_RELATIVE_NODES cannot be combined with the
-+	    MPOL_F_STATIC_NODES flag.  It also cannot be used for
-+	    MPOL_PREFERRED policies that were created with an empty nodemask
-+	    (local allocation).
- 
- MEMORY POLICY APIs
- 
-diff -puN mm/mempolicy.c~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode
-+++ a/mm/mempolicy.c
-@@ -181,27 +181,43 @@ static struct mempolicy *mpol_new(unsign
- {
- 	struct mempolicy *policy;
- 	nodemask_t cpuset_context_nmask;
--	int localalloc = 0;
- 	int ret;
- 
- 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
- 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
- 
--	if (mode == MPOL_DEFAULT)
--		return NULL;
--	if (!nodes || nodes_empty(*nodes)) {
--		if (mode != MPOL_PREFERRED)
-+	if (mode == MPOL_DEFAULT) {
-+		if (nodes && !nodes_empty(*nodes))
- 			return ERR_PTR(-EINVAL);
--		localalloc = 1;	/* special case:  no mode flags */
-+		return NULL;
- 	}
-+	VM_BUG_ON(!nodes);
-+
-+	/*
-+	 * MPOL_PREFERRED cannot be used with MPOL_F_STATIC_NODES or
-+	 * MPOL_F_RELATIVE_NODES if the nodemask is empty (local allocation).
-+	 * All other modes require a valid pointer to a non-empty nodemask.
-+	 */
-+	if (mode == MPOL_PREFERRED) {
-+		if (nodes_empty(*nodes)) {
-+			if (((flags & MPOL_F_STATIC_NODES) ||
-+			     (flags & MPOL_F_RELATIVE_NODES)))
-+				return ERR_PTR(-EINVAL);
-+			nodes = NULL;	/* flag local alloc */
-+		}
-+	} else if (nodes_empty(*nodes))
-+		return ERR_PTR(-EINVAL);
- 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
- 	if (!policy)
- 		return ERR_PTR(-ENOMEM);
- 	atomic_set(&policy->refcnt, 1);
- 	policy->policy = mode;
-+	policy->flags = flags;
- 
--	if (!localalloc) {
--		policy->flags = flags;
-+	if (nodes) {
-+		/*
-+		 * cpuset related setup doesn't apply to local allocation
-+		 */
- 		cpuset_update_task_memory_state();
- 		if (flags & MPOL_F_RELATIVE_NODES)
- 			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
-@@ -217,7 +233,7 @@ static struct mempolicy *mpol_new(unsign
- 	}
- 
- 	ret = mpol_ops[mode].create(policy,
--				localalloc ? NULL : &cpuset_context_nmask);
-+				nodes ? &cpuset_context_nmask : NULL);
- 	if (ret < 0) {
- 		kmem_cache_free(policy_cache, policy);
- 		return ERR_PTR(ret);
-@@ -259,10 +275,6 @@ static void mpol_rebind_preferred(struct
- {
- 	nodemask_t tmp;
- 
--	/*
--	 * check 'STATIC_NODES first, as preferred_node == -1 may be
--	 * a temporary, "fallback" state for this policy.
--	 */
- 	if (pol->flags & MPOL_F_STATIC_NODES) {
- 		int node = first_node(pol->w.user_nodemask);
- 
-@@ -270,12 +282,10 @@ static void mpol_rebind_preferred(struct
- 			pol->v.preferred_node = node;
- 		else
- 			pol->v.preferred_node = -1;
--	} else if (pol->v.preferred_node == -1) {
--		return;	/* no remap required for explicit local alloc */
- 	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
- 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
- 		pol->v.preferred_node = first_node(tmp);
--	} else {
-+	} else if (pol->v.preferred_node != -1) {
- 		pol->v.preferred_node = node_remap(pol->v.preferred_node,
- 						   pol->w.cpuset_mems_allowed,
- 						   *nodes);
+-#define clamp( x, l, h )        max_t( __typeof__( x ),         \
+-				       ( l ),                   \
+-				       min_t( __typeof__( x ),  \
+-					      ( h ),            \
+-					      ( x ) ) )
+-
+ /* Not sure what all the bytes in these char
+  * arrays do, but they're necessary to make
+  * the camera work.
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-small-header-file-cleanup.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-arm-master.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+git-net.patch
+git-net-fix-build-with-config_net=n.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+revert-acpi-thermal-fixup.patch
+isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-fix.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
