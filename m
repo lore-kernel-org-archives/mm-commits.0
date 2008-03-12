@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-set-flag-dock_undocking-when-triggered-via-sysfs.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:35:26 -0700
-Message-ID: <200803120535.m2C5ZQwe012261@imap1.linux-foundation.org>
+Subject: + genhd-must_check-warning-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:36:40 -0700
+Message-ID: <200803120536.m2C5aeK5012284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752842AbYCLFgR (ORCPT
+	by vger.kernel.org with ESMTP id S1751130AbYCLFiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:36:17 -0400
+	Wed, 12 Mar 2008 01:38:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hmacht@suse.de, kristen.c.accardi@intel.com, lenb@kernel.org, stable@kernel.org
+Cc: roland@redhat.com, greg@kroah.com, jeff@garzik.org, jens.axboe@oracle.com
 
 
 The patch titled
-     acpi: set flag DOCK_UNDOCKING when triggered via sysfs
+     genhd must_check warning fix
 has been added to the -mm tree.  Its filename is
-     acpi-set-flag-dock_undocking-when-triggered-via-sysfs.patch
+     genhd-must_check-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: set flag DOCK_UNDOCKING when triggered via sysfs
-From: Holger Macht <hmacht@suse.de>
+Subject: genhd must_check warning fix
+From: Roland McGrath <roland@redhat.com>
 
-begin_undock() is only called when triggered via a acpi notify handler
-(pressing the undock button on the dock station), but complete_undock() is
-always called after the eject.  So if a undock is triggered through a sysfs
-write, the flag DOCK_UNDOCKING has to be set for the dock station, too. 
-Otherwise this will freeze the system hard.
+block/genhd.c:361: warning: ignoring return value of `class_register', declared with attribute warn_unused_result
 
-Signed-off-by: Holger Macht <hmacht@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/dock.c |    1 +
- 1 file changed, 1 insertion(+)
+ block/genhd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/dock.c~acpi-set-flag-dock_undocking-when-triggered-via-sysfs drivers/acpi/dock.c
---- a/drivers/acpi/dock.c~acpi-set-flag-dock_undocking-when-triggered-via-sysfs
-+++ a/drivers/acpi/dock.c
-@@ -710,6 +710,7 @@ static ssize_t write_undock(struct devic
- 	if (!count)
- 		return -EINVAL;
+diff -puN block/genhd.c~genhd-must_check-warning-fix block/genhd.c
+--- a/block/genhd.c~genhd-must_check-warning-fix
++++ a/block/genhd.c
+@@ -360,7 +360,9 @@ static struct kobject *base_probe(dev_t 
  
-+	begin_undock(dock_station);
- 	ret = handle_eject_request(dock_station, ACPI_NOTIFY_EJECT_REQUEST);
- 	return ret ? ret: count;
- }
+ static int __init genhd_device_init(void)
+ {
+-	class_register(&block_class);
++	int error = class_register(&block_class);
++	if (unlikely(error))
++		return error;
+ 	bdev_map = kobj_map_init(base_probe, &block_class_lock);
+ 	blk_dev_init();
+ 
 _
 
-Patches currently in -mm which might be from hmacht@suse.de are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-acpi.patch
-acpi-set-flag-dock_undocking-when-triggered-via-sysfs.patch
+origin.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+genhd-must_check-warning-fix.patch
+add-rusage_thread.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-send_signal-factor-out-signal_group_exit-checks.patch
+signals-fold-sig_ignored-into-prepare_signal.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
