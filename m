@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-warn_on_secs-macro-fix-fix.patch added to -mm tree
-Date: Wed, 12 Mar 2008 00:43:25 -0700
-Message-ID: <200803120743.m2C7hPaS016526@imap1.linux-foundation.org>
+Subject: + fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch added to -mm tree
+Date: Wed, 12 Mar 2008 00:51:58 -0700
+Message-ID: <200803120751.m2C7pwB6016807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48826 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751286AbYCLHne (ORCPT
+	by vger.kernel.org with ESMTP id S1750985AbYCLHwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 03:43:34 -0400
+	Wed, 12 Mar 2008 03:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, laurent.riffard@free.fr, marcin.slusarz@gmail.com
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     add-warn_on_secs-macro-fix-fix
+     fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
 has been added to the -mm tree.  Its filename is
-     add-warn_on_secs-macro-fix-fix.patch
+     fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-warn_on_secs-macro-fix-fix
+Subject: fs/nfs/callback_xdr.c: suppress uninitialiized variable warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Laurent Riffard <laurent.riffard@free.fr>
+I'm tired of reading this:
+
+fs/nfs/callback_xdr.c: In function 'nfs4_callback_compound':
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.taglen' may be used uninitialized in this function
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.tag' may be used uninitialized in this function
+fs/nfs/callback_xdr.c:404: warning: 'hdr_arg.nops' may be used uninitialized in this function
+
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    2 +-
+ fs/nfs/callback_xdr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-fix-fix include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-warn_on_secs-macro-fix-fix
-+++ a/include/asm-generic/bug.h
-@@ -2,7 +2,7 @@
- #define _ASM_GENERIC_BUG_H
- 
- #include <linux/compiler.h>
--
-+#include <linux/param.h>
- 
- #ifdef CONFIG_BUG
- 
+diff -puN fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings fs/nfs/callback_xdr.c
+--- a/fs/nfs/callback_xdr.c~fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings
++++ a/fs/nfs/callback_xdr.c
+@@ -401,7 +401,7 @@ static __be32 process_op(struct svc_rqst
+  */
+ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *resp)
+ {
+-	struct cb_compound_hdr_arg hdr_arg;
++	struct cb_compound_hdr_arg uninitialized_var(hdr_arg);
+ 	struct cb_compound_hdr_res hdr_res;
+ 	struct xdr_stream xdr_in, xdr_out;
+ 	__be32 *p;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,4 +175,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 
