@@ -1,54 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - cifs-hack-around-biuld-error.patch removed from -mm tree
-Date: Tue, 11 Mar 2008 17:06:03 -0700
-Message-ID: <200803120006.m2C063mc000972@imap1.linux-foundation.org>
+Subject: + mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:07:23 -0700
+Message-ID: <200803120407.m2C47NU2009191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751413AbYCLAHA (ORCPT
+	by vger.kernel.org with ESMTP id S1750746AbYCLEHZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Mar 2008 20:07:00 -0400
+	Wed, 12 Mar 2008 00:07:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, yhlu.kernel@gmail.com
 
 
 The patch titled
-     cifs: hack around biuld error
-has been removed from the -mm tree.  Its filename was
-     cifs-hack-around-biuld-error.patch
+     mm-make-mem_map-allocation-continuous-checkpatch-fixes
+has been added to the -mm tree.  Its filename is
+     mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: hack around biuld error
+Subject: mm-make-mem_map-allocation-continuous-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "cifs_dfs_referral_inode_operations" [fs/cifs/cifs.ko] undefined!
+WARNING: line over 80 characters
+#55: FILE: mm/sparse.c:247:
++	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
 
-Cc: Steven French <sfrench@us.ibm.com>
+total: 0 errors, 1 warnings, 46 lines checked
+
+./patches/mm-make-mem_map-allocation-continuous.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Yinghai Lu" <yhlu.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/sparse.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/cifs/inode.c~cifs-hack-around-biuld-error fs/cifs/inode.c
---- a/fs/cifs/inode.c~cifs-hack-around-biuld-error
-+++ a/fs/cifs/inode.c
-@@ -58,7 +58,9 @@ static void cifs_set_ops(struct inode *i
- 		break;
- 	case S_IFDIR:
- 		if (is_dfs_referral) {
-+#ifdef CONFIG_CIFS_DFS_UPCALL
- 			inode->i_op = &cifs_dfs_referral_inode_operations;
-+#endif
- 		} else {
- 			inode->i_op = &cifs_dir_inode_ops;
- 			inode->i_fop = &cifs_dir_ops;
+diff -puN mm/sparse.c~mm-make-mem_map-allocation-continuous-checkpatch-fixes mm/sparse.c
+--- a/mm/sparse.c~mm-make-mem_map-allocation-continuous-checkpatch-fixes
++++ a/mm/sparse.c
+@@ -244,7 +244,8 @@ static unsigned long *__init sparse_earl
+ 	int nid = sparse_early_nid(ms);
+ 
+ 	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
+-	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
++	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n",
++		usemap, usemap_size());
+ 	if (usemap)
+ 		return usemap;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +82,6 @@ git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 git-arm-master.patch
-cifs-hack-around-biuld-error.patch
 git-powerpc-fix-git-rejects.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
@@ -95,6 +114,7 @@ git-semaphore-git-rejects.patch
 revert-acpi-thermal-fixup.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
