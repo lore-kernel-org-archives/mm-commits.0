@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-svcc-suppress-unintialized-var-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 14:04:25 -0700
-Message-ID: <200803122114.m2CLE05Z013401@imap1.linux-foundation.org>
+Subject: + drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Wed, 12 Mar 2008 14:07:27 -0700
+Message-ID: <200803122117.m2CLH2W1013548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751678AbYCLVQd (ORCPT
+	by vger.kernel.org with ESMTP id S1751710AbYCLVSR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 17:16:33 -0400
+	Wed, 12 Mar 2008 17:18:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, bfields@citi.umich.edu, chuck.lever@oracle.com, davem@davemloft.net, neilb@suse.de, tom@opengridcomputing.com
+Cc: akpm@linux-foundation.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     net/sunrpc/svc.c: suppress unintialized var warning
+     drivers/atm/firestream.c: suppress uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-svcc-suppress-unintialized-var-warning.patch
+     drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/sunrpc/svc.c: suppress unintialized var warning
+Subject: drivers/atm/firestream.c: suppress uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/sunrpc/svc.c: In function '__svc_create_thread':
-net/sunrpc/svc.c:587: warning: 'oldmask.bits[0u]' may be used uninitialized in this function
+drivers/atm/firestream.c: In function 'fs_open':
+drivers/atm/firestream.c:870: warning: 'tmc0' may be used uninitialized in this function
 
-Cc: Neil Brown <neilb@suse.de>
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+I have confirmed that this is a false positive.
+
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Tom Tucker <tom@opengridcomputing.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: chas williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svc.c |    2 +-
+ drivers/atm/firestream.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/svc.c~net-sunrpc-svcc-suppress-unintialized-var-warning net/sunrpc/svc.c
---- a/net/sunrpc/svc.c~net-sunrpc-svcc-suppress-unintialized-var-warning
-+++ a/net/sunrpc/svc.c
-@@ -584,7 +584,7 @@ __svc_create_thread(svc_thread_fn func, 
- 	struct svc_rqst	*rqstp;
- 	int		error = -ENOMEM;
- 	int		have_oldmask = 0;
--	cpumask_t	oldmask;
-+	cpumask_t	uninitialized_var(oldmask);
+diff -puN drivers/atm/firestream.c~drivers-atm-firestreamc-suppress-uninitialized-var-warning drivers/atm/firestream.c
+--- a/drivers/atm/firestream.c~drivers-atm-firestreamc-suppress-uninitialized-var-warning
++++ a/drivers/atm/firestream.c
+@@ -867,7 +867,7 @@ static int fs_open(struct atm_vcc *atm_v
+ 	int error;
+ 	int bfp;
+ 	int to;
+-	unsigned short tmc0;
++	unsigned short uninitialized_var(tmc0);
+ 	short vpi = atm_vcc->vpi;
+ 	int vci = atm_vcc->vci;
  
- 	rqstp = svc_prepare_thread(serv, pool);
- 	if (IS_ERR(rqstp)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +100,7 @@ git-net.patch
 git-net-fix-build-with-config_net=n.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+net-sunrpc-svcc-suppress-unintialized-var-warning.patch
 git-nfsd.patch
 git-ocfs2.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
@@ -189,5 +189,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-net-sunrpc-svcc-suppress-unintialized-var-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 
