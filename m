@@ -1,41 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - fatfs-fix-build-warning-with-64k-page_size.patch removed from -mm tree
-Date: Wed, 12 Mar 2008 16:17:32 -0700
-Message-ID: <200803122317.m2CNHYHY018363@imap1.linux-foundation.org>
+Subject: + fatfs-fix-build-warning-with-64k-page_size.patch added to -mm tree
+Date: Wed, 12 Mar 2008 16:18:42 -0700
+Message-ID: <200803122318.m2CNIgFu018400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752642AbYCLXSG (ORCPT
+	by vger.kernel.org with ESMTP id S1753709AbYCLXTF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 19:18:06 -0400
+	Wed, 12 Mar 2008 19:19:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: olof@lixom.net, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
      fatfs: fix build warning with 64k PAGE_SIZE
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      fatfs-fix-build-warning-with-64k-page_size.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: fatfs: fix build warning with 64k PAGE_SIZE
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Olof Johansson <olof@lixom.net>
 
-powerpc:
+Annoying gcc warning:
 
 fs/fat/inode.c: In function 'fat_fill_super':
 fs/fat/inode.c:1222: warning: comparison is always false due to limited range of data type
 
-the fix will actually cause a little more code to be generated.  It's
-unobvious how to avoid this.
+Change it to compare with 4K instead of PAGE_CACHE_SIZE, as suggested
+by OGAWA-san.
 
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+[FAT spec says: logical_sector_size should be 512, 1024, 2048 4096]
+So, at least for now, we limit it to 4096.
+
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -45,142 +59,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size fs/fat/inode.c
 --- a/fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size
 +++ a/fs/fat/inode.c
-@@ -1158,7 +1158,7 @@ int fat_fill_super(struct super_block *s
- 	struct buffer_head *bh;
- 	struct fat_boot_sector *b;
- 	struct msdos_sb_info *sbi;
--	u16 logical_sector_size;
-+	unsigned logical_sector_size;
- 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
- 	int debug;
- 	unsigned int media;
+@@ -1219,7 +1219,7 @@ int fat_fill_super(struct super_block *s
+ 		le16_to_cpu(get_unaligned((__le16 *)&b->sector_size));
+ 	if (!is_power_of_2(logical_sector_size)
+ 	    || (logical_sector_size < 512)
+-	    || (PAGE_CACHE_SIZE < logical_sector_size)) {
++	    || (logical_sector_size > 4096)) {
+ 		if (!silent)
+ 			printk(KERN_ERR "FAT: bogus logical sector size %u\n",
+ 			       logical_sector_size);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
-origin.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-arm-master.patch
-cifs-suppress-warning.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-fs-gfs2-recoveryc-suppress-warnings.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-git-net-fix-build-with-config_net=n.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-net-sunrpc-svcc-suppress-unintialized-var-warning.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
+execute-tasklets-in-the-same-order-they-were-queued.patch
 fatfs-fix-build-warning-with-64k-page_size.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
