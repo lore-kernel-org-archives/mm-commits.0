@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + codafs-fix-build-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:13:34 -0700
-Message-ID: <200803122023.m2CKN9CB011600@imap1.linux-foundation.org>
+Subject: + fatfs-fix-build-warning-with-64k-page_size.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:16:11 -0700
+Message-ID: <200803122025.m2CKPkwu011649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644AbYCLUXn (ORCPT
+	by vger.kernel.org with ESMTP id S1751951AbYCLUZu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:23:43 -0400
+	Wed, 12 Mar 2008 16:25:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jaharkes@cs.cmu.edu
+Cc: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     codafs: fix build warning
+     fatfs: fix build warning with 64k PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     codafs-fix-build-warning.patch
+     fatfs-fix-build-warning-with-64k-page_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: codafs: fix build warning
+Subject: fatfs: fix build warning with 64k PAGE_SIZE
 From: Andrew Morton <akpm@linux-foundation.org>
 
 powerpc:
 
-fs/coda/coda_linux.c: In function 'coda_iattr_to_vattr':
-fs/coda/coda_linux.c:137: warning: large integer implicitly truncated to unsigned type
+fs/fat/inode.c: In function 'fat_fill_super':
+fs/fat/inode.c:1222: warning: comparison is always false due to limited range of data type
 
-Cc: Jan Harkes <jaharkes@cs.cmu.edu>
+the fix will actually cause a little more code to be generated.  It's
+unobvious how to avoid this.
+
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coda/coda_linux.c |    2 +-
+ fs/fat/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/coda/coda_linux.c~codafs-fix-build-warning fs/coda/coda_linux.c
---- a/fs/coda/coda_linux.c~codafs-fix-build-warning
-+++ a/fs/coda/coda_linux.c
-@@ -134,7 +134,7 @@ void coda_iattr_to_vattr(struct iattr *i
-         unsigned int valid;
- 
-         /* clean out */        
--        vattr->va_mode = (umode_t) -1;
-+        vattr->va_mode = -1;
-         vattr->va_uid = (vuid_t) -1; 
-         vattr->va_gid = (vgid_t) -1;
-         vattr->va_size = (off_t) -1;
+diff -puN fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size fs/fat/inode.c
+--- a/fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size
++++ a/fs/fat/inode.c
+@@ -1158,7 +1158,7 @@ int fat_fill_super(struct super_block *s
+ 	struct buffer_head *bh;
+ 	struct fat_boot_sector *b;
+ 	struct msdos_sb_info *sbi;
+-	u16 logical_sector_size;
++	unsigned logical_sector_size;
+ 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
+ 	int debug;
+ 	unsigned int media;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +126,7 @@ misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
 r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
 r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
@@ -172,5 +176,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-codafs-fix-build-warning.patch
+fatfs-fix-build-warning-with-64k-page_size.patch
 
