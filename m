@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dmapool-enable-debugging-for-config_slub_debug_on-too.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:28:49 -0700
-Message-ID: <200803120428.m2C4SnHB009942@imap1.linux-foundation.org>
+Subject: + reiser4-kgdb-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:27:31 -0700
+Message-ID: <200803120427.m2C4RVV3009917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750835AbYCLE2y (ORCPT
+	by vger.kernel.org with ESMTP id S1751779AbYCLEci (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:28:54 -0400
+	Wed, 12 Mar 2008 00:32:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@suse.de, willy@linux.intel.com
+Cc: kamalesh@linux.vnet.ibm.com, edward.shishkin@gmail.com
 
 
 The patch titled
-     dmapool: enable debugging for CONFIG_SLUB_DEBUG_ON too
+     reiser4 kgdb fix
 has been added to the -mm tree.  Its filename is
-     dmapool-enable-debugging-for-config_slub_debug_on-too.patch
+     reiser4-kgdb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmapool: enable debugging for CONFIG_SLUB_DEBUG_ON too
-From: Andi Kleen <ak@suse.de>
+Subject: reiser4 kgdb fix
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-Previously it was only enabled for CONFIG_DEBUG_SLAB.
+fs/built-in.o: In function `reiser4_debugtrap':
+/root/kernels/linux-2.6.25-rc5/fs/reiser4/debug.c:295: undefined reference to `breakpoint'
+make: *** [.tmp_vmlinux1] Error 1
 
-Not hooked into the slub runtime debug configuration, so you currently only
-get it with CONFIG_SLUB_DEBUG_ON, not plain CONFIG_SLUB_DEBUG
+This build failure has been introduced by reiser4.patch, i think the
+breakpoint() have been used instead of kgdb_breakpoint().
 
-Acked-by: Matthew Wilcox <willy@linux.intel.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/reiser4/debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/dmapool.c~dmapool-enable-debugging-for-config_slub_debug_on-too mm/dmapool.c
---- a/mm/dmapool.c~dmapool-enable-debugging-for-config_slub_debug_on-too
-+++ a/mm/dmapool.c
-@@ -37,6 +37,10 @@
- #include <linux/types.h>
- #include <linux/wait.h>
- 
-+#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
-+#define DMAPOOL_DEBUG 1
-+#endif
-+
- struct dma_pool {		/* the pool */
- 	struct list_head page_list;
- 	spinlock_t lock;
-@@ -216,7 +220,7 @@ static struct dma_page *pool_alloc_page(
- 	page->vaddr = dma_alloc_coherent(pool->dev, pool->allocation,
- 					 &page->dma, mem_flags);
- 	if (page->vaddr) {
--#ifdef	CONFIG_DEBUG_SLAB
-+#ifdef	DMAPOOL_DEBUG
- 		memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
- #endif
- 		pool_initialise_page(pool, page);
-@@ -239,7 +243,7 @@ static void pool_free_page(struct dma_po
+diff -puN fs/reiser4/debug.c~reiser4-kgdb-fix fs/reiser4/debug.c
+--- a/fs/reiser4/debug.c~reiser4-kgdb-fix
++++ a/fs/reiser4/debug.c
+@@ -291,8 +291,8 @@ void reiser4_debugtrap(void)
  {
- 	dma_addr_t dma = page->dma;
- 
--#ifdef	CONFIG_DEBUG_SLAB
-+#ifdef	DMAPOOL_DEBUG
- 	memset(page->vaddr, POOL_POISON_FREED, pool->allocation);
+ 	/* do nothing. Put break point here. */
+ #if defined(CONFIG_KGDB) && !defined(CONFIG_REISER4_FS_MODULE)
+-	extern void breakpoint(void);
+-	breakpoint();
++	extern void kgdb_breakpoint(void);
++	kgdb_breakpoint();
  #endif
- 	dma_free_coherent(pool->dev, pool->allocation, page->vaddr, dma);
-@@ -336,7 +340,7 @@ void *dma_pool_alloc(struct dma_pool *po
- 	page->offset = *(int *)(page->vaddr + offset);
- 	retval = offset + page->vaddr;
- 	*handle = offset + page->dma;
--#ifdef	CONFIG_DEBUG_SLAB
-+#ifdef	DMAPOOL_DEBUG
- 	memset(retval, POOL_POISON_ALLOCATED, pool->size);
+ }
  #endif
-  done:
-@@ -391,7 +395,7 @@ void dma_pool_free(struct dma_pool *pool
- 	}
- 
- 	offset = vaddr - page->vaddr;
--#ifdef	CONFIG_DEBUG_SLAB
-+#ifdef	DMAPOOL_DEBUG
- 	if ((dma - page->dma) != offset) {
- 		if (pool->dev)
- 			dev_err(pool->dev,
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-origin.patch
 git-x86.patch
-bkl-removal-convert-cifs-over-to-unlocked_ioctl.patch
-git-ocfs2.patch
-git-scsi-misc.patch
-block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-tty_ioctl-locking-for-tty_wait_until_sent.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-dmapool-enable-debugging-for-config_slub_debug_on-too.patch
+reiser4-kgdb-fix.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
