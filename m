@@ -1,72 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch added to -mm tree
-Date: Wed, 12 Mar 2008 14:18:03 -0700
-Message-ID: <200803122127.m2CLRcqX013969@imap1.linux-foundation.org>
+Subject: - fatfs-fix-build-warning-with-64k-page_size.patch removed from -mm tree
+Date: Wed, 12 Mar 2008 16:17:32 -0700
+Message-ID: <200803122317.m2CNHYHY018363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751797AbYCLV2F (ORCPT
+	by vger.kernel.org with ESMTP id S1752642AbYCLXSG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 17:28:05 -0400
+	Wed, 12 Mar 2008 19:18:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com
+To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
-has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+     fatfs: fix build warning with 64k PAGE_SIZE
+has been removed from the -mm tree.  Its filename was
+     fatfs-fix-build-warning-with-64k-page_size.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
+Subject: fatfs: fix build warning with 64k PAGE_SIZE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/host/ohci-hub.c: In function 'ohci_hub_control':
-drivers/usb/host/ohci-hub.c:564: warning: 'temp' may be used uninitialized in this function
+powerpc:
 
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+fs/fat/inode.c: In function 'fat_fill_super':
+fs/fat/inode.c:1222: warning: comparison is always false due to limited range of data type
+
+the fix will actually cause a little more code to be generated.  It's
+unobvious how to avoid this.
+
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci-hub.c |    2 +-
+ fs/fat/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ohci-hub.c~fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout drivers/usb/host/ohci-hub.c
---- a/drivers/usb/host/ohci-hub.c~fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
-+++ a/drivers/usb/host/ohci-hub.c
-@@ -561,7 +561,6 @@ static void start_hnp(struct ohci_hcd *o
- static inline int root_port_reset (struct ohci_hcd *ohci, unsigned port)
- {
- 	__hc32 __iomem *portstat = &ohci->regs->roothub.portstatus [port];
--	u32	temp;
- 	u16	now = ohci_readl(ohci, &ohci->regs->fmnumber);
- 	u16	reset_done = now + PORT_RESET_MSEC;
- 	int	limit_1 = DIV_ROUND_UP(PORT_RESET_MSEC, PORT_RESET_HW_MSEC);
-@@ -572,6 +571,7 @@ static inline int root_port_reset (struc
- 	 */
- 	do {
- 		int limit_2;
-+		u32 uninitialized_var(temp);
- 
- 		/* spin until any current reset finishes */
- 		limit_2 = PORT_RESET_HW_MSEC * 2;
+diff -puN fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size fs/fat/inode.c
+--- a/fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size
++++ a/fs/fat/inode.c
+@@ -1158,7 +1158,7 @@ int fat_fill_super(struct super_block *s
+ 	struct buffer_head *bh;
+ 	struct fat_boot_sector *b;
+ 	struct msdos_sb_info *sbi;
+-	u16 logical_sector_size;
++	unsigned logical_sector_size;
+ 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
+ 	int debug;
+ 	unsigned int media;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
