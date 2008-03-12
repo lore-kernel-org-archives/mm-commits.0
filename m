@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:07:23 -0700
-Message-ID: <200803120407.m2C47NU2009191@imap1.linux-foundation.org>
+Subject: + mm-make-mem_map-allocation-continuous.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:06:58 -0700
+Message-ID: <200803120406.m2C46w1M009172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbYCLEHZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750753AbYCLEHi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:07:25 -0400
+	Wed, 12 Mar 2008 00:07:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, yhlu.kernel@gmail.com
+Cc: yhlu.kernel@gmail.com, apw@shadowen.org, bob.picco@hp.com, clameter@sgi.com, haveblue@us.ibm.com, mingo@elte.hu, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     mm-make-mem_map-allocation-continuous-checkpatch-fixes
+     mm: make mem_map allocation continuous
 has been added to the -mm tree.  Its filename is
-     mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+     mm-make-mem_map-allocation-continuous.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-mem_map-allocation-continuous-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: make mem_map allocation continuous
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 
-WARNING: line over 80 characters
-#55: FILE: mm/sparse.c:247:
-+	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
+vmemmap allocation current got
+ [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001400000 on node 0
+ [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001800000 on node 0
+ [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001c00000 on node 0
+ [ffffe20000600000-ffffe200007fffff] PMD ->ffff810002000000 on node 0
+ [ffffe20000800000-ffffe200009fffff] PMD ->ffff810002400000 on node 0
+...
 
-total: 0 errors, 1 warnings, 46 lines checked
+there is 2M hole between them.
 
-./patches/mm-make-mem_map-allocation-continuous.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+the rootcause is that usemap (24 bytes) will be allocated after every 2M
+mem_map. and it will push next vmemmap (2M) to next align (2M).
 
-Please run checkpatch prior to sending patches
+solution:
+try to allocate mem_map continously.
 
-Cc: "Yinghai Lu" <yhlu.kernel@gmail.com>
+after patch, will get
+ [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001400000 on node 0
+ [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001600000 on node 0
+ [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001800000 on node 0
+ [ffffe20000600000-ffffe200007fffff] PMD ->ffff810001a00000 on node 0
+ [ffffe20000800000-ffffe200009fffff] PMD ->ffff810001c00000 on node 0
+...
+and usemap will share in page because of they are allocated continuously too.
+sparse_early_usemap_alloc: usemap = ffff810024e00000 size = 24
+sparse_early_usemap_alloc: usemap = ffff810024e00080 size = 24
+sparse_early_usemap_alloc: usemap = ffff810024e00100 size = 24
+sparse_early_usemap_alloc: usemap = ffff810024e00180 size = 24
+...
+
+so we make the bootmem allocation more compact and use less memory for usemap.
+
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Bob Picco <bob.picco@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/sparse.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN mm/sparse.c~mm-make-mem_map-allocation-continuous-checkpatch-fixes mm/sparse.c
---- a/mm/sparse.c~mm-make-mem_map-allocation-continuous-checkpatch-fixes
+diff -puN mm/sparse.c~mm-make-mem_map-allocation-continuous mm/sparse.c
+--- a/mm/sparse.c~mm-make-mem_map-allocation-continuous
 +++ a/mm/sparse.c
-@@ -244,7 +244,8 @@ static unsigned long *__init sparse_earl
+@@ -244,6 +244,7 @@ static unsigned long *__init sparse_earl
  	int nid = sparse_early_nid(ms);
  
  	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
--	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
-+	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n",
-+		usemap, usemap_size());
++	printk(KERN_INFO "sparse_early_usemap_alloc: usemap = %p size = %ld\n", usemap, usemap_size());
  	if (usemap)
  		return usemap;
  
+@@ -285,6 +286,8 @@ struct page __init *sparse_early_mem_map
+ 	return NULL;
+ }
+ 
++/* section_map pointer array is 64k */
++static __initdata struct page *section_map[NR_MEM_SECTIONS];
+ /*
+  * Allocate the accumulated non-linear sections, allocate a mem_map
+  * for each and record the physical to section mapping.
+@@ -295,14 +298,29 @@ void __init sparse_init(void)
+ 	struct page *map;
+ 	unsigned long *usemap;
+ 
++	/*
++	 * map is using big page (aka 2M in x86 64 bit)
++	 * usemap is less one page (aka 24 bytes)
++	 * so alloc 2M (with 2M align) and 24 bytes in turn will
++	 * make next 2M slip to one more 2M later.
++	 * then in big system, the memmory will have a lot hole...
++	 * here try to allocate 2M pages continously.
++	 */
+ 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
+ 		if (!present_section_nr(pnum))
+ 			continue;
++		section_map[pnum] = sparse_early_mem_map_alloc(pnum);
++	}
+ 
+-		map = sparse_early_mem_map_alloc(pnum);
+-		if (!map)
++
++	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
++		if (!present_section_nr(pnum))
+ 			continue;
+ 
++		map = section_map[pnum];
++		if (!map)
++			 continue;
++
+ 		usemap = sparse_early_usemap_alloc(pnum);
+ 		if (!usemap)
+ 			continue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yhlu.kernel@gmail.com are
 
-origin.patch
 git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-git-net.patch
-git-net-fix-build-with-config_net=n.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+mm-make-mem_map-allocation-continuous.patch
 
