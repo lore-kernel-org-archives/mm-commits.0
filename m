@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - signals-fold-sig_ignored-into-prepare_signal.patch removed from -mm tree
-Date: Tue, 11 Mar 2008 23:00:21 -0700
-Message-ID: <200803120600.m2C60LFb013163@imap1.linux-foundation.org>
+Subject: - signals-document-cld_continued-notification-mechanics.patch removed from -mm tree
+Date: Tue, 11 Mar 2008 23:00:23 -0700
+Message-ID: <200803120600.m2C60NgL013166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751916AbYCLGBf (ORCPT
+	by vger.kernel.org with ESMTP id S1751895AbYCLGBc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 02:01:35 -0400
+	Wed, 12 Mar 2008 02:01:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: fold sig_ignored() into prepare_signal()
+     signals: document CLD_CONTINUED notification mechanics
 has been removed from the -mm tree.  Its filename was
-     signals-fold-sig_ignored-into-prepare_signal.patch
+     signals-document-cld_continued-notification-mechanics.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: fold sig_ignored() into prepare_signal()
+Subject: signals: document CLD_CONTINUED notification mechanics
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Now that prepare_signal() returns int it can absorb the sig_ignored() check to
-avoid the code duplication.
+A couple of small comments about how CLD_CONTINUED notification works.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ kernel/signal.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~signals-fold-sig_ignored-into-prepare_signal kernel/signal.c
---- a/kernel/signal.c~signals-fold-sig_ignored-into-prepare_signal
+diff -puN kernel/signal.c~signals-document-cld_continued-notification-mechanics kernel/signal.c
+--- a/kernel/signal.c~signals-document-cld_continued-notification-mechanics
 +++ a/kernel/signal.c
-@@ -645,7 +645,7 @@ static int prepare_signal(int sig, struc
- 		}
- 	}
+@@ -632,6 +632,10 @@ static int prepare_signal(int sig, struc
+ 			why |= SIGNAL_CLD_STOPPED;
  
--	return 1;
-+	return !sig_ignored(p, sig);
- }
+ 		if (why) {
++			/* The first thread which returns from finish_stop()
++			 * will take ->siglock and notice SIGNAL_CLD_MASK,
++			 * see get_signal_to_deliver().
++			 */
+ 			signal->flags = why | SIGNAL_STOP_CONTINUED;
+ 			signal->group_stop_count = 0;
+ 			signal->group_exit_code = 0;
+@@ -1653,7 +1657,7 @@ relock:
+ 	try_to_freeze();
  
- /*
-@@ -763,7 +763,7 @@ static int send_signal(int sig, struct s
- 	 * exactly one non-rt signal, so that we can get more
- 	 * detailed information about the cause of the signal.
- 	 */
--	if (sig_ignored(t, sig) || legacy_queue(pending, sig))
-+	if (legacy_queue(pending, sig))
- 		return 0;
- 
- 	/*
-@@ -1253,9 +1253,6 @@ int send_sigqueue(struct sigqueue *q, st
- 	if (!likely(prepare_signal(sig, t)))
- 		goto out;
- 
--	if (sig_ignored(t, sig))
--		goto out;
+ 	spin_lock_irq(&sighand->siglock);
 -
- 	ret = 0;
- 	if (unlikely(!list_empty(&q->list))) {
- 		/*
++	/* see prepare_signal(SIGCONT) */
+ 	if (unlikely(signal->flags & SIGNAL_CLD_MASK)) {
+ 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
+ 				? CLD_CONTINUED : CLD_STOPPED;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -110,7 +101,6 @@ signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
 signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
 signals-join-send_sigqueue-with-send_group_sigqueue.patch
 signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-fold-sig_ignored-into-prepare_signal.patch
 signals-document-cld_continued-notification-mechanics.patch
 signals-cleanup-the-usage-of-print_fatal_signal.patch
 ptrace-introduce-task_detached-helper.patch
