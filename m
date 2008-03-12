@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:24:15 -0700
-Message-ID: <200803120424.m2C4OFSx009837@imap1.linux-foundation.org>
+Subject: + rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:24:24 -0700
+Message-ID: <200803120424.m2C4OOo5009854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbYCLEYj (ORCPT
+	by vger.kernel.org with ESMTP id S1751593AbYCLEYl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:24:39 -0400
+	Wed, 12 Mar 2008 00:24:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wei.zhang@freescale.com
 
 
 The patch titled
-     rapidio: add serial RapidIO controller support, which includes MPC8548, MPC8641
+     rapidio: add the RapidIO master port maintance and doorbell window to space resources
 has been added to the -mm tree.  Its filename is
-     rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
+     rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add serial RapidIO controller support, which includes MPC8548, MPC8641
+Subject: rapidio: add the RapidIO master port maintance and doorbell window to space resources
 From: Zhang Wei <wei.zhang@freescale.com>
+
+Add the RapidIO master port maintance and doorbell IO windows to RIO space
+resources.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   75 +++++++++++++++++++++++++++-----
- include/linux/rio.h           |    6 ++
- 2 files changed, 70 insertions(+), 11 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |   26 +++++++++++++++++++++-----
+ include/linux/rio.h           |    1 +
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641 arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources
 +++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -21,6 +21,7 @@
- #include <linux/rio.h>
- #include <linux/rio_drv.h>
- #include <linux/of_platform.h>
-+#include <linux/delay.h>
+@@ -192,6 +192,8 @@ struct rio_priv {
+ 	int bellirq;
+ 	int txirq;
+ 	int rxirq;
++	struct resource maint_res;
++	struct resource dbell_res;
+ };
  
- #include <asm/io.h>
- 
-@@ -30,7 +31,12 @@
- #define IRQ_RIO_RX(m)		(((struct rio_priv *)(m->priv))->rxirq)
- 
- #define RIO_ATMU_REGS_OFFSET	0x10c00
--#define RIO_MSG_REGS_OFFSET	0x11000
-+#define RIO_P_MSG_REGS_OFFSET	0x11000
-+#define RIO_S_MSG_REGS_OFFSET	0x13000
-+#define RIO_ESCSR		0x158
-+#define RIO_CCSR		0x15c
-+#define RIO_ISR_AACR		0x10120
-+#define RIO_ISR_AACR_AA		0x1	/* Accept All ID */
- #define RIO_MAINT_WIN_SIZE	0x400000
- #define RIO_DBELL_WIN_SIZE	0x1000
- 
-@@ -69,7 +75,7 @@
- 
- struct rio_atmu_regs {
- 	u32 rowtar;
--	u32 pad1;
-+	u32 rowtear;
- 	u32 rowbar;
- 	u32 pad2;
- 	u32 rowar;
-@@ -95,7 +101,15 @@ struct rio_msg_regs {
- 	u32 ifqdpar;
- 	u32 pad6;
- 	u32 ifqepar;
--	u32 pad7[250];
-+	u32 pad7[226];
-+	u32 odmr;
-+	u32 odsr;
-+	u32 res0[4];
-+	u32 oddpr;
-+	u32 oddatr;
-+	u32 res1[3];
-+	u32 odretcr;
-+	u32 res2[12];
- 	u32 dmr;
- 	u32 dsr;
- 	u32 pad8;
-@@ -175,8 +189,22 @@ static int fsl_rio_doorbell_send(struct 
- 	struct rio_priv *priv = mport->priv;
- 	pr_debug("fsl_doorbell_send: index %d destid %4.4x data %4.4x\n",
- 		 index, destid, data);
--	out_be32(&priv->dbell_atmu_regs->rowtar, destid << 22);
--	out_be16(priv->dbell_win, data);
-+	switch (mport->phy_type) {
-+	case RIO_PHY_PARALLEL:
-+		out_be32(&priv->dbell_atmu_regs->rowtar, destid << 22);
-+		out_be16(priv->dbell_win, data);
-+		break;
-+	case RIO_PHY_SERIAL:
-+		/* In the serial version silicons, such as MPC8548, MPC8641,
-+		 * below operations is must be.
-+		 */
-+		out_be32(&priv->msg_regs->odmr, 0x00000000);
-+		out_be32(&priv->msg_regs->odretcr, 0x00000004);
-+		out_be32(&priv->msg_regs->oddpr, destid << 16);
-+		out_be32(&priv->msg_regs->oddatr, data);
-+		out_be32(&priv->msg_regs->odmr, 0x00000001);
-+		break;
-+	}
- 
- 	return 0;
- }
-@@ -342,11 +370,22 @@ rio_hw_add_outb_message(struct rio_mport
- 		memset(priv->msg_tx_ring.virt_buffer[priv->msg_tx_ring.tx_slot]
- 				+ len, 0, RIO_MAX_MSG_SIZE - len);
- 
--	/* Set mbox field for message */
--	desc->dport = mbox & 0x3;
-+	switch (mport->phy_type) {
-+	case RIO_PHY_PARALLEL:
-+		/* Set mbox field for message */
-+		desc->dport = mbox & 0x3;
- 
--	/* Enable EOMI interrupt, set priority, and set destid */
--	desc->dattr = 0x28000000 | (rdev->destid << 2);
-+		/* Enable EOMI interrupt, set priority, and set destid */
-+		desc->dattr = 0x28000000 | (rdev->destid << 2);
-+		break;
-+	case RIO_PHY_SERIAL:
-+		/* Set mbox field for message, and set destid */
-+		desc->dport = (rdev->destid << 16) | (mbox & 0x3);
-+
-+		/* Enable EOMI interrupt and priority */
-+		desc->dattr = 0x28000000;
-+		break;
-+	}
- 
- 	/* Set transfer size aligned to next power of 2 (in double words) */
- 	desc->dwcnt = is_power_of_2(len) ? len : 1 << get_bitmask_order(len);
-@@ -920,6 +959,7 @@ int fsl_rio_setup(struct of_device *dev)
- 	const u32 *dt_range, *cell;
- 	struct resource regs;
- 	int rlen;
-+	u32 ccsr;
- 	u64 law_start, law_size;
- 	int paw, aw, sw;
- 
-@@ -1008,6 +1048,14 @@ int fsl_rio_setup(struct of_device *dev)
- 
- 	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
- 
-+	/* Probe the master port phy type */
-+	ccsr = in_be32(priv->regs_win + RIO_CCSR);
-+	port->phy_type = (ccsr & 1) ? RIO_PHY_SERIAL : RIO_PHY_PARALLEL;
-+	dev_info(&dev->dev, "RapidIO PHY type: %s\n",
-+			(port->phy_type == RIO_PHY_PARALLEL) ? "parallel" :
-+			((port->phy_type == RIO_PHY_SERIAL) ? "serial" :
-+			 "unknown"));
-+
- 	port->sys_size = (in_be32((priv->regs_win + RIO_PEF_CAR))
- 					& RIO_PEF_CTLS) >> 4;
- 	dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
-@@ -1017,8 +1065,13 @@ int fsl_rio_setup(struct of_device *dev)
- 					+ RIO_ATMU_REGS_OFFSET);
- 	priv->maint_atmu_regs = priv->atmu_regs + 1;
- 	priv->dbell_atmu_regs = priv->atmu_regs + 2;
--	priv->msg_regs = (struct rio_msg_regs *)(priv->regs_win
--							+ RIO_MSG_REGS_OFFSET);
-+	priv->msg_regs = (struct rio_msg_regs *)(priv->regs_win +
-+				((port->phy_type == RIO_PHY_SERIAL) ?
-+				RIO_S_MSG_REGS_OFFSET : RIO_P_MSG_REGS_OFFSET));
-+
-+	/* Set to receive any dist ID for serial RapidIO controller. */
-+	if (port->phy_type == RIO_PHY_SERIAL)
-+		out_be32((priv->regs_win + RIO_ISR_AACR), RIO_ISR_AACR_AA);
+ /**
+@@ -1362,15 +1364,29 @@ int fsl_rio_setup(struct of_device *dev)
+ 		out_be32((priv->regs_win + RIO_ISR_AACR), RIO_ISR_AACR_AA);
  
  	/* Configure maintenance transaction window */
- 	out_be32(&priv->maint_atmu_regs->rowbar, 0x000c0000);
-diff -puN include/linux/rio.h~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641 include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641
-+++ a/include/linux/rio.h
-@@ -145,6 +145,11 @@ struct rio_dbell {
- 	void *dev_id;
- };
+-	out_be32(&priv->maint_atmu_regs->rowbar, 0x000c0000);
+-	out_be32(&priv->maint_atmu_regs->rowar, 0x80077015);
++	rio_init_io_res(&priv->maint_res, law_start, RIO_MAINT_WIN_SIZE,
++			"maint_win", RIO_RESOURCE_MAINT);
++	rc = rio_request_io_region(port, &priv->maint_res);
++	if (rc) {
++		dev_err(&dev->dev, "request maint window error!\n");
++		goto err;
++	}
++	out_be32(&priv->maint_atmu_regs->rowbar, (law_start >> 12) & 0xffffff);
++	out_be32(&priv->maint_atmu_regs->rowar, 0x80077000
++					| (__ilog2(RIO_MAINT_WIN_SIZE) - 1));
  
-+enum rio_phy_type {
-+	RIO_PHY_PARALLEL,
-+	RIO_PHY_SERIAL,
-+};
-+
- /**
-  * struct rio_mport - RIO master port info
-  * @dbells: List of doorbell events
-@@ -178,6 +183,7 @@ struct rio_mport {
- 				 * 0 - Small size. 256 devices.
- 				 * 1 - Large size, 65536 devices.
- 				 */
-+	enum rio_phy_type phy_type;	/* RapidIO phy type */
- 	unsigned char name[40];
- 	void *priv;		/* Master port private data */
- };
+ 	priv->maint_win = ioremap(law_start, RIO_MAINT_WIN_SIZE);
+ 
+ 	/* Configure outbound doorbell window */
+-	out_be32(&priv->dbell_atmu_regs->rowbar, 0x000c0400);
+-	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);
+-	fsl_rio_doorbell_init(port);
++	rio_init_io_res(&priv->dbell_res, law_start + RIO_MAINT_WIN_SIZE,
++			RIO_DBELL_WIN_SIZE, "dbell_win", RIO_RESOURCE_DOORBELL);
++	out_be32(&priv->dbell_atmu_regs->rowbar, (priv->dbell_res.start >> 12)
++							& 0xffffff);
++	out_be32(&priv->dbell_atmu_regs->rowar, 0x80042000
++					| (__ilog2(RIO_DBELL_WIN_SIZE) - 1));
++	rc = fsl_rio_doorbell_init(port);
++	if (rc)
++		goto err;
+ 
+ 	return 0;
+ err:
+diff -puN include/linux/rio.h~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources
++++ a/include/linux/rio.h
+@@ -257,6 +257,7 @@ struct rio_ops {
+ #define RIO_RESOURCE_MEM	0x00000100
+ #define RIO_RESOURCE_DOORBELL	0x00000200
+ #define RIO_RESOURCE_MAILBOX	0x00000400
++#define RIO_RESOURCE_MAINT	0x00000800
+ 
+ #define RIO_RESOURCE_CACHEABLE	0x00010000
+ #define RIO_RESOURCE_PCI	0x00020000
 _
 
 Patches currently in -mm which might be from wei.zhang@freescale.com are
