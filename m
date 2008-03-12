@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-geode-msr-cleanup.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:27:35 -0700
-Message-ID: <200803120527.m2C5RZEI011938@imap1.linux-foundation.org>
+Subject: + gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:27:38 -0700
+Message-ID: <200803120527.m2C5Rc2c011945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751369AbYCLF2Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751261AbYCLF2Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:28:16 -0400
+	Wed, 12 Mar 2008 01:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, jordan.crouse@amd.com
+Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
 
 
 The patch titled
-     x86: geode: MSR cleanup
+     gxfb: create DC/VP/FP-specific handlers rather than using readl/writel
 has been added to the -mm tree.  Its filename is
-     x86-geode-msr-cleanup.patch
+     gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,287 +34,346 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: geode: MSR cleanup
+Subject: gxfb: create DC/VP/FP-specific handlers rather than using readl/writel
 From: Andres Salomon <dilinger@queued.net>
 
-This cleans up a few MSR-using drivers in the following manner:
-  - Ensures MSRs are all defined in asm/geode.h, rather than in misc
-    places
-  - Makes the naming consistent; cs553[56] ones begin with MSR_,
-    GX-specific ones start with MSR_GX_, and LX-specific ones start
-    with MSR_LX_.  Also, make the names match the data sheet.
-  - Use MSR names rather than numbers in source code
-  - Document the fact that the LX's MSR_PADSEL has the wrong value
-    in the data sheet.  That's, uh, good to note.
+This creates read_dc/write_dc, read_vp/write_vp, and read_fp/write_fp for
+reading and updating those registers.  It creates gxfb.h to house these.
+
+We also drop a no-op readl() from gx_set_mode.  Other than that, there should
+be no functionality change.
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/mfgpt_32.c       |    8 ++++----
- drivers/video/geode/display_gx.h |    1 -
- drivers/video/geode/gxfb_core.c  |    3 ++-
- drivers/video/geode/lxfb.h       |    8 --------
- drivers/video/geode/lxfb_ops.c   |   19 ++++++++++---------
- drivers/video/geode/video_gx.c   |    5 +++--
- drivers/video/geode/video_gx.h   |    3 ---
- include/asm-x86/geode.h          |   16 +++++++++++++---
- 8 files changed, 32 insertions(+), 31 deletions(-)
+ drivers/video/geode/display_gx.c |   50 ++++++++++++++++-------------
+ drivers/video/geode/gxfb.h       |   47 +++++++++++++++++++++++++++
+ drivers/video/geode/gxfb_core.c  |    4 +-
+ drivers/video/geode/video_gx.c   |   41 ++++++++++++-----------
+ 4 files changed, 98 insertions(+), 44 deletions(-)
 
-diff -puN arch/x86/kernel/mfgpt_32.c~x86-geode-msr-cleanup arch/x86/kernel/mfgpt_32.c
---- a/arch/x86/kernel/mfgpt_32.c~x86-geode-msr-cleanup
-+++ a/arch/x86/kernel/mfgpt_32.c
-@@ -62,7 +62,7 @@ static int __init mfgpt_fix(char *s)
- 
- 	/* The following udocumented bit resets the MFGPT timers */
- 	val = 0xFF; dummy = 0;
--	wrmsr(0x5140002B, val, dummy);
-+	wrmsr(MSR_MFGPT_SETUP, val, dummy);
- 	return 1;
- }
- __setup("mfgptfix", mfgpt_fix);
-@@ -126,17 +126,17 @@ int geode_mfgpt_toggle_event(int timer, 
- 		 * 6; that is, resets for 7 and 8 will be ignored.  Is this
- 		 * a problem?   -dilinger
- 		 */
--		msr = MFGPT_NR_MSR;
-+		msr = MSR_MFGPT_NR;
- 		mask = 1 << (timer + 24);
- 		break;
- 
- 	case MFGPT_EVENT_NMI:
--		msr = MFGPT_NR_MSR;
-+		msr = MSR_MFGPT_NR;
- 		mask = 1 << (timer + shift);
- 		break;
- 
- 	case MFGPT_EVENT_IRQ:
--		msr = MFGPT_IRQ_MSR;
-+		msr = MSR_MFGPT_IRQ;
- 		mask = 1 << (timer + shift);
- 		break;
- 
-diff -puN drivers/video/geode/display_gx.h~x86-geode-msr-cleanup drivers/video/geode/display_gx.h
---- a/drivers/video/geode/display_gx.h~x86-geode-msr-cleanup
-+++ a/drivers/video/geode/display_gx.h
-@@ -17,7 +17,6 @@ int gx_line_delta(int xres, int bpp);
- extern struct geode_dc_ops gx_dc_ops;
- 
- /* MSR that tells us if a TFT or CRT is attached */
--#define GLD_MSR_CONFIG   0xC0002001
- #define GLD_MSR_CONFIG_DM_FP 0x40
- 
- /* Display controller registers */
-diff -puN drivers/video/geode/gxfb_core.c~x86-geode-msr-cleanup drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~x86-geode-msr-cleanup
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -30,6 +30,7 @@
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-+#include <asm/geode.h>
+diff -puN drivers/video/geode/display_gx.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel drivers/video/geode/display_gx.c
+--- a/drivers/video/geode/display_gx.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel
++++ a/drivers/video/geode/display_gx.c
+@@ -20,6 +20,7 @@
  
  #include "geodefb.h"
  #include "display_gx.h"
-@@ -326,7 +327,7 @@ static int __init gxfb_probe(struct pci_
++#include "gxfb.h"
  
- 	/* Figure out if this is a TFT or CRT part */
+ unsigned int gx_frame_buffer_size(void)
+ {
+@@ -50,22 +51,21 @@ static void gx_set_mode(struct fb_info *
+ 	int vactive, vblankstart, vsyncstart, vsyncend, vblankend, vtotal;
  
--	rdmsrl(GLD_MSR_CONFIG, val);
-+	rdmsrl(MSR_GX_GLD_MSR_CONFIG, val);
+ 	/* Unlock the display controller registers. */
+-	readl(par->dc_regs + DC_UNLOCK);
+-	writel(DC_UNLOCK_CODE, par->dc_regs + DC_UNLOCK);
++	write_dc(par, DC_UNLOCK, DC_UNLOCK_CODE);
  
- 	if ((val & GLD_MSR_CONFIG_DM_FP) == GLD_MSR_CONFIG_DM_FP)
- 		par->enable_crt = 0;
-diff -puN drivers/video/geode/lxfb.h~x86-geode-msr-cleanup drivers/video/geode/lxfb.h
---- a/drivers/video/geode/lxfb.h~x86-geode-msr-cleanup
-+++ a/drivers/video/geode/lxfb.h
-@@ -31,14 +31,6 @@ void lx_set_palette_reg(struct fb_info *
+-	gcfg = readl(par->dc_regs + DC_GENERAL_CFG);
+-	dcfg = readl(par->dc_regs + DC_DISPLAY_CFG);
++	gcfg = read_dc(par, DC_GENERAL_CFG);
++	dcfg = read_dc(par, DC_DISPLAY_CFG);
  
- /* MSRS */
+ 	/* Disable the timing generator. */
+ 	dcfg &= ~(DC_DCFG_TGEN);
+-	writel(dcfg, par->dc_regs + DC_DISPLAY_CFG);
++	write_dc(par, DC_DISPLAY_CFG, dcfg);
  
--#define MSR_LX_GLD_CONFIG    0x48002001
--#define MSR_LX_GLCP_DOTPLL   0x4c000015
--#define MSR_LX_DF_PADSEL     0x48002011
--#define MSR_LX_DC_SPARE      0x80000011
--#define MSR_LX_DF_GLCONFIG   0x48002001
+ 	/* Wait for pending memory requests before disabling the FIFO load. */
+ 	udelay(100);
+ 
+ 	/* Disable FIFO load and compression. */
+ 	gcfg &= ~(DC_GCFG_DFLE | DC_GCFG_CMPE | DC_GCFG_DECE);
+-	writel(gcfg, par->dc_regs + DC_GENERAL_CFG);
++	write_dc(par, DC_GENERAL_CFG, gcfg);
+ 
+ 	/* Setup DCLK and its divisor. */
+ 	par->vid_ops->set_dclk(info);
+@@ -83,12 +83,12 @@ static void gx_set_mode(struct fb_info *
+ 	gcfg |= (6 << DC_GCFG_DFHPEL_POS) | (5 << DC_GCFG_DFHPSL_POS) | DC_GCFG_DFLE;
+ 
+ 	/* Framebuffer start offset. */
+-	writel(0, par->dc_regs + DC_FB_ST_OFFSET);
++	write_dc(par, DC_FB_ST_OFFSET, 0);
+ 
+ 	/* Line delta and line buffer length. */
+-	writel(info->fix.line_length >> 3, par->dc_regs + DC_GFX_PITCH);
+-	writel(((info->var.xres * info->var.bits_per_pixel/8) >> 3) + 2,
+-	       par->dc_regs + DC_LINE_SIZE);
++	write_dc(par, DC_GFX_PITCH, info->fix.line_length >> 3);
++	write_dc(par, DC_LINE_SIZE,
++		((info->var.xres * info->var.bits_per_pixel/8) >> 3) + 2);
+ 
+ 
+ 	/* Enable graphics and video data and unmask address lines. */
+@@ -127,22 +127,28 @@ static void gx_set_mode(struct fb_info *
+ 	vblankend = vsyncend + info->var.upper_margin;
+ 	vtotal = vblankend;
+ 
+-	writel((hactive - 1)     | ((htotal - 1) << 16),    par->dc_regs + DC_H_ACTIVE_TIMING);
+-	writel((hblankstart - 1) | ((hblankend - 1) << 16), par->dc_regs + DC_H_BLANK_TIMING);
+-	writel((hsyncstart - 1)  | ((hsyncend - 1) << 16),  par->dc_regs + DC_H_SYNC_TIMING);
 -
--#define MSR_LX_GLIU0_P2D_RO0 0x10000029
--
- #define GLCP_DOTPLL_RESET    (1 << 0)
- #define GLCP_DOTPLL_BYPASS   (1 << 15)
- #define GLCP_DOTPLL_HALFPIX  (1 << 24)
-diff -puN drivers/video/geode/lxfb_ops.c~x86-geode-msr-cleanup drivers/video/geode/lxfb_ops.c
---- a/drivers/video/geode/lxfb_ops.c~x86-geode-msr-cleanup
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -13,6 +13,7 @@
- #include <linux/fb.h>
- #include <linux/uaccess.h>
- #include <linux/delay.h>
-+#include <asm/geode.h>
+-	writel((vactive - 1)     | ((vtotal - 1) << 16),    par->dc_regs + DC_V_ACTIVE_TIMING);
+-	writel((vblankstart - 1) | ((vblankend - 1) << 16), par->dc_regs + DC_V_BLANK_TIMING);
+-	writel((vsyncstart - 1)  | ((vsyncend - 1) << 16),  par->dc_regs + DC_V_SYNC_TIMING);
++	write_dc(par, DC_H_ACTIVE_TIMING, (hactive - 1)    |
++			((htotal - 1) << 16));
++	write_dc(par, DC_H_BLANK_TIMING, (hblankstart - 1) |
++			((hblankend - 1) << 16));
++	write_dc(par, DC_H_SYNC_TIMING, (hsyncstart - 1)   |
++			((hsyncend - 1) << 16));
++
++	write_dc(par, DC_V_ACTIVE_TIMING, (vactive - 1)    |
++			((vtotal - 1) << 16));
++	write_dc(par, DC_V_BLANK_TIMING, (vblankstart - 1) |
++			((vblankend - 1) << 16));
++	write_dc(par, DC_V_SYNC_TIMING, (vsyncstart - 1)   |
++			((vsyncend - 1) << 16));
  
- #include "lxfb.h"
+ 	/* Write final register values. */
+-	writel(dcfg, par->dc_regs + DC_DISPLAY_CFG);
+-	writel(gcfg, par->dc_regs + DC_GENERAL_CFG);
++	write_dc(par, DC_DISPLAY_CFG, dcfg);
++	write_dc(par, DC_GENERAL_CFG, gcfg);
  
-@@ -101,7 +102,7 @@ static void lx_set_dotpll(u32 pllval)
- 	u32 dotpll_lo, dotpll_hi;
- 	int i;
+ 	par->vid_ops->configure_display(info);
  
--	rdmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+	rdmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
- 
- 	if ((dotpll_lo & GLCP_DOTPLL_LOCK) && (dotpll_hi == pllval))
- 		return;
-@@ -110,7 +111,7 @@ static void lx_set_dotpll(u32 pllval)
- 	dotpll_lo &= ~(GLCP_DOTPLL_BYPASS | GLCP_DOTPLL_HALFPIX);
- 	dotpll_lo |= GLCP_DOTPLL_RESET;
- 
--	wrmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
- 
- 	/* Wait 100us for the PLL to lock */
- 
-@@ -119,7 +120,7 @@ static void lx_set_dotpll(u32 pllval)
- 	/* Now, loop for the lock bit */
- 
- 	for (i = 0; i < 1000; i++) {
--		rdmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+		rdmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
- 		if (dotpll_lo & GLCP_DOTPLL_LOCK)
- 			break;
- 	}
-@@ -127,7 +128,7 @@ static void lx_set_dotpll(u32 pllval)
- 	/* Clear the reset bit */
- 
- 	dotpll_lo &= ~GLCP_DOTPLL_RESET;
--	wrmsr(MSR_LX_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
-+	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
+ 	/* Relock display controller registers */
+-	writel(0, par->dc_regs + DC_UNLOCK);
++	write_dc(par, DC_UNLOCK, 0);
  }
  
- /* Set the clock based on the frequency specified by the current mode */
-@@ -255,7 +256,7 @@ static void lx_graphics_enable(struct fb
- 		msrlo = DF_DEFAULT_TFT_PAD_SEL_LOW;
- 		msrhi = DF_DEFAULT_TFT_PAD_SEL_HIGH;
+ static void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
+@@ -156,8 +162,8 @@ static void gx_set_hw_palette_reg(struct
+ 	val |= (green)      & 0x00ff00;
+ 	val |= (blue  >> 8) & 0x0000ff;
  
--		wrmsr(MSR_LX_DF_PADSEL, msrlo, msrhi);
-+		wrmsr(MSR_LX_MSR_PADSEL, msrlo, msrhi);
- 	}
+-	writel(regno, par->dc_regs + DC_PAL_ADDRESS);
+-	writel(val, par->dc_regs + DC_PAL_DATA);
++	write_dc(par, DC_PAL_ADDRESS, regno);
++	write_dc(par, DC_PAL_DATA, val);
+ }
  
- 	if (par->output & OUTPUT_CRT) {
-@@ -321,7 +322,7 @@ void lx_set_mode(struct fb_info *info)
+ struct geode_dc_ops gx_dc_ops = {
+diff -puN /dev/null drivers/video/geode/gxfb.h
+--- /dev/null
++++ a/drivers/video/geode/gxfb.h
+@@ -0,0 +1,47 @@
++/*
++ * Copyright (C) 2008 Andres Salomon <dilinger@debian.org>
++ *
++ * Geode GX2 register tables
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#ifndef _GXFB_H_
++#define _GXFB_H_
++
++#include <linux/io.h>
++
++static inline uint32_t read_dc(struct geodefb_par *par, int reg)
++{
++	return readl(par->dc_regs + reg);
++}
++
++static inline void write_dc(struct geodefb_par *par, int reg, uint32_t val)
++{
++	writel(val, par->dc_regs + reg);
++
++}
++
++static inline uint32_t read_vp(struct geodefb_par *par, int reg)
++{
++	return readl(par->vid_regs + reg);
++}
++
++static inline void write_vp(struct geodefb_par *par, int reg, uint32_t val)
++{
++	writel(val, par->vid_regs + reg);
++}
++
++static inline uint32_t read_fp(struct geodefb_par *par, int reg)
++{
++	return readl(par->vid_regs + reg);
++}
++
++static inline void write_fp(struct geodefb_par *par, int reg, uint32_t val)
++{
++	writel(val, par->vid_regs + reg);
++}
++
++#endif
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel
++++ a/drivers/video/geode/gxfb_core.c
+@@ -35,6 +35,7 @@
+ #include "geodefb.h"
+ #include "display_gx.h"
+ #include "video_gx.h"
++#include "gxfb.h"
  
- 	/* Set output mode */
+ static char *mode_option;
+ static int vram;
+@@ -243,8 +244,7 @@ static int __init gxfb_map_video_memory(
+ 	/* Set the 16MiB aligned base address of the graphics memory region
+ 	 * in the display controller */
  
--	rdmsrl(MSR_LX_DF_GLCONFIG, msrval);
-+	rdmsrl(MSR_LX_GLD_MSR_CONFIG, msrval);
- 	msrval &= ~DF_CONFIG_OUTPUT_MASK;
+-	writel(info->fix.smem_start & 0xFF000000,
+-			par->dc_regs + DC_GLIU0_MEM_OFFSET);
++	write_dc(par, DC_GLIU0_MEM_OFFSET, info->fix.smem_start & 0xFF000000);
  
- 	if (par->output & OUTPUT_PANEL) {
-@@ -335,7 +336,7 @@ void lx_set_mode(struct fb_info *info)
- 		msrval |= DF_OUTPUT_CRT;
- 	}
- 
--	wrmsrl(MSR_LX_DF_GLCONFIG, msrval);
-+	wrmsrl(MSR_LX_GLD_MSR_CONFIG, msrval);
- 
- 	/* Clear the various buffers */
- 	/* FIXME:  Adjust for panning here */
-@@ -383,13 +384,13 @@ void lx_set_mode(struct fb_info *info)
- 
- 	/* Set default watermark values */
- 
--	rdmsrl(MSR_LX_DC_SPARE, msrval);
-+	rdmsrl(MSR_LX_SPARE_MSR, msrval);
- 
- 	msrval &= ~(DC_SPARE_DISABLE_CFIFO_HGO | DC_SPARE_VFIFO_ARB_SELECT |
- 		    DC_SPARE_LOAD_WM_LPEN_MASK | DC_SPARE_WM_LPEN_OVRD |
- 		    DC_SPARE_DISABLE_INIT_VID_PRI | DC_SPARE_DISABLE_VFIFO_WM);
- 	msrval |= DC_SPARE_DISABLE_VFIFO_WM | DC_SPARE_DISABLE_INIT_VID_PRI;
--	wrmsrl(MSR_LX_DC_SPARE, msrval);
-+	wrmsrl(MSR_LX_SPARE_MSR, msrval);
- 
- 	gcfg = DC_GCFG_DFLE;   /* Display fifo enable */
- 	gcfg |= 0xB600;         /* Set default priority */
-diff -puN drivers/video/geode/video_gx.c~x86-geode-msr-cleanup drivers/video/geode/video_gx.c
---- a/drivers/video/geode/video_gx.c~x86-geode-msr-cleanup
+ 	dev_info(&dev->dev, "%d KiB of video memory at 0x%lx\n",
+ 		 info->fix.smem_len / 1024, info->fix.smem_start);
+diff -puN drivers/video/geode/video_gx.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel drivers/video/geode/video_gx.c
+--- a/drivers/video/geode/video_gx.c~gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel
 +++ a/drivers/video/geode/video_gx.c
-@@ -16,6 +16,7 @@
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <asm/msr.h>
-+#include <asm/geode.h>
+@@ -20,6 +20,7 @@
  
  #include "geodefb.h"
  #include "video_gx.h"
-@@ -184,10 +185,10 @@ gx_configure_tft(struct fb_info *info)
++#include "gxfb.h"
  
- 	/* Set up the DF pad select MSR */
  
--	rdmsrl(GX_VP_MSR_PAD_SELECT, val);
-+	rdmsrl(MSR_GX_MSR_PADSEL, val);
- 	val &= ~GX_VP_PAD_SELECT_MASK;
- 	val |= GX_VP_PAD_SELECT_TFT;
--	wrmsrl(GX_VP_MSR_PAD_SELECT, val);
-+	wrmsrl(MSR_GX_MSR_PADSEL, val);
+ /*
+@@ -192,16 +193,16 @@ gx_configure_tft(struct fb_info *info)
  
  	/* Turn off the panel */
  
-diff -puN drivers/video/geode/video_gx.h~x86-geode-msr-cleanup drivers/video/geode/video_gx.h
---- a/drivers/video/geode/video_gx.h~x86-geode-msr-cleanup
-+++ a/drivers/video/geode/video_gx.h
-@@ -14,7 +14,6 @@
- extern struct geode_vid_ops gx_vid_ops;
+-	fp = readl(par->vid_regs + GX_FP_PM);
++	fp = read_fp(par, GX_FP_PM);
+ 	fp &= ~GX_FP_PM_P;
+-	writel(fp, par->vid_regs + GX_FP_PM);
++	write_fp(par, GX_FP_PM, fp);
  
- /* GX Flatpanel control MSR */
--#define GX_VP_MSR_PAD_SELECT           0xC0002011
- #define GX_VP_PAD_SELECT_MASK          0x3FFFFFFF
- #define GX_VP_PAD_SELECT_TFT           0x1FFFFFFF
+ 	/* Set timing 1 */
  
-@@ -59,12 +58,10 @@ extern struct geode_vid_ops gx_vid_ops;
+-	fp = readl(par->vid_regs + GX_FP_PT1);
++	fp = read_fp(par, GX_FP_PT1);
+ 	fp &= GX_FP_PT1_VSIZE_MASK;
+ 	fp |= info->var.yres << GX_FP_PT1_VSIZE_SHIFT;
+-	writel(fp, par->vid_regs + GX_FP_PT1);
++	write_fp(par, GX_FP_PT1, fp);
  
- /* Geode GX clock control MSRs */
+ 	/* Timing 2 */
+ 	/* Set bits that are always on for TFT */
+@@ -216,22 +217,22 @@ gx_configure_tft(struct fb_info *info)
+ 	if (!(info->var.sync & FB_SYNC_HOR_HIGH_ACT))
+ 		fp |= GX_FP_PT2_HSP;
  
--#define MSR_GLCP_SYS_RSTPLL	0x4c000014
- #  define MSR_GLCP_SYS_RSTPLL_DOTPREDIV2	(0x0000000000000002ull)
- #  define MSR_GLCP_SYS_RSTPLL_DOTPREMULT2	(0x0000000000000004ull)
- #  define MSR_GLCP_SYS_RSTPLL_DOTPOSTDIV3	(0x0000000000000008ull)
+-	writel(fp, par->vid_regs + GX_FP_PT2);
++	write_fp(par, GX_FP_PT2, fp);
  
--#define MSR_GLCP_DOTPLL		0x4c000015
- #  define MSR_GLCP_DOTPLL_DOTRESET		(0x0000000000000001ull)
- #  define MSR_GLCP_DOTPLL_BYPASS		(0x0000000000008000ull)
- #  define MSR_GLCP_DOTPLL_LOCK			(0x0000000002000000ull)
-diff -puN include/asm-x86/geode.h~x86-geode-msr-cleanup include/asm-x86/geode.h
---- a/include/asm-x86/geode.h~x86-geode-msr-cleanup
-+++ a/include/asm-x86/geode.h
-@@ -30,7 +30,11 @@ extern int geode_get_dev_base(unsigned i
+ 	/*  Set the dither control */
+-	writel(0x70, par->vid_regs + GX_FP_DFC);
++	write_fp(par, GX_FP_DFC, 0x70);
  
- /* MSRS */
+ 	/* Enable the FP data and power (in case the BIOS didn't) */
  
--#define GX_GLCP_SYS_RSTPLL	0x4C000014
-+#define MSR_LX_GLD_MSR_CONFIG	0x48002001
-+#define MSR_LX_MSR_PADSEL	0x48002011	/* NOT 0x48000011; the data
-+						 * sheet has the wrong value */
-+#define MSR_GLCP_SYS_RSTPLL	0x4C000014
-+#define MSR_GLCP_DOTPLL		0x4C000015
+-	fp = readl(par->vid_regs + GX_DCFG);
++	fp = read_vp(par, GX_DCFG);
+ 	fp |= GX_DCFG_FP_PWR_EN | GX_DCFG_FP_DATA_EN;
+-	writel(fp, par->vid_regs + GX_DCFG);
++	write_vp(par, GX_DCFG, fp);
  
- #define MSR_LBAR_SMB		0x5140000B
- #define MSR_LBAR_GPIO		0x5140000C
-@@ -45,8 +49,14 @@ extern int geode_get_dev_base(unsigned i
- #define MSR_PIC_ZSEL_LOW	0x51400022
- #define MSR_PIC_ZSEL_HIGH	0x51400023
+ 	/* Unblank the panel */
  
--#define MFGPT_IRQ_MSR		0x51400028
--#define MFGPT_NR_MSR		0x51400029
-+#define MSR_MFGPT_IRQ		0x51400028
-+#define MSR_MFGPT_NR		0x51400029
-+#define MSR_MFGPT_SETUP		0x5140002B
-+
-+#define MSR_LX_SPARE_MSR	0x80000011	/* DC-specific */
-+
-+#define MSR_GX_GLD_MSR_CONFIG	0xC0002001
-+#define MSR_GX_MSR_PADSEL	0xC0002011
+-	fp = readl(par->vid_regs + GX_FP_PM);
++	fp = read_fp(par, GX_FP_PM);
+ 	fp |= GX_FP_PM_P;
+-	writel(fp, par->vid_regs + GX_FP_PM);
++	write_fp(par, GX_FP_PM, fp);
+ }
  
- /* Resource Sizes */
+ static void gx_configure_display(struct fb_info *info)
+@@ -240,11 +241,11 @@ static void gx_configure_display(struct 
+ 	u32 dcfg, misc;
  
+ 	/* Write the display configuration */
+-	dcfg = readl(par->vid_regs + GX_DCFG);
++	dcfg = read_vp(par, GX_DCFG);
+ 
+ 	/* Disable hsync and vsync */
+ 	dcfg &= ~(GX_DCFG_VSYNC_EN | GX_DCFG_HSYNC_EN);
+-	writel(dcfg, par->vid_regs + GX_DCFG);
++	write_vp(par, GX_DCFG, dcfg);
+ 
+ 	/* Clear bits from existing mode. */
+ 	dcfg &= ~(GX_DCFG_CRT_SYNC_SKW_MASK
+@@ -257,7 +258,7 @@ static void gx_configure_display(struct 
+ 	/* Enable hsync and vsync. */
+ 	dcfg |= GX_DCFG_HSYNC_EN | GX_DCFG_VSYNC_EN;
+ 
+-	misc = readl(par->vid_regs + GX_MISC);
++	misc = read_vp(par, GX_MISC);
+ 
+ 	/* Disable gamma correction */
+ 	misc |= GX_MISC_GAM_EN;
+@@ -266,7 +267,7 @@ static void gx_configure_display(struct 
+ 
+ 		/* Power up the CRT DACs */
+ 		misc &= ~(GX_MISC_A_PWRDN | GX_MISC_DAC_PWRDN);
+-		writel(misc, par->vid_regs + GX_MISC);
++		write_vp(par, GX_MISC, misc);
+ 
+ 		/* Only change the sync polarities if we are running
+ 		 * in CRT mode.  The FP polarities will be handled in
+@@ -278,7 +279,7 @@ static void gx_configure_display(struct 
+ 	} else {
+ 		/* Power down the CRT DACs if in FP mode */
+ 		misc |= (GX_MISC_A_PWRDN | GX_MISC_DAC_PWRDN);
+-		writel(misc, par->vid_regs + GX_MISC);
++		write_vp(par, GX_MISC, misc);
+ 	}
+ 
+ 	/* Enable the display logic */
+@@ -288,7 +289,7 @@ static void gx_configure_display(struct 
+ 
+ 	/* Enable the external DAC VREF? */
+ 
+-	writel(dcfg, par->vid_regs + GX_DCFG);
++	write_vp(par, GX_DCFG, dcfg);
+ 
+ 	/* Set up the flat panel (if it is enabled) */
+ 
+@@ -322,7 +323,7 @@ static int gx_blank_display(struct fb_in
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	dcfg = readl(par->vid_regs + GX_DCFG);
++	dcfg = read_vp(par, GX_DCFG);
+ 	dcfg &= ~(GX_DCFG_DAC_BL_EN
+ 		  | GX_DCFG_HSYNC_EN | GX_DCFG_VSYNC_EN);
+ 	if (!blank)
+@@ -331,17 +332,17 @@ static int gx_blank_display(struct fb_in
+ 		dcfg |= GX_DCFG_HSYNC_EN;
+ 	if (vsync)
+ 		dcfg |= GX_DCFG_VSYNC_EN;
+-	writel(dcfg, par->vid_regs + GX_DCFG);
++	write_vp(par, GX_DCFG, dcfg);
+ 
+ 	/* Power on/off flat panel. */
+ 
+ 	if (par->enable_crt == 0) {
+-		fp_pm = readl(par->vid_regs + GX_FP_PM);
++		fp_pm = read_fp(par, GX_FP_PM);
+ 		if (blank_mode == FB_BLANK_POWERDOWN)
+ 			fp_pm &= ~GX_FP_PM_P;
+ 		else
+ 			fp_pm |= GX_FP_PM_P;
+-		writel(fp_pm, par->vid_regs + GX_FP_PM);
++		write_fp(par, GX_FP_PM, fp_pm);
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
