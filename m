@@ -1,95 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch removed from -mm tree
-Date: Wed, 12 Mar 2008 13:00:40 -0700
-Message-ID: <200803122010.m2CKAG7M011078@imap1.linux-foundation.org>
+Subject: + codafs-fix-build-warning.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:13:34 -0700
+Message-ID: <200803122023.m2CKN9CB011600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42466 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459AbYCLUM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751644AbYCLUXn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:12:26 -0400
+	Wed, 12 Mar 2008 16:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharrosh@panasas.com, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp, gregkh@suse.de, mdharm-usb@one-eyed-alien.net, oliver@neukum.org, snakebyte@gmx.de, stern@r
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jaharkes@cs.cmu.edu
 
 
 The patch titled
-     isd200: Allocate sense_buffer for hacked up scsi_cmnd
-has been removed from the -mm tree.  Its filename was
-     isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch
+     codafs: fix build warning
+has been added to the -mm tree.  Its filename is
+     codafs-fix-build-warning.patch
 
-This patch was dropped because akpm confusion
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isd200: Allocate sense_buffer for hacked up scsi_cmnd
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: codafs: fix build warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Since the separation of sense_buffer from scsi_cmnd, Drivers that hack
-their own struct scsi_cmnd like here isd200, must also take care of their
-own sense_buffer.
+powerpc:
 
-(akpm: needs runtime testing?)
+fs/coda/coda_linux.c: In function 'coda_iattr_to_vattr':
+fs/coda/coda_linux.c:137: warning: large integer implicitly truncated to unsigned type
 
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Oliver Neukum <oliver@neukum.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-Cc: Sven Schnelle <svens@stackframe.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/isd200.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/coda/coda_linux.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd drivers/usb/storage/isd200.c
---- a/drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd
-+++ a/drivers/usb/storage/isd200.c
-@@ -294,6 +294,7 @@ struct isd200_info {
- 	unsigned char MaxLUNs;
- 	struct scsi_cmnd srb;
- 	struct scatterlist sg;
-+	u8*	sense_buffer;
- };
+diff -puN fs/coda/coda_linux.c~codafs-fix-build-warning fs/coda/coda_linux.c
+--- a/fs/coda/coda_linux.c~codafs-fix-build-warning
++++ a/fs/coda/coda_linux.c
+@@ -134,7 +134,7 @@ void coda_iattr_to_vattr(struct iattr *i
+         unsigned int valid;
  
- 
-@@ -1469,6 +1470,7 @@ static void isd200_free_info_ptrs(void *
- 	if (info) {
- 		kfree(info->id);
- 		kfree(info->RegsBuf);
-+		kfree(info->sense_buffer);
- 	}
- }
- 
-@@ -1494,11 +1496,14 @@ static int isd200_init_info(struct us_da
- 				kzalloc(sizeof(struct hd_driveid), GFP_KERNEL);
- 		info->RegsBuf = (unsigned char *)
- 				kmalloc(sizeof(info->ATARegs), GFP_KERNEL);
--		if (!info->id || !info->RegsBuf) {
-+		info->sense_buffer = kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_KERNEL);
-+		if (!info->id || !info->RegsBuf || !info->sense_buffer) {
- 			isd200_free_info_ptrs(info);
- 			kfree(info);
- 			retStatus = ISD200_ERROR;
- 		}
-+		else
-+			info->srb.sense_buffer = info->sense_buffer;
- 	}
- 
- 	if (retStatus == ISD200_GOOD) {
+         /* clean out */        
+-        vattr->va_mode = (umode_t) -1;
++        vattr->va_mode = -1;
+         vattr->va_uid = (vuid_t) -1; 
+         vattr->va_gid = (vgid_t) -1;
+         vattr->va_size = (off_t) -1;
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-scsi-misc.patch
-gdth-allocate-sense_buffer-to-prevent-null-pointer-dereference.patch
-isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch
-isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch
-isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
+origin.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-arm-master.patch
+git-powerpc-fix-git-rejects.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+driver-core-debug-for-bad-dev_attr_show-return-value.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-fix-build-with-config_net=n.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+revert-acpi-thermal-fixup.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+codafs-fix-build-warning.patch
 
