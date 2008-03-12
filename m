@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:24:22 -0700
-Message-ID: <200803120424.m2C4OMKO009850@imap1.linux-foundation.org>
+Subject: + rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:24:15 -0700
+Message-ID: <200803120424.m2C4OFSx009837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751437AbYCLEYk (ORCPT
+	by vger.kernel.org with ESMTP id S1751492AbYCLEYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:24:40 -0400
+	Wed, 12 Mar 2008 00:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: wei.zhang@freescale.com
 
 
 The patch titled
-     rapidio: add FSL RapidIO controller memory ops functions
+     rapidio: add serial RapidIO controller support, which includes MPC8548, MPC8641
 has been added to the -mm tree.  Its filename is
-     rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
+     rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,268 +34,182 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add FSL RapidIO controller memory ops functions
+Subject: rapidio: add serial RapidIO controller support, which includes MPC8548, MPC8641
 From: Zhang Wei <wei.zhang@freescale.com>
-
-Add FSL RapidIO controller (MPC85xx, MPC86xx) memory operation functions,
-which include map inbound/outbound window and unmap incound/outbound window.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |  204 ++++++++++++++++++++++++++++++++
- 1 file changed, 204 insertions(+)
+ arch/powerpc/sysdev/fsl_rio.c |   75 +++++++++++++++++++++++++++-----
+ include/linux/rio.h           |    6 ++
+ 2 files changed, 70 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-fsl-rapidio-controller-memory-ops-functions arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-fsl-rapidio-controller-memory-ops-functions
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641 arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641
 +++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -30,6 +30,8 @@
- #define IRQ_RIO_TX(m)		(((struct rio_priv *)(m->priv))->txirq)
+@@ -21,6 +21,7 @@
+ #include <linux/rio.h>
+ #include <linux/rio_drv.h>
+ #include <linux/of_platform.h>
++#include <linux/delay.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -30,7 +31,12 @@
  #define IRQ_RIO_RX(m)		(((struct rio_priv *)(m->priv))->rxirq)
  
-+#define IS_64BIT_RES ((sizeof(resource_size_t) == 8) ? 1 : 0)
-+
  #define RIO_ATMU_REGS_OFFSET	0x10c00
- #define RIO_P_MSG_REGS_OFFSET	0x11000
- #define RIO_S_MSG_REGS_OFFSET	0x13000
-@@ -39,6 +41,15 @@
- #define RIO_ISR_AACR_AA		0x1	/* Accept All ID */
+-#define RIO_MSG_REGS_OFFSET	0x11000
++#define RIO_P_MSG_REGS_OFFSET	0x11000
++#define RIO_S_MSG_REGS_OFFSET	0x13000
++#define RIO_ESCSR		0x158
++#define RIO_CCSR		0x15c
++#define RIO_ISR_AACR		0x10120
++#define RIO_ISR_AACR_AA		0x1	/* Accept All ID */
  #define RIO_MAINT_WIN_SIZE	0x400000
  #define RIO_DBELL_WIN_SIZE	0x1000
-+#define RIO_MAX_INB_ATMU	4
-+#define RIO_MAX_OUTB_ATMU	8
-+#define RIO_INB_ATMU_REGS_OFFSET	0x10de0
-+#define RIO_ATMU_EN_MASK	0x80000000
-+
-+#define RIO_NREAD		0x4
-+#define RIO_NWRITE		0x4
-+#define RIO_NWRITE_R		0x5
-+#define RIO_NREAD_R		0x5
  
- #define RIO_MSG_OMR_MUI		0x00000002
- #define RIO_MSG_OSR_TE		0x00000080
-@@ -82,6 +93,15 @@ struct rio_atmu_regs {
- 	u32 pad3[3];
+@@ -69,7 +75,7 @@
+ 
+ struct rio_atmu_regs {
+ 	u32 rowtar;
+-	u32 pad1;
++	u32 rowtear;
+ 	u32 rowbar;
+ 	u32 pad2;
+ 	u32 rowar;
+@@ -95,7 +101,15 @@ struct rio_msg_regs {
+ 	u32 ifqdpar;
+ 	u32 pad6;
+ 	u32 ifqepar;
+-	u32 pad7[250];
++	u32 pad7[226];
++	u32 odmr;
++	u32 odsr;
++	u32 res0[4];
++	u32 oddpr;
++	u32 oddatr;
++	u32 res1[3];
++	u32 odretcr;
++	u32 res2[12];
+ 	u32 dmr;
+ 	u32 dsr;
+ 	u32 pad8;
+@@ -175,8 +189,22 @@ static int fsl_rio_doorbell_send(struct 
+ 	struct rio_priv *priv = mport->priv;
+ 	pr_debug("fsl_doorbell_send: index %d destid %4.4x data %4.4x\n",
+ 		 index, destid, data);
+-	out_be32(&priv->dbell_atmu_regs->rowtar, destid << 22);
+-	out_be16(priv->dbell_win, data);
++	switch (mport->phy_type) {
++	case RIO_PHY_PARALLEL:
++		out_be32(&priv->dbell_atmu_regs->rowtar, destid << 22);
++		out_be16(priv->dbell_win, data);
++		break;
++	case RIO_PHY_SERIAL:
++		/* In the serial version silicons, such as MPC8548, MPC8641,
++		 * below operations is must be.
++		 */
++		out_be32(&priv->msg_regs->odmr, 0x00000000);
++		out_be32(&priv->msg_regs->odretcr, 0x00000004);
++		out_be32(&priv->msg_regs->oddpr, destid << 16);
++		out_be32(&priv->msg_regs->oddatr, data);
++		out_be32(&priv->msg_regs->odmr, 0x00000001);
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -342,11 +370,22 @@ rio_hw_add_outb_message(struct rio_mport
+ 		memset(priv->msg_tx_ring.virt_buffer[priv->msg_tx_ring.tx_slot]
+ 				+ len, 0, RIO_MAX_MSG_SIZE - len);
+ 
+-	/* Set mbox field for message */
+-	desc->dport = mbox & 0x3;
++	switch (mport->phy_type) {
++	case RIO_PHY_PARALLEL:
++		/* Set mbox field for message */
++		desc->dport = mbox & 0x3;
+ 
+-	/* Enable EOMI interrupt, set priority, and set destid */
+-	desc->dattr = 0x28000000 | (rdev->destid << 2);
++		/* Enable EOMI interrupt, set priority, and set destid */
++		desc->dattr = 0x28000000 | (rdev->destid << 2);
++		break;
++	case RIO_PHY_SERIAL:
++		/* Set mbox field for message, and set destid */
++		desc->dport = (rdev->destid << 16) | (mbox & 0x3);
++
++		/* Enable EOMI interrupt and priority */
++		desc->dattr = 0x28000000;
++		break;
++	}
+ 
+ 	/* Set transfer size aligned to next power of 2 (in double words) */
+ 	desc->dwcnt = is_power_of_2(len) ? len : 1 << get_bitmask_order(len);
+@@ -920,6 +959,7 @@ int fsl_rio_setup(struct of_device *dev)
+ 	const u32 *dt_range, *cell;
+ 	struct resource regs;
+ 	int rlen;
++	u32 ccsr;
+ 	u64 law_start, law_size;
+ 	int paw, aw, sw;
+ 
+@@ -1008,6 +1048,14 @@ int fsl_rio_setup(struct of_device *dev)
+ 
+ 	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
+ 
++	/* Probe the master port phy type */
++	ccsr = in_be32(priv->regs_win + RIO_CCSR);
++	port->phy_type = (ccsr & 1) ? RIO_PHY_SERIAL : RIO_PHY_PARALLEL;
++	dev_info(&dev->dev, "RapidIO PHY type: %s\n",
++			(port->phy_type == RIO_PHY_PARALLEL) ? "parallel" :
++			((port->phy_type == RIO_PHY_SERIAL) ? "serial" :
++			 "unknown"));
++
+ 	port->sys_size = (in_be32((priv->regs_win + RIO_PEF_CAR))
+ 					& RIO_PEF_CTLS) >> 4;
+ 	dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
+@@ -1017,8 +1065,13 @@ int fsl_rio_setup(struct of_device *dev)
+ 					+ RIO_ATMU_REGS_OFFSET);
+ 	priv->maint_atmu_regs = priv->atmu_regs + 1;
+ 	priv->dbell_atmu_regs = priv->atmu_regs + 2;
+-	priv->msg_regs = (struct rio_msg_regs *)(priv->regs_win
+-							+ RIO_MSG_REGS_OFFSET);
++	priv->msg_regs = (struct rio_msg_regs *)(priv->regs_win +
++				((port->phy_type == RIO_PHY_SERIAL) ?
++				RIO_S_MSG_REGS_OFFSET : RIO_P_MSG_REGS_OFFSET));
++
++	/* Set to receive any dist ID for serial RapidIO controller. */
++	if (port->phy_type == RIO_PHY_SERIAL)
++		out_be32((priv->regs_win + RIO_ISR_AACR), RIO_ISR_AACR_AA);
+ 
+ 	/* Configure maintenance transaction window */
+ 	out_be32(&priv->maint_atmu_regs->rowbar, 0x000c0000);
+diff -puN include/linux/rio.h~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641 include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641
++++ a/include/linux/rio.h
+@@ -145,6 +145,11 @@ struct rio_dbell {
+ 	void *dev_id;
  };
  
-+struct rio_inb_atmu_regs {
-+	u32 riwtar;
-+	u32 pad1;
-+	u32 riwbar;
-+	u32 pad2;
-+	u32 riwar;
-+	u32 pad3[3];
++enum rio_phy_type {
++	RIO_PHY_PARALLEL,
++	RIO_PHY_SERIAL,
 +};
 +
- struct rio_msg_regs {
- 	u32 omr;
- 	u32 osr;
-@@ -334,6 +354,182 @@ fsl_rio_config_write(struct rio_mport *m
- }
- 
  /**
-+ * fsl_rio_map_inb_mem -- Mapping inbound memory region.
-+ * @lstart: Local memory space start address.
-+ * @rstart: RapidIO space start address.
-+ * @size: The mapping region size.
-+ * @flags: Flags for mapping. 0 for using default flags.
-+ *
-+ * Return: 0 -- Success.
-+ *
-+ * This function will create the inbound mapping
-+ * from rstart to lstart.
-+ */
-+static int fsl_rio_map_inb_mem(struct rio_mport *mport, resource_size_t lstart,
-+		resource_size_t rstart,	resource_size_t size, u32 flags)
-+{
-+	int i;
-+	struct rio_priv *priv = mport->priv;
-+	struct rio_inb_atmu_regs __iomem *inbatmu = (struct rio_inb_atmu_regs *)
-+				(priv->regs_win + RIO_INB_ATMU_REGS_OFFSET) - 1;
-+	int size_ffs;
-+	resource_size_t align;
-+
-+	if (flags == 0)
-+		flags = (RIO_NREAD_R << 4) | RIO_NWRITE_R;
-+
-+	align = (size < 0x1000) ? 0x1000 : 1 << (__ilog2(size - 1) + 1);
-+
-+	/* Align the size */
-+	if ((lstart + size) > (_ALIGN_DOWN(lstart, align) + align)) {
-+		size_ffs = __ffs(_ALIGN_DOWN(lstart + size - 1, align));
-+		size = 1 << (size_ffs +	(((_ALIGN_DOWN(lstart, 1 << size_ffs) +
-+				(1 << size_ffs)) < (lstart + size)) ? 1 : 0));
-+	} else
-+		size = align;
-+
-+	if ((lstart & (size - 1)) != (rstart & (size - 1))) {
-+		dev_err(mport->dev, "The local address 0x%x can not be aligned "
-+			"to the same size 0x%x with the RapidIO space "
-+			"address 0x%x!\n", lstart, size, rstart);
-+		return -EINVAL;
-+	}
-+
-+	/* Search for free inbound ATMU */
-+	for (i = 1;
-+		(i <= RIO_MAX_INB_ATMU) && (inbatmu->riwar & RIO_ATMU_EN_MASK);
-+		i++, inbatmu--)
-+		;
-+
-+	if (i > RIO_MAX_INB_ATMU) {
-+		dev_err(mport->dev, "No free inbound ATMU!\n");
-+		return -EBUSY;
-+	}
-+	out_be32(&inbatmu->riwtar, ((IS_64BIT_RES ? (lstart >> 32)
-+				& 0xf : 0) << 20) | ((lstart >> 12) & 0xfffff));
-+	out_be32(&inbatmu->riwbar, ((IS_64BIT_RES ? (rstart >> 32)
-+				& 0x3 : 0) << 20) | ((rstart >> 12) & 0xfffff));
-+	out_be32(&inbatmu->riwar, 0x80000000 | (0xf << 20)
-+				| ((flags & 0xff) << 12)
-+				| (__ilog2(size) - 1));
-+	return 0;
-+}
-+
-+/**
-+ * fsl_rio_map_outb_mem -- Mapping outbound memory region.
-+ * @lstart: Local memory space start address.
-+ * @rstart: RapidIO space start address.
-+ * @size: The mapping region size.
-+ * @tid: The target RapidIO device id.
-+ * @flags: Flags for mapping. 0 for using default flags.
-+ *
-+ * Return: 0 -- Success.
-+ *
-+ * This function will create the outbound mapping
-+ * from lstart to rstart.
-+ */
-+static int fsl_rio_map_outb_mem(struct rio_mport *mport, resource_size_t lstart,
-+		resource_size_t rstart,	resource_size_t size,
-+		u16 tid, u32 flags)
-+{
-+	int i;
-+	struct rio_priv *priv = mport->priv;
-+	struct rio_atmu_regs __iomem *outbatmu = (struct rio_atmu_regs *)
-+			(priv->regs_win + RIO_ATMU_REGS_OFFSET) + 1;
-+	int size_ffs;
-+	resource_size_t align;
-+
-+	if (flags == 0)
-+		flags = (RIO_NREAD << 4) | RIO_NWRITE_R;
-+
-+	align = (size < 0x1000) ? 0x1000 : 1 << (__ilog2(size - 1) + 1);
-+
-+	/* Align the size */
-+	if ((lstart + size) > (_ALIGN_DOWN(lstart, align) + align)) {
-+		size_ffs = __ffs(_ALIGN_DOWN(lstart + size - 1, align));
-+		size = 1 << (size_ffs +	(((_ALIGN_DOWN(lstart, 1 << size_ffs) +
-+				(1 << size_ffs)) < (lstart + size)) ? 1 : 0));
-+	} else
-+		size = align;
-+
-+	if ((lstart & (size - 1)) != (rstart & (size - 1))) {
-+		dev_err(mport->dev, "The local address 0x%x can not be aligned "
-+			"to the same size 0x%x with the RapidIO space address "
-+			"0x%x!\n", lstart, size, rstart);
-+		return -EINVAL;
-+	}
-+
-+	/* Search for free outbound ATMU */
-+	for (i = 1;
-+	      (i <= RIO_MAX_OUTB_ATMU) && (outbatmu->rowar & RIO_ATMU_EN_MASK);
-+	      i++, outbatmu++)
-+		;
-+
-+	if (i > RIO_MAX_OUTB_ATMU) {
-+		dev_err(mport->dev, "No free outbound ATMU!\n");
-+		return -EBUSY;
-+	}
-+	out_be32(&outbatmu->rowtar, ((tid & 0x3ff) << 22)
-+			| ((IS_64BIT_RES ? (rstart >> 32) & 0x3 : 0) << 20)
-+			| ((rstart >> 12) & 0xfffff));
-+	if (mport->phy_type == RIO_PHY_SERIAL)
-+		out_be32(&outbatmu->rowtear, tid >> 10);
-+	out_be32(&outbatmu->rowbar, ((IS_64BIT_RES ?
-+					(lstart >> 32) & 0xf : 0) << 20)
-+					| ((lstart >> 12) & 0xfffff));
-+	out_be32(&outbatmu->rowar, 0x80000000
-+				| ((flags & 0xff) << 12)
-+				| (__ilog2(size) - 1));
-+	return 0;
-+}
-+
-+/**
-+ * fsl_rio_unmap_inb_mem -- Unmapping inbound memory region.
-+ * @lstart: Local memory space start address.
-+ */
-+static void fsl_rio_unmap_inb_mem(struct rio_mport *mport,
-+				resource_size_t lstart)
-+{
-+	int i;
-+	struct rio_priv *priv = mport->priv;
-+	struct rio_inb_atmu_regs __iomem *inbatmu = (struct rio_inb_atmu_regs *)
-+			(priv->regs_win + RIO_INB_ATMU_REGS_OFFSET) - 1;
-+
-+	/* Search for inbound ATMU */
-+	for (i = 1; i <= RIO_MAX_INB_ATMU ; i++, inbatmu--) {
-+		u32 tar = ((IS_64BIT_RES ? (lstart >> 32) & 0xf : 0) << 20)
-+			| ((lstart >> 12) & 0xfffff);
-+		if (inbatmu->riwtar == tar) {
-+			out_be32(&inbatmu->riwar, ~(RIO_ATMU_EN_MASK));
-+			return;
-+		}
-+	}
-+}
-+
-+/**
-+ * fsl_rio_unmap_inb_mem -- Unmapping outbound memory region.
-+ * @lstart: Local memory space start address.
-+ */
-+static void fsl_rio_unmap_outb_mem(struct rio_mport *mport,
-+				resource_size_t lstart)
-+{
-+	int i;
-+	struct rio_priv *priv = mport->priv;
-+	struct rio_atmu_regs __iomem *outbatmu = (struct rio_atmu_regs *)
-+			(priv->regs_win + RIO_ATMU_REGS_OFFSET) + 1;
-+
-+	/* Search for outbound ATMU */
-+	for (i = 1; i <= RIO_MAX_OUTB_ATMU ; i++, outbatmu++) {
-+		u32 bar = ((IS_64BIT_RES ? (lstart >> 32) & 0xf : 0) << 20)
-+			| ((lstart >> 12) & 0xfffff);
-+		if (outbatmu->rowbar == bar) {
-+			out_be32(&outbatmu->rowar, ~(RIO_ATMU_EN_MASK));
-+			return;
-+		}
-+	}
-+}
-+
-+/**
-  * rio_hw_add_outb_message - Add message to the MPC85xx outbound message queue
-  * @mport: Master port with outbound message queue
-  * @rdev: Target of outbound message
-@@ -953,6 +1149,13 @@ static int fsl_rio_get_cmdline(char *s)
- 
- __setup("riohdid=", fsl_rio_get_cmdline);
- 
-+static struct rio_mem_ops fsl_mem_ops = {
-+	.map_inb = fsl_rio_map_inb_mem,
-+	.map_outb = fsl_rio_map_outb_mem,
-+	.unmap_inb = fsl_rio_unmap_inb_mem,
-+	.unmap_outb = fsl_rio_unmap_outb_mem,
-+};
-+
- static inline void fsl_rio_info(struct device *dev, u32 ccsr)
- {
- 	const char *str;
-@@ -1096,6 +1299,7 @@ int fsl_rio_setup(struct of_device *dev)
- 	strcpy(port->name, "RIO0 mport");
- 
- 	port->ops = ops;
-+	port->mops = &fsl_mem_ops;
- 	port->host_deviceid = fsl_rio_get_hdid(port->id);
- 
- 	port->priv = priv;
+  * struct rio_mport - RIO master port info
+  * @dbells: List of doorbell events
+@@ -178,6 +183,7 @@ struct rio_mport {
+ 				 * 0 - Small size. 256 devices.
+ 				 * 1 - Large size, 65536 devices.
+ 				 */
++	enum rio_phy_type phy_type;	/* RapidIO phy type */
+ 	unsigned char name[40];
+ 	void *priv;		/* Master port private data */
+ };
 _
 
 Patches currently in -mm which might be from wei.zhang@freescale.com are
