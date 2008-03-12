@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + devres-implement-pcim_iomap_regions_request_all-fix.patch added to -mm tree
-Date: Tue, 11 Mar 2008 23:08:40 -0700
-Message-ID: <200803120608.m2C68eYL013369@imap1.linux-foundation.org>
+Subject: + devres-implement-pcim_iomap_regions_request_all-fix-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 23:12:08 -0700
+Message-ID: <200803120612.m2C6C87J013509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbYCLGI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751583AbYCLGMZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 02:08:57 -0400
+	Wed, 12 Mar 2008 02:12:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, htejun@
 
 
 The patch titled
-     devres-implement-pcim_iomap_regions_request_all-fix
+     devres-implement-pcim_iomap_regions_request_all-fix-fix
 has been added to the -mm tree.  Its filename is
-     devres-implement-pcim_iomap_regions_request_all-fix.patch
+     devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-implement-pcim_iomap_regions_request_all-fix
+Subject: devres-implement-pcim_iomap_regions_request_all-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+stupid fascist compiler
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
@@ -44,18 +46,18 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/io.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix include/linux/io.h
---- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix
+diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix include/linux/io.h
+--- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix
 +++ a/include/linux/io.h
-@@ -65,5 +65,7 @@ void __iomem * devm_ioremap_nocache(stru
- void devm_iounmap(struct device *dev, void __iomem *addr);
+@@ -66,6 +66,6 @@ void devm_iounmap(struct device *dev, vo
  int check_signature(const volatile void __iomem *io_addr,
  			const unsigned char *signature, int length);
-+int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
-+			const char *name)
+ int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
+-			const char *name)
++			const char *name);
  
  #endif /* _LINUX_IO_H */
 _
@@ -87,6 +89,7 @@ maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
 git-net-fix-build-with-config_net=n.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
