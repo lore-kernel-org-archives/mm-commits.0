@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-revert-supermicro-h8dce-motherboard-quirk.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:22:38 -0700
-Message-ID: <200803120522.m2C5Mcbt011779@imap1.linux-foundation.org>
+Subject: + pnp-disable-pnp-motherboard-resources-that-overlap-pci-bars.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:22:43 -0700
+Message-ID: <200803120522.m2C5Mh01011782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750970AbYCLFXX (ORCPT
+	by vger.kernel.org with ESMTP id S1751165AbYCLFXX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 12 Mar 2008 01:23:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, avuton@gmail.com, hancockr@shaw.ca, 
 
 
 The patch titled
-     PNP: revert Supermicro H8DCE motherboard quirk
+     PNP: disable PNP motherboard resources that overlap PCI BARs
 has been added to the -mm tree.  Its filename is
-     pnp-revert-supermicro-h8dce-motherboard-quirk.patch
+     pnp-disable-pnp-motherboard-resources-that-overlap-pci-bars.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: revert Supermicro H8DCE motherboard quirk
+Subject: PNP: disable PNP motherboard resources that overlap PCI BARs
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-There are other systems with similar problems
-(http://lkml.org/lkml/2008/1/27/168), so we need a more
-generic quirk.  Remove the Supermicro-specific one first.
+Some BIOSes have PNP motherboard devices with resources that partially overlap
+PCI BARs.  The PNP system driver claims these motherboard resources, which
+prevents the normal PCI driver from requesting them later.
+
+This patch disables the PNP resources that conflict with PCI BARs so they
+won't be claimed by the PNP system driver.
+
+Of course, this only works if PCI devices have already been enumerated. 
+Currently this is the case because PCI devices are discovered before any PNP
+init via this path:
+
+    acpi_pci_root_init() -> acpi_pci_root_add() -> pci_acpi_scan_root() ->
+	pci_scan_bus_parented() -> pci_scan_child_bus() -> ...
+
+Avuton Olrich tested this and confirmed that it fixes his ALSA sound card (see
+http://lkml.org/lkml/2008/1/27/168).
+
+References:
+    https://bugzilla.redhat.com/show_bug.cgi?id=280641
+    https://bugzilla.redhat.com/show_bug.cgi?id=313491
+    http://lkml.org/lkml/2008/1/9/449
+    http://thread.gmane.org/gmane.linux.acpi.devel/27312
+    http://lkml.org/lkml/2008/1/27/168
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Len Brown <lenb@kernel.org>
@@ -54,73 +74,96 @@ Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |   43 -----------------------------------------
- 1 file changed, 43 deletions(-)
+ drivers/pnp/quirks.c |   73 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
-diff -puN drivers/pnp/quirks.c~pnp-revert-supermicro-h8dce-motherboard-quirk drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-revert-supermicro-h8dce-motherboard-quirk
+diff -puN drivers/pnp/quirks.c~pnp-disable-pnp-motherboard-resources-that-overlap-pci-bars drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-disable-pnp-motherboard-resources-that-overlap-pci-bars
 +++ a/drivers/pnp/quirks.c
-@@ -17,7 +17,6 @@
- #include <linux/slab.h>
- #include <linux/pnp.h>
- #include <linux/io.h>
--#include <linux/dmi.h>
- #include <linux/kallsyms.h>
- #include "base.h"
- 
-@@ -109,46 +108,6 @@ static void quirk_sb16audio_resources(st
+@@ -108,6 +108,77 @@ static void quirk_sb16audio_resources(st
  		       "pnp: SB audio device quirk - increasing port range\n");
  }
  
--static void quirk_supermicro_h8dce_system(struct pnp_dev *dev)
--{
--	int i;
--	static struct dmi_system_id supermicro_h8dce[] = {
--		{
--			.ident = "Supermicro H8DCE",
--			.matches = {
--				DMI_MATCH(DMI_SYS_VENDOR, "Supermicro"),
--				DMI_MATCH(DMI_PRODUCT_NAME, "H8DCE"),
--			},
--		},
--		{ }
--	};
--
--	if (!dmi_check_system(supermicro_h8dce))
--		return;
--
--	/*
--	 * On the Supermicro H8DCE, there's a system device with resources
--	 * that overlap BAR 6 of the built-in SATA PCI adapter.  If the PNP
--	 * system device claims them, the sata_nv driver won't be able to.
--	 * More details at:
--	 *     https://bugzilla.redhat.com/show_bug.cgi?id=280641
--	 *     https://bugzilla.redhat.com/show_bug.cgi?id=313491
--	 *     http://lkml.org/lkml/2008/1/9/449
--	 *     http://thread.gmane.org/gmane.linux.acpi.devel/27312
--	 */
--	for (i = 0; i < PNP_MAX_MEM; i++) {
--		if (pnp_mem_valid(dev, i) && pnp_mem_len(dev, i) &&
--		    (pnp_mem_start(dev, i) & 0xdfef0000) == 0xdfef0000) {
--			dev_warn(&dev->dev, "disabling 0x%llx-0x%llx to prevent"
--				" conflict with sata_nv PCI device\n",
--				(unsigned long long) pnp_mem_start(dev, i),
--				(unsigned long long) (pnp_mem_start(dev, i) +
--					pnp_mem_len(dev, i) - 1));
--			pnp_mem_flags(dev, i) = 0;
--		}
--	}
--}
--
++
++#include <linux/pci.h>
++
++static void quirk_system_pci_resources(struct pnp_dev *dev)
++{
++	struct pci_dev *pdev = NULL;
++	resource_size_t pnp_start, pnp_end, pci_start, pci_end;
++	int i, j;
++
++	/*
++	 * Some BIOSes have PNP motherboard devices with resources that
++	 * partially overlap PCI BARs.  The PNP system driver claims these
++	 * motherboard resources, which prevents the normal PCI driver from
++	 * requesting them later.
++	 *
++	 * This patch disables the PNP resources that conflict with PCI BARs
++	 * so they won't be claimed by the PNP system driver.
++	 */
++	for_each_pci_dev(pdev) {
++		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
++			if (!(pci_resource_flags(pdev, i) & IORESOURCE_MEM) ||
++			    pci_resource_len(pdev, i) == 0)
++				continue;
++
++			pci_start = pci_resource_start(pdev, i);
++			pci_end = pci_resource_end(pdev, i);
++			for (j = 0; j < PNP_MAX_MEM; j++) {
++				if (!pnp_mem_valid(dev, j) ||
++				    pnp_mem_len(dev, j) == 0)
++					continue;
++
++				pnp_start = pnp_mem_start(dev, j);
++				pnp_end = pnp_mem_end(dev, j);
++
++				/*
++				 * If the PNP region doesn't overlap the PCI
++				 * region at all, there's no problem.
++				 */
++				if (pnp_end < pci_start || pnp_start > pci_end)
++					continue;
++
++				/*
++				 * If the PNP region completely encloses (or is
++				 * at least as large as) the PCI region, that's
++				 * also OK.  For example, this happens when the
++				 * PNP device describes a bridge with PCI
++				 * behind it.
++				 */
++				if (pnp_start <= pci_start &&
++				    pnp_end >= pci_end)
++					continue;
++
++				/*
++				 * Otherwise, the PNP region overlaps *part* of
++				 * the PCI region, and that might prevent a PCI
++				 * driver from requesting its resources.
++				 */
++				dev_warn(&dev->dev, "mem resource "
++					"(0x%llx-0x%llx) overlaps %s BAR %d "
++					"(0x%llx-0x%llx), disabling\n",
++					(unsigned long long) pnp_start,
++					(unsigned long long) pnp_end,
++					pci_name(pdev), i,
++					(unsigned long long) pci_start,
++					(unsigned long long) pci_end);
++				pnp_mem_flags(dev, j) = 0;
++			}
++		}
++	}
++}
++
  /*
   *  PnP Quirks
   *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -169,8 +128,6 @@ static struct pnp_fixup pnp_fixups[] = {
+@@ -128,6 +199,8 @@ static struct pnp_fixup pnp_fixups[] = {
  	{"CTL0043", quirk_sb16audio_resources},
  	{"CTL0044", quirk_sb16audio_resources},
  	{"CTL0045", quirk_sb16audio_resources},
--	{"PNP0c01", quirk_supermicro_h8dce_system},
--	{"PNP0c02", quirk_supermicro_h8dce_system},
++	{"PNP0c01", quirk_system_pci_resources},
++	{"PNP0c02", quirk_system_pci_resources},
  	{""}
  };
  
