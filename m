@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-soc_camerac-reads-return-size_t.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:37:57 -0700
-Message-ID: <200803122047.m2CKlWqo012496@imap1.linux-foundation.org>
+Subject: + drivers-scsi-initioc-suppress-compile-warning.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:41:11 -0700
+Message-ID: <200803122050.m2CKok60012571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751437AbYCLUrk (ORCPT
+	by vger.kernel.org with ESMTP id S1750924AbYCLUuv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:47:40 -0400
+	Wed, 12 Mar 2008 16:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     drivers/media/video/soc_camera.c: reads return size_t
+     drivers/scsi/initio.c: suppress compile warning
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-soc_camerac-reads-return-size_t.patch
+     drivers-scsi-initioc-suppress-compile-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/soc_camera.c: reads return size_t
+Subject: drivers/scsi/initio.c: suppress compile warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+powerpc:
+
+drivers/scsi/initio.c: In function 'initio_build_scb':
+drivers/scsi/initio.c:2585: warning: large integer implicitly truncated to unsigned type
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/soc_camera.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/initio.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/soc_camera.c~drivers-media-video-soc_camerac-reads-return-size_t drivers/media/video/soc_camera.c
---- a/drivers/media/video/soc_camera.c~drivers-media-video-soc_camerac-reads-return-size_t
-+++ a/drivers/media/video/soc_camera.c
-@@ -269,7 +269,7 @@ static int soc_camera_close(struct inode
- 	return 0;
- }
+diff -puN drivers/scsi/initio.c~drivers-scsi-initioc-suppress-compile-warning drivers/scsi/initio.c
+--- a/drivers/scsi/initio.c~drivers-scsi-initioc-suppress-compile-warning
++++ a/drivers/scsi/initio.c
+@@ -2582,7 +2582,11 @@ static void initio_build_scb(struct init
+ 	dma_addr = dma_map_single(&host->pci_dev->dev, cmnd->sense_buffer,
+ 				  SENSE_SIZE, DMA_FROM_DEVICE);
+ 	cblk->senseptr = cpu_to_le32((u32)dma_addr);
+-	cblk->senselen = cpu_to_le32(SENSE_SIZE);
++	/*
++	 * The below needs casting to avoid a "large integer implicitly
++	 * truncated to unsigned type" warning on powerpc
++	 */
++	cblk->senselen = (u8)cpu_to_le32(SENSE_SIZE);
+ 	cmnd->SCp.ptr = (char *)(unsigned long)dma_addr;
+ 	cblk->cdblen = cmnd->cmd_len;
  
--static int soc_camera_read(struct file *file, char __user *buf,
-+static ssize_t soc_camera_read(struct file *file, char __user *buf,
- 			   size_t count, loff_t *ppos)
- {
- 	struct soc_camera_file *icf = file->private_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +88,7 @@ pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
 git-drm.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+drivers-media-video-soc_camerac-reads-return-size_t.patch
 git-hwmon.patch
 git-hrt.patch
 git-ieee1394.patch
@@ -175,5 +186,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
 
