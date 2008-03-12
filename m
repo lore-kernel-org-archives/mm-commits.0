@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:46:41 -0700
-Message-ID: <200803120446.m2C4kfcI010589@imap1.linux-foundation.org>
+Subject: + 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:51:17 -0700
+Message-ID: <200803120451.m2C4pHBb010751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750885AbYCLEr2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751970AbYCLEwJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:47:28 -0400
+	Wed, 12 Mar 2008 00:52:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bharrosh@panasas.com, gregkh@suse.de
+Cc: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes
+     ne2: needs more 8390 support functions
 has been added to the -mm tree.  Its filename is
-     isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch
+     8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,162 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ne2: needs more 8390 support functions
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-ERROR: "foo* bar" should be "foo *bar"
-#31: FILE: drivers/usb/storage/isd200.c:297:
-+	u8*	sense_buffer;
+ne2 (MCA) needs both 8390.o and 8390p.o functions:
 
-ERROR: else should follow close brace '}'
-#54: FILE: drivers/usb/storage/isd200.c:1505:
- 		}
-+		else
+drivers/built-in.o: In function `ne_close':
+ne2.c:(.text+0x30544): undefined reference to `eip_close'
+drivers/built-in.o: In function `ne_open':
+ne2.c:(.text+0x30554): undefined reference to `eip_open'
+drivers/built-in.o: In function `ne2_probe':
+(.init.text+0x1bce): undefined reference to `__alloc_eip_netdev'
+drivers/built-in.o: In function `ne2_probe':
+(.init.text+0x1dd9): undefined reference to `eip_interrupt'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
-total: 2 errors, 0 warnings, 29 lines checked
-
-./patches/isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/isd200.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes drivers/usb/storage/isd200.c
---- a/drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes
-+++ a/drivers/usb/storage/isd200.c
-@@ -294,7 +294,7 @@ struct isd200_info {
- 	unsigned char MaxLUNs;
- 	struct scsi_cmnd srb;
- 	struct scatterlist sg;
--	u8*	sense_buffer;
-+	u8 *sense_buffer;
- };
- 
- 
-@@ -1501,8 +1501,7 @@ static int isd200_init_info(struct us_da
- 			isd200_free_info_ptrs(info);
- 			kfree(info);
- 			retStatus = ISD200_ERROR;
--		}
--		else
-+		} else
- 			info->srb.sense_buffer = info->sense_buffer;
- 	}
- 
+diff -puN drivers/net/Makefile~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix drivers/net/Makefile
+--- a/drivers/net/Makefile~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix
++++ a/drivers/net/Makefile
+@@ -108,7 +108,7 @@ obj-$(CONFIG_68360_ENET) += 68360enet.o
+ obj-$(CONFIG_WD80x3) += wd.o 8390.o
+ obj-$(CONFIG_EL2) += 3c503.o 8390p.o
+ obj-$(CONFIG_NE2000) += ne.o 8390p.o
+-obj-$(CONFIG_NE2_MCA) += ne2.o 8390.o
++obj-$(CONFIG_NE2_MCA) += ne2.o 8390.o 8390p.o
+ obj-$(CONFIG_HPLAN) += hp.o 8390p.o
+ obj-$(CONFIG_HPLAN_PLUS) += hp-plus.o 8390p.o
+ obj-$(CONFIG_ULTRA) += smc-ultra.o 8390.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-revert-x86-enhance-debug_rodata-support-for-hotplug-and-kprobes.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-arm-master.patch
-git-powerpc-fix-git-rejects.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
-driver-core-debug-for-bad-dev_attr_show-return-value.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-git-net.patch
-git-net-fix-build-with-config_net=n.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-scsi-aic94xx-cleanups.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-git-block-git-rejects.patch
+git-acpi.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd-checkpatch-fixes.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros-fix.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+kernel-doc-set-verbose-mode-via-environment.patch
+x86-visws-fix-printk-format-warnings.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
 profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
