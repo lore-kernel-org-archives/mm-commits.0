@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-suppress-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:17:35 -0700
-Message-ID: <200803122027.m2CKRAxK011751@imap1.linux-foundation.org>
+Subject: + hfs-fix-warning-with-64k-page_size.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:21:55 -0700
+Message-ID: <200803122031.m2CKVUHg011915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751844AbYCLU17 (ORCPT
+	by vger.kernel.org with ESMTP id S1754231AbYCLUcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:27:59 -0400
+	Wed, 12 Mar 2008 16:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: akpm@linux-foundation.org, zippel@linux-m68k.org
 
 
 The patch titled
-     cifs: suppress warning
+     hfs: fix warning with 64k PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     cifs-suppress-warning.patch
+     hfs-fix-warning-with-64k-page_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cifs: suppress warning
+Subject: hfs: fix warning with 64k PAGE_SIZE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/cifs/dir.c: In function 'cifs_ci_compare':
-fs/cifs/dir.c:582: warning: passing argument 1 of 'memcpy' discards qualifiers from pointer target type
+fs/hfs/btree.c: In function 'hfs_bmap_alloc':
+fs/hfs/btree.c:263: warning: comparison is always false due to limited range of data type
 
-Cc: Steven French <sfrench@us.ibm.com>
+The patch makes the warning go away, but the code might actually be buggy?
+
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/hfs/btree.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/cifs/dir.c~cifs-suppress-warning fs/cifs/dir.c
---- a/fs/cifs/dir.c~cifs-suppress-warning
-+++ a/fs/cifs/dir.c
-@@ -579,7 +579,7 @@ static int cifs_ci_compare(struct dentry
- 		 * case take precedence.  If a is not a negative dentry, this
- 		 * should have no side effects
- 		 */
--		memcpy(a->name, b->name, a->len);
-+		memcpy((void *)a->name, b->name, a->len);
- 		return 0;
- 	}
- 	return 1;
+diff -puN fs/hfs/btree.c~hfs-fix-warning-with-64k-page_size fs/hfs/btree.c
+--- a/fs/hfs/btree.c~hfs-fix-warning-with-64k-page_size
++++ a/fs/hfs/btree.c
+@@ -208,7 +208,9 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
+ 	struct hfs_bnode *node, *next_node;
+ 	struct page **pagep;
+ 	u32 nidx, idx;
+-	u16 off, len;
++	unsigned off;
++	u16 off16;
++	u16 len;
+ 	u8 *data, byte, m;
+ 	int i;
+ 
+@@ -235,7 +237,8 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
+ 	node = hfs_bnode_find(tree, nidx);
+ 	if (IS_ERR(node))
+ 		return node;
+-	len = hfs_brec_lenoff(node, 2, &off);
++	len = hfs_brec_lenoff(node, 2, &off16);
++	off = off16;
+ 
+ 	off += node->page_offset;
+ 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
+@@ -280,7 +283,8 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
+ 			return next_node;
+ 		node = next_node;
+ 
+-		len = hfs_brec_lenoff(node, 0, &off);
++		len = hfs_brec_lenoff(node, 0, &off16);
++		off = off16;
+ 		off += node->page_offset;
+ 		pagep = node->page + (off >> PAGE_CACHE_SHIFT);
+ 		data = kmap(*pagep);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +96,7 @@ git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 git-arm-master.patch
+cifs-suppress-warning.patch
 git-powerpc-fix-git-rejects.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
@@ -172,5 +197,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-cifs-suppress-warning.patch
+hfs-fix-warning-with-64k-page_size.patch
 
