@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch added to -mm tree
-Date: Tue, 11 Mar 2008 21:51:17 -0700
-Message-ID: <200803120451.m2C4pHBb010751@imap1.linux-foundation.org>
+Subject: + n_tty-loss-of-sync-following-a-buffer-overflow.patch added to -mm tree
+Date: Tue, 11 Mar 2008 21:55:04 -0700
+Message-ID: <200803120455.m2C4t4Aw010881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751970AbYCLEwJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751420AbYCLEzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 00:52:09 -0400
+	Wed, 12 Mar 2008 00:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk
+Cc: Rupesh.Sugathan@gmail.com, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com
 
 
 The patch titled
-     ne2: needs more 8390 support functions
+     n_tty: loss of sync following a buffer overflow
 has been added to the -mm tree.  Its filename is
-     8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+     n_tty-loss-of-sync-following-a-buffer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ne2: needs more 8390 support functions
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: n_tty: loss of sync following a buffer overflow
+From: Rupesh Sugathan <Rupesh.Sugathan@gmail.com>
 
-ne2 (MCA) needs both 8390.o and 8390p.o functions:
+There seems to be a synchronization issue with the n_tty.c driver when working
+in canonical mode.
 
-drivers/built-in.o: In function `ne_close':
-ne2.c:(.text+0x30544): undefined reference to `eip_close'
-drivers/built-in.o: In function `ne_open':
-ne2.c:(.text+0x30554): undefined reference to `eip_open'
-drivers/built-in.o: In function `ne2_probe':
-(.init.text+0x1bce): undefined reference to `__alloc_eip_netdev'
-drivers/built-in.o: In function `ne2_probe':
-(.init.text+0x1dd9): undefined reference to `eip_interrupt'
-make[1]: *** [.tmp_vmlinux1] Error 1
+The n_tty rightly discards data received following a buffer overflow and hence
+the tty->read_cnt is not updated.  However, the newline characters received
+following a buffer overflow seems to increment the tty->canon_data index. 
+This may result in a loss of sync between the tty->canon_data & tty->read_cnt
+while processing read in the read_chan().  This loss of sync might be
+irrecoverable even when the data is later received at a slower rate.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+I am not very sure if there is any deliberate rationale to process the
+newlines even when the buffer has overflown.
+
+Signed-off-by: Rupesh Sugathan <Rupesh.Sugathan@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/n_tty.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/Makefile~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix drivers/net/Makefile
---- a/drivers/net/Makefile~8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix
-+++ a/drivers/net/Makefile
-@@ -108,7 +108,7 @@ obj-$(CONFIG_68360_ENET) += 68360enet.o
- obj-$(CONFIG_WD80x3) += wd.o 8390.o
- obj-$(CONFIG_EL2) += 3c503.o 8390p.o
- obj-$(CONFIG_NE2000) += ne.o 8390p.o
--obj-$(CONFIG_NE2_MCA) += ne2.o 8390.o
-+obj-$(CONFIG_NE2_MCA) += ne2.o 8390.o 8390p.o
- obj-$(CONFIG_HPLAN) += hp.o 8390p.o
- obj-$(CONFIG_HPLAN_PLUS) += hp-plus.o 8390p.o
- obj-$(CONFIG_ULTRA) += smc-ultra.o 8390.o
+diff -puN drivers/char/n_tty.c~n_tty-loss-of-sync-following-a-buffer-overflow drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~n_tty-loss-of-sync-following-a-buffer-overflow
++++ a/drivers/char/n_tty.c
+@@ -850,15 +850,17 @@ send_signal:
+ 				put_tty_queue(c, tty);
+ 
+ handle_newline:
+-			spin_lock_irqsave(&tty->read_lock, flags);
+-			set_bit(tty->read_head, tty->read_flags);
+-			put_tty_queue_nolock(c, tty);
+-			tty->canon_head = tty->read_head;
+-			tty->canon_data++;
+-			spin_unlock_irqrestore(&tty->read_lock, flags);
+-			kill_fasync(&tty->fasync, SIGIO, POLL_IN);
+-			if (waitqueue_active(&tty->read_wait))
+-				wake_up_interruptible(&tty->read_wait);
++			if (tty->read_cnt < N_TTY_BUF_SIZE) {
++				spin_lock_irqsave(&tty->read_lock, flags);
++				set_bit(tty->read_head, tty->read_flags);
++				put_tty_queue_nolock(c, tty);
++				tty->canon_head = tty->read_head;
++				tty->canon_data++;
++				spin_unlock_irqrestore(&tty->read_lock, flags);
++				kill_fasync(&tty->fasync, SIGIO, POLL_IN);
++				if (waitqueue_active(&tty->read_wait))
++					wake_up_interruptible(&tty->read_wait);
++			}
+ 			return;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Rupesh.Sugathan@gmail.com are
 
-origin.patch
-git-acpi.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-kernel-doc-set-verbose-mode-via-environment.patch
-x86-visws-fix-printk-format-warnings.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-profile-likely-unlikely-macros.patch
+n_tty-loss-of-sync-following-a-buffer-overflow.patch
 
