@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-fix-warning-with-64k-page_size.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:23:54 -0700
-Message-ID: <200803122033.m2CKXTfB011954@imap1.linux-foundation.org>
+Subject: + scsi-fix-section-mismatch-in-aic94xx-fix.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:26:41 -0700
+Message-ID: <200803122036.m2CKaG55012102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751174AbYCLUeJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752112AbYCLUg0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:34:09 -0400
+	Wed, 12 Mar 2008 16:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com, sam@ravnborg.org
 
 
 The patch titled
-     hfsplus: fix warning with 64k PAGE_SIZE
+     scsi-fix-section-mismatch-in-aic94xx-fix
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-warning-with-64k-page_size.patch
+     scsi-fix-section-mismatch-in-aic94xx-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: fix warning with 64k PAGE_SIZE
+Subject: scsi-fix-section-mismatch-in-aic94xx-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/hfsplus/btree.c: In function 'hfsplus_bmap_alloc':
-fs/hfsplus/btree.c:239: warning: comparison is always false due to limited range of data type
+drivers/scsi/aic94xx/aic94xx_init.c: In function 'asd_pci_probe':
+drivers/scsi/aic94xx/aic94xx_init.c:762: warning: assignment discards qualifiers from pointer target type
 
-But this might hide a real bug?
-
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Gilbert Wu <gilbert_wu@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/btree.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/btree.c~hfsplus-fix-warning-with-64k-page_size fs/hfsplus/btree.c
---- a/fs/hfsplus/btree.c~hfsplus-fix-warning-with-64k-page_size
-+++ a/fs/hfsplus/btree.c
-@@ -184,7 +184,9 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
- 	struct hfs_bnode *node, *next_node;
- 	struct page **pagep;
- 	u32 nidx, idx;
--	u16 off, len;
-+	unsigned off;
-+	u16 off16;
-+	u16 len;
- 	u8 *data, byte, m;
- 	int i;
- 
-@@ -211,7 +213,8 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
- 	node = hfs_bnode_find(tree, nidx);
- 	if (IS_ERR(node))
- 		return node;
--	len = hfs_brec_lenoff(node, 2, &off);
-+	len = hfs_brec_lenoff(node, 2, &off16);
-+	off = off16;
- 
- 	off += node->page_offset;
- 	pagep = node->page + (off >> PAGE_CACHE_SHIFT);
-@@ -256,7 +259,8 @@ struct hfs_bnode *hfs_bmap_alloc(struct 
- 			return next_node;
- 		node = next_node;
- 
--		len = hfs_brec_lenoff(node, 0, &off);
-+		len = hfs_brec_lenoff(node, 0, &off16);
-+		off = off16;
- 		off += node->page_offset;
- 		pagep = node->page + (off >> PAGE_CACHE_SHIFT);
- 		data = kmap(*pagep);
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -735,7 +735,7 @@ static int asd_unregister_sas_ha(struct 
+ static int __devinit asd_pci_probe(struct pci_dev *dev,
+ 				   const struct pci_device_id *id)
+ {
+-	struct asd_pcidev_struct *asd_dev;
++	const struct asd_pcidev_struct *asd_dev;
+ 	unsigned asd_id = (unsigned) id->driver_data;
+ 	struct asd_ha_struct *asd_ha;
+ 	struct Scsi_Host *shost;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +102,7 @@ drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make
 git-selinux.patch
 git-sh.patch
 scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 git-block-git-rejects.patch
 git-unionfs.patch
@@ -185,6 +164,7 @@ edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 basic-braille-screen-reader-support-ppc-fix.patch
 hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -198,5 +178,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-hfsplus-fix-warning-with-64k-page_size.patch
 
