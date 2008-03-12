@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + devres-implement-pcim_iomap_regions_request_all-fix-fix.patch added to -mm tree
-Date: Tue, 11 Mar 2008 23:12:08 -0700
-Message-ID: <200803120612.m2C6C87J013509@imap1.linux-foundation.org>
+Subject: + add-warn_on_secs-macro-fix-fix.patch added to -mm tree
+Date: Wed, 12 Mar 2008 00:43:25 -0700
+Message-ID: <200803120743.m2C7hPaS016526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbYCLGMZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751286AbYCLHne (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 02:12:25 -0400
+	Wed, 12 Mar 2008 03:43:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, hidave.darkstar@gmail.com, laurent.riffard@free.fr, marcin.slusarz@gmail.com
 
 
 The patch titled
-     devres-implement-pcim_iomap_regions_request_all-fix-fix
+     add-warn_on_secs-macro-fix-fix
 has been added to the -mm tree.  Its filename is
-     devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+     add-warn_on_secs-macro-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-implement-pcim_iomap_regions_request_all-fix-fix
+Subject: add-warn_on_secs-macro-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-stupid fascist compiler
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Laurent Riffard <laurent.riffard@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    2 +-
+ include/asm-generic/bug.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix include/linux/io.h
---- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix
-+++ a/include/linux/io.h
-@@ -66,6 +66,6 @@ void devm_iounmap(struct device *dev, vo
- int check_signature(const volatile void __iomem *io_addr,
- 			const unsigned char *signature, int length);
- int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
--			const char *name)
-+			const char *name);
+diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-fix-fix include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-warn_on_secs-macro-fix-fix
++++ a/include/asm-generic/bug.h
+@@ -2,7 +2,7 @@
+ #define _ASM_GENERIC_BUG_H
  
- #endif /* _LINUX_IO_H */
+ #include <linux/compiler.h>
+-
++#include <linux/param.h>
+ 
+ #ifdef CONFIG_BUG
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,6 +128,7 @@ r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
 r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
 fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-fix-fix.patch
 uart_get_baud_rate-stop-mangling-termios-fix.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
