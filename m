@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gxfb-stop-sharing-code-with-gx1fb.patch added to -mm tree
-Date: Tue, 11 Mar 2008 22:27:44 -0700
-Message-ID: <200803120527.m2C5RiHI011961@imap1.linux-foundation.org>
+Subject: + gxfb-add-power-management-functionality.patch added to -mm tree
+Date: Tue, 11 Mar 2008 22:27:46 -0700
+Message-ID: <200803120527.m2C5Rka5011964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751519AbYCLF20 (ORCPT
+	by vger.kernel.org with ESMTP id S1751589AbYCLF22 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:28:26 -0400
+	Wed, 12 Mar 2008 01:28:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd
 
 
 The patch titled
-     gxfb: stop sharing code with gx1fb
+     gxfb: add power management functionality
 has been added to the -mm tree.  Its filename is
-     gxfb-stop-sharing-code-with-gx1fb.patch
+     gxfb-add-power-management-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,19 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gxfb: stop sharing code with gx1fb
+Subject: gxfb: add power management functionality
 From: Andres Salomon <dilinger@queued.net>
 
-We want to stop sharing stuff with gx1fb; it makes little sense.  There were
-fields in geodefb_par that weren't being used, there was little point to the
-DC/VP ops callbacks, etc.  This implements the following:
+This adds the ability to suspend/resume the gxfb driver, which includes:
+  - The addition of a Graphics Processor register table in gxfb.h, and
+    associated GP handling.
+  - Register and palette saving code; registers are stored in gxfb_par.
+    A few MSR values are saved as well.
+  - gx_powerup and gx_powerdown functions which restore/save registers and
+    enable/disable graphic engines.
+  - gxfb_suspend/gxfb_resume
 
-  - Create gxfb_par (based on geodefb_par), place it in gxfb.h
-  - Drop display_gx.h and video_gx.h.  The last few patches moved most
-    stuff into gxfb.h anyways, so there was very little left.
-  - Drop the geode_{dc,vid}_ops stuff.  Un-static functions, add
-    declarations to gxfb.h.
+Originally based on a patch by Jordan Crouse.
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Jordan Crouse <jordan.crouse@amd.com>
@@ -53,374 +54,519 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/display_gx.c |   21 ++++++-------------
- drivers/video/geode/display_gx.h |   19 -----------------
- drivers/video/geode/gxfb.h       |   31 +++++++++++++++++++++-------
- drivers/video/geode/gxfb_core.c  |   32 +++++++++--------------------
- drivers/video/geode/video_gx.c   |   20 +++++-------------
- drivers/video/geode/video_gx.h   |   16 --------------
- 6 files changed, 47 insertions(+), 92 deletions(-)
+ drivers/video/geode/Makefile     |    2 
+ drivers/video/geode/gxfb.h       |   72 +++++++
+ drivers/video/geode/gxfb_core.c  |   63 ++++++
+ drivers/video/geode/suspend_gx.c |  267 +++++++++++++++++++++++++++++
+ 4 files changed, 402 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/geode/display_gx.c~gxfb-stop-sharing-code-with-gx1fb drivers/video/geode/display_gx.c
---- a/drivers/video/geode/display_gx.c~gxfb-stop-sharing-code-with-gx1fb
-+++ a/drivers/video/geode/display_gx.c
-@@ -18,8 +18,6 @@
- #include <asm/div64.h>
- #include <asm/delay.h>
+diff -puN drivers/video/geode/Makefile~gxfb-add-power-management-functionality drivers/video/geode/Makefile
+--- a/drivers/video/geode/Makefile~gxfb-add-power-management-functionality
++++ a/drivers/video/geode/Makefile
+@@ -5,5 +5,5 @@ obj-$(CONFIG_FB_GEODE_GX)  += gxfb.o
+ obj-$(CONFIG_FB_GEODE_LX)  += lxfb.o
  
--#include "geodefb.h"
--#include "display_gx.h"
- #include "gxfb.h"
- 
- unsigned int gx_frame_buffer_size(void)
-@@ -43,9 +41,9 @@ int gx_line_delta(int xres, int bpp)
- 	return (xres * (bpp >> 3) + 7) & ~0x7;
- }
- 
--static void gx_set_mode(struct fb_info *info)
-+void gx_set_mode(struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
-+	struct gxfb_par *par = info->par;
- 	u32 gcfg, dcfg;
- 	int hactive, hblankstart, hsyncstart, hsyncend, hblankend, htotal;
- 	int vactive, vblankstart, vsyncstart, vsyncend, vblankend, vtotal;
-@@ -69,7 +67,7 @@ static void gx_set_mode(struct fb_info *
- 	write_dc(par, DC_GENERAL_CFG, gcfg);
- 
- 	/* Setup DCLK and its divisor. */
--	par->vid_ops->set_dclk(info);
-+	gx_set_dclk_frequency(info);
- 
- 	/*
- 	 * Setup new mode.
-@@ -147,16 +145,16 @@ static void gx_set_mode(struct fb_info *
- 	write_dc(par, DC_DISPLAY_CFG, dcfg);
- 	write_dc(par, DC_GENERAL_CFG, gcfg);
- 
--	par->vid_ops->configure_display(info);
-+	gx_configure_display(info);
- 
- 	/* Relock display controller registers */
- 	write_dc(par, DC_UNLOCK, DC_UNLOCK_LOCK);
- }
- 
--static void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
--				   unsigned red, unsigned green, unsigned blue)
-+void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
-+		unsigned red, unsigned green, unsigned blue)
- {
--	struct geodefb_par *par = info->par;
-+	struct gxfb_par *par = info->par;
- 	int val;
- 
- 	/* Hardware palette is in RGB 8-8-8 format. */
-@@ -167,8 +165,3 @@ static void gx_set_hw_palette_reg(struct
- 	write_dc(par, DC_PAL_ADDRESS, regno);
- 	write_dc(par, DC_PAL_DATA, val);
- }
--
--struct geode_dc_ops gx_dc_ops = {
--	.set_mode	 = gx_set_mode,
--	.set_palette_reg = gx_set_hw_palette_reg,
--};
-diff -puN drivers/video/geode/display_gx.h~gxfb-stop-sharing-code-with-gx1fb /dev/null
---- a/drivers/video/geode/display_gx.h
-+++ /dev/null
-@@ -1,19 +0,0 @@
--/*
-- * Geode GX display controller
-- *
-- * Copyright (C) 2006 Arcom Control Systems Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--#ifndef __DISPLAY_GX_H__
--#define __DISPLAY_GX_H__
--
--unsigned int gx_frame_buffer_size(void);
--int gx_line_delta(int xres, int bpp);
--
--extern struct geode_dc_ops gx_dc_ops;
--
--#endif /* !__DISPLAY_GX1_H__ */
-diff -puN drivers/video/geode/gxfb.h~gxfb-stop-sharing-code-with-gx1fb drivers/video/geode/gxfb.h
---- a/drivers/video/geode/gxfb.h~gxfb-stop-sharing-code-with-gx1fb
+ gx1fb-objs := gx1fb_core.o display_gx1.o video_cs5530.o
+-gxfb-objs  := gxfb_core.o display_gx.o video_gx.o
++gxfb-objs  := gxfb_core.o display_gx.o video_gx.o suspend_gx.o
+ lxfb-objs  := lxfb_core.o lxfb_ops.o
+diff -puN drivers/video/geode/gxfb.h~gxfb-add-power-management-functionality drivers/video/geode/gxfb.h
+--- a/drivers/video/geode/gxfb.h~gxfb-add-power-management-functionality
 +++ a/drivers/video/geode/gxfb.h
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (C) 2008 Andres Salomon <dilinger@debian.org>
-  *
-- * Geode GX2 register tables
-+ * Geode GX2 header information
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -13,6 +13,23 @@
+@@ -13,10 +13,34 @@
  
  #include <linux/io.h>
  
-+struct gxfb_par {
-+	int enable_crt;
-+	void __iomem *dc_regs;
-+	void __iomem *vid_regs;
++#define GP_REG_COUNT   (0x50 / 4)
++#define DC_REG_COUNT   (0x90 / 4)
++#define VP_REG_COUNT   (0x138 / 8)
++#define FP_REG_COUNT   (0x68 / 8)
++
++#define DC_PAL_COUNT   0x104
++
+ struct gxfb_par {
+ 	int enable_crt;
+ 	void __iomem *dc_regs;
+ 	void __iomem *vid_regs;
++	void __iomem *gp_regs;
++#ifdef CONFIG_PM
++	int powered_down;
++
++	/* register state, for power management functionality */
++	struct {
++		uint64_t padsel;
++		uint64_t dotpll;
++	} msr;
++
++	uint32_t gp[GP_REG_COUNT];
++	uint32_t dc[DC_REG_COUNT];
++	uint64_t vp[VP_REG_COUNT];
++	uint64_t fp[FP_REG_COUNT];
++
++	uint32_t pal[DC_PAL_COUNT];
++#endif
+ };
+ 
+ unsigned int gx_frame_buffer_size(void);
+@@ -29,6 +53,43 @@ void gx_set_dclk_frequency(struct fb_inf
+ void gx_configure_display(struct fb_info *info);
+ int gx_blank_display(struct fb_info *info, int blank_mode);
+ 
++#ifdef CONFIG_PM
++int gx_powerdown(struct fb_info *info);
++int gx_powerup(struct fb_info *info);
++#endif
++
++
++/* Graphics Processor registers (table 6-23 from the data book) */
++enum gp_registers {
++	GP_DST_OFFSET = 0,
++	GP_SRC_OFFSET,
++	GP_STRIDE,
++	GP_WID_HEIGHT,
++
++	GP_SRC_COLOR_FG,
++	GP_SRC_COLOR_BG,
++	GP_PAT_COLOR_0,
++	GP_PAT_COLOR_1,
++
++	GP_PAT_COLOR_2,
++	GP_PAT_COLOR_3,
++	GP_PAT_COLOR_4,
++	GP_PAT_COLOR_5,
++
++	GP_PAT_DATA_0,
++	GP_PAT_DATA_1,
++	GP_RASTER_MODE,
++	GP_VECTOR_MODE,
++
++	GP_BLT_MODE,
++	GP_BLT_STATUS,
++	GP_HST_SRC,
++	GP_BASE_OFFSET, /* 0x4c */
 +};
 +
-+unsigned int gx_frame_buffer_size(void);
-+int gx_line_delta(int xres, int bpp);
-+void gx_set_mode(struct fb_info *info);
-+void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
-+		unsigned red, unsigned green, unsigned blue);
++#define GP_BLT_STATUS_BLT_PENDING	(1 << 2)
++#define GP_BLT_STATUS_BLT_BUSY		(1 << 0)
 +
-+void gx_set_dclk_frequency(struct fb_info *info);
-+void gx_configure_display(struct fb_info *info);
-+int gx_blank_display(struct fb_info *info, int blank_mode);
-+
-+
+ 
  /* Display Controller registers (table 6-38 from the data book) */
  enum dc_registers {
- 	DC_UNLOCK = 0,
-@@ -221,33 +238,33 @@ enum fp_registers {
+@@ -238,6 +299,16 @@ enum fp_registers {
  
  /* register access functions */
  
--static inline uint32_t read_dc(struct geodefb_par *par, int reg)
-+static inline uint32_t read_dc(struct gxfb_par *par, int reg)
++static inline uint32_t read_gp(struct gxfb_par *par, int reg)
++{
++	return readl(par->gp_regs + 4*reg);
++}
++
++static inline void write_gp(struct gxfb_par *par, int reg, uint32_t val)
++{
++	writel(val, par->gp_regs + 4*reg);
++}
++
+ static inline uint32_t read_dc(struct gxfb_par *par, int reg)
  {
  	return readl(par->dc_regs + 4*reg);
- }
- 
--static inline void write_dc(struct geodefb_par *par, int reg, uint32_t val)
-+static inline void write_dc(struct gxfb_par *par, int reg, uint32_t val)
- {
+@@ -248,7 +319,6 @@ static inline void write_dc(struct gxfb_
  	writel(val, par->dc_regs + 4*reg);
  }
  
- 
--static inline uint32_t read_vp(struct geodefb_par *par, int reg)
-+static inline uint32_t read_vp(struct gxfb_par *par, int reg)
+-
+ static inline uint32_t read_vp(struct gxfb_par *par, int reg)
  {
  	return readl(par->vid_regs + 8*reg);
- }
- 
--static inline void write_vp(struct geodefb_par *par, int reg, uint32_t val)
-+static inline void write_vp(struct gxfb_par *par, int reg, uint32_t val)
- {
- 	writel(val, par->vid_regs + 8*reg);
- }
- 
--static inline uint32_t read_fp(struct geodefb_par *par, int reg)
-+static inline uint32_t read_fp(struct gxfb_par *par, int reg)
- {
- 	return readl(par->vid_regs + 8*reg + VP_FP_START);
- }
- 
--static inline void write_fp(struct geodefb_par *par, int reg, uint32_t val)
-+static inline void write_fp(struct gxfb_par *par, int reg, uint32_t val)
- {
- 	writel(val, par->vid_regs + 8*reg + VP_FP_START);
- }
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-stop-sharing-code-with-gx1fb drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-stop-sharing-code-with-gx1fb
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality
 +++ a/drivers/video/geode/gxfb_core.c
-@@ -32,9 +32,6 @@
+@@ -28,6 +28,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/fb.h>
++#include <linux/console.h>
+ #include <linux/init.h>
  #include <linux/pci.h>
  #include <asm/geode.h>
+@@ -222,6 +223,15 @@ static int __init gxfb_map_video_memory(
+ 	if (!par->dc_regs)
+ 		return -ENOMEM;
  
--#include "geodefb.h"
--#include "display_gx.h"
--#include "video_gx.h"
- #include "gxfb.h"
- 
- static char *mode_option;
-@@ -142,8 +139,6 @@ static int gxfb_check_var(struct fb_var_
- 
- static int gxfb_set_par(struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
--
- 	if (info->var.bits_per_pixel > 8) {
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 		fb_dealloc_cmap(&info->cmap);
-@@ -154,7 +149,7 @@ static int gxfb_set_par(struct fb_info *
- 
- 	info->fix.line_length = gx_line_delta(info->var.xres, info->var.bits_per_pixel);
- 
--	par->dc_ops->set_mode(info);
-+	gx_set_mode(info);
- 
- 	return 0;
- }
-@@ -170,8 +165,6 @@ static int gxfb_setcolreg(unsigned regno
- 			   unsigned blue, unsigned transp,
- 			   struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
--
- 	if (info->var.grayscale) {
- 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
- 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
-@@ -194,7 +187,7 @@ static int gxfb_setcolreg(unsigned regno
- 		if (regno >= 256)
- 			return -EINVAL;
- 
--		par->dc_ops->set_palette_reg(info, regno, red, green, blue);
-+		gx_set_hw_palette_reg(info, regno, red, green, blue);
- 	}
- 
- 	return 0;
-@@ -202,14 +195,12 @@ static int gxfb_setcolreg(unsigned regno
- 
- static int gxfb_blank(int blank_mode, struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
--
--	return par->vid_ops->blank_display(info, blank_mode);
-+	return gx_blank_display(info, blank_mode);
++	ret = pci_request_region(dev, 1, "gxfb (graphics processor)");
++	if (ret < 0)
++		return ret;
++	par->gp_regs = ioremap(pci_resource_start(dev, 1),
++	pci_resource_len(dev, 1));
++
++	if (!par->gp_regs)
++		return -ENOMEM;
++
+ 	ret = pci_request_region(dev, 0, "gxfb (framebuffer)");
+ 	if (ret < 0)
+ 		return ret;
+@@ -295,6 +305,48 @@ static struct fb_info * __init gxfb_init
+ 	return info;
  }
  
- static int __init gxfb_map_video_memory(struct fb_info *info, struct pci_dev *dev)
- {
--	struct geodefb_par *par = info->par;
-+	struct gxfb_par *par = info->par;
- 	int ret;
- 
- 	ret = pci_enable_device(dev);
-@@ -266,11 +257,12 @@ static struct fb_ops gxfb_ops = {
- 
- static struct fb_info * __init gxfb_init_fbinfo(struct device *dev)
- {
--	struct geodefb_par *par;
-+	struct gxfb_par *par;
- 	struct fb_info *info;
- 
- 	/* Alloc enough space for the pseudo palette. */
--	info = framebuffer_alloc(sizeof(struct geodefb_par) + sizeof(u32) * 16, dev);
-+	info = framebuffer_alloc(sizeof(struct gxfb_par) + sizeof(u32) * 16,
-+			dev);
- 	if (!info)
- 		return NULL;
- 
-@@ -296,7 +288,7 @@ static struct fb_info * __init gxfb_init
- 	info->flags		= FBINFO_DEFAULT;
- 	info->node		= -1;
- 
--	info->pseudo_palette	= (void *)par + sizeof(struct geodefb_par);
-+	info->pseudo_palette	= (void *)par + sizeof(struct gxfb_par);
- 
- 	info->var.grayscale	= 0;
- 
-@@ -305,7 +297,7 @@ static struct fb_info * __init gxfb_init
- 
++#ifdef CONFIG_PM
++static int gxfb_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct fb_info *info = pci_get_drvdata(pdev);
++
++	if (pdev->dev.power.power_state.event == state.event)
++		return 0;
++
++	if (state.event == PM_EVENT_SUSPEND) {
++		acquire_console_sem();
++		gx_powerdown(info);
++		fb_set_suspend(info, 1);
++		release_console_sem();
++	}
++
++	/* there's no point in setting PCI states; we emulate PCI, so
++	 * we don't end up getting power savings anyways */
++
++	pdev->dev.power.power_state = state;
++	return 0;
++}
++
++static int gxfb_resume(struct pci_dev *pdev)
++{
++	struct fb_info *info = pci_get_drvdata(pdev);
++	int ret;
++
++	acquire_console_sem();
++	ret = gx_powerup(info);
++	if (ret) {
++		printk(KERN_ERR "gxfb:  power up failed!\n");
++		return ret;
++	}
++
++	fb_set_suspend(info, 0);
++	release_console_sem();
++
++	pdev->dev.power.power_state = PMSG_ON;
++	return 0;
++}
++#endif
++
  static int __init gxfb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
  {
--	struct geodefb_par *par;
-+	struct gxfb_par *par;
- 	struct fb_info *info;
- 	int ret;
- 	unsigned long val;
-@@ -315,10 +307,6 @@ static int __init gxfb_probe(struct pci_
- 		return -ENOMEM;
- 	par = info->par;
+ 	struct gxfb_par *par;
+@@ -357,6 +409,10 @@ static int __init gxfb_probe(struct pci_
+ 		iounmap(par->dc_regs);
+ 		pci_release_region(pdev, 2);
+ 	}
++	if (par->gp_regs) {
++		iounmap(par->gp_regs);
++		pci_release_region(pdev, 1);
++	}
  
--	/* GX display controller and GX video device. */
--	par->dc_ops  = &gx_dc_ops;
--	par->vid_ops = &gx_vid_ops;
--
- 	if ((ret = gxfb_map_video_memory(info, pdev)) < 0) {
- 		dev_err(&pdev->dev, "failed to map frame buffer or controller registers\n");
- 		goto err;
-@@ -378,7 +366,7 @@ static int __init gxfb_probe(struct pci_
- static void gxfb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
--	struct geodefb_par *par = info->par;
-+	struct gxfb_par *par = info->par;
+ 	if (info)
+ 		framebuffer_release(info);
+@@ -379,6 +435,9 @@ static void gxfb_remove(struct pci_dev *
+ 	iounmap(par->dc_regs);
+ 	pci_release_region(pdev, 2);
  
- 	unregister_framebuffer(info);
++	iounmap(par->gp_regs);
++	pci_release_region(pdev, 1);
++
+ 	pci_set_drvdata(pdev, NULL);
  
-diff -puN drivers/video/geode/video_gx.c~gxfb-stop-sharing-code-with-gx1fb drivers/video/geode/video_gx.c
---- a/drivers/video/geode/video_gx.c~gxfb-stop-sharing-code-with-gx1fb
-+++ a/drivers/video/geode/video_gx.c
-@@ -18,8 +18,6 @@
- #include <asm/msr.h>
- #include <asm/geode.h>
- 
--#include "geodefb.h"
--#include "video_gx.h"
- #include "gxfb.h"
- 
- 
-@@ -119,7 +117,7 @@ static const struct gx_pll_entry gx_pll_
- 	{  4357, 0, 0x0000057D },	/* 229.5000 */
+ 	framebuffer_release(info);
+@@ -396,6 +455,10 @@ static struct pci_driver gxfb_driver = {
+ 	.id_table	= gxfb_id_table,
+ 	.probe		= gxfb_probe,
+ 	.remove		= gxfb_remove,
++#ifdef CONFIG_PM
++	.suspend	= gxfb_suspend,
++	.resume		= gxfb_resume,
++#endif
  };
  
--static void gx_set_dclk_frequency(struct fb_info *info)
-+void gx_set_dclk_frequency(struct fb_info *info)
- {
- 	const struct gx_pll_entry *pll_table;
- 	int pll_table_len;
-@@ -180,7 +178,7 @@ static void gx_set_dclk_frequency(struct
- static void
- gx_configure_tft(struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
+ #ifndef MODULE
+diff -puN /dev/null drivers/video/geode/suspend_gx.c
+--- /dev/null
++++ a/drivers/video/geode/suspend_gx.c
+@@ -0,0 +1,267 @@
++/*
++ *   Copyright (C) 2007 Advanced Micro Devices, Inc.
++ *   Copyright (C) 2008 Andres Salomon <dilinger@debian.org>
++ *
++ *   This program is free software; you can redistribute it and/or modify it
++ *   under the terms of the GNU General Public License as published by the
++ *   Free Software Foundation; either version 2 of the License, or (at your
++ *   option) any later version.
++ */
++#include <linux/fb.h>
++#include <asm/io.h>
++#include <asm/msr.h>
++#include <asm/geode.h>
++#include <asm/delay.h>
++
++#include "gxfb.h"
++
++#ifdef CONFIG_PM
++
++static void gx_save_regs(struct gxfb_par *par)
++{
++	int i;
++
++	/* wait for the BLT engine to stop being busy */
++	do {
++		i = read_gp(par, GP_BLT_STATUS);
++	} while (i & (GP_BLT_STATUS_BLT_PENDING | GP_BLT_STATUS_BLT_BUSY));
++
++	/* save MSRs */
++	rdmsrl(MSR_GX_MSR_PADSEL, par->msr.padsel);
++	rdmsrl(MSR_GLCP_DOTPLL, par->msr.dotpll);
++
++	write_dc(par, DC_UNLOCK, DC_UNLOCK_UNLOCK);
++
++	/* save registers */
++	memcpy(par->gp, par->gp_regs, sizeof(par->gp));
++	memcpy(par->dc, par->dc_regs, sizeof(par->dc));
++	memcpy(par->vp, par->vid_regs, sizeof(par->vp));
++	memcpy(par->fp, par->vid_regs + VP_FP_START, sizeof(par->fp));
++
++	/* save the palette */
++	write_gp(par, DC_PAL_ADDRESS, 0);
++	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
++		par->pal[i] = read_dc(par, DC_PAL_DATA);
++}
++
++static void gx_set_dotpll(uint32_t dotpll_hi)
++{
++	uint32_t dotpll_lo;
++	int i;
++
++	rdmsrl(MSR_GLCP_DOTPLL, dotpll_lo);
++	dotpll_lo |= MSR_GLCP_DOTPLL_DOTRESET;
++	dotpll_lo &= ~MSR_GLCP_DOTPLL_BYPASS;
++	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
++
++	/* wait for the PLL to lock */
++	for (i = 0; i < 200; i++) {
++		rdmsrl(MSR_GLCP_DOTPLL, dotpll_lo);
++		if (dotpll_lo & MSR_GLCP_DOTPLL_LOCK)
++			break;
++		udelay(1);
++	}
++
++	/* PLL set, unlock */
++	dotpll_lo &= ~MSR_GLCP_DOTPLL_DOTRESET;
++	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
++}
++
++static void gx_restore_gfx_proc(struct gxfb_par *par)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(par->gp); i++) {
++		switch (i) {
++		case GP_RASTER_MODE:
++		case GP_VECTOR_MODE:
++		case GP_BLT_MODE:
++		case GP_BLT_STATUS:
++			/* don't restore these registers */
++			break;
++		default:
++			write_gp(par, i, par->gp[i]);
++		}
++	}
++}
++
++static void gx_restore_display_ctlr(struct gxfb_par *par)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(par->dc); i++) {
++		switch (i) {
++		case DC_UNLOCK:
++			/* unlock the DC; runs first */
++			write_dc(par, DC_UNLOCK, DC_UNLOCK_UNLOCK);
++			break;
++
++		case DC_GENERAL_CFG:
++			/* write without the enables */
++			write_dc(par, i, par->dc[i] & ~(DC_GENERAL_CFG_VIDE |
++					DC_GENERAL_CFG_ICNE |
++					DC_GENERAL_CFG_CURE |
++					DC_GENERAL_CFG_DFLE));
++			break;
++
++		case DC_DISPLAY_CFG:
++			/* write without the enables */
++			write_dc(par, i, par->dc[i] & ~(DC_DISPLAY_CFG_VDEN |
++					DC_DISPLAY_CFG_GDEN |
++					DC_DISPLAY_CFG_TGEN));
++			break;
++
++		case DC_RSVD_0:
++		case DC_RSVD_1:
++		case DC_RSVD_2:
++		case DC_RSVD_3:
++		case DC_RSVD_4:
++		case DC_LINE_CNT:
++		case DC_PAL_ADDRESS:
++		case DC_PAL_DATA:
++		case DC_DFIFO_DIAG:
++		case DC_CFIFO_DIAG:
++		case DC_RSVD_5:
++			/* don't restore these registers */
++			break;
++		default:
++			write_dc(par, i, par->dc[i]);
++		}
++	}
++
++	/* restore the palette */
++	write_gp(par, DC_PAL_ADDRESS, 0);
++	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
++		write_dc(par, DC_PAL_DATA, par->pal[i]);
++}
++
++static void gx_restore_video_proc(struct gxfb_par *par)
++{
++	int i;
++
++	wrmsrl(MSR_GX_MSR_PADSEL, par->msr.padsel);
++
++	for (i = 0; i < ARRAY_SIZE(par->vp); i++) {
++		switch (i) {
++		case VP_VCFG:
++			/* don't enable video yet */
++			write_vp(par, i, par->vp[i] & ~VP_VCFG_VID_EN);
++			break;
++
++		case VP_DCFG:
++			/* don't enable CRT yet */
++			write_vp(par, i, par->vp[i] &
++					~(VP_DCFG_DAC_BL_EN | VP_DCFG_VSYNC_EN |
++					VP_DCFG_HSYNC_EN | VP_DCFG_CRT_EN));
++			break;
++
++		case VP_GAR:
++		case VP_GDR:
++		case VP_RSVD_0:
++		case VP_RSVD_1:
++		case VP_RSVD_2:
++		case VP_RSVD_3:
++		case VP_CRC32:
++		case VP_AWT:
++		case VP_VTM:    /* this is r/w, shouldn't we restore?  -dil */
++			/* don't restore these registers */
++			break;
++		default:
++			write_vp(par, i, par->vp[i]);
++		}
++	}
++}
++
++static void gx_restore_regs(struct gxfb_par *par)
++{
++	int i;
++
++	gx_set_dotpll((uint32_t) (par->msr.dotpll >> 32));
++	gx_restore_gfx_proc(par);
++	gx_restore_display_ctlr(par);
++	gx_restore_video_proc(par);
++
++	/* Flat Panel */
++	for (i = 0; i < ARRAY_SIZE(par->fp); i++) {
++		if (i != FP_PM && i != FP_RSVD_0)
++			write_fp(par, i, par->fp[i]);
++	}
++}
++
++static void gx_disable_graphics(struct gxfb_par *par)
++{
++	/* shut down the engine */
++	write_vp(par, VP_VCFG, par->vp[VP_VCFG] & ~VP_VCFG_VID_EN);
++	write_vp(par, VP_DCFG, par->vp[VP_DCFG] & ~(VP_DCFG_DAC_BL_EN |
++			VP_DCFG_VSYNC_EN | VP_DCFG_HSYNC_EN | VP_DCFG_CRT_EN));
++
++	/* turn off the flat panel */
++	write_fp(par, FP_PM, par->fp[FP_PM] & ~FP_PM_P);
++
++
++	/* turn off display */
++	write_dc(par, DC_UNLOCK, DC_UNLOCK_UNLOCK);
++	write_dc(par, DC_GENERAL_CFG, par->dc[DC_GENERAL_CFG] &
++			~(DC_GENERAL_CFG_VIDE | DC_GENERAL_CFG_ICNE |
++			DC_GENERAL_CFG_CURE | DC_GENERAL_CFG_DFLE));
++	write_dc(par, DC_DISPLAY_CFG, par->dc[DC_DISPLAY_CFG] &
++			~(DC_DISPLAY_CFG_VDEN | DC_DISPLAY_CFG_GDEN |
++			DC_DISPLAY_CFG_TGEN));
++	write_dc(par, DC_UNLOCK, DC_UNLOCK_LOCK);
++}
++
++static void gx_enable_graphics(struct gxfb_par *par)
++{
++	uint32_t fp;
++
++	fp = read_fp(par, FP_PM);
++	if (par->fp[FP_PM] & FP_PM_P) {
++		/* power on the panel if not already power{ed,ing} on */
++		if (!(fp & (FP_PM_PANEL_ON|FP_PM_PANEL_PWR_UP)))
++			write_fp(par, FP_PM, par->fp[FP_PM]);
++	} else {
++		/* power down the panel if not already power{ed,ing} down */
++		if (!(fp & (FP_PM_PANEL_OFF|FP_PM_PANEL_PWR_DOWN)))
++			write_fp(par, FP_PM, par->fp[FP_PM]);
++	}
++
++	/* turn everything on */
++	write_vp(par, VP_VCFG, par->vp[VP_VCFG]);
++	write_vp(par, VP_DCFG, par->vp[VP_DCFG]);
++	write_dc(par, DC_DISPLAY_CFG, par->dc[DC_DISPLAY_CFG]);
++	/* do this last; it will enable the FIFO load */
++	write_dc(par, DC_GENERAL_CFG, par->dc[DC_GENERAL_CFG]);
++
++	/* lock the door behind us */
++	write_dc(par, DC_UNLOCK, DC_UNLOCK_LOCK);
++}
++
++int gx_powerdown(struct fb_info *info)
++{
 +	struct gxfb_par *par = info->par;
- 	unsigned long val;
- 	unsigned long fp;
- 
-@@ -235,9 +233,9 @@ gx_configure_tft(struct fb_info *info)
- 	write_fp(par, FP_PM, fp);
- }
- 
--static void gx_configure_display(struct fb_info *info)
-+void gx_configure_display(struct fb_info *info)
- {
--	struct geodefb_par *par = info->par;
++
++	if (par->powered_down)
++		return 0;
++
++	gx_save_regs(par);
++	gx_disable_graphics(par);
++
++	par->powered_down = 1;
++	return 0;
++}
++
++int gx_powerup(struct fb_info *info)
++{
 +	struct gxfb_par *par = info->par;
- 	u32 dcfg, misc;
- 
- 	/* Write the display configuration */
-@@ -297,9 +295,9 @@ static void gx_configure_display(struct 
- 		gx_configure_tft(info);
- }
- 
--static int gx_blank_display(struct fb_info *info, int blank_mode)
-+int gx_blank_display(struct fb_info *info, int blank_mode)
- {
--	struct geodefb_par *par = info->par;
-+	struct gxfb_par *par = info->par;
- 	u32 dcfg, fp_pm;
- 	int blank, hsync, vsync;
- 
-@@ -347,9 +345,3 @@ static int gx_blank_display(struct fb_in
- 
- 	return 0;
- }
--
--struct geode_vid_ops gx_vid_ops = {
--	.set_dclk	   = gx_set_dclk_frequency,
--	.configure_display = gx_configure_display,
--	.blank_display	   = gx_blank_display,
--};
-diff -puN drivers/video/geode/video_gx.h~gxfb-stop-sharing-code-with-gx1fb /dev/null
---- a/drivers/video/geode/video_gx.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/*
-- * Geode GX video device
-- *
-- * Copyright (C) 2006 Arcom Control Systems Ltd.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--#ifndef __VIDEO_GX_H__
--#define __VIDEO_GX_H__
--
--extern struct geode_vid_ops gx_vid_ops;
++
++	if (!par->powered_down)
++		return 0;
++
++	gx_restore_regs(par);
++	gx_enable_graphics(par);
++
++	par->powered_down  = 0;
++	return 0;
++}
++
++#endif
+_
+
+Patches currently in -mm which might be from dilinger@queued.net are
+
+x86-geode-msr-cleanup.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+
