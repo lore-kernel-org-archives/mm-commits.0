@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipsc-fix-build-warning.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:36:28 -0700
-Message-ID: <200803122046.m2CKk3SH012462@imap1.linux-foundation.org>
+Subject: + drivers-media-video-soc_camerac-reads-return-size_t.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:37:57 -0700
+Message-ID: <200803122047.m2CKlWqo012496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36228 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43151 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751242AbYCLUqq (ORCPT
+	by vger.kernel.org with ESMTP id S1751437AbYCLUrk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:46:46 -0400
+	Wed, 12 Mar 2008 16:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, aacraid@adaptec.com, fujita.tomonori@lab.ntt.co.jp, jack_hammer@adaptec.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     ips.c: fix build warning
+     drivers/media/video/soc_camera.c: reads return size_t
 has been added to the -mm tree.  Its filename is
-     ipsc-fix-build-warning.patch
+     drivers-media-video-soc_camerac-reads-return-size_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ips.c: fix build warning
+Subject: drivers/media/video/soc_camera.c: reads return size_t
 From: Andrew Morton <akpm@linux-foundation.org>
 
-powerpc:
-
-drivers/scsi/ips.c: In function 'ips_issue_copperhead':
-drivers/scsi/ips.c:5436: warning: large integer implicitly truncated to unsigned type
-
-it doesn't seem to do outw(cpu_to_le32(...), ...) anyway.
-
-Cc: Jack Hammer <jack_hammer@adaptec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <aacraid@adaptec.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    2 +-
+ drivers/media/video/soc_camera.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ips.c~ipsc-fix-build-warning drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ipsc-fix-build-warning
-+++ a/drivers/scsi/ips.c
-@@ -5433,7 +5433,7 @@ ips_issue_copperhead(ips_ha_t * ha, ips_
- 	}			/* end while */
- 
- 	outl(cpu_to_le32(scb->scb_busaddr), ha->io_addr + IPS_REG_CCSAR);
--	outw(cpu_to_le32(IPS_BIT_START_CMD), ha->io_addr + IPS_REG_CCCR);
-+	outw(cpu_to_le16(IPS_BIT_START_CMD), ha->io_addr + IPS_REG_CCCR);
- 
- 	return (IPS_SUCCESS);
+diff -puN drivers/media/video/soc_camera.c~drivers-media-video-soc_camerac-reads-return-size_t drivers/media/video/soc_camera.c
+--- a/drivers/media/video/soc_camera.c~drivers-media-video-soc_camerac-reads-return-size_t
++++ a/drivers/media/video/soc_camera.c
+@@ -269,7 +269,7 @@ static int soc_camera_close(struct inode
+ 	return 0;
  }
+ 
+-static int soc_camera_read(struct file *file, char __user *buf,
++static ssize_t soc_camera_read(struct file *file, char __user *buf,
+ 			   size_t count, loff_t *ppos)
+ {
+ 	struct soc_camera_file *icf = file->private_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +99,7 @@ git-sh.patch
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
 git-block-git-rejects.patch
 git-unionfs.patch
 drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
@@ -185,5 +175,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-ipsc-fix-build-warning.patch
+drivers-media-video-soc_camerac-reads-return-size_t.patch
 
