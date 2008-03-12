@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:48:30 -0700
-Message-ID: <200803122058.m2CKw5L9012880@imap1.linux-foundation.org>
+Subject: + fs-gfs2-recoveryc-suppress-warnings.patch added to -mm tree
+Date: Wed, 12 Mar 2008 14:01:29 -0700
+Message-ID: <200803122111.m2CLB4TU013339@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029AbYCLU6m (ORCPT
+	by vger.kernel.org with ESMTP id S1751681AbYCLVMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:58:42 -0400
+	Wed, 12 Mar 2008 17:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, hari@vt100.at, xubin.lin@worldplus.com.cn
+Cc: akpm@linux-foundation.org, rpeterso@redhat.com, swhiteho@redhat.com, teigland@redhat.com
 
 
 The patch titled
-     fix gregkh-usb-usb-add-usb-serial-spcp8x5-driver
+     fs/gfs2/recovery.c: suppress warnings
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
+     fs-gfs2-recoveryc-suppress-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-add-usb-serial-spcp8x5-driver
+Subject: fs/gfs2/recovery.c: suppress warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-powerpc:
+fs/gfs2/recovery.c: In function 'get_log_header':
+fs/gfs2/recovery.c:152: warning: 'lh.lh_sequence' may be used uninitialized in this function
+fs/gfs2/recovery.c:152: warning: 'lh.lh_flags' may be used uninitialized in this function
+fs/gfs2/recovery.c:152: warning: 'lh.lh_tail' may be used uninitialized in this function
+fs/gfs2/recovery.c:152: warning: 'lh.lh_blkno' may be used uninitialized in this function
+fs/gfs2/recovery.c:152: warning: 'lh.lh_hash' may be used uninitialized in this function
 
-drivers/usb/serial/spcp8x5.c: In function 'spcp8x5_get_msr':
-drivers/usb/serial/spcp8x5.c:417: warning: cast from pointer to integer of different size
-drivers/usb/serial/spcp8x5.c:420: warning: cast from pointer to integer of different size
-
-Cc: Linxb <xubin.lin@worldplus.com.cn>
-Cc: Harald Klein <hari@vt100.at>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
+Cc: Bob Peterson <rpeterso@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/spcp8x5.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/gfs2/recovery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/spcp8x5.c~fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver drivers/usb/serial/spcp8x5.c
---- a/drivers/usb/serial/spcp8x5.c~fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver
-+++ a/drivers/usb/serial/spcp8x5.c
-@@ -414,11 +414,10 @@ static int spcp8x5_get_msr(struct usb_de
- 			      GET_UART_STATUS, GET_UART_STATUS_TYPE,
- 			      0, GET_UART_STATUS_MSR, status_buffer, 1, 100);
- 	if (ret < 0)
--		dev_dbg(&dev->dev, "Get MSR = %#x failed (error = %d)",
--			(int)status_buffer, (int)ret);
-+		dev_dbg(&dev->dev, "Get MSR = 0x%p failed (error = %d)",
-+			status_buffer, ret);
- 
--	dev_dbg(&dev->dev, "0xc0:0x22:0:6  %d - %x ", (int)ret,
--		(int)status_buffer);
-+	dev_dbg(&dev->dev, "0xc0:0x22:0:6  %d - 0x%p ", ret, status_buffer);
- 	status[0] = status_buffer[0];
- 	kfree(status_buffer);
- 
+diff -puN fs/gfs2/recovery.c~fs-gfs2-recoveryc-suppress-warnings fs/gfs2/recovery.c
+--- a/fs/gfs2/recovery.c~fs-gfs2-recoveryc-suppress-warnings
++++ a/fs/gfs2/recovery.c
+@@ -149,7 +149,7 @@ static int get_log_header(struct gfs2_jd
+ 			  struct gfs2_log_header_host *head)
+ {
+ 	struct buffer_head *bh;
+-	struct gfs2_log_header_host lh;
++	struct gfs2_log_header_host uninitialized_var(lh);
+ 	const u32 nothing = 0;
+ 	u32 hash;
+ 	int error;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -194,4 +189,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
+fs-gfs2-recoveryc-suppress-warnings.patch
 
