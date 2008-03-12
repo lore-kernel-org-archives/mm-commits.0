@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fatfs-fix-build-warning-with-64k-page_size.patch added to -mm tree
-Date: Wed, 12 Mar 2008 13:16:11 -0700
-Message-ID: <200803122025.m2CKPkwu011649@imap1.linux-foundation.org>
+Subject: + cifs-suppress-warning.patch added to -mm tree
+Date: Wed, 12 Mar 2008 13:17:35 -0700
+Message-ID: <200803122027.m2CKRAxK011751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbYCLUZu (ORCPT
+	by vger.kernel.org with ESMTP id S1751844AbYCLU17 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 16:25:50 -0400
+	Wed, 12 Mar 2008 16:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     fatfs: fix build warning with 64k PAGE_SIZE
+     cifs: suppress warning
 has been added to the -mm tree.  Its filename is
-     fatfs-fix-build-warning-with-64k-page_size.patch
+     cifs-suppress-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fatfs: fix build warning with 64k PAGE_SIZE
+Subject: cifs: suppress warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-powerpc:
+fs/cifs/dir.c: In function 'cifs_ci_compare':
+fs/cifs/dir.c:582: warning: passing argument 1 of 'memcpy' discards qualifiers from pointer target type
 
-fs/fat/inode.c: In function 'fat_fill_super':
-fs/fat/inode.c:1222: warning: comparison is always false due to limited range of data type
-
-the fix will actually cause a little more code to be generated.  It's
-unobvious how to avoid this.
-
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    2 +-
+ fs/cifs/dir.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size fs/fat/inode.c
---- a/fs/fat/inode.c~fatfs-fix-build-warning-with-64k-page_size
-+++ a/fs/fat/inode.c
-@@ -1158,7 +1158,7 @@ int fat_fill_super(struct super_block *s
- 	struct buffer_head *bh;
- 	struct fat_boot_sector *b;
- 	struct msdos_sb_info *sbi;
--	u16 logical_sector_size;
-+	unsigned logical_sector_size;
- 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
- 	int debug;
- 	unsigned int media;
+diff -puN fs/cifs/dir.c~cifs-suppress-warning fs/cifs/dir.c
+--- a/fs/cifs/dir.c~cifs-suppress-warning
++++ a/fs/cifs/dir.c
+@@ -579,7 +579,7 @@ static int cifs_ci_compare(struct dentry
+ 		 * case take precedence.  If a is not a negative dentry, this
+ 		 * should have no side effects
+ 		 */
+-		memcpy(a->name, b->name, a->len);
++		memcpy((void *)a->name, b->name, a->len);
+ 		return 0;
+ 	}
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +143,7 @@ rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 fat_valid_media-remove-pointless-test.patch
+fatfs-fix-build-warning-with-64k-page_size.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 ext4-is-broken.patch
@@ -176,5 +172,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-fatfs-fix-build-warning-with-64k-page_size.patch
+cifs-suppress-warning.patch
 
