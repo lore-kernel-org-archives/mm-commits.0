@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-use-dev_printk-for-quirk-messages-fix.patch added to -mm tree
-Date: Wed, 12 Mar 2008 14:13:45 -0700
-Message-ID: <200803122123.m2CLNKW2013806@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch added to -mm tree
+Date: Wed, 12 Mar 2008 14:18:03 -0700
+Message-ID: <200803122127.m2CLRcqX013969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753180AbYCLVXa (ORCPT
+	by vger.kernel.org with ESMTP id S1751797AbYCLV2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 17:23:30 -0400
+	Wed, 12 Mar 2008 17:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com
 
 
 The patch titled
-     pnp-use-dev_printk-for-quirk-messages-fix
+     fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
 has been added to the -mm tree.  Its filename is
-     pnp-use-dev_printk-for-quirk-messages-fix.patch
+     fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp-use-dev_printk-for-quirk-messages-fix
+Subject: fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+drivers/usb/host/ohci-hub.c: In function 'ohci_hub_control':
+drivers/usb/host/ohci-hub.c:564: warning: 'temp' may be used uninitialized in this function
 
-drivers/pnp/quirks.c: In function 'quirk_awe32_resources':
-drivers/pnp/quirks.c:25: warning: 'port3' may be used uninitialized in this function
-drivers/pnp/quirks.c:25: warning: 'port2' may be used uninitialized in this function
-
-and make the output more accurate.
-
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/usb/host/ohci-hub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix
-+++ a/drivers/pnp/quirks.c
-@@ -49,9 +49,11 @@ static void quirk_awe32_resources(struct
- 		port2->max += 0x400;
- 		port3->min += 0x800;
- 		port3->max += 0x800;
-+		dev_info(&dev->dev,
-+			"AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
-+			(unsigned long)port2->min,
-+			(unsigned long)port3->min);
- 	}
--	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
--		(unsigned long) port2->min, (unsigned long) port3->min);
- }
+diff -puN drivers/usb/host/ohci-hub.c~fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout drivers/usb/host/ohci-hub.c
+--- a/drivers/usb/host/ohci-hub.c~fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout
++++ a/drivers/usb/host/ohci-hub.c
+@@ -561,7 +561,6 @@ static void start_hnp(struct ohci_hcd *o
+ static inline int root_port_reset (struct ohci_hcd *ohci, unsigned port)
+ {
+ 	__hc32 __iomem *portstat = &ohci->regs->roothub.portstatus [port];
+-	u32	temp;
+ 	u16	now = ohci_readl(ohci, &ohci->regs->fmnumber);
+ 	u16	reset_done = now + PORT_RESET_MSEC;
+ 	int	limit_1 = DIV_ROUND_UP(PORT_RESET_MSEC, PORT_RESET_HW_MSEC);
+@@ -572,6 +571,7 @@ static inline int root_port_reset (struc
+ 	 */
+ 	do {
+ 		int limit_2;
++		u32 uninitialized_var(temp);
  
- static void quirk_cmi8330_resources(struct pnp_dev *dev)
+ 		/* spin until any current reset finishes */
+ 		limit_2 = PORT_RESET_HW_MSEC * 2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +121,7 @@ drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
 git-v9fs.patch
 git-watchdog.patch
@@ -198,5 +196,4 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-a.patch
 
