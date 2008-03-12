@@ -1,70 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-add-clamp-and-clamp_t-macros-fix.patch removed from -mm tree
-Date: Tue, 11 Mar 2008 22:03:06 -0700
-Message-ID: <200803120503.m2C536Sm011131@imap1.linux-foundation.org>
+Subject: - kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 11 Mar 2008 22:03:04 -0700
+Message-ID: <200803120503.m2C534j7011128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751410AbYCLFDO (ORCPT
+	by vger.kernel.org with ESMTP id S1751454AbYCLFDZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Mar 2008 01:03:14 -0400
+	Wed, 12 Mar 2008 01:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-add-clamp-and-clamp_t-macros-fix
+     kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kernel-add-clamp-and-clamp_t-macros-fix.patch
+     kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into kernel-add-clamp-and-clamp_t-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-add-clamp-and-clamp_t-macros-fix
+Subject: kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: need space after that ',' (ctx:VxV)
+#53: FILE: include/linux/kernel.h:354:
++#define clamp(val,min,max) ({			\
+                  ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#74: FILE: include/linux/kernel.h:369:
++#define min_t(type,x,y) ({			\
+                   ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#79: FILE: include/linux/kernel.h:374:
++#define max_t(type,x,y) ({			\
+                   ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#84: FILE: include/linux/kernel.h:379:
++#define clamp_t(type,val,min,max) ({		\
+                     ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#84: FILE: include/linux/kernel.h:379:
++#define clamp_t(type,val,min,max) ({		\
+                         ^
+
+total: 5 errors, 0 warnings, 71 lines checked
+
+./patches/kernel-add-clamp-and-clamp_t-macros.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttvp.h    |    2 --
- drivers/media/video/usbvideo/vicam.c |    6 ------
- 2 files changed, 8 deletions(-)
+ include/linux/kernel.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros-fix include/linux/kernel.h
-diff -puN drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/bt8xx/bttvp.h
---- a/drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros-fix
-+++ a/drivers/media/video/bt8xx/bttvp.h
-@@ -82,8 +82,6 @@
- /* Limits scaled width, which must be a multiple of 4. */
- #define MAX_HACTIVE (0x3FF & -4)
+diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes include/linux/kernel.h
+--- a/include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes
++++ a/include/linux/kernel.h
+@@ -350,7 +350,7 @@ extern void print_hex_dump_bytes(const c
+ 	(void) (&_max1 == &_max2);		\
+ 	_max1 > _max2 ? _max1 : _max2; })
  
--#define clamp(x, low, high) min (max (low, x), high)
--
- #define BTTV_NORMS    (\
- 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
- 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
-diff -puN drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix drivers/media/video/usbvideo/vicam.c
---- a/drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros-fix
-+++ a/drivers/media/video/usbvideo/vicam.c
-@@ -70,12 +70,6 @@
+-#define clamp(val,min,max) ({			\
++#define clamp(val, min, max) ({			\
+ 	typeof(val) __val = (val);		\
+ 	typeof(min) __min = (min);		\
+ 	typeof(max) __max = (max);		\
+@@ -365,17 +365,17 @@ extern void print_hex_dump_bytes(const c
+  *
+  * Or not use min/max/clamp at all, of course.
+  */
+-#define min_t(type,x,y) ({			\
++#define min_t(type, x, y) ({			\
+ 	type __min1 = (x);			\
+ 	type __min2 = (y);			\
+ 	__min1 < __min2 ? __min1: __min2; })
  
- #define VICAM_HEADER_SIZE       64
+-#define max_t(type,x,y) ({			\
++#define max_t(type, x, y) ({			\
+ 	type __max1 = (x);			\
+ 	type __max2 = (y);			\
+ 	__max1 > __max2 ? __max1: __max2; })
  
--#define clamp( x, l, h )        max_t( __typeof__( x ),         \
--				       ( l ),                   \
--				       min_t( __typeof__( x ),  \
--					      ( h ),            \
--					      ( x ) ) )
--
- /* Not sure what all the bytes in these char
-  * arrays do, but they're necessary to make
-  * the camera work.
+-#define clamp_t(type,val,min,max) ({		\
++#define clamp_t(type, val, min, max) ({		\
+ 	type __val = (val);			\
+ 	type __min = (min);			\
+ 	type __max = (max);			\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +158,7 @@ audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros.patch
+kernel-add-clamp-and-clamp_t-macros-checkpatch-fixes.patch
 kernel-add-clamp-and-clamp_t-macros-fix.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
