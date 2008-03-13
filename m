@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-various-style-cleanups-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:47:21 -0700
-Message-ID: <200803132147.m2DLlLeR001944@imap1.linux-foundation.org>
+Subject: + quota-quota-core-changes-for-quotaon-on-remount.patch added to -mm tree
+Date: Thu, 13 Mar 2008 14:47:25 -0700
+Message-ID: <200803132147.m2DLlQhs001947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35587 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753360AbYCMVr0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752884AbYCMVra (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:47:26 -0400
+	Thu, 13 Mar 2008 17:47:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz
+Cc: jack@suse.cz
 
 
 The patch titled
-     quota-various-style-cleanups-checkpatch-fixes
+     quota: quota core changes for quotaon on remount
 has been added to the -mm tree.  Its filename is
-     quota-various-style-cleanups-checkpatch-fixes.patch
+     quota-quota-core-changes-for-quotaon-on-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,164 +34,375 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-various-style-cleanups-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: quota: quota core changes for quotaon on remount
+From: Jan Kara <jack@suse.cz>
 
-ERROR: use tabs not spaces
-#221: FILE: include/linux/quotaops.h:254:
-+ ^Ireturn DQUOT_ALLOC_SPACE_NODIRTY(inode,$
+Currently, we just turn quotas off on remount of filesystem to read-only
+state.  The patch below adds necessary framework so that we can turn quotas
+off on remount RO but we are able to automatically reenable them again when
+filesystem is remounted to RW state.  All we need to do is to keep references
+to inodes of quota files when remounting RO and using these references to
+reenable quotas when remounting RW.
 
-total: 1 errors, 0 warnings, 194 lines checked
-
-./patches/quota-various-style-cleanups.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quotaops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dquot.c               |   77 ++++++++++++++++++++++++++++++++-----
+ fs/quota.c               |    5 --
+ fs/super.c               |   10 +++-
+ include/linux/quota.h    |   14 +++++-
+ include/linux/quotaops.h |   29 +++++++++++--
+ 5 files changed, 113 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/quotaops.h~quota-various-style-cleanups-checkpatch-fixes include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-various-style-cleanups-checkpatch-fixes
-+++ a/include/linux/quotaops.h
-@@ -251,7 +251,7 @@ static inline int DQUOT_PREALLOC_BLOCK(s
- 
- static inline int DQUOT_ALLOC_BLOCK_NODIRTY(struct inode *inode, qsize_t nr)
- {
-- 	return DQUOT_ALLOC_SPACE_NODIRTY(inode,
-+	return DQUOT_ALLOC_SPACE_NODIRTY(inode,
- 			nr << inode->i_sb->s_blocksize_bits);
+diff -puN fs/dquot.c~quota-quota-core-changes-for-quotaon-on-remount fs/dquot.c
+--- a/fs/dquot.c~quota-quota-core-changes-for-quotaon-on-remount
++++ a/fs/dquot.c
+@@ -1449,31 +1449,43 @@ static inline void set_enable_flags(stru
+ 	switch (type) {
+ 		case USRQUOTA:
+ 			dqopt->flags |= DQUOT_USR_ENABLED;
++			dqopt->flags &= ~DQUOT_USR_SUSPENDED;
+ 			break;
+ 		case GRPQUOTA:
+ 			dqopt->flags |= DQUOT_GRP_ENABLED;
++			dqopt->flags &= ~DQUOT_GRP_SUSPENDED;
+ 			break;
+ 	}
  }
  
+-static inline void reset_enable_flags(struct quota_info *dqopt, int type)
++static inline void reset_enable_flags(struct quota_info *dqopt, int type,
++				      int remount)
+ {
+ 	switch (type) {
+ 		case USRQUOTA:
+ 			dqopt->flags &= ~DQUOT_USR_ENABLED;
++			if (remount)
++				dqopt->flags |= DQUOT_USR_SUSPENDED;
++			else
++				dqopt->flags &= ~DQUOT_USR_SUSPENDED;
+ 			break;
+ 		case GRPQUOTA:
+ 			dqopt->flags &= ~DQUOT_GRP_ENABLED;
++			if (remount)
++				dqopt->flags |= DQUOT_GRP_SUSPENDED;
++			else
++				dqopt->flags &= ~DQUOT_GRP_SUSPENDED;
+ 			break;
+ 	}
+ }
+ 
++
+ /*
+  * Turn quota off on a device. type == -1 ==> quotaoff for all types (umount)
+  */
+-int vfs_quota_off(struct super_block *sb, int type)
++int vfs_quota_off(struct super_block *sb, int type, int remount)
+ {
+-	int cnt;
++	int cnt, ret = 0;
+ 	struct quota_info *dqopt = sb_dqopt(sb);
+ 	struct inode *toputinode[MAXQUOTAS];
+ 
+@@ -1483,9 +1495,17 @@ int vfs_quota_off(struct super_block *sb
+ 		toputinode[cnt] = NULL;
+ 		if (type != -1 && cnt != type)
+ 			continue;
++		/* If we keep inodes of quota files after remount and quotaoff
++		 * is called, drop kept inodes. */
++		if (!remount && sb_has_quota_suspended(sb, cnt)) {
++			iput(dqopt->files[cnt]);
++			dqopt->files[cnt] = NULL;
++			reset_enable_flags(dqopt, cnt, 0);
++			continue;
++		}
+ 		if (!sb_has_quota_enabled(sb, cnt))
+ 			continue;
+-		reset_enable_flags(dqopt, cnt);
++		reset_enable_flags(dqopt, cnt, remount);
+ 
+ 		/* Note: these are blocking operations */
+ 		drop_dquot_ref(sb, cnt);
+@@ -1501,7 +1521,8 @@ int vfs_quota_off(struct super_block *sb
+ 		put_quota_format(dqopt->info[cnt].dqi_format);
+ 
+ 		toputinode[cnt] = dqopt->files[cnt];
+-		dqopt->files[cnt] = NULL;
++		if (!remount)
++			dqopt->files[cnt] = NULL;
+ 		dqopt->info[cnt].dqi_flags = 0;
+ 		dqopt->info[cnt].dqi_igrace = 0;
+ 		dqopt->info[cnt].dqi_bgrace = 0;
+@@ -1531,12 +1552,19 @@ int vfs_quota_off(struct super_block *sb
+ 				mutex_unlock(&toputinode[cnt]->i_mutex);
+ 				mark_inode_dirty(toputinode[cnt]);
+ 			}
+-			iput(toputinode[cnt]);
+ 			mutex_unlock(&dqopt->dqonoff_mutex);
++			/* On remount RO, we keep the inode pointer so that we
++			 * can reenable quota on the subsequent remount RW.
++			 * But we have better not keep inode pointer when there
++			 * is pending delete on the quota file... */
++			if (!remount)
++				iput(toputinode[cnt]);
++			else if (!toputinode[cnt]->i_nlink)
++				ret = -EBUSY;
+ 		}
+ 	if (sb->s_bdev)
+ 		invalidate_bdev(sb->s_bdev);
+-	return 0;
++	return ret;
+ }
+ 
+ /*
+@@ -1574,7 +1602,8 @@ static int vfs_quota_on_inode(struct ino
+ 	invalidate_bdev(sb->s_bdev);
+ 	mutex_lock(&inode->i_mutex);
+ 	mutex_lock(&dqopt->dqonoff_mutex);
+-	if (sb_has_quota_enabled(sb, type)) {
++	if (sb_has_quota_enabled(sb, type) ||
++			sb_has_quota_suspended(sb, type)) {
+ 		error = -EBUSY;
+ 		goto out_lock;
+ 	}
+@@ -1597,6 +1626,7 @@ static int vfs_quota_on_inode(struct ino
+ 
+ 	dqopt->ops[type] = fmt->qf_ops;
+ 	dqopt->info[type].dqi_format = fmt;
++	dqopt->info[type].dqi_fmt_id = format_id;
+ 	INIT_LIST_HEAD(&dqopt->info[type].dqi_dirty_list);
+ 	mutex_lock(&dqopt->dqio_mutex);
+ 	if ((error = dqopt->ops[type]->read_file_info(sb, type)) < 0) {
+@@ -1632,12 +1662,41 @@ out_fmt:
+ 	return error; 
+ }
+ 
++/* Reenable quotas on remount RW */
++static int vfs_quota_on_remount(struct super_block *sb, int type)
++{
++	struct quota_info *dqopt = sb_dqopt(sb);
++	struct inode *inode;
++	int ret;
++
++	mutex_lock(&dqopt->dqonoff_mutex);
++	if (!sb_has_quota_suspended(sb, type)) {
++		mutex_unlock(&dqopt->dqonoff_mutex);
++		return 0;
++	}
++	BUG_ON(sb_has_quota_enabled(sb, type));
++
++	inode = dqopt->files[type];
++	dqopt->files[type] = NULL;
++	reset_enable_flags(dqopt, type, 0);
++	mutex_unlock(&dqopt->dqonoff_mutex);
++
++	ret = vfs_quota_on_inode(inode, type, dqopt->info[type].dqi_fmt_id);
++	iput(inode);
++
++	return ret;
++}
++
+ /* Actual function called from quotactl() */
+-int vfs_quota_on(struct super_block *sb, int type, int format_id, char *path)
++int vfs_quota_on(struct super_block *sb, int type, int format_id, char *path,
++		 int remount)
+ {
+ 	struct nameidata nd;
+ 	int error;
+ 
++	if (remount)
++		return vfs_quota_on_remount(sb, type);
++
+ 	error = path_lookup(path, LOOKUP_FOLLOW, &nd);
+ 	if (error < 0)
+ 		return error;
+diff -puN fs/quota.c~quota-quota-core-changes-for-quotaon-on-remount fs/quota.c
+--- a/fs/quota.c~quota-quota-core-changes-for-quotaon-on-remount
++++ a/fs/quota.c
+@@ -69,7 +69,6 @@ static int generic_quotactl_valid(struct
+ 	switch (cmd) {
+ 		case Q_GETFMT:
+ 		case Q_GETINFO:
+-		case Q_QUOTAOFF:
+ 		case Q_SETINFO:
+ 		case Q_SETQUOTA:
+ 		case Q_GETQUOTA:
+@@ -229,12 +228,12 @@ static int do_quotactl(struct super_bloc
+ 
+ 			if (IS_ERR(pathname = getname(addr)))
+ 				return PTR_ERR(pathname);
+-			ret = sb->s_qcop->quota_on(sb, type, id, pathname);
++			ret = sb->s_qcop->quota_on(sb, type, id, pathname, 0);
+ 			putname(pathname);
+ 			return ret;
+ 		}
+ 		case Q_QUOTAOFF:
+-			return sb->s_qcop->quota_off(sb, type);
++			return sb->s_qcop->quota_off(sb, type, 0);
+ 
+ 		case Q_GETFMT: {
+ 			__u32 fmt;
+diff -puN fs/super.c~quota-quota-core-changes-for-quotaon-on-remount fs/super.c
+--- a/fs/super.c~quota-quota-core-changes-for-quotaon-on-remount
++++ a/fs/super.c
+@@ -178,7 +178,7 @@ void deactivate_super(struct super_block
+ 	if (atomic_dec_and_lock(&s->s_active, &sb_lock)) {
+ 		s->s_count -= S_BIAS-1;
+ 		spin_unlock(&sb_lock);
+-		DQUOT_OFF(s);
++		DQUOT_OFF(s, 0);
+ 		down_write(&s->s_umount);
+ 		fs->kill_sb(s);
+ 		put_filesystem(fs);
+@@ -606,6 +606,7 @@ retry:
+ int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
+ {
+ 	int retval;
++	int remount_rw;
+ 	
+ #ifdef CONFIG_BLOCK
+ 	if (!(flags & MS_RDONLY) && bdev_read_only(sb->s_bdev))
+@@ -623,8 +624,11 @@ int do_remount_sb(struct super_block *sb
+ 			mark_files_ro(sb);
+ 		else if (!fs_may_remount_ro(sb))
+ 			return -EBUSY;
+-		DQUOT_OFF(sb);
++		retval = DQUOT_OFF(sb, 1);
++		if (retval < 0 && retval != -ENOSYS)
++			return -EBUSY;
+ 	}
++	remount_rw = !(flags & MS_RDONLY) && (sb->s_flags & MS_RDONLY);
+ 
+ 	if (sb->s_op->remount_fs) {
+ 		lock_super(sb);
+@@ -634,6 +638,8 @@ int do_remount_sb(struct super_block *sb
+ 			return retval;
+ 	}
+ 	sb->s_flags = (sb->s_flags & ~MS_RMT_MASK) | (flags & MS_RMT_MASK);
++	if (remount_rw)
++		DQUOT_ON_REMOUNT(sb);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/quota.h~quota-quota-core-changes-for-quotaon-on-remount include/linux/quota.h
+--- a/include/linux/quota.h~quota-quota-core-changes-for-quotaon-on-remount
++++ a/include/linux/quota.h
+@@ -202,6 +202,8 @@ struct quota_format_type;
+ 
+ struct mem_dqinfo {
+ 	struct quota_format_type *dqi_format;
++	int dqi_fmt_id;		/* Id of the dqi_format - used when turning
++				 * quotas on after remount RW */
+ 	struct list_head dqi_dirty_list;	/* List of dirty dquots */
+ 	unsigned long dqi_flags;
+ 	unsigned int dqi_bgrace;
+@@ -298,8 +300,8 @@ struct dquot_operations {
+ 
+ /* Operations handling requests from userspace */
+ struct quotactl_ops {
+-	int (*quota_on)(struct super_block *, int, int, char *);
+-	int (*quota_off)(struct super_block *, int);
++	int (*quota_on)(struct super_block *, int, int, char *, int);
++	int (*quota_off)(struct super_block *, int, int);
+ 	int (*quota_sync)(struct super_block *, int);
+ 	int (*get_info)(struct super_block *, int, struct if_dqinfo *);
+ 	int (*set_info)(struct super_block *, int, struct if_dqinfo *);
+@@ -320,6 +322,10 @@ struct quota_format_type {
+ 
+ #define DQUOT_USR_ENABLED	0x01		/* User diskquotas enabled */
+ #define DQUOT_GRP_ENABLED	0x02		/* Group diskquotas enabled */
++#define DQUOT_USR_SUSPENDED	0x04		/* User diskquotas are off, but
++						 * we have necessary info in
++						 * memory to turn them on */
++#define DQUOT_GRP_SUSPENDED	0x08		/* The same for group quotas */
+ 
+ struct quota_info {
+ 	unsigned int flags;			/* Flags for diskquotas on this device */
+@@ -337,6 +343,10 @@ struct quota_info {
+ #define sb_any_quota_enabled(sb) (sb_has_quota_enabled(sb, USRQUOTA) | \
+ 				  sb_has_quota_enabled(sb, GRPQUOTA))
+ 
++#define sb_has_quota_suspended(sb, type) \
++	((type) == USRQUOTA ? (sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED) : \
++			      (sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED))
++
+ int register_quota_format(struct quota_format_type *fmt);
+ void unregister_quota_format(struct quota_format_type *fmt);
+ 
+diff -puN include/linux/quotaops.h~quota-quota-core-changes-for-quotaon-on-remount include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-quota-core-changes-for-quotaon-on-remount
++++ a/include/linux/quotaops.h
+@@ -37,10 +37,11 @@ extern int dquot_release(struct dquot *d
+ extern int dquot_commit_info(struct super_block *sb, int type);
+ extern int dquot_mark_dquot_dirty(struct dquot *dquot);
+ 
+-extern int vfs_quota_on(struct super_block *sb, int type, int format_id, char *path);
++extern int vfs_quota_on(struct super_block *sb, int type, int format_id,
++		char *path, int remount);
+ extern int vfs_quota_on_mount(struct super_block *sb, char *qf_name,
+ 		int format_id, int type);
+-extern int vfs_quota_off(struct super_block *sb, int type);
++extern int vfs_quota_off(struct super_block *sb, int type, int remount);
+ extern int vfs_quota_sync(struct super_block *sb, int type);
+ extern int vfs_get_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii);
+ extern int vfs_set_dqinfo(struct super_block *sb, int type, struct if_dqinfo *ii);
+@@ -175,12 +176,27 @@ static inline void DQUOT_SYNC(struct sup
+ 	sync_dquots(sb, -1);
+ }
+ 
+-static inline int DQUOT_OFF(struct super_block *sb)
++static inline int DQUOT_OFF(struct super_block *sb, int remount)
+ {
+ 	int ret = -ENOSYS;
+ 
+-	if (sb_any_quota_enabled(sb) && sb->s_qcop && sb->s_qcop->quota_off)
+-		ret = sb->s_qcop->quota_off(sb, -1);
++	if (sb->s_qcop && sb->s_qcop->quota_off)
++		ret = sb->s_qcop->quota_off(sb, -1, remount);
++	return ret;
++}
++
++static inline int DQUOT_ON_REMOUNT(struct super_block *sb)
++{
++	int cnt;
++	int ret = 0, err;
++
++	if (!sb->s_qcop || !sb->s_qcop->quota_on)
++		return -ENOSYS;
++	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
++		err = sb->s_qcop->quota_on(sb, cnt, 0, NULL, 1);
++		if (err < 0 && !ret)
++			ret = err;
++	}
+ 	return ret;
+ }
+ 
+@@ -196,7 +212,8 @@ static inline int DQUOT_OFF(struct super
+ #define DQUOT_ALLOC_INODE(inode)		(0)
+ #define DQUOT_FREE_INODE(inode)			do { } while(0)
+ #define DQUOT_SYNC(sb)				do { } while(0)
+-#define DQUOT_OFF(sb)				(0)
++#define DQUOT_OFF(sb, remount)			(0)
++#define DQUOT_ON_REMOUNT(sb)			(0)
+ #define DQUOT_TRANSFER(inode, iattr)		(0)
+ static inline int DQUOT_PREALLOC_SPACE_NODIRTY(struct inode *inode, qsize_t nr)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
+git-udf.patch
 git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+quota-add-possibly-missing-iput-when-quotaon-and-quotaoff-races.patch
+quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
+quota-various-style-cleanups.patch
 quota-various-style-cleanups-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+quota-quota-core-changes-for-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
+ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+quota-le_add_cpu-conversion.patch
 
