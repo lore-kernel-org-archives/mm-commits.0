@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:14:13 -0700
-Message-ID: <200803132114.m2DLEDlZ000708@imap1.linux-foundation.org>
+Subject: + add-a-document-describing-the-resource-counter-abstraction-v2.patch added to -mm tree
+Date: Thu, 13 Mar 2008 14:39:09 -0700
+Message-ID: <200803132139.m2DLd9rA001685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143AbYCMVOz (ORCPT
+	by vger.kernel.org with ESMTP id S1754706AbYCMVj5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:14:55 -0400
+	Thu, 13 Mar 2008 17:39:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gordonfarquharson@gmail.com, dwmw2@infradead.org
+Cc: xemul@openvz.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
+     memcgroups: add a document describing the resource counter abstraction
 has been added to the -mm tree.  Its filename is
-     mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
+     add-a-document-describing-the-resource-counter-abstraction-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,273 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
-From: "Gordon Farquharson" <gordonfarquharson@gmail.com>
+Subject: memcgroups: add a document describing the resource counter abstraction
+From: Pavel Emelyanov <xemul@openvz.org>
 
-On machines that register a physmap flash platform device (e.g.  many arm
-machines), parse_mtd_partitions() in drivers/mtd/mtdpart.c can cause the
-following output in the boot log:
+The resource counter is supposed to facilitate the resource accounting of
+arbitrary resource (and it already does this for memory controller).
 
-request_module: runaway loop modprobe net-pf-1
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+However, it is about to be used in other resources controllers (swap, kernel
+memory, networking, etc), so provide a doc describing how to work with it. 
+This will eliminate all the possible future duplications in the appropriate
+controllers' docs.
 
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+Fixed errors pointed out by Randy.
 
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
-...
-
-To illustrate how this can occur, I'll use the example where CONFIG_KMOD=y,
-CONFIG_MTD_PARTITIONS=y, CONFIG_MTD_REDBOOT_PARTS=y, and CONFIG_CMDLINE_PARTS
-is not set.  I'll also refer to the following code segment which is in
-drivers/mtd/mtdpart.c:parse_mtd_partitions():
-
-	for ( ; ret <= 0 && *types; types++) {
-		parser = get_partition_parser(*types);
-#ifdef CONFIG_KMOD
-		if (!parser && !request_module("%s", *types))
-				parser = get_partition_parser(*types);
-#endif
-		if (!parser) {
-			printk(KERN_NOTICE "%s partition parsing not available\n",
-			       *types);
-			continue;
-		}
-		ret = (*parser->parse_fn)(master, pparts, origin);
-		if (ret > 0) {
-			printk(KERN_NOTICE "%d %s partitions found on MTD device %s\n",
-			       ret, parser->name, master->name);
-		}
-		put_partition_parser(parser);
-
-I should note that I am assuming (because I don't understand how) that
-request_module() requires net-pf-1 to succeed.  This assumption is based on my
-observation of the request_module message ("request_module: runaway loop
-modprobe net-pf-1"), and that af_unix_init() (net-pf-1 initialization) is
-called only after the call to request_module() in this example.
-
-Based on the configuration and assumptions described above, the sequence of
-events that cause the boot log messages above are:
-
-1. the first call to get_partition_parser() in parse_mtd_partitions() does
-   not find the parser in the the list of registered parsers, i.e. 
-   get_partition_parser() returns a NULL pointer.  In this example, the only
-   registered parser in the list is called Redboot;
-
-2. parse_mtd_partitions() calls request_module() with (in this example)
-   the parameter "cmdlinepart";
-
-3. request_module() complains (request_module: runaway loop modprobe
-   net-pf-1, etc.) because af_unix_init() has not been called.  The boot log
-   shows that af_unix_init() is called only after parse_mtd_partitions()
-   finishes.
-
-register_mtd_parser: RedBoot
-physmap platform flash device: 00080000 at f0000000
-Found: ST M29W400DB
-physmap-flash.0: Found 1 x16 devices at 0x0 in 16-bit bank
-number of JEDEC chips: 1
-cfi_cmdset_0002: Disabling erase-suspend-program due to code brokenness.
-parse_mtd_partitions:
-get_partition_parser: name=cmdlinepart
-get_partition_parser: p->name=RedBoot
-get_partition_parser: p->owner=00000000
-get_partition_parser: ret=00000000
-parse_mtd_partitions: cmdlinepart
-request_module: runaway loop modprobe net-pf-1
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
-
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
-
-modprobe: FATAL: Could not load
-/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
-
-<--- 47 repeated modprobe messages deleted --->
-parse_mtd_partitions: request_module called
-cmdlinepart partition parsing not available
-get_partition_parser: name=RedBoot
-get_partition_parser: p->name=RedBoot
-get_partition_parser: p->owner=00000000
-get_partition_parser: ret->name=RedBoot
-get_partition_parser: ret=c02b0f8c
-parse_mtd_partitions: RedBoot
-parse_mtd_partitions: request_module called
-Searching for RedBoot partition table in physmap-flash.0 at offset 0x70000
-No RedBoot partition table detected in physmap-flash.0
-parse_mtd_partitions: end of function
-mice: PS/2 mouse device common for all mice
-i2c /dev entries driver
-rtc-rs5c372 0-0032: rs5c372a found, 24hr, driver version 0.5
-rtc-rs5c372 0-0032: rtc core: registered rtc-rs5c372 as rtc0
-iop-adma iop-adma.0: Intel(R) IOP: ( cpy intr )
-iop-adma iop-adma.1: Intel(R) IOP: ( cpy intr )
-NET: Registered protocol family 26
-TCP bic registered
-af_unix_init:
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-XScale DSP coprocessor detected.
-registered taskstats version 1
-rtc-rs5c372 0-0032: setting system clock to 2008-03-11 03:16:46 UTC (1205205406)
-
-The reason parse_mtd_partitions() tries to use cmdlinepart, even though it is
-not a registered parsing scheme when CONFIG_CMDLINE_PARTS is not set, is
-because cmdlinepart is hard coded in drivers/mtd/maps/physmap.c:
-
-#ifdef CONFIG_MTD_PARTITIONS
-static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
-#endif
-
-The patch below changes CONFIG_MTD_REDBOOT_PARTS, CONFIG_MTD_AFS_PARTS, and
-CONFIG_MTD_OF_PARTS from tristate to bool, and removes the call to
-request_module() in drivers/mtd/mtdpart.c:parse_mtd_partitions().  The changes
-to the definitions of the configuration variables ensure that MTD parsers
-compiled into the kernel are registered before parse_mtd_partitions() is
-called, which negates the need to have parse_mtd_partitions() call
-request_module(), and thereby eliminating the call to request_module() before
-af_unix_init().  The patch also changes the setting of
-CONFIG_MTD_REDBOOT_PARTS in arch/mips/configs/mtx1_defconfig from 'm' to 'y'. 
-This defconfig is the only one that set any of the partitioning schemes to be
-compiled as a module.
-
-Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/configs/mtx1_defconfig |    2 +-
- drivers/mtd/Kconfig              |    6 +++---
- drivers/mtd/mtdpart.c            |    4 ----
- 3 files changed, 4 insertions(+), 8 deletions(-)
+ Documentation/controllers/resource_counter.txt |  181 +++++++++++++++
+ include/linux/res_counter.h                    |    2 
+ 2 files changed, 183 insertions(+)
 
-diff -puN arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 arch/mips/configs/mtx1_defconfig
---- a/arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
-+++ a/arch/mips/configs/mtx1_defconfig
-@@ -743,7 +743,7 @@ CONFIG_MTD=m
- # CONFIG_MTD_DEBUG is not set
- CONFIG_MTD_CONCAT=m
- CONFIG_MTD_PARTITIONS=y
--CONFIG_MTD_REDBOOT_PARTS=m
-+CONFIG_MTD_REDBOOT_PARTS=y
- CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
- # CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
- # CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
-diff -puN drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/Kconfig
---- a/drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
-+++ a/drivers/mtd/Kconfig
-@@ -48,7 +48,7 @@ config MTD_PARTITIONS
- 	  'normal' form of partitioning used on a block device.
+diff -puN /dev/null Documentation/controllers/resource_counter.txt
+--- /dev/null
++++ a/Documentation/controllers/resource_counter.txt
+@@ -0,0 +1,181 @@
++
++		The Resource Counter
++
++The resource counter, declared at include/linux/res_counter.h,
++is supposed to facilitate the resource management by controllers
++by providing common stuff for accounting.
++
++This "stuff" includes the res_counter structure and routines
++to work with it.
++
++
++
++1. Crucial parts of the res_counter structure
++
++ a. unsigned long long usage
++
++ 	The usage value shows the amount of a resource that is consumed
++	by a group at a given time. The units of measurement should be
++	determined by the controller that uses this counter. E.g. it can
++	be bytes, items or any other unit the controller operates on.
++
++ b. unsigned long long max_usage
++
++ 	The maximal value of the usage over time.
++
++ 	This value is useful when gathering statistical information about
++	the particular group, as it shows the actual resource requirements
++	for a particular group, not just some usage snapshot.
++
++ c. unsigned long long limit
++
++ 	The maximal allowed amount of resource to consume by the group. In
++	case the group requests for more resources, so that the usage value
++	would exceed the limit, the resource allocation is rejected (see
++	the next section).
++
++ d. unsigned long long failcnt
++
++ 	The failcnt stands for "failures counter". This is the number of
++	resource allocation attempts that failed.
++
++ c. spinlock_t lock
++
++ 	Protects changes of the above values.
++
++
++
++2. Basic accounting routines
++
++ a. void res_counter_init(struct res_counter *rc)
++
++ 	Initializes the resource counter. As usual, should be the first
++	routine called for a new counter.
++
++ b. int res_counter_charge[_locked]
++			(struct res_counter *rc, unsigned long val)
++
++	When a resource is about to be allocated it has to be accounted
++	with the appropriate resource counter (controller should determine
++	which one to use on its own). This operation is called "charging".
++
++	This is not very important which operation - resource allocation
++	or charging - is performed first, but
++	  * if the allocation is performed first, this may create a
++	    temporary resource over-usage by the time resource counter is
++	    charged;
++	  * if the charging is performed first, then it should be uncharged
++	    on error path (if the one is called).
++
++ c. void res_counter_uncharge[_locked]
++			(struct res_counter *rc, unsigned long val)
++
++	When a resource is released (freed) is should be de-accounted
++	from the resource counter it was accounted to.  This is called
++	"uncharging".
++
++    The _locked routines imply that the res_counter->lock is taken.
++
++
++ 2.1 Other accounting routines
++
++    There are more routines that may help you with common needs, like
++    checking whether the limit is reached or resetting the max_usage
++    value. They are all declared in include/linux/res_counter.h.
++
++
++
++3. Analyzing the resource counter registrations
++
++ a. If the failcnt value constantly grows, this means that the counter's
++    limit is too tight. Either the group is misbehaving and consumes too
++    many resources, or the configuration is not suitable for the group
++    and the limit should be increased.
++
++ b. The max_usage value can be used to quickly tune the group. One may
++    set the limits to maximal values and either load the container with
++    a common pattern or leave one for a while. After this the max_usage
++    value shows the amount of memory the container would require during
++    its common activity.
++
++    Setting the limit a bit above this value gives a pretty good
++    configuration that works in most of the cases.
++
++ c. If the max_usage is much less than the limit, but the failcnt value
++    is growing, then the group tries to allocate a big chunk of resource
++    at once.
++
++ d. If the max_usage is much less than the limit, but the failcnt value
++    is 0, then this group is given too high limit, that it does not
++    require. It is better to lower the limit a bit leaving more resource
++    for other groups.
++
++
++
++4. Communication with the control groups subsystem (cgroups)
++
++All the resource controllers that are using cgroups and resource counters
++should provide files (in the cgroup filesystem) to work with the resource
++counter fields. They are recommended to adhere to the following rules:
++
++ a. File names
++
++ 	Field name	File name
++	---------------------------------------------------
++	usage		usage_in_<unit_of_measurement>
++	max_usage	max_usage_in_<unit_of_measurement>
++	limit		limit_in_<unit_of_measurement>
++	failcnt		failcnt
++	lock		no file :)
++
++ b. Reading from file should show the corresponding field value in the
++    appropriate format.
++
++ c. Writing to file
++
++ 	Field		Expected behavior
++	----------------------------------
++	usage		prohibited
++	max_usage	reset to usage
++	limit		set the limit
++	failcnt		reset to zero
++
++
++
++5. Usage example
++
++ a. Declare a task group (take a look at cgroups subsystem for this) and
++    fold a res_counter into it
++
++	struct my_group {
++		struct res_counter res;
++
++		<other fields>
++	}
++
++ b. Put hooks in resource allocation/release paths
++
++ 	int alloc_something(...)
++	{
++		if (res_counter_charge(res_counter_ptr, amount) < 0)
++			return -ENOMEM;
++
++		<allocate the resource and return to the caller>
++	}
++
++	void release_something(...)
++	{
++		res_counter_uncharge(res_counter_ptr, amount);
++
++		<release the resource>
++	}
++
++    In order to keep the usage value self-consistent, both the
++    "res_counter_ptr" and the "amount" in release_something() should be
++    the same as they were in the alloc_something() when the releasing
++    resource was allocated.
++
++ c. Provide the way to read res_counter values and set them (the cgroups
++    still can help with it).
++
++ c. Compile and run :)
+diff -puN include/linux/res_counter.h~add-a-document-describing-the-resource-counter-abstraction-v2 include/linux/res_counter.h
+--- a/include/linux/res_counter.h~add-a-document-describing-the-resource-counter-abstraction-v2
++++ a/include/linux/res_counter.h
+@@ -9,6 +9,8 @@
+  *
+  * Author: Pavel Emelianov <xemul@openvz.org>
+  *
++ * See Documentation/controllers/resource_counter.txt for more
++ * info about what this counter is.
+  */
  
- config MTD_REDBOOT_PARTS
--	tristate "RedBoot partition table parsing"
-+	bool "RedBoot partition table parsing"
- 	depends on MTD_PARTITIONS
- 	---help---
- 	  RedBoot is a ROM monitor and bootloader which deals with multiple
-@@ -135,7 +135,7 @@ config MTD_CMDLINE_PARTS
- 	  If unsure, say 'N'.
- 
- config MTD_AFS_PARTS
--	tristate "ARM Firmware Suite partition parsing"
-+	bool "ARM Firmware Suite partition parsing"
- 	depends on ARM && MTD_PARTITIONS
- 	---help---
- 	  The ARM Firmware Suite allows the user to divide flash devices into
-@@ -151,7 +151,7 @@ config MTD_AFS_PARTS
- 	  'armflash' map driver (CONFIG_MTD_ARMFLASH) does this, for example.
- 
- config MTD_OF_PARTS
--	tristate "Flash partition map based on OF description"
-+	bool "Flash partition map based on OF description"
- 	depends on PPC_OF && MTD_PARTITIONS
- 	help
- 	  This provides a partition parsing function which derives
-diff -puN drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
-+++ a/drivers/mtd/mtdpart.c
-@@ -555,10 +555,6 @@ int parse_mtd_partitions(struct mtd_info
- 
- 	for ( ; ret <= 0 && *types; types++) {
- 		parser = get_partition_parser(*types);
--#ifdef CONFIG_KMOD
--		if (!parser && !request_module("%s", *types))
--				parser = get_partition_parser(*types);
--#endif
- 		if (!parser) {
- 			printk(KERN_NOTICE "%s partition parsing not available\n",
- 			       *types);
+ #include <linux/cgroup.h>
 _
 
-Patches currently in -mm which might be from gordonfarquharson@gmail.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
-mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
+git-kgdb-light.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+git-udf.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+memcgroup-add-the-max_usage-member-on-the-res_counter.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
