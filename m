@@ -1,91 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch removed from -mm tree
-Date: Thu, 13 Mar 2008 11:59:30 -0700
-Message-ID: <200803131859.m2DIxUX0027958@imap1.linux-foundation.org>
+Subject: - net-sunrpc-svcc-suppress-unintialized-var-warning.patch removed from -mm tree
+Date: Thu, 13 Mar 2008 11:59:44 -0700
+Message-ID: <200803131859.m2DIximG027977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYCMTBX (ORCPT
+	by vger.kernel.org with ESMTP id S1754440AbYCMTBa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:01:23 -0400
+	Thu, 13 Mar 2008 15:01:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Trond.Myklebust@netapp.com, bfields@citi.umich.edu, chuck.lever@oracle.com, davem@davemloft.net, neilb@suse.de, tom@opengridcomputing.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name
+     net/sunrpc/svc.c: suppress unintialized var warning
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name.patch
+     net-sunrpc-svcc-suppress-unintialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name
+Subject: net/sunrpc/svc.c: suppress unintialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Update
-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name
-for new memstick stuff
+net/sunrpc/svc.c: In function '__svc_create_thread':
+net/sunrpc/svc.c:587: warning: 'oldmask.bits[0u]' may be used uninitialized in this function
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Tom Tucker <tom@opengridcomputing.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ net/sunrpc/svc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~fix-gregkh-driver-net-convert-the-phy_device-file-to-use-bus_find_device_by_name
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -341,15 +341,15 @@ static int jmb38x_ms_issue_cmd(struct me
- 	unsigned int data_len, cmd, t_val;
+diff -puN net/sunrpc/svc.c~net-sunrpc-svcc-suppress-unintialized-var-warning net/sunrpc/svc.c
+--- a/net/sunrpc/svc.c~net-sunrpc-svcc-suppress-unintialized-var-warning
++++ a/net/sunrpc/svc.c
+@@ -584,7 +584,7 @@ __svc_create_thread(svc_thread_fn func, 
+ 	struct svc_rqst	*rqstp;
+ 	int		error = -ENOMEM;
+ 	int		have_oldmask = 0;
+-	cpumask_t	oldmask;
++	cpumask_t	uninitialized_var(oldmask);
  
- 	if (!(STATUS_HAS_MEDIA & readl(host->addr + STATUS))) {
--		dev_dbg(msh->cdev.dev, "no media status\n");
-+		dev_dbg(&msh->dev, "no media status\n");
- 		host->req->error = -ETIME;
- 		return host->req->error;
- 	}
- 
--	dev_dbg(msh->cdev.dev, "control %08x\n",
-+	dev_dbg(&msh->dev, "control %08x\n",
- 		readl(host->addr + HOST_CONTROL));
--	dev_dbg(msh->cdev.dev, "status %08x\n", readl(host->addr + INT_STATUS));
--	dev_dbg(msh->cdev.dev, "hstatus %08x\n", readl(host->addr + STATUS));
-+	dev_dbg(&msh->dev, "status %08x\n", readl(host->addr + INT_STATUS));
-+	dev_dbg(&msh->dev, "hstatus %08x\n", readl(host->addr + STATUS));
- 
- 	host->cmd_flags = 0;
- 	host->block_pos = 0;
-@@ -429,7 +429,7 @@ static int jmb38x_ms_issue_cmd(struct me
- 	host->req->error = 0;
- 
- 	writel(cmd, host->addr + TPC);
--	dev_dbg(msh->cdev.dev, "executing TPC %08x, len %x\n", cmd, data_len);
-+	dev_dbg(&msh->dev, "executing TPC %08x, len %x\n", cmd, data_len);
- 
- 	return 0;
- }
-@@ -442,11 +442,11 @@ static void jmb38x_ms_complete_cmd(struc
- 
- 	del_timer(&host->timer);
- 
--	dev_dbg(msh->cdev.dev, "c control %08x\n",
-+	dev_dbg(&msh->dev, "c control %08x\n",
- 		readl(host->addr + HOST_CONTROL));
--	dev_dbg(msh->cdev.dev, "c status %08x\n",
-+	dev_dbg(&msh->dev, "c status %08x\n",
- 		readl(host->addr + INT_STATUS));
--	dev_dbg(msh->cdev.dev, "c hstatus %08x\n", readl(host->addr + STATUS));
-+	dev_dbg(&msh->dev, "c hstatus %08x\n", readl(host->addr + STATUS));
- 
- 	if (host->req->get_int_reg) {
- 		t_val = readl(host->addr + TPC_P0);
+ 	rqstp = svc_prepare_thread(serv, pool);
+ 	if (IS_ERR(rqstp)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
