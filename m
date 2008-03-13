@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lib-swiotlbc-avoid-endless-loops-fix.patch added to -mm tree
-Date: Thu, 13 Mar 2008 11:14:00 -0700
-Message-ID: <200803131814.m2DIE0SJ026344@imap1.linux-foundation.org>
+Subject: + lib-swiotlbc-cleanups.patch added to -mm tree
+Date: Thu, 13 Mar 2008 11:19:43 -0700
+Message-ID: <200803131819.m2DIJhH6026522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754529AbYCMSOK (ORCPT
+	by vger.kernel.org with ESMTP id S1753639AbYCMSUY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 14:14:10 -0400
+	Thu, 13 Mar 2008 14:20:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de, fujita.tomonori@lab.ntt.co.jp, jbeuli
 
 
 The patch titled
-     lib-swiotlbc-avoid-endless-loops-fix
+     lib/swiotlb.c: cleanups
 has been added to the -mm tree.  Its filename is
-     lib-swiotlbc-avoid-endless-loops-fix.patch
+     lib-swiotlbc-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-swiotlbc-avoid-endless-loops-fix
+Subject: lib/swiotlb.c: cleanups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The question-mark operator should be banned.
+There's a pointlessly braced block of code in there.  Remove the braces and
+save a tabstop.
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
@@ -46,26 +47,110 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/swiotlb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/swiotlb.c |   85 +++++++++++++++++++++++-------------------------
+ 1 file changed, 41 insertions(+), 44 deletions(-)
 
-diff -puN lib/swiotlb.c~lib-swiotlbc-avoid-endless-loops-fix lib/swiotlb.c
---- a/lib/swiotlb.c~lib-swiotlbc-avoid-endless-loops-fix
+diff -puN lib/swiotlb.c~lib-swiotlbc-cleanups lib/swiotlb.c
+--- a/lib/swiotlb.c~lib-swiotlbc-cleanups
 +++ a/lib/swiotlb.c
-@@ -310,9 +310,10 @@ map_single(struct device *hwdev, char *b
- 	start_dma_addr = virt_to_bus(io_tlb_start) & mask;
+@@ -332,56 +332,53 @@ map_single(struct device *hwdev, char *b
+ 	 * request and allocate a buffer from that IO TLB pool.
+ 	 */
+ 	spin_lock_irqsave(&io_tlb_lock, flags);
+-	{
+-		index = ALIGN(io_tlb_index, stride);
+-		if (index >= io_tlb_nslabs)
+-			index = 0;
+-		wrap = index;
++	index = ALIGN(io_tlb_index, stride);
++	if (index >= io_tlb_nslabs)
++		index = 0;
++	wrap = index;
++
++	do {
++		while (is_span_boundary(index, nslots, offset_slots,
++				max_slots)) {
++			index += stride;
++			if (index >= io_tlb_nslabs)
++				index = 0;
++			if (index == wrap)
++				goto not_found;
++		}
  
- 	offset_slots = ALIGN(start_dma_addr, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
--	max_slots = mask + 1
--		    ? ALIGN(mask + 1, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT
--		    : 1UL << (BITS_PER_LONG - IO_TLB_SHIFT);
-+	if (mask == ~0UL)
-+		max_slots = 1UL << (BITS_PER_LONG - IO_TLB_SHIFT);
-+	else
-+		max_slots = ALIGN(mask + 1, 1 << IO_TLB_SHIFT) >> IO_TLB_SHIFT;
+-		do {
+-			while (is_span_boundary(index, nslots, offset_slots,
+-						max_slots)) {
+-				index += stride;
+-				if (index >= io_tlb_nslabs)
+-					index = 0;
+-				if (index == wrap)
+-					goto not_found;
+-			}
++		/*
++		 * If we find a slot that indicates we have 'nslots' number of
++		 * contiguous buffers, we allocate the buffers from that slot
++		 * and mark the entries as '0' indicating unavailable.
++		 */
++		if (io_tlb_list[index] >= nslots) {
++			int count = 0;
++
++			for (i = index; i < (int) (index + nslots); i++)
++				io_tlb_list[i] = 0;
++			for (i = index - 1; (OFFSET(i, IO_TLB_SEGSIZE) != IO_TLB_SEGSIZE - 1) && io_tlb_list[i]; i--)
++				io_tlb_list[i] = ++count;
++			dma_addr = io_tlb_start + (index << IO_TLB_SHIFT);
+ 
+ 			/*
+-			 * If we find a slot that indicates we have 'nslots'
+-			 * number of contiguous buffers, we allocate the
+-			 * buffers from that slot and mark the entries as '0'
+-			 * indicating unavailable.
++			 * Update the indices to avoid searching in the next
++			 * round.
+ 			 */
+-			if (io_tlb_list[index] >= nslots) {
+-				int count = 0;
++			io_tlb_index = ((index + nslots) < io_tlb_nslabs
++					? (index + nslots) : 0);
+ 
+-				for (i = index; i < (int) (index + nslots); i++)
+-					io_tlb_list[i] = 0;
+-				for (i = index - 1; (OFFSET(i, IO_TLB_SEGSIZE) != IO_TLB_SEGSIZE -1) && io_tlb_list[i]; i--)
+-					io_tlb_list[i] = ++count;
+-				dma_addr = io_tlb_start + (index << IO_TLB_SHIFT);
+-
+-				/*
+-				 * Update the indices to avoid searching in
+-				 * the next round.
+-				 */
+-				io_tlb_index = ((index + nslots) < io_tlb_nslabs
+-						? (index + nslots) : 0);
+-
+-				goto found;
+-			}
+-			index += stride;
+-			if (index >= io_tlb_nslabs)
+-				index = 0;
+-		} while (index != wrap);
++			goto found;
++		}
++		index += stride;
++		if (index >= io_tlb_nslabs)
++			index = 0;
++	} while (index != wrap);
+ 
+-  not_found:
+-		spin_unlock_irqrestore(&io_tlb_lock, flags);
+-		return NULL;
+-	}
+-  found:
++not_found:
++	spin_unlock_irqrestore(&io_tlb_lock, flags);
++	return NULL;
++found:
+ 	spin_unlock_irqrestore(&io_tlb_lock, flags);
  
  	/*
- 	 * For mappings greater than a page, we limit the stride (and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +228,7 @@ kernel-add-clamp-and-clamp_t-macros.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
 r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
 r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
