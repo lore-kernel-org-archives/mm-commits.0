@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-fold-sig_ignored-into-handle_stop_signal.patch added to -mm tree
-Date: Thu, 13 Mar 2008 12:50:44 -0700
-Message-ID: <200803131950.m2DJojts029969@imap1.linux-foundation.org>
+Subject: + signals-send_signal-be-paranoid-about-signalfd_notify.patch added to -mm tree
+Date: Thu, 13 Mar 2008 12:51:22 -0700
+Message-ID: <200803131951.m2DJpM5R029993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752000AbYCMTwV (ORCPT
+	by vger.kernel.org with ESMTP id S1753943AbYCMTw4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:52:21 -0400
+	Thu, 13 Mar 2008 15:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: oleg@tv-sign.ru, davidel@xmailserver.org, roland@redhat.com
 
 
 The patch titled
-     signals: fold sig_ignored() into handle_stop_signal()
+     signals: send_signal: be paranoid about signalfd_notify()
 has been added to the -mm tree.  Its filename is
-     signals-fold-sig_ignored-into-handle_stop_signal.patch
+     signals-send_signal-be-paranoid-about-signalfd_notify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: fold sig_ignored() into handle_stop_signal()
+Subject: signals: send_signal: be paranoid about signalfd_notify()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Rename handle_stop_signal() to prepare_signal(), make it return a boolean, and
-move the callsites of sig_ignored() into it.
+send_signal() shouldn't call signalfd_notify() if it then fails with -EAGAIN. 
+Harmless, just a paranoid cleanup.
 
-No functional changes for now.  But it would be nice to factor out the "should
-we drop this signal" checks as much as possible, before we try to fix the bugs
-with the sub-namespace init's signals (actually the global /sbin/init has some
-problems with signals too).
+Also remove the comment.  It is obsolete, signalfd_notify() was simplified and
+does a simple wakeup.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ kernel/signal.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal kernel/signal.c
---- a/kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal
+diff -puN kernel/signal.c~signals-send_signal-be-paranoid-about-signalfd_notify kernel/signal.c
+--- a/kernel/signal.c~signals-send_signal-be-paranoid-about-signalfd_notify
 +++ a/kernel/signal.c
-@@ -564,18 +564,16 @@ static void do_notify_parent_cldstop(str
-  * actual continuing for SIGCONT, but not the actual stopping for stop
-  * signals.  The process stop is done as a signal action for SIG_DFL.
-  */
--static void handle_stop_signal(int sig, struct task_struct *p)
-+static int prepare_signal(int sig, struct task_struct *p)
- {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
- 
--	if (signal->flags & SIGNAL_GROUP_EXIT)
-+	if (unlikely(signal->flags & SIGNAL_GROUP_EXIT)) {
- 		/*
--		 * The process is in the middle of dying already.
-+		 * The process is in the middle of dying, nothing to do.
- 		 */
--		return;
--
--	if (sig_kernel_stop(sig)) {
-+	} else if (sig_kernel_stop(sig)) {
- 		/*
- 		 * This is a stop signal.  Remove SIGCONT from all queues.
- 		 */
-@@ -644,6 +642,8 @@ static void handle_stop_signal(int sig, 
- 			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
- 		}
- 	}
-+
-+	return !sig_ignored(p, sig);
- }
- 
- /*
-@@ -753,7 +753,8 @@ static int send_signal(int sig, struct s
- 	struct sigqueue *q;
- 
- 	assert_spin_locked(&t->sighand->siglock);
--	handle_stop_signal(sig, t);
-+	if (!prepare_signal(sig, t))
-+		return 0;
- 
- 	pending = group ? &t->signal->shared_pending : &t->pending;
- 	/*
-@@ -761,7 +762,7 @@ static int send_signal(int sig, struct s
- 	 * exactly one non-rt signal, so that we can get more
- 	 * detailed information about the cause of the signal.
+@@ -769,13 +769,6 @@ static int send_signal(int sig, struct s
  	 */
--	if (sig_ignored(t, sig) || legacy_queue(pending, sig))
-+	if (legacy_queue(pending, sig))
+ 	if (legacy_queue(pending, sig))
  		return 0;
- 
- 	/*
-@@ -1247,10 +1248,8 @@ int send_sigqueue(struct sigqueue *q, st
- 	if (!likely(lock_task_sighand(t, &flags)))
- 		goto ret;
- 
--	handle_stop_signal(sig, t);
 -
--	ret = 1;
--	if (sig_ignored(t, sig))
-+	ret = 1; /* the signal is ignored */
-+	if (!prepare_signal(sig, t))
- 		goto out;
+-	/*
+-	 * Deliver the signal to listening signalfds. This must be called
+-	 * with the sighand lock held.
+-	 */
+-	signalfd_notify(t, sig);
+-
+ 	/*
+ 	 * fast-pathed signals for kernel-internal things like SIGSTOP
+ 	 * or SIGKILL.
+@@ -825,6 +818,7 @@ static int send_signal(int sig, struct s
+ 	}
  
- 	ret = 0;
+ out_set:
++	signalfd_notify(t, sig);
+ 	sigaddset(&pending->signal, sig);
+ 	complete_signal(sig, t, group);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -164,6 +121,7 @@ signals-handle_stop_signal-dont-worry-about-sigkill.patch
 signals-cleanup-the-usage-of-print_fatal_signal.patch
 signals-fold-sig_ignored-into-handle_stop_signal.patch
 signals-document-cld_continued-notification-mechanics.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
 ptrace-introduce-task_detached-helper.patch
 reparent_thread-use-same_thread_group.patch
 document-de_thread-with-exit_notify-connection.patch
