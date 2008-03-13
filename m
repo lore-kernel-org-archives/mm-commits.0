@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_miscc-avoid-potential-kernel-stack-overflow.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:59:28 -0700
-Message-ID: <200803132159.m2DLxSqT002461@imap1.linux-foundation.org>
+Subject: + mm-highmem-kernel-doc-additions.patch added to -mm tree
+Date: Thu, 13 Mar 2008 15:00:49 -0700
+Message-ID: <200803132200.m2DM0nhh002526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755780AbYCMV7b (ORCPT
+	by vger.kernel.org with ESMTP id S1757576AbYCMWBD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:59:31 -0400
+	Thu, 13 Mar 2008 18:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     binfmt_misc.c: avoid potential kernel stack overflow
+     mm: highmem kernel-doc additions
 has been added to the -mm tree.  Its filename is
-     binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
+     mm-highmem-kernel-doc-additions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_misc.c: avoid potential kernel stack overflow
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: mm: highmem kernel-doc additions
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This can be triggered with root help only, but...
+Add kernel-doc comments to highmem.c.
 
-Register the ":text:E::txt::/root/cat.txt:' rule in binfmt_misc (by root) and
-try launching the cat.txt file (by anyone) :) The result is - the endless
-recursion in the load_misc_binary -> open_exec -> load_misc_binary chain and
-stack overflow.
-
-There's a similar problem with binfmt_script, and there's a sh_bang memner on
-linux_binprm structure to handle this, but simply raising this in binfmt_misc
-may break some setups when the interpreter of some misc binaries is a script.
-
-So the proposal is to turn sh_bang into a bit, add a new one (the misc_bang)
-and raise it in load_misc_binary.  After this, even if we set up the misc ->
-script -> misc loop for binfmts one of them will step on its own bang and
-exit.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_em86.c        |    2 +-
- fs/binfmt_misc.c        |    6 ++++++
- fs/binfmt_script.c      |    2 +-
- include/linux/binfmts.h |    3 ++-
- 4 files changed, 10 insertions(+), 3 deletions(-)
+ mm/highmem.c |   30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_em86.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_em86.c
-@@ -43,7 +43,7 @@ static int load_em86(struct linux_binprm
- 			return -ENOEXEC;
- 	}
+diff -puN mm/highmem.c~mm-highmem-kernel-doc-additions mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-kernel-doc-additions
++++ a/mm/highmem.c
+@@ -104,8 +104,9 @@ static void flush_all_zero_pkmaps(void)
+ 	flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));
+ }
  
--	bprm->sh_bang++;	/* Well, the bang-shell is implicit... */
-+	bprm->sh_bang = 1;	/* Well, the bang-shell is implicit... */
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN fs/binfmt_misc.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_misc.c
-@@ -116,6 +116,12 @@ static int load_misc_binary(struct linux
- 	if (!enabled)
- 		goto _ret;
+-/* Flush all unused kmap mappings in order to remove stray
+-   mappings. */
++/**
++ * kmap_flush_unused - flush all unused kmap mappings in order to remove stray mappings
++ */
+ void kmap_flush_unused(void)
+ {
+ 	spin_lock(&kmap_lock);
+@@ -163,6 +164,14 @@ start:
+ 	return vaddr;
+ }
  
-+	retval = -ENOEXEC;
-+	if (bprm->misc_bang)
-+		goto _ret;
-+
-+	bprm->misc_bang = 1;
-+
- 	/* to keep locking time low, we copy the interpreter string */
- 	read_lock(&entries_lock);
- 	fmt = check_file(bprm);
-diff -puN fs/binfmt_script.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_script.c
---- a/fs/binfmt_script.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_script.c
-@@ -29,7 +29,7 @@ static int load_script(struct linux_binp
- 	 * Sorta complicated, but hopefully it will work.  -TYT
++/**
++ * kmap_high - map a highmem page into memory
++ * @page: &struct page to map
++ *
++ * Returns the page's virtual memory address.
++ *
++ * We cannot call this from interrupts, as it may block.
++ */
+ void *kmap_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+@@ -170,8 +179,6 @@ void *kmap_high(struct page *page)
+ 	/*
+ 	 * For highmem pages, we can't trust "virtual" until
+ 	 * after we have the lock.
+-	 *
+-	 * We cannot call this from interrupts, as it may block
  	 */
+ 	spin_lock(&kmap_lock);
+ 	vaddr = (unsigned long)page_address(page);
+@@ -185,6 +192,10 @@ void *kmap_high(struct page *page)
  
--	bprm->sh_bang++;
-+	bprm->sh_bang = 1;
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN include/linux/binfmts.h~binfmt_miscc-avoid-potential-kernel-stack-overflow include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/include/linux/binfmts.h
-@@ -34,7 +34,8 @@ struct linux_binprm{
- #endif
- 	struct mm_struct *mm;
- 	unsigned long p; /* current top of mem */
--	int sh_bang;
-+	unsigned int sh_bang:1,
-+		     misc_bang:1;
- 	struct file * file;
- 	int e_uid, e_gid;
- 	kernel_cap_t cap_inheritable, cap_permitted;
+ EXPORT_SYMBOL(kmap_high);
+ 
++/**
++ * kunmap_high - map a highmem page into memory
++ * @page: &struct page to unmap
++ */
+ void kunmap_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+@@ -259,6 +270,12 @@ static struct page_address_slot *page_sl
+ 	return &page_address_htable[hash_ptr(page, PA_HASH_ORDER)];
+ }
+ 
++/**
++ * page_address - get the mapped virtual address of a page
++ * @page: &struct page to get the virtual address of
++ *
++ * Returns the page's virtual address.
++ */
+ void *page_address(struct page *page)
+ {
+ 	unsigned long flags;
+@@ -288,6 +305,11 @@ done:
+ 
+ EXPORT_SYMBOL(page_address);
+ 
++/**
++ * set_page_address - set a page's virtual address
++ * @page: &struct page to set
++ * @virtual: virtual address to use
++ */
+ void set_page_address(struct page *page, void *virtual)
+ {
+ 	unsigned long flags;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-memcgroup-add-the-max_usage-member-on-the-res_counter.patch
+kernel-doc-set-verbose-mode-via-environment.patch
+mm-fix-various-kernel-doc-comments.patch
+mm-shmem-and-tiny-shmem-fix-some-kernel-doc.patch
+mm-oom_kill-fix-kernel-doc.patch
+mm-highmem-kernel-doc-additions.patch
+mm-rmap-kernel-doc-fixes.patch
+git-acpi.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-visws-fix-printk-format-warnings.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
 add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+profile-likely-unlikely-macros.patch
 
