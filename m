@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-warn_on_secs-macro-simplification.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:06:43 -0700
-Message-ID: <200803132106.m2DL6hYE000413@imap1.linux-foundation.org>
+Subject: + ibmpex-correct-power-use-multipliers-for-qs2x-blade.patch added to -mm tree
+Date: Thu, 13 Mar 2008 14:01:24 -0700
+Message-ID: <200803132101.m2DL1Os7032668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753993AbYCMVGu (ORCPT
+	by vger.kernel.org with ESMTP id S1754878AbYCMVHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:06:50 -0400
+	Thu, 13 Mar 2008 17:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, hannes@saeurebad.de
+Cc: djwong@us.ibm.com, mhoffman@lightlink.com
 
 
 The patch titled
-     add-warn_on_secs-macro simplification
+     ibmpex: correct power use multipliers for QS2x blade
 has been added to the -mm tree.  Its filename is
-     add-warn_on_secs-macro-simplification.patch
+     ibmpex-correct-power-use-multipliers-for-qs2x-blade.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-warn_on_secs-macro simplification
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: ibmpex: correct power use multipliers for QS2x blade
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Change to the concise version as suggestion of Johannes Weiner.
+The QS2x blades ships with v2.54 of the firmware, which use the same
+multiplier for all power meters.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/hwmon/ibmpex.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-simplification include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-warn_on_secs-macro-simplification
-+++ a/include/asm-generic/bug.h
-@@ -76,13 +76,8 @@ extern void warn_on_slowpath(const char 
- 	unlikely(__ret_warn_once);				\
- })
+diff -puN drivers/hwmon/ibmpex.c~ibmpex-correct-power-use-multipliers-for-qs2x-blade drivers/hwmon/ibmpex.c
+--- a/drivers/hwmon/ibmpex.c~ibmpex-correct-power-use-multipliers-for-qs2x-blade
++++ a/drivers/hwmon/ibmpex.c
+@@ -327,10 +327,14 @@ static int is_temp_sensor(const char *se
+ 	return 0;
+ }
  
--#define WARN_ON_SECS(condition, secs) ({			\
--	int __ret_warn_on = !!(condition);			\
--	if (unlikely(__ret_warn_on))				\
--		if (__ratelimit(secs * HZ, 1))			\
--			WARN_ON(1);				\
--	unlikely(__ret_warn_on);				\
--})
-+#define WARN_ON_SECS(condition, secs)				\
-+		WARN_ON((condition && __ratelimit(secs * HZ, 1)))
+-static int power_sensor_multiplier(const char *sensor_id, int len)
++static int power_sensor_multiplier(struct ibmpex_bmc_data *data,
++				   const char *sensor_id, int len)
+ {
+ 	int i;
  
- #ifdef CONFIG_SMP
- # define WARN_ON_SMP(x)			WARN_ON(x)
++	if (data->sensor_major == 2)
++		return 1000000;
++
+ 	for (i = PEX_SENSOR_TYPE_LEN; i < len - 1; i++)
+ 		if (!memcmp(&sensor_id[i], watt_sensor_sig, PEX_MULT_LEN))
+ 			return 1000000;
+@@ -398,8 +402,9 @@ static int ibmpex_find_sensors(struct ib
+ 			num_power++;
+ 			sensor_counter = num_power;
+ 			data->sensors[i].multiplier =
+-				power_sensor_multiplier(data->rx_msg_data,
+-						     data->rx_msg_len);
++				power_sensor_multiplier(data,
++							data->rx_msg_data,
++							data->rx_msg_len);
+ 		} else if (is_temp_sensor(data->rx_msg_data,
+ 					  data->rx_msg_len)) {
+ 			sensor_type = TEMP_SENSOR;
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-isolate-ratelimit-from-printkc-for-other-use.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-add-warn_on_secs-macro.patch
-add-warn_on_secs-macro-simplification.patch
-use-warn_on_secs-in-rcupreempth.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-scsi-misc.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+scsi-aic94xx-cleanups.patch
+ibmpex-correct-power-use-multipliers-for-qs2x-blade.patch
+ibmpex-update-kconfig-to-list-more-supported-models.patch
 
