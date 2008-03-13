@@ -1,140 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - pci-iova-rb-tree-setup-tweak.patch removed from -mm tree
-Date: Thu, 13 Mar 2008 11:59:47 -0700
-Message-ID: <200803131859.m2DIxlBR027982@imap1.linux-foundation.org>
+Subject: - git-net-fix-build-with-config_net=n.patch removed from -mm tree
+Date: Thu, 13 Mar 2008 11:59:42 -0700
+Message-ID: <200803131859.m2DIxgLV027974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756500AbYCMTAV (ORCPT
+	by vger.kernel.org with ESMTP id S1756527AbYCMTAO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:00:21 -0400
+	Thu, 13 Mar 2008 15:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgross@linux.intel.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: iova RB tree setup tweak
+     git-net: fix build with CONFIG_NET=n
 has been removed from the -mm tree.  Its filename was
-     pci-iova-rb-tree-setup-tweak.patch
+     git-net-fix-build-with-config_net=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: iova RB tree setup tweak
-From: mark gross <mgross@linux.intel.com>
+Subject: git-net: fix build with CONFIG_NET=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The following patch merges two functions into one allowing for a 3%
-reduction in overhead in locating, allocating and inserting pages for
-use in IOMMU operations.
+fs/built-in.o:(.rodata+0x1134): undefined reference to `proc_net_inode_operations'
+fs/built-in.o:(.rodata+0x1138): undefined reference to `proc_net_operations'
 
-Its a bit of a eye-crosser so I welcome any RB-tree / MM experts to take
-a look.  It works by re-using some of the information gathered in the
-search for the pages to use in setting up the IOTLB's in the insertion
-of the iova structure into the RB tree.
-
-Signed-off-by: <mgross@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/iova.c |   50 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 36 insertions(+), 14 deletions(-)
+ fs/proc/base.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/pci/iova.c~pci-iova-rb-tree-setup-tweak drivers/pci/iova.c
---- a/drivers/pci/iova.c~pci-iova-rb-tree-setup-tweak
-+++ a/drivers/pci/iova.c
-@@ -73,10 +73,11 @@ iova_get_pad_size(int size, unsigned int
- 	return pad_size;
- }
- 
--static int __alloc_iova_range(struct iova_domain *iovad, unsigned long size,
--		unsigned long limit_pfn, struct iova *new, bool size_aligned)
-+static int __alloc_and_insert_iova_range(struct iova_domain *iovad,
-+		unsigned long size, unsigned long limit_pfn,
-+			struct iova *new, bool size_aligned)
- {
--	struct rb_node *curr = NULL;
-+	struct rb_node *prev, *curr = NULL;
- 	unsigned long flags;
- 	unsigned long saved_pfn;
- 	unsigned int pad_size = 0;
-@@ -85,8 +86,10 @@ static int __alloc_iova_range(struct iov
- 	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
- 	saved_pfn = limit_pfn;
- 	curr = __get_cached_rbnode(iovad, &limit_pfn);
-+	prev = curr;
- 	while (curr) {
- 		struct iova *curr_iova = container_of(curr, struct iova, node);
-+
- 		if (limit_pfn < curr_iova->pfn_lo)
- 			goto move_left;
- 		else if (limit_pfn < curr_iova->pfn_hi)
-@@ -100,6 +103,7 @@ static int __alloc_iova_range(struct iov
- adjust_limit_pfn:
- 		limit_pfn = curr_iova->pfn_lo - 1;
- move_left:
-+		prev = curr;
- 		curr = rb_prev(curr);
- 	}
- 
-@@ -116,7 +120,33 @@ move_left:
- 	new->pfn_lo = limit_pfn - (size + pad_size) + 1;
- 	new->pfn_hi = new->pfn_lo + size - 1;
- 
-+	/* Insert the new_iova into domain rbtree by holding writer lock */
-+	/* Add new node and rebalance tree. */
-+	{
-+		struct rb_node **entry = &((prev)), *parent = NULL;
-+		/* Figure out where to put new node */
-+		while (*entry) {
-+			struct iova *this = container_of(*entry,
-+							struct iova, node);
-+			parent = *entry;
-+
-+			if (new->pfn_lo < this->pfn_lo)
-+				entry = &((*entry)->rb_left);
-+			else if (new->pfn_lo > this->pfn_lo)
-+				entry = &((*entry)->rb_right);
-+			else
-+				BUG(); /* this should not happen */
-+		}
-+
-+		/* Add new node and rebalance tree. */
-+		rb_link_node(&new->node, parent, entry);
-+		rb_insert_color(&new->node, &iovad->rbroot);
-+	}
-+	__cached_rbnode_insert_update(iovad, saved_pfn, new);
-+
- 	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
-+
-+
- 	return 0;
- }
- 
-@@ -172,23 +202,15 @@ alloc_iova(struct iova_domain *iovad, un
- 		size = __roundup_pow_of_two(size);
- 
- 	spin_lock_irqsave(&iovad->iova_alloc_lock, flags);
--	ret = __alloc_iova_range(iovad, size, limit_pfn, new_iova,
--			size_aligned);
-+	ret = __alloc_and_insert_iova_range(iovad, size, limit_pfn,
-+			new_iova, size_aligned);
- 
-+	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
- 	if (ret) {
--		spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
- 		free_iova_mem(new_iova);
- 		return NULL;
- 	}
- 
--	/* Insert the new_iova into domain rbtree by holding writer lock */
--	spin_lock(&iovad->iova_rbtree_lock);
--	iova_insert_rbtree(&iovad->rbroot, new_iova);
--	__cached_rbnode_insert_update(iovad, limit_pfn, new_iova);
--	spin_unlock(&iovad->iova_rbtree_lock);
--
--	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
+diff -puN fs/proc/internal.h~git-net-fix-build-with-config_net=n fs/proc/internal.h
+diff -puN fs/proc/base.c~git-net-fix-build-with-config_net=n fs/proc/base.c
+--- a/fs/proc/base.c~git-net-fix-build-with-config_net=n
++++ a/fs/proc/base.c
+@@ -2269,7 +2269,9 @@ static const struct pid_entry tgid_base_
+ 	DIR("task",       S_IRUGO|S_IXUGO, task),
+ 	DIR("fd",         S_IRUSR|S_IXUSR, fd),
+ 	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
++#ifdef CONFIG_NET
+ 	DIR("net",        S_IRUGO|S_IXUSR, net),
++#endif
+ 	REG("environ",    S_IRUSR, environ),
+ 	INF("auxv",       S_IRUSR, pid_auxv),
+ 	ONE("status",     S_IRUGO, pid_status),
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+drivers-media-video-soc_camerac-reads-return-size_t.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+revert-acpi-thermal-fixup.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+
