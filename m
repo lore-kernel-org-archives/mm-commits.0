@@ -1,62 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e.patch removed from -mm tree
-Date: Thu, 13 Mar 2008 12:00:00 -0700
-Message-ID: <200803131900.m2DJ00Iw027997@imap1.linux-foundation.org>
+Subject: - pci-simplify-quirk-debug-output.patch removed from -mm tree
+Date: Thu, 13 Mar 2008 11:59:49 -0700
+Message-ID: <200803131859.m2DIxnMC027985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754675AbYCMTC2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754584AbYCMTC1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:02:28 -0400
+	Thu, 13 Mar 2008 15:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: EC: Revert 208c70a45624400fafd7511b96bc426bf01f8f5e
+     PCI: simplify quirk debug output
 has been removed from the -mm tree.  Its filename was
-     acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e.patch
+     pci-simplify-quirk-debug-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: EC: Revert 208c70a45624400fafd7511b96bc426bf01f8f5e
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: PCI: simplify quirk debug output
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This patch for non-fatal error causes some fatal ones.  Just revert it and
-find better solution for original problem.
+print_fn_descriptor_symbol() prints the address if we don't have a symbol,
+so no need to print both.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/pci/quirks.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/ec.c~acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-revert-208c70a45624400fafd7511b96bc426bf01f8f5e
-+++ a/drivers/acpi/ec.c
-@@ -943,11 +943,7 @@ int __init acpi_ec_ecdt_probe(void)
- 		boot_ec->command_addr = ecdt_ptr->control.address;
- 		boot_ec->data_addr = ecdt_ptr->data.address;
- 		boot_ec->gpe = ecdt_ptr->gpe;
--		if (ACPI_FAILURE(acpi_get_handle(NULL, ecdt_ptr->id,
--				&boot_ec->handle))) {
--			pr_info("Failed to locate handle for boot EC\n");
--			boot_ec->handle = ACPI_ROOT_OBJECT;
--		}
-+		boot_ec->handle = ACPI_ROOT_OBJECT;
- 	} else {
- 		/* This workaround is needed only on some broken machines,
- 		 * which require early EC, but fail to provide ECDT */
+diff -puN drivers/pci/quirks.c~pci-simplify-quirk-debug-output drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~pci-simplify-quirk-debug-output
++++ a/drivers/pci/quirks.c
+@@ -1501,8 +1501,8 @@ static void pci_do_fixups(struct pci_dev
+ 		if ((f->vendor == dev->vendor || f->vendor == (u16) PCI_ANY_ID) &&
+  		    (f->device == dev->device || f->device == (u16) PCI_ANY_ID)) {
+ #ifdef DEBUG
+-			dev_dbg(&dev->dev, "calling quirk 0x%p", f->hook);
+-			print_fn_descriptor_symbol(": %s()\n",
++			dev_dbg(&dev->dev, "calling ");
++			print_fn_descriptor_symbol("%s()\n",
+ 				(unsigned long) f->hook);
+ #endif
+ 			f->hook(dev);
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
+origin.patch
 git-acpi.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+simplify-initcall_debug-output.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
+pnp-use-dev_printk-for-quirk-messages.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
 
