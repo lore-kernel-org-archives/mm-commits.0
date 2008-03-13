@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-pcie-utilize-pcie-transaction-pending-bit.patch added to -mm tree
-Date: Thu, 13 Mar 2008 13:51:38 -0700
-Message-ID: <200803132051.m2DKpcWD032260@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug.patch added to -mm tree
+Date: Thu, 13 Mar 2008 13:53:19 -0700
+Message-ID: <200803132053.m2DKrJfx032359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752399AbYCMUwI (ORCPT
+	by vger.kernel.org with ESMTP id S1751700AbYCMUxi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 16:52:08 -0400
+	Thu, 13 Mar 2008 16:53:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, gregkh@suse.de, kernel@nn7.de, rjw@sisk.pl, shaohua.li@intel.com
+Cc: haveblue@us.ibm.com, hch@lst.de, penguin-kernel@i-love.sakura.ne.jp, viro@parcelfarce.linux.theplanet.co.uk
 
 
 The patch titled
-     revert "pcie: utilize pcie transaction pending bit"
+     fix for boot-time mnt_want_write() bug
 has been added to the -mm tree.  Its filename is
-     revert-pcie-utilize-pcie-transaction-pending-bit.patch
+     r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,219 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "pcie: utilize pcie transaction pending bit"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix for boot-time mnt_want_write() bug
+From: Dave Hansen <haveblue@us.ibm.com>
 
-Revert
+First of all, this is a hard bug to trigger.  I think it requires page
+alloc (or slab) debugging.  It also requires that a vfsmnt has been
+freed and its memory not been mapped as something else.  It must also
+have had a recent mnt_writer at the time of its __mntput().  The area
+where the vfsmnt was must fault when accessed.
 
-commit 4348a2dc49f9baecd34a9b0904245488c6189398
-Author: Shaohua Li <shaohua.li@intel.com>
-Date:   Wed Oct 24 10:45:08 2007 +0800
+The problem occurs when we unmount and __mntput() a vfsmount.  We go
+find any cpu_writers for that mount and clear the cpu_writer->count to
+zero.  That is supposed to mean that no one will ever go try and
+coalesce the cpu_writer->count int to the mnt->__mnt_writers.  Buuuuuut,
+that isn't quite what happens.  We only check in __clear_mnt_count() for
+a NULL mount:
 
-    pcie: utilize pcie transaction pending bit
-    
-    PCIE has a mechanism to wait for Non-Posted request to complete. I think
-    pci_disable_device is a good place to do this.
-    
-    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+void __clear_mnt_count(mnt, cpu_writer)
+{
+ 	if (!cpu_writer->mnt)
+ 		return;
+ 	atomic_add(cpu_writer->count, &cpu_writer->mnt->__mnt_writers);
+ 	cpu_writer->count = 0;
+}
 
-Due to the regression reported at
-http://bugzilla.kernel.org/show_bug.cgi?id=10065
+and we go ahead and dereference the mnt (which may be invalid here).  If
+it *WAS* invalid, the cpu_writer->count is always 0, and we don't
+actually do anything in practice to the invalid memory location except
+access it.  Adding a 0 doesn't _hurt_ anything, even if there is
+something else in the memory.  That's why we didn't notice this before.
+Miklos, you were very right to get nervous about this area in your
+review.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Soeren Sonnenburg <kernel@nn7.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Either one of the hunks in the patch would have fixed Tetsuo's oops.
+But, let's include both for completeness.  They're both operating on hot
+cachelines at the time so it shouldn't really impact anything.
+
+Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Al Viro <viro@parcelfarce.linux.theplanet.co.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c   |   21 ---------------------
- include/linux/pci.h |    4 ----
- 2 files changed, 25 deletions(-)
+ fs/namespace.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/pci/pci.c~revert-pcie-utilize-pcie-transaction-pending-bit drivers/pci/pci.c
---- a/drivers/pci/pci.c~revert-pcie-utilize-pcie-transaction-pending-bit
-+++ a/drivers/pci/pci.c
-@@ -315,24 +315,6 @@ int pci_find_ht_capability(struct pci_de
- }
- EXPORT_SYMBOL_GPL(pci_find_ht_capability);
- 
--void pcie_wait_pending_transaction(struct pci_dev *dev)
--{
--	int pos;
--	u16 reg16;
--
--	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
--	if (!pos)
--		return;
--	while (1) {
--		pci_read_config_word(dev, pos + PCI_EXP_DEVSTA, &reg16);
--		if (!(reg16 & PCI_EXP_DEVSTA_TRPND))
--			break;
--		cpu_relax();
--	}
--
--}
--EXPORT_SYMBOL_GPL(pcie_wait_pending_transaction);
--
- /**
-  * pci_find_parent_resource - return resource region of parent bus of given region
-  * @dev: PCI device structure contains resources to be searched
-@@ -940,9 +922,6 @@ pci_disable_device(struct pci_dev *dev)
- 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
- 		return;
- 
--	/* Wait for all transactions are finished before disabling the device */
--	pcie_wait_pending_transaction(dev);
--
- 	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
- 	if (pci_command & PCI_COMMAND_MASTER) {
- 		pci_command &= ~PCI_COMMAND_MASTER;
-diff -puN include/linux/pci.h~revert-pcie-utilize-pcie-transaction-pending-bit include/linux/pci.h
---- a/include/linux/pci.h~revert-pcie-utilize-pcie-transaction-pending-bit
-+++ a/include/linux/pci.h
-@@ -519,7 +519,6 @@ int pci_find_next_capability(struct pci_
- int pci_find_ext_capability(struct pci_dev *dev, int cap);
- int pci_find_ht_capability(struct pci_dev *dev, int ht_cap);
- int pci_find_next_ht_capability(struct pci_dev *dev, int pos, int ht_cap);
--void pcie_wait_pending_transaction(struct pci_dev *dev);
- struct pci_bus *pci_find_next_bus(const struct pci_bus *from);
- 
- struct pci_dev *pci_get_device(unsigned int vendor, unsigned int device,
-@@ -878,9 +877,6 @@ static inline int pci_find_ext_capabilit
- 	return 0;
- }
- 
--static inline void pcie_wait_pending_transaction(struct pci_dev *dev)
--{ }
--
- /* Power management related routines */
- static inline int pci_save_state(struct pci_dev *dev)
+diff -puN fs/namespace.c~r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug
++++ a/fs/namespace.c
+@@ -149,6 +149,12 @@ static inline void __clear_mnt_count(str
  {
+ 	if (!cpu_writer->mnt)
+ 		return;
++	/*
++	 * This is in case anyone ever leaves an invalid,
++	 * old ->mnt and a count of 0.
++	 */
++	if (!cpu_writer->count)
++		return;
+ 	atomic_add(cpu_writer->count, &cpu_writer->mnt->__mnt_writers);
+ 	cpu_writer->count = 0;
+ }
+@@ -529,6 +535,12 @@ static inline void __mntput(struct vfsmo
+ 		spin_lock(&cpu_writer->lock);
+ 		atomic_add(cpu_writer->count, &mnt->__mnt_writers);
+ 		cpu_writer->count = 0;
++		/*
++		 * Might as well do this so that no one
++		 * ever sees the pointer and expects
++		 * it to be valid.
++		 */
++		cpu_writer->mnt = NULL;
+ 		spin_unlock(&cpu_writer->lock);
+ 	}
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+mm-make-mem_map-allocation-continuous.patch
+reiserfs-eliminate-private-use-of-struct-file-in-xattr.patch
+hppfs-pass-vfsmount-to-dentry_open.patch
+check-for-null-vfsmount-in-dentry_open.patch
+fix-up-new-filp-allocators.patch
+do-namei_flags-calculation-inside-open_namei.patch
+merge-open_namei-and-do_filp_open.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-create-helper-to-drop-file-write-access.patch
+r-o-bind-mounts-drop-write-during-emergency-remount.patch
+r-o-bind-mounts-elevate-write-count-for-vfs_rmdir.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir.patch
 r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-mnt_writers-for-unlink-callers.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers.patch
 r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-elevate-write-count-for-ncp_ioctl.patch
+r-o-bind-mounts-write-counts-for-time-functions.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-write-count-for-file_update_time.patch
+r-o-bind-mounts-write-counts-for-link-symlink.patch
+r-o-bind-mounts-elevate-write-count-for-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-opens.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers.patch
 r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch
+r-o-bind-mounts-write-counts-for-truncate.patch
+r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch
+r-o-bind-mounts-make-access-use-new-r-o-helper.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly.patch
 r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
 r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch
 r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+r-o-bind-mounts-track-numbers-of-writers-to-mounts.patch
+r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug.patch
+r-o-bind-mounts-honor-mount-writer-counts-at-remount.patch
+r-o-bind-mounts-debugging-for-missed-calls.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
