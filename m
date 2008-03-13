@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-mountinfo-mm-fix.patch added to -mm tree
-Date: Thu, 13 Mar 2008 15:50:38 -0700
-Message-ID: <200803132250.m2DMocWJ004532@imap1.linux-foundation.org>
+Subject: + gpiolib-dynamic-gpio-number-allocation.patch added to -mm tree
+Date: Thu, 13 Mar 2008 16:00:45 -0700
+Message-ID: <200803132300.m2DN0jxH004977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756687AbYCMW43 (ORCPT
+	by vger.kernel.org with ESMTP id S1754646AbYCMXBH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 18:56:29 -0400
+	Thu, 13 Mar 2008 19:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk
+Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     vfs: mountinfo -mm fix
+     gpiolib: dynamic gpio number allocation
 has been added to the -mm tree.  Its filename is
-     vfs-mountinfo-mm-fix.patch
+     gpiolib-dynamic-gpio-number-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,129 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo -mm fix
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: gpiolib: dynamic gpio number allocation
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-The read-only flag showing got broken by the ro-bind patches going in
-and out of -mm.
+If gpio_chip->base is negative during registration, gpiolib performs dynamic
+base allocation.  This is useful for devices that aren't always present, such
+as GPIOs on hotplugged devices rather than mainboards.  (This behavior was
+previously specified but not implemented.)
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+To avoid using any numbers that may have been explicitly assigned but not yet
+registered, this dynamic allocation assigns GPIO numbers from the biggest
+number on down, instead of from the smallest on up.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/gpiolib.c |   52 +++++++++++++++++++++++++++++++++------
+ 1 file changed, 45 insertions(+), 7 deletions(-)
 
-diff -puN fs/namespace.c~vfs-mountinfo-mm-fix fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-mm-fix
-+++ a/fs/namespace.c
-@@ -800,9 +800,9 @@ static int show_mountinfo(struct seq_fil
- 	seq_dentry(m, mnt->mnt_root, " \t\n\\");
- 	seq_putc(m, ' ');
- 	seq_path(m, &mnt_path, " \t\n\\");
-+	seq_puts(m, mnt->mnt_flags & MNT_READONLY ? " ro" : " rw");
- 	show_mnt_opts(m, mnt);
--	seq_putc(m, ' ');
--	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
-+	seq_puts(m, sb->s_flags & MS_RDONLY ? " ro" : " rw");
- 	show_sb_opts(m, sb);
- 	if (sb->s_op->show_options)
- 		err = sb->s_op->show_options(m, mnt);
+diff -puN drivers/gpio/gpiolib.c~gpiolib-dynamic-gpio-number-allocation drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-dynamic-gpio-number-allocation
++++ a/drivers/gpio/gpiolib.c
+@@ -80,6 +80,33 @@ static inline struct gpio_chip *gpio_to_
+ 	return gpio_desc[gpio].chip;
+ }
+ 
++/* dynamic allocation of GPIOs, e.g. on a hotplugged device */
++static int gpiochip_find_base(int ngpio)
++{
++	int i;
++	int spare = 0;
++	int base = -ENOSPC;
++
++	for (i = ARCH_NR_GPIOS - 1; i >= 0 ; i--) {
++		struct gpio_chip *chip = gpio_desc[i].chip;
++
++		if (!chip) {
++			spare++;
++			if (spare == ngpio) {
++				base = i;
++				break;
++			}
++		} else {
++			spare = 0;
++			i -= chip->ngpio - 1;
++		}
++	}
++
++	if (gpio_is_valid(base))
++		pr_debug("%s: found new base at %d\n", __func__, base);
++	return base;
++}
++
+ /**
+  * gpiochip_add() - register a gpio_chip
+  * @chip: the chip to register, with chip->base initialized
+@@ -88,38 +115,49 @@ static inline struct gpio_chip *gpio_to_
+  * Returns a negative errno if the chip can't be registered, such as
+  * because the chip->base is invalid or already associated with a
+  * different chip.  Otherwise it returns zero as a success code.
++ *
++ * If chip->base is negative, this requests dynamic assignment of
++ * a range of valid GPIOs.
+  */
+ int gpiochip_add(struct gpio_chip *chip)
+ {
+ 	unsigned long	flags;
+ 	int		status = 0;
+ 	unsigned	id;
++	int		base = chip->base;
+ 
+-	/* NOTE chip->base negative is reserved to mean a request for
+-	 * dynamic allocation.  We don't currently support that.
+-	 */
+-
+-	if (chip->base < 0 || !gpio_is_valid(chip->base  + chip->ngpio)) {
++	if ((!gpio_is_valid(base) || !gpio_is_valid(base + chip->ngpio))
++			&& base >= 0) {
+ 		status = -EINVAL;
+ 		goto fail;
+ 	}
+ 
+ 	spin_lock_irqsave(&gpio_lock, flags);
+ 
++	if (base < 0) {
++		base = gpiochip_find_base(chip->ngpio);
++		if (base < 0) {
++			status = base;
++			goto fail_unlock;
++		}
++		chip->base = base;
++	}
++
+ 	/* these GPIO numbers must not be managed by another gpio_chip */
+-	for (id = chip->base; id < chip->base + chip->ngpio; id++) {
++	for (id = base; id < base + chip->ngpio; id++) {
+ 		if (gpio_desc[id].chip != NULL) {
+ 			status = -EBUSY;
+ 			break;
+ 		}
+ 	}
+ 	if (status == 0) {
+-		for (id = chip->base; id < chip->base + chip->ngpio; id++) {
++		for (id = base; id < base + chip->ngpio; id++) {
+ 			gpio_desc[id].chip = chip;
+ 			gpio_desc[id].flags = 0;
+ 		}
+ 	}
+ 
++fail_unlock:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+ fail:
+ 	/* failures here can mean systems won't boot... */
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-vfs-create-proc-pid-mountinfo.patch
-vfs-mountinfo-mm-fix.patch
-vfs-pnode-cleanup.patch
-vfs-mountinfo-stable-peer-group-id.patch
-vfs-mountinfo-show-dominating-group-id.patch
-vfs-optimization-to-proc-pid-mountinfo-patch.patch
-vfs-mountinfo-only-show-mounts-under-tasks-root.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
+git-powerpc.patch
+gpiolib-dynamic-gpio-number-allocation.patch
+gpiochip_reserve.patch
+fb-add-support-for-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+powerpc-offb-add-support-for-foreign-endianness.patch
 
