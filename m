@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-add-a-completed-cookie-updated-action-in-dma-finish-interrupt.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:12:28 -0700
-Message-ID: <200803132112.m2DLCSWF000604@imap1.linux-foundation.org>
+Subject: + mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch added to -mm tree
+Date: Thu, 13 Mar 2008 14:14:13 -0700
+Message-ID: <200803132114.m2DLEDlZ000708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754417AbYCMVNG (ORCPT
+	by vger.kernel.org with ESMTP id S1751143AbYCMVOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:13:06 -0400
+	Thu, 13 Mar 2008 17:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wei.zhang@freescale.com, dan.j.williams@intel.com, shannon.nelson@intel.com
+Cc: gordonfarquharson@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     fsldma: add a completed cookie updated action in DMA finish interrupt
+     mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
 has been added to the -mm tree.  Its filename is
-     fsldma-add-a-completed-cookie-updated-action-in-dma-finish-interrupt.patch
+     mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,210 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: add a completed cookie updated action in DMA finish interrupt
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
+From: "Gordon Farquharson" <gordonfarquharson@gmail.com>
 
-The patch 'fsldma: do not cleanup descriptors in hardirq context' (commit
-222ccf9ab838a1ca7163969fabd2cddc10403fb5) removed descriptors cleanup function
-to tasklet but the completed cookie do not updated.  Thus, the DMA controller
-will get lots of duplicated transfer interrupts.  Just make a completed cookie
-update in interrupt handler.  And keep other cleanup jobs in tasklet function.
+On machines that register a physmap flash platform device (e.g.  many arm
+machines), parse_mtd_partitions() in drivers/mtd/mtdpart.c can cause the
+following output in the boot log:
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+request_module: runaway loop modprobe net-pf-1
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+...
+
+To illustrate how this can occur, I'll use the example where CONFIG_KMOD=y,
+CONFIG_MTD_PARTITIONS=y, CONFIG_MTD_REDBOOT_PARTS=y, and CONFIG_CMDLINE_PARTS
+is not set.  I'll also refer to the following code segment which is in
+drivers/mtd/mtdpart.c:parse_mtd_partitions():
+
+	for ( ; ret <= 0 && *types; types++) {
+		parser = get_partition_parser(*types);
+#ifdef CONFIG_KMOD
+		if (!parser && !request_module("%s", *types))
+				parser = get_partition_parser(*types);
+#endif
+		if (!parser) {
+			printk(KERN_NOTICE "%s partition parsing not available\n",
+			       *types);
+			continue;
+		}
+		ret = (*parser->parse_fn)(master, pparts, origin);
+		if (ret > 0) {
+			printk(KERN_NOTICE "%d %s partitions found on MTD device %s\n",
+			       ret, parser->name, master->name);
+		}
+		put_partition_parser(parser);
+
+I should note that I am assuming (because I don't understand how) that
+request_module() requires net-pf-1 to succeed.  This assumption is based on my
+observation of the request_module message ("request_module: runaway loop
+modprobe net-pf-1"), and that af_unix_init() (net-pf-1 initialization) is
+called only after the call to request_module() in this example.
+
+Based on the configuration and assumptions described above, the sequence of
+events that cause the boot log messages above are:
+
+1. the first call to get_partition_parser() in parse_mtd_partitions() does
+   not find the parser in the the list of registered parsers, i.e. 
+   get_partition_parser() returns a NULL pointer.  In this example, the only
+   registered parser in the list is called Redboot;
+
+2. parse_mtd_partitions() calls request_module() with (in this example)
+   the parameter "cmdlinepart";
+
+3. request_module() complains (request_module: runaway loop modprobe
+   net-pf-1, etc.) because af_unix_init() has not been called.  The boot log
+   shows that af_unix_init() is called only after parse_mtd_partitions()
+   finishes.
+
+register_mtd_parser: RedBoot
+physmap platform flash device: 00080000 at f0000000
+Found: ST M29W400DB
+physmap-flash.0: Found 1 x16 devices at 0x0 in 16-bit bank
+number of JEDEC chips: 1
+cfi_cmdset_0002: Disabling erase-suspend-program due to code brokenness.
+parse_mtd_partitions:
+get_partition_parser: name=cmdlinepart
+get_partition_parser: p->name=RedBoot
+get_partition_parser: p->owner=00000000
+get_partition_parser: ret=00000000
+parse_mtd_partitions: cmdlinepart
+request_module: runaway loop modprobe net-pf-1
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+<--- 47 repeated modprobe messages deleted --->
+parse_mtd_partitions: request_module called
+cmdlinepart partition parsing not available
+get_partition_parser: name=RedBoot
+get_partition_parser: p->name=RedBoot
+get_partition_parser: p->owner=00000000
+get_partition_parser: ret->name=RedBoot
+get_partition_parser: ret=c02b0f8c
+parse_mtd_partitions: RedBoot
+parse_mtd_partitions: request_module called
+Searching for RedBoot partition table in physmap-flash.0 at offset 0x70000
+No RedBoot partition table detected in physmap-flash.0
+parse_mtd_partitions: end of function
+mice: PS/2 mouse device common for all mice
+i2c /dev entries driver
+rtc-rs5c372 0-0032: rs5c372a found, 24hr, driver version 0.5
+rtc-rs5c372 0-0032: rtc core: registered rtc-rs5c372 as rtc0
+iop-adma iop-adma.0: Intel(R) IOP: ( cpy intr )
+iop-adma iop-adma.1: Intel(R) IOP: ( cpy intr )
+NET: Registered protocol family 26
+TCP bic registered
+af_unix_init:
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+XScale DSP coprocessor detected.
+registered taskstats version 1
+rtc-rs5c372 0-0032: setting system clock to 2008-03-11 03:16:46 UTC (1205205406)
+
+The reason parse_mtd_partitions() tries to use cmdlinepart, even though it is
+not a registered parsing scheme when CONFIG_CMDLINE_PARTS is not set, is
+because cmdlinepart is hard coded in drivers/mtd/maps/physmap.c:
+
+#ifdef CONFIG_MTD_PARTITIONS
+static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
+#endif
+
+The patch below changes CONFIG_MTD_REDBOOT_PARTS, CONFIG_MTD_AFS_PARTS, and
+CONFIG_MTD_OF_PARTS from tristate to bool, and removes the call to
+request_module() in drivers/mtd/mtdpart.c:parse_mtd_partitions().  The changes
+to the definitions of the configuration variables ensure that MTD parsers
+compiled into the kernel are registered before parse_mtd_partitions() is
+called, which negates the need to have parse_mtd_partitions() call
+request_module(), and thereby eliminating the call to request_module() before
+af_unix_init().  The patch also changes the setting of
+CONFIG_MTD_REDBOOT_PARTS in arch/mips/configs/mtx1_defconfig from 'm' to 'y'. 
+This defconfig is the only one that set any of the partitioning schemes to be
+compiled as a module.
+
+Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/configs/mtx1_defconfig |    2 +-
+ drivers/mtd/Kconfig              |    6 +++---
+ drivers/mtd/mtdpart.c            |    4 ----
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/dma/fsldma.c~fsldma-add-a-completed-cookie-updated-action-in-dma-finish-interrupt drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-add-a-completed-cookie-updated-action-in-dma-finish-interrupt
-+++ a/drivers/dma/fsldma.c
-@@ -513,7 +513,6 @@ static void fsl_chan_ld_cleanup(struct f
+diff -puN arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 arch/mips/configs/mtx1_defconfig
+--- a/arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/arch/mips/configs/mtx1_defconfig
+@@ -743,7 +743,7 @@ CONFIG_MTD=m
+ # CONFIG_MTD_DEBUG is not set
+ CONFIG_MTD_CONCAT=m
+ CONFIG_MTD_PARTITIONS=y
+-CONFIG_MTD_REDBOOT_PARTS=m
++CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
+ # CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
+ # CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
+diff -puN drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/Kconfig
+--- a/drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/drivers/mtd/Kconfig
+@@ -48,7 +48,7 @@ config MTD_PARTITIONS
+ 	  'normal' form of partitioning used on a block device.
  
- 	spin_lock_irqsave(&fsl_chan->desc_lock, flags);
+ config MTD_REDBOOT_PARTS
+-	tristate "RedBoot partition table parsing"
++	bool "RedBoot partition table parsing"
+ 	depends on MTD_PARTITIONS
+ 	---help---
+ 	  RedBoot is a ROM monitor and bootloader which deals with multiple
+@@ -135,7 +135,7 @@ config MTD_CMDLINE_PARTS
+ 	  If unsure, say 'N'.
  
--	fsl_dma_update_completed_cookie(fsl_chan);
- 	dev_dbg(fsl_chan->dev, "chan completed_cookie = %d\n",
- 			fsl_chan->completed_cookie);
- 	list_for_each_entry_safe(desc, _desc, &fsl_chan->ld_queue, node) {
-@@ -677,6 +676,7 @@ static irqreturn_t fsl_dma_chan_do_inter
- 		dev_dbg(fsl_chan->dev, "event: clndar %p, nlndar %p\n",
- 			(void *)get_cdar(fsl_chan), (void *)get_ndar(fsl_chan));
- 		stat &= ~FSL_DMA_SR_EOSI;
-+		fsl_dma_update_completed_cookie(fsl_chan);
- 	}
+ config MTD_AFS_PARTS
+-	tristate "ARM Firmware Suite partition parsing"
++	bool "ARM Firmware Suite partition parsing"
+ 	depends on ARM && MTD_PARTITIONS
+ 	---help---
+ 	  The ARM Firmware Suite allows the user to divide flash devices into
+@@ -151,7 +151,7 @@ config MTD_AFS_PARTS
+ 	  'armflash' map driver (CONFIG_MTD_ARMFLASH) does this, for example.
  
- 	/* If it current transfer is the end-of-transfer,
+ config MTD_OF_PARTS
+-	tristate "Flash partition map based on OF description"
++	bool "Flash partition map based on OF description"
+ 	depends on PPC_OF && MTD_PARTITIONS
+ 	help
+ 	  This provides a partition parsing function which derives
+diff -puN drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/mtdpart.c
+--- a/drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/drivers/mtd/mtdpart.c
+@@ -555,10 +555,6 @@ int parse_mtd_partitions(struct mtd_info
+ 
+ 	for ( ; ret <= 0 && *types; types++) {
+ 		parser = get_partition_parser(*types);
+-#ifdef CONFIG_KMOD
+-		if (!parser && !request_module("%s", *types))
+-				parser = get_partition_parser(*types);
+-#endif
+ 		if (!parser) {
+ 			printk(KERN_NOTICE "%s partition parsing not available\n",
+ 			       *types);
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from gordonfarquharson@gmail.com are
 
-rapidio-change-rio-function-mpc85xx_-to-fsl_.patch
-rapidio-add-rapidio-option-to-kernel-configuration.patch
-rapidio-move-include-asm-ppc-rioh-to-include-asm-powerpc-rioh.patch
-rapidio-add-rapidio-multi-mport-support.patch
-rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
-rapidio-change-the-kernel-configurated-rapidio-system-size-to-auto-probing.patch
-rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch
-rapidio-add-rapidio-node-probing-into-mpc86xx_hpcn-board-id-table.patch
-rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
-rapidio-add-rapidio-connection-info-print-out-and-re-training-for-break-connection.patch
-rapidio-add-memory-mapping-driver-to-rapidio.patch
-rapidio-add-rapidio-space-allocation-bitmap-arithmetic.patch
-rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
-rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
-rapidio-add-rapidio-proc-fs-for-memory-mapping-debugging.patch
-rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch
-rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
-git-async-tx.patch
-fsldma-add-a-completed-cookie-updated-action-in-dma-finish-interrupt.patch
+origin.patch
+mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
+mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
 
