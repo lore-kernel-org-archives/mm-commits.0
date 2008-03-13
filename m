@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-bad-aio-race-in-aio_complete-leads-to-process-hang.patch added to -mm tree
-Date: Thu, 13 Mar 2008 12:58:01 -0700
-Message-ID: <200803131958.m2DJw1MT030174@imap1.linux-foundation.org>
+Subject: + isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch added to -mm tree
+Date: Thu, 13 Mar 2008 13:01:20 -0700
+Message-ID: <200803132001.m2DK1Kc9030357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754133AbYCMT64 (ORCPT
+	by vger.kernel.org with ESMTP id S1757276AbYCMUEi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:58:56 -0400
+	Thu, 13 Mar 2008 16:04:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qbarnes+linux@yahoo-inc.com, bcrl@kvack.org, nickpiggin@yahoo.com.au, stable@kernel.org, zach.brown@oracle.com
+Cc: bharrosh@panasas.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, mdharm-usb@one-eyed-alien.net, oliver@neukum.org, stern@rowland.harvard.edu
 
 
 The patch titled
-     aio: bad AIO race in aio_complete() leads to process hang
+     isd200: Allocate sense_buffer for hacked up scsi_cmnd
 has been added to the -mm tree.  Its filename is
-     aio-bad-aio-race-in-aio_complete-leads-to-process-hang.patch
+     isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: bad AIO race in aio_complete() leads to process hang
-From: Quentin Barnes <qbarnes+linux@yahoo-inc.com>
+Subject: isd200: Allocate sense_buffer for hacked up scsi_cmnd
+From: Boaz Harrosh <bharrosh@panasas.com>
 
-My group ran into a AIO process hang on a 2.6.24 kernel with the process
-sleeping indefinitely in io_getevents(2) waiting for the last wakeup to come
-and it never would.
+Since the separation of sense_buffer from scsi_cmnd, Drivers that hack their
+own struct scsi_cmnd like here isd200, must also take care of their own
+sense_buffer.
 
-We ran the tests on x86_64 SMP.  The hang only occurred on a Xeon box
-("Clovertown") but not a Core2Duo ("Conroe").  On the Xeon, the L2 cache isn't
-shared between all eight processors, but is L2 is shared between between all
-two processors on the Core2Duo we use.
-
-My analysis of the hang is if you go down to the second while-loop
-in read_events(), what happens on processor #1:
-	1) add_wait_queue_exclusive() adds thread to ctx->wait
-	2) aio_read_evt() to check tail
-	3) if aio_read_evt() returned 0, call [io_]schedule() and sleep
-
-In aio_complete() with processor #2:
-	A) info->tail = tail;
-	B) waitqueue_active(&ctx->wait)
-	C) if waitqueue_active() returned non-0, call wake_up()
-
-The way the code is written, step 1 must be seen by all other processors
-before processor 1 checks for pending events in step 2 (that were recorded by
-step A) and step A by processor 2 must be seen by all other processors
-(checked in step 2) before step B is done.
-
-The race I believed I was seeing is that steps 1 and 2 were
-effectively swapped due to the __list_add() being delayed by the L2
-cache not shared by some of the other processors.  Imagine:
-proc 2: just before step A
-proc 1, step 1: adds to ctx->wait, but is not visible by other processors yet
-proc 1, step 2: checks tail and sees no pending events
-proc 2, step A: updates tail
-proc 1, step 3: calls [io_]schedule() and sleeps
-proc 2, step B: checks ctx->wait, but sees no one waiting, skips wakeup
-                so proc 1 sleeps indefinitely
-
-My patch adds a memory barrier between steps A and B.  It ensures that the
-update in step 1 gets seen on processor 2 before continuing.  If processor 1
-was just before step 1, the memory barrier makes sure that step A (update
-tail) gets seen by the time processor 1 makes it to step 2 (check tail).
-
-Before the patch our AIO process would hang virtually 100% of the time.  After
-the patch, we have yet to see the process ever hang.
-
-Signed-off-by: Quentin Barnes <qbarnes+linux@yahoo-inc.com>
-Reviewed-by: Zach Brown <zach.brown@oracle.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: <stable@kernel.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/usb/storage/isd200.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-bad-aio-race-in-aio_complete-leads-to-process-hang fs/aio.c
---- a/fs/aio.c~aio-bad-aio-race-in-aio_complete-leads-to-process-hang
-+++ a/fs/aio.c
-@@ -1007,6 +1007,14 @@ put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
- 	ret = __aio_put_req(ctx, iocb);
+diff -puN drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd drivers/usb/storage/isd200.c
+--- a/drivers/usb/storage/isd200.c~isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd
++++ a/drivers/usb/storage/isd200.c
+@@ -1469,6 +1469,7 @@ static void isd200_free_info_ptrs(void *
+ 	if (info) {
+ 		kfree(info->id);
+ 		kfree(info->RegsBuf);
++		kfree(info->srb.sense_buffer);
+ 	}
+ }
  
-+	/*
-+	 * We have to order our ring_info tail store above and test
-+	 * of the wait list below outside the wait lock.  This is
-+	 * like in wake_up_bit() where clearing a bit has to be
-+	 * ordered with the unlocked test.
-+	 */
-+	smp_mb();
-+
- 	if (waitqueue_active(&ctx->wait))
- 		wake_up(&ctx->wait);
- 
+@@ -1494,7 +1495,9 @@ static int isd200_init_info(struct us_da
+ 				kzalloc(sizeof(struct hd_driveid), GFP_KERNEL);
+ 		info->RegsBuf = (unsigned char *)
+ 				kmalloc(sizeof(info->ATARegs), GFP_KERNEL);
+-		if (!info->id || !info->RegsBuf) {
++		info->srb.sense_buffer =
++				kmalloc(SCSI_SENSE_BUFFERSIZE, GFP_KERNEL);
++		if (!info->id || !info->RegsBuf || !info->srb.sense_buffer) {
+ 			isd200_free_info_ptrs(info);
+ 			kfree(info);
+ 			retStatus = ISD200_ERROR;
 _
 
-Patches currently in -mm which might be from qbarnes+linux@yahoo-inc.com are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
-aio-bad-aio-race-in-aio_complete-leads-to-process-hang.patch
+git-scsi-misc.patch
+gdth-allocate-sense_buffer-to-prevent-null-pointer-dereference.patch
+isd200-fix-memory-leak-in-isd200_get_inquiry_data.patch
+isd200-allocate-sense_buffer-for-hacked-up-scsi_cmnd.patch
 
