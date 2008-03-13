@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alloc_uid-cleanup.patch added to -mm tree
-Date: Thu, 13 Mar 2008 15:21:13 -0700
-Message-ID: <200803132221.m2DMLDeS003309@imap1.linux-foundation.org>
+Subject: + keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch added to -mm tree
+Date: Thu, 13 Mar 2008 15:21:24 -0700
+Message-ID: <200803132221.m2DMLOux003315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43977 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752405AbYCMWVr (ORCPT
+	by vger.kernel.org with ESMTP id S1753316AbYCMWXM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 18:21:47 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2DMM6l1017872
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2008 15:22:07 -0700
+	Thu, 13 Mar 2008 18:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: dhowells@redhat.com, arunsr@cse.iitk.ac.in, chrisw@sous-sol.org, dwalsh@redhat.com, jmorris@namei.org, kwc@citi.umich.edu, sds@tycho.nsa.gov
 
 
 The patch titled
-     alloc_uid: cleanup
+     keys: don't generate user and user session keyrings unless they're accessed
 has been added to the -mm tree.  Its filename is
-     alloc_uid-cleanup.patch
+     keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,191 +34,507 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alloc_uid: cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: keys: don't generate user and user session keyrings unless they're accessed
+From: David Howells <dhowells@redhat.com>
 
-Use kmem_cache_zalloc(), remove large amounts of initialsiation code and
-ifdeffery.
+Don't generate the per-UID user and user session keyrings unless they're
+explicitly accessed.  This solves a problem during a login process whereby
+set*uid() is called before the SELinux PAM module, resulting in the per-UID
+keyrings having the wrong security labels.
 
-Note: this assumes that memset(*atomic_t, 0) correctly initialises the
-atomic_t.  This is true for all present archtiectures and if it becomes false
-for a future architecture then we'll need to make large changes all over the
-place anyway.
+This also cures the problem of multiple per-UID keyrings sometimes appearing
+due to PAM modules (including pam_keyinit) setuiding and causing user_structs
+to come into and go out of existence whilst the session keyring pins the user
+keyring.  This is achieved by first searching for extant per-UID keyrings
+before inventing new ones.
 
+The serial bound argument is also dropped from find_keyring_by_name() as it's
+not currently made use of (setting it to 0 disables the feature).
 
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: <kwc@citi.umich.edu>
+Cc: <arunsr@cse.iitk.ac.in>
+Cc: <dwalsh@redhat.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ include/linux/key.h          |    8 -
+ kernel/user.c                |   15 ---
+ security/keys/internal.h     |    4 
+ security/keys/key.c          |   45 ----------
+ security/keys/keyring.c      |   19 +---
+ security/keys/process_keys.c |  144 +++++++++++++++++++--------------
+ security/selinux/hooks.c     |    8 -
+ 7 files changed, 97 insertions(+), 146 deletions(-)
 
-diff -puN kernel/user.c~alloc_uid-cleanup kernel/user.c
---- a/kernel/user.c~alloc_uid-cleanup
+diff -puN include/linux/key.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed include/linux/key.h
+--- a/include/linux/key.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/include/linux/key.h
+@@ -268,9 +268,6 @@ extern struct key *key_lookup(key_serial
+ /*
+  * the userspace interface
+  */
+-extern struct key root_user_keyring, root_session_keyring;
+-extern int alloc_uid_keyring(struct user_struct *user,
+-			     struct task_struct *ctx);
+ extern void switch_uid_keyring(struct user_struct *new_user);
+ extern int copy_keys(unsigned long clone_flags, struct task_struct *tsk);
+ extern int copy_thread_group_keys(struct task_struct *tsk);
+@@ -299,7 +296,6 @@ extern void key_init(void);
+ #define make_key_ref(k, p)			({ NULL; })
+ #define key_ref_to_ptr(k)		({ NULL; })
+ #define is_key_possessed(k)		0
+-#define alloc_uid_keyring(u,c)		0
+ #define switch_uid_keyring(u)		do { } while(0)
+ #define __install_session_keyring(t, k)	({ NULL; })
+ #define copy_keys(f,t)			0
+@@ -312,10 +308,6 @@ extern void key_init(void);
+ #define key_fsgid_changed(t)		do { } while(0)
+ #define key_init()			do { } while(0)
+ 
+-/* Initial keyrings */
+-extern struct key root_user_keyring;
+-extern struct key root_session_keyring;
+-
+ #endif /* CONFIG_KEYS */
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_KEY_H */
+diff -puN kernel/user.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed kernel/user.c
+--- a/kernel/user.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
 +++ a/kernel/user.c
-@@ -356,7 +356,7 @@ void free_uid(struct user_struct *up)
- 		local_irq_restore(flags);
- }
- 
--struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
-+struct user_struct *alloc_uid(struct user_namespace *ns, uid_t uid)
- {
- 	struct hlist_head *hashent = uidhashentry(ns, uid);
- 	struct user_struct *up, *new;
-@@ -371,26 +371,12 @@ struct user_struct * alloc_uid(struct us
- 	spin_unlock_irq(&uidhash_lock);
- 
- 	if (!up) {
--		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
-+		new = kmem_cache_zalloc(uid_cachep, GFP_KERNEL);
- 		if (!new)
- 			goto out_unlock;
- 
- 		new->uid = uid;
- 		atomic_set(&new->__count, 1);
--		atomic_set(&new->processes, 0);
--		atomic_set(&new->files, 0);
--		atomic_set(&new->sigpending, 0);
--#ifdef CONFIG_INOTIFY_USER
--		atomic_set(&new->inotify_watches, 0);
--		atomic_set(&new->inotify_devs, 0);
--#endif
--#ifdef CONFIG_POSIX_MQUEUE
--		new->mq_bytes = 0;
--#endif
--		new->locked_shm = 0;
+@@ -53,10 +53,6 @@ struct user_struct root_user = {
+ 	.files		= ATOMIC_INIT(0),
+ 	.sigpending	= ATOMIC_INIT(0),
+ 	.locked_shm     = 0,
 -#ifdef CONFIG_KEYS
--		new->uid_keyring = new->session_keyring = NULL;
+-	.uid_keyring	= &root_user_keyring,
+-	.session_keyring = &root_session_keyring,
 -#endif
+ #ifdef CONFIG_USER_SCHED
+ 	.tg		= &init_task_group,
+ #endif
+@@ -392,12 +388,12 @@ struct user_struct * alloc_uid(struct us
+ 		new->mq_bytes = 0;
+ #endif
+ 		new->locked_shm = 0;
+-
+-		if (alloc_uid_keyring(new, current) < 0)
+-			goto out_free_user;
++#ifdef CONFIG_KEYS
++		new->uid_keyring = new->session_keyring = NULL;
++#endif
  
  		if (sched_create_user(new) < 0)
- 			goto out_free_user;
+-			goto out_put_keys;
++			goto out_free_user;
+ 
+ 		if (uids_user_create(new))
+ 			goto out_destoy_sched;
+@@ -431,9 +427,6 @@ struct user_struct * alloc_uid(struct us
+ 
+ out_destoy_sched:
+ 	sched_destroy_user(new);
+-out_put_keys:
+-	key_put(new->uid_keyring);
+-	key_put(new->session_keyring);
+ out_free_user:
+ 	kmem_cache_free(uid_cachep, new);
+ out_unlock:
+diff -puN security/keys/internal.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/internal.h
+--- a/security/keys/internal.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/security/keys/internal.h
+@@ -77,8 +77,6 @@ extern struct mutex key_construction_mut
+ extern wait_queue_head_t request_key_conswq;
+ 
+ 
+-extern void keyring_publish_name(struct key *keyring);
+-
+ extern int __key_link(struct key *keyring, struct key *key);
+ 
+ extern key_ref_t __keyring_search_one(key_ref_t keyring_ref,
+@@ -102,7 +100,7 @@ extern key_ref_t search_process_keyrings
+ 					 key_match_func_t match,
+ 					 struct task_struct *tsk);
+ 
+-extern struct key *find_keyring_by_name(const char *name, key_serial_t bound);
++extern struct key *find_keyring_by_name(const char *name, bool skip_perm_check);
+ 
+ extern int install_thread_keyring(struct task_struct *tsk);
+ extern int install_process_keyring(struct task_struct *tsk);
+diff -puN security/keys/key.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/key.c
+--- a/security/keys/key.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/security/keys/key.c
+@@ -1,6 +1,6 @@
+ /* Basic authentication token and access key management
+  *
+- * Copyright (C) 2004-2007 Red Hat, Inc. All Rights Reserved.
++ * Copyright (C) 2004-2008 Red Hat, Inc. All Rights Reserved.
+  * Written by David Howells (dhowells@redhat.com)
+  *
+  * This program is free software; you can redistribute it and/or
+@@ -139,36 +139,6 @@ void key_user_put(struct key_user *user)
+ 
+ /*****************************************************************************/
+ /*
+- * insert a key with a fixed serial number
+- */
+-static void __init __key_insert_serial(struct key *key)
+-{
+-	struct rb_node *parent, **p;
+-	struct key *xkey;
+-
+-	parent = NULL;
+-	p = &key_serial_tree.rb_node;
+-
+-	while (*p) {
+-		parent = *p;
+-		xkey = rb_entry(parent, struct key, serial_node);
+-
+-		if (key->serial < xkey->serial)
+-			p = &(*p)->rb_left;
+-		else if (key->serial > xkey->serial)
+-			p = &(*p)->rb_right;
+-		else
+-			BUG();
+-	}
+-
+-	/* we've found a suitable hole - arrange for this key to occupy it */
+-	rb_link_node(&key->serial_node, parent, p);
+-	rb_insert_color(&key->serial_node, &key_serial_tree);
+-
+-} /* end __key_insert_serial() */
+-
+-/*****************************************************************************/
+-/*
+  * assign a key the next unique serial number
+  * - these are assigned randomly to avoid security issues through covert
+  *   channel problems
+@@ -1020,17 +990,4 @@ void __init key_init(void)
+ 	rb_insert_color(&root_key_user.node,
+ 			&key_user_tree);
+ 
+-	/* record root's user standard keyrings */
+-	key_check(&root_user_keyring);
+-	key_check(&root_session_keyring);
+-
+-	__key_insert_serial(&root_user_keyring);
+-	__key_insert_serial(&root_session_keyring);
+-
+-	keyring_publish_name(&root_user_keyring);
+-	keyring_publish_name(&root_session_keyring);
+-
+-	/* link the two root keyrings together */
+-	key_link(&root_session_keyring, &root_user_keyring);
+-
+ } /* end key_init() */
+diff -puN security/keys/keyring.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/keyring.c
+--- a/security/keys/keyring.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/security/keys/keyring.c
+@@ -1,6 +1,6 @@
+-/* keyring.c: keyring handling
++/* Keyring handling
+  *
+- * Copyright (C) 2004-5 Red Hat, Inc. All Rights Reserved.
++ * Copyright (C) 2004-2005, 2008 Red Hat, Inc. All Rights Reserved.
+  * Written by David Howells (dhowells@redhat.com)
+  *
+  * This program is free software; you can redistribute it and/or
+@@ -79,7 +79,7 @@ static DECLARE_RWSEM(keyring_serialise_l
+  * publish the name of a keyring so that it can be found by name (if it has
+  * one)
+  */
+-void keyring_publish_name(struct key *keyring)
++static void keyring_publish_name(struct key *keyring)
+ {
+ 	int bucket;
+ 
+@@ -516,10 +516,9 @@ key_ref_t __keyring_search_one(key_ref_t
+ /*
+  * find a keyring with the specified name
+  * - all named keyrings are searched
+- * - only find keyrings with search permission for the process
+- * - only find keyrings with a serial number greater than the one specified
++ * - normally only finds keyrings with search permission for the current process
+  */
+-struct key *find_keyring_by_name(const char *name, key_serial_t bound)
++struct key *find_keyring_by_name(const char *name, bool skip_perm_check)
+ {
+ 	struct key *keyring;
+ 	int bucket;
+@@ -545,15 +544,11 @@ struct key *find_keyring_by_name(const c
+ 			if (strcmp(keyring->description, name) != 0)
+ 				continue;
+ 
+-			if (key_permission(make_key_ref(keyring, 0),
++			if (!skip_perm_check &&
++			    key_permission(make_key_ref(keyring, 0),
+ 					   KEY_SEARCH) < 0)
+ 				continue;
+ 
+-			/* found a potential candidate, but we still need to
+-			 * check the serial number */
+-			if (keyring->serial <= bound)
+-				continue;
+-
+ 			/* we've got a match */
+ 			atomic_inc(&keyring->usage);
+ 			read_unlock(&keyring_name_lock);
+diff -puN security/keys/process_keys.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/process_keys.c
+--- a/security/keys/process_keys.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/security/keys/process_keys.c
+@@ -1,6 +1,6 @@
+-/* process_keys.c: management of a process's keyrings
++/* Management of a process's keyrings
+  *
+- * Copyright (C) 2004-5 Red Hat, Inc. All Rights Reserved.
++ * Copyright (C) 2004-2005, 2008 Red Hat, Inc. All Rights Reserved.
+  * Written by David Howells (dhowells@redhat.com)
+  *
+  * This program is free software; you can redistribute it and/or
+@@ -23,6 +23,9 @@
+ /* session keyring create vs join semaphore */
+ static DEFINE_MUTEX(key_session_mutex);
+ 
++/* user keyring creation semaphore */
++static DEFINE_MUTEX(key_user_keyring_mutex);
++
+ /* the root user's tracking struct */
+ struct key_user root_key_user = {
+ 	.usage		= ATOMIC_INIT(3),
+@@ -33,78 +36,84 @@ struct key_user root_key_user = {
+ 	.uid		= 0,
+ };
+ 
+-/* the root user's UID keyring */
+-struct key root_user_keyring = {
+-	.usage		= ATOMIC_INIT(1),
+-	.serial		= 2,
+-	.type		= &key_type_keyring,
+-	.user		= &root_key_user,
+-	.sem		= __RWSEM_INITIALIZER(root_user_keyring.sem),
+-	.perm		= (KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_ALL,
+-	.flags		= 1 << KEY_FLAG_INSTANTIATED,
+-	.description	= "_uid.0",
+-#ifdef KEY_DEBUGGING
+-	.magic		= KEY_DEBUG_MAGIC,
+-#endif
+-};
+-
+-/* the root user's default session keyring */
+-struct key root_session_keyring = {
+-	.usage		= ATOMIC_INIT(1),
+-	.serial		= 1,
+-	.type		= &key_type_keyring,
+-	.user		= &root_key_user,
+-	.sem		= __RWSEM_INITIALIZER(root_session_keyring.sem),
+-	.perm		= (KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_ALL,
+-	.flags		= 1 << KEY_FLAG_INSTANTIATED,
+-	.description	= "_uid_ses.0",
+-#ifdef KEY_DEBUGGING
+-	.magic		= KEY_DEBUG_MAGIC,
+-#endif
+-};
+-
+ /*****************************************************************************/
+ /*
+- * allocate the keyrings to be associated with a UID
++ * install user and user session keyrings for a particular UID
+  */
+-int alloc_uid_keyring(struct user_struct *user,
+-		      struct task_struct *ctx)
++static int install_user_keyrings(struct task_struct *tsk)
+ {
++	struct user_struct *user = tsk->user;
+ 	struct key *uid_keyring, *session_keyring;
+ 	char buf[20];
+ 	int ret;
+ 
+-	/* concoct a default session keyring */
+-	sprintf(buf, "_uid_ses.%u", user->uid);
++	kenter("%p{%u}", user, user->uid);
+ 
+-	session_keyring = keyring_alloc(buf, user->uid, (gid_t) -1, ctx,
+-					KEY_ALLOC_IN_QUOTA, NULL);
+-	if (IS_ERR(session_keyring)) {
+-		ret = PTR_ERR(session_keyring);
+-		goto error;
++	if (user->uid_keyring) {
++		kleave(" = 0 [exist]");
++		return 0;
+ 	}
+ 
+-	/* and a UID specific keyring, pointed to by the default session
+-	 * keyring */
+-	sprintf(buf, "_uid.%u", user->uid);
+-
+-	uid_keyring = keyring_alloc(buf, user->uid, (gid_t) -1, ctx,
+-				    KEY_ALLOC_IN_QUOTA, session_keyring);
+-	if (IS_ERR(uid_keyring)) {
+-		key_put(session_keyring);
+-		ret = PTR_ERR(uid_keyring);
+-		goto error;
++	mutex_lock(&key_user_keyring_mutex);
++	ret = 0;
++
++	if (!user->uid_keyring) {
++		/* get the UID-specific keyring
++		 * - there may be one in existence already as it may have been
++		 *   pinned by a session, but the user_struct pointing to it
++		 *   may have been destroyed by setuid */
++		sprintf(buf, "_uid.%u", user->uid);
++
++		uid_keyring = find_keyring_by_name(buf, true);
++		if (IS_ERR(uid_keyring)) {
++			uid_keyring = keyring_alloc(buf, user->uid, (gid_t) -1,
++						    tsk, KEY_ALLOC_IN_QUOTA,
++						    NULL);
++			if (IS_ERR(uid_keyring)) {
++				ret = PTR_ERR(uid_keyring);
++				goto error;
++			}
++		}
++
++		/* get a default session keyring (which might also exist
++		 * already) */
++		sprintf(buf, "_uid_ses.%u", user->uid);
++
++		session_keyring = find_keyring_by_name(buf, true);
++		if (IS_ERR(session_keyring)) {
++			session_keyring =
++				keyring_alloc(buf, user->uid, (gid_t) -1,
++					      tsk, KEY_ALLOC_IN_QUOTA, NULL);
++			if (IS_ERR(session_keyring)) {
++				ret = PTR_ERR(session_keyring);
++				goto error_release;
++			}
++
++			/* we install a link from the user session keyring to
++			 * the user keyring */
++			ret = key_link(session_keyring, uid_keyring);
++			if (ret < 0)
++				goto error_release_both;
++		}
++
++		/* install the keyrings */
++		user->uid_keyring = uid_keyring;
++		user->session_keyring = session_keyring;
+ 	}
+ 
+-	/* install the keyrings */
+-	user->uid_keyring = uid_keyring;
+-	user->session_keyring = session_keyring;
+-	ret = 0;
++	mutex_unlock(&key_user_keyring_mutex);
++	kleave(" = 0");
++	return 0;
+ 
++error_release_both:
++	key_put(session_keyring);
++error_release:
++	key_put(uid_keyring);
+ error:
++	mutex_unlock(&key_user_keyring_mutex);
++	kleave(" = %d", ret);
+ 	return ret;
+-
+-} /* end alloc_uid_keyring() */
++}
+ 
+ /*****************************************************************************/
+ /*
+@@ -481,7 +490,7 @@ key_ref_t search_process_keyrings(struct
+ 		}
+ 	}
+ 	/* or search the user-session keyring */
+-	else {
++	else if (context->user->session_keyring) {
+ 		key_ref = keyring_search_aux(
+ 			make_key_ref(context->user->session_keyring, 1),
+ 			context, type, description, match);
+@@ -614,6 +623,9 @@ key_ref_t lookup_user_key(struct task_st
+ 		if (!context->signal->session_keyring) {
+ 			/* always install a session keyring upon access if one
+ 			 * doesn't exist yet */
++			ret = install_user_keyrings(context);
++			if (ret < 0)
++				goto error;
+ 			ret = install_session_keyring(
+ 				context, context->user->session_keyring);
+ 			if (ret < 0)
+@@ -628,12 +640,24 @@ key_ref_t lookup_user_key(struct task_st
+ 		break;
+ 
+ 	case KEY_SPEC_USER_KEYRING:
++		if (!context->user->uid_keyring) {
++			ret = install_user_keyrings(context);
++			if (ret < 0)
++				goto error;
++		}
++
+ 		key = context->user->uid_keyring;
+ 		atomic_inc(&key->usage);
+ 		key_ref = make_key_ref(key, 1);
+ 		break;
+ 
+ 	case KEY_SPEC_USER_SESSION_KEYRING:
++		if (!context->user->session_keyring) {
++			ret = install_user_keyrings(context);
++			if (ret < 0)
++				goto error;
++		}
++
+ 		key = context->user->session_keyring;
+ 		atomic_inc(&key->usage);
+ 		key_ref = make_key_ref(key, 1);
+@@ -744,7 +768,7 @@ long join_session_keyring(const char *na
+ 	mutex_lock(&key_session_mutex);
+ 
+ 	/* look for an existing keyring of this name */
+-	keyring = find_keyring_by_name(name, 0);
++	keyring = find_keyring_by_name(name, false);
+ 	if (PTR_ERR(keyring) == -ENOKEY) {
+ 		/* not found - try and create a new one */
+ 		keyring = keyring_alloc(name, tsk->uid, tsk->gid, tsk,
+diff -puN security/selinux/hooks.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/selinux/hooks.c
+--- a/security/selinux/hooks.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
++++ a/security/selinux/hooks.c
+@@ -5513,14 +5513,6 @@ static __init int selinux_init(void)
+ 		printk(KERN_DEBUG "SELinux:  Starting in permissive mode\n");
+ 	}
+ 
+-#ifdef CONFIG_KEYS
+-	/* Add security information to initial keyrings */
+-	selinux_key_alloc(&root_user_keyring, current,
+-			  KEY_ALLOC_NOT_IN_QUOTA);
+-	selinux_key_alloc(&root_session_keyring, current,
+-			  KEY_ALLOC_NOT_IN_QUOTA);
+-#endif
+-
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-alloc_uid-cleanup.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+romfs-prevent-romfs_lookup-from-always-failing.patch
+remove-the-macro-get_personality.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mutex-subsystem-synchro-test-module.patch
 
