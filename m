@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-1.patch added to -mm tree
-Date: Thu, 13 Mar 2008 16:24:39 -0700
-Message-ID: <200803132324.m2DNOdFs005870@imap1.linux-foundation.org>
+Subject: + revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch added to -mm tree
+Date: Thu, 13 Mar 2008 16:24:51 -0700
+Message-ID: <200803132324.m2DNOpsb005873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753167AbYCMXZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753209AbYCMXZ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:25:16 -0400
+	Thu, 13 Mar 2008 19:25:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: akpm@linux-foundation.org, guichaz@yahoo.fr, just.for.lkml@googlemail.com, m
 The patch titled
      revert "sched: make sure jiffies is up to date before calling __update_rq_clock()"
 has been added to the -mm tree.  Its filename is
-     revert-1.patch
+     revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,8 +67,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/sched.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~revert-1 kernel/sched.c
---- a/kernel/sched.c~revert-1
+diff -puN kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock kernel/sched.c
+--- a/kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock
 +++ a/kernel/sched.c
 @@ -66,7 +66,6 @@
  #include <linux/unistd.h>
@@ -124,7 +124,7 @@ git-nfsd.patch
 git-ocfs2.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
-revert-1.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
 git-sh.patch
 git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
 scsi-aic94xx-cleanups.patch
