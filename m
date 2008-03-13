@@ -1,133 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-8xx-fix-swap.patch removed from -mm tree
-Date: Thu, 13 Mar 2008 11:59:26 -0700
-Message-ID: <200803131859.m2DIxQSh027955@imap1.linux-foundation.org>
+Subject: - drivers-acpi-asus_acpic-correct-use-of-and.patch removed from -mm tree
+Date: Thu, 13 Mar 2008 12:00:02 -0700
+Message-ID: <200803131900.m2DJ02dG028025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42971 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754688AbYCMTAg (ORCPT
+	by vger.kernel.org with ESMTP id S1753080AbYCMTAm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:00:36 -0400
+	Thu, 13 Mar 2008 15:00:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitb@kernel.crashing.org, benh@kernel.crashing.org, galak@kernel.crashing.org, paulus@samba.org, scottwood@freescale.com, segher@kernel.crashing.org, yur@emcraft.com, mm-commits@vger.
+To: julia@diku.dk, kronos.it@gmail.com, len.brown@intel.com, maxime@tralhalla.org, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: 8xx: fix swap
+     drivers/acpi/asus_acpi.c: correct use of ! and &
 has been removed from the -mm tree.  Its filename was
-     powerpc-8xx-fix-swap.patch
+     drivers-acpi-asus_acpic-correct-use-of-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: 8xx: fix swap
-From: Vitaly Bordug <vitb@kernel.crashing.org>
+Subject: drivers/acpi/asus_acpi.c: correct use of ! and &
+From: Julia Lawall <julia@diku.dk>
 
-This makes swap routines operate correctly on the ppc_8xx based machines. 
-Code has been revalidated on mpc885ads (8M sdram) with recent kernel.  Based
-on patch from Yuri Tikhonov <yur@emcraft.com> to do the same on arch/ppc
-instance.
+In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
+involved converting !x & y to !(x & y).  The code below shows the same
+pattern, and thus should perhaps be fixed in the same way.
 
-Recent kernel's size makes swap feature very important on low-memory
-platforms, those are actually non-operable without it.
+This is not tested and clearly changes the semantics, so it is only
+something to consider.
 
-Signed-off-by: Yuri Tikhonov <yur@emcraft.com>
-Signed-off-by: Vitaly Bordug <vitb@kernel.crashing.org>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Scott Wood <scottwood@freescale.com>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@ expression E1,E2; @@
+(
+  !E1 & !E2
+|
+- !E1 & E2
++ !(E1 & E2)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Maxime Austruy <maxime@tralhalla.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/head_8xx.S      |   30 +++++++++++++++++++++++++-
- include/asm-powerpc/pgtable-ppc32.h |    8 ------
- 2 files changed, 29 insertions(+), 9 deletions(-)
+ drivers/acpi/asus_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/head_8xx.S~powerpc-8xx-fix-swap arch/powerpc/kernel/head_8xx.S
---- a/arch/powerpc/kernel/head_8xx.S~powerpc-8xx-fix-swap
-+++ a/arch/powerpc/kernel/head_8xx.S
-@@ -332,8 +332,18 @@ InstructionTLBMiss:
- 	mfspr	r11, SPRN_MD_TWC	/* ....and get the pte address */
- 	lwz	r10, 0(r11)	/* Get the pte */
+diff -puN drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-correct-use-of-and
++++ a/drivers/acpi/asus_acpi.c
+@@ -610,7 +610,7 @@ write_led(const char __user * buffer, un
+ 	    (led_out) ? (hotk->status | ledmask) : (hotk->status & ~ledmask);
  
-+#ifdef CONFIG_SWAP
-+	/* do not set the _PAGE_ACCESSED bit of a non-present page */
-+	andi.	r11, r10, _PAGE_PRESENT
-+	beq	4f
-+	ori	r10, r10, _PAGE_ACCESSED
-+	mfspr	r11, SPRN_MD_TWC	/* get the pte address again */
-+	stw	r10, 0(r11)
-+4:
-+#else
- 	ori	r10, r10, _PAGE_ACCESSED
- 	stw	r10, 0(r11)
-+#endif
+ 	if (invert)		/* invert target value */
+-		led_out = !led_out & 0x1;
++		led_out = !led_out;
  
- 	/* The Linux PTE won't go exactly into the MMU TLB.
- 	 * Software indicator bits 21, 22 and 28 must be clear.
-@@ -398,8 +408,17 @@ DataStoreTLBMiss:
- 	DO_8xx_CPU6(0x3b80, r3)
- 	mtspr	SPRN_MD_TWC, r11
- 
--	mfspr	r11, SPRN_MD_TWC	/* get the pte address again */
-+#ifdef CONFIG_SWAP
-+	/* do not set the _PAGE_ACCESSED bit of a non-present page */
-+	andi.	r11, r10, _PAGE_PRESENT
-+	beq	4f
- 	ori	r10, r10, _PAGE_ACCESSED
-+4:
-+	/* and update pte in table */
-+#else
-+	ori	r10, r10, _PAGE_ACCESSED
-+#endif
-+	mfspr	r11, SPRN_MD_TWC	/* get the pte address again */
- 	stw	r10, 0(r11)
- 
- 	/* The Linux PTE won't go exactly into the MMU TLB.
-@@ -507,7 +526,16 @@ DataTLBError:
- 
- 	/* Update 'changed', among others.
- 	*/
-+#ifdef CONFIG_SWAP
-+	ori	r10, r10, _PAGE_DIRTY|_PAGE_HWWRITE
-+	/* do not set the _PAGE_ACCESSED bit of a non-present page */
-+	andi.	r11, r10, _PAGE_PRESENT
-+	beq	4f
-+	ori	r10, r10, _PAGE_ACCESSED
-+4:
-+#else
- 	ori	r10, r10, _PAGE_DIRTY|_PAGE_ACCESSED|_PAGE_HWWRITE
-+#endif
- 	mfspr	r11, SPRN_MD_TWC		/* Get pte address again */
- 	stw	r10, 0(r11)		/* and update pte in table */
- 
-diff -puN include/asm-powerpc/pgtable-ppc32.h~powerpc-8xx-fix-swap include/asm-powerpc/pgtable-ppc32.h
---- a/include/asm-powerpc/pgtable-ppc32.h~powerpc-8xx-fix-swap
-+++ a/include/asm-powerpc/pgtable-ppc32.h
-@@ -339,14 +339,6 @@ extern int icache_44x_need_flush;
- #define _PMD_PAGE_MASK	0x000c
- #define _PMD_PAGE_8M	0x000c
- 
--/*
-- * The 8xx TLB miss handler allegedly sets _PAGE_ACCESSED in the PTE
-- * for an address even if _PAGE_PRESENT is not set, as a performance
-- * optimization.  This is a bug if you ever want to use swap unless
-- * _PAGE_ACCESSED is 2, which it isn't, or unless you have 8xx-specific
-- * definitions for __swp_entry etc. below, which would be gross.
-- *  -- paulus
-- */
- #define _PTE_NONE_MASK _PAGE_ACCESSED
- 
- #else /* CONFIG_6xx */
+ 	if (!write_acpi_int(hotk->handle, ledname, led_out, NULL))
+ 		printk(KERN_WARNING "Asus ACPI: LED (%s) write failed\n",
 _
 
-Patches currently in -mm which might be from vitb@kernel.crashing.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
+git-acpi.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+git-dvb.patch
+git-hid.patch
+git-udf.patch
+git-ocfs2.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
+fs-affs-filec-use-bug_on.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
 
