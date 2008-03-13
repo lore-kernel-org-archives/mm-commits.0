@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + signals-document-cld_continued-notification-mechanics.patch added to -mm tree
-Date: Thu, 13 Mar 2008 12:50:47 -0700
-Message-ID: <200803131950.m2DJol98029973@imap1.linux-foundation.org>
+Subject: + signals-fold-sig_ignored-into-handle_stop_signal.patch added to -mm tree
+Date: Thu, 13 Mar 2008 12:50:44 -0700
+Message-ID: <200803131950.m2DJojts029969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751618AbYCMTwM (ORCPT
+	by vger.kernel.org with ESMTP id S1752000AbYCMTwV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:52:12 -0400
+	Thu, 13 Mar 2008 15:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: document CLD_CONTINUED notification mechanics
+     signals: fold sig_ignored() into handle_stop_signal()
 has been added to the -mm tree.  Its filename is
-     signals-document-cld_continued-notification-mechanics.patch
+     signals-fold-sig_ignored-into-handle_stop_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: document CLD_CONTINUED notification mechanics
+Subject: signals: fold sig_ignored() into handle_stop_signal()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-A couple of small comments about how CLD_CONTINUED notification works.
+Rename handle_stop_signal() to prepare_signal(), make it return a boolean, and
+move the callsites of sig_ignored() into it.
+
+No functional changes for now.  But it would be nice to factor out the "should
+we drop this signal" checks as much as possible, before we try to fix the bugs
+with the sub-namespace init's signals (actually the global /sbin/init has some
+problems with signals too).
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/signal.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN kernel/signal.c~signals-document-cld_continued-notification-mechanics kernel/signal.c
---- a/kernel/signal.c~signals-document-cld_continued-notification-mechanics
+diff -puN kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal kernel/signal.c
+--- a/kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal
 +++ a/kernel/signal.c
-@@ -630,6 +630,11 @@ static int prepare_signal(int sig, struc
- 			why |= SIGNAL_CLD_STOPPED;
+@@ -564,18 +564,16 @@ static void do_notify_parent_cldstop(str
+  * actual continuing for SIGCONT, but not the actual stopping for stop
+  * signals.  The process stop is done as a signal action for SIG_DFL.
+  */
+-static void handle_stop_signal(int sig, struct task_struct *p)
++static int prepare_signal(int sig, struct task_struct *p)
+ {
+ 	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
  
- 		if (why) {
-+			/*
-+			 * The first thread which returns from finish_stop()
-+			 * will take ->siglock, notice SIGNAL_CLD_MASK, and
-+			 * notify its parent. See get_signal_to_deliver().
-+			 */
- 			signal->flags = why | SIGNAL_STOP_CONTINUED;
- 			signal->group_stop_count = 0;
- 			signal->group_exit_code = 0;
-@@ -1652,7 +1657,7 @@ relock:
- 	try_to_freeze();
- 
- 	spin_lock_irq(&sighand->siglock);
+-	if (signal->flags & SIGNAL_GROUP_EXIT)
++	if (unlikely(signal->flags & SIGNAL_GROUP_EXIT)) {
+ 		/*
+-		 * The process is in the middle of dying already.
++		 * The process is in the middle of dying, nothing to do.
+ 		 */
+-		return;
 -
-+	/* see prepare_signal(SIGCONT) */
- 	if (unlikely(signal->flags & SIGNAL_CLD_MASK)) {
- 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
- 				? CLD_CONTINUED : CLD_STOPPED;
+-	if (sig_kernel_stop(sig)) {
++	} else if (sig_kernel_stop(sig)) {
+ 		/*
+ 		 * This is a stop signal.  Remove SIGCONT from all queues.
+ 		 */
+@@ -644,6 +642,8 @@ static void handle_stop_signal(int sig, 
+ 			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
+ 		}
+ 	}
++
++	return !sig_ignored(p, sig);
+ }
+ 
+ /*
+@@ -753,7 +753,8 @@ static int send_signal(int sig, struct s
+ 	struct sigqueue *q;
+ 
+ 	assert_spin_locked(&t->sighand->siglock);
+-	handle_stop_signal(sig, t);
++	if (!prepare_signal(sig, t))
++		return 0;
+ 
+ 	pending = group ? &t->signal->shared_pending : &t->pending;
+ 	/*
+@@ -761,7 +762,7 @@ static int send_signal(int sig, struct s
+ 	 * exactly one non-rt signal, so that we can get more
+ 	 * detailed information about the cause of the signal.
+ 	 */
+-	if (sig_ignored(t, sig) || legacy_queue(pending, sig))
++	if (legacy_queue(pending, sig))
+ 		return 0;
+ 
+ 	/*
+@@ -1247,10 +1248,8 @@ int send_sigqueue(struct sigqueue *q, st
+ 	if (!likely(lock_task_sighand(t, &flags)))
+ 		goto ret;
+ 
+-	handle_stop_signal(sig, t);
+-
+-	ret = 1;
+-	if (sig_ignored(t, sig))
++	ret = 1; /* the signal is ignored */
++	if (!prepare_signal(sig, t))
+ 		goto out;
+ 
+ 	ret = 0;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
