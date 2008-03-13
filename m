@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + quota-remove-superfluous-dquot_off-in-fs-namespacec.patch added to -mm tree
-Date: Thu, 13 Mar 2008 14:46:41 -0700
-Message-ID: <200803132146.m2DLkfWK001922@imap1.linux-foundation.org>
+Subject: + quota-add-possibly-missing-iput-when-quotaon-and-quotaoff-races.patch added to -mm tree
+Date: Thu, 13 Mar 2008 14:46:38 -0700
+Message-ID: <200803132146.m2DLkc98001919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752500AbYCMVqp (ORCPT
+	by vger.kernel.org with ESMTP id S1752169AbYCMVqn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 17:46:45 -0400
+	Thu, 13 Mar 2008 17:46:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jack@suse.cz
 
 
 The patch titled
-     quota: remove superfluous DQUOT_OFF() in fs/namespace.c
+     quota: add possibly missing iput() when quotaon and quotaoff races
 has been added to the -mm tree.  Its filename is
-     quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
+     quota-add-possibly-missing-iput-when-quotaon-and-quotaoff-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: remove superfluous DQUOT_OFF() in fs/namespace.c
+Subject: quota: add possibly missing iput() when quotaon and quotaoff races
 From: Jan Kara <jack@suse.cz>
 
-We don't need to turn quotas off before remounting root ro, because
-do_remount_sb() already handles this.
+We should always put inode we have reference to, even if quota was reenabled
+in the mean time.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/dquot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~quota-remove-superfluous-dquot_off-in-fs-namespacec fs/namespace.c
---- a/fs/namespace.c~quota-remove-superfluous-dquot_off-in-fs-namespacec
-+++ a/fs/namespace.c
-@@ -14,7 +14,6 @@
- #include <linux/smp_lock.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
--#include <linux/quotaops.h>
- #include <linux/acct.h>
- #include <linux/capability.h>
- #include <linux/cpumask.h>
-@@ -928,7 +927,6 @@ static int do_umount(struct vfsmount *mn
- 		down_write(&sb->s_umount);
- 		if (!(sb->s_flags & MS_RDONLY)) {
- 			lock_kernel();
--			DQUOT_OFF(sb);
- 			retval = do_remount_sb(sb, MS_RDONLY, NULL, 0);
- 			unlock_kernel();
+diff -puN fs/dquot.c~quota-add-possibly-missing-iput-when-quotaon-and-quotaoff-races fs/dquot.c
+--- a/fs/dquot.c~quota-add-possibly-missing-iput-when-quotaon-and-quotaoff-races
++++ a/fs/dquot.c
+@@ -1522,8 +1522,8 @@ int vfs_quota_off(struct super_block *sb
+ 				truncate_inode_pages(&toputinode[cnt]->i_data, 0);
+ 				mutex_unlock(&toputinode[cnt]->i_mutex);
+ 				mark_inode_dirty(toputinode[cnt]);
+-				iput(toputinode[cnt]);
+ 			}
++			iput(toputinode[cnt]);
+ 			mutex_unlock(&dqopt->dqonoff_mutex);
  		}
+ 	if (sb->s_bdev)
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
