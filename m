@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiochip_reserve.patch added to -mm tree
-Date: Thu, 13 Mar 2008 16:06:13 -0700
-Message-ID: <200803132306.m2DN6Do2005164@imap1.linux-foundation.org>
+Subject: + mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch added to -mm tree
+Date: Thu, 13 Mar 2008 16:08:37 -0700
+Message-ID: <200803132308.m2DN8bRE005291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55771 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757493AbYCMXHJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753494AbYCMXJj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:07:09 -0400
+	Thu, 13 Mar 2008 19:09:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
+Cc: ralf@linux-mips.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     gpiochip_reserve()
+     MIPS Alchemy: Crapectomy after removal of pm_send_all calls.
 has been added to the -mm tree.  Its filename is
-     gpiochip_reserve.patch
+     mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiochip_reserve()
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: MIPS Alchemy: Crapectomy after removal of pm_send_all calls.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Add a new function gpiochip_reserve() to reserve ranges of gpios that platform
-code has pre-allocated.  That is, this marks gpio numbers which will be
-claimed by drivers that haven't yet been loaded, and thus are not available
-for dynamic gpio number allocation.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c     |   51 ++++++++++++++++++++++++++++++++---
- include/asm-generic/gpio.h |    1 
- 2 files changed, 49 insertions(+), 3 deletions(-)
+ arch/mips/au1000/common/power.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiochip_reserve
-+++ a/drivers/gpio/gpiolib.c
-@@ -43,6 +43,7 @@ struct gpio_desc {
- /* flag symbols are bit numbers */
- #define FLAG_REQUESTED	0
- #define FLAG_IS_OUT	1
-+#define FLAG_RESERVED	2
- 
- #ifdef CONFIG_DEBUG_FS
- 	const char		*label;
-@@ -88,9 +89,10 @@ static int gpiochip_find_base(int ngpio)
- 	int base = -ENOSPC;
- 
- 	for (i = ARCH_NR_GPIOS - 1; i >= 0 ; i--) {
--		struct gpio_chip *chip = gpio_desc[i].chip;
-+		struct gpio_desc *desc = &gpio_desc[i];
-+		struct gpio_chip *chip = desc->chip;
- 
--		if (!chip) {
-+		if (!chip && !test_bit(FLAG_RESERVED, &desc->flags)) {
- 			spare++;
- 			if (spare == ngpio) {
- 				base = i;
-@@ -98,7 +100,8 @@ static int gpiochip_find_base(int ngpio)
- 			}
- 		} else {
- 			spare = 0;
--			i -= chip->ngpio - 1;
-+			if (chip)
-+				i -= chip->ngpio - 1;
- 		}
- 	}
- 
-@@ -108,6 +111,48 @@ static int gpiochip_find_base(int ngpio)
+diff -puN arch/mips/au1000/common/power.c~mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls
++++ a/arch/mips/au1000/common/power.c
+@@ -283,18 +283,6 @@ static int pm_do_sleep(ctl_table * ctl, 
+ 	return 0;
  }
  
- /**
-+ * gpiochip_reserve() - reserve range of gpios to use with platform code only
-+ * @start: starting gpio number
-+ * @ngpio: number of gpios to reserve
-+ * Context: platform init, potentially before irqs or kmalloc will work
-+ *
-+ * Returns a negative errno if any gpio within the range is already reserved
-+ * or registered, else returns zero as a success code.  Use this function
-+ * to mark a range of gpios as unavailable for dynamic gpio number allocation,
-+ * for example because its driver support is not yet loaded.
-+ */
-+int __init __must_check gpiochip_reserve(int start, int ngpio)
-+{
-+	int ret = 0;
-+	unsigned long flags;
-+	int i;
-+
-+	if (!gpio_is_valid(start) || !gpio_is_valid(start + ngpio))
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	for (i = start; i < start + ngpio; i++) {
-+		struct gpio_desc *desc = &gpio_desc[i];
-+
-+		if (desc->chip || test_bit(FLAG_RESERVED, &desc->flags)) {
-+			ret = -EBUSY;
-+			goto err;
-+		}
-+
-+		set_bit(FLAG_RESERVED, &desc->flags);
-+	}
-+
-+	pr_debug("%s: reserved gpios from %d to %d\n",
-+		 __func__, start, start + ngpio - 1);
-+err:
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(gpiochip_reserve);
-+
-+/**
-  * gpiochip_add() - register a gpio_chip
-  * @chip: the chip to register, with chip->base initialized
-  * Context: potentially before irqs or kmalloc will work
-diff -puN include/asm-generic/gpio.h~gpiochip_reserve include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiochip_reserve
-+++ a/include/asm-generic/gpio.h
-@@ -74,6 +74,7 @@ struct gpio_chip {
+-static int pm_do_suspend(ctl_table * ctl, int write, struct file *file,
+-			 void __user *buffer, size_t * len, loff_t *ppos)
+-{
+-	if (!write) {
+-		*len = 0;
+-	} else {
+-		suspend_mode = 1;
+-	}
+-	return 0;
+-}
+-
+-
+ static int pm_do_freq(ctl_table * ctl, int write, struct file *file,
+ 		      void __user *buffer, size_t * len, loff_t *ppos)
+ {
+@@ -408,14 +396,6 @@ static int pm_do_freq(ctl_table * ctl, i
  
- extern const char *gpiochip_is_requested(struct gpio_chip *chip,
- 			unsigned offset);
-+extern int __init __must_check gpiochip_reserve(int start, int ngpio);
- 
- /* add/remove chips */
- extern int gpiochip_add(struct gpio_chip *chip);
+ static struct ctl_table pm_table[] = {
+ 	{
+-		.ctl_name 	= CTL_UNNUMBERED,
+-		.procname	= "suspend",
+-		.data		= NULL,
+-		.maxlen		= 0,
+-		.mode		= 0600,
+-		.proc_handler	= &pm_do_suspend
+-	},
+-	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "sleep",
+ 		.data		= NULL,
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-git-powerpc.patch
-gpiolib-dynamic-gpio-number-allocation.patch
-gpiochip_reserve.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-powerpc-offb-add-support-for-foreign-endianness.patch
+origin.patch
+pm-remove-legacy-pm.patch
+mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch
+git-mips.patch
+mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+mips-replace-remaining-__function__-occurences.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+ioc3-fix-section-missmatch.patch
+input-fix-cobalt_btns-loadable-keymap-support.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+asm-futexh-should-include-linux-uaccessh.patch
 
