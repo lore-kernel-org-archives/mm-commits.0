@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-send_signal-be-paranoid-about-signalfd_notify.patch added to -mm tree
-Date: Thu, 13 Mar 2008 12:51:22 -0700
-Message-ID: <200803131951.m2DJpM5R029993@imap1.linux-foundation.org>
+Subject: + x86_32-fix-fault_msg-nul-termination.patch added to -mm tree
+Date: Thu, 13 Mar 2008 12:52:11 -0700
+Message-ID: <200803131952.m2DJqBmx030009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50036 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753943AbYCMTw4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753997AbYCMTxb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 15:52:56 -0400
+	Thu, 13 Mar 2008 15:53:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, davidel@xmailserver.org, roland@redhat.com
+Cc: jirislaby@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     signals: send_signal: be paranoid about signalfd_notify()
+     x86_32: fix fault_msg nul termination
 has been added to the -mm tree.  Its filename is
-     signals-send_signal-be-paranoid-about-signalfd_notify.patch
+     x86_32-fix-fault_msg-nul-termination.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: send_signal: be paranoid about signalfd_notify()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: x86_32: fix fault_msg nul termination
+From: Jiri Slaby <jirislaby@gmail.com>
 
-send_signal() shouldn't call signalfd_notify() if it then fails with -EAGAIN. 
-Harmless, just a paranoid cleanup.
+The fault_msg text is not explictly nul terminated now in startup assembly. 
+Do so by converting .ascii to .asciz.
 
-Also remove the comment.  It is obsolete, signalfd_notify() was simplified and
-does a simple wakeup.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ arch/x86/kernel/head_32.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~signals-send_signal-be-paranoid-about-signalfd_notify kernel/signal.c
---- a/kernel/signal.c~signals-send_signal-be-paranoid-about-signalfd_notify
-+++ a/kernel/signal.c
-@@ -769,13 +769,6 @@ static int send_signal(int sig, struct s
- 	 */
- 	if (legacy_queue(pending, sig))
- 		return 0;
--
--	/*
--	 * Deliver the signal to listening signalfds. This must be called
--	 * with the sighand lock held.
--	 */
--	signalfd_notify(t, sig);
--
- 	/*
- 	 * fast-pathed signals for kernel-internal things like SIGSTOP
- 	 * or SIGKILL.
-@@ -825,6 +818,7 @@ static int send_signal(int sig, struct s
- 	}
+diff -puN arch/x86/kernel/head_32.S~x86_32-fix-fault_msg-nul-termination arch/x86/kernel/head_32.S
+--- a/arch/x86/kernel/head_32.S~x86_32-fix-fault_msg-nul-termination
++++ a/arch/x86/kernel/head_32.S
+@@ -657,7 +657,7 @@ int_msg:
+ 	.asciz "Unknown interrupt or fault at EIP %p %p %p\n"
  
- out_set:
-+	signalfd_notify(t, sig);
- 	sigaddset(&pending->signal, sig);
- 	complete_signal(sig, t, group);
- 	return 0;
+ fault_msg:
+-	.ascii								\
++	.asciz								\
+ /* fault info: */	"BUG: Int %d: CR2 %p\n"				\
+ /* pusha regs: */	"     EDI %p  ESI %p  EBP %p  ESP %p\n"		\
+ 			"     EBX %p  EDX %p  ECX %p  EAX %p\n"		\
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-git-hrt.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+char-riscom-fix-rc_board-indexing.patch
+block-floppy-fix-rmmod-lockup.patch
+git-drm.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+wdev-ath5k-typecheck-on-nondebug.patch
+x86_32-fix-fault_msg-nul-termination.patch
+capabilities-implement-per-process-securebits-fix.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+misc-phantom-consistent-whitespace.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
