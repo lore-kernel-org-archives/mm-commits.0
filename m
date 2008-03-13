@@ -1,321 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch added to -mm tree
-Date: Thu, 13 Mar 2008 11:54:58 -0700
-Message-ID: <200803131854.m2DIsweZ027752@imap1.linux-foundation.org>
+Subject: - scsi-osstc-make-class-attributes-static.patch removed from -mm tree
+Date: Thu, 13 Mar 2008 11:55:49 -0700
+Message-ID: <200803131855.m2DItnxJ027785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34283 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756778AbYCMSzn (ORCPT
+	by vger.kernel.org with ESMTP id S1751744AbYCMS4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 14:55:43 -0400
+	Thu, 13 Mar 2008 14:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, Kai.Makisara@kolumbus.fi, greg@kroah.com, kai.makisara@kolumbus.fi, sfr@canb.auug.org.au, tonyj@suse.de
+To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, greg@kroah.com, osst@riede.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc: revert "st: show options currently set in sysfs"
-has been added to the -mm tree.  Its filename is
-     git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
+     scsi: osst.c make class attributes static
+has been removed from the -mm tree.  Its filename was
+     scsi-osstc-make-class-attributes-static.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because changes in Greg's tree wrecked it
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-scsi-misc: revert "st: show options currently set in sysfs=
-"
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: osst.c make class attributes static
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Revert
+Fixes sparse warnings:
+drivers/scsi/osst.c:5604:1: warning: symbol 'class_device_attr_ADR_rev' was not declared. Should it be static?
+drivers/scsi/osst.c:5616:1: warning: symbol 'class_device_attr_media_version' was not declared. Should it be static?
+drivers/scsi/osst.c:5628:1: warning: symbol 'class_device_attr_capacity' was not declared. Should it be static?
+drivers/scsi/osst.c:5640:1: warning: symbol 'class_device_attr_BOT_frame' was not declared. Should it be static?
+drivers/scsi/osst.c:5652:1: warning: symbol 'class_device_attr_EOD_frame' was not declared. Should it be static?
+drivers/scsi/osst.c:5664:1: warning: symbol 'class_device_attr_file_count' was not declared. Should it be static?
 
-commit 0b65635a7b2cb942896655ff1bf277e6fe9f765d
-Author: Kai Makisara <Kai.Makisara@kolumbus.fi>
-Date:   Sun Feb 24 22:29:12 2008 +0200
-
-    Show the current binary tape driver and mode options is sysfs. A fi=
-le
-    (options) is created in each directory in /sys/class/scsi_tape. The=
- files
-    contain masks showing the options. The mask bit definitions are the=
- same as
-    used when setting the options using the MTSETDRVBUFFER function in =
-the
-    MTIOCTOP ioctl (defined in include/linux/mtio.h). For example:
-    > cat /sys/class/scsi_tape/nst0/options
-    0x00000d07
-   =20
-    [jejb: updated doc with correction from Randy Dunlap]
-
-Because Greg's tree buggered it up.
-
-Cc: Kai Makisara <kai.makisara@kolumbus.fi>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Willem Riede <osst@riede.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: Tony Jones <tonyj@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/st.txt |    7 -----
- drivers/scsi/st.c         |   43 ------------------------------------
- 2 files changed, 1 insertion(+), 49 deletions(-)
+ drivers/scsi/osst.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/scsi/st.txt~git-scsi-misc-revert-st-show-option=
-s-currently-set-in-sysfs Documentation/scsi/st.txt
---- a/Documentation/scsi/st.txt~git-scsi-misc-revert-st-show-options-cu=
-rrently-set-in-sysfs
-+++ a/Documentation/scsi/st.txt
-@@ -2,7 +2,7 @@ This file contains brief information abo
- The driver is currently maintained by Kai M=C3=A4kisara (email
- Kai.Makisara@kolumbus.fi)
-=20
--Last modified: Sun Feb 24 21:59:07 2008 by kai.makisara
-+Last modified: Thu Feb 21 21:54:16 2008 by kai.makisara
-=20
-=20
- BASICS
-@@ -133,11 +133,6 @@ the defaults set by the user. The value=20
- file 'dev' contains the device numbers corresponding to this device. T=
-he links
- 'device' and 'driver' point to the SCSI device and driver entries.
-=20
--Each directory also contains the entry 'options' which shows the curre=
-ntly
--enabled driver and mode options. The value in the file is a bit mask w=
-here the
--bit definitions are the same as those used with MTSETDRVBUFFER in sett=
-ing the
--options.
--
- A link named 'tape' is made from the SCSI device directory to the clas=
-s
- directory corresponding to the mode 0 auto-rewind device (e.g., st0).=20
-=20
-diff -puN drivers/scsi/st.c~git-scsi-misc-revert-st-show-options-curren=
-tly-set-in-sysfs drivers/scsi/st.c
---- a/drivers/scsi/st.c~git-scsi-misc-revert-st-show-options-currently-=
-set-in-sysfs
-+++ a/drivers/scsi/st.c
-@@ -4370,46 +4370,6 @@ st_defcompression_show(struct device *de
-=20
- DEVICE_ATTR(default_compression, S_IRUGO, st_defcompression_show, NULL=
-);
-=20
--static ssize_t st_options_show(struct class_device *class_dev, char *b=
-uf)
--{
--	struct st_modedef *STm =3D (struct st_modedef *)class_get_devdata(cla=
-ss_dev);
--	struct scsi_tape *STp;
--	int i, j, options;
--	ssize_t l =3D 0;
--
--	for (i=3D0; i < st_dev_max; i++) {
--		for (j=3D0; j < ST_NBR_MODES; j++)
--			if (&scsi_tapes[i]->modes[j] =3D=3D STm)
--				break;
--		if (j < ST_NBR_MODES)
--			break;
--	}
--	if (i =3D=3D st_dev_max)
--		return 0;  /* should never happen */
--
--	STp =3D scsi_tapes[i];
--
--	options =3D STm->do_buffer_writes ? MT_ST_BUFFER_WRITES : 0;
--	options |=3D STm->do_async_writes ? MT_ST_ASYNC_WRITES : 0;
--	options |=3D STm->do_read_ahead ? MT_ST_READ_AHEAD : 0;
--	DEB( options |=3D debugging ? MT_ST_DEBUGGING : 0 );
--	options |=3D STp->two_fm ? MT_ST_TWO_FM : 0;
--	options |=3D STp->fast_mteom ? MT_ST_FAST_MTEOM : 0;
--	options |=3D STm->defaults_for_writes ? MT_ST_DEF_WRITES : 0;
--	options |=3D STp->can_bsr ? MT_ST_CAN_BSR : 0;
--	options |=3D STp->omit_blklims ? MT_ST_NO_BLKLIMS : 0;
--	options |=3D STp->can_partitions ? MT_ST_CAN_PARTITIONS : 0;
--	options |=3D STp->scsi2_logical ? MT_ST_SCSI2LOGICAL : 0;
--	options |=3D STm->sysv ? MT_ST_SYSV : 0;
--	options |=3D STp->immediate ? MT_ST_NOWAIT : 0;
--	options |=3D STp->sili ? MT_ST_SILI : 0;
--
--	l =3D snprintf(buf, PAGE_SIZE, "0x%08x\n", options);
--	return l;
--}
--
--CLASS_DEVICE_ATTR(options, S_IRUGO, st_options_show, NULL);
--
- static int do_create_class_files(struct scsi_tape *STp, int dev_num, i=
-nt mode)
+diff -puN drivers/scsi/osst.c~scsi-osstc-make-class-attributes-static drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~scsi-osstc-make-class-attributes-static
++++ a/drivers/scsi/osst.c
+@@ -5601,7 +5601,7 @@ static ssize_t osst_adr_rev_show(struct 
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(ADR_rev, S_IRUGO, osst_adr_rev_show, NULL);
++static CLASS_DEVICE_ATTR(ADR_rev, S_IRUGO, osst_adr_rev_show, NULL);
+ 
+ static ssize_t osst_linux_media_version_show(struct class_device *class_dev, char *buf)
  {
- 	int i, rew, error;
-@@ -4447,9 +4407,6 @@ static int do_create_class_files(struct=20
- 		error =3D device_create_file(st_class_member,
- 					   &dev_attr_default_compression);
- 		if (error) goto out;
--		error =3D class_device_create_file(st_class_member,
--				        &class_device_attr_options);
--		if (error) goto out;
-=20
- 		if (mode =3D=3D 0 && rew =3D=3D 0) {
- 			error =3D sysfs_create_link(&STp->device->sdev_gendev.kobj,
+@@ -5613,7 +5613,7 @@ static ssize_t osst_linux_media_version_
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(media_version, S_IRUGO, osst_linux_media_version_show, NULL);
++static CLASS_DEVICE_ATTR(media_version, S_IRUGO, osst_linux_media_version_show, NULL);
+ 
+ static ssize_t osst_capacity_show(struct class_device *class_dev, char *buf)
+ {
+@@ -5625,7 +5625,7 @@ static ssize_t osst_capacity_show(struct
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(capacity, S_IRUGO, osst_capacity_show, NULL);
++static CLASS_DEVICE_ATTR(capacity, S_IRUGO, osst_capacity_show, NULL);
+ 
+ static ssize_t osst_first_data_ppos_show(struct class_device *class_dev, char *buf)
+ {
+@@ -5637,7 +5637,7 @@ static ssize_t osst_first_data_ppos_show
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(BOT_frame, S_IRUGO, osst_first_data_ppos_show, NULL);
++static CLASS_DEVICE_ATTR(BOT_frame, S_IRUGO, osst_first_data_ppos_show, NULL);
+ 
+ static ssize_t osst_eod_frame_ppos_show(struct class_device *class_dev, char *buf)
+ {
+@@ -5649,7 +5649,7 @@ static ssize_t osst_eod_frame_ppos_show(
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(EOD_frame, S_IRUGO, osst_eod_frame_ppos_show, NULL);
++static CLASS_DEVICE_ATTR(EOD_frame, S_IRUGO, osst_eod_frame_ppos_show, NULL);
+ 
+ static ssize_t osst_filemark_cnt_show(struct class_device *class_dev, char *buf)
+ {
+@@ -5661,7 +5661,7 @@ static ssize_t osst_filemark_cnt_show(st
+ 	return l;
+ }
+ 
+-CLASS_DEVICE_ATTR(file_count, S_IRUGO, osst_filemark_cnt_show, NULL);
++static CLASS_DEVICE_ATTR(file_count, S_IRUGO, osst_filemark_cnt_show, NULL);
+ 
+ static struct class *osst_sysfs_class;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
 git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fix=
-es.patch
-git-drm.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-cifs.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
 git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
+git-dlm.patch
 git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
 git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+pata_amd-fix-sparse-warning.patch
+git-async-tx.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
 git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex=
--and-make-it-static.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
 git-selinux.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-osstc-make-class-attributes-static.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
+block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
-git-semaphore-git-rejects.patch
-revert-acpi-thermal-fixup.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.pat=
-ch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
-he-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.pa=
-tch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.p=
-atch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
 kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.=
-patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.pa=
-tch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fi=
-xes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.p=
-atch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.p=
-atch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fix=
-es.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=3Dn-override-with-edd=3Donoff-fix.p=
-atch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
