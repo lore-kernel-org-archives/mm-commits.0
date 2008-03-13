@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom_kill-fix-kernel-doc.patch added to -mm tree
-Date: Thu, 13 Mar 2008 13:24:03 -0700
-Message-ID: <200803132024.m2DKO48G031253@imap1.linux-foundation.org>
+Subject: + mm-shmem-and-tiny-shmem-fix-some-kernel-doc.patch added to -mm tree
+Date: Thu, 13 Mar 2008 13:24:01 -0700
+Message-ID: <200803132024.m2DKO1Rk031246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50001 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751937AbYCMUYQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752036AbYCMUZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 16:24:16 -0400
+	Thu, 13 Mar 2008 16:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, hugh@veritas.com
 
 
 The patch titled
-     mm/oom_kill: fix kernel-doc
+     mm/shmem and tiny-shmem: fix some kernel-doc
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-fix-kernel-doc.patch
+     mm-shmem-and-tiny-shmem-fix-some-kernel-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/oom_kill: fix kernel-doc
+Subject: mm/shmem and tiny-shmem: fix some kernel-doc
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix kernel-doc notation in oom_kill.c.
+Convert tiny-shmem.c function comments to kernel-doc.  Add parameters and
+convert/fix other kernel-doc in shmem.c.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/shmem.c      |   25 ++++++++++---------------
+ mm/tiny-shmem.c |    8 +++-----
+ 2 files changed, 13 insertions(+), 20 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-fix-kernel-doc mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-fix-kernel-doc
-+++ a/mm/oom_kill.c
-@@ -37,6 +37,7 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
-  * badness - calculate a numeric value for how bad this task has been
-  * @p: task struct of which task we should calculate
-  * @uptime: current uptime in seconds
-+ * @mem: target memory controller
+diff -puN mm/shmem.c~mm-shmem-and-tiny-shmem-fix-some-kernel-doc mm/shmem.c
+--- a/mm/shmem.c~mm-shmem-and-tiny-shmem-fix-some-kernel-doc
++++ a/mm/shmem.c
+@@ -244,9 +244,8 @@ static void shmem_free_inode(struct supe
+ 	}
+ }
+ 
+-/*
++/**
+  * shmem_recalc_inode - recalculate the size of an inode
+- *
+  * @inode: inode to recalc
   *
-  * The formula used is relatively simple and documented inline in the
-  * function. The main rationale is that we want to select a good task
-@@ -264,6 +265,9 @@ static struct task_struct *select_bad_pr
+  * We have to calculate the free blocks since the mm can drop
+@@ -270,9 +269,8 @@ static void shmem_recalc_inode(struct in
+ 	}
  }
  
- /**
-+ * dump_tasks - dump current memory state of all system tasks
-+ * @mem: target memory controller
+-/*
++/**
+  * shmem_swp_entry - find the swap vector position in the info structure
+- *
+  * @info:  info structure for the inode
+  * @index: index of the page to find
+  * @page:  optional page to add to the structure. Has to be preset to
+@@ -374,13 +372,13 @@ static void shmem_swp_set(struct shmem_i
+ 	}
+ }
+ 
+-/*
++/**
+  * shmem_swp_alloc - get the position of the swap entry for the page.
+- *                   If it does not exist allocate the entry.
+- *
+  * @info:	info structure for the inode
+  * @index:	index of the page to find
+  * @sgp:	check and recheck i_size? skip allocation?
 + *
-  * Dumps the current memory state of all system tasks, excluding kernel threads.
-  * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
-  * score, and name.
-@@ -298,7 +302,7 @@ static void dump_tasks(const struct mem_
- 	} while_each_thread(g, p);
++ * If the entry does not exist, allocate it.
+  */
+ static swp_entry_t *shmem_swp_alloc(struct shmem_inode_info *info, unsigned long index, enum sgp_type sgp)
+ {
+@@ -440,9 +438,8 @@ static swp_entry_t *shmem_swp_alloc(stru
+ 	return entry;
  }
  
+-/*
++/**
+  * shmem_free_swp - free some swap entries in a directory
+- *
+  * @dir:        pointer to the directory
+  * @edir:       pointer after last entry of the directory
+  * @punch_lock: pointer to spinlock when needed for the holepunch case
+@@ -2022,7 +2019,7 @@ static const struct inode_operations shm
+ };
+ 
+ #ifdef CONFIG_TMPFS_POSIX_ACL
 -/**
 +/*
-  * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
-  * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
-  * set.
-@@ -504,6 +508,9 @@ void clear_zonelist_oom(struct zonelist 
+  * Superblocks without xattr inode operations will get security.* xattr
+  * support from the VFS "for free". As soon as we have any other xattrs
+  * like ACLs, we also need to implement the security.* handlers at
+@@ -2561,12 +2558,11 @@ out4:
+ }
+ module_init(init_tmpfs)
  
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-+ * @zonelist: zonelist pointer
-+ * @gfp_mask: memory allocation flags
-+ * @order: amount of memory being requested as a power of 2
-  *
-  * If we run out of memory, we have the choice between either
-  * killing a random task (bad), letting the system crash (worse)
+-/*
++/**
+  * shmem_file_setup - get an unlinked file living in tmpfs
+- *
+  * @name: name for dentry (to be seen in /proc/<pid>/maps
+  * @size: size to be set for the file
+- *
++ * @flags: vm_flags
+  */
+ struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags)
+ {
+@@ -2621,9 +2617,8 @@ put_memory:
+ 	return ERR_PTR(error);
+ }
+ 
+-/*
++/**
+  * shmem_zero_setup - setup a shared anonymous mapping
+- *
+  * @vma: the vma to be mmapped is prepared by do_mmap_pgoff
+  */
+ int shmem_zero_setup(struct vm_area_struct *vma)
+diff -puN mm/tiny-shmem.c~mm-shmem-and-tiny-shmem-fix-some-kernel-doc mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~mm-shmem-and-tiny-shmem-fix-some-kernel-doc
++++ a/mm/tiny-shmem.c
+@@ -39,12 +39,11 @@ static int __init init_tmpfs(void)
+ }
+ module_init(init_tmpfs)
+ 
+-/*
++/**
+  * shmem_file_setup - get an unlinked file living in tmpfs
+- *
+  * @name: name for dentry (to be seen in /proc/<pid>/maps
+  * @size: size to be set for the file
+- *
++ * @flags: vm_flags
+  */
+ struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags)
+ {
+@@ -95,9 +94,8 @@ put_memory:
+ 	return ERR_PTR(error);
+ }
+ 
+-/*
++/**
+  * shmem_zero_setup - setup a shared anonymous mapping
+- *
+  * @vma: the vma to be mmapped is prepared by do_mmap_pgoff
+  */
+ int shmem_zero_setup(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
