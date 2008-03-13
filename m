@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch added to -mm tree
-Date: Thu, 13 Mar 2008 13:05:11 -0700
-Message-ID: <200803132005.m2DK5B5E030522@imap1.linux-foundation.org>
+Subject: + mm-allocate-section_map-for-sparse_init.patch added to -mm tree
+Date: Thu, 13 Mar 2008 13:14:48 -0700
+Message-ID: <200803132014.m2DKEm3J030839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754515AbYCMUFe (ORCPT
+	by vger.kernel.org with ESMTP id S1757410AbYCMUPy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 16:05:34 -0400
+	Thu, 13 Mar 2008 16:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrew.perepechko@sun.com, jack@suse.cz
+Cc: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     quota: do not allow setting of quota limits to too high values
+     mm: allocate section_map for sparse_init
 has been added to the -mm tree.  Its filename is
-     quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+     mm-allocate-section_map-for-sparse_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: do not allow setting of quota limits to too high values
-From: Andrew Perepechko <andrew.perepechko@sun.com>
+Subject: mm: allocate section_map for sparse_init
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 
-We should check whether quota limits set via Q_SETQUOTA are not exceeding
-limits which quota format is able to handle.
+Allocate section_map in bootmem instead of using __initdata.
 
-Signed-off-by: Andrew Perepechko <andrew.perepechko@sun.com>
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c            |   22 +++++++++++++++++-----
- fs/quota_v1.c         |    3 +++
- fs/quota_v2.c         |    3 +++
- include/linux/quota.h |    2 ++
- 4 files changed, 25 insertions(+), 5 deletions(-)
+ mm/sparse.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN fs/dquot.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/dquot.c
---- a/fs/dquot.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/dquot.c
-@@ -1709,10 +1709,19 @@ int vfs_get_dqblk(struct super_block *sb
+diff -puN mm/sparse.c~mm-allocate-section_map-for-sparse_init mm/sparse.c
+--- a/mm/sparse.c~mm-allocate-section_map-for-sparse_init
++++ a/mm/sparse.c
+@@ -287,8 +287,6 @@ struct page __init *sparse_early_mem_map
+ 	return NULL;
  }
  
- /* Generic routine for setting common part of quota structure */
--static void do_set_dqblk(struct dquot *dquot, struct if_dqblk *di)
-+static int do_set_dqblk(struct dquot *dquot, struct if_dqblk *di)
- {
- 	struct mem_dqblk *dm = &dquot->dq_dqb;
- 	int check_blim = 0, check_ilim = 0;
-+	struct mem_dqinfo *dqi = &sb_dqopt(dquot->dq_sb)->info[dquot->dq_type];
+-/* section_map pointer array is 64k */
+-static __initdata struct page *section_map[NR_MEM_SECTIONS];
+ /*
+  * Allocate the accumulated non-linear sections, allocate a mem_map
+  * for each and record the physical to section mapping.
+@@ -298,6 +296,9 @@ void __init sparse_init(void)
+ 	unsigned long pnum;
+ 	struct page *map;
+ 	unsigned long *usemap;
++	struct page **section_map;
++	int size;
++	int node;
+ 
+ 	/*
+ 	 * map is using big page (aka 2M in x86 64 bit)
+@@ -307,13 +308,17 @@ void __init sparse_init(void)
+ 	 * then in big system, the memmory will have a lot hole...
+ 	 * here try to allocate 2M pages continously.
+ 	 */
++	size = sizeof(struct page *) * NR_MEM_SECTIONS;
++	section_map = alloc_bootmem(size);
++	if (!section_map)
++		panic("can not allocate section_map\n");
 +
-+	if ((di->dqb_valid & QIF_BLIMITS &&
-+	     (di->dqb_bhardlimit > dqi->dqi_maxblimit ||
-+	      di->dqb_bsoftlimit > dqi->dqi_maxblimit)) ||
-+	    (di->dqb_valid & QIF_ILIMITS &&
-+	     (di->dqb_ihardlimit > dqi->dqi_maxilimit ||
-+	      di->dqb_isoftlimit > dqi->dqi_maxilimit)))
-+		return -ERANGE;
+ 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
+ 		if (!present_section_nr(pnum))
+ 			continue;
+ 		section_map[pnum] = sparse_early_mem_map_alloc(pnum);
+ 	}
  
- 	spin_lock(&dq_data_lock);
- 	if (di->dqb_valid & QIF_SPACE) {
-@@ -1744,7 +1753,7 @@ static void do_set_dqblk(struct dquot *d
- 			clear_bit(DQ_BLKS_B, &dquot->dq_flags);
- 		}
- 		else if (!(di->dqb_valid & QIF_BTIME))	/* Set grace only if user hasn't provided his own... */
--			dm->dqb_btime = get_seconds() + sb_dqopt(dquot->dq_sb)->info[dquot->dq_type].dqi_bgrace;
-+			dm->dqb_btime = get_seconds() + dqi->dqi_bgrace;
- 	}
- 	if (check_ilim) {
- 		if (!dm->dqb_isoftlimit || dm->dqb_curinodes < dm->dqb_isoftlimit) {
-@@ -1752,7 +1761,7 @@ static void do_set_dqblk(struct dquot *d
- 			clear_bit(DQ_INODES_B, &dquot->dq_flags);
- 		}
- 		else if (!(di->dqb_valid & QIF_ITIME))	/* Set grace only if user hasn't provided his own... */
--			dm->dqb_itime = get_seconds() + sb_dqopt(dquot->dq_sb)->info[dquot->dq_type].dqi_igrace;
-+			dm->dqb_itime = get_seconds() + dqi->dqi_igrace;
- 	}
- 	if (dm->dqb_bhardlimit || dm->dqb_bsoftlimit || dm->dqb_ihardlimit || dm->dqb_isoftlimit)
- 		clear_bit(DQ_FAKE_B, &dquot->dq_flags);
-@@ -1760,21 +1769,24 @@ static void do_set_dqblk(struct dquot *d
- 		set_bit(DQ_FAKE_B, &dquot->dq_flags);
- 	spin_unlock(&dq_data_lock);
- 	mark_dquot_dirty(dquot);
-+
-+	return 0;
- }
- 
- int vfs_set_dqblk(struct super_block *sb, int type, qid_t id, struct if_dqblk *di)
- {
- 	struct dquot *dquot;
-+	int rc;
- 
- 	mutex_lock(&sb_dqopt(sb)->dqonoff_mutex);
- 	if (!(dquot = dqget(sb, id, type))) {
- 		mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
- 		return -ESRCH;
- 	}
--	do_set_dqblk(dquot, di);
-+	rc = do_set_dqblk(dquot, di);
- 	dqput(dquot);
- 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
--	return 0;
-+	return rc;
- }
- 
- /* Generic routine for getting common part of quota file information */
-diff -puN fs/quota_v1.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/quota_v1.c
---- a/fs/quota_v1.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/quota_v1.c
-@@ -139,6 +139,9 @@ static int v1_read_file_info(struct supe
- 		goto out;
- 	}
- 	ret = 0;
-+	/* limits are stored as unsigned 32-bit data */
-+	dqopt->info[type].dqi_maxblimit = 0xffffffff;
-+	dqopt->info[type].dqi_maxilimit = 0xffffffff;
- 	dqopt->info[type].dqi_igrace = dqblk.dqb_itime ? dqblk.dqb_itime : MAX_IQ_TIME;
- 	dqopt->info[type].dqi_bgrace = dqblk.dqb_btime ? dqblk.dqb_btime : MAX_DQ_TIME;
- out:
-diff -puN fs/quota_v2.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/quota_v2.c
---- a/fs/quota_v2.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/quota_v2.c
-@@ -59,6 +59,9 @@ static int v2_read_file_info(struct supe
- 			sb->s_id);
- 		return -1;
- 	}
-+	/* limits are stored as unsigned 32-bit data */
-+	info->dqi_maxblimit = 0xffffffff;
-+	info->dqi_maxilimit = 0xffffffff;
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
- 	info->dqi_flags = le32_to_cpu(dinfo.dqi_flags);
-diff -puN include/linux/quota.h~quota-do-not-allow-setting-of-quota-limits-to-too-high-values include/linux/quota.h
---- a/include/linux/quota.h~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/include/linux/quota.h
-@@ -206,6 +206,8 @@ struct mem_dqinfo {
- 	unsigned long dqi_flags;
- 	unsigned int dqi_bgrace;
- 	unsigned int dqi_igrace;
-+	qsize_t dqi_maxblimit;
-+	qsize_t dqi_maxilimit;
- 	union {
- 		struct v1_mem_dqinfo v1_i;
- 		struct v2_mem_dqinfo v2_i;
-_
-
-Patches currently in -mm which might be from andrew.perepechko@sun.com are
-
-quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
-
