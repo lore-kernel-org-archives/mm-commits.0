@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-free_bootmem-should-take-phy.patch added to -mm tree
-Date: Thu, 13 Mar 2008 15:04:00 -0700
-Message-ID: <200803132204.m2DM40eb002671@imap1.linux-foundation.org>
+Subject: + alloc_uid-cleanup.patch added to -mm tree
+Date: Thu, 13 Mar 2008 15:21:13 -0700
+Message-ID: <200803132221.m2DMLDeS003309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734AbYCMWE0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752405AbYCMWVr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 18:04:26 -0400
+	Thu, 13 Mar 2008 18:21:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2DMM6l1017872
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 13 Mar 2008 15:22:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     x86_64: free_bootmem should take a physical address
+     alloc_uid: cleanup
 has been added to the -mm tree.  Its filename is
-     x86_64-free_bootmem-should-take-phy.patch
+     alloc_uid-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +38,191 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: free_bootmem should take a physical address
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: alloc_uid: cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-So use nodedata_phys directly.
+Use kmem_cache_zalloc(), remove large amounts of initialsiation code and
+ifdeffery.
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+Note: this assumes that memset(*atomic_t, 0) correctly initialises the
+atomic_t.  This is true for all present archtiectures and if it becomes false
+for a future architecture then we'll need to make large changes all over the
+place anyway.
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/user.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86/mm/numa_64.c~x86_64-free_bootmem-should-take-phy arch/x86/mm/numa_64.c
---- a/arch/x86/mm/numa_64.c~x86_64-free_bootmem-should-take-phy
-+++ a/arch/x86/mm/numa_64.c
-@@ -221,8 +221,7 @@ void __init setup_node_bootmem(int nodei
- 				 bootmap_pages<<PAGE_SHIFT, PAGE_SIZE);
- 	if (bootmap == NULL)  {
- 		if (nodedata_phys < start || nodedata_phys >= end)
--			free_bootmem((unsigned long)node_data[nodeid],
--				     pgdat_size);
-+			free_bootmem(nodedata_phys, pgdat_size);
- 		node_data[nodeid] = NULL;
- 		return;
- 	}
+diff -puN kernel/user.c~alloc_uid-cleanup kernel/user.c
+--- a/kernel/user.c~alloc_uid-cleanup
++++ a/kernel/user.c
+@@ -356,7 +356,7 @@ void free_uid(struct user_struct *up)
+ 		local_irq_restore(flags);
+ }
+ 
+-struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
++struct user_struct *alloc_uid(struct user_namespace *ns, uid_t uid)
+ {
+ 	struct hlist_head *hashent = uidhashentry(ns, uid);
+ 	struct user_struct *up, *new;
+@@ -371,26 +371,12 @@ struct user_struct * alloc_uid(struct us
+ 	spin_unlock_irq(&uidhash_lock);
+ 
+ 	if (!up) {
+-		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
++		new = kmem_cache_zalloc(uid_cachep, GFP_KERNEL);
+ 		if (!new)
+ 			goto out_unlock;
+ 
+ 		new->uid = uid;
+ 		atomic_set(&new->__count, 1);
+-		atomic_set(&new->processes, 0);
+-		atomic_set(&new->files, 0);
+-		atomic_set(&new->sigpending, 0);
+-#ifdef CONFIG_INOTIFY_USER
+-		atomic_set(&new->inotify_watches, 0);
+-		atomic_set(&new->inotify_devs, 0);
+-#endif
+-#ifdef CONFIG_POSIX_MQUEUE
+-		new->mq_bytes = 0;
+-#endif
+-		new->locked_shm = 0;
+-#ifdef CONFIG_KEYS
+-		new->uid_keyring = new->session_keyring = NULL;
+-#endif
+ 
+ 		if (sched_create_user(new) < 0)
+ 			goto out_free_user;
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-boundary-checking-in-free_bootmem_core.patch
-mm-fix-boundary-checking-in-free_bootmem_core-fix.patch
+origin.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
-x86_64-free_bootmem-should-take-phy.patch
-mm-make-mem_map-allocation-continuous.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+drivers-media-video-soc_camerac-reads-return-size_t.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+revert-acpi-thermal-fixup.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-allocate-section_map-for-sparse_init.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+kernel-add-clamp-and-clamp_t-macros.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+alloc_uid-cleanup.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
