@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiochip_reserve-fix.patch added to -mm tree
-Date: Thu, 13 Mar 2008 16:06:17 -0700
-Message-ID: <200803132306.m2DN6Hx2005170@imap1.linux-foundation.org>
+Subject: + gpiochip_reserve.patch added to -mm tree
+Date: Thu, 13 Mar 2008 16:06:13 -0700
+Message-ID: <200803132306.m2DN6Do2005164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55771 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754449AbYCMXHB (ORCPT
+	by vger.kernel.org with ESMTP id S1757493AbYCMXHJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:07:01 -0400
+	Thu, 13 Mar 2008 19:07:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
+Cc: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     gpiochip_reserve-fix
+     gpiochip_reserve()
 has been added to the -mm tree.  Its filename is
-     gpiochip_reserve-fix.patch
+     gpiochip_reserve.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiochip_reserve-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpiochip_reserve()
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Add a new function gpiochip_reserve() to reserve ranges of gpios that platform
+code has pre-allocated.  That is, this marks gpio numbers which will be
+claimed by drivers that haven't yet been loaded, and thus are not available
+for dynamic gpio number allocation.
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c     |   51 ++++++++++++++++++++++++++++++++---
+ include/asm-generic/gpio.h |    1 
+ 2 files changed, 49 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve-fix drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiochip_reserve-fix
+diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiochip_reserve
 +++ a/drivers/gpio/gpiolib.c
-@@ -121,7 +121,7 @@ static int gpiochip_find_base(int ngpio)
-  * to mark a range of gpios as unavailable for dynamic gpio number allocation,
-  * for example because its driver support is not yet loaded.
-  */
--int __init __must_check gpiochip_reserve(int start, int ngpio)
-+int __init gpiochip_reserve(int start, int ngpio)
- {
- 	int ret = 0;
- 	unsigned long flags;
+@@ -43,6 +43,7 @@ struct gpio_desc {
+ /* flag symbols are bit numbers */
+ #define FLAG_REQUESTED	0
+ #define FLAG_IS_OUT	1
++#define FLAG_RESERVED	2
+ 
+ #ifdef CONFIG_DEBUG_FS
+ 	const char		*label;
+@@ -88,9 +89,10 @@ static int gpiochip_find_base(int ngpio)
+ 	int base = -ENOSPC;
+ 
+ 	for (i = ARCH_NR_GPIOS - 1; i >= 0 ; i--) {
+-		struct gpio_chip *chip = gpio_desc[i].chip;
++		struct gpio_desc *desc = &gpio_desc[i];
++		struct gpio_chip *chip = desc->chip;
+ 
+-		if (!chip) {
++		if (!chip && !test_bit(FLAG_RESERVED, &desc->flags)) {
+ 			spare++;
+ 			if (spare == ngpio) {
+ 				base = i;
+@@ -98,7 +100,8 @@ static int gpiochip_find_base(int ngpio)
+ 			}
+ 		} else {
+ 			spare = 0;
+-			i -= chip->ngpio - 1;
++			if (chip)
++				i -= chip->ngpio - 1;
+ 		}
+ 	}
+ 
+@@ -108,6 +111,48 @@ static int gpiochip_find_base(int ngpio)
+ }
+ 
+ /**
++ * gpiochip_reserve() - reserve range of gpios to use with platform code only
++ * @start: starting gpio number
++ * @ngpio: number of gpios to reserve
++ * Context: platform init, potentially before irqs or kmalloc will work
++ *
++ * Returns a negative errno if any gpio within the range is already reserved
++ * or registered, else returns zero as a success code.  Use this function
++ * to mark a range of gpios as unavailable for dynamic gpio number allocation,
++ * for example because its driver support is not yet loaded.
++ */
++int __init __must_check gpiochip_reserve(int start, int ngpio)
++{
++	int ret = 0;
++	unsigned long flags;
++	int i;
++
++	if (!gpio_is_valid(start) || !gpio_is_valid(start + ngpio))
++		return -EINVAL;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++
++	for (i = start; i < start + ngpio; i++) {
++		struct gpio_desc *desc = &gpio_desc[i];
++
++		if (desc->chip || test_bit(FLAG_RESERVED, &desc->flags)) {
++			ret = -EBUSY;
++			goto err;
++		}
++
++		set_bit(FLAG_RESERVED, &desc->flags);
++	}
++
++	pr_debug("%s: reserved gpios from %d to %d\n",
++		 __func__, start, start + ngpio - 1);
++err:
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gpiochip_reserve);
++
++/**
+  * gpiochip_add() - register a gpio_chip
+  * @chip: the chip to register, with chip->base initialized
+  * Context: potentially before irqs or kmalloc will work
+diff -puN include/asm-generic/gpio.h~gpiochip_reserve include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiochip_reserve
++++ a/include/asm-generic/gpio.h
+@@ -74,6 +74,7 @@ struct gpio_chip {
+ 
+ extern const char *gpiochip_is_requested(struct gpio_chip *chip,
+ 			unsigned offset);
++extern int __init __must_check gpiochip_reserve(int start, int ngpio);
+ 
+ /* add/remove chips */
+ extern int gpiochip_add(struct gpio_chip *chip);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem-checkpatch-fixes.patch
-revert-acpi-thermal-fixup.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+git-powerpc.patch
+gpiolib-dynamic-gpio-number-allocation.patch
+gpiochip_reserve.patch
 gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+powerpc-offb-add-support-for-foreign-endianness.patch
 
