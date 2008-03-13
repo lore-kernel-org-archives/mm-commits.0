@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-optimization-to-proc-pid-mountinfo-patch.patch added to -mm tree
-Date: Thu, 13 Mar 2008 15:50:51 -0700
-Message-ID: <200803132250.m2DMoqAG004545@imap1.linux-foundation.org>
+Subject: + vfs-mountinfo-only-show-mounts-under-tasks-root.patch added to -mm tree
+Date: Thu, 13 Mar 2008 15:51:00 -0700
+Message-ID: <200803132251.m2DMp12l004549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881AbYCMWv4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753415AbYCMWwQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 18:51:56 -0400
+	Thu, 13 Mar 2008 18:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linuxram@us.ibm.com, haveblue@us.ibm.com, hch@lst.de, mszeredi@suse.cz, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, haveblue@us.ibm.com, hch@lst.de, jblunck@suse.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: optimization to /proc/<pid>/mountinfo patch
+     vfs: mountinfo: only show mounts under tasks root
 has been added to the -mm tree.  Its filename is
-     vfs-optimization-to-proc-pid-mountinfo-patch.patch
+     vfs-mountinfo-only-show-mounts-under-tasks-root.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,297 +34,423 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: optimization to /proc/<pid>/mountinfo patch
-From: Ram Pai <linuxram@us.ibm.com>
+Subject: vfs: mountinfo: only show mounts under tasks root
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-1) reports deleted inode in dentry_path() consistent with that in __d_path()
-2) modified __d_path() to use prepend(), reducing the size of __d_path()
-3) moved all the functionality that reports mount information in /proc under
-	CONFIG_PROC_FS.
+1. Only show reachable mounts in /proc/<pid>/mountinfo, this makes
+mountpoints unambiguous for chrooted processes.
 
-Code compile tested only with and without CONFIG_PROC_FS.
+2. Instead of showing mountpoints relative to the current root, always
+show them relative to the queried task's root.
 
-Signed-off-by: Ram Pai <linuxram@us.ibm.com>
+This means, that a particular mountinfo file will always have the same
+contents, regardless of which process is reading the file.  Which is a
+lot more consistent, than the current behavior of /proc/<pid>/mounts.
+
+Addressed comments from Jan Blunck and Ram Pai.
+
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c              |   63 +++++++++++++++----------------------
- fs/namespace.c           |    4 +-
- fs/pnode.c               |   10 +++--
- fs/pnode.h               |    4 +-
- fs/seq_file.c            |    3 +
- include/linux/dcache.h   |    3 +
- include/linux/seq_file.h |    3 +
- 7 files changed, 47 insertions(+), 43 deletions(-)
+ fs/dcache.c                   |   16 ++++---
+ fs/namespace.c                |   23 +++++++---
+ fs/pnode.c                    |   28 ++++++++++---
+ fs/pnode.h                    |    2 
+ fs/proc/base.c                |   68 ++++++++++++++++++++------------
+ fs/seq_file.c                 |   25 +++++++++++
+ include/linux/dcache.h        |    1 
+ include/linux/mnt_namespace.h |    8 +++
+ include/linux/seq_file.h      |    2 
+ 9 files changed, 128 insertions(+), 45 deletions(-)
 
-diff -puN fs/dcache.c~vfs-optimization-to-proc-pid-mountinfo-patch fs/dcache.c
---- a/fs/dcache.c~vfs-optimization-to-proc-pid-mountinfo-patch
+diff -puN fs/dcache.c~vfs-mountinfo-only-show-mounts-under-tasks-root fs/dcache.c
+--- a/fs/dcache.c~vfs-mountinfo-only-show-mounts-under-tasks-root
 +++ a/fs/dcache.c
-@@ -1746,6 +1746,17 @@ shouldnt_be_hashed:
- 	goto shouldnt_be_hashed;
- }
+@@ -1759,12 +1759,12 @@ static int prepend(char **buffer, int *b
  
-+static int prepend(char **buffer, int *buflen, const char *str,
-+			  int namelen)
-+{
-+	*buflen -= namelen;
-+	if (*buflen < 0)
-+		return -ENAMETOOLONG;
-+	*buffer -= namelen;
-+	memcpy(*buffer, str, namelen);
-+	return 0;
-+}
-+
  /**
   * d_path - return the path of a dentry
-  * @dentry: dentry to report
-@@ -1767,17 +1778,11 @@ static char *__d_path(struct dentry *den
+- * @dentry: dentry to report
+- * @vfsmnt: vfsmnt to which the dentry belongs
++ * @path: the dentry/vfsmount to report
+  * @root: root dentry
+  * @rootmnt: vfsmnt to which the root dentry belongs
+  * @buffer: buffer to return value in
+  * @buflen: buffer length
++ * @only_reachable: if true, then path must be reachable from root
+  *
+  * Convert a dentry into an ASCII path name. If the entry has been deleted
+  * the string " (deleted)" is appended. Note that this is ambiguous.
+@@ -1773,9 +1773,11 @@ static int prepend(char **buffer, int *b
+  *
+  * "buflen" should be positive. Caller holds the dcache_lock.
+  */
+-static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
+-		       struct path *root, char *buffer, int buflen)
++char *__d_path(struct path *path, struct path *root, char *buffer, int buflen,
++	       bool only_reachable)
  {
++	struct dentry *dentry = path->dentry;
++	struct vfsmount *vfsmnt = path->mnt;
  	char * end = buffer+buflen;
  	char * retval;
--	int namelen;
  
--	*--end = '\0';
--	buflen--;
--	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
--		buflen -= 10;
--		end -= 10;
--		if (buflen < 0)
-+	prepend(&end, &buflen, "\0", 1);
-+	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
-+		(prepend(&end, &buflen, " (deleted)", 10) != 0))
- 			goto Elong;
--		memcpy(end, " (deleted)", 10);
--	}
- 
- 	if (buflen < 1)
- 		goto Elong;
-@@ -1804,13 +1809,10 @@ static char *__d_path(struct dentry *den
- 		}
- 		parent = dentry->d_parent;
- 		prefetch(parent);
--		namelen = dentry->d_name.len;
--		buflen -= namelen + 1;
--		if (buflen < 0)
-+		if ((prepend(&end, &buflen, dentry->d_name.name,
-+				dentry->d_name.len) != 0) ||
-+		    (prepend(&end, &buflen, "/", 1) != 0))
- 			goto Elong;
--		end -= namelen;
--		memcpy(end, dentry->d_name.name, namelen);
--		*--end = '/';
- 		retval = end;
- 		dentry = parent;
- 	}
-@@ -1818,12 +1820,10 @@ static char *__d_path(struct dentry *den
+@@ -1820,6 +1822,8 @@ static char *__d_path(struct dentry *den
  	return retval;
  
  global_root:
--	namelen = dentry->d_name.len;
--	buflen -= namelen;
--	if (buflen < 0)
-+	retval += 1;	/* hit the slash */
-+	if (prepend(&retval, &buflen, dentry->d_name.name,
-+		    dentry->d_name.len) != 0)
- 		goto Elong;
--	retval -= namelen-1;	/* hit the slash */
--	memcpy(retval, dentry->d_name.name, namelen);
- 	return retval;
- Elong:
- 	return ERR_PTR(-ENAMETOOLONG);
-@@ -1889,17 +1889,8 @@ char *dynamic_dname(struct dentry *dentr
- 	return memcpy(buffer, temp, sz);
- }
- 
--static int prepend(char **buffer, int *buflen, const char *str,
--			  int namelen)
--{
--	*buflen -= namelen;
--	if (*buflen < 0)
--		return 1;
--	*buffer -= namelen;
--	memcpy(*buffer, str, namelen);
--	return 0;
--}
- 
-+#ifdef CONFIG_PROC_FS
- /*
-  * Write full pathname from the root of the filesystem into the buffer.
-  */
-@@ -1910,10 +1901,9 @@ char *dentry_path(struct dentry *dentry,
- 
++	if (only_reachable)
++		return ERR_PTR(-EINVAL);
+ 	retval += 1;	/* hit the slash */
+ 	if (prepend(&retval, &buflen, dentry->d_name.name,
+ 		    dentry->d_name.len) != 0)
+@@ -1862,7 +1866,7 @@ char *d_path(struct path *path, char *bu
+ 	path_get(&current->fs->root);
+ 	read_unlock(&current->fs->lock);
  	spin_lock(&dcache_lock);
- 	prepend(&end, &buflen, "\0", 1);
--	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
--		if (prepend(&end, &buflen, "//deleted", 9))
-+	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
-+		(prepend(&end, &buflen, " (deleted)", 10) != 0))
- 			goto Elong;
--	}
- 	if (buflen < 1)
- 		goto Elong;
- 	/* Get '/' right */
-@@ -1928,9 +1918,9 @@ char *dentry_path(struct dentry *dentry,
- 		parent = dentry->d_parent;
- 		prefetch(parent);
- 
--		if (prepend(&end, &buflen, dentry->d_name.name,
--				dentry->d_name.len) ||
--		    prepend(&end, &buflen, "/", 1))
-+		if ((prepend(&end, &buflen, dentry->d_name.name,
-+				dentry->d_name.len) != 0) ||
-+		    (prepend(&end, &buflen, "/", 1) != 0))
- 			goto Elong;
- 
- 		retval = end;
-@@ -1942,6 +1932,7 @@ Elong:
+-	res = __d_path(path->dentry, path->mnt, &root, buf, buflen);
++	res = __d_path(path, &root, buf, buflen, false);
  	spin_unlock(&dcache_lock);
- 	return ERR_PTR(-ENAMETOOLONG);
- }
-+#endif /* CONFIG_PROC_FS */
+ 	path_put(&root);
+ 	return res;
+@@ -1975,7 +1979,7 @@ asmlinkage long sys_getcwd(char __user *
+ 		unsigned long len;
+ 		char * cwd;
  
- /*
-  * NOTE! The user-level library version returns a
-diff -puN fs/namespace.c~vfs-optimization-to-proc-pid-mountinfo-patch fs/namespace.c
---- a/fs/namespace.c~vfs-optimization-to-proc-pid-mountinfo-patch
+-		cwd = __d_path(pwd.dentry, pwd.mnt, &root, page, PAGE_SIZE);
++		cwd = __d_path(&pwd, &root, page, PAGE_SIZE, false);
+ 		spin_unlock(&dcache_lock);
+ 
+ 		error = PTR_ERR(cwd);
+diff -puN fs/namespace.c~vfs-mountinfo-only-show-mounts-under-tasks-root fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-only-show-mounts-under-tasks-root
 +++ a/fs/namespace.c
-@@ -690,6 +690,7 @@ void save_mount_options(struct super_blo
- }
- EXPORT_SYMBOL(save_mount_options);
- 
-+#ifdef CONFIG_PROC_FS
+@@ -694,17 +694,17 @@ EXPORT_SYMBOL(save_mount_options);
  /* iterator */
  static void *m_start(struct seq_file *m, loff_t *pos)
  {
-@@ -819,7 +820,7 @@ static int show_mountinfo(struct seq_fil
+-	struct mnt_namespace *n = m->private;
++	struct proc_mounts *p = m->private;
+ 
+ 	down_read(&namespace_sem);
+-	return seq_list_start(&n->list, *pos);
++	return seq_list_start(&p->ns->list, *pos);
+ }
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	struct mnt_namespace *n = m->private;
++	struct proc_mounts *p = m->private;
+ 
+-	return seq_list_next(v, &n->list, pos);
++	return seq_list_next(v, &p->ns->list, pos);
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
+@@ -790,6 +790,8 @@ const struct seq_operations mounts_op = 
+ 
+ static int show_mountinfo(struct seq_file *m, void *v)
+ {
++	struct proc_mounts *p = m->private;
++	size_t count_save = m->count;
+ 	struct vfsmount *mnt = list_entry(v, struct vfsmount, mnt_list);
+ 	struct super_block *sb = mnt->mnt_sb;
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+@@ -803,7 +805,11 @@ static int show_mountinfo(struct seq_fil
+ 	seq_putc(m, ' ');
+ 	seq_dentry(m, mnt->mnt_root, " \t\n\\");
+ 	seq_putc(m, ' ');
+-	seq_path(m, &mnt_path, " \t\n\\");
++	if (seq_path_root(m, &mnt_path, &p->root, " \t\n\\") == -EINVAL) {
++		/* path is outside root */
++		m->count = count_save;
++		return 0;
++	}
+ 	seq_puts(m, mnt->mnt_flags & MNT_READONLY ? " ro" : " rw");
+ 	show_mnt_opts(m, mnt);
+ 	seq_puts(m, sb->s_flags & MS_RDONLY ? " ro" : " rw");
+@@ -815,14 +821,15 @@ static int show_mountinfo(struct seq_fil
+ 		if (IS_MNT_SHARED(mnt))
+ 			seq_printf(m, "shared:%i", get_peer_group_id(mnt));
+ 		if (IS_MNT_SLAVE(mnt)) {
+-			int dominator_id = get_dominator_id_same_ns(mnt);
++			int dominator;
+ 
  			if (IS_MNT_SHARED(mnt))
  				seq_putc(m, ',');
  
--			seq_printf(m, "slave:%i", get_master_id(mnt));
-+			seq_printf(m, "slave:%i", get_master_group_id(mnt));
- 			if (dominator_id != -1)
- 				seq_printf(m, ":%i", dominator_id);
+ 			seq_printf(m, "slave:%i", get_master_group_id(mnt));
+-			if (dominator_id != -1)
+-				seq_printf(m, ":%i", dominator_id);
++			dominator = get_dominator_id_same_root(mnt, &p->root);
++			if (dominator != -1)
++				seq_printf(m, ":%i", dominator);
  		}
-@@ -877,6 +878,7 @@ const struct seq_operations mountstats_o
- 	.stop	= m_stop,
- 	.show	= show_vfsstat,
- };
-+#endif  /* CONFIG_PROC_FS */
- 
- /**
-  * may_umount_tree - check if a mount tree is busy
-diff -puN fs/pnode.c~vfs-optimization-to-proc-pid-mountinfo-patch fs/pnode.c
---- a/fs/pnode.c~vfs-optimization-to-proc-pid-mountinfo-patch
+ 	} else if (IS_MNT_UNBINDABLE(mnt)) {
+ 		seq_printf(m, "unbindable");
+diff -puN fs/pnode.c~vfs-mountinfo-only-show-mounts-under-tasks-root fs/pnode.c
+--- a/fs/pnode.c~vfs-mountinfo-only-show-mounts-under-tasks-root
 +++ a/fs/pnode.c
-@@ -72,12 +72,13 @@ void make_mnt_peer(struct vfsmount *old,
- 	__set_mnt_shared(mnt);
- }
- 
-+#ifdef CONFIG_PROC_FS
- int get_peer_group_id(struct vfsmount *mnt)
- {
- 	return mnt->mnt_pgid;
- }
- 
--int get_master_id(struct vfsmount *mnt)
-+int get_master_group_id(struct vfsmount *mnt)
- {
- 	int id;
- 
-@@ -119,6 +120,7 @@ int get_dominator_id_same_ns(struct vfsm
- 
+@@ -89,28 +89,46 @@ int get_master_group_id(struct vfsmount 
  	return id;
  }
-+#endif
  
- static int do_make_slave(struct vfsmount *mnt)
+-static struct vfsmount *get_peer_in_ns(struct vfsmount *mnt,
+-				       struct mnt_namespace *ns)
++/*
++ * Return true if path is reachable from root
++ *
++ * Caller must hold vfsmount_lock
++ */
++static bool is_path_reachable(struct vfsmount *mnt, struct dentry *dentry,
++			 const struct path *root)
++{
++	while (mnt != root->mnt && mnt->mnt_parent != mnt) {
++		dentry = mnt->mnt_mountpoint;
++		mnt = mnt->mnt_parent;
++	}
++	return mnt == root->mnt && is_subdir(dentry, root->dentry);
++}
++
++static struct vfsmount *get_peer_under_root(struct vfsmount *mnt,
++					    struct mnt_namespace *ns,
++					    const struct path *root)
  {
-@@ -138,13 +140,13 @@ static int do_make_slave(struct vfsmount
- 		if (peer_mnt == mnt)
- 			peer_mnt = NULL;
- 	}
--	if (!list_empty(&mnt->mnt_share))
--		list_del_init(&mnt->mnt_share);
--	else if (IS_MNT_SHARED(mnt)) {
-+
-+	if (IS_MNT_SHARED(mnt) && list_empty(&mnt->mnt_share)) {
- 		spin_lock(&mnt_pgid_lock);
- 		ida_remove(&mnt_pgid_ida, mnt->mnt_pgid);
- 		spin_unlock(&mnt_pgid_lock);
- 	}
-+	list_del_init(&mnt->mnt_share);
+ 	struct vfsmount *m = mnt;
  
- 	if (peer_mnt)
- 		master = peer_mnt;
-diff -puN fs/pnode.h~vfs-optimization-to-proc-pid-mountinfo-patch fs/pnode.h
---- a/fs/pnode.h~vfs-optimization-to-proc-pid-mountinfo-patch
-+++ a/fs/pnode.h
-@@ -31,7 +31,9 @@ int propagate_mnt(struct vfsmount *, str
- 		struct list_head *);
- int propagate_umount(struct list_head *);
- int propagate_mount_busy(struct vfsmount *, int);
+ 	do {
+-		if (m->mnt_ns == ns)
++		/* Check the namespace first for optimization */
++		if (m->mnt_ns == ns && is_path_reachable(m, m->mnt_root, root))
+ 			return m;
 +
- int get_peer_group_id(struct vfsmount *);
--int get_master_id(struct vfsmount *);
-+int get_master_group_id(struct vfsmount *);
- int get_dominator_id_same_ns(struct vfsmount *);
-+
- #endif /* _LINUX_PNODE_H */
-diff -puN fs/seq_file.c~vfs-optimization-to-proc-pid-mountinfo-patch fs/seq_file.c
---- a/fs/seq_file.c~vfs-optimization-to-proc-pid-mountinfo-patch
-+++ a/fs/seq_file.c
-@@ -384,6 +384,7 @@ int seq_path(struct seq_file *m, struct 
+ 		m = next_peer(m);
+ 	} while (m != mnt);
+ 
+ 	return NULL;
  }
+ 
+-int get_dominator_id_same_ns(struct vfsmount *mnt)
++int get_dominator_id_same_root(struct vfsmount *mnt, const struct path *root)
+ {
+ 	int id = -1;
+ 	struct vfsmount *m;
+ 
+ 	spin_lock(&vfsmount_lock);
+ 	for (m = mnt->mnt_master; m != NULL; m = m->mnt_master) {
+-		struct vfsmount *d = get_peer_in_ns(m, mnt->mnt_ns);
++		struct vfsmount *d = get_peer_under_root(m, mnt->mnt_ns, root);
+ 		if (d) {
+ 			id = d->mnt_pgid;
+ 			break;
+diff -puN fs/pnode.h~vfs-mountinfo-only-show-mounts-under-tasks-root fs/pnode.h
+--- a/fs/pnode.h~vfs-mountinfo-only-show-mounts-under-tasks-root
++++ a/fs/pnode.h
+@@ -34,6 +34,6 @@ int propagate_mount_busy(struct vfsmount
+ 
+ int get_peer_group_id(struct vfsmount *);
+ int get_master_group_id(struct vfsmount *);
+-int get_dominator_id_same_ns(struct vfsmount *);
++int get_dominator_id_same_root(struct vfsmount *, const struct path *);
+ 
+ #endif /* _LINUX_PNODE_H */
+diff -puN fs/proc/base.c~vfs-mountinfo-only-show-mounts-under-tasks-root fs/proc/base.c
+--- a/fs/proc/base.c~vfs-mountinfo-only-show-mounts-under-tasks-root
++++ a/fs/proc/base.c
+@@ -502,17 +502,14 @@ static const struct inode_operations pro
+ 	.setattr	= proc_setattr,
+ };
+ 
+-struct proc_mounts {
+-	struct seq_file m;
+-	int event;
+-};
+-
+ static int mounts_open_common(struct inode *inode, struct file *file,
+ 			      const struct seq_operations *op)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct nsproxy *nsp;
+ 	struct mnt_namespace *ns = NULL;
++	struct fs_struct *fs = NULL;
++	struct path root;
+ 	struct proc_mounts *p;
+ 	int ret = -EINVAL;
+ 
+@@ -525,40 +522,61 @@ static int mounts_open_common(struct ino
+ 				get_mnt_ns(ns);
+ 		}
+ 		rcu_read_unlock();
+-
++		if (ns)
++			fs = get_fs_struct(task);
+ 		put_task_struct(task);
+ 	}
+ 
+-	if (ns) {
+-		ret = -ENOMEM;
+-		p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+-		if (p) {
+-			file->private_data = &p->m;
+-			ret = seq_open(file, op);
+-			if (!ret) {
+-				p->m.private = ns;
+-				p->event = ns->event;
+-				return 0;
+-			}
+-			kfree(p);
+-		}
+-		put_mnt_ns(ns);
+-	}
++	if (!ns)
++		goto err;
++	if (!fs)
++		goto err_put_ns;
++
++	read_lock(&fs->lock);
++	root = fs->root;
++	path_get(&root);
++	read_unlock(&fs->lock);
++	put_fs_struct(fs);
++
++	ret = -ENOMEM;
++	p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
++	if (!p)
++		goto err_put_path;
++
++	file->private_data = &p->m;
++	ret = seq_open(file, op);
++	if (ret)
++		goto err_free;
++
++	p->m.private = p;
++	p->ns = ns;
++	p->root = root;
++	p->event = ns->event;
++
++	return 0;
++
++ err_free:
++	kfree(p);
++ err_put_path:
++	path_put(&root);
++ err_put_ns:
++	put_mnt_ns(ns);
++ err:
+ 	return ret;
+ }
+ 
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *m = file->private_data;
+-	struct mnt_namespace *ns = m->private;
+-	put_mnt_ns(ns);
++	struct proc_mounts *p = file->private_data;
++	path_put(&p->root);
++	put_mnt_ns(p->ns);
+ 	return seq_release(inode, file);
+ }
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+ 	struct proc_mounts *p = file->private_data;
+-	struct mnt_namespace *ns = p->m.private;
++	struct mnt_namespace *ns = p->ns;
+ 	unsigned res = 0;
+ 
+ 	poll_wait(file, &ns->poll, wait);
+diff -puN fs/seq_file.c~vfs-mountinfo-only-show-mounts-under-tasks-root fs/seq_file.c
+--- a/fs/seq_file.c~vfs-mountinfo-only-show-mounts-under-tasks-root
++++ a/fs/seq_file.c
+@@ -385,6 +385,31 @@ int seq_path(struct seq_file *m, struct 
  EXPORT_SYMBOL(seq_path);
  
-+#ifdef CONFIG_PROC_FS
+ #ifdef CONFIG_PROC_FS
++int seq_path_root(struct seq_file *m, struct path *path, struct path *root,
++		  char *esc)
++{
++	int err = -ENAMETOOLONG;
++	if (m->count < m->size) {
++		char *s = m->buf + m->count;
++		char *p;
++
++		spin_lock(&dcache_lock);
++		p = __d_path(path, root, s, m->size - m->count, true);
++		spin_unlock(&dcache_lock);
++		err = PTR_ERR(p);
++		if (!IS_ERR(p)) {
++			s = mangle_path(s, p, esc);
++			if (s) {
++				p = m->buf + m->count;
++				m->count = s - m->buf;
++				return 0;
++			}
++		}
++	}
++	m->count = m->size;
++	return err;
++}
++
  /*
   * returns the path of the 'dentry' from the root of its filesystem.
   */
-@@ -404,7 +405,7 @@ int seq_dentry(struct seq_file *m, struc
- 	m->count = m->size;
- 	return -1;
- }
--EXPORT_SYMBOL(seq_dentry);
-+#endif /* CONFIG_PROC_FS */
- 
- static void *single_start(struct seq_file *p, loff_t *pos)
- {
-diff -puN include/linux/dcache.h~vfs-optimization-to-proc-pid-mountinfo-patch include/linux/dcache.h
---- a/include/linux/dcache.h~vfs-optimization-to-proc-pid-mountinfo-patch
+diff -puN include/linux/dcache.h~vfs-mountinfo-only-show-mounts-under-tasks-root include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-mountinfo-only-show-mounts-under-tasks-root
 +++ a/include/linux/dcache.h
-@@ -303,7 +303,10 @@ extern int d_validate(struct dentry *, s
+@@ -302,6 +302,7 @@ extern int d_validate(struct dentry *, s
+  */
  extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
  
++extern char *__d_path(struct path *path, struct path *root, char *, int, bool);
  extern char *d_path(struct path *, char *, int);
+ 
+ #ifdef CONFIG_PROC_FS
+diff -puN include/linux/mnt_namespace.h~vfs-mountinfo-only-show-mounts-under-tasks-root include/linux/mnt_namespace.h
+--- a/include/linux/mnt_namespace.h~vfs-mountinfo-only-show-mounts-under-tasks-root
++++ a/include/linux/mnt_namespace.h
+@@ -5,6 +5,7 @@
+ #include <linux/mount.h>
+ #include <linux/sched.h>
+ #include <linux/nsproxy.h>
++#include <linux/seq_file.h>
+ 
+ struct mnt_namespace {
+ 	atomic_t		count;
+@@ -14,6 +15,13 @@ struct mnt_namespace {
+ 	int event;
+ };
+ 
++struct proc_mounts {
++	struct seq_file m; /* must be the first element */
++	struct mnt_namespace *ns;
++	struct path root;
++	int event;
++};
 +
-+#ifdef CONFIG_PROC_FS
- extern char *dentry_path(struct dentry *, char *, int);
-+#endif /* CONFIG_PROC_FS */
- 
- /* Allocation counts.. */
- 
-diff -puN include/linux/seq_file.h~vfs-optimization-to-proc-pid-mountinfo-patch include/linux/seq_file.h
---- a/include/linux/seq_file.h~vfs-optimization-to-proc-pid-mountinfo-patch
+ extern struct mnt_namespace *copy_mnt_ns(unsigned long, struct mnt_namespace *,
+ 		struct fs_struct *);
+ extern void __put_mnt_ns(struct mnt_namespace *ns);
+diff -puN include/linux/seq_file.h~vfs-mountinfo-only-show-mounts-under-tasks-root include/linux/seq_file.h
+--- a/include/linux/seq_file.h~vfs-mountinfo-only-show-mounts-under-tasks-root
 +++ a/include/linux/seq_file.h
-@@ -43,7 +43,10 @@ int seq_printf(struct seq_file *, const 
- 	__attribute__ ((format (printf,2,3)));
- 
+@@ -45,6 +45,8 @@ int seq_printf(struct seq_file *, const 
  int seq_path(struct seq_file *, struct path *, char *);
-+
-+#ifdef CONFIG_PROC_FS
- int seq_dentry(struct seq_file *, struct dentry *, char *);
-+#endif /* CONFIG_PROC_FS */
  
- int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
- int single_release(struct inode *, struct file *);
+ #ifdef CONFIG_PROC_FS
++int seq_path_root(struct seq_file *m, struct path *path, struct path *root,
++		  char *esc);
+ int seq_dentry(struct seq_file *, struct dentry *, char *);
+ #endif /* CONFIG_PROC_FS */
+ 
 _
 
-Patches currently in -mm which might be from linuxram@us.ibm.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 vfs-create-proc-pid-mountinfo.patch
 vfs-mountinfo-mm-fix.patch
@@ -333,4 +459,18 @@ vfs-mountinfo-stable-peer-group-id.patch
 vfs-mountinfo-show-dominating-group-id.patch
 vfs-optimization-to-proc-pid-mountinfo-patch.patch
 vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
 
