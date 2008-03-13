@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-various-kernel-doc-comments.patch added to -mm tree
-Date: Thu, 13 Mar 2008 13:18:59 -0700
-Message-ID: <200803132018.m2DKIxtH031044@imap1.linux-foundation.org>
+Subject: + mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch added to -mm tree
+Date: Thu, 13 Mar 2008 13:21:15 -0700
+Message-ID: <200803132021.m2DKLFL8031131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59083 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752940AbYCMUUW (ORCPT
+	by vger.kernel.org with ESMTP id S1752681AbYCMUWB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 16:20:22 -0400
+	Thu, 13 Mar 2008 16:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, pj@sgi.com, rientjes@google.com
 
 
 The patch titled
-     mm: fix various kernel-doc comments
+     mempolicy: fix parsing of tmpfs mpol mount option
 has been added to the -mm tree.  Its filename is
-     mm-fix-various-kernel-doc-comments.patch
+     mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,206 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix various kernel-doc comments
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mempolicy: fix parsing of tmpfs mpol mount option
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Fix various kernel-doc notation in mm/:
+Parsing of new mode flags in the tmpfs mpol mount option is slightly broken:
 
-filemap.c: add function short description; convert 2 to kernel-doc
-fremap.c: change parameter 'prot' to @prot
-pagewalk.c: change "-" in function parameters to ":"
-slab.c: fix short description of kmem_ptr_validate()
-swap.c: fix description & parameters of put_pages_list()
-swap_state.c: fix function parameters
-vmalloc.c: change "@returns" to "Returns:" since that is not a parameter
+Setting a valid flag works OK:
+	#mount -o remount,mpol=bind=static:1-2 /dev/shm
+	#mount
+	...
+	tmpfs on /dev/shm type tmpfs (rw,mpol=bind=static:1-2)
+	...
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+However, we can't remove them or change them, once we've
+set a valid flag:
+
+	#mount -o remount,mpol=bind:1-2 /dev/shm
+	#mount
+	...
+	tmpfs on /dev/shm type tmpfs (rw,mpol=bind:1-2)
+	...
+
+It SAYS it removed it, but that's just a copy of the input
+string.  If we now try to set it to a different flag, we
+get:
+
+	#mount -o remount,mpol=bind=relative:1-2 /dev/shm
+	mount: /dev/shm not mounted already, or bad option
+
+And on the console, we see:
+	tmpfs: Bad value 'bind' for mount option 'mpol'
+	                      ^ lost remainder of string
+
+Furthermore, bogus flags are accepted with out error.
+Granted, they are a no-op:
+
+	#mount -o remount,mpol=interleave=foo:0-3 /dev/shm
+	#mount
+	...
+	tmpfs on /dev/shm type tmpfs (rw,mpol=interleave=foo:0-3)
+
+Again, that's just a copy of the input string shown by the mount command.
+
+This patch fixes the behavior by pre-zeroing the flags so that only one of the
+mutually exclusive flags can be set at one time.  It also reports an error
+when an unrecognized flag is specified.
+
+The check for both flags being set is removed because it can't happen with
+this implementation.  If we ever want to support multiple non-exclusive flags,
+this area will need rework and we will need to check that any mutually
+exclusive flags aren't specified.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |   20 +++++++++++++++++---
- mm/fremap.c     |    2 +-
- mm/pagewalk.c   |   10 +++++-----
- mm/slab.c       |    5 ++---
- mm/swap.c       |    5 ++---
- mm/swap_state.c |    2 ++
- mm/vmalloc.c    |    6 ++++--
- 7 files changed, 33 insertions(+), 17 deletions(-)
+ mm/shmem.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN mm/filemap.c~mm-fix-various-kernel-doc-comments mm/filemap.c
---- a/mm/filemap.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/filemap.c
-@@ -343,7 +343,7 @@ int sync_page_range(struct inode *inode,
- EXPORT_SYMBOL(sync_page_range);
- 
- /**
-- * sync_page_range_nolock
-+ * sync_page_range_nolock - write & wait on all pages in the passed range without locking
-  * @inode:	target inode
-  * @mapping:	target address_space
-  * @pos:	beginning offset in pages to write
-@@ -611,7 +611,10 @@ int __lock_page_killable(struct page *pa
- 					sync_page_killable, TASK_KILLABLE);
+diff -puN mm/shmem.c~mempolicy-fix-parsing-of-tmpfs-mpol-mount-option mm/shmem.c
+--- a/mm/shmem.c~mempolicy-fix-parsing-of-tmpfs-mpol-mount-option
++++ a/mm/shmem.c
+@@ -1128,20 +1128,26 @@ static int shmem_parse_mpol(char *value,
+ 			*policy_nodes = node_states[N_HIGH_MEMORY];
+ 		err = 0;
+ 	}
++
++	*mode_flags = 0;
+ 	if (flags) {
++		/*
++		 * Currently, we only support two mutually exclusive
++		 * mode flags.
++		 */
+ 		if (!strcmp(flags, "static"))
+ 			*mode_flags |= MPOL_F_STATIC_NODES;
+-		if (!strcmp(flags, "relative"))
++		else if (!strcmp(flags, "relative"))
+ 			*mode_flags |= MPOL_F_RELATIVE_NODES;
+-
+-		if ((*mode_flags & MPOL_F_STATIC_NODES) &&
+-		    (*mode_flags & MPOL_F_RELATIVE_NODES))
+-			err = 1;
++		else
++			err = 1;	/* unrecognized flag */
+ 	}
+ out:
+ 	/* Restore string for error message */
+ 	if (nodelist)
+ 		*--nodelist = ':';
++	if (flags)
++		*--flags = '=';
+ 	return err;
  }
  
--/*
-+/**
-+ * __lock_page_nosync - get a lock on the page, without calling sync_page()
-+ * @page: the page to lock
-+ *
-  * Variant of lock_page that does not require the caller to hold a reference
-  * on the page's mapping.
-  */
-@@ -1538,9 +1541,20 @@ repeat:
- 	return page;
- }
- 
--/*
-+/**
-+ * read_cache_page_async - read into page cache, fill it if needed
-+ * @mapping:	the page's address_space
-+ * @index:	the page index
-+ * @filler:	function to perform the read
-+ * @data:	destination for read data
-+ *
-  * Same as read_cache_page, but don't wait for page to become unlocked
-  * after submitting it to the filler.
-+ *
-+ * Read into the page cache. If a page already exists, and PageUptodate() is
-+ * not set, try to fill the page but don't wait for it to become unlocked.
-+ *
-+ * If the page does not get brought uptodate, return -EIO.
-  */
- struct page *read_cache_page_async(struct address_space *mapping,
- 				pgoff_t index,
-diff -puN mm/fremap.c~mm-fix-various-kernel-doc-comments mm/fremap.c
---- a/mm/fremap.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/fremap.c
-@@ -113,7 +113,7 @@ static int populate_range(struct mm_stru
-  * mmap()/mremap() it does not create any new vmas. The new mappings are
-  * also safe across swapout.
-  *
-- * NOTE: the 'prot' parameter right now is ignored (but must be zero),
-+ * NOTE: the @prot parameter right now is ignored (but must be zero),
-  * and the vma's default protection is used. Arbitrary protections
-  * might be implemented in the future.
-  */
-diff -puN mm/pagewalk.c~mm-fix-various-kernel-doc-comments mm/pagewalk.c
---- a/mm/pagewalk.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/pagewalk.c
-@@ -77,11 +77,11 @@ static int walk_pud_range(pgd_t *pgd, un
- 
- /**
-  * walk_page_range - walk a memory map's page tables with a callback
-- * @mm - memory map to walk
-- * @addr - starting address
-- * @end - ending address
-- * @walk - set of callbacks to invoke for each level of the tree
-- * @private - private data passed to the callback function
-+ * @mm: memory map to walk
-+ * @addr: starting address
-+ * @end: ending address
-+ * @walk: set of callbacks to invoke for each level of the tree
-+ * @private: private data passed to the callback function
-  *
-  * Recursively walk the page table for the memory area in a VMA,
-  * calling supplied callbacks. Callbacks are called in-order (first
-diff -puN mm/slab.c~mm-fix-various-kernel-doc-comments mm/slab.c
---- a/mm/slab.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/slab.c
-@@ -3624,12 +3624,11 @@ void *kmem_cache_alloc(struct kmem_cache
- EXPORT_SYMBOL(kmem_cache_alloc);
- 
- /**
-- * kmem_ptr_validate - check if an untrusted pointer might
-- *	be a slab entry.
-+ * kmem_ptr_validate - check if an untrusted pointer might be a slab entry.
-  * @cachep: the cache we're checking against
-  * @ptr: pointer to validate
-  *
-- * This verifies that the untrusted pointer looks sane:
-+ * This verifies that the untrusted pointer looks sane;
-  * it is _not_ a guarantee that the pointer is actually
-  * part of the slab cache in question, but it at least
-  * validates that the pointer can be dereferenced and
-diff -puN mm/swap.c~mm-fix-various-kernel-doc-comments mm/swap.c
---- a/mm/swap.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/swap.c
-@@ -78,12 +78,11 @@ void put_page(struct page *page)
- EXPORT_SYMBOL(put_page);
- 
- /**
-- * put_pages_list(): release a list of pages
-+ * put_pages_list() - release a list of pages
-+ * @pages: list of pages threaded on page->lru
-  *
-  * Release a list of pages which are strung together on page.lru.  Currently
-  * used by read_cache_pages() and related error recovery code.
-- *
-- * @pages: list of pages threaded on page->lru
-  */
- void put_pages_list(struct list_head *pages)
- {
-diff -puN mm/swap_state.c~mm-fix-various-kernel-doc-comments mm/swap_state.c
---- a/mm/swap_state.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/swap_state.c
-@@ -115,6 +115,7 @@ void __delete_from_swap_cache(struct pag
- /**
-  * add_to_swap - allocate swap space for a page
-  * @page: page we want to move to swap
-+ * @gfp_mask: memory allocation flags
-  *
-  * Allocate swap space for the page and add the page to the
-  * swap cache.  Caller needs to hold the page lock. 
-@@ -315,6 +316,7 @@ struct page *read_swap_cache_async(swp_e
- /**
-  * swapin_readahead - swap in pages in hope we need them soon
-  * @entry: swap entry of this memory
-+ * @gfp_mask: memory allocation flags
-  * @vma: user vma this address belongs to
-  * @addr: target address for mempolicy
-  *
-diff -puN mm/vmalloc.c~mm-fix-various-kernel-doc-comments mm/vmalloc.c
---- a/mm/vmalloc.c~mm-fix-various-kernel-doc-comments
-+++ a/mm/vmalloc.c
-@@ -757,7 +757,8 @@ finished:
-  *	@vma:		vma to cover (map full range of vma)
-  *	@addr:		vmalloc memory
-  *	@pgoff:		number of pages into addr before first page to map
-- *	@returns:	0 for success, -Exxx on failure
-+ *
-+ *	Returns:	0 for success, -Exxx on failure
-  *
-  *	This function checks that addr is a valid vmalloc'ed area, and
-  *	that it is big enough to cover the vma. Will return failure if
-@@ -829,7 +830,8 @@ static int f(pte_t *pte, pgtable_t table
- /**
-  *	alloc_vm_area - allocate a range of kernel address space
-  *	@size:		size of the area
-- *	@returns:	NULL on failure, vm_struct on success
-+ *
-+ *	Returns:	NULL on failure, vm_struct on success
-  *
-  *	This function reserves a range of kernel address space, and
-  *	allocates pagetables to map that range.  No actual mappings
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 origin.patch
-kernel-doc-set-verbose-mode-via-environment.patch
-mm-fix-various-kernel-doc-comments.patch
-git-acpi.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
 mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
 mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-profile-likely-unlikely-macros.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
 
