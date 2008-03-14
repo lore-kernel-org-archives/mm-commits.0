@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + b43-replace-limit_value-macro-with-clamp_val.patch added to -mm tree
-Date: Fri, 14 Mar 2008 12:48:17 -0700
-Message-ID: <200803141948.m2EJmHPM016308@imap1.linux-foundation.org>
+Subject: + add-macros-similar-to-min-max-min_t-max_t.patch added to -mm tree
+Date: Fri, 14 Mar 2008 12:48:10 -0700
+Message-ID: <200803141948.m2EJmALv016299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752857AbYCNTuE (ORCPT
+	by vger.kernel.org with ESMTP id S1753756AbYCNTuV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:50:04 -0400
+	Fri, 14 Mar 2008 15:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linville@tuxdriver.com, mb@bu3sch.de
+Cc: harvey.harrison@gmail.com, acme@ghostprotocols.net, akpm@linux-foundation.org, bzolnier@gmail.com, dtor@mail.ru, htejun@gmail.com, jeff@garzik.org, jkosina@suse.cz, linville@tuxdriver.com, mb@bu3sch.de, mchehab@infradead.org, miklos@szeredi.hu
 
 
 The patch titled
-     b43: replace limit_value macro with clamp_val
+     Add macros similar to min/max/min_t/max_t
 has been added to the -mm tree.  Its filename is
-     b43-replace-limit_value-macro-with-clamp_val.patch
+     add-macros-similar-to-min-max-min_t-max_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,190 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: b43: replace limit_value macro with clamp_val
+Subject: Add macros similar to min/max/min_t/max_t
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-kernel-provided clamp_val is identical, delete the private limit_value helper.
+Also, change the variable names used in the min/max macros to avoid shadowed
+variable warnings when min/max min_t/max_t are nested.
 
+Small formatting changes to make all the macros have a similar form.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: fix v4l build]
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Cc: Michael Buesch <mb@bu3sch.de>
 Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/b43.h  |   16 ----------------
- drivers/net/wireless/b43/lo.c   |    4 ++--
- drivers/net/wireless/b43/main.c |    8 ++++----
- drivers/net/wireless/b43/phy.c  |   24 ++++++++++++------------
- 4 files changed, 18 insertions(+), 34 deletions(-)
+ drivers/media/video/bt8xx/bttvp.h    |    2 
+ drivers/media/video/usbvideo/vicam.c |    6 --
+ include/linux/kernel.h               |   63 +++++++++++++++++--------
+ 3 files changed, 45 insertions(+), 26 deletions(-)
 
-diff -puN drivers/net/wireless/b43/b43.h~b43-replace-limit_value-macro-with-clamp_val drivers/net/wireless/b43/b43.h
---- a/drivers/net/wireless/b43/b43.h~b43-replace-limit_value-macro-with-clamp_val
-+++ a/drivers/net/wireless/b43/b43.h
-@@ -843,22 +843,6 @@ static inline bool __b43_warn_on_dummy(b
- # define B43_WARN_ON(x)	__b43_warn_on_dummy(unlikely(!!(x)))
- #endif
+diff -puN drivers/media/video/bt8xx/bttvp.h~add-macros-similar-to-min-max-min_t-max_t drivers/media/video/bt8xx/bttvp.h
+--- a/drivers/media/video/bt8xx/bttvp.h~add-macros-similar-to-min-max-min_t-max_t
++++ a/drivers/media/video/bt8xx/bttvp.h
+@@ -82,8 +82,6 @@
+ /* Limits scaled width, which must be a multiple of 4. */
+ #define MAX_HACTIVE (0x3FF & -4)
  
--/** Limit a value between two limits */
--#ifdef limit_value
--# undef limit_value
--#endif
--#define limit_value(value, min, max)  \
--	({						\
--		typeof(value) __value = (value);	\
--		typeof(value) __min = (min);		\
--		typeof(value) __max = (max);		\
--		if (__value < __min)			\
--			__value = __min;		\
--		else if (__value > __max)		\
--			__value = __max;		\
--		__value;				\
--	})
+-#define clamp(x, low, high) min (max (low, x), high)
 -
- /* Convert an integer to a Q5.2 value */
- #define INT_TO_Q52(i)	((i) << 2)
- /* Convert a Q5.2 value to an integer (precision loss!) */
-diff -puN drivers/net/wireless/b43/lo.c~b43-replace-limit_value-macro-with-clamp_val drivers/net/wireless/b43/lo.c
---- a/drivers/net/wireless/b43/lo.c~b43-replace-limit_value-macro-with-clamp_val
-+++ a/drivers/net/wireless/b43/lo.c
-@@ -366,7 +366,7 @@ static void lo_measure_txctl_values(stru
- 		if (lb_gain > 10) {
- 			radio_pctl_reg = 0;
- 			pga = abs(10 - lb_gain) / 6;
--			pga = limit_value(pga, 0, 15);
-+			pga = clamp_val(pga, 0, 15);
- 		} else {
- 			int cmp_val;
- 			int tmp;
-@@ -510,7 +510,7 @@ static void lo_measure_gain_values(struc
- 			phy->lna_lod_gain = 1;
- 			trsw_rx_gain -= 8;
- 		}
--		trsw_rx_gain = limit_value(trsw_rx_gain, 0, 0x2D);
-+		trsw_rx_gain = clamp_val(trsw_rx_gain, 0, 0x2D);
- 		phy->pga_gain = trsw_rx_gain / 3;
- 		if (phy->pga_gain >= 5) {
- 			phy->pga_gain -= 5;
-diff -puN drivers/net/wireless/b43/main.c~b43-replace-limit_value-macro-with-clamp_val drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~b43-replace-limit_value-macro-with-clamp_val
-+++ a/drivers/net/wireless/b43/main.c
-@@ -1052,10 +1052,10 @@ static void handle_irq_noise(struct b43_
- 	/* Get the noise samples. */
- 	B43_WARN_ON(dev->noisecalc.nr_samples >= 8);
- 	i = dev->noisecalc.nr_samples;
--	noise[0] = limit_value(noise[0], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
--	noise[1] = limit_value(noise[1], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
--	noise[2] = limit_value(noise[2], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
--	noise[3] = limit_value(noise[3], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
-+	noise[0] = clamp_val(noise[0], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
-+	noise[1] = clamp_val(noise[1], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
-+	noise[2] = clamp_val(noise[2], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
-+	noise[3] = clamp_val(noise[3], 0, ARRAY_SIZE(phy->nrssi_lt) - 1);
- 	dev->noisecalc.samples[i][0] = phy->nrssi_lt[noise[0]];
- 	dev->noisecalc.samples[i][1] = phy->nrssi_lt[noise[1]];
- 	dev->noisecalc.samples[i][2] = phy->nrssi_lt[noise[2]];
-diff -puN drivers/net/wireless/b43/phy.c~b43-replace-limit_value-macro-with-clamp_val drivers/net/wireless/b43/phy.c
---- a/drivers/net/wireless/b43/phy.c~b43-replace-limit_value-macro-with-clamp_val
-+++ a/drivers/net/wireless/b43/phy.c
-@@ -1572,7 +1572,7 @@ static void b43_phy_initg(struct b43_wld
- 		 * the value 0x7FFFFFFF here. I think that is some weird
- 		 * compiler optimization in the original driver.
- 		 * Essentially, what we do here is resetting all NRSSI LT
--		 * entries to -32 (see the limit_value() in nrssi_hw_update())
-+		 * entries to -32 (see the clamp_val() in nrssi_hw_update())
- 		 */
- 		b43_nrssi_hw_update(dev, 0xFFFF);	//FIXME?
- 		b43_calc_nrssi_threshold(dev);
-@@ -1634,13 +1634,13 @@ static s8 b43_phy_estimate_power_out(str
- 	switch (phy->type) {
- 	case B43_PHYTYPE_A:
- 		tmp += 0x80;
--		tmp = limit_value(tmp, 0x00, 0xFF);
-+		tmp = clamp_val(tmp, 0x00, 0xFF);
- 		dbm = phy->tssi2dbm[tmp];
- 		//TODO: There's a FIXME on the specs
- 		break;
- 	case B43_PHYTYPE_B:
- 	case B43_PHYTYPE_G:
--		tmp = limit_value(tmp, 0x00, 0x3F);
-+		tmp = clamp_val(tmp, 0x00, 0x3F);
- 		dbm = phy->tssi2dbm[tmp];
- 		break;
- 	default:
-@@ -1699,8 +1699,8 @@ void b43_put_attenuation_into_ranges(str
- 		break;
- 	}
+ #define BTTV_NORMS    (\
+ 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+ 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+diff -puN drivers/media/video/usbvideo/vicam.c~add-macros-similar-to-min-max-min_t-max_t drivers/media/video/usbvideo/vicam.c
+--- a/drivers/media/video/usbvideo/vicam.c~add-macros-similar-to-min-max-min_t-max_t
++++ a/drivers/media/video/usbvideo/vicam.c
+@@ -70,12 +70,6 @@
  
--	*_rfatt = limit_value(rfatt, rf_min, rf_max);
--	*_bbatt = limit_value(bbatt, bb_min, bb_max);
-+	*_rfatt = clamp_val(rfatt, rf_min, rf_max);
-+	*_bbatt = clamp_val(bbatt, bb_min, bb_max);
- }
+ #define VICAM_HEADER_SIZE       64
  
- /* http://bcm-specs.sipsolutions.net/RecalculateTransmissionPower */
-@@ -1795,7 +1795,7 @@ void b43_phy_xmitpower(struct b43_wldev 
- 			/* Get desired power (in Q5.2) */
- 			desired_pwr = INT_TO_Q52(phy->power_level);
- 			/* And limit it. max_pwr already is Q5.2 */
--			desired_pwr = limit_value(desired_pwr, 0, max_pwr);
-+			desired_pwr = clamp_val(desired_pwr, 0, max_pwr);
- 			if (b43_debug(dev, B43_DBG_XMITPOWER)) {
- 				b43dbg(dev->wl,
- 				       "Current TX power output: " Q52_FMT
-@@ -1908,7 +1908,7 @@ static inline
- 		f = q;
- 		i++;
- 	} while (delta >= 2);
--	entry[index] = limit_value(b43_tssi2dbm_ad(m1 * f, 8192), -127, 128);
-+	entry[index] = clamp_val(b43_tssi2dbm_ad(m1 * f, 8192), -127, 128);
- 	return 0;
- }
+-#define clamp( x, l, h )        max_t( __typeof__( x ),         \
+-				       ( l ),                   \
+-				       min_t( __typeof__( x ),  \
+-					      ( h ),            \
+-					      ( x ) ) )
+-
+ /* Not sure what all the bytes in these char
+  * arrays do, but they're necessary to make
+  * the camera work.
+diff -puN include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t include/linux/kernel.h
+--- a/include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t
++++ a/include/linux/kernel.h
+@@ -335,33 +335,60 @@ extern void print_hex_dump_bytes(const c
+ #endif /* __LITTLE_ENDIAN */
  
-@@ -2452,7 +2452,7 @@ void b43_nrssi_hw_update(struct b43_wlde
- 	for (i = 0; i < 64; i++) {
- 		tmp = b43_nrssi_hw_read(dev, i);
- 		tmp -= val;
--		tmp = limit_value(tmp, -32, 31);
-+		tmp = clamp_val(tmp, -32, 31);
- 		b43_nrssi_hw_write(dev, i, tmp);
- 	}
- }
-@@ -2469,7 +2469,7 @@ void b43_nrssi_mem_update(struct b43_wld
- 		tmp = (i - delta) * phy->nrssislope;
- 		tmp /= 0x10000;
- 		tmp += 0x3A;
--		tmp = limit_value(tmp, 0, 0x3F);
-+		tmp = clamp_val(tmp, 0, 0x3F);
- 		phy->nrssi_lt[i] = tmp;
- 	}
- }
-@@ -2906,7 +2906,7 @@ void b43_calc_nrssi_threshold(struct b43
- 			} else
- 				threshold = phy->nrssi[1] - 5;
+ /*
+- * min()/max() macros that also do
++ * min()/max()/clamp() macros that also do
+  * strict type-checking.. See the
+  * "unnecessary" pointer comparison.
+  */
+-#define min(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x < _y ? _x : _y; })
+-
+-#define max(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x > _y ? _x : _y; })
++#define min(x, y) ({				\
++	typeof(x) _min1 = (x);			\
++	typeof(y) _min2 = (y);			\
++	(void) (&_min1 == &_min2);		\
++	_min1 < _min2 ? _min1 : _min2; })
++
++#define max(x, y) ({				\
++	typeof(x) _max1 = (x);			\
++	typeof(y) _max2 = (y);			\
++	(void) (&_max1 == &_max2);		\
++	_max1 > _max2 ? _max1 : _max2; })
++
++#define clamp(val, min, max) ({			\
++	typeof(val) __val = (val);		\
++	typeof(min) __min = (min);		\
++	typeof(max) __max = (max);		\
++	(void) (&__val == &__min);		\
++	(void) (&__val == &__max);		\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
  
--			threshold = limit_value(threshold, 0, 0x3E);
-+			threshold = clamp_val(threshold, 0, 0x3E);
- 			b43_phy_read(dev, 0x0020);	/* dummy read */
- 			b43_phy_write(dev, 0x0020,
- 				      (((u16) threshold) << 8) | 0x001C);
-@@ -2957,7 +2957,7 @@ void b43_calc_nrssi_threshold(struct b43
- 			else
- 				a += 32;
- 			a = a >> 6;
--			a = limit_value(a, -31, 31);
-+			a = clamp_val(a, -31, 31);
+ /*
+  * ..and if you can't take the strict
+  * types, you can specify one yourself.
+  *
+- * Or not use min/max at all, of course.
++ * Or not use min/max/clamp at all, of course.
+  */
+-#define min_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
+-#define max_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
+-
++#define min_t(type, x, y) ({			\
++	type __min1 = (x);			\
++	type __min2 = (y);			\
++	__min1 < __min2 ? __min1: __min2; })
++
++#define max_t(type, x, y) ({			\
++	type __max1 = (x);			\
++	type __max2 = (y);			\
++	__max1 > __max2 ? __max1: __max2; })
++
++#define clamp_t(type, val, min, max) ({		\
++	type __val = (val);			\
++	type __min = (min);			\
++	type __max = (max);			\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
++
++#define clamp_val(val, min, max) ({		\
++	typeof(val) __val = (val);		\
++	typeof(val) __min = (min);		\
++	typeof(val) __max = (max);		\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
  
- 			b = b * (phy->nrssi[1] - phy->nrssi[0]);
- 			b += (phy->nrssi[0] << 6);
-@@ -2966,7 +2966,7 @@ void b43_calc_nrssi_threshold(struct b43
- 			else
- 				b += 32;
- 			b = b >> 6;
--			b = limit_value(b, -31, 31);
-+			b = clamp_val(b, -31, 31);
- 
- 			tmp_u16 = b43_phy_read(dev, 0x048A) & 0xF000;
- 			tmp_u16 |= ((u32) b & 0x0000003F);
+ /**
+  * container_of - cast a member of a structure out to the containing structure
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
