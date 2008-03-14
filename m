@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wan-new-ppp-code-for-generic-hdlc.patch added to -mm tree
-Date: Fri, 14 Mar 2008 13:18:22 -0700
-Message-ID: <200803142018.m2EKIMJr017535@imap1.linux-foundation.org>
+Subject: + wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 14 Mar 2008 13:20:57 -0700
+Message-ID: <200803142020.m2EKKwC7017601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbYCNUSp (ORCPT
+	by vger.kernel.org with ESMTP id S1752402AbYCNUVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 16:18:45 -0400
+	Fri, 14 Mar 2008 16:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khc@pm.waw.pl, jeff@garzik.org, paulkf@microgate.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org, khc@pm.waw.pl, paulkf@microgate.com
 
 
 The patch titled
-     WAN: new PPP code for generic HDLC
+     wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     wan-new-ppp-code-for-generic-hdlc.patch
+     wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,766 +34,423 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WAN: new PPP code for generic HDLC
-From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-New synchronous PPP implementation for generic HDLC.
+ERROR: "foo* bar" should be "foo *bar"
+#135: FILE: drivers/net/wan/hdlc_ppp.c:107:
++static inline struct ppp* get_ppp(struct net_device *dev)
 
-Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
+ERROR: "foo* bar" should be "foo *bar"
+#141: FILE: drivers/net/wan/hdlc_ppp.c:112:
++static inline struct proto* get_proto(struct net_device *dev, u16 pid)
+
+ERROR: "foo* bar" should be "foo *bar"
+#158: FILE: drivers/net/wan/hdlc_ppp.c:128:
++static inline const char* proto_name(u16 pid)
+
+ERROR: "(foo*)" should be "(foo *)"
+#178: FILE: drivers/net/wan/hdlc_ppp.c:144:
++	struct hdlc_header *data = (struct hdlc_header*)skb->data;
+
+ERROR: "(foo*)" should be "(foo *)"
+#227: FILE: drivers/net/wan/hdlc_ppp.c:177:
++	data = (struct hdlc_header*)skb->data;
+
+WARNING: line over 80 characters
+#342: FILE: drivers/net/wan/hdlc_ppp.c:285:
++	{IRC|SCR|3,     INV     , INV ,   INV   , INV ,  INV    ,   INV   }, /* START */
+
+WARNING: line over 80 characters
+#343: FILE: drivers/net/wan/hdlc_ppp.c:286:
++	{   INV   ,      0      ,  0  ,    0    ,  0  ,   0     ,    0    }, /* STOP */
+
+WARNING: line over 80 characters
+#344: FILE: drivers/net/wan/hdlc_ppp.c:287:
++	{   INV   ,     INV     ,STR|2,  SCR|3  ,SCR|3,  SCR|5  ,   INV   }, /* TO+ */
+
+ERROR: need space after that ',' (ctx:WxV)
+#344: FILE: drivers/net/wan/hdlc_ppp.c:287:
++	{   INV   ,     INV     ,STR|2,  SCR|3  ,SCR|3,  SCR|5  ,   INV   }, /* TO+ */
+ 	                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#344: FILE: drivers/net/wan/hdlc_ppp.c:287:
++	{   INV   ,     INV     ,STR|2,  SCR|3  ,SCR|3,  SCR|5  ,   INV   }, /* TO+ */
+ 	                                        ^
+
+WARNING: line over 80 characters
+#345: FILE: drivers/net/wan/hdlc_ppp.c:288:
++	{   INV   ,     INV     ,  1  ,    1    ,  1  ,    1    ,   INV   }, /* TO- */
+
+WARNING: line over 80 characters
+#346: FILE: drivers/net/wan/hdlc_ppp.c:289:
++	{  STA|0  ,IRC|SCR|SCA|5,  2  ,  SCA|5  ,SCA|6,  SCA|5  ,SCR|SCA|5}, /* RCR+ */
+
+ERROR: need space after that ',' (ctx:WxV)
+#346: FILE: drivers/net/wan/hdlc_ppp.c:289:
++	{  STA|0  ,IRC|SCR|SCA|5,  2  ,  SCA|5  ,SCA|6,  SCA|5  ,SCR|SCA|5}, /* RCR+ */
+ 	          ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#346: FILE: drivers/net/wan/hdlc_ppp.c:289:
++	{  STA|0  ,IRC|SCR|SCA|5,  2  ,  SCA|5  ,SCA|6,  SCA|5  ,SCR|SCA|5}, /* RCR+ */
+ 	                                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#346: FILE: drivers/net/wan/hdlc_ppp.c:289:
++	{  STA|0  ,IRC|SCR|SCA|5,  2  ,  SCA|5  ,SCA|6,  SCA|5  ,SCR|SCA|5}, /* RCR+ */
+ 	                                                        ^
+
+WARNING: line over 80 characters
+#347: FILE: drivers/net/wan/hdlc_ppp.c:290:
++	{  STA|0  ,IRC|SCR|SCN|3,  2  ,  SCN|3  ,SCN|4,  SCN|3  ,SCR|SCN|3}, /* RCR- */
+
+ERROR: need space after that ',' (ctx:WxV)
+#347: FILE: drivers/net/wan/hdlc_ppp.c:290:
++	{  STA|0  ,IRC|SCR|SCN|3,  2  ,  SCN|3  ,SCN|4,  SCN|3  ,SCR|SCN|3}, /* RCR- */
+ 	          ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#347: FILE: drivers/net/wan/hdlc_ppp.c:290:
++	{  STA|0  ,IRC|SCR|SCN|3,  2  ,  SCN|3  ,SCN|4,  SCN|3  ,SCR|SCN|3}, /* RCR- */
+ 	                                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#347: FILE: drivers/net/wan/hdlc_ppp.c:290:
++	{  STA|0  ,IRC|SCR|SCN|3,  2  ,  SCN|3  ,SCN|4,  SCN|3  ,SCR|SCN|3}, /* RCR- */
+ 	                                                        ^
+
+WARNING: line over 80 characters
+#348: FILE: drivers/net/wan/hdlc_ppp.c:291:
++	{  STA|0  ,    STA|1    ,  2  ,  IRC|4  ,SCR|3,    6    , SCR|3   }, /* RCA */
+
+ERROR: need space after that ',' (ctx:WxV)
+#348: FILE: drivers/net/wan/hdlc_ppp.c:291:
++	{  STA|0  ,    STA|1    ,  2  ,  IRC|4  ,SCR|3,    6    , SCR|3   }, /* RCA */
+ 	                                        ^
+
+WARNING: line over 80 characters
+#349: FILE: drivers/net/wan/hdlc_ppp.c:292:
++	{  STA|0  ,    STA|1    ,  2  ,IRC|SCR|3,SCR|3,IRC|SCR|5, SCR|3   }, /* RCN */
+
+ERROR: need space after that ',' (ctx:WxV)
+#349: FILE: drivers/net/wan/hdlc_ppp.c:292:
++	{  STA|0  ,    STA|1    ,  2  ,IRC|SCR|3,SCR|3,IRC|SCR|5, SCR|3   }, /* RCN */
+ 	                              ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#349: FILE: drivers/net/wan/hdlc_ppp.c:292:
++	{  STA|0  ,    STA|1    ,  2  ,IRC|SCR|3,SCR|3,IRC|SCR|5, SCR|3   }, /* RCN */
+ 	                                        ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#349: FILE: drivers/net/wan/hdlc_ppp.c:292:
++	{  STA|0  ,    STA|1    ,  2  ,IRC|SCR|3,SCR|3,IRC|SCR|5, SCR|3   }, /* RCN */
+ 	                                              ^
+
+WARNING: line over 80 characters
+#350: FILE: drivers/net/wan/hdlc_ppp.c:293:
++	{  STA|0  ,    STA|1    ,STA|2,  STA|3  ,STA|3,  STA|3  ,ZRC|STA|2}, /* RTR */
+
+ERROR: need space after that ',' (ctx:WxV)
+#350: FILE: drivers/net/wan/hdlc_ppp.c:293:
++	{  STA|0  ,    STA|1    ,STA|2,  STA|3  ,STA|3,  STA|3  ,ZRC|STA|2}, /* RTR */
+ 	                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#350: FILE: drivers/net/wan/hdlc_ppp.c:293:
++	{  STA|0  ,    STA|1    ,STA|2,  STA|3  ,STA|3,  STA|3  ,ZRC|STA|2}, /* RTR */
+ 	                                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#350: FILE: drivers/net/wan/hdlc_ppp.c:293:
++	{  STA|0  ,    STA|1    ,STA|2,  STA|3  ,STA|3,  STA|3  ,ZRC|STA|2}, /* RTR */
+ 	                                                        ^
+
+WARNING: line over 80 characters
+#351: FILE: drivers/net/wan/hdlc_ppp.c:294:
++	{    0    ,      1      ,  1  ,    3    ,  3  ,    5    ,  SCR|3  }, /* RTA */
+
+WARNING: line over 80 characters
+#352: FILE: drivers/net/wan/hdlc_ppp.c:295:
++	{  SCJ|0  ,    SCJ|1    ,SCJ|2,  SCJ|3  ,SCJ|4,  SCJ|5  ,  SCJ|6  }, /* RUC */
+
+ERROR: need space after that ',' (ctx:WxV)
+#352: FILE: drivers/net/wan/hdlc_ppp.c:295:
++	{  SCJ|0  ,    SCJ|1    ,SCJ|2,  SCJ|3  ,SCJ|4,  SCJ|5  ,  SCJ|6  }, /* RUC */
+ 	                        ^
+
+ERROR: need space after that ',' (ctx:WxV)
+#352: FILE: drivers/net/wan/hdlc_ppp.c:295:
++	{  SCJ|0  ,    SCJ|1    ,SCJ|2,  SCJ|3  ,SCJ|4,  SCJ|5  ,  SCJ|6  }, /* RUC */
+ 	                                        ^
+
+WARNING: line over 80 characters
+#353: FILE: drivers/net/wan/hdlc_ppp.c:296:
++	{    0    ,      1      ,  2  ,    3    ,  3  ,    5    ,    6    }, /* RXJ+ */
+
+WARNING: line over 80 characters
+#354: FILE: drivers/net/wan/hdlc_ppp.c:297:
++	{    0    ,      1      ,  1  ,    1    ,  1  ,    1    ,IRC|STR|2}, /* RXJ- */
+
+ERROR: need space after that ',' (ctx:WxV)
+#354: FILE: drivers/net/wan/hdlc_ppp.c:297:
++	{    0    ,      1      ,  1  ,    1    ,  1  ,    1    ,IRC|STR|2}, /* RXJ- */
+ 	                                                        ^
+
+ERROR: do not use assignment in if condition
+#440: FILE: drivers/net/wan/hdlc_ppp.c:383:
++	if (!(out = kmalloc(len, GFP_ATOMIC))) {
+
+ERROR: "(foo*)" should be "(foo *)"
+#492: FILE: drivers/net/wan/hdlc_ppp.c:433:
++	struct hdlc_header *hdr = (struct hdlc_header*)skb->data;
+
+ERROR: "(foo*)" should be "(foo *)"
+#509: FILE: drivers/net/wan/hdlc_ppp.c:450:
++	cp = (struct cp_header*)skb_pull(skb, sizeof(struct hdlc_header));
+
+ERROR: "(foo*)" should be "(foo *)"
+#550: FILE: drivers/net/wan/hdlc_ppp.c:491:
++			pid = ntohs(*(__be16*)skb->data);
+
+ERROR: need space after that ',' (ctx:VxV)
+#726: FILE: drivers/net/wan/hdlc_ppp.c:665:
++		result = hdlc->attach(dev, ENCODING_NRZ,PARITY_CRC16_PR1_CCITT);
+ 		                                       ^
+
+total: 28 errors, 13 warnings, 741 lines checked
+
+./patches/wan-new-ppp-code-for-generic-hdlc.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/Makefile   |    2 
- drivers/net/wan/hdlc_ppp.c |  651 ++++++++++++++++++++++++++++++++---
- 2 files changed, 603 insertions(+), 50 deletions(-)
+ drivers/net/wan/hdlc_ppp.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/wan/Makefile~wan-new-ppp-code-for-generic-hdlc drivers/net/wan/Makefile
---- a/drivers/net/wan/Makefile~wan-new-ppp-code-for-generic-hdlc
-+++ a/drivers/net/wan/Makefile
-@@ -14,7 +14,7 @@ obj-$(CONFIG_HDLC_RAW)		+= hdlc_raw.o
- obj-$(CONFIG_HDLC_RAW_ETH)	+= hdlc_raw_eth.o
- obj-$(CONFIG_HDLC_CISCO)	+= hdlc_cisco.o
- obj-$(CONFIG_HDLC_FR)		+= hdlc_fr.o
--obj-$(CONFIG_HDLC_PPP)		+= hdlc_ppp.o	syncppp.o
-+obj-$(CONFIG_HDLC_PPP)		+= hdlc_ppp.o
- obj-$(CONFIG_HDLC_X25)		+= hdlc_x25.o
- 
- pc300-y				:= pc300_drv.o
-diff -puN drivers/net/wan/hdlc_ppp.c~wan-new-ppp-code-for-generic-hdlc drivers/net/wan/hdlc_ppp.c
---- a/drivers/net/wan/hdlc_ppp.c~wan-new-ppp-code-for-generic-hdlc
+diff -puN drivers/net/wan/hdlc_ppp.c~wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes drivers/net/wan/hdlc_ppp.c
+--- a/drivers/net/wan/hdlc_ppp.c~wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes
 +++ a/drivers/net/wan/hdlc_ppp.c
-@@ -2,7 +2,7 @@
-  * Generic HDLC support routines for Linux
-  * Point-to-point protocol support
-  *
-- * Copyright (C) 1999 - 2006 Krzysztof Halasa <khc@pm.waw.pl>
-+ * Copyright (C) 1999 - 2008 Krzysztof Halasa <khc@pm.waw.pl>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of version 2 of the GNU General Public License
-@@ -19,87 +19,631 @@
- #include <linux/skbuff.h>
- #include <linux/pkt_sched.h>
- #include <linux/inetdevice.h>
--#include <linux/lapb.h>
--#include <linux/rtnetlink.h>
- #include <linux/hdlc.h>
--#include <net/syncppp.h>
-+#include <linux/spinlock.h>
- 
--struct ppp_state {
--	struct ppp_device pppdev;
--	struct ppp_device *syncppp_ptr;
--	int (*old_change_mtu)(struct net_device *dev, int new_mtu);
-+#define DEBUG_CP		0 /* also bytes# to dump */
-+#define DEBUG_STATE		0
-+#define DEBUG_HARD_HEADER	0
-+
-+#define HDLC_ADDR_ALLSTATIONS	0xFF
-+#define HDLC_CTRL_UI		0x03
-+
-+#define PID_LCP			0xC021
-+#define PID_IP			0x0021
-+#define PID_IPCP		0x8021
-+#define PID_IPV6		0x0057
-+#define PID_IPV6CP		0x8057
-+
-+enum {IDX_LCP = 0, IDX_IPCP, IDX_IPV6CP, IDX_COUNT};
-+enum {CP_CONF_REQ = 1, CP_CONF_ACK, CP_CONF_NAK, CP_CONF_REJ, CP_TERM_REQ,
-+      CP_TERM_ACK, CP_CODE_REJ, LCP_PROTO_REJ, LCP_ECHO_REQ, LCP_ECHO_REPLY,
-+      LCP_DISC_REQ, CP_CODES};
-+#if DEBUG_CP
-+static const char *const code_names[CP_CODES] = {
-+	"0", "ConfReq", "ConfAck", "ConfNak", "ConfRej", "TermReq",
-+	"TermAck", "CodeRej", "ProtoRej", "EchoReq", "EchoReply", "Discard"
- };
-+static char debug_buffer[64 + 3 * DEBUG_CP];
-+#endif
-+
-+enum {LCP_OPTION_MRU = 1, LCP_OPTION_ACCM, LCP_OPTION_MAGIC = 5};
-+
-+struct hdlc_header {
-+	u8 address;
-+	u8 control;
-+	__be16 protocol;
-+};
-+
-+struct cp_header {
-+	u8 code;
-+	u8 id;
-+	__be16 len;
-+};
-+
-+
-+struct proto {
-+	struct net_device *dev;
-+	struct timer_list timer;
-+	unsigned long timeout;
-+	u16 pid;		/* protocol ID */
-+	u8 state;
-+	u8 cr_id;		/* ID of last Configuration-Request */
-+	u8 restart_counter;
-+};
-+
-+struct ppp {
-+	struct proto protos[IDX_COUNT];
-+	spinlock_t lock;
-+	unsigned long last_pong;
-+	unsigned int req_timeout, cr_retries, term_retries;
-+	unsigned int keepalive_interval, keepalive_timeout;
-+	u8 seq;			/* local sequence number for requests */
-+	u8 echo_id;		/* ID of last Echo-Request (LCP) */
-+};
-+
-+enum {CLOSED = 0, STOPPED, STOPPING, REQ_SENT, ACK_RECV, ACK_SENT, OPENED,
-+      STATES, STATE_MASK = 0xF};
-+enum {START = 0, STOP, TO_GOOD, TO_BAD, RCR_GOOD, RCR_BAD, RCA, RCN, RTR, RTA,
-+      RUC, RXJ_GOOD, RXJ_BAD, EVENTS};
-+enum {INV = 0x10, IRC = 0x20, ZRC = 0x40, SCR = 0x80, SCA = 0x100,
-+      SCN = 0x200, STR = 0x400, STA = 0x800, SCJ = 0x1000};
-+
-+#if DEBUG_STATE
-+static const char *const state_names[STATES] = {
-+	"Closed", "Stopped", "Stopping", "ReqSent", "AckRecv", "AckSent",
-+	"Opened"
-+};
-+static const char *const event_names[EVENTS] = {
-+	"Start", "Stop", "TO+", "TO-", "RCR+", "RCR-", "RCA", "RCN",
-+	"RTR", "RTA", "RUC", "RXJ+", "RXJ-"
-+};
-+#endif
-+
-+static struct sk_buff_head tx_queue; /* used when holding the spin lock */
+@@ -104,12 +104,12 @@ static struct sk_buff_head tx_queue; /* 
  
  static int ppp_ioctl(struct net_device *dev, struct ifreq *ifr);
  
-+static inline struct ppp* get_ppp(struct net_device *dev)
-+{
-+	return (struct ppp *)dev_to_hdlc(dev)->state;
-+}
- 
--static inline struct ppp_state* state(hdlc_device *hdlc)
-+static inline struct proto* get_proto(struct net_device *dev, u16 pid)
+-static inline struct ppp* get_ppp(struct net_device *dev)
++static inline struct ppp *get_ppp(struct net_device *dev)
  {
--	return(struct ppp_state *)(hdlc->state);
-+	struct ppp *ppp = get_ppp(dev);
-+
-+	switch (pid) {
-+	case PID_LCP:
-+		return &ppp->protos[IDX_LCP];
-+	case PID_IPCP:
-+		return &ppp->protos[IDX_IPCP];
-+	case PID_IPV6CP:
-+		return &ppp->protos[IDX_IPV6CP];
-+	default:
-+		return NULL;
-+	}
+ 	return (struct ppp *)dev_to_hdlc(dev)->state;
  }
  
-+static inline const char* proto_name(u16 pid)
-+{
-+	switch (pid) {
-+	case PID_LCP:
-+		return "LCP";
-+	case PID_IPCP:
-+		return "IPCP";
-+	case PID_IPV6CP:
-+		return "IPV6CP";
-+	default:
-+		return NULL;
-+	}
-+}
- 
--static int ppp_open(struct net_device *dev)
-+static __be16 ppp_type_trans(struct sk_buff *skb, struct net_device *dev)
+-static inline struct proto* get_proto(struct net_device *dev, u16 pid)
++static inline struct proto *get_proto(struct net_device *dev, u16 pid)
  {
--	hdlc_device *hdlc = dev_to_hdlc(dev);
--	int (*old_ioctl)(struct net_device *, struct ifreq *, int);
--	int result;
-+	struct hdlc_header *data = (struct hdlc_header*)skb->data;
+ 	struct ppp *ppp = get_ppp(dev);
  
--	dev->priv = &state(hdlc)->syncppp_ptr;
--	state(hdlc)->syncppp_ptr = &state(hdlc)->pppdev;
--	state(hdlc)->pppdev.dev = dev;
--
--	old_ioctl = dev->do_ioctl;
--	state(hdlc)->old_change_mtu = dev->change_mtu;
--	sppp_attach(&state(hdlc)->pppdev);
--	/* sppp_attach nukes them. We don't need syncppp's ioctl */
--	dev->do_ioctl = old_ioctl;
--	state(hdlc)->pppdev.sppp.pp_flags &= ~PP_CISCO;
--	dev->type = ARPHRD_PPP;
--	result = sppp_open(dev);
--	if (result) {
--		sppp_detach(dev);
--		return result;
-+	if (skb->len < sizeof(struct hdlc_header))
-+		return htons(ETH_P_HDLC);
-+	if (data->address != HDLC_ADDR_ALLSTATIONS ||
-+	    data->control != HDLC_CTRL_UI)
-+		return htons(ETH_P_HDLC);
-+
-+	switch (data->protocol) {
-+	case __constant_htons(PID_IP):
-+		skb_pull(skb, sizeof(struct hdlc_header));
-+		return htons(ETH_P_IP);
-+
-+	case __constant_htons(PID_IPV6):
-+		skb_pull(skb, sizeof(struct hdlc_header));
-+		return htons(ETH_P_IPV6);
-+
-+	default:
-+		return htons(ETH_P_HDLC);
+@@ -125,7 +125,7 @@ static inline struct proto* get_proto(st
  	}
-+}
- 
--	return 0;
-+
-+static int ppp_hard_header(struct sk_buff *skb, struct net_device *dev,
-+			   u16 type, const void *daddr, const void *saddr,
-+			   unsigned int len)
-+{
-+	struct hdlc_header *data;
-+#if DEBUG_HARD_HEADER
-+	printk(KERN_DEBUG "%s: ppp_hard_header() called\n", dev->name);
-+#endif
-+
-+	skb_push(skb, sizeof(struct hdlc_header));
-+	data = (struct hdlc_header*)skb->data;
-+
-+	data->address = HDLC_ADDR_ALLSTATIONS;
-+	data->control = HDLC_CTRL_UI;
-+	switch (type) {
-+	case ETH_P_IP:
-+		data->protocol = htons(PID_IP);
-+		break;
-+	case ETH_P_IPV6:
-+		data->protocol = htons(PID_IPV6);
-+		break;
-+	case PID_LCP:
-+	case PID_IPCP:
-+	case PID_IPV6CP:
-+		data->protocol = htons(type);
-+		break;
-+	default:		/* unknown protocol */
-+		data->protocol = 0;
-+	}
-+	return sizeof(struct hdlc_header);
  }
  
- 
-+static void ppp_tx_flush(void)
-+{
-+	struct sk_buff *skb;
-+	while ((skb = skb_dequeue(&tx_queue)) != NULL)
-+		dev_queue_xmit(skb);
-+}
- 
--static void ppp_close(struct net_device *dev)
-+static void ppp_tx_cp(struct net_device *dev, u16 pid, u8 code,
-+		      u8 id, unsigned int len, const void *data)
+-static inline const char* proto_name(u16 pid)
++static inline const char *proto_name(u16 pid)
  {
--	hdlc_device *hdlc = dev_to_hdlc(dev);
-+	struct sk_buff *skb;
-+	struct cp_header *cp;
-+	unsigned int magic_len = 0;
-+	static u32 magic;
-+
-+#if DEBUG_CP
-+	int i;
-+	char *ptr;
-+#endif
-+
-+	if (pid == PID_LCP && (code == LCP_ECHO_REQ || code == LCP_ECHO_REPLY))
-+		magic_len = sizeof(magic);
-+
-+	skb = dev_alloc_skb(sizeof(struct hdlc_header) +
-+			    sizeof(struct cp_header) + magic_len + len);
-+	if (!skb) {
-+		printk(KERN_WARNING "%s: out of memory in ppp_tx_cp()\n",
-+		       dev->name);
-+		return;
-+	}
-+	skb_reserve(skb, sizeof(struct hdlc_header));
+ 	switch (pid) {
+ 	case PID_LCP:
+@@ -141,7 +141,7 @@ static inline const char* proto_name(u16
  
--	sppp_close(dev);
--	sppp_detach(dev);
-+	cp = (struct cp_header *)skb_put(skb, sizeof(struct cp_header));
-+	cp->code = code;
-+	cp->id = id;
-+	cp->len = htons(sizeof(struct cp_header) + magic_len + len);
-+
-+	if (magic_len)
-+		memcpy(skb_put(skb, magic_len), &magic, magic_len);
-+	if (len)
-+		memcpy(skb_put(skb, len), data, len);
-+
-+#if DEBUG_CP
-+	BUG_ON(code >= CP_CODES);
-+	ptr = debug_buffer;
-+	*ptr = '\x0';
-+	for (i = 0; i < min_t(unsigned int, magic_len + len, DEBUG_CP); i++) {
-+		sprintf(ptr, " %02X", skb->data[sizeof(struct cp_header) + i]);
-+		ptr += strlen(ptr);
-+	}
-+	printk(KERN_DEBUG "%s: TX %s [%s id 0x%X]%s\n", dev->name,
-+	       proto_name(pid), code_names[code], id, debug_buffer);
-+#endif
-+
-+	ppp_hard_header(skb, dev, pid, NULL, NULL, 0);
-+
-+	skb->priority = TC_PRIO_CONTROL;
-+	skb->dev = dev;
-+	skb_reset_network_header(skb);
-+	skb_queue_tail(&tx_queue, skb);
-+}
- 
--	dev->change_mtu = state(hdlc)->old_change_mtu;
--	dev->mtu = HDLC_MAX_MTU;
--	dev->hard_header_len = 16;
-+
-+/* State transition table (compare STD-51)
-+   Events                                   Actions
-+   TO+  = Timeout with counter > 0          irc = Initialize-Restart-Count
-+   TO-  = Timeout with counter expired      zrc = Zero-Restart-Count
-+
-+   RCR+ = Receive-Configure-Request (Good)  scr = Send-Configure-Request
-+   RCR- = Receive-Configure-Request (Bad)
-+   RCA  = Receive-Configure-Ack             sca = Send-Configure-Ack
-+   RCN  = Receive-Configure-Nak/Rej         scn = Send-Configure-Nak/Rej
-+
-+   RTR  = Receive-Terminate-Request         str = Send-Terminate-Request
-+   RTA  = Receive-Terminate-Ack             sta = Send-Terminate-Ack
-+
-+   RUC  = Receive-Unknown-Code              scj = Send-Code-Reject
-+   RXJ+ = Receive-Code-Reject (permitted)
-+       or Receive-Protocol-Reject
-+   RXJ- = Receive-Code-Reject (catastrophic)
-+       or Receive-Protocol-Reject
-+*/
-+static int cp_table[EVENTS][STATES] = {
-+	/* CLOSED     STOPPED STOPPING REQ_SENT ACK_RECV ACK_SENT OPENED
-+	     0           1         2       3       4      5          6    */
-+	{IRC|SCR|3,     INV     , INV ,   INV   , INV ,  INV    ,   INV   }, /* START */
-+	{   INV   ,      0      ,  0  ,    0    ,  0  ,   0     ,    0    }, /* STOP */
-+	{   INV   ,     INV     ,STR|2,  SCR|3  ,SCR|3,  SCR|5  ,   INV   }, /* TO+ */
-+	{   INV   ,     INV     ,  1  ,    1    ,  1  ,    1    ,   INV   }, /* TO- */
-+	{  STA|0  ,IRC|SCR|SCA|5,  2  ,  SCA|5  ,SCA|6,  SCA|5  ,SCR|SCA|5}, /* RCR+ */
-+	{  STA|0  ,IRC|SCR|SCN|3,  2  ,  SCN|3  ,SCN|4,  SCN|3  ,SCR|SCN|3}, /* RCR- */
-+	{  STA|0  ,    STA|1    ,  2  ,  IRC|4  ,SCR|3,    6    , SCR|3   }, /* RCA */
-+	{  STA|0  ,    STA|1    ,  2  ,IRC|SCR|3,SCR|3,IRC|SCR|5, SCR|3   }, /* RCN */
-+	{  STA|0  ,    STA|1    ,STA|2,  STA|3  ,STA|3,  STA|3  ,ZRC|STA|2}, /* RTR */
-+	{    0    ,      1      ,  1  ,    3    ,  3  ,    5    ,  SCR|3  }, /* RTA */
-+	{  SCJ|0  ,    SCJ|1    ,SCJ|2,  SCJ|3  ,SCJ|4,  SCJ|5  ,  SCJ|6  }, /* RUC */
-+	{    0    ,      1      ,  2  ,    3    ,  3  ,    5    ,    6    }, /* RXJ+ */
-+	{    0    ,      1      ,  1  ,    1    ,  1  ,    1    ,IRC|STR|2}, /* RXJ- */
-+};
-+
-+
-+/* SCA: RCR+ must supply id, len and data
-+   SCN: RCR- must supply code, id, len and data
-+   STA: RTR must supply id
-+   SCJ: RUC must supply CP packet len and data */
-+static void ppp_cp_event(struct net_device *dev, u16 pid, u16 event, u8 code,
-+			 u8 id, unsigned int len, void *data)
-+{
-+	int old_state, action;
-+	struct ppp *ppp = get_ppp(dev);
-+	struct proto *proto = get_proto(dev, pid);
-+
-+	old_state = proto->state;
-+	BUG_ON(old_state >= STATES);
-+	BUG_ON(event >= EVENTS);
-+
-+#if DEBUG_STATE
-+	printk(KERN_DEBUG "%s: %s ppp_cp_event(%s) %s ...\n", dev->name,
-+	       proto_name(pid), event_names[event], state_names[proto->state]);
-+#endif
-+
-+	action = cp_table[event][old_state];
-+
-+	proto->state = action & STATE_MASK;
-+	if (action & (SCR | STR)) /* set Configure-Req/Terminate-Req timer */
-+		mod_timer(&proto->timer, proto->timeout =
-+			  jiffies + ppp->req_timeout * HZ);
-+	if (action & ZRC)
-+		proto->restart_counter = 0;
-+	if (action & IRC)
-+		proto->restart_counter = (proto->state == STOPPING) ?
-+			ppp->term_retries : ppp->cr_retries;
-+
-+	if (action & SCR)	/* send Configure-Request */
-+		ppp_tx_cp(dev, pid, CP_CONF_REQ, proto->cr_id = ++ppp->seq,
-+			  0, NULL);
-+	if (action & SCA)	/* send Configure-Ack */
-+		ppp_tx_cp(dev, pid, CP_CONF_ACK, id, len, data);
-+	if (action & SCN)	/* send Configure-Nak/Reject */
-+		ppp_tx_cp(dev, pid, code, id, len, data);
-+	if (action & STR)	/* send Terminate-Request */
-+		ppp_tx_cp(dev, pid, CP_TERM_REQ, ++ppp->seq, 0, NULL);
-+	if (action & STA)	/* send Terminate-Ack */
-+		ppp_tx_cp(dev, pid, CP_TERM_ACK, id, 0, NULL);
-+	if (action & SCJ)	/* send Code-Reject */
-+		ppp_tx_cp(dev, pid, CP_CODE_REJ, ++ppp->seq, len, data);
-+
-+	if (old_state != OPENED && proto->state == OPENED) {
-+		printk(KERN_INFO "%s: %s up\n", dev->name, proto_name(pid));
-+		if (pid == PID_LCP) {
-+			netif_dormant_off(dev);
-+			ppp_cp_event(dev, PID_IPCP, START, 0, 0, 0, NULL);
-+			ppp_cp_event(dev, PID_IPV6CP, START, 0, 0, 0, NULL);
-+			ppp->last_pong = jiffies;
-+			mod_timer(&proto->timer, proto->timeout =
-+				  jiffies + ppp->keepalive_interval * HZ);
-+		}
-+	}
-+	if (old_state == OPENED && proto->state != OPENED) {
-+		printk(KERN_INFO "%s: %s down\n", dev->name, proto_name(pid));
-+		if (pid == PID_LCP) {
-+			netif_dormant_on(dev);
-+			ppp_cp_event(dev, PID_IPCP, STOP, 0, 0, 0, NULL);
-+			ppp_cp_event(dev, PID_IPV6CP, STOP, 0, 0, 0, NULL);
-+		}
-+	}
-+	if (old_state != CLOSED && proto->state == CLOSED)
-+		del_timer(&proto->timer);
-+
-+#if DEBUG_STATE
-+	printk(KERN_DEBUG "%s: %s ppp_cp_event(%s) ... %s\n", dev->name,
-+	       proto_name(pid), event_names[event], state_names[proto->state]);
-+#endif
- }
- 
- 
-+static void ppp_cp_parse_cr(struct net_device *dev, u16 pid, u8 id,
-+			    unsigned int len, u8 *data)
-+{
-+	static u8 const valid_accm[6] = { LCP_OPTION_ACCM, 6, 0, 0, 0, 0 };
-+	u8 *opt, *out;
-+	unsigned int nak_len = 0, rej_len = 0;
-+
-+	if (!(out = kmalloc(len, GFP_ATOMIC))) {
-+		dev_to_hdlc(dev)->stats.rx_dropped++;
-+		return;	/* out of memory, ignore CR packet */
-+	}
- 
--static __be16 ppp_type_trans(struct sk_buff *skb, struct net_device *dev)
-+	for (opt = data; len; len -= opt[1], opt += opt[1]) {
-+		if (len < 2 || len < opt[1]) {
-+			dev_to_hdlc(dev)->stats.rx_errors++;
-+			return; /* bad packet, drop silently */
-+		}
-+
-+		if (pid == PID_LCP)
-+			switch (opt[0]) {
-+			case LCP_OPTION_MRU:
-+				continue; /* MRU always OK and > 1500 bytes? */
-+
-+			case LCP_OPTION_ACCM: /* async control character map */
-+				if (!memcmp(opt, valid_accm,
-+					    sizeof(valid_accm)))
-+					continue;
-+				if (!rej_len) { /* NAK it */
-+					memcpy(out + nak_len, valid_accm,
-+					       sizeof(valid_accm));
-+					nak_len += sizeof(valid_accm);
-+					continue;
-+				}
-+				break;
-+			case LCP_OPTION_MAGIC:
-+				if (opt[1] != 6 || (!opt[2] && !opt[3] &&
-+						    !opt[4] && !opt[5]))
-+					break; /* reject invalid magic number */
-+				continue;
-+			}
-+		/* reject this option */
-+		memcpy(out + rej_len, opt, opt[1]);
-+		rej_len += opt[1];
-+	}
-+
-+	if (rej_len)
-+		ppp_cp_event(dev, pid, RCR_BAD, CP_CONF_REJ, id, rej_len, out);
-+	else if (nak_len)
-+		ppp_cp_event(dev, pid, RCR_BAD, CP_CONF_NAK, id, nak_len, out);
-+	else
-+		ppp_cp_event(dev, pid, RCR_GOOD, CP_CONF_ACK, id, len, data);
-+
-+	kfree(out);
-+}
-+
-+static int ppp_rx(struct sk_buff *skb)
+ static __be16 ppp_type_trans(struct sk_buff *skb, struct net_device *dev)
  {
--	return __constant_htons(ETH_P_WAN_PPP);
-+	struct hdlc_header *hdr = (struct hdlc_header*)skb->data;
-+	struct net_device *dev = skb->dev;
-+	struct ppp *ppp = get_ppp(dev);
-+	struct proto *proto;
-+	struct cp_header *cp;
-+	unsigned long flags;
-+	unsigned int len;
-+	u16 pid;
-+#if DEBUG_CP
-+	int i;
-+	char *ptr;
-+#endif
-+
-+	spin_lock_irqsave(&ppp->lock, flags);
-+	/* Check HDLC header */
-+	if (skb->len < sizeof(struct hdlc_header))
-+		goto rx_error;
-+	cp = (struct cp_header*)skb_pull(skb, sizeof(struct hdlc_header));
-+	if (hdr->address != HDLC_ADDR_ALLSTATIONS ||
-+	    hdr->control != HDLC_CTRL_UI)
-+		goto rx_error;
-+
-+	pid = ntohs(hdr->protocol);
-+	proto = get_proto(dev, pid);
-+	if (!proto) {
-+		if (ppp->protos[IDX_LCP].state == OPENED)
-+			ppp_tx_cp(dev, PID_LCP, LCP_PROTO_REJ,
-+				  ++ppp->seq, skb->len + 2, &hdr->protocol);
-+		goto rx_error;
-+	}
-+
-+	len = ntohs(cp->len);
-+	if (len < sizeof(struct cp_header) /* no complete CP header? */ ||
-+	    skb->len < len /* truncated packet? */)
-+		goto rx_error;
-+	skb_pull(skb, sizeof(struct cp_header));
-+	len -= sizeof(struct cp_header);
-+
-+	/* HDLC and CP headers stripped from skb */
-+#if DEBUG_CP
-+	if (cp->code < CP_CODES)
-+		sprintf(debug_buffer, "[%s id 0x%X]", code_names[cp->code],
-+			cp->id);
-+	else
-+		sprintf(debug_buffer, "[code %u id 0x%X]", cp->code, cp->id);
-+	ptr = debug_buffer + strlen(debug_buffer);
-+	for (i = 0; i < min_t(unsigned int, len, DEBUG_CP); i++) {
-+		sprintf(ptr, " %02X", skb->data[i]);
-+		ptr += strlen(ptr);
-+	}
-+	printk(KERN_DEBUG "%s: RX %s %s\n", dev->name, proto_name(pid),
-+	       debug_buffer);
-+#endif
-+
-+	/* LCP only */
-+	if (pid == PID_LCP)
-+		switch (cp->code) {
-+		case LCP_PROTO_REJ:
-+			pid = ntohs(*(__be16*)skb->data);
-+			if (pid == PID_LCP || pid == PID_IPCP ||
-+			    pid == PID_IPV6CP)
-+				ppp_cp_event(dev, pid, RXJ_BAD, 0, 0,
-+					     0, NULL);
-+			goto out;
-+
-+		case LCP_ECHO_REQ: /* send Echo-Reply */
-+			if (len >= 4 && proto->state == OPENED)
-+				ppp_tx_cp(dev, PID_LCP, LCP_ECHO_REPLY,
-+					  cp->id, len - 4, skb->data + 4);
-+			goto out;
-+
-+		case LCP_ECHO_REPLY:
-+			if (cp->id == ppp->echo_id)
-+				ppp->last_pong = jiffies;
-+			goto out;
-+
-+		case LCP_DISC_REQ: /* discard */
-+			goto out;
-+		}
-+
-+	/* LCP, IPCP and IPV6CP */
-+	switch (cp->code) {
-+	case CP_CONF_REQ:
-+		ppp_cp_parse_cr(dev, pid, cp->id, len, skb->data);
-+		goto out;
-+
-+	case CP_CONF_ACK:
-+		if (cp->id == proto->cr_id)
-+			ppp_cp_event(dev, pid, RCA, 0, 0, 0, NULL);
-+		goto out;
-+
-+	case CP_CONF_REJ:
-+	case CP_CONF_NAK:
-+		if (cp->id == proto->cr_id)
-+			ppp_cp_event(dev, pid, RCN, 0, 0, 0, NULL);
-+		goto out;
-+
-+	case CP_TERM_REQ:
-+		ppp_cp_event(dev, pid, RTR, 0, cp->id, 0, NULL);
-+		goto out;
-+
-+	case CP_TERM_ACK:
-+		ppp_cp_event(dev, pid, RTA, 0, 0, 0, NULL);
-+		goto out;
-+
-+	case CP_CODE_REJ:
-+		ppp_cp_event(dev, pid, RXJ_BAD, 0, 0, 0, NULL);
-+		goto out;
-+
-+	default:
-+		len += sizeof(struct cp_header);
-+		if (len > dev->mtu)
-+			len = dev->mtu;
-+		ppp_cp_event(dev, pid, RUC, 0, 0, len, cp);
-+		goto out;
-+	}
-+	goto out;
-+
-+rx_error:
-+	dev_to_hdlc(dev)->stats.rx_errors++;
-+out:
-+	spin_unlock_irqrestore(&ppp->lock, flags);
-+	dev_kfree_skb_any(skb);
-+	ppp_tx_flush();
-+	return NET_RX_DROP;
- }
+-	struct hdlc_header *data = (struct hdlc_header*)skb->data;
++	struct hdlc_header *data = (struct hdlc_header *)skb->data;
  
+ 	if (skb->len < sizeof(struct hdlc_header))
+ 		return htons(ETH_P_HDLC);
+@@ -174,7 +174,7 @@ static int ppp_hard_header(struct sk_buf
+ #endif
  
-+static void ppp_timer(unsigned long arg)
-+{
-+	struct proto *proto = (struct proto *)arg;
-+	struct ppp *ppp = get_ppp(proto->dev);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ppp->lock, flags);
-+	switch (proto->state) {
-+	case STOPPING:
-+	case REQ_SENT:
-+	case ACK_RECV:
-+	case ACK_SENT:
-+		if (proto->restart_counter) {
-+			ppp_cp_event(proto->dev, proto->pid, TO_GOOD, 0, 0,
-+				     0, NULL);
-+			proto->restart_counter--;
-+		} else
-+			ppp_cp_event(proto->dev, proto->pid, TO_BAD, 0, 0,
-+				     0, NULL);
-+		break;
-+
-+	case OPENED:
-+		if (proto->pid != PID_LCP)
-+			break;
-+		if (time_after(jiffies, ppp->last_pong +
-+			       ppp->keepalive_timeout * HZ)) {
-+			printk(KERN_INFO "%s: Link down\n", proto->dev->name);
-+			ppp_cp_event(proto->dev, PID_LCP, STOP, 0, 0, 0, NULL);
-+			ppp_cp_event(proto->dev, PID_LCP, START, 0, 0, 0, NULL);
-+		} else {	/* send keep-alive packet */
-+			ppp->echo_id = ++ppp->seq;
-+			ppp_tx_cp(proto->dev, PID_LCP, LCP_ECHO_REQ,
-+				  ppp->echo_id, 0, NULL);
-+			proto->timer.expires = jiffies +
-+				ppp->keepalive_interval * HZ;
-+			add_timer(&proto->timer);
-+		}
-+		break;
-+	}
-+	spin_unlock_irqrestore(&ppp->lock, flags);
-+	ppp_tx_flush();
-+}
-+
-+
-+static void ppp_start(struct net_device *dev)
-+{
-+	struct ppp *ppp = get_ppp(dev);
-+	int i;
-+
-+	for (i = 0; i < IDX_COUNT; i++) {
-+		struct proto *proto = &ppp->protos[i];
-+		proto->dev = dev;
-+		init_timer(&proto->timer);
-+		proto->timer.function = ppp_timer;
-+		proto->timer.data = (unsigned long)proto;
-+		proto->state = CLOSED;
-+	}
-+	ppp->protos[IDX_LCP].pid = PID_LCP;
-+	ppp->protos[IDX_IPCP].pid = PID_IPCP;
-+	ppp->protos[IDX_IPV6CP].pid = PID_IPV6CP;
-+
-+	ppp_cp_event(dev, PID_LCP, START, 0, 0, 0, NULL);
-+}
-+
-+static void ppp_stop(struct net_device *dev)
-+{
-+	ppp_cp_event(dev, PID_LCP, STOP, 0, 0, 0, NULL);
-+}
+ 	skb_push(skb, sizeof(struct hdlc_header));
+-	data = (struct hdlc_header*)skb->data;
++	data = (struct hdlc_header *)skb->data;
  
- static struct hdlc_proto proto = {
--	.open		= ppp_open,
--	.close		= ppp_close,
-+	.start		= ppp_start,
-+	.stop		= ppp_stop,
- 	.type_trans	= ppp_type_trans,
- 	.ioctl		= ppp_ioctl,
-+	.netif_rx	= ppp_rx,
- 	.module		= THIS_MODULE,
- };
+ 	data->address = HDLC_ADDR_ALLSTATIONS;
+ 	data->control = HDLC_CTRL_UI;
+@@ -380,7 +380,8 @@ static void ppp_cp_parse_cr(struct net_d
+ 	u8 *opt, *out;
+ 	unsigned int nak_len = 0, rej_len = 0;
  
-+static const struct header_ops ppp_header_ops = {
-+	.create = ppp_hard_header,
-+};
- 
- static int ppp_ioctl(struct net_device *dev, struct ifreq *ifr)
- {
- 	hdlc_device *hdlc = dev_to_hdlc(dev);
-+	struct ppp *ppp;
- 	int result;
- 
- 	switch (ifr->ifr_settings.type) {
-@@ -110,25 +654,35 @@ static int ppp_ioctl(struct net_device *
- 		return 0; /* return protocol only, no settable parameters */
- 
- 	case IF_PROTO_PPP:
--		if(!capable(CAP_NET_ADMIN))
-+		if (!capable(CAP_NET_ADMIN))
- 			return -EPERM;
- 
--		if(dev->flags & IFF_UP)
-+		if (dev->flags & IFF_UP)
- 			return -EBUSY;
- 
- 		/* no settable parameters */
- 
--		result=hdlc->attach(dev, ENCODING_NRZ,PARITY_CRC16_PR1_CCITT);
-+		result = hdlc->attach(dev, ENCODING_NRZ,PARITY_CRC16_PR1_CCITT);
- 		if (result)
- 			return result;
- 
--		result = attach_hdlc_protocol(dev, &proto,
--					      sizeof(struct ppp_state));
-+		result = attach_hdlc_protocol(dev, &proto, sizeof(struct ppp));
- 		if (result)
- 			return result;
-+
-+		ppp = get_ppp(dev);
-+		spin_lock_init(&ppp->lock);
-+		ppp->req_timeout = 2;
-+		ppp->cr_retries = 10;
-+		ppp->term_retries = 2;
-+		ppp->keepalive_interval = 10;
-+		ppp->keepalive_timeout = 60;
-+
- 		dev->hard_start_xmit = hdlc->xmit;
-+		dev->hard_header_len = sizeof(struct hdlc_header);
-+		dev->header_ops = &ppp_header_ops;
- 		dev->type = ARPHRD_PPP;
--		netif_dormant_off(dev);
-+		netif_dormant_on(dev);
- 		return 0;
+-	if (!(out = kmalloc(len, GFP_ATOMIC))) {
++	out = kmalloc(len, GFP_ATOMIC);
++	if (!out) {
+ 		dev_to_hdlc(dev)->stats.rx_dropped++;
+ 		return;	/* out of memory, ignore CR packet */
  	}
+@@ -430,7 +431,7 @@ static void ppp_cp_parse_cr(struct net_d
  
-@@ -138,12 +692,11 @@ static int ppp_ioctl(struct net_device *
- 
- static int __init mod_init(void)
+ static int ppp_rx(struct sk_buff *skb)
  {
-+	skb_queue_head_init(&tx_queue);
- 	register_hdlc_protocol(&proto);
- 	return 0;
- }
- 
--
+-	struct hdlc_header *hdr = (struct hdlc_header*)skb->data;
++	struct hdlc_header *hdr = (struct hdlc_header *)skb->data;
+ 	struct net_device *dev = skb->dev;
+ 	struct ppp *ppp = get_ppp(dev);
+ 	struct proto *proto;
+@@ -447,7 +448,7 @@ static int ppp_rx(struct sk_buff *skb)
+ 	/* Check HDLC header */
+ 	if (skb->len < sizeof(struct hdlc_header))
+ 		goto rx_error;
+-	cp = (struct cp_header*)skb_pull(skb, sizeof(struct hdlc_header));
++	cp = (struct cp_header *)skb_pull(skb, sizeof(struct hdlc_header));
+ 	if (hdr->address != HDLC_ADDR_ALLSTATIONS ||
+ 	    hdr->control != HDLC_CTRL_UI)
+ 		goto rx_error;
+@@ -488,7 +489,7 @@ static int ppp_rx(struct sk_buff *skb)
+ 	if (pid == PID_LCP)
+ 		switch (cp->code) {
+ 		case LCP_PROTO_REJ:
+-			pid = ntohs(*(__be16*)skb->data);
++			pid = ntohs(*(__be16 *)skb->data);
+ 			if (pid == PID_LCP || pid == PID_IPCP ||
+ 			    pid == PID_IPV6CP)
+ 				ppp_cp_event(dev, pid, RXJ_BAD, 0, 0,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+drivers-media-video-soc_camerac-reads-return-size_t.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+git-ieee1394.patch
+drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem-checkpatch-fixes.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
+
