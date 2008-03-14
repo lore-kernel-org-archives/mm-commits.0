@@ -1,1080 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch added to -mm tree
-Date: Fri, 14 Mar 2008 12:39:43 -0700
-Message-ID: <200803141939.m2EJdhLb015898@imap1.linux-foundation.org>
+Subject: - kernel-add-clamp-and-clamp_t-macros.patch removed from -mm tree
+Date: Fri, 14 Mar 2008 12:42:33 -0700
+Message-ID: <200803141942.m2EJgYJ9016081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758837AbYCNTkI (ORCPT
+	by vger.kernel.org with ESMTP id S1759890AbYCNTnO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:40:08 -0400
+	Fri, 14 Mar 2008 15:43:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, kai.makisara@kolumbus.fi, sfr@canb.auug.org.au, tonyj@suse.de
+To: harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-driver-driver-core-remove-no-longer-used-struct-class_device
-has been added to the -mm tree.  Its filename is
-     revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+     kernel: add clamp() and clamp_t() macros
+has been removed from the -mm tree.  Its filename was
+     kernel-add-clamp-and-clamp_t-macros.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-driver-core-remove-no-longer-used-struct-class_device
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel: add clamp() and clamp_t() macros
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This breaks git-scsi-misc.
+Adds macros similar to min/max/min_t/max_t.
 
-Cc: Kai Makisara <kai.makisara@kolumbus.fi>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Tony Jones <tonyj@suse.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Also, change the variable names used in the min/max macros to avoid shadowed
+variable warnings when min/max min_t/max_t are nested.
+
+Small formatting changes to make all the macros have a similar form.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: fix v4l build]
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/base.h    |   11 
- drivers/base/class.c   |  638 ++++++++++++++++++++++++++++++++++++++-
- include/linux/device.h |   97 +++++
- 3 files changed, 745 insertions(+), 1 deletion(-)
+ drivers/media/video/bt8xx/bttvp.h    |    2 
+ drivers/media/video/usbvideo/vicam.c |    6 --
+ include/linux/kernel.h               |   56 ++++++++++++++++---------
+ 3 files changed, 38 insertions(+), 26 deletions(-)
 
-diff -puN drivers/base/base.h~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device drivers/base/base.h
---- a/drivers/base/base.h~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device
-+++ a/drivers/base/base.h
-@@ -64,6 +64,17 @@ extern void sysdev_shutdown(void);
- extern int sysdev_suspend(pm_message_t state);
- extern int sysdev_resume(void);
- 
-+static inline struct class_device *to_class_dev(struct kobject *obj)
-+{
-+	return container_of(obj, struct class_device, kobj);
-+}
-+
-+static inline
-+struct class_device_attribute *to_class_dev_attr(struct attribute *_attr)
-+{
-+	return container_of(_attr, struct class_device_attribute, attr);
-+}
-+
- extern char *make_class_name(const char *name, struct kobject *kobj);
- 
- extern int devres_release_all(struct device *dev);
-diff -puN drivers/base/class.c~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device drivers/base/class.c
---- a/drivers/base/class.c~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device
-+++ a/drivers/base/class.c
-@@ -179,13 +179,27 @@ static void class_create_release(struct 
- 	kfree(cls);
- }
- 
-+static void class_device_create_release(struct class_device *class_dev)
-+{
-+	pr_debug("%s called for %s\n", __func__, class_dev->class_id);
-+	kfree(class_dev);
-+}
-+
-+/* needed to allow these devices to have parent class devices */
-+static int class_device_create_uevent(struct class_device *class_dev,
-+				      struct kobj_uevent_env *env)
-+{
-+	pr_debug("%s called for %s\n", __func__, class_dev->class_id);
-+	return 0;
-+}
-+
- /**
-  * class_create - create a struct class structure
-  * @owner: pointer to the module that is to "own" this struct class
-  * @name: pointer to a string for the name of this class.
-  *
-  * This is used to create a struct class pointer that can then be used
-- * in calls to device_create().
-+ * in calls to class_device_create().
-  *
-  * Note, the pointer created here is to be destroyed when finished by
-  * making a call to class_destroy().
-@@ -204,6 +218,7 @@ struct class *class_create(struct module
- 	cls->name = name;
- 	cls->owner = owner;
- 	cls->class_release = class_create_release;
-+	cls->release = class_device_create_release;
- 
- 	retval = class_register(cls);
- 	if (retval)
-@@ -231,6 +246,113 @@ void class_destroy(struct class *cls)
- 	class_unregister(cls);
- }
- 
-+/* Class Device Stuff */
-+
-+int class_device_create_file(struct class_device *class_dev,
-+			     const struct class_device_attribute *attr)
-+{
-+	int error = -EINVAL;
-+	if (class_dev)
-+		error = sysfs_create_file(&class_dev->kobj, &attr->attr);
-+	return error;
-+}
-+
-+void class_device_remove_file(struct class_device *class_dev,
-+			      const struct class_device_attribute *attr)
-+{
-+	if (class_dev)
-+		sysfs_remove_file(&class_dev->kobj, &attr->attr);
-+}
-+
-+int class_device_create_bin_file(struct class_device *class_dev,
-+				 struct bin_attribute *attr)
-+{
-+	int error = -EINVAL;
-+	if (class_dev)
-+		error = sysfs_create_bin_file(&class_dev->kobj, attr);
-+	return error;
-+}
-+
-+void class_device_remove_bin_file(struct class_device *class_dev,
-+				  struct bin_attribute *attr)
-+{
-+	if (class_dev)
-+		sysfs_remove_bin_file(&class_dev->kobj, attr);
-+}
-+
-+static ssize_t class_device_attr_show(struct kobject *kobj,
-+				      struct attribute *attr, char *buf)
-+{
-+	struct class_device_attribute *class_dev_attr = to_class_dev_attr(attr);
-+	struct class_device *cd = to_class_dev(kobj);
-+	ssize_t ret = 0;
-+
-+	if (class_dev_attr->show)
-+		ret = class_dev_attr->show(cd, buf);
-+	return ret;
-+}
-+
-+static ssize_t class_device_attr_store(struct kobject *kobj,
-+				       struct attribute *attr,
-+				       const char *buf, size_t count)
-+{
-+	struct class_device_attribute *class_dev_attr = to_class_dev_attr(attr);
-+	struct class_device *cd = to_class_dev(kobj);
-+	ssize_t ret = 0;
-+
-+	if (class_dev_attr->store)
-+		ret = class_dev_attr->store(cd, buf, count);
-+	return ret;
-+}
-+
-+static struct sysfs_ops class_dev_sysfs_ops = {
-+	.show	= class_device_attr_show,
-+	.store	= class_device_attr_store,
-+};
-+
-+static void class_dev_release(struct kobject *kobj)
-+{
-+	struct class_device *cd = to_class_dev(kobj);
-+	struct class *cls = cd->class;
-+
-+	pr_debug("device class '%s': release.\n", cd->class_id);
-+
-+	if (cd->release)
-+		cd->release(cd);
-+	else if (cls->release)
-+		cls->release(cd);
-+	else {
-+		printk(KERN_ERR "Class Device '%s' does not have a release() "
-+			"function, it is broken and must be fixed.\n",
-+			cd->class_id);
-+		WARN_ON(1);
-+	}
-+}
-+
-+static struct kobj_type class_device_ktype = {
-+	.sysfs_ops	= &class_dev_sysfs_ops,
-+	.release	= class_dev_release,
-+};
-+
-+static int class_uevent_filter(struct kset *kset, struct kobject *kobj)
-+{
-+	struct kobj_type *ktype = get_ktype(kobj);
-+
-+	if (ktype == &class_device_ktype) {
-+		struct class_device *class_dev = to_class_dev(kobj);
-+		if (class_dev->class)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
-+static const char *class_uevent_name(struct kset *kset, struct kobject *kobj)
-+{
-+	struct class_device *class_dev = to_class_dev(kobj);
-+
-+	return class_dev->class->name;
-+}
-+
- #ifdef CONFIG_SYSFS_DEPRECATED
- char *make_class_name(const char *name, struct kobject *kobj)
- {
-@@ -248,8 +370,445 @@ char *make_class_name(const char *name, 
- 	strcat(class_name, kobject_name(kobj));
- 	return class_name;
- }
-+
-+static int make_deprecated_class_device_links(struct class_device *class_dev)
-+{
-+	char *class_name;
-+	int error;
-+
-+	if (!class_dev->dev)
-+		return 0;
-+
-+	class_name = make_class_name(class_dev->class->name, &class_dev->kobj);
-+	if (class_name)
-+		error = sysfs_create_link(&class_dev->dev->kobj,
-+					  &class_dev->kobj, class_name);
-+	else
-+		error = -ENOMEM;
-+	kfree(class_name);
-+	return error;
-+}
-+
-+static void remove_deprecated_class_device_links(struct class_device *class_dev)
-+{
-+	char *class_name;
-+
-+	if (!class_dev->dev)
-+		return;
-+
-+	class_name = make_class_name(class_dev->class->name, &class_dev->kobj);
-+	if (class_name)
-+		sysfs_remove_link(&class_dev->dev->kobj, class_name);
-+	kfree(class_name);
-+}
-+#else
-+static inline int make_deprecated_class_device_links(struct class_device *cd)
-+{ return 0; }
-+static void remove_deprecated_class_device_links(struct class_device *cd)
-+{ }
- #endif
- 
-+static int class_uevent(struct kset *kset, struct kobject *kobj,
-+			struct kobj_uevent_env *env)
-+{
-+	struct class_device *class_dev = to_class_dev(kobj);
-+	struct device *dev = class_dev->dev;
-+	int retval = 0;
-+
-+	pr_debug("%s - name = %s\n", __func__, class_dev->class_id);
-+
-+	if (MAJOR(class_dev->devt)) {
-+		add_uevent_var(env, "MAJOR=%u", MAJOR(class_dev->devt));
-+
-+		add_uevent_var(env, "MINOR=%u", MINOR(class_dev->devt));
-+	}
-+
-+	if (dev) {
-+		const char *path = kobject_get_path(&dev->kobj, GFP_KERNEL);
-+		if (path) {
-+			add_uevent_var(env, "PHYSDEVPATH=%s", path);
-+			kfree(path);
-+		}
-+
-+		if (dev->bus)
-+			add_uevent_var(env, "PHYSDEVBUS=%s", dev->bus->name);
-+
-+		if (dev->driver)
-+			add_uevent_var(env, "PHYSDEVDRIVER=%s",
-+				       dev->driver->name);
-+	}
-+
-+	if (class_dev->uevent) {
-+		/* have the class device specific function add its stuff */
-+		retval = class_dev->uevent(class_dev, env);
-+		if (retval)
-+			pr_debug("class_dev->uevent() returned %d\n", retval);
-+	} else if (class_dev->class->uevent) {
-+		/* have the class specific function add its stuff */
-+		retval = class_dev->class->uevent(class_dev, env);
-+		if (retval)
-+			pr_debug("class->uevent() returned %d\n", retval);
-+	}
-+
-+	return retval;
-+}
-+
-+static struct kset_uevent_ops class_uevent_ops = {
-+	.filter =	class_uevent_filter,
-+	.name =		class_uevent_name,
-+	.uevent =	class_uevent,
-+};
-+
-+/*
-+ * DO NOT copy how this is created, kset_create_and_add() should be
-+ * called, but this is a hold-over from the old-way and will be deleted
-+ * entirely soon.
-+ */
-+static struct kset class_obj_subsys = {
-+	.uevent_ops = &class_uevent_ops,
-+};
-+
-+static int class_device_add_attrs(struct class_device *cd)
-+{
-+	int i;
-+	int error = 0;
-+	struct class *cls = cd->class;
-+
-+	if (cls->class_dev_attrs) {
-+		for (i = 0; attr_name(cls->class_dev_attrs[i]); i++) {
-+			error = class_device_create_file(cd,
-+						&cls->class_dev_attrs[i]);
-+			if (error)
-+				goto err;
-+		}
-+	}
-+done:
-+	return error;
-+err:
-+	while (--i >= 0)
-+		class_device_remove_file(cd, &cls->class_dev_attrs[i]);
-+	goto done;
-+}
-+
-+static void class_device_remove_attrs(struct class_device *cd)
-+{
-+	int i;
-+	struct class *cls = cd->class;
-+
-+	if (cls->class_dev_attrs) {
-+		for (i = 0; attr_name(cls->class_dev_attrs[i]); i++)
-+			class_device_remove_file(cd, &cls->class_dev_attrs[i]);
-+	}
-+}
-+
-+static int class_device_add_groups(struct class_device *cd)
-+{
-+	int i;
-+	int error = 0;
-+
-+	if (cd->groups) {
-+		for (i = 0; cd->groups[i]; i++) {
-+			error = sysfs_create_group(&cd->kobj, cd->groups[i]);
-+			if (error) {
-+				while (--i >= 0)
-+					sysfs_remove_group(&cd->kobj,
-+							   cd->groups[i]);
-+				goto out;
-+			}
-+		}
-+	}
-+out:
-+	return error;
-+}
-+
-+static void class_device_remove_groups(struct class_device *cd)
-+{
-+	int i;
-+	if (cd->groups)
-+		for (i = 0; cd->groups[i]; i++)
-+			sysfs_remove_group(&cd->kobj, cd->groups[i]);
-+}
-+
-+static ssize_t show_dev(struct class_device *class_dev, char *buf)
-+{
-+	return print_dev_t(buf, class_dev->devt);
-+}
-+
-+static struct class_device_attribute class_devt_attr =
-+	__ATTR(dev, S_IRUGO, show_dev, NULL);
-+
-+static ssize_t store_uevent(struct class_device *class_dev,
-+			    const char *buf, size_t count)
-+{
-+	kobject_uevent(&class_dev->kobj, KOBJ_ADD);
-+	return count;
-+}
-+
-+static struct class_device_attribute class_uevent_attr =
-+	__ATTR(uevent, S_IWUSR, NULL, store_uevent);
-+
-+void class_device_initialize(struct class_device *class_dev)
-+{
-+	class_dev->kobj.kset = &class_obj_subsys;
-+	kobject_init(&class_dev->kobj, &class_device_ktype);
-+	INIT_LIST_HEAD(&class_dev->node);
-+}
-+
-+int class_device_add(struct class_device *class_dev)
-+{
-+	struct class *parent_class = NULL;
-+	struct class_device *parent_class_dev = NULL;
-+	struct class_interface *class_intf;
-+	int error = -EINVAL;
-+
-+	class_dev = class_device_get(class_dev);
-+	if (!class_dev)
-+		return -EINVAL;
-+
-+	if (!strlen(class_dev->class_id))
-+		goto out1;
-+
-+	parent_class = class_get(class_dev->class);
-+	if (!parent_class)
-+		goto out1;
-+
-+	parent_class_dev = class_device_get(class_dev->parent);
-+
-+	pr_debug("CLASS: registering class device: ID = '%s'\n",
-+		 class_dev->class_id);
-+
-+	/* first, register with generic layer. */
-+	if (parent_class_dev)
-+		class_dev->kobj.parent = &parent_class_dev->kobj;
-+	else
-+		class_dev->kobj.parent = &parent_class->subsys.kobj;
-+
-+	error = kobject_add(&class_dev->kobj, class_dev->kobj.parent,
-+			    "%s", class_dev->class_id);
-+	if (error)
-+		goto out2;
-+
-+	/* add the needed attributes to this device */
-+	error = sysfs_create_link(&class_dev->kobj,
-+				  &parent_class->subsys.kobj, "subsystem");
-+	if (error)
-+		goto out3;
-+
-+	error = class_device_create_file(class_dev, &class_uevent_attr);
-+	if (error)
-+		goto out3;
-+
-+	if (MAJOR(class_dev->devt)) {
-+		error = class_device_create_file(class_dev, &class_devt_attr);
-+		if (error)
-+			goto out4;
-+	}
-+
-+	error = class_device_add_attrs(class_dev);
-+	if (error)
-+		goto out5;
-+
-+	if (class_dev->dev) {
-+		error = sysfs_create_link(&class_dev->kobj,
-+					  &class_dev->dev->kobj, "device");
-+		if (error)
-+			goto out6;
-+	}
-+
-+	error = class_device_add_groups(class_dev);
-+	if (error)
-+		goto out7;
-+
-+	error = make_deprecated_class_device_links(class_dev);
-+	if (error)
-+		goto out8;
-+
-+	kobject_uevent(&class_dev->kobj, KOBJ_ADD);
-+
-+	/* notify any interfaces this device is now here */
-+	down(&parent_class->sem);
-+	list_add_tail(&class_dev->node, &parent_class->children);
-+	list_for_each_entry(class_intf, &parent_class->interfaces, node) {
-+		if (class_intf->add)
-+			class_intf->add(class_dev, class_intf);
-+	}
-+	up(&parent_class->sem);
-+
-+	goto out1;
-+
-+ out8:
-+	class_device_remove_groups(class_dev);
-+ out7:
-+	if (class_dev->dev)
-+		sysfs_remove_link(&class_dev->kobj, "device");
-+ out6:
-+	class_device_remove_attrs(class_dev);
-+ out5:
-+	if (MAJOR(class_dev->devt))
-+		class_device_remove_file(class_dev, &class_devt_attr);
-+ out4:
-+	class_device_remove_file(class_dev, &class_uevent_attr);
-+ out3:
-+	kobject_del(&class_dev->kobj);
-+ out2:
-+	if (parent_class_dev)
-+		class_device_put(parent_class_dev);
-+	class_put(parent_class);
-+ out1:
-+	class_device_put(class_dev);
-+	return error;
-+}
-+
-+int class_device_register(struct class_device *class_dev)
-+{
-+	class_device_initialize(class_dev);
-+	return class_device_add(class_dev);
-+}
-+
-+/**
-+ * class_device_create - creates a class device and registers it with sysfs
-+ * @cls: pointer to the struct class that this device should be registered to.
-+ * @parent: pointer to the parent struct class_device of this new device, if
-+ * any.
-+ * @devt: the dev_t for the char device to be added.
-+ * @device: a pointer to a struct device that is assiociated with this class
-+ * device.
-+ * @fmt: string for the class device's name
-+ *
-+ * This function can be used by char device classes.  A struct
-+ * class_device will be created in sysfs, registered to the specified
-+ * class.
-+ * A "dev" file will be created, showing the dev_t for the device, if
-+ * the dev_t is not 0,0.
-+ * If a pointer to a parent struct class_device is passed in, the newly
-+ * created struct class_device will be a child of that device in sysfs.
-+ * The pointer to the struct class_device will be returned from the
-+ * call.  Any further sysfs files that might be required can be created
-+ * using this pointer.
-+ *
-+ * Note: the struct class passed to this function must have previously
-+ * been created with a call to class_create().
-+ */
-+struct class_device *class_device_create(struct class *cls,
-+					 struct class_device *parent,
-+					 dev_t devt,
-+					 struct device *device,
-+					 const char *fmt, ...)
-+{
-+	va_list args;
-+	struct class_device *class_dev = NULL;
-+	int retval = -ENODEV;
-+
-+	if (cls == NULL || IS_ERR(cls))
-+		goto error;
-+
-+	class_dev = kzalloc(sizeof(*class_dev), GFP_KERNEL);
-+	if (!class_dev) {
-+		retval = -ENOMEM;
-+		goto error;
-+	}
-+
-+	class_dev->devt = devt;
-+	class_dev->dev = device;
-+	class_dev->class = cls;
-+	class_dev->parent = parent;
-+	class_dev->release = class_device_create_release;
-+	class_dev->uevent = class_device_create_uevent;
-+
-+	va_start(args, fmt);
-+	vsnprintf(class_dev->class_id, BUS_ID_SIZE, fmt, args);
-+	va_end(args);
-+	retval = class_device_register(class_dev);
-+	if (retval)
-+		goto error;
-+
-+	return class_dev;
-+
-+error:
-+	kfree(class_dev);
-+	return ERR_PTR(retval);
-+}
-+
-+void class_device_del(struct class_device *class_dev)
-+{
-+	struct class *parent_class = class_dev->class;
-+	struct class_device *parent_device = class_dev->parent;
-+	struct class_interface *class_intf;
-+
-+	if (parent_class) {
-+		down(&parent_class->sem);
-+		list_del_init(&class_dev->node);
-+		list_for_each_entry(class_intf, &parent_class->interfaces, node)
-+			if (class_intf->remove)
-+				class_intf->remove(class_dev, class_intf);
-+		up(&parent_class->sem);
-+	}
-+
-+	if (class_dev->dev) {
-+		remove_deprecated_class_device_links(class_dev);
-+		sysfs_remove_link(&class_dev->kobj, "device");
-+	}
-+	sysfs_remove_link(&class_dev->kobj, "subsystem");
-+	class_device_remove_file(class_dev, &class_uevent_attr);
-+	if (MAJOR(class_dev->devt))
-+		class_device_remove_file(class_dev, &class_devt_attr);
-+	class_device_remove_attrs(class_dev);
-+	class_device_remove_groups(class_dev);
-+
-+	kobject_uevent(&class_dev->kobj, KOBJ_REMOVE);
-+	kobject_del(&class_dev->kobj);
-+
-+	class_device_put(parent_device);
-+	class_put(parent_class);
-+}
-+
-+void class_device_unregister(struct class_device *class_dev)
-+{
-+	pr_debug("CLASS: Unregistering class device. ID = '%s'\n",
-+		 class_dev->class_id);
-+	class_device_del(class_dev);
-+	class_device_put(class_dev);
-+}
-+
-+/**
-+ * class_device_destroy - removes a class device that was created with class_device_create()
-+ * @cls: the pointer to the struct class that this device was registered * with.
-+ * @devt: the dev_t of the device that was previously registered.
-+ *
-+ * This call unregisters and cleans up a class device that was created with a
-+ * call to class_device_create()
-+ */
-+void class_device_destroy(struct class *cls, dev_t devt)
-+{
-+	struct class_device *class_dev = NULL;
-+	struct class_device *class_dev_tmp;
-+
-+	down(&cls->sem);
-+	list_for_each_entry(class_dev_tmp, &cls->children, node) {
-+		if (class_dev_tmp->devt == devt) {
-+			class_dev = class_dev_tmp;
-+			break;
-+		}
-+	}
-+	up(&cls->sem);
-+
-+	if (class_dev)
-+		class_device_unregister(class_dev);
-+}
-+
-+struct class_device *class_device_get(struct class_device *class_dev)
-+{
-+	if (class_dev)
-+		return to_class_dev(kobject_get(&class_dev->kobj));
-+	return NULL;
-+}
-+
-+void class_device_put(struct class_device *class_dev)
-+{
-+	if (class_dev)
-+		kobject_put(&class_dev->kobj);
-+}
-+
- /**
-  * class_for_each_device - device iterator
-  * @class: the class we're iterating
-@@ -338,9 +897,56 @@ struct device *class_find_device(struct 
- }
- EXPORT_SYMBOL_GPL(class_find_device);
- 
-+/**
-+ * class_find_child - device iterator for locating a particular class_device
-+ * @class: the class we're iterating
-+ * @data: data for the match function
-+ * @match: function to check class_device
-+ *
-+ * This function returns a reference to a class_device that is 'found' for
-+ * later use, as determined by the @match callback.
-+ *
-+ * The callback should return 0 if the class_device doesn't match and non-zero
-+ * if it does.  If the callback returns non-zero, this function will
-+ * return to the caller and not iterate over any more class_devices.
-+ *
-+ * Note, you will need to drop the reference with class_device_put() after use.
-+ *
-+ * We hold class->sem in this function, so it can not be
-+ * re-acquired in @match, otherwise it will self-deadlocking. For
-+ * example, calls to add or remove class members would be verboten.
-+ */
-+struct class_device *class_find_child(struct class *class, void *data,
-+				   int (*match)(struct class_device *, void *))
-+{
-+	struct class_device *dev;
-+	int found = 0;
-+
-+	if (!class)
-+		return NULL;
-+
-+	down(&class->sem);
-+	list_for_each_entry(dev, &class->children, node) {
-+		dev = class_device_get(dev);
-+		if (dev) {
-+			if (match(dev, data)) {
-+				found = 1;
-+				break;
-+			} else
-+				class_device_put(dev);
-+		} else
-+			break;
-+	}
-+	up(&class->sem);
-+
-+	return found ? dev : NULL;
-+}
-+EXPORT_SYMBOL_GPL(class_find_child);
-+
- int class_interface_register(struct class_interface *class_intf)
- {
- 	struct class *parent;
-+	struct class_device *class_dev;
- 	struct device *dev;
- 
- 	if (!class_intf || !class_intf->class)
-@@ -352,6 +958,10 @@ int class_interface_register(struct clas
- 
- 	down(&parent->sem);
- 	list_add_tail(&class_intf->node, &parent->interfaces);
-+	if (class_intf->add) {
-+		list_for_each_entry(class_dev, &parent->children, node)
-+			class_intf->add(class_dev, class_intf);
-+	}
- 	if (class_intf->add_dev) {
- 		list_for_each_entry(dev, &parent->devices, node)
- 			class_intf->add_dev(dev, class_intf);
-@@ -364,6 +974,7 @@ int class_interface_register(struct clas
- void class_interface_unregister(struct class_interface *class_intf)
- {
- 	struct class *parent = class_intf->class;
-+	struct class_device *class_dev;
- 	struct device *dev;
- 
- 	if (!parent)
-@@ -371,6 +982,10 @@ void class_interface_unregister(struct c
- 
- 	down(&parent->sem);
- 	list_del_init(&class_intf->node);
-+	if (class_intf->remove) {
-+		list_for_each_entry(class_dev, &parent->children, node)
-+			class_intf->remove(class_dev, class_intf);
-+	}
- 	if (class_intf->remove_dev) {
- 		list_for_each_entry(dev, &parent->devices, node)
- 			class_intf->remove_dev(dev, class_intf);
-@@ -385,6 +1000,13 @@ int __init classes_init(void)
- 	class_kset = kset_create_and_add("class", NULL, NULL);
- 	if (!class_kset)
- 		return -ENOMEM;
-+
-+	/* ick, this is ugly, the things we go through to keep from showing up
-+	 * in sysfs... */
-+	kset_init(&class_obj_subsys);
-+	kobject_set_name(&class_obj_subsys.kobj, "class_obj");
-+	if (!class_obj_subsys.kobj.parent)
-+		class_obj_subsys.kobj.parent = &class_obj_subsys.kobj;
- 	return 0;
- }
- 
-@@ -395,5 +1017,19 @@ EXPORT_SYMBOL_GPL(class_unregister);
- EXPORT_SYMBOL_GPL(class_create);
- EXPORT_SYMBOL_GPL(class_destroy);
- 
-+EXPORT_SYMBOL_GPL(class_device_register);
-+EXPORT_SYMBOL_GPL(class_device_unregister);
-+EXPORT_SYMBOL_GPL(class_device_initialize);
-+EXPORT_SYMBOL_GPL(class_device_add);
-+EXPORT_SYMBOL_GPL(class_device_del);
-+EXPORT_SYMBOL_GPL(class_device_get);
-+EXPORT_SYMBOL_GPL(class_device_put);
-+EXPORT_SYMBOL_GPL(class_device_create);
-+EXPORT_SYMBOL_GPL(class_device_destroy);
-+EXPORT_SYMBOL_GPL(class_device_create_file);
-+EXPORT_SYMBOL_GPL(class_device_remove_file);
-+EXPORT_SYMBOL_GPL(class_device_create_bin_file);
-+EXPORT_SYMBOL_GPL(class_device_remove_bin_file);
-+
- EXPORT_SYMBOL_GPL(class_interface_register);
- EXPORT_SYMBOL_GPL(class_interface_unregister);
-diff -puN include/linux/device.h~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device include/linux/device.h
---- a/include/linux/device.h~revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device
-+++ a/include/linux/device.h
-@@ -35,6 +35,7 @@ struct device;
- struct device_driver;
- struct driver_private;
- struct class;
-+struct class_device;
- struct bus_type;
- struct bus_type_private;
- 
-@@ -189,10 +190,13 @@ struct class {
- 	struct kset		class_dirs;
- 	struct semaphore	sem; /* locks children, devices, interfaces */
- 	struct class_attribute		*class_attrs;
-+	struct class_device_attribute	*class_dev_attrs;
- 	struct device_attribute		*dev_attrs;
- 
-+	int (*uevent)(struct class_device *dev, struct kobj_uevent_env *env);
- 	int (*dev_uevent)(struct device *dev, struct kobj_uevent_env *env);
- 
-+	void (*release)(struct class_device *dev);
- 	void (*class_release)(struct class *class);
- 	void (*dev_release)(struct device *dev);
- 
-@@ -206,6 +210,9 @@ extern int class_for_each_device(struct 
- 				 int (*fn)(struct device *dev, void *data));
- extern struct device *class_find_device(struct class *class, void *data,
- 					int (*match)(struct device *, void *));
-+extern struct class_device *class_find_child(struct class *class, void *data,
-+				   int (*match)(struct class_device *, void *));
-+
- 
- struct class_attribute {
- 	struct attribute attr;
-@@ -221,10 +228,92 @@ extern int __must_check class_create_fil
- extern void class_remove_file(struct class *class,
- 			      const struct class_attribute *attr);
- 
-+struct class_device_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct class_device *, char *buf);
-+	ssize_t (*store)(struct class_device *, const char *buf, size_t count);
-+};
-+
-+#define CLASS_DEVICE_ATTR(_name, _mode, _show, _store)		\
-+struct class_device_attribute class_device_attr_##_name = 	\
-+	__ATTR(_name, _mode, _show, _store)
-+
-+extern int __must_check class_device_create_file(struct class_device *,
-+				    const struct class_device_attribute *);
-+
-+/**
-+ * struct class_device - class devices
-+ * @class: pointer to the parent class for this class device.  This is required.
-+ * @devt: for internal use by the driver core only.
-+ * @node: for internal use by the driver core only.
-+ * @kobj: for internal use by the driver core only.
-+ * @groups: optional additional groups to be created
-+ * @dev: if set, a symlink to the struct device is created in the sysfs
-+ * directory for this struct class device.
-+ * @class_data: pointer to whatever you want to store here for this struct
-+ * class_device.  Use class_get_devdata() and class_set_devdata() to get and
-+ * set this pointer.
-+ * @parent: pointer to a struct class_device that is the parent of this struct
-+ * class_device.  If NULL, this class_device will show up at the root of the
-+ * struct class in sysfs (which is probably what you want to have happen.)
-+ * @release: pointer to a release function for this struct class_device.  If
-+ * set, this will be called instead of the class specific release function.
-+ * Only use this if you want to override the default release function, like
-+ * when you are nesting class_device structures.
-+ * @uevent: pointer to a uevent function for this struct class_device.  If
-+ * set, this will be called instead of the class specific uevent function.
-+ * Only use this if you want to override the default uevent function, like
-+ * when you are nesting class_device structures.
-+ */
-+struct class_device {
-+	struct list_head	node;
-+
-+	struct kobject		kobj;
-+	struct class		*class;
-+	dev_t			devt;
-+	struct device		*dev;
-+	void			*class_data;
-+	struct class_device	*parent;
-+	struct attribute_group  **groups;
-+
-+	void (*release)(struct class_device *dev);
-+	int (*uevent)(struct class_device *dev, struct kobj_uevent_env *env);
-+	char class_id[BUS_ID_SIZE];
-+};
-+
-+static inline void *class_get_devdata(struct class_device *dev)
-+{
-+	return dev->class_data;
-+}
-+
-+static inline void class_set_devdata(struct class_device *dev, void *data)
-+{
-+	dev->class_data = data;
-+}
-+
-+
-+extern int __must_check class_device_register(struct class_device *);
-+extern void class_device_unregister(struct class_device *);
-+extern void class_device_initialize(struct class_device *);
-+extern int __must_check class_device_add(struct class_device *);
-+extern void class_device_del(struct class_device *);
-+
-+extern struct class_device *class_device_get(struct class_device *);
-+extern void class_device_put(struct class_device *);
-+
-+extern void class_device_remove_file(struct class_device *,
-+				     const struct class_device_attribute *);
-+extern int __must_check class_device_create_bin_file(struct class_device *,
-+					struct bin_attribute *);
-+extern void class_device_remove_bin_file(struct class_device *,
-+					 struct bin_attribute *);
-+
- struct class_interface {
- 	struct list_head	node;
- 	struct class		*class;
- 
-+	int (*add)	(struct class_device *, struct class_interface *);
-+	void (*remove)	(struct class_device *, struct class_interface *);
- 	int (*add_dev)		(struct device *, struct class_interface *);
- 	void (*remove_dev)	(struct device *, struct class_interface *);
- };
-@@ -234,6 +323,13 @@ extern void class_interface_unregister(s
- 
- extern struct class *class_create(struct module *owner, const char *name);
- extern void class_destroy(struct class *cls);
-+extern struct class_device *class_device_create(struct class *cls,
-+						struct class_device *parent,
-+						dev_t devt,
-+						struct device *device,
-+						const char *fmt, ...)
-+					__attribute__((format(printf, 5, 6)));
-+extern void class_device_destroy(struct class *cls, dev_t devt);
+diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros include/linux/kernel.h
+--- a/include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros
++++ a/include/linux/kernel.h
+@@ -334,33 +334,53 @@ extern void print_hex_dump_bytes(const c
+ #endif /* __LITTLE_ENDIAN */
  
  /*
-  * The type of device, "struct device" is embedded in. A class
-@@ -370,6 +466,7 @@ struct device {
- 	spinlock_t		devres_lock;
- 	struct list_head	devres_head;
+- * min()/max() macros that also do
++ * min()/max()/clamp() macros that also do
+  * strict type-checking.. See the
+  * "unnecessary" pointer comparison.
+  */
+-#define min(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x < _y ? _x : _y; })
+-
+-#define max(x,y) ({ \
+-	typeof(x) _x = (x);	\
+-	typeof(y) _y = (y);	\
+-	(void) (&_x == &_y);		\
+-	_x > _y ? _x : _y; })
++#define min(x,y) ({				\
++	typeof(x) _min1 = (x);			\
++	typeof(y) _min2 = (y);			\
++	(void) (&_min1 == &_min2);		\
++	_min1 < _min2 ? _min1 : _min2; })
++
++#define max(x,y) ({				\
++	typeof(x) _max1 = (x);			\
++	typeof(y) _max2 = (y);			\
++	(void) (&_max1 == &_max2);		\
++	_max1 > _max2 ? _max1 : _max2; })
++
++#define clamp(val, min, max) ({			\
++	typeof(val) __val = (val);		\
++	typeof(min) __min = (min);		\
++	typeof(max) __max = (max);		\
++	(void) (&__val == &__min);		\
++	(void) (&__val == &__max);		\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
  
-+	/* class_device migration path */
- 	struct list_head	node;
- 	struct class		*class;
- 	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+ /*
+  * ..and if you can't take the strict
+  * types, you can specify one yourself.
+  *
+- * Or not use min/max at all, of course.
++ * Or not use min/max/clamp at all, of course.
+  */
+-#define min_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
+-#define max_t(type,x,y) \
+-	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
+-
++#define min_t(type, x, y) ({			\
++	type __min1 = (x);			\
++	type __min2 = (y);			\
++	__min1 < __min2 ? __min1: __min2; })
++
++#define max_t(type, x, y) ({			\
++	type __max1 = (x);			\
++	type __max2 = (y);			\
++	__max1 > __max2 ? __max1: __max2; })
++
++#define clamp_t(type, val, min, max) ({		\
++	type __val = (val);			\
++	type __min = (min);			\
++	type __max = (max);			\
++	__val = __val < __min ? __min: __val;	\
++	__val > __max ? __max: __val; })
+ 
+ /**
+  * container_of - cast a member of a structure out to the containing structure
+diff -puN drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros drivers/media/video/bt8xx/bttvp.h
+--- a/drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros
++++ a/drivers/media/video/bt8xx/bttvp.h
+@@ -82,8 +82,6 @@
+ /* Limits scaled width, which must be a multiple of 4. */
+ #define MAX_HACTIVE (0x3FF & -4)
+ 
+-#define clamp(x, low, high) min (max (low, x), high)
+-
+ #define BTTV_NORMS    (\
+ 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+ 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+diff -puN drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros drivers/media/video/usbvideo/vicam.c
+--- a/drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros
++++ a/drivers/media/video/usbvideo/vicam.c
+@@ -70,12 +70,6 @@
+ 
+ #define VICAM_HEADER_SIZE       64
+ 
+-#define clamp( x, l, h )        max_t( __typeof__( x ),         \
+-				       ( l ),                   \
+-				       min_t( __typeof__( x ),  \
+-					      ( h ),            \
+-					      ( x ) ) )
+-
+ /* Not sure what all the bytes in these char
+  * arrays do, but they're necessary to make
+  * the camera work.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
 git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-revert-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-cifs.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
 git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-drivers-media-video-soc_camerac-reads-return-size_t.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
+git-dlm.patch
 git-ieee1394.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
 git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+pata_amd-fix-sparse-warning.patch
+git-async-tx.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
 git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
 git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
-git-sh.patch
-git-scsi-misc-revert-st-show-options-currently-set-in-sysfs.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
-git-v9fs.patch
+block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem-checkpatch-fixes.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
 kernel-add-clamp-and-clamp_t-macros.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
