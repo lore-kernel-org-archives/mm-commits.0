@@ -1,97 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + x86-kvmclock-needs-to-include-apich.patch added to -mm tree
-Date: Fri, 14 Mar 2008 15:20:58 -0700
-Message-ID: <200803142220.m2EMKwEN021981@imap1.linux-foundation.org>
+Subject: - romfs-prevent-romfs_lookup-from-always-failing.patch removed from -mm tree
+Date: Fri, 14 Mar 2008 15:47:55 -0700
+Message-ID: <200803142247.m2EMlu8I022939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752815AbYCNWWT (ORCPT
+	by vger.kernel.org with ESMTP id S1754309AbYCNWsf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 18:22:19 -0400
+	Fri, 14 Mar 2008 18:48:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+To: adam@yggdrasil.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: kvmclock needs to include apic.h
-has been added to the -mm tree.  Its filename is
-     x86-kvmclock-needs-to-include-apich.patch
+     romfs: prevent romfs_lookup() from always failing
+has been removed from the -mm tree.  Its filename was
+     romfs-prevent-romfs_lookup-from-always-failing.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: kvmclock needs to include apic.h
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: romfs: prevent romfs_lookup() from always failing
+From: "Adam J. Richter" <adam@yggdrasil.com>
 
-kvmclock needs to #include apic.h to prevent a build error:
+romfs_lookup worked in 2.6.24.2, but always fails in linux-2.6.25-rc3-git3. 
+fs/romfs/inode.c is the same in at least 2.6.25-rc3 through 2.6.25-rc3-git4
+and the latest sources from git, so these versions almost certainly have the
+same problem.
 
-next-20080314/arch/x86/kernel/kvmclock.c:142: error: implicit declaration of function 'setup_secondary_APIC_clock'
-elan1.out:make[2]: *** [arch/x86/kernel/kvmclock.o] Error 1
+The bug appears to be from a well meaning but botched attempt to eliminate a
+goto from romfs_lookup.  Previously, a goto statement was used to skip over
+"inode = NULL;" when the lookup succeeded.  In the 2.6.25-rc3 version, inode
+is set to NULL even when an inode was found, so the result is the the lookup
+always appears to fail.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The attached patch fixes the problem while still eliminating the goto.
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kvmclock.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/romfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/kvmclock.c~x86-kvmclock-needs-to-include-apich arch/x86/kernel/kvmclock.c
---- a/arch/x86/kernel/kvmclock.c~x86-kvmclock-needs-to-include-apich
-+++ a/arch/x86/kernel/kvmclock.c
-@@ -20,6 +20,7 @@
- #include <linux/kvm_para.h>
- #include <asm/arch_hooks.h>
- #include <asm/msr.h>
-+#include <asm/apic.h>
- #include <linux/percpu.h>
+diff -puN fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing fs/romfs/inode.c
+--- a/fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing
++++ a/fs/romfs/inode.c
+@@ -347,6 +347,7 @@ romfs_lookup(struct inode *dir, struct d
+ 	const char *name;		/* got from dentry */
+ 	int len;
  
- #define KVM_SCALE 22
++	inode = NULL;
+ 	res = -EACCES;			/* placeholder for "no data here" */
+ 	offset = dir->i_ino & ROMFH_MASK;
+ 	lock_kernel();
+@@ -409,7 +410,7 @@ romfs_lookup(struct inode *dir, struct d
+ 	 * systems).
+ 	 */
+ 
+-out0:	inode = NULL;
++out0:
+ 	res = 0;
+ 	d_add (dentry, inode);
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from adam@yggdrasil.com are
 
-origin.patch
-kernel-doc-set-verbose-mode-via-environment.patch
-mm-fix-various-kernel-doc-comments.patch
-mm-shmem-and-tiny-shmem-fix-some-kernel-doc.patch
-mm-oom_kill-fix-kernel-doc.patch
-mm-highmem-kernel-doc-additions.patch
-mm-rmap-kernel-doc-fixes.patch
-jbd-fix-jbd-kernel-doc-notation.patch
-git-acpi.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-x86-kvmclock-needs-to-include-apich.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-profile-likely-unlikely-macros.patch
+romfs-prevent-romfs_lookup-from-always-failing.patch
 
