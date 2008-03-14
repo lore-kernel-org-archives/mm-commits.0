@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + keys-make-key_serial-a-function-if-config_keys=y.patch added to -mm tree
-Date: Fri, 14 Mar 2008 12:58:49 -0700
-Message-ID: <200803141958.m2EJwnDl016720@imap1.linux-foundation.org>
+Subject: + keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch added to -mm tree
+Date: Fri, 14 Mar 2008 12:58:38 -0700
+Message-ID: <200803141958.m2EJwcrh016717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbYCNT7l (ORCPT
+	by vger.kernel.org with ESMTP id S1755729AbYCNT7m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:59:41 -0400
+	Fri, 14 Mar 2008 15:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com
 
 
 The patch titled
-     keys: make key_serial() a function if CONFIG_KEYS=y
+     keys: document making the keyring quotas controllable through /proc/sys
 has been added to the -mm tree.  Its filename is
-     keys-make-key_serial-a-function-if-config_keys=y.patch
+     keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: make key_serial() a function if CONFIG_KEYS=y
+Subject: keys: document making the keyring quotas controllable through /proc/sys
 From: David Howells <dhowells@redhat.com>
 
-Make key_serial() an inline function rather than a macro if CONFIG_KEYS=y. 
-This prevents double evaluation of the key pointer and also provides better
-type checking.
+Alter the key management documentation to include information on keyring quota
+controls as added in a previous patch.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/key.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ Documentation/keys.txt |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/key.h~keys-make-key_serial-a-function-if-config_keys=y include/linux/key.h
---- a/include/linux/key.h~keys-make-key_serial-a-function-if-config_keys=y
-+++ a/include/linux/key.h
-@@ -264,7 +264,10 @@ extern int keyring_add_key(struct key *k
+diff -puN Documentation/keys.txt~keys-document-making-the-keyring-quotas-controllable-through-proc-sys Documentation/keys.txt
+--- a/Documentation/keys.txt~keys-document-making-the-keyring-quotas-controllable-through-proc-sys
++++ a/Documentation/keys.txt
+@@ -170,7 +170,8 @@ The key service provides a number of fea
+      amount of description and payload space that can be consumed.
  
- extern struct key *key_lookup(key_serial_t id);
+      The user can view information on this and other statistics through procfs
+-     files.
++     files.  The root user may also alter the quota limits through sysctl files
++     (see the section "New procfs files").
  
--#define key_serial(key) ((key) ? (key)->serial : 0)
-+static inline key_serial_t key_serial(struct key *key)
-+{
-+	return key ? key->serial : 0;
-+}
+      Process-specific and thread-specific keyrings are not counted towards a
+      user's quota.
+@@ -329,6 +330,27 @@ about the status of the key service:
+ 	<bytes>/<max>		Key size quota
  
- #ifdef CONFIG_SYSCTL
- extern ctl_table key_sysctls[];
+ 
++Four new sysctl files have been added also for the purpose of controlling the
++quota limits on keys:
++
++ (*) /proc/sys/kernel/keys/root_maxkeys
++     /proc/sys/kernel/keys/root_maxbytes
++
++     These files hold the maximum number of keys that root may have and the
++     maximum total number of bytes of data that root may have stored in those
++     keys.
++
++ (*) /proc/sys/kernel/keys/maxkeys
++     /proc/sys/kernel/keys/maxbytes
++
++     These files hold the maximum number of keys that each non-root user may
++     have and the maximum total number of bytes of data that each of those
++     users may have stored in their keys.
++
++Root may alter these by writing each new limit as a decimal number string to
++the appropriate file.
++
++
+ ===============================
+ USERSPACE SYSTEM CALL INTERFACE
+ ===============================
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
