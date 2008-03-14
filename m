@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-add-unregister_kprobes-for-batch-registration.patch added to -mm tree
-Date: Fri, 14 Mar 2008 14:06:19 -0700
-Message-ID: <200803142106.m2EL6KK3019377@imap1.linux-foundation.org>
+Subject: + add-macros-similar-to-min-max-min_t-max_t-doc.patch added to -mm tree
+Date: Fri, 14 Mar 2008 14:08:53 -0700
+Message-ID: <200803142108.m2EL8rAl019467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754673AbYCNVIZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756726AbYCNVJh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 17:08:25 -0400
+	Fri, 14 Mar 2008 17:09:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, ananth@in.ibm.com, davem@davemloft.net, fche@redhat.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, shaohua.li@intel.com
+Cc: harvey.harrison@gmail.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     kprobes: add (un)register_kprobes for batch registration
+     add kerneldoc for clamp(), clamp_t(), clamp_val() macros
 has been added to the -mm tree.  Its filename is
-     kprobes-add-unregister_kprobes-for-batch-registration.patch
+     add-macros-similar-to-min-max-min_t-max_t-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,249 +34,192 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: add (un)register_kprobes for batch registration
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: add kerneldoc for clamp(), clamp_t(), clamp_val() macros
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Introduce unregister_/register_kprobes() for kprobe batch registration.  This
-can reduce waiting time for synchronized_sched() when a lot of probes have to
-be unregistered at once.
-
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: "Frank Ch. Eigler" <fche@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    9 ++
- kernel/kprobes.c        |  124 ++++++++++++++++++++++++++------------
- 2 files changed, 96 insertions(+), 37 deletions(-)
+ include/linux/kernel.h |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN include/linux/kprobes.h~kprobes-add-unregister_kprobes-for-batch-registration include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-add-unregister_kprobes-for-batch-registration
-+++ a/include/linux/kprobes.h
-@@ -234,6 +234,8 @@ static inline struct kprobe_ctlblk *get_
+diff -puN include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t-doc include/linux/kernel.h
+--- a/include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t-doc
++++ a/include/linux/kernel.h
+@@ -351,6 +351,15 @@ extern void print_hex_dump_bytes(const c
+ 	(void) (&_max1 == &_max2);		\
+ 	_max1 > _max2 ? _max1 : _max2; })
  
- int register_kprobe(struct kprobe *p);
- void unregister_kprobe(struct kprobe *p);
-+int register_kprobes(struct kprobe **kps, int num);
-+void unregister_kprobes(struct kprobe **kps, int num);
- int setjmp_pre_handler(struct kprobe *, struct pt_regs *);
- int longjmp_break_handler(struct kprobe *, struct pt_regs *);
- int register_jprobe(struct jprobe *p);
-@@ -261,9 +263,16 @@ static inline int register_kprobe(struct
- {
- 	return -ENOSYS;
- }
-+static inline int register_kprobes(struct kprobe **kps, int num)
-+{
-+	return -ENOSYS;
-+}
- static inline void unregister_kprobe(struct kprobe *p)
- {
- }
-+static inline void unregister_kprobes(struct kprobe **kps, int num)
-+{
-+}
- static inline int register_jprobe(struct jprobe *p)
- {
- 	return -ENOSYS;
-diff -puN kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration
-+++ a/kernel/kprobes.c
-@@ -580,6 +580,7 @@ static int __kprobes __register_kprobe(s
- 	}
- 
- 	p->nmissed = 0;
-+	INIT_LIST_HEAD(&p->list);
- 	mutex_lock(&kprobe_mutex);
- 	old_p = get_kprobe(p->addr);
- 	if (old_p) {
-@@ -606,35 +607,28 @@ out:
- 	return ret;
- }
- 
--int __kprobes register_kprobe(struct kprobe *p)
--{
--	return __register_kprobe(p, (unsigned long)__builtin_return_address(0));
--}
--
--void __kprobes unregister_kprobe(struct kprobe *p)
-+/*
-+ * Unregister a kprobe without a scheduler synchronization.
++/**
++ * clamp - return a value clamped to a given range with strict typechecking
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does strict typechecking of min/max to make sure they are of the
++ * same type as val.  See the unnecessary pointer comparisons.
 + */
-+static int __kprobes __unregister_kprobe_top(struct kprobe *p)
- {
--	struct module *mod;
- 	struct kprobe *old_p, *list_p;
--	int cleanup_p;
+ #define clamp(val, min, max) ({			\
+ 	typeof(val) __val = (val);		\
+ 	typeof(min) __min = (min);		\
+@@ -376,6 +385,16 @@ extern void print_hex_dump_bytes(const c
+ 	type __max2 = (y);			\
+ 	__max1 > __max2 ? __max1: __max2; })
  
--	mutex_lock(&kprobe_mutex);
- 	old_p = get_kprobe(p->addr);
--	if (unlikely(!old_p)) {
--		mutex_unlock(&kprobe_mutex);
--		return;
--	}
-+	if (unlikely(!old_p))
-+		return -EINVAL;
-+
- 	if (p != old_p) {
- 		list_for_each_entry_rcu(list_p, &old_p->list, list)
- 			if (list_p == p)
- 			/* kprobe p is a valid probe */
- 				goto valid_p;
--		mutex_unlock(&kprobe_mutex);
--		return;
-+		return -EINVAL;
- 	}
- valid_p:
- 	if (old_p == p ||
- 	    (old_p->pre_handler == aggr_pre_handler &&
--	     p->list.next == &old_p->list && p->list.prev == &old_p->list)) {
-+	     list_singleton(&old_p->list))) {
- 		/*
- 		 * Only probe on the hash list. Disarm only if kprobes are
- 		 * enabled - otherwise, the breakpoint would already have
-@@ -643,43 +637,97 @@ valid_p:
- 		if (kprobe_enabled)
- 			arch_disarm_kprobe(p);
- 		hlist_del_rcu(&old_p->hlist);
--		cleanup_p = 1;
- 	} else {
-+		if (p->break_handler)
-+			old_p->break_handler = NULL;
-+		if (p->post_handler) {
-+			list_for_each_entry_rcu(list_p, &old_p->list, list) {
-+				if ((list_p != p) && (list_p->post_handler))
-+					goto noclean;
-+			}
-+			old_p->post_handler = NULL;
-+		}
-+noclean:
- 		list_del_rcu(&p->list);
--		cleanup_p = 0;
- 	}
-+	return 0;
-+}
- 
--	mutex_unlock(&kprobe_mutex);
-+static void __kprobes __unregister_kprobe_bottom(struct kprobe *p)
-+{
-+	struct module *mod;
-+	struct kprobe *old_p;
- 
--	synchronize_sched();
- 	if (p->mod_refcounted) {
- 		mod = module_text_address((unsigned long)p->addr);
- 		if (mod)
- 			module_put(mod);
- 	}
- 
--	if (cleanup_p) {
--		if (p != old_p) {
--			list_del_rcu(&p->list);
-+	if (list_empty(&p->list) || list_singleton(&p->list)) {
-+		if (!list_empty(&p->list)) {
-+			/* "p" is the last child of an aggr_kprobe */
-+			old_p = list_entry(p->list.next, struct kprobe, list);
-+			list_del(&p->list);
- 			kfree(old_p);
- 		}
- 		arch_remove_kprobe(p);
--	} else {
--		mutex_lock(&kprobe_mutex);
--		if (p->break_handler)
--			old_p->break_handler = NULL;
--		if (p->post_handler){
--			list_for_each_entry_rcu(list_p, &old_p->list, list){
--				if (list_p->post_handler){
--					cleanup_p = 2;
--					break;
--				}
--			}
--			if (cleanup_p == 0)
--				old_p->post_handler = NULL;
-+	}
-+}
-+
-+static int __register_kprobes(struct kprobe **kps, int num,
-+	unsigned long called_from)
-+{
-+	int i, ret = 0;
-+
-+	if (num <= 0)
-+		return -EINVAL;
-+	for (i = 0; i < num; i++) {
-+		ret = __register_kprobe(kps[i], called_from);
-+		if (ret < 0 && i > 0) {
-+			unregister_kprobes(kps, i);
-+			break;
- 		}
--		mutex_unlock(&kprobe_mutex);
- 	}
-+	return ret;
-+}
-+
-+/*
-+ * Registration and unregistration functions for kprobe.
++/**
++ * clamp_t - return a value clamped to a given range using a given type
++ * @type: the type of variable to use
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of type
++ * 'type' to make all the comparisons.
 + */
-+int __kprobes register_kprobe(struct kprobe *p)
-+{
-+	return __register_kprobes(&p, 1,
-+				  (unsigned long)__builtin_return_address(0));
-+}
-+
-+void __kprobes unregister_kprobe(struct kprobe *p)
-+{
-+	unregister_kprobes(&p, 1);
-+}
-+
-+int __kprobes register_kprobes(struct kprobe **kps, int num)
-+{
-+	return __register_kprobes(kps, num,
-+				  (unsigned long)__builtin_return_address(0));
-+}
-+
-+void __kprobes unregister_kprobes(struct kprobe **kps, int num)
-+{
-+	int i;
-+
-+	if (num <= 0)
-+		return;
-+	mutex_lock(&kprobe_mutex);
-+	for (i = 0; i < num; i++)
-+		if (__unregister_kprobe_top(kps[i]) < 0)
-+			kps[i]->addr = NULL;
-+	mutex_unlock(&kprobe_mutex);
-+
-+	synchronize_sched();
-+	for (i = 0; i < num; i++)
-+		if (kps[i]->addr)
-+			__unregister_kprobe_bottom(kps[i]);
- }
+ #define clamp_t(type, val, min, max) ({		\
+ 	type __val = (val);			\
+ 	type __min = (min);			\
+@@ -383,6 +402,17 @@ extern void print_hex_dump_bytes(const c
+ 	__val = __val < __min ? __min: __val;	\
+ 	__val > __max ? __max: __val; })
  
- static struct notifier_block kprobe_exceptions_nb = {
-@@ -1118,6 +1166,8 @@ module_init(init_kprobes);
- 
- EXPORT_SYMBOL_GPL(register_kprobe);
- EXPORT_SYMBOL_GPL(unregister_kprobe);
-+EXPORT_SYMBOL_GPL(register_kprobes);
-+EXPORT_SYMBOL_GPL(unregister_kprobes);
- EXPORT_SYMBOL_GPL(register_jprobe);
- EXPORT_SYMBOL_GPL(unregister_jprobe);
- #ifdef CONFIG_KPROBES
++/**
++ * clamp_val - return a value clamped to a given range using val's type
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of whatever
++ * type the input argument 'val' is.  This is useful when val is an unsigned
++ * type and min and max are literals that will otherwise be assigned a signed
++ * integer type.
++ */
+ #define clamp_val(val, min, max) ({		\
+ 	typeof(val) __val = (val);		\
+ 	typeof(val) __min = (min);		\
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-kprobes-kprobe-booster-for-ia64.patch
-kprobes-kprobe-booster-for-ia64-fix.patch
-listh-add-list_singleton.patch
-kprobes-add-unregister_kprobes-for-batch-registration.patch
-kprobes-add-unregister_kretprobes-for-batch-registration.patch
-kprobes-add-unregister_jprobes-for-batch-registration.patch
-kprobes-update-document-about-batch-registration.patch
+origin.patch
+git-x86.patch
+git-acpi.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+git-cifs.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+infiniband-replace-remaining-__function__-occurrences.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+git-async-tx.patch
+git-mips.patch
+mips-replace-remaining-__function__-occurences.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+blackfin-replace-remaining-__function__-occurences.patch
+nfs-replace-remaining-__function__-occurrences.patch
+git-nfsd.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ioc3c-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+serial-remove-double-initializer.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+jbd-sparse-warnings-in-revokec-journalc.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-fix_nodec.patch
+reiserfs-fix-sparse-warnings-in-do_balanc.patch
+reiserfs-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warnings-in-lbalancec.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
