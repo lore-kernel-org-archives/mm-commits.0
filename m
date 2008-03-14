@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch added to -mm tree
-Date: Thu, 13 Mar 2008 16:24:51 -0700
-Message-ID: <200803132324.m2DNOpsb005873@imap1.linux-foundation.org>
+Subject: + add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch added to -mm tree
+Date: Thu, 13 Mar 2008 17:19:46 -0700
+Message-ID: <200803140019.m2E0Jk6m008199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753209AbYCMXZ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1759143AbYCNAVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Mar 2008 19:25:28 -0400
+	Thu, 13 Mar 2008 20:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, guichaz@yahoo.fr, just.for.lkml@googlemail.com, mingo@elte.hu, pbadari@gmail.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, randy.dunlap@oracle.com, xemul@openvz.org
 
 
 The patch titled
-     revert "sched: make sure jiffies is up to date before calling __update_rq_clock()"
+     add-a-document-describing-the-resource-counter-abstraction-v2-fix
 has been added to the -mm tree.  Its filename is
-     revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+     add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "sched: make sure jiffies is up to date before calling __update_rq_clock()"
+Subject: add-a-document-describing-the-resource-counter-abstraction-v2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
-
-commit 60befbc1c0b6d141c9c26e61ddd303aedd1e7396
-Author: Guillaume Chazarain <guichaz@yahoo.fr>
-Date:   Mon Mar 10 08:16:41 2008 +0100
-
-    sched: make sure jiffies is up to date before calling __update_rq_clock()
-    
-    Now that __update_rq_clock() uses jiffies to detect clock overflows,
-    make sure jiffies are up to date before touch_softlockup_watchdog().
-    
-    Removed a touch_softlockup_watchdog() call becoming redundant with the
-    added tick_nohz_update_jiffies().
-    
-    Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-Due to bustage reported by Badari (and possibly Torsten?)
-
-Cc: Guillaume Chazarain <guichaz@yahoo.fr>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Badari Pulavarty <pbadari@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Torsten Kaiser <just.for.lkml@googlemail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/controllers/resource_counter.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock kernel/sched.c
---- a/kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock
-+++ a/kernel/sched.c
-@@ -66,7 +66,6 @@
- #include <linux/unistd.h>
- #include <linux/pagemap.h>
- #include <linux/hrtimer.h>
--#include <linux/tick.h>
+diff -puN Documentation/controllers/resource_counter.txt~add-a-document-describing-the-resource-counter-abstraction-v2-fix Documentation/controllers/resource_counter.txt
+--- a/Documentation/controllers/resource_counter.txt~add-a-document-describing-the-resource-counter-abstraction-v2-fix
++++ a/Documentation/controllers/resource_counter.txt
+@@ -70,7 +70,7 @@ to work with it.
+  c. void res_counter_uncharge[_locked]
+ 			(struct res_counter *rc, unsigned long val)
  
- #include <asm/tlb.h>
- #include <asm/irq_regs.h>
-@@ -914,7 +913,7 @@ void sched_clock_idle_wakeup_event(u64 d
- 	rq->prev_clock_raw = now;
- 	rq->clock += delta_ns;
- 	spin_unlock(&rq->lock);
--	tick_nohz_update_jiffies();
-+	touch_softlockup_watchdog();
- }
- EXPORT_SYMBOL_GPL(sched_clock_idle_wakeup_event);
+-	When a resource is released (freed) is should be de-accounted
++	When a resource is released (freed) it should be de-accounted
+ 	from the resource counter it was accounted to.  This is called
+ 	"uncharging".
  
 _
 
@@ -189,6 +162,7 @@ fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 fat_valid_media-remove-pointless-test.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
