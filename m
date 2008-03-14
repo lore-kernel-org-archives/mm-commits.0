@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch added to -mm tree
-Date: Fri, 14 Mar 2008 12:53:43 -0700
-Message-ID: <200803141953.m2EJrh2Z016539@imap1.linux-foundation.org>
+Subject: + memcgroup-implement-failcounter-reset.patch added to -mm tree
+Date: Fri, 14 Mar 2008 12:56:31 -0700
+Message-ID: <200803141956.m2EJuVac016678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758007AbYCNTyT (ORCPT
+	by vger.kernel.org with ESMTP id S1753937AbYCNT5E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:54:19 -0400
+	Fri, 14 Mar 2008 15:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@
 
 
 The patch titled
-     memcgroup: use triggers in force_empty and max_usage files
+     memcgroup: implement failcounter reset
 has been added to the -mm tree.  Its filename is
-     memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
+     memcgroup-implement-failcounter-reset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: use triggers in force_empty and max_usage files
+Subject: memcgroup: implement failcounter reset
 From: Pavel Emelyanov <xemul@openvz.org>
 
-These two files are essentially event callbacks.  They do not care about the
-contents of the string, but only about the fact of the write itself.
+This is a very common requirement from people using the resource accounting
+facilities (not only memcgroup but also OpenVZ beancounters).  They want to
+put the cgroup in an initial state without re-creating it.
+
+For example after re-configuring a group people want to observe how this new
+configuration fits the group needs without saving the previous failcnt value.
+
+Merge two resets into one mem_cgroup_reset() function to demonstrate how
+multiplexing work.
+
+Besides, I have plans to move the files, that correspond to res_counter to the
+res_counter.c file and somehow "import" them into controller.  I don't know
+how to make it gracefully yet, but merging resets of max_usage and failcnt in
+one function will be there for sure.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -47,62 +59,68 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ include/linux/res_counter.h |    8 ++++++++
+ mm/memcontrol.c             |   14 +++++++++++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcgroup-use-triggers-in-force_empty-and-max_usage-files mm/memcontrol.c
---- a/mm/memcontrol.c~memcgroup-use-triggers-in-force_empty-and-max_usage-files
+diff -puN include/linux/res_counter.h~memcgroup-implement-failcounter-reset include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcgroup-implement-failcounter-reset
++++ a/include/linux/res_counter.h
+@@ -143,4 +143,12 @@ static inline void res_counter_reset_max
+ 	spin_unlock_irqrestore(&cnt->lock, flags);
+ }
+ 
++static inline void res_counter_reset_failcnt(struct res_counter *cnt)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	cnt->failcnt = 0;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++}
+ #endif
+diff -puN mm/memcontrol.c~memcgroup-implement-failcounter-reset mm/memcontrol.c
+--- a/mm/memcontrol.c~memcgroup-implement-failcounter-reset
 +++ a/mm/memcontrol.c
-@@ -870,27 +870,18 @@ static ssize_t mem_cgroup_write(struct c
+@@ -870,12 +870,19 @@ static ssize_t mem_cgroup_write(struct c
  				mem_cgroup_write_strategy);
  }
  
--static ssize_t mem_cgroup_max_reset(struct cgroup *cont, struct cftype *cft,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int mem_cgroup_max_reset(struct cgroup *cont, unsigned int event)
+-static int mem_cgroup_max_reset(struct cgroup *cont, unsigned int event)
++static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
  {
  	struct mem_cgroup *mem;
  
  	mem = mem_cgroup_from_cont(cont);
- 	res_counter_reset_max(&mem->res);
--	return nbytes;
-+	return 0;
+-	res_counter_reset_max(&mem->res);
++	switch (event) {
++		case RES_MAX_USAGE:
++			res_counter_reset_max(&mem->res);
++			break;
++		case RES_FAILCNT:
++			res_counter_reset_failcnt(&mem->res);
++			break;
++	}
+ 	return 0;
  }
  
--static ssize_t mem_force_empty_write(struct cgroup *cont,
--				struct cftype *cft, struct file *file,
--				const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int mem_force_empty_write(struct cgroup *cont, unsigned int event)
- {
--	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
--	int ret = mem_cgroup_force_empty(mem);
--	if (!ret)
--		ret = nbytes;
--	return ret;
-+	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont));
- }
- 
- static const struct mem_cgroup_stat_desc {
-@@ -938,7 +929,7 @@ static struct cftype mem_cgroup_files[] 
+@@ -929,7 +936,7 @@ static struct cftype mem_cgroup_files[] 
  	{
  		.name = "max_usage_in_bytes",
  		.private = RES_MAX_USAGE,
--		.write = mem_cgroup_max_reset,
-+		.trigger = mem_cgroup_max_reset,
+-		.trigger = mem_cgroup_max_reset,
++		.trigger = mem_cgroup_reset,
  		.read_u64 = mem_cgroup_read,
  	},
  	{
-@@ -954,7 +945,7 @@ static struct cftype mem_cgroup_files[] 
+@@ -941,6 +948,7 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "failcnt",
+ 		.private = RES_FAILCNT,
++		.trigger = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read,
  	},
  	{
- 		.name = "force_empty",
--		.write = mem_force_empty_write,
-+		.trigger = mem_force_empty_write,
- 	},
- 	{
- 		.name = "stat",
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
