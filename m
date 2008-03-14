@@ -1,154 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-add-clamp-and-clamp_t-macros.patch removed from -mm tree
-Date: Fri, 14 Mar 2008 12:42:33 -0700
-Message-ID: <200803141942.m2EJgYJ9016081@imap1.linux-foundation.org>
+Subject: + ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch added to -mm tree
+Date: Fri, 14 Mar 2008 12:48:23 -0700
+Message-ID: <200803141948.m2EJmNjT016322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50737 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759890AbYCNTnO (ORCPT
+	by vger.kernel.org with ESMTP id S1752128AbYCNTsy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:43:14 -0400
+	Fri, 14 Mar 2008 15:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: harvey.harrison@gmail.com, bzolnier@gmail.com
 
 
 The patch titled
-     kernel: add clamp() and clamp_t() macros
-has been removed from the -mm tree.  Its filename was
-     kernel-add-clamp-and-clamp_t-macros.patch
+     ide-tape: use clamp_t() rather than nested min_t()/max_t()
+has been added to the -mm tree.  Its filename is
+     ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel: add clamp() and clamp_t() macros
+Subject: ide-tape: use clamp_t() rather than nested min_t()/max_t()
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Adds macros similar to min/max/min_t/max_t.
-
-Also, change the variable names used in the min/max macros to avoid shadowed
-variable warnings when min/max min_t/max_t are nested.
-
-Small formatting changes to make all the macros have a similar form.
-
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: fix v4l build]
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttvp.h    |    2 
- drivers/media/video/usbvideo/vicam.c |    6 --
- include/linux/kernel.h               |   56 ++++++++++++++++---------
- 3 files changed, 38 insertions(+), 26 deletions(-)
+ drivers/ide/ide-tape.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros include/linux/kernel.h
---- a/include/linux/kernel.h~kernel-add-clamp-and-clamp_t-macros
-+++ a/include/linux/kernel.h
-@@ -334,33 +334,53 @@ extern void print_hex_dump_bytes(const c
- #endif /* __LITTLE_ENDIAN */
- 
- /*
-- * min()/max() macros that also do
-+ * min()/max()/clamp() macros that also do
-  * strict type-checking.. See the
-  * "unnecessary" pointer comparison.
-  */
--#define min(x,y) ({ \
--	typeof(x) _x = (x);	\
--	typeof(y) _y = (y);	\
--	(void) (&_x == &_y);		\
--	_x < _y ? _x : _y; })
--
--#define max(x,y) ({ \
--	typeof(x) _x = (x);	\
--	typeof(y) _y = (y);	\
--	(void) (&_x == &_y);		\
--	_x > _y ? _x : _y; })
-+#define min(x,y) ({				\
-+	typeof(x) _min1 = (x);			\
-+	typeof(y) _min2 = (y);			\
-+	(void) (&_min1 == &_min2);		\
-+	_min1 < _min2 ? _min1 : _min2; })
-+
-+#define max(x,y) ({				\
-+	typeof(x) _max1 = (x);			\
-+	typeof(y) _max2 = (y);			\
-+	(void) (&_max1 == &_max2);		\
-+	_max1 > _max2 ? _max1 : _max2; })
-+
-+#define clamp(val, min, max) ({			\
-+	typeof(val) __val = (val);		\
-+	typeof(min) __min = (min);		\
-+	typeof(max) __max = (max);		\
-+	(void) (&__val == &__min);		\
-+	(void) (&__val == &__max);		\
-+	__val = __val < __min ? __min: __val;	\
-+	__val > __max ? __max: __val; })
- 
- /*
-  * ..and if you can't take the strict
-  * types, you can specify one yourself.
-  *
-- * Or not use min/max at all, of course.
-+ * Or not use min/max/clamp at all, of course.
-  */
--#define min_t(type,x,y) \
--	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
--#define max_t(type,x,y) \
--	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
--
-+#define min_t(type, x, y) ({			\
-+	type __min1 = (x);			\
-+	type __min2 = (y);			\
-+	__min1 < __min2 ? __min1: __min2; })
-+
-+#define max_t(type, x, y) ({			\
-+	type __max1 = (x);			\
-+	type __max2 = (y);			\
-+	__max1 > __max2 ? __max1: __max2; })
-+
-+#define clamp_t(type, val, min, max) ({		\
-+	type __val = (val);			\
-+	type __min = (min);			\
-+	type __max = (max);			\
-+	__val = __val < __min ? __min: __val;	\
-+	__val > __max ? __max: __val; })
- 
- /**
-  * container_of - cast a member of a structure out to the containing structure
-diff -puN drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros drivers/media/video/bt8xx/bttvp.h
---- a/drivers/media/video/bt8xx/bttvp.h~kernel-add-clamp-and-clamp_t-macros
-+++ a/drivers/media/video/bt8xx/bttvp.h
-@@ -82,8 +82,6 @@
- /* Limits scaled width, which must be a multiple of 4. */
- #define MAX_HACTIVE (0x3FF & -4)
- 
--#define clamp(x, low, high) min (max (low, x), high)
--
- #define BTTV_NORMS    (\
- 		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
- 		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
-diff -puN drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros drivers/media/video/usbvideo/vicam.c
---- a/drivers/media/video/usbvideo/vicam.c~kernel-add-clamp-and-clamp_t-macros
-+++ a/drivers/media/video/usbvideo/vicam.c
-@@ -70,12 +70,6 @@
- 
- #define VICAM_HEADER_SIZE       64
- 
--#define clamp( x, l, h )        max_t( __typeof__( x ),         \
--				       ( l ),                   \
--				       min_t( __typeof__( x ),  \
--					      ( h ),            \
--					      ( x ) ) )
--
- /* Not sure what all the bytes in these char
-  * arrays do, but they're necessary to make
-  * the camera work.
+diff -puN drivers/ide/ide-tape.c~ide-tape-use-clamp_t-rather-than-nested-min_t-max_t drivers/ide/ide-tape.c
+--- a/drivers/ide/ide-tape.c~ide-tape-use-clamp_t-rather-than-nested-min_t-max_t
++++ a/drivers/ide/ide-tape.c
+@@ -3242,9 +3242,8 @@ static void idetape_setup(ide_drive_t *d
+ 	 * Ensure that the number we got makes sense; limit it within
+ 	 * IDETAPE_DSC_RW_MIN and IDETAPE_DSC_RW_MAX.
+ 	 */
+-	tape->best_dsc_rw_freq = max_t(unsigned long,
+-				min_t(unsigned long, t, IDETAPE_DSC_RW_MAX),
+-				IDETAPE_DSC_RW_MIN);
++	tape->best_dsc_rw_freq = clamp_t(unsigned long, t, IDETAPE_DSC_RW_MIN,
++					 IDETAPE_DSC_RW_MAX);
+ 	printk(KERN_INFO "ide-tape: %s <-> %s: %dKBps, %d*%dkB buffer, "
+ 		"%dkB pipeline, %lums tDSC%s\n",
+ 		drive->name, tape->name, *(u16 *)&tape->caps[14],
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -209,7 +120,6 @@ adfs-work-around-bogus-sparse-warning.patch
 coda-add-static-to-functions-in-dirc.patch
 befs-fix-sparse-warning-in-linuxvfsc.patch
 autofs4-fix-sparse-warning-in-rootc.patch
-kernel-add-clamp-and-clamp_t-macros.patch
 firmware-replace-remaining-__function__-occurrences.patch
 drivers-misc-replace-remaining-__function__-occurrences.patch
 ioc3c-replace-remaining-__function__-occurrences.patch
@@ -254,6 +164,15 @@ char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
 cycladesc-fix-sparse-shadowed-variable-warnings.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
 drivers-replace-remaining-__function__-occurrences.patch
 mm-remove-remaining-__function__-occurances.patch
 block-remove-remaining-__function__-occurances.patch
