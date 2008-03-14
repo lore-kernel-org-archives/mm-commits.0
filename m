@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + romfs-fix-up-an-error-in-iget-removal.patch added to -mm tree
-Date: Fri, 14 Mar 2008 15:50:56 -0700
-Message-ID: <200803142250.m2EMoubg023003@imap1.linux-foundation.org>
+Subject: + smack-do-not-dereference-null-ipc-object.patch added to -mm tree
+Date: Fri, 14 Mar 2008 16:40:19 -0700
+Message-ID: <200803142340.m2ENeJqW024676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58528 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755596AbYCNWvi (ORCPT
+	by vger.kernel.org with ESMTP id S1751560AbYCNXkX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 18:51:38 -0400
+	Fri, 14 Mar 2008 19:40:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, adam@yggdrasil.com
+Cc: darwish.07@gmail.com, casey@schaufler-ca.com
 
 
 The patch titled
-     ROMFS: Fix up an error in iget removal
+     smack: do not dereference NULL ipc object
 has been added to the -mm tree.  Its filename is
-     romfs-fix-up-an-error-in-iget-removal.patch
+     smack-do-not-dereference-null-ipc-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ROMFS: Fix up an error in iget removal
-From: David Howells <dhowells@redhat.com>
+Subject: smack: do not dereference NULL ipc object
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Fix up an error in iget removal in which romfs_lookup() making a successful
-call to romfs_iget() continues through the negative/error handling (previously
-the successful case jumped around the negative/error handling case):
+In the SYSV ipc msgctl(),semctl(),shmctl() family, if the user passed *_INFO
+as the desired operation, no specific object is meant to be controlled and
+only system-wide information is returned.  This leads to a NULL IPC object in
+the LSM hooks if the _INFO flag is given.
 
- (1) inode is initialised to NULL at the top of the function, eliminating the
-     need for specific negative-inode handling.  This means the positive
-     success handling now flows straight through.
+Avoid dereferencing this NULL pointer in Smack ipc *ctl() methods.
 
- (2) Rename the labels to be clearer about what they mean.
-
-Also make romfs_lookup()'s result variable of type long so as to avoid
-32-bit/64-bit conversions with PTR_ERR() and friends.
-
-Based upon a report and patch from Adam Richter.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: "Adam J. Richter" <adam@yggdrasil.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ security/smack/smack_lsm.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/romfs/inode.c~romfs-fix-up-an-error-in-iget-removal fs/romfs/inode.c
---- a/fs/romfs/inode.c~romfs-fix-up-an-error-in-iget-removal
-+++ a/fs/romfs/inode.c
-@@ -340,8 +340,9 @@ static struct dentry *
- romfs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+diff -puN security/smack/smack_lsm.c~smack-do-not-dereference-null-ipc-object security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-do-not-dereference-null-ipc-object
++++ a/security/smack/smack_lsm.c
+@@ -1508,7 +1508,7 @@ static int smack_shm_associate(struct sh
+  */
+ static int smack_shm_shmctl(struct shmid_kernel *shp, int cmd)
  {
- 	unsigned long offset, maxoff;
--	int fslen, res;
--	struct inode *inode;
-+	long res;
-+	int fslen;
-+	struct inode *inode = NULL;
- 	char fsname[ROMFS_MAXFN];	/* XXX dynamic? */
- 	struct romfs_inode ri;
- 	const char *name;		/* got from dentry */
-@@ -351,7 +352,7 @@ romfs_lookup(struct inode *dir, struct d
- 	offset = dir->i_ino & ROMFH_MASK;
- 	lock_kernel();
- 	if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
--		goto out;
-+		goto error;
+-	char *ssp = smack_of_shm(shp);
++	char *ssp;
+ 	int may;
  
- 	maxoff = romfs_maxsize(dir->i_sb);
- 	offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
-@@ -364,9 +365,9 @@ romfs_lookup(struct inode *dir, struct d
- 
- 	for(;;) {
- 		if (!offset || offset >= maxoff)
--			goto out0;
-+			goto success; /* negative success */
- 		if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
--			goto out;
-+			goto error;
- 
- 		/* try to match the first 16 bytes of name */
- 		fslen = romfs_strnlen(dir, offset+ROMFH_SIZE, ROMFH_SIZE);
-@@ -397,23 +398,14 @@ romfs_lookup(struct inode *dir, struct d
- 	inode = romfs_iget(dir->i_sb, offset);
- 	if (IS_ERR(inode)) {
- 		res = PTR_ERR(inode);
--		goto out;
-+		goto error;
+ 	switch (cmd) {
+@@ -1532,6 +1532,7 @@ static int smack_shm_shmctl(struct shmid
+ 		return -EINVAL;
  	}
  
--	/*
--	 * it's a bit funky, _lookup needs to return an error code
--	 * (negative) or a NULL, both as a dentry.  ENOENT should not
--	 * be returned, instead we need to create a negative dentry by
--	 * d_add(dentry, NULL); and return 0 as no error.
--	 * (Although as I see, it only matters on writable file
--	 * systems).
--	 */
--
--out0:	inode = NULL;
-+success:
-+	d_add(dentry, inode);
- 	res = 0;
--	d_add (dentry, inode);
--
--out:	unlock_kernel();
-+error:
-+	unlock_kernel();
- 	return ERR_PTR(res);
++	ssp = smack_of_shm(shp);
+ 	return smk_curacc(ssp, may);
+ }
+ 
+@@ -1616,7 +1617,7 @@ static int smack_sem_associate(struct se
+  */
+ static int smack_sem_semctl(struct sem_array *sma, int cmd)
+ {
+-	char *ssp = smack_of_sem(sma);
++	char *ssp;
+ 	int may;
+ 
+ 	switch (cmd) {
+@@ -1645,6 +1646,7 @@ static int smack_sem_semctl(struct sem_a
+ 		return -EINVAL;
+ 	}
+ 
++	ssp = smack_of_sem(sma);
+ 	return smk_curacc(ssp, may);
+ }
+ 
+@@ -1730,7 +1732,7 @@ static int smack_msg_queue_associate(str
+  */
+ static int smack_msg_queue_msgctl(struct msg_queue *msq, int cmd)
+ {
+-	char *msp = smack_of_msq(msq);
++	char *msp;
+ 	int may;
+ 
+ 	switch (cmd) {
+@@ -1752,6 +1754,7 @@ static int smack_msg_queue_msgctl(struct
+ 		return -EINVAL;
+ 	}
+ 
++	msp = smack_of_msq(msq);
+ 	return smk_curacc(msp, may);
  }
  
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-origin.patch
-struct-export_operations-adjust-comments-to-match-current-members.patch
-pm-remove-legacy-pm.patch
-git-unionfs.patch
-romfs-fix-up-an-error-in-iget-removal.patch
-remove-the-macro-get_personality.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-keys-switch-to-proc_create.patch
-keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
-keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-explicitly-include-required-slabh-header-file.patch
-keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-make-key_serial-a-function-if-config_keys=y.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-mutex-subsystem-synchro-test-module.patch
+smackfs-do-not-trust-count-in-inodes-writes.patch
+git-kvm.patch
+git-security-testing.patch
+smack-do-not-dereference-null-ipc-object.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 
