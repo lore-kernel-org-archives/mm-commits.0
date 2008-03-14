@@ -1,75 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - romfs-prevent-romfs_lookup-from-always-failing.patch removed from -mm tree
-Date: Fri, 14 Mar 2008 15:47:55 -0700
-Message-ID: <200803142247.m2EMlu8I022939@imap1.linux-foundation.org>
+Subject: + romfs-fix-up-an-error-in-iget-removal.patch added to -mm tree
+Date: Fri, 14 Mar 2008 15:50:56 -0700
+Message-ID: <200803142250.m2EMoubg023003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754309AbYCNWsf (ORCPT
+	by vger.kernel.org with ESMTP id S1755596AbYCNWvi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 18:48:35 -0400
+	Fri, 14 Mar 2008 18:51:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adam@yggdrasil.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com, adam@yggdrasil.com
 
 
 The patch titled
-     romfs: prevent romfs_lookup() from always failing
-has been removed from the -mm tree.  Its filename was
-     romfs-prevent-romfs_lookup-from-always-failing.patch
+     ROMFS: Fix up an error in iget removal
+has been added to the -mm tree.  Its filename is
+     romfs-fix-up-an-error-in-iget-removal.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: romfs: prevent romfs_lookup() from always failing
-From: "Adam J. Richter" <adam@yggdrasil.com>
+Subject: ROMFS: Fix up an error in iget removal
+From: David Howells <dhowells@redhat.com>
 
-romfs_lookup worked in 2.6.24.2, but always fails in linux-2.6.25-rc3-git3. 
-fs/romfs/inode.c is the same in at least 2.6.25-rc3 through 2.6.25-rc3-git4
-and the latest sources from git, so these versions almost certainly have the
-same problem.
+Fix up an error in iget removal in which romfs_lookup() making a successful
+call to romfs_iget() continues through the negative/error handling (previously
+the successful case jumped around the negative/error handling case):
 
-The bug appears to be from a well meaning but botched attempt to eliminate a
-goto from romfs_lookup.  Previously, a goto statement was used to skip over
-"inode = NULL;" when the lookup succeeded.  In the 2.6.25-rc3 version, inode
-is set to NULL even when an inode was found, so the result is the the lookup
-always appears to fail.
+ (1) inode is initialised to NULL at the top of the function, eliminating the
+     need for specific negative-inode handling.  This means the positive
+     success handling now flows straight through.
 
-The attached patch fixes the problem while still eliminating the goto.
+ (2) Rename the labels to be clearer about what they mean.
 
-Cc: David Howells <dhowells@redhat.com>
+Also make romfs_lookup()'s result variable of type long so as to avoid
+32-bit/64-bit conversions with PTR_ERR() and friends.
+
+Based upon a report and patch from Adam Richter.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: "Adam J. Richter" <adam@yggdrasil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/romfs/inode.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
-diff -puN fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing fs/romfs/inode.c
---- a/fs/romfs/inode.c~romfs-prevent-romfs_lookup-from-always-failing
+diff -puN fs/romfs/inode.c~romfs-fix-up-an-error-in-iget-removal fs/romfs/inode.c
+--- a/fs/romfs/inode.c~romfs-fix-up-an-error-in-iget-removal
 +++ a/fs/romfs/inode.c
-@@ -347,6 +347,7 @@ romfs_lookup(struct inode *dir, struct d
+@@ -340,8 +340,9 @@ static struct dentry *
+ romfs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	unsigned long offset, maxoff;
+-	int fslen, res;
+-	struct inode *inode;
++	long res;
++	int fslen;
++	struct inode *inode = NULL;
+ 	char fsname[ROMFS_MAXFN];	/* XXX dynamic? */
+ 	struct romfs_inode ri;
  	const char *name;		/* got from dentry */
- 	int len;
- 
-+	inode = NULL;
- 	res = -EACCES;			/* placeholder for "no data here" */
+@@ -351,7 +352,7 @@ romfs_lookup(struct inode *dir, struct d
  	offset = dir->i_ino & ROMFH_MASK;
  	lock_kernel();
-@@ -409,7 +410,7 @@ romfs_lookup(struct inode *dir, struct d
- 	 * systems).
- 	 */
+ 	if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
+-		goto out;
++		goto error;
  
+ 	maxoff = romfs_maxsize(dir->i_sb);
+ 	offset = be32_to_cpu(ri.spec) & ROMFH_MASK;
+@@ -364,9 +365,9 @@ romfs_lookup(struct inode *dir, struct d
+ 
+ 	for(;;) {
+ 		if (!offset || offset >= maxoff)
+-			goto out0;
++			goto success; /* negative success */
+ 		if (romfs_copyfrom(dir, &ri, offset, ROMFH_SIZE) <= 0)
+-			goto out;
++			goto error;
+ 
+ 		/* try to match the first 16 bytes of name */
+ 		fslen = romfs_strnlen(dir, offset+ROMFH_SIZE, ROMFH_SIZE);
+@@ -397,23 +398,14 @@ romfs_lookup(struct inode *dir, struct d
+ 	inode = romfs_iget(dir->i_sb, offset);
+ 	if (IS_ERR(inode)) {
+ 		res = PTR_ERR(inode);
+-		goto out;
++		goto error;
+ 	}
+ 
+-	/*
+-	 * it's a bit funky, _lookup needs to return an error code
+-	 * (negative) or a NULL, both as a dentry.  ENOENT should not
+-	 * be returned, instead we need to create a negative dentry by
+-	 * d_add(dentry, NULL); and return 0 as no error.
+-	 * (Although as I see, it only matters on writable file
+-	 * systems).
+-	 */
+-
 -out0:	inode = NULL;
-+out0:
++success:
++	d_add(dentry, inode);
  	res = 0;
- 	d_add (dentry, inode);
+-	d_add (dentry, inode);
+-
+-out:	unlock_kernel();
++error:
++	unlock_kernel();
+ 	return ERR_PTR(res);
+ }
  
 _
 
-Patches currently in -mm which might be from adam@yggdrasil.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-romfs-prevent-romfs_lookup-from-always-failing.patch
+origin.patch
+struct-export_operations-adjust-comments-to-match-current-members.patch
+pm-remove-legacy-pm.patch
+git-unionfs.patch
+romfs-fix-up-an-error-in-iget-removal.patch
+remove-the-macro-get_personality.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+mutex-subsystem-synchro-test-module.patch
 
