@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch added to -mm tree
-Date: Fri, 14 Mar 2008 12:48:27 -0700
-Message-ID: <200803141948.m2EJmRTE016331@imap1.linux-foundation.org>
+Subject: + input-ff-memlessc-use-clamp_val-macro.patch added to -mm tree
+Date: Fri, 14 Mar 2008 12:48:25 -0700
+Message-ID: <200803141948.m2EJmPrf016327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44845 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902AbYCNTwQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754132AbYCNTwe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 15:52:16 -0400
+	Fri, 14 Mar 2008 15:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, acme@ghostprotocols.net
+Cc: harvey.harrison@gmail.com, dtor@mail.ru, jkosina@suse.cz
 
 
 The patch titled
-     dccp: ccid2.c, ccid3.c use clamp(), clamp_t()
+     input: ff-memless.c use clamp_val() macro
 has been added to the -mm tree.  Its filename is
-     dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+     input-ff-memlessc-use-clamp_val-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dccp: ccid2.c, ccid3.c use clamp(), clamp_t()
+Subject: input: ff-memless.c use clamp_val() macro
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Makes the intention of the nested min/max clear.
+Replace two opencoded nested min/max macros with clamp_val().
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dccp/ccids/ccid2.c |    2 +-
- net/dccp/ccids/ccid3.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/input/ff-memless.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/dccp/ccids/ccid2.c~dccp-ccid2c-ccid3c-use-clamp-clamp_t net/dccp/ccids/ccid2.c
---- a/net/dccp/ccids/ccid2.c~dccp-ccid2c-ccid3c-use-clamp-clamp_t
-+++ a/net/dccp/ccids/ccid2.c
-@@ -716,7 +716,7 @@ static int ccid2_hc_tx_init(struct ccid 
- 	 * packets for new connections, following the rules from [RFC3390]".
- 	 * We need to convert the bytes of RFC3390 into the packets of RFC 4341.
- 	 */
--	hctx->ccid2hctx_cwnd = min(4U, max(2U, 4380U / dp->dccps_mss_cache));
-+	hctx->ccid2hctx_cwnd = clamp(4380U / dp->dccps_mss_cache, 2U, 4U);
+diff -puN drivers/input/ff-memless.c~input-ff-memlessc-use-clamp_val-macro drivers/input/ff-memless.c
+--- a/drivers/input/ff-memless.c~input-ff-memlessc-use-clamp_val-macro
++++ a/drivers/input/ff-memless.c
+@@ -247,9 +247,9 @@ static void ml_combine_effects(struct ff
+ 		 * in s8, this should be changed to something more generic
+ 		 */
+ 		effect->u.ramp.start_level =
+-			max(min(effect->u.ramp.start_level + x, 0x7f), -0x80);
++			clamp_val(effect->u.ramp.start_level + x, -0x80, 0x7f);
+ 		effect->u.ramp.end_level =
+-			max(min(effect->u.ramp.end_level + y, 0x7f), -0x80);
++			clamp_val(effect->u.ramp.end_level + y, -0x80, 0x7f);
+ 		break;
  
- 	/* Make sure that Ack Ratio is enabled and within bounds. */
- 	max_ratio = DIV_ROUND_UP(hctx->ccid2hctx_cwnd, 2);
-diff -puN net/dccp/ccids/ccid3.c~dccp-ccid2c-ccid3c-use-clamp-clamp_t net/dccp/ccids/ccid3.c
---- a/net/dccp/ccids/ccid3.c~dccp-ccid2c-ccid3c-use-clamp-clamp_t
-+++ a/net/dccp/ccids/ccid3.c
-@@ -88,8 +88,8 @@ static void ccid3_hc_tx_set_state(struct
- static inline u64 rfc3390_initial_rate(struct sock *sk)
- {
- 	const struct ccid3_hc_tx_sock *hctx = ccid3_hc_tx_sk(sk);
--	const __u32 w_init = min_t(__u32, 4 * hctx->ccid3hctx_s,
--				   max_t(__u32, 2 * hctx->ccid3hctx_s, 4380));
-+	const __u32 w_init = clamp_t(__u32, 4380U,
-+			2 * hctx->ccid3hctx_s, 4 * hctx->ccid3hctx_s);
- 
- 	return scaled_div(w_init << 6, hctx->ccid3hctx_rtt);
- }
+ 	case FF_RUMBLE:
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
