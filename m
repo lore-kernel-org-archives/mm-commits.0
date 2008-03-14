@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-div_long_long_rem.patch added to -mm tree
-Date: Fri, 14 Mar 2008 13:34:24 -0700
-Message-ID: <200803142034.m2EKYOrx018097@imap1.linux-foundation.org>
+Subject: + rename-div64_64-to-div64_u64.patch added to -mm tree
+Date: Fri, 14 Mar 2008 13:34:18 -0700
+Message-ID: <200803142034.m2EKYI79018091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753426AbYCNUft (ORCPT
+	by vger.kernel.org with ESMTP id S1756037AbYCNUhB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 16:35:49 -0400
+	Fri, 14 Mar 2008 16:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, clameter@sgi.com, johnstul@us.ibm.com, mingo@elte.hu, ralf@linux-mips.org, tglx@linutronix.de
+Cc: zippel@linux-m68k.org, avi@qumranet.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, jdike@addtoit.com, kaber@trash.net, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     remove div_long_long_rem
+     rename div64_64 to div64_u64
 has been added to the -mm tree.  Its filename is
-     remove-div_long_long_rem.patch
+     rename-div64_64-to-div64_u64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,392 +34,322 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove div_long_long_rem
+Subject: rename div64_64 to div64_u64
 From: Roman Zippel <zippel@linux-m68k.org>
 
-x86 is the only arch right now, which provides an optimized for
-div_long_long_rem and it has the downside that one has to be very careful that
-the divide doesn't overflow.
-
-The API is a little akward, as the arguments for the unsigned divide are
-signed.  The signed version also doesn't handle a negative divisor and
-produces worse code on 64bit archs.
-
-There is little incentive to keep this API alive, so this converts the few
-users to the new API.
+Rename div64_64 to div64_u64 to make it consistent with the other divide
+functions, so it clearly includes the type of the divide.  Move its definition
+to math64.h as currently no architecture overrides the generic implementation.
+ They can still override it of course, but the duplicated declarations are
+avoided.
 
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/binfmt_elfn32.c |    5 +-
- arch/mips/kernel/binfmt_elfo32.c |    5 +-
- drivers/char/mmtimer.c           |   24 ++++++--------
- include/asm-x86/div64.h          |   19 -----------
- include/linux/calc64.h           |   49 -----------------------------
- include/linux/jiffies.h          |    2 -
- kernel/posix-cpu-timers.c        |   11 ++----
- kernel/time.c                    |   25 ++++++++------
- kernel/time/ntp.c                |    6 +--
- mm/slub.c                        |    9 ++---
- 10 files changed, 44 insertions(+), 111 deletions(-)
+ arch/x86/kvm/lapic.c         |    6 +++---
+ include/asm-arm/div64.h      |    2 --
+ include/asm-generic/div64.h  |    7 -------
+ include/asm-m68k/div64.h     |    1 -
+ include/asm-mips/div64.h     |    6 ------
+ include/asm-mn10300/div64.h  |    3 ---
+ include/asm-um/div64.h       |    1 -
+ include/asm-x86/div64.h      |    2 --
+ include/linux/math64.h       |   12 ++++++++++++
+ kernel/sched.c               |    6 +++---
+ kernel/sched_debug.c         |    4 ++--
+ lib/div64.c                  |   12 ++++++------
+ net/ipv4/tcp_cubic.c         |    4 ++--
+ net/netfilter/xt_connbytes.c |    5 ++---
+ 14 files changed, 30 insertions(+), 41 deletions(-)
 
-diff -puN arch/mips/kernel/binfmt_elfn32.c~remove-div_long_long_rem arch/mips/kernel/binfmt_elfn32.c
---- a/arch/mips/kernel/binfmt_elfn32.c~remove-div_long_long_rem
-+++ a/arch/mips/kernel/binfmt_elfn32.c
-@@ -54,6 +54,7 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_N
+diff -puN arch/x86/kvm/lapic.c~rename-div64_64-to-div64_u64 arch/x86/kvm/lapic.c
+--- a/arch/x86/kvm/lapic.c~rename-div64_64-to-div64_u64
++++ a/arch/x86/kvm/lapic.c
+@@ -25,13 +25,13 @@
+ #include <linux/hrtimer.h>
+ #include <linux/io.h>
  #include <linux/module.h>
- #include <linux/elfcore.h>
- #include <linux/compat.h>
 +#include <linux/math64.h>
+ #include <asm/processor.h>
+ #include <asm/msr.h>
+ #include <asm/page.h>
+ #include <asm/current.h>
+ #include <asm/apicdef.h>
+ #include <asm/atomic.h>
+-#include <asm/div64.h>
+ #include "irq.h"
  
- #define elf_prstatus elf_prstatus32
- struct elf_prstatus32
-@@ -102,8 +103,8 @@ jiffies_to_compat_timeval(unsigned long 
- 	 * one divide.
- 	 */
- 	u64 nsec = (u64)jiffies * TICK_NSEC;
--	long rem;
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &rem);
-+	u32 rem;
-+	value->tv_sec = div_u64_rem(nsec, NSEC_PER_SEC, &rem);
- 	value->tv_usec = rem / NSEC_PER_USEC;
- }
+ #define PRId64 "d"
+@@ -526,8 +526,8 @@ static u32 apic_get_tmcct(struct kvm_lap
+ 	} else
+ 		passed = ktime_sub(now, apic->timer.last_update);
  
-diff -puN arch/mips/kernel/binfmt_elfo32.c~remove-div_long_long_rem arch/mips/kernel/binfmt_elfo32.c
---- a/arch/mips/kernel/binfmt_elfo32.c~remove-div_long_long_rem
-+++ a/arch/mips/kernel/binfmt_elfo32.c
-@@ -56,6 +56,7 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_N
- #include <linux/module.h>
- #include <linux/elfcore.h>
- #include <linux/compat.h>
-+#include <linux/math64.h>
+-	counter_passed = div64_64(ktime_to_ns(passed),
+-				  (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
++	counter_passed = div64_u64(ktime_to_ns(passed),
++				   (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
  
- #define elf_prstatus elf_prstatus32
- struct elf_prstatus32
-@@ -104,8 +105,8 @@ jiffies_to_compat_timeval(unsigned long 
- 	 * one divide.
- 	 */
- 	u64 nsec = (u64)jiffies * TICK_NSEC;
--	long rem;
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &rem);
-+	u32 rem;
-+	value->tv_sec = div_u64_rem(nsec, NSEC_PER_SEC, &rem);
- 	value->tv_usec = rem / NSEC_PER_USEC;
- }
+ 	if (counter_passed > tmcct) {
+ 		if (unlikely(!apic_lvtt_period(apic))) {
+diff -puN include/asm-arm/div64.h~rename-div64_64-to-div64_u64 include/asm-arm/div64.h
+--- a/include/asm-arm/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-arm/div64.h
+@@ -224,6 +224,4 @@
  
-diff -puN drivers/char/mmtimer.c~remove-div_long_long_rem drivers/char/mmtimer.c
---- a/drivers/char/mmtimer.c~remove-div_long_long_rem
-+++ a/drivers/char/mmtimer.c
-@@ -30,6 +30,8 @@
- #include <linux/miscdevice.h>
- #include <linux/posix-timers.h>
- #include <linux/interrupt.h>
-+#include <linux/time.h>
-+#include <linux/math64.h>
+ #endif
  
- #include <asm/uaccess.h>
- #include <asm/sn/addrs.h>
-@@ -472,8 +474,8 @@ static int sgi_clock_get(clockid_t clock
- 
- 	nsec = rtc_time() * sgi_clock_period
- 			+ sgi_clock_offset.tv_nsec;
--	tp->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &tp->tv_nsec)
--			+ sgi_clock_offset.tv_sec;
-+	*tp = ns_to_timespec(nsec);
-+	tp->tv_sec += sgi_clock_offset.tv_sec;
- 	return 0;
- };
- 
-@@ -481,11 +483,11 @@ static int sgi_clock_set(clockid_t clock
- {
- 
- 	u64 nsec;
--	u64 rem;
-+	u32 rem;
- 
- 	nsec = rtc_time() * sgi_clock_period;
- 
--	sgi_clock_offset.tv_sec = tp->tv_sec - div_long_long_rem(nsec, NSEC_PER_SEC, &rem);
-+	sgi_clock_offset.tv_sec = tp->tv_sec - div_u64_rem(nsec, NSEC_PER_SEC, &rem);
- 
- 	if (rem <= tp->tv_nsec)
- 		sgi_clock_offset.tv_nsec = tp->tv_sec - rem;
-@@ -644,9 +646,6 @@ static int sgi_timer_del(struct k_itimer
- 	return 0;
- }
- 
--#define timespec_to_ns(x) ((x).tv_nsec + (x).tv_sec * NSEC_PER_SEC)
--#define ns_to_timespec(ts, nsec) (ts).tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &(ts).tv_nsec)
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
 -
- /* Assumption: it_lock is already held with irq's disabled */
- static void sgi_timer_get(struct k_itimer *timr, struct itimerspec *cur_setting)
- {
-@@ -659,9 +658,8 @@ static void sgi_timer_get(struct k_itime
- 		return;
- 	}
+ #endif
+diff -puN include/asm-generic/div64.h~rename-div64_64-to-div64_u64 include/asm-generic/div64.h
+--- a/include/asm-generic/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-generic/div64.h
+@@ -30,11 +30,6 @@
+ 	__rem;							\
+  })
  
--	ns_to_timespec(cur_setting->it_interval, timr->it.mmtimer.incr * sgi_clock_period);
--	ns_to_timespec(cur_setting->it_value, (timr->it.mmtimer.expires - rtc_time())* sgi_clock_period);
--	return;
-+	cur_setting->it_interval = ns_to_timespec(timr->it.mmtimer.incr * sgi_clock_period);
-+	cur_setting->it_value = ns_to_timespec((timr->it.mmtimer.expires - rtc_time()) * sgi_clock_period);
- }
+-static inline uint64_t div64_64(uint64_t dividend, uint64_t divisor)
+-{
+-	return dividend / divisor;
+-}
+-
+ #elif BITS_PER_LONG == 32
  
+ extern uint32_t __div64_32(uint64_t *dividend, uint32_t divisor);
+@@ -54,8 +49,6 @@ extern uint32_t __div64_32(uint64_t *div
+ 	__rem;						\
+  })
  
-@@ -679,8 +677,8 @@ static int sgi_timer_set(struct k_itimer
- 		sgi_timer_get(timr, old_setting);
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
+-
+ #else /* BITS_PER_LONG == ?? */
  
- 	sgi_timer_del(timr);
--	when = timespec_to_ns(new_setting->it_value);
--	period = timespec_to_ns(new_setting->it_interval);
-+	when = timespec_to_ns(&new_setting->it_value);
-+	period = timespec_to_ns(&new_setting->it_interval);
- 
- 	if (when == 0)
- 		/* Clear timer */
-@@ -695,7 +693,7 @@ static int sgi_timer_set(struct k_itimer
- 		unsigned long now;
- 
- 		getnstimeofday(&n);
--		now = timespec_to_ns(n);
-+		now = timespec_to_ns(&n);
- 		if (when > now)
- 			when -= now;
- 		else
-diff -puN include/asm-x86/div64.h~remove-div_long_long_rem include/asm-x86/div64.h
---- a/include/asm-x86/div64.h~remove-div_long_long_rem
-+++ a/include/asm-x86/div64.h
-@@ -31,25 +31,6 @@
- 	__mod; \
+ # error do_div() does not yet support the C64
+diff -puN include/asm-m68k/div64.h~rename-div64_64-to-div64_u64 include/asm-m68k/div64.h
+--- a/include/asm-m68k/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-m68k/div64.h
+@@ -25,5 +25,4 @@
+ 	__rem;							\
  })
  
--/*
-- * (long)X = ((long long)divs) / (long)div
-- * (long)rem = ((long long)divs) % (long)div
-- *
-- * Warning, this will do an exception if X overflows.
-- */
--#define div_long_long_rem(a,b,c) div_ll_X_l_rem(a,b,c)
--
--static inline long
--div_ll_X_l_rem(long long divs, long div, long *rem)
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
+ #endif /* _M68K_DIV64_H */
+diff -puN include/asm-mips/div64.h~rename-div64_64-to-div64_u64 include/asm-mips/div64.h
+--- a/include/asm-mips/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-mips/div64.h
+@@ -82,7 +82,6 @@
+ 	(n) = __quot; \
+ 	__mod; })
+ 
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
+ #endif /* (_MIPS_SZLONG == 32) */
+ 
+ #if (_MIPS_SZLONG == 64)
+@@ -106,11 +105,6 @@ extern uint64_t div64_64(uint64_t divide
+ 	(n) = __quot; \
+ 	__mod; })
+ 
+-static inline uint64_t div64_64(uint64_t dividend, uint64_t divisor)
 -{
--	long dum2;
--      __asm__("divl %2":"=a"(dum2), "=d"(*rem)
--      :	"rm"(div), "A"(divs));
--
--	return dum2;
--
+-	return dividend / divisor;
 -}
 -
- static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
- {
- 	union {
-diff -puN include/linux/calc64.h~remove-div_long_long_rem /dev/null
---- a/include/linux/calc64.h
-+++ /dev/null
-@@ -1,49 +0,0 @@
--#ifndef _LINUX_CALC64_H
--#define _LINUX_CALC64_H
+ #endif /* (_MIPS_SZLONG == 64) */
+ 
+ #endif /* _ASM_DIV64_H */
+diff -puN include/asm-mn10300/div64.h~rename-div64_64-to-div64_u64 include/asm-mn10300/div64.h
+--- a/include/asm-mn10300/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-mn10300/div64.h
+@@ -97,7 +97,4 @@ signed __muldiv64s(signed val, signed mu
+ 	return result;
+ }
+ 
+-extern __attribute__((const))
+-uint64_t div64_64(uint64_t dividend, uint64_t divisor);
 -
--#include <linux/types.h>
+ #endif /* _ASM_DIV64 */
+diff -puN include/asm-um/div64.h~rename-div64_64-to-div64_u64 include/asm-um/div64.h
+--- a/include/asm-um/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-um/div64.h
+@@ -3,5 +3,4 @@
+ 
+ #include "asm/arch/div64.h"
+ 
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
+ #endif
+diff -puN include/asm-x86/div64.h~rename-div64_64-to-div64_u64 include/asm-x86/div64.h
+--- a/include/asm-x86/div64.h~rename-div64_64-to-div64_u64
++++ a/include/asm-x86/div64.h
+@@ -70,8 +70,6 @@ static inline u64 div_u64_rem(u64 divide
+ }
+ #define div_u64_rem	div_u64_rem
+ 
+-extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
+-
+ #else
+ # include <asm-generic/div64.h>
+ #endif /* CONFIG_X86_32 */
+diff -puN include/linux/math64.h~rename-div64_64-to-div64_u64 include/linux/math64.h
+--- a/include/linux/math64.h~rename-div64_64-to-div64_u64
++++ a/include/linux/math64.h
+@@ -27,6 +27,14 @@ static inline s64 div_s64_rem(s64 divide
+ 	return dividend / divisor;
+ }
+ 
++/**
++ * div64_u64 - unsigned 64bit divide with 64bit divisor
++ */
++static inline u64 div64_u64(u64 dividend, u64 divisor)
++{
++	return dividend / divisor;
++}
++
+ #elif BITS_PER_LONG == 32
+ 
+ #ifndef div_u64_rem
+@@ -41,6 +49,10 @@ static inline u64 div_u64_rem(u64 divide
+ extern s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder);
+ #endif
+ 
++#ifndef div64_u64
++extern u64 div64_u64(u64 dividend, u64 divisor);
++#endif
++
+ #endif /* BITS_PER_LONG */
+ 
+ /**
+diff -puN kernel/sched.c~rename-div64_64-to-div64_u64 kernel/sched.c
+--- a/kernel/sched.c~rename-div64_64-to-div64_u64
++++ a/kernel/sched.c
+@@ -7180,7 +7180,7 @@ static void init_tg_cfs_entry(struct rq 
+ 	se->cfs_rq = &rq->cfs;
+ 	se->my_q = cfs_rq;
+ 	se->load.weight = tg->shares;
+-	se->load.inv_weight = div64_64(1ULL<<32, se->load.weight);
++	se->load.inv_weight = div64_u64(1ULL<<32, se->load.weight);
+ 	se->parent = NULL;
+ }
+ #endif
+@@ -7718,7 +7718,7 @@ static void set_se_shares(struct sched_e
+ 		dequeue_entity(cfs_rq, se, 0);
+ 
+ 	se->load.weight = shares;
+-	se->load.inv_weight = div64_64((1ULL<<32), shares);
++	se->load.inv_weight = div64_u64((1ULL<<32), shares);
+ 
+ 	if (on_rq)
+ 		enqueue_entity(cfs_rq, se, 0);
+@@ -7791,7 +7791,7 @@ static unsigned long to_ratio(u64 period
+ 	if (runtime == RUNTIME_INF)
+ 		return 1ULL << 16;
+ 
+-	return div64_64(runtime << 16, period);
++	return div64_u64(runtime << 16, period);
+ }
+ 
+ static int __rt_schedulable(struct task_group *tg, u64 period, u64 runtime)
+diff -puN kernel/sched_debug.c~rename-div64_64-to-div64_u64 kernel/sched_debug.c
+--- a/kernel/sched_debug.c~rename-div64_64-to-div64_u64
++++ a/kernel/sched_debug.c
+@@ -331,8 +331,8 @@ void proc_sched_show_task(struct task_st
+ 
+ 		avg_per_cpu = p->se.sum_exec_runtime;
+ 		if (p->se.nr_migrations) {
+-			avg_per_cpu = div64_64(avg_per_cpu,
+-					       p->se.nr_migrations);
++			avg_per_cpu = div64_u64(avg_per_cpu,
++						p->se.nr_migrations);
+ 		} else {
+ 			avg_per_cpu = -1LL;
+ 		}
+diff -puN lib/div64.c~rename-div64_64-to-div64_u64 lib/div64.c
+--- a/lib/div64.c~rename-div64_64-to-div64_u64
++++ a/lib/div64.c
+@@ -78,9 +78,10 @@ EXPORT_SYMBOL(div_s64_rem);
+ #endif
+ 
+ /* 64bit divisor, dividend and result. dynamic precision */
+-uint64_t div64_64(uint64_t dividend, uint64_t divisor)
++#ifndef div64_u64
++u64 div64_u64(u64 dividend, u64 divisor)
+ {
+-	uint32_t high, d;
++	u32 high, d;
+ 
+ 	high = divisor >> 32;
+ 	if (high) {
+@@ -91,10 +92,9 @@ uint64_t div64_64(uint64_t dividend, uin
+ 	} else
+ 		d = divisor;
+ 
+-	do_div(dividend, d);
+-
+-	return dividend;
++	return div_u64(dividend, d);
+ }
+-EXPORT_SYMBOL(div64_64);
++EXPORT_SYMBOL(div64_u64);
++#endif
+ 
+ #endif /* BITS_PER_LONG == 32 */
+diff -puN net/ipv4/tcp_cubic.c~rename-div64_64-to-div64_u64 net/ipv4/tcp_cubic.c
+--- a/net/ipv4/tcp_cubic.c~rename-div64_64-to-div64_u64
++++ a/net/ipv4/tcp_cubic.c
+@@ -14,8 +14,8 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/module.h>
++#include <linux/math64.h>
+ #include <net/tcp.h>
+-#include <asm/div64.h>
+ 
+ #define BICTCP_BETA_SCALE    1024	/* Scale factor beta calculation
+ 					 * max_cwnd = snd_cwnd * beta
+@@ -134,7 +134,7 @@ static u32 cubic_root(u64 a)
+ 	 * x    = ( 2 * x  +  a / x  ) / 3
+ 	 *  k+1          k         k
+ 	 */
+-	x = (2 * x + (u32)div64_64(a, (u64)x * (u64)(x - 1)));
++	x = (2 * x + (u32)div64_u64(a, (u64)x * (u64)(x - 1)));
+ 	x = ((x * 341) >> 10);
+ 	return x;
+ }
+diff -puN net/netfilter/xt_connbytes.c~rename-div64_64-to-div64_u64 net/netfilter/xt_connbytes.c
+--- a/net/netfilter/xt_connbytes.c~rename-div64_64-to-div64_u64
++++ a/net/netfilter/xt_connbytes.c
+@@ -4,12 +4,11 @@
+ #include <linux/module.h>
+ #include <linux/bitops.h>
+ #include <linux/skbuff.h>
++#include <linux/math64.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_connbytes.h>
+ #include <net/netfilter/nf_conntrack.h>
+ 
 -#include <asm/div64.h>
 -
--/*
-- * This is a generic macro which is used when the architecture
-- * specific div64.h does not provide a optimized one.
-- *
-- * The 64bit dividend is divided by the divisor (data type long), the
-- * result is returned and the remainder stored in the variable
-- * referenced by remainder (data type long *). In contrast to the
-- * do_div macro the dividend is kept intact.
-- */
--#ifndef div_long_long_rem
--#define div_long_long_rem(dividend, divisor, remainder)	\
--	do_div_llr((dividend), divisor, remainder)
--
--static inline unsigned long do_div_llr(const long long dividend,
--				       const long divisor, long *remainder)
--{
--	u64 result = dividend;
--
--	*(remainder) = do_div(result, divisor);
--	return (unsigned long) result;
--}
--#endif
--
--/*
-- * Sign aware variation of the above. On some architectures a
-- * negative dividend leads to an divide overflow exception, which
-- * is avoided by the sign check.
-- */
--static inline long div_long_long_rem_signed(const long long dividend,
--					    const long divisor, long *remainder)
--{
--	long res;
--
--	if (unlikely(dividend < 0)) {
--		res = -div_long_long_rem(-dividend, divisor, remainder);
--		*remainder = -(*remainder);
--	} else
--		res = div_long_long_rem(dividend, divisor, remainder);
--
--	return res;
--}
--
--#endif
-diff -puN include/linux/jiffies.h~remove-div_long_long_rem include/linux/jiffies.h
---- a/include/linux/jiffies.h~remove-div_long_long_rem
-+++ a/include/linux/jiffies.h
-@@ -1,7 +1,7 @@
- #ifndef _LINUX_JIFFIES_H
- #define _LINUX_JIFFIES_H
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("Xtables: Number of packets/bytes per connection matching");
+@@ -82,7 +81,7 @@ connbytes_mt(const struct sk_buff *skb, 
+ 			break;
+ 		}
+ 		if (pkts != 0)
+-			what = div64_64(bytes, pkts);
++			what = div64_u64(bytes, pkts);
+ 		break;
+ 	}
  
--#include <linux/calc64.h>
-+#include <linux/math64.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/time.h>
-diff -puN kernel/posix-cpu-timers.c~remove-div_long_long_rem kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~remove-div_long_long_rem
-+++ a/kernel/posix-cpu-timers.c
-@@ -4,8 +4,9 @@
- 
- #include <linux/sched.h>
- #include <linux/posix-timers.h>
--#include <asm/uaccess.h>
- #include <linux/errno.h>
-+#include <linux/math64.h>
-+#include <asm/uaccess.h>
- 
- static int check_clock(const clockid_t which_clock)
- {
-@@ -47,12 +48,10 @@ static void sample_to_timespec(const clo
- 			       union cpu_time_count cpu,
- 			       struct timespec *tp)
- {
--	if (CPUCLOCK_WHICH(which_clock) == CPUCLOCK_SCHED) {
--		tp->tv_sec = div_long_long_rem(cpu.sched,
--					       NSEC_PER_SEC, &tp->tv_nsec);
--	} else {
-+	if (CPUCLOCK_WHICH(which_clock) == CPUCLOCK_SCHED)
-+		*tp = ns_to_timespec(cpu.sched);
-+	else
- 		cputime_to_timespec(cpu.cpu, tp);
--	}
- }
- 
- static inline int cpu_time_before(const clockid_t which_clock,
-diff -puN kernel/time.c~remove-div_long_long_rem kernel/time.c
---- a/kernel/time.c~remove-div_long_long_rem
-+++ a/kernel/time.c
-@@ -398,13 +398,17 @@ void set_normalized_timespec(struct time
- struct timespec ns_to_timespec(const s64 nsec)
- {
- 	struct timespec ts;
-+	s32 rem;
- 
- 	if (!nsec)
- 		return (struct timespec) {0, 0};
- 
--	ts.tv_sec = div_long_long_rem_signed(nsec, NSEC_PER_SEC, &ts.tv_nsec);
--	if (unlikely(nsec < 0))
--		set_normalized_timespec(&ts, ts.tv_sec, ts.tv_nsec);
-+	ts.tv_sec = div_s64_rem(nsec, NSEC_PER_SEC, &rem);
-+	if (unlikely(rem < 0)) {
-+		ts.tv_sec--;
-+		rem += NSEC_PER_SEC;
-+	}
-+	ts.tv_nsec = rem;
- 
- 	return ts;
- }
-@@ -534,8 +538,10 @@ jiffies_to_timespec(const unsigned long 
- 	 * Convert jiffies to nanoseconds and separate with
- 	 * one divide.
- 	 */
--	u64 nsec = (u64)jiffies * TICK_NSEC;
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &value->tv_nsec);
-+	u32 rem;
-+	value->tv_sec = div_u64_rem((u64)jiffies * TICK_NSEC,
-+				    NSEC_PER_SEC, &rem);
-+	value->tv_nsec = rem;
- }
- EXPORT_SYMBOL(jiffies_to_timespec);
- 
-@@ -573,12 +579,11 @@ void jiffies_to_timeval(const unsigned l
- 	 * Convert jiffies to nanoseconds and separate with
- 	 * one divide.
- 	 */
--	u64 nsec = (u64)jiffies * TICK_NSEC;
--	long tv_usec;
-+	u32 rem;
- 
--	value->tv_sec = div_long_long_rem(nsec, NSEC_PER_SEC, &tv_usec);
--	tv_usec /= NSEC_PER_USEC;
--	value->tv_usec = tv_usec;
-+	value->tv_sec = div_u64_rem((u64)jiffies * TICK_NSEC,
-+				    NSEC_PER_SEC, &rem);
-+	value->tv_usec = rem / NSEC_PER_USEC;
- }
- EXPORT_SYMBOL(jiffies_to_timeval);
- 
-diff -puN kernel/time/ntp.c~remove-div_long_long_rem kernel/time/ntp.c
---- a/kernel/time/ntp.c~remove-div_long_long_rem
-+++ a/kernel/time/ntp.c
-@@ -234,7 +234,7 @@ static inline void notify_cmos_timer(voi
-  */
- int do_adjtimex(struct timex *txc)
- {
--	long mtemp, save_adjust, rem;
-+	long mtemp, save_adjust;
- 	s64 freq_adj;
- 	int result;
- 
-@@ -345,9 +345,7 @@ int do_adjtimex(struct timex *txc)
- 		    freq_adj += time_freq;
- 		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
- 		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
--		    time_offset = div_long_long_rem_signed(time_offset,
--							   NTP_INTERVAL_FREQ,
--							   &rem);
-+		    time_offset = div_s64(time_offset, NTP_INTERVAL_FREQ);
- 		    time_offset <<= SHIFT_UPDATE;
- 		} /* STA_PLL */
- 	    } /* txc->modes & ADJ_OFFSET */
-diff -puN mm/slub.c~remove-div_long_long_rem mm/slub.c
---- a/mm/slub.c~remove-div_long_long_rem
-+++ a/mm/slub.c
-@@ -21,6 +21,7 @@
- #include <linux/ctype.h>
- #include <linux/kallsyms.h>
- #include <linux/memory.h>
-+#include <linux/math64.h>
- 
- /*
-  * Lock order:
-@@ -3532,12 +3533,10 @@ static int list_locations(struct kmem_ca
- 			len += sprintf(buf + len, "<not-available>");
- 
- 		if (l->sum_time != l->min_time) {
--			unsigned long remainder;
--
- 			len += sprintf(buf + len, " age=%ld/%ld/%ld",
--			l->min_time,
--			div_long_long_rem(l->sum_time, l->count, &remainder),
--			l->max_time);
-+				l->min_time,
-+				(long)div_u64(l->sum_time, l->count),
-+				l->max_time);
- 		} else
- 			len += sprintf(buf + len, " age=%ld",
- 				l->min_time);
 _
 
 Patches currently in -mm which might be from zippel@linux-m68k.org are
