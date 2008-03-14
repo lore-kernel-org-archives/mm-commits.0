@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rename-div64_64-to-div64_u64.patch added to -mm tree
-Date: Fri, 14 Mar 2008 13:34:18 -0700
-Message-ID: <200803142034.m2EKYI79018091@imap1.linux-foundation.org>
+Subject: + ext3-fix-wrong-gfp-type-under-transaction.patch added to -mm tree
+Date: Fri, 14 Mar 2008 13:35:55 -0700
+Message-ID: <200803142035.m2EKZtgo018129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756037AbYCNUhB (ORCPT
+	by vger.kernel.org with ESMTP id S1756914AbYCNUhI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Mar 2008 16:37:01 -0400
+	Fri, 14 Mar 2008 16:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, avi@qumranet.com, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, jdike@addtoit.com, kaber@trash.net, mingo@elte.hu, ralf@linux-mips.org, rmk@arm.linux.org.uk
+Cc: jbacik@redhat.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     rename div64_64 to div64_u64
+     ext3: fix wrong gfp type under transaction
 has been added to the -mm tree.  Its filename is
-     rename-div64_64-to-div64_u64.patch
+     ext3-fix-wrong-gfp-type-under-transaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,342 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rename div64_64 to div64_u64
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: ext3: fix wrong gfp type under transaction
+From: Josef Bacik <jbacik@redhat.com>
 
-Rename div64_64 to div64_u64 to make it consistent with the other divide
-functions, so it clearly includes the type of the divide.  Move its definition
-to math64.h as currently no architecture overrides the generic implementation.
- They can still override it of course, but the duplicated declarations are
-avoided.
+There are several places where we make allocations with GFP_KERNEL while under
+a transaction, which could lead to an assertion panic or lockup if under
+memory pressure.  This patch switches these problem areas to use GFP_NOFS to
+keep these problems from happening.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/lapic.c         |    6 +++---
- include/asm-arm/div64.h      |    2 --
- include/asm-generic/div64.h  |    7 -------
- include/asm-m68k/div64.h     |    1 -
- include/asm-mips/div64.h     |    6 ------
- include/asm-mn10300/div64.h  |    3 ---
- include/asm-um/div64.h       |    1 -
- include/asm-x86/div64.h      |    2 --
- include/linux/math64.h       |   12 ++++++++++++
- kernel/sched.c               |    6 +++---
- kernel/sched_debug.c         |    4 ++--
- lib/div64.c                  |   12 ++++++------
- net/ipv4/tcp_cubic.c         |    4 ++--
- net/netfilter/xt_connbytes.c |    5 ++---
- 14 files changed, 30 insertions(+), 41 deletions(-)
+ fs/ext3/acl.c    |    8 ++++----
+ fs/ext3/resize.c |    4 ++--
+ fs/ext3/xattr.c  |    4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kvm/lapic.c~rename-div64_64-to-div64_u64 arch/x86/kvm/lapic.c
---- a/arch/x86/kvm/lapic.c~rename-div64_64-to-div64_u64
-+++ a/arch/x86/kvm/lapic.c
-@@ -25,13 +25,13 @@
- #include <linux/hrtimer.h>
- #include <linux/io.h>
- #include <linux/module.h>
-+#include <linux/math64.h>
- #include <asm/processor.h>
- #include <asm/msr.h>
- #include <asm/page.h>
- #include <asm/current.h>
- #include <asm/apicdef.h>
- #include <asm/atomic.h>
--#include <asm/div64.h>
- #include "irq.h"
+diff -puN fs/ext3/acl.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/acl.c
+--- a/fs/ext3/acl.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/acl.c
+@@ -37,7 +37,7 @@ ext3_acl_from_disk(const void *value, si
+ 		return ERR_PTR(-EINVAL);
+ 	if (count == 0)
+ 		return NULL;
+-	acl = posix_acl_alloc(count, GFP_KERNEL);
++	acl = posix_acl_alloc(count, GFP_NOFS);
+ 	if (!acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	for (n=0; n < count; n++) {
+@@ -91,7 +91,7 @@ ext3_acl_to_disk(const struct posix_acl 
  
- #define PRId64 "d"
-@@ -526,8 +526,8 @@ static u32 apic_get_tmcct(struct kvm_lap
- 	} else
- 		passed = ktime_sub(now, apic->timer.last_update);
- 
--	counter_passed = div64_64(ktime_to_ns(passed),
--				  (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
-+	counter_passed = div64_u64(ktime_to_ns(passed),
-+				   (APIC_BUS_CYCLE_NS * apic->timer.divide_count));
- 
- 	if (counter_passed > tmcct) {
- 		if (unlikely(!apic_lvtt_period(apic))) {
-diff -puN include/asm-arm/div64.h~rename-div64_64-to-div64_u64 include/asm-arm/div64.h
---- a/include/asm-arm/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-arm/div64.h
-@@ -224,6 +224,4 @@
- 
- #endif
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
--
- #endif
-diff -puN include/asm-generic/div64.h~rename-div64_64-to-div64_u64 include/asm-generic/div64.h
---- a/include/asm-generic/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-generic/div64.h
-@@ -30,11 +30,6 @@
- 	__rem;							\
-  })
- 
--static inline uint64_t div64_64(uint64_t dividend, uint64_t divisor)
--{
--	return dividend / divisor;
--}
--
- #elif BITS_PER_LONG == 32
- 
- extern uint32_t __div64_32(uint64_t *dividend, uint32_t divisor);
-@@ -54,8 +49,6 @@ extern uint32_t __div64_32(uint64_t *div
- 	__rem;						\
-  })
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
--
- #else /* BITS_PER_LONG == ?? */
- 
- # error do_div() does not yet support the C64
-diff -puN include/asm-m68k/div64.h~rename-div64_64-to-div64_u64 include/asm-m68k/div64.h
---- a/include/asm-m68k/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-m68k/div64.h
-@@ -25,5 +25,4 @@
- 	__rem;							\
- })
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
- #endif /* _M68K_DIV64_H */
-diff -puN include/asm-mips/div64.h~rename-div64_64-to-div64_u64 include/asm-mips/div64.h
---- a/include/asm-mips/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-mips/div64.h
-@@ -82,7 +82,6 @@
- 	(n) = __quot; \
- 	__mod; })
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
- #endif /* (_MIPS_SZLONG == 32) */
- 
- #if (_MIPS_SZLONG == 64)
-@@ -106,11 +105,6 @@ extern uint64_t div64_64(uint64_t divide
- 	(n) = __quot; \
- 	__mod; })
- 
--static inline uint64_t div64_64(uint64_t dividend, uint64_t divisor)
--{
--	return dividend / divisor;
--}
--
- #endif /* (_MIPS_SZLONG == 64) */
- 
- #endif /* _ASM_DIV64_H */
-diff -puN include/asm-mn10300/div64.h~rename-div64_64-to-div64_u64 include/asm-mn10300/div64.h
---- a/include/asm-mn10300/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-mn10300/div64.h
-@@ -97,7 +97,4 @@ signed __muldiv64s(signed val, signed mu
- 	return result;
- }
- 
--extern __attribute__((const))
--uint64_t div64_64(uint64_t dividend, uint64_t divisor);
--
- #endif /* _ASM_DIV64 */
-diff -puN include/asm-um/div64.h~rename-div64_64-to-div64_u64 include/asm-um/div64.h
---- a/include/asm-um/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-um/div64.h
-@@ -3,5 +3,4 @@
- 
- #include "asm/arch/div64.h"
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
- #endif
-diff -puN include/asm-x86/div64.h~rename-div64_64-to-div64_u64 include/asm-x86/div64.h
---- a/include/asm-x86/div64.h~rename-div64_64-to-div64_u64
-+++ a/include/asm-x86/div64.h
-@@ -70,8 +70,6 @@ static inline u64 div_u64_rem(u64 divide
- }
- #define div_u64_rem	div_u64_rem
- 
--extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
--
- #else
- # include <asm-generic/div64.h>
- #endif /* CONFIG_X86_32 */
-diff -puN include/linux/math64.h~rename-div64_64-to-div64_u64 include/linux/math64.h
---- a/include/linux/math64.h~rename-div64_64-to-div64_u64
-+++ a/include/linux/math64.h
-@@ -27,6 +27,14 @@ static inline s64 div_s64_rem(s64 divide
- 	return dividend / divisor;
- }
- 
-+/**
-+ * div64_u64 - unsigned 64bit divide with 64bit divisor
-+ */
-+static inline u64 div64_u64(u64 dividend, u64 divisor)
-+{
-+	return dividend / divisor;
-+}
-+
- #elif BITS_PER_LONG == 32
- 
- #ifndef div_u64_rem
-@@ -41,6 +49,10 @@ static inline u64 div_u64_rem(u64 divide
- extern s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder);
- #endif
- 
-+#ifndef div64_u64
-+extern u64 div64_u64(u64 dividend, u64 divisor);
-+#endif
-+
- #endif /* BITS_PER_LONG */
- 
- /**
-diff -puN kernel/sched.c~rename-div64_64-to-div64_u64 kernel/sched.c
---- a/kernel/sched.c~rename-div64_64-to-div64_u64
-+++ a/kernel/sched.c
-@@ -7180,7 +7180,7 @@ static void init_tg_cfs_entry(struct rq 
- 	se->cfs_rq = &rq->cfs;
- 	se->my_q = cfs_rq;
- 	se->load.weight = tg->shares;
--	se->load.inv_weight = div64_64(1ULL<<32, se->load.weight);
-+	se->load.inv_weight = div64_u64(1ULL<<32, se->load.weight);
- 	se->parent = NULL;
- }
- #endif
-@@ -7718,7 +7718,7 @@ static void set_se_shares(struct sched_e
- 		dequeue_entity(cfs_rq, se, 0);
- 
- 	se->load.weight = shares;
--	se->load.inv_weight = div64_64((1ULL<<32), shares);
-+	se->load.inv_weight = div64_u64((1ULL<<32), shares);
- 
- 	if (on_rq)
- 		enqueue_entity(cfs_rq, se, 0);
-@@ -7791,7 +7791,7 @@ static unsigned long to_ratio(u64 period
- 	if (runtime == RUNTIME_INF)
- 		return 1ULL << 16;
- 
--	return div64_64(runtime << 16, period);
-+	return div64_u64(runtime << 16, period);
- }
- 
- static int __rt_schedulable(struct task_group *tg, u64 period, u64 runtime)
-diff -puN kernel/sched_debug.c~rename-div64_64-to-div64_u64 kernel/sched_debug.c
---- a/kernel/sched_debug.c~rename-div64_64-to-div64_u64
-+++ a/kernel/sched_debug.c
-@@ -331,8 +331,8 @@ void proc_sched_show_task(struct task_st
- 
- 		avg_per_cpu = p->se.sum_exec_runtime;
- 		if (p->se.nr_migrations) {
--			avg_per_cpu = div64_64(avg_per_cpu,
--					       p->se.nr_migrations);
-+			avg_per_cpu = div64_u64(avg_per_cpu,
-+						p->se.nr_migrations);
- 		} else {
- 			avg_per_cpu = -1LL;
- 		}
-diff -puN lib/div64.c~rename-div64_64-to-div64_u64 lib/div64.c
---- a/lib/div64.c~rename-div64_64-to-div64_u64
-+++ a/lib/div64.c
-@@ -78,9 +78,10 @@ EXPORT_SYMBOL(div_s64_rem);
- #endif
- 
- /* 64bit divisor, dividend and result. dynamic precision */
--uint64_t div64_64(uint64_t dividend, uint64_t divisor)
-+#ifndef div64_u64
-+u64 div64_u64(u64 dividend, u64 divisor)
- {
--	uint32_t high, d;
-+	u32 high, d;
- 
- 	high = divisor >> 32;
- 	if (high) {
-@@ -91,10 +92,9 @@ uint64_t div64_64(uint64_t dividend, uin
- 	} else
- 		d = divisor;
- 
--	do_div(dividend, d);
--
--	return dividend;
-+	return div_u64(dividend, d);
- }
--EXPORT_SYMBOL(div64_64);
-+EXPORT_SYMBOL(div64_u64);
-+#endif
- 
- #endif /* BITS_PER_LONG == 32 */
-diff -puN net/ipv4/tcp_cubic.c~rename-div64_64-to-div64_u64 net/ipv4/tcp_cubic.c
---- a/net/ipv4/tcp_cubic.c~rename-div64_64-to-div64_u64
-+++ a/net/ipv4/tcp_cubic.c
-@@ -14,8 +14,8 @@
- 
- #include <linux/mm.h>
- #include <linux/module.h>
-+#include <linux/math64.h>
- #include <net/tcp.h>
--#include <asm/div64.h>
- 
- #define BICTCP_BETA_SCALE    1024	/* Scale factor beta calculation
- 					 * max_cwnd = snd_cwnd * beta
-@@ -134,7 +134,7 @@ static u32 cubic_root(u64 a)
- 	 * x    = ( 2 * x  +  a / x  ) / 3
- 	 *  k+1          k         k
- 	 */
--	x = (2 * x + (u32)div64_64(a, (u64)x * (u64)(x - 1)));
-+	x = (2 * x + (u32)div64_u64(a, (u64)x * (u64)(x - 1)));
- 	x = ((x * 341) >> 10);
- 	return x;
- }
-diff -puN net/netfilter/xt_connbytes.c~rename-div64_64-to-div64_u64 net/netfilter/xt_connbytes.c
---- a/net/netfilter/xt_connbytes.c~rename-div64_64-to-div64_u64
-+++ a/net/netfilter/xt_connbytes.c
-@@ -4,12 +4,11 @@
- #include <linux/module.h>
- #include <linux/bitops.h>
- #include <linux/skbuff.h>
-+#include <linux/math64.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_connbytes.h>
- #include <net/netfilter/nf_conntrack.h>
- 
--#include <asm/div64.h>
--
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("Xtables: Number of packets/bytes per connection matching");
-@@ -82,7 +81,7 @@ connbytes_mt(const struct sk_buff *skb, 
- 			break;
- 		}
- 		if (pkts != 0)
--			what = div64_64(bytes, pkts);
-+			what = div64_u64(bytes, pkts);
- 		break;
+ 	*size = ext3_acl_size(acl->a_count);
+ 	ext_acl = kmalloc(sizeof(ext3_acl_header) + acl->a_count *
+-			sizeof(ext3_acl_entry), GFP_KERNEL);
++			sizeof(ext3_acl_entry), GFP_NOFS);
+ 	if (!ext_acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	ext_acl->a_version = cpu_to_le32(EXT3_ACL_VERSION);
+@@ -187,7 +187,7 @@ ext3_get_acl(struct inode *inode, int ty
  	}
+ 	retval = ext3_xattr_get(inode, name_index, "", NULL, 0);
+ 	if (retval > 0) {
+-		value = kmalloc(retval, GFP_KERNEL);
++		value = kmalloc(retval, GFP_NOFS);
+ 		if (!value)
+ 			return ERR_PTR(-ENOMEM);
+ 		retval = ext3_xattr_get(inode, name_index, "", value, retval);
+@@ -335,7 +335,7 @@ ext3_init_acl(handle_t *handle, struct i
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
++		clone = posix_acl_clone(acl, GFP_NOFS);
+ 		error = -ENOMEM;
+ 		if (!clone)
+ 			goto cleanup;
+diff -puN fs/ext3/resize.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/resize.c
+@@ -485,7 +485,7 @@ static int add_new_gdb(handle_t *handle,
+ 		goto exit_dindj;
  
+ 	n_group_desc = kmalloc((gdb_num + 1) * sizeof(struct buffer_head *),
+-			GFP_KERNEL);
++			GFP_NOFS);
+ 	if (!n_group_desc) {
+ 		err = -ENOMEM;
+ 		ext3_warning (sb, __func__,
+@@ -568,7 +568,7 @@ static int reserve_backup_gdb(handle_t *
+ 	int res, i;
+ 	int err;
+ 
+-	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_KERNEL);
++	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_NOFS);
+ 	if (!primary)
+ 		return -ENOMEM;
+ 
+diff -puN fs/ext3/xattr.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/xattr.c
+@@ -730,7 +730,7 @@ ext3_xattr_block_set(handle_t *handle, s
+ 				ce = NULL;
+ 			}
+ 			ea_bdebug(bs->bh, "cloning");
+-			s->base = kmalloc(bs->bh->b_size, GFP_KERNEL);
++			s->base = kmalloc(bs->bh->b_size, GFP_NOFS);
+ 			error = -ENOMEM;
+ 			if (s->base == NULL)
+ 				goto cleanup;
+@@ -742,7 +742,7 @@ ext3_xattr_block_set(handle_t *handle, s
+ 		}
+ 	} else {
+ 		/* Allocate a buffer where we construct the new block. */
+-		s->base = kzalloc(sb->s_blocksize, GFP_KERNEL);
++		s->base = kzalloc(sb->s_blocksize, GFP_NOFS);
+ 		/* assert(header == s->base) */
+ 		error = -ENOMEM;
+ 		if (s->base == NULL)
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
-origin.patch
-git-x86.patch
-git-watchdog.patch
-m68k-replace-remaining-__function__-occurences.patch
-fs-hfsplus-proper-externs.patch
-affs-handle-match_strdup-failure.patch
-hfs-handle-match_strdup-failure.patch
-hfsplus-handle-match_strdup-failure.patch
-fs-affs-filec-use-bug_on.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64.patch
-rename-div64_64-to-div64_u64-mm.patch
-remove-div_long_long_rem.patch
+ext3-fix-wrong-gfp-type-under-transaction.patch
+jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd-fix-possible-journal-overflow-issues.patch
+ext4-fix-wrong-gfp-type-under-transaction.patch
 
