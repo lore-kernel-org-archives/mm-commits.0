@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer.patch added to -mm tree
-Date: Mon, 17 Mar 2008 15:02:52 -0700
-Message-ID: <200803172202.m2HM2q8d000633@imap1.linux-foundation.org>
+Subject: + ntp-cleanup-ntpc.patch added to -mm tree
+Date: Mon, 17 Mar 2008 15:19:05 -0700
+Message-ID: <200803172219.m2HMJ56X001153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753227AbYCQWDB (ORCPT
+	by vger.kernel.org with ESMTP id S1752184AbYCQWUU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 18:03:01 -0400
+	Mon, 17 Mar 2008 18:20:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wei.zhang@freescale.com, dan.j.williams@intel.com, shannon.nelson@intel.com
+Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     fsldma: fix the DMA halt when using DMA_INTERRUPT async_tx transfer.
+     ntp: cleanup ntp.c
 has been added to the -mm tree.  Its filename is
-     fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer.patch
+     ntp-cleanup-ntpc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,278 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: fix the DMA halt when using DMA_INTERRUPT async_tx transfer.
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: ntp: cleanup ntp.c
+From: Roman Zippel <zippel@linux-m68k.org>
 
-The DMA_INTERRUPT async_tx is a NULL transfer, thus the BCR(count register) is
-0.  When the transfer started with a byte count of zero, the DMA controller
-will triger a PE(programming error) event and halt, not a normal interrupt.  I
-add special codes for PE event and DMA_INTERRUPT async_tx testing.
+This is mostly a style cleanup of ntp.c and extracts part of do_adjtimex as
+ntp_update_offset().  Otherwise the functionality is still the same as before.
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |   30 ++++++++++++++++++++++++++++++
- drivers/dma/fsldma.h |    1 +
- 2 files changed, 31 insertions(+)
+ kernel/time/ntp.c |  171 +++++++++++++++++++++++---------------------
+ 1 file changed, 90 insertions(+), 81 deletions(-)
 
-diff -puN drivers/dma/fsldma.c~fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer
-+++ a/drivers/dma/fsldma.c
-@@ -123,6 +123,11 @@ static dma_addr_t get_ndar(struct fsl_dm
- 	return DMA_IN(fsl_chan, &fsl_chan->reg_base->ndar, 64);
+diff -puN kernel/time/ntp.c~ntp-cleanup-ntpc kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-cleanup-ntpc
++++ a/kernel/time/ntp.c
+@@ -35,7 +35,7 @@ static u64 tick_length, tick_length_base
+ /* TIME_ERROR prevents overwriting the CMOS clock */
+ static int time_state = TIME_OK;	/* clock synchronization status	*/
+ int time_status = STA_UNSYNC;		/* clock status bits		*/
+-static s64 time_offset;		/* time adjustment (ns)		*/
++static s64 time_offset;			/* time adjustment (ns)		*/
+ static long time_constant = 2;		/* pll time constant		*/
+ long time_maxerror = NTP_PHASE_LIMIT;	/* maximum error (us)		*/
+ long time_esterror = NTP_PHASE_LIMIT;	/* estimated error (us)		*/
+@@ -57,6 +57,44 @@ static void ntp_update_frequency(void)
+ 	tick_length_base = div_u64(tick_length_base, NTP_INTERVAL_FREQ);
  }
  
-+static u32 get_bcr(struct fsl_dma_chan *fsl_chan)
++static void ntp_update_offset(long offset)
 +{
-+	return DMA_IN(fsl_chan, &fsl_chan->reg_base->bcr, 32);
++	long mtemp;
++	s64 freq_adj;
++
++	if (!(time_status & STA_PLL))
++		return;
++
++	time_offset = offset * NSEC_PER_USEC;
++
++	/*
++	 * Scale the phase adjustment and
++	 * clamp to the operating range.
++	 */
++	time_offset = min(time_offset, (s64)MAXPHASE * NSEC_PER_USEC);
++	time_offset = max(time_offset, (s64)-MAXPHASE * NSEC_PER_USEC);
++
++	/*
++	 * Select how the frequency is to be controlled
++	 * and in which mode (PLL or FLL).
++	 */
++	if (time_status & STA_FREQHOLD || time_reftime == 0)
++		time_reftime = xtime.tv_sec;
++	mtemp = xtime.tv_sec - time_reftime;
++	time_reftime = xtime.tv_sec;
++
++	freq_adj = time_offset * mtemp;
++	freq_adj = shift_right(freq_adj, time_constant * 2 +
++			   (SHIFT_PLL + 2) * 2 - SHIFT_NSEC);
++	if (mtemp >= MINSEC && (time_status & STA_FLL || mtemp > MAXSEC))
++		freq_adj += div_s64(time_offset << (SHIFT_NSEC - SHIFT_FLL), mtemp);
++	freq_adj += time_freq;
++	freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
++	time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
++	time_offset = div_s64(time_offset, NTP_INTERVAL_FREQ);
++	time_offset <<= SHIFT_UPDATE;
 +}
 +
- static int dma_is_idle(struct fsl_dma_chan *fsl_chan)
+ /**
+  * ntp_clear - Clears the NTP state variables
+  *
+@@ -131,7 +169,7 @@ void second_overflow(void)
+ 		break;
+ 	case TIME_WAIT:
+ 		if (!(time_status & (STA_INS | STA_DEL)))
+-		time_state = TIME_OK;
++			time_state = TIME_OK;
+ 	}
+ 
+ 	/*
+@@ -234,8 +272,7 @@ static inline void notify_cmos_timer(voi
+  */
+ int do_adjtimex(struct timex *txc)
  {
- 	u32 sr = get_sr(fsl_chan);
-@@ -426,6 +431,9 @@ fsl_dma_prep_interrupt(struct dma_chan *
- 	new->async_tx.cookie = -EBUSY;
- 	new->async_tx.ack = 0;
+-	long mtemp, save_adjust;
+-	s64 freq_adj;
++	long save_adjust;
+ 	int result;
  
-+	/* Insert the link descriptor to the LD ring */
-+	list_add_tail(&new->node, &new->async_tx.tx_list);
+ 	/* In order to modify anything, you gotta be super-user! */
+@@ -272,94 +309,63 @@ int do_adjtimex(struct timex *txc)
+ 	time_status &= ~STA_CLOCKERR;		/* reset STA_CLOCKERR */
+ #endif
+ 	/* If there are input parameters, then process them */
+-	if (txc->modes)
+-	{
+-	    if (txc->modes & ADJ_STATUS)	/* only set allowed bits */
+-		time_status =  (txc->status & ~STA_RONLY) |
+-			      (time_status & STA_RONLY);
+-
+-	    if (txc->modes & ADJ_FREQUENCY) {	/* p. 22 */
+-		if (txc->freq > MAXFREQ || txc->freq < -MAXFREQ) {
+-		    result = -EINVAL;
+-		    goto leave;
++	if (txc->modes) {
++		if (txc->modes & ADJ_STATUS)	/* only set allowed bits */
++			time_status = (txc->status & ~STA_RONLY) |
++				      (time_status & STA_RONLY);
 +
- 	/* Set End-of-link to the last link descriptor of new list*/
- 	set_ld_eol(fsl_chan, new);
++		if (txc->modes & ADJ_FREQUENCY) {
++			if (txc->freq > MAXFREQ || txc->freq < -MAXFREQ) {
++				result = -EINVAL;
++				goto leave;
++			}
++			time_freq = ((s64)txc->freq * NSEC_PER_USEC)
++					>> (SHIFT_USEC - SHIFT_NSEC);
+ 		}
+-		time_freq = ((s64)txc->freq * NSEC_PER_USEC)
+-				>> (SHIFT_USEC - SHIFT_NSEC);
+-	    }
+-
+-	    if (txc->modes & ADJ_MAXERROR) {
+-		if (txc->maxerror < 0 || txc->maxerror >= NTP_PHASE_LIMIT) {
+-		    result = -EINVAL;
+-		    goto leave;
++
++		if (txc->modes & ADJ_MAXERROR) {
++			if (txc->maxerror < 0 || txc->maxerror >= NTP_PHASE_LIMIT) {
++				result = -EINVAL;
++				goto leave;
++			}
++			time_maxerror = txc->maxerror;
+ 		}
+-		time_maxerror = txc->maxerror;
+-	    }
  
-@@ -694,6 +702,23 @@ static irqreturn_t fsl_dma_chan_do_inter
- 	if (stat & FSL_DMA_SR_TE)
- 		dev_err(fsl_chan->dev, "Transfer Error!\n");
+-	    if (txc->modes & ADJ_ESTERROR) {
+-		if (txc->esterror < 0 || txc->esterror >= NTP_PHASE_LIMIT) {
+-		    result = -EINVAL;
+-		    goto leave;
++		if (txc->modes & ADJ_ESTERROR) {
++			if (txc->esterror < 0 || txc->esterror >= NTP_PHASE_LIMIT) {
++				result = -EINVAL;
++				goto leave;
++			}
++			time_esterror = txc->esterror;
+ 		}
+-		time_esterror = txc->esterror;
+-	    }
  
-+	/* Programming Error
-+	 * The DMA_INTERRUPT async_tx is a NULL transfer, which will
-+	 * triger a PE interrupt.
-+	 */
-+	if (stat & FSL_DMA_SR_PE) {
-+		dev_dbg(fsl_chan->dev, "event: Programming Error INT\n");
-+		if (get_bcr(fsl_chan) == 0) {
-+			/* BCR register is 0, this is a DMA_INTERRUPT async_tx.
-+			 * Now, update the completed cookie, and continue the
-+			 * next uncompleted transfer.
-+			 */
-+			fsl_dma_update_completed_cookie(fsl_chan);
-+			fsl_chan_xfer_ld_queue(fsl_chan);
-+		}
-+		stat &= ~FSL_DMA_SR_PE;
+-	    if (txc->modes & ADJ_TIMECONST) {	/* p. 24 */
+-		if (txc->constant < 0) {	/* NTP v4 uses values > 6 */
+-		    result = -EINVAL;
+-		    goto leave;
++		if (txc->modes & ADJ_TIMECONST) {
++			if (txc->constant < 0) {	/* NTP v4 uses values > 6 */
++				result = -EINVAL;
++				goto leave;
++			}
++			time_constant = min(txc->constant + 4, (long)MAXTC);
+ 		}
+-		time_constant = min(txc->constant + 4, (long)MAXTC);
+-	    }
+ 
+-	    if (txc->modes & ADJ_OFFSET) {	/* values checked earlier */
+-		if (txc->modes == ADJ_OFFSET_SINGLESHOT) {
+-		    /* adjtime() is independent from ntp_adjtime() */
+-		    time_adjust = txc->offset;
++		if (txc->modes & ADJ_OFFSET) {
++			if (txc->modes == ADJ_OFFSET_SINGLESHOT)
++				/* adjtime() is independent from ntp_adjtime() */
++				time_adjust = txc->offset;
++			else
++				ntp_update_offset(txc->offset);
+ 		}
+-		else if (time_status & STA_PLL) {
+-		    time_offset = txc->offset * NSEC_PER_USEC;
++		if (txc->modes & ADJ_TICK)
++			tick_usec = txc->tick;
+ 
+-		    /*
+-		     * Scale the phase adjustment and
+-		     * clamp to the operating range.
+-		     */
+-		    time_offset = min(time_offset, (s64)MAXPHASE * NSEC_PER_USEC);
+-		    time_offset = max(time_offset, (s64)-MAXPHASE * NSEC_PER_USEC);
+-
+-		    /*
+-		     * Select whether the frequency is to be controlled
+-		     * and in which mode (PLL or FLL). Clamp to the operating
+-		     * range. Ugly multiply/divide should be replaced someday.
+-		     */
+-
+-		    if (time_status & STA_FREQHOLD || time_reftime == 0)
+-		        time_reftime = xtime.tv_sec;
+-		    mtemp = xtime.tv_sec - time_reftime;
+-		    time_reftime = xtime.tv_sec;
+-
+-		    freq_adj = time_offset * mtemp;
+-		    freq_adj = shift_right(freq_adj, time_constant * 2 +
+-					   (SHIFT_PLL + 2) * 2 - SHIFT_NSEC);
+-		    if (mtemp >= MINSEC && (time_status & STA_FLL || mtemp > MAXSEC))
+-			freq_adj += div_s64(time_offset << (SHIFT_NSEC - SHIFT_FLL), mtemp);
+-		    freq_adj += time_freq;
+-		    freq_adj = min(freq_adj, (s64)MAXFREQ_NSEC);
+-		    time_freq = max(freq_adj, (s64)-MAXFREQ_NSEC);
+-		    time_offset = div_s64(time_offset, NTP_INTERVAL_FREQ);
+-		    time_offset <<= SHIFT_UPDATE;
+-		} /* STA_PLL */
+-	    } /* txc->modes & ADJ_OFFSET */
+-	    if (txc->modes & ADJ_TICK)
+-		tick_usec = txc->tick;
+-
+-	    if (txc->modes & (ADJ_TICK|ADJ_FREQUENCY|ADJ_OFFSET))
+-		    ntp_update_frequency();
+-	} /* txc->modes */
+-leave:	if ((time_status & (STA_UNSYNC|STA_CLOCKERR)) != 0)
++		if (txc->modes & (ADJ_TICK|ADJ_FREQUENCY|ADJ_OFFSET))
++			ntp_update_frequency();
 +	}
-+
- 	/* If the link descriptor segment transfer finishes,
- 	 * we will recycle the used descriptor.
- 	 */
-@@ -834,6 +859,11 @@ static int fsl_dma_self_test(struct fsl_
- 	tx3 = fsl_dma_prep_memcpy(chan, dma_dest, dma_src, test_size / 4, 0);
- 	async_tx_ack(tx3);
++leave:
++	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
+ 		result = TIME_ERROR;
  
-+	/* Interrupt tx test */
-+	tx1 = fsl_dma_prep_interrupt(chan);
-+	async_tx_ack(tx1);
-+	cookie = fsl_dma_tx_submit(tx1);
+ 	if ((txc->modes == ADJ_OFFSET_SINGLESHOT) ||
+-			(txc->modes == ADJ_OFFSET_SS_READ))
++	    (txc->modes == ADJ_OFFSET_SS_READ))
+ 		txc->offset = save_adjust;
+ 	else
+ 		txc->offset = ((long)shift_right(time_offset, SHIFT_UPDATE)) *
+@@ -384,9 +390,12 @@ leave:	if ((time_status & (STA_UNSYNC|ST
+ 	txc->errcnt	   = 0;
+ 	txc->stbcnt	   = 0;
+ 	write_sequnlock_irq(&xtime_lock);
 +
- 	/* Test exchanging the prepared tx sort */
- 	cookie = fsl_dma_tx_submit(tx3);
- 	cookie = fsl_dma_tx_submit(tx2);
-diff -puN drivers/dma/fsldma.h~fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer drivers/dma/fsldma.h
---- a/drivers/dma/fsldma.h~fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer
-+++ a/drivers/dma/fsldma.h
-@@ -40,6 +40,7 @@
- #define FSL_DMA_MR_EOTIE	0x00000080
+ 	do_gettimeofday(&txc->time);
++
+ 	notify_cmos_timer();
+-	return(result);
++
++	return result;
+ }
  
- #define FSL_DMA_SR_CH		0x00000020
-+#define FSL_DMA_SR_PE		0x00000010
- #define FSL_DMA_SR_CB		0x00000004
- #define FSL_DMA_SR_TE		0x00000080
- #define FSL_DMA_SR_EOSI		0x00000002
+ static int __init ntp_tick_adj_setup(char *str)
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
-rapidio-change-rio-function-mpc85xx_-to-fsl_.patch
-rapidio-add-rapidio-option-to-kernel-configuration.patch
-rapidio-move-include-asm-ppc-rioh-to-include-asm-powerpc-rioh.patch
-rapidio-add-rapidio-multi-mport-support.patch
-rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
-rapidio-change-the-kernel-configurated-rapidio-system-size-to-auto-probing.patch
-rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch
-rapidio-add-rapidio-node-probing-into-mpc86xx_hpcn-board-id-table.patch
-rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
-rapidio-add-rapidio-connection-info-print-out-and-re-training-for-break-connection.patch
-rapidio-add-memory-mapping-driver-to-rapidio.patch
-rapidio-add-rapidio-space-allocation-bitmap-arithmetic.patch
-rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
-rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
-rapidio-add-rapidio-proc-fs-for-memory-mapping-debugging.patch
-rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch
-rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
-git-async-tx.patch
-fsldma-fix-the-dma-halt-when-using-dma_interrupt-async_tx-transfer.patch
+git-x86.patch
+git-watchdog.patch
+m68k-replace-remaining-__function__-occurences.patch
+fs-hfsplus-proper-externs.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+fs-affs-filec-use-bug_on.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+introduce-explicit-signed-unsigned-64bit-divide.patch
+convert-a-few-do_div-user.patch
+rename-div64_64-to-div64_u64.patch
+rename-div64_64-to-div64_u64-mm.patch
+remove-div_long_long_rem.patch
+ntp-cleanup-ntpc.patch
+ntp-ntp4-user-space-bits-update.patch
+ntp-increase-time_freq-resolution.patch
+ntp-increase-time_offset-resolution.patch
+ntp-support-for-tai.patch
+ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
+ntp-remove-current_tick_length.patch
+ntp-handle-leap-second-via-timer.patch
 
