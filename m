@@ -1,66 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - au1550_spi-fix-prototype-of-irq-handler.patch removed from -mm tree
-Date: Mon, 17 Mar 2008 13:57:27 -0700
-Message-ID: <200803172057.m2HKvR12030628@imap1.linux-foundation.org>
+Subject: - char-riscom-fix-rc_board-indexing.patch removed from -mm tree
+Date: Mon, 17 Mar 2008 13:57:41 -0700
+Message-ID: <200803172057.m2HKvfMp030636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44564 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754378AbYCQU6J (ORCPT
+	by vger.kernel.org with ESMTP id S1754430AbYCQU6P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:58:09 -0400
+	Mon, 17 Mar 2008 16:58:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.nikitenko@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     au1550_spi: fix prototype of irq handler
+     char: riscom, fix rc_board indexing
 has been removed from the -mm tree.  Its filename was
-     au1550_spi-fix-prototype-of-irq-handler.patch
+     char-riscom-fix-rc_board-indexing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: au1550_spi: fix prototype of irq handler
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
+Subject: char: riscom, fix rc_board indexing
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Remove struct pt_regs *regs from prototype of au1550_spi_irq handler to avoid
-warning in request_irq().  Also fix comment type leadin.
+In riscom8_init_module, rc_board should be indexed by i, not by 0, otherwise
+the loop is useless.
 
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
-Signed-off-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/au1550_spi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/riscom8.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/au1550_spi.c~au1550_spi-fix-prototype-of-irq-handler drivers/spi/au1550_spi.c
---- a/drivers/spi/au1550_spi.c~au1550_spi-fix-prototype-of-irq-handler
-+++ a/drivers/spi/au1550_spi.c
-@@ -99,7 +99,7 @@ static dbdev_tab_t au1550_spi_mem_dbdev 
- static void au1550_spi_bits_handlers_set(struct au1550_spi *hw, int bpw);
+diff -puN drivers/char/riscom8.c~char-riscom-fix-rc_board-indexing drivers/char/riscom8.c
+--- a/drivers/char/riscom8.c~char-riscom-fix-rc_board-indexing
++++ a/drivers/char/riscom8.c
+@@ -1709,7 +1709,7 @@ static int __init riscom8_init_module (v
  
+ 	if (iobase || iobase1 || iobase2 || iobase3) {
+ 		for(i = 0; i < RC_NBOARD; i++)
+-			rc_board[0].base = 0;
++			rc_board[i].base = 0;
+ 	}
  
--/**
-+/*
-  *  compute BRG and DIV bits to setup spi clock based on main input clock rate
-  *  that was specified in platform data structure
-  *  according to au1550 datasheet:
-@@ -650,7 +650,7 @@ static int au1550_spi_txrx_bufs(struct s
- 	return hw->txrx_bufs(spi, t);
- }
- 
--static irqreturn_t au1550_spi_irq(int irq, void *dev, struct pt_regs *regs)
-+static irqreturn_t au1550_spi_irq(int irq, void *dev)
- {
- 	struct au1550_spi *hw = dev;
- 	return hw->irq_callback(hw);
+ 	if (iobase)
 _
 
-Patches currently in -mm which might be from jan.nikitenko@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
+git-drm.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch
+wdev-ath5k-typecheck-on-nondebug.patch
+x86_32-fix-fault_msg-nul-termination.patch
+capabilities-implement-per-process-securebits-fix.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+misc-phantom-consistent-whitespace.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
