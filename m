@@ -1,53 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - pm-handle-device-registrations-during-suspend-resume.patch removed from -mm tree
-Date: Mon, 17 Mar 2008 13:59:25 -0700
-Message-ID: <200803172059.m2HKxPOw030762@imap1.linux-foundation.org>
+Subject: - pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch removed from -mm tree
+Date: Mon, 17 Mar 2008 13:59:58 -0700
+Message-ID: <200803172059.m2HKxwil030779@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751522AbYCQVAY (ORCPT
+	by vger.kernel.org with ESMTP id S1753431AbYCQVAb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 17:00:24 -0400
+	Mon, 17 Mar 2008 17:00:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, pavel@ucw.cz, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, david-b@pacbell.net, greg@kroah.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Handle device registrations during suspend/resume
+     PM: make wakeup flags available whenever CONFIG_PM is set
 has been removed from the -mm tree.  Its filename was
-     pm-handle-device-registrations-during-suspend-resume.patch
+     pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PM: Handle device registrations during suspend/resume
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: PM: make wakeup flags available whenever CONFIG_PM is set
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Modify the PM core to protect its data structures, specifically the dpm_active
-list, from being corrupted if a child of the currently suspending device is
-registered concurrently with its ->suspend() callback.  In that case, since
-the new device (the child) is added to dpm_active after its parent, the PM
-core will attempt to suspend it after the parent, which is wrong.
+The various wakeup flags and their accessor macros in struct dev_pm_info
+should be available whenever CONFIG_PM is enabled, not just when
+CONFIG_PM_SLEEP is on.  Otherwise remote wakeup won't always be configurable
+for runtime power management.  This patch (as1056) fixes the oversight.
 
-Introduce a new member of struct dev_pm_info, called 'sleeping', and use it to
-check if the parent of the device being added to dpm_active has been
-suspended, in which case the device registration fails.  Also, use 'sleeping'
-for checking if the ordering of devices on dpm_active is correct.
-
-Introduce variable 'all_sleeping' that will be set to 'true' once all devices
-have been suspended and make new device registrations fail until
-'all_sleeping' is reset to 'false', in order to avoid having unsuspended
-devices around while the system is going into a sleep state.
-
-Remove pm_sleep_rwsem which is not necessary any more.
-
-Special thanks to Alan Stern for discussions and suggestions that lead to the
-creation of this patch.
-
+[rjw: rebased the patch on top of the previous two.]
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Greg KH <greg@kroah.com>
 Cc: Alan Stern <stern@rowland.harvard.edu>
@@ -56,236 +42,121 @@ Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/devices.txt |    5 ++
- drivers/base/core.c             |    6 ++-
- drivers/base/power/main.c       |   57 +++++++++++++-----------------
- drivers/base/power/power.h      |   23 +-----------
- include/linux/pm.h              |    1 
- 5 files changed, 40 insertions(+), 52 deletions(-)
+ drivers/base/power/main.c  |    2 -
+ drivers/base/power/sysfs.c |    2 +
+ include/linux/pm.h         |   64 +++++++++++++++++++----------------
+ 3 files changed, 38 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/power/devices.txt~pm-handle-device-registrations-during-suspend-resume Documentation/power/devices.txt
---- a/Documentation/power/devices.txt~pm-handle-device-registrations-during-suspend-resume
-+++ a/Documentation/power/devices.txt
-@@ -196,6 +196,11 @@ its parent; and can't be removed or susp
- 
- The policy is that the device tree should match hardware bus topology.
- (Or at least the control bus, for devices which use multiple busses.)
-+In particular, this means that a device registration may fail if the parent of
-+the device is suspending (ie. has been chosen by the PM core as the next
-+device to suspend) or has already suspended, as well as after all of the other
-+devices have been suspended.  Device drivers must be prepared to cope with such
-+situations.
- 
- 
- Suspending Devices
-diff -puN drivers/base/core.c~pm-handle-device-registrations-during-suspend-resume drivers/base/core.c
---- a/drivers/base/core.c~pm-handle-device-registrations-during-suspend-resume
-+++ a/drivers/base/core.c
-@@ -821,7 +821,11 @@ int device_add(struct device *dev)
- 	error = dpm_sysfs_add(dev);
- 	if (error)
- 		goto PMError;
--	device_pm_add(dev);
-+	error = device_pm_add(dev);
-+	if (error) {
-+		dpm_sysfs_remove(dev);
-+		goto PMError;
-+	}
- 	error = bus_add_device(dev);
- 	if (error)
- 		goto BusError;
-diff -puN drivers/base/power/main.c~pm-handle-device-registrations-during-suspend-resume drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-handle-device-registrations-during-suspend-resume
+diff -puN drivers/base/power/main.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set
 +++ a/drivers/base/power/main.c
-@@ -54,7 +54,8 @@ static LIST_HEAD(dpm_destroy);
+@@ -57,8 +57,6 @@ static DEFINE_MUTEX(dpm_list_mtx);
+ /* 'true' if all devices have been suspended, protected by dpm_list_mtx */
+ static bool all_sleeping;
  
- static DEFINE_MUTEX(dpm_list_mtx);
- 
--static DECLARE_RWSEM(pm_sleep_rwsem);
-+/* 'true' if all devices have been suspended, protected by dpm_list_mtx */
-+static bool all_sleeping;
- 
- int (*platform_enable_wakeup)(struct device *dev, int is_on);
- 
-@@ -62,14 +63,28 @@ int (*platform_enable_wakeup)(struct dev
+-int (*platform_enable_wakeup)(struct device *dev, int is_on);
+-
+ /**
   *	device_pm_add - add a device to the list of active devices
   *	@dev:	Device to be added to the list
-  */
--void device_pm_add(struct device *dev)
-+int device_pm_add(struct device *dev)
- {
-+	int error = 0;
+diff -puN drivers/base/power/sysfs.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set drivers/base/power/sysfs.c
+--- a/drivers/base/power/sysfs.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set
++++ a/drivers/base/power/sysfs.c
+@@ -6,6 +6,8 @@
+ #include <linux/string.h>
+ #include "power.h"
+ 
++int (*platform_enable_wakeup)(struct device *dev, int is_on);
 +
- 	pr_debug("PM: Adding info for %s:%s\n",
- 		 dev->bus ? dev->bus->name : "No Bus",
- 		 kobject_name(&dev->kobj));
- 	mutex_lock(&dpm_list_mtx);
--	list_add_tail(&dev->power.entry, &dpm_active);
-+	if ((dev->parent && dev->parent->power.sleeping) || all_sleeping) {
-+		if (dev->parent->power.sleeping)
-+			dev_warn(dev,
-+				"parent %s is sleeping, will not add\n",
-+				dev->parent->bus_id);
-+		else
-+			dev_warn(dev, "devices are sleeping, will not add\n");
-+		WARN_ON(true);
-+		error = -EBUSY;
-+	} else {
-+		list_add_tail(&dev->power.entry, &dpm_active);
-+	}
- 	mutex_unlock(&dpm_list_mtx);
-+	return error;
- }
  
- /**
-@@ -107,32 +122,6 @@ void device_pm_schedule_removal(struct d
- }
- EXPORT_SYMBOL_GPL(device_pm_schedule_removal);
+ /*
+  *	wakeup - Report/change current wakeup option for device
+diff -puN include/linux/pm.h~pm-make-wakeup-flags-available-whenever-config_pm-is-set include/linux/pm.h
+--- a/include/linux/pm.h~pm-make-wakeup-flags-available-whenever-config_pm-is-set
++++ a/include/linux/pm.h
+@@ -183,9 +183,9 @@ typedef struct pm_message {
+ struct dev_pm_info {
+ 	pm_message_t		power_state;
+ 	unsigned		can_wakeup:1;
++	unsigned		should_wakeup:1;
+ 	bool			sleeping:1;	/* Owned by the PM core */
+ #ifdef	CONFIG_PM_SLEEP
+-	unsigned		should_wakeup:1;
+ 	struct list_head	entry;
+ #endif
+ };
+@@ -198,11 +198,6 @@ extern void device_resume(void);
+ extern int device_suspend(pm_message_t state);
+ extern int device_prepare_suspend(pm_message_t state);
  
--/**
-- *	pm_sleep_lock - mutual exclusion for registration and suspend
-- *
-- *	Returns 0 if no suspend is underway and device registration
-- *	may proceed, otherwise -EBUSY.
-- */
--int pm_sleep_lock(void)
--{
--	if (down_read_trylock(&pm_sleep_rwsem))
--		return 0;
+-#define device_set_wakeup_enable(dev,val) \
+-	((dev)->power.should_wakeup = !!(val))
+-#define device_may_wakeup(dev) \
+-	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
 -
--	return -EBUSY;
--}
--
--/**
-- *	pm_sleep_unlock - mutual exclusion for registration and suspend
-- *
-- *	This routine undoes the effect of device_pm_add_lock
-- *	when a device's registration is complete.
-- */
--void pm_sleep_unlock(void)
--{
--	up_read(&pm_sleep_rwsem);
--}
--
--
- /*------------------------- Resume routines -------------------------*/
+ extern void __suspend_report_result(const char *function, void *fn, int ret);
  
- /**
-@@ -242,11 +231,13 @@ static int resume_device(struct device *
- static void dpm_resume(void)
- {
- 	mutex_lock(&dpm_list_mtx);
-+	all_sleeping = false;
- 	while(!list_empty(&dpm_off)) {
- 		struct list_head *entry = dpm_off.next;
- 		struct device *dev = to_device(entry);
+ #define suspend_report_result(fn, ret)					\
+@@ -210,6 +205,35 @@ extern void __suspend_report_result(cons
+ 		__suspend_report_result(__FUNCTION__, fn, ret);		\
+ 	} while (0)
  
- 		list_move_tail(entry, &dpm_active);
-+		dev->power.sleeping = false;
- 		mutex_unlock(&dpm_list_mtx);
- 		resume_device(dev);
- 		mutex_lock(&dpm_list_mtx);
-@@ -285,7 +276,6 @@ void device_resume(void)
- 	might_sleep();
- 	dpm_resume();
- 	unregister_dropped_devices();
--	up_write(&pm_sleep_rwsem);
- }
- EXPORT_SYMBOL_GPL(device_resume);
- 
-@@ -421,6 +411,9 @@ static int dpm_suspend(pm_message_t stat
- 		struct list_head *entry = dpm_active.prev;
- 		struct device *dev = to_device(entry);
- 
-+		WARN_ON(dev->parent && dev->parent->power.sleeping);
++#else /* !CONFIG_PM_SLEEP */
 +
-+		dev->power.sleeping = true;
- 		mutex_unlock(&dpm_list_mtx);
- 		error = suspend_device(dev, state);
- 		mutex_lock(&dpm_list_mtx);
-@@ -432,11 +425,14 @@ static int dpm_suspend(pm_message_t stat
- 					(error == -EAGAIN ?
- 					" (please convert to suspend_late)" :
- 					""));
-+			dev->power.sleeping = false;
- 			break;
- 		}
- 		if (!list_empty(&dev->power.entry))
- 			list_move(&dev->power.entry, &dpm_off);
- 	}
-+	if (!error)
-+		all_sleeping = true;
- 	mutex_unlock(&dpm_list_mtx);
- 
- 	return error;
-@@ -454,7 +450,6 @@ int device_suspend(pm_message_t state)
- 	int error;
- 
- 	might_sleep();
--	down_write(&pm_sleep_rwsem);
- 	error = dpm_suspend(state);
- 	if (error)
- 		device_resume();
-diff -puN drivers/base/power/power.h~pm-handle-device-registrations-during-suspend-resume drivers/base/power/power.h
---- a/drivers/base/power/power.h~pm-handle-device-registrations-during-suspend-resume
-+++ a/drivers/base/power/power.h
-@@ -11,30 +11,13 @@ static inline struct device *to_device(s
- 	return container_of(entry, struct device, power.entry);
++static inline int device_suspend(pm_message_t state)
++{
++	return 0;
++}
++
++#define suspend_report_result(fn, ret) 		do {} while (0)
++
++#endif /* !CONFIG_PM_SLEEP */
++
++#ifdef CONFIG_PM
++
++/* changes to device_may_wakeup take effect on the next pm state change.
++ * by default, devices should wakeup if they can.
++ */
++#define device_can_wakeup(dev) \
++	((dev)->power.can_wakeup)
++#define device_init_wakeup(dev,val) \
++	do { \
++		device_can_wakeup(dev) = !!(val); \
++		device_set_wakeup_enable(dev,val); \
++	} while(0)
++
++#define device_set_wakeup_enable(dev,val) \
++	((dev)->power.should_wakeup = !!(val))
++#define device_may_wakeup(dev) \
++	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
++
+ /*
+  * Platform hook to activate device wakeup capability, if that's not already
+  * handled by enable_irq_wake() etc.
+@@ -224,35 +248,19 @@ static inline int call_platform_enable_w
+ 	return 0;
  }
  
--extern void device_pm_add(struct device *);
-+extern int device_pm_add(struct device *);
- extern void device_pm_remove(struct device *);
--extern int pm_sleep_lock(void);
--extern void pm_sleep_unlock(void);
- 
- #else /* CONFIG_PM_SLEEP */
- 
+-#else /* !CONFIG_PM_SLEEP */
 -
--static inline void device_pm_add(struct device *dev)
--{
--}
--
--static inline void device_pm_remove(struct device *dev)
--{
--}
--
--static inline int pm_sleep_lock(void)
+-static inline int device_suspend(pm_message_t state)
 -{
 -	return 0;
 -}
 -
--static inline void pm_sleep_unlock(void)
--{
--}
-+static inline int device_pm_add(struct device *dev) { return 0; }
-+static inline void device_pm_remove(struct device *dev) {}
+-#define device_set_wakeup_enable(dev,val)	do{}while(0)
+-#define device_may_wakeup(dev)			(0)
++#else /* !CONFIG_PM */
  
- #endif
+-#define suspend_report_result(fn, ret) do { } while (0)
++#define device_can_wakeup(dev)			0
++#define device_init_wakeup(dev,val)		do {} while (0)
++#define device_set_wakeup_enable(dev,val)	do {} while (0)
++#define device_may_wakeup(dev)			0
  
-diff -puN include/linux/pm.h~pm-handle-device-registrations-during-suspend-resume include/linux/pm.h
---- a/include/linux/pm.h~pm-handle-device-registrations-during-suspend-resume
-+++ a/include/linux/pm.h
-@@ -183,6 +183,7 @@ typedef struct pm_message {
- struct dev_pm_info {
- 	pm_message_t		power_state;
- 	unsigned		can_wakeup:1;
-+	bool			sleeping:1;	/* Owned by the PM core */
- #ifdef	CONFIG_PM_SLEEP
- 	unsigned		should_wakeup:1;
- 	struct list_head	entry;
-_
-
-Patches currently in -mm which might be from rjw@sisk.pl are
-
-git-acpi.patch
-pm-remove-legacy-pm.patch
-mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-x86-fix-aperture-vs-suspend-problem.patch
-x86-fix-aperture-vs-suspend-problem-checkpatch-fixes.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-power-replace-remaining-__function__-occurrences.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+ static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
+ {
+ 	return 0;
+ }
+ 
+-#endif /* !CONFIG_PM_SLEEP */
