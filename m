@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch added to -mm tree
-Date: Mon, 17 Mar 2008 14:54:07 -0700
-Message-ID: <200803172154.m2HLs725000300@imap1.linux-foundation.org>
+Subject: + pnp-increase-the-number-of-memory-resources-from-12-to-24.patch added to -mm tree
+Date: Mon, 17 Mar 2008 14:55:01 -0700
+Message-ID: <200803172155.m2HLt2If000378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753182AbYCQVyV (ORCPT
+	by vger.kernel.org with ESMTP id S1753182AbYCQVzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 17:54:21 -0400
+	Mon, 17 Mar 2008 17:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: inguin@gmx.de, david-b@pacbell.net, greg@kroah.com
+Cc: linux@youmustbejoking.demon.co.uk, ambx1@neo.rr.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     usb gadget: dummy_hcd.c: fix nested switch statements
+     pnp: increase the number of memory resources from 12 to 24
 has been added to the -mm tree.  Its filename is
-     usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+     pnp-increase-the-number-of-memory-resources-from-12-to-24.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb gadget: dummy_hcd.c: fix nested switch statements
-From: Ingo van Lil <inguin@gmx.de>
+Subject: pnp: increase the number of memory resources from 12 to 24
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 
-Fix a messed up combination of two nested switch statements in
-drivers/usb/gadget/dummy_hcd.c.
+Increase the number of PnP memory resources from 12 to 24.
 
-According to the USB spec (section 5.8.3) the maximum packet size for bulk
-endpoints can be 512 for high-speed devices and 8, 16, 32 or 64 for full-speed
-devices.  Low-speed devices must not have bulk endpoints.
+This removes an "exceeded the max num of mem resources" warning on boot.  I
+also noticed the reservation of two more iomem ranges on the computer on which
+this was tested.
 
-Signed-off-by: Ingo van Lil <inguin@gmx.de>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Darren Salt <linux@youmustbejoking.demon.co.uk>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/dummy_hcd.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/linux/pnp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/dummy_hcd.c~usb-gadget-dummy_hcdc-fix-nested-switch-statements drivers/usb/gadget/dummy_hcd.c
---- a/drivers/usb/gadget/dummy_hcd.c~usb-gadget-dummy_hcdc-fix-nested-switch-statements
-+++ a/drivers/usb/gadget/dummy_hcd.c
-@@ -365,16 +365,14 @@ dummy_enable (struct usb_ep *_ep, const 
- 		case USB_SPEED_HIGH:
- 			if (max == 512)
- 				break;
--			/* conserve return statements */
--		default:
--			switch (max) {
--			case 8: case 16: case 32: case 64:
-+			goto done;
-+		case USB_SPEED_FULL:
-+			if (max == 8 || max == 16 || max == 32 || max == 64)
- 				/* we'll fake any legal size */
- 				break;
--			default:
--		case USB_SPEED_LOW:
--				goto done;
--			}
-+			/* save a return statement */
-+		default:
-+			goto done;
- 		}
- 		break;
- 	case USB_ENDPOINT_XFER_INT:
+diff -puN include/linux/pnp.h~pnp-increase-the-number-of-memory-resources-from-12-to-24 include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-increase-the-number-of-memory-resources-from-12-to-24
++++ a/include/linux/pnp.h
+@@ -14,7 +14,7 @@
+ #include <linux/mod_devicetable.h>
+ 
+ #define PNP_MAX_PORT		40
+-#define PNP_MAX_MEM		12
++#define PNP_MAX_MEM		24
+ #define PNP_MAX_IRQ		2
+ #define PNP_MAX_DMA		2
+ #define PNP_NAME_LEN		50
 _
 
-Patches currently in -mm which might be from inguin@gmx.de are
+Patches currently in -mm which might be from linux@youmustbejoking.demon.co.uk are
 
-usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+pnp-increase-the-number-of-memory-resources-from-12-to-24.patch
 
