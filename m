@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-support-for-tai.patch added to -mm tree
-Date: Mon, 17 Mar 2008 15:19:14 -0700
-Message-ID: <200803172219.m2HMJE3k001168@imap1.linux-foundation.org>
+Subject: + mmc-omap-new-release-dma-and-abort-xfer-functions.patch added to -mm tree
+Date: Mon, 17 Mar 2008 15:27:21 -0700
+Message-ID: <200803172227.m2HMRLxs001534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753394AbYCQW1f (ORCPT
+	by vger.kernel.org with ESMTP id S1753399AbYCQW1g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 18:27:35 -0400
+	Mon, 17 Mar 2008 18:27:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: juha.yrjola@solidboot.com, carlos.aguiar@indt.org.br, drzeus-list@drzeus.cx, tony@atomide.com
 
 
 The patch titled
-     ntp: support for TAI
+     mmc: omap: new release dma and abort xfer functions
 has been added to the -mm tree.  Its filename is
-     ntp-support-for-tai.patch
+     mmc-omap-new-release-dma-and-abort-xfer-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,146 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: support for TAI
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: mmc: omap: new release dma and abort xfer functions
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-This adds support for setting the TAI value (International Atomic Time).  The
-value is reported back to userspace via timex (as we don't have a
-ntp_gettime() syscall).
+New functions to support MMC multislot: mmc_omap_release_dma() and
+mmc_omap_abort_xfer().
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    3 ++-
- include/linux/timex.h  |    5 ++++-
- kernel/compat.c        |    3 ++-
- kernel/time/ntp.c      |    7 +++++++
- 4 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/mmc/host/omap.c |   77 +++++++++++++++++++++++++++++---------
+ 1 file changed, 59 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/compat.h~ntp-support-for-tai include/linux/compat.h
---- a/include/linux/compat.h~ntp-support-for-tai
-+++ a/include/linux/compat.h
-@@ -65,10 +65,11 @@ struct compat_timex {
- 	compat_long_t calcnt;
- 	compat_long_t errcnt;
- 	compat_long_t stbcnt;
-+	compat_int_t tai;
+diff -puN drivers/mmc/host/omap.c~mmc-omap-new-release-dma-and-abort-xfer-functions drivers/mmc/host/omap.c
+--- a/drivers/mmc/host/omap.c~mmc-omap-new-release-dma-and-abort-xfer-functions
++++ a/drivers/mmc/host/omap.c
+@@ -327,26 +327,32 @@ mmc_omap_start_command(struct mmc_omap_h
+ }
  
- 	compat_int_t :32; compat_int_t :32; compat_int_t :32; compat_int_t :32;
- 	compat_int_t :32; compat_int_t :32; compat_int_t :32; compat_int_t :32;
--	compat_int_t :32; compat_int_t :32; compat_int_t :32; compat_int_t :32;
-+	compat_int_t :32; compat_int_t :32; compat_int_t :32;
- };
- 
- #define _COMPAT_NSIG_WORDS	(_COMPAT_NSIG / _COMPAT_NSIG_BPW)
-diff -puN include/linux/timex.h~ntp-support-for-tai include/linux/timex.h
---- a/include/linux/timex.h~ntp-support-for-tai
-+++ a/include/linux/timex.h
-@@ -121,9 +121,11 @@ struct timex {
- 	long errcnt;            /* calibration errors (ro) */
- 	long stbcnt;            /* stability limit exceeded (ro) */
- 
-+	int tai;		/* TAI offset (ro) */
+ static void
++mmc_omap_release_dma(struct mmc_omap_host *host, struct mmc_data *data,
++		     int abort)
++{
++	enum dma_data_direction dma_data_dir;
 +
- 	int  :32; int  :32; int  :32; int  :32;
- 	int  :32; int  :32; int  :32; int  :32;
--	int  :32; int  :32; int  :32; int  :32;
-+	int  :32; int  :32; int  :32;
- };
- 
- /*
-@@ -135,6 +137,7 @@ struct timex {
- #define ADJ_ESTERROR		0x0008	/* estimated time error */
- #define ADJ_STATUS		0x0010	/* clock status */
- #define ADJ_TIMECONST		0x0020	/* pll time constant */
-+#define ADJ_TAI			0x0080	/* set TAI offset */
- #define ADJ_MICRO		0x1000	/* select microsecond resolution */
- #define ADJ_NANO		0x2000	/* select nanosecond resolution */
- #define ADJ_TICK		0x4000	/* tick value */
-diff -puN kernel/compat.c~ntp-support-for-tai kernel/compat.c
---- a/kernel/compat.c~ntp-support-for-tai
-+++ a/kernel/compat.c
-@@ -955,7 +955,8 @@ asmlinkage long compat_sys_adjtimex(stru
- 			__put_user(txc.jitcnt, &utp->jitcnt) ||
- 			__put_user(txc.calcnt, &utp->calcnt) ||
- 			__put_user(txc.errcnt, &utp->errcnt) ||
--			__put_user(txc.stbcnt, &utp->stbcnt))
-+			__put_user(txc.stbcnt, &utp->stbcnt) ||
-+			__put_user(txc.tai, &utp->tai))
- 		ret = -EFAULT;
- 
- 	return ret;
-diff -puN kernel/time/ntp.c~ntp-support-for-tai kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-support-for-tai
-+++ a/kernel/time/ntp.c
-@@ -35,6 +35,7 @@ static u64 tick_length, tick_length_base
- /* TIME_ERROR prevents overwriting the CMOS clock */
- static int time_state = TIME_OK;	/* clock synchronization status	*/
- int time_status = STA_UNSYNC;		/* clock status bits		*/
-+static long time_tai;			/* TAI offset (s)		*/
- static s64 time_offset;			/* time adjustment (ns)		*/
- static long time_constant = 2;		/* pll time constant		*/
- long time_maxerror = NTP_PHASE_LIMIT;	/* maximum error (us)		*/
-@@ -162,6 +163,7 @@ void second_overflow(void)
- 	case TIME_DEL:
- 		if ((xtime.tv_sec + 1) % 86400 == 0) {
- 			xtime.tv_sec++;
-+			time_tai--;
- 			wall_to_monotonic.tv_sec--;
- 			time_state = TIME_WAIT;
- 			printk(KERN_NOTICE "Clock: deleting leap second "
-@@ -169,6 +171,7 @@ void second_overflow(void)
- 		}
- 		break;
- 	case TIME_OOP:
-+		time_tai++;
- 		time_state = TIME_WAIT;
- 		break;
- 	case TIME_WAIT:
-@@ -340,6 +343,9 @@ int do_adjtimex(struct timex *txc)
- 			time_constant = max(time_constant, 0l);
- 		}
- 
-+		if (txc->modes & ADJ_TAI && txc->constant > 0)
-+			time_tai = txc->constant;
++	BUG_ON(host->dma_ch < 0);
++	if (data->error)
++		omap_stop_dma(host->dma_ch);
++	/* Release DMA channel lazily */
++	mod_timer(&host->dma_timer, jiffies + HZ);
++	if (data->flags & MMC_DATA_WRITE)
++		dma_data_dir = DMA_TO_DEVICE;
++	else
++		dma_data_dir = DMA_FROM_DEVICE;
++	dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
++		     dma_data_dir);
++}
 +
- 		if (txc->modes & ADJ_OFFSET) {
- 			if (txc->modes == ADJ_OFFSET_SINGLESHOT)
- 				/* adjtime() is independent from ntp_adjtime() */
-@@ -377,6 +383,7 @@ int do_adjtimex(struct timex *txc)
- 	txc->precision	   = 1;
- 	txc->tolerance	   = MAXFREQ_SCALED / PPM_SCALE;
- 	txc->tick	   = tick_usec;
-+	txc->tai	   = time_tai;
++static void
+ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
+ {
+-	if (host->dma_in_use) {
+-		enum dma_data_direction dma_data_dir;
++	if (host->dma_in_use)
++		mmc_omap_release_dma(host, data, data->error);
  
- 	/* PPS is not implemented, so these are zero */
- 	txc->ppsfreq	   = 0;
+-		BUG_ON(host->dma_ch < 0);
+-		if (data->error)
+-			omap_stop_dma(host->dma_ch);
+-		/* Release DMA channel lazily */
+-		mod_timer(&host->dma_timer, jiffies + HZ);
+-		if (data->flags & MMC_DATA_WRITE)
+-			dma_data_dir = DMA_TO_DEVICE;
+-		else
+-			dma_data_dir = DMA_FROM_DEVICE;
+-		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->sg_len,
+-			     dma_data_dir);
+-	}
+ 	host->data = NULL;
+ 	host->sg_len = 0;
+-	clk_disable(host->fclk);
+ 
+ 	/* NOTE:  MMC layer will sometimes poll-wait CMD13 next, issuing
+ 	 * dozens of requests until the card finishes writing data.
+@@ -354,8 +360,12 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ 	 */
+ 
+ 	if (!data->stop) {
++		struct mmc_host *mmc;
++
+ 		host->mrq = NULL;
+-		mmc_request_done(host->mmc, data->mrq);
++		mmc = host->mmc;
++		mmc_omap_release_slot(host->current_slot);
++		mmc_request_done(mmc, data->mrq);
+ 		return;
+ 	}
+ 
+@@ -363,6 +373,32 @@ mmc_omap_xfer_done(struct mmc_omap_host 
+ }
+ 
+ static void
++mmc_omap_abort_xfer(struct mmc_omap_host *host, struct mmc_data *data)
++{
++	int loops;
++	u16 ie;
++
++	if (host->dma_in_use)
++		mmc_omap_release_dma(host, data, 1);
++
++	host->data = NULL;
++	host->sg_len = 0;
++
++	ie = OMAP_MMC_READ(host, IE);
++	OMAP_MMC_WRITE(host, IE, 0);
++	OMAP_MMC_WRITE(host, CMD, 1 << 7);
++	loops = 0;
++	while (!(OMAP_MMC_READ(host, STAT) & OMAP_MMC_STAT_END_OF_CMD)) {
++		udelay(1);
++		loops++;
++		if (loops == 100000)
++			break;
++	}
++	OMAP_MMC_WRITE(host, STAT, OMAP_MMC_STAT_END_OF_CMD);
++	OMAP_MMC_WRITE(host, IE, ie);
++}
++
++static void
+ mmc_omap_end_of_data(struct mmc_omap_host *host, struct mmc_data *data)
+ {
+ 	unsigned long flags;
+@@ -439,9 +475,14 @@ mmc_omap_cmd_done(struct mmc_omap_host *
+ 	}
+ 
+ 	if (host->data == NULL || cmd->error) {
++		struct mmc_host *mmc;
++
++		if (host->data != NULL)
++			mmc_omap_abort_xfer(host, host->data);
+ 		host->mrq = NULL;
+-		clk_disable(host->fclk);
+-		mmc_request_done(host->mmc, cmd->mrq);
++		mmc = host->mmc;
++		mmc_omap_release_slot(host->current_slot);
++		mmc_request_done(mmc, cmd->mrq);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from juha.yrjola@solidboot.com are
 
-git-x86.patch
-git-watchdog.patch
-m68k-replace-remaining-__function__-occurences.patch
-fs-hfsplus-proper-externs.patch
-affs-handle-match_strdup-failure.patch
-hfs-handle-match_strdup-failure.patch
-hfsplus-handle-match_strdup-failure.patch
-fs-affs-filec-use-bug_on.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64.patch
-rename-div64_64-to-div64_u64-mm.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
+mmc-omap-introduce-new-multislot-structure-and-change-driver-to-use-it.patch
+mmc-omap-add-back-cover-switch-support.patch
+mmc-omap-new-release-dma-and-abort-xfer-functions.patch
+mmc-omap-fix-timeout-calculation-for-mmc-multislot-support.patch
+mmc-omap-power-functions-modified-to-mmc-multislot-support.patch
+mmc-omap-general-cleanup-for-mmc-multislot-support.patch
 
