@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-add-support-for-8-bit-parallel-mode.patch added to -mm tree
-Date: Mon, 17 Mar 2008 16:23:24 -0700
-Message-ID: <200803172323.m2HNNO55003573@imap1.linux-foundation.org>
+Subject: + sound-pci-remove-unused-variable.patch added to -mm tree
+Date: Mon, 17 Mar 2008 16:29:05 -0700
+Message-ID: <200803172329.m2HNT5lE003778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752818AbYCQXX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755532AbYCQX3r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 19:23:26 -0400
+	Mon, 17 Mar 2008 19:29:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oakad@yahoo.com
+Cc: julia@diku.dk, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     memstick: add support for 8-bit parallel mode
+     sound/pci: remove unused variable
 has been added to the -mm tree.  Its filename is
-     memstick-add-support-for-8-bit-parallel-mode.patch
+     sound-pci-remove-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: add support for 8-bit parallel mode
-From: Alex Dubov <oakad@yahoo.com>
+Subject: sound/pci: remove unused variable
+From: Julia Lawall <julia@diku.dk>
 
-Newer MemoryStick (HG) cards and hosts support 8-bit parallel mode of
-operation in addition to original 4-bit and 1-bit modes.
+The variables change and is_capture are initialized but never used otherwise.
 
-Signed-off-by: Alex Dubov <oakad@yahoo.com>
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+type T;
+identifier i;
+constant C;
+@@
+
+(
+extern T i;
+|
+- T i;
+  <+... when != i
+- i = C;
+  ...+>
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |   81 +++++++++++++++++---------
- 1 file changed, 55 insertions(+), 26 deletions(-)
+ sound/pci/ice1712/pontis.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-add-support-for-8-bit-parallel-mode drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-add-support-for-8-bit-parallel-mode
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -816,12 +816,13 @@ static int mspro_block_wait_for_ced(stru
- 	return card->current_mrq.error;
- }
- 
--static int mspro_block_switch_to_parallel(struct memstick_dev *card)
-+static int mspro_block_set_interface(struct memstick_dev *card,
-+				     unsigned char sys_reg)
+diff -puN sound/pci/ice1712/pontis.c~sound-pci-remove-unused-variable sound/pci/ice1712/pontis.c
+--- a/sound/pci/ice1712/pontis.c~sound-pci-remove-unused-variable
++++ a/sound/pci/ice1712/pontis.c
+@@ -440,14 +440,12 @@ static int cs_source_put(struct snd_kcon
  {
- 	struct memstick_host *host = card->host;
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	struct mspro_param_register param = {
--		.system = MEMSTICK_SYS_PAR4,
-+		.system = sys_reg,
- 		.data_count = 0,
- 		.data_address = 0,
- 		.tpc_param = 0
-@@ -833,41 +834,70 @@ static int mspro_block_switch_to_paralle
- 			  sizeof(param));
- 	memstick_new_req(host);
- 	wait_for_completion(&card->mrq_complete);
--	if (card->current_mrq.error)
--		return card->current_mrq.error;
-+	return card->current_mrq.error;
-+}
-+
-+static int mspro_block_switch_interface(struct memstick_dev *card)
-+{
-+	struct memstick_host *host = card->host;
-+	struct mspro_block_data *msb = memstick_get_drvdata(card);
-+	int rc = 0;
-+
-+	if (msb->caps & MEMSTICK_CAP_PAR4)
-+		rc = mspro_block_set_interface(card, MEMSTICK_SYS_PAR4);
-+	else
-+		return 0;
-+
-+	if (rc) {
-+		printk(KERN_WARNING
-+		       "%s: could not switch to 4-bit mode, error %d\n",
-+		       card->dev.bus_id, rc);
-+		return 0;
-+	}
+ 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
+ 	unsigned char val;
+-	int change = 0;
  
- 	msb->system = MEMSTICK_SYS_PAR4;
- 	host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_PAR4);
-+	printk(KERN_INFO "%s: switching to 4-bit parallel mode\n",
-+	       card->dev.bus_id);
-+
-+	if (msb->caps & MEMSTICK_CAP_PAR8) {
-+		rc = mspro_block_set_interface(card, MEMSTICK_SYS_PAR8);
-+
-+		if (!rc) {
-+			msb->system = MEMSTICK_SYS_PAR8;
-+			host->set_param(host, MEMSTICK_INTERFACE,
-+					MEMSTICK_PAR8);
-+			printk(KERN_INFO
-+			       "%s: switching to 8-bit parallel mode\n",
-+			       card->dev.bus_id);
-+		} else
-+			printk(KERN_WARNING
-+			       "%s: could not switch to 8-bit mode, error %d\n",
-+			       card->dev.bus_id, rc);
-+	}
- 
- 	card->next_request = h_mspro_block_req_init;
- 	msb->mrq_handler = h_mspro_block_default;
- 	memstick_init_req(&card->current_mrq, MS_TPC_GET_INT, NULL, 1);
- 	memstick_new_req(card->host);
- 	wait_for_completion(&card->mrq_complete);
-+	rc = card->current_mrq.error;
- 
--	if (card->current_mrq.error) {
-+	if (rc) {
-+		printk(KERN_WARNING
-+		       "%s: interface error, trying to fall back to serial\n",
-+		       card->dev.bus_id);
- 		msb->system = MEMSTICK_SYS_SERIAL;
- 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
--		msleep(1000);
-+		msleep(10);
- 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
- 		host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_SERIAL);
- 
--		if (memstick_set_rw_addr(card))
--			return card->current_mrq.error;
--
--		param.system = msb->system;
--
--		card->next_request = h_mspro_block_req_init;
--		msb->mrq_handler = h_mspro_block_default;
--		memstick_init_req(&card->current_mrq, MS_TPC_WRITE_REG, &param,
--				  sizeof(param));
--		memstick_new_req(host);
--		wait_for_completion(&card->mrq_complete);
--
--		return -EFAULT;
-+		rc = memstick_set_rw_addr(card);
-+		if (!rc)
-+			rc = mspro_block_set_interface(card, msb->system);
+ 	mutex_lock(&ice->gpio_mutex);
+ 	if (ucontrol->value.enumerated.item[0] != ice->gpio.saved[0]) {
+ 		ice->gpio.saved[0] = ucontrol->value.enumerated.item[0] & 3;
+ 		val = 0x80 | (ice->gpio.saved[0] << 3);
+ 		spi_write(ice, CS_DEV, 0x04, val);
+-		change = 1;
  	}
--
--	return 0;
-+	return rc;
- }
- 
- /* Memory allocated for attributes by this function should be freed by
-@@ -1053,12 +1083,11 @@ static int mspro_block_init_card(struct 
- 		return -EIO;
- 
- 	msb->caps = host->caps;
--	if (msb->caps & MEMSTICK_CAP_PAR4) {
--		if (mspro_block_switch_to_parallel(card))
--			printk(KERN_WARNING "%s: could not switch to "
--			       "parallel interface\n", card->dev.bus_id);
--	}
-+	rc = mspro_block_switch_interface(card);
-+	if (rc)
-+		return rc;
- 
-+	msleep(200);
- 	rc = mspro_block_wait_for_ced(card);
- 	if (rc)
- 		return rc;
+ 	mutex_unlock(&ice->gpio_mutex);
+ 	return change;
 _
 
-Patches currently in -mm which might be from oakad@yahoo.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-memstick-automatically-retrieve-int-value-from-command-response.patch
-memstick-add-support-for-8-bit-parallel-mode.patch
-memstick-optimize-setup-of-jmicron-host-parameters.patch
+git-acpi.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+git-dvb.patch
+git-hid.patch
+git-udf.patch
+git-net.patch
+git-ocfs2.patch
+drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
+fs-affs-filec-use-bug_on.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
+net-9p-trans_fdc-remove-unused-variable.patch
+net-ipv6-ndiscc-remove-unused-variable.patch
+sound-pci-remove-unused-variable.patch
+drivers-net-ixgb-ixgb_mainc-remove-unused-variable.patch
 
