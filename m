@@ -1,84 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-set-verbose-mode-via-environment.patch removed from -mm tree
-Date: Mon, 17 Mar 2008 13:58:11 -0700
-Message-ID: <200803172058.m2HKwBFD030651@imap1.linux-foundation.org>
+Subject: - pagemap-proper-read-error-handling.patch removed from -mm tree
+Date: Mon, 17 Mar 2008 13:57:21 -0700
+Message-ID: <200803172057.m2HKvLTN030617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754032AbYCQU6v (ORCPT
+	by vger.kernel.org with ESMTP id S1753180AbYCQU6p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:58:51 -0400
+	Mon, 17 Mar 2008 16:58:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: marcelo@kvack.org, mpm@selenic.com, mtosatti@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: set verbose mode via environment
+     pagemap: proper read error handling
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-set-verbose-mode-via-environment.patch
+     pagemap-proper-read-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: set verbose mode via environment
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pagemap: proper read error handling
+From: Marcelo Tosatti <marcelo@kvack.org>
 
-Honor the environment variable "KBUILD_VERBOSE=1" (as set by make V=1) to
-enable verbose mode in scripts/kernel-doc.  Useful for getting more info and
-warnings from kernel-doc.
+Fix pagemap_read() error handling by releasing acquired resources and checking
+for get_user_pages() partial failure.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Marcelo Tosatti <mtosatti@redhat.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/task_mmu.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-set-verbose-mode-via-environment scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-set-verbose-mode-via-environment
-+++ a/scripts/kernel-doc
-@@ -247,6 +247,10 @@ my ($function, %function_table,%paramete
- my ($type,$declaration_name,$return_type);
- my ($newsection,$newcontents,$prototype,$filelist, $brcount, %source_map);
+diff -puN fs/proc/task_mmu.c~pagemap-proper-read-error-handling fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-proper-read-error-handling
++++ a/fs/proc/task_mmu.c
+@@ -640,17 +640,17 @@ static ssize_t pagemap_read(struct file 
  
-+if (defined($ENV{'KBUILD_VERBOSE'})) {
-+	$verbose = "$ENV{'KBUILD_VERBOSE'}";
-+}
+ 	ret = -EACCES;
+ 	if (!ptrace_may_attach(task))
+-		goto out;
++		goto out_task;
+ 
+ 	ret = -EINVAL;
+ 	/* file position must be aligned */
+ 	if (*ppos % PM_ENTRY_BYTES)
+-		goto out;
++		goto out_task;
+ 
+ 	ret = 0;
+ 	mm = get_task_mm(task);
+ 	if (!mm)
+-		goto out;
++		goto out_task;
+ 
+ 	ret = -ENOMEM;
+ 	uaddr = (unsigned long)buf & PAGE_MASK;
+@@ -658,7 +658,7 @@ static ssize_t pagemap_read(struct file 
+ 	pagecount = (PAGE_ALIGN(uend) - uaddr) / PAGE_SIZE;
+ 	pages = kmalloc(pagecount * sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+-		goto out_task;
++		goto out_mm;
+ 
+ 	down_read(&current->mm->mmap_sem);
+ 	ret = get_user_pages(current, current->mm, uaddr, pagecount,
+@@ -668,6 +668,12 @@ static ssize_t pagemap_read(struct file 
+ 	if (ret < 0)
+ 		goto out_free;
+ 
++	if (ret != pagecount) {
++		pagecount = ret;
++		ret = -EFAULT;
++		goto out_pages;
++	}
 +
- # Generated docbook code is inserted in a template at a point where
- # docbook v3.1 requires a non-zero sequence of RefEntry's; see:
- # http://www.oasis-open.org/docbook/documentation/reference/html/refentry.html
+ 	pm.out = buf;
+ 	pm.end = buf + count;
+ 
+@@ -699,15 +705,17 @@ static ssize_t pagemap_read(struct file 
+ 			ret = pm.out - buf;
+ 	}
+ 
++out_pages:
+ 	for (; pagecount; pagecount--) {
+ 		page = pages[pagecount-1];
+ 		if (!PageReserved(page))
+ 			SetPageDirty(page);
+ 		page_cache_release(page);
+ 	}
+-	mmput(mm);
+ out_free:
+ 	kfree(pages);
++out_mm:
++	mmput(mm);
+ out_task:
+ 	put_task_struct(task);
+ out:
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from marcelo@kvack.org are
 
-mm-fix-various-kernel-doc-comments.patch
-mm-shmem-and-tiny-shmem-fix-some-kernel-doc.patch
-mm-oom_kill-fix-kernel-doc.patch
-mm-highmem-kernel-doc-additions.patch
-mm-rmap-kernel-doc-fixes.patch
-jbd-fix-jbd-kernel-doc-notation.patch
 git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-visws-fix-printk-format-warnings.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-profile-likely-unlikely-macros.patch
 
