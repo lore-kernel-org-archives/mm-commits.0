@@ -1,77 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-fix-oops-on-access-from-high-numbered-ports.patch removed from -mm tree
-Date: Mon, 17 Mar 2008 13:58:54 -0700
-Message-ID: <200803172058.m2HKwsu0030671@imap1.linux-foundation.org>
+Subject: - struct-export_operations-adjust-comments-to-match-current-members.patch removed from -mm tree
+Date: Mon, 17 Mar 2008 13:58:38 -0700
+Message-ID: <200803172058.m2HKwccJ030663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752655AbYCQU7y (ORCPT
+	by vger.kernel.org with ESMTP id S1753245AbYCQU76 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:59:54 -0400
+	Mon, 17 Mar 2008 16:59:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, neilb@suse.de, stable@kernel.org, xhejtman@ics.muni.cz, mm-commits@vger.kernel.org
+To: marc.c.dionne@gmail.com, dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: fix oops on access from high-numbered ports
+     struct export_operations: adjust comments to match current members
 has been removed from the -mm tree.  Its filename was
-     nfsd-fix-oops-on-access-from-high-numbered-ports.patch
+     struct-export_operations-adjust-comments-to-match-current-members.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: fix oops on access from high-numbered ports
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: struct export_operations: adjust comments to match current members
+From: "Marc Dionne" <marc.c.dionne@gmail.com>
 
-This bug was always here, but before my commit 6fa02839bf9412e18e77 ("recheck
-for secure ports in fh_verify"), it could only be triggered by failure of a
-kmalloc().  After that commit it could be triggered by a client making a
-request from a non-reserved port for access to an export marked "secure". 
-(Exports are "secure" by default.)
+The comments in the definition of struct export_operations don't match the
+current members.
 
-The result is a struct svc_export with a reference count one to low, resulting
-in likely oopses next time the export is accessed.
+Add a comment for the 2 new functions and remove 2 comments for unused ones.
 
-The reference counting here is not straightforward; a later patch will
-clean up fh_verify().
-
-Thanks to Lukas Hejtmanek for the bug report and followup.
-
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Lukas Hejtmanek <xhejtman@ics.muni.cz>
-Cc: Neil Brown <neilb@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Marc Dionne <marc.c.dionne@gmail.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsfh.c |    4 ++--
+ include/linux/exportfs.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfsd/nfsfh.c~nfsd-fix-oops-on-access-from-high-numbered-ports fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~nfsd-fix-oops-on-access-from-high-numbered-ports
-+++ a/fs/nfsd/nfsfh.c
-@@ -232,6 +232,7 @@ fh_verify(struct svc_rqst *rqstp, struct
- 		fhp->fh_dentry = dentry;
- 		fhp->fh_export = exp;
- 		nfsd_nr_verified++;
-+		cache_get(&exp->h);
- 	} else {
- 		/*
- 		 * just rechecking permissions
-@@ -241,6 +242,7 @@ fh_verify(struct svc_rqst *rqstp, struct
- 		dprintk("nfsd: fh_verify - just checking\n");
- 		dentry = fhp->fh_dentry;
- 		exp = fhp->fh_export;
-+		cache_get(&exp->h);
- 		/*
- 		 * Set user creds for this exportpoint; necessary even
- 		 * in the "just checking" case because this may be a
-@@ -252,8 +254,6 @@ fh_verify(struct svc_rqst *rqstp, struct
- 		if (error)
- 			goto out;
- 	}
--	cache_get(&exp->h);
+diff -puN include/linux/exportfs.h~struct-export_operations-adjust-comments-to-match-current-members include/linux/exportfs.h
+--- a/include/linux/exportfs.h~struct-export_operations-adjust-comments-to-match-current-members
++++ a/include/linux/exportfs.h
+@@ -49,11 +49,11 @@ struct fid {
+ 
+ /**
+  * struct export_operations - for nfsd to communicate with file systems
+- * @decode_fh:      decode a file handle fragment and return a &struct dentry
+  * @encode_fh:      encode a file handle fragment from a dentry
++ * @fh_to_dentry:   find the implied object and get a dentry for it
++ * @fh_to_parent:   find the implied object's parent and get a dentry for it
+  * @get_name:       find the name for a given inode in a given directory
+  * @get_parent:     find the parent of a given directory
+- * @get_dentry:     find a dentry for the inode given a file handle sub-fragment
+  *
+  * See Documentation/filesystems/Exporting for details on how to use
+  * this interface correctly.
+_
+
+Patches currently in -mm which might be from marc.c.dionne@gmail.com are
+
+
