@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + make-module_sect_attrs-private-to-kernel-modulec.patch added to -mm tree
-Date: Mon, 17 Mar 2008 14:51:59 -0700
-Message-ID: <200803172151.m2HLpxfV032714@imap1.linux-foundation.org>
+Subject: + fix-verify_export_symbols.patch added to -mm tree
+Date: Mon, 17 Mar 2008 14:52:26 -0700
+Message-ID: <200803172152.m2HLqQBt032734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753127AbYCQVwG (ORCPT
+	by vger.kernel.org with ESMTP id S1754864AbYCQVwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 17:52:06 -0400
+	Mon, 17 Mar 2008 17:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jbeulich@novell.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     modules: make module_sect_attrs private to kernel/module.c
+     modules: fix verify_export_symbols()
 has been added to the -mm tree.  Its filename is
-     make-module_sect_attrs-private-to-kernel-modulec.patch
+     fix-verify_export_symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: modules: make module_sect_attrs private to kernel/module.c
+Subject: modules: fix verify_export_symbols()
 From: "Jan Beulich" <jbeulich@novell.com>
 
-No-one else is using these afaics.
+When the newer export flavors were added, it was apparently forgotten to add
+respective code here.
+
+In order to not double the (source) size of the function, add some abstraction
+to reduce code duplication.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |   17 -----------------
- kernel/module.c        |   16 +++++++++++++++-
- 2 files changed, 15 insertions(+), 18 deletions(-)
+ kernel/module.c |   39 +++++++++++++++++++--------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/module.h~make-module_sect_attrs-private-to-kernel-modulec include/linux/module.h
---- a/include/linux/module.h~make-module_sect_attrs-private-to-kernel-modulec
-+++ a/include/linux/module.h
-@@ -229,23 +229,6 @@ enum module_state
- 	MODULE_STATE_GOING,
- };
- 
--/* Similar stuff for section attributes. */
--struct module_sect_attr
--{
--	struct module_attribute mattr;
--	char *name;
--	unsigned long address;
--};
--
--struct module_sect_attrs
--{
--	struct attribute_group grp;
--	int nsections;
--	struct module_sect_attr attrs[0];
--};
--
--struct module_param_attrs;
--
- struct module
- {
- 	enum module_state state;
-diff -puN kernel/module.c~make-module_sect_attrs-private-to-kernel-modulec kernel/module.c
---- a/kernel/module.c~make-module_sect_attrs-private-to-kernel-modulec
+diff -puN kernel/module.c~fix-verify_export_symbols kernel/module.c
+--- a/kernel/module.c~fix-verify_export_symbols
 +++ a/kernel/module.c
-@@ -991,6 +991,20 @@ static unsigned long resolve_symbol(Elf_
-  * J. Corbet <corbet@lwn.net>
+@@ -1394,33 +1394,32 @@ EXPORT_SYMBOL_GPL(__symbol_get);
   */
- #if defined(CONFIG_KALLSYMS) && defined(CONFIG_SYSFS)
-+struct module_sect_attr
-+{
-+	struct module_attribute mattr;
-+	char *name;
-+	unsigned long address;
-+};
-+
-+struct module_sect_attrs
-+{
-+	struct attribute_group grp;
-+	unsigned int nsections;
-+	struct module_sect_attr attrs[0];
-+};
-+
- static ssize_t module_sect_show(struct module_attribute *mattr,
- 				struct module *mod, char *buf)
+ static int verify_export_symbols(struct module *mod)
  {
-@@ -1001,7 +1015,7 @@ static ssize_t module_sect_show(struct m
+-	const char *name = NULL;
+-	unsigned long i, ret = 0;
++	const char *name;
++	unsigned int i;
+ 	struct module *owner;
+ 	const unsigned long *crc;
  
- static void free_sect_attrs(struct module_sect_attrs *sect_attrs)
- {
--	int section;
-+	unsigned int section;
+-	for (i = 0; i < mod->num_syms; i++)
+-		if (!IS_ERR_VALUE(__find_symbol(mod->syms[i].name,
+-							&owner, &crc, 1))) {
+-			name = mod->syms[i].name;
+-			ret = -ENOEXEC;
+-			goto dup;
+-		}
++#define VERIFY(syms) \
++	for (i = 0; i < mod->num_##syms; i++) { \
++		name = mod->syms[i].name; \
++		if (!IS_ERR_VALUE(__find_symbol(name, &owner, &crc, 1))) \
++			goto dup; \
++	}
  
- 	for (section = 0; section < sect_attrs->nsections; section++)
- 		kfree(sect_attrs->attrs[section].name);
+-	for (i = 0; i < mod->num_gpl_syms; i++)
+-		if (!IS_ERR_VALUE(__find_symbol(mod->gpl_syms[i].name,
+-							&owner, &crc, 1))) {
+-			name = mod->gpl_syms[i].name;
+-			ret = -ENOEXEC;
+-			goto dup;
+-		}
++	VERIFY(syms);
++	VERIFY(gpl_syms);
++	VERIFY(gpl_future_syms);
++	VERIFY(unused_syms);
++	VERIFY(unused_gpl_syms);
++#undef VERIFY
++
++	return 0;
+ 
+ dup:
+-	if (ret)
+-		printk(KERN_ERR "%s: exports duplicate symbol %s (owned by %s)\n",
+-			mod->name, name, module_name(owner));
++	printk(KERN_ERR "%s: exports duplicate symbol %s (owned by %s)\n",
++		mod->name, name, module_name(owner));
+ 
+-	return ret;
++	return -ENOEXEC;
+ }
+ 
+ /* Change all symbols so that st_value encodes the pointer directly. */
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
@@ -117,5 +116,6 @@ git-x86.patch
 lib-swiotlbc-cleanups.patch
 reduce-module-image-and-resident-size.patch
 make-module_sect_attrs-private-to-kernel-modulec.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 fix-verify_export_symbols.patch
 
