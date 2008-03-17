@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-__fls-for-fls64-on-64-bit-archs.patch added to -mm tree
-Date: Mon, 17 Mar 2008 16:39:22 -0700
-Message-ID: <200803172339.m2HNdN7h004185@imap1.linux-foundation.org>
+Subject: + implement-__fls-on-all-64-bit-archs.patch added to -mm tree
+Date: Mon, 17 Mar 2008 16:39:19 -0700
+Message-ID: <200803172339.m2HNdKsD004182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752051AbYCQXlZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752127AbYCQXl1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 19:41:25 -0400
+	Mon, 17 Mar 2008 19:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: heukelum@mailshack.com, benh@kernel.crashing.org, davem@davemloft.net, grund
 
 
 The patch titled
-     Use __fls for fls64 on 64-bit archs
+     Implement __fls on all 64-bit archs
 has been added to the -mm tree.  Its filename is
-     use-__fls-for-fls64-on-64-bit-archs.patch
+     implement-__fls-on-all-64-bit-archs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use __fls for fls64 on 64-bit archs
+Subject: Implement __fls on all 64-bit archs
 From: Alexander van Heukelum <heukelum@mailshack.com>
 
-Use __fls for fls64 on 64-bit archs.  The implementation for 64-bit archs is
-moved from x86_64 to asm-generic.
+Implement __fls on all 64-bit archs:
+
+alpha has an implementation of fls64.
+	Added __fls(x) = fls64(x) - 1.
+
+ia64 has fls, but not __fls.
+	Added __fls based on code of fls.
+
+mips and powerpc have __ilog2, which is the same as __fls.
+	Added __fls = __ilog2.
+
+parisc, s390, sh and sparc64:
+	Include generic __fls.
+
+x86_64 already has __fls.
 
 Signed-off-by: Alexander van Heukelum <heukelum@fastmail.fm>
 Cc: Richard Henderson <rth@twiddle.net>
@@ -59,63 +72,137 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/fls64.h |   22 ++++++++++++++++++++++
- include/asm-x86/bitops_64.h        |   15 ++-------------
- 2 files changed, 24 insertions(+), 13 deletions(-)
+ include/asm-alpha/bitops.h   |    5 +++++
+ include/asm-ia64/bitops.h    |   16 ++++++++++++++++
+ include/asm-mips/bitops.h    |    5 +++++
+ include/asm-parisc/bitops.h  |    1 +
+ include/asm-powerpc/bitops.h |    5 +++++
+ include/asm-s390/bitops.h    |    1 +
+ include/asm-sh/bitops.h      |    1 +
+ include/asm-sparc64/bitops.h |    1 +
+ 8 files changed, 35 insertions(+)
 
-diff -puN include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -3,6 +3,18 @@
- 
- #include <asm/types.h>
- 
-+/**
-+ * fls64 - find last set bit in a 64-bit word
-+ * @x: the word to search
-+ *
-+ * This is defined in a similar way as the libc and compiler builtin
-+ * ffsll, but returns the position of the most significant set bit.
-+ *
-+ * fls64(value) returns 0 if value is 0 or the position of the last
-+ * set bit if value is nonzero. The last (most significant) bit is
-+ * at position 64.
-+ */
-+#if BITS_PER_LONG == 32
- static inline int fls64(__u64 x)
- {
- 	__u32 h = x >> 32;
-@@ -10,5 +22,15 @@ static inline int fls64(__u64 x)
- 		return fls(h) + 32;
- 	return fls(x);
+diff -puN include/asm-alpha/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-alpha/bitops.h
+--- a/include/asm-alpha/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-alpha/bitops.h
+@@ -388,6 +388,11 @@ static inline int fls64(unsigned long x)
  }
-+#elif BITS_PER_LONG == 64
-+static inline int fls64(__u64 x)
+ #endif
+ 
++static inline unsigned long __fls(unsigned long x)
 +{
-+	if (x == 0)
-+		return 0;
-+	return __fls(x) + 1;
++	return fls64(x) - 1;
 +}
-+#else
-+#error BITS_PER_LONG not 32 or 64
-+#endif
- 
- #endif /* _ASM_GENERIC_BITOPS_FLS64_H_ */
-diff -puN include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-x86/bitops_64.h
---- a/include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs
-+++ a/include/asm-x86/bitops_64.h
-@@ -112,19 +112,6 @@ static inline int ffs(int x)
++
+ static inline int fls(int x)
+ {
+ 	return fls64((unsigned int) x);
+diff -puN include/asm-ia64/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-ia64/bitops.h
+--- a/include/asm-ia64/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-ia64/bitops.h
+@@ -407,6 +407,22 @@ fls (int t)
+ 	return ia64_popcnt(x);
  }
  
- /**
-- * fls64 - find last bit set in 64 bit word
-- * @x: the word to search
-- *
-- * This is defined the same way as fls.
-- */
--static inline int fls64(__u64 x)
--{
--	if (x == 0)
--		return 0;
--	return __fls(x) + 1;
--}
++/*
++ * Find the last (most significant) bit set.  Undefined for x==0.
++ * Bits are numbered from 0..63 (e.g., __fls(9) == 3).
++ */
++static inline unsigned long
++__fls (unsigned long x)
++{
++	x |= x >> 1;
++	x |= x >> 2;
++	x |= x >> 4;
++	x |= x >> 8;
++	x |= x >> 16;
++	x |= x >> 32;
++	return ia64_popcnt(x) - 1;
++}
++
+ #include <asm-generic/bitops/fls64.h>
+ 
+ /*
+diff -puN include/asm-mips/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-mips/bitops.h
+--- a/include/asm-mips/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-mips/bitops.h
+@@ -591,6 +591,11 @@ static inline int __ilog2(unsigned long 
+ 	return 63 - lz;
+ }
+ 
++static inline unsigned long __fls(unsigned long x)
++{
++	return __ilog2(x);
++}
++
+ #if defined(CONFIG_CPU_MIPS32) || defined(CONFIG_CPU_MIPS64)
+ 
+ /*
+diff -puN include/asm-parisc/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-parisc/bitops.h
+--- a/include/asm-parisc/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-parisc/bitops.h
+@@ -210,6 +210,7 @@ static __inline__ int fls(int x)
+ 	return ret;
+ }
+ 
++#include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/lock.h>
+diff -puN include/asm-powerpc/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-powerpc/bitops.h
+@@ -312,6 +312,11 @@ static __inline__ int fls(unsigned int x
+ 	asm ("cntlzw %0,%1" : "=r" (lz) : "r" (x));
+ 	return 32 - lz;
+ }
++
++static __inline__ unsigned long __fls(unsigned long x)
++{
++	return __ilog2(x);
++}
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #include <asm-generic/bitops/hweight.h>
+diff -puN include/asm-s390/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-s390/bitops.h
+--- a/include/asm-s390/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-s390/bitops.h
+@@ -769,6 +769,7 @@ static inline int sched_find_first_bit(u
+ }
+ 
+ #include <asm-generic/bitops/fls.h>
++#include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #include <asm-generic/bitops/hweight.h>
+diff -puN include/asm-sh/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-sh/bitops.h
+--- a/include/asm-sh/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-sh/bitops.h
+@@ -95,6 +95,7 @@ static inline unsigned long ffz(unsigned
+ #include <asm-generic/bitops/ext2-atomic.h>
+ #include <asm-generic/bitops/minix.h>
+ #include <asm-generic/bitops/fls.h>
++#include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #endif /* __KERNEL__ */
+diff -puN include/asm-sparc64/bitops.h~implement-__fls-on-all-64-bit-archs include/asm-sparc64/bitops.h
+--- a/include/asm-sparc64/bitops.h~implement-__fls-on-all-64-bit-archs
++++ a/include/asm-sparc64/bitops.h
+@@ -34,6 +34,7 @@ extern void change_bit(unsigned long nr,
+ #include <asm-generic/bitops/ffz.h>
+ #include <asm-generic/bitops/__ffs.h>
+ #include <asm-generic/bitops/fls.h>
++#include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #ifdef __KERNEL__
+_
+
+Patches currently in -mm which might be from heukelum@mailshack.com are
+
+git-x86.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
+
