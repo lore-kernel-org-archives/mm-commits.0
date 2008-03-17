@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-handle-leap-second-via-timer.patch added to -mm tree
-Date: Mon, 17 Mar 2008 15:19:20 -0700
-Message-ID: <200803172219.m2HMJKCP001177@imap1.linux-foundation.org>
+Subject: + idr-create-idr_layer_cache-at-boot-time.patch added to -mm tree
+Date: Mon, 17 Mar 2008 15:36:17 -0700
+Message-ID: <200803172236.m2HMaH9x001896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751938AbYCQWgh (ORCPT
+	by vger.kernel.org with ESMTP id S1753374AbYCQWgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 18:36:37 -0400
+	Mon, 17 Mar 2008 18:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     ntp: handle leap second via timer
+     idr: create idr_layer_cache at boot time
 has been added to the -mm tree.  Its filename is
-     ntp-handle-leap-second-via-timer.patch
+     idr-create-idr_layer_cache-at-boot-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,304 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: handle leap second via timer
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: idr: create idr_layer_cache at boot time
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Remove the leap second handling from second_overflow(), which doesn't has to
-check for it every second anymore.  With CONFIG_NO_HZ this also makes sure the
-leap second is handled close to the full second.  Additionally this makes it
-possible to abort a leap second properly by resetting the STA_INS/STA_DEL
-status bits.
+Avoid a possible kmem_cache_create() failure by creating idr_layer_cache
+unconditionary at boot time rather than creating it on-demand when idr_init()
+is called the first time.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This change also enables us to eliminate the check every time idr_init() is
+called.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    2 
- include/linux/timex.h       |    1 
- kernel/time/ntp.c           |  133 +++++++++++++++++++++++-----------
- kernel/time/timekeeping.c   |    4 -
- 4 files changed, 95 insertions(+), 45 deletions(-)
+ include/linux/idr.h |    2 ++
+ init/main.c         |    2 ++
+ lib/idr.c           |   10 ++++------
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/clocksource.h~ntp-handle-leap-second-via-timer include/linux/clocksource.h
---- a/include/linux/clocksource.h~ntp-handle-leap-second-via-timer
-+++ a/include/linux/clocksource.h
-@@ -93,6 +93,8 @@ struct clocksource {
- #endif
- };
+diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time include/linux/idr.h
+--- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time
++++ a/include/linux/idr.h
+@@ -115,4 +115,6 @@ void ida_remove(struct ida *ida, int id)
+ void ida_destroy(struct ida *ida);
+ void ida_init(struct ida *ida);
  
-+extern struct clocksource *clock;	/* current clocksource */
++void __init init_id_cache(void);
 +
- /*
-  * Clock source flags bits::
-  */
-diff -puN include/linux/timex.h~ntp-handle-leap-second-via-timer include/linux/timex.h
---- a/include/linux/timex.h~ntp-handle-leap-second-via-timer
-+++ a/include/linux/timex.h
-@@ -212,6 +212,7 @@ extern long time_esterror;	/* estimated 
+ #endif /* __IDR_H__ */
+diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time init/main.c
+--- a/init/main.c~idr-create-idr_layer_cache-at-boot-time
++++ a/init/main.c
+@@ -58,6 +58,7 @@
+ #include <linux/kthread.h>
+ #include <linux/sched.h>
+ #include <linux/signal.h>
++#include <linux/idr.h>
  
- extern long time_adjust;	/* The amount of adjtime left */
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -610,6 +611,7 @@ asmlinkage void __init start_kernel(void
+ 	enable_debug_pagealloc();
+ 	cpu_hotplug_init();
+ 	kmem_cache_init();
++	init_id_cache();
+ 	setup_per_cpu_pageset();
+ 	numa_policy_init();
+ 	if (late_time_init)
+diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time lib/idr.c
+--- a/lib/idr.c~idr-create-idr_layer_cache-at-boot-time
++++ a/lib/idr.c
+@@ -585,12 +585,11 @@ static void idr_cache_ctor(struct kmem_c
+ 	memset(idr_layer, 0, sizeof(struct idr_layer));
+ }
  
-+extern void ntp_init(void);
- extern void ntp_clear(void);
+-static  int init_id_cache(void)
++void __init init_id_cache(void)
+ {
+-	if (!idr_layer_cache)
+-		idr_layer_cache = kmem_cache_create("idr_layer_cache",
+-			sizeof(struct idr_layer), 0, 0, idr_cache_ctor);
+-	return 0;
++	idr_layer_cache = kmem_cache_create("idr_layer_cache",
++				sizeof(struct idr_layer), 0, SLAB_PANIC,
++				idr_cache_ctor);
+ }
  
  /**
-diff -puN kernel/time/ntp.c~ntp-handle-leap-second-via-timer kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-handle-leap-second-via-timer
-+++ a/kernel/time/ntp.c
-@@ -16,6 +16,7 @@
- #include <linux/hrtimer.h>
- #include <linux/capability.h>
- #include <linux/math64.h>
-+#include <linux/clocksource.h>
- #include <asm/timex.h>
- 
- /*
-@@ -26,6 +27,8 @@ unsigned long tick_nsec;			/* ACTHZ peri
- u64 tick_length;
- static u64 tick_length_base;
- 
-+static struct hrtimer leap_timer;
-+
- #define MAX_TICKADJ		500		/* microsecs */
- #define MAX_TICKADJ_SCALED	(((u64)(MAX_TICKADJ * NSEC_PER_USEC) << \
- 				  NTP_SCALE_SHIFT) / NTP_INTERVAL_FREQ)
-@@ -120,64 +123,70 @@ void ntp_clear(void)
- }
- 
- /*
-- * this routine handles the overflow of the microsecond field
-- *
-- * The tricky bits of code to handle the accurate clock support
-- * were provided by Dave Mills (Mills@UDEL.EDU) of NTP fame.
-- * They were originally developed for SUN and DEC kernels.
-- * All the kudos should go to Dave for this stuff.
-+ * Leap second processing. If in leap-insert state at the end of the
-+ * day, the system clock is set back one second; if in leap-delete
-+ * state, the system clock is set ahead one second.
+@@ -602,7 +601,6 @@ static  int init_id_cache(void)
   */
--void second_overflow(void)
-+static enum hrtimer_restart ntp_leap_second(struct hrtimer *timer)
+ void idr_init(struct idr *idp)
  {
--	s64 time_adj;
-+	enum hrtimer_restart res = HRTIMER_NORESTART;
- 
--	/* Bump the maxerror field */
--	time_maxerror += MAXFREQ / NSEC_PER_USEC;
--	if (time_maxerror > NTP_PHASE_LIMIT) {
--		time_maxerror = NTP_PHASE_LIMIT;
--		time_status |= STA_UNSYNC;
--	}
-+	write_seqlock_irq(&xtime_lock);
- 
--	/*
--	 * Leap second processing. If in leap-insert state at the end of the
--	 * day, the system clock is set back one second; if in leap-delete
--	 * state, the system clock is set ahead one second. The microtime()
--	 * routine or external clock driver will insure that reported time is
--	 * always monotonic. The ugly divides should be replaced.
--	 */
- 	switch (time_state) {
- 	case TIME_OK:
--		if (time_status & STA_INS)
--			time_state = TIME_INS;
--		else if (time_status & STA_DEL)
--			time_state = TIME_DEL;
- 		break;
- 	case TIME_INS:
--		if (xtime.tv_sec % 86400 == 0) {
--			xtime.tv_sec--;
--			wall_to_monotonic.tv_sec++;
--			time_state = TIME_OOP;
--			printk(KERN_NOTICE "Clock: inserting leap second "
--					"23:59:60 UTC\n");
--		}
-+		xtime.tv_sec--;
-+		wall_to_monotonic.tv_sec++;
-+		time_state = TIME_OOP;
-+		printk(KERN_NOTICE "Clock: "
-+		       "inserting leap second 23:59:60 UTC\n");
-+		leap_timer.expires = ktime_add_ns(leap_timer.expires,
-+						  NSEC_PER_SEC);
-+		res = HRTIMER_RESTART;
- 		break;
- 	case TIME_DEL:
--		if ((xtime.tv_sec + 1) % 86400 == 0) {
--			xtime.tv_sec++;
--			time_tai--;
--			wall_to_monotonic.tv_sec--;
--			time_state = TIME_WAIT;
--			printk(KERN_NOTICE "Clock: deleting leap second "
--					"23:59:59 UTC\n");
--		}
-+		xtime.tv_sec++;
-+		time_tai--;
-+		wall_to_monotonic.tv_sec--;
-+		time_state = TIME_WAIT;
-+		printk(KERN_NOTICE "Clock: "
-+		       "deleting leap second 23:59:59 UTC\n");
- 		break;
- 	case TIME_OOP:
- 		time_tai++;
- 		time_state = TIME_WAIT;
--		break;
-+		/* fall through */
- 	case TIME_WAIT:
- 		if (!(time_status & (STA_INS | STA_DEL)))
- 			time_state = TIME_OK;
-+		break;
-+	}
-+	update_vsyscall(&xtime, clock);
-+
-+	write_sequnlock_irq(&xtime_lock);
-+
-+	return res;
-+}
-+
-+/*
-+ * this routine handles the overflow of the microsecond field
-+ *
-+ * The tricky bits of code to handle the accurate clock support
-+ * were provided by Dave Mills (Mills@UDEL.EDU) of NTP fame.
-+ * They were originally developed for SUN and DEC kernels.
-+ * All the kudos should go to Dave for this stuff.
-+ */
-+void second_overflow(void)
-+{
-+	s64 time_adj;
-+
-+	/* Bump the maxerror field */
-+	time_maxerror += MAXFREQ / NSEC_PER_USEC;
-+	if (time_maxerror > NTP_PHASE_LIMIT) {
-+		time_maxerror = NTP_PHASE_LIMIT;
-+		time_status |= STA_UNSYNC;
- 	}
- 
- 	/*
-@@ -268,7 +277,7 @@ static inline void notify_cmos_timer(voi
- int do_adjtimex(struct timex *txc)
- {
- 	struct timespec ts;
--	long save_adjust;
-+	long save_adjust, sec;
- 	int result;
- 
- 	/* In order to modify anything, you gotta be super-user! */
-@@ -289,6 +298,10 @@ int do_adjtimex(struct timex *txc)
- 		    txc->tick > 1100000/USER_HZ)
- 			return -EINVAL;
- 
-+	if (time_state != TIME_OK && txc->modes & ADJ_STATUS)
-+		hrtimer_cancel(&leap_timer);
-+	getnstimeofday(&ts);
-+
- 	write_seqlock_irq(&xtime_lock);
- 
- 	/* Save for later - semantics of adjtime is to return old value */
-@@ -305,6 +318,34 @@ int do_adjtimex(struct timex *txc)
- 			/* only set allowed bits */
- 			time_status &= STA_RONLY;
- 			time_status |= txc->status & ~STA_RONLY;
-+
-+			switch (time_state) {
-+			case TIME_OK:
-+			start_timer:
-+				sec = ts.tv_sec;
-+				if (time_status & STA_INS) {
-+					time_state = TIME_INS;
-+					sec += 86400 - sec % 86400;
-+					hrtimer_start(&leap_timer, ktime_set(sec, 0), HRTIMER_MODE_ABS);
-+				} else if (time_status & STA_DEL) {
-+					time_state = TIME_DEL;
-+					sec += 86400 - (sec + 1) % 86400;
-+					hrtimer_start(&leap_timer, ktime_set(sec, 0), HRTIMER_MODE_ABS);
-+				}
-+				break;
-+			case TIME_INS:
-+			case TIME_DEL:
-+				time_state = TIME_OK;
-+				goto start_timer;
-+				break;
-+			case TIME_WAIT:
-+				if (!(time_status & (STA_INS | STA_DEL)))
-+					time_state = TIME_OK;
-+				break;
-+			case TIME_OOP:
-+				hrtimer_restart(&leap_timer);
-+				break;
-+			}
- 		}
- 
- 		if (txc->modes & ADJ_NANO)
-@@ -384,7 +425,6 @@ int do_adjtimex(struct timex *txc)
- 	txc->stbcnt	   = 0;
- 	write_sequnlock_irq(&xtime_lock);
- 
--	getnstimeofday(&ts);
- 	txc->time.tv_sec = ts.tv_sec;
- 	txc->time.tv_usec = ts.tv_nsec;
- 	if (!(time_status & STA_NANO))
-@@ -402,3 +442,10 @@ static int __init ntp_tick_adj_setup(cha
+-	init_id_cache();
+ 	memset(idp, 0, sizeof(struct idr));
+ 	spin_lock_init(&idp->lock);
  }
- 
- __setup("ntp_tick_adj=", ntp_tick_adj_setup);
-+
-+void __init ntp_init(void)
-+{
-+	ntp_clear();
-+	hrtimer_init(&leap_timer, CLOCK_REALTIME, HRTIMER_MODE_ABS);
-+	leap_timer.function = ntp_leap_second;
-+}
-diff -puN kernel/time/timekeeping.c~ntp-handle-leap-second-via-timer kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~ntp-handle-leap-second-via-timer
-+++ a/kernel/time/timekeeping.c
-@@ -53,7 +53,7 @@ void update_xtime_cache(u64 nsec)
- 	timespec_add_ns(&xtime_cache, nsec);
- }
- 
--static struct clocksource *clock; /* pointer to current clocksource */
-+struct clocksource *clock;
- 
- 
- #ifdef CONFIG_GENERIC_TIME
-@@ -241,7 +241,7 @@ void __init timekeeping_init(void)
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
--	ntp_clear();
-+	ntp_init();
- 
- 	clock = clocksource_get_next();
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-x86.patch
-git-watchdog.patch
-m68k-replace-remaining-__function__-occurences.patch
-fs-hfsplus-proper-externs.patch
-affs-handle-match_strdup-failure.patch
-hfs-handle-match_strdup-failure.patch
-hfsplus-handle-match_strdup-failure.patch
-fs-affs-filec-use-bug_on.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64.patch
-rename-div64_64-to-div64_u64-mm.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
+block-fix-blk_register_queue-return-value.patch
+ext2-improve-ext2_readdir-return-value.patch
+ext2-use-ext2_group_first_block_no.patch
+ext2-use-ext2_fsblk_t-type.patch
+ext3-use-ext3_group_first_block_no.patch
+ext3-add-missing-ext3_journal_stop.patch
+ext3-use-ext3_get_group_desc.patch
+ext3-check-ext3_journal_get_write_access-errors.patch
+idr-create-idr_layer_cache-at-boot-time.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
 
