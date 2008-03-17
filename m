@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-kconfig-help.patch added to -mm tree
-Date: Mon, 17 Mar 2008 16:39:48 -0700
-Message-ID: <200803172339.m2HNdmaZ004188@imap1.linux-foundation.org>
+Subject: + use-__fls-for-fls64-on-64-bit-archs.patch added to -mm tree
+Date: Mon, 17 Mar 2008 16:39:22 -0700
+Message-ID: <200803172339.m2HNdN7h004185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752043AbYCQXka (ORCPT
+	by vger.kernel.org with ESMTP id S1752051AbYCQXlZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 19:40:30 -0400
+	Mon, 17 Mar 2008 19:41:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net
+Cc: heukelum@mailshack.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, heiko.carstens@de.ibm.com, heukelum@fastmail.fm, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, lethal@linux-sh.org, matthew@wil.cx, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     rtc: fix kconfig help
+     Use __fls for fls64 on 64-bit archs
 has been added to the -mm tree.  Its filename is
-     rtc-fix-kconfig-help.patch
+     use-__fls-for-fls64-on-64-bit-archs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix kconfig help
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: Use __fls for fls64 on 64-bit archs
+From: Alexander van Heukelum <heukelum@mailshack.com>
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Use __fls for fls64 on 64-bit archs.  The implementation for 64-bit archs is
+moved from x86_64 to asm-generic.
+
+Signed-off-by: Alexander van Heukelum <heukelum@fastmail.fm>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/bitops/fls64.h |   22 ++++++++++++++++++++++
+ include/asm-x86/bitops_64.h        |   15 ++-------------
+ 2 files changed, 24 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-fix-kconfig-help drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-fix-kconfig-help
-+++ a/drivers/rtc/Kconfig
-@@ -16,7 +16,7 @@ menuconfig RTC_CLASS
- 	  probably want to enable one or more of the interfaces below.
+diff -puN include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-generic/bitops/fls64.h
+--- a/include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs
++++ a/include/asm-generic/bitops/fls64.h
+@@ -3,6 +3,18 @@
  
- 	  This driver can also be built as a module. If so, the module
--	  will be called rtc-class.
-+	  will be called rtc-core.
+ #include <asm/types.h>
  
- if RTC_CLASS
++/**
++ * fls64 - find last set bit in a 64-bit word
++ * @x: the word to search
++ *
++ * This is defined in a similar way as the libc and compiler builtin
++ * ffsll, but returns the position of the most significant set bit.
++ *
++ * fls64(value) returns 0 if value is 0 or the position of the last
++ * set bit if value is nonzero. The last (most significant) bit is
++ * at position 64.
++ */
++#if BITS_PER_LONG == 32
+ static inline int fls64(__u64 x)
+ {
+ 	__u32 h = x >> 32;
+@@ -10,5 +22,15 @@ static inline int fls64(__u64 x)
+ 		return fls(h) + 32;
+ 	return fls(x);
+ }
++#elif BITS_PER_LONG == 64
++static inline int fls64(__u64 x)
++{
++	if (x == 0)
++		return 0;
++	return __fls(x) + 1;
++}
++#else
++#error BITS_PER_LONG not 32 or 64
++#endif
  
-_
-
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
-
-rtc-fix-kconfig-help.patch
-
+ #endif /* _ASM_GENERIC_BITOPS_FLS64_H_ */
+diff -puN include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-x86/bitops_64.h
+--- a/include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs
++++ a/include/asm-x86/bitops_64.h
+@@ -112,19 +112,6 @@ static inline int ffs(int x)
+ }
+ 
+ /**
+- * fls64 - find last bit set in 64 bit word
+- * @x: the word to search
+- *
+- * This is defined the same way as fls.
+- */
+-static inline int fls64(__u64 x)
+-{
+-	if (x == 0)
+-		return 0;
+-	return __fls(x) + 1;
+-}
