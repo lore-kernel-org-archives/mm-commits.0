@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + idr-create-idr_layer_cache-at-boot-time.patch added to -mm tree
-Date: Mon, 17 Mar 2008 15:36:17 -0700
-Message-ID: <200803172236.m2HMaH9x001896@imap1.linux-foundation.org>
+Subject: + idr-create-idr_layer_cache-at-boot-time-fix.patch added to -mm tree
+Date: Mon, 17 Mar 2008 15:36:20 -0700
+Message-ID: <200803172236.m2HMaKtF001900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753374AbYCQWgr (ORCPT
+	by vger.kernel.org with ESMTP id S1753672AbYCQWgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 18:36:47 -0400
+	Mon, 17 Mar 2008 18:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com
 
 
 The patch titled
-     idr: create idr_layer_cache at boot time
+     idr-create-idr_layer_cache-at-boot-time-fix
 has been added to the -mm tree.  Its filename is
-     idr-create-idr_layer_cache-at-boot-time.patch
+     idr-create-idr_layer_cache-at-boot-time-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,192 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: create idr_layer_cache at boot time
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: idr-create-idr_layer_cache-at-boot-time-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid a possible kmem_cache_create() failure by creating idr_layer_cache
-unconditionary at boot time rather than creating it on-demand when idr_init()
-is called the first time.
+Now init_id_cache() is global symbol it needs a better name.  Rename it to
+idr_init_cache().
 
-This change also enables us to eliminate the check every time idr_init() is
-called.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    2 ++
- init/main.c         |    2 ++
- lib/idr.c           |   10 ++++------
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/idr.h |    2 +-
+ init/main.c         |    2 +-
+ lib/idr.c           |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time include/linux/idr.h
---- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time
+diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix include/linux/idr.h
+--- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix
 +++ a/include/linux/idr.h
-@@ -115,4 +115,6 @@ void ida_remove(struct ida *ida, int id)
+@@ -115,6 +115,6 @@ void ida_remove(struct ida *ida, int id)
  void ida_destroy(struct ida *ida);
  void ida_init(struct ida *ida);
  
-+void __init init_id_cache(void);
-+
- #endif /* __IDR_H__ */
-diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time init/main.c
---- a/init/main.c~idr-create-idr_layer_cache-at-boot-time
-+++ a/init/main.c
-@@ -58,6 +58,7 @@
- #include <linux/kthread.h>
- #include <linux/sched.h>
- #include <linux/signal.h>
-+#include <linux/idr.h>
+-void __init init_id_cache(void);
++void __init idr_init_cache(void);
  
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -610,6 +611,7 @@ asmlinkage void __init start_kernel(void
+ #endif /* __IDR_H__ */
+diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time-fix init/main.c
+--- a/init/main.c~idr-create-idr_layer_cache-at-boot-time-fix
++++ a/init/main.c
+@@ -611,7 +611,7 @@ asmlinkage void __init start_kernel(void
  	enable_debug_pagealloc();
  	cpu_hotplug_init();
  	kmem_cache_init();
-+	init_id_cache();
+-	init_id_cache();
++	idr_init_cache();
  	setup_per_cpu_pageset();
  	numa_policy_init();
  	if (late_time_init)
-diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time lib/idr.c
---- a/lib/idr.c~idr-create-idr_layer_cache-at-boot-time
+diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time-fix lib/idr.c
+--- a/lib/idr.c~idr-create-idr_layer_cache-at-boot-time-fix
 +++ a/lib/idr.c
-@@ -585,12 +585,11 @@ static void idr_cache_ctor(struct kmem_c
+@@ -585,7 +585,7 @@ static void idr_cache_ctor(struct kmem_c
  	memset(idr_layer, 0, sizeof(struct idr_layer));
  }
  
--static  int init_id_cache(void)
-+void __init init_id_cache(void)
+-void __init init_id_cache(void)
++void __init idr_init_cache(void)
  {
--	if (!idr_layer_cache)
--		idr_layer_cache = kmem_cache_create("idr_layer_cache",
--			sizeof(struct idr_layer), 0, 0, idr_cache_ctor);
--	return 0;
-+	idr_layer_cache = kmem_cache_create("idr_layer_cache",
-+				sizeof(struct idr_layer), 0, SLAB_PANIC,
-+				idr_cache_ctor);
- }
- 
- /**
-@@ -602,7 +601,6 @@ static  int init_id_cache(void)
-  */
- void idr_init(struct idr *idp)
- {
--	init_id_cache();
- 	memset(idp, 0, sizeof(struct idr));
- 	spin_lock_init(&idp->lock);
- }
+ 	idr_layer_cache = kmem_cache_create("idr_layer_cache",
+ 				sizeof(struct idr_layer), 0, SLAB_PANIC,
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-block-fix-blk_register_queue-return-value.patch
-ext2-improve-ext2_readdir-return-value.patch
-ext2-use-ext2_group_first_block_no.patch
-ext2-use-ext2_fsblk_t-type.patch
-ext3-use-ext3_group_first_block_no.patch
-ext3-add-missing-ext3_journal_stop.patch
-ext3-use-ext3_get_group_desc.patch
-ext3-check-ext3_journal_get_write_access-errors.patch
-idr-create-idr_layer_cache-at-boot-time.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
+git-drm.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+git-input.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-mips-git-rejects.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
