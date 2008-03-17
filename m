@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch added to -mm tree
-Date: Mon, 17 Mar 2008 13:45:18 -0700
-Message-ID: <200803172045.m2HKjIbJ030229@imap1.linux-foundation.org>
+Subject: + git-mips-git-rejects.patch added to -mm tree
+Date: Mon, 17 Mar 2008 13:54:35 -0700
+Message-ID: <200803172054.m2HKsZZh030506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733AbYCQUpw (ORCPT
+	by vger.kernel.org with ESMTP id S1752451AbYCQUzO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:45:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2HKkUMe010955
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Mar 2008 13:46:31 -0700
+	Mon, 17 Mar 2008 16:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
+     git-mips-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+     git-mips-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,109 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
+Subject: git-mips-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-
-
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/amso1100/c2_provider.c |    8 ++++----
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    8 ++++----
- drivers/infiniband/hw/nes/nes_verbs.c        |    3 ---
- 3 files changed, 8 insertions(+), 11 deletions(-)
+ arch/mips/kernel/traps.c |    6 +-----
+ arch/mips/mm/c-r4k.c     |    6 +-----
+ arch/mips/mm/uasm.c      |    6 +-----
+ arch/mips/mm/uasm.h      |   26 ++++++++------------------
+ 4 files changed, 11 insertions(+), 33 deletions(-)
 
-diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/amso1100/c2_provider.c
---- a/drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -524,7 +524,7 @@ static ssize_t show_rev(struct device *d
- 			char *buf)
+diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~git-mips-git-rejects
++++ a/arch/mips/kernel/traps.c
+@@ -1306,9 +1306,6 @@ int cp0_compare_irq;
+ int cp0_perfcount_irq;
+ EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
+ 
+-<<<<<<< HEAD:arch/mips/kernel/traps.c
+-void __cpuinit per_cpu_trap_init(void)
+-=======
+ static int __initdata noulri;
+ 
+ static int __init ulri_disable(char *s)
+@@ -1320,8 +1317,7 @@ static int __init ulri_disable(char *s)
+ }
+ __setup("noulri", ulri_disable);
+ 
+-void __init per_cpu_trap_init(void)
+->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
++void __cpuinit per_cpu_trap_init(void)
  {
- 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%x\n", c2dev->props.hw_ver);
- }
- 
-@@ -532,7 +532,7 @@ static ssize_t show_fw_ver(struct device
- 			   char *buf)
- {
- 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%x.%x.%x\n",
- 		       (int) (c2dev->props.fw_ver >> 32),
- 		       (int) (c2dev->props.fw_ver >> 16) & 0xffff,
-@@ -542,14 +542,14 @@ static ssize_t show_fw_ver(struct device
- static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
- 			char *buf)
- {
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "AMSO1100\n");
- }
- 
- static ssize_t show_board(struct device *dev, struct device_attribute *attr,
- 			  char *buf)
- {
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%.*s\n", 32, "AMSO1100 Board ID");
- }
- 
-diff -puN drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/cxgb3/iwch_provider.c
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1046,7 +1046,7 @@ static ssize_t show_rev(struct device *d
- {
- 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
- 						 ibdev.dev);
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	return sprintf(buf, "%d\n", iwch_dev->rdev.t3cdev_p->type);
- }
- 
-@@ -1057,7 +1057,7 @@ static ssize_t show_fw_ver(struct device
- 	struct ethtool_drvinfo info;
- 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
- 
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
- 	return sprintf(buf, "%s\n", info.fw_version);
- }
-@@ -1070,7 +1070,7 @@ static ssize_t show_hca(struct device *d
- 	struct ethtool_drvinfo info;
- 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
- 
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
- 	return sprintf(buf, "%s\n", info.driver);
- }
-@@ -1080,7 +1080,7 @@ static ssize_t show_board(struct device 
- {
- 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
- 						 ibdev.dev);
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	return sprintf(buf, "%x.%x\n", iwch_dev->rdev.rnic_info.pdev->vendor,
- 		       iwch_dev->rdev.rnic_info.pdev->device);
- }
-diff -puN drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/nes/nes_verbs.c
---- a/drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -3904,9 +3904,6 @@ void nes_unregister_ofa_device(struct ne
- 	struct nes_vnic *nesvnic = nesibdev->nesvnic;
- 	int i;
- 
--	if (nesibdev == NULL)
--		return;
--
- 	for (i = 0; i < ARRAY_SIZE(nes_dev_attributes); ++i) {
- 		device_remove_file(&nesibdev->ibdev.dev, nes_dev_attributes[i]);
+ 	unsigned int cpu = smp_processor_id();
+ 	unsigned int status_set = ST0_CU0;
+diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
++++ a/arch/mips/mm/c-r4k.c
+@@ -1207,9 +1207,6 @@ void au1x00_fixup_config_od(void)
  	}
+ }
+ 
+-<<<<<<< HEAD:arch/mips/mm/c-r4k.c
+-static void __cpuinit coherency_setup(void)
+-=======
+ static int __initdata cca = -1;
+ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL_GPL(_page_cachable_default);
+@@ -1223,8 +1220,7 @@ static int __init cca_setup(char *str)
+ 
+ __setup("cca=", cca_setup);
+ 
+-static void __init coherency_setup(void)
+->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
++static void __cpuinit coherency_setup(void)
+ {
+ 	if (cca < 0 || cca > 7)
+ 		cca = read_c0_config() & CONF_CM_CMASK;
+diff -puN arch/mips/mm/uasm.c~git-mips-git-rejects arch/mips/mm/uasm.c
+--- a/arch/mips/mm/uasm.c~git-mips-git-rejects
++++ a/arch/mips/mm/uasm.c
+@@ -558,10 +558,7 @@ uasm_il_beqzl(u32 **p, struct uasm_reloc
+ 	uasm_i_beqzl(p, reg, 0);
+ }
+ 
+-<<<<<<< HEAD:arch/mips/mm/uasm.c
+ void __cpuinit
+-=======
+-void __init
+ uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
+ 	    unsigned int reg2, int lid)
+ {
+@@ -569,8 +566,7 @@ uasm_il_bne(u32 **p, struct uasm_reloc *
+ 	uasm_i_bne(p, reg1, reg2, 0);
+ }
+ 
+-void __init
+->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.c
++void __cpuinit
+ uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid)
+ {
+ 	uasm_r_mips_pc16(r, *p, lid);
+diff -puN arch/mips/mm/uasm.h~git-mips-git-rejects arch/mips/mm/uasm.h
+--- a/arch/mips/mm/uasm.h~git-mips-git-rejects
++++ a/arch/mips/mm/uasm.h
+@@ -175,29 +175,19 @@ void uasm_copy_handler(struct uasm_reloc
+ int uasm_insn_has_bdelay(struct uasm_reloc *rel, u32 *addr);
+ 
+ /* Convenience functions for labeled branches. */
+-<<<<<<< HEAD:arch/mips/mm/uasm.h
+-void uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
+-void uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-=======
+-void __init
++void __cpuinit
+ uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
+-void __init
++void __cpuinit uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
++void __cpuinit
+ uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
+ 	    unsigned int reg2, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,12 +183,12 @@ git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 git-input.patch
-drivers-input-touchscreen-ads7846c-fix-uninitialized-var-warning.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-mips-git-rejects.patch
 git-net.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
@@ -194,9 +211,7 @@ drivers-scsi-hptiopc-fix-build-warning.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-add-usb-serial-spcp8x5-driver.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-drivers-usb-core-devioc-suppress-warning-with-64k-page_size.patch
 git-v9fs.patch
 git-watchdog.patch
 git-semaphore-git-rejects.patch
