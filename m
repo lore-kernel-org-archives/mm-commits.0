@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-pci-remove-unused-variable.patch added to -mm tree
-Date: Mon, 17 Mar 2008 16:29:05 -0700
-Message-ID: <200803172329.m2HNT5lE003778@imap1.linux-foundation.org>
+Subject: + net-ipv6-ndiscc-remove-unused-variable.patch added to -mm tree
+Date: Mon, 17 Mar 2008 16:29:03 -0700
+Message-ID: <200803172329.m2HNT470003775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755532AbYCQX3r (ORCPT
+	by vger.kernel.org with ESMTP id S1755521AbYCQX3n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 19:29:47 -0400
+	Mon, 17 Mar 2008 19:29:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, perex@suse.cz, tiwai@suse.de
+Cc: julia@diku.dk, davem@davemloft.net, pekkas@netcore.fi
 
 
 The patch titled
-     sound/pci: remove unused variable
+     net/ipv6/ndisc.c: remove unused variable
 has been added to the -mm tree.  Its filename is
-     sound-pci-remove-unused-variable.patch
+     net-ipv6-ndiscc-remove-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/pci: remove unused variable
+Subject: net/ipv6/ndisc.c: remove unused variable
 From: Julia Lawall <julia@diku.dk>
 
-The variables change and is_capture are initialized but never used otherwise.
+The variable hlen is initialized but never used otherwise.
 
 The semantic patch that makes this change is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -60,32 +60,33 @@ extern T i;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Pekka Savola <pekkas@netcore.fi>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/ice1712/pontis.c |    2 --
+ net/ipv6/ndisc.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN sound/pci/ice1712/pontis.c~sound-pci-remove-unused-variable sound/pci/ice1712/pontis.c
---- a/sound/pci/ice1712/pontis.c~sound-pci-remove-unused-variable
-+++ a/sound/pci/ice1712/pontis.c
-@@ -440,14 +440,12 @@ static int cs_source_put(struct snd_kcon
- {
- 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
- 	unsigned char val;
--	int change = 0;
+diff -puN net/ipv6/ndisc.c~net-ipv6-ndiscc-remove-unused-variable net/ipv6/ndisc.c
+--- a/net/ipv6/ndisc.c~net-ipv6-ndiscc-remove-unused-variable
++++ a/net/ipv6/ndisc.c
+@@ -1420,7 +1420,6 @@ void ndisc_send_redirect(struct sk_buff 
+ 	u8 *opt;
+ 	int rd_len;
+ 	int err;
+-	int hlen;
+ 	u8 ha_buf[MAX_ADDR_LEN], *ha = NULL;
  
- 	mutex_lock(&ice->gpio_mutex);
- 	if (ucontrol->value.enumerated.item[0] != ice->gpio.saved[0]) {
- 		ice->gpio.saved[0] = ucontrol->value.enumerated.item[0] & 3;
- 		val = 0x80 | (ice->gpio.saved[0] << 3);
- 		spi_write(ice, CS_DEV, 0x04, val);
--		change = 1;
+ 	dev = skb->dev;
+@@ -1491,7 +1490,6 @@ void ndisc_send_redirect(struct sk_buff 
+ 		return;
  	}
- 	mutex_unlock(&ice->gpio_mutex);
- 	return change;
+ 
+-	hlen = 0;
+ 
+ 	skb_reserve(buff, LL_RESERVED_SPACE(dev));
+ 	ip6_nd_hdr(sk, buff, dev, &saddr_buf, &ipv6_hdr(skb)->saddr,
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
